@@ -34,6 +34,7 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.ElementChangedListener;
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
+import com.google.dart.tools.core.utilities.resource.IResourceUtilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -710,6 +711,34 @@ public class DeltaProcessor {
   }
 
   /**
+   * This method is used by the JDT, it is left here commented out, for possible future work in this
+   * file regarding non-Dart resource change events.
+   * <p>
+   * Generic processing for elements with changed contents:
+   * <ul>
+   * <li>The element is closed such that any subsequent accesses will re-open the element reflecting
+   * its new structure.
+   * <li>An entry is made in the delta reporting a content change (K_CHANGE with F_CONTENT flag
+   * set).
+   * </ul>
+   */
+//  private void nonDartResourcesChanged(DartElementImpl element, IResourceDelta delta)
+//      throws DartModelException {
+//    switch (element.getElementType()) {
+//      case DartElement.DART_PROJECT:
+//        currentDelta().addResourceDelta(delta);
+//        return;
+//    }
+//    DartElementDeltaImpl current = currentDelta();
+//    DartElementDeltaImpl elementDelta = current.find(element);
+//    if (elementDelta == null) {
+//      // don't use find after creating the delta as it can be null (see
+//      // https://bugs.eclipse.org/bugs/show_bug.cgi?id=63434)
+//      elementDelta = current.changed(element, DartElementDelta.F_CONTENT);
+//    }
+//  }
+
+  /**
    * Merges all awaiting deltas, and returns the merged {@link DartElementDelta}.
    */
   private DartElementDelta mergeDeltas(Collection<DartElementDelta> deltas) {
@@ -757,34 +786,6 @@ public class DeltaProcessor {
     }
     return null;
   }
-
-  /**
-   * This method is used by the JDT, it is left here commented out, for possible future work in this
-   * file regarding non-Dart resource change events.
-   * <p>
-   * Generic processing for elements with changed contents:
-   * <ul>
-   * <li>The element is closed such that any subsequent accesses will re-open the element reflecting
-   * its new structure.
-   * <li>An entry is made in the delta reporting a content change (K_CHANGE with F_CONTENT flag
-   * set).
-   * </ul>
-   */
-//  private void nonDartResourcesChanged(DartElementImpl element, IResourceDelta delta)
-//      throws DartModelException {
-//    switch (element.getElementType()) {
-//      case DartElement.DART_PROJECT:
-//        currentDelta().addResourceDelta(delta);
-//        return;
-//    }
-//    DartElementDeltaImpl current = currentDelta();
-//    DartElementDeltaImpl elementDelta = current.find(element);
-//    if (elementDelta == null) {
-//      // don't use find after creating the delta as it can be null (see
-//      // https://bugs.eclipse.org/bugs/show_bug.cgi?id=63434)
-//      elementDelta = current.changed(element, DartElementDelta.F_CONTENT);
-//    }
-//  }
 
   /**
    * Notifies the list of {@link ElementChangedListener}s. The list of listeners is passed from
@@ -1124,8 +1125,9 @@ public class DeltaProcessor {
       List<String> libraryNames = LibraryReferenceFinder.findInHTML(IFileUtilities.getContents((IFile) htmlFile));
 
       if (!libraryNames.isEmpty()) {
+        List<String> libraryPaths = IResourceUtilities.getResolvedFilePaths(htmlFile, libraryNames);
         String key = htmlFile.getLocation().toPortableString();
-        DartCore.create(htmlFile.getProject()).updateHtmlMapping(key, libraryNames, true);
+        DartCore.create(htmlFile.getProject()).updateHtmlMapping(key, libraryPaths, true);
         return true;
       }
     } catch (DartModelException e) {

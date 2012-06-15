@@ -37,6 +37,7 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
+import com.google.dart.tools.core.utilities.resource.IResourceUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.resources.IFile;
@@ -417,7 +418,8 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
    * Return the mapping for the html files contained in this project. If the mapping has not been
    * created, it will do so and return the result.
    * 
-   * @return the table with the html file to library mapping
+   * @return the table with the html file to library mapping html file location string, list of
+   *         library resource location string
    * @throws CoreException
    */
   @Override
@@ -442,7 +444,10 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
           try {
             List<String> libraryNames = LibraryReferenceFinder.findInHTML(IFileUtilities.getContents((IFile) resource));
             if (!libraryNames.isEmpty()) {
-              mapping.put(resource.getLocation().toPortableString(), libraryNames);
+              List<String> libraryPaths = IResourceUtilities.getResolvedFilePaths(
+                  resource,
+                  libraryNames);
+              mapping.put(resource.getLocation().toPortableString(), libraryPaths);
             }
           } catch (IOException exception) {
             DartCore.logInformation(

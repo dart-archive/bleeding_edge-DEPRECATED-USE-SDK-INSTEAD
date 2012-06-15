@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -23,6 +23,7 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
+import com.google.dart.tools.core.utilities.resource.IResourceUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.resources.IFile;
@@ -89,19 +90,23 @@ public class HTMLFileImpl extends OpenableElementImpl implements HTMLFile {
     fileInfo.setChildren(DartElementImpl.EMPTY_ARRAY);
     try {
       List<String> libraryNames = LibraryReferenceFinder.findInHTML(IFileUtilities.getContents(file));
+      List<String> libraryPaths = IResourceUtilities.getResolvedFilePaths(
+          getUnderlyingResource(),
+          libraryNames);
       List<DartLibrary> referencedLibraries = new ArrayList<DartLibrary>(libraryNames.size());
       List<DartLibrary> libraries = DartModelManager.getInstance().getDartModel().getDartLibraries();
       for (DartLibrary library : libraries) {
         if (library.getDartProject().getProject().equals(file.getProject())) {
           String elementName = library.getElementName();
-          for (String libraryName : libraryNames) {
-            if (elementName.equals(libraryName) || elementName.endsWith("/" + libraryName)) {
+          for (String libraryPath : libraryPaths) {
+            if (elementName.equals(libraryPath) || elementName.contains(libraryPath)) {
               referencedLibraries.add(library);
               break;
             }
           }
         }
       }
+
       fileInfo.setReferencedLibraries(referencedLibraries.toArray(new DartLibrary[referencedLibraries.size()]));
       fileInfo.setIsStructureKnown(true);
       return true;

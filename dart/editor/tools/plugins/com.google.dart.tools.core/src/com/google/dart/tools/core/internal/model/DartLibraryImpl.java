@@ -920,7 +920,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         mapping = getDartProject().getHtmlMapping();
 
         final String elementName = getElementName();
-        final String libraryName = new Path(elementName).lastSegment().toString();
+        final String libraryName = getCorrespondingResource().getLocation().toPortableString();
 
         Set<String> keys = mapping.keySet();
         for (String key : keys) {
