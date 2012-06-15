@@ -90,4 +90,15 @@ public class OperationQueue {
       operations.notifyAll();
     }
   }
+
+  /**
+   * Return the number of operations on the queue.
+   * 
+   * @return the number of operations on the queue
+   */
+  public int size() {
+    synchronized (operations) {
+      return operations.size();
+    }
+  }
 }
