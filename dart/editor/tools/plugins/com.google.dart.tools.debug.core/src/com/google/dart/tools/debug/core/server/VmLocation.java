@@ -80,4 +80,9 @@ public class VmLocation {
     return "[" + url + "," + lineNumber + (columnNumber == -1 ? "" : "," + columnNumber) + "]";
   }
 
+  void updateInfo(String url, int lineNumber) {
+    this.url = url;
+    this.lineNumber = lineNumber;
+  }
+
 }

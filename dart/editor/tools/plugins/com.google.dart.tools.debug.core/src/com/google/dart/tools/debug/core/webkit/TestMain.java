@@ -24,8 +24,6 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.util.List;
 
-// TODO(devoncarew): refactor this class into unit tests
-
 /**
  * ./Chromium.app/Contents/MacOS/Chromium --remote-debugging-port=3030 --homepage=about:blank
  */

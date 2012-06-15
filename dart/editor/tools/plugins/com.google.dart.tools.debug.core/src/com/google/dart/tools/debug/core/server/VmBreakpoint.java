@@ -39,4 +39,8 @@ public class VmBreakpoint {
     return "[breakpoint " + getBreakpointId() + "," + getLocation() + "]";
   }
 
+  void updateInfo(String url, int line) {
+    location.updateInfo(url, line);
+  }
+
 }

@@ -48,6 +48,10 @@ public class VmConnection {
     unhandled
   }
 
+  public static interface BreakpointResolvedCallback {
+    public void handleResolved(VmBreakpoint bp);
+  }
+
   static interface Callback {
     public void handleResult(JSONObject result) throws JSONException;
   }
@@ -70,6 +74,8 @@ public class VmConnection {
   private List<VmBreakpoint> breakpoints = Collections.synchronizedList(new ArrayList<VmBreakpoint>());
 
   private Map<String, String> sourceCache = new HashMap<String, String>();
+
+  protected Map<Integer, BreakpointResolvedCallback> breakpointCallbackMap = new HashMap<Integer, VmConnection.BreakpointResolvedCallback>();
 
   public VmConnection(int port) {
     this.port = port;
@@ -335,7 +341,8 @@ public class VmConnection {
     sendSimpleCommand("resume", resumeOnSuccess());
   }
 
-  public void setBreakpoint(final String url, final int line) throws IOException {
+  public void setBreakpoint(final String url, final int line,
+      final BreakpointResolvedCallback callback) throws IOException {
     try {
       JSONObject request = new JSONObject();
 
@@ -353,7 +360,15 @@ public class VmConnection {
           } else {
             int breakpointId = JsonUtils.getInt(object.getJSONObject("result"), "breakpointId");
 
-            breakpoints.add(new VmBreakpoint(url, line, breakpointId));
+            VmBreakpoint bp = new VmBreakpoint(url, line, breakpointId);
+
+            breakpoints.add(bp);
+
+            if (callback != null) {
+              //callback.handleResolved(bp);
+
+              breakpointCallbackMap.put(breakpointId, callback);
+            }
           }
         }
       });
@@ -537,14 +552,20 @@ public class VmConnection {
       }
     }
 
-    // TODO(devoncarew): notify anyone?
     if (breakpoint == null) {
       VmBreakpoint bp = new VmBreakpoint(url, line, breakpointId);
 
       breakpoints.add(bp);
     } else {
-      // TODO(devoncarew): ensure that line == bp.line?
+      breakpoint.updateInfo(url, line);
 
+      BreakpointResolvedCallback callback = breakpointCallbackMap.get(breakpointId);
+
+      if (callback != null) {
+        breakpointCallbackMap.remove(breakpointId);
+
+        callback.handleResolved(breakpoint);
+      }
     }
   }
 

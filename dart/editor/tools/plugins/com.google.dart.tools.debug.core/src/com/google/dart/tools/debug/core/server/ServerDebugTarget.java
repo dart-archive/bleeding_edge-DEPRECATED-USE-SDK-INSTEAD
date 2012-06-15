@@ -17,10 +17,13 @@ package com.google.dart.tools.debug.core.server;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.server.VmConnection.BreakOnExceptionsType;
+import com.google.dart.tools.debug.core.server.VmConnection.BreakpointResolvedCallback;
 import com.google.dart.tools.debug.core.util.NetUtils;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IMarkerDelta;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
@@ -39,6 +42,34 @@ import java.util.List;
  * An implementation of IDebugTarget for Dart VM debug connections.
  */
 public class ServerDebugTarget extends ServerDebugElement implements IDebugTarget, VmListener {
+
+  private class BreakpointCallback implements BreakpointResolvedCallback {
+    private DartBreakpoint dartBreakpoint;
+
+    public BreakpointCallback(DartBreakpoint dartBreakpoint) {
+      this.dartBreakpoint = dartBreakpoint;
+    }
+
+    @Override
+    public void handleResolved(VmBreakpoint bp) {
+      if (bp.getLocation() != null) {
+        final String url = getUrlForResource(dartBreakpoint.getFile());
+
+        if (bp.getLocation().getUrl().equals(url)) {
+          if (bp.getLocation().getLineNumber() != dartBreakpoint.getLine()) {
+            try {
+              dartBreakpoint.getMarker().setAttribute(
+                  IMarker.LINE_NUMBER,
+                  bp.getLocation().getLineNumber());
+            } catch (CoreException e) {
+              DartDebugCorePlugin.logError(e);
+            }
+          }
+        }
+      }
+    }
+  }
+
   private static ServerDebugTarget activeTarget;
 
   public static ServerDebugTarget getActiveTarget() {
@@ -50,6 +81,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   }
 
   private ILaunch launch;
+
   private IProcess process;
 
   private int connectionPort;
@@ -59,6 +91,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   private ServerDebugThread debugThread = new ServerDebugThread(this);
 
   private boolean firstBreak = true;
+
+  private int resumeCount = 0;
 
   public ServerDebugTarget(ILaunch launch, IProcess process, int connectionPort) {
     super(null);
@@ -166,6 +200,13 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
           "Unable to connect debugger to the Dart VM: " + ioe.getMessage()));
     }
 
+    // Turn on break-on-exceptions.
+    try {
+      connection.setPauseOnException(BreakOnExceptionsType.unhandled);
+    } catch (IOException e) {
+      DartDebugCorePlugin.logError(e);
+    }
+
     // Set up the existing breakpoints.
     IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(
         DartDebugCorePlugin.DEBUG_MODEL_ID);
@@ -178,12 +219,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
     DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
 
-    try {
-      // Turn on break-on-exceptions.
-      connection.setPauseOnException(BreakOnExceptionsType.unhandled);
-    } catch (IOException e) {
-      DartDebugCorePlugin.logError(e);
-    }
+    maybeResume();
   }
 
   @Override
@@ -197,11 +233,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
         // If this is our first break, and there is no user breakpoint here, and the stop is on the
         // main() method, then resume.
         if (breakpoint == null && frames.size() > 0 && frames.get(0).isMain()) {
-          try {
-            getVmConnection().resume();
-          } catch (IOException ioe) {
-            DartDebugCorePlugin.logError(ioe);
-          }
+          maybeResume();
         }
       }
     }
@@ -346,7 +378,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
       int line = breakpoint.getLine();
 
       try {
-        getConnection().setBreakpoint(url, line);
+        getConnection().setBreakpoint(url, line, new BreakpointCallback(breakpoint));
       } catch (IOException exception) {
         // TODO(devoncarew): display to the user
 
@@ -409,6 +441,18 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private String getUrlForResource(IFile file) {
     return file.getLocation().toFile().toURI().toString();
+  }
+
+  private synchronized void maybeResume() {
+    resumeCount++;
+
+    if (resumeCount >= 2) {
+      try {
+        getVmConnection().resume();
+      } catch (IOException ioe) {
+        DartDebugCorePlugin.logError(ioe);
+      }
+    }
   }
 
   private void monitor(final IProcess process) {
