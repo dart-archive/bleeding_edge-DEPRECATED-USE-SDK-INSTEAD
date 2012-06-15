@@ -302,7 +302,10 @@ public class InMemoryIndex implements Index {
         }
         if (!indexUserLibraries()) {
           indexStore.clear();
-          initializeIndexFrom(getInitialIndexFile());
+          initializeBundledLibraries();
+          // TODO(brianwilkerson) Remove the line above and restore the line below once we are able
+          // to write out the initial index file.
+//          initializeIndexFrom(getInitialIndexFile());
         }
       }
     }
@@ -582,7 +585,9 @@ public class InMemoryIndex implements Index {
           indexStore.clear();
           return false;
         }
-        writeIndexTo(getInitialIndexFile());
+        // TODO(brianwilkerson) Restore the following line once we figure out how to know that the
+        // bundled libraries (and only the bundled libraries) have been indexed.
+//        writeIndexTo(getInitialIndexFile());
       }
     }
     return true;
