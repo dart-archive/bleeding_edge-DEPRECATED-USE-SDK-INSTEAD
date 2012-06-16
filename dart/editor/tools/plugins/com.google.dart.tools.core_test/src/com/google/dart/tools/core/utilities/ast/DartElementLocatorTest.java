@@ -287,6 +287,37 @@ public class DartElementLocatorTest extends TestCase {
         3);
   }
 
+  public void test_Function_onDeclaration() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "process(x) {}",
+            "test() {",
+            "}",
+            ""),
+        "est() {",
+        DartFunction.class,
+        "test() {",
+        4);
+  }
+
+  public void test_Function_onReference() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "process(x) {}",
+            "test() {",
+            "}",
+            "f() {",
+            "  test();",
+            "}",
+            ""),
+        "test();",
+        DartFunction.class,
+        "test() {",
+        4);
+  }
+
   public void test_Method_getter_onDeclaration() throws Exception {
     testElementLocator(
         formatLines(
@@ -318,6 +349,22 @@ public class DartElementLocatorTest extends TestCase {
             "}",
             ""),
         "test);",
+        Method.class,
+        "test() {",
+        4);
+  }
+
+  public void test_Method_onDeclaration() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "process(x) {}",
+            "class A {",
+            "  test() {",
+            "  }",
+            "}",
+            ""),
+        "est() {",
         Method.class,
         "test() {",
         4);
