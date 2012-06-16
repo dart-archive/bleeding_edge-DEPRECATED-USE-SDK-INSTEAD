@@ -30,6 +30,31 @@ public class SourceRangeFactory {
   }
 
   /**
+   * @return the {@link SourceRange} which start at the end of "startInfo" and has specified length.
+   */
+  public static SourceRange forEndLength(HasSourceInfo startInfo, int length) {
+    int start = startInfo.getSourceInfo().getEnd();
+    return new SourceRangeImpl(start, length);
+  }
+
+  /**
+   * @return the {@link SourceRange} which start at the end of "a" and ends at the start of "b".
+   */
+  public static SourceRange forEndStart(HasSourceInfo a, HasSourceInfo b) {
+    int start = a.getSourceInfo().getEnd();
+    int end = b.getSourceInfo().getOffset();
+    return forStartEnd(start, end);
+  }
+
+  /**
+   * @return the {@link SourceRange} which start at the end of "a" and ends "b".
+   */
+  public static SourceRange forEndStart(HasSourceInfo a, int end) {
+    int start = a.getSourceInfo().getEnd();
+    return forStartEnd(start, end);
+  }
+
+  /**
    * @return the {@link SourceRange} which start at start of "a" and ends at end of "b".
    */
   public static SourceRange forStartEnd(HasSourceInfo a, HasSourceInfo b) {

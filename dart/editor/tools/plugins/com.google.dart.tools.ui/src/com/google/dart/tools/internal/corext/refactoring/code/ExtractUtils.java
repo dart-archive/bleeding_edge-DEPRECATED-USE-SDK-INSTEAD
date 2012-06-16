@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.DartScanner;
 import com.google.dart.compiler.parser.Token;
@@ -166,6 +167,12 @@ public class ExtractUtils {
     this.unitNode = DartCompilerUtilities.resolveUnit(unit);
   }
 
+  public ExtractUtils(CompilationUnit unit, DartUnit unitNode) throws DartModelException {
+    this.unit = unit;
+    this.buffer = unit.getBuffer();
+    this.unitNode = unitNode;
+  }
+
   /**
    * @return the EOL to use for this {@link CompilationUnit}.
    */
@@ -252,6 +259,14 @@ public class ExtractUtils {
     }
     // done
     return occurrences;
+  }
+
+  /**
+   * @return the given range of text from {@link Buffer}.
+   */
+  public String getText(HasSourceInfo hasSourceInfo) {
+    SourceInfo sourceInfo = hasSourceInfo.getSourceInfo();
+    return buffer.getText(sourceInfo.getOffset(), sourceInfo.getLength());
   }
 
   /**

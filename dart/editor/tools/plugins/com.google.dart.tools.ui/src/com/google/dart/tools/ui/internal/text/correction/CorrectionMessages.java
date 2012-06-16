@@ -28,6 +28,8 @@ public final class CorrectionMessages extends NLS {
   public static String QuickAssistProcessor_exchangeOperands;
   public static String QuickAssistProcessor_addTypeAnnotation;
   public static String QuickAssistProcessor_removeTypeAnnotation;
+  public static String QuickAssistProcessor_splitVariableDeclaration;
+  public static String QuickAssistProcessor_joinVariableDeclaration;
 
   // TODO(scheglov) original strings
 
@@ -262,8 +264,6 @@ public final class CorrectionMessages extends NLS {
   public static String QuickAssistProcessor_unwrap_labeledstatement;
   public static String QuickAssistProcessor_unwrap_methodinvocation;
   public static String QuickAssistProcessor_unwrap_synchronizedstatement;
-  public static String QuickAssistProcessor_splitdeclaration_description;
-  public static String QuickAssistProcessor_joindeclaration_description;
   public static String QuickAssistProcessor_addfinallyblock_description;
   public static String QuickAssistProcessor_addelseblock_description;
   public static String QuickAssistProcessor_replacethenwithblock_description;

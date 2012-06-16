@@ -171,6 +171,83 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_exchangeBinaryExpressionArguments_wrong("1 + 2 + 3", "1 + 2 + 3");
   }
 
+  public void test_joinVariableDeclaration_OK() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v;",
+        "  v = 1;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v = 1;",
+        "}");
+    assert_joinVariableDeclaration(initial, "v ", expected);
+  }
+
+  public void test_joinVariableDeclaration_wrong_notAdjacent() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v;",
+        "  var bar;",
+        "  v = 1;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v =");
+  }
+
+  public void test_joinVariableDeclaration_wrong_notAssignment() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v;",
+        "  v + 1;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v +");
+  }
+
+  public void test_joinVariableDeclaration_wrong_notDeclaration() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f(var v) {",
+        "  v = 1;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v =");
+  }
+
+  public void test_joinVariableDeclaration_wrong_notLeftArgument() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v;",
+        "  1 + v; // marker",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v; // marker");
+  }
+
+  public void test_joinVariableDeclaration_wrong_notOneVariable() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v, v2;",
+        "  v = 1;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v =");
+  }
+
+  public void test_joinVariableDeclaration_wrong_notSameBlock() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v;",
+        "  {",
+        "    v = 1;",
+        "  }",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v =");
+  }
+
   public void test_removeTypeAnnotation_classField_OK() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -195,6 +272,30 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
 
   public void test_removeTypeAnnotation_topLevelField_OK() throws Exception {
     assert_removeTypeAnnotation("int v = 1;", "int ", "var v = 1;");
+  }
+
+  public void test_splitVariableDeclaration_OK() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v = 1;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v;",
+        "  v = 1;",
+        "}");
+    assert_splitVariableDeclaration(initial, "v ", expected);
+  }
+
+  public void test_splitVariableDeclaration_wrong_notOneVariable() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v = 1, v2;",
+        "}");
+    assert_splitVariableDeclaration_wrong(initial, "v = 1");
   }
 
   @Override
@@ -287,6 +388,22 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_exchangeBinaryExpressionArguments_success(expression, offsetPattern, expression);
   }
 
+  private void assert_joinVariableDeclaration(
+      String initialSource,
+      String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        CorrectionMessages.QuickAssistProcessor_joinVariableDeclaration,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_joinVariableDeclaration_wrong(String expression, String offsetPattern)
+      throws Exception {
+    assert_joinVariableDeclaration(expression, offsetPattern, expression);
+  }
+
   private void assert_removeTypeAnnotation(
       String initialSource,
       String offsetPattern,
@@ -342,5 +459,21 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     }
     // assert result
     assertEquals(expectedSource, result);
+  }
+
+  private void assert_splitVariableDeclaration(
+      String initialSource,
+      String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        CorrectionMessages.QuickAssistProcessor_splitVariableDeclaration,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_splitVariableDeclaration_wrong(String initialSource, String offsetPattern)
+      throws Exception {
+    assert_splitVariableDeclaration(initialSource, offsetPattern, initialSource);
   }
 }

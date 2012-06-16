@@ -15,14 +15,22 @@ package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartBinaryExpression;
+import com.google.dart.compiler.ast.DartBlock;
+import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartStatement;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.common.HasSourceInfo;
+import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.type.Type;
+import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
@@ -38,12 +46,18 @@ import com.google.dart.tools.ui.text.dart.IInvocationContext;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
 import com.google.dart.tools.ui.text.dart.IQuickAssistProcessor;
 
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_BINARY_EXPRESSION_LEFT_OPERAND;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_NAME;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 
+import java.lang.reflect.Method;
+import java.text.MessageFormat;
 import java.util.List;
 
 /**
@@ -99,6 +113,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
   private int selectionOffset;
   private int selectionLength;
   private CompilationUnit unit;
+  private ExtractUtils utils;
   private DartNode node;
   private final List<TextEdit> textEdits = Lists.newArrayList();
 
@@ -111,18 +126,22 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     selectionOffset = context.getSelectionOffset();
     selectionLength = context.getSelectionLength();
     node = context.getCoveringNode();
+    utils = new ExtractUtils(unit, (DartUnit) node.getRoot());
     if (node != null) {
-      textEdits.clear();
       boolean noErrorsAtLocation = noErrorsAtLocation(locations);
       if (noErrorsAtLocation) {
-        ExecutionUtils.runIgnore(new RunnableEx() {
-          @Override
-          public void run() throws Exception {
-            addProposal_exchangeOperands();
-            addProposal_addTypeAnnotation();
-            addProposal_removeTypeAnnotation();
+        // invoke each "addProposal_" method
+        for (final Method method : QuickAssistProcessor.class.getDeclaredMethods()) {
+          if (method.getName().startsWith("addProposal_")) {
+            ExecutionUtils.runIgnore(new RunnableEx() {
+              @Override
+              public void run() throws Exception {
+                method.invoke(QuickAssistProcessor.this);
+              }
+            });
+            textEdits.clear();
           }
-        });
+        }
       }
     }
     return proposals.toArray(new IDartCompletionProposal[proposals.size()]);
@@ -133,7 +152,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     return true;
   }
 
-  private boolean addProposal_addTypeAnnotation() throws Exception {
+  boolean addProposal_addTypeAnnotation() throws Exception {
     Type type = null;
     HasSourceInfo typeStart = null;
     HasSourceInfo typeEnd = null;
@@ -177,7 +196,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     return true;
   }
 
-  private boolean addProposal_exchangeOperands() throws Exception {
+  boolean addProposal_exchangeOperands() throws Exception {
     // check that user invokes quick assist on binary expression
     if (!(node instanceof DartBinaryExpression)) {
       return false;
@@ -213,7 +232,58 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     return true;
   }
 
-  private boolean addProposal_removeTypeAnnotation() throws Exception {
+  boolean addProposal_joinVariableDeclaration() throws Exception {
+    // check that node is LHS in binary expression
+    if (node instanceof DartIdentifier
+        && getLocationInParent(node) == DART_BINARY_EXPRESSION_LEFT_OPERAND
+        && node.getParent().getParent() instanceof DartExprStmt) {
+    } else {
+      return false;
+    }
+    DartBinaryExpression binaryExpression = (DartBinaryExpression) node.getParent();
+    // check that binary expression is assignment
+    if (binaryExpression.getOperator() != Token.ASSIGN) {
+      return false;
+    }
+    // prepare "declaration" statement
+    SourceInfo nameLocation = node.getElement().getNameLocation();
+    DartNode nameNode = NodeFinder.perform(utils.getUnitNode(), nameLocation.getOffset(), 0);
+    if (getLocationInParent(nameNode) == DART_VARIABLE_NAME
+        && nameNode.getParent().getParent() instanceof DartVariableStatement) {
+    } else {
+      return false;
+    }
+    DartVariableStatement nameStatement = (DartVariableStatement) nameNode.getParent().getParent();
+    // check that "declaration" statement declared only one variable
+    if (nameStatement.getVariables().size() != 1) {
+      return false;
+    }
+    // check that "declaration" and "assignment" statements are part of same Block
+    DartExprStmt assignStatement = (DartExprStmt) node.getParent().getParent();
+    if (assignStatement.getParent() instanceof DartBlock
+        && assignStatement.getParent() == nameStatement.getParent()) {
+    } else {
+      return false;
+    }
+    DartBlock block = (DartBlock) assignStatement.getParent();
+    // check that "declaration" and "assignment" statements are adjacent
+    List<DartStatement> statements = block.getStatements();
+    if (statements.indexOf(assignStatement) == statements.indexOf(nameStatement) + 1) {
+    } else {
+      return false;
+    }
+    // add edits
+    textEdits.add(createReplaceEdit(
+        SourceRangeFactory.forEndStart(nameNode, binaryExpression.getOperatorOffset()),
+        " "));
+    // add proposal
+    addUnitCorrectionProposal(
+        CorrectionMessages.QuickAssistProcessor_joinVariableDeclaration,
+        DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    return true;
+  }
+
+  boolean addProposal_removeTypeAnnotation() throws Exception {
     HasSourceInfo typeStart = null;
     HasSourceInfo typeEnd = null;
     // try local variable
@@ -242,6 +312,39 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     // add proposal
     addUnitCorrectionProposal(
         CorrectionMessages.QuickAssistProcessor_removeTypeAnnotation,
+        DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    return true;
+  }
+
+  boolean addProposal_splitVariableDeclaration() throws Exception {
+    // prepare DartVariableStatement, should be part of Block
+    DartVariableStatement statement = ASTNodes.getAncestor(node, DartVariableStatement.class);
+    if (statement != null && statement.getParent() instanceof DartBlock) {
+    } else {
+      return false;
+    }
+    // check that statement declares single variable
+    List<DartVariable> variables = statement.getVariables();
+    if (variables.size() != 1) {
+      return false;
+    }
+    DartVariable variable = variables.get(0);
+    // remove initializer value
+    textEdits.add(createReplaceEdit(SourceRangeFactory.forStartEnd(
+        variable.getName().getSourceInfo().getEnd(),
+        statement.getSourceInfo().getEnd() - 1), ""));
+    // add assignment statement
+    String eol = utils.getEndOfLine();
+    String indent = utils.getNodePrefix(statement);
+    String assignSource = MessageFormat.format(
+        "{0} = {1};",
+        variable.getName().getName(),
+        utils.getText(variable.getValue()));
+    SourceRange assignRange = SourceRangeFactory.forEndLength(statement, 0);
+    textEdits.add(createReplaceEdit(assignRange, eol + indent + assignSource));
+    // add proposal
+    addUnitCorrectionProposal(
+        CorrectionMessages.QuickAssistProcessor_splitVariableDeclaration,
         DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
     return true;
   }
