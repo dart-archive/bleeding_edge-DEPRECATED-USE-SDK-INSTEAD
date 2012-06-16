@@ -58,9 +58,12 @@ class Library {
       String relPath;
       if (directive instanceof DartImportDirective) {
         DartImportDirective importDirective = (DartImportDirective) directive;
-        DartStringLiteral prefix = importDirective.getPrefix();
-        if (prefix != null) {
-          prefixes.add(prefix.getValue());
+        DartStringLiteral prefixLiteral = importDirective.getPrefix();
+        if (prefixLiteral != null) {
+          String prefix = prefixLiteral.getValue();
+          if (prefix != null) {
+            prefixes.add(prefix);
+          }
         }
         relPath = importDirective.getLibraryUri().getValue();
         File file = server.resolvePath(base, relPath);
