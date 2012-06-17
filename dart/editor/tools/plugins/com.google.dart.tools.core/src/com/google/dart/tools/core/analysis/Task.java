@@ -14,9 +14,9 @@
 package com.google.dart.tools.core.analysis;
 
 /**
- * An analysis task
+ * An analysis task. Not intended to be subclassed by clients.
  */
-abstract class Task {
+public abstract class Task {
 
   /**
    * Answer <code>true</code> if this task is an analysis task and does not have a callback. The

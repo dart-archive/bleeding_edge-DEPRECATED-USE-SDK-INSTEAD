@@ -35,7 +35,12 @@ import java.util.Iterator;
  */
 public class AnalysisServer {
 
+  private static final String CACHE_V3_TAG = "v3";
+  private static final String CACHE_V2_TAG = "v2";
+  private static final String CACHE_V1_TAG = "v1";
+  private static final String ANALYZE_CONTEXT_TAG = AnalyzeContextTask.class.getSimpleName();
   private static final String END_LIBRARIES_TAG = "</end-libraries>";
+  private static final String END_QUEUE_TAG = "</end-queue>";
 
   private static PerformanceListener performanceListener;
 
@@ -226,7 +231,7 @@ public class AnalysisServer {
       try {
         BufferedReader reader = new BufferedReader(new FileReader(cacheFile));
         try {
-          readCache(reader);
+          return readCache(reader);
         } finally {
           try {
             reader.close();
@@ -234,7 +239,6 @@ public class AnalysisServer {
             DartCore.logError("Failed to close analysis cache: " + cacheFile, e);
           }
         }
-        return true;
       } catch (IOException e) {
         DartCore.logError("Failed to read analysis cache: " + cacheFile, e);
         //$FALL-THROUGH$
@@ -368,6 +372,9 @@ public class AnalysisServer {
    */
   public void stop() {
     synchronized (queue) {
+      if (!analyze) {
+        return;
+      }
       analyze = false;
       queue.clear();
       queue.notifyAll();
@@ -550,8 +557,7 @@ public class AnalysisServer {
   }
 
   /**
-   * TESTING: Answer <code>true</code> if the receiver has cached information about the specified
-   * library.
+   * TESTING: Answer <code>true</code> if information about the specified library is cached
    * 
    * @param file the library file (not <code>null</code>)
    */
@@ -559,6 +565,19 @@ public class AnalysisServer {
   private boolean isLibraryCached(File file) {
     synchronized (queue) {
       return savedContext.getCachedLibrary(file) != null;
+    }
+  }
+
+  /**
+   * TESTING: Answer <code>true</code> if specified library has been resolved
+   * 
+   * @param file the library file (not <code>null</code>)
+   */
+  @SuppressWarnings("unused")
+  private boolean isLibraryResolved(File file) {
+    synchronized (queue) {
+      Library library = savedContext.getCachedLibrary(file);
+      return library != null && library.getLibraryUnit() != null;
     }
   }
 
@@ -575,15 +594,75 @@ public class AnalysisServer {
   /**
    * Reload the cached information from the specified file. This method must be called before
    * {@link #start()} has been called when the server is not yet running.
+   * 
+   * @return <code>true</code> if successful
    */
-  private void readCache(Reader reader) throws IOException {
+  private boolean readCache(Reader reader) throws IOException {
     if (analyze) {
       throw new IllegalStateException();
     }
     CacheReader cacheReader = new CacheReader(reader);
+
+    int version;
+    String line = cacheReader.readString();
+    if (CACHE_V3_TAG.equals(line)) {
+      version = 3;
+    } else if (CACHE_V2_TAG.equals(line)) {
+      version = 2;
+    } else if (CACHE_V1_TAG.equals(line)) {
+      version = 1;
+    } else {
+      throw new IOException("Expected cache version " + CACHE_V2_TAG + " but found " + line);
+    }
+
+    // Tracked libraries
     cacheReader.readFilePaths(libraryFiles, END_LIBRARIES_TAG);
+    if (version == 1) {
+      queueAnalyzeContext();
+      return true;
+    }
+
+    // Cached libraries
     savedContext.readCache(cacheReader);
-    queueAnalyzeContext();
+    if (version == 2) {
+      queueAnalyzeContext();
+      return true;
+    }
+
+    // Queued tasks
+    int index = 0;
+    while (true) {
+      String path = cacheReader.readString();
+      if (path == null) {
+        throw new IOException("Expected " + END_QUEUE_TAG + " but found EOF");
+      }
+      if (path.equals(END_QUEUE_TAG)) {
+        break;
+      }
+      if (path.equals(ANALYZE_CONTEXT_TAG)) {
+        queueAnalyzeContext();
+        continue;
+      }
+      File libraryFile = new File(path);
+      queue.add(index++, new AnalyzeLibraryTask(this, savedContext, libraryFile, null));
+    }
+
+    // If no queued tasks, then at minimum resolve dart:core
+    if (queue.size() == 0) {
+      URI dartCoreUri = null;
+      try {
+        dartCoreUri = new URI("dart:core");
+      } catch (URISyntaxException e) {
+        DartCore.logError(e);
+        return true;
+      }
+      File dartCoreFile = AnalysisUtility.toFile(this, dartCoreUri);
+      if (dartCoreFile != null) {
+        queue.add(index++, new AnalyzeLibraryTask(this, savedContext, dartCoreFile, null));
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -595,7 +674,19 @@ public class AnalysisServer {
       throw new IllegalStateException();
     }
     CacheWriter cacheWriter = new CacheWriter(writer);
+    cacheWriter.writeString(CACHE_V3_TAG);
     cacheWriter.writeFilePaths(libraryFiles, END_LIBRARIES_TAG);
+
     savedContext.writeCache(cacheWriter);
+
+    for (Task task : queue) {
+      if (task instanceof AnalyzeLibraryTask) {
+        AnalyzeLibraryTask libTask = (AnalyzeLibraryTask) task;
+        cacheWriter.writeString(libTask.getRootLibraryFile().getPath());
+      } else if (task instanceof AnalyzeContextTask) {
+        cacheWriter.writeString(ANALYZE_CONTEXT_TAG);
+      }
+    }
+    cacheWriter.writeString(END_QUEUE_TAG);
   }
 }

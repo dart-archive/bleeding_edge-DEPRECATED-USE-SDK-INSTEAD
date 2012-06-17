@@ -16,7 +16,6 @@ public class CacheWriter {
 
   public CacheWriter(Writer writer) {
     this.writer = writer instanceof PrintWriter ? (PrintWriter) writer : new PrintWriter(writer);
-    this.writer.println(CacheReader.CACHE_VERSION_TAG);
   }
 
   /**

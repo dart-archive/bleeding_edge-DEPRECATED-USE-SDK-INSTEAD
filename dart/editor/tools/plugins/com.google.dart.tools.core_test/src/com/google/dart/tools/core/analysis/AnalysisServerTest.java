@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.common.base.Joiner;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -23,6 +24,8 @@ import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
 import junit.framework.TestCase;
+
+import org.junit.Assert;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +43,7 @@ import java.util.Set;
 
 public class AnalysisServerTest extends TestCase {
 
-  private static final String EMPTY_CACHE_CONTENT = "v2\n</end-libraries>\n</end-cache>";
+  private static final String EMPTY_CACHE_CONTENT = "v3\n</end-libraries>\n</end-cache>\n</end-queue>\n";
 
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
@@ -77,7 +80,7 @@ public class AnalysisServerTest extends TestCase {
     listener.assertNoDuplicates();
     listener.assertNoDiscards();
     assertTrackedLibraryFiles(libFile);
-    assertTrue(isLibraryFileCached(libFile));
+    assertTrue(isLibraryResolved(libFile));
     return libFile;
   }
 
@@ -128,7 +131,7 @@ public class AnalysisServerTest extends TestCase {
     listener.assertNoDuplicates();
     listener.assertWasDiscarded(libFile);
     assertTrackedLibraryFiles();
-    assertFalse(isLibraryFileCached(libFile));
+    assertFalse(isLibraryCached(libFile));
 
     listener.reset();
     synchronized (getServerQueue()) {
@@ -141,7 +144,7 @@ public class AnalysisServerTest extends TestCase {
     listener.assertNoDuplicates();
     listener.assertNoDiscards();
     assertTrackedLibraryFiles();
-    assertFalse(isLibraryFileCached(libFile));
+    assertFalse(isLibraryCached(libFile));
 
     return libFile;
   }
@@ -372,9 +375,93 @@ public class AnalysisServerTest extends TestCase {
     });
   }
 
-  public void test_AnalysisServer_read() throws Exception {
-    setupServer(new StringReader(EMPTY_CACHE_CONTENT));
+  public void test_AnalysisServer_read_analyzeContext() throws Exception {
+    initServer(new StringReader(
+        "v3\none\n</end-libraries>\n</end-cache>\nAnalyzeContextTask\n</end-queue>"));
+    File[] trackedLibraryFiles = getTrackedLibraryFiles();
+    assertEquals(1, trackedLibraryFiles.length);
+    assertEquals("one", trackedLibraryFiles[0].getName());
+    assertEquals(1, getServerQueue().size());
+    assertEquals("AnalyzeContextTask", getServerQueue().get(0).getClass().getSimpleName());
+  }
+
+  public void test_AnalysisServer_read_analyzeLibrary() throws Exception {
+    initServer(new StringReader("v3\none\n</end-libraries>\n</end-cache>\none\n</end-queue>"));
+    File[] trackedLibraryFiles = getTrackedLibraryFiles();
+    assertEquals(1, trackedLibraryFiles.length);
+    assertEquals("one", trackedLibraryFiles[0].getName());
+    assertEquals(1, getServerQueue().size());
+    assertEquals("AnalyzeLibraryTask", getServerQueue().get(0).getClass().getSimpleName());
+  }
+
+  public void test_AnalysisServer_read_empty() throws Exception {
+    initServer(new StringReader(EMPTY_CACHE_CONTENT));
     assertEquals(0, getTrackedLibraryFiles().length);
+    assertEquals(1, getServerQueue().size());
+    assertEquals("AnalyzeLibraryTask", getServerQueue().get(0).getClass().getSimpleName());
+  }
+
+  public void test_AnalysisServer_read_empty_v1() throws Exception {
+    initServer(new StringReader("v1\n</end-libraries>\nsome-stuff"));
+    assertEquals(0, getTrackedLibraryFiles().length);
+    assertEquals(1, getServerQueue().size());
+    assertEquals("AnalyzeContextTask", getServerQueue().get(0).getClass().getSimpleName());
+  }
+
+  public void test_AnalysisServer_read_empty_v2() throws Exception {
+    initServer(new StringReader("v2\n</end-libraries>\n</end-cache>"));
+    assertEquals(0, getTrackedLibraryFiles().length);
+    assertEquals(1, getServerQueue().size());
+    assertEquals("AnalyzeContextTask", getServerQueue().get(0).getClass().getSimpleName());
+  }
+
+  public void test_AnalysisServer_read_one() throws Exception {
+    initServer(new StringReader("v3\none\n</end-libraries>\n</end-cache>\n</end-queue>"));
+    File[] trackedLibraryFiles = getTrackedLibraryFiles();
+    assertEquals(1, trackedLibraryFiles.length);
+    assertEquals("one", trackedLibraryFiles[0].getName());
+    assertEquals(1, getServerQueue().size());
+    assertEquals("AnalyzeLibraryTask", getServerQueue().get(0).getClass().getSimpleName());
+  }
+
+  public void test_AnalysisServer_read_one_v1() throws Exception {
+    initServer(new StringReader("v1\none\n</end-libraries>\nsome-stuff"));
+    File[] trackedLibraryFiles = getTrackedLibraryFiles();
+    assertEquals(1, trackedLibraryFiles.length);
+    assertEquals("one", trackedLibraryFiles[0].getName());
+    assertEquals(1, getServerQueue().size());
+    assertEquals("AnalyzeContextTask", getServerQueue().get(0).getClass().getSimpleName());
+  }
+
+  public void test_AnalysisServer_read_one_v2() throws Exception {
+    initServer(new StringReader("v2\none\n</end-libraries>\n</end-cache>"));
+    File[] trackedLibraryFiles = getTrackedLibraryFiles();
+    assertEquals(1, trackedLibraryFiles.length);
+    assertEquals("one", trackedLibraryFiles[0].getName());
+    assertEquals(1, getServerQueue().size());
+    assertEquals("AnalyzeContextTask", getServerQueue().get(0).getClass().getSimpleName());
+  }
+
+  public void test_AnalysisServer_read_version_invalid() throws Exception {
+    EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
+    server = new AnalysisServer(libraryManager);
+    try {
+      readCache(new StringReader("vOther"));
+      fail("Expected IOException because of invalid version number");
+    } catch (Exception e) {
+      //$FALL-THROUGH$
+    }
+  }
+
+  public void test_AnalysisServer_read_version_missing() throws Exception {
+    EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
+    server = new AnalysisServer(libraryManager);
+    try {
+      readCache(new StringReader(""));
+      fail("Expected IOException because of missing version number");
+    } catch (Exception e) {
+      //$FALL-THROUGH$
+    }
   }
 
   public void test_AnalysisServer_resolve() throws Exception {
@@ -580,28 +667,24 @@ public class AnalysisServerTest extends TestCase {
     });
   }
 
-  public void test_AnalysisServer_write_read_0() throws Exception {
-    TestUtilities.runWithTempDirectory(new FileOperation() {
-      @Override
-      public void run(File tempDir) throws Exception {
-        File libFile = setupMoneyLibrary(tempDir);
-        setupServer();
-        assertEquals(0, listener.getResolved().size());
-        listener.assertNoDuplicates();
-        listener.assertNoDiscards();
+  public void test_AnalysisServer_write_1() throws Exception {
+    initServer(null);
+    String libFileName = "myLibrary.dart";
+    server.analyze(new File(libFileName).getAbsoluteFile());
+    assertEquals(1, getServerQueue().size());
+    assertEquals("AnalyzeContextTask", getServerQueue().get(0).getClass().getSimpleName());
+    StringWriter writer = new StringWriter(5000);
+    writeCache(writer);
+    assertTrue(writer.toString().indexOf(libFileName) > 0);
+    assertTrue(writer.toString().indexOf("AnalyzeContext") > 0);
+  }
 
-        assertTrackedLibraryFiles();
-        assertFalse(isLibraryFileCached(libFile));
-
-        StringWriter writer = new StringWriter(5000);
-        server.stop();
-        writeCache(writer);
-        setupServer(new StringReader(writer.toString()));
-
-        assertTrackedLibraryFiles();
-        assertFalse(isLibraryFileCached(libFile));
-      }
-    });
+  public void test_AnalysisServer_write_empty() throws Exception {
+    initServer(null);
+    assertEquals(0, getServerQueue().size());
+    StringWriter writer = new StringWriter(5000);
+    writeCache(writer);
+    Assert.assertEquals(EMPTY_CACHE_CONTENT, writer.toString());
   }
 
   public void test_AnalysisServer_write_read_1() throws Exception {
@@ -611,7 +694,8 @@ public class AnalysisServerTest extends TestCase {
         File libFile = test_AnalysisServer_analyzeLibrary(tempDir);
 
         assertTrackedLibraryFiles(libFile);
-        assertTrue(isLibraryFileCached(libFile));
+        assertTrue(isLibraryResolved(libFile));
+        assertEquals(0, getServerQueue().size());
 
         StringWriter writer = new StringWriter(5000);
         server.stop();
@@ -619,37 +703,50 @@ public class AnalysisServerTest extends TestCase {
         setupServer(new StringReader(writer.toString()));
 
         assertTrackedLibraryFiles(libFile);
-        assertTrue(isLibraryFileCached(libFile));
+        assertTrue(isLibraryCached(libFile));
+        assertFalse(isLibraryResolved(libFile));
+        assertEquals(0, getServerQueue().size());
+      }
+    });
+  }
 
-//        String contents = FileUtilities.getContents(libFile);
-//        String libraryDirective = "#library(\"Money\");";
-//        int start = contents.indexOf(libraryDirective);
-//        assertTrue(start >= 0);
-//        contents = Joiner.on("\n").join(
-//            contents.substring(0, start),
-//            "#library('Bad\\",
-//            "Na\"me');",
-//            "#import('Bad\\",
-//            "Import.dart');",
-//            "#import('BadPrefix.dart', prefix:'Bad\\",
-//            "prefix');",
-//            "#source('Bad\\",
-//            "Source.dart');",
-//            contents.substring(start + libraryDirective.length()));
-//        FileUtilities.setContents(libFile, contents);
-//        server.changed(libFile);
-//        waitForIdle();
-//
-//        writer = new StringWriter(5000);
-//        server.stop();
-//        writeCache(writer);
-//        setupServer(new StringReader(writer.toString()));
-//
-//        LibraryUnit libUnit = server.getSavedContext().resolve(libFile, FIVE_MINUTES_MS);
-//        List<DartDirective> directives = libUnit.getSelfDartUnit().getDirectives();
-//        for (int index = 0; index < 3; index++) {
-//          assertTrue(directives.get(index).toSource().contains("Bad"));
-//        }
+  public void test_AnalysisServer_write_read_2() throws Exception {
+    TestUtilities.runWithTempDirectory(new FileOperation() {
+      @Override
+      public void run(File tempDir) throws Exception {
+        File libFile = setupMoneyLibrary(tempDir);
+        setupServer();
+        assertTrackedLibraryFiles();
+
+        String contents = FileUtilities.getContents(libFile);
+        String libraryDirective = "#library(\"Money\");";
+        int start = contents.indexOf(libraryDirective);
+        assertTrue(start >= 0);
+        contents = Joiner.on("\n").join(
+            contents.substring(0, start),
+            "#library('Bad\\",
+            "Na\"me');",
+            "#import('Bad\\",
+            "Import.dart');",
+            "#import('BadPrefix.dart', prefix:'Bad\\",
+            "prefix');",
+            "#source('Bad\\",
+            "Source.dart');",
+            contents.substring(start + libraryDirective.length()));
+        FileUtilities.setContents(libFile, contents);
+
+        server.analyze(libFile);
+        waitForIdle();
+        assertTrackedLibraryFiles(libFile);
+        assertTrue(isLibraryResolved(libFile));
+
+        StringWriter writer = new StringWriter(5000);
+        server.stop();
+        writeCache(writer);
+        setupServer(new StringReader(writer.toString()));
+        assertTrackedLibraryFiles(libFile);
+        assertTrue(isLibraryCached(libFile));
+        assertFalse(isLibraryResolved(libFile));
       }
     });
   }
@@ -758,8 +855,24 @@ public class AnalysisServerTest extends TestCase {
     return (File[]) result;
   }
 
-  private boolean isLibraryFileCached(File libFile) throws Exception {
+  private void initServer(Reader reader) throws Exception {
+    EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
+    server = new AnalysisServer(libraryManager);
+    if (reader != null) {
+      readCache(reader);
+    }
+    listener = new Listener(server);
+  }
+
+  private boolean isLibraryCached(File libFile) throws Exception {
     Method method = server.getClass().getDeclaredMethod("isLibraryCached", File.class);
+    method.setAccessible(true);
+    Object result = method.invoke(server, libFile);
+    return result instanceof Boolean && ((Boolean) result).booleanValue();
+  }
+
+  private boolean isLibraryResolved(File libFile) throws Exception {
+    Method method = server.getClass().getDeclaredMethod("isLibraryResolved", File.class);
     method.setAccessible(true);
     Object result = method.invoke(server, libFile);
     return result instanceof Boolean && ((Boolean) result).booleanValue();
@@ -801,12 +914,7 @@ public class AnalysisServerTest extends TestCase {
   }
 
   private void setupServer(Reader reader) throws Exception {
-    EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
-    server = new AnalysisServer(libraryManager);
-    if (reader != null) {
-      readCache(reader);
-    }
-    listener = new Listener(server);
+    initServer(reader);
     server.start();
     waitForIdle();
   }

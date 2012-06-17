@@ -44,6 +44,10 @@ class AnalyzeLibraryTask extends Task {
     this.toAnalyze = new ArrayList<Library>(100);
   }
 
+  public File getRootLibraryFile() {
+    return rootLibraryFile;
+  }
+
   @Override
   boolean isBackgroundAnalysis() {
     return callback == null;

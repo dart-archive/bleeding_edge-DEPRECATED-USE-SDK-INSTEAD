@@ -127,26 +127,6 @@ public class CacheTest extends TestCase {
     assertTrue(stringReader.read() == -1);
   }
 
-  public void test_AnalysisCache_versionInvalid() throws Exception {
-    stringReader = new StringReader("stuff");
-    try {
-      cacheReader = new CacheReader(stringReader);
-      fail("Expected IOException because of invalid version number");
-    } catch (IOException e) {
-      //$FALL-THROUGH$
-    }
-  }
-
-  public void test_AnalysisCache_versionMissing() throws Exception {
-    stringReader = new StringReader("");
-    try {
-      cacheReader = new CacheReader(stringReader);
-      fail("Expected IOException because of missing version number");
-    } catch (IOException e) {
-      //$FALL-THROUGH$
-    }
-  }
-
   private void initReader() throws IOException {
     stringReader = new StringReader(stringWriter.toString());
     cacheReader = new CacheReader(stringReader);

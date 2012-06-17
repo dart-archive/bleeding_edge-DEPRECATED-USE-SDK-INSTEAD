@@ -14,7 +14,6 @@ import java.util.Set;
  * Internal class for reading analysis state from disk when starting a new session.
  */
 public class CacheReader {
-  static final String CACHE_VERSION_TAG = "v2";
 
   private final LineNumberReader reader;
 
@@ -24,10 +23,6 @@ public class CacheReader {
     }
     this.reader = reader instanceof LineNumberReader ? (LineNumberReader) reader
         : new LineNumberReader(reader);
-    String line = this.reader.readLine();
-    if (!CACHE_VERSION_TAG.equals(line)) {
-      throw new IOException("Expected cache version " + CACHE_VERSION_TAG + " but found " + line);
-    }
   }
 
   /**
