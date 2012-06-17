@@ -3306,11 +3306,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return store != null && store.getBoolean(PreferenceConstants.EDITOR_MARK_OCCURRENCES);
   }
 
-  @Override
-  protected boolean isOverviewRulerVisible() {
-    return false;
-  }
-
   /**
    * Tells whether override indicators are shown.
    * 

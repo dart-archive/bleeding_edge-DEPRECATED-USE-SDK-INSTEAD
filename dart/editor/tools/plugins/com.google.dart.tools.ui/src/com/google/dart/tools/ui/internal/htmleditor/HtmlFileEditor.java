@@ -61,11 +61,6 @@ public class HtmlFileEditor extends TextEditor {
   }
 
   @Override
-  protected boolean isOverviewRulerVisible() {
-    return false;
-  }
-
-  @Override
   protected void rulerContextMenuAboutToShow(IMenuManager menu) {
     super.rulerContextMenuAboutToShow(menu);
 

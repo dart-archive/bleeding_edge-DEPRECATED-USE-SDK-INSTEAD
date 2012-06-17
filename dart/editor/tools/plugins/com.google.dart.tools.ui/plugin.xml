@@ -653,14 +653,14 @@
          point="org.eclipse.ui.actionSets">
       <actionSet
             label="%javaEditorPresentationActionSet.label"
-            visible="false"
+            visible="true"
             id="com.google.dart.tools.ui.config.java.actionSet.presentation">
          <action
                allowLabelUpdate="true"
                style="toggle"
-               toolbarPath="org.eclipse.ui.edit.text.actionSet.presentation/Presentation"
-               id="org.eclipse.wst.jsdt.ui.edit.text.java.toggleMarkOccurrences"
-               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.toggleMarkOccurrences"
+               toolbarPath="org.eclipse.ui.workbench.navigate/group.application"
+               id="com.google.dart.tools.ui.edit.text.dart.toggleMarkOccurrences"
+               definitionId="com.google.dart.tools.ui.edit.text.dart.toggleMarkOccurrences"
                disabledIcon="$nl$/icons/full/dtool16/mark_occurrences.gif"
                icon="$nl$/icons/full/etool16/mark_occurrences.gif"
                helpContextId="toggle_mark_occurrences_action_context"
