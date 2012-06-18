@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -204,7 +205,12 @@ public class OmniBoxControlContribution {
     if (previousFocusControl != null && !previousFocusControl.isDisposed()) {
       previousFocusControl.setFocus();
     } else {
-      textControl.getParent().setFocus();
+      Shell activeWorkbenchShell = SearchBoxUtils.getActiveWorkbenchShell();
+      if (activeWorkbenchShell != null) {
+        activeWorkbenchShell.setFocus();
+      } else {
+        Activator.log("no active workbench shell for searchbox defocus");
+      }
     }
   }
 
