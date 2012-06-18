@@ -13,16 +13,23 @@
  */
 package com.google.dart.tools.deploy;
 
+import com.google.dart.tools.core.DartCore;
+
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPreferenceNode;
 import org.eclipse.jface.preference.PreferenceManager;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
 import org.eclipse.ui.application.IWorkbenchWindowConfigurer;
 import org.eclipse.ui.application.WorkbenchWindowAdvisor;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * The WorkbenchWindowAdvisor for the Dart Editor.
@@ -46,6 +53,24 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
       "org.eclipse.ui.preferencePages.Editors", "org.eclipse.ui.preferencePages.Views",
       "org.eclipse.ui.preferencePages.Workspace", "org.eclipse.ui.preferencePages.Workbench"};
 
+  private static Object callReflectMethod(Object obj, String methodName) throws Exception {
+    Method method = obj.getClass().getMethod(methodName);
+    method.setAccessible(true);
+    return method.invoke(obj);
+  }
+
+  private static void callReflectMethod(Object obj, String methodName, long param) throws Exception {
+    Method method = obj.getClass().getDeclaredMethod(methodName, long.class);
+    method.setAccessible(true);
+    method.invoke(obj, param);
+  }
+
+  private static Object getReflectField(Object obj, String fieldName) throws Exception {
+    Field field = obj.getClass().getField(fieldName);
+    field.setAccessible(true);
+    return field.get(obj);
+  }
+
   public ApplicationWorkbenchWindowAdvisor(ApplicationWorkbenchAdvisor wbAdvisor,
       IWorkbenchWindowConfigurer configurer) {
     super(configurer);
@@ -66,6 +91,10 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 
     // Turn off the ability to move the toolbars around.
     getWindowConfigurer().getActionBarConfigurer().getCoolBarManager().setLockLayout(true);
+
+    if (DartCore.isMac()) {
+      enableFullScreenMode();
+    }
   }
 
   @Override
@@ -79,6 +108,31 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 
     // make sure we always save and restore workspace state
     configurer.getWorkbenchConfigurer().setSaveAndRestore(true);
+  }
+
+  /**
+   * This method should only be called under macos.
+   * <p>
+   * It makes a best effort to turn on fullscreen mode; if it fails it does not complain to the
+   * user. We do this work reflectively so that the code can continue to compile for other
+   * architectures.
+   */
+  private void enableFullScreenMode() {
+    final long FULL_SCREEN_MODE = 1 << 7;
+
+    try {
+      Shell shell = Display.getDefault().getActiveShell();
+
+      // NSView nsView = shell.view;
+      // NSWindow nsWindow = nsView.window();
+      // nsWindow.setCollectionBehavior(behavior);
+
+      Object nsView = getReflectField(shell, "view");
+      Object nsWindow = callReflectMethod(nsView, "window");
+      callReflectMethod(nsWindow, "setCollectionBehavior", FULL_SCREEN_MODE);
+    } catch (Throwable t) {
+      Activator.logError(t);
+    }
   }
 
   private void filterUnwantedPreferenceNodes() {
