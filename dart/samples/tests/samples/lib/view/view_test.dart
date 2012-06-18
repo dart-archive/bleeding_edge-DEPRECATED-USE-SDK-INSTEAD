@@ -31,11 +31,11 @@ void main() {
       var result = '';
       final view = new TestView();
       view.renderFn = () {
-        result += 'render';
+        result = '${result}render';
         return new Element.html('<div class="test"></div>');
       };
 
-      view.afterRenderFn = (node) { result += 'after'; };
+      view.afterRenderFn = (node) { result = '${result}after'; };
 
 
       view.addToDocument(document.body);
@@ -170,10 +170,10 @@ void main() {
       var result = '';
 
       final parent = new TestView();
-      parent.enterDocumentFn = () { result += 'parent'; };
+      parent.enterDocumentFn = () { result = '${result}parent'; };
 
       final child = new TestView();
-      child.enterDocumentFn = () { result += 'child'; };
+      child.enterDocumentFn = () { result = '${result}child'; };
 
       parent.childViews = [child];
 

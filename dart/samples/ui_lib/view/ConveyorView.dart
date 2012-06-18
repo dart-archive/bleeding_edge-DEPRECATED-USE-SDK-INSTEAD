@@ -86,7 +86,7 @@ class ConveyorView extends CompositeView {
    */
   View addChild(View view) {
     view.addClass('conveyor-item');
-    view.transform = 'translate3d(' + (childViews.length * 100) + '%, 0, 0)';
+    view.transform = 'translate3d(${(childViews.length * 100)}%, 0, 0)';
     return super.addChild(view);
   }
 

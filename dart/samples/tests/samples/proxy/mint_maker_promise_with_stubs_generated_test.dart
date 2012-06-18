@@ -44,7 +44,7 @@ class Mint$Dispatcher extends Dispatcher<Mint> {
       reply(port);
     } else {
       // TODO(kasperl,benl): Somehow throw an exception instead.
-      reply("Exception: command '" + command + "' not understood by Mint.");
+      reply("Exception: command '$command' not understood by Mint.");
     }
   }
 }
@@ -118,7 +118,7 @@ class Purse$Dispatcher extends Dispatcher<Purse> {
       reply(deposit);
     } else {
       // TODO(kasperl,benl): Somehow throw an exception instead.
-      reply("Exception: command '" + command + "' not understood by Purse.");
+      reply("Exception: command '$command' not understood by Purse.");
     }
   }
 }

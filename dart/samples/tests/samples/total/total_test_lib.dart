@@ -143,7 +143,7 @@ totalTests() {
   test('Scanner', () {
     {
       String input =
-        "ROUND(R1C0 *  ((R1C1 / 1234.0000) / (1 - POWER(1 + (R1C1 / 1234.5000)," +
+        "ROUND(R1C0 *  ((R1C1 / 1234.0000) / (1 - POWER(1 + (R1C1 / 1234.5000),"
           "   -12 * R1C2))), 2)";
       Scanner scanner =
         new Scanner.preserveWhitespace(input, 

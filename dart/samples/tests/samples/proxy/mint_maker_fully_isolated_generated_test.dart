@@ -63,7 +63,7 @@ class Purse$Dispatcher extends Dispatcher<Purse> {
       reply(deposit);
     } else {
       // TODO(kasperl,benl): Somehow throw an exception instead.
-      reply("Exception: command '" + command + "' not understood by Purse.");
+      reply("Exception: command '$command' not understood by Purse.");
     }
   }
 }
@@ -137,7 +137,7 @@ class PowerfulPurse$Dispatcher extends Dispatcher<PowerfulPurse> {
       reply(port);
     } else {
       // TODO(kasperl,benl): Somehow throw an exception instead.
-      reply("Exception: command '" + command + "' not understood by PowerfulPurse.");
+      reply("Exception: command '$command' not understood by PowerfulPurse.");
     }
   }
 }
@@ -201,7 +201,7 @@ class Mint$Dispatcher extends Dispatcher<Mint> {
       reply(promote);
     } else {
       // TODO(kasperl,benl): Somehow throw an exception instead.
-      reply("Exception: command '" + command + "' not understood by Mint.");
+      reply("Exception: command '$command' not understood by Mint.");
     }
   }
 }
