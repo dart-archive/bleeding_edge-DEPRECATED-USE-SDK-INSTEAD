@@ -46,6 +46,7 @@ public class DartElementLocatorTest extends TestCase {
   @SuppressWarnings("unchecked")
   private static <T extends DartElement> T assertLocation(CompilationUnit unit, String posMarker,
       Class<?> expectedElementType, String expectedMarker, int expectedLen) throws Exception {
+    TestProject.waitForAutoBuild();
     String source = unit.getSource();
     // prepare DartUnit
     DartUnit dartUnit;
@@ -188,6 +189,7 @@ public class DartElementLocatorTest extends TestCase {
               "  aaa.A a;",
               "}",
               "")).getResource();
+      TestProject.waitForAutoBuild();
       DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
       DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
       // usage of "aaa" = "libraryA"
@@ -315,6 +317,25 @@ public class DartElementLocatorTest extends TestCase {
         "test();",
         DartFunction.class,
         "test() {",
+        4);
+  }
+
+  public void test_Method_call() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  call() {",
+            "  }",
+            "}",
+            "f() {",
+            "  A a = new A();",
+            "  a(); // marker",
+            "}",
+            ""),
+        "; // marker",
+        Method.class,
+        "call() {",
         4);
   }
 

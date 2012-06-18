@@ -78,6 +78,7 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameFieldProcessor_name;
   // Rename type method
   public static String RenameMethodProcessor_name;
+  public static String RenameMethodProcessor_isCall;
 
   ///////////////////////////////////////////////////////////////////////////////////////
   // Extract local variable refactoring

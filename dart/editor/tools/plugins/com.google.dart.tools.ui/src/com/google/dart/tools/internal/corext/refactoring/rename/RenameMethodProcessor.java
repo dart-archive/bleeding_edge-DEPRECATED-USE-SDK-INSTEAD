@@ -41,6 +41,11 @@ public class RenameMethodProcessor extends RenameTypeMemberProcessor {
   public RefactoringStatus checkNewElementName(String newName) throws CoreException {
     RefactoringStatus result = Checks.checkMethodName(newName);
     result.merge(super.checkNewElementName(newName));
+    // method "call()" cannot be renamed
+    if (getCurrentElementName().equals("call")) {
+      result.addFatalError(RefactoringCoreMessages.RenameMethodProcessor_isCall);
+    }
+    // done
     return result;
   }
 

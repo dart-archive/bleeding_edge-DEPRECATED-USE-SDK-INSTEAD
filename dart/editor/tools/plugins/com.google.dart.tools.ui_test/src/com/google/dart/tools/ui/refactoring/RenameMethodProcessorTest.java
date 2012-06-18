@@ -156,6 +156,26 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "}");
   }
 
+  public void test_methodCall() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  call() {}",
+        "}");
+    Method method = findElement("call() {}");
+    // try to rename
+    try {
+      renameMethod(method, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.FATAL, showStatusSeverities.get(0).intValue());
+    assertEquals("Method 'call' cannot be renamed", showStatusMessages.get(0));
+  }
+
   public void test_OK_getter() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
