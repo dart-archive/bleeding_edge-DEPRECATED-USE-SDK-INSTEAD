@@ -39,7 +39,7 @@ public class DartCoreDebug {
 
   public static final boolean ENABLE_CONTENT_ASSIST_TIMING = isOptionTrue("debug/ResultCollector");
   public static final boolean ENABLE_MARK_OCCURRENCES = true; //isOptionTrue("debug/markOccurrences");
-  public static final boolean ENABLE_APPS_VIEW = isOptionTrue("debug/appsView");
+  public static final boolean ENABLE_APPS_VIEW = true; //isOptionTrue("debug/appsView");
 
   // Performance measurement and reporting options.
 
