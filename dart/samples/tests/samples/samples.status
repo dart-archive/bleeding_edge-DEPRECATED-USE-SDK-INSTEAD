@@ -81,5 +81,8 @@ proxy/mint_maker_rpc_test: Fail # BUG(3304)
 swarm/swarm_test: Fail # BUG(3304)
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 
+[ $compiler == dartc ]
+dartcombat/dartcombat_test: Fail  # Issue 3725
+
 [ $compiler == dart2js && $runtime == safari ]
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
