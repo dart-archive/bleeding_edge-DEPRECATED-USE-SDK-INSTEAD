@@ -70,6 +70,7 @@ import com.google.dart.compiler.resolver.MethodNodeElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.Scope;
 import com.google.dart.compiler.resolver.VariableElement;
+import com.google.dart.compiler.type.FunctionAliasType;
 import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
@@ -523,6 +524,9 @@ public class CompletionEngine {
     @Override
     public Void visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
       // { bar!(); } or { bar(z!); }
+      if (node.getParent() instanceof DartMethodInvocation) {
+        proposeInlineFunction((DartMethodInvocation) node.getParent());
+      }
       proposeIdentifierPrefixCompletions(node);
       return null;
     }
@@ -872,6 +876,12 @@ public class CompletionEngine {
           if (type != null) {
             createCompletionsForQualifiedMemberAccess(functionName, type, false, false);
           }
+        } else {
+          // { methodWithCallback(!) }
+          proposeInlineFunction(completionNode);
+          proposeVariables(completionNode, null, resolvedMember);
+          createCompletionsForIdentifierPrefix(completionNode, null);
+          proposeTypesForNewParam();
         }
       }
       return null;
@@ -1521,6 +1531,32 @@ public class CompletionEngine {
     }
   }
 
+  private void createCompletionsForAliasRef(FunctionAliasType funcAlias) {
+    InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
+        CompletionProposal.POTENTIAL_METHOD_DECLARATION,
+        actualCompletionPosition - offset);
+    FunctionAliasElement function = funcAlias.getElement();
+    String typeName = function.getName();
+    String name = typeName;
+    char[][] parameterNames = getParameterNames(function);
+    char[][] parameterTypeNames = getParameterTypeNames(function);
+    char[] returnTypeName = null;
+    parameterNames = getParameterNames(function);
+    parameterTypeNames = getParameterTypeNames(function);
+    returnTypeName = function.getFunctionType().getReturnType().getElement().getName().toCharArray();
+    proposal.setDeclarationSignature(function.getLibrary().getLibraryUnit().getName().toCharArray());
+    proposal.setSignature(typeName.toCharArray());
+    proposal.setCompletion(name.toCharArray());
+    proposal.setName(name.toCharArray());
+    proposal.setIsInterface(false);
+    proposal.setParameterNames(parameterNames);
+    proposal.setParameterTypeNames(parameterTypeNames);
+    proposal.setTypeName(returnTypeName);
+    setSourceLoc(proposal, null, null);
+    proposal.setRelevance(1);
+    requestor.accept(proposal);
+  }
+
   private void createCompletionsForFactoryInvocation(DartIdentifier memberName,
       DartNode completionNode, InterfaceType itype) {
     String prefix = extractFilterPrefix(memberName);
@@ -2139,6 +2175,18 @@ public class CompletionEngine {
     }
   }
 
+  private int findParamIndex(List<DartExpression> nodes) {
+    int pos = actualCompletionPosition;
+    int idx = 0;
+    for (DartExpression expr : nodes) {
+      if (pos <= expr.getSourceInfo().getEnd()) {
+        return idx;
+      }
+      idx += 1;
+    }
+    return idx;
+  }
+
   private List<SearchMatch> findTypesWithPrefix(DartIdentifier id) {
     SearchEngine engine = SearchEngineFactory.createSearchEngine();
     SearchScope scope;
@@ -2276,6 +2324,46 @@ public class CompletionEngine {
     }
   }
 
+  private void proposeInlineFunction(DartMethodInvocation completionNode) {
+    // Argument: locals, params, fields, statics, globals; if arg type is fn, construct it
+    NodeElement nodeElem = completionNode.getElement();
+    if (nodeElem != null) {
+      Type nodeType = nodeElem.getType();
+      if (nodeType != null) {
+        switch (TypeKind.of(nodeType)) {
+          case FUNCTION:
+            int paramIdx = 0;
+            if (testChar(actualCompletionPosition, '(')) {
+              paramIdx = 0;
+            } else if (testChar(actualCompletionPosition + 1, ')')) {
+              paramIdx = completionNode.getArguments().size();
+            } else {
+              paramIdx = findParamIndex(completionNode.getArguments());
+            }
+            FunctionType func = (FunctionType) nodeType;
+            List<Type> paramList = func.getParameterTypes();
+            if (paramIdx >= paramList.size()) {
+              // named parameters are not supported (yet)
+              return;
+            }
+            Type paramType = paramList.get(paramIdx);
+            if (TypeKind.of(paramType) == TypeKind.FUNCTION_ALIAS) {
+              // propose a local function
+              FunctionAliasType tdef = (FunctionAliasType) paramType;
+              createCompletionsForAliasRef(tdef);
+            }
+            break;
+          case FUNCTION_ALIAS:
+          case INTERFACE:
+          case VARIABLE:
+          case NONE:
+          case DYNAMIC:
+            break;
+        }
+      }
+    }
+  }
+
   private void proposeTypeNamesForPrefix(DartIdentifier identifier) {
     List<SearchMatch> matches = findTypesWithPrefix(identifier);
     if (matches == null || matches.size() == 0) {
@@ -2364,6 +2452,16 @@ public class CompletionEngine {
     int length = name == null ? 0 : name.getSourceInfo().getLength();
     proposal.setReplaceRange(sourceLoc - offset, length + sourceLoc - offset);
     proposal.setTokenRange(sourceLoc - offset, length + sourceLoc - offset);
+  }
+
+  private boolean testChar(int loc, char ch) {
+    if (loc >= 0 && loc < source.length()) {
+      // return true iff char exists and is equal to ch
+      return source.charAt(loc) == ch;
+    } else {
+      // return false if out of bounds
+      return false;
+    }
   }
 
   private void visitorNotImplementedYet(DartNode node, DartNode sourceNode,

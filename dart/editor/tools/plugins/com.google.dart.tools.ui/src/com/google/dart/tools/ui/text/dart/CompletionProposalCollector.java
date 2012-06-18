@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.text.dart;
 import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
+import com.google.dart.tools.core.internal.completion.InternalCompletionProposal;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartProject;
@@ -26,6 +27,7 @@ import com.google.dart.tools.ui.internal.text.dart.DartCompletionProposal;
 import com.google.dart.tools.ui.internal.text.dart.DartMethodCompletionProposal;
 import com.google.dart.tools.ui.internal.text.dart.FieldProposalInfo;
 import com.google.dart.tools.ui.internal.text.dart.GetterSetterCompletionProposal;
+import com.google.dart.tools.ui.internal.text.dart.InlineFunctionCompletionProposal;
 import com.google.dart.tools.ui.internal.text.dart.LazyDartCompletionProposal;
 import com.google.dart.tools.ui.internal.text.dart.LazyDartTypeCompletionProposal;
 import com.google.dart.tools.ui.internal.text.dart.MethodDeclarationCompletionProposal;
@@ -625,7 +627,6 @@ public class CompletionProposalCollector extends CompletionRequestor {
       if (getContext().isExtended()) {
         enclosingElement = getContext().getEnclosingElement();
       } else if (fCompilationUnit != null) {
-        // kept for backward compatibility: CU is not reconciled at this moment, information is missing (bug 70005)
         enclosingElement = fCompilationUnit.getElementAt(proposal.getCompletionLocation() + 1);
       }
       if (enclosingElement == null) {
@@ -642,6 +643,21 @@ public class CompletionProposalCollector extends CompletionRequestor {
             completionEnd - completionStart, relevance + 2, fSuggestedMethodNames, fDartProposals);
         MethodDeclarationCompletionProposal.evaluateProposals(type, prefix, completionStart,
             completionEnd - completionStart, relevance, fSuggestedMethodNames, fDartProposals);
+      }
+      if (proposal instanceof InternalCompletionProposal) {
+        String prefix = String.valueOf(proposal.getName());
+        int completionStart = proposal.getReplaceStart();
+        int completionEnd = proposal.getReplaceEnd();
+        int relevance = computeRelevance(proposal);
+        CompilationUnit cu = enclosingElement.getAncestor(CompilationUnit.class);
+        InternalCompletionProposal prop = (InternalCompletionProposal) proposal;
+        char[][] paramNames = prop.getParameterNames();
+        char[][] paramTypes = prop.getParameterTypeNames();
+        if (paramNames != null && paramTypes != null) {
+          InlineFunctionCompletionProposal.evaluateProposals(cu, prefix, paramNames, paramTypes,
+              completionStart, completionEnd - completionStart, relevance + 2,
+              fSuggestedMethodNames, fDartProposals);
+        }
       }
     } catch (CoreException e) {
       DartToolsPlugin.log(e);
@@ -795,6 +811,17 @@ public class CompletionProposalCollector extends CompletionRequestor {
     return new DartCompletionProposal(completion, start, length, null, label, relevance);
   }
 
+  private IDartCompletionProposal createLibraryPrefixProposal(CompletionProposal proposal) {
+    String completion = String.valueOf(proposal.getCompletion());
+    int start = proposal.getReplaceStart();
+    int length = getLength(proposal);
+    StyledString label = new StyledString(fLabelProvider.createSimpleLabel(proposal));//TODO(messick)
+    Image image = getImage(fLabelProvider.createLibraryImageDescriptor(proposal));
+    int relevance = computeRelevance(proposal);
+
+    return new DartCompletionProposal(completion, start, length, image, label, relevance);
+  }
+
   private IDartCompletionProposal createLocalVariableProposal(CompletionProposal proposal) {
     String completion = String.valueOf(proposal.getCompletion());
     int start = proposal.getReplaceStart();
@@ -840,17 +867,6 @@ public class CompletionProposalCollector extends CompletionRequestor {
         getInvocationContext());
     adaptLength(proposal, methodProposal);
     return proposal;
-  }
-
-  private IDartCompletionProposal createLibraryPrefixProposal(CompletionProposal proposal) {
-    String completion = String.valueOf(proposal.getCompletion());
-    int start = proposal.getReplaceStart();
-    int length = getLength(proposal);
-    StyledString label = new StyledString(fLabelProvider.createSimpleLabel(proposal));//TODO(messick)
-    Image image = getImage(fLabelProvider.createLibraryImageDescriptor(proposal));
-    int relevance = computeRelevance(proposal);
-
-    return new DartCompletionProposal(completion, start, length, image, label, relevance);
   }
 
   private IDartCompletionProposal createTypeProposal(CompletionProposal typeProposal) {
