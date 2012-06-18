@@ -32,8 +32,8 @@ class SuiteController {
     final meanAsString = mean.toStringAsFixed(2);
     final errorAsString = error.toStringAsFixed(2);
     final Element progressDisplay = _element.nextNode.nextNode;
-    progressDisplay.innerHTML +=
-        '<li><b>${testName}:</b>' +
+    progressDisplay.innerHTML =
+        '${progressDisplay.innerHTML}<li><b>${testName}:</b>'
         '${meanAsString}<small> runs/s &#177;${errorAsString}%<small></li>';
     _updateTestPos(percent);
   }
@@ -55,7 +55,7 @@ class SuiteController {
       info = '<span>${mean} runs/s</span>';
     }
     _element.innerHTML =
-        '<b>${suiteName}:</b>' +
+        '<b>${suiteName}:</b>' 
         '<div class="bar"><div style="width:${percent}%;">${info}</div></div>';
   }
 
@@ -65,9 +65,9 @@ class SuiteController {
     final description = _suiteDescription.description;
     final originUrl = _suiteDescription.origin.url;
     final testUrl = 'tests/${_suiteDescription.file}';
-    div.innerHTML +=
-        '<p>${description}<br/><a href="${originUrl}">Origin</a>' +
-        ', <a href="${testUrl}">Source</a>' +
+    div.innerHTML =
+        '${div.innerHTML}<p>${description}<br/><a href="${originUrl}">Origin</a'
+        '>, <a href="${testUrl}">Source</a>'
         '<ol class="results"></ol>';
     // Reread the element, as the previous wrapper get disconnected thanks
     // to .innerHTML update above.
