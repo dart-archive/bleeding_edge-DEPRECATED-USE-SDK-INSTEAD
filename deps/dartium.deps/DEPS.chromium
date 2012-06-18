@@ -8,10 +8,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "120277",
+  "webkit_revision": "120482",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "8913",
+  "nacl_revision": "8937",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "8673",  # native_client/DEPS: tools_rev
@@ -51,24 +51,24 @@ vars = {
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "141467",
-  "ffmpeg_hash": "425c0ec6975cba904785e4277454c2ecdd694fbf",
+  "ffmpeg_revision": "142289",
+  "ffmpeg_hash": "23f177366e3bce3a628a7d3feedceed4e18dcc04",
 
   "sfntly_revision": "128",
-  "skia_revision": "4234",
+  "skia_revision": "4257",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "11759",
-  "webrtc_revision": "2388",
+  "v8_revision": "11832",
+  "webrtc_revision": "2406",
   "jsoncpp_revision": "248",
-  "nss_revision": "141064",
+  "nss_revision": "142261",
   "rlz_revision": "130",
 }
 
 deps = {
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@939",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@970",
 
   "src/googleurl":
     (Var("googlecode_url") % "google-url") + "/trunk@175",
@@ -89,7 +89,7 @@ deps = {
     (Var("googlecode_url") % "angleproject") + "/trunk@1046",
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@12",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@26",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -121,7 +121,7 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@37",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@49",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@51",
 
   "src/tools/gyp":
     (Var("googlecode_url") % "gyp") + "/trunk@1415",
