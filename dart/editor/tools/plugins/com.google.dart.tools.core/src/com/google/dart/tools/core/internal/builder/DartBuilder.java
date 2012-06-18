@@ -87,7 +87,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
     }
     File file = location.toFile();
     server.changed(file);
-    if (kind == IResourceDelta.ADDED) {
+    if (kind == IResourceDelta.ADDED || kind == IResourceDelta.CHANGED) {
       server.scan(file, false);
     } else if (kind == IResourceDelta.REMOVED) {
       server.discard(file);
