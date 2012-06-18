@@ -183,6 +183,11 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
       return;
     }
 
+    if (PlatformUI.getWorkbench() == null
+        || PlatformUI.getWorkbench().getActiveWorkbenchWindow() == null) {
+      return;
+    }
+
     IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 
     for (IEditorReference ref : page.getEditorReferences()) {

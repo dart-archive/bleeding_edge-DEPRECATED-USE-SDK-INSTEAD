@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.console;
 
 import com.google.dart.tools.deploy.Activator;
 
+import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.internal.ui.views.console.ProcessConsole;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchPage;
@@ -106,6 +107,10 @@ public class DartConsoleManager implements IConsoleListener {
       return;
     }
 
+    if (consoleTerminated(console)) {
+      return;
+    }
+
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
@@ -130,6 +135,18 @@ public class DartConsoleManager implements IConsoleListener {
     });
   }
 
+  private boolean consoleTerminated(IConsole console) {
+    if (console instanceof ProcessConsole) {
+      IProcess process = ((ProcessConsole) console).getProcess();
+
+      if (process != null) {
+        return process.isTerminated();
+      }
+    }
+
+    return false;
+  }
+
   private void createConsole(IConsole console) {
     // There is no view open showing the given console, so:
 
@@ -144,9 +161,8 @@ public class DartConsoleManager implements IConsoleListener {
       // Else create a new console.
       try {
         if (PlatformUI.getWorkbench() != null) {
-          view = (DartConsoleView) PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-              .getActivePage().showView(
-                  DartConsoleView.VIEW_ID, createViewId(console), IWorkbenchPage.VIEW_VISIBLE);
+          view = (DartConsoleView) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(
+              DartConsoleView.VIEW_ID, createViewId(console), IWorkbenchPage.VIEW_VISIBLE);
 
           view.display(console);
 

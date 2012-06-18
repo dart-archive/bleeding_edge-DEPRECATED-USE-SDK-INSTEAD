@@ -46,38 +46,14 @@ import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
 @SuppressWarnings("restriction")
 public class DartConsoleView extends ViewPart implements IConsoleView, IPropertyChangeListener {
 
-  private class ClearAction extends Action implements ILaunchesListener2 {
+  private class ClearAction extends Action {
 
     public ClearAction() {
       super("Clear", Activator.getImageDescriptor("icons/full/eview16/rem_co.gif"));
-
-      DebugPlugin.getDefault().getLaunchManager().addLaunchListener(this);
-
-      update();
     }
 
     public void dispose() {
-      DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
-    }
 
-    @Override
-    public void launchesAdded(ILaunch[] launches) {
-      update();
-    }
-
-    @Override
-    public void launchesChanged(ILaunch[] launches) {
-      update();
-    }
-
-    @Override
-    public void launchesRemoved(ILaunch[] launches) {
-      update();
-    }
-
-    @Override
-    public void launchesTerminated(ILaunch[] launches) {
-      update();
     }
 
     @Override
@@ -98,20 +74,6 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       };
 
       new Thread(r).start();
-    }
-
-    void update() {
-      if (console instanceof MessageConsole) {
-        setEnabled(true);
-      } else {
-        IProcess process = getProcess();
-
-        if (process != null) {
-          setEnabled(!process.isTerminated());
-        } else {
-          setEnabled(false);
-        }
-      }
     }
   }
 
@@ -169,7 +131,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       IProcess process = getProcess();
 
       if (process != null) {
-        setEnabled(process.canTerminate() && !process.isTerminated());
+        setEnabled(!process.isTerminated());
       } else {
         setEnabled(false);
       }
@@ -243,14 +205,10 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     updateIcon();
 
     terminateAction.update();
-    clearAction.update();
   }
 
   @Override
   public void dispose() {
-    terminateAction.dispose();
-    clearAction.dispose();
-
     DartConsoleManager.getManager().consoleViewClosed(this);
 
     if (console != null && isDead()) {
@@ -258,6 +216,13 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
       DebugPlugin.getDefault().getLaunchManager().removeLaunch(process.getLaunch());
     }
+
+    if (terminateAction.isEnabled()) {
+      terminateAction.run();
+    }
+
+    terminateAction.dispose();
+    clearAction.dispose();
 
     super.dispose();
   }
@@ -354,13 +319,35 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     }
   }
 
+  private void showContentChange() {
+    IWorkbenchSiteProgressService progressService = (IWorkbenchSiteProgressService) getViewSite().getAdapter(
+        IWorkbenchSiteProgressService.class);
+
+    progressService.warnOfContentChange();
+  }
+
   private void updateContentDescription() {
-    // Commented out so that more horizontal space is available for the console's contents.
-//    if (console == null) {
-//      setContentDescription("");
-//    } else {
-//      setContentDescription(console.getName());
-//    }
+    if (console == null) {
+      setContentDescription("");
+    } else {
+      String suffix = "";
+
+      if (console instanceof ProcessConsole) {
+        IProcess process = ((ProcessConsole) console).getProcess();
+
+        if (process.isTerminated()) {
+          try {
+            suffix = " [exit value: " + process.getExitValue() + "]";
+          } catch (DebugException ex) {
+            // ignore
+          }
+
+          showContentChange();
+        }
+      }
+
+      setContentDescription(console.getName() + suffix);
+    }
 
     if (console instanceof ProcessConsole) {
       IProcess process = ((ProcessConsole) console).getProcess();
