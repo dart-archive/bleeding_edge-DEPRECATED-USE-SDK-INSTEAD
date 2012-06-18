@@ -658,7 +658,7 @@
          <action
                allowLabelUpdate="true"
                style="toggle"
-               toolbarPath="org.eclipse.ui.workbench.navigate/group.application"
+               toolbarPath="org.eclipse.ui.edit.text.actionSet.presentation/Presentation"
                id="com.google.dart.tools.ui.edit.text.dart.toggleMarkOccurrences"
                definitionId="com.google.dart.tools.ui.edit.text.dart.toggleMarkOccurrences"
                disabledIcon="$nl$/icons/full/dtool16/mark_occurrences.gif"

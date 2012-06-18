@@ -3543,8 +3543,7 @@ public class PreferenceConstants {
 //        FormatterProfileManager.DEFAULT_PROFILE);
 
     // mark occurrences
-    boolean enable = DartCoreDebug.ENABLE_MARK_OCCURRENCES;
-    store.setDefault(PreferenceConstants.EDITOR_MARK_OCCURRENCES, enable);
+    store.setDefault(PreferenceConstants.EDITOR_MARK_OCCURRENCES, false);
     store.setDefault(PreferenceConstants.EDITOR_STICKY_OCCURRENCES, true);
     store.setDefault(PreferenceConstants.EDITOR_MARK_TYPE_OCCURRENCES, true);
     store.setDefault(PreferenceConstants.EDITOR_MARK_METHOD_OCCURRENCES, true);
