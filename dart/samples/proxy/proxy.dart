@@ -222,7 +222,7 @@ class RpcException implements Exception {
   }
 
   static String format(Object e) {
-    return prefix + e.toString();
+    return "$prefix$e";
   }
 
   static RpcException parse(Object object) {
