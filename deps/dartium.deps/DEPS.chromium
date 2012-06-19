@@ -8,10 +8,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "120482",
+  "webkit_revision": "120678",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "8937",
+  "nacl_revision": "8950",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "8673",  # native_client/DEPS: tools_rev
@@ -47,7 +47,7 @@ vars = {
   "libjingle_revision": "153",
   "libphonenumber_revision": "456",
   "libvpx_revision": "134182",
-  "lss_revision": "9",
+  "lss_revision": "11",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
@@ -55,11 +55,11 @@ vars = {
   "ffmpeg_hash": "23f177366e3bce3a628a7d3feedceed4e18dcc04",
 
   "sfntly_revision": "128",
-  "skia_revision": "4257",
+  "skia_revision": "4276",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "11832",
+  "v8_revision": "11844",
   "webrtc_revision": "2406",
   "jsoncpp_revision": "248",
   "nss_revision": "142261",
@@ -89,7 +89,7 @@ deps = {
     (Var("googlecode_url") % "angleproject") + "/trunk@1046",
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@26",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@42",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -100,6 +100,9 @@ deps = {
 
   "src/third_party/icu":
     "/trunk/deps/third_party/icu46@140144",
+
+  "src/third_party/libexif/sources":
+    "/trunk/deps/third_party/libexif/sources@141967",
 
   "src/third_party/hunspell":
    "/trunk/deps/third_party/hunspell@132738",
@@ -124,7 +127,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@51",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1415",
+    (Var("googlecode_url") % "gyp") + "/trunk@1416",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
