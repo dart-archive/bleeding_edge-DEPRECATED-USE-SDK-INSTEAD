@@ -56,17 +56,18 @@ public class InlineFunctionCompletionProposal extends DartTypeCompletionProposal
     }
     buf.append(')');
     buf.append(" => "); //$NON-NLS-1$
-    if (!typeName.isEmpty()) {
-      buf.append(" : "); //$NON-NLS-1$
-      TypeLabelUtil.insertTypeLabel(typeName, buf);
-    }
     return buf;
   }
 
   private static StyledString getDisplayName(char[][] paramNames, char[][] paramTypes,
       String typeName) {
-    return new StyledString(
-        fillDisplayName(paramNames, paramTypes, typeName, new StringBuffer()).toString());
+    StringBuffer buf = new StringBuffer();
+    fillDisplayName(paramNames, paramTypes, typeName, buf);
+    if (!typeName.isEmpty()) {
+      buf.append(" : "); //$NON-NLS-1$
+      TypeLabelUtil.insertTypeLabel(typeName, buf);
+    }
+    return new StyledString(buf.toString());
   }
 
   private String typeName;

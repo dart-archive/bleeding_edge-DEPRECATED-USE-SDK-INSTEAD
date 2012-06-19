@@ -285,12 +285,15 @@ public class CompletionEngine {
           createCompletionsForQualifiedMemberAccess(methodName, type, true, false);
         } else {
           // { x!.y } or { x.y(a!) } or { x.y(a, b, C!) }
+          proposeInlineFunction(completionNode);
           // TODO Consider using proposeIdentifierPrefixCompletions() here
           proposeVariables(completionNode, identifier, resolvedMember);
-          DartClass classDef = (DartClass) resolvedMember.getParent();
-          ClassElement elem = classDef.getElement();
-          Type type = elem.getType();
-          createCompletionsForPropertyAccess(identifier, type, false, true, false);
+          if (resolvedMember.getParent() instanceof DartClass) {
+            DartClass classDef = (DartClass) resolvedMember.getParent();
+            ClassElement elem = classDef.getElement();
+            Type type = elem.getType();
+            createCompletionsForPropertyAccess(identifier, type, false, true, false);
+          }
         }
       }
       return null;
