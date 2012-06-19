@@ -40,6 +40,7 @@ import java.util.HashMap;
  */
 public class ApplicationGenerator extends AbstractGenerator {
 
+  public static final String CSS_FILENAME_EXTENSION = ".css"; //$NON-NLS-1$
   public static final String HTML_FILENAME_EXTENSION = ".html"; //$NON-NLS-1$
 
   public static final String DESCRIPTION = GeneratorMessages.ApplicationGenerator_description;
@@ -196,12 +197,31 @@ public class ApplicationGenerator extends AbstractGenerator {
         100);
     String htmlFileName = appendIfNoExtension(applicationName, HTML_FILENAME_EXTENSION);
     File iHtmlFile = getSystemFile(htmlFileName);
-    substitutions.put("title", className);
+    substitutions.put("title", toTitleCase(className));
+    substitutions.put("fileName", className);
     substitutions.put("dartSrcPath", applicationFileName);
     execute("generated-html.txt", iHtmlFile, substitutions, monitor); //$NON-NLS-1$
+
+    // css file
+    subMonitor = SubMonitor.convert(
+        monitor,
+        GeneratorMessages.ApplicationGenerator_htmlFileMessage,
+        100);
+    String cssFileName = appendIfNoExtension(applicationName, CSS_FILENAME_EXTENSION);
+    File iCssFile = getSystemFile(cssFileName);
+    execute("generated-css.txt", iCssFile, null, monitor); //$NON-NLS-1$
+
     subMonitor.newChild(100);
     subMonitor.done();
     return applicationFile;
+  }
+
+  private String toTitleCase(String str) {
+    if (str.length() < 2) {
+      return str.toUpperCase();
+    } else {
+      return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
   }
 
   /**
@@ -256,6 +276,11 @@ public class ApplicationGenerator extends AbstractGenerator {
       return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, MessageFormat.format(
           GeneratorMessages.ApplicationGenerator_fileExists,
           new Object[] {applicationName + HTML_FILENAME_EXTENSION}));
+    }
+    if (path.append(appendIfNoExtension(applicationName, CSS_FILENAME_EXTENSION)).toFile().exists()) {
+      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, MessageFormat.format(
+          GeneratorMessages.ApplicationGenerator_fileExists,
+          new Object[] {applicationName + CSS_FILENAME_EXTENSION}));
     }
     IStatus status = DartIdentifierUtil.validateIdentifier(applicationName);
     if (status != Status.OK_STATUS) {

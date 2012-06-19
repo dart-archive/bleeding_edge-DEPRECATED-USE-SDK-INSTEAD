@@ -1,9 +1,20 @@
 #import('dart:html');
 
 void main() {
-  show('Hello, World!');
+  query("#button").on.click.add((event) {
+    showMessage("Hello from Dart!");
+
+    window.setTimeout(clearMessage, 1500);
+  });
 }
 
-void show(String message) {
-  query('#status').text = message;
+void clearMessage() {
+  query('#text').style.opacity = "0";
+}
+
+void showMessage(String message) {
+  var textElement = query('#text');
+
+  textElement.text = message;
+  textElement.style.opacity = "1";
 }

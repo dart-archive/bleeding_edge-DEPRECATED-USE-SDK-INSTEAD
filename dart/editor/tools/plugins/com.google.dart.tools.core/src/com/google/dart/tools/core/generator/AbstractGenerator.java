@@ -137,7 +137,7 @@ public abstract class AbstractGenerator {
         if (ch == -1) {
           break;
         }
-        if (ch != '%') {
+        if (ch != '%' || substitutions == null) {
           result.append((char) ch);
           continue;
         }

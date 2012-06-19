@@ -1,0 +1,39 @@
+body {
+  background-color: #F8F8F8;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1.2em;
+  margin: 15px;
+}
+
+p {
+  color: #333;
+}
+
+#content {
+  width: 100%;
+  height: 400px;
+  position: relative;
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+
+form {
+  margin: 1em;
+}
+
+#button {
+  width: 6em;
+  margin-bottom: 1em;
+}
+
+#text {
+  font-size: 3em;
+  text-align: center;
+  margin-top: 120px;
+
+  opacity: 0;
+  transition: 0.5s;
+  -webkit-transition: 0.5s;
+}
