@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Google Inc. All rights reserved.
+ * Copyright (C) 2012 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,11 +23,11 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-module storage {
-
+module html {
     interface [
-        Conditional=INDEXED_DATABASE
-    ] IDBCursorWithValue : IDBCursor {
-        readonly attribute [V8CustomGetter] IDBAny value;
+        Conditional=WEBGL,
+        JSGenerateIsReachable=ImplContext,
+        OmitConstructor
+    ] WebGLDepthTexture {
     };
 }
