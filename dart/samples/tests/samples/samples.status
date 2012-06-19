@@ -29,7 +29,7 @@ dartcombat/dartcombat_test: Fail # Issue 2790
 [ $compiler == none && $runtime == drt && $checked ]
 proxy/mint_maker_fully_isolated_generated_test: Fail # type check fails, Issue 2792.
 
-[ ($compiler == frog && $runtime == drt) || ($runtime == chrome || $runtime == ff || $runtime == safari)) ]
+[ ($runtime == chrome || $runtime == ff || $runtime == safari)) ]
 dartcombat/dartcombat_test: Skip # passes locally but timeout on bot?
 dartcombat_test: Skip
 
@@ -50,9 +50,6 @@ lib/view/view_test: Skip
 
 [ $runtime == vm && $checked ]
 proxy/mint_maker_fully_isolated_generated_test: Fail # issue 2519
-
-[ $compiler == frog && ($runtime == d8 || $runtime == none) ]
-*: Skip
 
 [ $compiler == dart2js && $browser ]
 dartcombat/dartcombat_test: Skip

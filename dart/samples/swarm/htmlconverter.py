@@ -1,8 +1,8 @@
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+#!/usr/bin/env python
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-#!/usr/bin/env python
 #
 
 """Rewrites HTML files, converting Dart script sections into JavaScript.
@@ -35,7 +35,7 @@ HTML_IMPORT_MATCHER = re.compile(
 
 FROG_NOT_FOUND_ERROR = (
 """Couldn't find compiler: please run the following commands:
-   $ cd %s/frog
+   $ cd %s
    $ ./tools/build.py -m release""")
 
 ENTRY_POINT = """
@@ -160,12 +160,11 @@ class DartCompiler(object):
     binary = abspath(join(DART_PATH,
                           utils.GetBuildRoot(utils.GuessOS(),
                                              'release', 'ia32'),
-                          'frog', 'bin', 'frog'))
+                          'dart-sdk', 'bin', 'dart2js'))
     if not exists(binary):
       raise ConverterException(FROG_NOT_FOUND_ERROR % DART_PATH)
 
-    cmd = [binary, '--compile-only',
-           '--libdir=' + join(DART_PATH, 'frog', 'lib'),
+    cmd = [binary, 
            '--out=' + self.outputFileName(inputfile, outdir)]
     if self.extra_flags != "":
       cmd.append(self.extra_flags);
@@ -470,7 +469,7 @@ def Flags():
       metavar="[js,chromium,dartium]",
       default='chromium')
   result.add_option("--extra-flags",
-      help="Extra flags for frogc",
+      help="Extra flags for dart2js",
       type="string",
       default="")
   result.set_usage("htmlconverter.py input.html -o OUTDIR")

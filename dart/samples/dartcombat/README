@@ -17,7 +17,7 @@ Building and running:
    Dartium:
 
    - to compile the code:
-     $(DART_SDK)/bin/frogc --out=dartcombat.dart.js dartcombat.dart
+     $(DART_SDK)/bin/dart2js --out=dartcombat.dart.js dartcombat.dart
 
 4. open the generated file in a browser (either Dartium, Chrome, or another
    supported browser):

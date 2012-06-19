@@ -16,7 +16,7 @@ Building and running:
    Dartium:
 
    - to compile the code:
-     $(DART_SDK)/bin/frogc --out=isolate_sample.dart.js isolate_sample.dart
+     $(DART_SDK)/bin/dart2js --out=isolate_sample.dart.js isolate_sample.dart
 
 4. open the generated file in a browser (either Dartium, Chrome, or another
    supported browser):

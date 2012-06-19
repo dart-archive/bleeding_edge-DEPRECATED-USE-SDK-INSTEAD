@@ -24,4 +24,4 @@ Building and running:
 
 If you are using a dart-enabled browser, the dart source will be
 served up.  Otherwise, the server will compile the Dart source to
-javascript using the frog compiler each time the page is re-loaded.
+javascript using the dart2js compiler each time the page is re-loaded.

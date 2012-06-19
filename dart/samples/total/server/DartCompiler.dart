@@ -7,13 +7,13 @@
 #import('dart:io');
 
 /**
- * A simple wrapper around the Dart compiler (runs frog).
+ * A simple wrapper around the Dart compiler (runs dart2js).
  * TODO: automatically determine the exec path 
  */
 class DartCompiler {
-  final FROG_EXECS = const [
-    '../../../xcodebuild/Release_ia32/dart-sdk/bin/frogc',
-    '../../../out/Release_ia32/dart-sdk/bin/frogc'];
+  final DART2JS_EXECS = const [
+    '../../../xcodebuild/ReleaseIA32/dart-sdk/bin/dart2js',
+    '../../../out/ReleaseIA32/dart-sdk/bin/dart2js'];
 
   String scriptName;
   String out = null;
@@ -21,18 +21,18 @@ class DartCompiler {
   bool enableTypeChecks = false;
   bool checkOnly = false;
 
-  String _frogExecPath;
+  String _dart2jsExecPath;
 
   DartCompiler(String this.scriptName) {
-    for (var path in FROG_EXECS) {
+    for (var path in DART2JS_EXECS) {
       var f = new File(path);
       if (f.existsSync()) {
-        _frogExecPath = path;
+        _dart2jsExecPath = path;
         break;
       }
     }
-    if (_frogExecPath == null) {
-      throw new Exception("Can't find frog on path: " + FROG_EXECS);
+    if (_dart2jsExecPath == null) {
+      throw new Exception("Can't find dart2js on path: " + DART2JS_EXECS);
     }
   }
 
@@ -57,7 +57,7 @@ class DartCompiler {
 
     args.add(scriptName);
 
-    Process compiler = new Process.start(_frogExecPath, args);
+    Process compiler = new Process.start(_dart2jsExecPath, args);
     StringBuffer messages = new StringBuffer();
     compiler.onExit = (int status) {
       compiler.close();
