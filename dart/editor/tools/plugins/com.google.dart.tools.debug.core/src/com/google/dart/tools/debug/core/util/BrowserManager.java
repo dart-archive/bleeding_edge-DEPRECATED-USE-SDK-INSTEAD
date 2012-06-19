@@ -172,9 +172,6 @@ public class BrowserManager {
           devToolsPortNumber);
     }
 
-    stdout = readFromProcessPipes(browserName, browserProcess.getInputStream());
-    stderr = readFromProcessPipes(browserName, browserProcess.getErrorStream());
-
     BrowserHelper.activateApplication(dartium);
 
     timer.stopTask();
@@ -583,6 +580,8 @@ public class BrowserManager {
     }
 
     browserProcess = process;
+    stdout = readFromProcessPipes(browserName, browserProcess.getInputStream());
+    stderr = readFromProcessPipes(browserName, browserProcess.getErrorStream());
   }
 
   private void terminateExistingBrowserProcess() {
