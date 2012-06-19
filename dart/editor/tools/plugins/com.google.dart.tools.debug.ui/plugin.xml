@@ -503,4 +503,20 @@
    </extension-->
 
 
+   <extension
+         point="org.eclipse.ltk.core.refactoring.deleteParticipants">
+      <deleteParticipant
+            class="com.google.dart.tools.debug.ui.launch.LaunchesDeleteResourceParticipant"
+            id="com.google.dart.tools.debug.ui.launch.DeleteResourceParticipant"
+            name="Remove Dart launches">
+            <enablement>
+              <with variable="affectedNatures">
+                <iterate operator="or">
+                  <equals value="com.google.dart.tools.core.dartNature"/>
+                </iterate>
+              </with>
+            </enablement>
+      </deleteParticipant>
+   </extension>
+   
 </plugin>
