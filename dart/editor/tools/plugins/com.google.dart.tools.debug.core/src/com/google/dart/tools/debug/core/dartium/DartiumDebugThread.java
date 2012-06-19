@@ -266,7 +266,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
     List<IStackFrame> frames = new ArrayList<IStackFrame>();
 
     for (int i = 0; i < webkitFrames.size(); i++) {
-      WebkitCallFrame webkitFrame = webkitFrames.get(0);
+      WebkitCallFrame webkitFrame = webkitFrames.get(i);
 
       DartiumDebugStackFrame frame;
 

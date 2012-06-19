@@ -111,6 +111,11 @@ class BreakpointManager implements IBreakpointListener {
 
     WebkitScript script = debugTarget.getWebkitConnection().getDebugger().getScript(
         location.getScriptId());
+
+    if (script == null) {
+      return null;
+    }
+
     String url = script.getUrl();
     int line = WebkitLocation.webkitToElipseLine(location.getLineNumber());
 
