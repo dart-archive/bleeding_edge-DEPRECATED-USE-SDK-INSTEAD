@@ -20,7 +20,6 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPreferenceNode;
 import org.eclipse.jface.preference.PreferenceManager;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.application.ActionBarAdvisor;
@@ -82,6 +81,15 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
   }
 
   @Override
+  public void createWindowContents(Shell shell) {
+    if (DartCore.isMac()) {
+      enableFullScreenMode(shell);
+    }
+
+    super.createWindowContents(shell);
+  }
+
+  @Override
   public void postWindowOpen() {
     filterUnwantedPreferenceNodes();
 
@@ -91,10 +99,6 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 
     // Turn off the ability to move the toolbars around.
     getWindowConfigurer().getActionBarConfigurer().getCoolBarManager().setLockLayout(true);
-
-    if (DartCore.isMac()) {
-      enableFullScreenMode();
-    }
   }
 
   @Override
@@ -116,13 +120,13 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
    * It makes a best effort to turn on fullscreen mode; if it fails it does not complain to the
    * user. We do this work reflectively so that the code can continue to compile for other
    * architectures.
+   * 
+   * @param shell the main application shell
    */
-  private void enableFullScreenMode() {
+  private void enableFullScreenMode(Shell shell) {
     final long FULL_SCREEN_MODE = 1 << 7;
 
     try {
-      Shell shell = Display.getDefault().getActiveShell();
-
       // NSView nsView = shell.view;
       // NSWindow nsWindow = nsView.window();
       // nsWindow.setCollectionBehavior(behavior);
