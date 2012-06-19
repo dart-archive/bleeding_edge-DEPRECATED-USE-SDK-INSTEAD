@@ -60,6 +60,7 @@ public class DartHtmlGenerator extends DartFileGenerator {
   public void execute(IProgressMonitor monitor) throws CoreException {
     final HashMap<String, String> substitutions = new HashMap<String, String>();
     substitutions.put("title", getTitle());
+    substitutions.put("fileName", getTitle());
     substitutions.put("dartSrcPath", getRelativeDartPath());
     execute("generated-html.txt", getFile(), substitutions, monitor);
   }
