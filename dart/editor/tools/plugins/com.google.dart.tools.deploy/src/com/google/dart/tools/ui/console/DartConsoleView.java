@@ -15,6 +15,8 @@
 package com.google.dart.tools.ui.console;
 
 import com.google.dart.tools.deploy.Activator;
+import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -25,8 +27,10 @@ import org.eclipse.debug.internal.ui.views.console.ProcessConsole;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PartInitException;
@@ -74,6 +78,22 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       };
 
       new Thread(r).start();
+    }
+  }
+
+  private class FontPropertyChangeListener implements IPropertyChangeListener {
+    @Override
+    public void propertyChange(final PropertyChangeEvent event) {
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          if (page != null && page.getControl() != null) {
+            if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
+              updateFont();
+            }
+          }
+        }
+      });
     }
   }
 
@@ -150,6 +170,8 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   private TerminateAction terminateAction;
   private ClearAction clearAction;
 
+  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
+
   public DartConsoleView() {
     DartConsoleManager.getManager().consoleViewOpened(this);
   }
@@ -166,6 +188,8 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     toolbar.add(terminateAction);
     toolbar.add(new Separator("outputGroup"));
     getViewSite().getActionBars().updateActionBars();
+
+    JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
   }
 
   @Override
@@ -200,6 +224,8 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       parent.layout();
     }
 
+    updateFont();
+
     updateContentDescription();
 
     updateIcon();
@@ -209,6 +235,8 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
   @Override
   public void dispose() {
+    JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
+
     DartConsoleManager.getManager().consoleViewClosed(this);
 
     if (console != null && isDead()) {
@@ -355,6 +383,15 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       setPartName(process.getLaunch().getLaunchConfiguration().getName());
     } else {
       setPartName("Output");
+    }
+  }
+
+  private void updateFont() {
+    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
+    if (page != null && page.getControl() != null) {
+      Font oldFont = page.getControl().getFont();
+      Font font = SWTUtil.changeFontSize(oldFont, newFont);
+      page.getControl().setFont(font);
     }
   }
 
