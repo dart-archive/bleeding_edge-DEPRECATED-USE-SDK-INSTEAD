@@ -297,7 +297,9 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     }
 
     // Turn on break-on-exceptions.
-    connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.uncaught);
+    if (breakpointManager != null) {
+      connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.uncaught);
+    }
 
     connection.getPage().navigate(url);
   }

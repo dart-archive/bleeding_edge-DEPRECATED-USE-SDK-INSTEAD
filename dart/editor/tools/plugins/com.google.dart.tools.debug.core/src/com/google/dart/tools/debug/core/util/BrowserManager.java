@@ -126,16 +126,16 @@ public class BrowserManager {
         || !DartiumDebugTarget.getActiveTarget().canTerminate();
 
     if (!restart) {
-
       DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
 
       try {
+        // TODO(devoncarew): clear all existing breakpoints?
+
         DartiumDebugTarget.getActiveTarget().navigateToUrl(url);
       } catch (IOException e) {
         DartDebugCorePlugin.logError(e);
       }
     } else {
-
       terminateExistingBrowserProcess();
 
       startNewBrowserProcess(
