@@ -12,11 +12,11 @@ class Balls {
   static final int LT_GRAY_BALL_INDEX = 0;
   static final int GREEN_BALL_INDEX = 1;
   static final int BLUE_BALL_INDEX = 2;
-  
+
   static final int DK_GRAY_BALL_INDEX = 4;
   static final int RED_BALL_INDEX = 5;
   static final int MD_GRAY_BALL_INDEX = 6;
-  
+
   static final List<String> PNGS = const [
       "images/ball-d9d9d9.png", "images/ball-009a49.png",
       "images/ball-13acfa.png", "images/ball-265897.png",
@@ -29,7 +29,7 @@ class Balls {
   List<Ball> balls;
 
   Balls() :
-      lastTime = new Date.now().value,
+      lastTime = new Date.now().millisecondsSinceEpoch,
       balls = new List<Ball>() {
     root = new DivElement();
     document.body.nodes.add(root);
@@ -38,13 +38,13 @@ class Balls {
   }
 
   void tick() {
-    int now = new Date.now().value;
-    
+    int now = new Date.now().millisecondsSinceEpoch;
+
     showFps(1000.0 / (now - lastTime + 0.01));
-    
+
     double delta = Math.min((now - lastTime) / 1000.0, 0.1);
     lastTime = now;
-    
+
     // incrementally move each ball, removing balls that are offscreen
     balls = balls.filter((ball) => ball.tick(delta));
     collideBalls(delta);
@@ -57,7 +57,7 @@ class Balls {
         double dx = (b0.x - b1.x).abs();
         double dy = (b0.y - b1.y).abs();
         double d2 = dx * dx + dy * dy;
-        
+
         if (d2 < RADIUS2) {
           // Make sure they're actually on a collision path
           // (not intersecting while moving apart).
@@ -69,13 +69,13 @@ class Balls {
 
           // They've collided. Normalize the collision vector.
           double d = Math.sqrt(d2);
-          
+
           if (d == 0) {
             // TODO: move balls apart.
-            
+
             return;
           }
-          
+
           dx /= d;
           dy /= d;
 
@@ -164,7 +164,7 @@ class Ball {
 
     // Position the element.
     setElementPosition(elem, x - RADIUS, y - RADIUS);
-    
+
     return true;
   }
 }

@@ -23,7 +23,7 @@ void showFps(num fps) {
     fpsAverage = fps;
   } else {
     fpsAverage = fps * 0.05 + fpsAverage * 0.95;
-    
+
     query("#notes").text = "${fpsAverage.round().toInt()} fps";
   }
 }
@@ -42,12 +42,12 @@ class CountDownClock {
       seconds = new List<ClockNumber>(2),
       balls = new Balls() {
     var parent = query("#canvas-content");
-    
+
     parent.rect.then((ElementRect r) {
       createNumbers(parent, r.client.width, r.client.height);
 
       updateTime();
-      
+
       window.setInterval(f() => updateTime(), 1000);
 
       window.requestAnimationFrame(tick);
@@ -56,16 +56,16 @@ class CountDownClock {
 
   bool tick(int time) {
     balls.tick();
-    
+
     window.requestAnimationFrame(tick);
   }
-  
+
   void updateTime() {
     Date now = new Date.now();
-    
-    setDigits(pad2(now.hours), hours);
-    setDigits(pad2(now.minutes), minutes);
-    setDigits(pad2(now.seconds), seconds);
+
+    setDigits(pad2(now.hour), hours);
+    setDigits(pad2(now.minute), minutes);
+    setDigits(pad2(now.second), seconds);
   }
 
   void setDigits(String digits, List<ClockNumber> numbers) {
@@ -101,12 +101,12 @@ class CountDownClock {
     double hSize = (BALL_WIDTH * ClockNumber.WIDTH + NUMBER_SPACING) * 6
         + (BALL_WIDTH + NUMBER_SPACING) * 2;
     hSize -= NUMBER_SPACING;
-    
+
     double vSize = BALL_HEIGHT * ClockNumber.HEIGHT;
-    
+
     double x = (width - hSize) / 2;
     double y = (height - vSize) / 3;
-    
+
     for (int i = 0; i < hours.length; ++i) {
       hours[i] = new ClockNumber(this, x, Balls.BLUE_BALL_INDEX);
       root.nodes.add(hours[i].root);
