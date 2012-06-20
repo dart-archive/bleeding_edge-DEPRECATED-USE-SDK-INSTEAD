@@ -252,8 +252,8 @@ class CoreRuntimeTypesTest {
     // Pushing this into Jan 2nd to make the year independent of timezone.
     // TODO(jimhug): Pursue a better solution to TZ issues.
     var msec = 115201000;
-    var d = new Date.fromEpoch(msec, const TimeZone.utc());
-    assertEquals(d.seconds, 1);
+    var d = new Date.fromMillisecondsSinceEpoch(msec, const TimeZone.utc());
+    assertEquals(d.second, 1);
     assertEquals(d.year, 1970);
 
     d = new Date.now();

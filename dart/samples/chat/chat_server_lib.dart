@@ -635,7 +635,7 @@ class Rate {
       : _timeRange = timeRange,
         _buckets = new List(buckets + 1),  // Current bucket is not in the sum.
         _currentBucket = 0,
-        _currentBucketTime = new Date.now().value,
+        _currentBucketTime = new Date.now().millisecondsSinceEpoch,
         _sum = 0 {
     _bucketTimeRange = (_timeRange / buckets).toInt();
     for (int i = 0; i < _buckets.length; i++) {
@@ -660,7 +660,7 @@ class Rate {
   // matching the current time. Subtract all buckets vacated from the
   // sum as bucket for current time is located.
   void _timePassed() {
-    int time = new Date.now().value;
+    int time = new Date.now().millisecondsSinceEpoch;
     if (time < _currentBucketTime + _bucketTimeRange) {
       // Still same bucket.
       return;

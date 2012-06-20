@@ -6,7 +6,7 @@
 
 class BenchUtil {
   static int get now() {
-    return new Date.now().value;
+    return new Date.now().millisecondsSinceEpoch;
   }
 
   static Map<String, Object> deserialize(String data) {

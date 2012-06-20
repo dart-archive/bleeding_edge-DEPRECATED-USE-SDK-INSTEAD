@@ -240,7 +240,8 @@ class Article {
     final author = decoder.readString();
     final dateInSeconds = decoder.readInt();
     final snippet = decoder.readString();
-    final date = new Date.fromEpoch(dateInSeconds*1000, isUtc: true);
+    final date =
+        new Date.fromMillisecondsSinceEpoch(dateInSeconds*1000, isUtc: true);
     return new Article(source, id, date, title, author, srcUrl, hasThumbnail,
         snippet);
   }

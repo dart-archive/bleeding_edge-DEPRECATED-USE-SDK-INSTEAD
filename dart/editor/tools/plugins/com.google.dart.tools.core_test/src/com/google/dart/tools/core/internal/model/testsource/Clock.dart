@@ -31,7 +31,7 @@ class Util {
   }
 
   static double currentTimeMillis() {
-    return new Date.now().value.toDouble();
+    return new Date.now().millisecondsSinceEpoch.toDouble();
   }
 
   static double clientWidth() {

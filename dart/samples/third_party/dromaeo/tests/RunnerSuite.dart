@@ -60,12 +60,12 @@ class Suite {
         // more smoothly as well.
         for (int i = 0; i < _N_RUNS; i++) {
           int runs = 0;
-          final int start = new Date.now().value;
+          final int start = new Date.now().millisecondsSinceEpoch;
 
-          int cur = new Date.now().value;
+          int cur = new Date.now().millisecondsSinceEpoch;
           while ((cur - start) < 1000) {
             test_();
-            cur = new Date.now().value;
+            cur = new Date.now().millisecondsSinceEpoch;
             runs++;
           }
 

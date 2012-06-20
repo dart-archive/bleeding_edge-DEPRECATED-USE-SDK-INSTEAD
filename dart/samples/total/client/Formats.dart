@@ -224,18 +224,18 @@ class Formats {
     _numericFormats.add(String _(double x) {
       x -= x.floor(); // ignore days
       Date dt = DateUtils.getDateTime(x);
-      String hh = StringUtils.twoDigits(dt.hours);
-      String mm = StringUtils.twoDigits(dt.minutes);
-      String ss = StringUtils.twoDigits(dt.seconds);
+      String hh = StringUtils.twoDigits(dt.hour);
+      String mm = StringUtils.twoDigits(dt.minute);
+      String ss = StringUtils.twoDigits(dt.second);
       return "${hh}:${mm}:${ss}";
     });
     _numericFormatDescriptions.add("HH:MM:SS (Time)"); // 12
 
     _numericFormats.add(String _(double x) {
       Date dt = DateUtils.getDateTime(x);
-      String hh = StringUtils.twoDigits(dt.hours);
-      String mm = StringUtils.twoDigits(dt.minutes);
-      String ss = StringUtils.twoDigits(dt.seconds);
+      String hh = StringUtils.twoDigits(dt.hour);
+      String mm = StringUtils.twoDigits(dt.minute);
+      String ss = StringUtils.twoDigits(dt.second);
       return "${dt.month}/${dt.day}/${dt.year} ${hh}:${mm}:${ss}";
     });
     _numericFormatDescriptions.add("MM/DD/YYYY HH:MM:SS"); // 13
@@ -244,9 +244,9 @@ class Formats {
       double days = x.floor();
       x -= days;
       Date dt = DateUtils.getDateTime(x);
-      String mm = StringUtils.twoDigits(dt.minutes);
-      String ss = StringUtils.twoDigits(dt.seconds);
-      return "${24 * days + dt.hours}:${mm}:${ss}";
+      String mm = StringUtils.twoDigits(dt.minute);
+      String ss = StringUtils.twoDigits(dt.second);
+      return "${24 * days + dt.hour}:${mm}:${ss}";
     });
     _numericFormatDescriptions.add("HH:MM:SS (Hours)"); // 14
 

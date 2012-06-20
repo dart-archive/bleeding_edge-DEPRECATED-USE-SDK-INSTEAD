@@ -123,7 +123,7 @@ class DateUtils {
     final now = new Date.now();
     if (datesAreEqual(then, now)) {
       return toHourMinutesString(new Duration(
-          0, then.hours, then.minutes, then.seconds, then.milliseconds));
+          0, then.hour, then.minute, then.second, then.millisecond));
     }
 
     final today = new Date(now.year, now.month, now.day, 0, 0, 0, 0);

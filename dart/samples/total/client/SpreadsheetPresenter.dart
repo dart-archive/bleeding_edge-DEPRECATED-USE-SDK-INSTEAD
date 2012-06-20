@@ -826,7 +826,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
   // Return the number of milliseconds since the epoch
   int _currentTimeMllis() {
-    return new Date.now().value;
+    return new Date.now().millisecondsSinceEpoch;
   }
 
   void _formulaCellSelectingInsertReference(RowCol clickLocation, RowCol dragLocation) {

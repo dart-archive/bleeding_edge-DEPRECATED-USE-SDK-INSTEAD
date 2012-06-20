@@ -235,14 +235,14 @@ class Chat {
   String formatMessageTime(String received) {
     Date date = new Date.fromString(received);
     StringBuffer formattedTime = new StringBuffer();
-    if (date.hours < 10) formattedTime.add("0");
-    formattedTime.add(date.hours);
+    if (date.hour < 10) formattedTime.add("0");
+    formattedTime.add(date.hour);
     formattedTime.add(":");
-    if (date.minutes < 10) formattedTime.add("0");
-    formattedTime.add(date.minutes);
+    if (date.minute < 10) formattedTime.add("0");
+    formattedTime.add(date.minute);
     formattedTime.add(":");
-    if (date.seconds < 10) formattedTime.add("0");
-    formattedTime.add(date.seconds);
+    if (date.second < 10) formattedTime.add("0");
+    formattedTime.add(date.second);
     return formattedTime.toString();
   }
 
