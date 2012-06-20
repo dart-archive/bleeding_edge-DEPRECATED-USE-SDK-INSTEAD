@@ -1534,6 +1534,40 @@ public class CompletionEngine {
     }
   }
 
+  private void createCompletionForIndexer(boolean isSetter, FieldElement field,
+      boolean includeDeclaration, DartIdentifier node, String prefix) {
+    int adjust = 0;
+    if (!isSetter) {
+      adjust = -1;
+    }
+    InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
+        CompletionProposal.FIELD_REF,
+        actualCompletionPosition - offset + adjust);
+    if (includeDeclaration) {
+      proposal.setDeclarationSignature(field.getEnclosingElement().getName().toCharArray());
+    } else {
+      proposal.setDeclarationSignature("".toCharArray());
+    }
+    String mod = "[]";
+    if (isSetter) {
+      mod += " = ";
+    }
+    String subst = field.getName() + mod;
+    proposal.setSignature(field.getType().getElement().getName().toCharArray());
+    proposal.setCompletion(subst.toCharArray());
+    proposal.setName(subst.toCharArray());
+    proposal.setIsContructor(false);
+    proposal.setIsGetter(!isSetter);
+    proposal.setIsSetter(isSetter);
+    proposal.setTypeName(field.getType().getElement().getName().toCharArray());
+    if (includeDeclaration) {
+      proposal.setDeclarationTypeName(field.getEnclosingElement().getName().toCharArray());
+    }
+    setSourceLoc(proposal, node, prefix);
+    proposal.setRelevance(1);
+    requestor.accept(proposal);
+  }
+
   private void createCompletionsForAliasRef(FunctionAliasType funcAlias) {
     InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
         CompletionProposal.POTENTIAL_METHOD_DECLARATION,
@@ -1740,20 +1774,27 @@ public class CompletionEngine {
   private void createCompletionsForMethodInvocation(DartIdentifier node, Type type,
       boolean isQualifiedByThis, boolean allowDynamic, boolean isMethodStatic) {
     String prefix = extractFilterPrefix(node);
-    if (TypeKind.of(type) == TypeKind.VOID) {
-      return;
-    }
-    InterfaceType itype = (InterfaceType) type;
     boolean includeDeclaration = true;
     List<Element> members;
-    if (TypeKind.of(itype) == TypeKind.DYNAMIC) {
-      members = findAllElements(prefix, node);
-      if (members.isEmpty() && allowDynamic) {
-        members = findAllElements(prefix, null);
-      }
-      includeDeclaration = false;
-    } else {
-      members = getAllElements(itype);
+    // see Types.getInterfaceType(Type)
+    switch (TypeKind.of(type)) {
+      default:
+      case VOID:
+      case NONE:
+      case FUNCTION:
+      case FUNCTION_ALIAS:
+      case VARIABLE:
+        return;
+      case DYNAMIC:
+        members = findAllElements(prefix, node);
+        if (members.isEmpty() && allowDynamic) {
+          members = findAllElements(prefix, null);
+        }
+        includeDeclaration = false;
+        break;
+      case INTERFACE:
+        members = getAllElements(type);
+        break;
     }
     Set<String> previousNames = new HashSet<String>(members.size());
     for (Element elem : members) {
@@ -1870,8 +1911,8 @@ public class CompletionEngine {
       proposal.setCompletion(name.toCharArray());
       proposal.setName(name.toCharArray());
       proposal.setIsContructor(false);
-      proposal.setIsGetter(true);
-      proposal.setIsSetter(true);
+      proposal.setIsGetter(false);
+      proposal.setIsSetter(false);
       proposal.setTypeName(field.getType().getElement().getName().toCharArray());
       if (includeDeclaration) {
         proposal.setDeclarationTypeName(field.getEnclosingElement().getName().toCharArray());
@@ -1879,6 +1920,12 @@ public class CompletionEngine {
       setSourceLoc(proposal, node, prefix);
       proposal.setRelevance(1);
       requestor.accept(proposal);
+      if (field.getGetter() != null) {
+        createCompletionForIndexer(false, field, includeDeclaration, node, prefix);
+      }
+      if (field.getSetter() != null) {
+        createCompletionForIndexer(true, field, includeDeclaration, node, prefix);
+      }
     }
   }
 
@@ -2396,11 +2443,12 @@ public class CompletionEngine {
   }
 
   private void proposeTypesForPrefix(DartIdentifier identifier, boolean allowVoid) {
+    String prefix = extractFilterPrefix(identifier);
+    createCompletionsForIdentifierPrefix(identifier, prefix);
     List<SearchMatch> matches = findTypesWithPrefix(identifier);
     if (matches == null || matches.size() == 0) {
       return;
     }
-    String prefix = extractFilterPrefix(identifier);
     Set<String> uniques = new HashSet<String>(matches.size()); // indexer returns duplicates
     for (SearchMatch match : matches) {
       String matchName = match.getElement().getElementName();
@@ -2410,7 +2458,6 @@ public class CompletionEngine {
       uniques.add(matchName);
       createTypeCompletionsForParameterDecl(identifier, match, prefix);
     }
-    createCompletionsForIdentifierPrefix(identifier, prefix);
     if (allowVoid) {
       if (prefix == null || prefix.length() == 0) {
         createProposalsForLiterals(identifier, C_VOID);

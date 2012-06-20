@@ -405,6 +405,10 @@ public class CompletionEngineTest extends TestCase {
     test(source, "1+v");
   }
 
+  public void testCommentSnippets059() throws Exception {
+    test("f(){((int x) => x+4).!1call(1);}", "1-call");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test

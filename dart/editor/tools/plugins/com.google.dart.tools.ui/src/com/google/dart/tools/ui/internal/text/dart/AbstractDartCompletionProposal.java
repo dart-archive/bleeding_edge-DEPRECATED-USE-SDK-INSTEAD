@@ -329,7 +329,11 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
       replace(document, getReplacementOffset(), getReplacementLength(), replacement);
 
       referenceOffset = referenceTracker.postReplace(document);
-      setReplacementOffset(referenceOffset - (replacement == null ? 0 : replacement.length()));
+      int delta = replacement == null ? 0 : replacement.length();
+      if (delta > 0 && replacement.charAt(replacement.length() - 1) == ']') {
+        delta += 1;
+      }
+      setReplacementOffset(referenceOffset - delta);
 
       // PR 47097
       if (isSmartTrigger) {
