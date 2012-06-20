@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.omni.OmniBoxMessages;
 import com.google.dart.tools.ui.omni.OmniElement;
@@ -74,8 +75,7 @@ public class FileProvider extends OmniProposalProvider {
         return false;
       }
       IFile resource = (IFile) item;
-      if ((!this.showDerived && resource.isDerived())
-          || ((this.filterTypeMask & resource.getType()) == 0)) {
+      if (isFiltered(resource)) {
         return false;
       }
 
@@ -146,6 +146,11 @@ public class FileProvider extends OmniProposalProvider {
      */
     protected boolean matches(String text) {
       return patternMatcher.matches(text);
+    }
+
+    private boolean isFiltered(IFile resource) {
+      return !DartCore.isAnalyzed(resource) || (!this.showDerived && resource.isDerived())
+          || ((this.filterTypeMask & resource.getType()) == 0);
     }
 
     private boolean nameMatches(String name) {
