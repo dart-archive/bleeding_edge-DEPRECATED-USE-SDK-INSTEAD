@@ -105,8 +105,8 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
     commandsList.add(vmExecPath);
     commandsList.addAll(Arrays.asList(launchConfig.getVmArgumentsAsArray()));
-    // TODO(devoncarew): remove this when the debugger supports all platforms
-    if (enableDebugging && DartCore.isMac()) {
+
+    if (enableDebugging && (!DartCore.isWindows())) {
       commandsList.add("--debug:" + connectionPort);
     }
 
@@ -162,8 +162,7 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
     eclipseProcess.setAttribute(IProcess.ATTR_CMDLINE, generateCommandLine(commands));
 
-    // TODO(devoncarew): remove this when the debugger supports all platforms
-    if (enableDebugging && DartCore.isMac()) {
+    if (enableDebugging && !DartCore.isWindows()) {
       ServerDebugTarget debugTarget = new ServerDebugTarget(launch, eclipseProcess, connectionPort);
 
       try {
