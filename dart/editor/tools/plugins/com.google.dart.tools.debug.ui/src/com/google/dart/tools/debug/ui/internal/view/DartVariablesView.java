@@ -17,6 +17,7 @@ import org.eclipse.debug.internal.ui.views.variables.VariablesView;
 import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.ISelectionProvider;
 
 /**
  * This custom subclass of the debugger VariablesView allows us to customize the actions that the
@@ -51,6 +52,13 @@ public class DartVariablesView extends VariablesView {
   @Override
   public boolean isVisible() {
     return visible;
+  }
+
+  @Override
+  public void setSelectionProvider(ISelectionProvider provider) {
+    // Overridden to do nothing. This prevents a nasty class cast exception.
+    // See https://code.google.com/p/dart/issues/detail?id=2008.
+
   }
 
   @Override
