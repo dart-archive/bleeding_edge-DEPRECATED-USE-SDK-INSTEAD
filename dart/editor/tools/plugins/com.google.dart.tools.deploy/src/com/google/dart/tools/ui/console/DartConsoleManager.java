@@ -162,7 +162,9 @@ public class DartConsoleManager implements IConsoleListener {
       try {
         if (PlatformUI.getWorkbench() != null) {
           view = (DartConsoleView) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(
-              DartConsoleView.VIEW_ID, createViewId(console), IWorkbenchPage.VIEW_VISIBLE);
+              DartConsoleView.VIEW_ID,
+              createViewId(console),
+              IWorkbenchPage.VIEW_VISIBLE);
 
           view.display(console);
 

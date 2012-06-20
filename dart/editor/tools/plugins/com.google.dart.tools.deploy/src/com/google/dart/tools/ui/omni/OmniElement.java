@@ -173,9 +173,11 @@ public abstract class OmniElement {
       int lengthOfElementMatch = index + filter.length() - providerForMatching.getName().length()
           - 1;
       if (lengthOfElementMatch > 0) {
-        return new OmniEntry(this, providerForMatching,
-            new int[][] {{0, lengthOfElementMatch - 1}}, new int[][] {{
-                index, index + filter.length() - 1}});
+        return new OmniEntry(
+            this,
+            providerForMatching,
+            new int[][] {{0, lengthOfElementMatch - 1}},
+            new int[][] {{index, index + filter.length() - 1}});
       }
       return new OmniEntry(this, providerForMatching, EMPTY_INDICES, new int[][] {{
           index, index + filter.length() - 1}});
@@ -192,12 +194,18 @@ public abstract class OmniElement {
       String providerCamelCase = CamelUtil.getCamelCase(providerForMatching.getName());
       int lengthOfElementMatch = index + filter.length() - providerCamelCase.length();
       if (lengthOfElementMatch > 0) {
-        return new OmniEntry(this, providerForMatching, CamelUtil.getCamelCaseIndices(sortLabel, 0,
-            lengthOfElementMatch), CamelUtil.getCamelCaseIndices(providerForMatching.getName(),
-            index, filter.length() - lengthOfElementMatch));
+        return new OmniEntry(this, providerForMatching, CamelUtil.getCamelCaseIndices(
+            sortLabel,
+            0,
+            lengthOfElementMatch), CamelUtil.getCamelCaseIndices(
+            providerForMatching.getName(),
+            index,
+            filter.length() - lengthOfElementMatch));
       }
       return new OmniEntry(this, providerForMatching, EMPTY_INDICES, CamelUtil.getCamelCaseIndices(
-          providerForMatching.getName(), index, filter.length()));
+          providerForMatching.getName(),
+          index,
+          filter.length()));
     }
     return null;
   }

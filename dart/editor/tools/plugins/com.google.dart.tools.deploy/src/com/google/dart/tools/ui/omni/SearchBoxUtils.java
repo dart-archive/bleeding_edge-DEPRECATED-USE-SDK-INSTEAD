@@ -20,17 +20,15 @@ import org.eclipse.ui.PlatformUI;
 
 /**
  * Searchbox-related utilities.
- *
  */
 public class SearchBoxUtils {
-  
+
   /**
-   * Get the active shell from the workbench (if none is found, fall back
-   * to a sensible default).
+   * Get the active shell from the workbench (if none is found, fall back to a sensible default).
    * 
    * @return the default/active workbench shell
    */
-  public static Shell getActiveWorkbenchShell() { 
+  public static Shell getActiveWorkbenchShell() {
     IWorkbenchWindow activeWindow = getActiveWindow();
     if (activeWindow != null) {
       return activeWindow.getShell();
@@ -62,5 +60,5 @@ public class SearchBoxUtils {
     }
     return activeWindow;
   }
-   
+
 }

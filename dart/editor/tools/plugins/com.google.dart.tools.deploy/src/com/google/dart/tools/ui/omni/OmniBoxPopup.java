@@ -482,8 +482,10 @@ public class OmniBoxPopup extends BasePopupDialog {
     } else {
       boldStyle = null;
     }
-    final TextStyle grayStyle = new TextStyle(table.getFont(),
-        OmniBoxColors.SEARCH_ENTRY_ITEM_TEXT, null);
+    final TextStyle grayStyle = new TextStyle(
+        table.getFont(),
+        OmniBoxColors.SEARCH_ENTRY_ITEM_TEXT,
+        null);
 
     Listener listener = new Listener() {
       @Override
@@ -968,7 +970,10 @@ public class OmniBoxPopup extends BasePopupDialog {
         //create headers for non-empty categories
         if (iterator.hasNext()) {
           item = new TableItem(table, SWT.NONE);
-          item.setData(new OmniEntry(new HeaderElement(providers[i]), providers[i], new int[0][0],
+          item.setData(new OmniEntry(
+              new HeaderElement(providers[i]),
+              providers[i],
+              new int[0][0],
               new int[0][0]));
         }
         //create entries

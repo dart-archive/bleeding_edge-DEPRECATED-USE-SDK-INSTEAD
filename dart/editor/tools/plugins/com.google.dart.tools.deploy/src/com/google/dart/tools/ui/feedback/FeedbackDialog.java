@@ -126,8 +126,11 @@ public class FeedbackDialog extends Dialog implements IRunnableContext {
 
   @Override
   protected void createButtonsForButtonBar(Composite parent) {
-    okButton = createButton(parent, IDialogConstants.OK_ID,
-        FeedbackMessages.FeedbackDialog_OK_Button_Text, true);
+    okButton = createButton(
+        parent,
+        IDialogConstants.OK_ID,
+        FeedbackMessages.FeedbackDialog_OK_Button_Text,
+        true);
     createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
     updateEnablement();
   }
@@ -231,7 +234,8 @@ public class FeedbackDialog extends Dialog implements IRunnableContext {
       if (submitFeedback().isOK()) {
         saveSettings();
         super.okPressed();
-        MessageDialog.openInformation(getParentShell(),
+        MessageDialog.openInformation(
+            getParentShell(),
             FeedbackMessages.FeedbackDialog_feedback_sent_label,
             FeedbackMessages.FeedbackDialog_feedback_sent_details);
         return;
@@ -239,7 +243,8 @@ public class FeedbackDialog extends Dialog implements IRunnableContext {
     } catch (Throwable th) {
       DartToolsPlugin.log(th);
     }
-    MessageDialog.openError(getParentShell(),
+    MessageDialog.openError(
+        getParentShell(),
         FeedbackMessages.FeedbackDialog_error_submitting_label,
         FeedbackMessages.FeedbackDialog_error_submitting_detail);
     setReturnCode(CANCEL);
@@ -267,12 +272,14 @@ public class FeedbackDialog extends Dialog implements IRunnableContext {
       @Override
       public void widgetSelected(SelectionEvent e) {
         try {
-          LogViewer logViewer = new LogViewer(getShell(),
+          LogViewer logViewer = new LogViewer(
+              getShell(),
               feedbackReport.getDetailString(sendAdditionData()));
 
           logViewer.open();
         } catch (Throwable th) {
-          MessageDialog.openError(getParentShell(),
+          MessageDialog.openError(
+              getParentShell(),
               FeedbackMessages.FeedbackDialog_error_opening_log_label,
               FeedbackMessages.FeedbackDialog_error_opening_log_detail);
         }
@@ -306,7 +313,8 @@ public class FeedbackDialog extends Dialog implements IRunnableContext {
         @Override
         public void run(IProgressMonitor monitor) throws InvocationTargetException,
             InterruptedException {
-          status[0] = new FeedbackSubmissionJob(new FeedbackWriter(feedbackReport,
+          status[0] = new FeedbackSubmissionJob(new FeedbackWriter(
+              feedbackReport,
               sendAdditionData())).run(monitor);
         }
       });

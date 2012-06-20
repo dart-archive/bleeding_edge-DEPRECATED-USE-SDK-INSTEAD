@@ -435,7 +435,9 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
     declareWorkbenchImage(ideBundle, DartWorkbenchImages.IMG_WIZBAN_EXPORTZIP_WIZ, PATH_WIZBAN
         + "exportzip_wiz.png", false); //$NON-NLS-1$
 
-    declareWorkbenchImage(ideBundle, DartWorkbenchImages.IMG_WIZBAN_RESOURCEWORKINGSET_WIZ,
+    declareWorkbenchImage(
+        ideBundle,
+        DartWorkbenchImages.IMG_WIZBAN_RESOURCEWORKINGSET_WIZ,
         PATH_WIZBAN + "workset_wiz.png", false); //$NON-NLS-1$
 
     declareWorkbenchImage(ideBundle, DartWorkbenchImages.IMG_DLGBAN_SAVEAS_DLG, PATH_WIZBAN
@@ -444,7 +446,9 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
     declareWorkbenchImage(ideBundle, DartWorkbenchImages.IMG_DLGBAN_QUICKFIX_DLG, PATH_WIZBAN
         + "quick_fix.png", false); //$NON-NLS-1$
 
-    declareWorkbenchImage(ideBundle, IDE.SharedImages.IMG_OBJ_PROJECT,
+    declareWorkbenchImage(
+        ideBundle,
+        IDE.SharedImages.IMG_OBJ_PROJECT,
         PATH_OBJECT + "prj_obj.gif", true); //$NON-NLS-1$
     declareWorkbenchImage(ideBundle, IDE.SharedImages.IMG_OBJ_PROJECT_CLOSED, PATH_OBJECT
         + "cprj_obj.gif", true); //$NON-NLS-1$
@@ -452,14 +456,20 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
         + "gotoobj_tsk.gif", true); //$NON-NLS-1$
 
     // Quick fix icons
-    declareWorkbenchImage(ideBundle, DartWorkbenchImages.IMG_ELCL_QUICK_FIX_ENABLED,
+    declareWorkbenchImage(
+        ideBundle,
+        DartWorkbenchImages.IMG_ELCL_QUICK_FIX_ENABLED,
         PATH_ELOCALTOOL + "smartmode_co.gif", true); //$NON-NLS-1$
 
-    declareWorkbenchImage(ideBundle, DartWorkbenchImages.IMG_DLCL_QUICK_FIX_DISABLED,
+    declareWorkbenchImage(
+        ideBundle,
+        DartWorkbenchImages.IMG_DLCL_QUICK_FIX_DISABLED,
         PATH_DLOCALTOOL + "smartmode_co.gif", true); //$NON-NLS-1$
 
     // Introduced in 3.7
-    declareWorkbenchImage(ideBundle, IDEInternalWorkbenchImages.IMG_OBJS_FIXABLE_WARNING,
+    declareWorkbenchImage(
+        ideBundle,
+        IDEInternalWorkbenchImages.IMG_OBJS_FIXABLE_WARNING,
         PATH_OBJECT + "quickfix_warning_obj.gif", true); //$NON-NLS-1$
     declareWorkbenchImage(ideBundle, IDEInternalWorkbenchImages.IMG_OBJS_FIXABLE_ERROR, PATH_OBJECT
         + "quickfix_error_obj.gif", true); //$NON-NLS-1$
@@ -486,7 +496,9 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 
     declareWorkbenchImage(ideBundle, DartWorkbenchImages.IMG_LCL_FLAT_LAYOUT, PATH_ELOCALTOOL
         + "flatLayout.gif", true); //$NON-NLS-1$
-    declareWorkbenchImage(ideBundle, DartWorkbenchImages.IMG_LCL_HIERARCHICAL_LAYOUT,
+    declareWorkbenchImage(
+        ideBundle,
+        DartWorkbenchImages.IMG_LCL_HIERARCHICAL_LAYOUT,
         PATH_ELOCALTOOL + "hierarchicalLayout.gif", true); //$NON-NLS-1$
     declareWorkbenchImage(ideBundle, DartWorkbenchImages.IMG_ETOOL_PROBLEM_CATEGORY, PATH_ETOOL
         + "problem_category.gif", true); //$NON-NLS-1$
@@ -494,9 +506,13 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
     // Introduced in 3.7
     declareWorkbenchImage(ideBundle, IDEInternalWorkbenchImages.IMG_ETOOL_PROBLEMS_VIEW, PATH_EVIEW
         + "problems_view.gif", true); //$NON-NLS-1$
-    declareWorkbenchImage(ideBundle, IDEInternalWorkbenchImages.IMG_ETOOL_PROBLEMS_VIEW_ERROR,
+    declareWorkbenchImage(
+        ideBundle,
+        IDEInternalWorkbenchImages.IMG_ETOOL_PROBLEMS_VIEW_ERROR,
         PATH_EVIEW + "problems_view_error.gif", true); //$NON-NLS-1$
-    declareWorkbenchImage(ideBundle, IDEInternalWorkbenchImages.IMG_ETOOL_PROBLEMS_VIEW_WARNING,
+    declareWorkbenchImage(
+        ideBundle,
+        IDEInternalWorkbenchImages.IMG_ETOOL_PROBLEMS_VIEW_WARNING,
         PATH_EVIEW + "problems_view_warning.gif", true); //$NON-NLS-1$
   }
 
@@ -514,7 +530,11 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
     }
 
     if (status != null && !status.isOK()) {
-      ErrorDialog.openError(null, IDEWorkbenchMessages.ProblemsSavingWorkspace, null, status,
+      ErrorDialog.openError(
+          null,
+          IDEWorkbenchMessages.ProblemsSavingWorkspace,
+          null,
+          status,
           IStatus.ERROR | IStatus.WARNING);
       IDEWorkbenchPlugin.log(IDEWorkbenchMessages.ProblemsSavingWorkspace, status);
     }
@@ -523,7 +543,8 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
   private void initializePreferenceSettings() {
     // tab style setting
     PlatformUI.getPreferenceStore().setValue(
-        IWorkbenchPreferenceConstants.SHOW_TRADITIONAL_STYLE_TABS, false);
+        IWorkbenchPreferenceConstants.SHOW_TRADITIONAL_STYLE_TABS,
+        false);
     // auto-refresh setting
     Preferences preferences = ResourcesPlugin.getPlugin().getPluginPreferences();
     preferences.setValue(ResourcesPlugin.PREF_AUTO_REFRESH, true);
@@ -566,9 +587,11 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
       RefreshLinkedVisitor visitor = new RefreshLinkedVisitor(monitor);
       IFileStore fileStore = ((Resource) target).getStore();
       //try to get all info in one shot, if file system supports it
-      IFileTree fileTree = fileStore.getFileSystem().fetchFileTree(fileStore,
+      IFileTree fileTree = fileStore.getFileSystem().fetchFileTree(
+          fileStore,
           new SubProgressMonitor(monitor, 0));
-      UnifiedTree tree = fileTree == null ? new UnifiedTree(target) : new UnifiedTree(target,
+      UnifiedTree tree = fileTree == null ? new UnifiedTree(target) : new UnifiedTree(
+          target,
           fileTree);
       tree.accept(visitor, IResource.DEPTH_INFINITE);
       IStatus result = visitor.getErrorStatus();

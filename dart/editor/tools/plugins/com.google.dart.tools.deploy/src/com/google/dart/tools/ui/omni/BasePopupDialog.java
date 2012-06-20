@@ -296,9 +296,10 @@ public class BasePopupDialog extends Window {
     Assert.isLegal(factor >= 0f && factor <= 1f);
 
     float complement = 1f - factor;
-    return new RGB((int) (complement * bg.red + factor * fg.red),
-        (int) (complement * bg.green + factor * fg.green), (int) (complement * bg.blue + factor
-            * fg.blue));
+    return new RGB(
+        (int) (complement * bg.red + factor * fg.red),
+        (int) (complement * bg.green + factor * fg.green),
+        (int) (complement * bg.blue + factor * fg.blue));
   }
 
   private static GridDataFactory getGrabBothGridData() {
@@ -310,7 +311,8 @@ public class BasePopupDialog extends Window {
 
   private static GridLayoutFactory getPopupLayout() {
     if (popupLayoutFactory == null) {
-      popupLayoutFactory = GridLayoutFactory.fillDefaults().margins(POPUP_MARGINWIDTH,
+      popupLayoutFactory = GridLayoutFactory.fillDefaults().margins(
+          POPUP_MARGINWIDTH,
           POPUP_MARGINHEIGHT).spacing(POPUP_HORIZONTALSPACING, POPUP_VERTICALSPACING);
     }
     return popupLayoutFactory;
@@ -446,8 +448,17 @@ public class BasePopupDialog extends Window {
   public BasePopupDialog(Shell parent, int shellStyle, boolean takeFocusOnOpen,
       boolean persistSize, boolean persistLocation, boolean showDialogMenu,
       boolean showPersistActions, String titleText, String infoText) {
-    this(parent, shellStyle, takeFocusOnOpen, persistSize, persistLocation, showDialogMenu,
-        showPersistActions, titleText, infoText, true);
+    this(
+        parent,
+        shellStyle,
+        takeFocusOnOpen,
+        persistSize,
+        persistLocation,
+        showDialogMenu,
+        showPersistActions,
+        titleText,
+        infoText,
+        true);
 
   }
 
@@ -480,8 +491,17 @@ public class BasePopupDialog extends Window {
   public BasePopupDialog(Shell parent, int shellStyle, boolean takeFocusOnOpen,
       boolean persistBounds, boolean showDialogMenu, boolean showPersistActions, String titleText,
       String infoText) {
-    this(parent, shellStyle, takeFocusOnOpen, persistBounds, persistBounds, showDialogMenu,
-        showPersistActions, titleText, infoText, false);
+    this(
+        parent,
+        shellStyle,
+        takeFocusOnOpen,
+        persistBounds,
+        persistBounds,
+        showDialogMenu,
+        showPersistActions,
+        titleText,
+        infoText,
+        false);
   }
 
   /**
@@ -840,7 +860,8 @@ public class BasePopupDialog extends Window {
     Display display = parent.getDisplay();
     infoColor = new Color(display, blend(
         display.getSystemColor(SWT.COLOR_INFO_BACKGROUND).getRGB(),
-        display.getSystemColor(SWT.COLOR_INFO_FOREGROUND).getRGB(), 0.56f));
+        display.getSystemColor(SWT.COLOR_INFO_FOREGROUND).getRGB(),
+        0.56f));
     infoLabel.setForeground(infoColor);
     return infoLabel;
   }
@@ -860,7 +881,8 @@ public class BasePopupDialog extends Window {
     titleLabel = new Label(parent, SWT.NONE);
 
     GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).span(
-        showDialogMenu ? 1 : 2, 1).applyTo(titleLabel);
+        showDialogMenu ? 1 : 2,
+        1).applyTo(titleLabel);
 
     if (titleText != null) {
       titleLabel.setText(titleText);

@@ -66,7 +66,8 @@ public class PreferenceElement extends OmniElement {
     IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     if (window != null) {
       WorkbenchPreferenceDialog dialog = WorkbenchPreferenceDialog.createDialogOn(
-          window.getShell(), preferenceNode.getId());
+          window.getShell(),
+          preferenceNode.getId());
       dialog.open();
     }
   }

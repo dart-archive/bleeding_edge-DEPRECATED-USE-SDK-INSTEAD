@@ -30,7 +30,10 @@ public class FeedbackReport {
    * Create a new feedback instance with default values.
    */
   public FeedbackReport() {
-    this("", FeedbackUtils.getOSName(), FeedbackUtils.getEditorVersionDetails(),
+    this(
+        "",
+        FeedbackUtils.getOSName(),
+        FeedbackUtils.getEditorVersionDetails(),
         LogReader.readLogSafely());
   }
 

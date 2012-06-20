@@ -392,7 +392,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       fileToolBar.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 
       // Add to the cool bar manager
-      coolBar.add(actionBarConfigurer.createToolBarContributionItem(fileToolBar,
+      coolBar.add(actionBarConfigurer.createToolBarContributionItem(
+          fileToolBar,
           IWorkbenchActionConstants.TOOLBAR_FILE));
     }
 
@@ -409,7 +410,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       navToolBar.add(actionFactory.getPinEditorItem());
 
       // Add to the cool bar manager
-      coolBar.add(actionBarConfigurer.createToolBarContributionItem(navToolBar,
+      coolBar.add(actionBarConfigurer.createToolBarContributionItem(
+          navToolBar,
           IWorkbenchActionConstants.TOOLBAR_NAVIGATE));
     }
 
@@ -427,7 +429,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       helpToolBar.add(dartRunAction);
 
       // Add to the cool bar manager
-      coolBar.add(actionBarConfigurer.createToolBarContributionItem(helpToolBar,
+      coolBar.add(actionBarConfigurer.createToolBarContributionItem(
+          helpToolBar,
           IWorkbenchActionConstants.TOOLBAR_HELP));
     }
   }
@@ -767,7 +770,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
    */
   @SuppressWarnings("unused")
   private MenuManager createBuildMenu() {
-    MenuManager menu = new MenuManager(WorkbenchMessages.build_menu,
+    MenuManager menu = new MenuManager(
+        WorkbenchMessages.build_menu,
         IWorkbenchActionConstants.M_PROJECT);
     menu.add(cleanAllAction);
     menu.add(new GroupMarker(IWorkbenchActionConstants.BUILD_EXT));
@@ -781,7 +785,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
    * Creates and returns the Edit menu.
    */
   private MenuManager createEditMenu() {
-    MenuManager menu = new MenuManager(IDEWorkbenchMessages.Workbench_edit,
+    MenuManager menu = new MenuManager(
+        IDEWorkbenchMessages.Workbench_edit,
         IWorkbenchActionConstants.M_EDIT);
     menu.add(new GroupMarker(IWorkbenchActionConstants.EDIT_START));
 
@@ -817,7 +822,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
    * Creates and returns the File menu.
    */
   private MenuManager createFileMenu() {
-    MenuManager menu = new MenuManager(IDEWorkbenchMessages.Workbench_file,
+    MenuManager menu = new MenuManager(
+        IDEWorkbenchMessages.Workbench_file,
         IWorkbenchActionConstants.M_FILE);
     menu.add(new GroupMarker(IWorkbenchActionConstants.FILE_START));
 
@@ -903,7 +909,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
    * Creates and returns the Help menu.
    */
   private MenuManager createHelpMenu() {
-    MenuManager menu = new MenuManager(IDEWorkbenchMessages.Workbench_help,
+    MenuManager menu = new MenuManager(
+        IDEWorkbenchMessages.Workbench_help,
         IWorkbenchActionConstants.M_HELP);
 
     menu.add(new Separator("group.assist")); //$NON-NLS-1$
@@ -932,7 +939,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
    * Creates and returns the Navigate menu.
    */
   private MenuManager createNavigateMenu() {
-    MenuManager menu = new MenuManager(IDEWorkbenchMessages.Workbench_navigate,
+    MenuManager menu = new MenuManager(
+        IDEWorkbenchMessages.Workbench_navigate,
         IWorkbenchActionConstants.M_NAVIGATE);
     menu.add(new GroupMarker(IWorkbenchActionConstants.NAV_START));
     //menu.add(goIntoAction);
@@ -976,7 +984,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
    * Creates and returns the Window menu.
    */
   private MenuManager createToolsMenu() {
-    MenuManager menu = new MenuManager(WorkbenchMessages.tools_menu,
+    MenuManager menu = new MenuManager(
+        WorkbenchMessages.tools_menu,
         IWorkbenchActionConstants.M_WINDOW);
 
     //menu.add(newWindowAction);
@@ -1107,7 +1116,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
         }
       }
     };
-    ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceListener,
+    ResourcesPlugin.getWorkspace().addResourceChangeListener(
+        resourceListener,
         IResourceChangeEvent.POST_CHANGE);
   }
 

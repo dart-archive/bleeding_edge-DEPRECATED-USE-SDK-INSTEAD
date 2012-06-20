@@ -159,7 +159,8 @@ public class FeedbackSubmissionJob extends Job {
     byte[] data = bout.toByteArray();
     String crc32Hash = FeedbackUtils.calculateCRC32(data);
 
-    monitor.beginTask(FeedbackMessages.FeedbackSubmissionJob_job_starting_progress_text,
+    monitor.beginTask(
+        FeedbackMessages.FeedbackSubmissionJob_job_starting_progress_text,
         data.length);
 
     HttpURLConnection connection = (HttpURLConnection) serverURL.openConnection();

@@ -133,7 +133,10 @@ public class TypeProvider extends OmniProposalProvider {
     if (!searchStarted) {
       searchStarted = true;
       SearchEngine engine = SearchEngineFactory.createSearchEngine((WorkingCopyOwner) null);
-      engine.searchTypeDeclarations(getSearchScope(), searchPattern, IGNORE_FILTER,
+      engine.searchTypeDeclarations(
+          getSearchScope(),
+          searchPattern,
+          IGNORE_FILTER,
           new SearchListener() {
 
             @Override
@@ -148,7 +151,8 @@ public class TypeProvider extends OmniProposalProvider {
             public void searchComplete() {
               searchComplete = true;
             }
-          }, progressMonitor);
+          },
+          progressMonitor);
     }
 
     return results.toArray(new OmniElement[results.size()]);
