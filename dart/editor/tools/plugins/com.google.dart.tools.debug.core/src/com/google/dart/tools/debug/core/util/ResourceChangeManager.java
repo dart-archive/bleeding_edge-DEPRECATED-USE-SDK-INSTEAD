@@ -71,6 +71,10 @@ public class ResourceChangeManager implements IResourceChangeListener {
       return;
     }
 
+    if (event.getDelta() == null) {
+      return;
+    }
+
     try {
       event.getDelta().accept(new IResourceDeltaVisitor() {
         @Override

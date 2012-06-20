@@ -323,12 +323,16 @@ public class LaunchUtils {
                   next = ((DartElement) next).getResource();
                 }
 
-                IResource resource = (IResource) Platform.getAdapterManager().getAdapter(
-                    next,
-                    IResource.class);
+                if (next instanceof IResource) {
+                  return (IResource) next;
+                } else if (next != null) {
+                  IResource resource = (IResource) Platform.getAdapterManager().getAdapter(
+                      next,
+                      IResource.class);
 
-                if (resource != null) {
-                  return resource;
+                  if (resource != null) {
+                    return resource;
+                  }
                 }
               }
             }
