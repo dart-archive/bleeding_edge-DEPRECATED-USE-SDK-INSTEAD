@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.swtbot.performance;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.perf.Metric;
 import com.google.dart.tools.core.internal.perf.Performance;
 import com.google.dart.tools.core.internal.perf.Result;
@@ -58,9 +57,7 @@ public class SwtBotPerformance extends Performance {
 
     // Wait for the AnalysisServer to complete its background tasks
 
-    if (DartCoreDebug.ANALYSIS_SERVER) {
-      bot.waitUntil(new AnalysisCompleteCondition(), DEFAULT_TIMEOUT_MS);
-    }
+    bot.waitUntil(new AnalysisCompleteCondition(), DEFAULT_TIMEOUT_MS);
 
     // Wait for any pending operations
 

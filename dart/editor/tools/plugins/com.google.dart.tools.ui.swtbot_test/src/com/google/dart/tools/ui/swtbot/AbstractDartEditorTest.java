@@ -13,10 +13,8 @@
  */
 package com.google.dart.tools.ui.swtbot;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.swtbot.action.LaunchBrowserHelper;
 import com.google.dart.tools.ui.swtbot.conditions.AnalysisCompleteCondition;
-import com.google.dart.tools.ui.swtbot.conditions.BuildLibCondition;
 import com.google.dart.tools.ui.swtbot.conditions.CompilerWarmedUp;
 import com.google.dart.tools.ui.swtbot.dialog.OpenLibraryHelper;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
@@ -72,12 +70,8 @@ public abstract class AbstractDartEditorTest {
     // TODO (danrubel) hook launching LogTimer for launching performance measurements
     bot = new SWTWorkbenchBot();
     CompilerWarmedUp.waitUntilWarmedUp(bot);
-    if (DartCoreDebug.ANALYSIS_SERVER) {
-      AnalysisCompleteCondition.startListening();
-      AnalysisCompleteCondition.waitUntilWarmedUp(bot);
-    } else {
-      BuildLibCondition.startListening();
-    }
+    AnalysisCompleteCondition.startListening();
+    AnalysisCompleteCondition.waitUntilWarmedUp(bot);
     // Copy samples from DART_TRUNK/samples into ~/Downloads/dart/samples/
     DartLib.buildSamples();
     // Make assertions on the samples
