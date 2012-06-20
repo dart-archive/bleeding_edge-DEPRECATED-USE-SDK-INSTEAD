@@ -57,7 +57,9 @@ class OpenLocationAction extends SelectionDispatchAction {
     }
 
     for (Iterator<?> iter = selection.iterator(); iter.hasNext();) {
-      boolean noError = CallHierarchyUI.openInEditor(iter.next(), getShell(),
+      boolean noError = CallHierarchyUI.openInEditor(
+          iter.next(),
+          getShell(),
           OpenStrategy.activateOnOpen());
       if (!noError) {
         return;

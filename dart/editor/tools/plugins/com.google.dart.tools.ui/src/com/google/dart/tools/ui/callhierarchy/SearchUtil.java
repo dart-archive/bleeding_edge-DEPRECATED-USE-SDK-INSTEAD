@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.callhierarchy;
 
-
 // TODO remove
 public class SearchUtil {
 //

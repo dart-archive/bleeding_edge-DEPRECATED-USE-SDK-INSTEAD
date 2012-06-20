@@ -76,7 +76,9 @@ public class CodeFormatEditFactory {
           continue;
         }
 
-        int j = getIndexOfRightMostNoneWhitespaceCharacter(lineStart, lineExclusiveEnd - 1,
+        int j = getIndexOfRightMostNoneWhitespaceCharacter(
+            lineStart,
+            lineExclusiveEnd - 1,
             document);
 
         j++;
@@ -121,7 +123,9 @@ public class CodeFormatEditFactory {
   private static boolean inMultilineString(IDocument document, int offset)
       throws BadLocationException, BadPartitioningException {
     ITypedRegion partitionInfo = ((IDocumentExtension3) document).getPartition(
-        DartPartitions.DART_PARTITIONING, offset, true);
+        DartPartitions.DART_PARTITIONING,
+        offset,
+        true);
     return (partitionInfo.getType().equals(DartPartitions.DART_MULTI_LINE_STRING));
   }
 

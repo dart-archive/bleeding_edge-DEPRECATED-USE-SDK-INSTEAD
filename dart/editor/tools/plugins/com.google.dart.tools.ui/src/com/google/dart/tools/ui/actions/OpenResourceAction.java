@@ -63,7 +63,8 @@ public class OpenResourceAction extends AbstractInstrumentedAction implements IW
     setActionDefinitionId(ID_ORG_ECLIPSE_UI_OPEN_RESOURCE_ACTION);
     setAccelerator(SWT.MOD1 | SWT.MOD2 | 'R');
 
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         IIDEHelpContextIds.OPEN_WORKSPACE_FILE_ACTION);
   }
 
@@ -91,7 +92,9 @@ public class OpenResourceAction extends AbstractInstrumentedAction implements IW
     if (files.size() > 0) {
       final IWorkbenchPage page = window.getActivePage();
       if (page == null) {
-        MessageDialog.openError(window.getShell(), ActionMessages.OpenResourceAction_error_title,
+        MessageDialog.openError(
+            window.getShell(),
+            ActionMessages.OpenResourceAction_error_title,
             ActionMessages.OpenResourceAction_error_message);
         return;
       }
@@ -102,12 +105,16 @@ public class OpenResourceAction extends AbstractInstrumentedAction implements IW
         }
       } catch (final PartInitException e) {
         DartToolsPlugin.log(e);
-        MessageDialog.openError(window.getShell(), ActionMessages.OpenResourceAction_error_title,
+        MessageDialog.openError(
+            window.getShell(),
+            ActionMessages.OpenResourceAction_error_title,
             ActionMessages.OpenResourceAction_error_message);
         return;
       } catch (final DartModelException e) {
         DartToolsPlugin.log(e);
-        MessageDialog.openError(window.getShell(), ActionMessages.OpenResourceAction_error_title,
+        MessageDialog.openError(
+            window.getShell(),
+            ActionMessages.OpenResourceAction_error_title,
             ActionMessages.OpenResourceAction_error_message);
         return;
       }

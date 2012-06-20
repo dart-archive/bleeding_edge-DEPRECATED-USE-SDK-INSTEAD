@@ -112,8 +112,12 @@ public final class DartModelUtil {
           new RewriteSessionEditProcessor(document, edit, TextEdit.UPDATE_REGIONS).performEdits();
         }
       } catch (BadLocationException e) {
-        throw new CoreException(new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, IStatus.ERROR,
-            e.getMessage(), e));
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartToolsPlugin.PLUGIN_ID,
+            IStatus.ERROR,
+            e.getMessage(),
+            e));
       } finally {
         releaseDocument(cu, document, new SubProgressMonitor(monitor, 1));
       }
@@ -737,7 +741,9 @@ public final class DartModelUtil {
     // filed bug 112635 to add this method to TypeHierarchyImpl
     Type superClass = hierarchy.getSuperclass(type);
     if (superClass != null
-        && (possibleSuperType.equals(superClass) || isSuperType(hierarchy, possibleSuperType,
+        && (possibleSuperType.equals(superClass) || isSuperType(
+            hierarchy,
+            possibleSuperType,
             superClass))) {
       return true;
     }
@@ -883,7 +889,8 @@ public final class DartModelUtil {
         // commitable
 
         ITextFileBufferManager bufferManager = FileBuffers.getTextFileBufferManager();
-        bufferManager.getTextFileBuffer(file.getFullPath(), LocationKind.IFILE).commit(monitor,
+        bufferManager.getTextFileBuffer(file.getFullPath(), LocationKind.IFILE).commit(
+            monitor,
             true);
         return;
       }

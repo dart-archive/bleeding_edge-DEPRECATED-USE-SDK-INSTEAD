@@ -461,8 +461,7 @@ public class RenameSupport {
   private RenameSelectionState createSelectionState() {
     RenameProcessor processor = (RenameProcessor) fRefactoring.getProcessor();
     Object[] elements = processor.getElements();
-    RenameSelectionState state = elements.length == 1
-        ? new RenameSelectionState(elements[0])
+    RenameSelectionState state = elements.length == 1 ? new RenameSelectionState(elements[0])
         : null;
     return state;
   }

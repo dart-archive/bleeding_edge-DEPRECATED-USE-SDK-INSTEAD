@@ -678,8 +678,11 @@ public class EditorUtility {
 
     IEditorDescriptor desc = IDE.getEditorDescriptor(file, true);
 
-    IEditorPart editorPart = IDE.openEditor(p, file,
-        maybeSwapDefaultEditorDescriptor(desc.getId()), activate);
+    IEditorPart editorPart = IDE.openEditor(
+        p,
+        file,
+        maybeSwapDefaultEditorDescriptor(desc.getId()),
+        activate);
     initializeHighlightRange(editorPart);
     return editorPart;
   }
@@ -701,8 +704,11 @@ public class EditorUtility {
       throwPartInitException(DartEditorMessages.EditorUtility_cantFindEditor + file.toString());
     }
 
-    IEditorPart editorPart = IDE.openEditor(p, file,
-        maybeSwapDefaultEditorDescriptor(desc.getId()), activate);
+    IEditorPart editorPart = IDE.openEditor(
+        p,
+        file,
+        maybeSwapDefaultEditorDescriptor(desc.getId()),
+        activate);
     initializeHighlightRange(editorPart);
     return editorPart;
   }

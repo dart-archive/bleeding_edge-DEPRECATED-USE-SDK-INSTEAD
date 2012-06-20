@@ -73,7 +73,8 @@ class LocationCopyAction extends Action {
       if (e.code != DND.ERROR_CANNOT_SET_CLIPBOARD) {
         throw e;
       }
-      if (MessageDialog.openQuestion(viewSite.getShell(),
+      if (MessageDialog.openQuestion(
+          viewSite.getShell(),
           CallHierarchyMessages.CopyCallHierarchyAction_problem,
           CallHierarchyMessages.CopyCallHierarchyAction_clipboard_busy)) {
         run();

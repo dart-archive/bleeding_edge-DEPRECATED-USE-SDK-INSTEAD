@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.actions;
@@ -46,8 +44,11 @@ public class ActionUtil {
   public static boolean areProcessable(Shell shell, DartElement[] elements) {
     for (int i = 0; i < elements.length; i++) {
       if (!isOnBuildPath(elements[i])) {
-        MessageDialog.openInformation(shell, ActionMessages.ActionUtil_notOnBuildPath_title,
-            Messages.format(ActionMessages.ActionUtil_notOnBuildPath_resource_message,
+        MessageDialog.openInformation(
+            shell,
+            ActionMessages.ActionUtil_notOnBuildPath_title,
+            Messages.format(
+                ActionMessages.ActionUtil_notOnBuildPath_resource_message,
                 new Object[] {elements[i].getPath()}));
         return false;
       }
@@ -103,11 +104,16 @@ public class ActionUtil {
           return true;
         }
 
-        MessageDialogWithToggle toggleDialog = MessageDialogWithToggle.openYesNoQuestion(shell,
-            ActionMessages.ActionUtil_warning_derived_title, Messages.format(
+        MessageDialogWithToggle toggleDialog = MessageDialogWithToggle.openYesNoQuestion(
+            shell,
+            ActionMessages.ActionUtil_warning_derived_title,
+            Messages.format(
                 ActionMessages.ActionUtil_warning_derived_message,
                 resource.getFullPath().toString()),
-            ActionMessages.ActionUtil_warning_derived_dontShowAgain, false, null, null);
+            ActionMessages.ActionUtil_warning_derived_dontShowAgain,
+            false,
+            null,
+            null);
 
         EditorsUI.getPreferenceStore().setValue(warnKey, !toggleDialog.getToggleState());
 
@@ -152,7 +158,9 @@ public class ActionUtil {
     // if a Java editor doesn't have an input of type Java element
     // then it is for sure not on the build path
     if (input == null) {
-      MessageDialog.openInformation(shell, ActionMessages.ActionUtil_notOnBuildPath_title,
+      MessageDialog.openInformation(
+          shell,
+          ActionMessages.ActionUtil_notOnBuildPath_title,
           ActionMessages.ActionUtil_notOnBuildPath_message);
       return false;
     }
@@ -166,7 +174,9 @@ public class ActionUtil {
     if (isOnBuildPath(element)) {
       return true;
     }
-    MessageDialog.openInformation(shell, ActionMessages.ActionUtil_notOnBuildPath_title,
+    MessageDialog.openInformation(
+        shell,
+        ActionMessages.ActionUtil_notOnBuildPath_title,
         ActionMessages.ActionUtil_notOnBuildPath_message);
     return false;
   }
@@ -177,7 +187,9 @@ public class ActionUtil {
       return false;
     }
 
-    MessageDialog.openInformation(shell, ActionMessages.ActionUtil_not_possible,
+    MessageDialog.openInformation(
+        shell,
+        ActionMessages.ActionUtil_not_possible,
         ActionMessages.ActionUtil_no_linked);
     return true;
   }

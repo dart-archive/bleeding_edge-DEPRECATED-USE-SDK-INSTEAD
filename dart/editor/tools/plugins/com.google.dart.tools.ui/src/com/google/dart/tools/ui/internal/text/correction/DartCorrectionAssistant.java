@@ -44,11 +44,8 @@ import java.util.List;
  */
 public class DartCorrectionAssistant extends QuickAssistAssistant {
 
-  public static int collectQuickFixableAnnotations(
-      ITextEditor editor,
-      int invocationLocation,
-      boolean goToClosest,
-      List<Annotation> resultingAnnotations) throws BadLocationException {
+  public static int collectQuickFixableAnnotations(ITextEditor editor, int invocationLocation,
+      boolean goToClosest, List<Annotation> resultingAnnotations) throws BadLocationException {
     // TODO(scheglov) restore this later
     return invocationLocation;
 //    IAnnotationModel model = DartUI.getDocumentProvider().getAnnotationModel(

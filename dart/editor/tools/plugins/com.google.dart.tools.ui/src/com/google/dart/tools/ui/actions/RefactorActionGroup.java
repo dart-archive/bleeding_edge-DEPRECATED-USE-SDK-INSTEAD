@@ -310,8 +310,7 @@ public class RefactorActionGroup extends ActionGroup {
     stats.startRun();
 
     fSite = site;
-    fSelectionProvider = selectionProvider == null
-        ? fSite.getSelectionProvider()
+    fSelectionProvider = selectionProvider == null ? fSite.getSelectionProvider()
         : selectionProvider;
     ISelection selection = fSelectionProvider.getSelection();
 
@@ -609,9 +608,7 @@ public class RefactorActionGroup extends ActionGroup {
     return DartUI.getEditorInputDartElement(fEditor.getEditorInput());
   }
 
-  private void initAction(
-      SelectionDispatchAction action,
-      ISelection selection,
+  private void initAction(SelectionDispatchAction action, ISelection selection,
       String actionDefinitionId) {
     initUpdatingAction(action, null, null, selection, actionDefinitionId);
   }
@@ -626,12 +623,8 @@ public class RefactorActionGroup extends ActionGroup {
    * @param selection the selection
    * @param actionDefinitionId the action definition id
    */
-  private void initUpdatingAction(
-      SelectionDispatchAction action,
-      ISelectionProvider provider,
-      ISelectionProvider specialProvider,
-      ISelection selection,
-      String actionDefinitionId) {
+  private void initUpdatingAction(SelectionDispatchAction action, ISelectionProvider provider,
+      ISelectionProvider specialProvider, ISelection selection, String actionDefinitionId) {
     action.setActionDefinitionId(actionDefinitionId);
     action.update(selection);
     if (provider != null) {

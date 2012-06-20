@@ -193,7 +193,8 @@ public class DartElementComparator extends ViewerComparator {
       if (name1.length() == 0) {
         if (name2.length() == 0) {
           try {
-            return getComparator().compare(((Type) e1).getSuperclassName(),
+            return getComparator().compare(
+                ((Type) e1).getSuperclassName(),
                 ((Type) e2).getSuperclassName());
           } catch (DartModelException e) {
             return 0;

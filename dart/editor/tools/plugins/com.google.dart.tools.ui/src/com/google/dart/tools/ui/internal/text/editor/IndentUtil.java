@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.editor;
@@ -92,8 +90,14 @@ public final class IndentUtil {
     boolean changed = false;
     int tabSize = CodeFormatterUtil.getTabWidth(project);
     for (int line = lines.getStartLine(), last = line + numberOfLines, i = 0; line < last; line++) {
-      changed |= indentLine(document, line, indenter, scanner, result.commentLinesAtColumnZero,
-          i++, tabSize);
+      changed |= indentLine(
+          document,
+          line,
+          indenter,
+          scanner,
+          result.commentLinesAtColumnZero,
+          i++,
+          tabSize);
     }
     result.hasChanged = changed;
 
@@ -151,7 +155,8 @@ public final class IndentUtil {
     }
 
     int maxReduction = computeVisualLength(
-        getCurrentIndent(document, result.leftmostLine + lines.getStartLine()), tabSize);
+        getCurrentIndent(document, result.leftmostLine + lines.getStartLine()),
+        tabSize);
 
     if (difference > 0) {
       for (int line = lines.getStartLine(), last = line + numberOfLines, i = 0; line < last; line++) {
@@ -237,7 +242,8 @@ public final class IndentUtil {
     int previousLineEnd = previousLineStart + previousLineLength;
 
     StringBuffer buf = new StringBuffer();
-    int previousLineNonWS = scanner.findNonWhitespaceForwardInAnyPartition(previousLineStart,
+    int previousLineNonWS = scanner.findNonWhitespaceForwardInAnyPartition(
+        previousLineStart,
         previousLineEnd);
     if (previousLineNonWS == DartHeuristicScanner.NOT_FOUND
         || document.getChar(previousLineNonWS) != '*') {
@@ -247,7 +253,8 @@ public final class IndentUtil {
       previousLineStart = previousLine.getOffset();
       previousLineLength = previousLine.getLength();
       previousLineEnd = previousLineStart + previousLineLength;
-      previousLineNonWS = scanner.findNonWhitespaceForwardInAnyPartition(previousLineStart,
+      previousLineNonWS = scanner.findNonWhitespaceForwardInAnyPartition(
+          previousLineStart,
           previousLineEnd);
       if (previousLineNonWS == DartHeuristicScanner.NOT_FOUND) {
         previousLineNonWS = previousLineEnd;
@@ -367,7 +374,10 @@ public final class IndentUtil {
 
     // don't count the space before javadoc like, asterix-style comment lines
     if (to > from && to < endOffset - 1 && document.get(to - 1, 2).equals(" *")) { //$NON-NLS-1$
-      String type = TextUtilities.getContentType(document, DartPartitions.DART_PARTITIONING, to,
+      String type = TextUtilities.getContentType(
+          document,
+          DartPartitions.DART_PARTITIONING,
+          to,
           true);
       if (type.equals(DartPartitions.DART_DOC)
           || type.equals(DartPartitions.DART_MULTI_LINE_COMMENT)) {
@@ -417,10 +427,16 @@ public final class IndentUtil {
 
     String indent = null;
     if (offset < document.getLength()) {
-      ITypedRegion partition = TextUtilities.getPartition(document,
-          DartPartitions.DART_PARTITIONING, offset, true);
-      ITypedRegion startingPartition = TextUtilities.getPartition(document,
-          DartPartitions.DART_PARTITIONING, offset, false);
+      ITypedRegion partition = TextUtilities.getPartition(
+          document,
+          DartPartitions.DART_PARTITIONING,
+          offset,
+          true);
+      ITypedRegion startingPartition = TextUtilities.getPartition(
+          document,
+          DartPartitions.DART_PARTITIONING,
+          offset,
+          false);
       String type = partition.getType();
       if (type.equals(DartPartitions.DART_DOC)
           || type.equals(DartPartitions.DART_MULTI_LINE_COMMENT)) {
@@ -456,8 +472,11 @@ public final class IndentUtil {
     // as opposed to commented out code, which should keep its slashes at column
     // 0
     if (length > 0) {
-      ITypedRegion partition = TextUtilities.getPartition(document,
-          DartPartitions.DART_PARTITIONING, end, false);
+      ITypedRegion partition = TextUtilities.getPartition(
+          document,
+          DartPartitions.DART_PARTITIONING,
+          end,
+          false);
       if (partition.getOffset() == end
           && DartPartitions.DART_SINGLE_LINE_COMMENT.equals(partition.getType())) {
         commentLines[lineIndex] = true;
@@ -480,7 +499,11 @@ public final class IndentUtil {
       token.commentLinesAtColumnZero = new boolean[numberOfLines];
     } else if (token.commentLinesAtColumnZero.length != numberOfLines) {
       boolean[] commentBooleans = new boolean[numberOfLines];
-      System.arraycopy(token.commentLinesAtColumnZero, 0, commentBooleans, 0,
+      System.arraycopy(
+          token.commentLinesAtColumnZero,
+          0,
+          commentBooleans,
+          0,
           Math.min(numberOfLines, token.commentLinesAtColumnZero.length));
       token.commentLinesAtColumnZero = commentBooleans;
     }

@@ -123,15 +123,18 @@ public abstract class SearchLabelProvider extends AppearanceAwareLabelProvider i
 
   @Override
   public StyledString getStyledText(Object element) {
-    StyledString string = DartElementLabels.getStyledTextLabel(element,
+    StyledString string = DartElementLabels.getStyledTextLabel(
+        element,
         (evaluateTextFlags(element) | DartElementLabels.COLORIZE));
     if (string.length() == 0 && (element instanceof IStorage)) {
       string = new StyledString(fStorageLabelProvider.getText(element));
     }
     String decorated = decorateText(string.getString(), element);
     if (decorated != null) {
-      return StyledCellLabelProvider.styleDecoratedString(decorated,
-          StyledString.DECORATIONS_STYLER, string);
+      return StyledCellLabelProvider.styleDecoratedString(
+          decorated,
+          StyledString.DECORATIONS_STYLER,
+          string);
     }
     return string;
   }
@@ -157,7 +160,9 @@ public abstract class SearchLabelProvider extends AppearanceAwareLabelProvider i
     String name = coloredName.getString();
     String decorated = getLabelWithCounts(element, name);
     if (decorated.length() > name.length()) {
-      StyledCellLabelProvider.styleDecoratedString(decorated, StyledString.COUNTER_STYLER,
+      StyledCellLabelProvider.styleDecoratedString(
+          decorated,
+          StyledString.COUNTER_STYLER,
           coloredName);
     }
     return coloredName;
@@ -257,7 +262,8 @@ public abstract class SearchLabelProvider extends AppearanceAwareLabelProvider i
         || EMPHASIZE_POTENTIAL_MATCHES.equals(event.getProperty())) {
       potentialMatchFgColor.dispose();
       potentialMatchFgColor = null;
-      LabelProviderChangedEvent lpEvent = new LabelProviderChangedEvent(SearchLabelProvider.this,
+      LabelProviderChangedEvent lpEvent = new LabelProviderChangedEvent(
+          SearchLabelProvider.this,
           null); // refresh all
       fireLabelProviderChanged(lpEvent);
     }
@@ -269,7 +275,8 @@ public abstract class SearchLabelProvider extends AppearanceAwareLabelProvider i
 
   private Color getForegroundColor() {
     if (potentialMatchFgColor == null) {
-      potentialMatchFgColor = new Color(DartToolsPlugin.getActiveWorkbenchShell().getDisplay(),
+      potentialMatchFgColor = new Color(
+          DartToolsPlugin.getActiveWorkbenchShell().getDisplay(),
           getPotentialMatchForegroundColor());
     }
     return potentialMatchFgColor;

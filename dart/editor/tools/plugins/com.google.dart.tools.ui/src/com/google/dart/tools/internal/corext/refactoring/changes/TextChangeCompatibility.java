@@ -57,7 +57,9 @@ public class TextChangeCompatibility {
     }
     insert(root, edit);
     change.addTextEditChangeGroup(new TextEditChangeGroup(change, new CategorizedTextEditGroup(
-        name, edit, groupCategories)));
+        name,
+        edit,
+        groupCategories)));
   }
 
   public static void insert(TextEdit parent, TextEdit edit) throws MalformedTreeException {

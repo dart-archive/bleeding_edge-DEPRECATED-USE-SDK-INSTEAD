@@ -58,7 +58,8 @@ class RemoveFromViewAction extends Action {
     setText(CallHierarchyMessages.RemoveFromViewAction_removeFromView_text);
     setDescription(CallHierarchyMessages.RemoveFromViewAction_removeFromView_description);
     setToolTipText(CallHierarchyMessages.RemoveFromViewAction_removeFromView_tooltip);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.CALL_HIERARCHY_REMOVE_FROM_VIEW_ACTION);
 
     ISharedImages workbenchImages = DartToolsPlugin.getDefault().getWorkbench().getSharedImages();
@@ -78,7 +79,8 @@ class RemoveFromViewAction extends Action {
       }
     }
     if (inputList.size() > 0) {
-      chvPart.updateInputHistoryAndDescription(inputElements,
+      chvPart.updateInputHistoryAndDescription(
+          inputElements,
           inputList.toArray(new TypeMember[inputList.size()]));
     }
     TreeItem[] items = callHierarchyViewer.getTree().getSelection();

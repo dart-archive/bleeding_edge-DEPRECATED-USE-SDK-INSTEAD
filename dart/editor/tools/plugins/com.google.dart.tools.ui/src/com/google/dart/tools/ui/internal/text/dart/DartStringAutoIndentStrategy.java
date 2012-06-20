@@ -185,7 +185,10 @@ public class DartStringAutoIndentStrategy extends DefaultIndentLineAutoEditStrat
   private void javaStringIndentAfterNewLine(IDocument document, DocumentCommand command)
       throws BadLocationException {
 
-    ITypedRegion partition = TextUtilities.getPartition(document, fPartitioning, command.offset,
+    ITypedRegion partition = TextUtilities.getPartition(
+        document,
+        fPartitioning,
+        command.offset,
         true);
     if (partition.getType().equals(DartPartitions.DART_MULTI_LINE_STRING)) {
       return;

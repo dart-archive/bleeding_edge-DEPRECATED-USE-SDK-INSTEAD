@@ -255,7 +255,8 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
      * Creates a new instance of the class
      */
     public ShowContainerForDuplicatesAction() {
-      super(DartUIMessages.FilteredTypeSelectionDialog_showContainerForDuplicatesAction,
+      super(
+          DartUIMessages.FilteredTypeSelectionDialog_showContainerForDuplicatesAction,
           IAction.AS_CHECK_BOX);
     }
 
@@ -341,7 +342,9 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
       DartElement element = (DartElement) object;
       if (fProviderExtension != null) {
         try {
-          fAdapter.matchFound(new SearchMatch(MatchQuality.EXACT, element,
+          fAdapter.matchFound(new SearchMatch(
+              MatchQuality.EXACT,
+              element,
               ((SourceReference) element).getSourceRange()));
         } catch (DartModelException e) {
           DartToolsPlugin.log(e);
@@ -729,7 +732,8 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 //    }
 
     private String getFormattedLabel(String name) {
-      return MessageFormat.format(DartUIMessages.FilteredTypesSelectionDialog_library_name_format,
+      return MessageFormat.format(
+          DartUIMessages.FilteredTypesSelectionDialog_library_name_format,
           new Object[] {name});
     }
 
@@ -1167,7 +1171,8 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
       fAllowScopeSwitching = true;
       scope = SearchScopeFactory.createWorkspaceScope();
     }
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(shell,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        shell,
         DartHelpContextIds.TYPE_SELECTION_DIALOG2);
 
     fElementKinds = elementKinds;
@@ -1378,7 +1383,10 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
     }
 
     try {
-      engine.searchTypeDeclarations(typeSearchFilter.getSearchScope(), searchPattern, requestor,
+      engine.searchTypeDeclarations(
+          typeSearchFilter.getSearchScope(),
+          searchPattern,
+          requestor,
           progressMonitor);
     } catch (SearchException e) {
       DartToolsPlugin.log(e);
@@ -1546,8 +1554,12 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
     if (fValidator != null) {
       CompilationUnitElement element = (CompilationUnitElement) item;
       if (!element.exists()) {
-        return new Status(IStatus.ERROR, DartToolsPlugin.getPluginId(), IStatus.ERROR,
-            Messages.format(DartUIMessages.FilteredTypesSelectionDialog_error_type_doesnot_exist,
+        return new Status(
+            IStatus.ERROR,
+            DartToolsPlugin.getPluginId(),
+            IStatus.ERROR,
+            Messages.format(
+                DartUIMessages.FilteredTypesSelectionDialog_error_type_doesnot_exist,
                 ((CompilationUnitElement) item).getElementName()), null);
       }
       Object[] elements = {element};

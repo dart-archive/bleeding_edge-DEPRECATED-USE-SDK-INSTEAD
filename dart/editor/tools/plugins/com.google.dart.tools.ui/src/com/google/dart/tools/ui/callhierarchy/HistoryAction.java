@@ -38,7 +38,8 @@ class HistoryAction extends Action {
         return null;
 
       case 1:
-        return Messages.format(CallHierarchyMessages.HistoryAction_inputElements_1,
+        return Messages.format(
+            CallHierarchyMessages.HistoryAction_inputElements_1,
             new String[] {getShortLabel(members[0])});
 
       case 2:
@@ -46,7 +47,8 @@ class HistoryAction extends Action {
             getShortLabel(members[0]), getShortLabel(members[1])});
 
       default:
-        return Messages.format(CallHierarchyMessages.HistoryAction_inputElements_more,
+        return Messages.format(
+            CallHierarchyMessages.HistoryAction_inputElements_more,
             new String[] {getShortLabel(members[0]), getShortLabel(members[1])});
     }
   }
@@ -78,7 +80,8 @@ class HistoryAction extends Action {
     setDescription(Messages.format(CallHierarchyMessages.HistoryAction_description, elementName));
     setToolTipText(Messages.format(CallHierarchyMessages.HistoryAction_tooltip, elementName));
 
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.CALL_HIERARCHY_HISTORY_ACTION);
   }
 

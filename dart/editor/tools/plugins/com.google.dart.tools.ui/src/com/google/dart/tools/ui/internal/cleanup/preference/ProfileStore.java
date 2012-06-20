@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.cleanup.preference;
@@ -157,13 +155,16 @@ public class ProfileStore {
       final SAXParser parser = factory.newSAXParser();
       parser.parse(inputSource, handler);
     } catch (SAXException e) {
-      throw createException(e,
+      throw createException(
+          e,
           FormatterMessages.CodingStyleConfigurationBlock_error_reading_xml_message);
     } catch (IOException e) {
-      throw createException(e,
+      throw createException(
+          e,
           FormatterMessages.CodingStyleConfigurationBlock_error_reading_xml_message);
     } catch (ParserConfigurationException e) {
-      throw createException(e,
+      throw createException(
+          e,
           FormatterMessages.CodingStyleConfigurationBlock_error_reading_xml_message);
     }
     return handler.getProfiles();
@@ -186,7 +187,8 @@ public class ProfileStore {
       final Document document = builder.newDocument();
 
       final Element rootElement = document.createElement(XML_NODE_ROOT);
-      rootElement.setAttribute(XML_ATTRIBUTE_VERSION,
+      rootElement.setAttribute(
+          XML_ATTRIBUTE_VERSION,
           Integer.toString(profileVersioner.getCurrentVersion()));
 
       document.appendChild(rootElement);
@@ -205,10 +207,12 @@ public class ProfileStore {
       transformer.setOutputProperty(OutputKeys.INDENT, "yes"); //$NON-NLS-1$
       transformer.transform(new DOMSource(document), new StreamResult(stream));
     } catch (TransformerException e) {
-      throw createException(e,
+      throw createException(
+          e,
           FormatterMessages.CodingStyleConfigurationBlock_error_serializing_xml_message);
     } catch (ParserConfigurationException e) {
-      throw createException(e,
+      throw createException(
+          e,
           FormatterMessages.CodingStyleConfigurationBlock_error_serializing_xml_message);
     }
   }
@@ -290,7 +294,8 @@ public class ProfileStore {
         }
       }
     } catch (IOException e) {
-      throw createException(e,
+      throw createException(
+          e,
           FormatterMessages.CodingStyleConfigurationBlock_error_reading_xml_message);
     }
   }
@@ -366,7 +371,8 @@ public class ProfileStore {
         }
       }
     } catch (IOException e) {
-      throw createException(e,
+      throw createException(
+          e,
           FormatterMessages.CodingStyleConfigurationBlock_error_serializing_xml_message);
     }
   }

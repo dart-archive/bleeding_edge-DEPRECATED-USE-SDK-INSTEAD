@@ -35,14 +35,18 @@ public class DartEditorPresentationFactory extends AbstractPresentationFactory {
 
   @Override
   public StackPresentation createEditorPresentation(Composite parent, IStackPresentationSite site) {
-    DefaultTabFolder folder = new DefaultTabFolder(parent, SWT.TOP | SWT.BORDER,
+    DefaultTabFolder folder = new DefaultTabFolder(
+        parent,
+        SWT.TOP | SWT.BORDER,
         site.supportsState(IStackPresentationSite.STATE_MINIMIZED),
         site.supportsState(IStackPresentationSite.STATE_MAXIMIZED));
     folder.setSimpleTabs(false);
 
     PresentablePartFolder partFolder = new PresentablePartFolder(folder);
 
-    TabbedStackPresentation result = new TabbedStackPresentation(site, partFolder,
+    TabbedStackPresentation result = new TabbedStackPresentation(
+        site,
+        partFolder,
         new EditorSystemMenu(site));
 
     DefaultThemeListener themeListener = new DefaultThemeListener(folder, result.getTheme());
@@ -59,7 +63,9 @@ public class DartEditorPresentationFactory extends AbstractPresentationFactory {
       return createViewPresentation(parent, site);
     }
     EmptyTabFolder folder = new EmptyTabFolder(parent, true);
-    TabbedStackPresentation presentation = new TabbedStackPresentation(site, folder,
+    TabbedStackPresentation presentation = new TabbedStackPresentation(
+        site,
+        folder,
         new ViewSystemMenu(site));
 
     return presentation;
@@ -69,7 +75,9 @@ public class DartEditorPresentationFactory extends AbstractPresentationFactory {
   @Override
   public StackPresentation createViewPresentation(Composite parent, IStackPresentationSite site) {
 
-    DefaultTabFolder folder = new DefaultTabFolder(parent, SWT.TOP | SWT.BORDER,
+    DefaultTabFolder folder = new DefaultTabFolder(
+        parent,
+        SWT.TOP | SWT.BORDER,
         site.supportsState(IStackPresentationSite.STATE_MINIMIZED),
         site.supportsState(IStackPresentationSite.STATE_MAXIMIZED));
 
@@ -84,7 +92,9 @@ public class DartEditorPresentationFactory extends AbstractPresentationFactory {
 
     PresentablePartFolder partFolder = new PresentablePartFolder(folder);
 
-    TabbedStackPresentation result = new TabbedStackPresentation(site, partFolder,
+    TabbedStackPresentation result = new TabbedStackPresentation(
+        site,
+        partFolder,
         new ViewSystemMenu(site));
 
     DefaultThemeListener themeListener = new DefaultThemeListener(folder, result.getTheme());

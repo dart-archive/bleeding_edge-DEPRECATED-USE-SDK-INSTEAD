@@ -134,7 +134,8 @@ public class DeployConsolePatternMatcher implements IPatternMatchListener {
 
       try {
         IEditorPart editor = IDE.openEditor(
-            PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), file);
+            PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(),
+            file);
 
         marker = file.createMarker(IMarker.TEXT);
         marker.setAttribute(IMarker.LINE_NUMBER, location.line);

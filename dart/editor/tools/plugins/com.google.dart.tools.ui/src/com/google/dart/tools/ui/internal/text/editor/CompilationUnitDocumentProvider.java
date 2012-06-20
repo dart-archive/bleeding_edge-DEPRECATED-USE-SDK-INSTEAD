@@ -876,8 +876,10 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
   public CompilationUnitDocumentProvider() {
 
     IDocumentProvider provider = new TextFileDocumentProvider();
-    provider = new ForwardingDocumentProvider(DartPartitions.DART_PARTITIONING,
-        new DartDocumentSetupParticipant(), provider);
+    provider = new ForwardingDocumentProvider(
+        DartPartitions.DART_PARTITIONING,
+        new DartDocumentSetupParticipant(),
+        provider);
     setParentDocumentProvider(provider);
 
     fGlobalAnnotationModelListener = new GlobalAnnotationModelListener();
@@ -915,7 +917,8 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       info.fElement = element;
       if (element instanceof IStorageEditorInput) {
         IStorage storage = ((IStorageEditorInput) element).getStorage();
-        info.fModel = new StorageMarkerAnnotationModel(ResourcesPlugin.getWorkspace().getRoot(),
+        info.fModel = new StorageMarkerAnnotationModel(
+            ResourcesPlugin.getWorkspace().getRoot(),
             storage.getName());
       } else {
         info.fModel = new AnnotationModel();
@@ -1055,7 +1058,10 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
         SafeRunner.run(new ISafeRunnable() {
           @Override
           public void handleException(Throwable ex) {
-            IStatus status = new Status(IStatus.ERROR, DartUI.ID_PLUGIN, IStatus.OK,
+            IStatus status = new Status(
+                IStatus.ERROR,
+                DartUI.ID_PLUGIN,
+                IStatus.OK,
                 "Error in Dart Core during reconcile while saving", ex); //$NON-NLS-1$
             DartToolsPlugin.getDefault().getLog().log(status);
           }
@@ -1251,8 +1257,12 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
         // -> saveAs was executed with a target that is already open
         // in another editor
         // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=85519
-        Status status = new Status(IStatus.WARNING, EditorsUI.PLUGIN_ID, IStatus.ERROR,
-            DartEditorMessages.CompilationUnitDocumentProvider_saveAsTargetOpenInEditor, null);
+        Status status = new Status(
+            IStatus.WARNING,
+            EditorsUI.PLUGIN_ID,
+            IStatus.ERROR,
+            DartEditorMessages.CompilationUnitDocumentProvider_saveAsTargetOpenInEditor,
+            null);
         throw new CoreException(status);
       }
 
@@ -1340,8 +1350,11 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
         unit.getDartProject().getProject());
 
     String message = DartEditorMessages.CompilationUnitDocumentProvider_error_saveParticipantProblem;
-    final MultiStatus errorStatus = new MultiStatus(DartUI.ID_PLUGIN,
-        DartStatusConstants.EDITOR_POST_SAVE_NOTIFICATION, message, null);
+    final MultiStatus errorStatus = new MultiStatus(
+        DartUI.ID_PLUGIN,
+        DartStatusConstants.EDITOR_POST_SAVE_NOTIFICATION,
+        message,
+        null);
 
     monitor.beginTask(
         DartEditorMessages.CompilationUnitDocumentProvider_progressNotifyingSaveParticipants,
@@ -1355,14 +1368,22 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
           public void handleException(Throwable ex) {
             String msg = Messages.format(
                 "The save participant ''{0}'' caused an exception: {1}", new String[] {listener.getId(), ex.toString()}); //$NON-NLS-1$
-            DartToolsPlugin.log(new Status(IStatus.ERROR, DartUI.ID_PLUGIN,
-                DartStatusConstants.EDITOR_POST_SAVE_NOTIFICATION, msg, null));
+            DartToolsPlugin.log(new Status(
+                IStatus.ERROR,
+                DartUI.ID_PLUGIN,
+                DartStatusConstants.EDITOR_POST_SAVE_NOTIFICATION,
+                msg,
+                null));
 
             msg = Messages.format(
                 DartEditorMessages.CompilationUnitDocumentProvider_error_saveParticipantFailed,
                 new String[] {participantName, ex.toString()});
-            errorStatus.add(new Status(IStatus.ERROR, DartUI.ID_PLUGIN,
-                DartStatusConstants.EDITOR_POST_SAVE_NOTIFICATION, msg, null));
+            errorStatus.add(new Status(
+                IStatus.ERROR,
+                DartUI.ID_PLUGIN,
+                DartStatusConstants.EDITOR_POST_SAVE_NOTIFICATION,
+                msg,
+                null));
 
             // Revert the changes
             if (info != null && buffer.hasUnsavedChanges()) {
@@ -1371,8 +1392,12 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
               } catch (CoreException e) {
                 msg = Messages.format(
                     "Error on revert after failure of save participant ''{0}''.", participantName); //$NON-NLS-1$
-                IStatus status = new Status(IStatus.ERROR, DartUI.ID_PLUGIN,
-                    DartStatusConstants.EDITOR_POST_SAVE_NOTIFICATION, msg, ex);
+                IStatus status = new Status(
+                    IStatus.ERROR,
+                    DartUI.ID_PLUGIN,
+                    DartStatusConstants.EDITOR_POST_SAVE_NOTIFICATION,
+                    msg,
+                    ex);
                 DartToolsPlugin.getDefault().getLog().log(status);
               }
 
@@ -1406,8 +1431,12 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
                 String msg = Messages.format(
                     DartEditorMessages.CompilationUnitDocumentProvider_error_saveParticipantSavedFile,
                     participantName);
-                errorStatus.add(new Status(IStatus.ERROR, DartUI.ID_PLUGIN,
-                    DartStatusConstants.EDITOR_POST_SAVE_NOTIFICATION, msg, null));
+                errorStatus.add(new Status(
+                    IStatus.ERROR,
+                    DartUI.ID_PLUGIN,
+                    DartStatusConstants.EDITOR_POST_SAVE_NOTIFICATION,
+                    msg,
+                    null));
               }
 
               if (buffer.hasUnsavedChanges()) {
@@ -1605,7 +1634,8 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       throws DartModelException {
     ExternalDartProject project = new ExternalDartProject();
     IFile libraryFile = project.getProject().getFile(fileName);
-    LibrarySource sourceFile = new UrlLibrarySource(uri,
+    LibrarySource sourceFile = new UrlLibrarySource(
+        uri,
         SystemLibraryManagerProvider.getSystemLibraryManager());
     DartLibraryImpl parent = new DartLibraryImpl(project, libraryFile, sourceFile);
     final CompilationUnitImpl cu = new CompilationUnitImpl(parent, libraryFile, owner);
@@ -1703,7 +1733,9 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
    */
   private IProgressMonitor getSubProgressMonitor(IProgressMonitor monitor, int ticks) {
     if (monitor != null) {
-      return new SubProgressMonitor(monitor, ticks,
+      return new SubProgressMonitor(
+          monitor,
+          ticks,
           SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK);
     }
 

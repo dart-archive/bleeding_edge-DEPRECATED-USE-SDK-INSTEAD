@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.cleanup.preference;
@@ -57,9 +55,11 @@ public class CreateProfileDialog extends StatusDialog {
   private Button fEditCheckbox;
 
   private final static StatusInfo fOk = new StatusInfo();
-  private final static StatusInfo fEmpty = new StatusInfo(IStatus.ERROR,
+  private final static StatusInfo fEmpty = new StatusInfo(
+      IStatus.ERROR,
       FormatterMessages.CreateProfileDialog_status_message_profile_name_is_empty);
-  private final static StatusInfo fDuplicate = new StatusInfo(IStatus.ERROR,
+  private final static StatusInfo fDuplicate = new StatusInfo(
+      IStatus.ERROR,
       FormatterMessages.CreateProfileDialog_status_message_profile_with_this_name_already_exists);
 
   private final ProfileManager fProfileManager;
@@ -199,8 +199,11 @@ public class CreateProfileDialog extends StatusDialog {
         fProfileCombo.getSelectionIndex()).getSettings());
     final String profileName = fNameText.getText();
 
-    fCreatedProfile = new CustomProfile(profileName, baseSettings,
-        fProfileVersioner.getCurrentVersion(), fProfileVersioner.getProfileKind());
+    fCreatedProfile = new CustomProfile(
+        profileName,
+        baseSettings,
+        fProfileVersioner.getCurrentVersion(),
+        fProfileVersioner.getProfileKind());
     fProfileManager.addProfile(fCreatedProfile);
     super.okPressed();
   }

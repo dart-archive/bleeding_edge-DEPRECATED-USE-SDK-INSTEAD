@@ -217,7 +217,8 @@ public class CompletionProposalLabelProvider {
 
   ImageDescriptor createFieldImageDescriptor(CompletionProposal proposal) {
     return decorateImageDescriptor(
-        DartElementImageProvider.getFieldImageDescriptor(false, proposal.isPrivate()), proposal);
+        DartElementImageProvider.getFieldImageDescriptor(false, proposal.isPrivate()),
+        proposal);
   }
 
   /**
@@ -317,7 +318,8 @@ public class CompletionProposalLabelProvider {
 
   ImageDescriptor createMethodImageDescriptor(CompletionProposal proposal) {
     return decorateImageDescriptor(
-        DartElementImageProvider.getMethodImageDescriptor(false, proposal.isPrivate()), proposal);
+        DartElementImageProvider.getMethodImageDescriptor(false, proposal.isPrivate()),
+        proposal);
   }
 
   /**
@@ -390,7 +392,8 @@ public class CompletionProposalLabelProvider {
     // declaring type
     nameBuffer.append(" - "); //$NON-NLS-1$
     String declaringType = new String(methodProposal.getDeclarationSignature());//extractDeclaringTypeFQN(methodProposal);
-    nameBuffer.append(Messages.format(DartTextMessages.ResultCollector_overridingmethod,
+    nameBuffer.append(Messages.format(
+        DartTextMessages.ResultCollector_overridingmethod,
         new String(declaringType)));
 
     return nameBuffer.toString();
@@ -413,7 +416,8 @@ public class CompletionProposalLabelProvider {
   }
 
   ImageDescriptor createTypeImageDescriptor(CompletionProposal proposal) {
-    return decorateImageDescriptor(DartElementImageProvider.getTypeImageDescriptor(true, false),
+    return decorateImageDescriptor(
+        DartElementImageProvider.getTypeImageDescriptor(true, false),
         proposal);
   }
 
@@ -439,8 +443,8 @@ public class CompletionProposalLabelProvider {
    * <li>the package name</li>
    * </ul>
    * <p>
-   * Examples: A proposal for the generic type <code>List&lt;E&gt;</code>, the display
-   * label is: <code>List<E></code>.
+   * Examples: A proposal for the generic type <code>List&lt;E&gt;</code>, the display label is:
+   * <code>List<E></code>.
    * </p>
    * 
    * @param typeProposal the method proposal to display
@@ -642,7 +646,9 @@ public class CompletionProposalLabelProvider {
       adornments |= DartElementImageDescriptor.ABSTRACT;
     }
 
-    return new DartElementImageDescriptor(descriptor, adornments,
+    return new DartElementImageDescriptor(
+        descriptor,
+        adornments,
         DartElementImageProvider.SMALL_SIZE);
   }
 

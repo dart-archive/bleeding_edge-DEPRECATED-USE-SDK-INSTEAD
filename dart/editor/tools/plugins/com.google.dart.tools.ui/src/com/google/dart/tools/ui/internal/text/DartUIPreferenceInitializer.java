@@ -35,7 +35,8 @@ public class DartUIPreferenceInitializer extends AbstractPreferenceInitializer {
     @SuppressWarnings("deprecation")
     IEclipsePreferences defaultPreferences = new DefaultScope().getNode(DartCore.PLUGIN_ID);
     defaultPreferences.put(JavaScriptCore.COMPILER_TASK_TAGS, JavaScriptCore.DEFAULT_TASK_TAGS);
-    defaultPreferences.put(JavaScriptCore.COMPILER_TASK_PRIORITIES,
+    defaultPreferences.put(
+        JavaScriptCore.COMPILER_TASK_PRIORITIES,
         JavaScriptCore.DEFAULT_TASK_PRIORITIES);
     defaultPreferences.put(JavaScriptCore.COMPILER_TASK_CASE_SENSITIVE, JavaScriptCore.ENABLED);
   }

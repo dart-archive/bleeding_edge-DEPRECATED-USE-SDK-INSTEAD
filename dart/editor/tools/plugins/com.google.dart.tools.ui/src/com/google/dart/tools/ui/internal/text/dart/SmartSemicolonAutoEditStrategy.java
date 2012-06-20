@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
@@ -110,10 +108,17 @@ public class SmartSemicolonAutoEditStrategy implements IAutoEditStrategy {
         if (insertPos > 0 && text.charAt(insertPos - 1) == character) {
           insertPos = insertPos - 1;
         } else if (insertPos > 0 && text.charAt(insertPos - 1) == '}') {
-          int opening = scanBackward(document, insertPos - 1 + line.getOffset(), partitioning, -1,
+          int opening = scanBackward(
+              document,
+              insertPos - 1 + line.getOffset(),
+              partitioning,
+              -1,
               new char[] {'{'});
           if (opening > -1 && opening < offset + line.getOffset()) {
-            if (computeArrayInitializationPos(document, line, opening - line.getOffset(),
+            if (computeArrayInitializationPos(
+                document,
+                line,
+                opening - line.getOffset(),
                 partitioning) == -1) {
               insertPos = offset;
             }
@@ -717,14 +722,21 @@ public class SmartSemicolonAutoEditStrategy implements IAutoEditStrategy {
    */
   private static boolean looksLikeAnonymousClassDef(IDocument document, int position,
       String partitioning) {
-    int previousCommaParenEqual = scanBackward(document, position - 1, partitioning, -1,
+    int previousCommaParenEqual = scanBackward(
+        document,
+        position - 1,
+        partitioning,
+        -1,
         new char[] {',', '(', '='});
     if (previousCommaParenEqual == -1 || position < previousCommaParenEqual + 5) {
       // for borders, 3 for "new"
       return false;
     }
 
-    if (isNewMatch(document, previousCommaParenEqual + 1, position - previousCommaParenEqual - 2,
+    if (isNewMatch(
+        document,
+        previousCommaParenEqual + 1,
+        position - previousCommaParenEqual - 2,
         partitioning)) {
       return true;
     }
@@ -807,7 +819,10 @@ public class SmartSemicolonAutoEditStrategy implements IAutoEditStrategy {
     int validPosition = docOffset;
 
     try {
-      ITypedRegion partition = TextUtilities.getPartition(document, partitioning, nextPartitionPos,
+      ITypedRegion partition = TextUtilities.getPartition(
+          document,
+          partitioning,
+          nextPartitionPos,
           true);
       validPosition = getValidPositionForPartition(document, partition, eol);
       while (validPosition == -1) {
@@ -1037,8 +1052,12 @@ public class SmartSemicolonAutoEditStrategy implements IAutoEditStrategy {
 
     // 2: choose action based on findings (is for-Statement?)
     // for now: compute the best position to insert the new character
-    int positionInLine = computeCharacterPosition(document, line, pos - line.getOffset(),
-        fCharacter, fPartitioning);
+    int positionInLine = computeCharacterPosition(
+        document,
+        line,
+        pos - line.getOffset(),
+        fCharacter,
+        fPartitioning);
     int position = positionInLine + line.getOffset();
 
     // never position before the current position!
@@ -1065,9 +1084,11 @@ public class SmartSemicolonAutoEditStrategy implements IAutoEditStrategy {
           && DartToolsPlugin.getDefault().getPreferenceStore().getBoolean(
               PreferenceConstants.EDITOR_SMART_BACKSPACE)) {
         TextEdit e1 = new ReplaceEdit(command.offset, command.text.length(), document.get(
-            command.offset, command.length));
+            command.offset,
+            command.length));
         UndoSpec s1 = new UndoSpec(command.offset + command.text.length(), new Region(
-            command.offset, 0), new TextEdit[] {e1}, 0, null);
+            command.offset,
+            0), new TextEdit[] {e1}, 0, null);
 
         DeleteEdit smart = new DeleteEdit(position, insertion.length());
         ReplaceEdit raw = new ReplaceEdit(command.offset, command.length, command.text);

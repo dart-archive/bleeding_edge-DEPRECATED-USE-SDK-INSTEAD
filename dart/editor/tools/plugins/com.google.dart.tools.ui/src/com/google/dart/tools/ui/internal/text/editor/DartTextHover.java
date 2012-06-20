@@ -103,7 +103,9 @@ public class DartTextHover extends DefaultTextHover {
 
     try {
       DartDocumentable documentable = DartDocUtilities.getDartDocumentable(
-          (CompilationUnit) editor.getInputDartElement(), unit, region.getOffset(),
+          (CompilationUnit) editor.getInputDartElement(),
+          unit,
+          region.getOffset(),
           region.getOffset() + region.getLength());
 
       if (documentable != null) {

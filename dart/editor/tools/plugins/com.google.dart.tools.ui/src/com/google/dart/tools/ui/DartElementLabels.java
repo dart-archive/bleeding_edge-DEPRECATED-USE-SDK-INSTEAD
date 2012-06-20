@@ -1054,7 +1054,11 @@ public class DartElementLabels {
               if (types.length > names.length) {
                 nParams = names.length;
                 String[] typesWithoutSyntheticParams = new String[nParams];
-                System.arraycopy(types, types.length - nParams, typesWithoutSyntheticParams, 0,
+                System.arraycopy(
+                    types,
+                    types.length - nParams,
+                    typesWithoutSyntheticParams,
+                    0,
                     nParams);
                 types = typesWithoutSyntheticParams;
               } else {

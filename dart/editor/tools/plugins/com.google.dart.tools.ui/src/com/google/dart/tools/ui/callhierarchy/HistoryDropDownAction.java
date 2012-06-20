@@ -57,7 +57,8 @@ class HistoryDropDownAction extends Action implements IMenuCreator {
     setToolTipText(CallHierarchyMessages.HistoryDropDownAction_tooltip);
     DartPluginImages.setLocalImageDescriptors(this, "history_list.gif"); //$NON-NLS-1$
 
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.CALL_HIERARCHY_HISTORY_DROP_DOWN_ACTION);
 
     setMenuCreator(this);

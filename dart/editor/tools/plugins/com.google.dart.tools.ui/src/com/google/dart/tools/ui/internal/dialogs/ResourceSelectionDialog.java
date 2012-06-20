@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.dialogs;
@@ -130,7 +128,8 @@ public class ResourceSelectionDialog extends SelectionDialog {
   @Override
   protected void configureShell(Shell shell) {
     super.configureShell(shell);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(shell,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        shell,
         IIDEHelpContextIds.RESOURCE_SELECTION_DIALOG);
   }
 
@@ -145,15 +144,19 @@ public class ResourceSelectionDialog extends SelectionDialog {
     input.add(root);
 
     createMessageArea(composite);
-    selectionGroup = new CheckboxTreeAndListGroup(composite, input,
+    selectionGroup = new CheckboxTreeAndListGroup(
+        composite,
+        input,
         getResourceProvider(IResource.FOLDER | IResource.PROJECT | IResource.ROOT),
         WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider(),
         getResourceProvider(IResource.FILE),
-        WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider(), SWT.NONE,
+        WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider(),
+        SWT.NONE,
         // since this page has no other significantly-sized
         // widgets we need to hardcode the combined widget's
         // size, otherwise it will open too small
-        SIZING_SELECTION_WIDGET_WIDTH, SIZING_SELECTION_WIDGET_HEIGHT);
+        SIZING_SELECTION_WIDGET_WIDTH,
+        SIZING_SELECTION_WIDGET_HEIGHT);
 
     composite.addControlListener(new ControlListener() {
       @Override

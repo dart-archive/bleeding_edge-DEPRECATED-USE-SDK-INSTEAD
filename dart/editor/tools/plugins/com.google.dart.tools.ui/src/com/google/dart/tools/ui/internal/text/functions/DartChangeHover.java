@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.functions;
@@ -71,8 +69,12 @@ public class DartChangeHover extends LineChangeHover {
       @Override
       public IInformationControl createInformationControl(Shell parent) {
         int shellStyle = SWT.TOOL | SWT.NO_TRIM | fOrientation;
-        fInformationControl = new ChangeHoverInformationControl(parent, shellStyle, SWT.NONE,
-            fPartition, EditorsUI.getTooltipAffordanceString());
+        fInformationControl = new ChangeHoverInformationControl(
+            parent,
+            shellStyle,
+            SWT.NONE,
+            fPartition,
+            EditorsUI.getTooltipAffordanceString());
         fInformationControl.setHorizontalScrollPixel(fLastScrollIndex);
         return fInformationControl;
       }
@@ -90,8 +92,12 @@ public class DartChangeHover extends LineChangeHover {
       public IInformationControl createInformationControl(Shell parent) {
         int shellStyle = SWT.RESIZE | SWT.TOOL | fOrientation;
         int style = SWT.V_SCROLL | SWT.H_SCROLL;
-        fInformationControl = new ChangeHoverInformationControl(parent, shellStyle, style,
-            fPartition, null);
+        fInformationControl = new ChangeHoverInformationControl(
+            parent,
+            shellStyle,
+            style,
+            fPartition,
+            null);
         fInformationControl.setHorizontalScrollPixel(fLastScrollIndex);
         return fInformationControl;
       }
@@ -155,8 +161,11 @@ public class DartChangeHover extends LineChangeHover {
       return IDocument.DEFAULT_CONTENT_TYPE;
     }
     try {
-      ITypedRegion region = TextUtilities.getPartition(doc, fPartitioning,
-          doc.getLineOffset(startLine) - 1, true);
+      ITypedRegion region = TextUtilities.getPartition(
+          doc,
+          fPartitioning,
+          doc.getLineOffset(startLine) - 1,
+          true);
       return region.getType();
     } catch (BadLocationException e) {
     }

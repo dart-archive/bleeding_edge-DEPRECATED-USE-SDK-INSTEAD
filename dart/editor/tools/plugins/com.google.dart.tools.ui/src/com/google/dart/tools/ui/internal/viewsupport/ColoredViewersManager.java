@@ -120,7 +120,9 @@ public class ColoredViewersManager implements IPropertyChangeListener {
         newLabel = new ColoredString(itemText); // fallback. Should never happen.
       } else if (!newLabel.getString().equals(itemText)) {
         // the decorator manager has already queued an new update
-        newLabel = ColoredDartElementLabels.decorateColoredString(newLabel, itemText,
+        newLabel = ColoredDartElementLabels.decorateColoredString(
+            newLabel,
+            itemText,
             ColoredDartElementLabels.DECORATIONS_STYLE);
       }
       item.setData(COLORED_LABEL_KEY, newLabel); // cache the result
@@ -172,7 +174,8 @@ public class ColoredViewersManager implements IPropertyChangeListener {
 
   public static boolean showColoredLabels() {
     String preference = PreferenceConstants.getPreference(
-        AppearancePreferencePage.PREF_COLORED_LABELS, null);
+        AppearancePreferencePage.PREF_COLORED_LABELS,
+        null);
     return preference != null && Boolean.valueOf(preference).booleanValue();
   }
 

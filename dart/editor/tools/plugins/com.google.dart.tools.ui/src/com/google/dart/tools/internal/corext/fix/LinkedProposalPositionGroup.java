@@ -53,11 +53,7 @@ public class LinkedProposalPositionGroup {
       fRelevance = relevance;
     }
 
-    public TextEdit computeEdits(
-        int offset,
-        LinkedPosition position,
-        char trigger,
-        int stateMask,
+    public TextEdit computeEdits(int offset, LinkedPosition position, char trigger, int stateMask,
         LinkedModeModel model) throws CoreException {
       return new ReplaceEdit(position.getOffset(), position.getLength(), fDisplayString);
     }
@@ -183,8 +179,7 @@ public class LinkedProposalPositionGroup {
     }
   }
 
-  public static PositionInformation createPositionInformation(
-      TrackedNodePosition pos,
+  public static PositionInformation createPositionInformation(TrackedNodePosition pos,
       boolean isFirst) {
     return new TrackedNodePosition2(pos, isFirst);
   }

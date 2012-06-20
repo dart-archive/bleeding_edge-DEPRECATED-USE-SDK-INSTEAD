@@ -82,8 +82,13 @@ public class CreateAndRevealProjectAction extends Action {
     } else if (!isNestedByAnExistingProject(path) && !nestsAnExistingProject(path)) {
       URI location = new File(directoryPath).toURI();
 
-      IProject project = ProjectUtils.createNewProject(name, projectHandle, ProjectType.NONE,
-          location, window, getShell());
+      IProject project = ProjectUtils.createNewProject(
+          name,
+          projectHandle,
+          ProjectType.NONE,
+          location,
+          window,
+          getShell());
 
       ProjectUtils.selectAndReveal(project);
     } else {
@@ -113,9 +118,12 @@ public class CreateAndRevealProjectAction extends Action {
       if (path.isPrefixOf(location)) {
         String folderName = path.lastSegment();
         String projectName = project.getName();
-        MessageDialog.openError(getShell(),
+        MessageDialog.openError(
+            getShell(),
             ProjectMessages.OpenExistingFolderWizardAction_nesting_title,
-            NLS.bind(ProjectMessages.OpenExistingFolderWizardAction_nesting_msg, folderName,
+            NLS.bind(
+                ProjectMessages.OpenExistingFolderWizardAction_nesting_msg,
+                folderName,
                 projectName));
         return true;
       }

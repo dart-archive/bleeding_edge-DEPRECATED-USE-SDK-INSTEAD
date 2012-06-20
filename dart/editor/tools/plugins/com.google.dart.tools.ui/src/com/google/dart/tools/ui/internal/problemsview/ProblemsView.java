@@ -963,8 +963,10 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
               List<IMarker> markers = new ArrayList<IMarker>();
 
               for (String markerId : MarkersUtils.getInstance().getErrorsViewMarkerIds()) {
-                IMarker[] marks = ResourcesPlugin.getWorkspace().getRoot().findMarkers(markerId,
-                    true, IResource.DEPTH_INFINITE);
+                IMarker[] marks = ResourcesPlugin.getWorkspace().getRoot().findMarkers(
+                    markerId,
+                    true,
+                    IResource.DEPTH_INFINITE);
 
                 markers.addAll(Arrays.asList(marks));
               }
@@ -1142,7 +1144,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
           try {
             IDE.openEditor(getViewSite().getPage(), marker);
           } catch (PartInitException e) {
-            ErrorDialog.openError(getSite().getShell(), "Error Opening Marker",
+            ErrorDialog.openError(
+                getSite().getShell(),
+                "Error Opening Marker",
                 "Unable to open an editor for the given marker: " + e.getClass().getSimpleName(),
                 new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, e.toString(), e));
 

@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.dialogs;
@@ -274,7 +272,8 @@ public class SourceActionDialog extends CheckedTreeSelectionDialog {
 
     for (int i = 0; i < methods.length; i++) {
       Method curr = methods[i];
-      String methodLabel = DartElementLabels.getElementLabel(curr,
+      String methodLabel = DartElementLabels.getElementLabel(
+          curr,
           DartElementLabels.M_PARAMETER_TYPES);
       fLabels.add(Messages.format(ActionMessages.SourceActionDialog_after, methodLabel));
       try {
@@ -319,8 +318,11 @@ public class SourceActionDialog extends CheckedTreeSelectionDialog {
     int[] availableVisibilities = new int[] {
         Modifier.PUBLIC, Modifier.PROTECTED, Modifier.PRIVATE, Modifier.NONE};
 
-    Composite visibilityComposite = createVisibilityControlAndModifiers(buttonComposite,
-        visibilityChangeListener, availableVisibilities, initialVisibility);
+    Composite visibilityComposite = createVisibilityControlAndModifiers(
+        buttonComposite,
+        visibilityChangeListener,
+        availableVisibilities,
+        initialVisibility);
     return visibilityComposite;
   }
 
@@ -539,8 +541,11 @@ public class SourceActionDialog extends CheckedTreeSelectionDialog {
   protected Composite createVisibilityControlAndModifiers(Composite parent,
       final IVisibilityChangeListener visibilityChangeListener, int[] availableVisibilities,
       int correctVisibility) {
-    Composite visibilityComposite = createVisibilityControl(parent, visibilityChangeListener,
-        availableVisibilities, correctVisibility);
+    Composite visibilityComposite = createVisibilityControl(
+        parent,
+        visibilityChangeListener,
+        availableVisibilities,
+        correctVisibility);
 
     Button finalCheckboxButton = new Button(visibilityComposite, SWT.CHECK);
     finalCheckboxButton.setText(ActionMessages.SourceActionDialog_modifier_final);
@@ -557,7 +562,8 @@ public class SourceActionDialog extends CheckedTreeSelectionDialog {
 
       @Override
       public void widgetSelected(SelectionEvent event) {
-        visibilityChangeListener.modifierChanged(((Integer) event.widget.getData()).intValue(),
+        visibilityChangeListener.modifierChanged(
+            ((Integer) event.widget.getData()).intValue(),
             ((Button) event.widget).getSelection());
       }
     });
@@ -577,7 +583,8 @@ public class SourceActionDialog extends CheckedTreeSelectionDialog {
 
       @Override
       public void widgetSelected(SelectionEvent event) {
-        visibilityChangeListener.modifierChanged(((Integer) event.widget.getData()).intValue(),
+        visibilityChangeListener.modifierChanged(
+            ((Integer) event.widget.getData()).intValue(),
             ((Button) event.widget).getSelection());
       }
     });
@@ -620,8 +627,12 @@ public class SourceActionDialog extends CheckedTreeSelectionDialog {
   protected void openCodeTempatePage(String id) {
     HashMap<Object, String> arg = new HashMap<Object, String>();
     arg.put(CodeTemplatePreferencePage.DATA_SELECT_TEMPLATE, id);
-    PreferencesUtil.createPropertyDialogOn(getShell(), fType.getDartProject().getProject(),
-        CodeTemplatePreferencePage.PROP_ID, null, arg).open();
+    PreferencesUtil.createPropertyDialogOn(
+        getShell(),
+        fType.getDartProject().getProject(),
+        CodeTemplatePreferencePage.PROP_ID,
+        null,
+        arg).open();
   }
 
   protected void setVisibility(int visibility) {

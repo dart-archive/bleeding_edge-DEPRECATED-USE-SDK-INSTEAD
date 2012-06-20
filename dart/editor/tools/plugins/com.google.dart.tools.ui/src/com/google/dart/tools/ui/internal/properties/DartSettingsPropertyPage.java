@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.properties;
@@ -65,7 +63,9 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
       try {
         dartProject.setOutputLocation(path, new NullProgressMonitor());
       } catch (DartModelException exception) {
-        ExceptionHandler.handle(exception, "Dart Core Exception",
+        ExceptionHandler.handle(
+            exception,
+            "Dart Core Exception",
             "Unable to set the project's output location.");
       }
     }
@@ -127,8 +127,11 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
   private void handleBrowseButton() {
     DartProject project = getDartProject();
 
-    ContainerSelectionDialog dialog = new ContainerSelectionDialog(getShell(),
-        project.getProject(), true, "Select output location:");
+    ContainerSelectionDialog dialog = new ContainerSelectionDialog(
+        getShell(),
+        project.getProject(),
+        true,
+        "Select output location:");
     dialog.showClosedProjects(false);
 
     if (dialog.open() == Window.OK) {
@@ -148,7 +151,9 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
       try {
         outputLocationText.setText(dartProject.getOutputLocation().toPortableString());
       } catch (DartModelException exception) {
-        ExceptionHandler.handle(exception, "Dart Core Exception",
+        ExceptionHandler.handle(
+            exception,
+            "Dart Core Exception",
             "Unable to retreive the project's output location.");
       }
     }

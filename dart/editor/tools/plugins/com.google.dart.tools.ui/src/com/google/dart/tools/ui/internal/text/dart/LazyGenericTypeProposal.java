@@ -194,7 +194,11 @@ public final class LazyGenericTypeProposal extends LazyDartTypeCompletionProposa
           if (getTextViewer() != null) {
             if (hasAmbiguousProposals(typeArgumentProposals)) {
               adaptOffsets(offsets, buffer);
-              installLinkedMode(document, offsets, lengths, typeArgumentProposals,
+              installLinkedMode(
+                  document,
+                  offsets,
+                  lengths,
+                  typeArgumentProposals,
                   insertClosingParenthesis);
             } else {
               if (insertClosingParenthesis) {
@@ -549,8 +553,11 @@ public final class LazyGenericTypeProposal extends LazyDartTypeCompletionProposa
       // TODO handle local types
     }
 
-    throw new DartModelException(new CoreException(new Status(IStatus.ERROR,
-        DartToolsPlugin.getPluginId(), IStatus.OK, "Illegal hierarchy", null))); //$NON-NLS-1$
+    throw new DartModelException(new CoreException(new Status(
+        IStatus.ERROR,
+        DartToolsPlugin.getPluginId(),
+        IStatus.OK,
+        "Illegal hierarchy", null))); //$NON-NLS-1$
   }
 
   /**
@@ -704,7 +711,10 @@ public final class LazyGenericTypeProposal extends LazyDartTypeCompletionProposa
 
       LinkedModeUI ui = new EditorLinkedModeUI(model, getTextViewer());
       ui.setExitPolicy(new ExitPolicy(withParentheses ? ')' : '>', document));
-      ui.setExitPosition(getTextViewer(), replacementOffset + replacementString.length(), 0,
+      ui.setExitPosition(
+          getTextViewer(),
+          replacementOffset + replacementString.length(),
+          0,
           Integer.MAX_VALUE);
       ui.setDoContextInfo(true);
       ui.enter();
@@ -761,7 +771,9 @@ public final class LazyGenericTypeProposal extends LazyDartTypeCompletionProposa
 
   private void openErrorDialog(BadLocationException e) {
     Shell shell = getTextViewer().getTextWidget().getShell();
-    MessageDialog.openError(shell, DartTextMessages.FilledArgumentNamesMethodProposal_error_msg,
+    MessageDialog.openError(
+        shell,
+        DartTextMessages.FilledArgumentNamesMethodProposal_error_msg,
         e.getMessage());
   }
 

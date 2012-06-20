@@ -72,8 +72,8 @@ public class CleanUpRegistry {
       fKind = getCleanUpKind(kind);
       if (fKind == -1) {
         DartToolsPlugin.logErrorMessage(Messages.format(
-            FixMessages.CleanUpRegistry_WrongKindForConfigurationUI_error, new String[] {
-                fName, element.getContributor().getName(), kind}));
+            FixMessages.CleanUpRegistry_WrongKindForConfigurationUI_error,
+            new String[] {fName, element.getContributor().getName(), kind}));
       }
     }
 
@@ -135,7 +135,8 @@ public class CleanUpRegistry {
       try {
         return (ICleanUp) fElement.createExecutableExtension(ATTRIBUTE_ID_CLASS);
       } catch (CoreException e) {
-        String msg = Messages.format(FixMessages.CleanUpRegistry_cleanUpCreation_error,
+        String msg = Messages.format(
+            FixMessages.CleanUpRegistry_cleanUpCreation_error,
             new String[] {
                 fElement.getAttribute(ATTRIBUTE_ID_ID), fElement.getContributor().getName()});
         DartToolsPlugin.logErrorStatus(msg, e.getStatus());
@@ -176,8 +177,8 @@ public class CleanUpRegistry {
       fKind = getCleanUpKind(kind);
       if (fKind == -1) {
         DartToolsPlugin.logErrorMessage(Messages.format(
-            FixMessages.CleanUpRegistry_UnknownInitializerKind_errorMessage, new String[] {
-                element.getContributor().getName(), kind}));
+            FixMessages.CleanUpRegistry_UnknownInitializerKind_errorMessage,
+            new String[] {element.getContributor().getName(), kind}));
       }
     }
 
@@ -215,7 +216,8 @@ public class CleanUpRegistry {
 
       Text text = new Text(result, SWT.MULTI | SWT.BORDER | SWT.READ_ONLY);
       text.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-      text.setText(Messages.format(FixMessages.CleanUpRegistry_ErrorTabPage_description,
+      text.setText(Messages.format(
+          FixMessages.CleanUpRegistry_ErrorTabPage_description,
           fException.getLocalizedMessage()));
 
       return result;
@@ -381,7 +383,8 @@ public class CleanUpRegistry {
     ArrayList<CleanUpInitializerDescriptor> result = new ArrayList<CleanUpInitializerDescriptor>();
 
     IExtensionPoint point = Platform.getExtensionRegistry().getExtensionPoint(
-        DartToolsPlugin.getPluginId(), EXTENSION_POINT_NAME);
+        DartToolsPlugin.getPluginId(),
+        EXTENSION_POINT_NAME);
     IConfigurationElement[] elements = point.getConfigurationElements();
     for (int i = 0; i < elements.length; i++) {
       IConfigurationElement element = elements[i];
@@ -401,7 +404,8 @@ public class CleanUpRegistry {
     final ArrayList<CleanUpDescriptor> descriptors = new ArrayList<CleanUpDescriptor>();
 
     IExtensionPoint point = Platform.getExtensionRegistry().getExtensionPoint(
-        DartToolsPlugin.getPluginId(), EXTENSION_POINT_NAME);
+        DartToolsPlugin.getPluginId(),
+        EXTENSION_POINT_NAME);
     IConfigurationElement[] elements = point.getConfigurationElements();
     for (int i = 0; i < elements.length; i++) {
       IConfigurationElement element = elements[i];
@@ -420,7 +424,8 @@ public class CleanUpRegistry {
         @Override
         public void handleException(Throwable t) {
           disable[0] = true;
-          String message = Messages.format(FixMessages.CleanUpRegistry_cleanUpCreation_error,
+          String message = Messages.format(
+              FixMessages.CleanUpRegistry_cleanUpCreation_error,
               new String[] {
                   cleanUpDescriptor.getId(), cleanUpDescriptor.fElement.getContributor().getName()});
           IStatus status = new Status(IStatus.ERROR, DartUI.ID_PLUGIN, IStatus.ERROR, message, t);
@@ -437,7 +442,8 @@ public class CleanUpRegistry {
             String[] enbledSteps = cleanUp.getStepDescriptions();
             if (enbledSteps != null && enbledSteps.length > 0) {
               DartToolsPlugin.logErrorMessage(Messages.format(
-                  FixMessages.CleanUpRegistry_cleanUpAlwaysEnabled_error, new String[] {
+                  FixMessages.CleanUpRegistry_cleanUpAlwaysEnabled_error,
+                  new String[] {
                       cleanUpDescriptor.getId(),
                       cleanUpDescriptor.fElement.getContributor().getName()}));
               disable[0] = true;
@@ -464,7 +470,8 @@ public class CleanUpRegistry {
 
     ArrayList<CleanUpTabPageDescriptor> result = new ArrayList<CleanUpTabPageDescriptor>();
 
-    IExtensionPoint point = Platform.getExtensionRegistry().getExtensionPoint(DartUI.ID_PLUGIN,
+    IExtensionPoint point = Platform.getExtensionRegistry().getExtensionPoint(
+        DartUI.ID_PLUGIN,
         EXTENSION_POINT_NAME);
     IConfigurationElement[] elements = point.getConfigurationElements();
     for (int i = 0; i < elements.length; i++) {

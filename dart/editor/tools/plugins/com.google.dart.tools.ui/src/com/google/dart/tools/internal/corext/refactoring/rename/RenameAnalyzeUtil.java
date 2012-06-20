@@ -72,11 +72,8 @@ public class RenameAnalyzeUtil {
    * If {@link DartElement} becomes private, then marks its usage places outside of declaring
    * {@link DartLibrary} as errors.
    */
-  public static RefactoringStatus checkBecomePrivate(
-      String oldName,
-      String newName,
-      DartElement member,
-      List<SearchMatch> references) throws CoreException {
+  public static RefactoringStatus checkBecomePrivate(String oldName, String newName,
+      DartElement member, List<SearchMatch> references) throws CoreException {
     RefactoringStatus result = new RefactoringStatus();
     if (!StringUtils.startsWith(oldName, "_") && StringUtils.startsWith(newName, "_")) {
       DartLibrary declarationLibrary = member.getAncestor(DartLibrary.class);
@@ -110,8 +107,7 @@ public class RenameAnalyzeUtil {
       String message = Messages.format(
           RefactoringCoreMessages.RenameProcessor_notLocal,
           new Object[] {
-              RenameAnalyzeUtil.getElementTypeName(element),
-              libraryName,
+              RenameAnalyzeUtil.getElementTypeName(element), libraryName,
               BasicElementLabels.getPathLabel(elementPath, true)});
       return RefactoringStatus.createErrorStatus(message);
     }

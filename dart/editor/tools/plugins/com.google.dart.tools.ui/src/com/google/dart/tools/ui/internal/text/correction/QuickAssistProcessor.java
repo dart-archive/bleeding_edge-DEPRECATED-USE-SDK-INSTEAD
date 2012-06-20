@@ -70,9 +70,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     return new ReplaceEdit(range.getOffset(), range.getLength(), text);
   }
 
-  private static int isOperatorSelected(
-      DartBinaryExpression binaryExpression,
-      int offset,
+  private static int isOperatorSelected(DartBinaryExpression binaryExpression, int offset,
       int length) {
     DartNode left = binaryExpression.getArg1();
     DartNode right = binaryExpression.getArg2();
@@ -118,8 +116,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
   private final List<TextEdit> textEdits = Lists.newArrayList();
 
   @Override
-  public synchronized IDartCompletionProposal[] getAssists(
-      IInvocationContext context,
+  public synchronized IDartCompletionProposal[] getAssists(IInvocationContext context,
       IProblemLocation[] locations) throws CoreException {
     proposals.clear();
     unit = context.getCompilationUnit();

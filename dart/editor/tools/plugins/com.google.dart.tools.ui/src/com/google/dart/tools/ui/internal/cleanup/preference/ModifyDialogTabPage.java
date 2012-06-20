@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.cleanup.preference;
@@ -183,7 +181,9 @@ public abstract class ModifyDialogTabPage implements IModifyDialogTabPage {
         }
       }
 
-      fCombo.setLayoutData(createGridData(1, GridData.HORIZONTAL_ALIGN_FILL,
+      fCombo.setLayoutData(createGridData(
+          1,
+          GridData.HORIZONTAL_ALIGN_FILL,
           fCombo.computeSize(SWT.DEFAULT, SWT.DEFAULT).x));
 
       updateWidget();
@@ -332,7 +332,9 @@ public abstract class ModifyDialogTabPage implements IModifyDialogTabPage {
       fNumberText.setFont(composite.getFont());
 
       final int length = Integer.toString(maxValue).length() + 3;
-      fNumberText.setLayoutData(createGridData(1, GridData.HORIZONTAL_ALIGN_END,
+      fNumberText.setLayoutData(createGridData(
+          1,
+          GridData.HORIZONTAL_ALIGN_END,
           fPixelConverter.convertWidthInCharsToPixels(length)));
 
       fMinValue = minValue;
@@ -412,9 +414,14 @@ public abstract class ModifyDialogTabPage implements IModifyDialogTabPage {
           fSelected = Integer.parseInt(s);
         } catch (NumberFormatException e) {
           final String message = Messages.format(
-              FormatterMessages.ModifyDialogTabPage_NumberPreference_error_invalid_key, getKey());
-          DartToolsPlugin.log(new Status(IStatus.ERROR, DartToolsPlugin.getPluginId(), IStatus.OK,
-              message, e));
+              FormatterMessages.ModifyDialogTabPage_NumberPreference_error_invalid_key,
+              getKey());
+          DartToolsPlugin.log(new Status(
+              IStatus.ERROR,
+              DartToolsPlugin.getPluginId(),
+              IStatus.OK,
+              message,
+              e));
           s = ""; //$NON-NLS-1$
         }
         fNumberText.setText(s);
@@ -425,8 +432,8 @@ public abstract class ModifyDialogTabPage implements IModifyDialogTabPage {
 
     private IStatus createErrorStatus() {
       return new Status(IStatus.ERROR, DartToolsPlugin.getPluginId(), 0, Messages.format(
-          FormatterMessages.ModifyDialogTabPage_NumberPreference_error_invalid_value, new String[] {
-              Integer.toString(fMinValue), Integer.toString(fMaxValue)}), null);
+          FormatterMessages.ModifyDialogTabPage_NumberPreference_error_invalid_value,
+          new String[] {Integer.toString(fMinValue), Integer.toString(fMaxValue)}), null);
 
     }
 
@@ -594,14 +601,18 @@ public abstract class ModifyDialogTabPage implements IModifyDialogTabPage {
       fLabel.setFont(composite.getFont());
       fLabel.setText(text);
 
-      fLabel.setLayoutData(createGridData(numColumns - 1, GridData.HORIZONTAL_ALIGN_BEGINNING,
+      fLabel.setLayoutData(createGridData(
+          numColumns - 1,
+          GridData.HORIZONTAL_ALIGN_BEGINNING,
           SWT.DEFAULT));
 
       fText = new Text(composite, SWT.SINGLE | SWT.BORDER);
       fText.setFont(composite.getFont());
 
       final int length = 30;
-      fText.setLayoutData(createGridData(1, GridData.HORIZONTAL_ALIGN_BEGINNING,
+      fText.setLayoutData(createGridData(
+          1,
+          GridData.HORIZONTAL_ALIGN_BEGINNING,
           fPixelConverter.convertWidthInCharsToPixels(length)));
 
       updateWidget();
@@ -782,7 +793,9 @@ public abstract class ModifyDialogTabPage implements IModifyDialogTabPage {
     label.setText(text);
 
     PixelConverter pixelConverter = new PixelConverter(parent);
-    label.setLayoutData(createGridData(numColumns, gridDataStyle,
+    label.setLayoutData(createGridData(
+        numColumns,
+        gridDataStyle,
         pixelConverter.convertHorizontalDLUsToPixels(150)));
     return label;
   }
@@ -972,8 +985,13 @@ public abstract class ModifyDialogTabPage implements IModifyDialogTabPage {
    */
   protected CheckboxPreference createCheckboxPref(Composite composite, int numColumns, String name,
       String key, String[] values) {
-    final CheckboxPreference pref = new CheckboxPreference(composite, numColumns, fWorkingValues,
-        key, values, name);
+    final CheckboxPreference pref = new CheckboxPreference(
+        composite,
+        numColumns,
+        fWorkingValues,
+        key,
+        values,
+        name);
     fDefaultFocusManager.add(pref);
     pref.addObserver(fUpdater);
     return pref;
@@ -985,8 +1003,14 @@ public abstract class ModifyDialogTabPage implements IModifyDialogTabPage {
    */
   protected ComboPreference createComboPref(Composite composite, int numColumns, String name,
       String key, String[] values, String[] items) {
-    final ComboPreference pref = new ComboPreference(composite, numColumns, fWorkingValues, key,
-        values, name, items);
+    final ComboPreference pref = new ComboPreference(
+        composite,
+        numColumns,
+        fWorkingValues,
+        key,
+        values,
+        name,
+        items);
     fDefaultFocusManager.add(pref);
     pref.addObserver(fUpdater);
     return pref;
@@ -1041,8 +1065,14 @@ public abstract class ModifyDialogTabPage implements IModifyDialogTabPage {
    */
   protected NumberPreference createNumberPref(Composite composite, int numColumns, String name,
       String key, int minValue, int maxValue) {
-    final NumberPreference pref = new NumberPreference(composite, numColumns, fWorkingValues, key,
-        minValue, maxValue, name);
+    final NumberPreference pref = new NumberPreference(
+        composite,
+        numColumns,
+        fWorkingValues,
+        key,
+        minValue,
+        maxValue,
+        name);
     fDefaultFocusManager.add(pref);
     pref.addObserver(fUpdater);
     return pref;
@@ -1050,8 +1080,13 @@ public abstract class ModifyDialogTabPage implements IModifyDialogTabPage {
 
   protected RadioPreference createRadioPref(Composite composite, int numColumns, String name,
       String key, String[] values) {
-    final RadioPreference pref = new RadioPreference(composite, numColumns, fWorkingValues, key,
-        values, name);
+    final RadioPreference pref = new RadioPreference(
+        composite,
+        numColumns,
+        fWorkingValues,
+        key,
+        values,
+        name);
     fDefaultFocusManager.add(pref);
     pref.addObserver(fUpdater);
     return pref;
@@ -1065,7 +1100,12 @@ public abstract class ModifyDialogTabPage implements IModifyDialogTabPage {
    */
   protected StringPreference createStringPref(Composite composite, int numColumns, String name,
       String key, IInputValidator inputValidator) {
-    StringPreference pref = new StringPreference(composite, numColumns, fWorkingValues, key, name,
+    StringPreference pref = new StringPreference(
+        composite,
+        numColumns,
+        fWorkingValues,
+        key,
+        name,
         inputValidator);
     fDefaultFocusManager.add(pref);
     pref.addObserver(fUpdater);

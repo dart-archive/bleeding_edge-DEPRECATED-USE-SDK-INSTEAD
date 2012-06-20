@@ -26,7 +26,8 @@ class SearchScopeWorkspaceAction extends SearchScopeAction {
   public SearchScopeWorkspaceAction(SearchScopeActionGroup group) {
     super(group, CallHierarchyMessages.SearchScopeActionGroup_workspace_text);
     setToolTipText(CallHierarchyMessages.SearchScopeActionGroup_workspace_tooltip);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.CALL_HIERARCHY_SEARCH_SCOPE_ACTION);
   }
 

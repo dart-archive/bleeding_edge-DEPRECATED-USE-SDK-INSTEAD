@@ -169,7 +169,8 @@ public class GenerateJavascriptAction extends AbstractInstrumentedAction impleme
     final DartLibrary library = getCurrentLibrary();
 
     if (library == null) {
-      MessageDialog.openError(window.getShell(),
+      MessageDialog.openError(
+          window.getShell(),
           ActionMessages.GenerateJavascriptAction_unableToLaunch,
           ActionMessages.GenerateJavascriptAction_noneSelected);
     } else {

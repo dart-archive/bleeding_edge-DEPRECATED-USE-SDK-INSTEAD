@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.dialogs;
@@ -245,7 +243,8 @@ public class TextFieldNavigationHandler {
 // https://bugs.eclipse.org/bugs/show_bug.cgi?id=184502 ,
             // similar to
 // CodeAssistAdvancedConfigurationBlock.getKeyboardShortcut(..):
-            BindingManager localBindingManager = new BindingManager(new ContextManager(),
+            BindingManager localBindingManager = new BindingManager(
+                new ContextManager(),
                 new CommandManager());
             final Scheme[] definedSchemes = bindingService.getDefinedSchemes();
             if (definedSchemes != null) {
@@ -253,7 +252,9 @@ public class TextFieldNavigationHandler {
                 for (int i = 0; i < definedSchemes.length; i++) {
                   Scheme scheme = definedSchemes[i];
                   Scheme localSchemeCopy = localBindingManager.getScheme(scheme.getId());
-                  localSchemeCopy.define(scheme.getName(), scheme.getDescription(),
+                  localSchemeCopy.define(
+                      scheme.getName(),
+                      scheme.getDescription(),
                       scheme.getParentId());
                 }
               } catch (final NotDefinedException e) {
@@ -273,7 +274,9 @@ public class TextFieldNavigationHandler {
               DartToolsPlugin.log(e);
             }
 
-            fSubmissions.add(new Submission(getKeyBindings(localBindingManager, commandService,
+            fSubmissions.add(new Submission(getKeyBindings(
+                localBindingManager,
+                commandService,
                 ITextEditorActionDefinitionIds.SELECT_WORD_NEXT)) {
               @Override
               public void execute() {
@@ -291,7 +294,9 @@ public class TextFieldNavigationHandler {
                 fIterator.setText(EMPTY_TEXT);
               }
             });
-            fSubmissions.add(new Submission(getKeyBindings(localBindingManager, commandService,
+            fSubmissions.add(new Submission(getKeyBindings(
+                localBindingManager,
+                commandService,
                 ITextEditorActionDefinitionIds.SELECT_WORD_PREVIOUS)) {
               @Override
               public void execute() {
@@ -309,7 +314,9 @@ public class TextFieldNavigationHandler {
                 fIterator.setText(EMPTY_TEXT);
               }
             });
-            fSubmissions.add(new Submission(getKeyBindings(localBindingManager, commandService,
+            fSubmissions.add(new Submission(getKeyBindings(
+                localBindingManager,
+                commandService,
                 ITextEditorActionDefinitionIds.WORD_NEXT)) {
               @Override
               public void execute() {
@@ -322,7 +329,9 @@ public class TextFieldNavigationHandler {
                 fIterator.setText(EMPTY_TEXT);
               }
             });
-            fSubmissions.add(new Submission(getKeyBindings(localBindingManager, commandService,
+            fSubmissions.add(new Submission(getKeyBindings(
+                localBindingManager,
+                commandService,
                 ITextEditorActionDefinitionIds.WORD_PREVIOUS)) {
               @Override
               public void execute() {
@@ -335,7 +344,9 @@ public class TextFieldNavigationHandler {
                 fIterator.setText(EMPTY_TEXT);
               }
             });
-            fSubmissions.add(new Submission(getKeyBindings(localBindingManager, commandService,
+            fSubmissions.add(new Submission(getKeyBindings(
+                localBindingManager,
+                commandService,
                 ITextEditorActionDefinitionIds.DELETE_NEXT_WORD)) {
               @Override
               public void execute() {
@@ -359,7 +370,9 @@ public class TextFieldNavigationHandler {
                 fNavigable.setSelection(start, start);
               }
             });
-            fSubmissions.add(new Submission(getKeyBindings(localBindingManager, commandService,
+            fSubmissions.add(new Submission(getKeyBindings(
+                localBindingManager,
+                commandService,
                 ITextEditorActionDefinitionIds.DELETE_PREVIOUS_WORD)) {
               @Override
               public void execute() {

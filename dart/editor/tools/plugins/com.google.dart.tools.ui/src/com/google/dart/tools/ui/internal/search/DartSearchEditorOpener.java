@@ -96,7 +96,8 @@ public class DartSearchEditorOpener {
       }
       return editor;
     } catch (PartInitException ex) {
-      MessageDialog.openError(DartToolsPlugin.getActiveWorkbenchShell(),
+      MessageDialog.openError(
+          DartToolsPlugin.getActiveWorkbenchShell(),
           SearchMessages.Search_Error_openEditor_title,
           SearchMessages.Search_Error_openEditor_message);
       return null;

@@ -131,8 +131,11 @@ public final class TemplateCompletionProposalComputer implements IDartCompletion
       ContentAssistInvocationContext context, IProgressMonitor monitor) {
     TemplateEngine engine;
     try {
-      String partition = TextUtilities.getContentType(context.getDocument(),
-          DartPartitions.DART_PARTITIONING, context.getInvocationOffset(), true);
+      String partition = TextUtilities.getContentType(
+          context.getDocument(),
+          DartPartitions.DART_PARTITIONING,
+          context.getInvocationOffset(),
+          true);
       if (partition.equals(DartPartitions.DART_DOC)) {
         engine = fJavadocTemplateEngine;
       } else {
@@ -197,8 +200,8 @@ public final class TemplateCompletionProposalComputer implements IDartCompletion
 
   @SuppressWarnings("rawtypes")
   @Override
-  public List<IContextInformation> computeContextInformation(ContentAssistInvocationContext context,
-      IProgressMonitor monitor) {
+  public List<IContextInformation> computeContextInformation(
+      ContentAssistInvocationContext context, IProgressMonitor monitor) {
     return Collections.EMPTY_LIST;
   }
 

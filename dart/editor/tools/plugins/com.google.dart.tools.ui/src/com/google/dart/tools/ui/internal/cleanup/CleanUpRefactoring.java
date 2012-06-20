@@ -299,7 +299,8 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
           result[i] = change;
         } else {
           MultiStateCompilationUnitChange mscuc = new MultiStateCompilationUnitChange(
-              getChangeName(unit), unit);
+              getChangeName(unit),
+              unit);
           for (int j = 0; j < changes.size(); j++) {
             mscuc.addChange(createGroupFreeChange(changes.get(j)));
           }
@@ -345,7 +346,10 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
         }
 
         CleanUpRefactoringProgressMonitor cuMonitor = new CleanUpRefactoringProgressMonitor(
-            monitor, parseList.size() + sourceList.size(), fSize, fIndex);
+            monitor,
+            parseList.size() + sourceList.size(),
+            fSize,
+            fIndex);
 //        CleanUpASTRequestor requestor = new CleanUpASTRequestor(fParseList, fSolutions, cuMonitor);
         if (parseList.size() > 0) {
 //          ASTBatchParser parser = new ASTBatchParser() {
@@ -452,7 +456,8 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
 
     public String getSubTaskMessage(CompilationUnit source) {
       String typeName = source.getElementName();
-      return Messages.format(FixMessages.CleanUpRefactoring_ProcessingCompilationUnit_message,
+      return Messages.format(
+          FixMessages.CleanUpRefactoring_ProcessingCompilationUnit_message,
           new Object[] {new Integer(getIndex()), new Integer(fSize), typeName});
     }
 
@@ -504,7 +509,10 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
   }
 
   private static final RefactoringTickProvider CLEAN_UP_REFACTORING_TICK_PROVIDER = new RefactoringTickProvider(
-      0, 1, 0, 0);
+      0,
+      1,
+      0,
+      0);
 
   /**
    * A clean up is considered slow if its execution lasts longer then the value of
@@ -585,7 +593,9 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
       if (textEditGroup instanceof CategorizedTextEditGroup) {
         String label = textEditGroup.getName();
         newGroup = new CategorizedTextEditGroup(label, new GroupCategorySet(new GroupCategory(
-            label, label, label)));
+            label,
+            label,
+            label)));
       } else {
         newGroup = new TextEditGroup(textEditGroup.getName());
       }

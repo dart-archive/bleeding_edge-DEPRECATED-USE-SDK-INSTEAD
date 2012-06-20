@@ -118,7 +118,9 @@ public class Implementors {
 
     for (int i = 0; (i < finders.length) && !progressMonitor.isCanceled(); i++) {
       Collection<Type> types = finders[i].findImplementingTypes(type, new SubProgressMonitor(
-          progressMonitor, 10, SubProgressMonitor.SUPPRESS_SUBTASK_LABEL));
+          progressMonitor,
+          10,
+          SubProgressMonitor.SUPPRESS_SUBTASK_LABEL));
 
       if (types != null) {
         implementingTypes.addAll(types);
@@ -135,7 +137,9 @@ public class Implementors {
 
     for (int i = 0; (i < finders.length) && !progressMonitor.isCanceled(); i++) {
       Collection<Type> types = finders[i].findInterfaces(type, new SubProgressMonitor(
-          progressMonitor, 10, SubProgressMonitor.SUPPRESS_SUBTASK_LABEL));
+          progressMonitor,
+          10,
+          SubProgressMonitor.SUPPRESS_SUBTASK_LABEL));
 
       if (types != null) {
         interfaces.addAll(types);
@@ -156,7 +160,9 @@ public class Implementors {
   private DartElement[] findMethods(Method method, Type[] types, IProgressMonitor progressMonitor) {
     Collection<Method> foundMethods = new ArrayList<Method>();
 
-    SubProgressMonitor subProgressMonitor = new SubProgressMonitor(progressMonitor, 10,
+    SubProgressMonitor subProgressMonitor = new SubProgressMonitor(
+        progressMonitor,
+        10,
         SubProgressMonitor.SUPPRESS_SUBTASK_LABEL);
     subProgressMonitor.beginTask("", types.length); //$NON-NLS-1$
 

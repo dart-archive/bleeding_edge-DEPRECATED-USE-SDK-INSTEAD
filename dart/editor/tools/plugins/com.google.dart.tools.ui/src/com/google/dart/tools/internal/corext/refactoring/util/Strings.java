@@ -45,9 +45,13 @@ public class Strings {
    */
   public static String changeIndent(String code, int codeIndentLevel, DartProject project,
       String newIndent, String lineDelim) {
-    return IndentManipulation.changeIndent(code, codeIndentLevel,
-        CodeFormatterUtil.getTabWidth(project), CodeFormatterUtil.getIndentWidth(project),
-        newIndent, lineDelim);
+    return IndentManipulation.changeIndent(
+        code,
+        codeIndentLevel,
+        CodeFormatterUtil.getTabWidth(project),
+        CodeFormatterUtil.getIndentWidth(project),
+        newIndent,
+        lineDelim);
   }
 
   /**
@@ -65,7 +69,12 @@ public class Strings {
    */
   public static String changeIndent(String code, int codeIndentLevel, int tabWidth,
       int indentWidth, String newIndent, String lineDelim) {
-    return IndentManipulation.changeIndent(code, codeIndentLevel, tabWidth, indentWidth, newIndent,
+    return IndentManipulation.changeIndent(
+        code,
+        codeIndentLevel,
+        tabWidth,
+        indentWidth,
+        newIndent,
         lineDelim);
   }
 
@@ -78,7 +87,9 @@ public class Strings {
    * @return the number of indent units
    */
   public static int computeIndentUnits(String line, DartProject project) {
-    return IndentManipulation.measureIndentUnits(line, CodeFormatterUtil.getTabWidth(project),
+    return IndentManipulation.measureIndentUnits(
+        line,
+        CodeFormatterUtil.getTabWidth(project),
         CodeFormatterUtil.getIndentWidth(project));
   }
 
@@ -181,7 +192,9 @@ public class Strings {
    * @return the indent part of <code>line</code>, but no odd spaces
    */
   public static String getIndentString(String line, DartProject project) {
-    return IndentManipulation.extractIndentString(line, CodeFormatterUtil.getTabWidth(project),
+    return IndentManipulation.extractIndentString(
+        line,
+        CodeFormatterUtil.getTabWidth(project),
         CodeFormatterUtil.getIndentWidth(project));
   }
 
@@ -294,8 +307,11 @@ public class Strings {
    * @return the trimmed line
    */
   public static String trimIndent(String line, int indentsToRemove, DartProject project) {
-    return IndentManipulation.trimIndent(line, indentsToRemove,
-        CodeFormatterUtil.getTabWidth(project), CodeFormatterUtil.getIndentWidth(project));
+    return IndentManipulation.trimIndent(
+        line,
+        indentsToRemove,
+        CodeFormatterUtil.getTabWidth(project),
+        CodeFormatterUtil.getIndentWidth(project));
   }
 
   /**
@@ -313,8 +329,11 @@ public class Strings {
   }
 
   public static String trimIndentation(String source, DartProject project, boolean considerFirstLine) {
-    return trimIndentation(source, CodeFormatterUtil.getTabWidth(project),
-        CodeFormatterUtil.getIndentWidth(project), considerFirstLine);
+    return trimIndentation(
+        source,
+        CodeFormatterUtil.getTabWidth(project),
+        CodeFormatterUtil.getIndentWidth(project),
+        considerFirstLine);
   }
 
   public static String trimIndentation(String source, int tabWidth, int indentWidth,
@@ -357,8 +376,11 @@ public class Strings {
    *          <code>null</code> for global preferences
    */
   public static void trimIndentation(String[] lines, DartProject project) {
-    trimIndentation(lines, CodeFormatterUtil.getTabWidth(project),
-        CodeFormatterUtil.getIndentWidth(project), true);
+    trimIndentation(
+        lines,
+        CodeFormatterUtil.getTabWidth(project),
+        CodeFormatterUtil.getIndentWidth(project),
+        true);
   }
 
   /**
@@ -373,8 +395,11 @@ public class Strings {
    *          ignored.
    */
   public static void trimIndentation(String[] lines, DartProject project, boolean considerFirstLine) {
-    trimIndentation(lines, CodeFormatterUtil.getTabWidth(project),
-        CodeFormatterUtil.getIndentWidth(project), considerFirstLine);
+    trimIndentation(
+        lines,
+        CodeFormatterUtil.getTabWidth(project),
+        CodeFormatterUtil.getIndentWidth(project),
+        considerFirstLine);
   }
 
   /**

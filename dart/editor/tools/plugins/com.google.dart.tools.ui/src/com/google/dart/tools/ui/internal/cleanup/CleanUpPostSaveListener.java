@@ -146,7 +146,11 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
         final boolean[] setContentStampSuccess = {false};
 
         if (!buffer.isSynchronizationContextRequested()) {
-          performEdit(document, oldFileValue, undoEditCollector, oldDocValue,
+          performEdit(
+              document,
+              oldFileValue,
+              undoEditCollector,
+              oldDocValue,
               setContentStampSuccess);
 
         } else {
@@ -160,7 +164,11 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
             public void run() {
               synchronized (this) {
                 try {
-                  performEdit(document, oldFileValue, undoEditCollector, oldDocValue,
+                  performEdit(
+                      document,
+                      oldFileValue,
+                      undoEditCollector,
+                      oldDocValue,
                       setContentStampSuccess);
                 } catch (BadLocationException e) {
                   fException = e;
@@ -203,8 +211,11 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
           fFile.revertModificationStamp(fFileStamp);
         }
 
-        return new CleanUpSaveUndo(getName(), fFile,
-            undoEditCollector.toArray(new UndoEdit[undoEditCollector.size()]), oldDocValue[0],
+        return new CleanUpSaveUndo(
+            getName(),
+            fFile,
+            undoEditCollector.toArray(new UndoEdit[undoEditCollector.size()]),
+            oldDocValue[0],
             oldFileValue);
       } catch (BadLocationException e) {
         throw wrapBadLocationException(e);
@@ -306,8 +317,11 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
          */
         @Override
         public void widgetSelected(SelectionEvent e) {
-          PreferencesUtil.createPreferenceDialogOn(getShell(),
-              SaveParticipantPreferencePage.PREFERENCE_PAGE_ID, null, null).open();
+          PreferencesUtil.createPreferenceDialogOn(
+              getShell(),
+              SaveParticipantPreferencePage.PREFERENCE_PAGE_ID,
+              null,
+              null).open();
         }
       });
 
@@ -337,18 +351,22 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
             CleanUpConstants.DEFAULT_SAVE_PARTICIPANT_PROFILE);
       }
       throw new CoreException(new Status(IStatus.ERROR, DartUI.ID_PLUGIN, Messages.format(
-          FixMessages.CleanUpPostSaveListener_unknown_profile_error_message, id)));
+          FixMessages.CleanUpPostSaveListener_unknown_profile_error_message,
+          id)));
     }
 
     if (CleanUpOptions.TRUE.equals(settings.get(CleanUpConstants.CLEANUP_ON_SAVE_ADDITIONAL_OPTIONS))) {
       cleanUps = getCleanUps(settings, null);
     } else {
       HashMap<String, String> filteredSettins = new HashMap<String, String>();
-      filteredSettins.put(CleanUpConstants.FORMAT_SOURCE_CODE,
+      filteredSettins.put(
+          CleanUpConstants.FORMAT_SOURCE_CODE,
           settings.get(CleanUpConstants.FORMAT_SOURCE_CODE));
-      filteredSettins.put(CleanUpConstants.FORMAT_SOURCE_CODE_CHANGES_ONLY,
+      filteredSettins.put(
+          CleanUpConstants.FORMAT_SOURCE_CODE_CHANGES_ONLY,
           settings.get(CleanUpConstants.FORMAT_SOURCE_CODE_CHANGES_ONLY));
-      filteredSettins.put(CleanUpConstants.ORGANIZE_IMPORTS,
+      filteredSettins.put(
+          CleanUpConstants.ORGANIZE_IMPORTS,
           settings.get(CleanUpConstants.ORGANIZE_IMPORTS));
 //      filteredSettins.put(CleanUpConstants.CLEANUP_ON_SAVE_ADDITIONAL_OPTIONS,
 //          settings.get(CleanUpConstants.CLEANUP_ON_SAVE_ADDITIONAL_OPTIONS));
@@ -382,8 +400,12 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
     if (message == null) {
       message = "BadLocationException"; //$NON-NLS-1$
     }
-    return new CoreException(new Status(IStatus.ERROR, DartUI.ID_PLUGIN,
-        IRefactoringCoreStatusCodes.BAD_LOCATION, message, e));
+    return new CoreException(new Status(
+        IStatus.ERROR,
+        DartUI.ID_PLUGIN,
+        IRefactoringCoreStatusCodes.BAD_LOCATION,
+        message,
+        e));
   }
 
   /**
@@ -436,7 +458,8 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
 
       long oldFileValue = unit.getResource().getModificationStamp();
       long oldDocValue = getDocumentStamp((IFile) unit.getResource(), new SubProgressMonitor(
-          monitor, 2));
+          monitor,
+          2));
 
       CompositeChange result = new CompositeChange(
           FixMessages.CleanUpPostSaveListener_SaveAction_ChangeName);
@@ -463,8 +486,10 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
         do {
           RefactoringStatus preCondition = new RefactoringStatus();
           for (int i = 0; i < cleanUps.length; i++) {
-            RefactoringStatus conditions = cleanUps[i].checkPreConditions(unit.getDartProject(),
-                new CompilationUnit[] {unit}, new SubProgressMonitor(monitor, 5));
+            RefactoringStatus conditions = cleanUps[i].checkPreConditions(
+                unit.getDartProject(),
+                new CompilationUnit[] {unit},
+                new SubProgressMonitor(monitor, 5));
             preCondition.merge(conditions);
           }
 //          if (showStatus(preCondition) != Window.OK) {
@@ -492,13 +517,17 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
           }
 
           ArrayList<ICleanUp> undoneCleanUps = new ArrayList<ICleanUp>();
-          CleanUpChange change = CleanUpRefactoring.calculateChange(context, cleanUps,
-              undoneCleanUps, slowCleanUps);
+          CleanUpChange change = CleanUpRefactoring.calculateChange(
+              context,
+              cleanUps,
+              undoneCleanUps,
+              slowCleanUps);
 
           RefactoringStatus postCondition = new RefactoringStatus();
           for (int i = 0; i < cleanUps.length; i++) {
             RefactoringStatus conditions = cleanUps[i].checkPostConditions(new SubProgressMonitor(
-                monitor, 1));
+                monitor,
+                1));
             postCondition.merge(conditions);
           }
 //          if (showStatus(postCondition) != Window.OK) {
@@ -517,8 +546,11 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
 
             if (changedRegions != null && changedRegions.length > 0
                 && requiresChangedRegions(cleanUps)) {
-              changedRegions = performWithChangedRegionUpdate(performChangeOperation,
-                  changedRegions, unit, new SubProgressMonitor(monitor, 5));
+              changedRegions = performWithChangedRegionUpdate(
+                  performChangeOperation,
+                  changedRegions,
+                  unit,
+                  new SubProgressMonitor(monitor, 5));
             } else {
               performChangeOperation.run(new SubProgressMonitor(monitor, 5));
             }
@@ -534,8 +566,12 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
 
       if (undoEdits.size() > 0) {
         UndoEdit[] undoEditArray = undoEdits.toArray(new UndoEdit[undoEdits.size()]);
-        CleanUpSaveUndo undo = new CleanUpSaveUndo(result.getName(), (IFile) unit.getResource(),
-            undoEditArray, oldDocValue, oldFileValue);
+        CleanUpSaveUndo undo = new CleanUpSaveUndo(
+            result.getName(),
+            (IFile) unit.getResource(),
+            undoEditArray,
+            oldDocValue,
+            oldFileValue);
         undo.initializeValidationData(new NullProgressMonitor());
         manager.addUndo(result.getName(), undo);
       }
@@ -645,7 +681,8 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
         Position[] positions = new Position[changedRegions.length];
         for (int i = 0; i < changedRegions.length; i++) {
           try {
-            Position position = new Position(changedRegions[i].getOffset(),
+            Position position = new Position(
+                changedRegions[i].getOffset(),
                 changedRegions[i].getLength());
             document.addPosition(CHANGED_REGION_POSITION_CATEGORY, position);
 
@@ -698,8 +735,10 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
   private void showSlowCleanUpDialog(final StringBuffer cleanUpNames) {
     if (OptionalMessageDialog.isDialogEnabled(SlowCleanUpWarningDialog.ID)) {
       Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-      new SlowCleanUpWarningDialog(shell,
-          FixMessages.CleanUpPostSaveListener_SlowCleanUpDialog_title, cleanUpNames.toString()).open();
+      new SlowCleanUpWarningDialog(
+          shell,
+          FixMessages.CleanUpPostSaveListener_SlowCleanUpDialog_title,
+          cleanUpNames.toString()).open();
     }
   }
 

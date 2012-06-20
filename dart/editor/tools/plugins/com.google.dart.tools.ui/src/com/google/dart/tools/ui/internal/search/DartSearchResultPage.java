@@ -553,7 +553,9 @@ public class DartSearchResultPage extends AbstractTextSearchViewPage implements 
         try {
           fEditorOpener.openElement(firstElement);
         } catch (CoreException e) {
-          ExceptionHandler.handle(e, getSite().getShell(),
+          ExceptionHandler.handle(
+              e,
+              getSite().getShell(),
               SearchMessages.DartSearchResultPage_open_editor_error_title,
               SearchMessages.DartSearchResultPage_open_editor_error_message);
         }

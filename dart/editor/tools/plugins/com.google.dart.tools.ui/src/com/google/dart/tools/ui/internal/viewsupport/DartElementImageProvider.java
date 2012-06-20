@@ -117,7 +117,9 @@ public class DartElementImageProvider {
   }
 
   private static ImageDescriptor decorate(ImageDescriptor main, ImageDescriptor badge) {
-    return new DecorationOverlayIcon(DartToolsPlugin.getImageDescriptorRegistry().get(main), badge,
+    return new DecorationOverlayIcon(
+        DartToolsPlugin.getImageDescriptorRegistry().get(main),
+        badge,
         IDecoration.BOTTOM_RIGHT);
   }
 

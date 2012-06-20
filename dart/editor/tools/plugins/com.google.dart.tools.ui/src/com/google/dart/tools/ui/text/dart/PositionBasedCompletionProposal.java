@@ -98,7 +98,9 @@ public class PositionBasedCompletionProposal implements ICompletionProposal,
   @Override
   public void apply(IDocument document) {
     try {
-      document.replace(fReplacementPosition.getOffset(), fReplacementPosition.getLength(),
+      document.replace(
+          fReplacementPosition.getOffset(),
+          fReplacementPosition.getLength(),
           fReplacementString);
     } catch (BadLocationException x) {
       // ignore
@@ -170,7 +172,8 @@ public class PositionBasedCompletionProposal implements ICompletionProposal,
   @Override
   public boolean validate(IDocument document, int offset, DocumentEvent event) {
     try {
-      String content = document.get(fReplacementPosition.getOffset(),
+      String content = document.get(
+          fReplacementPosition.getOffset(),
           offset - fReplacementPosition.getOffset());
       if (fReplacementString.startsWith(content)) {
         return true;

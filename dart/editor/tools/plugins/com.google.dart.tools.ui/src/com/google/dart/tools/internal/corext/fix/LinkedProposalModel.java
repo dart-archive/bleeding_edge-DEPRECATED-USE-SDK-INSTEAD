@@ -46,8 +46,7 @@ public class LinkedProposalModel {
   }
 
   public LinkedProposalPositionGroup getPositionGroup(String groupId, boolean createIfNotExisting) {
-    LinkedProposalPositionGroup group = fPositionGroups != null
-        ? fPositionGroups.get(groupId)
+    LinkedProposalPositionGroup group = fPositionGroups != null ? fPositionGroups.get(groupId)
         : null;
     if (createIfNotExisting && group == null) {
       group = new LinkedProposalPositionGroup(groupId);

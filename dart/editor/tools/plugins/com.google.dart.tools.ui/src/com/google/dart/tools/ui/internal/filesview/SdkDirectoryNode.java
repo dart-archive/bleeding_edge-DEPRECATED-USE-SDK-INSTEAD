@@ -64,7 +64,8 @@ class SdkDirectoryNode {
   public static final SdkDirectoryNode INSTANCE = new SdkDirectoryNode();
 
   static {
-    Platform.getAdapterManager().registerAdapters(new SdkDirectoryWorkbenchAdapter(),
+    Platform.getAdapterManager().registerAdapters(
+        new SdkDirectoryWorkbenchAdapter(),
         SdkDirectoryNode.class);
   }
 

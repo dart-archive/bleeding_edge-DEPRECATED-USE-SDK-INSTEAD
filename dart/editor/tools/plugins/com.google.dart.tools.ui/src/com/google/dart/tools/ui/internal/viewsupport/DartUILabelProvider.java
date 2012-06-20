@@ -147,14 +147,17 @@ public class DartUILabelProvider implements IColorProvider, IRichLabelProvider,
 
   @Override
   public ColoredString getRichTextLabel(Object element) {
-    ColoredString string = ColoredDartElementLabels.getTextLabel(element,
+    ColoredString string = ColoredDartElementLabels.getTextLabel(
+        element,
         evaluateTextFlags(element) | ColoredDartElementLabels.COLORIZE);
     if (string.length() == 0 && (element instanceof IStorage)) {
       string = new ColoredString(fStorageLabelProvider.getText(element));
     }
     String decorated = decorateText(string.getString(), element);
     if (decorated != null) {
-      return ColoredDartElementLabels.decorateColoredString(string, decorated,
+      return ColoredDartElementLabels.decorateColoredString(
+          string,
+          decorated,
           ColoredDartElementLabels.DECORATIONS_STYLE);
     }
     return string;
@@ -162,15 +165,18 @@ public class DartUILabelProvider implements IColorProvider, IRichLabelProvider,
 
   @Override
   public StyledString getStyledText(Object element) {
-    StyledString string = DartElementLabels.getStyledTextLabel(element,
+    StyledString string = DartElementLabels.getStyledTextLabel(
+        element,
         (evaluateTextFlags(element) | DartElementLabels.COLORIZE));
     if (string.length() == 0 && (element instanceof IStorage)) {
       string = new StyledString(fStorageLabelProvider.getText(element));
     }
     String decorated = decorateText(string.getString(), element);
     if (decorated != null) {
-      return StyledCellLabelProvider.styleDecoratedString(decorated,
-          StyledString.DECORATIONS_STYLER, string);
+      return StyledCellLabelProvider.styleDecoratedString(
+          decorated,
+          StyledString.DECORATIONS_STYLER,
+          string);
     }
     return string;
   }

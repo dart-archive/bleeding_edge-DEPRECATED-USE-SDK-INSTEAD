@@ -51,9 +51,8 @@ public abstract class StructureSelectionAction extends Action {
   protected static SourceRange getSelectedNodeSourceRange(SourceReference sr, DartNode nodeToSelect)
       throws DartModelException {
     int offset = nodeToSelect.getSourceInfo().getOffset();
-    int end = Math.min(sr.getSourceRange().getLength(),
-        nodeToSelect.getSourceInfo().getOffset()
-            + nodeToSelect.getSourceInfo().getLength() - 1);
+    int end = Math.min(sr.getSourceRange().getLength(), nodeToSelect.getSourceInfo().getOffset()
+        + nodeToSelect.getSourceInfo().getLength() - 1);
     return createSourceRange(offset, end);
   }
 
@@ -135,7 +134,8 @@ public abstract class StructureSelectionAction extends Action {
       if (root == null) {
         return oldSourceRange;
       }
-      Selection selection = Selection.createFromStartLength(oldSourceRange.getOffset(),
+      Selection selection = Selection.createFromStartLength(
+          oldSourceRange.getOffset(),
           oldSourceRange.getLength());
       SelectionAnalyzer selAnalyzer = new SelectionAnalyzer(selection, true);
       root.accept(selAnalyzer);
@@ -161,7 +161,8 @@ public abstract class StructureSelectionAction extends Action {
     try {
       sourceRange = source.getSourceRange();
       if (sourceRange == null || sourceRange.getLength() == 0) {
-        MessageDialog.openInformation(fEditor.getEditorSite().getShell(),
+        MessageDialog.openInformation(
+            fEditor.getEditorSite().getShell(),
             SelectionActionMessages.StructureSelect_error_title,
             SelectionActionMessages.StructureSelect_error_message);
         return;

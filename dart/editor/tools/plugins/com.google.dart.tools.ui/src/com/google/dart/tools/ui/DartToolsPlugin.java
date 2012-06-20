@@ -567,8 +567,7 @@ public class DartToolsPlugin extends AbstractUIPlugin {
       IPreferenceStore generalTextStore = EditorsUI.getPreferenceStore();
       combinedPreferenceStore = new ChainedPreferenceStore(new IPreferenceStore[] {
           getPreferenceStore(),
-          new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()),
-          generalTextStore});
+          new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()), generalTextStore});
     }
     return combinedPreferenceStore;
   }

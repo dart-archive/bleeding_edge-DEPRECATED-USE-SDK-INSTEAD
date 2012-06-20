@@ -141,8 +141,7 @@ public class RenameLocalFunctionProcessor extends DartRenameProcessor {
   }
 
   @Override
-  protected RefactoringStatus doCheckFinalConditions(
-      IProgressMonitor pm,
+  protected RefactoringStatus doCheckFinalConditions(IProgressMonitor pm,
       CheckConditionsContext context) throws CoreException, OperationCanceledException {
     try {
       pm.beginTask("", 19); //$NON-NLS-1$

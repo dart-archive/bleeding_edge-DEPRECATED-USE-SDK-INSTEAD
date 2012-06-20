@@ -147,7 +147,8 @@ public class CallHierarchy {
   public Collection<DartElement> getImplementingMethods(Method method) {
     if (isSearchUsingImplementorsEnabled()) {
       DartElement[] result = Implementors.getInstance().searchForImplementors(
-          new DartElement[] {method}, new NullProgressMonitor());
+          new DartElement[] {method},
+          new NullProgressMonitor());
 
       if ((result != null) && (result.length > 0)) {
         return Arrays.asList(result);
@@ -160,7 +161,8 @@ public class CallHierarchy {
   public Collection<DartElement> getInterfaceMethods(Method method) {
     if (isSearchUsingImplementorsEnabled()) {
       DartElement[] result = Implementors.getInstance().searchForInterfaces(
-          new DartElement[] {method}, new NullProgressMonitor());
+          new DartElement[] {method},
+          new NullProgressMonitor());
 
       if ((result != null) && (result.length > 0)) {
         return Arrays.asList(result);

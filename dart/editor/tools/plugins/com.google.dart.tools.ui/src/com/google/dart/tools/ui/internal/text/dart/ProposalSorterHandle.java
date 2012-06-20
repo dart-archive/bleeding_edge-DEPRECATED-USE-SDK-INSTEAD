@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
@@ -175,9 +173,14 @@ public final class ProposalSorterHandle {
     if (obj == null) {
       Object[] args = {getId(), fElement.getContributor().getName(), attribute};
       String message = Messages.format(
-          DartTextMessages.CompletionProposalComputerDescriptor_illegal_attribute_message, args);
-      IStatus status = new Status(IStatus.WARNING, DartToolsPlugin.getPluginId(), IStatus.OK,
-          message, null);
+          DartTextMessages.CompletionProposalComputerDescriptor_illegal_attribute_message,
+          args);
+      IStatus status = new Status(
+          IStatus.WARNING,
+          DartToolsPlugin.getPluginId(),
+          IStatus.OK,
+          message,
+          null);
       DartToolsPlugin.log(status);
       throw new InvalidRegistryObjectException();
     }
@@ -187,7 +190,8 @@ public final class ProposalSorterHandle {
     String disable = createBlameMessage();
     Object[] args = {operation};
     String reason = Messages.format(
-        DartTextMessages.CompletionProposalComputerDescriptor_reason_API, args);
+        DartTextMessages.CompletionProposalComputerDescriptor_reason_API,
+        args);
     return new Status(IStatus.WARNING, DartToolsPlugin.getPluginId(), IStatus.OK, disable
         + " " + reason, null); //$NON-NLS-1$
   }
@@ -226,7 +230,8 @@ public final class ProposalSorterHandle {
     String disable = createBlameMessage();
     Object[] args = {operation};
     String reason = Messages.format(
-        DartTextMessages.CompletionProposalComputerDescriptor_reason_performance, args);
+        DartTextMessages.CompletionProposalComputerDescriptor_reason_performance,
+        args);
     return new Status(IStatus.WARNING, DartToolsPlugin.getPluginId(), IStatus.OK, disable
         + " " + reason, null); //$NON-NLS-1$
   }

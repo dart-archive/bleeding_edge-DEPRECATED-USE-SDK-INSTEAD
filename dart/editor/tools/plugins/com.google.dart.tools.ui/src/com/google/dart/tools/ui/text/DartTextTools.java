@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.text;
@@ -54,8 +52,11 @@ public class DartTextTools {
       Preferences.IPropertyChangeListener {
     @Override
     public void propertyChange(Preferences.PropertyChangeEvent event) {
-      adaptToPreferenceChange(new PropertyChangeEvent(event.getSource(), event.getProperty(),
-          event.getOldValue(), event.getNewValue()));
+      adaptToPreferenceChange(new PropertyChangeEvent(
+          event.getSource(),
+          event.getProperty(),
+          event.getOldValue(),
+          event.getNewValue()));
     }
 
     @Override
@@ -168,12 +169,20 @@ public class DartTextTools {
       corePreferenceStore.addPropertyChangeListener(preferenceListener);
     }
 
-    multilineCommentScanner = new DartCommentScanner(colorManager, store, coreStore,
+    multilineCommentScanner = new DartCommentScanner(
+        colorManager,
+        store,
+        coreStore,
         IDartColorConstants.JAVA_MULTI_LINE_COMMENT);
-    singlelineCommentScanner = new DartCommentScanner(colorManager, store, coreStore,
+    singlelineCommentScanner = new DartCommentScanner(
+        colorManager,
+        store,
+        coreStore,
         IDartColorConstants.JAVA_SINGLE_LINE_COMMENT);
     stringScanner = new SingleTokenDartScanner(colorManager, store, IDartColorConstants.JAVA_STRING);
-    multilineStringScanner = new DartMultilineStringScanner(colorManager, store,
+    multilineStringScanner = new DartMultilineStringScanner(
+        colorManager,
+        store,
         IDartColorConstants.DART_MULTI_LINE_STRING);
     dartDocScanner = new DartDocScanner(colorManager, store, coreStore);
   }

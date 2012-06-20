@@ -55,7 +55,8 @@ class ToggleOrientationAction extends Action {
     }
     this.chvPart = v;
     this.actionOrientation = orientation;
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.CALL_HIERARCHY_TOGGLE_ORIENTATION_ACTION);
   }
 

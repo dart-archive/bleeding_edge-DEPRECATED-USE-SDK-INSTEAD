@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -30,7 +30,7 @@ public class ContributionItemUtilities {
   /**
    * Given a command id, image, label, and a tooltip, generates an IContributionItem for addition to
    * a Menu with the provided action id.
-   *
+   * 
    * @param window The workbench window
    * @param actionId The action id for the returned contribution item
    * @param commandId The command id for a defined command
@@ -49,10 +49,20 @@ public class ContributionItemUtilities {
     IActionCommandMappingService acms = (IActionCommandMappingService) window.getService(IActionCommandMappingService.class);
     acms.map(actionId, commandId);
 
-    CommandContributionItemParameter commandParm = new CommandContributionItemParameter(window,
-        actionId, commandId, null, sharedImages.getImageDescriptor(image),
-        sharedImages.getImageDescriptor(disabledImage), null, label, null, tooltip,
-        CommandContributionItem.STYLE_PUSH, null, false);
+    CommandContributionItemParameter commandParm = new CommandContributionItemParameter(
+        window,
+        actionId,
+        commandId,
+        null,
+        sharedImages.getImageDescriptor(image),
+        sharedImages.getImageDescriptor(disabledImage),
+        null,
+        label,
+        null,
+        tooltip,
+        CommandContributionItem.STYLE_PUSH,
+        null,
+        false);
     return new CommandContributionItem(commandParm);
   }
 

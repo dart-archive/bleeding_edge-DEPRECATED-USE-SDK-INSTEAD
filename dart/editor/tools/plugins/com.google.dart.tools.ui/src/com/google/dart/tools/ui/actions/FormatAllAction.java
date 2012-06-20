@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.actions;
@@ -141,7 +139,8 @@ public class FormatAllAction extends SelectionDispatchAction {
   public void run(IStructuredSelection selection) {
     CompilationUnit[] cus = getCompilationUnits(selection);
     if (cus.length == 0) {
-      MessageDialog.openInformation(getShell(),
+      MessageDialog.openInformation(
+          getShell(),
           ActionMessages.FormatAllAction_EmptySelection_title,
           ActionMessages.FormatAllAction_EmptySelection_description);
       return;
@@ -150,17 +149,23 @@ public class FormatAllAction extends SelectionDispatchAction {
       if (cus.length == 1) {
         DartUI.openInEditor(cus[0]);
       } else {
-        int returnCode = OptionalMessageDialog.open(
-            "FormatAll", //$NON-NLS-1$
-            getShell(), ActionMessages.FormatAllAction_noundo_title, null,
-            ActionMessages.FormatAllAction_noundo_message, MessageDialog.WARNING, new String[] {
-                IDialogConstants.OK_LABEL, IDialogConstants.CANCEL_LABEL}, 0);
+        int returnCode = OptionalMessageDialog.open("FormatAll", //$NON-NLS-1$
+            getShell(),
+            ActionMessages.FormatAllAction_noundo_title,
+            null,
+            ActionMessages.FormatAllAction_noundo_message,
+            MessageDialog.WARNING,
+            new String[] {IDialogConstants.OK_LABEL, IDialogConstants.CANCEL_LABEL},
+            0);
         if (returnCode != OptionalMessageDialog.NOT_SHOWN && returnCode != Window.OK) {
           return;
         }
       }
     } catch (CoreException e) {
-      ExceptionHandler.handle(e, getShell(), ActionMessages.FormatAllAction_error_title,
+      ExceptionHandler.handle(
+          e,
+          getShell(),
+          ActionMessages.FormatAllAction_error_title,
           ActionMessages.FormatAllAction_error_message);
     }
     runOnMultiple(cus);
@@ -180,8 +185,11 @@ public class FormatAllAction extends SelectionDispatchAction {
    */
   public void runOnMultiple(final CompilationUnit[] cus) {
     try {
-      final MultiStatus status = new MultiStatus(DartUI.ID_PLUGIN, IStatus.OK,
-          ActionMessages.FormatAllAction_status_description, null);
+      final MultiStatus status = new MultiStatus(
+          DartUI.ID_PLUGIN,
+          IStatus.OK,
+          ActionMessages.FormatAllAction_status_description,
+          null);
 
       IStatus valEditStatus = Resources.makeCommittable(getResources(cus), getShell());
       if (valEditStatus.matches(IStatus.CANCEL)) {
@@ -189,7 +197,9 @@ public class FormatAllAction extends SelectionDispatchAction {
       }
       status.merge(valEditStatus);
       if (!status.matches(IStatus.ERROR)) {
-        PlatformUI.getWorkbench().getProgressService().run(true, true,
+        PlatformUI.getWorkbench().getProgressService().run(
+            true,
+            true,
             new WorkbenchRunnableAdapter(new IWorkspaceRunnable() {
               @Override
               public void run(IProgressMonitor monitor) {
@@ -202,7 +212,10 @@ public class FormatAllAction extends SelectionDispatchAction {
         ErrorDialog.openError(getShell(), title, null, status);
       }
     } catch (InvocationTargetException e) {
-      ExceptionHandler.handle(e, getShell(), ActionMessages.FormatAllAction_error_title,
+      ExceptionHandler.handle(
+          e,
+          getShell(),
+          ActionMessages.FormatAllAction_error_title,
           ActionMessages.FormatAllAction_error_message);
     } catch (InterruptedException e) {
       // Canceled by user
@@ -247,13 +260,16 @@ public class FormatAllAction extends SelectionDispatchAction {
       context.setProperty(FormattingContextProperties.CONTEXT_DOCUMENT, Boolean.valueOf(true));
 
       final MultiPassContentFormatter formatter = new MultiPassContentFormatter(
-          DartPartitions.DART_PARTITIONING, IDocument.DEFAULT_CONTENT_TYPE);
+          DartPartitions.DART_PARTITIONING,
+          IDocument.DEFAULT_CONTENT_TYPE);
 
       formatter.setMasterStrategy(new DartFormattingStrategy());
       formatter.setSlaveStrategy(new CommentFormattingStrategy(), DartPartitions.DART_DOC);
-      formatter.setSlaveStrategy(new CommentFormattingStrategy(),
+      formatter.setSlaveStrategy(
+          new CommentFormattingStrategy(),
           DartPartitions.DART_SINGLE_LINE_COMMENT);
-      formatter.setSlaveStrategy(new CommentFormattingStrategy(),
+      formatter.setSlaveStrategy(
+          new CommentFormattingStrategy(),
           DartPartitions.DART_MULTI_LINE_COMMENT);
 
       try {
@@ -290,7 +306,8 @@ public class FormatAllAction extends SelectionDispatchAction {
           throw new OperationCanceledException();
         }
         if (cu.getResource().getResourceAttributes().isReadOnly()) {
-          String message = Messages.format(ActionMessages.FormatAllAction_read_only_skipped,
+          String message = Messages.format(
+              ActionMessages.FormatAllAction_read_only_skipped,
               path.toString());
           status.add(new Status(IStatus.WARNING, DartUI.ID_PLUGIN, IStatus.WARNING, message, null));
           continue;
@@ -315,7 +332,8 @@ public class FormatAllAction extends SelectionDispatchAction {
             manager.disconnect(path, LocationKind.IFILE, new SubProgressMonitor(monitor, 1));
           }
         } catch (CoreException e) {
-          String message = Messages.format(ActionMessages.FormatAllAction_problem_accessing,
+          String message = Messages.format(
+              ActionMessages.FormatAllAction_problem_accessing,
               new String[] {path.toString(), e.getLocalizedMessage()});
           status.add(new Status(IStatus.WARNING, DartUI.ID_PLUGIN, IStatus.WARNING, message, e));
         }

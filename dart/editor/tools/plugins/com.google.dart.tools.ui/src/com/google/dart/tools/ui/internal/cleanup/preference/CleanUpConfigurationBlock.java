@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.cleanup.preference;
@@ -88,7 +86,8 @@ public class CleanUpConfigurationBlock extends ProfileConfigurationBlock {
       showWizard = node.getBoolean(CleanUpConstants.SHOW_CLEAN_UP_WIZARD, true);
     } else {
       showWizard = PreferencesAccess.DEFAULT_SCOPE.getNode(DartUI.ID_PLUGIN).getBoolean(
-          CleanUpConstants.SHOW_CLEAN_UP_WIZARD, true);
+          CleanUpConstants.SHOW_CLEAN_UP_WIZARD,
+          true);
     }
     if (showWizard) {
       fShowCleanUpWizardDialogField.setSelection(true);
@@ -116,7 +115,8 @@ public class CleanUpConfigurationBlock extends ProfileConfigurationBlock {
 
     fCurrContext.getNode(DartUI.ID_PLUGIN).remove(CleanUpConstants.SHOW_CLEAN_UP_WIZARD);
     boolean showWizard = PreferencesAccess.DEFAULT_SCOPE.getNode(DartUI.ID_PLUGIN).getBoolean(
-        CleanUpConstants.SHOW_CLEAN_UP_WIZARD, true);
+        CleanUpConstants.SHOW_CLEAN_UP_WIZARD,
+        true);
     fShowCleanUpWizardDialogField.setDialogFieldListener(null);
     fShowCleanUpWizardDialogField.setSelection(showWizard);
     fShowCleanUpWizardDialogField.setDialogFieldListener(new IDialogFieldListener() {
@@ -143,7 +143,9 @@ public class CleanUpConfigurationBlock extends ProfileConfigurationBlock {
       cleanUps[i].setOptions(options);
     }
 
-    createLabel(composite, CleanUpMessages.CleanUpConfigurationBlock_SelectedCleanUps_label,
+    createLabel(
+        composite,
+        CleanUpMessages.CleanUpConfigurationBlock_SelectedCleanUps_label,
         numColumns);
 
     final BulletListBlock cleanUpListBlock = new BulletListBlock(composite, SWT.NONE);
@@ -173,8 +175,14 @@ public class CleanUpConfigurationBlock extends ProfileConfigurationBlock {
   @Override
   protected ModifyDialog createModifyDialog(Shell shell, Profile profile,
       ProfileManager profileManager, ProfileStore profileStore, boolean newProfile) {
-    return new CleanUpModifyDialog(shell, profile, profileManager, profileStore, newProfile,
-        CLEANUP_PAGE_SETTINGS_KEY, DIALOGSTORE_LASTSAVELOADPATH);
+    return new CleanUpModifyDialog(
+        shell,
+        profile,
+        profileManager,
+        profileStore,
+        newProfile,
+        CLEANUP_PAGE_SETTINGS_KEY,
+        DIALOGSTORE_LASTSAVELOADPATH);
   }
 
   @Override
@@ -203,7 +211,8 @@ public class CleanUpConfigurationBlock extends ProfileConfigurationBlock {
   protected void preferenceChanged(PreferenceChangeEvent event) {
     if (CleanUpConstants.CLEANUP_PROFILES.equals(event.getKey())) {
       try {
-        String id = fCurrContext.getNode(DartUI.ID_PLUGIN).get(CleanUpConstants.CLEANUP_PROFILE,
+        String id = fCurrContext.getNode(DartUI.ID_PLUGIN).get(
+            CleanUpConstants.CLEANUP_PROFILE,
             null);
         if (id == null) {
           fProfileManager.getDefaultProfile().getID();

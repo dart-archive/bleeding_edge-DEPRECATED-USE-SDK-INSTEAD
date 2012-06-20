@@ -385,8 +385,12 @@ public abstract class AbstractInformationControl extends PopupDialog implements
   protected void addHandlerAndKeyBindingSupport() {
     // Register action with command support
     if (fShowViewMenuHandlerSubmission == null) {
-      fShowViewMenuHandlerSubmission = new HandlerSubmission(null, getShell(), null,
-          fShowViewMenuAction.getActionDefinitionId(), new ActionHandler(fShowViewMenuAction),
+      fShowViewMenuHandlerSubmission = new HandlerSubmission(
+          null,
+          getShell(),
+          null,
+          fShowViewMenuAction.getActionDefinitionId(),
+          new ActionHandler(fShowViewMenuAction),
           Priority.MEDIUM);
       PlatformUI.getWorkbench().getCommandSupport().addHandlerSubmission(
           fShowViewMenuHandlerSubmission);

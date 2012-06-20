@@ -64,8 +64,7 @@ public class ProblemLocation implements IProblemLocation {
     fLength = problem.getSourceEnd() - fOffset + 1;
     fIsError = problem.isError();
     fMarkerType = problem instanceof CategorizedProblem
-        ? ((CategorizedProblem) problem).getMarkerType()
-        : DartCore.DART_PROBLEM_MARKER_TYPE;
+        ? ((CategorizedProblem) problem).getMarkerType() : DartCore.DART_PROBLEM_MARKER_TYPE;
   }
 
   @Override

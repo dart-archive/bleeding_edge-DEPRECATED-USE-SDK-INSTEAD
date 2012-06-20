@@ -81,7 +81,10 @@ public class RefactoringSaveHelper {
       }
       return true;
     } catch (CoreException e) {
-      ExceptionHandler.handle(e, shell, RefactoringMessages.RefactoringStarter_saving,
+      ExceptionHandler.handle(
+          e,
+          shell,
+          RefactoringMessages.RefactoringStarter_saving,
           RefactoringMessages.RefactoringStarter_unexpected_exception);
       return false;
     }
@@ -92,7 +95,8 @@ public class RefactoringSaveHelper {
    */
   public void triggerIncrementalBuild() {
     if (filesSaved && ResourcesPlugin.getWorkspace().getDescription().isAutoBuilding()) {
-      new GlobalBuildAction(DartToolsPlugin.getActiveWorkbenchWindow(),
+      new GlobalBuildAction(
+          DartToolsPlugin.getActiveWorkbenchWindow(),
           IncrementalProjectBuilder.INCREMENTAL_BUILD).run();
     }
   }

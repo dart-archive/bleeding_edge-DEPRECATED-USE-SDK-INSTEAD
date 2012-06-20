@@ -117,8 +117,12 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
       TextAttribute textAttribute = fStyle.getTextAttribute();
       int style = textAttribute.getStyle();
       int fontStyle = style & (SWT.ITALIC | SWT.BOLD | SWT.NORMAL);
-      StyleRange styleRange = new StyleRange(getOffset(), len, textAttribute.getForeground(),
-          textAttribute.getBackground(), fontStyle);
+      StyleRange styleRange = new StyleRange(
+          getOffset(),
+          len,
+          textAttribute.getForeground(),
+          textAttribute.getBackground(),
+          fontStyle);
       styleRange.strikeout = (style & TextAttribute.STRIKETHROUGH) != 0;
       styleRange.underline = (style & TextAttribute.UNDERLINE) != 0;
 
@@ -386,7 +390,9 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
       }
 
       TextAttribute oldAttr = highlighting.getTextAttribute();
-      highlighting.setTextAttribute(new TextAttribute(color, oldAttr.getBackground(),
+      highlighting.setTextAttribute(new TextAttribute(
+          color,
+          oldAttr.getBackground(),
           oldAttr.getStyle()));
     }
   }
@@ -405,9 +411,10 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
     boolean activeValue = (oldAttr.getStyle() & styleAttribute) == styleAttribute;
 
     if (activeValue != eventValue) {
-      highlighting.setTextAttribute(new TextAttribute(oldAttr.getForeground(),
-          oldAttr.getBackground(), eventValue ? oldAttr.getStyle() | styleAttribute
-              : oldAttr.getStyle() & ~styleAttribute));
+      highlighting.setTextAttribute(new TextAttribute(
+          oldAttr.getForeground(),
+          oldAttr.getBackground(),
+          eventValue ? oldAttr.getStyle() | styleAttribute : oldAttr.getStyle() & ~styleAttribute));
     }
   }
 
@@ -640,8 +647,9 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
       boolean isEnabled = isEnabled(semanticHighlighting);
 
       fHighlightings[i] = new Highlighting(new TextAttribute(
-          fColorManager.getColor(semanticHighlighting.getDefaultDefaultTextColor()), null, style),
-          isEnabled);
+          fColorManager.getColor(semanticHighlighting.getDefaultDefaultTextColor()),
+          null,
+          style), isEnabled);
     }
   }
 

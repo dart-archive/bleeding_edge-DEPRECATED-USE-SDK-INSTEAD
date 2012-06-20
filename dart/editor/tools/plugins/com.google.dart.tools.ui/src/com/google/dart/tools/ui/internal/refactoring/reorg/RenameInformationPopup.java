@@ -505,7 +505,8 @@ public class RenameInformationPopup implements IWidgetTokenKeeper, IWidgetTokenK
           public void controlMoved(ControlEvent moveEvent) {
             Rectangle[] currentRects = tracker.getRectangles();
             final Rectangle mouseMoveCurrent = currentRects[0];
-            Point popupLoc = new Point(POPUP_SOURCE.x + mouseMoveCurrent.x - MOUSE_MOVE_SOURCE.x,
+            Point popupLoc = new Point(
+                POPUP_SOURCE.x + mouseMoveCurrent.x - MOUSE_MOVE_SOURCE.x,
                 POPUP_SOURCE.y + mouseMoveCurrent.y - MOUSE_MOVE_SOURCE.y);
 
             popupShell.setLocation(popupLoc);
@@ -730,15 +731,25 @@ public class RenameInformationPopup implements IWidgetTokenKeeper, IWidgetTokenK
         manager.add(new Separator());
 
         MenuManager subMenuManager = new MenuManager(ReorgMessages.RenameInformationPopup_SnapTo);
-        addMoveMenuItem(subMenuManager, SNAP_POSITION_UNDER_LEFT_FIELD,
+        addMoveMenuItem(
+            subMenuManager,
+            SNAP_POSITION_UNDER_LEFT_FIELD,
             ReorgMessages.RenameInformationPopup_snap_under_left);
-        addMoveMenuItem(subMenuManager, SNAP_POSITION_UNDER_RIGHT_FIELD,
+        addMoveMenuItem(
+            subMenuManager,
+            SNAP_POSITION_UNDER_RIGHT_FIELD,
             ReorgMessages.RenameInformationPopup_snap_under_right);
-        addMoveMenuItem(subMenuManager, SNAP_POSITION_OVER_LEFT_FIELD,
+        addMoveMenuItem(
+            subMenuManager,
+            SNAP_POSITION_OVER_LEFT_FIELD,
             ReorgMessages.RenameInformationPopup_snap_over_left);
-        addMoveMenuItem(subMenuManager, SNAP_POSITION_OVER_RIGHT_FIELD,
+        addMoveMenuItem(
+            subMenuManager,
+            SNAP_POSITION_OVER_RIGHT_FIELD,
             ReorgMessages.RenameInformationPopup_snap_over_right);
-        addMoveMenuItem(subMenuManager, SNAP_POSITION_LOWER_RIGHT,
+        addMoveMenuItem(
+            subMenuManager,
+            SNAP_POSITION_LOWER_RIGHT,
             ReorgMessages.RenameInformationPopup_snap_bottom_right);
         manager.add(subMenuManager);
 

@@ -78,7 +78,8 @@ class SearchInDialog extends TrayDialog {
   protected void configureShell(Shell newShell) {
     super.configureShell(newShell);
     newShell.setText(CallHierarchyMessages.SearchInDialog_title);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(newShell,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        newShell,
         DartHelpContextIds.CALL_HIERARCHY_SEARCH_IN_DIALOG);
   }
 

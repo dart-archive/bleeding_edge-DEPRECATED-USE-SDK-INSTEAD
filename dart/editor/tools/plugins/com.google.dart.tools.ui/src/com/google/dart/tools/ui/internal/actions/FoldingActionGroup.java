@@ -113,7 +113,8 @@ public class FoldingActionGroup extends ActionGroup {
 
     fViewer.addProjectionListener(fProjectionListener);
 
-    fToggle = new PreferenceAction(FoldingMessages.getResourceBundle(),
+    fToggle = new PreferenceAction(
+        FoldingMessages.getResourceBundle(),
         "Projection.Toggle.", IAction.AS_CHECK_BOX) { //$NON-NLS-1$
       @Override
       public void run() {
@@ -134,22 +135,26 @@ public class FoldingActionGroup extends ActionGroup {
     fToggle.setActionDefinitionId(IFoldingCommandIds.FOLDING_TOGGLE);
     editor.setAction("FoldingToggle", fToggle); //$NON-NLS-1$
 
-    fExpandAll = new TextOperationAction(FoldingMessages.getResourceBundle(),
+    fExpandAll = new TextOperationAction(
+        FoldingMessages.getResourceBundle(),
         "Projection.ExpandAll.", editor, ProjectionViewer.EXPAND_ALL, true); //$NON-NLS-1$
     fExpandAll.setActionDefinitionId(IFoldingCommandIds.FOLDING_EXPAND_ALL);
     editor.setAction("FoldingExpandAll", fExpandAll); //$NON-NLS-1$
 
-    fCollapseAll = new TextOperationAction(FoldingMessages.getResourceBundle(),
+    fCollapseAll = new TextOperationAction(
+        FoldingMessages.getResourceBundle(),
         "Projection.CollapseAll.", editor, ProjectionViewer.COLLAPSE_ALL, true); //$NON-NLS-1$
     fCollapseAll.setActionDefinitionId(IFoldingCommandIds.FOLDING_COLLAPSE_ALL);
     editor.setAction("FoldingCollapseAll", fCollapseAll); //$NON-NLS-1$
 
-    fExpand = new TextOperationAction(FoldingMessages.getResourceBundle(),
+    fExpand = new TextOperationAction(
+        FoldingMessages.getResourceBundle(),
         "Projection.Expand.", editor, ProjectionViewer.EXPAND, true); //$NON-NLS-1$
     fExpand.setActionDefinitionId(IFoldingCommandIds.FOLDING_EXPAND);
     editor.setAction("FoldingExpand", fExpand); //$NON-NLS-1$
 
-    fCollapse = new TextOperationAction(FoldingMessages.getResourceBundle(),
+    fCollapse = new TextOperationAction(
+        FoldingMessages.getResourceBundle(),
         "Projection.Collapse.", editor, ProjectionViewer.COLLAPSE, true); //$NON-NLS-1$
     fCollapse.setActionDefinitionId(IFoldingCommandIds.FOLDING_COLLAPSE);
     editor.setAction("FoldingCollapse", fCollapse); //$NON-NLS-1$
@@ -166,7 +171,8 @@ public class FoldingActionGroup extends ActionGroup {
     fRestoreDefaults.setActionDefinitionId(IFoldingCommandIds.FOLDING_RESTORE);
     editor.setAction("FoldingRestore", fRestoreDefaults); //$NON-NLS-1$
 
-    fCollapseMembers = new FoldingAction(FoldingMessages.getResourceBundle(),
+    fCollapseMembers = new FoldingAction(
+        FoldingMessages.getResourceBundle(),
         "Projection.CollapseMembers.") { //$NON-NLS-1$
       @Override
       public void run() {
@@ -179,7 +185,8 @@ public class FoldingActionGroup extends ActionGroup {
     fCollapseMembers.setActionDefinitionId(DartEditorActionDefinitionIds.FOLDING_COLLAPSE_MEMBERS);
     editor.setAction("FoldingCollapseMembers", fCollapseMembers); //$NON-NLS-1$
 
-    fCollapseComments = new FoldingAction(FoldingMessages.getResourceBundle(),
+    fCollapseComments = new FoldingAction(
+        FoldingMessages.getResourceBundle(),
         "Projection.CollapseComments.") { //$NON-NLS-1$
       @Override
       public void run() {

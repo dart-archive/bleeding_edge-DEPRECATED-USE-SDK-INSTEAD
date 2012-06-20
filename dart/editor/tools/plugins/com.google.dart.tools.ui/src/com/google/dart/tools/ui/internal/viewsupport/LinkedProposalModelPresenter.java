@@ -185,10 +185,7 @@ public class LinkedProposalModelPresenter {
   public LinkedProposalModelPresenter() {
   }
 
-  public void enterLinkedMode(
-      ITextViewer viewer,
-      IEditorPart editor,
-      boolean switchedEditor,
+  public void enterLinkedMode(ITextViewer viewer, IEditorPart editor, boolean switchedEditor,
       LinkedProposalModel linkedProposalModel) throws BadLocationException {
     IDocument document = viewer.getDocument();
 

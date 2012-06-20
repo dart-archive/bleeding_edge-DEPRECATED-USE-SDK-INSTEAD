@@ -99,8 +99,13 @@ public final class SampleDescriptionHelper {
             }
             if (qName.equals("sample") && filePath != null && name != null
                 && descriptionText != null) {
-              descriptions.add(new SampleDescription(directory, filePath, name, descriptionText,
-                  keywordText, logoFile));
+              descriptions.add(new SampleDescription(
+                  directory,
+                  filePath,
+                  name,
+                  descriptionText,
+                  keywordText,
+                  logoFile));
             }
           }
 

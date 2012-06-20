@@ -71,8 +71,7 @@ public class ExtractLocalRefactoring extends Refactoring {
    *         given {@link SourceRange}. Range should start and end between given
    *         {@link DartExpression}s.
    */
-  private static List<DartExpression> getOperandsForSourceRange(
-      List<DartExpression> operands,
+  private static List<DartExpression> getOperandsForSourceRange(List<DartExpression> operands,
       SourceRange range) {
     Assert.isTrue(!operands.isEmpty());
     List<DartExpression> subOperands = Lists.newArrayList();

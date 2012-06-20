@@ -63,7 +63,8 @@ class SdkLibraryNode {
   }
 
   static {
-    Platform.getAdapterManager().registerAdapters(new SdkLibraryWorkbenchAdapter(),
+    Platform.getAdapterManager().registerAdapters(
+        new SdkLibraryWorkbenchAdapter(),
         SdkLibraryNode.class);
   }
 

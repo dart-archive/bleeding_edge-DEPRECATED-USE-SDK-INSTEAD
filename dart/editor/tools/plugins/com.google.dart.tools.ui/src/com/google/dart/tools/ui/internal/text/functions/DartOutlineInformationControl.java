@@ -79,7 +79,8 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
     private TreeViewer fOutlineViewer;
 
     private LexicalSortingAction(TreeViewer outlineViewer) {
-      super(TextMessages.JavaOutlineInformationControl_LexicalSortingAction_label,
+      super(
+          TextMessages.JavaOutlineInformationControl_LexicalSortingAction_label,
           IAction.AS_CHECK_BOX);
       setToolTipText(TextMessages.JavaOutlineInformationControl_LexicalSortingAction_tooltip);
       setDescription(TextMessages.JavaOutlineInformationControl_LexicalSortingAction_description);
@@ -90,7 +91,8 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
 
       boolean checked = getDialogSettings().getBoolean(STORE_LEXICAL_SORTING_CHECKED);
       setChecked(checked);
-      PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+      PlatformUI.getWorkbench().getHelpSystem().setHelp(
+          this,
           DartHelpContextIds.LEXICAL_SORTING_BROWSING_ACTION);
     }
 
@@ -474,7 +476,8 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
 
       fOutlineViewer = outlineViewer;
 
-      PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+      PlatformUI.getWorkbench().getHelpSystem().setHelp(
+          this,
           DartHelpContextIds.SORT_BY_DEFINING_TYPE_ACTION);
 
       boolean state = getDialogSettings().getBoolean(STORE_SORT_BY_DEFINING_TYPE_CHECKED);

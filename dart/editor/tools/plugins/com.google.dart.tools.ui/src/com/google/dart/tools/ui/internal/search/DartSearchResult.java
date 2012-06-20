@@ -96,7 +96,10 @@ public class DartSearchResult extends AbstractDartSearchResult {
   boolean addMatch(Match match, MatchPresentation participant) {
     Object element = match.getElement();
     if (elementsToParticipants.get(element) != null) {
-      DartToolsPlugin.log(new Status(IStatus.WARNING, DartToolsPlugin.getPluginId(), 0,
+      DartToolsPlugin.log(new Status(
+          IStatus.WARNING,
+          DartToolsPlugin.getPluginId(),
+          0,
           "A second search participant was found for an element", null)); //$NON-NLS-1$
       return false;
     }

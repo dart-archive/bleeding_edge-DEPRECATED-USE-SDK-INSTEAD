@@ -47,7 +47,8 @@ class FiltersDialog extends StatusDialog {
   protected void configureShell(Shell newShell) {
     super.configureShell(newShell);
     newShell.setText(CallHierarchyMessages.FiltersDialog_filter);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(newShell,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        newShell,
         DartHelpContextIds.CALL_HIERARCHY_FILTERS_DIALOG);
   }
 

@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.actions;
@@ -104,8 +102,12 @@ public class OpenTypeAction extends Action implements IWorkbenchWindowActionDele
       return;
     }
 
-    SelectionDialog dialog = new OpenTypeSelectionDialog(parent, true,
-        PlatformUI.getWorkbench().getProgressService(), null, SEARCH_ELEMENT_KINDS);
+    SelectionDialog dialog = new OpenTypeSelectionDialog(
+        parent,
+        true,
+        PlatformUI.getWorkbench().getProgressService(),
+        null,
+        SEARCH_ELEMENT_KINDS);
     dialog.setTitle(DartUIMessages.OpenTypeAction_dialogTitle);
     dialog.setMessage(DartUIMessages.OpenTypeAction_dialogMessage);
 
@@ -123,7 +125,9 @@ public class OpenTypeAction extends Action implements IWorkbenchWindowActionDele
       try {
         DartUI.openInEditor((DartElement) types[0], true, true);
       } catch (CoreException x) {
-        ExceptionHandler.handle(x, DartUIMessages.OpenTypeAction_errorTitle,
+        ExceptionHandler.handle(
+            x,
+            DartUIMessages.OpenTypeAction_errorTitle,
             DartUIMessages.OpenTypeAction_errorMessage);
       }
       return;
@@ -131,15 +135,22 @@ public class OpenTypeAction extends Action implements IWorkbenchWindowActionDele
 
     final IWorkbenchPage workbenchPage = DartToolsPlugin.getActivePage();
     if (workbenchPage == null) {
-      IStatus status = new Status(IStatus.ERROR, DartToolsPlugin.getPluginId(),
+      IStatus status = new Status(
+          IStatus.ERROR,
+          DartToolsPlugin.getPluginId(),
           DartUIMessages.OpenTypeAction_no_active_WorkbenchPage);
-      ExceptionHandler.handle(status, DartUIMessages.OpenTypeAction_errorTitle,
+      ExceptionHandler.handle(
+          status,
+          DartUIMessages.OpenTypeAction_errorTitle,
           DartUIMessages.OpenTypeAction_errorMessage);
       return;
     }
 
-    MultiStatus multiStatus = new MultiStatus(DartToolsPlugin.getPluginId(),
-        DartStatusConstants.INTERNAL_ERROR, DartUIMessages.OpenTypeAction_multiStatusMessage, null);
+    MultiStatus multiStatus = new MultiStatus(
+        DartToolsPlugin.getPluginId(),
+        DartStatusConstants.INTERNAL_ERROR,
+        DartUIMessages.OpenTypeAction_multiStatusMessage,
+        null);
 
     for (int i = 0; i < types.length; i++) {
       Type type = (Type) types[i];
@@ -151,7 +162,9 @@ public class OpenTypeAction extends Action implements IWorkbenchWindowActionDele
     }
 
     if (!multiStatus.isOK()) {
-      ExceptionHandler.handle(multiStatus, DartUIMessages.OpenTypeAction_errorTitle,
+      ExceptionHandler.handle(
+          multiStatus,
+          DartUIMessages.OpenTypeAction_errorTitle,
           DartUIMessages.OpenTypeAction_errorMessage);
     }
   }

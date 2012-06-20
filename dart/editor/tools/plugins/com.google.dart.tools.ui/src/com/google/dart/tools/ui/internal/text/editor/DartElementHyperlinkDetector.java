@@ -64,7 +64,8 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
 
     int offset = region.getOffset();
 
-    CompilationUnit input = (CompilationUnit) EditorUtility.getEditorInputDartElement(textEditor,
+    CompilationUnit input = (CompilationUnit) EditorUtility.getEditorInputDartElement(
+        textEditor,
         false);
     if (input == null) {
       return null;
@@ -81,16 +82,22 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
         IRegion wordRegion = locator.getWordRegion();
         final IRegion candidateRegion = locator.getCandidateRegion();
         if (candidateRegion != null) {
-          return new IHyperlink[] {new DartElementHyperlink(foundElement, wordRegion,
+          return new IHyperlink[] {new DartElementHyperlink(
+              foundElement,
+              wordRegion,
               new OpenAction(dartEditor) {
                 @Override
                 protected void selectInEditor(IEditorPart part, DartElement element) {
-                  EditorUtility.revealInEditor(part, candidateRegion.getOffset(),
+                  EditorUtility.revealInEditor(
+                      part,
+                      candidateRegion.getOffset(),
                       candidateRegion.getLength());
                 }
               })};
         }
-        return new IHyperlink[] {new DartElementHyperlink(foundElement, wordRegion,
+        return new IHyperlink[] {new DartElementHyperlink(
+            foundElement,
+            wordRegion,
             (SelectionDispatchAction) openAction)};
       }
     }

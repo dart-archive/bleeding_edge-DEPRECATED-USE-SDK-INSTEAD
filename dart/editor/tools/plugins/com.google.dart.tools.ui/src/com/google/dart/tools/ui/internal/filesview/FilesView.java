@@ -166,8 +166,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new ResourceContentProvider());
     resourceLabelProvider = new ResourceLabelProvider();
-    treeViewer.setLabelProvider(new DecoratingStyledCellLabelProvider(resourceLabelProvider,
-        new ProblemsLabelDecorator(), null));
+    treeViewer.setLabelProvider(new DecoratingStyledCellLabelProvider(
+        resourceLabelProvider,
+        new ProblemsLabelDecorator(),
+        null));
     treeViewer.setComparator(new FilesViewerComparator());
     treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override

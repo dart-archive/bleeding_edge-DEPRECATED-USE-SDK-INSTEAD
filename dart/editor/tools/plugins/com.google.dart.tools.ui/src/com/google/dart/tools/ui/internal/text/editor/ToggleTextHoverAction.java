@@ -40,7 +40,8 @@ public class ToggleTextHoverAction extends TextEditorAction implements IProperty
     super(DartEditorMessages.getBundleForConstructedKeys(), "ToggleTextHover.", null); //$NON-NLS-1$
     DartPluginImages.setToolImageDescriptors(this, "jdoc_hover_edit.gif"); //$NON-NLS-1$
     setActionDefinitionId(DartEditorActionDefinitionIds.TOGGLE_TEXT_HOVER);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.TOGGLE_TEXTHOVER_ACTION);
     update();
   }

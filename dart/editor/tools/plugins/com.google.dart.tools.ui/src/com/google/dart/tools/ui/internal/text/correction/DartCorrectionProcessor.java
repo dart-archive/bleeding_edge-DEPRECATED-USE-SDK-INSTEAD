@@ -216,9 +216,7 @@ public class DartCorrectionProcessor implements
 
 //  private static ContributedProcessorDescriptor[] fgContributedCorrectionProcessors = null;
 
-  public static IStatus collectAssists(
-      IInvocationContext context,
-      IProblemLocation[] locations,
+  public static IStatus collectAssists(IInvocationContext context, IProblemLocation[] locations,
       Collection<IDartCompletionProposal> proposals) {
     List<ContributedProcessorDescriptor> processors = getAssistProcessors();
     SafeAssistCollector collector = new SafeAssistCollector(context, locations, proposals);
@@ -242,12 +240,8 @@ public class DartCorrectionProcessor implements
 //    return collector.getStatus();
 //  }
 
-  public static IStatus collectProposals(
-      IInvocationContext context,
-      IAnnotationModel model,
-      Annotation[] annotations,
-      boolean addQuickFixes,
-      boolean addQuickAssists,
+  public static IStatus collectProposals(IInvocationContext context, IAnnotationModel model,
+      Annotation[] annotations, boolean addQuickFixes, boolean addQuickAssists,
       Collection<IDartCompletionProposal> proposals) {
     List<ProblemLocation> problems = Lists.newArrayList();
 
@@ -423,8 +417,7 @@ public class DartCorrectionProcessor implements
 //  }
 
   private static List<ContributedProcessorDescriptor> getProcessorDescriptors(
-      String contributionId,
-      boolean testMarkerTypes) {
+      String contributionId, boolean testMarkerTypes) {
     IConfigurationElement[] elements = Platform.getExtensionRegistry().getConfigurationElementsFor(
         DartUI.ID_PLUGIN,
         contributionId);

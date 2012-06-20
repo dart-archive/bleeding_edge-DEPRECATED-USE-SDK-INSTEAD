@@ -313,13 +313,16 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
         IRegion endLine = document.getLineInformationOfOffset(offset + length);
 
         DartHeuristicScanner scanner = new DartHeuristicScanner(document);
-        int nextToken = scanner.nextToken(offset + length,
+        int nextToken = scanner.nextToken(
+            offset + length,
             endLine.getOffset() + endLine.getLength());
-        String next = nextToken == Symbols.TokenEOF ? null : document.get(offset,
+        String next = nextToken == Symbols.TokenEOF ? null : document.get(
+            offset,
             scanner.getPosition() - offset).trim();
         int prevToken = scanner.previousToken(offset - 1, startLine.getOffset());
         int prevTokenOffset = scanner.getPosition() + 1;
-        String previous = prevToken == Symbols.TokenEOF ? null : document.get(prevTokenOffset,
+        String previous = prevToken == Symbols.TokenEOF ? null : document.get(
+            prevTokenOffset,
             offset - prevTokenOffset).trim();
 
         switch (event.character) {
@@ -362,8 +365,11 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
             return;
         }
 
-        ITypedRegion partition = TextUtilities.getPartition(document,
-            DartPartitions.DART_PARTITIONING, offset, true);
+        ITypedRegion partition = TextUtilities.getPartition(
+            document,
+            DartPartitions.DART_PARTITIONING,
+            offset,
+            true);
         if (!IDocument.DEFAULT_CONTENT_TYPE.equals(partition.getType())) {
           return;
         }
@@ -403,8 +409,10 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
         level.fUI = new EditorLinkedModeUI(model, sourceViewer);
         level.fUI.setSimpleMode(true);
-        level.fUI.setExitPolicy(new ExitPolicy(closingCharacter,
-            getEscapeCharacter(closingCharacter), fBracketLevelStack));
+        level.fUI.setExitPolicy(new ExitPolicy(
+            closingCharacter,
+            getEscapeCharacter(closingCharacter),
+            fBracketLevelStack));
         level.fUI.setExitPosition(sourceViewer, offset + 2, 0, Integer.MAX_VALUE);
         level.fUI.setCyclingMode(LinkedModeUI.CYCLE_NEVER);
         level.fUI.enter();
@@ -1163,7 +1171,8 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
          * 1GF5YOX: ITPJUI:ALL - Save of delete file claims it's still there Missing resources.
          */
         Shell shell = getSite().getShell();
-        MessageDialog.openError(shell,
+        MessageDialog.openError(
+            shell,
             DartEditorMessages.CompilationUnitEditor_error_saving_title1,
             DartEditorMessages.CompilationUnitEditor_error_saving_message1);
       }
@@ -1320,46 +1329,55 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     super.createActions();
     DartX.todo("actions");
 
-    IAction action = new ContentAssistAction(DartEditorMessages.getBundleForConstructedKeys(),
+    IAction action = new ContentAssistAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "ContentAssistProposal.", this); //$NON-NLS-1$
     action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
     setAction("ContentAssistProposal", action); //$NON-NLS-1$
     markAsStateDependentAction("ContentAssistProposal", true); //$NON-NLS-1$
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        action,
         DartHelpContextIds.CONTENT_ASSIST_ACTION);
 
-    action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
+    action = new TextOperationAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "ContentAssistContextInformation.", this, ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION); //$NON-NLS-1$
     action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION);
     setAction("ContentAssistContextInformation", action); //$NON-NLS-1$
     markAsStateDependentAction("ContentAssistContextInformation", true); //$NON-NLS-1$
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        action,
         DartHelpContextIds.PARAMETER_HINTS_ACTION);
 
-    action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
+    action = new TextOperationAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "Comment.", this, ITextOperationTarget.PREFIX); //$NON-NLS-1$
     action.setActionDefinitionId(DartEditorActionDefinitionIds.COMMENT);
     setAction("Comment", action); //$NON-NLS-1$
     markAsStateDependentAction("Comment", true); //$NON-NLS-1$
     PlatformUI.getWorkbench().getHelpSystem().setHelp(action, DartHelpContextIds.COMMENT_ACTION);
 
-    action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
+    action = new TextOperationAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "Uncomment.", this, ITextOperationTarget.STRIP_PREFIX); //$NON-NLS-1$
     action.setActionDefinitionId(DartEditorActionDefinitionIds.UNCOMMENT);
     setAction("Uncomment", action); //$NON-NLS-1$
     markAsStateDependentAction("Uncomment", true); //$NON-NLS-1$
     PlatformUI.getWorkbench().getHelpSystem().setHelp(action, DartHelpContextIds.UNCOMMENT_ACTION);
 
-    action = new ToggleCommentAction(DartEditorMessages.getBundleForConstructedKeys(),
+    action = new ToggleCommentAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "ToggleComment.", this); //$NON-NLS-1$
     action.setActionDefinitionId(DartEditorActionDefinitionIds.TOGGLE_COMMENT);
     setAction("ToggleComment", action); //$NON-NLS-1$
     markAsStateDependentAction("ToggleComment", true); //$NON-NLS-1$
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        action,
         DartHelpContextIds.TOGGLE_COMMENT_ACTION);
     configureToggleCommentAction();
 
-    action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
+    action = new TextOperationAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "Format.", this, ISourceViewer.FORMAT); //$NON-NLS-1$
     action.setActionDefinitionId(DartEditorActionDefinitionIds.FORMAT);
     setAction("Format", action); //$NON-NLS-1$
@@ -1406,7 +1424,8 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     // override the text editor actions with indenting move line actions
     DartMoveLinesAction[] moveLinesActions = DartMoveLinesAction.createMoveCopyActionSet(
-        DartEditorMessages.getBundleForConstructedKeys(), this);
+        DartEditorMessages.getBundleForConstructedKeys(),
+        this);
     ResourceAction rAction = moveLinesActions[0];
     rAction.setHelpContextId(IAbstractTextEditorHelpContextIds.MOVE_LINES_ACTION);
     rAction.setActionDefinitionId(ITextEditorActionDefinitionIds.MOVE_LINES_UP);
@@ -1467,8 +1486,13 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   protected ISourceViewer createDartSourceViewer(Composite parent, IVerticalRuler verticalRuler,
       IOverviewRuler overviewRuler, boolean isOverviewRulerVisible, int styles,
       IPreferenceStore store) {
-    return new AdaptedSourceViewer(parent, verticalRuler, overviewRuler, isOverviewRulerVisible,
-        styles, store);
+    return new AdaptedSourceViewer(
+        parent,
+        verticalRuler,
+        overviewRuler,
+        isOverviewRulerVisible,
+        styles,
+        store);
   }
 
   /*
@@ -1544,7 +1568,8 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
         element = ((DartLibrary) element).getDefiningCompilationUnit();
       } catch (DartModelException exception) {
         DartToolsPlugin.log(
-            "Unable to access defining compilation unit for " + element.getElementName(), exception);
+            "Unable to access defining compilation unit for " + element.getElementName(),
+            exception);
       }
     }
     if (!(element instanceof CompilationUnit)) {
@@ -1620,7 +1645,9 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
         IContentAssistant c = asv.getContentAssistant();
         if (c instanceof ContentAssistant) {
-          ContentAssistPreference.changeConfiguration((ContentAssistant) c, getPreferenceStore(),
+          ContentAssistPreference.changeConfiguration(
+              (ContentAssistant) c,
+              getPreferenceStore(),
               event);
         }
 

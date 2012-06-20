@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.cleanup;
@@ -1074,13 +1072,17 @@ public class CleanUpConstants {
     options.setOption(MEMBER_ACCESSES_NON_STATIC_METHOD_USE_THIS_IF_NECESSARY, CleanUpOptions.TRUE);
 
     options.setOption(MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS, CleanUpOptions.TRUE);
-    options.setOption(MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_FIELD,
+    options.setOption(
+        MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_FIELD,
         CleanUpOptions.FALSE);
-    options.setOption(MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_METHOD,
+    options.setOption(
+        MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_METHOD,
         CleanUpOptions.FALSE);
-    options.setOption(MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_SUBTYPE_ACCESS,
+    options.setOption(
+        MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_SUBTYPE_ACCESS,
         CleanUpOptions.TRUE);
-    options.setOption(MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_INSTANCE_ACCESS,
+    options.setOption(
+        MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_INSTANCE_ACCESS,
         CleanUpOptions.TRUE);
 
     //Control Statements
@@ -1118,7 +1120,8 @@ public class CleanUpConstants {
     //Missing Code
     options.setOption(ADD_MISSING_ANNOTATIONS, CleanUpOptions.TRUE);
     options.setOption(ADD_MISSING_ANNOTATIONS_OVERRIDE, CleanUpOptions.TRUE);
-    options.setOption(ADD_MISSING_ANNOTATIONS_OVERRIDE_FOR_INTERFACE_METHOD_IMPLEMENTATION,
+    options.setOption(
+        ADD_MISSING_ANNOTATIONS_OVERRIDE_FOR_INTERFACE_METHOD_IMPLEMENTATION,
         CleanUpOptions.TRUE);
     options.setOption(ADD_MISSING_ANNOTATIONS_DEPRECATED, CleanUpOptions.TRUE);
 
@@ -1160,13 +1163,17 @@ public class CleanUpConstants {
     options.setOption(MEMBER_ACCESSES_NON_STATIC_METHOD_USE_THIS_IF_NECESSARY, CleanUpOptions.TRUE);
 
     options.setOption(MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS, CleanUpOptions.FALSE);
-    options.setOption(MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_FIELD,
+    options.setOption(
+        MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_FIELD,
         CleanUpOptions.FALSE);
-    options.setOption(MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_METHOD,
+    options.setOption(
+        MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_METHOD,
         CleanUpOptions.FALSE);
-    options.setOption(MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_SUBTYPE_ACCESS,
+    options.setOption(
+        MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_SUBTYPE_ACCESS,
         CleanUpOptions.TRUE);
-    options.setOption(MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_INSTANCE_ACCESS,
+    options.setOption(
+        MEMBER_ACCESSES_STATIC_QUALIFY_WITH_DECLARING_CLASS_INSTANCE_ACCESS,
         CleanUpOptions.TRUE);
 
     //Control Statements

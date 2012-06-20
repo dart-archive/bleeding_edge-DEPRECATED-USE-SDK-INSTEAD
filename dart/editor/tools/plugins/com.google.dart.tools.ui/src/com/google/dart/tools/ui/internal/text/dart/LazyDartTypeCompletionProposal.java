@@ -78,7 +78,8 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
 
       if (fImportRewrite != null && fImportRewrite.hasRecordedChanges()) {
         int oldLen = document.getLength();
-        fImportRewrite.rewriteImports(new NullProgressMonitor()).apply(document,
+        fImportRewrite.rewriteImports(new NullProgressMonitor()).apply(
+            document,
             TextEdit.UPDATE_REGIONS);
         setReplacementOffset(getReplacementOffset() + document.getLength() - oldLen);
       }
@@ -274,7 +275,8 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
 
     /* No imports for implicit imports. */
     if (fCompilationUnit != null
-        && DartModelUtil.isImplicitImport(Signature.getQualifier(qualifiedTypeName),
+        && DartModelUtil.isImplicitImport(
+            Signature.getQualifier(qualifiedTypeName),
             fCompilationUnit)) {
       return Signature.getSimpleName(qualifiedTypeName);
     }
@@ -370,8 +372,10 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
           return rewrite;
         } else {
           ImportRewrite rewrite = StubUtility.createImportRewrite(cu, true);
-          fImportContext = new ContextSensitiveImportRewriteContext(cu,
-              fInvocationContext.getInvocationOffset(), rewrite);
+          fImportContext = new ContextSensitiveImportRewriteContext(
+              cu,
+              fInvocationContext.getInvocationOffset(),
+              rewrite);
           return rewrite;
         }
       } catch (CoreException x) {
@@ -397,7 +401,8 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
       processDartdoc = JavaScriptCore.ENABLED.equals(JavaScriptCore.getOption(JavaScriptCore.COMPILER_DOC_COMMENT_SUPPORT));
     } else {
       processDartdoc = JavaScriptCore.ENABLED.equals(project.getOption(
-          JavaScriptCore.COMPILER_DOC_COMMENT_SUPPORT, true));
+          JavaScriptCore.COMPILER_DOC_COMMENT_SUPPORT,
+          true));
     }
     return processDartdoc;
   }

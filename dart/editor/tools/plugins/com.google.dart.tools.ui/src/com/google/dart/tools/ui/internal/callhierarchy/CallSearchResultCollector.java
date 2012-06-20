@@ -54,8 +54,12 @@ class CallSearchResultCollector {
           calledMembers.put(calledMember.getHandleIdentifier(), methodCall);
         }
 
-        methodCall.addCallLocation(new CallLocation((CompilationUnitElement) member,
-            (CompilationUnitElement) calledMember, start, end, lineNumber));
+        methodCall.addCallLocation(new CallLocation(
+            (CompilationUnitElement) member,
+            (CompilationUnitElement) calledMember,
+            start,
+            end,
+            lineNumber));
       }
     }
   }

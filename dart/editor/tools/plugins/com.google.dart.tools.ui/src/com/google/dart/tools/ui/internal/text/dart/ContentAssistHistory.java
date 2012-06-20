@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
@@ -78,7 +76,7 @@ public final class ContentAssistHistory {
     /**
      * Returns the rank of a type in the history in [0.0,&nbsp;1.0]. The rank of the most recently
      * selected type is 1.0, the rank of any type that is not remembered is zero.
-     *
+     * 
      * @param type the fully qualified type name to get the rank for
      * @return the rank of <code>type</code>
      */
@@ -93,7 +91,7 @@ public final class ContentAssistHistory {
     /**
      * Returns the list of remembered types ordered by recency. The first element is the
      * <i>least</i>, the last element the <i>most</i> recently remembered type.
-     *
+     * 
      * @return the list of remembered types as fully qualified type names (element type:
      *         {@link String})
      */
@@ -109,7 +107,7 @@ public final class ContentAssistHistory {
 
     /**
      * Returns the size of the history.
-     *
+     * 
      * @return the size of the history
      */
     public int size() {
@@ -127,7 +125,7 @@ public final class ContentAssistHistory {
 
     /**
      * Creates a new <code>MRUMap</code> with the given size.
-     *
+     * 
      * @param maxSize the maximum size of the cache, must be &gt; 0
      */
     public MRUMap(int maxSize) {
@@ -164,7 +162,7 @@ public final class ContentAssistHistory {
 
     /**
      * Creates a new <code>MRUSet</code> with the given size.
-     *
+     * 
      * @param maxSize the maximum size of the cache, must be &gt; 0
      */
     public MRUSet(int maxSize) {
@@ -330,7 +328,7 @@ public final class ContentAssistHistory {
 
   /**
    * Loads a history from an XML encoded preference value.
-   *
+   * 
    * @param preferences the preferences to retrieve the history from
    * @param key the key under which the history is stored
    * @return the deserialized history, or <code>null</code> if there is nothing stored under the
@@ -349,7 +347,7 @@ public final class ContentAssistHistory {
 
   /**
    * Stores the history as XML document into the given preferences.
-   *
+   * 
    * @param history the history to store
    * @param preferences the preferences to store the history into
    * @param key the key under which to store the history
@@ -379,7 +377,7 @@ public final class ContentAssistHistory {
 
   /**
    * Creates a new history.
-   *
+   * 
    * @param maxLHS the maximum number of tracked left hand sides (&gt; 0)
    * @param maxRHS the maximum number of tracked right hand sides per left hand side(&gt; 0)
    */
@@ -394,7 +392,7 @@ public final class ContentAssistHistory {
   /**
    * Returns a read-only map from {@link Type} to {@link RHSHistory}, where each value is the
    * history for the key type (see {@link #getHistory(String)}.
-   *
+   * 
    * @return the set of remembered right hand sides ordered by least recent selection
    */
   public Map getEntireHistory() {
@@ -410,7 +408,7 @@ public final class ContentAssistHistory {
   /**
    * Returns the {@link RHSHistory history} of the types that have been selected most recently as
    * right hand sides for the given type.
-   *
+   * 
    * @param lhs the fully qualified type name of an expected type for which right hand sides are
    *          requested, or <code>null</code>
    * @return the right hand side history for the given type
@@ -433,7 +431,7 @@ public final class ContentAssistHistory {
   /**
    * Remembers the selection of a right hand side type (proposal type) for a certain left hand side
    * (expected type) in content assist.
-   *
+   * 
    * @param lhs the left hand side / expected type
    * @param rhs the selected right hand side
    */

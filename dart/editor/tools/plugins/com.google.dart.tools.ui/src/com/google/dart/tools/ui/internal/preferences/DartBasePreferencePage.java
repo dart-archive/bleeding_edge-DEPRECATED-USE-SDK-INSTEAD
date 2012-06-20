@@ -78,7 +78,8 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         AbstractDecoratedTextEditorPreferenceConstants.EDITOR_LINE_NUMBER_RULER,
         lineNumbersCheck.getSelection());
 
-    editorPreferences.setValue(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN,
+    editorPreferences.setValue(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN,
         printMarginCheck.getSelection());
 
     if (printMarginCheck.getSelection()) {
@@ -93,7 +94,8 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 //    }
 
     PreferenceConstants.getPreferenceStore().setValue(
-        PreferenceConstants.EDITOR_REMOVE_TRAILING_WS, removeTrailingWhitespaceCheck.getSelection());
+        PreferenceConstants.EDITOR_REMOVE_TRAILING_WS,
+        removeTrailingWhitespaceCheck.getSelection());
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
@@ -126,13 +128,15 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     GridLayoutFactory.fillDefaults().numColumns(3).margins(8, 8).applyTo(generalGroup);
 
     // line numbers
-    lineNumbersCheck = createCheckBox(generalGroup,
+    lineNumbersCheck = createCheckBox(
+        generalGroup,
         PreferencesMessages.DartBasePreferencePage_show_line_numbers,
         PreferencesMessages.DartBasePreferencePage_show_line_numbers_tooltip);
     GridDataFactory.fillDefaults().span(3, 1).applyTo(lineNumbersCheck);
 
     // print margin
-    printMarginCheck = createCheckBox(generalGroup,
+    printMarginCheck = createCheckBox(
+        generalGroup,
         PreferencesMessages.DartBasePreferencePage_show_print_margin,
         PreferencesMessages.DartBasePreferencePage_show_print_margin_tooltip);
     printMarginCheck.addSelectionListener(new SelectionAdapter() {
@@ -146,7 +150,8 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     printMarginText.setTextLimit(5);
     GridDataFactory.fillDefaults().hint(50, SWT.DEFAULT).applyTo(printMarginText);
 
-    removeTrailingWhitespaceCheck = createCheckBox(generalGroup,
+    removeTrailingWhitespaceCheck = createCheckBox(
+        generalGroup,
         PreferencesMessages.DartBasePreferencePage_trailing_ws_label,
         PreferencesMessages.DartBasePreferencePage_trailing_ws_details);
     GridDataFactory.fillDefaults().span(3, 1).applyTo(removeTrailingWhitespaceCheck);
@@ -159,7 +164,8 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     GridLayoutFactory.fillDefaults().numColumns(2).margins(8, 8).applyTo(packageGroup);
 
     packageRootDir = new Text(packageGroup, SWT.SINGLE | SWT.BORDER);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(350, SWT.DEFAULT).grab(true,
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(350, SWT.DEFAULT).grab(
+        true,
         false).applyTo(packageRootDir);
 
     Button selectPackageDirButton = new Button(packageGroup, SWT.PUSH);
@@ -182,7 +188,8 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
           updateGroup);
       GridLayoutFactory.fillDefaults().numColumns(3).margins(8, 8).applyTo(updateGroup);
 
-      autoDownloadCheck = createCheckBox(updateGroup,
+      autoDownloadCheck = createCheckBox(
+          updateGroup,
           PreferencesMessages.DartBasePreferencePage_auto_download_label,
           PreferencesMessages.DartBasePreferencePage_auto_download_tooltip);
       GridDataFactory.fillDefaults().span(3, 1).applyTo(autoDownloadCheck);

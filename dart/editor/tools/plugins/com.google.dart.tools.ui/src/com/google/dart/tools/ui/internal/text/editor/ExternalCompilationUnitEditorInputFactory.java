@@ -91,7 +91,8 @@ public class ExternalCompilationUnitEditorInputFactory implements IElementFactor
           if (id != null) {
             DartElement element = DartCore.create(id);
             if (element instanceof ExternalCompilationUnitImpl) {
-              return new ExternalCompilationUnitEditorInput(EFS.getStore(fileUri),
+              return new ExternalCompilationUnitEditorInput(
+                  EFS.getStore(fileUri),
                   (ExternalCompilationUnitImpl) element);
             }
 

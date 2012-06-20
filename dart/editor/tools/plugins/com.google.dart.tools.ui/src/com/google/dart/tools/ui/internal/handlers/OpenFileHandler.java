@@ -68,7 +68,9 @@ public class OpenFileHandler extends AbstractHandler {
     final DartLibrary[] library = new DartLibrary[1];
     final IFile[] resource = new IFile[1];
     try {
-      PlatformUI.getWorkbench().getProgressService().run(true, true,
+      PlatformUI.getWorkbench().getProgressService().run(
+          true,
+          true,
           new WorkbenchRunnableAdapter(new IWorkspaceRunnable() {
             @Override
             public void run(IProgressMonitor monitor) throws CoreException {
@@ -98,7 +100,10 @@ public class OpenFileHandler extends AbstractHandler {
           })); // workspace lock
 
     } catch (InvocationTargetException e) {
-      ExceptionHandler.handle(e, shell, HandlerMessages.OpenFile_label,
+      ExceptionHandler.handle(
+          e,
+          shell,
+          HandlerMessages.OpenFile_label,
           HandlerMessages.OpenFile_errorMessage);
     } catch (InterruptedException e) {
       // canceled by user
@@ -108,7 +113,9 @@ public class OpenFileHandler extends AbstractHandler {
       if (resource[0] != null) {
         EditorUtility.openInEditor(resource[0], true);
       } else if (library[0] == null) {
-        MessageDialog.openError(shell, HandlerMessages.OpenFile_label,
+        MessageDialog.openError(
+            shell,
+            HandlerMessages.OpenFile_label,
             Messages.format(HandlerMessages.OpenFile_errorFileNotInLibrary, file.getName()));
       }
     } catch (PartInitException e) {

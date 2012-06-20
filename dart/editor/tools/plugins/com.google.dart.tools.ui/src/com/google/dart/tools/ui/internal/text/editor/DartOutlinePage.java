@@ -124,7 +124,8 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     public void run() {
       final boolean isChecked = isChecked();
       PreferenceConstants.getPreferenceStore().setValue(
-          PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE, isChecked);
+          PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE,
+          isChecked);
       if (isChecked && fEditor != null) {
         fEditor.synchronizeOutlinePage(fEditor.computeHighlightRangeSourceReference(), false);
       }
@@ -192,7 +193,8 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
             update(w, delta);
           }
           if (fForceFireSelectionChanged) {
-            fireSelectionChanged(new SelectionChangedEvent(getSite().getSelectionProvider(),
+            fireSelectionChanged(new SelectionChangedEvent(
+                getSite().getSelectionProvider(),
                 this.getSelection()));
           }
           if (fReorderedMembers) {
@@ -687,7 +689,8 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
     public LexicalSortingAction() {
       super();
-      PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+      PlatformUI.getWorkbench().getHelpSystem().setHelp(
+          this,
           DartHelpContextIds.LEXICAL_SORTING_OUTLINE_ACTION);
       setText(DartEditorMessages.JavaOutlinePage_Sort_label);
       DartPluginImages.setLocalImageDescriptors(this, "alphab_sort_co.gif"); //$NON-NLS-1$
@@ -752,7 +755,8 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
       DartPluginImages.setLocalImageDescriptors(this, "collapseall.gif"); //$NON-NLS-1$
 
       fJavaOutlineViewer = viewer;
-      PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+      PlatformUI.getWorkbench().getHelpSystem().setHelp(
+          this,
           DartHelpContextIds.COLLAPSE_ALL_ACTION);
     }
 
@@ -938,21 +942,25 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
     // register global actions
     IActionBars actionBars = site.getActionBars();
-    actionBars.setGlobalActionHandler(ITextEditorActionConstants.UNDO,
+    actionBars.setGlobalActionHandler(
+        ITextEditorActionConstants.UNDO,
         fEditor.getAction(ITextEditorActionConstants.UNDO));
-    actionBars.setGlobalActionHandler(ITextEditorActionConstants.REDO,
+    actionBars.setGlobalActionHandler(
+        ITextEditorActionConstants.REDO,
         fEditor.getAction(ITextEditorActionConstants.REDO));
 
     IAction action = fEditor.getAction(ITextEditorActionConstants.NEXT);
     actionBars.setGlobalActionHandler(ITextEditorActionDefinitionIds.GOTO_NEXT_ANNOTATION, action);
     actionBars.setGlobalActionHandler(ITextEditorActionConstants.NEXT, action);
     action = fEditor.getAction(ITextEditorActionConstants.PREVIOUS);
-    actionBars.setGlobalActionHandler(ITextEditorActionDefinitionIds.GOTO_PREVIOUS_ANNOTATION,
+    actionBars.setGlobalActionHandler(
+        ITextEditorActionDefinitionIds.GOTO_PREVIOUS_ANNOTATION,
         action);
     actionBars.setGlobalActionHandler(ITextEditorActionConstants.PREVIOUS, action);
 
     actionBars.setGlobalActionHandler(
-        ITextEditorActionDefinitionIds.TOGGLE_SHOW_SELECTED_ELEMENT_ONLY, fTogglePresentation);
+        ITextEditorActionDefinitionIds.TOGGLE_SHOW_SELECTED_ELEMENT_ONLY,
+        fTogglePresentation);
 
     DartX.todo();
     //fActionGroups.fillActionBars(actionBars);
@@ -1365,8 +1373,8 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
   }
 
   /*
-	 *
-	 */
+   *
+   */
   private void updateSelectionProvider(IPageSite site) {
     ISelectionProvider provider = fOutlineViewer;
     if (fInput != null) {

@@ -357,8 +357,11 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
 
   private SourceViewerConfiguration getSourceViewerConfiguration() {
     DartTextTools textTools = DartToolsPlugin.getDefault().getJavaTextTools();
-    return new DartSourceViewerConfiguration(textTools.getColorManager(), getPreferenceStore(),
-        null, DartPartitions.DART_PARTITIONING);
+    return new DartSourceViewerConfiguration(
+        textTools.getColorManager(),
+        getPreferenceStore(),
+        null,
+        DartPartitions.DART_PARTITIONING);
   }
 
   private Font getXlFont() {

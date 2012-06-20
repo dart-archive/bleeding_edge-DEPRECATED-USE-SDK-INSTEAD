@@ -46,23 +46,45 @@ public class DartTypeCompletionProposal extends DartCompletionProposal {
   public DartTypeCompletionProposal(String replacementString, CompilationUnit cu,
       int replacementOffset, int replacementLength, Image image, StyledString displayString,
       int relevance) {
-    this(replacementString, cu, replacementOffset, replacementLength, image, displayString,
-        relevance, null);
+    this(
+        replacementString,
+        cu,
+        replacementOffset,
+        replacementLength,
+        image,
+        displayString,
+        relevance,
+        null);
   }
 
   public DartTypeCompletionProposal(String replacementString, CompilationUnit cu,
       int replacementOffset, int replacementLength, Image image, StyledString displayString,
       int relevance, String fullyQualifiedTypeName) {
-    this(replacementString, cu, replacementOffset, replacementLength, image, displayString,
-        relevance, fullyQualifiedTypeName, null);
+    this(
+        replacementString,
+        cu,
+        replacementOffset,
+        replacementLength,
+        image,
+        displayString,
+        relevance,
+        fullyQualifiedTypeName,
+        null);
   }
 
   public DartTypeCompletionProposal(String replacementString, CompilationUnit cu,
       int replacementOffset, int replacementLength, Image image, StyledString displayString,
       int relevance, String fullyQualifiedTypeName,
       DartContentAssistInvocationContext invocationContext) {
-    super(replacementString, replacementOffset, replacementLength, image, displayString, relevance,
-        false, invocationContext);
+    super(
+        replacementString,
+        replacementOffset,
+        replacementLength,
+        image,
+        displayString,
+        relevance,
+        false,
+        invocationContext);
     fCompilationUnit = cu;
     fFullyQualifiedTypeName = fullyQualifiedTypeName;
     fUnqualifiedTypeName = fullyQualifiedTypeName != null
@@ -88,7 +110,8 @@ public class DartTypeCompletionProposal extends DartCompletionProposal {
 
       if (impRewrite != null) {
         int oldLen = document.getLength();
-        impRewrite.rewriteImports(new NullProgressMonitor()).apply(document,
+        impRewrite.rewriteImports(new NullProgressMonitor()).apply(
+            document,
             TextEdit.UPDATE_REGIONS);
         setReplacementOffset(getReplacementOffset() + document.getLength() - oldLen);
       }

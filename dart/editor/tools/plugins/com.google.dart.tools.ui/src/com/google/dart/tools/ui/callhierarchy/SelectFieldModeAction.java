@@ -42,7 +42,8 @@ public class SelectFieldModeAction extends Action {
 //    }
     this.chvPart = v;
     this.mode = mode;
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.CALL_HIERARCHY_TOGGLE_CALL_MODE_ACTION);
   }
 

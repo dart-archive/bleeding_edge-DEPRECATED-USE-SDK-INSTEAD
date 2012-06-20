@@ -387,7 +387,8 @@ public class CleanUpSaveParticipantPreferenceConfiguration extends
           fSettings.put(CleanUpConstants.CLEANUP_ON_SAVE_ADDITIONAL_OPTIONS, CleanUpOptions.FALSE);
         }
         Hashtable<String, String> workingValues = new Hashtable<String, String>(fSettings);
-        SaveActionSelectionDialog dialog = new SaveActionSelectionDialog(parent.getShell(),
+        SaveActionSelectionDialog dialog = new SaveActionSelectionDialog(
+            parent.getShell(),
             workingValues);
         if (dialog.open() == Window.OK) {
           fSettings = workingValues;

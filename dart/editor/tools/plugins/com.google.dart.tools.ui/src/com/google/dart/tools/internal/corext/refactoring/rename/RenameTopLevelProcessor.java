@@ -108,7 +108,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
   public Change createChange(IProgressMonitor monitor) throws CoreException {
     monitor.beginTask(RefactoringCoreMessages.RenameProcessor_checking, 1);
     try {
-      List<Change> changesList = Lists.<Change>newArrayList();
+      List<Change> changesList = Lists.<Change> newArrayList();
       // add unit changes
       Change[] renameUnitChanges = changeManager.getAllChanges();
       Collections.addAll(changesList, renameUnitChanges);
@@ -178,8 +178,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
   }
 
   @Override
-  protected RefactoringStatus doCheckFinalConditions(
-      IProgressMonitor pm,
+  protected RefactoringStatus doCheckFinalConditions(IProgressMonitor pm,
       CheckConditionsContext context) throws CoreException {
     try {
       pm.beginTask("", 19); //$NON-NLS-1$
@@ -259,8 +258,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                         new Object[] {
                             RenameAnalyzeUtil.getElementTypeName(element),
                             RenameAnalyzeUtil.getElementTypeName(typeParameter),
-                            type.getElementName(),
-                            typeParameter.getElementName(),
+                            type.getElementName(), typeParameter.getElementName(),
                             BasicElementLabels.getPathLabel(resourcePath, false),});
                     result.addWarning(message, DartStatusContext.create(typeParameter));
                   }
@@ -274,8 +272,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                           new Object[] {
                               RenameAnalyzeUtil.getElementTypeName(element),
                               RenameAnalyzeUtil.getElementTypeName(typeParameter),
-                              type.getElementName(),
-                              typeParameter.getElementName(),
+                              type.getElementName(), typeParameter.getElementName(),
                               BasicElementLabels.getPathLabel(resourcePath, false),});
                       result.addError(message, DartStatusContext.create(match));
                     }
@@ -295,8 +292,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                         new Object[] {
                             RenameAnalyzeUtil.getElementTypeName(element),
                             RenameAnalyzeUtil.getElementTypeName(typeMember),
-                            type.getElementName(),
-                            typeMember.getElementName(),
+                            type.getElementName(), typeMember.getElementName(),
                             BasicElementLabels.getPathLabel(resourcePath, false),});
                     result.addWarning(message, DartStatusContext.create(typeMember));
                   }
@@ -315,8 +311,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                               new Object[] {
                                   RenameAnalyzeUtil.getElementTypeName(element),
                                   RenameAnalyzeUtil.getElementTypeName(typeMember),
-                                  type.getElementName(),
-                                  typeMember.getElementName(),
+                                  type.getElementName(), typeMember.getElementName(),
                                   BasicElementLabels.getPathLabel(resourcePath, false),});
                           result.addError(message, DartStatusContext.create(memberRef));
                         }
@@ -329,8 +324,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                                 RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_element,
                                 new Object[] {
                                     RenameAnalyzeUtil.getElementTypeName(typeMember),
-                                    type.getElementName(),
-                                    typeMember.getElementName(),
+                                    type.getElementName(), typeMember.getElementName(),
                                     BasicElementLabels.getPathLabel(resourcePath, false),
                                     RenameAnalyzeUtil.getElementTypeName(element)});
                             result.addError(message, DartStatusContext.create(memberRef));
@@ -358,8 +352,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                             new Object[] {
                                 RenameAnalyzeUtil.getElementTypeName(element),
                                 RenameAnalyzeUtil.getElementTypeName(variableElement),
-                                type.getElementName(),
-                                method.getElementName(),
+                                type.getElementName(), method.getElementName(),
                                 BasicElementLabels.getPathLabel(resourcePath, false),});
                         result.addWarning(message, DartStatusContext.create(variableElement));
                       }
@@ -373,8 +366,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                               new Object[] {
                                   RenameAnalyzeUtil.getElementTypeName(element),
                                   RenameAnalyzeUtil.getElementTypeName(variableElement),
-                                  type.getElementName(),
-                                  method.getElementName(),
+                                  type.getElementName(), method.getElementName(),
                                   BasicElementLabels.getPathLabel(resourcePath, false),});
                           result.addError(message, DartStatusContext.create(match));
                         }
@@ -443,9 +435,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
     pm.done();
   }
 
-  private void reportTopLevelAlreadyDeclared(
-      RefactoringStatus result,
-      DartLibrary library,
+  private void reportTopLevelAlreadyDeclared(RefactoringStatus result, DartLibrary library,
       CompilationUnitElement existingElement) {
     IPath libraryPath = library.getResource().getFullPath();
     IPath resourcePath = existingElement.getResource().getFullPath();
@@ -454,8 +444,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
         new Object[] {
             BasicElementLabels.getPathLabel(resourcePath, false),
             BasicElementLabels.getPathLabel(libraryPath, false),
-            RenameAnalyzeUtil.getElementTypeName(existingElement),
-            newName});
+            RenameAnalyzeUtil.getElementTypeName(existingElement), newName});
     result.addError(message, DartStatusContext.create(existingElement));
   }
 }

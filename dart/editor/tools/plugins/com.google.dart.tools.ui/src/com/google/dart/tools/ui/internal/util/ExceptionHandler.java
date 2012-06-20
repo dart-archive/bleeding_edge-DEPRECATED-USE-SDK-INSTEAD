@@ -103,8 +103,12 @@ public class ExceptionHandler {
    * error with the error code <code>JavaStatusConstants.INTERNAL_ERROR</code>.
    */
   public static void log(Throwable t, String message) {
-    DartToolsPlugin.log(new Status(IStatus.ERROR, DartToolsPlugin.getPluginId(),
-        DartStatusConstants.INTERNAL_ERROR, message, t));
+    DartToolsPlugin.log(new Status(
+        IStatus.ERROR,
+        DartToolsPlugin.getPluginId(),
+        DartStatusConstants.INTERNAL_ERROR,
+        message,
+        t));
   }
 
   protected void perform(CoreException e, Shell shell, String title, String message) {

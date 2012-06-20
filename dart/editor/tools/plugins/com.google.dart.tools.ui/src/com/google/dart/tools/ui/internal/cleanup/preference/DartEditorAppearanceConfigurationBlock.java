@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.cleanup.preference;
@@ -252,7 +250,10 @@ class DartEditorAppearanceConfigurationBlock extends AbstractConfigurationBlock 
     addCheckBox(appearanceComposite, label, PreferenceConstants.EDITOR_SUB_WORD_NAVIGATION, 0);
 
     label = PreferencesMessages.DartEditorPreferencePage_analyseAnnotationsWhileTyping;
-    addCheckBox(appearanceComposite, label, PreferenceConstants.EDITOR_EVALUTE_TEMPORARY_PROBLEMS,
+    addCheckBox(
+        appearanceComposite,
+        label,
+        PreferenceConstants.EDITOR_EVALUTE_TEMPORARY_PROBLEMS,
         0);
 
     String text = PreferencesMessages.SmartTypingConfigurationBlock_annotationReporting_link;
@@ -376,7 +377,9 @@ class DartEditorAppearanceConfigurationBlock extends AbstractConfigurationBlock 
         }
 
         String key = fAppearanceColorListModel[i][1];
-        PreferenceConverter.setValue(getPreferenceStore(), key,
+        PreferenceConverter.setValue(
+            getPreferenceStore(),
+            key,
             fAppearanceColorEditor.getColorValue());
       }
     });
@@ -394,7 +397,10 @@ class DartEditorAppearanceConfigurationBlock extends AbstractConfigurationBlock 
         if ("org.eclipse.ui.preferencePages.GeneralTextEditor".equals(e.text)) {
           PreferencesUtil.createPreferenceDialogOn(shell, e.text, null, null);
         } else if ("org.eclipse.ui.preferencePages.ColorsAndFonts".equals(e.text)) {
-          PreferencesUtil.createPreferenceDialogOn(shell, e.text, null,
+          PreferencesUtil.createPreferenceDialogOn(
+              shell,
+              e.text,
+              null,
               "selectFont:org.eclipse.jdt.ui.editors.textfont"); //$NON-NLS-1$
         }
       }
@@ -411,29 +417,41 @@ class DartEditorAppearanceConfigurationBlock extends AbstractConfigurationBlock 
 
     ArrayList<OverlayKey> overlayKeys = new ArrayList<OverlayKey>();
 
-    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(OverlayPreferenceStore.STRING,
+    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(
+        OverlayPreferenceStore.STRING,
         PreferenceConstants.EDITOR_MATCHING_BRACKETS_COLOR));
-    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(OverlayPreferenceStore.BOOLEAN,
+    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(
+        OverlayPreferenceStore.BOOLEAN,
         PreferenceConstants.EDITOR_MATCHING_BRACKETS));
-    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(OverlayPreferenceStore.BOOLEAN,
+    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(
+        OverlayPreferenceStore.BOOLEAN,
         PreferenceConstants.EDITOR_QUICKASSIST_LIGHTBULB));
-    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(OverlayPreferenceStore.BOOLEAN,
+    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(
+        OverlayPreferenceStore.BOOLEAN,
         PreferenceConstants.EDITOR_SUB_WORD_NAVIGATION));
-    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(OverlayPreferenceStore.BOOLEAN,
+    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(
+        OverlayPreferenceStore.BOOLEAN,
         PreferenceConstants.EDITOR_EVALUTE_TEMPORARY_PROBLEMS));
-    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(OverlayPreferenceStore.BOOLEAN,
+    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(
+        OverlayPreferenceStore.BOOLEAN,
         PreferenceConstants.EDITOR_SHOW_SEGMENTS));
-    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(OverlayPreferenceStore.STRING,
+    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(
+        OverlayPreferenceStore.STRING,
         PreferenceConstants.CODEASSIST_PARAMETERS_BACKGROUND));
-    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(OverlayPreferenceStore.STRING,
+    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(
+        OverlayPreferenceStore.STRING,
         PreferenceConstants.CODEASSIST_PARAMETERS_FOREGROUND));
-    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(OverlayPreferenceStore.STRING,
+    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(
+        OverlayPreferenceStore.STRING,
         PreferenceConstants.CODEASSIST_REPLACEMENT_BACKGROUND));
-    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(OverlayPreferenceStore.STRING,
+    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(
+        OverlayPreferenceStore.STRING,
         PreferenceConstants.CODEASSIST_REPLACEMENT_FOREGROUND));
-    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(OverlayPreferenceStore.STRING,
+    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(
+        OverlayPreferenceStore.STRING,
         PreferenceConstants.EDITOR_SOURCE_HOVER_BACKGROUND_COLOR));
-    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(OverlayPreferenceStore.BOOLEAN,
+    overlayKeys.add(new OverlayPreferenceStore.OverlayKey(
+        OverlayPreferenceStore.BOOLEAN,
         PreferenceConstants.EDITOR_SOURCE_HOVER_BACKGROUND_COLOR_SYSTEM_DEFAULT));
 
     OverlayPreferenceStore.OverlayKey[] keys = new OverlayPreferenceStore.OverlayKey[overlayKeys.size()];
@@ -465,8 +483,10 @@ class DartEditorAppearanceConfigurationBlock extends AbstractConfigurationBlock 
       if (rgb == null) {
         rgb = display.getSystemColor(SWT.COLOR_INFO_BACKGROUND).getRGB();
       }
-      PreferenceConverter.setValue(getPreferenceStore(),
-          PreferenceConstants.EDITOR_SOURCE_HOVER_BACKGROUND_COLOR, rgb);
+      PreferenceConverter.setValue(
+          getPreferenceStore(),
+          PreferenceConstants.EDITOR_SOURCE_HOVER_BACKGROUND_COLOR,
+          rgb);
     }
   }
 

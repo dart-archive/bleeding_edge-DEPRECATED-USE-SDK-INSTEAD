@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
@@ -139,7 +137,8 @@ public final class CompletionProposalComputerRegistry {
   public void reload() {
     IExtensionRegistry registry = Platform.getExtensionRegistry();
     List elements = new ArrayList(Arrays.asList(registry.getConfigurationElementsFor(
-        DartToolsPlugin.getPluginId(), EXTENSION_POINT)));
+        DartToolsPlugin.getPluginId(),
+        EXTENSION_POINT)));
 
     Map map = new HashMap();
     List all = new ArrayList();
@@ -149,7 +148,9 @@ public final class CompletionProposalComputerRegistry {
       IConfigurationElement element = (IConfigurationElement) iter.next();
       try {
         CompletionProposalComputerDescriptor desc = new CompletionProposalComputerDescriptor(
-            element, this, categories);
+            element,
+            this,
+            categories);
         Set partitions = desc.getPartitions();
         for (Iterator it = partitions.iterator(); it.hasNext();) {
           String partition = (String) it.next();
@@ -169,9 +170,14 @@ public final class CompletionProposalComputerRegistry {
          */
         Object[] args = {element.toString()};
         String message = Messages.format(
-            DartTextMessages.CompletionProposalComputerRegistry_invalid_message, args);
-        IStatus status = new Status(IStatus.WARNING, DartToolsPlugin.getPluginId(), IStatus.OK,
-            message, x);
+            DartTextMessages.CompletionProposalComputerRegistry_invalid_message,
+            args);
+        IStatus status = new Status(
+            IStatus.WARNING,
+            DartToolsPlugin.getPluginId(),
+            IStatus.OK,
+            message,
+            x);
         informUser(status);
       }
     }
@@ -342,9 +348,14 @@ public final class CompletionProposalComputerRegistry {
          */
         Object[] args = {element.toString()};
         String message = Messages.format(
-            DartTextMessages.CompletionProposalComputerRegistry_invalid_message, args);
-        IStatus status = new Status(IStatus.WARNING, DartToolsPlugin.getPluginId(), IStatus.OK,
-            message, x);
+            DartTextMessages.CompletionProposalComputerRegistry_invalid_message,
+            args);
+        IStatus status = new Status(
+            IStatus.WARNING,
+            DartToolsPlugin.getPluginId(),
+            IStatus.OK,
+            message,
+            x);
         informUser(status);
       }
     }
@@ -368,8 +379,8 @@ public final class CompletionProposalComputerRegistry {
     final String culpritName = culprit == null ? null : culprit.getName();
     if (affectedPlugins.isEmpty()) {
       avoidHint = Messages.format(
-          DartTextMessages.CompletionProposalComputerRegistry_messageAvoidanceHint, new Object[] {
-              culpritName, category.getDisplayName()});
+          DartTextMessages.CompletionProposalComputerRegistry_messageAvoidanceHint,
+          new Object[] {culpritName, category.getDisplayName()});
     } else {
       avoidHint = Messages.format(
           DartTextMessages.CompletionProposalComputerRegistry_messageAvoidanceHintWithWarning,
@@ -378,9 +389,14 @@ public final class CompletionProposalComputerRegistry {
 
     String message = status.getMessage();
     // inlined from MessageDialog.openError
-    MessageDialog dialog = new MessageDialog(DartToolsPlugin.getActiveWorkbenchShell(), title,
-        null /* default image */, message, MessageDialog.ERROR,
-        new String[] {IDialogConstants.OK_LABEL}, 0) {
+    MessageDialog dialog = new MessageDialog(
+        DartToolsPlugin.getActiveWorkbenchShell(),
+        title,
+        null /* default image */,
+        message,
+        MessageDialog.ERROR,
+        new String[] {IDialogConstants.OK_LABEL},
+        0) {
       @Override
       protected Control createCustomArea(Composite parent) {
         Link link = new Link(parent, SWT.NONE);

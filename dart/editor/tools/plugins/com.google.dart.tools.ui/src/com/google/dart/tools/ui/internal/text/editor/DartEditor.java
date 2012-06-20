@@ -557,7 +557,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
             next = linkedPositionEnd;
           }
         } else {
-          LinkedPosition nextLinkedPosition = model.findPosition(new LinkedPosition(document, next,
+          LinkedPosition nextLinkedPosition = model.findPosition(new LinkedPosition(
+              document,
+              next,
               0));
           if (nextLinkedPosition != null) {
             int nextLinkedPositionOffset = nextLinkedPosition.getOffset();
@@ -659,8 +661,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
             previous = linkedPositionOffset;
           }
         } else {
-          LinkedPosition previousLinkedPosition = model.findPosition(new LinkedPosition(document,
-              previous, 0));
+          LinkedPosition previousLinkedPosition = model.findPosition(new LinkedPosition(
+              document,
+              previous,
+              0));
           if (previousLinkedPosition != null) {
             int previousLinkedPositionEnd = previousLinkedPosition.getOffset()
                 + previousLinkedPosition.getLength();
@@ -2412,7 +2416,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         action,
         DartHelpContextIds.CALL_HIERARCHY_VIEW);
 
-    action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
+    action = new TextOperationAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "ShowOutline.", this, DartSourceViewer.SHOW_OUTLINE, true); //$NON-NLS-1$
     action.setActionDefinitionId(DartEditorActionDefinitionIds.SHOW_OUTLINE);
     setAction(DartEditorActionDefinitionIds.SHOW_OUTLINE, action);
@@ -2420,7 +2425,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         action,
         DartHelpContextIds.SHOW_OUTLINE_ACTION);
 
-    action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
+    action = new TextOperationAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "OpenStructure.", this, DartSourceViewer.OPEN_STRUCTURE, true); //$NON-NLS-1$
     action.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_STRUCTURE);
     setAction(DartEditorActionDefinitionIds.OPEN_STRUCTURE, action);
@@ -2428,7 +2434,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         action,
         DartHelpContextIds.OPEN_STRUCTURE_ACTION);
 
-    action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
+    action = new TextOperationAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "OpenHierarchy.", this, DartSourceViewer.SHOW_HIERARCHY, true); //$NON-NLS-1$
     action.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
     setAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY, action);
@@ -2450,7 +2457,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     action.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_PREVIOUS);
     setAction(StructureSelectionAction.PREVIOUS, action);
 
-    StructureSelectHistoryAction historyAction = new StructureSelectHistoryAction(this,
+    StructureSelectHistoryAction historyAction = new StructureSelectHistoryAction(
+        this,
         fSelectionHistory);
     historyAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_LAST);
     setAction(StructureSelectionAction.HISTORY, historyAction);
@@ -2474,7 +2482,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     setAction("RemoveOccurrenceAnnotations", action); //$NON-NLS-1$
 
     // add annotation actions for roll-over expand hover
-    action = new DartSelectMarkerRulerAction2(DartEditorMessages.getBundleForConstructedKeys(),
+    action = new DartSelectMarkerRulerAction2(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "Editor.RulerAnnotationSelection.", this); //$NON-NLS-1$
     setAction("AnnotationAction", action); //$NON-NLS-1$
 
@@ -2486,15 +2495,18 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     // replace cut/copy paste actions with a version that implement 'add imports
     // on paste'
 
-    action = new ClipboardOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
+    action = new ClipboardOperationAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "Editor.Cut.", this, ITextOperationTarget.CUT); //$NON-NLS-1$
     setAction(ITextEditorActionConstants.CUT, action);
 
-    action = new ClipboardOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
+    action = new ClipboardOperationAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "Editor.Copy.", this, ITextOperationTarget.COPY); //$NON-NLS-1$
     setAction(ITextEditorActionConstants.COPY, action);
 
-    action = new ClipboardOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
+    action = new ClipboardOperationAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "Editor.Paste.", this, ITextOperationTarget.PASTE); //$NON-NLS-1$
     setAction(ITextEditorActionConstants.PASTE, action);
 
@@ -2560,8 +2572,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected ISourceViewer createDartSourceViewer(Composite parent, IVerticalRuler verticalRuler,
       IOverviewRuler overviewRuler, boolean isOverviewRulerVisible, int styles,
       IPreferenceStore store) {
-    return new DartSourceViewer(parent, verticalRuler, getOverviewRuler(),
-        isOverviewRulerVisible(), styles, store);
+    return new DartSourceViewer(
+        parent,
+        verticalRuler,
+        getOverviewRuler(),
+        isOverviewRulerVisible(),
+        styles,
+        store);
   }
 
   /**
@@ -2571,8 +2588,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   protected DartSourceViewerConfiguration createDartSourceViewerConfiguration() {
     DartTextTools textTools = DartToolsPlugin.getDefault().getJavaTextTools();
-    return new DartSourceViewerConfiguration(textTools.getColorManager(), getPreferenceStore(),
-        this, DartPartitions.DART_PARTITIONING);
+    return new DartSourceViewerConfiguration(
+        textTools.getColorManager(),
+        getPreferenceStore(),
+        this,
+        DartPartitions.DART_PARTITIONING);
   }
 
   /*
@@ -2657,7 +2677,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
 
     ProjectionViewer projectionViewer = (ProjectionViewer) viewer;
-    fProjectionSupport = new ProjectionSupport(projectionViewer, getAnnotationAccess(),
+    fProjectionSupport = new ProjectionSupport(
+        projectionViewer,
+        getAnnotationAccess(),
         getSharedColors());
     fProjectionSupport.addSummarizableAnnotationType("org.eclipse.ui.workbench.texteditor.error"); //$NON-NLS-1$
     fProjectionSupport.addSummarizableAnnotationType("org.eclipse.ui.workbench.texteditor.warning"); //$NON-NLS-1$
@@ -2666,8 +2688,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     fProjectionSupport.setHoverControlCreator(new IInformationControlCreator() {
       @Override
       public IInformationControl createInformationControl(Shell shell) {
-        return new SourceViewerInformationControl(shell, SWT.TOOL | SWT.NO_TRIM | getOrientation(),
-            SWT.NONE, EditorsUI.getTooltipAffordanceString());
+        return new SourceViewerInformationControl(
+            shell,
+            SWT.TOOL | SWT.NO_TRIM | getOrientation(),
+            SWT.NONE,
+            EditorsUI.getTooltipAffordanceString());
       }
     });
     fProjectionSupport.setInformationPresenterControlCreator(new IInformationControlCreator() {
@@ -3012,7 +3037,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected IOperationApprover getUndoRedoOperationApprover(IUndoContext undoContext) {
     // since IResource is a more general way to compare dart elements, we
     // use this as the preferred class for comparing objects.
-    return new NonLocalUndoUserApprover(undoContext, this, new Object[] {getInputDartElement()},
+    return new NonLocalUndoUserApprover(
+        undoContext,
+        this,
+        new Object[] {getInputDartElement()},
         IResource.class);
   }
 
@@ -3431,8 +3459,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     super.setPreferenceStore(store);
     if (getSourceViewerConfiguration() instanceof DartSourceViewerConfiguration) {
       DartTextTools textTools = DartToolsPlugin.getDefault().getJavaTextTools();
-      setSourceViewerConfiguration(new DartSourceViewerConfiguration(textTools.getColorManager(),
-          store, this, DartPartitions.DART_PARTITIONING));
+      setSourceViewerConfiguration(new DartSourceViewerConfiguration(
+          textTools.getColorManager(),
+          store,
+          this,
+          DartPartitions.DART_PARTITIONING));
     }
     if (getSourceViewer() instanceof DartSourceViewer) {
       ((DartSourceViewer) getSourceViewer()).setPreferenceStore(store);
@@ -3647,8 +3678,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     List<DartNode> matches = null;
 
     CompilationUnit input = getInputDartElement().getAncestor(CompilationUnit.class);
-    DartElementLocator locator = new DartElementLocator(input, selection.getOffset(),
-        selection.getOffset() + selection.getLength(), true);
+    DartElementLocator locator = new DartElementLocator(
+        input,
+        selection.getOffset(),
+        selection.getOffset() + selection.getLength(),
+        true);
     try {
       if (astRoot.getLibrary() == null) {
         // if astRoot is from ExternalCompilationUnit then it needs to be resolved; it is apparently not cached
@@ -3735,7 +3769,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     int i = 0;
     for (Iterator<DartNode> each = matches.iterator(); each.hasNext();) {
       DartNode currentNode = each.next();
-      positions[i++] = new Position(currentNode.getSourceInfo().getOffset(),
+      positions[i++] = new Position(
+          currentNode.getSourceInfo().getOffset(),
           currentNode.getSourceInfo().getLength());
     }
 
@@ -3845,7 +3880,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     DartProject project = EditorUtility.getDartProject(input);
     if (project != null) {
-      stores.add(new EclipsePreferencesAdapter(new ProjectScope(project.getProject()),
+      stores.add(new EclipsePreferencesAdapter(
+          new ProjectScope(project.getProject()),
           DartCore.PLUGIN_ID));
     }
 

@@ -80,10 +80,10 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
 
     IPath locationPath = new Path(page.getLocationURI().getPath());
 
-    DartToolsPlugin.getDefault()
-        .getDialogSettingsSection(NewApplicationCreationPage.NEW_APPPLICATION_SETTINGS).put(
-            NewApplicationCreationPage.PARENT_DIR,
-            locationPath.removeLastSegments(1).toPortableString());
+    DartToolsPlugin.getDefault().getDialogSettingsSection(
+        NewApplicationCreationPage.NEW_APPPLICATION_SETTINGS).put(
+        NewApplicationCreationPage.PARENT_DIR,
+        locationPath.removeLastSegments(1).toPortableString());
 
     if (isNestedByAnExistingProject(locationPath)) {
       createFolder(locationPath);
@@ -126,15 +126,20 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
       @Override
       public void run(IProgressMonitor monitor) throws InvocationTargetException {
         AbstractOperation op;
-        op = new CreateFolderOperation(newFolderHandle, null,
+        op = new CreateFolderOperation(
+            newFolderHandle,
+            null,
             IDEWorkbenchMessages.WizardNewFolderCreationPage_title);
         try {
 
           IStatus status = op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(getShell()));
 
           if (status.isOK() && projectType != ProjectType.NONE) {
-            createdFile = createProjectContent(newProject,
-                newFolderHandle.getLocation().toOSString(), newFolderHandle.getName(), projectType);
+            createdFile = createProjectContent(
+                newProject,
+                newFolderHandle.getLocation().toOSString(),
+                newFolderHandle.getName(),
+                projectType);
           }
 
         } catch (ExecutionException e) {
@@ -153,10 +158,14 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
       // ExecutionExceptions are handled above, but unexpected runtime
       // exceptions and errors may still occur.
       IDEWorkbenchPlugin.log(getClass(), "createNewFolder()", e.getTargetException()); //$NON-NLS-1$
-      MessageDialog.open(MessageDialog.ERROR, getContainer().getShell(),
-          IDEWorkbenchMessages.WizardNewFolderCreationPage_internalErrorTitle, NLS.bind(
+      MessageDialog.open(
+          MessageDialog.ERROR,
+          getContainer().getShell(),
+          IDEWorkbenchMessages.WizardNewFolderCreationPage_internalErrorTitle,
+          NLS.bind(
               IDEWorkbenchMessages.WizardNewFolder_internalError,
-              e.getTargetException().getMessage()), SWT.SHEET);
+              e.getTargetException().getMessage()),
+          SWT.SHEET);
 
     }
 
@@ -197,14 +206,17 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
     IRunnableWithProgress op = new IRunnableWithProgress() {
       @Override
       public void run(IProgressMonitor monitor) throws InvocationTargetException {
-        CreateProjectOperation op = new CreateProjectOperation(description,
+        CreateProjectOperation op = new CreateProjectOperation(
+            description,
             ResourceMessages.NewProject_windowTitle);
         try {
           IStatus status = op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(getShell()));
 
           if (status.isOK() && projectType != ProjectType.NONE) {
-            createdFile = createProjectContent(newProjectHandle,
-                newProjectHandle.getLocation().toOSString(), newProjectHandle.getName(),
+            createdFile = createProjectContent(
+                newProjectHandle,
+                newProjectHandle.getLocation().toOSString(),
+                newProjectHandle.getName(),
                 projectType);
           }
         } catch (ExecutionException e) {
@@ -227,20 +239,29 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
         if (cause.getStatus().getCode() == IResourceStatus.CASE_VARIANT_EXISTS) {
           status = new StatusAdapter(StatusUtil.newStatus(
               IStatus.WARNING,
-              NLS.bind(ResourceMessages.NewProject_caseVariantExistsError,
-                  newProjectHandle.getName()), cause));
+              NLS.bind(
+                  ResourceMessages.NewProject_caseVariantExistsError,
+                  newProjectHandle.getName()),
+              cause));
         } else {
-          status = new StatusAdapter(StatusUtil.newStatus(cause.getStatus().getSeverity(),
-              ResourceMessages.NewProject_errorMessage, cause));
+          status = new StatusAdapter(StatusUtil.newStatus(
+              cause.getStatus().getSeverity(),
+              ResourceMessages.NewProject_errorMessage,
+              cause));
         }
-        status.setProperty(IStatusAdapterConstants.TITLE_PROPERTY,
+        status.setProperty(
+            IStatusAdapterConstants.TITLE_PROPERTY,
             ResourceMessages.NewProject_errorMessage);
         StatusManager.getManager().handle(status, StatusManager.BLOCK);
       } else {
-        StatusAdapter status = new StatusAdapter(new Status(IStatus.WARNING,
-            IDEWorkbenchPlugin.IDE_WORKBENCH, 0, NLS.bind(
-                ResourceMessages.NewProject_internalError, t.getMessage()), t));
-        status.setProperty(IStatusAdapterConstants.TITLE_PROPERTY,
+        StatusAdapter status = new StatusAdapter(new Status(
+            IStatus.WARNING,
+            IDEWorkbenchPlugin.IDE_WORKBENCH,
+            0,
+            NLS.bind(ResourceMessages.NewProject_internalError, t.getMessage()),
+            t));
+        status.setProperty(
+            IStatusAdapterConstants.TITLE_PROPERTY,
             ResourceMessages.NewProject_errorMessage);
         StatusManager.getManager().handle(status, StatusManager.LOG | StatusManager.BLOCK);
       }

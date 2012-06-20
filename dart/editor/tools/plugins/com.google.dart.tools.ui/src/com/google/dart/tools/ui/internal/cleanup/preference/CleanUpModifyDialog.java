@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.cleanup.preference;
@@ -49,7 +47,13 @@ public class CleanUpModifyDialog extends ModifyDialog {
   public CleanUpModifyDialog(Shell parentShell, Profile profile, ProfileManager profileManager,
       ProfileStore profileStore, boolean newProfile, String dialogPreferencesKey,
       String lastSavePathKey) {
-    super(parentShell, profile, profileManager, profileStore, newProfile, dialogPreferencesKey,
+    super(
+        parentShell,
+        profile,
+        profileManager,
+        profileStore,
+        newProfile,
+        dialogPreferencesKey,
         lastSavePathKey);
   }
 
@@ -60,7 +64,9 @@ public class CleanUpModifyDialog extends ModifyDialog {
       count += fPages[i].getSelectedCleanUpCount();
     }
     if (count == 0) {
-      super.updateStatus(new Status(IStatus.ERROR, DartUI.ID_PLUGIN,
+      super.updateStatus(new Status(
+          IStatus.ERROR,
+          DartUI.ID_PLUGIN,
           CleanUpMessages.CleanUpModifyDialog_SelectOne_Error));
     } else {
       super.updateStatus(status);
@@ -126,7 +132,8 @@ public class CleanUpModifyDialog extends ModifyDialog {
       count += fPages[i].getSelectedCleanUpCount();
     }
 
-    fCountLabel.setText(Messages.format(CleanUpMessages.CleanUpModifyDialog_XofYSelected_Label,
+    fCountLabel.setText(Messages.format(
+        CleanUpMessages.CleanUpModifyDialog_XofYSelected_Label,
         new Object[] {new Integer(count), new Integer(size)}));
   }
 }

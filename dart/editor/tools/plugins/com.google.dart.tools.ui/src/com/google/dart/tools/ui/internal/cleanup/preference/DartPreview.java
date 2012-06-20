@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.cleanup.preference;
@@ -138,14 +136,19 @@ public abstract class DartPreview {
     // Don't set caret to 'null' as this causes https://bugs.eclipse.org/293263
 //		fSourceViewer.getTextWidget().setCaret(null);
 
-    fViewerConfiguration = new SimpleDartSourceViewerConfiguration(tools.getColorManager(),
-        fPreferenceStore, null, DartPartitions.DART_PARTITIONING, true);
+    fViewerConfiguration = new SimpleDartSourceViewerConfiguration(
+        tools.getColorManager(),
+        fPreferenceStore,
+        null,
+        DartPartitions.DART_PARTITIONING,
+        true);
     fSourceViewer.configure(fViewerConfiguration);
     fSourceViewer.getTextWidget().setFont(
         JFaceResources.getFont(PreferenceConstants.EDITOR_TEXT_FONT));
 
     fMarginPainter = new MarginPainter(fSourceViewer);
-    final RGB rgb = PreferenceConverter.getColor(fPreferenceStore,
+    final RGB rgb = PreferenceConverter.getColor(
+        fPreferenceStore,
         AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLOR);
     fMarginPainter.setMarginRulerColor(tools.getColorManager().getColor(rgb));
     fSourceViewer.addPainter(fMarginPainter);
@@ -191,7 +194,8 @@ public abstract class DartPreview {
 
     // update the tab size
     final int tabSize = getPositiveIntValue(
-        fWorkingValues.get(DefaultCodeFormatterConstants.FORMATTER_TAB_SIZE), 0);
+        fWorkingValues.get(DefaultCodeFormatterConstants.FORMATTER_TAB_SIZE),
+        0);
     if (tabSize != fTabSize) {
       fSourceViewer.getTextWidget().setTabs(tabSize);
     }

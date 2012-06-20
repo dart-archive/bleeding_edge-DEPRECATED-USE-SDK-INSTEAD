@@ -126,13 +126,15 @@ public class OpenAction extends SelectionDispatchAction {
         selectInEditor(part, (DartElement) elementToOpen, candidateRegion);
       }
     } catch (PartInitException exception) {
-      String message = Messages.format(ActionMessages.OpenAction_error_problem_opening_editor,
+      String message = Messages.format(
+          ActionMessages.OpenAction_error_problem_opening_editor,
           new String[] {
               DartElementLabels.getTextLabel(element, DartElementLabels.ALL_DEFAULT),
               exception.getStatus().getMessage()});
       status = new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, IStatus.ERROR, message, null);
     } catch (CoreException exception) {
-      String message = Messages.format(ActionMessages.OpenAction_error_problem_opening_editor,
+      String message = Messages.format(
+          ActionMessages.OpenAction_error_problem_opening_editor,
           new String[] {
               DartElementLabels.getTextLabel(element, DartElementLabels.ALL_DEFAULT),
               exception.getStatus().getMessage()});
@@ -140,7 +142,10 @@ public class OpenAction extends SelectionDispatchAction {
       DartToolsPlugin.log(exception);
     }
     if (!status.isOK()) {
-      ErrorDialog.openError(getShell(), getDialogTitle(), ActionMessages.OpenAction_error_message,
+      ErrorDialog.openError(
+          getShell(),
+          getDialogTitle(),
+          ActionMessages.OpenAction_error_message,
           status);
     }
   }
@@ -164,8 +169,10 @@ public class OpenAction extends SelectionDispatchAction {
     if (!(element instanceof CompilationUnit)) {
       return;
     }
-    DartElementLocator locator = new DartElementLocator((CompilationUnit) element,
-        selection.getOffset(), selection.getOffset());
+    DartElementLocator locator = new DartElementLocator(
+        (CompilationUnit) element,
+        selection.getOffset(),
+        selection.getOffset());
     DartUnit unit = fEditor.getAST();
     DartElement targetElement = unit == null ? null : locator.searchWithin(unit);
     if (targetElement == null) {
@@ -230,8 +237,11 @@ public class OpenAction extends SelectionDispatchAction {
       return;
     }
 
-    MultiStatus status = new MultiStatus(DartToolsPlugin.PLUGIN_ID, IStatus.OK,
-        ActionMessages.OpenAction_multistatus_message, null);
+    MultiStatus status = new MultiStatus(
+        DartToolsPlugin.PLUGIN_ID,
+        IStatus.OK,
+        ActionMessages.OpenAction_multistatus_message,
+        null);
 
     for (int i = 0; i < elements.length; i++) {
       Object element = elements[i];
@@ -243,25 +253,38 @@ public class OpenAction extends SelectionDispatchAction {
           selectInEditor(part, (DartElement) element);
         }
       } catch (PartInitException e) {
-        String message = Messages.format(ActionMessages.OpenAction_error_problem_opening_editor,
+        String message = Messages.format(
+            ActionMessages.OpenAction_error_problem_opening_editor,
             new String[] {
                 DartElementLabels.getTextLabel(element, DartElementLabels.ALL_DEFAULT),
                 e.getStatus().getMessage()});
-        status.add(new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, IStatus.ERROR, message,
+        status.add(new Status(
+            IStatus.ERROR,
+            DartToolsPlugin.PLUGIN_ID,
+            IStatus.ERROR,
+            message,
             null));
       } catch (CoreException e) {
-        String message = Messages.format(ActionMessages.OpenAction_error_problem_opening_editor,
+        String message = Messages.format(
+            ActionMessages.OpenAction_error_problem_opening_editor,
             new String[] {
                 DartElementLabels.getTextLabel(element, DartElementLabels.ALL_DEFAULT),
                 e.getStatus().getMessage()});
-        status.add(new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, IStatus.ERROR, message,
+        status.add(new Status(
+            IStatus.ERROR,
+            DartToolsPlugin.PLUGIN_ID,
+            IStatus.ERROR,
+            message,
             null));
         DartToolsPlugin.log(e);
       }
     }
     if (!status.isOK()) {
       IStatus[] children = status.getChildren();
-      ErrorDialog.openError(getShell(), getDialogTitle(), ActionMessages.OpenAction_error_message,
+      ErrorDialog.openError(
+          getShell(),
+          getDialogTitle(),
+          ActionMessages.OpenAction_error_message,
           children.length == 1 ? children[0] : status);
     }
   }

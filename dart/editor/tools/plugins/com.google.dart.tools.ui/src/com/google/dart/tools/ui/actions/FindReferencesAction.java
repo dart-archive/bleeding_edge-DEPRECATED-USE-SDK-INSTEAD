@@ -83,7 +83,8 @@ public class FindReferencesAction extends FindAction {
     setText(SearchMessages.Search_FindReferencesAction_label);
     setToolTipText(SearchMessages.Search_FindReferencesAction_tooltip);
     setImageDescriptor(DartPluginImages.DESC_OBJS_SEARCH_REF);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.FIND_REFERENCES_IN_WORKSPACE_ACTION);
   }
 }

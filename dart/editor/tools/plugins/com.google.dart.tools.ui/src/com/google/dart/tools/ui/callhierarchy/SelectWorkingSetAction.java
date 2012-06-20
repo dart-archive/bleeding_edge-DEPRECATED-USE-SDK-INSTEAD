@@ -26,7 +26,8 @@ class SelectWorkingSetAction extends Action {
     super(CallHierarchyMessages.SearchScopeActionGroup_workingset_select_text);
     this.fGroup = group;
     setToolTipText(CallHierarchyMessages.SearchScopeActionGroup_workingset_select_tooltip);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.CALL_HIERARCHY_SEARCH_SCOPE_ACTION);
   }
 

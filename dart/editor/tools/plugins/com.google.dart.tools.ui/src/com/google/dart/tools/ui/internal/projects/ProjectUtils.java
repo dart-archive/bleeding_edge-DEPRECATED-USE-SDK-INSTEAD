@@ -78,7 +78,8 @@ public class ProjectUtils {
     IRunnableWithProgress op = new IRunnableWithProgress() {
       @Override
       public void run(IProgressMonitor monitor) throws InvocationTargetException {
-        CreateProjectOperation op = new CreateProjectOperation(description,
+        CreateProjectOperation op = new CreateProjectOperation(
+            description,
             ResourceMessages.NewProject_windowTitle);
         try {
           IStatus status = op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(shell));
@@ -106,20 +107,29 @@ public class ProjectUtils {
         if (cause.getStatus().getCode() == IResourceStatus.CASE_VARIANT_EXISTS) {
           status = new StatusAdapter(StatusUtil.newStatus(
               IStatus.WARNING,
-              NLS.bind(ResourceMessages.NewProject_caseVariantExistsError,
-                  newProjectHandle.getName()), cause));
+              NLS.bind(
+                  ResourceMessages.NewProject_caseVariantExistsError,
+                  newProjectHandle.getName()),
+              cause));
         } else {
-          status = new StatusAdapter(StatusUtil.newStatus(cause.getStatus().getSeverity(),
-              ResourceMessages.NewProject_errorMessage, cause));
+          status = new StatusAdapter(StatusUtil.newStatus(
+              cause.getStatus().getSeverity(),
+              ResourceMessages.NewProject_errorMessage,
+              cause));
         }
-        status.setProperty(IStatusAdapterConstants.TITLE_PROPERTY,
+        status.setProperty(
+            IStatusAdapterConstants.TITLE_PROPERTY,
             ResourceMessages.NewProject_errorMessage);
         StatusManager.getManager().handle(status, StatusManager.BLOCK);
       } else {
-        StatusAdapter status = new StatusAdapter(new Status(IStatus.WARNING,
-            IDEWorkbenchPlugin.IDE_WORKBENCH, 0, NLS.bind(
-                ResourceMessages.NewProject_internalError, t.getMessage()), t));
-        status.setProperty(IStatusAdapterConstants.TITLE_PROPERTY,
+        StatusAdapter status = new StatusAdapter(new Status(
+            IStatus.WARNING,
+            IDEWorkbenchPlugin.IDE_WORKBENCH,
+            0,
+            NLS.bind(ResourceMessages.NewProject_internalError, t.getMessage()),
+            t));
+        status.setProperty(
+            IStatusAdapterConstants.TITLE_PROPERTY,
             ResourceMessages.NewProject_errorMessage);
         StatusManager.getManager().handle(status, StatusManager.LOG | StatusManager.BLOCK);
       }
@@ -135,7 +145,8 @@ public class ProjectUtils {
    * @see ISetSelectionTarget
    */
   public static void selectAndReveal(IResource newResource) {
-    BasicNewResourceWizard.selectAndReveal(newResource,
+    BasicNewResourceWizard.selectAndReveal(
+        newResource,
         PlatformUI.getWorkbench().getActiveWorkbenchWindow());
   }
 

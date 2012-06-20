@@ -504,8 +504,13 @@ public final class DartUI {
 //    } else {
 //      throw new IllegalArgumentException("Invalid style constant."); //$NON-NLS-1$
 //    }
-    FilteredTypesSelectionDialog dialog = new FilteredTypesSelectionDialog(parent,
-        multipleSelection, context, scope, elementKinds, extension);
+    FilteredTypesSelectionDialog dialog = new FilteredTypesSelectionDialog(
+        parent,
+        multipleSelection,
+        context,
+        scope,
+        elementKinds,
+        extension);
     dialog.setMessage(DartUIMessages.JavaUI_defaultDialogMessage);
     dialog.setInitialPattern(filter);
     return dialog;

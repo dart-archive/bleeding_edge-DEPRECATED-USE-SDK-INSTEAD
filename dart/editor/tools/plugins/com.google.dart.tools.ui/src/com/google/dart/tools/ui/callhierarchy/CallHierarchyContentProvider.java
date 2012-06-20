@@ -290,7 +290,9 @@ public class CallHierarchyContentProvider implements ITreeContentProvider {
           }
         }
         if (treeContentManager != null) {
-          Object[] children = treeContentManager.getChildren(new DeferredMethodWrapper(this, methodWrapper));
+          Object[] children = treeContentManager.getChildren(new DeferredMethodWrapper(
+              this,
+              methodWrapper));
           if (children != null) {
             return children;
           }
@@ -358,7 +360,9 @@ public class CallHierarchyContentProvider implements ITreeContentProvider {
       cancelJobs(roots);
     }
     if (viewer instanceof AbstractTreeViewer) {
-      treeContentManager = new DeferredTreeContentManager((AbstractTreeViewer) viewer, chvPart.getSite());
+      treeContentManager = new DeferredTreeContentManager(
+          (AbstractTreeViewer) viewer,
+          chvPart.getSite());
     }
   }
 
@@ -406,7 +410,8 @@ public class CallHierarchyContentProvider implements ITreeContentProvider {
     try {
       context.run(true, true, runnable);
     } catch (InvocationTargetException e) {
-      ExceptionHandler.handle(e,
+      ExceptionHandler.handle(
+          e,
           CallHierarchyMessages.CallHierarchyContentProvider_searchError_title,
           CallHierarchyMessages.CallHierarchyContentProvider_searchError_message);
       return EMPTY_ARRAY;

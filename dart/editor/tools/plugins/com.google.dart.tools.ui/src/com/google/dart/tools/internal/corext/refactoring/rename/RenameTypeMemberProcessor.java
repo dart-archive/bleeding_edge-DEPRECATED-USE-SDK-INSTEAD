@@ -106,8 +106,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
             RefactoringCoreMessages.RenameProcessor_enclosing_type_member_already_defined,
             new Object[] {
                 enclosingType.getElementName(),
-                BasicElementLabels.getPathLabel(resourcePath, false),
-                newName});
+                BasicElementLabels.getPathLabel(resourcePath, false), newName});
         result.addError(message, DartStatusContext.create(existingMember));
       }
     }
@@ -141,8 +140,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
   }
 
   @Override
-  protected RefactoringStatus doCheckFinalConditions(
-      IProgressMonitor pm,
+  protected RefactoringStatus doCheckFinalConditions(IProgressMonitor pm,
       CheckConditionsContext context) throws CoreException {
     try {
       pm.beginTask("", 19); //$NON-NLS-1$
@@ -231,8 +229,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
             String message = Messages.format(
                 RefactoringCoreMessages.RenameProcessor_topLevelDecl_shadowedBy_element,
                 new Object[] {
-                    RenameAnalyzeUtil.getElementTypeName(topLevelElement),
-                    newName,
+                    RenameAnalyzeUtil.getElementTypeName(topLevelElement), newName,
                     BasicElementLabels.getPathLabel(resourcePath, false),
                     BasicElementLabels.getPathLabel(libraryPath, false),
                     RenameAnalyzeUtil.getElementTypeName(member)});
@@ -246,8 +243,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
                 String message = Messages.format(
                     RefactoringCoreMessages.RenameProcessor_topLevelUsage_shadowedBy_element,
                     new Object[] {
-                        RenameAnalyzeUtil.getElementTypeName(topLevelElement),
-                        newName,
+                        RenameAnalyzeUtil.getElementTypeName(topLevelElement), newName,
                         BasicElementLabels.getPathLabel(resourcePath, false),
                         BasicElementLabels.getPathLabel(libraryPath, false),
                         RenameAnalyzeUtil.getElementTypeName(member)});
@@ -264,10 +260,8 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
                     RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_topLevel,
                     new Object[] {
                         RenameAnalyzeUtil.getElementTypeName(member),
-                        enclosingType.getElementName(),
-                        member.getElementName(),
-                        RenameAnalyzeUtil.getElementTypeName(topLevelElement),
-                        newName,
+                        enclosingType.getElementName(), member.getElementName(),
+                        RenameAnalyzeUtil.getElementTypeName(topLevelElement), newName,
                         BasicElementLabels.getPathLabel(resourcePath, false),
                         BasicElementLabels.getPathLabel(libraryPath, false)});
                 result.addError(message, DartStatusContext.create(ref));
@@ -290,8 +284,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
                   RefactoringCoreMessages.RenameProcessor_typeMemberDecl_shadowedBy_element,
                   new Object[] {
                       RenameAnalyzeUtil.getElementTypeName(superTypeMember),
-                      superType.getElementName(),
-                      newName,
+                      superType.getElementName(), newName,
                       BasicElementLabels.getPathLabel(resourcePath, false),
                       RenameAnalyzeUtil.getElementTypeName(member)});
               result.addWarning(message, DartStatusContext.create(superTypeMember));
@@ -307,8 +300,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
                         RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_element,
                         new Object[] {
                             RenameAnalyzeUtil.getElementTypeName(superTypeMember),
-                            superType.getElementName(),
-                            newName,
+                            superType.getElementName(), newName,
                             BasicElementLabels.getPathLabel(resourcePath, false),
                             RenameAnalyzeUtil.getElementTypeName(member)});
                     result.addError(message, DartStatusContext.create(ref));
@@ -335,11 +327,8 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
                 String message = Messages.format(
                     RefactoringCoreMessages.RenameProcessor_typeMemberDecl_shadowedBy_element,
                     new Object[] {
-                        RenameAnalyzeUtil.getElementTypeName(parameter),
-                        subType.getElementName(),
-                        newName,
-                        resourcePath,
-                        RenameAnalyzeUtil.getElementTypeName(member),});
+                        RenameAnalyzeUtil.getElementTypeName(parameter), subType.getElementName(),
+                        newName, resourcePath, RenameAnalyzeUtil.getElementTypeName(member),});
                 result.addWarning(message, DartStatusContext.create(parameter));
               }
               // add error for shadowing TypeParameter usage
@@ -350,9 +339,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
                       RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_element,
                       new Object[] {
                           RenameAnalyzeUtil.getElementTypeName(parameter),
-                          subType.getElementName(),
-                          newName,
-                          resourcePath,
+                          subType.getElementName(), newName, resourcePath,
                           RenameAnalyzeUtil.getElementTypeName(member),});
                   result.addError(
                       message,
@@ -372,10 +359,8 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
                   RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_typeMember,
                   new Object[] {
                       RenameAnalyzeUtil.getElementTypeName(member),
-                      RenameAnalyzeUtil.getElementTypeName(parameter),
-                      subType.getElementName(),
-                      newName,
-                      resourcePath,});
+                      RenameAnalyzeUtil.getElementTypeName(parameter), subType.getElementName(),
+                      newName, resourcePath,});
               result.addWarning(message, DartStatusContext.create(parameter));
             }
             // add error for shadowing member usage
@@ -385,10 +370,8 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
                     RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_typeMember,
                     new Object[] {
                         RenameAnalyzeUtil.getElementTypeName(member),
-                        RenameAnalyzeUtil.getElementTypeName(parameter),
-                        subType.getElementName(),
-                        newName,
-                        resourcePath,});
+                        RenameAnalyzeUtil.getElementTypeName(parameter), subType.getElementName(),
+                        newName, resourcePath,});
                 result.addError(message, DartStatusContext.create(reference));
               }
             }
@@ -406,8 +389,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
                   new Object[] {
                       RenameAnalyzeUtil.getElementTypeName(member),
                       RenameAnalyzeUtil.getElementTypeName(subTypeMember),
-                      subType.getElementName(),
-                      newName,
+                      subType.getElementName(), newName,
                       BasicElementLabels.getPathLabel(resourcePath, false)});
               result.addWarning(message, DartStatusContext.create(subTypeMember));
             }
@@ -423,8 +405,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
                       new Object[] {
                           RenameAnalyzeUtil.getElementTypeName(member),
                           RenameAnalyzeUtil.getElementTypeName(subTypeMember),
-                          subType.getElementName(),
-                          newName,
+                          subType.getElementName(), newName,
                           BasicElementLabels.getPathLabel(resourcePath, false)});
                   result.addError(message, DartStatusContext.create(ref));
                 }
@@ -445,8 +426,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
                     new Object[] {
                         RenameAnalyzeUtil.getElementTypeName(member),
                         RenameAnalyzeUtil.getElementTypeName(variableElement),
-                        subType.getElementName(),
-                        method.getElementName(),
+                        subType.getElementName(), method.getElementName(),
                         BasicElementLabels.getPathLabel(resourcePath, false)});
                 result.addWarning(message, DartStatusContext.create(variableElement));
               }
@@ -458,8 +438,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
                       new Object[] {
                           RenameAnalyzeUtil.getElementTypeName(member),
                           RenameAnalyzeUtil.getElementTypeName(variableElement),
-                          subType.getElementName(),
-                          method.getElementName(),
+                          subType.getElementName(), method.getElementName(),
                           BasicElementLabels.getPathLabel(resourcePath, false)});
                   result.addError(message, DartStatusContext.create(match));
                 }

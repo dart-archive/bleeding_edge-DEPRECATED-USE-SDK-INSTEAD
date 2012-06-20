@@ -45,7 +45,8 @@ public class CompilationUnitEditorActionContributor extends
 
     ResourceBundle b = DartEditorMessages.getBundleForConstructedKeys();
 
-    fToggleInsertModeAction = new RetargetTextEditorAction(b,
+    fToggleInsertModeAction = new RetargetTextEditorAction(
+        b,
         "CompilationUnitEditorActionContributor.ToggleInsertMode.", IAction.AS_CHECK_BOX); //$NON-NLS-1$
 
     fToggleInsertModeAction.setActionDefinitionId(ITextEditorActionDefinitionIds.TOGGLE_INSERT_MODE);
@@ -55,7 +56,9 @@ public class CompilationUnitEditorActionContributor extends
 
     if (_showOffset) {
       fOffsetStatusField = new StatusLineContributionItem(
-          IDartEditorActionConstants.STATUS_CATEGORY_OFFSET, true, 10);
+          IDartEditorActionConstants.STATUS_CATEGORY_OFFSET,
+          true,
+          10);
     }
   }
 
@@ -120,13 +123,15 @@ public class CompilationUnitEditorActionContributor extends
 //    IAction action = getAction(textEditor, ActionFactory.REFRESH.getId());
 //    bars.setGlobalActionHandler(ActionFactory.REFRESH.getId(), action);
 
-    fToggleInsertModeAction.setAction(getAction(textEditor,
+    fToggleInsertModeAction.setAction(getAction(
+        textEditor,
         ITextEditorActionConstants.TOGGLE_INSERT_MODE));
 
     fToggleCommentAction.setAction(getAction(textEditor, "ToggleComment"));
 
     if (_showOffset && textEditorExtension != null) {
-      textEditorExtension.setStatusField(fOffsetStatusField,
+      textEditorExtension.setStatusField(
+          fOffsetStatusField,
           IDartEditorActionConstants.STATUS_CATEGORY_OFFSET);
       // fOffsetStatusField.setActionHandler(action);
     }

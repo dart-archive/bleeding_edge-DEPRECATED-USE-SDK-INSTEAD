@@ -26,10 +26,7 @@ public class ExtractLocalWizard extends RefactoringWizard {
 
     private static final String REPLACE_ALL = "replaceOccurrences"; //$NON-NLS-1$
 
-    private static Button createCheckbox(
-        Composite parent,
-        String title,
-        boolean value,
+    private static Button createCheckbox(Composite parent, String title, boolean value,
         RowLayouter layouter) {
       Button checkBox = new Button(parent, SWT.CHECK);
       checkBox.setText(title);

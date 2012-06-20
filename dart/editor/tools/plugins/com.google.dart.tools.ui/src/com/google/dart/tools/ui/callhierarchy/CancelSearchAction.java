@@ -32,7 +32,8 @@ public class CancelSearchAction extends Action {
     setToolTipText(CallHierarchyMessages.CancelSearchAction_tooltip);
     DartPluginImages.setLocalImageDescriptors(this, "ch_cancel.gif"); //$NON-NLS-1$
 
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.CALL_HIERARCHY_CANCEL_SEARCH_ACTION);
   }
 

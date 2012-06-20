@@ -73,8 +73,8 @@ final class CompletionProposalComputerDescriptor {
   private static final boolean MEASURE_PERFORMANCE = PerformanceStats.isEnabled(PERFORMANCE_EVENT);
   /**
    * Independently of the {@link PerformanceStats} service, any operation that takes longer than * *
-   * {@value} milliseconds will be flagged as an violation. This timeout does not apply to the first
-   * invocation, as it may take longer due to plug-in initialization etc. See also
+   * * {@value} milliseconds will be flagged as an violation. This timeout does not apply to the
+   * first invocation, as it may take longer due to plug-in initialization etc. See also
    * {@link #fIsReportingDelay}.
    */
   private static final long MAX_DELAY = 5000;
@@ -449,9 +449,14 @@ final class CompletionProposalComputerDescriptor {
     if (obj == null) {
       Object[] args = {getId(), fElement.getContributor().getName(), attribute};
       String message = Messages.format(
-          DartTextMessages.CompletionProposalComputerDescriptor_illegal_attribute_message, args);
-      IStatus status = new Status(IStatus.WARNING, DartToolsPlugin.getPluginId(), IStatus.OK,
-          message, null);
+          DartTextMessages.CompletionProposalComputerDescriptor_illegal_attribute_message,
+          args);
+      IStatus status = new Status(
+          IStatus.WARNING,
+          DartToolsPlugin.getPluginId(),
+          IStatus.OK,
+          message,
+          null);
       DartToolsPlugin.log(status);
       throw new InvalidRegistryObjectException();
     }
@@ -461,7 +466,8 @@ final class CompletionProposalComputerDescriptor {
     String blame = createBlameMessage();
     Object[] args = {operation};
     String reason = Messages.format(
-        DartTextMessages.CompletionProposalComputerDescriptor_reason_API, args);
+        DartTextMessages.CompletionProposalComputerDescriptor_reason_API,
+        args);
     return new Status(IStatus.WARNING, DartToolsPlugin.getPluginId(), IStatus.OK, blame
         + " " + reason, null); //$NON-NLS-1$
   }
@@ -469,7 +475,8 @@ final class CompletionProposalComputerDescriptor {
   private String createBlameMessage() {
     Object[] args = {getName(), fElement.getDeclaringExtension().getContributor().getName()};
     String disable = Messages.format(
-        DartTextMessages.CompletionProposalComputerDescriptor_blame_message, args);
+        DartTextMessages.CompletionProposalComputerDescriptor_blame_message,
+        args);
     return disable;
   }
 
@@ -485,7 +492,10 @@ final class CompletionProposalComputerDescriptor {
     // extension has become invalid - log & disable
     String blame = createBlameMessage();
     String reason = DartTextMessages.CompletionProposalComputerDescriptor_reason_invalid;
-    return new Status(IStatus.INFO, DartToolsPlugin.getPluginId(), IStatus.OK,
+    return new Status(
+        IStatus.INFO,
+        DartToolsPlugin.getPluginId(),
+        IStatus.OK,
         blame + " " + reason, x); //$NON-NLS-1$
   }
 
@@ -501,7 +511,8 @@ final class CompletionProposalComputerDescriptor {
     String blame = createBlameMessage();
     Object[] args = {operation};
     String reason = Messages.format(
-        DartTextMessages.CompletionProposalComputerDescriptor_reason_performance, args);
+        DartTextMessages.CompletionProposalComputerDescriptor_reason_performance,
+        args);
     return new Status(IStatus.WARNING, DartToolsPlugin.getPluginId(), IStatus.OK, blame
         + " " + reason, null); //$NON-NLS-1$
   }

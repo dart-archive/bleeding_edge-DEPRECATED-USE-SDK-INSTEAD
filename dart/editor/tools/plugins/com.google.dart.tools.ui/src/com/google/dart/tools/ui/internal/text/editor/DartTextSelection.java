@@ -192,8 +192,10 @@ public class DartTextSelection extends TextSelection {
       return null;
     }
     // long start= System.currentTimeMillis();
-    fPartialAST = DartToolsPlugin.getDefault().getASTProvider().getAST(fElement,
-        ASTProvider.WAIT_YES, null);
+    fPartialAST = DartToolsPlugin.getDefault().getASTProvider().getAST(
+        fElement,
+        ASTProvider.WAIT_YES,
+        null);
     // System.out.println("Time requesting partial AST: " +
     // (System.currentTimeMillis() - start));
     return fPartialAST;

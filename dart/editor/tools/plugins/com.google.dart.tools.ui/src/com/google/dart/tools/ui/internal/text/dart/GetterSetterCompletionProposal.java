@@ -85,13 +85,15 @@ public class GetterSetterCompletionProposal extends DartTypeCompletionProposal i
       buf.append(BasicElementLabels.getDartElementName(GetterSetterUtil.getGetterName(field, null)
           + "() : " + fieldTypeName)); //$NON-NLS-1$
       buf.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
-      buf.append(Messages.format(DartTextMessages.GetterSetterCompletionProposal_getter_label,
+      buf.append(Messages.format(
+          DartTextMessages.GetterSetterCompletionProposal_getter_label,
           fieldNameLabel), StyledString.QUALIFIER_STYLER);
     } else {
       buf.append(BasicElementLabels.getDartElementName(GetterSetterUtil.getSetterName(field, null)
           + '(' + fieldTypeName + ") : void")); //$NON-NLS-1$
       buf.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
-      buf.append(Messages.format(DartTextMessages.GetterSetterCompletionProposal_setter_label,
+      buf.append(Messages.format(
+          DartTextMessages.GetterSetterCompletionProposal_setter_label,
           fieldNameLabel), StyledString.QUALIFIER_STYLER);
     }
     return buf;
@@ -152,11 +154,17 @@ public class GetterSetterCompletionProposal extends DartTypeCompletionProposal i
     IRegion region = document.getLineInformationOfOffset(getReplacementOffset());
     int lineStart = region.getOffset();
     int indent = Strings.computeIndentUnits(
-        document.get(lineStart, getReplacementOffset() - lineStart), settings.tabWidth,
+        document.get(lineStart, getReplacementOffset() - lineStart),
+        settings.tabWidth,
         settings.indentWidth);
 
-    String replacement = CodeFormatterUtil.format(CodeFormatter.K_CLASS_BODY_DECLARATIONS, stub,
-        indent, null, lineDelim, fField.getDartProject());
+    String replacement = CodeFormatterUtil.format(
+        CodeFormatter.K_CLASS_BODY_DECLARATIONS,
+        stub,
+        indent,
+        null,
+        lineDelim,
+        fField.getDartProject());
 
     if (replacement.endsWith(lineDelim)) {
       replacement = replacement.substring(0, replacement.length() - lineDelim.length());

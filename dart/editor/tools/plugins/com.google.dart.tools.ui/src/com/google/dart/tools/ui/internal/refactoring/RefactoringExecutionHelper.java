@@ -65,8 +65,10 @@ public class RefactoringExecutionHelper {
         pm.beginTask("", fForked && !fForkChangeExecution ? 7 : 11); //$NON-NLS-1$
         pm.subTask(""); //$NON-NLS-1$
 
-        final RefactoringStatus status = fRefactoring.checkAllConditions(new SubProgressMonitor(pm,
-            4, SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
+        final RefactoringStatus status = fRefactoring.checkAllConditions(new SubProgressMonitor(
+            pm,
+            4,
+            SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
         if (status.getSeverity() >= fStopSeverity) {
           final boolean[] canceled = {false};
           if (fForked) {
@@ -84,9 +86,13 @@ public class RefactoringExecutionHelper {
           }
         }
 
-        fChange = fRefactoring.createChange(new SubProgressMonitor(pm, 2,
+        fChange = fRefactoring.createChange(new SubProgressMonitor(
+            pm,
+            2,
             SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
-        fChange.initializeValidationData(new SubProgressMonitor(pm, 1,
+        fChange.initializeValidationData(new SubProgressMonitor(
+            pm,
+            1,
             SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
 
         fPerformChangeOperation = new PerformChangeOperation(fChange);//RefactoringUI.createUIAwareChangeOperation(fChange);
@@ -98,7 +104,9 @@ public class RefactoringExecutionHelper {
 //        }
 
         if (!fForked || fForkChangeExecution) {
-          fPerformChangeOperation.run(new SubProgressMonitor(pm, 4,
+          fPerformChangeOperation.run(new SubProgressMonitor(
+              pm,
+              4,
               SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
         }
       } finally {
@@ -202,8 +210,10 @@ public class RefactoringExecutionHelper {
       try {
         fExecContext.run(fork, cancelable, new WorkbenchRunnableAdapter(op, rule, true));
         if (fork && !forkChangeExecution && op.fPerformChangeOperation != null) {
-          fExecContext.run(false, false, new WorkbenchRunnableAdapter(op.fPerformChangeOperation,
-              rule, true));
+          fExecContext.run(false, false, new WorkbenchRunnableAdapter(
+              op.fPerformChangeOperation,
+              rule,
+              true));
         }
 
         if (op.fPerformChangeOperation != null) {

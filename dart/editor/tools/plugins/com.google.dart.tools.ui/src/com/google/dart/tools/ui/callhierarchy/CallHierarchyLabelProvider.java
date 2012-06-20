@@ -77,13 +77,18 @@ class CallHierarchyLabelProvider extends AppearanceAwareLabelProvider {
       String decorated = getElementLabel(wrapper);
 
       StyledString styledLabel = super.getStyledText(wrapper.getMember());
-      StyledString styledDecorated = StyledCellLabelProvider.styleDecoratedString(decorated,
-          StyledString.COUNTER_STYLER, styledLabel);
+      StyledString styledDecorated = StyledCellLabelProvider.styleDecoratedString(
+          decorated,
+          StyledString.COUNTER_STYLER,
+          styledLabel);
       if (isSpecialConstructorNode(wrapper)) {
         decorated = Messages.format(
-            CallHierarchyMessages.CallHierarchyLabelProvider_constructor_label, decorated);
-        styledDecorated = StyledCellLabelProvider.styleDecoratedString(decorated,
-            ColoringLabelProvider.INHERITED_STYLER, styledDecorated);
+            CallHierarchyMessages.CallHierarchyLabelProvider_constructor_label,
+            decorated);
+        styledDecorated = StyledCellLabelProvider.styleDecoratedString(
+            decorated,
+            ColoringLabelProvider.INHERITED_STYLER,
+            styledDecorated);
       }
       return styledDecorated;
     }
@@ -101,7 +106,8 @@ class CallHierarchyLabelProvider extends AppearanceAwareLabelProvider {
 
       if (isSpecialConstructorNode(wrapper)) {
         decorated = Messages.format(
-            CallHierarchyMessages.CallHierarchyLabelProvider_constructor_label, decorated);
+            CallHierarchyMessages.CallHierarchyLabelProvider_constructor_label,
+            decorated);
       }
       return decorated;
     }
@@ -114,7 +120,8 @@ class CallHierarchyLabelProvider extends AppearanceAwareLabelProvider {
     Collection<CallLocation> callLocations = methodWrapper.getMethodCall().getCallLocations();
 
     if ((callLocations != null) && (callLocations.size() > 1)) {
-      return Messages.format(CallHierarchyMessages.CallHierarchyLabelProvider_matches,
+      return Messages.format(
+          CallHierarchyMessages.CallHierarchyLabelProvider_matches,
           new String[] {label, String.valueOf(callLocations.size())});
     }
 

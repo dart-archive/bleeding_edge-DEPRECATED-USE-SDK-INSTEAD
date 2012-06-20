@@ -82,7 +82,8 @@ public class StructureSelectPreviousAction extends StructureSelectionAction {
     super(SelectionActionMessages.StructureSelectPrevious_label, editor, history);
     setToolTipText(SelectionActionMessages.StructureSelectPrevious_tooltip);
     setDescription(SelectionActionMessages.StructureSelectPrevious_description);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.STRUCTURED_SELECT_PREVIOUS_ACTION);
   }
 
@@ -96,7 +97,8 @@ public class StructureSelectPreviousAction extends StructureSelectionAction {
   SourceRange internalGetNewSelectionRange(SourceRange oldSourceRange, SourceReference sr,
       SelectionAnalyzer selAnalyzer) throws DartModelException {
     if (oldSourceRange.getLength() == 0 && selAnalyzer.getLastCoveringNode() != null) {
-      DartNode previousNode = PreviousNodeAnalyzer.perform(oldSourceRange.getOffset(),
+      DartNode previousNode = PreviousNodeAnalyzer.perform(
+          oldSourceRange.getOffset(),
           selAnalyzer.getLastCoveringNode());
       if (previousNode != null) {
         return getSelectedNodeSourceRange(sr, previousNode);

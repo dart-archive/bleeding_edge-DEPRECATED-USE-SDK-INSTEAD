@@ -204,14 +204,16 @@ public class CopyAction extends SelectionListenerAction {
         clipboard.setContents(new Object[] {resources, fileNames, names}, new Transfer[] {
             ResourceTransfer.getInstance(), FileTransfer.getInstance(), TextTransfer.getInstance()});
       } else {
-        clipboard.setContents(new Object[] {resources, names},
+        clipboard.setContents(
+            new Object[] {resources, names},
             new Transfer[] {ResourceTransfer.getInstance(), TextTransfer.getInstance()});
       }
     } catch (SWTError e) {
       if (e.code != DND.ERROR_CANNOT_SET_CLIPBOARD) {
         throw e;
       }
-      if (MessageDialog.openQuestion(shell,
+      if (MessageDialog.openQuestion(
+          shell,
           ResourceNavigatorMessages.CopyToClipboardProblemDialog_title,
           ResourceNavigatorMessages.CopyToClipboardProblemDialog_message)) {
         setClipboard(resources, fileNames, names);

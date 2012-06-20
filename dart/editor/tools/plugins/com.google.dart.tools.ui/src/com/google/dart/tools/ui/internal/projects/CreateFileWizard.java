@@ -93,8 +93,11 @@ public class CreateFileWizard extends BasicNewResourceWizard {
         }
       }
     } catch (PartInitException e) {
-      DialogUtil.openError(dw.getShell(), ResourceMessages.FileResource_errorMessage,
-          e.getMessage(), e);
+      DialogUtil.openError(
+          dw.getShell(),
+          ResourceMessages.FileResource_errorMessage,
+          e.getMessage(),
+          e);
     }
   }
 }

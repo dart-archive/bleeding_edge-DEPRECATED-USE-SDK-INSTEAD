@@ -53,8 +53,9 @@ public abstract class DartQuickMenuCreator extends QuickMenuCreator {
 
   private Point computeWordStart() {
     ITextSelection selection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
-    IRegion textRegion =
-        DartWordFinder.findWord(fEditor.getViewer().getDocument(), selection.getOffset());
+    IRegion textRegion = DartWordFinder.findWord(
+        fEditor.getViewer().getDocument(),
+        selection.getOffset());
     if (textRegion == null)
       return null;
 

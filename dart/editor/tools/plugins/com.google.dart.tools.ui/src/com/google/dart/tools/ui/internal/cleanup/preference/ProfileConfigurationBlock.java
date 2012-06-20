@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.cleanup.preference;
@@ -99,7 +97,8 @@ public abstract class ProfileConfigurationBlock {
     }
 
     private void deleteButtonPressed() {
-      if (MessageDialog.openQuestion(fComposite.getShell(),
+      if (MessageDialog.openQuestion(
+          fComposite.getShell(),
           FormatterMessages.CodingStyleConfigurationBlock_delete_confirmation_title,
           Messages.format(
               FormatterMessages.CodingStyleConfigurationBlock_delete_confirmation_question,
@@ -206,8 +205,10 @@ public abstract class ProfileConfigurationBlock {
         }
 
         if (fProfileManager.containsName(profile.getName())) {
-          final AlreadyExistsDialog aeDialog = new AlreadyExistsDialog(fComposite.getShell(),
-              profile, fProfileManager);
+          final AlreadyExistsDialog aeDialog = new AlreadyExistsDialog(
+              fComposite.getShell(),
+              profile,
+              fProfileManager);
           if (aeDialog.open() != Window.OK) {
             return;
           }
@@ -218,13 +219,19 @@ public abstract class ProfileConfigurationBlock {
     }
 
     private void modifyButtonPressed() {
-      final StatusDialog modifyDialog = createModifyDialog(fComposite.getShell(),
-          fProfileManager.getSelected(), fProfileManager, fProfileStore, false);
+      final StatusDialog modifyDialog = createModifyDialog(
+          fComposite.getShell(),
+          fProfileManager.getSelected(),
+          fProfileManager,
+          fProfileStore,
+          false);
       modifyDialog.open();
     }
 
     private void newButtonPressed() {
-      final CreateProfileDialog p = new CreateProfileDialog(fComposite.getShell(), fProfileManager,
+      final CreateProfileDialog p = new CreateProfileDialog(
+          fComposite.getShell(),
+          fProfileManager,
           fProfileVersioner);
       if (p.open() != Window.OK) {
         return;
@@ -232,8 +239,12 @@ public abstract class ProfileConfigurationBlock {
       if (!p.openEditDialog()) {
         return;
       }
-      final StatusDialog modifyDialog = createModifyDialog(fComposite.getShell(),
-          p.getCreatedProfile(), fProfileManager, fProfileStore, true);
+      final StatusDialog modifyDialog = createModifyDialog(
+          fComposite.getShell(),
+          p.getCreatedProfile(),
+          fProfileManager,
+          fProfileStore,
+          true);
       modifyDialog.open();
     }
   }
@@ -456,20 +467,25 @@ public abstract class ProfileConfigurationBlock {
     profileLabel.setLayoutData(data);
 
     fProfileCombo = createProfileCombo(fComposite, 3, fPixConv.convertWidthInCharsToPixels(20));
-    fEditButton = createButton(fComposite,
+    fEditButton = createButton(
+        fComposite,
         FormatterMessages.CodingStyleConfigurationBlock_edit_button_desc,
         GridData.HORIZONTAL_ALIGN_BEGINNING);
-    fDeleteButton = createButton(fComposite,
+    fDeleteButton = createButton(
+        fComposite,
         FormatterMessages.CodingStyleConfigurationBlock_remove_button_desc,
         GridData.HORIZONTAL_ALIGN_BEGINNING);
 
-    fNewButton = createButton(fComposite,
+    fNewButton = createButton(
+        fComposite,
         FormatterMessages.CodingStyleConfigurationBlock_new_button_desc,
         GridData.HORIZONTAL_ALIGN_BEGINNING);
-    fLoadButton = createButton(fComposite,
+    fLoadButton = createButton(
+        fComposite,
         FormatterMessages.CodingStyleConfigurationBlock_load_button_desc,
         GridData.HORIZONTAL_ALIGN_END);
-    fExportAllButton = createButton(fComposite,
+    fExportAllButton = createButton(
+        fComposite,
         FormatterMessages.CodingStyleConfigurationBlock_export_all_button_desc,
         GridData.HORIZONTAL_ALIGN_BEGINNING);
     createLabel(fComposite, "", 3); //$NON-NLS-1$

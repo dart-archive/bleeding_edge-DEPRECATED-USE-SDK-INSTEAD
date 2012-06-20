@@ -123,7 +123,9 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
     protected void open(ISelection selection, boolean activate) {
       if (selection instanceof IStructuredSelection) {
         for (Iterator<?> iter = ((IStructuredSelection) selection).iterator(); iter.hasNext();) {
-          boolean noError = CallHierarchyUI.openInEditor(iter.next(), getSite().getShell(),
+          boolean noError = CallHierarchyUI.openInEditor(
+              iter.next(),
+              getSite().getShell(),
               OpenStrategy.activateOnOpen());
           if (!noError) {
             return;
@@ -251,7 +253,8 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
 
     showPage(PAGE_EMPTY);
 
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(pagebook,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        pagebook,
         DartHelpContextIds.CALL_HIERARCHY_VIEW);
 
     selectionProviderMediator = new CallHierarchySelectionProvider(new StructuredViewer[] {
@@ -563,7 +566,8 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
     if (treeElements.size() == 0) {
       updateInputHistoryAndDescription(currentInputElements, newElements);
     } else if (newInput.size() > currentInputElements.length) {
-      updateInputHistoryAndDescription(currentInputElements,
+      updateInputHistoryAndDescription(
+          currentInputElements,
           newInput.toArray(new TypeMember[newInput.size()]));
     }
     if (addedElements.size() > 0) {
@@ -840,7 +844,8 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
       if (currentCallMode == CALL_MODE_CALLERS) {
         switch (element.getElementType()) {
           case DartElement.TYPE:
-            return Messages.format(CallHierarchyMessages.CallHierarchyViewPart_callsToConstructors,
+            return Messages.format(
+                CallHierarchyMessages.CallHierarchyViewPart_callsToConstructors,
                 args);
           case DartElement.FIELD:
 //            switch (this.currentFieldMode) {
@@ -861,11 +866,13 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
         switch (element.getElementType()) {
           case DartElement.TYPE:
             return Messages.format(
-                CallHierarchyMessages.CallHierarchyViewPart_callsFromConstructors, args);
+                CallHierarchyMessages.CallHierarchyViewPart_callsFromConstructors,
+                args);
           case DartElement.FIELD:
           case DartElement.METHOD:
           default:
-            return Messages.format(CallHierarchyMessages.CallHierarchyViewPart_callsFromMethod,
+            return Messages.format(
+                CallHierarchyMessages.CallHierarchyViewPart_callsFromMethod,
                 args);
         }
       }
@@ -877,13 +884,15 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
             Assert.isTrue(false);
             return null;
           case 2:
-            return Messages.format(CallHierarchyMessages.CallHierarchyViewPart_callsToMembers_2,
+            return Messages.format(
+                CallHierarchyMessages.CallHierarchyViewPart_callsToMembers_2,
                 new String[] {
                     getShortLabel(currentInputElements[0]), getShortLabel(currentInputElements[1]),
                     scopeDescription});
 
           default:
-            return Messages.format(CallHierarchyMessages.CallHierarchyViewPart_callsToMembers_more,
+            return Messages.format(
+                CallHierarchyMessages.CallHierarchyViewPart_callsToMembers_more,
                 new String[] {
                     getShortLabel(currentInputElements[0]), getShortLabel(currentInputElements[1]),
                     scopeDescription});
@@ -894,14 +903,16 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
             Assert.isTrue(false);
             return null;
           case 2:
-            return Messages.format(CallHierarchyMessages.CallHierarchyViewPart_callsFromMembers_2,
+            return Messages.format(
+                CallHierarchyMessages.CallHierarchyViewPart_callsFromMembers_2,
                 new String[] {
                     getShortLabel(currentInputElements[0]), getShortLabel(currentInputElements[1]),
                     scopeDescription});
 
           default:
             return Messages.format(
-                CallHierarchyMessages.CallHierarchyViewPart_callsFromMembers_more, new String[] {
+                CallHierarchyMessages.CallHierarchyViewPart_callsFromMembers_more,
+                new String[] {
                     getShortLabel(currentInputElements[0]), getShortLabel(currentInputElements[1]),
                     scopeDescription});
         }
@@ -1221,7 +1232,8 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
 
           if (editorPart instanceof ITextEditor) {
             ITextEditor editor = (ITextEditor) editorPart;
-            editor.selectAndReveal(callLocation.getStartPosition(),
+            editor.selectAndReveal(
+                callLocation.getStartPosition(),
                 (callLocation.getEndPosition() - callLocation.getStartPosition()));
           }
         }

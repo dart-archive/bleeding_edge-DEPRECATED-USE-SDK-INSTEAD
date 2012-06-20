@@ -145,7 +145,9 @@ public class DartLightweightDecorator implements ILightweightLabelDecorator,
 
   private ImageDescriptor getDecorationForResource(IResource resource) {
     try {
-      int severity = resource.findMaxProblemSeverity(IMarker.PROBLEM, true,
+      int severity = resource.findMaxProblemSeverity(
+          IMarker.PROBLEM,
+          true,
           IResource.DEPTH_INFINITE);
 
       return getDecorationForSeverity(severity);
@@ -177,7 +179,9 @@ public class DartLightweightDecorator implements ILightweightLabelDecorator,
         return maxSeverity;
       }
       // initialize the maxSeverity with the severity of the .lib or .app file
-      maxSeverity = libraryResource.findMaxProblemSeverity(IMarker.PROBLEM, true,
+      maxSeverity = libraryResource.findMaxProblemSeverity(
+          IMarker.PROBLEM,
+          true,
           IResource.DEPTH_INFINITE);
       for (CompilationUnit cu : dartLibrary.getCompilationUnits()) {
         IResource resource = cu.getCorrespondingResource();
@@ -186,7 +190,8 @@ public class DartLightweightDecorator implements ILightweightLabelDecorator,
         }
         try {
           // find the max problem severity for this file
-          maxSeverity = Math.max(maxSeverity,
+          maxSeverity = Math.max(
+              maxSeverity,
               resource.findMaxProblemSeverity(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE));
         } catch (CoreException ce) {
         }

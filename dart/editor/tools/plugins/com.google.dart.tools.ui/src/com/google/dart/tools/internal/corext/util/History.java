@@ -250,17 +250,20 @@ public abstract class History {
     } catch (SAXException e) {
       throw createException(
           e,
-          Messages.format(CorextMessages.History_error_read,
+          Messages.format(
+              CorextMessages.History_error_read,
               BasicElementLabels.getResourceName(fFileName)));
     } catch (ParserConfigurationException e) {
       throw createException(
           e,
-          Messages.format(CorextMessages.History_error_read,
+          Messages.format(
+              CorextMessages.History_error_read,
               BasicElementLabels.getResourceName(fFileName)));
     } catch (IOException e) {
       throw createException(
           e,
-          Messages.format(CorextMessages.History_error_read,
+          Messages.format(
+              CorextMessages.History_error_read,
               BasicElementLabels.getResourceName(fFileName)));
     }
 
@@ -326,12 +329,14 @@ public abstract class History {
     } catch (TransformerException e) {
       throw createException(
           e,
-          Messages.format(CorextMessages.History_error_serialize,
+          Messages.format(
+              CorextMessages.History_error_serialize,
               BasicElementLabels.getResourceName(fFileName)));
     } catch (ParserConfigurationException e) {
       throw createException(
           e,
-          Messages.format(CorextMessages.History_error_serialize,
+          Messages.format(
+              CorextMessages.History_error_serialize,
               BasicElementLabels.getResourceName(fFileName)));
     }
   }

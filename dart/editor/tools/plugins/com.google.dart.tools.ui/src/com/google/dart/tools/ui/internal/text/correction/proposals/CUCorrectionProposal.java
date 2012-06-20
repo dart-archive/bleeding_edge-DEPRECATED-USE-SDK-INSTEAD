@@ -367,11 +367,7 @@ public class CUCorrectionProposal extends ChangeCorrectionProposal {
     }
   }
 
-  private void appendContent(
-      IDocument text,
-      int startOffset,
-      int endOffset,
-      StringBuffer buf,
+  private void appendContent(IDocument text, int startOffset, int endOffset, StringBuffer buf,
       boolean surroundLinesOnly) {
     try {
       int startLine = text.getLineOfOffset(startOffset);

@@ -952,7 +952,8 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
             } else {
               commentCollapse = ctx.collapseJavadoc();
             }
-            ctx.addProjectionRange(new DartProjectionAnnotation(commentCollapse, element, true),
+            ctx.addProjectionRange(
+                new DartProjectionAnnotation(commentCollapse, element, true),
                 position);
           }
         }
@@ -961,7 +962,8 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       if (collapseCode) {
         IRegion normalized = alignRegion(regions[regions.length - 1], ctx);
         if (normalized != null) {
-          Position position = element instanceof TypeMember ? createMemberPosition(normalized,
+          Position position = element instanceof TypeMember ? createMemberPosition(
+              normalized,
               (TypeMember) element) : createCommentPosition(normalized);
           if (position != null) {
             ctx.addProjectionRange(new DartProjectionAnnotation(collapse, element, false), position);
@@ -1459,7 +1461,9 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       }
     }
 
-    model.modifyAnnotations(null, null,
+    model.modifyAnnotations(
+        null,
+        null,
         (Annotation[]) modified.toArray(new Annotation[modified.size()]));
   }
 

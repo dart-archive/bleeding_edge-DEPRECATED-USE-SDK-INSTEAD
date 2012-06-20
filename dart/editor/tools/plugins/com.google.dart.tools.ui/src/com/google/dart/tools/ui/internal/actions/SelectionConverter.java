@@ -61,7 +61,9 @@ public class SelectionConverter {
    */
   public static DartElement[] codeResolve(DartEditor editor, boolean primaryOnly)
       throws DartModelException {
-    return codeResolve(editor, getInput(editor, primaryOnly),
+    return codeResolve(
+        editor,
+        getInput(editor, primaryOnly),
         (ITextSelection) editor.getSelectionProvider().getSelection());
   }
 
@@ -71,11 +73,15 @@ public class SelectionConverter {
       DartElement[] elements;
       if (input instanceof CompilationUnit) {
         DartModelUtil.reconcile((CompilationUnit) input);
-        elements = ((CompilationUnit) input).codeSelect(editor == null ? null : editor.getAST(),
-            selection.getOffset() + selection.getLength(), 0, DefaultWorkingCopyOwner.getInstance());
+        elements = ((CompilationUnit) input).codeSelect(
+            editor == null ? null : editor.getAST(),
+            selection.getOffset() + selection.getLength(),
+            0,
+            DefaultWorkingCopyOwner.getInstance());
       } else {
         elements = ((CodeAssistElement) input).codeSelect(
-            selection.getOffset() + selection.getLength(), 0);
+            selection.getOffset() + selection.getLength(),
+            0);
       }
       if (elements.length > 0) {
         return elements;
@@ -98,7 +104,9 @@ public class SelectionConverter {
    */
   public static DartElement[] codeResolveForked(DartEditor editor, boolean primaryOnly)
       throws InvocationTargetException, InterruptedException {
-    return performForkedCodeResolve(editor, getInput(editor, primaryOnly),
+    return performForkedCodeResolve(
+        editor,
+        getInput(editor, primaryOnly),
         (ITextSelection) editor.getSelectionProvider().getSelection());
   }
 
@@ -283,7 +291,8 @@ public class SelectionConverter {
    */
   private static DartElement getElementAtOffset(DartEditor editor, boolean primaryOnly)
       throws DartModelException {
-    return getElementAtOffset(getInput(editor, primaryOnly),
+    return getElementAtOffset(
+        getInput(editor, primaryOnly),
         (ITextSelection) editor.getSelectionProvider().getSelection());
   }
 

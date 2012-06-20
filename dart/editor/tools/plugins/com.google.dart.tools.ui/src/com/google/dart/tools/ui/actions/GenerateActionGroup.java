@@ -469,7 +469,8 @@ public class GenerateActionGroup extends ActionGroup {
     if (fHandlerService != null) {
       fQuickAccessAction = new SourceQuickAccessAction(fEditor);
       fQuickAccessHandlerActivation = fHandlerService.activateHandler(
-          fQuickAccessAction.getActionDefinitionId(), new ActionHandler(fQuickAccessAction));
+          fQuickAccessAction.getActionDefinitionId(),
+          new ActionHandler(fQuickAccessAction));
     }
   }
 

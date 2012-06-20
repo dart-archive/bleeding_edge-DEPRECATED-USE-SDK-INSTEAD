@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.util;
@@ -109,15 +107,27 @@ public class CodeFormatterUtil {
       //DartToolsPlugin.logErrorMessage("formatter failed to format (no edit returned). Will use unformatted text instead. kind: " + kind + ", string: " + string); //$NON-NLS-1$ //$NON-NLS-2$
       return string.substring(offset, offset + length);
     }
-    String formatted = getOldAPICompatibleResult(string, edit, indentationLevel, positions,
-        lineSeparator, options);
+    String formatted = getOldAPICompatibleResult(
+        string,
+        edit,
+        indentationLevel,
+        positions,
+        lineSeparator,
+        options);
     return formatted.substring(offset, formatted.length() - (string.length() - (offset + length)));
   }
 
   public static String format(int kind, String string, int indentationLevel, int[] positions,
       String lineSeparator, DartProject project) {
     Map<String, String> options = project != null ? project.getOptions(true) : null;
-    return format(kind, string, 0, string.length(), indentationLevel, positions, lineSeparator,
+    return format(
+        kind,
+        string,
+        0,
+        string.length(),
+        indentationLevel,
+        positions,
+        lineSeparator,
         options);
   }
 
@@ -128,7 +138,14 @@ public class CodeFormatterUtil {
    */
   public static String format(int kind, String string, int indentationLevel, int[] positions,
       String lineSeparator, Map<String, String> options) {
-    return format(kind, string, 0, string.length(), indentationLevel, positions, lineSeparator,
+    return format(
+        kind,
+        string,
+        0,
+        string.length(),
+        indentationLevel,
+        positions,
+        lineSeparator,
         options);
   }
 
@@ -215,8 +232,13 @@ public class CodeFormatterUtil {
 //    }
 //
     String concatStr = prefix + str + suffix;
-    TextEdit edit = createCodeFormatter(options, FORMAT_NEW).format(code, concatStr,
-        prefix.length(), str.length(), indentationLevel, lineSeparator);
+    TextEdit edit = createCodeFormatter(options, FORMAT_NEW).format(
+        code,
+        concatStr,
+        prefix.length(),
+        str.length(),
+        indentationLevel,
+        lineSeparator);
     if (prefix.length() > 0) {
       edit = shifEdit(edit, prefix.length());
     }
@@ -236,8 +258,13 @@ public class CodeFormatterUtil {
       throw new IllegalArgumentException(
           "offset or length outside of string. offset: " + offset + ", length: " + length + ", string size: " + string.length()); //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
     }
-    return createCodeFormatter(options, FORMAT_NEW).format(kind, string, offset, length,
-        indentationLevel, lineSeparator);
+    return createCodeFormatter(options, FORMAT_NEW).format(
+        kind,
+        string,
+        offset,
+        length,
+        indentationLevel,
+        lineSeparator);
   }
 
   public static TextEdit format2(int kind, String string, int indentationLevel,
@@ -254,7 +281,8 @@ public class CodeFormatterUtil {
    */
   public static int getIndentWidth(DartProject project) {
     String key;
-    if (DefaultCodeFormatterConstants.MIXED.equals(getCoreOption(project,
+    if (DefaultCodeFormatterConstants.MIXED.equals(getCoreOption(
+        project,
         DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR))) {
       key = DefaultCodeFormatterConstants.FORMATTER_INDENTATION_SIZE;
     } else {
@@ -277,7 +305,8 @@ public class CodeFormatterUtil {
      * piggy back the visual tab length setting in that preference in that case.
      */
     String key;
-    if (JavaScriptCore.SPACE.equals(getCoreOption(project,
+    if (JavaScriptCore.SPACE.equals(getCoreOption(
+        project,
         DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR))) {
       key = DefaultCodeFormatterConstants.FORMATTER_INDENTATION_SIZE;
     } else {
@@ -293,8 +322,13 @@ public class CodeFormatterUtil {
       throw new IllegalArgumentException(
           "offset or length outside of string. offset: " + offset + ", length: " + length + ", string size: " + string.length()); //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
     }
-    return createCodeFormatter(options, FORMAT_EXISTING).format(kind, string, offset, length,
-        indentationLevel, lineSeparator);
+    return createCodeFormatter(options, FORMAT_EXISTING).format(
+        kind,
+        string,
+        offset,
+        length,
+        indentationLevel,
+        lineSeparator);
   }
 
   public static TextEdit reformat(int kind, String string, int indentationLevel,

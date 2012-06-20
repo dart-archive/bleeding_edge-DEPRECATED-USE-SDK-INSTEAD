@@ -117,8 +117,10 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new AppsViewContentProvider());
     appLabelProvider = new AppLabelProvider(treeViewer.getTree().getFont());
-    treeViewer.setLabelProvider(new LabelProviderWrapper(appLabelProvider,
-        new AppProblemsDecorator(), null));
+    treeViewer.setLabelProvider(new LabelProviderWrapper(
+        appLabelProvider,
+        new AppProblemsDecorator(),
+        null));
     treeViewer.setComparator(new AppsViewComparator());
     treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override

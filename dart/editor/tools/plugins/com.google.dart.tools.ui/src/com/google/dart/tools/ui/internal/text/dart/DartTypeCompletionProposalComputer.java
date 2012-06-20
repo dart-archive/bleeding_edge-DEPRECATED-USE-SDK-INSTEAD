@@ -48,8 +48,8 @@ public class DartTypeCompletionProposalComputer extends DartCompletionProposalCo
    * org.eclipse.core.runtime.IProgressMonitor)
    */
   @Override
-  public List<ICompletionProposal> computeCompletionProposals(ContentAssistInvocationContext context,
-      IProgressMonitor monitor) {
+  public List<ICompletionProposal> computeCompletionProposals(
+      ContentAssistInvocationContext context, IProgressMonitor monitor) {
     if (true) {
       return new ArrayList(); // TODO enable for type completions
     }
@@ -172,13 +172,15 @@ public class DartTypeCompletionProposalComputer extends DartCompletionProposalCo
 
   private IDartCompletionProposal createTypeProposal(int relevance, String fullyQualifiedType,
       DartContentAssistInvocationContext context) throws DartModelException {
-    Type type = DartModelUtil.findType(context.getCompilationUnit().getDartProject(),
+    Type type = DartModelUtil.findType(
+        context.getCompilationUnit().getDartProject(),
         fullyQualifiedType);
     if (type == null) {
       return null;
     }
 
-    CompletionProposal proposal = CompletionProposal.create(CompletionProposal.TYPE_REF,
+    CompletionProposal proposal = CompletionProposal.create(
+        CompletionProposal.TYPE_REF,
         context.getInvocationOffset());
     proposal.setCompletion(fullyQualifiedType.toCharArray());
     proposal.setDeclarationSignature(type.getParent().getElementName().toCharArray());

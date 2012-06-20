@@ -155,8 +155,7 @@ public class RenameImportProcessor extends RenameTopLevelProcessor {
   }
 
   @Override
-  protected RefactoringStatus doCheckFinalConditions(
-      IProgressMonitor pm,
+  protected RefactoringStatus doCheckFinalConditions(IProgressMonitor pm,
       CheckConditionsContext context) throws CoreException {
     RefactoringStatus result = new RefactoringStatus();
     result.merge(analyzeTopLevelConflictsInSamePrefix());
@@ -191,10 +190,8 @@ public class RenameImportProcessor extends RenameTopLevelProcessor {
           String message = Messages.format(
               RefactoringCoreMessages.RenameImportProcessor_duplicateTopLevels_samePrefix,
               new Object[] {
-                  newName,
-                  BasicElementLabels.getPathLabel(thisLibraryPath, false),
-                  BasicElementLabels.getPathLabel(currentLibraryPath, false),
-                  intersection});
+                  newName, BasicElementLabels.getPathLabel(thisLibraryPath, false),
+                  BasicElementLabels.getPathLabel(currentLibraryPath, false), intersection});
           result.addError(message, DartStatusContext.create(currentImport));
         }
       }

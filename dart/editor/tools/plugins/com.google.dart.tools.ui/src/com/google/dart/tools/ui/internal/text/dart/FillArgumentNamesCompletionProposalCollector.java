@@ -79,7 +79,8 @@ public final class FillArgumentNamesCompletionProposalCollector extends Completi
       return super.createDartCompletionProposal(typeProposal);
     }
 
-    LazyDartCompletionProposal newProposal = new LazyGenericTypeProposal(typeProposal,
+    LazyDartCompletionProposal newProposal = new LazyGenericTypeProposal(
+        typeProposal,
         getInvocationContext());
     return newProposal;
   }
@@ -94,7 +95,9 @@ public final class FillArgumentNamesCompletionProposalCollector extends Completi
     }
 
     LazyDartCompletionProposal proposal = null;
-    proposal = ParameterGuessingProposal.createProposal(methodProposal, getInvocationContext(),
+    proposal = ParameterGuessingProposal.createProposal(
+        methodProposal,
+        getInvocationContext(),
         fIsGuessArguments);
     if (proposal == null) {
       proposal = new FilledArgumentNamesMethodProposal(methodProposal, getInvocationContext());

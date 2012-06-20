@@ -73,7 +73,9 @@ public class SourceViewerInformationControl implements IInformationControl,
     float[] infoBgHSB = display.getSystemColor(SWT.COLOR_INFO_BACKGROUND).getRGB().getHSB();
 
     Color javaDefaultColor = DartUI.getColorManager().getColor(IDartColorConstants.JAVA_DEFAULT);
-    RGB javaDefaultRGB = javaDefaultColor != null ? javaDefaultColor.getRGB() : new RGB(255, 255,
+    RGB javaDefaultRGB = javaDefaultColor != null ? javaDefaultColor.getRGB() : new RGB(
+        255,
+        255,
         255);
     float[] javaDefaultHSB = javaDefaultRGB.getHSB();
 
@@ -84,7 +86,8 @@ public class SourceViewerInformationControl implements IInformationControl,
       if (useDefault) {
         return display.getSystemColor(SWT.COLOR_LIST_BACKGROUND).getRGB();
       }
-      return PreferenceConverter.getColor(preferenceStore,
+      return PreferenceConverter.getColor(
+          preferenceStore,
           AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
     }
     return null;
@@ -204,8 +207,11 @@ public class SourceViewerInformationControl implements IInformationControl,
     IPreferenceStore store = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     fViewer = new DartSourceViewer(composite, null, null, false, style, store);
     fViewer.configure(new SimpleDartSourceViewerConfiguration(
-        DartToolsPlugin.getDefault().getJavaTextTools().getColorManager(), store, null,
-        DartPartitions.DART_PARTITIONING, false));
+        DartToolsPlugin.getDefault().getJavaTextTools().getColorManager(),
+        store,
+        null,
+        DartPartitions.DART_PARTITIONING,
+        false));
     fViewer.setEditable(false);
 
     fText = fViewer.getTextWidget();
@@ -410,7 +416,8 @@ public class SourceViewerInformationControl implements IInformationControl,
     }
 
     IDocument doc = new Document(content);
-    DartToolsPlugin.getDefault().getJavaTextTools().setupJavaDocumentPartitioner(doc,
+    DartToolsPlugin.getDefault().getJavaTextTools().setupJavaDocumentPartitioner(
+        doc,
         DartPartitions.DART_PARTITIONING);
     fViewer.setInput(doc);
   }
@@ -491,7 +498,8 @@ public class SourceViewerInformationControl implements IInformationControl,
   private RGB getHoverBackgroundColorRGB() {
     IPreferenceStore store = DartToolsPlugin.getDefault().getPreferenceStore();
     return store.getBoolean(PreferenceConstants.EDITOR_SOURCE_HOVER_BACKGROUND_COLOR_SYSTEM_DEFAULT)
-        ? null : PreferenceConverter.getColor(store,
+        ? null : PreferenceConverter.getColor(
+            store,
             PreferenceConstants.EDITOR_SOURCE_HOVER_BACKGROUND_COLOR);
   }
 

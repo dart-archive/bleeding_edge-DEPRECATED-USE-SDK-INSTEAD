@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.cleanup.preference;
@@ -103,7 +101,10 @@ public abstract class ProfileManager extends Observable {
     @Override
     public Profile rename(String name, ProfileManager manager) {
       final String trimmed = name.trim();
-      CustomProfile newProfile = new CustomProfile(trimmed, fSettings, fCurrentVersion,
+      CustomProfile newProfile = new CustomProfile(
+          trimmed,
+          fSettings,
+          fCurrentVersion,
           fProfileKind);
       manager.addProfile(newProfile);
       return newProfile;
@@ -445,14 +446,18 @@ public abstract class ProfileManager extends Observable {
         if (matching == null) {
           String name;
           if (projProfileId != null && !fProfiles.containsKey(projProfileId)) {
-            name = Messages.format(FormatterMessages.ProfileManager_unmanaged_profile_with_name,
+            name = Messages.format(
+                FormatterMessages.ProfileManager_unmanaged_profile_with_name,
                 projProfileId.substring(ID_PREFIX.length()));
           } else {
             name = FormatterMessages.ProfileManager_unmanaged_profile;
           }
           // current settings do not correspond to any profile -> create a 'team' profile
-          SharedProfile shared = new SharedProfile(name, map,
-              fProfileVersioner.getCurrentVersion(), fProfileVersioner.getProfileKind());
+          SharedProfile shared = new SharedProfile(
+              name,
+              map,
+              fProfileVersioner.getCurrentVersion(),
+              fProfileVersioner.getProfileKind());
           shared.setManager(this);
           fProfiles.put(shared.getID(), shared);
           fProfilesByName.add(shared); // add last
@@ -485,7 +490,9 @@ public abstract class ProfileManager extends Observable {
 
   public void clearAllSettings(IScopeContext context) {
     for (int i = 0; i < fKeySets.length; i++) {
-      updatePreferences(context.getNode(fKeySets[i].getNodeName()), fKeySets[i].getKeys(),
+      updatePreferences(
+          context.getNode(fKeySets[i].getNodeName()),
+          fKeySets[i].getKeys(),
           Collections.<String, String> emptyMap());
     }
 
@@ -805,7 +812,9 @@ public abstract class ProfileManager extends Observable {
     final Map<String, String> profileOptions = profile.getSettings();
 
     for (int i = 0; i < fKeySets.length; i++) {
-      updatePreferences(context.getNode(fKeySets[i].getNodeName()), fKeySets[i].getKeys(),
+      updatePreferences(
+          context.getNode(fKeySets[i].getNodeName()),
+          fKeySets[i].getKeys(),
           profileOptions);
     }
 

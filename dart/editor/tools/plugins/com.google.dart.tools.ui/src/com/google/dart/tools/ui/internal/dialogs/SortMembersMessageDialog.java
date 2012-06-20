@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.dialogs;
@@ -55,9 +53,15 @@ public class SortMembersMessageDialog extends OptionalMessageDialog {
   private final IDialogSettings fDialogSettings;
 
   public SortMembersMessageDialog(Shell parentShell) {
-    super(OPTIONAL_ID, parentShell, DialogsMessages.SortMembersMessageDialog_dialog_title, null,
-        new String(), INFORMATION, new String[] {
-            IDialogConstants.OK_LABEL, IDialogConstants.CANCEL_LABEL}, 0);
+    super(
+        OPTIONAL_ID,
+        parentShell,
+        DialogsMessages.SortMembersMessageDialog_dialog_title,
+        null,
+        new String(),
+        INFORMATION,
+        new String[] {IDialogConstants.OK_LABEL, IDialogConstants.CANCEL_LABEL},
+        0);
 
     setShellStyle(getShellStyle() | SWT.RESIZE);
 
@@ -113,7 +117,8 @@ public class SortMembersMessageDialog extends OptionalMessageDialog {
   @Override
   protected Control createContents(Composite parent) {
     Control contents = super.createContents(parent);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(parent,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        parent,
         DartHelpContextIds.SORT_MEMBERS_DIALOG);
     return contents;
   }
@@ -184,7 +189,10 @@ public class SortMembersMessageDialog extends OptionalMessageDialog {
   }
 
   protected void openCodeTempatePage(String id) {
-    PreferencesUtil.createPreferenceDialogOn(getShell(), MembersOrderPreferencePage.PREF_ID, null,
+    PreferencesUtil.createPreferenceDialogOn(
+        getShell(),
+        MembersOrderPreferencePage.PREF_ID,
+        null,
         null).open();
   }
 

@@ -28,7 +28,8 @@ class SearchScopeWorkingSetAction extends SearchScopeAction {
       String name) {
     super(group, name);
     setToolTipText(CallHierarchyMessages.SearchScopeActionGroup_workingset_tooltip);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.CALL_HIERARCHY_SEARCH_SCOPE_ACTION);
 
     this.fWorkingSets = workingSets;

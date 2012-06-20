@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.cleanup.preference;
@@ -64,13 +62,18 @@ public final class CodeFormatingTabPage extends AbstractCleanUpTabPage {
   @Override
   protected void doCreatePreferences(Composite composite, int numColumns) {
 
-    Group group = createGroup(numColumns, composite,
+    Group group = createGroup(
+        numColumns,
+        composite,
         CleanUpMessages.CodeFormatingTabPage_GroupName_Formatter);
 
     if (!isSaveAction()) {
-      final CheckboxPreference format = createCheckboxPref(group, numColumns,
+      final CheckboxPreference format = createCheckboxPref(
+          group,
+          numColumns,
           CleanUpMessages.CodeFormatingTabPage_CheckboxName_FormatSourceCode,
-          CleanUpConstants.FORMAT_SOURCE_CODE, CleanUpModifyDialog.FALSE_TRUE);
+          CleanUpConstants.FORMAT_SOURCE_CODE,
+          CleanUpModifyDialog.FALSE_TRUE);
       registerPreference(format);
       format.addObserver(new Observer() {
         @Override
@@ -81,22 +84,33 @@ public final class CodeFormatingTabPage extends AbstractCleanUpTabPage {
       });
     }
 
-    final CheckboxPreference whiteSpace = createCheckboxPref(group, numColumns,
+    final CheckboxPreference whiteSpace = createCheckboxPref(
+        group,
+        numColumns,
         CleanUpMessages.CodeFormatingTabPage_RemoveTrailingWhitespace_checkbox_text,
-        CleanUpConstants.FORMAT_REMOVE_TRAILING_WHITESPACES, CleanUpModifyDialog.FALSE_TRUE);
+        CleanUpConstants.FORMAT_REMOVE_TRAILING_WHITESPACES,
+        CleanUpModifyDialog.FALSE_TRUE);
     intent(group);
-    final RadioPreference allPref = createRadioPref(group, 1,
+    final RadioPreference allPref = createRadioPref(
+        group,
+        1,
         CleanUpMessages.CodeFormatingTabPage_RemoveTrailingWhitespace_all_radio,
-        CleanUpConstants.FORMAT_REMOVE_TRAILING_WHITESPACES_ALL, CleanUpModifyDialog.FALSE_TRUE);
-    final RadioPreference ignoreEmptyPref = createRadioPref(group, 1,
+        CleanUpConstants.FORMAT_REMOVE_TRAILING_WHITESPACES_ALL,
+        CleanUpModifyDialog.FALSE_TRUE);
+    final RadioPreference ignoreEmptyPref = createRadioPref(
+        group,
+        1,
         CleanUpMessages.CodeFormatingTabPage_RemoveTrailingWhitespace_ignoreEmpty_radio,
         CleanUpConstants.FORMAT_REMOVE_TRAILING_WHITESPACES_IGNORE_EMPTY,
         CleanUpModifyDialog.FALSE_TRUE);
     registerSlavePreference(whiteSpace, new RadioPreference[] {allPref, ignoreEmptyPref});
 
-    final CheckboxPreference correctIndentation = createCheckboxPref(group, numColumns,
+    final CheckboxPreference correctIndentation = createCheckboxPref(
+        group,
+        numColumns,
         CleanUpMessages.CodeFormatingTabPage_correctIndentation_checkbox_text,
-        CleanUpConstants.FORMAT_CORRECT_INDENTATION, CleanUpModifyDialog.FALSE_TRUE);
+        CleanUpConstants.FORMAT_CORRECT_INDENTATION,
+        CleanUpModifyDialog.FALSE_TRUE);
     registerPreference(correctIndentation);
     correctIndentation.addObserver(new Observer() {
       @Override

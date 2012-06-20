@@ -85,7 +85,8 @@ public class DeleteResourceAction extends SelectionListenerAction {
     @Override
     protected void configureShell(Shell newShell) {
       super.configureShell(newShell);
-      PlatformUI.getWorkbench().getHelpSystem().setHelp(newShell,
+      PlatformUI.getWorkbench().getHelpSystem().setHelp(
+          newShell,
           IIDEHelpContextIds.DELETE_PROJECT_DIALOG);
     }
 
@@ -243,7 +244,8 @@ public class DeleteResourceAction extends SelectionListenerAction {
       title = IDEWorkbenchMessages.DeleteResourceAction_title1;
       IResource resource = resources[0];
       if (resource.isLinked()) {
-        msg = NLS.bind(IDEWorkbenchMessages.DeleteResourceAction_confirmLinkedResource1,
+        msg = NLS.bind(
+            IDEWorkbenchMessages.DeleteResourceAction_confirmLinkedResource1,
             resource.getName());
       } else {
         msg = NLS.bind(IDEWorkbenchMessages.DeleteResourceAction_confirm1, resource.getName());
@@ -251,7 +253,8 @@ public class DeleteResourceAction extends SelectionListenerAction {
     } else {
       title = IDEWorkbenchMessages.DeleteResourceAction_titleN;
       if (containsLinkedResource(resources)) {
-        msg = NLS.bind(IDEWorkbenchMessages.DeleteResourceAction_confirmLinkedResourceN,
+        msg = NLS.bind(
+            IDEWorkbenchMessages.DeleteResourceAction_confirmLinkedResourceN,
             new Integer(resources.length));
       } else {
         msg = NLS.bind(IDEWorkbenchMessages.DeleteResourceAction_confirmN, new Integer(
@@ -353,7 +356,8 @@ public class DeleteResourceAction extends SelectionListenerAction {
    */
   private void initAction() {
     setToolTipText(IDEWorkbenchMessages.DeleteResourceAction_toolTip);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         IIDEHelpContextIds.DELETE_RESOURCE_ACTION);
     setId(ID);
   }
@@ -378,8 +382,10 @@ public class DeleteResourceAction extends SelectionListenerAction {
       @Override
       public IStatus run(final IProgressMonitor monitor) {
         try {
-          final DeleteResourcesOperation op = new DeleteResourcesOperation(resourcesToDelete,
-              IDEWorkbenchMessages.DeleteResourceAction_operationLabel, deleteContent);
+          final DeleteResourcesOperation op = new DeleteResourcesOperation(
+              resourcesToDelete,
+              IDEWorkbenchMessages.DeleteResourceAction_operationLabel,
+              deleteContent);
           op.setModelProviderIds(getModelProviderIds());
           // If we are deleting projects and their content, do not
           // execute the operation in the undo history, since it cannot be
@@ -406,13 +412,16 @@ public class DeleteResourceAction extends SelectionListenerAction {
             }
 
             if (statusJob.getResult().isOK()) {
-              return op.execute(monitor,
+              return op.execute(
+                  monitor,
                   WorkspaceUndoUtil.getUIInfoAdapter(shellProvider.getShell()));
             }
             return statusJob.getResult();
           }
-          return PlatformUI.getWorkbench().getOperationSupport().getOperationHistory().execute(op,
-              monitor, WorkspaceUndoUtil.getUIInfoAdapter(shellProvider.getShell()));
+          return PlatformUI.getWorkbench().getOperationSupport().getOperationHistory().execute(
+              op,
+              monitor,
+              WorkspaceUndoUtil.getUIInfoAdapter(shellProvider.getShell()));
         } catch (ExecutionException e) {
           if (e.getCause() instanceof CoreException) {
             return ((CoreException) e.getCause()).getStatus();
@@ -422,7 +431,6 @@ public class DeleteResourceAction extends SelectionListenerAction {
       }
 
     };
-
 
     Display.getDefault().syncExec(new Runnable() {
       @Override

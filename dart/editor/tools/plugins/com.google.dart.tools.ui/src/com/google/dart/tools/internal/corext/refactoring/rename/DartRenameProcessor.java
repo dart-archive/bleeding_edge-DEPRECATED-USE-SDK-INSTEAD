@@ -34,8 +34,7 @@ public abstract class DartRenameProcessor extends RenameProcessor implements INa
   protected String newName;
 
   @Override
-  public final RefactoringStatus checkFinalConditions(
-      IProgressMonitor pm,
+  public final RefactoringStatus checkFinalConditions(IProgressMonitor pm,
       CheckConditionsContext context) throws CoreException, OperationCanceledException {
     return doCheckFinalConditions(pm, context);
   }
@@ -52,8 +51,7 @@ public abstract class DartRenameProcessor extends RenameProcessor implements INa
   public abstract int getSaveMode();
 
   @Override
-  public final RefactoringParticipant[] loadParticipants(
-      RefactoringStatus status,
+  public final RefactoringParticipant[] loadParticipants(RefactoringStatus status,
       SharableParticipants shared) throws CoreException {
     // TODO(scheglov) no rename participants
     return new RefactoringParticipant[0];
@@ -65,8 +63,7 @@ public abstract class DartRenameProcessor extends RenameProcessor implements INa
     this.newName = newName;
   }
 
-  protected abstract RefactoringStatus doCheckFinalConditions(
-      IProgressMonitor pm,
+  protected abstract RefactoringStatus doCheckFinalConditions(IProgressMonitor pm,
       CheckConditionsContext context) throws CoreException, OperationCanceledException;
 
 }

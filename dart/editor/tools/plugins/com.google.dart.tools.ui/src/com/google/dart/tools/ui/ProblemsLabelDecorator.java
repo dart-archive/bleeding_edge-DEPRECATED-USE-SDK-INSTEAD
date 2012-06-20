@@ -181,7 +181,8 @@ public class ProblemsLabelDecorator implements ILabelDecorator, ILightweightLabe
       ImageDescriptor baseImage = new ImageImageDescriptor(image);
       Rectangle bounds = image.getBounds();
       return getRegistry().get(
-          new DartElementImageDescriptor(baseImage, adornmentFlags, new Point(bounds.width,
+          new DartElementImageDescriptor(baseImage, adornmentFlags, new Point(
+              bounds.width,
               bounds.height)));
     }
     return image;
@@ -358,7 +359,9 @@ public class ProblemsLabelDecorator implements ILabelDecorator, ILightweightLabe
 
   private void fireProblemsChanged(IResource[] changedResources, boolean isMarkerChange) {
     if (fListeners != null && !fListeners.isEmpty()) {
-      LabelProviderChangedEvent event = new ProblemsLabelChangedEvent(this, changedResources,
+      LabelProviderChangedEvent event = new ProblemsLabelChangedEvent(
+          this,
+          changedResources,
           isMarkerChange);
       Object[] listeners = fListeners.getListeners();
       for (int i = 0; i < listeners.length; i++) {

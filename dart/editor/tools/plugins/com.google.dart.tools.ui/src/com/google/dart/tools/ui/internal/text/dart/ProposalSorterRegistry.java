@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
@@ -48,7 +46,8 @@ public final class ProposalSorterRegistry {
 
   public static synchronized ProposalSorterRegistry getDefault() {
     if (fInstance == null) {
-      fInstance = new ProposalSorterRegistry(DartToolsPlugin.getDefault().getPreferenceStore(),
+      fInstance = new ProposalSorterRegistry(
+          DartToolsPlugin.getDefault().getPreferenceStore(),
           PreferenceConstants.CODEASSIST_SORTER);
     }
     return fInstance;
@@ -95,7 +94,8 @@ public final class ProposalSorterRegistry {
     Map sorters = new LinkedHashMap();
     IExtensionRegistry registry = Platform.getExtensionRegistry();
     List elements = new ArrayList(Arrays.asList(registry.getConfigurationElementsFor(
-        DartToolsPlugin.getPluginId(), EXTENSION_POINT)));
+        DartToolsPlugin.getPluginId(),
+        EXTENSION_POINT)));
 
     for (Iterator iter = elements.iterator(); iter.hasNext();) {
       IConfigurationElement element = (IConfigurationElement) iter.next();
@@ -116,9 +116,14 @@ public final class ProposalSorterRegistry {
          */
         Object[] args = {element.toString()};
         String message = Messages.format(
-            DartTextMessages.CompletionProposalComputerRegistry_invalid_message, args);
-        IStatus status = new Status(IStatus.WARNING, DartToolsPlugin.getPluginId(), IStatus.OK,
-            message, x);
+            DartTextMessages.CompletionProposalComputerRegistry_invalid_message,
+            args);
+        IStatus status = new Status(
+            IStatus.WARNING,
+            DartToolsPlugin.getPluginId(),
+            IStatus.OK,
+            message,
+            x);
         informUser(status);
       }
     }

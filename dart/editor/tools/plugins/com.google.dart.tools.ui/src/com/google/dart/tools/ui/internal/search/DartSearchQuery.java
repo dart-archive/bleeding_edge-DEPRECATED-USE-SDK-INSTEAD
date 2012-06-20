@@ -65,9 +65,16 @@ public class DartSearchQuery implements ISearchQuery {
     public void matchFound(SearchMatch match) {
       DartElement element = match.getElement();
       SourceRange range = match.getSourceRange();
-      search.addMatch(new DartElementMatch(element, 0 /* match.getRule() */, range.getOffset(),
-          range.getLength(), 0 /* accuracy */, false /* isReadAccess */, false /* isWriteAccess */,
-          false, false));
+      search.addMatch(new DartElementMatch(
+          element,
+          0 /* match.getRule() */,
+          range.getOffset(),
+          range.getLength(),
+          0 /* accuracy */,
+          false /* isReadAccess */,
+          false /* isWriteAccess */,
+          false,
+          false));
     }
 
     @Override
@@ -205,10 +212,12 @@ public class DartSearchQuery implements ISearchQuery {
     if (patternData instanceof ElementQuerySpecification) {
       DartElement element = ((ElementQuerySpecification) patternData).getElement();
       if (!element.exists()) {
-        String patternString = DartElementLabels.getElementLabel(element,
+        String patternString = DartElementLabels.getElementLabel(
+            element,
             DartElementLabels.ALL_DEFAULT);
         return new Status(IStatus.ERROR, DartToolsPlugin.getPluginId(), 0, Messages.format(
-            SearchMessages.DartSearchQuery_error_element_does_not_exist, patternString), null);
+            SearchMessages.DartSearchQuery_error_element_does_not_exist,
+            patternString), null);
       }
 
       try {
@@ -265,7 +274,8 @@ public class DartSearchQuery implements ISearchQuery {
 //      return e.getStatus();
 //    }
 
-    String message = Messages.format(SearchMessages.DartSearchQuery_status_ok_message,
+    String message = Messages.format(
+        SearchMessages.DartSearchQuery_status_ok_message,
         String.valueOf(textResult.getMatchCount()));
     return new Status(IStatus.OK, DartToolsPlugin.getPluginId(), 0, message, null);
   }

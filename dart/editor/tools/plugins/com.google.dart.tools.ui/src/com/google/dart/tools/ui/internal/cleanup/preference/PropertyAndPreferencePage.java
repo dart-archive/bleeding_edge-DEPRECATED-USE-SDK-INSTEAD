@@ -182,7 +182,8 @@ public abstract class PropertyAndPreferencePage extends PreferencePage implement
       LayoutUtil.setHorizontalGrabbing(fUseProjectSettings.getSelectionButton(null));
 
       if (offerLink()) {
-        fChangeWorkspaceSettings = createLink(composite,
+        fChangeWorkspaceSettings = createLink(
+            composite,
             PreferencesMessages.PropertyAndPreferencePage_useworkspacesettings_change);
         fChangeWorkspaceSettings.setLayoutData(new GridData(SWT.END, SWT.CENTER, false, false));
       } else {
@@ -193,7 +194,8 @@ public abstract class PropertyAndPreferencePage extends PreferencePage implement
       horizontalLine.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false, 2, 1));
       horizontalLine.setFont(composite.getFont());
     } else if (supportsProjectSpecificOptions() && offerLink()) {
-      fChangeWorkspaceSettings = createLink(parent,
+      fChangeWorkspaceSettings = createLink(
+          parent,
           PreferencesMessages.PropertyAndPreferencePage_showprojectspecificsettings_label);
       fChangeWorkspaceSettings.setLayoutData(new GridData(SWT.END, SWT.CENTER, true, false));
     }

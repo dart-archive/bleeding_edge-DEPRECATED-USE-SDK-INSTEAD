@@ -82,7 +82,8 @@ public class CallHierarchyUI {
       IEditorPart methodEditor = DartUI.openInEditor(callLocation.getMember(), false, false);
       if (methodEditor instanceof ITextEditor) {
         ITextEditor editor = (ITextEditor) methodEditor;
-        editor.selectAndReveal(callLocation.getStartPosition(),
+        editor.selectAndReveal(
+            callLocation.getStartPosition(),
             (callLocation.getEndPosition() - callLocation.getStartPosition()));
       }
     } catch (DartModelException e) {
@@ -147,12 +148,18 @@ public class CallHierarchyUI {
       }
       return true;
     } catch (DartModelException e) {
-      DartToolsPlugin.log(new Status(IStatus.ERROR, DartToolsPlugin.getPluginId(),
+      DartToolsPlugin.log(new Status(
+          IStatus.ERROR,
+          DartToolsPlugin.getPluginId(),
           DartStatusConstants.INTERNAL_ERROR,
-          CallHierarchyMessages.CallHierarchyUI_open_in_editor_error_message, e));
+          CallHierarchyMessages.CallHierarchyUI_open_in_editor_error_message,
+          e));
 
-      ErrorDialog.openError(shell, CallHierarchyMessages.OpenLocationAction_error_title,
-          CallHierarchyMessages.CallHierarchyUI_open_in_editor_error_message, e.getStatus());
+      ErrorDialog.openError(
+          shell,
+          CallHierarchyMessages.OpenLocationAction_error_title,
+          CallHierarchyMessages.CallHierarchyUI_open_in_editor_error_message,
+          e.getStatus());
       return false;
     } catch (PartInitException x) {
       String name;
@@ -163,8 +170,11 @@ public class CallHierarchyUI {
       } else {
         name = ""; //$NON-NLS-1$
       }
-      MessageDialog.openError(shell, CallHierarchyMessages.OpenLocationAction_error_title,
-          Messages.format(CallHierarchyMessages.CallHierarchyUI_open_in_editor_error_messageArgs,
+      MessageDialog.openError(
+          shell,
+          CallHierarchyMessages.OpenLocationAction_error_title,
+          Messages.format(
+              CallHierarchyMessages.CallHierarchyUI_open_in_editor_error_messageArgs,
               new String[] {name, x.getMessage()}));
       return false;
     }
@@ -191,7 +201,8 @@ public class CallHierarchyUI {
 
   public static CallHierarchyViewPart openView(DartElement[] input, IWorkbenchWindow window) {
     if (input.length == 0) {
-      MessageDialog.openInformation(window.getShell(),
+      MessageDialog.openInformation(
+          window.getShell(),
           CallHierarchyMessages.CallHierarchyUI_selectionDialog_title,
           CallHierarchyMessages.CallHierarchyUI_open_operation_unavialable);
       return null;
@@ -207,13 +218,18 @@ public class CallHierarchyUI {
       } else {
         secondaryId = viewPart.getViewSite().getSecondaryId();
       }
-      viewPart = (CallHierarchyViewPart) page.showView(CallHierarchyViewPart.ID_CALL_HIERARCHY,
-          secondaryId, IWorkbenchPage.VIEW_ACTIVATE);
+      viewPart = (CallHierarchyViewPart) page.showView(
+          CallHierarchyViewPart.ID_CALL_HIERARCHY,
+          secondaryId,
+          IWorkbenchPage.VIEW_ACTIVATE);
       viewPart.setInputElements(input);
       return viewPart;
     } catch (CoreException e) {
-      ExceptionHandler.handle(e, window.getShell(),
-          CallHierarchyMessages.CallHierarchyUI_error_open_view, e.getMessage());
+      ExceptionHandler.handle(
+          e,
+          window.getShell(),
+          CallHierarchyMessages.CallHierarchyUI_error_open_view,
+          e.getMessage());
     }
     return null;
   }

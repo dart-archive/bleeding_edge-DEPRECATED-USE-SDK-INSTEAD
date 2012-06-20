@@ -53,7 +53,8 @@ public class CallHierarchyLabelDecorator implements ILabelDecorator {
       ImageDescriptor baseImage = new ImageImageDescriptor(image);
       Rectangle bounds = image.getBounds();
       return DartToolsPlugin.getImageDescriptorRegistry().get(
-          new CallHierarchyImageDescriptor(baseImage, adornmentFlags, new Point(bounds.width,
+          new CallHierarchyImageDescriptor(baseImage, adornmentFlags, new Point(
+              bounds.width,
               bounds.height)));
     }
     return image;

@@ -58,8 +58,11 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
         LinkedModeModel model = new LinkedModeModel();
         for (int i = 0; i != fArgumentOffsets.length; i++) {
           LinkedPositionGroup group = new LinkedPositionGroup();
-          group.addPosition(new LinkedPosition(document, baseOffset + fArgumentOffsets[i],
-              fArgumentLengths[i], LinkedPositionGroup.NO_STOP));
+          group.addPosition(new LinkedPosition(
+              document,
+              baseOffset + fArgumentOffsets[i],
+              fArgumentLengths[i],
+              LinkedPositionGroup.NO_STOP));
           model.addGroup(group);
         }
 
@@ -165,7 +168,9 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
 
   private void openErrorDialog(BadLocationException e) {
     Shell shell = getTextViewer().getTextWidget().getShell();
-    MessageDialog.openError(shell, DartTextMessages.FilledArgumentNamesMethodProposal_error_msg,
+    MessageDialog.openError(
+        shell,
+        DartTextMessages.FilledArgumentNamesMethodProposal_error_msg,
         e.getMessage());
   }
 

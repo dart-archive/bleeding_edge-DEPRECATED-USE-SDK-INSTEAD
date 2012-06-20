@@ -95,7 +95,9 @@ public abstract class FindAction extends SelectionDispatchAction {
     try {
       performNewSearch(element);
     } catch (DartModelException ex) {
-      ExceptionHandler.handle(ex, getShell(),
+      ExceptionHandler.handle(
+          ex,
+          getShell(),
           SearchMessages.Search_Error_search_notsuccessful_title,
           SearchMessages.Search_Error_search_notsuccessful_message);
     } catch (InterruptedException e) {
@@ -123,7 +125,8 @@ public abstract class FindAction extends SelectionDispatchAction {
     }
     DartUnit ast = ((CompilationUnitEditor) editor).getAST();
     CompilationUnit compilationUnit = (CompilationUnit) EditorUtility.getEditorInputDartElement(
-        editor, false);
+        editor,
+        false);
     int offset = selection.getOffset();
     DartElementLocator elementLocator = new DartElementLocator(compilationUnit, offset, true);
     DartElement dartElement = elementLocator.searchWithin(ast);
@@ -272,7 +275,8 @@ public abstract class FindAction extends SelectionDispatchAction {
     String message = SearchMessages.DartElementAction_typeSelectionDialog_message;
     int flags = (DartElementLabelProvider.SHOW_DEFAULT);
 
-    ElementListSelectionDialog dialog = new ElementListSelectionDialog(getShell(),
+    ElementListSelectionDialog dialog = new ElementListSelectionDialog(
+        getShell(),
         new DartElementLabelProvider(flags));
     dialog.setTitle(title);
     dialog.setMessage(message);
@@ -315,14 +319,18 @@ public abstract class FindAction extends SelectionDispatchAction {
       IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
       IStatus status = NewSearchUI.runQueryInForeground(progressService, query);
       if (status.matches(IStatus.ERROR | IStatus.INFO | IStatus.WARNING)) {
-        ErrorDialog.openError(getShell(), SearchMessages.Search_Error_search_title,
-            SearchMessages.Search_Error_search_message, status);
+        ErrorDialog.openError(
+            getShell(),
+            SearchMessages.Search_Error_search_title,
+            SearchMessages.Search_Error_search_message,
+            status);
       }
     }
   }
 
   private void showOperationUnavailableDialog() {
-    MessageDialog.openInformation(getShell(),
+    MessageDialog.openInformation(
+        getShell(),
         SearchMessages.DartElementAction_operationUnavailable_title,
         getOperationUnavailableMessage());
   }

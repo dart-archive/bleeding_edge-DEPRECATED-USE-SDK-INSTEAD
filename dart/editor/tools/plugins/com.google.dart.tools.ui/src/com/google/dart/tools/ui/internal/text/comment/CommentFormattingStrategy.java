@@ -198,10 +198,16 @@ public class CommentFormattingStrategy extends ContextBasedFormattingStrategy {
         int sourceLength = partitionOffset + position.getLength();
         String source = document.get(sourceOffset, sourceLength);
         CodeFormatter commentFormatter = new DefaultCodeFormatter(preferences);
-        int indentationLevel = inferIndentationLevel(source.substring(0, partitionOffset),
-            getTabSize(preferences), getIndentSize(preferences));
-        edit = commentFormatter.format(getKindForPartitionType(position.getType()), source,
-            partitionOffset, position.getLength(), indentationLevel,
+        int indentationLevel = inferIndentationLevel(
+            source.substring(0, partitionOffset),
+            getTabSize(preferences),
+            getIndentSize(preferences));
+        edit = commentFormatter.format(
+            getKindForPartitionType(position.getType()),
+            source,
+            partitionOffset,
+            position.getLength(),
+            indentationLevel,
             TextUtilities.getDefaultLineDelimiter(document));
 
         // move edit offset to match document
@@ -214,19 +220,22 @@ public class CommentFormattingStrategy extends ContextBasedFormattingStrategy {
     } else if (isFormattingHeader) {
       boolean wasJavaDoc = DefaultCodeFormatterConstants.TRUE.equals(preferences.get(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_JAVADOC_COMMENT));
       if (!wasJavaDoc) {
-        preferences.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_JAVADOC_COMMENT,
+        preferences.put(
+            DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_JAVADOC_COMMENT,
             DefaultCodeFormatterConstants.TRUE);
       }
 
       boolean wasBlockComment = DefaultCodeFormatterConstants.TRUE.equals(preferences.get(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_BLOCK_COMMENT));
       if (!wasBlockComment) {
-        preferences.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_BLOCK_COMMENT,
+        preferences.put(
+            DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_BLOCK_COMMENT,
             DefaultCodeFormatterConstants.TRUE);
       }
 
       boolean wasLineComment = DefaultCodeFormatterConstants.TRUE.equals(preferences.get(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_LINE_COMMENT));
       if (!wasLineComment) {
-        preferences.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_LINE_COMMENT,
+        preferences.put(
+            DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_LINE_COMMENT,
             DefaultCodeFormatterConstants.TRUE);
       }
 
@@ -239,10 +248,16 @@ public class CommentFormattingStrategy extends ContextBasedFormattingStrategy {
         int sourceLength = partitionOffset + position.getLength();
         String source = document.get(sourceOffset, sourceLength);
         CodeFormatter commentFormatter = new DefaultCodeFormatter(preferences);
-        int indentationLevel = inferIndentationLevel(source.substring(0, partitionOffset),
-            getTabSize(preferences), getIndentSize(preferences));
-        edit = commentFormatter.format(getKindForPartitionType(position.getType()), source,
-            partitionOffset, position.getLength(), indentationLevel,
+        int indentationLevel = inferIndentationLevel(
+            source.substring(0, partitionOffset),
+            getTabSize(preferences),
+            getIndentSize(preferences));
+        edit = commentFormatter.format(
+            getKindForPartitionType(position.getType()),
+            source,
+            partitionOffset,
+            position.getLength(),
+            indentationLevel,
             TextUtilities.getDefaultLineDelimiter(document));
 
         // move edit offset to match document
@@ -253,15 +268,18 @@ public class CommentFormattingStrategy extends ContextBasedFormattingStrategy {
         DartToolsPlugin.log(x);
       } finally {
         if (!wasJavaDoc) {
-          preferences.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_JAVADOC_COMMENT,
+          preferences.put(
+              DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_JAVADOC_COMMENT,
               DefaultCodeFormatterConstants.FALSE);
         }
         if (!wasBlockComment) {
-          preferences.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_BLOCK_COMMENT,
+          preferences.put(
+              DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_BLOCK_COMMENT,
               DefaultCodeFormatterConstants.FALSE);
         }
         if (!wasLineComment) {
-          preferences.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_LINE_COMMENT,
+          preferences.put(
+              DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_LINE_COMMENT,
               DefaultCodeFormatterConstants.FALSE);
         }
       }

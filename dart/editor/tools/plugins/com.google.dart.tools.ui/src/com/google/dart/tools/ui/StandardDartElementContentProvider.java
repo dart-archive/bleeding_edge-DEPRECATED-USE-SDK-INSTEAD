@@ -514,7 +514,8 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
       throws DartModelException {
     DartElement[] dartLibraryChildren = dartLibrary.getChildren();
     List<Object> children = new ArrayList<Object>(dartLibraryChildren.length + 1);
-    ImportedDartLibraryContainer importedLibsContainer = new ImportedDartLibraryContainer(parent,
+    ImportedDartLibraryContainer importedLibsContainer = new ImportedDartLibraryContainer(
+        parent,
         dartLibrary);
     // Only add this LibrariesContainer if it has children.
     if (importedLibsContainer.hasChildren()) {
@@ -555,7 +556,8 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
               URI importedUri = ImportedDartLibraryContainer.getUri(importedLibrary);
               if (targetUri.equals(importedUri)) {
                 return new ImportedDartLibrary(importedLibrary, new ImportedDartLibraryContainer(
-                    library, library));
+                    library,
+                    library));
               }
             }
           }
@@ -570,7 +572,8 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
             URI bundledUri = ImportedDartLibraryContainer.getUri(bundledLibrary);
             if (targetUri.equals(bundledUri)) {
               return new ImportedDartLibrary(bundledLibrary, new ImportedDartLibraryContainer(
-                  libraries[0], libraries[0]));
+                  libraries[0],
+                  libraries[0]));
             }
           }
         }

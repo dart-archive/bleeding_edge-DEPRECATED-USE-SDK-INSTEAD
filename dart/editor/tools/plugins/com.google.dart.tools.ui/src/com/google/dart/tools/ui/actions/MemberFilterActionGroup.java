@@ -133,8 +133,12 @@ public class MemberFilterActionGroup extends ActionGroup {
       }
       title = ActionMessages.MemberFilterActionGroup_hide_fields_label;
       helpContext = DartHelpContextIds.FILTER_FIELDS_ACTION;
-      MemberFilterAction hideFields = new MemberFilterAction(this, title, filterProperty,
-          helpContext, filterEnabled);
+      MemberFilterAction hideFields = new MemberFilterAction(
+          this,
+          title,
+          filterProperty,
+          helpContext,
+          filterEnabled);
       hideFields.setDescription(ActionMessages.MemberFilterActionGroup_hide_fields_description);
       hideFields.setToolTipText(ActionMessages.MemberFilterActionGroup_hide_fields_tooltip);
       DartPluginImages.setLocalImageDescriptors(hideFields, "fields_co.gif"); //$NON-NLS-1$
@@ -150,8 +154,12 @@ public class MemberFilterActionGroup extends ActionGroup {
       }
       title = ActionMessages.MemberFilterActionGroup_hide_static_label;
       helpContext = DartHelpContextIds.FILTER_STATIC_ACTION;
-      MemberFilterAction hideStatic = new MemberFilterAction(this, title, FILTER_STATIC,
-          helpContext, filterEnabled);
+      MemberFilterAction hideStatic = new MemberFilterAction(
+          this,
+          title,
+          FILTER_STATIC,
+          helpContext,
+          filterEnabled);
       hideStatic.setDescription(ActionMessages.MemberFilterActionGroup_hide_static_description);
       hideStatic.setToolTipText(ActionMessages.MemberFilterActionGroup_hide_static_tooltip);
       DartPluginImages.setLocalImageDescriptors(hideStatic, "static_co.gif"); //$NON-NLS-1$
@@ -257,14 +265,14 @@ public class MemberFilterActionGroup extends ActionGroup {
    * @param memento the memento from which the state is restored
    */
   public void restoreState(IMemento memento) {
-    setMemberFilters(
-        new int[] {FILTER_FIELDS, FILTER_STATIC},// ,
+    setMemberFilters(new int[] {FILTER_FIELDS, FILTER_STATIC},// ,
 // FILTER_LOCALTYPES},
         new boolean[] {
             Boolean.valueOf(memento.getString(TAG_HIDEFIELDS)).booleanValue(),
             Boolean.valueOf(memento.getString(TAG_HIDESTATIC)).booleanValue(),
 //            Boolean.valueOf(memento.getString(TAG_HIDELOCALTYPES)).booleanValue()
-        }, false);
+        },
+        false);
   }
 
   /**

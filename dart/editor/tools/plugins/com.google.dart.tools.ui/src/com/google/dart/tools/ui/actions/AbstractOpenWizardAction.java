@@ -55,7 +55,8 @@ public abstract class AbstractOpenWizardAction extends AbstractInstrumentedActio
 
       WizardDialog dialog = new WizardDialog(shell, wizard);
       PixelConverter converter = new PixelConverter(JFaceResources.getDialogFont());
-      dialog.setMinimumPageSize(converter.convertWidthInCharsToPixels(70),
+      dialog.setMinimumPageSize(
+          converter.convertWidthInCharsToPixels(70),
           converter.convertHeightInCharsToPixels(20));
       dialog.create();
       int res = dialog.open();

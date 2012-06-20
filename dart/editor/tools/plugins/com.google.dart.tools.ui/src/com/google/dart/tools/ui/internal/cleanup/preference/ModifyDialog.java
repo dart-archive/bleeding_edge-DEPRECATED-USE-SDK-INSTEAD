@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.cleanup.preference;
@@ -196,8 +194,11 @@ public abstract class ModifyDialog extends StatusDialog implements
 
   @Override
   protected void createButtonsForButtonBar(Composite parent) {
-    fApplyButton = createButton(parent, APPLAY_BUTTON_ID,
-        FormatterMessages.ModifyDialog_apply_button, false);
+    fApplyButton = createButton(
+        parent,
+        APPLAY_BUTTON_ID,
+        FormatterMessages.ModifyDialog_apply_button,
+        false);
     fApplyButton.setEnabled(false);
 
     GridLayout layout = (GridLayout) parent.getLayout();
@@ -233,8 +234,11 @@ public abstract class ModifyDialog extends StatusDialog implements
       }
     });
 
-    fSaveButton = createButton(nameComposite, SAVE_BUTTON_ID,
-        FormatterMessages.ModifyDialog_Export_Button, false);
+    fSaveButton = createButton(
+        nameComposite,
+        SAVE_BUTTON_ID,
+        FormatterMessages.ModifyDialog_Export_Button,
+        false);
 
     fTabFolder = new TabFolder(composite, SWT.NONE);
     fTabFolder.setFont(composite.getFont());
@@ -282,7 +286,8 @@ public abstract class ModifyDialog extends StatusDialog implements
   @Override
   protected Point getInitialLocation(Point initialSize) {
     try {
-      return new Point(fDialogSettings.getInt(fKeyPreferredX),
+      return new Point(
+          fDialogSettings.getInt(fKeyPreferredX),
           fDialogSettings.getInt(fKeyPreferredY));
     } catch (NumberFormatException ex) {
       return super.getInitialLocation(initialSize);
@@ -368,13 +373,17 @@ public abstract class ModifyDialog extends StatusDialog implements
     }
 
     if (!name.equals(fProfile.getName()) && fProfileManager.containsName(name)) {
-      updateStatus(new Status(IStatus.ERROR, DartUI.ID_PLUGIN,
+      updateStatus(new Status(
+          IStatus.ERROR,
+          DartUI.ID_PLUGIN,
           FormatterMessages.ModifyDialog_Duplicate_Status));
       return;
     }
 
     if (fProfile.isBuiltInProfile() || fProfile.isSharedProfile()) {
-      updateStatus(new Status(IStatus.INFO, DartUI.ID_PLUGIN,
+      updateStatus(new Status(
+          IStatus.INFO,
+          DartUI.ID_PLUGIN,
           FormatterMessages.ModifyDialog_NewCreated_Status));
       return;
     }
@@ -398,8 +407,10 @@ public abstract class ModifyDialog extends StatusDialog implements
   }
 
   private void saveButtonPressed() {
-    Profile selected = new CustomProfile(fProfileNameField.getText(), new HashMap<String, String>(
-        fWorkingValues), fProfile.getVersion(),
+    Profile selected = new CustomProfile(
+        fProfileNameField.getText(),
+        new HashMap<String, String>(fWorkingValues),
+        fProfile.getVersion(),
         fProfileManager.getProfileVersioner().getProfileKind());
 
     final FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
@@ -421,7 +432,8 @@ public abstract class ModifyDialog extends StatusDialog implements
 
     final File file = new File(path);
     if (file.exists()
-        && !MessageDialog.openQuestion(getShell(),
+        && !MessageDialog.openQuestion(
+            getShell(),
             FormatterMessages.CodingStyleConfigurationBlock_save_profile_overwrite_title,
             Messages.format(
                 FormatterMessages.CodingStyleConfigurationBlock_save_profile_overwrite_message,
@@ -451,20 +463,26 @@ public abstract class ModifyDialog extends StatusDialog implements
 
     if (fProfile.isBuiltInProfile()) {
       if (fProfile.getName().equals(name)) {
-        return new Status(IStatus.ERROR, DartUI.ID_PLUGIN,
+        return new Status(
+            IStatus.ERROR,
+            DartUI.ID_PLUGIN,
             FormatterMessages.ModifyDialog_BuiltIn_Status);
       }
     }
 
     if (fProfile.isSharedProfile()) {
       if (fProfile.getName().equals(name)) {
-        return new Status(IStatus.ERROR, DartUI.ID_PLUGIN,
+        return new Status(
+            IStatus.ERROR,
+            DartUI.ID_PLUGIN,
             FormatterMessages.ModifyDialog_Shared_Status);
       }
     }
 
     if (name.length() == 0) {
-      return new Status(IStatus.ERROR, DartUI.ID_PLUGIN,
+      return new Status(
+          IStatus.ERROR,
+          DartUI.ID_PLUGIN,
           FormatterMessages.ModifyDialog_EmptyName_Status);
     }
 

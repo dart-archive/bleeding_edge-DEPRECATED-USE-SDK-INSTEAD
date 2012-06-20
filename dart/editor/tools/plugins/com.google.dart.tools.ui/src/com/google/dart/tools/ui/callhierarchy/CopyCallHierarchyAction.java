@@ -69,7 +69,8 @@ class CopyCallHierarchyAction extends Action {
       CallHierarchyViewer viewer) {
     super(CallHierarchyMessages.CopyCallHierarchyAction_label);
     Assert.isNotNull(clipboard);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.CALL_HIERARCHY_COPY_ACTION);
     this.view = view;
     this.clipboard = clipboard;
@@ -88,13 +89,15 @@ class CopyCallHierarchyAction extends Action {
 
     TextTransfer plainTextTransfer = TextTransfer.getInstance();
     try {
-      clipboard.setContents(new String[] {convertLineTerminators(buf.toString())},
+      clipboard.setContents(
+          new String[] {convertLineTerminators(buf.toString())},
           new Transfer[] {plainTextTransfer});
     } catch (SWTError e) {
       if (e.code != DND.ERROR_CANNOT_SET_CLIPBOARD) {
         throw e;
       }
-      if (MessageDialog.openQuestion(view.getViewSite().getShell(),
+      if (MessageDialog.openQuestion(
+          view.getViewSite().getShell(),
           CallHierarchyMessages.CopyCallHierarchyAction_problem,
           CallHierarchyMessages.CopyCallHierarchyAction_clipboard_busy)) {
         run();

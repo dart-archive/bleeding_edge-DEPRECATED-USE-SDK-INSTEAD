@@ -35,7 +35,8 @@ class PinCallHierarchyViewAction extends Action {
     super(CallHierarchyMessages.PinCallHierarchyViewAction_label, IAction.AS_CHECK_BOX);
     setToolTipText(CallHierarchyMessages.PinCallHierarchyViewAction_tooltip);
     DartPluginImages.setLocalImageDescriptors(this, "pin_view.gif"); //$NON-NLS-1$
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.CALL_HIERARCHY_PIN_VIEW_ACTION);
     chvPart = view;
   }

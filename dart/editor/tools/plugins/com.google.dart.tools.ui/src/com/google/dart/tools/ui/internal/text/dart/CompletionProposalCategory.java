@@ -328,9 +328,14 @@ public final class CompletionProposalCategory {
     if (obj == null) {
       Object[] args = {getId(), fElement.getContributor().getName(), attribute};
       String message = Messages.format(
-          DartTextMessages.CompletionProposalComputerDescriptor_illegal_attribute_message, args);
-      IStatus status = new Status(IStatus.WARNING, DartToolsPlugin.getPluginId(), IStatus.OK,
-          message, null);
+          DartTextMessages.CompletionProposalComputerDescriptor_illegal_attribute_message,
+          args);
+      IStatus status = new Status(
+          IStatus.WARNING,
+          DartToolsPlugin.getPluginId(),
+          IStatus.OK,
+          message,
+          null);
       DartToolsPlugin.log(status);
       throw new InvalidRegistryObjectException();
     }

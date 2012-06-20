@@ -71,10 +71,8 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
 
   public static final String IDENTIFIER = "com.google.dart.tools.ui.renameLocalVariableProcessor"; //$NON-NLS-1$
 
-  public static RefactoringStatus analyzePossibleConflicts(
-      FunctionLocalElement variable,
-      String newName,
-      IProgressMonitor pm) throws CoreException {
+  public static RefactoringStatus analyzePossibleConflicts(FunctionLocalElement variable,
+      String newName, IProgressMonitor pm) throws CoreException {
     CompilationUnitElement variableElement = variable.getElement();
     pm.beginTask("Analyze possible conflicts", 3);
     try {
@@ -119,9 +117,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
                         RefactoringCoreMessages.RenameProcessor_typeMemberDecl_shadowedBy_element,
                         new Object[] {
                             RenameAnalyzeUtil.getElementTypeName(parameter),
-                            superType.getElementName(),
-                            newName,
-                            resourcePath,
+                            superType.getElementName(), newName, resourcePath,
                             RenameAnalyzeUtil.getElementTypeName(variableElement),});
                     result.addWarning(message, DartStatusContext.create(parameter));
                   }
@@ -136,9 +132,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
                           RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_element,
                           new Object[] {
                               RenameAnalyzeUtil.getElementTypeName(parameter),
-                              superType.getElementName(),
-                              newName,
-                              resourcePath,
+                              superType.getElementName(), newName, resourcePath,
                               RenameAnalyzeUtil.getElementTypeName(variableElement),});
                       result.addError(message, DartStatusContext.create(
                           superType.getCompilationUnit(),
@@ -157,9 +151,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
                     RefactoringCoreMessages.RenameProcessor_typeMemberDecl_shadowedBy_element,
                     new Object[] {
                         RenameAnalyzeUtil.getElementTypeName(superMember),
-                        superType.getElementName(),
-                        superMember.getElementName(),
-                        resourcePath,
+                        superType.getElementName(), superMember.getElementName(), resourcePath,
                         RenameAnalyzeUtil.getElementTypeName(variableElement)});
                 result.addWarning(message, DartStatusContext.create(superMember));
               }
@@ -173,9 +165,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
                       RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_element,
                       new Object[] {
                           RenameAnalyzeUtil.getElementTypeName(superMember),
-                          superType.getElementName(),
-                          superMember.getElementName(),
-                          resourcePath,
+                          superType.getElementName(), superMember.getElementName(), resourcePath,
                           RenameAnalyzeUtil.getElementTypeName(variableElement)});
                   result.addError(message, DartStatusContext.create(memberRef));
                 }
@@ -200,8 +190,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
             String message = Messages.format(
                 RefactoringCoreMessages.RenameProcessor_topLevelDecl_shadowedBy_element,
                 new Object[] {
-                    RenameAnalyzeUtil.getElementTypeName(topLevelElement),
-                    newName,
+                    RenameAnalyzeUtil.getElementTypeName(topLevelElement), newName,
                     BasicElementLabels.getPathLabel(resourcePath, false),
                     BasicElementLabels.getPathLabel(libraryPath, false),
                     RenameAnalyzeUtil.getElementTypeName(variableElement)});
@@ -214,8 +203,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
               String message = Messages.format(
                   RefactoringCoreMessages.RenameProcessor_topLevelUsage_shadowedBy_element,
                   new Object[] {
-                      RenameAnalyzeUtil.getElementTypeName(topLevelElement),
-                      newName,
+                      RenameAnalyzeUtil.getElementTypeName(topLevelElement), newName,
                       BasicElementLabels.getPathLabel(resourcePath, false),
                       BasicElementLabels.getPathLabel(libraryPath, false),
                       RenameAnalyzeUtil.getElementTypeName(variableElement)});
@@ -326,8 +314,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
   }
 
   @Override
-  protected RefactoringStatus doCheckFinalConditions(
-      IProgressMonitor pm,
+  protected RefactoringStatus doCheckFinalConditions(IProgressMonitor pm,
       CheckConditionsContext context) throws CoreException, OperationCanceledException {
     try {
       pm.beginTask("", 11); //$NON-NLS-1$

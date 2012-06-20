@@ -205,7 +205,8 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
 
   private static Color getBackgroundColor() {
     IPreferenceStore preference = DartToolsPlugin.getDefault().getPreferenceStore();
-    RGB rgb = PreferenceConverter.getColor(preference,
+    RGB rgb = PreferenceConverter.getColor(
+        preference,
         PreferenceConstants.CODEASSIST_REPLACEMENT_BACKGROUND);
     DartTextTools textTools = DartToolsPlugin.getDefault().getJavaTextTools();
     return textTools.getColorManager().getColor(rgb);
@@ -213,7 +214,8 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
 
   private static Color getForegroundColor() {
     IPreferenceStore preference = DartToolsPlugin.getDefault().getPreferenceStore();
-    RGB rgb = PreferenceConverter.getColor(preference,
+    RGB rgb = PreferenceConverter.getColor(
+        preference,
         PreferenceConstants.CODEASSIST_REPLACEMENT_FOREGROUND);
     DartTextTools textTools = DartToolsPlugin.getDefault().getJavaTextTools();
     return textTools.getColorManager().getColor(rgb);
@@ -289,7 +291,8 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
         int oldLen = document.getLength();
         if (requiredProposals[i].getKind() == CompletionProposal.TYPE_REF) {
           LazyDartCompletionProposal proposal = createRequiredTypeCompletionProposal(
-              requiredProposals[i], fInvocationContext);
+              requiredProposals[i],
+              fInvocationContext);
           proposal.apply(document);
           setReplacementOffset(getReplacementOffset() + document.getLength() - oldLen);
         } else {
@@ -1108,7 +1111,8 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
       if (viewer instanceof ITextViewerExtension2) {
         // attempts to reduce the redraw area
         ITextViewerExtension2 viewer2 = (ITextViewerExtension2) viewer;
-        viewer2.invalidateTextPresentation(fRememberedStyleRange.start,
+        viewer2.invalidateTextPresentation(
+            fRememberedStyleRange.start,
             fRememberedStyleRange.length);
       } else {
         viewer.invalidateTextPresentation();

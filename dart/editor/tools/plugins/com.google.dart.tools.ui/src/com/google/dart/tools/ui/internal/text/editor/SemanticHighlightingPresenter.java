@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.editor;
@@ -55,7 +53,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
 
     /**
      * Creates a new updater for the given <code>category</code>.
-     *
+     * 
      * @param category the new category.
      */
     public HighlightingPositionUpdater(String category) {
@@ -109,7 +107,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
 
     /**
      * Update the given position with the given event. The event is included by the position.
-     *
+     * 
      * @param position The position
      * @param event The event
      */
@@ -160,7 +158,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
 
     /**
      * Update the given position with the given event. The event includes the position.
-     *
+     * 
      * @param position The position
      * @param event The event
      */
@@ -172,7 +170,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
     /**
      * Update the given position with the given event. The event overlaps with the end of the
      * position.
-     *
+     * 
      * @param position The position
      * @param event The event
      */
@@ -194,7 +192,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
     /**
      * Update the given position with the given event. The event overlaps with the start of the
      * position.
-     *
+     * 
      * @param position The position
      * @param event The event
      */
@@ -220,7 +218,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
 
     /**
      * Update the given position with the given event. The event precedes the position.
-     *
+     * 
      * @param position The position
      * @param event The event
      */
@@ -234,7 +232,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
 
     /**
      * Update the given position with the given event. The event succeeds the position.
-     *
+     * 
      * @param position The position
      * @param event The event
      */
@@ -265,7 +263,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
    * <p>
    * NOTE: Called from background thread.
    * </p>
-   *
+   * 
    * @param list The list
    */
   public void addAllPositions(List<Position> list) {
@@ -282,11 +280,12 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
   public void applyTextPresentation(TextPresentation textPresentation) {
     IRegion region = textPresentation.getExtent();
     int i = computeIndexAtOffset(fPositions, region.getOffset()), n = computeIndexAtOffset(
-        fPositions, region.getOffset() + region.getLength());
+        fPositions,
+        region.getOffset() + region.getLength());
     if (n - i > 2) {
       List<StyleRange> ranges = new ArrayList<StyleRange>(n - i);
       for (; i < n; i++) {
-        HighlightedPosition position = (HighlightedPosition)fPositions.get(i);
+        HighlightedPosition position = (HighlightedPosition) fPositions.get(i);
         if (!position.isDeleted()) {
           ranges.add(position.createStyleRange());
         }
@@ -296,7 +295,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
       textPresentation.replaceStyleRanges(array);
     } else {
       for (; i < n; i++) {
-        HighlightedPosition position = (HighlightedPosition)fPositions.get(i);
+        HighlightedPosition position = (HighlightedPosition) fPositions.get(i);
         if (!position.isDeleted()) {
           textPresentation.replaceStyleRange(position.createStyleRange());
         }
@@ -309,7 +308,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
    * <p>
    * NOTE: Also called from background thread.
    * </p>
-   *
+   * 
    * @param offset The offset
    * @param length The length
    * @param highlighting The highlighting
@@ -326,12 +325,13 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
    * <p>
    * NOTE: Called from background thread.
    * </p>
-   *
+   * 
    * @param addedPositions the added positions
    * @param removedPositions the removed positions
    * @return the text presentation or <code>null</code>, if reconciliation should be canceled
    */
-  public TextPresentation createPresentation(List<Position> addedPositions, List<Position> removedPositions) {
+  public TextPresentation createPresentation(List<Position> addedPositions,
+      List<Position> removedPositions) {
     DartSourceViewer sourceViewer = fSourceViewer;
     DartPresentationReconciler presentationReconciler = fPresentationReconciler;
     if (sourceViewer == null || presentationReconciler == null) {
@@ -379,7 +379,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
    * <p>
    * NOTE: Called from background thread.
    * </p>
-   *
+   * 
    * @param textPresentation the text presentation
    * @param addedPositions the added positions
    * @param removedPositions the removed positions
@@ -438,12 +438,12 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
 
   /**
    * Invalidate text presentation of positions with the given highlighting.
-   *
+   * 
    * @param highlighting The highlighting
    */
   public void highlightingStyleChanged(Highlighting highlighting) {
     for (int i = 0, n = fPositions.size(); i < n; i++) {
-      HighlightedPosition position = (HighlightedPosition)fPositions.get(i);
+      HighlightedPosition position = (HighlightedPosition) fPositions.get(i);
       if (position.getHighlighting() == highlighting) {
         fSourceViewer.invalidateTextPresentation(position.getOffset(), position.getLength());
       }
@@ -472,7 +472,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
 
   /**
    * Install this presenter on the given source viewer and background presentation reconciler.
-   *
+   * 
    * @param sourceViewer the source viewer
    * @param backgroundPresentationReconciler the background presentation reconciler, can be
    *          <code>null</code>, in that case
@@ -508,7 +508,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
 
   /**
    * Set whether or not the current reconcile is canceled.
-   *
+   * 
    * @param isCanceled <code>true</code> iff the current reconcile is canceled
    */
   public void setCanceled(boolean isCanceled) {
@@ -547,7 +547,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
    * <p>
    * NOTE: Indirectly called from background thread by UI runnable.
    * </p>
-   *
+   * 
    * @param textPresentation the text presentation or <code>null</code>, if the presentation should
    *          computed in the UI thread
    * @param addedPositions the added positions
@@ -581,7 +581,8 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
     try {
       synchronized (fPositionLock) {
         List<Position> oldPositions = fPositions;
-        int newSize = Math.max(fPositions.size() + addedPositions.length - removedPositions.length,
+        int newSize = Math.max(
+            fPositions.size() + addedPositions.length - removedPositions.length,
             10);
 
         /*
@@ -653,7 +654,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
   /**
    * Add a position with the given range and highlighting unconditionally, only from UI thread. The
    * position will also be registered on the document. The text presentation is not invalidated.
-   *
+   * 
    * @param offset The range offset
    * @param length The range length
    * @param highlighting
@@ -682,7 +683,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
 
   /**
    * Returns the index of the first position with an offset greater than the given offset.
-   *
+   * 
    * @param positions the positions, must be ordered by offset and must not overlap
    * @param offset the offset
    * @return the index of the last position with an offset greater than the given offset
@@ -704,7 +705,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
 
   /**
    * Returns the index of the first position with an offset equal or greater than the given offset.
-   *
+   * 
    * @param positions the positions, must be ordered by offset and must not overlap
    * @param offset the offset
    * @return the index of the last position with an offset equal or greater than the given offset
@@ -726,7 +727,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
 
   /**
    * Returns <code>true</code> iff the positions contain the position.
-   *
+   * 
    * @param positions the positions, must be ordered by offset but may overlap
    * @param position the position
    * @return <code>true</code> iff the positions contain the position
@@ -758,7 +759,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
 
   /**
    * Returns index of the position in the positions, <code>-1</code> if not found.
-   *
+   * 
    * @param positions the positions, must be ordered by offset but may overlap
    * @param position the position
    * @return the index
@@ -777,7 +778,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
 
   /**
    * Insert the given position in <code>fPositions</code>, s.t. the offsets remain in linear order.
-   *
+   * 
    * @param position The position for insertion
    */
   private void insertPosition(Position position) {
@@ -797,7 +798,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
 
   /**
    * Start managing the given document.
-   *
+   * 
    * @param document The document
    */
   private void manageDocument(IDocument document) {
@@ -810,7 +811,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
 
   /**
    * Stop managing the given document.
-   *
+   * 
    * @param document The document
    */
   private void releaseDocument(IDocument document) {

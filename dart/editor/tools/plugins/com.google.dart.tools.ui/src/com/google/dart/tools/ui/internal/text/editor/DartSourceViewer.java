@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.editor;
@@ -94,8 +92,12 @@ public class DartSourceViewer extends ProjectionViewer implements IPropertyChang
     }
 
     IRegion line = document.getLineInformationOfOffset(lineOffset);
-    ITypedRegion[] linePartitioning = TextUtilities.computePartitioning(document,
-        DartPartitions.DART_PARTITIONING, lineOffset, line.getLength(), false);
+    ITypedRegion[] linePartitioning = TextUtilities.computePartitioning(
+        document,
+        DartPartitions.DART_PARTITIONING,
+        lineOffset,
+        line.getLength(),
+        false);
 
     List<ITypedRegion> segmentation = new ArrayList<ITypedRegion>();
     for (int i = 0; i < linePartitioning.length; i++) {
@@ -504,7 +506,9 @@ public class DartSourceViewer extends ProjectionViewer implements IPropertyChang
 
       // ----------- foreground color --------------------
       Color color = fPreferenceStore.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND_SYSTEM_DEFAULT)
-          ? null : createColor(fPreferenceStore, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND,
+          ? null : createColor(
+              fPreferenceStore,
+              AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND,
               styledText.getDisplay());
       styledText.setForeground(color);
 
@@ -516,7 +520,9 @@ public class DartSourceViewer extends ProjectionViewer implements IPropertyChang
 
       // ---------- background color ----------------------
       color = fPreferenceStore.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND_SYSTEM_DEFAULT)
-          ? null : createColor(fPreferenceStore, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND,
+          ? null : createColor(
+              fPreferenceStore,
+              AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND,
               styledText.getDisplay());
       styledText.setBackground(color);
 
@@ -528,7 +534,8 @@ public class DartSourceViewer extends ProjectionViewer implements IPropertyChang
 
       // ----------- selection foreground color --------------------
       color = fPreferenceStore.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_FOREGROUND_DEFAULT_COLOR)
-          ? null : createColor(fPreferenceStore,
+          ? null : createColor(
+              fPreferenceStore,
               AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_FOREGROUND_COLOR,
               styledText.getDisplay());
       styledText.setSelectionForeground(color);
@@ -541,7 +548,8 @@ public class DartSourceViewer extends ProjectionViewer implements IPropertyChang
 
       // ---------- selection background color ----------------------
       color = fPreferenceStore.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_DEFAULT_COLOR)
-          ? null : createColor(fPreferenceStore,
+          ? null : createColor(
+              fPreferenceStore,
               AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_COLOR,
               styledText.getDisplay());
       styledText.setSelectionBackground(color);

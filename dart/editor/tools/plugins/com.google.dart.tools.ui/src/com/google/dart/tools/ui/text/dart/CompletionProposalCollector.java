@@ -219,7 +219,10 @@ public class CompletionProposalCollector extends CompletionRequestor {
       // all signature processing method may throw IAEs
       // https://bugs.eclipse.org/bugs/show_bug.cgi?id=84657
       // don't abort, but log and show all the valid proposals
-      DartToolsPlugin.log(new Status(IStatus.ERROR, DartToolsPlugin.getPluginId(), IStatus.OK,
+      DartToolsPlugin.log(new Status(
+          IStatus.ERROR,
+          DartToolsPlugin.getPluginId(),
+          IStatus.OK,
           "Exception when processing proposal for: " + String.valueOf(proposal.getCompletion()), e)); //$NON-NLS-1$
     }
 
@@ -639,10 +642,22 @@ public class CompletionProposalCollector extends CompletionRequestor {
         int completionEnd = proposal.getReplaceEnd();
         int relevance = computeRelevance(proposal);
 
-        GetterSetterCompletionProposal.evaluateProposals(type, prefix, completionStart,
-            completionEnd - completionStart, relevance + 2, fSuggestedMethodNames, fDartProposals);
-        MethodDeclarationCompletionProposal.evaluateProposals(type, prefix, completionStart,
-            completionEnd - completionStart, relevance, fSuggestedMethodNames, fDartProposals);
+        GetterSetterCompletionProposal.evaluateProposals(
+            type,
+            prefix,
+            completionStart,
+            completionEnd - completionStart,
+            relevance + 2,
+            fSuggestedMethodNames,
+            fDartProposals);
+        MethodDeclarationCompletionProposal.evaluateProposals(
+            type,
+            prefix,
+            completionStart,
+            completionEnd - completionStart,
+            relevance,
+            fSuggestedMethodNames,
+            fDartProposals);
       }
       if (proposal instanceof InternalCompletionProposal) {
         String prefix = String.valueOf(proposal.getName());
@@ -654,9 +669,16 @@ public class CompletionProposalCollector extends CompletionRequestor {
         char[][] paramNames = prop.getParameterNames();
         char[][] paramTypes = prop.getParameterTypeNames();
         if (paramNames != null && paramTypes != null) {
-          InlineFunctionCompletionProposal.evaluateProposals(cu, prefix, paramNames, paramTypes,
-              completionStart, completionEnd - completionStart, relevance + 2,
-              fSuggestedMethodNames, fDartProposals);
+          InlineFunctionCompletionProposal.evaluateProposals(
+              cu,
+              prefix,
+              paramNames,
+              paramTypes,
+              completionStart,
+              completionEnd - completionStart,
+              relevance + 2,
+              fSuggestedMethodNames,
+              fDartProposals);
         }
       }
     } catch (CoreException e) {
@@ -722,8 +744,15 @@ public class CompletionProposalCollector extends CompletionRequestor {
     int relevance = computeRelevance(proposal);
 
     @SuppressWarnings("deprecation")
-    DartCompletionProposal dartProposal = new DartCompletionProposal(completion, start, length,
-        image, label, relevance, getContext().isInJavadoc(), getInvocationContext());
+    DartCompletionProposal dartProposal = new DartCompletionProposal(
+        completion,
+        start,
+        length,
+        image,
+        label,
+        relevance,
+        getContext().isInJavadoc(),
+        getInvocationContext());
     if (fDartProject != null) {
       dartProposal.setProposalInfo(new FieldProposalInfo(fDartProject, proposal));
     }
@@ -829,8 +858,13 @@ public class CompletionProposalCollector extends CompletionRequestor {
     Image image = getImage(fLabelProvider.createLocalImageDescriptor(proposal));
     StyledString label = new StyledString(fLabelProvider.createSimpleLabelWithType(proposal));//TODO(messick)
     int relevance = computeRelevance(proposal);
-    final DartCompletionProposal dartProposal = new DartCompletionProposal(completion, start,
-        length, image, label, relevance);
+    final DartCompletionProposal dartProposal = new DartCompletionProposal(
+        completion,
+        start,
+        length,
+        image,
+        label,
+        relevance);
     dartProposal.setTriggerCharacters(VAR_TRIGGER);
     return dartProposal;
   }
@@ -851,8 +885,14 @@ public class CompletionProposalCollector extends CompletionRequestor {
     StyledString label = new StyledString(
         fLabelProvider.createOverrideMethodProposalLabel(proposal));//TODO(messick)
 
-    DartCompletionProposal dartProposal = new OverrideCompletionProposal(fDartProject,
-        fCompilationUnit, name, paramTypes, start, length, label,
+    DartCompletionProposal dartProposal = new OverrideCompletionProposal(
+        fDartProject,
+        fCompilationUnit,
+        name,
+        paramTypes,
+        start,
+        length,
+        label,
         String.valueOf(proposal.getCompletion()));
     dartProposal.setImage(getImage(fLabelProvider.createMethodImageDescriptor(proposal)));
     dartProposal.setProposalInfo(new MethodProposalInfo(fDartProject, proposal));
@@ -863,14 +903,16 @@ public class CompletionProposalCollector extends CompletionRequestor {
   }
 
   private IDartCompletionProposal createMethodReferenceProposal(CompletionProposal methodProposal) {
-    LazyDartCompletionProposal proposal = new DartMethodCompletionProposal(methodProposal,
+    LazyDartCompletionProposal proposal = new DartMethodCompletionProposal(
+        methodProposal,
         getInvocationContext());
     adaptLength(proposal, methodProposal);
     return proposal;
   }
 
   private IDartCompletionProposal createTypeProposal(CompletionProposal typeProposal) {
-    LazyDartCompletionProposal proposal = new LazyDartTypeCompletionProposal(typeProposal,
+    LazyDartCompletionProposal proposal = new LazyDartTypeCompletionProposal(
+        typeProposal,
         getInvocationContext());
     adaptLength(proposal, typeProposal);
     return proposal;

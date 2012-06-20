@@ -27,7 +27,8 @@ class RefreshViewAction extends Action {
     setText(CallHierarchyMessages.RefreshViewAction_text);
     setToolTipText(CallHierarchyMessages.RefreshViewAction_tooltip);
     DartPluginImages.setLocalImageDescriptors(this, "refresh.gif");//$NON-NLS-1$
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.CALL_HIERARCHY_REFRESH_VIEW_ACTION);
     setEnabled(false);
   }

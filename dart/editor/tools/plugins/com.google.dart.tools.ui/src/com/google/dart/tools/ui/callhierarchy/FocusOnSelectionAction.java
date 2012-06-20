@@ -34,7 +34,8 @@ class FocusOnSelectionAction extends Action {
     chvPart = part;
     setDescription(CallHierarchyMessages.FocusOnSelectionAction_focusOnSelection_description);
     setToolTipText(CallHierarchyMessages.FocusOnSelectionAction_focusOnSelection_tooltip);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.CALL_HIERARCHY_FOCUS_ON_SELECTION_ACTION);
   }
 
@@ -43,7 +44,8 @@ class FocusOnSelectionAction extends Action {
 
     if (members != null) {
       if (members.length == 1) {
-        setText(Messages.format(CallHierarchyMessages.FocusOnSelectionAction_focusOn_text,
+        setText(Messages.format(
+            CallHierarchyMessages.FocusOnSelectionAction_focusOn_text,
             BasicElementLabels.getElementName(members[0].getElementName())));
       } else {
         setText(CallHierarchyMessages.FocusOnSelectionAction_focusOn_selected);

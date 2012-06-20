@@ -53,8 +53,11 @@ public class DartPerspective implements IPerspectiveFactory {
     topLeft.addPlaceholder(DartUI.ID_APPS_VIEW);
 
     // Bottom left: Outline view and Property Sheet view
-    IPlaceholderFolderLayout outlinefolder = layout.createPlaceholderFolder(OUTLINE_FOLDER,
-        IPageLayout.BOTTOM, 0.50f, TL);
+    IPlaceholderFolderLayout outlinefolder = layout.createPlaceholderFolder(
+        OUTLINE_FOLDER,
+        IPageLayout.BOTTOM,
+        0.50f,
+        TL);
     outlinefolder.addPlaceholder(IPageLayout.ID_OUTLINE);
     outlinefolder.addPlaceholder(IPageLayout.ID_PROP_SHEET);
 
@@ -68,8 +71,11 @@ public class DartPerspective implements IPerspectiveFactory {
     outputfolder.addPlaceholder(IProgressConstants.PROGRESS_VIEW_ID);
 
     // Top right: Debugger View
-    IPlaceholderFolderLayout debuggerFolder = layout.createPlaceholderFolder(TR, IPageLayout.RIGHT,
-        0.70f, editorArea);
+    IPlaceholderFolderLayout debuggerFolder = layout.createPlaceholderFolder(
+        TR,
+        IPageLayout.RIGHT,
+        0.70f,
+        editorArea);
     debuggerFolder.addPlaceholder(DEBUGGER_VIEW_ID);
 
     layout.addActionSet(IPageLayout.ID_NAVIGATE_ACTION_SET);

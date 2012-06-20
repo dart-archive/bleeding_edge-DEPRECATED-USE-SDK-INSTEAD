@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.cleanup.preference;
@@ -51,9 +49,13 @@ public class CleanUpPreferenceUtil {
 
     Map<String, String> settings = DartToolsPlugin.getDefault().getCleanUpRegistry().getDefaultOptions(
         CleanUpConstants.DEFAULT_CLEAN_UP_OPTIONS).getMap();
-    final Profile eclipseProfile = new BuiltInProfile(CleanUpConstants.ECLIPSE_PROFILE,
-        CleanUpMessages.CleanUpProfileManager_ProfileName_EclipseBuildIn, settings, 2,
-        CleanUpProfileVersioner.CURRENT_VERSION, CleanUpProfileVersioner.PROFILE_KIND);
+    final Profile eclipseProfile = new BuiltInProfile(
+        CleanUpConstants.ECLIPSE_PROFILE,
+        CleanUpMessages.CleanUpProfileManager_ProfileName_EclipseBuildIn,
+        settings,
+        2,
+        CleanUpProfileVersioner.CURRENT_VERSION,
+        CleanUpProfileVersioner.PROFILE_KIND);
     result.add(eclipseProfile);
 
     return result;
@@ -170,7 +172,8 @@ public class CleanUpPreferenceUtil {
       return null;
     }
 
-    int version = uiPrefs.getInt(CleanUpConstants.CLEANUP_SETTINGS_VERSION_KEY,
+    int version = uiPrefs.getInt(
+        CleanUpConstants.CLEANUP_SETTINGS_VERSION_KEY,
         versioner.getFirstVersion());
     if (version == versioner.getCurrentVersion()) {
       return profileOptions;
@@ -197,7 +200,8 @@ public class CleanUpPreferenceUtil {
         id = instanceScope.getNode(DartUI.ID_PLUGIN).get(profileIdKey, null);
       }
       if (id == null) {
-        id = PreferencesAccess.DEFAULT_SCOPE.getNode(DartUI.ID_PLUGIN).get(profileIdKey,
+        id = PreferencesAccess.DEFAULT_SCOPE.getNode(DartUI.ID_PLUGIN).get(
+            profileIdKey,
             defaultProfileId);
       }
     }

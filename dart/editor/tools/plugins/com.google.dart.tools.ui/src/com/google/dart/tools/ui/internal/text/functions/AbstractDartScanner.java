@@ -142,11 +142,19 @@ public abstract class AbstractDartScanner extends BufferedRuleBasedScanner {
     fNeedsLazyColorLoading = Display.getCurrent() == null;
     for (int i = 0; i < length; i++) {
       if (fNeedsLazyColorLoading) {
-        addTokenWithProxyAttribute(fPropertyNamesColor[i], fPropertyNamesBold[i],
-            fPropertyNamesItalic[i], fPropertyNamesStrikethrough[i], fPropertyNamesUnderline[i]);
+        addTokenWithProxyAttribute(
+            fPropertyNamesColor[i],
+            fPropertyNamesBold[i],
+            fPropertyNamesItalic[i],
+            fPropertyNamesStrikethrough[i],
+            fPropertyNamesUnderline[i]);
       } else {
-        addToken(fPropertyNamesColor[i], fPropertyNamesBold[i], fPropertyNamesItalic[i],
-            fPropertyNamesStrikethrough[i], fPropertyNamesUnderline[i]);
+        addToken(
+            fPropertyNamesColor[i],
+            fPropertyNamesBold[i],
+            fPropertyNamesItalic[i],
+            fPropertyNamesStrikethrough[i],
+            fPropertyNamesUnderline[i]);
       }
     }
 
@@ -269,7 +277,9 @@ public abstract class AbstractDartScanner extends BufferedRuleBasedScanner {
       TextAttribute oldAttr = (TextAttribute) data;
       boolean activeValue = (oldAttr.getStyle() & styleAttribute) == styleAttribute;
       if (activeValue != eventValue) {
-        token.setData(new TextAttribute(oldAttr.getForeground(), oldAttr.getBackground(),
+        token.setData(new TextAttribute(
+            oldAttr.getForeground(),
+            oldAttr.getBackground(),
             eventValue ? oldAttr.getStyle() | styleAttribute : oldAttr.getStyle() & ~styleAttribute));
       }
     }
@@ -289,12 +299,20 @@ public abstract class AbstractDartScanner extends BufferedRuleBasedScanner {
     if (!fNeedsLazyColorLoading) {
       fTokenMap.put(
           colorKey,
-          new Token(createTextAttribute(colorKey, boldKey, italicKey, strikethroughKey,
+          new Token(createTextAttribute(
+              colorKey,
+              boldKey,
+              italicKey,
+              strikethroughKey,
               underlineKey)));
     } else {
       Token token = fTokenMap.get(colorKey);
       if (token != null) {
-        token.setData(createTextAttribute(colorKey, boldKey, italicKey, strikethroughKey,
+        token.setData(createTextAttribute(
+            colorKey,
+            boldKey,
+            italicKey,
+            strikethroughKey,
             underlineKey));
       }
     }
@@ -302,7 +320,8 @@ public abstract class AbstractDartScanner extends BufferedRuleBasedScanner {
 
   private void addTokenWithProxyAttribute(String colorKey, String boldKey, String italicKey,
       String strikethroughKey, String underlineKey) {
-    fTokenMap.put(colorKey,
+    fTokenMap.put(
+        colorKey,
         new Token(createTextAttribute(null, boldKey, italicKey, strikethroughKey, underlineKey)));
   }
 
@@ -367,8 +386,12 @@ public abstract class AbstractDartScanner extends BufferedRuleBasedScanner {
   private void resolveProxyAttributes() {
     if (fNeedsLazyColorLoading && Display.getCurrent() != null) {
       for (int i = 0; i < fPropertyNamesColor.length; i++) {
-        addToken(fPropertyNamesColor[i], fPropertyNamesBold[i], fPropertyNamesItalic[i],
-            fPropertyNamesStrikethrough[i], fPropertyNamesUnderline[i]);
+        addToken(
+            fPropertyNamesColor[i],
+            fPropertyNamesBold[i],
+            fPropertyNamesItalic[i],
+            fPropertyNamesStrikethrough[i],
+            fPropertyNamesUnderline[i]);
       }
       fNeedsLazyColorLoading = false;
     }

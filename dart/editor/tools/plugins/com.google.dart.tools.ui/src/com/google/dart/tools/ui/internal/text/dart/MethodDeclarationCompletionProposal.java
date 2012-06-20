@@ -56,15 +56,25 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
     String constructorName = type.getElementName();
     if (constructorName.length() > 0 && constructorName.startsWith(prefix)
         && !hasMethod(methods, constructorName) && suggestedMethods.add(constructorName)) {
-      result.add(new MethodDeclarationCompletionProposal(type, constructorName, null, offset,
-          length, relevance + 500));
+      result.add(new MethodDeclarationCompletionProposal(
+          type,
+          constructorName,
+          null,
+          offset,
+          length,
+          relevance + 500));
     }
 
     if (prefix.length() > 0
         && !"main".equals(prefix) && !hasMethod(methods, prefix) && suggestedMethods.add(prefix)) { //$NON-NLS-1$
       if (!DartConventions.validateMethodName(prefix).matches(IStatus.ERROR)) {
-        result.add(new MethodDeclarationCompletionProposal(type, prefix, Signature.SIG_VOID,
-            offset, length, relevance));
+        result.add(new MethodDeclarationCompletionProposal(
+            type,
+            prefix,
+            Signature.SIG_VOID,
+            offset,
+            length,
+            relevance));
       }
     }
   }
@@ -78,11 +88,13 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
       buf.append(" : "); //$NON-NLS-1$
       buf.append(Signature.toString(returnTypeSig));
       buf.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
-      buf.append(DartTextMessages.MethodCompletionProposal_method_label,
+      buf.append(
+          DartTextMessages.MethodCompletionProposal_method_label,
           StyledString.QUALIFIER_STYLER);
     } else {
       buf.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
-      buf.append(DartTextMessages.MethodCompletionProposal_constructor_label,
+      buf.append(
+          DartTextMessages.MethodCompletionProposal_constructor_label,
           StyledString.QUALIFIER_STYLER);
     }
     return buf;
@@ -117,8 +129,10 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
     if (returnTypeSig == null) {
       setProposalInfo(new ProposalInfo(type));
 
-      ImageDescriptor desc = new DartElementImageDescriptor(DartPluginImages.DESC_MISC_PUBLIC,
-          DartElementImageDescriptor.CONSTRUCTOR, DartElementImageProvider.SMALL_SIZE);
+      ImageDescriptor desc = new DartElementImageDescriptor(
+          DartPluginImages.DESC_MISC_PUBLIC,
+          DartElementImageDescriptor.CONSTRUCTOR,
+          DartElementImageProvider.SMALL_SIZE);
       setImage(DartToolsPlugin.getImageDescriptorRegistry().get(desc));
     } else {
       setImage(DartPluginImages.get(DartPluginImages.IMG_MISC_PRIVATE));
@@ -150,8 +164,14 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
 
     StringBuffer buf = new StringBuffer();
     if (addComments) {
-      String comment = CodeGeneration.getMethodComment(fType.getCompilationUnit(), declTypeName,
-          fMethodName, empty, empty, fReturnTypeSig, lineDelim);
+      String comment = CodeGeneration.getMethodComment(
+          fType.getCompilationUnit(),
+          declTypeName,
+          fMethodName,
+          empty,
+          empty,
+          fReturnTypeSig,
+          lineDelim);
       if (comment != null) {
         buf.append(comment);
         buf.append(lineDelim);
@@ -170,8 +190,12 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
       buf.append("() {"); //$NON-NLS-1$
       buf.append(lineDelim);
 
-      String body = CodeGeneration.getMethodBodyContent(fType.getCompilationUnit(), declTypeName,
-          fMethodName, fReturnTypeSig == null, "", lineDelim); //$NON-NLS-1$
+      String body = CodeGeneration.getMethodBodyContent(
+          fType.getCompilationUnit(),
+          declTypeName,
+          fMethodName,
+          fReturnTypeSig == null,
+          "", lineDelim); //$NON-NLS-1$
       if (body != null) {
         buf.append(body);
         buf.append(lineDelim);
@@ -185,11 +209,17 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
     IRegion region = document.getLineInformationOfOffset(getReplacementOffset());
     int lineStart = region.getOffset();
     int indent = Strings.computeIndentUnits(
-        document.get(lineStart, getReplacementOffset() - lineStart), settings.tabWidth,
+        document.get(lineStart, getReplacementOffset() - lineStart),
+        settings.tabWidth,
         settings.indentWidth);
 
-    String replacement = CodeFormatterUtil.format(CodeFormatter.K_CLASS_BODY_DECLARATIONS, stub,
-        indent, null, lineDelim, fType.getDartProject());
+    String replacement = CodeFormatterUtil.format(
+        CodeFormatter.K_CLASS_BODY_DECLARATIONS,
+        stub,
+        indent,
+        null,
+        lineDelim,
+        fType.getDartProject());
 
     if (replacement.endsWith(lineDelim)) {
       replacement = replacement.substring(0, replacement.length() - lineDelim.length());

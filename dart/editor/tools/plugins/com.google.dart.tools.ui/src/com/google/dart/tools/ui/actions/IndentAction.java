@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.actions;
@@ -136,8 +134,14 @@ public class IndentAction extends TextEditorAction {
 
     int shift = 0;
     for (int i = 0; i < numberOfLines; i++) {
-      ReplaceData data = computeReplaceData(document, firstLine + i, indenter, scanner,
-          numberOfLines > 1, false, project);
+      ReplaceData data = computeReplaceData(
+          document,
+          firstLine + i,
+          indenter,
+          scanner,
+          numberOfLines > 1,
+          false,
+          project);
 
       int replaceLength = data.end - data.offset;
       String currentIndent = document.get(data.offset, replaceLength);
@@ -207,7 +211,8 @@ public class IndentAction extends TextEditorAction {
     int previousLineEnd = previousLineStart + previousLineLength;
 
     StringBuffer buf = new StringBuffer();
-    int previousLineNonWS = scanner.findNonWhitespaceForwardInAnyPartition(previousLineStart,
+    int previousLineNonWS = scanner.findNonWhitespaceForwardInAnyPartition(
+        previousLineStart,
         previousLineEnd);
     if (previousLineNonWS == DartHeuristicScanner.NOT_FOUND
         || document.getChar(previousLineNonWS) != '*') {
@@ -216,7 +221,8 @@ public class IndentAction extends TextEditorAction {
       previousLineStart = previousLine.getOffset();
       previousLineLength = previousLine.getLength();
       previousLineEnd = previousLineStart + previousLineLength;
-      previousLineNonWS = scanner.findNonWhitespaceForwardInAnyPartition(previousLineStart,
+      previousLineNonWS = scanner.findNonWhitespaceForwardInAnyPartition(
+          previousLineStart,
           previousLineEnd);
       if (previousLineNonWS == DartHeuristicScanner.NOT_FOUND) {
         previousLineNonWS = previousLineEnd;
@@ -256,11 +262,17 @@ public class IndentAction extends TextEditorAction {
 
     String indent = null;
     if (offset < document.getLength()) {
-      ITypedRegion partition = TextUtilities.getPartition(document,
-          DartPartitions.DART_PARTITIONING, offset, true);
+      ITypedRegion partition = TextUtilities.getPartition(
+          document,
+          DartPartitions.DART_PARTITIONING,
+          offset,
+          true);
       String type = partition.getType();
-      ITypedRegion startingPartition = TextUtilities.getPartition(document,
-          DartPartitions.DART_PARTITIONING, offset, false);
+      ITypedRegion startingPartition = TextUtilities.getPartition(
+          document,
+          DartPartitions.DART_PARTITIONING,
+          offset,
+          false);
       String startingType = startingPartition.getType();
       boolean isCommentStart = startingPartition.getOffset() == offset;
       if (isDontIndentMultiLineCommentOnFirstColumn(project) && isCommentStart
@@ -388,7 +400,8 @@ public class IndentAction extends TextEditorAction {
   private static String getTabEquivalent(DartProject project) {
     String tab;
     if (/* JavaCore.SPACE */"space".equals(getCoreFormatterOption(
-        DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR, project))) {
+        DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR,
+        project))) {
       int size = getTabSize(project);
       StringBuffer buf = new StringBuffer();
       for (int i = 0; i < size; i++) {
@@ -423,7 +436,8 @@ public class IndentAction extends TextEditorAction {
    */
   private static boolean indentEmptyLines(DartProject project) {
     return DefaultCodeFormatterConstants.TRUE.equals(getCoreFormatterOption(
-        DefaultCodeFormatterConstants.FORMATTER_INDENT_EMPTY_LINES, project));
+        DefaultCodeFormatterConstants.FORMATTER_INDENT_EMPTY_LINES,
+        project));
   }
 
   /**
@@ -454,7 +468,8 @@ public class IndentAction extends TextEditorAction {
    */
   private static boolean isDontIndentSingleLineCommentOnFirstColumn(DartProject project) {
     return DefaultCodeFormatterConstants.TRUE.equals(getCoreFormatterOption(
-        DefaultCodeFormatterConstants.FORMATTER_NEVER_INDENT_LINE_COMMENTS_ON_FIRST_COLUMN, project));
+        DefaultCodeFormatterConstants.FORMATTER_NEVER_INDENT_LINE_COMMENTS_ON_FIRST_COLUMN,
+        project));
   }
 
   /**
@@ -558,7 +573,10 @@ public class IndentAction extends TextEditorAction {
         nLines = selection.getEndLine() - firstLine + 1;
       } catch (BadLocationException e) {
         // will only happen on concurrent modification
-        DartToolsPlugin.log(new Status(IStatus.ERROR, DartToolsPlugin.getPluginId(), IStatus.OK,
+        DartToolsPlugin.log(new Status(
+            IStatus.ERROR,
+            DartToolsPlugin.getPluginId(),
+            IStatus.OK,
             "", e)); //$NON-NLS-1$
         return;
       }
@@ -577,7 +595,12 @@ public class IndentAction extends TextEditorAction {
             final boolean multiLine = nLines > 1;
             boolean hasChanged = false;
             for (int i = 0; i < nLines; i++) {
-              hasChanged |= indentLine(document, firstLine + i, offset, indenter, scanner,
+              hasChanged |= indentLine(
+                  document,
+                  firstLine + i,
+                  offset,
+                  indenter,
+                  scanner,
                   multiLine);
             }
 
@@ -601,8 +624,11 @@ public class IndentAction extends TextEditorAction {
             document.removePosition(end);
           } catch (BadLocationException e) {
             // will only happen on concurrent modification
-            DartToolsPlugin.log(new Status(IStatus.ERROR, DartToolsPlugin.getPluginId(),
-                IStatus.OK, "ConcurrentModification in IndentAction", e)); //$NON-NLS-1$
+            DartToolsPlugin.log(new Status(
+                IStatus.ERROR,
+                DartToolsPlugin.getPluginId(),
+                IStatus.OK,
+                "ConcurrentModification in IndentAction", e)); //$NON-NLS-1$
 
           } finally {
             if (target != null) {
@@ -730,8 +756,14 @@ public class IndentAction extends TextEditorAction {
   private boolean indentLine(IDocument document, int line, int caret, DartIndenter indenter,
       DartHeuristicScanner scanner, boolean multiLine) throws BadLocationException {
     DartProject project = getDartProject();
-    ReplaceData data = computeReplaceData(document, line, indenter, scanner, multiLine,
-        fIsTabAction, project);
+    ReplaceData data = computeReplaceData(
+        document,
+        line,
+        indenter,
+        scanner,
+        multiLine,
+        fIsTabAction,
+        project);
 
     String indent = data.indent;
     int end = data.end;

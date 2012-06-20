@@ -129,7 +129,8 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
       DartContentAssistInvocationContext javaContext = (DartContentAssistInvocationContext) context;
 
       int contextInformationPosition = guessContextInformationPosition(javaContext);
-      List<IContextInformation> result = addContextInformations(javaContext,
+      List<IContextInformation> result = addContextInformations(
+          javaContext,
           contextInformationPosition);
       return result;
     }
@@ -293,29 +294,49 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
     collector.setInvocationContext(context);
 
     // Allow completions for unresolved types - since 3.3
-    collector.setAllowsRequiredProposals(CompletionProposal.FIELD_REF, CompletionProposal.TYPE_REF,
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.FIELD_REF,
+        CompletionProposal.TYPE_REF,
         true);
-    collector.setAllowsRequiredProposals(CompletionProposal.FIELD_REF,
-        CompletionProposal.TYPE_IMPORT, true);
-    collector.setAllowsRequiredProposals(CompletionProposal.FIELD_REF,
-        CompletionProposal.FIELD_IMPORT, true);
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.FIELD_REF,
+        CompletionProposal.TYPE_IMPORT,
+        true);
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.FIELD_REF,
+        CompletionProposal.FIELD_IMPORT,
+        true);
 
-    collector.setAllowsRequiredProposals(CompletionProposal.METHOD_REF,
-        CompletionProposal.TYPE_REF, true);
-    collector.setAllowsRequiredProposals(CompletionProposal.METHOD_REF,
-        CompletionProposal.TYPE_IMPORT, true);
-    collector.setAllowsRequiredProposals(CompletionProposal.METHOD_REF,
-        CompletionProposal.METHOD_IMPORT, true);
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.METHOD_REF,
+        CompletionProposal.TYPE_REF,
+        true);
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.METHOD_REF,
+        CompletionProposal.TYPE_IMPORT,
+        true);
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.METHOD_REF,
+        CompletionProposal.METHOD_IMPORT,
+        true);
 
-    collector.setAllowsRequiredProposals(CompletionProposal.CONSTRUCTOR_INVOCATION,
-        CompletionProposal.TYPE_REF, true);
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.CONSTRUCTOR_INVOCATION,
+        CompletionProposal.TYPE_REF,
+        true);
 
-    collector.setAllowsRequiredProposals(CompletionProposal.ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION,
-        CompletionProposal.TYPE_REF, true);
-    collector.setAllowsRequiredProposals(CompletionProposal.ANONYMOUS_CLASS_DECLARATION,
-        CompletionProposal.TYPE_REF, true);
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION,
+        CompletionProposal.TYPE_REF,
+        true);
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.ANONYMOUS_CLASS_DECLARATION,
+        CompletionProposal.TYPE_REF,
+        true);
 
-    collector.setAllowsRequiredProposals(CompletionProposal.TYPE_REF, CompletionProposal.TYPE_REF,
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.TYPE_REF,
+        CompletionProposal.TYPE_REF,
         true);
 
     // Set the favorite list to propose static members - since 3.3
@@ -337,12 +358,16 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
     } catch (DartModelException x) {
       Shell shell = viewer.getTextWidget().getShell();
       if (x.isDoesNotExist()) {
-        MessageDialog.openInformation(shell,
+        MessageDialog.openInformation(
+            shell,
             DartTextMessages.CompletionProcessor_error_notOnBuildPath_title,
             DartTextMessages.CompletionProcessor_error_notOnBuildPath_message);
       } else {
-        ErrorDialog.openError(shell, DartTextMessages.CompletionProcessor_error_accessing_title,
-            DartTextMessages.CompletionProcessor_error_accessing_message, x.getStatus());
+        ErrorDialog.openError(
+            shell,
+            DartTextMessages.CompletionProcessor_error_accessing_title,
+            DartTextMessages.CompletionProcessor_error_accessing_message,
+            x.getStatus());
       }
     }
 

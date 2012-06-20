@@ -735,7 +735,8 @@ public class DartIndenter {
         int prevPos = Math.max(offset - 1, 0);
         boolean isFirstTokenOnLine = fDocument.get(lineOffset, prevPos + 1 - lineOffset).trim().length() == 0;
         int prevToken = fScanner.previousToken(prevPos, DartHeuristicScanner.UNBOUND);
-        boolean bracelessBlockStart = fScanner.isBracelessBlockStart(prevPos,
+        boolean bracelessBlockStart = fScanner.isBracelessBlockStart(
+            prevPos,
             DartHeuristicScanner.UNBOUND);
 
         switch (nextToken) {
@@ -944,7 +945,8 @@ public class DartIndenter {
     try {
       IRegion line = fDocument.getLineInformationOfOffset(offset);
       int lineOffset = line.getOffset();
-      int nonWS = fScanner.findNonWhitespaceForwardInAnyPartition(lineOffset,
+      int nonWS = fScanner.findNonWhitespaceForwardInAnyPartition(
+          lineOffset,
           lineOffset + line.getLength());
       indent.append(fDocument.get(lineOffset, nonWS - lineOffset));
       return indent;

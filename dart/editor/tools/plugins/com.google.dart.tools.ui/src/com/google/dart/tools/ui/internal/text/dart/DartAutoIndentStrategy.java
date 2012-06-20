@@ -235,7 +235,8 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
   }
 
   private static IRegion createRegion(DartNode node, int delta) {
-    return node == null ? null : new Region(node.getSourceInfo().getOffset() + delta,
+    return node == null ? null : new Region(
+        node.getSourceInfo().getOffset() + delta,
         node.getSourceInfo().getLength());
   }
 
@@ -375,7 +376,10 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
     // don't count the space before Dart doc, asterisk-style comment lines
     if (to > from && to < endOffset - 1 && document.get(to - 1, 2).equals(" *")) { //$NON-NLS-1$
-      String type = TextUtilities.getContentType(document, DartPartitions.DART_PARTITIONING, to,
+      String type = TextUtilities.getContentType(
+          document,
+          DartPartitions.DART_PARTITIONING,
+          to,
           true);
       if (type.equals(DartPartitions.DART_DOC)
           || type.equals(DartPartitions.DART_MULTI_LINE_COMMENT)) {
@@ -514,14 +518,19 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
    */
   private static boolean looksLikeAnonymousClassDef(IDocument document, String partitioning,
       DartHeuristicScanner scanner, int position) {
-    int previousCommaParenEqual = scanner.scanBackward(position - 1, DartHeuristicScanner.UNBOUND,
+    int previousCommaParenEqual = scanner.scanBackward(
+        position - 1,
+        DartHeuristicScanner.UNBOUND,
         new char[] {',', '(', '='});
     if (previousCommaParenEqual == -1 || position < previousCommaParenEqual + 5) {
       // 2 for borders, 3 for "new"
       return false;
     }
 
-    if (isNewMatch(document, previousCommaParenEqual + 1, position - previousCommaParenEqual - 2,
+    if (isNewMatch(
+        document,
+        previousCommaParenEqual + 1,
+        position - previousCommaParenEqual - 2,
         partitioning)) {
       return true;
     }
@@ -883,7 +892,8 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     DartHeuristicScanner dScanner = new DartHeuristicScanner(document);
 
     // add scope relevant after context to peer search
-    int afterToken = dScanner.nextToken(command.offset + command.length,
+    int afterToken = dScanner.nextToken(
+        command.offset + command.length,
         DartHeuristicScanner.UNBOUND);
     try {
       switch (afterToken) {

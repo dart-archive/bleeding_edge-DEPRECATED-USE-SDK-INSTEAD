@@ -42,8 +42,7 @@ public class RenameTypeProcessor extends RenameTopLevelProcessor {
   public static final String IDENTIFIER = "com.google.dart.tools.ui.renameTypeProcessor"; //$NON-NLS-1$
 
   @SuppressWarnings("restriction")
-  private static List<Change> getRenameUnitChange(
-      final CompilationUnit unit,
+  private static List<Change> getRenameUnitChange(final CompilationUnit unit,
       final String newUnitName) {
     final List<Change> changes = Lists.newArrayList();
     ExecutionUtils.runIgnore(new RunnableEx() {
@@ -95,9 +94,7 @@ public class RenameTypeProcessor extends RenameTopLevelProcessor {
    * @return the unit name for given new type name, may be <code>null</code> if old names of unit
    *         and type were not corresponding each other according to Dart conventions.
    */
-  private static String getUnitNameForTypeName(
-      String oldUnitName,
-      String oldTypeName,
+  private static String getUnitNameForTypeName(String oldUnitName, String oldTypeName,
       String newTypeName) {
     if (oldTypeName.equals(oldUnitName)) {
       return newTypeName;

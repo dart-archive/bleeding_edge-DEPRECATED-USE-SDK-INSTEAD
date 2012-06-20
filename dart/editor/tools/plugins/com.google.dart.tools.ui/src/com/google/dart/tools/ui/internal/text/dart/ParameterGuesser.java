@@ -259,8 +259,14 @@ public class ParameterGuesser {
     String type = Signature.toString(typeSignature);
 
     boolean isAutoboxMatch = isLiteralType(expectedType) != isLiteralType(type);
-    return new Variable(type, elementName, variableType, isAutoboxMatch, positionScore,
-        NO_TRIGGERS, getImageDescriptor(element));
+    return new Variable(
+        type,
+        elementName,
+        variableType,
+        isAutoboxMatch,
+        positionScore,
+        NO_TRIGGERS,
+        getImageDescriptor(element));
   }
 
   /**
@@ -297,15 +303,29 @@ public class ParameterGuesser {
       System.arraycopy(v.triggerChars, 0, triggers, 0, v.triggerChars.length);
       triggers[triggers.length - 1] = ',';
 
-      ret[i++] = new PositionBasedCompletionProposal(v.name, pos, replacementLength,
-          getImage(v.descriptor), displayString, null, null, triggers);
+      ret[i++] = new PositionBasedCompletionProposal(
+          v.name,
+          pos,
+          replacementLength,
+          getImage(v.descriptor),
+          displayString,
+          null,
+          null,
+          triggers);
     }
     if (!fillBestGuess && !hasVarWithParamName) {
       // insert a proposal with the argument name
       ICompletionProposal[] extended = new ICompletionProposal[ret.length + 1];
       System.arraycopy(ret, 0, extended, 1, ret.length);
-      extended[0] = new PositionBasedCompletionProposal(paramName, pos, replacementLength, null,
-          paramName, null, null, NO_TRIGGERS);
+      extended[0] = new PositionBasedCompletionProposal(
+          paramName,
+          pos,
+          replacementLength,
+          null,
+          paramName,
+          null,
+          null,
+          NO_TRIGGERS);
       return extended;
     }
     return ret;
@@ -335,10 +355,12 @@ public class ParameterGuesser {
       @SuppressWarnings("deprecation")
       String fullyQualifiedName = currentType.getTypeQualifiedName('.');
       if (fullyQualifiedName.equals(expectedType)) {
-        ImageDescriptor desc = new DartElementImageDescriptor(DartPluginImages.DESC_FIELD_PUBLIC,
+        ImageDescriptor desc = new DartElementImageDescriptor(
+            DartPluginImages.DESC_FIELD_PUBLIC,
             DartElementImageDescriptor.FINAL | DartElementImageDescriptor.STATIC,
             DartElementImageProvider.SMALL_SIZE);
-        res.add(new Variable(fullyQualifiedName,
+        res.add(new Variable(
+            fullyQualifiedName,
             "this", Variable.LITERALS, false, res.size(), new char[] {'.'}, desc)); //$NON-NLS-1$
       }
     }
@@ -346,28 +368,34 @@ public class ParameterGuesser {
     String literalTypeCode = getLiteralTypeCode(expectedType);
     if (literalTypeCode == null) {
       // add 'null'
-      res.add(new Variable(expectedType,
+      res.add(new Variable(
+          expectedType,
           "null", Variable.LITERALS, false, res.size(), NO_TRIGGERS, null)); //$NON-NLS-1$
     } else {
       String typeName = literalTypeCode;
       boolean isAutoboxing = false;
       if (literalTypeCode.equals("bool")) {
         // add 'true', 'false'
-        res.add(new Variable(typeName,
+        res.add(new Variable(
+            typeName,
             "true", Variable.LITERALS, isAutoboxing, res.size(), NO_TRIGGERS, null)); //$NON-NLS-1$
-        res.add(new Variable(typeName,
+        res.add(new Variable(
+            typeName,
             "false", Variable.LITERALS, isAutoboxing, res.size(), NO_TRIGGERS, null)); //$NON-NLS-1$
       } else if (literalTypeCode.equals("int")) {
         // add 0
-        res.add(new Variable(typeName,
+        res.add(new Variable(
+            typeName,
             "0", Variable.LITERALS, isAutoboxing, res.size(), NO_TRIGGERS, null)); //$NON-NLS-1$
       } else if (literalTypeCode.equals("double")) {
         // add 0.0
-        res.add(new Variable(typeName,
+        res.add(new Variable(
+            typeName,
             "0.0", Variable.LITERALS, isAutoboxing, res.size(), NO_TRIGGERS, null)); //$NON-NLS-1$
       } else if (literalTypeCode.equals("num")) {
         // add 0
-        res.add(new Variable(typeName,
+        res.add(new Variable(
+            typeName,
             "0", Variable.LITERALS, isAutoboxing, res.size(), NO_TRIGGERS, null)); //$NON-NLS-1$
       }
     }
@@ -381,7 +409,8 @@ public class ParameterGuesser {
 
   private ImageDescriptor getImageDescriptor(DartElement elem) {
     DartElementImageProvider imageProvider = new DartElementImageProvider();
-    ImageDescriptor desc = imageProvider.getBaseImageDescriptor(elem,
+    ImageDescriptor desc = imageProvider.getBaseImageDescriptor(
+        elem,
         DartElementImageProvider.OVERLAY_ICONS);
     imageProvider.dispose();
     return desc;

@@ -217,7 +217,8 @@ public class ContentAssistProcessor implements IContentAssistProcessor {
     clearState();
 
     IProgressMonitor monitor = createProgressMonitor();
-    monitor.beginTask(DartTextMessages.ContentAssistProcessor_computing_proposals,
+    monitor.beginTask(
+        DartTextMessages.ContentAssistProcessor_computing_proposals,
         fCategories.size() + 1);
 
     ContentAssistInvocationContext context = createContext(viewer, offset);
@@ -258,7 +259,8 @@ public class ContentAssistProcessor implements IContentAssistProcessor {
     clearState();
 
     IProgressMonitor monitor = createProgressMonitor();
-    monitor.beginTask(DartTextMessages.ContentAssistProcessor_computing_contexts,
+    monitor.beginTask(
+        DartTextMessages.ContentAssistProcessor_computing_contexts,
         fCategories.size() + 1);
 
     monitor.subTask(DartTextMessages.ContentAssistProcessor_collecting_contexts);
@@ -388,7 +390,8 @@ public class ContentAssistProcessor implements IContentAssistProcessor {
     for (Iterator it = providers.iterator(); it.hasNext();) {
       CompletionProposalCategory cat = (CompletionProposalCategory) it.next();
       List computed = cat.computeContextInformation(context, fPartition, new SubProgressMonitor(
-          monitor, 1));
+          monitor,
+          1));
       proposals.addAll(computed);
       if (fErrorMessage == null) {
         fErrorMessage = cat.getErrorMessage();
@@ -405,7 +408,8 @@ public class ContentAssistProcessor implements IContentAssistProcessor {
     for (Iterator it = providers.iterator(); it.hasNext();) {
       CompletionProposalCategory cat = (CompletionProposalCategory) it.next();
       List computed = cat.computeCompletionProposals(context, fPartition, new SubProgressMonitor(
-          monitor, 1));
+          monitor,
+          1));
       proposals.addAll(computed);
       if (fErrorMessage == null) {
         fErrorMessage = cat.getErrorMessage();
@@ -416,13 +420,15 @@ public class ContentAssistProcessor implements IContentAssistProcessor {
   }
 
   private String createEmptyMessage() {
-    return Messages.format(DartTextMessages.ContentAssistProcessor_empty_message,
+    return Messages.format(
+        DartTextMessages.ContentAssistProcessor_empty_message,
         new String[] {getCategoryLabel(fRepetition)});
   }
 
   private String createIterationMessage() {
     return Messages.format(
-        DartTextMessages.ContentAssistProcessor_toggle_affordance_update_message, new String[] {
+        DartTextMessages.ContentAssistProcessor_toggle_affordance_update_message,
+        new String[] {
             getCategoryLabel(fRepetition), fIterationGesture, getCategoryLabel(fRepetition + 1)});
   }
 
@@ -532,10 +538,16 @@ public class ContentAssistProcessor implements IContentAssistProcessor {
       final int restoreId = IDialogConstants.CLIENT_ID + 10;
       final int settingsId = IDialogConstants.CLIENT_ID + 11;
       final OptionalMessageDialog dialog = new OptionalMessageDialog(
-          PREF_WARN_ABOUT_EMPTY_ASSIST_CATEGORY, shell, title, null /*
-                                                                     * default image
-                                                                     */, message,
-          MessageDialog.WARNING, new String[] {restoreButtonLabel, IDialogConstants.CLOSE_LABEL}, 1) {
+          PREF_WARN_ABOUT_EMPTY_ASSIST_CATEGORY,
+          shell,
+          title,
+          null /*
+                * default image
+                */,
+          message,
+          MessageDialog.WARNING,
+          new String[] {restoreButtonLabel, IDialogConstants.CLOSE_LABEL},
+          1) {
         /*
          * @see org.eclipse.jface.dialogs.MessageDialog#createButtonsForButtonBar
          * (org.eclipse.swt.widgets.Composite)
@@ -544,8 +556,11 @@ public class ContentAssistProcessor implements IContentAssistProcessor {
         protected void createButtonsForButtonBar(Composite parent) {
           Button[] buttons = new Button[2];
           buttons[0] = createButton(parent, restoreId, restoreButtonLabel, false);
-          buttons[1] = createButton(parent, IDialogConstants.CLOSE_ID,
-              IDialogConstants.CLOSE_LABEL, true);
+          buttons[1] = createButton(
+              parent,
+              IDialogConstants.CLOSE_ID,
+              IDialogConstants.CLOSE_LABEL,
+              true);
           setButtons(buttons);
         }
 

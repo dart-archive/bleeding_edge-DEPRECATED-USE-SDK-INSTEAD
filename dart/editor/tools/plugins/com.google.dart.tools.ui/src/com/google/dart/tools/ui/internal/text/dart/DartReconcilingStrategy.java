@@ -134,7 +134,10 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
         SafeRunner.run(new ISafeRunnable() {
           @Override
           public void handleException(Throwable ex) {
-            IStatus status = new Status(IStatus.ERROR, DartUI.ID_PLUGIN, IStatus.OK,
+            IStatus status = new Status(
+                IStatus.ERROR,
+                DartUI.ID_PLUGIN,
+                IStatus.OK,
                 "Error in Dart Core during reconcile", ex); //$NON-NLS-1$
             DartToolsPlugin.getDefault().getLog().log(status);
           }

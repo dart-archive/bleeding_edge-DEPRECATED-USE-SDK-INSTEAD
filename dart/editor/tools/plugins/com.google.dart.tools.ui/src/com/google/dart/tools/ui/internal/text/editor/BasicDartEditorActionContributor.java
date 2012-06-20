@@ -86,22 +86,26 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
     fGotoMatchingBracket = new RetargetTextEditorAction(b, "GotoMatchingBracket."); //$NON-NLS-1$
     fGotoMatchingBracket.setActionDefinitionId(DartEditorActionDefinitionIds.GOTO_MATCHING_BRACKET);
 
-    fShowOutline = new RetargetTextEditorAction(DartEditorMessages.getBundleForConstructedKeys(),
+    fShowOutline = new RetargetTextEditorAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "ShowOutline."); //$NON-NLS-1$
     fShowOutline.setActionDefinitionId(DartEditorActionDefinitionIds.SHOW_OUTLINE);
 
     fOpenDeclaration = new RetargetTextEditorAction(ActionMessages.getBundle(), "OpenAction_"); //$NON-NLS-1$
     fOpenDeclaration.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_EDITOR);
 
-    fOpenHierarchy = new RetargetTextEditorAction(DartEditorMessages.getBundleForConstructedKeys(),
+    fOpenHierarchy = new RetargetTextEditorAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "OpenHierarchy."); //$NON-NLS-1$
     fOpenHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
 
     fOpenCallHierarchy = new RetargetTextEditorAction(
-        DartEditorMessages.getBundleForConstructedKeys(), "OpenCallHierarchy."); //$NON-NLS-1$
+        DartEditorMessages.getBundleForConstructedKeys(),
+        "OpenCallHierarchy."); //$NON-NLS-1$
     fOpenCallHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.ANALYZE_CALL_HIERARCHY);
 
-    fOpenStructure = new RetargetTextEditorAction(DartEditorMessages.getBundleForConstructedKeys(),
+    fOpenStructure = new RetargetTextEditorAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "OpenStructure."); //$NON-NLS-1$
     fOpenStructure.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_STRUCTURE);
 
@@ -119,7 +123,8 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
     fGotoPreviousMemberAction = new RetargetTextEditorAction(b, "GotoPreviousMember."); //$NON-NLS-1$
     fGotoPreviousMemberAction.setActionDefinitionId(DartEditorActionDefinitionIds.GOTO_PREVIOUS_MEMBER);
 
-    fRemoveOccurrenceAnnotationsAction = new RetargetTextEditorAction(b,
+    fRemoveOccurrenceAnnotationsAction = new RetargetTextEditorAction(
+        b,
         "RemoveOccurrenceAnnotations."); //$NON-NLS-1$
     fRemoveOccurrenceAnnotationsAction.setActionDefinitionId(DartEditorActionDefinitionIds.REMOVE_OCCURRENCE_ANNOTATIONS);
   }
@@ -193,9 +198,11 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
 
     super.init(bars, page);
 
-    bars.setGlobalActionHandler(ITextEditorActionDefinitionIds.TOGGLE_SHOW_SELECTED_ELEMENT_ONLY,
+    bars.setGlobalActionHandler(
+        ITextEditorActionDefinitionIds.TOGGLE_SHOW_SELECTED_ELEMENT_ONLY,
         fTogglePresentation);
-    bars.setGlobalActionHandler(DartEditorActionDefinitionIds.TOGGLE_MARK_OCCURRENCES,
+    bars.setGlobalActionHandler(
+        DartEditorActionDefinitionIds.TOGGLE_MARK_OCCURRENCES,
         fToggleMarkOccurrencesAction);
 
   }
@@ -216,30 +223,37 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
     fTogglePresentation.setEditor(textEditor);
     fToggleMarkOccurrencesAction.setEditor(textEditor);
 
-    fGotoMatchingBracket.setAction(getAction(textEditor,
+    fGotoMatchingBracket.setAction(getAction(
+        textEditor,
         GotoMatchingBracketAction.GOTO_MATCHING_BRACKET));
     fShowOutline.setAction(getAction(textEditor, DartEditorActionDefinitionIds.SHOW_OUTLINE));
-    fOpenCallHierarchy.setAction(getAction(textEditor,
+    fOpenCallHierarchy.setAction(getAction(
+        textEditor,
         DartEditorActionDefinitionIds.ANALYZE_CALL_HIERARCHY));
     fOpenHierarchy.setAction(getAction(textEditor, DartEditorActionDefinitionIds.OPEN_HIERARCHY));
     fOpenStructure.setAction(getAction(textEditor, DartEditorActionDefinitionIds.OPEN_STRUCTURE));
 
     fOpenDeclaration.setAction(getAction(textEditor, "OpenEditor"));
 
-    fStructureSelectEnclosingAction.setAction(getAction(textEditor,
+    fStructureSelectEnclosingAction.setAction(getAction(
+        textEditor,
         StructureSelectionAction.ENCLOSING));
     fStructureSelectNextAction.setAction(getAction(textEditor, StructureSelectionAction.NEXT));
-    fStructureSelectPreviousAction.setAction(getAction(textEditor,
+    fStructureSelectPreviousAction.setAction(getAction(
+        textEditor,
         StructureSelectionAction.PREVIOUS));
     fStructureSelectHistoryAction.setAction(getAction(textEditor, StructureSelectionAction.HISTORY));
 
     fGotoNextMemberAction.setAction(getAction(textEditor, GoToNextPreviousMemberAction.NEXT_MEMBER));
-    fGotoPreviousMemberAction.setAction(getAction(textEditor,
+    fGotoPreviousMemberAction.setAction(getAction(
+        textEditor,
         GoToNextPreviousMemberAction.PREVIOUS_MEMBER));
 
-    fRemoveOccurrenceAnnotationsAction.setAction(getAction(textEditor,
+    fRemoveOccurrenceAnnotationsAction.setAction(getAction(
+        textEditor,
         "RemoveOccurrenceAnnotations")); //$NON-NLS-1$
-    fRetargetShowInformationAction.setAction(getAction(textEditor,
+    fRetargetShowInformationAction.setAction(getAction(
+        textEditor,
         ITextEditorActionConstants.SHOW_INFORMATION));
 
     if (part instanceof DartEditor) {
@@ -261,7 +275,8 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
     actionBars.setGlobalActionHandler(ITextEditorActionDefinitionIds.GOTO_NEXT_ANNOTATION, action);
     actionBars.setGlobalActionHandler(ITextEditorActionConstants.NEXT, action);
     action = getAction(textEditor, ITextEditorActionConstants.PREVIOUS);
-    actionBars.setGlobalActionHandler(ITextEditorActionDefinitionIds.GOTO_PREVIOUS_ANNOTATION,
+    actionBars.setGlobalActionHandler(
+        ITextEditorActionDefinitionIds.GOTO_PREVIOUS_ANNOTATION,
         action);
     actionBars.setGlobalActionHandler(ITextEditorActionConstants.PREVIOUS, action);
     action = getAction(textEditor, IDartEditorActionConstants.COPY_QUALIFIED_NAME);

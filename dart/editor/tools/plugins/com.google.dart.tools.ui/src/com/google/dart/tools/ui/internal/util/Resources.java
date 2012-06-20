@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.util;
@@ -158,7 +156,8 @@ public class Resources {
 
     Map<IFile, Long> oldTimeStamps = createModificationStampMap(readOnlyFiles);
     IStatus status = ResourcesPlugin.getWorkspace().validateEdit(
-        readOnlyFiles.toArray(new IFile[readOnlyFiles.size()]), context);
+        readOnlyFiles.toArray(new IFile[readOnlyFiles.size()]),
+        context);
     if (!status.isOK()) {
       return status;
     }
@@ -193,18 +192,23 @@ public class Resources {
   }
 
   private static IStatus addModified(IStatus status, IFile file) {
-    IStatus entry = new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID,
-        DartStatusConstants.VALIDATE_EDIT_CHANGED_CONTENT, Messages.format(
-            CorextMessages.Resources_fileModified, file.getFullPath().toString()), null);
+    IStatus entry = new Status(
+        IStatus.ERROR,
+        DartToolsPlugin.PLUGIN_ID,
+        DartStatusConstants.VALIDATE_EDIT_CHANGED_CONTENT,
+        Messages.format(CorextMessages.Resources_fileModified, file.getFullPath().toString()),
+        null);
     if (status == null) {
       return entry;
     } else if (status.isMultiStatus()) {
       ((MultiStatus) status).add(entry);
       return status;
     } else {
-      MultiStatus result = new MultiStatus(DartToolsPlugin.PLUGIN_ID,
+      MultiStatus result = new MultiStatus(
+          DartToolsPlugin.PLUGIN_ID,
           DartStatusConstants.VALIDATE_EDIT_CHANGED_CONTENT,
-          CorextMessages.Resources_modifiedResources, null);
+          CorextMessages.Resources_modifiedResources,
+          null);
       result.add(status);
       result.add(entry);
       return result;
@@ -212,17 +216,23 @@ public class Resources {
   }
 
   private static IStatus addOutOfSync(IStatus status, IResource resource) {
-    IStatus entry = new Status(IStatus.ERROR, ResourcesPlugin.PI_RESOURCES,
-        IResourceStatus.OUT_OF_SYNC_LOCAL, Messages.format(CorextMessages.Resources_outOfSync,
-            resource.getFullPath().toString()), null);
+    IStatus entry = new Status(
+        IStatus.ERROR,
+        ResourcesPlugin.PI_RESOURCES,
+        IResourceStatus.OUT_OF_SYNC_LOCAL,
+        Messages.format(CorextMessages.Resources_outOfSync, resource.getFullPath().toString()),
+        null);
     if (status == null) {
       return entry;
     } else if (status.isMultiStatus()) {
       ((MultiStatus) status).add(entry);
       return status;
     } else {
-      MultiStatus result = new MultiStatus(ResourcesPlugin.PI_RESOURCES,
-          IResourceStatus.OUT_OF_SYNC_LOCAL, CorextMessages.Resources_outOfSyncResources, null);
+      MultiStatus result = new MultiStatus(
+          ResourcesPlugin.PI_RESOURCES,
+          IResourceStatus.OUT_OF_SYNC_LOCAL,
+          CorextMessages.Resources_outOfSyncResources,
+          null);
       result.add(status);
       result.add(entry);
       return result;

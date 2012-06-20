@@ -124,8 +124,12 @@ public class WorkbenchRunnableAdapter implements IRunnableWithProgress, IThreadL
           if (cause instanceof CoreException) {
             return ((CoreException) cause).getStatus();
           } else {
-            return new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, IStatus.ERROR,
-                cause.getMessage(), cause);
+            return new Status(
+                IStatus.ERROR,
+                DartToolsPlugin.PLUGIN_ID,
+                IStatus.ERROR,
+                cause.getMessage(),
+                cause);
           }
         } catch (InterruptedException e) {
           return Status.CANCEL_STATUS;

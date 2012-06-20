@@ -74,8 +74,10 @@ class OverrideIndicatorManager implements IDartReconcilingListener {
      * Opens and reveals the defining method.
      */
     public void open() {
-      DartUnit ast = ASTProvider.getASTProvider().getAST(fJavaElement,
-          ASTProvider.WAIT_ACTIVE_ONLY, null);
+      DartUnit ast = ASTProvider.getASTProvider().getAST(
+          fJavaElement,
+          ASTProvider.WAIT_ACTIVE_ONLY,
+          null);
       if (ast != null) {
         //TODO (pquitslund): implement override decorator in editor ruler
 //        DartNode node = ast.findDeclaringNode(fAstNodeKey);
@@ -206,7 +208,8 @@ class OverrideIndicatorManager implements IDartReconcilingListener {
 
     synchronized (fAnnotationModelLockObject) {
       if (fAnnotationModel instanceof IAnnotationModelExtension) {
-        ((IAnnotationModelExtension) fAnnotationModel).replaceAnnotations(fOverrideAnnotations,
+        ((IAnnotationModelExtension) fAnnotationModel).replaceAnnotations(
+            fOverrideAnnotations,
             annotationMap);
       } else {
         removeAnnotations();
@@ -231,7 +234,8 @@ class OverrideIndicatorManager implements IDartReconcilingListener {
 
     synchronized (fAnnotationModelLockObject) {
       if (fAnnotationModel instanceof IAnnotationModelExtension) {
-        ((IAnnotationModelExtension) fAnnotationModel).replaceAnnotations(fOverrideAnnotations,
+        ((IAnnotationModelExtension) fAnnotationModel).replaceAnnotations(
+            fOverrideAnnotations,
             null);
       } else {
         for (int i = 0, length = fOverrideAnnotations.length; i < length; i++) {

@@ -116,7 +116,9 @@ public class CallerMethodWrapper extends MethodWrapper {
   protected Map<String, MethodCall> findChildren(IProgressMonitor progressMonitor) {
     try {
 
-      IProgressMonitor monitor = new SubProgressMonitor(progressMonitor, 95,
+      IProgressMonitor monitor = new SubProgressMonitor(
+          progressMonitor,
+          95,
           SubProgressMonitor.SUPPRESS_SUBTASK_LABEL);
 
       checkCanceled(progressMonitor);
@@ -126,7 +128,8 @@ public class CallerMethodWrapper extends MethodWrapper {
       SearchScope defaultSearchScope = getSearchScope();
       boolean isWorkspaceScope = SearchScopeFactory.createWorkspaceScope().equals(
           defaultSearchScope);
-      SearchScope scope = isWorkspaceScope ? getAccurateSearchScope(defaultSearchScope,
+      SearchScope scope = isWorkspaceScope ? getAccurateSearchScope(
+          defaultSearchScope,
           (CompilationUnitElement) member) : defaultSearchScope;
       SearchFilter f = null;
       List<SearchMatch> matches;
@@ -141,8 +144,11 @@ public class CallerMethodWrapper extends MethodWrapper {
           if (member.getElementName().isEmpty()) {
             DartFunction func = (DartFunction) member;
             matches = new ArrayList<SearchMatch>();
-            matches.add(new SearchMatch(MatchQuality.EXACT, MatchKind.FUNCTION_EXECUTION,
-                member.getParent(), func.getSourceRange()));
+            matches.add(new SearchMatch(
+                MatchQuality.EXACT,
+                MatchKind.FUNCTION_EXECUTION,
+                member.getParent(),
+                func.getSourceRange()));
           } else {
             matches = searchEngine.searchReferences((DartFunction) member, scope, f, monitor);
           }
@@ -159,7 +165,10 @@ public class CallerMethodWrapper extends MethodWrapper {
       for (SearchMatch match : matches) {
         DartElement element = match.getElement();
         SourceRange range = match.getSourceRange();
-        searchResults.addMember(element, element, range.getOffset(),
+        searchResults.addMember(
+            element,
+            element,
+            range.getOffset(),
             range.getOffset() + range.getLength());
       }
 

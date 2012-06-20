@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.editor.saveparticipant;
@@ -65,7 +63,7 @@ public final class SaveParticipantRegistry {
 
   /**
    * Returns an array of <code>IPostSaveListener</code> which are enabled in the given context.
-   *
+   * 
    * @param context the context from which to retrive the settings from, not null
    * @return the current enabled post save listeners according to the preferences
    */
@@ -93,7 +91,7 @@ public final class SaveParticipantRegistry {
   /**
    * Returns the save participant descriptor for the given <code>id</code> or <code>null</code> if
    * no such listener is registered.
-   *
+   * 
    * @param id the identifier of the requested save participant
    * @return the corresponding descriptor, or <code>null</code> if none can be found
    */
@@ -105,18 +103,17 @@ public final class SaveParticipantRegistry {
   /**
    * Returns an array of <code>SaveParticipantDescriptor</code> describing all registered save
    * participants.
-   *
+   * 
    * @return the array of registered save participant descriptors
    */
   public synchronized SaveParticipantDescriptor[] getSaveParticipantDescriptors() {
     ensureRegistered();
-    return fDescriptors.values().toArray(
-        new SaveParticipantDescriptor[fDescriptors.size()]);
+    return fDescriptors.values().toArray(new SaveParticipantDescriptor[fDescriptors.size()]);
   }
 
   /**
    * Checks weather there are enabled or disabled post save listener in the given context.
-   *
+   * 
    * @param context to context to check, not null
    * @return true if there are settings in context
    */

@@ -69,7 +69,8 @@ public class OpenCallHierarchyAction extends SelectionDispatchAction {
     setText(CallHierarchyMessages.OpenCallHierarchyAction_label);
     setToolTipText(CallHierarchyMessages.OpenCallHierarchyAction_tooltip);
     setDescription(CallHierarchyMessages.OpenCallHierarchyAction_description);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.CALL_HIERARCHY_OPEN_ACTION);
   }
 
@@ -113,11 +114,14 @@ public class OpenCallHierarchyAction extends SelectionDispatchAction {
           candidates.add(enclosingMethod);
         }
       }
-      CallHierarchyUI.openSelectionDialog(candidates.toArray(new DartElement[candidates.size()]),
+      CallHierarchyUI.openSelectionDialog(
+          candidates.toArray(new DartElement[candidates.size()]),
           getSite().getWorkbenchWindow());
 
     } catch (InvocationTargetException e) {
-      ExceptionHandler.handle(e, getShell(),
+      ExceptionHandler.handle(
+          e,
+          getShell(),
           CallHierarchyMessages.OpenCallHierarchyAction_dialog_title,
           ActionMessages.SelectionConverter_codeResolve_failed);
     } catch (InterruptedException e) {

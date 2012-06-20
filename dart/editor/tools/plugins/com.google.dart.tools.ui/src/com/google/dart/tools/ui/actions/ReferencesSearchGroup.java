@@ -135,7 +135,8 @@ public class ReferencesSearchGroup extends ActionGroup {
 
   private void updateGlobalActionHandlers() {
     if (actionBars != null) {
-      actionBars.setGlobalActionHandler(JdtActionConstants.FIND_REFERENCES_IN_WORKSPACE,
+      actionBars.setGlobalActionHandler(
+          JdtActionConstants.FIND_REFERENCES_IN_WORKSPACE,
           findReferencesAction);
     }
   }

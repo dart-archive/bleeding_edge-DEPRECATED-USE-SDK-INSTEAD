@@ -55,7 +55,13 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
    */
   public DartCompletionProposal(String replacementString, int replacementOffset,
       int replacementLength, Image image, StyledString displayString, int relevance) {
-    this(replacementString, replacementOffset, replacementLength, image, displayString, relevance,
+    this(
+        replacementString,
+        replacementOffset,
+        replacementLength,
+        image,
+        displayString,
+        relevance,
         false);
   }
 
@@ -75,8 +81,15 @@ public class DartCompletionProposal extends AbstractDartCompletionProposal {
   public DartCompletionProposal(String replacementString, int replacementOffset,
       int replacementLength, Image image, StyledString displayString, int relevance,
       boolean inJavadoc) {
-    this(replacementString, replacementOffset, replacementLength, image, displayString, relevance,
-        inJavadoc, null);
+    this(
+        replacementString,
+        replacementOffset,
+        replacementLength,
+        image,
+        displayString,
+        relevance,
+        inJavadoc,
+        null);
   }
 
   /**

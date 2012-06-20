@@ -108,13 +108,20 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
           int positionLength = fPositions[i].getLength();
 
           if (fChoices[i].length < 2) {
-            group.addPosition(new LinkedPosition(document, positionOffset, positionLength,
+            group.addPosition(new LinkedPosition(
+                document,
+                positionOffset,
+                positionLength,
                 LinkedPositionGroup.NO_STOP));
           } else {
             ensurePositionCategoryInstalled(document, model);
             document.addPosition(getCategory(), fPositions[i]);
-            group.addPosition(new ProposalPosition(document, positionOffset, positionLength,
-                LinkedPositionGroup.NO_STOP, fChoices[i]));
+            group.addPosition(new ProposalPosition(
+                document,
+                positionOffset,
+                positionLength,
+                LinkedPositionGroup.NO_STOP,
+                fChoices[i]));
           }
           model.addGroup(group);
         }
@@ -351,11 +358,20 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
       String paramName = new String(parameterNames[i]);
       Position position = new Position(0, 0);
 
-      ICompletionProposal[] argumentProposals = guesser.parameterProposals(parameterTypes[i],
-          paramName, position, assignableElements[i], fFillBestGuess);
+      ICompletionProposal[] argumentProposals = guesser.parameterProposals(
+          parameterTypes[i],
+          paramName,
+          position,
+          assignableElements[i],
+          fFillBestGuess);
       if (argumentProposals.length == 0) {
-        argumentProposals = new ICompletionProposal[] {new DartCompletionProposal(paramName, 0,
-            paramName.length(), null, paramName, 0)};
+        argumentProposals = new ICompletionProposal[] {new DartCompletionProposal(
+            paramName,
+            0,
+            paramName.length(),
+            null,
+            paramName,
+            0)};
       }
 
       fPositions[i] = position;
@@ -367,7 +383,9 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
 
   private void openErrorDialog(Exception e) {
     Shell shell = getTextViewer().getTextWidget().getShell();
-    MessageDialog.openError(shell, DartTextMessages.ParameterGuessingProposal_error_msg,
+    MessageDialog.openError(
+        shell,
+        DartTextMessages.ParameterGuessingProposal_error_msg,
         e.getMessage());
   }
 }

@@ -154,8 +154,10 @@ public class DartKeyBindingPreferencePage extends PreferencePage implements
   }
 
   private void exportKeys() {
-    String path = requestFilePath(SWT.SAVE,
-        PreferencesMessages.DartKeyBindingPref_ChooseExportFile, SAVE_PATH);
+    String path = requestFilePath(
+        SWT.SAVE,
+        PreferencesMessages.DartKeyBindingPref_ChooseExportFile,
+        SAVE_PATH);
     if (path == null) {
       return;
     }
@@ -164,7 +166,8 @@ public class DartKeyBindingPreferencePage extends PreferencePage implements
         && !MessageDialog.openQuestion(
             getShell(),
             PreferencesMessages.DartKeyBindingPref_ExportTitle,
-            Messages.format(PreferencesMessages.DartKeyBindingPref_ConfirmReplace,
+            Messages.format(
+                PreferencesMessages.DartKeyBindingPref_ConfirmReplace,
                 file.getAbsolutePath()))) {
       return;
     }
@@ -190,8 +193,10 @@ public class DartKeyBindingPreferencePage extends PreferencePage implements
   }
 
   private void importKeys() {
-    String path = requestFilePath(SWT.OPEN,
-        PreferencesMessages.DartKeyBindingPref_ChooseImportFile, SAVE_PATH);
+    String path = requestFilePath(
+        SWT.OPEN,
+        PreferencesMessages.DartKeyBindingPref_ChooseImportFile,
+        SAVE_PATH);
     if (path == null) {
       return;
     }
@@ -200,7 +205,8 @@ public class DartKeyBindingPreferencePage extends PreferencePage implements
       MessageDialog.openError(
           getShell(),
           PreferencesMessages.DartKeyBindingPref_ImportTitle,
-          Messages.format(PreferencesMessages.DartKeyBindingPref_FileReadError,
+          Messages.format(
+              PreferencesMessages.DartKeyBindingPref_FileReadError,
               file.getAbsolutePath()));
       return;
     }
@@ -212,7 +218,8 @@ public class DartKeyBindingPreferencePage extends PreferencePage implements
       MessageDialog.openError(
           getShell(),
           PreferencesMessages.DartKeyBindingPref_ImportTitle,
-          Messages.format(PreferencesMessages.DartKeyBindingPref_CouldNotLoad,
+          Messages.format(
+              PreferencesMessages.DartKeyBindingPref_CouldNotLoad,
               new Object[] {
                   file.getAbsolutePath(),
                   ex.getMessage() == null ? ex.getClass().getCanonicalName() : ex.getMessage()}));
@@ -234,7 +241,8 @@ public class DartKeyBindingPreferencePage extends PreferencePage implements
       if (!path.endsWith(EXT_XML)) {
         path = path + EXT_XML;
       }
-      DartToolsPlugin.getDefault().getDialogSettings().put(LAST_KEY_PATH + SAVE_PATH,
+      DartToolsPlugin.getDefault().getDialogSettings().put(
+          LAST_KEY_PATH + SAVE_PATH,
           file.getFilterPath());
       return path;
     }
@@ -242,7 +250,8 @@ public class DartKeyBindingPreferencePage extends PreferencePage implements
   }
 
   private void resetBindings() {
-    if (!MessageDialog.openQuestion(getShell(),
+    if (!MessageDialog.openQuestion(
+        getShell(),
         PreferencesMessages.DartKeyBindingPref_ResetBindings,
         PreferencesMessages.DartKeyBindingPref_ConfirmReset)) {
       return;

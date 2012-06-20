@@ -187,8 +187,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
   }
 
   @Override
-  protected RefactoringStatus doCheckFinalConditions(
-      IProgressMonitor pm,
+  protected RefactoringStatus doCheckFinalConditions(IProgressMonitor pm,
       CheckConditionsContext context) throws CoreException, OperationCanceledException {
     try {
       pm.beginTask("", 12); //$NON-NLS-1$
@@ -247,9 +246,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
                       new Object[] {
                           RenameAnalyzeUtil.getElementTypeName(parameter),
                           RenameAnalyzeUtil.getElementTypeName(superMember),
-                          superType.getElementName(),
-                          superMember.getElementName(),
-                          resourcePath,});
+                          superType.getElementName(), superMember.getElementName(), resourcePath,});
                   result.addWarning(message, DartStatusContext.create(superMember));
                 }
                 // add errors for shadowing usage
@@ -260,9 +257,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
                         new Object[] {
                             RenameAnalyzeUtil.getElementTypeName(parameter),
                             RenameAnalyzeUtil.getElementTypeName(superMember),
-                            superType.getElementName(),
-                            superMember.getElementName(),
-                            resourcePath,});
+                            superType.getElementName(), superMember.getElementName(), resourcePath,});
                     result.addError(message, DartStatusContext.create(unit, reference));
                   }
                 }
@@ -275,9 +270,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
                       RefactoringCoreMessages.RenameProcessor_typeMemberDecl_shadowedBy_element,
                       new Object[] {
                           RenameAnalyzeUtil.getElementTypeName(superMember),
-                          superType.getElementName(),
-                          superMember.getElementName(),
-                          resourcePath,
+                          superType.getElementName(), superMember.getElementName(), resourcePath,
                           RenameAnalyzeUtil.getElementTypeName(parameter)});
                   result.addWarning(message, DartStatusContext.create(superMember));
                 }
@@ -292,10 +285,8 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
                           RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_element,
                           new Object[] {
                               RenameAnalyzeUtil.getElementTypeName(superMember),
-                              superType.getElementName(),
-                              superMember.getElementName(),
-                              resourcePath,
-                              RenameAnalyzeUtil.getElementTypeName(parameter)});
+                              superType.getElementName(), superMember.getElementName(),
+                              resourcePath, RenameAnalyzeUtil.getElementTypeName(parameter)});
                       result.addError(message, DartStatusContext.create(memberRef));
                     }
                   }
@@ -316,8 +307,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
                         new Object[] {
                             RenameAnalyzeUtil.getElementTypeName(parameter),
                             RenameAnalyzeUtil.getElementTypeName(variableElement),
-                            enclosingType.getElementName(),
-                            method.getElementName(),
+                            enclosingType.getElementName(), method.getElementName(),
                             BasicElementLabels.getPathLabel(resourcePath, false)});
                     result.addWarning(message, DartStatusContext.create(variableElement));
                   }
@@ -329,8 +319,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
                           new Object[] {
                               RenameAnalyzeUtil.getElementTypeName(parameter),
                               RenameAnalyzeUtil.getElementTypeName(variableElement),
-                              enclosingType.getElementName(),
-                              method.getElementName(),
+                              enclosingType.getElementName(), method.getElementName(),
                               BasicElementLabels.getPathLabel(resourcePath, false)});
                       result.addError(message, DartStatusContext.create(unit, reference));
                     }
@@ -357,8 +346,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
             String message = Messages.format(
                 RefactoringCoreMessages.RenameProcessor_topLevelDecl_shadowedBy_element,
                 new Object[] {
-                    RenameAnalyzeUtil.getElementTypeName(topLevelElement),
-                    newName,
+                    RenameAnalyzeUtil.getElementTypeName(topLevelElement), newName,
                     BasicElementLabels.getPathLabel(resourcePath, false),
                     BasicElementLabels.getPathLabel(libraryPath, false),
                     RenameAnalyzeUtil.getElementTypeName(parameter)});
@@ -371,8 +359,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
               String message = Messages.format(
                   RefactoringCoreMessages.RenameProcessor_topLevelUsage_shadowedBy_element,
                   new Object[] {
-                      RenameAnalyzeUtil.getElementTypeName(topLevelElement),
-                      newName,
+                      RenameAnalyzeUtil.getElementTypeName(topLevelElement), newName,
                       BasicElementLabels.getPathLabel(resourcePath, false),
                       BasicElementLabels.getPathLabel(libraryPath, false),
                       RenameAnalyzeUtil.getElementTypeName(parameter)});

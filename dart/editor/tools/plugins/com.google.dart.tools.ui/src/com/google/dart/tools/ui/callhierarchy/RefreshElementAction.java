@@ -49,7 +49,8 @@ public class RefreshElementAction extends Action {
     setDescription(CallHierarchyMessages.RefreshSingleElementAction_description);
     DartPluginImages.setLocalImageDescriptors(this, "refresh.gif");//$NON-NLS-1$
     setActionDefinitionId(IWorkbenchCommandConstants.FILE_REFRESH);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.CALL_HIERARCHY_REFRESH_SINGLE_ELEMENT_ACTION);
     setEnabled(true);
   }

@@ -127,7 +127,8 @@ public class HistoryListAction extends Action {
     @Override
     protected void configureShell(Shell newShell) {
       super.configureShell(newShell);
-      PlatformUI.getWorkbench().getHelpSystem().setHelp(newShell,
+      PlatformUI.getWorkbench().getHelpSystem().setHelp(
+          newShell,
           DartHelpContextIds.HISTORY_LIST_DIALOG);
     }
 
@@ -194,7 +195,8 @@ public class HistoryListAction extends Action {
   @Override
   public void run() {
     DartElement[][] historyEntries = fView.getHistoryEntries();
-    HistoryListDialog dialog = new HistoryListDialog(DartToolsPlugin.getActiveWorkbenchShell(),
+    HistoryListDialog dialog = new HistoryListDialog(
+        DartToolsPlugin.getActiveWorkbenchShell(),
         historyEntries);
     if (dialog.open() == Window.OK) {
       fView.setHistoryEntries(dialog.getRemaining());

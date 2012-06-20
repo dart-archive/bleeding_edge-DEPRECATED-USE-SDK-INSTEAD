@@ -194,9 +194,7 @@ public class Checks {
    * @return <code>RefactoringStatus</code> with <code>WARNING</code> severity if the give method
    *         will have a constructor name after renaming <code>null</code> otherwise.
    */
-  public static RefactoringStatus checkIfConstructorName(
-      Method method,
-      String newMethodName,
+  public static RefactoringStatus checkIfConstructorName(Method method, String newMethodName,
       String newTypeName) {
     // TODO(scheglov) implement
     throw new RuntimeException("Not implemented");

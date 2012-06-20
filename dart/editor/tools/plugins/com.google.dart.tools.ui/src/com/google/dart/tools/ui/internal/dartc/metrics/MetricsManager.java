@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.dartc.metrics;
@@ -128,7 +126,8 @@ public class MetricsManager implements MetricsListener, ISelectionChangedListene
     } else {
       statMap.put(metricTitles[7], "N/A");
     }
-    statMap.put(metricTitles[8],
+    statMap.put(
+        metricTitles[8],
         Double.toString(roundTo(2, metrics.getPercentCharsConsumedByNativeLibraries())) + " %");
     statMap.put(metricTitles[9], Double.toString(roundTo(2, metrics.getPercentTimeParsing())) + "%");
     statMap.put(metricTitles[10], Double.toString(roundTo(2, metrics.getTimeSpentPerUnit()))
@@ -296,7 +295,8 @@ public class MetricsManager implements MetricsListener, ISelectionChangedListene
             if (list.getItem(i).equals(name)) {
               view.listViewer.getList().setSelection(i);
               currentSelection = name;
-              view.setSelectedElement(currentSelection,
+              view.setSelectedElement(
+                  currentSelection,
                   compilerUnitToBuildTime.get(currentSelection));
               break;
             }

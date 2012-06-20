@@ -78,7 +78,8 @@ public class StructureSelectNextAction extends StructureSelectionAction {
     super(SelectionActionMessages.StructureSelectNext_label, editor, history);
     setToolTipText(SelectionActionMessages.StructureSelectNext_tooltip);
     setDescription(SelectionActionMessages.StructureSelectNext_description);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
         DartHelpContextIds.STRUCTURED_SELECT_NEXT_ACTION);
   }
 
@@ -92,7 +93,8 @@ public class StructureSelectNextAction extends StructureSelectionAction {
   SourceRange internalGetNewSelectionRange(SourceRange oldSourceRange, SourceReference sr,
       SelectionAnalyzer selAnalyzer) throws DartModelException {
     if (oldSourceRange.getLength() == 0 && selAnalyzer.getLastCoveringNode() != null) {
-      DartNode previousNode = NextNodeAnalyzer.perform(oldSourceRange.getOffset(),
+      DartNode previousNode = NextNodeAnalyzer.perform(
+          oldSourceRange.getOffset(),
           selAnalyzer.getLastCoveringNode());
       if (previousNode != null) {
         return getSelectedNodeSourceRange(sr, previousNode);

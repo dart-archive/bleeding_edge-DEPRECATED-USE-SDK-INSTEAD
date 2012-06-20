@@ -77,8 +77,10 @@ public class RefreshAction extends org.eclipse.ui.actions.RefreshAction {
             });
           }
         } catch (InvocationTargetException e) {
-          String msg = NLS.bind(IDEWorkbenchMessages.WorkspaceAction_logTitle,
-              getClass().getName(), e.getTargetException());
+          String msg = NLS.bind(
+              IDEWorkbenchMessages.WorkspaceAction_logTitle,
+              getClass().getName(),
+              e.getTargetException());
           throw new CoreException(StatusUtil.newStatus(IStatus.ERROR, msg, e.getTargetException()));
         } catch (InterruptedException e) {
           return Status.CANCEL_STATUS;

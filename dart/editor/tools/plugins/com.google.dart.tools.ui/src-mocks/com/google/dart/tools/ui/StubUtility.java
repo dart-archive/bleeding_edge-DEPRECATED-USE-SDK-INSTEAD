@@ -84,24 +84,13 @@ public class StubUtility {
     return getProjectLineDelimiter(project.exists() ? project : null);
   }
 
-  public static String getMethodBodyContent(
-      boolean isConstructor,
-      DartProject dartProject,
-      String declaringTypeName,
-      String methodName,
-      String bodyStatement,
-      String lineDelimiter) {
+  public static String getMethodBodyContent(boolean isConstructor, DartProject dartProject,
+      String declaringTypeName, String methodName, String bodyStatement, String lineDelimiter) {
     return null;
   }
 
-  public static String getMethodComment(
-      CompilationUnit cu,
-      String declaringTypeName,
-      String methodName,
-      String[] paramNames,
-      String[] excTypeSig,
-      String retTypeSig,
-      boolean b,
+  public static String getMethodComment(CompilationUnit cu, String declaringTypeName,
+      String methodName, String[] paramNames, String[] excTypeSig, String retTypeSig, boolean b,
       String lineDelimiter) {
     return null;
   }

@@ -54,7 +54,9 @@ import java.net.URI;
 public class NewApplicationCreationPage extends WizardPage {
 
   public static enum ProjectType {
-    NONE, SERVER, WEB
+    NONE,
+    SERVER,
+    WEB
   }
 
   public static final String NEW_APPPLICATION_SETTINGS = "newApplicationWizard.settings";
@@ -303,12 +305,15 @@ public class NewApplicationCreationPage extends WizardPage {
   private IStatus validateLocation() {
     String location = projectLocationField.getText();
     if (!new Path(location).isValidPath(getProjectName())) {
-      return new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID,
+      return new Status(
+          IStatus.ERROR,
+          DartToolsPlugin.PLUGIN_ID,
           ProjectMessages.NewProjectCreationPage_invalid_loc);
     }
     if (doesProjectExist()) {
       return new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, NLS.bind(
-          ProjectMessages.NewApplicationWizardPage_error_existing, getProjectName()));
+          ProjectMessages.NewApplicationWizardPage_error_existing,
+          getProjectName()));
     }
     return Status.OK_STATUS;
   }

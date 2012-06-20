@@ -75,7 +75,9 @@ public class CloseLibraryAction extends AbstractInstrumentedAction implements IW
     final List<DartLibrary> libraries = selection.toList();
 
     try {
-      PlatformUI.getWorkbench().getProgressService().run(false, false,
+      PlatformUI.getWorkbench().getProgressService().run(
+          false,
+          false,
           new WorkbenchRunnableAdapter(new IWorkspaceRunnable() {
             @Override
             public void run(IProgressMonitor monitor) throws CoreException {
@@ -89,7 +91,9 @@ public class CloseLibraryAction extends AbstractInstrumentedAction implements IW
               try {
                 unreferencedLibraries = DartModelManager.getInstance().getDartModel().getUnreferencedLibraries();
               } catch (DartModelException e) {
-                ExceptionHandler.handle(e, window.getShell(),
+                ExceptionHandler.handle(
+                    e,
+                    window.getShell(),
                     ActionMessages.CloseLibraryAction_error_title,
                     ActionMessages.CloseLibraryAction_error_message);
               }
@@ -98,7 +102,9 @@ public class CloseLibraryAction extends AbstractInstrumentedAction implements IW
                 try {
                   library.delete(new SubProgressMonitor(monitor, 1));
                 } catch (DartModelException e) {
-                  ExceptionHandler.handle(e, window.getShell(),
+                  ExceptionHandler.handle(
+                      e,
+                      window.getShell(),
                       ActionMessages.CloseLibraryAction_error_title,
                       ActionMessages.CloseLibraryAction_error_message);
                 }
@@ -108,7 +114,10 @@ public class CloseLibraryAction extends AbstractInstrumentedAction implements IW
             }
           })); // workspace lock
     } catch (InvocationTargetException e) {
-      ExceptionHandler.handle(e, window.getShell(), ActionMessages.CloseLibraryAction_error_title,
+      ExceptionHandler.handle(
+          e,
+          window.getShell(),
+          ActionMessages.CloseLibraryAction_error_title,
           ActionMessages.CloseLibraryAction_error_message);
     } catch (InterruptedException e) {
       // canceled by user

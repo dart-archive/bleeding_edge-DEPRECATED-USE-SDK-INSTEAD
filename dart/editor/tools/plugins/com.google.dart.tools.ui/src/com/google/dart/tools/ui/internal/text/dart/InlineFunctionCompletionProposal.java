@@ -36,8 +36,14 @@ public class InlineFunctionCompletionProposal extends DartTypeCompletionProposal
       char[][] paramTypes, int offset, int length, int relevance, Set<String> suggestedMethods,
       Collection<IDartCompletionProposal> result) {
     suggestedMethods.add(prefix);
-    result.add(new InlineFunctionCompletionProposal(cu, paramNames, paramTypes, prefix, offset,
-        length, relevance));
+    result.add(new InlineFunctionCompletionProposal(
+        cu,
+        paramNames,
+        paramTypes,
+        prefix,
+        offset,
+        length,
+        relevance));
   }
 
   private static StringBuffer fillDisplayName(char[][] paramNames, char[][] paramTypes,

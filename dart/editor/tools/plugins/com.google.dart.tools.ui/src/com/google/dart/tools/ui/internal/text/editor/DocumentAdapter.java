@@ -354,7 +354,10 @@ public class DocumentAdapter implements Buffer, IDocumentListener {
    */
   @Override
   public void documentChanged(DocumentEvent event) {
-    fireBufferChanged(new BufferChangedEvent(this, event.getOffset(), event.getLength(),
+    fireBufferChanged(new BufferChangedEvent(
+        this,
+        event.getOffset(),
+        event.getLength(),
         event.getText()));
   }
 
@@ -625,8 +628,12 @@ public class DocumentAdapter implements Buffer, IDocumentListener {
             }
             buf.append((int) curr.charAt(k));
           }
-          IStatus status = new Status(IStatus.WARNING, DartUI.ID_PLUGIN, IStatus.OK,
-              buf.toString(), new Throwable());
+          IStatus status = new Status(
+              IStatus.WARNING,
+              DartUI.ID_PLUGIN,
+              IStatus.OK,
+              buf.toString(),
+              new Throwable());
           DartToolsPlugin.log(status);
         }
       } catch (BadLocationException e) {

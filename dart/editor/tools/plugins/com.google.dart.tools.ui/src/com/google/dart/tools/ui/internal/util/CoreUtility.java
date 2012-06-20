@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.util;
@@ -99,8 +97,7 @@ public class CoreUtility {
               IncrementalProjectBuilder.INCREMENTAL_BUILD,
               new SubProgressMonitor(monitor, 1));
         } else {
-          DartProject[] projects =
-              DartCore.create(DartToolsPlugin.getWorkspace().getRoot()).getDartProjects();
+          DartProject[] projects = DartCore.create(DartToolsPlugin.getWorkspace().getRoot()).getDartProjects();
           if (projects.length > 0) {
             monitor.beginTask(DartUIMessages.CoreUtility_buildall_taskname, 2 * projects.length);
             for (int i = 0; i < projects.length; i++) {
@@ -126,9 +123,7 @@ public class CoreUtility {
     }
   }
 
-  public static void createDerivedFolder(IFolder folder,
-      boolean force,
-      boolean local,
+  public static void createDerivedFolder(IFolder folder, boolean force, boolean local,
       IProgressMonitor monitor) throws CoreException {
     if (!folder.exists()) {
       IContainer parent = folder.getParent();
@@ -183,9 +178,7 @@ public class CoreUtility {
    * Creates a folder and all parent folders if not existing. Project must exist.
    * <code> org.eclipse.ui.dialogs.ContainerGenerator</code> is too heavy (creates a runnable)
    */
-  public static void createFolder(IFolder folder,
-      boolean force,
-      boolean local,
+  public static void createFolder(IFolder folder, boolean force, boolean local,
       IProgressMonitor monitor) throws CoreException {
     if (!folder.exists()) {
       IContainer parent = folder.getParent();
