@@ -894,7 +894,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     ColoredViewersManager.install(fOutlineViewer);
     initDragAndDrop();
     fOutlineViewer.setContentProvider(new LibraryExplorerContentProvider(true));
-    fOutlineViewer.setComparator(new DartElementComparator());
     fOutlineViewer.setLabelProvider(new DartElementLabelProvider());
     fOutlineViewer.updateTreeFont();
 
@@ -1341,7 +1340,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   private void registerToolbarActions(IActionBars actionBars) {
     IToolBarManager toolBarManager = actionBars.getToolBarManager();
-    //toolBarManager.add(new LexicalSortingAction());
+    toolBarManager.add(new LexicalSortingAction());
 
 //    fMemberFilterActionGroup = new MemberFilterActionGroup(fOutlineViewer,
 //        "com.google.dart.tools.ui.JavaOutlinePage"); //$NON-NLS-1$
