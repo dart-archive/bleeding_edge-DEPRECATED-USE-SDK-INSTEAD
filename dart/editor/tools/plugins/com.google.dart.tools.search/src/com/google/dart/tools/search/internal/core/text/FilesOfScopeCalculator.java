@@ -13,17 +13,17 @@
  */
 package com.google.dart.tools.search.internal.core.text;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.search.core.text.TextSearchScope;
-
-import java.util.ArrayList;
-
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.MultiStatus;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceProxy;
 import org.eclipse.core.resources.IResourceProxyVisitor;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.MultiStatus;
+
+import java.util.ArrayList;
 
 public class FilesOfScopeCalculator implements IResourceProxyVisitor {
 
@@ -36,15 +36,6 @@ public class FilesOfScopeCalculator implements IResourceProxyVisitor {
     fStatus = status;
   }
 
-  public boolean visit(IResourceProxy proxy) {
-    boolean inScope = fScope.contains(proxy);
-
-    if (inScope && proxy.getType() == IResource.FILE) {
-      fFiles.add(proxy.requestResource());
-    }
-    return inScope;
-  }
-
   public IFile[] process() {
     fFiles = new ArrayList<IResource>();
     try {
@@ -52,7 +43,7 @@ public class FilesOfScopeCalculator implements IResourceProxyVisitor {
       for (int i = 0; i < roots.length; i++) {
         try {
           IResource resource = roots[i];
-          if (resource.isAccessible()) {
+          if (resource.isAccessible() && DartCore.isAnalyzed(resource)) {
             resource.accept(this, 0);
           }
         } catch (CoreException ex) {
@@ -64,5 +55,18 @@ public class FilesOfScopeCalculator implements IResourceProxyVisitor {
     } finally {
       fFiles = null;
     }
+  }
+
+  @Override
+  public boolean visit(IResourceProxy proxy) {
+    boolean inScope = fScope.contains(proxy);
+
+    if (inScope && proxy.getType() == IResource.FILE) {
+      IResource resource = proxy.requestResource();
+      if (DartCore.isAnalyzed(resource)) {
+        fFiles.add(resource);
+      }
+    }
+    return inScope;
   }
 }
