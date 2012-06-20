@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.internal.completion;
 
 import com.google.common.base.Joiner;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
@@ -533,14 +532,12 @@ public class CompletionEngineTest extends TestCase {
         "Expected exclamation point ('!') within the source"
             + " denoting the position at which code completion should occur",
         !completionTests.isEmpty());
-    if (DartCoreDebug.ANALYSIS_SERVER && !analysisCleared) {
+    if (!analysisCleared) {
       analysisCleared = true;
       SystemLibraryManagerProvider.getDefaultAnalysisServer().reanalyze();
     }
     InMemoryIndex.getInstance().initializeIndex();
-    if (DartCoreDebug.ANALYSIS_SERVER) {
-      AnalysisTestUtilities.waitForIdle(60000);
-    }
+    AnalysisTestUtilities.waitForIdle(60000);
     IProgressMonitor monitor = new NullProgressMonitor();
     MockLibrarySource library = new MockLibrarySource("FooLib");
     MockDartSource sourceFile = new MockDartSource(library, "Foo.dart", "");
