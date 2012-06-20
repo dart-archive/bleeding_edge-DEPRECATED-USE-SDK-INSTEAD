@@ -14,7 +14,6 @@
 package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole.MessageStream;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
@@ -279,9 +278,7 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
         }
       });
 
-      if (DartCoreDebug.ANALYSIS_SERVER) {
-        new AnalysisMonitor(SystemLibraryManagerProvider.getDefaultAnalysisServer()).start();
-      }
+      new AnalysisMonitor(SystemLibraryManagerProvider.getDefaultAnalysisServer()).start();
       IWorkbench workbench = PlatformUI.getWorkbench();
       IActivityManager act = workbench.getActivitySupport().getActivityManager();
       IBindingService bind = (IBindingService) workbench.getService(IBindingService.class);

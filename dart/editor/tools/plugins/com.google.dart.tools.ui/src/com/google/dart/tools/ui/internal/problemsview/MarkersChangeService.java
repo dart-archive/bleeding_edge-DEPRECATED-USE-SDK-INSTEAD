@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.problemsview;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IMarkerDelta;
@@ -49,9 +48,6 @@ class MarkersChangeService {
 
   private IResourceChangeListener resourceChangeListener;
 
-  private boolean inBuild;
-  private boolean hadMarkerChanges;
-
   private MarkersChangeService() {
 
   }
@@ -76,13 +72,7 @@ class MarkersChangeService {
 
   private void handleChangeEvent(IResourceChangeEvent event) {
     if (event.getType() == IResourceChangeEvent.PRE_BUILD) {
-      inBuild = true;
     } else if (event.getType() == IResourceChangeEvent.POST_BUILD) {
-      inBuild = false;
-
-      if (hadMarkerChanges) {
-        notifyListeners();
-      }
     } else {
       // POST_CHANGE
       int markerChangeCount = 0;
@@ -103,13 +93,7 @@ class MarkersChangeService {
       }
 
       if (markerChangeCount > 0) {
-        if (DartCoreDebug.ANALYSIS_SERVER) {
-          notifyListeners();
-        } else if (inBuild) {
-          hadMarkerChanges = true;
-        } else {
-          notifyListeners();
-        }
+        notifyListeners();
       }
     }
   }

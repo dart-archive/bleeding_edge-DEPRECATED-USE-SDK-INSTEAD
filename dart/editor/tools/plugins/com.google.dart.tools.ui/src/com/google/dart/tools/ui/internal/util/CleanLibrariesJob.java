@@ -14,13 +14,11 @@
 package com.google.dart.tools.ui.internal.util;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -51,13 +49,9 @@ public class CleanLibrariesJob extends Job {
       // Refresh the workspace.
       root.refreshLocal(IResource.DEPTH_INFINITE, subMonitor.newChild(50));
 
-      // Clean the projects, forcing a rebuild.
-      if (DartCoreDebug.ANALYSIS_SERVER) {
-        root.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_INFINITE);
-        SystemLibraryManagerProvider.getDefaultAnalysisServer().reanalyze();
-      } else {
-        workspace.build(IncrementalProjectBuilder.CLEAN_BUILD, subMonitor.newChild(50));
-      }
+      // Reanalyze the source.
+      root.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_INFINITE);
+      SystemLibraryManagerProvider.getDefaultAnalysisServer().reanalyze();
 
       subMonitor.done();
     } catch (CoreException ex) {

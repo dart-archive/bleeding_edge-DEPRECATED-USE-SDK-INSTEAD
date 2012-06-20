@@ -219,9 +219,7 @@ public class DartUIStartup implements IStartup {
      * Wait for any background analysis to be complete
      */
     private void waitForAnalysis() {
-      if (DartCoreDebug.ANALYSIS_SERVER) {
-        waitForIdle(SystemLibraryManagerProvider.getDefaultAnalysisServer(), 120000); // 2 minutes
-      }
+      waitForIdle(SystemLibraryManagerProvider.getDefaultAnalysisServer(), 120000); // 2 minutes
     }
 
     /**
