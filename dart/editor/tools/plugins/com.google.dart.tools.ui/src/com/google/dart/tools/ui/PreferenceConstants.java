@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpConstants;
 import com.google.dart.tools.ui.internal.text.IJavaThemeConstants;
@@ -3461,7 +3460,7 @@ public class PreferenceConstants {
     store.setDefault(PreferenceConstants.CODEASSIST_AUTOACTIVATION, true);
     store.setDefault(PreferenceConstants.CODEASSIST_AUTOACTIVATION_DELAY, 300);
 
-    store.setDefault(PreferenceConstants.CODEASSIST_AUTOINSERT, true);
+    store.setDefault(PreferenceConstants.CODEASSIST_AUTOINSERT, false);
     setDefaultAndFireEvent(
         store,
         PreferenceConstants.CODEASSIST_PROPOSALS_BACKGROUND,

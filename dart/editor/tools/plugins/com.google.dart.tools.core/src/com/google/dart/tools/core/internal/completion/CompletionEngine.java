@@ -59,6 +59,8 @@ import com.google.dart.compiler.parser.ParserContext;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
+import com.google.dart.compiler.resolver.CyclicDeclarationException;
+import com.google.dart.compiler.resolver.DuplicatedInterfaceException;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.FieldElement;
@@ -917,7 +919,7 @@ public class CompletionEngine {
           return null;
         }
         for (SearchMatch match : matches) {
-          createTypeCompletionsForConstructor(null, node, match, "");
+          createTypeCompletionsForConstructor(null, node, match, ""); //$NON-NLS-1$
         }
         createCompletionsForIdentifierPrefix(null, null);
       }
@@ -1159,10 +1161,6 @@ public class CompletionEngine {
     }
   }
 
-  private static final boolean DEBUG = "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.ui/debug/CompletionEngine"));
-
-  private static final String C_VOID = "void";
-
   public static char[][] createDefaultParameterNames(int length) {
     char[][] names = new char[length][];
     for (int i = 0; i < length; i++) {
@@ -1227,11 +1225,21 @@ public class CompletionEngine {
 
   static private char[][] getParameterNames(FunctionAliasElement alias) {
     FunctionType type = alias.getFunctionType();
+    return getParameterNames(type);
+  }
+
+  static private char[][] getParameterNames(FunctionType type) {
     List<Type> paramTypes = type.getParameterTypes();
     Set<String> dups = new HashSet<String>();
     char[][] names = new char[paramTypes.size()][];
     for (int i = 0; i < names.length; i++) {
-      String name = paramTypes.get(i).getElement().getName();
+      Type ptype = paramTypes.get(i);
+      String name;
+      if (TypeKind.of(ptype) == TypeKind.DYNAMIC) {
+        name = "obj";
+      } else {
+        name = type.getElement().getName();
+      }
       if (Character.isLowerCase(name.charAt(0))) {
         name = "x" + name;
       }
@@ -1276,10 +1284,19 @@ public class CompletionEngine {
 
   static private char[][] getParameterTypeNames(FunctionAliasElement alias) {
     FunctionType type = alias.getFunctionType();
+    return getParameterTypeNames(type);
+  }
+
+  static private char[][] getParameterTypeNames(FunctionType type) {
     List<Type> paramTypes = type.getParameterTypes();
     char[][] names = new char[paramTypes.size()][];
     for (int i = 0; i < names.length; i++) {
-      names[i] = paramTypes.get(i).getElement().getName().toCharArray();
+      Type ptype = paramTypes.get(i);
+      if (TypeKind.of(ptype) == TypeKind.DYNAMIC) {
+        names[i] = DYNAMIC_CA;
+      } else {
+        names[i] = ptype.getElement().getName().toCharArray();
+      }
     }
     return names;
   }
@@ -1303,14 +1320,18 @@ public class CompletionEngine {
     int posParamCount = countPositionalParameters(params);
     char[][] names = new char[posParamCount][];
     for (int i = 0; i < posParamCount; i++) {
-      names[i] = params.get(i).getType().getElement().getName().toCharArray();
+      Type ptype = params.get(i).getType();
+      if (TypeKind.of(ptype) == TypeKind.DYNAMIC) {
+        names[i] = DYNAMIC_CA;
+      } else {
+        names[i] = ptype.getElement().getName().toCharArray();
+      }
     }
     return names;
   }
 
   // keys are either String or char[]; values are Object unless Type works
   public HashMap<Object, Object> typeCache;
-
   private CompletionEnvironment environment;
   private CompletionRequestor requestor;
   private DartProject project;
@@ -1327,8 +1348,15 @@ public class CompletionEngine {
   private CompilationUnit currentCompilationUnit;
   private CompletionMetrics metrics;
   private Set<String> prefixes;
+
   private static final String C_EXTENDS = "extends";
   private static final String C_IMPLEMENTS = "implements";
+  private static final char[] DYNAMIC_CA = "Dynamic".toCharArray();
+  private static final boolean DEBUG = "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.ui/debug/CompletionEngine"));
+  private static final String C_VOID = "void";
+  private static final String CORELIB_NAME = "dart:core";
+  private static final String MAP_TYPE_NAME = "Map";
+  private static final String LIST_TYPE_NAME = "List";
 
   /**
    * @param options
@@ -1534,31 +1562,26 @@ public class CompletionEngine {
     }
   }
 
-  private void createCompletionForIndexer(boolean isSetter, FieldElement field,
-      boolean includeDeclaration, DartIdentifier node, String prefix) {
-    int adjust = 0;
-    if (!isSetter) {
-      adjust = -1;
+  private void createCompletionForIndexer(FieldElement field, boolean includeDeclaration,
+      DartIdentifier node, String prefix) {
+    if (!isIndexableType(field.getType())) {
+      return;
     }
     InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
         CompletionProposal.FIELD_REF,
-        actualCompletionPosition - offset + adjust);
+        actualCompletionPosition - offset);
     if (includeDeclaration) {
       proposal.setDeclarationSignature(field.getEnclosingElement().getName().toCharArray());
     } else {
-      proposal.setDeclarationSignature("".toCharArray());
+      proposal.setDeclarationSignature("".toCharArray()); //$NON-NLS-1$
     }
-    String mod = "[]";
-    if (isSetter) {
-      mod += " = ";
-    }
-    String subst = field.getName() + mod;
+    String subst = field.getName() + "[]"; //$NON-NLS-1$
     proposal.setSignature(field.getType().getElement().getName().toCharArray());
     proposal.setCompletion(subst.toCharArray());
     proposal.setName(subst.toCharArray());
     proposal.setIsContructor(false);
-    proposal.setIsGetter(!isSetter);
-    proposal.setIsSetter(isSetter);
+    proposal.setIsGetter(field.getGetter() != null);
+    proposal.setIsSetter(field.getSetter() != null);
     proposal.setTypeName(field.getType().getElement().getName().toCharArray());
     if (includeDeclaration) {
       proposal.setDeclarationTypeName(field.getEnclosingElement().getName().toCharArray());
@@ -1578,8 +1601,6 @@ public class CompletionEngine {
     char[][] parameterNames = getParameterNames(function);
     char[][] parameterTypeNames = getParameterTypeNames(function);
     char[] returnTypeName = null;
-    parameterNames = getParameterNames(function);
-    parameterTypeNames = getParameterTypeNames(function);
     returnTypeName = function.getFunctionType().getReturnType().getElement().getName().toCharArray();
     proposal.setDeclarationSignature(function.getLibrary().getLibraryUnit().getName().toCharArray());
     proposal.setSignature(typeName.toCharArray());
@@ -1640,9 +1661,32 @@ public class CompletionEngine {
     }
   }
 
+  private void createCompletionsForFunctionRef(FunctionType func) {
+    InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
+        CompletionProposal.POTENTIAL_METHOD_DECLARATION,
+        actualCompletionPosition - offset);
+    String typeName = func.getElement().getName();
+    String name = typeName;
+    char[][] parameterNames = getParameterNames(func);
+    char[][] parameterTypeNames = getParameterTypeNames(func);
+    char[] returnTypeName = null;
+    returnTypeName = func.getReturnType().getElement().getName().toCharArray();
+    proposal.setDeclarationSignature(func.getElement().getLibrary().getLibraryUnit().getName().toCharArray());
+    proposal.setSignature(typeName.toCharArray());
+    proposal.setCompletion(name.toCharArray());
+    proposal.setName(name.toCharArray());
+    proposal.setIsInterface(false);
+    proposal.setParameterNames(parameterNames);
+    proposal.setParameterTypeNames(parameterTypeNames);
+    proposal.setTypeName(returnTypeName);
+    setSourceLoc(proposal, null, null);
+    proposal.setRelevance(1);
+    requestor.accept(proposal);
+  }
+
   private void createCompletionsForIdentifierPrefix(DartNode ref, String prefix) {
     if (prefix == null) {
-      prefix = "";
+      prefix = ""; //$NON-NLS-1$
     }
     for (String candidate : prefixes) {
       if (!candidate.startsWith(prefix)) {
@@ -1835,7 +1879,7 @@ public class CompletionEngine {
       if (includeDeclaration) {
         proposal.setDeclarationSignature(method.getEnclosingElement().getName().toCharArray());
       } else {
-        proposal.setDeclarationSignature("".toCharArray());
+        proposal.setDeclarationSignature("".toCharArray()); //$NON-NLS-1$
       }
       proposal.setSignature(name.toCharArray());
       proposal.setCompletion(name.toCharArray());
@@ -1905,7 +1949,7 @@ public class CompletionEngine {
       if (includeDeclaration) {
         proposal.setDeclarationSignature(field.getEnclosingElement().getName().toCharArray());
       } else {
-        proposal.setDeclarationSignature("".toCharArray());
+        proposal.setDeclarationSignature("".toCharArray()); //$NON-NLS-1$
       }
       proposal.setSignature(field.getType().getElement().getName().toCharArray());
       proposal.setCompletion(name.toCharArray());
@@ -1920,12 +1964,7 @@ public class CompletionEngine {
       setSourceLoc(proposal, node, prefix);
       proposal.setRelevance(1);
       requestor.accept(proposal);
-      if (field.getGetter() != null) {
-        createCompletionForIndexer(false, field, includeDeclaration, node, prefix);
-      }
-      if (field.getSetter() != null) {
-        createCompletionForIndexer(true, field, includeDeclaration, node, prefix);
-      }
+      createCompletionForIndexer(field, includeDeclaration, node, prefix);
     }
   }
 
@@ -2259,7 +2298,7 @@ public class CompletionEngine {
     }
     String prefix = extractFilterPrefix(id);
     if (prefix == null) {
-      prefix = "";
+      prefix = ""; //$NON-NLS-1$
     }
     SearchPattern pattern = SearchPatternFactory.createPrefixPattern(prefix, true);
     List<SearchMatch> matches;
@@ -2336,6 +2375,49 @@ public class CompletionEngine {
     return nodeStart <= completionPos && completionPos <= nodeEnd;
   }
 
+  private boolean isCoreMapOrList(Type type) {
+    Element typeElement = type.getElement();
+    if (!(typeElement instanceof ClassElement)) {
+      return false;
+    }
+    ClassElement classElement = (ClassElement) typeElement;
+    String name = classElement.getName();
+    if (MAP_TYPE_NAME.equals(name) || LIST_TYPE_NAME.equals(name)) {
+      LibraryElement libElement = classElement.getLibrary();
+      LibraryUnit libUnit = libElement.getLibraryUnit();
+      if (libUnit != null) {
+        String libName = libUnit.getName();
+        if (CORELIB_NAME.equals(libName)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private boolean isIndexableType(Type type) {
+    if (isCoreMapOrList(type)) {
+      return true;
+    }
+    Element typeElement = type.getElement();
+    if (!(typeElement instanceof ClassElement)) {
+      return false;
+    }
+    ClassElement classElement = (ClassElement) typeElement;
+    try {
+      for (InterfaceType superType : classElement.getAllSupertypes()) {
+        if (isCoreMapOrList(superType)) {
+          return true;
+        }
+      }
+    } catch (CyclicDeclarationException e) {
+      return false;
+    } catch (DuplicatedInterfaceException e) {
+      return false;
+    }
+    return false;
+  }
+
   private String makeSig(String name, char[][] paramTypeNames) {
     StringBuffer buf = new StringBuffer();
     buf.append(name);
@@ -2401,6 +2483,9 @@ public class CompletionEngine {
               // propose a local function
               FunctionAliasType tdef = (FunctionAliasType) paramType;
               createCompletionsForAliasRef(tdef);
+            } else if (TypeKind.of(paramType) == TypeKind.FUNCTION) {
+              FunctionType fdef = (FunctionType) paramType;
+              createCompletionsForFunctionRef(fdef);
             }
             break;
           case FUNCTION_ALIAS:
@@ -2434,7 +2519,7 @@ public class CompletionEngine {
       return;
     }
     for (SearchMatch match : matches) {
-      createTypeCompletionsForParameterDecl(null, match, "");
+      createTypeCompletionsForParameterDecl(null, match, ""); //$NON-NLS-1$
     }
   }
 

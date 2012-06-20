@@ -408,6 +408,18 @@ public class CompletionEngineTest extends TestCase {
     test("f(){((int x) => x+4).!1call(1);}", "1-call");
   }
 
+  public void testCommentSnippets060() throws Exception {
+    String source = Joiner.on("\n").join(
+        "interface MM extends Map{}",
+        "class Z {",
+        "  MM x;",
+        "  f() {",
+        "    x!1",
+        "  }",
+        "}");
+    test(source, "1+x", "1+x[]");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test
