@@ -112,6 +112,7 @@ public class DartSearchResultPage extends AbstractTextSearchViewPage implements 
     }
   }
 
+  @SuppressWarnings("unused")
   private class GroupAction extends Action {
     private int fGrouping;
     private DartSearchResultPage fPage;
@@ -238,6 +239,7 @@ public class DartSearchResultPage extends AbstractTextSearchViewPage implements 
 
   }
 
+  @SuppressWarnings("unused")
   private class SortAction extends Action {
     private DartSearchResultPage fPage;
     private int fSortOrder;

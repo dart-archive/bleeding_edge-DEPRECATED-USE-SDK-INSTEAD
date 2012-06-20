@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -45,10 +45,22 @@ public class RefactoringUtils {
     return dartElement.getAncestor(CompilationUnit.class);
   }
 
+  public static DartElement[] getDartElements(List<?> elements) {
+    List<DartElement> resources = new ArrayList<DartElement>(elements.size());
+    for (Iterator<?> iter = elements.iterator(); iter.hasNext();) {
+      Object element = iter.next();
+      if (element instanceof DartElement) {
+        resources.add((DartElement) element);
+      }
+    }
+    return resources.toArray(new DartElement[resources.size()]);
+  }
+
   /**
    * Returns a subset of the passed {@link DartElement}[] that contains the elements which are a
    * subset of the type specified by the passed <code>Class<E></code>.
    */
+  @SuppressWarnings("unchecked")
   public static <E extends DartElement> List<E> getElementsOfType(DartElement[] dartElements,
       Class<E> classType) {
     List<E> result = new ArrayList<E>(dartElements.length);
@@ -88,17 +100,6 @@ public class RefactoringUtils {
       }
     }
     return resources.toArray(new IResource[resources.size()]);
-  }
-
-  public static DartElement[] getDartElements(List<?> elements) {
-    List<DartElement> resources = new ArrayList<DartElement>(elements.size());
-    for (Iterator<?> iter = elements.iterator(); iter.hasNext();) {
-      Object element = iter.next();
-      if (element instanceof DartElement) {
-        resources.add((DartElement) element);
-      }
-    }
-    return resources.toArray(new DartElement[resources.size()]);
   }
 
   /**

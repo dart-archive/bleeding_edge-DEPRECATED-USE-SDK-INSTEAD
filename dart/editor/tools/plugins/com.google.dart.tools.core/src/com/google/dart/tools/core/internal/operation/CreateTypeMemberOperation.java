@@ -227,6 +227,7 @@ public abstract class CreateTypeMemberOperation extends CreateElementInCUOperati
     return DartModelStatusImpl.VERIFIED_OK;
   }
 
+  @SuppressWarnings("unused")
   private String removeIndentAndNewLines(String code, CompilationUnit cu) throws DartModelException {
     DartProject project = cu.getDartProject();
     Map<String, String> options = project.getOptions(true);
