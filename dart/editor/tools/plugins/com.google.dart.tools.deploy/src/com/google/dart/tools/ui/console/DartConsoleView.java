@@ -170,6 +170,8 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   private TerminateAction terminateAction;
   private ClearAction clearAction;
 
+  private Display display;
+
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
 
   public DartConsoleView() {
@@ -188,6 +190,8 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     toolbar.add(terminateAction);
     toolbar.add(new Separator("outputGroup"));
     getViewSite().getActionBars().updateActionBars();
+
+    display = Display.getCurrent();
 
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
   }
@@ -236,6 +240,8 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   @Override
   public void dispose() {
     JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
+
+    display = null;
 
     DartConsoleManager.getManager().consoleViewClosed(this);
 
@@ -295,13 +301,15 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
   @Override
   public void propertyChange(PropertyChangeEvent event) {
-    Display.getDefault().asyncExec(new Runnable() {
-      @Override
-      public void run() {
-        updateContentDescription();
-        updateIcon();
-      }
-    });
+    if (display != null) {
+      display.asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          updateContentDescription();
+          updateIcon();
+        }
+      });
+    }
   }
 
   @Override
