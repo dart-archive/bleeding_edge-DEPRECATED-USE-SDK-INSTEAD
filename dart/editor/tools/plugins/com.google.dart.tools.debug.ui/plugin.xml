@@ -519,4 +519,11 @@
       </deleteParticipant>
    </extension>
    
+   <extension
+         point="com.google.dart.tools.debug.core.debugUIHelper">
+      <helper
+            class="com.google.dart.tools.debug.ui.internal.DefaultDebugUIHelper">
+      </helper>
+   </extension>
+   
 </plugin>

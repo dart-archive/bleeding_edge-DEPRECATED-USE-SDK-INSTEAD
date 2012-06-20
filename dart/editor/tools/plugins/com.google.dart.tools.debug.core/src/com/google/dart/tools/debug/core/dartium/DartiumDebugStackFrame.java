@@ -42,6 +42,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     ISourceLookup {
   private IThread thread;
   private WebkitCallFrame webkitFrame;
+  private boolean isExceptionStackFrame;
   private VariableCollector variableCollector = VariableCollector.empty();
 
   public DartiumDebugStackFrame(IDebugTarget target, IThread thread, WebkitCallFrame webkitFrame) {
@@ -65,17 +66,17 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
 
   @Override
   public boolean canStepInto() {
-    return getThread().canStepInto();
+    return !isException() && getThread().canStepInto();
   }
 
   @Override
   public boolean canStepOver() {
-    return getThread().canStepOver();
+    return !isException() && getThread().canStepOver();
   }
 
   @Override
   public boolean canStepReturn() {
-    return getThread().canStepReturn();
+    return !isException() && getThread().canStepReturn();
   }
 
   @Override
@@ -223,12 +224,18 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     getThread().terminate();
   }
 
+  protected boolean isException() {
+    return isExceptionStackFrame;
+  }
+
   /**
    * Fill in the IVariables from the Webkit variables.
    * 
    * @param exception can be null
    */
   private void fillInDartiumVariables(WebkitRemoteObject exception) {
+    isExceptionStackFrame = (exception != null);
+
     List<WebkitRemoteObject> remoteObjects = new ArrayList<WebkitRemoteObject>();
 
     WebkitRemoteObject thisObject = null;

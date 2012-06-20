@@ -35,6 +35,7 @@ import java.util.List;
 public class ServerDebugStackFrame extends ServerDebugElement implements IStackFrame, ISourceLookup {
   private IThread thread;
   private VmCallFrame vmFrame;
+  private boolean isExceptionStackFrame;
   private List<ServerDebugVariable> locals;
 
   public ServerDebugStackFrame(IDebugTarget target, IThread thread, VmCallFrame vmFrame) {
@@ -52,17 +53,17 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 
   @Override
   public boolean canStepInto() {
-    return getThread().canStepInto();
+    return !isException() && getThread().canStepInto();
   }
 
   @Override
   public boolean canStepOver() {
-    return getThread().canStepOver();
+    return !isException() && getThread().canStepOver();
   }
 
   @Override
   public boolean canStepReturn() {
-    return getThread().canStepReturn();
+    return !isException() && getThread().canStepReturn();
   }
 
   @Override
@@ -177,6 +178,8 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
   }
 
   protected void addException(VmValue exception) {
+    isExceptionStackFrame = true;
+
     List<ServerDebugVariable> newLocals = new ArrayList<ServerDebugVariable>();
 
     VmVariable exceptionVariable = VmVariable.createFromException(exception);
@@ -186,6 +189,10 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     newLocals.addAll(locals);
 
     locals = newLocals;
+  }
+
+  protected boolean isException() {
+    return isExceptionStackFrame;
   }
 
   private List<ServerDebugVariable> createFrom(VmCallFrame frame) {

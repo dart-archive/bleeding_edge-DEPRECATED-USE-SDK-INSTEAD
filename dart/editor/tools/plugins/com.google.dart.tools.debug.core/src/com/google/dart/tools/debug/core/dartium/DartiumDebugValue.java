@@ -87,7 +87,15 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
     }
 
     if (isList()) {
-      return "List[" + getListLength() + "]";
+      if (value.getClassName() != null) {
+        return value.getClassName() + "[" + getListLength() + "]";
+      } else {
+        return "List[" + getListLength() + "]";
+      }
+    }
+
+    if (value.getClassName() != null) {
+      return value.getClassName();
     }
 
     return getValueString();

@@ -213,6 +213,11 @@ public class WebkitConnection {
     try {
       JSONObject object = new JSONObject(message.getText());
 
+      if (DartDebugCorePlugin.LOGGING) {
+        // Print the event / response from the VM.
+        System.out.println("<== " + object);
+      }
+
       if (object.has("id")) {
         processResponse(object);
       } else {
@@ -246,7 +251,10 @@ public class WebkitConnection {
         }
       }
 
-      //System.out.println("request: " + request.getString("method") + ", " + id);
+      if (DartDebugCorePlugin.LOGGING) {
+        // Print the command to the VM.
+        System.out.println("==> " + request);
+      }
 
       websocket.send(request.toString());
     } catch (WebSocketException exception) {
@@ -272,12 +280,6 @@ public class WebkitConnection {
 
     if (object.has("method")) {
       String method = object.getString("method");
-
-      if (!"Debugger.scriptParsed".equals(method)) {
-        DartDebugCorePlugin.logInfo("webkit: " + method);
-      }
-
-      //System.out.println("notification: " + method);
 
       for (String prefix : notificationHandlers.keySet()) {
         if (method.startsWith(prefix)) {
@@ -306,8 +308,6 @@ public class WebkitConnection {
   private void processResponse(JSONObject result) throws JSONException {
     try {
       int id = result.getInt("id");
-
-      //System.out.println("response: " + id);
 
       Callback callback;
 
