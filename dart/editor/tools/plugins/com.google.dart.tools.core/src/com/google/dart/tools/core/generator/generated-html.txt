@@ -11,13 +11,11 @@
     
     <br/>
     
-    <button id="button" type="button">Hello</button>
-    
     <div id="content">
       <div id="text"></div>
     </div>
     
     <script type="application/dart" src="%dartSrcPath%"></script>
-    <script src="http://dart.googlecode.com/svn/trunk/dart/client/dart.js"></script>
+    <script src="dart.js"></script>
   </body>
 </html>

@@ -211,6 +211,10 @@ public class ApplicationGenerator extends AbstractGenerator {
     File iCssFile = getSystemFile(cssFileName);
     execute("generated-css.txt", iCssFile, null, monitor); //$NON-NLS-1$
 
+    // dart.js
+    File dartJsFile = getSystemFile("dart.js");
+    execute("dart.js", dartJsFile, null, monitor); //$NON-NLS-1$
+
     subMonitor.newChild(100);
     subMonitor.done();
     return applicationFile;

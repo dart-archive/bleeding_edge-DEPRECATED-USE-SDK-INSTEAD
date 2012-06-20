@@ -1,20 +1,11 @@
 #import('dart:html');
 
 void main() {
-  query("#button").on.click.add((event) {
-    showMessage("Hello from Dart!");
-
-    window.setTimeout(clearMessage, 1500);
-  });
-}
-
-void clearMessage() {
-  query('#text').style.opacity = "0";
+  showMessage('Welcome to Dart!');
 }
 
 void showMessage(String message) {
   var textElement = query('#text');
 
   textElement.text = message;
-  textElement.style.opacity = "1";
 }
