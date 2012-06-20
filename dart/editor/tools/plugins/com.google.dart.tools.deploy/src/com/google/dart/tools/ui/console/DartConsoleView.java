@@ -337,6 +337,14 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     if (progressService != null) {
       progressService.warnOfContentChange();
     }
+
+    bringToFront();
+  }
+
+  private void bringToFront() {
+    if (!getViewSite().getPage().isPartVisible(this)) {
+      getViewSite().getPage().activate(this);
+    }
   }
 
   private PageSite getPageSite() {
@@ -355,13 +363,6 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     }
   }
 
-  private void showContentChange() {
-    IWorkbenchSiteProgressService progressService = (IWorkbenchSiteProgressService) getViewSite().getAdapter(
-        IWorkbenchSiteProgressService.class);
-
-    progressService.warnOfContentChange();
-  }
-
   private void updateContentDescription() {
     if (console == null) {
       setContentDescription("");
@@ -378,7 +379,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
             // ignore
           }
 
-          showContentChange();
+          bringToFront();
         }
       }
 
