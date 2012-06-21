@@ -61,6 +61,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   private WebkitConnection connection;
   private ILaunch launch;
   private DartiumProcess process;
+  private IResourceResolver resourceResolver;
   private DartiumDebugThread debugThread;
   private DartiumStreamMonitor outputStreamMonitor;
   private BreakpointManager breakpointManager;
@@ -80,6 +81,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     this.debugTargetName = debugTargetName;
     this.connection = connection;
     this.launch = launch;
+    this.resourceResolver = resourceResolver;
 
     debugThread = new DartiumDebugThread(this);
     process = new DartiumProcess(this, javaProcess);
@@ -141,7 +143,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     setActiveTarget(null);
 
     if (breakpointManager != null) {
-      breakpointManager.dispose();
+      breakpointManager.dispose(false);
     }
 
     if (cssScriptManager != null) {
@@ -222,7 +224,29 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     return process.isTerminated();
   }
 
-  public void navigateToUrl(String url) throws IOException {
+  /**
+   * Recycle the current Dartium debug connection; attempt to reset it to a fresh state beforehand.
+   * 
+   * @param url
+   * @throws IOException
+   */
+  public void navigateToUrl(String url, boolean enableBreakpoints) throws IOException {
+    if (breakpointManager != null) {
+      breakpointManager.dispose(true);
+      breakpointManager = null;
+    }
+
+    if (enableBreakpoints) {
+      connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.uncaught);
+    } else {
+      connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.none);
+    }
+
+    if (enableBreakpoints) {
+      breakpointManager = new BreakpointManager(this, resourceResolver);
+      breakpointManager.connect();
+    }
+
     getConnection().getPage().navigate(url);
   }
 

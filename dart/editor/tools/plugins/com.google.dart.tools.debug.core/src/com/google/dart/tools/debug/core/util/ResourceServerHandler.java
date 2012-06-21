@@ -42,6 +42,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.SequenceInputStream;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URI;
@@ -261,7 +262,10 @@ class ResourceServerHandler implements Runnable {
     } catch (IOException ioe) {
       safeClose(socket);
 
-      DartDebugCorePlugin.logError(ioe);
+      // ignore java.net.SocketException: Connection reset
+      if (!(ioe instanceof ConnectException)) {
+        DartDebugCorePlugin.logError(ioe);
+      }
     } catch (Throwable t) {
       DartDebugCorePlugin.logError(t);
     }

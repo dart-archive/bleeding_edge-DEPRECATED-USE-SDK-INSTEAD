@@ -52,9 +52,9 @@ class BreakpointManager implements IBreakpointListener {
       try {
         addBreakpoint((DartBreakpoint) breakpoint);
       } catch (IOException exception) {
-        // TODO(devoncarew): display to the user
-
-        DartDebugCorePlugin.logError(exception);
+        if (!debugTarget.isTerminated()) {
+          DartDebugCorePlugin.logError(exception);
+        }
       }
     }
   }
@@ -75,9 +75,9 @@ class BreakpointManager implements IBreakpointListener {
           debugTarget.getWebkitConnection().getDebugger().removeBreakpoint(
               webkitBreakpoint.getBreakpointId());
         } catch (IOException exception) {
-          // TODO(devoncarew): display to the user
-
-          DartDebugCorePlugin.logError(exception);
+          if (!debugTarget.isTerminated()) {
+            DartDebugCorePlugin.logError(exception);
+          }
         }
 
         webkitBreakpoints.remove(webkitBreakpoint);
@@ -98,9 +98,22 @@ class BreakpointManager implements IBreakpointListener {
     DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
   }
 
-  public void dispose() {
+  public void dispose(boolean deleteAll) {
     // Null check for when the editor is shutting down.
     if (DebugPlugin.getDefault() != null) {
+      if (deleteAll) {
+        try {
+          for (WebkitBreakpoint breakpoint : webkitBreakpoints) {
+            debugTarget.getWebkitConnection().getDebugger().removeBreakpoint(
+                breakpoint.getBreakpointId());
+          }
+        } catch (IOException exception) {
+          if (!debugTarget.isTerminated()) {
+            DartDebugCorePlugin.logError(exception);
+          }
+        }
+      }
+
       DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
     }
   }

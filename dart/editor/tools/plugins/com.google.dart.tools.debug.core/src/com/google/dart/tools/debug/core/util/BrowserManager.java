@@ -129,9 +129,7 @@ public class BrowserManager {
       DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
 
       try {
-        // TODO(devoncarew): clear all existing breakpoints?
-
-        DartiumDebugTarget.getActiveTarget().navigateToUrl(url);
+        DartiumDebugTarget.getActiveTarget().navigateToUrl(url, enableBreakpoints);
       } catch (IOException e) {
         DartDebugCorePlugin.logError(e);
       }
