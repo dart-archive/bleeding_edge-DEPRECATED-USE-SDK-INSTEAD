@@ -10,7 +10,7 @@ void main() {
   String str = 'null';
   // Very ugly way to build up the string, but let's mimic JS version as much as possible.
   for (int i = 0; i < 1024; i++) {
-    str += new String.fromCharCodes([((25 * Math.random()) + 97).toInt()]);
+    str = "$str${new String.fromCharCodes([((25 * Math.random()) + 97).toInt()])}";
   }
 
   List<Node> elems = <Node>[];
