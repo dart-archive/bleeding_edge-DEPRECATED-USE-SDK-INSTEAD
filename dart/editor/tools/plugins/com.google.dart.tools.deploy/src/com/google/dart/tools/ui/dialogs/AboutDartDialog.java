@@ -103,7 +103,7 @@ public class AboutDartDialog extends Shell {
     productNameLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
     productNameLabel.setText(DialogsMessages.AboutDartDialog_product_label);
 
-    StyledText buildDetailsText = new StyledText(this, SWT.NONE);
+    StyledText buildDetailsText = new StyledText(this, SWT.WRAP);
     buildDetailsText.setLineSpacing(7);
     buildDetailsText.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
     buildDetailsText.setEditable(false);
@@ -118,22 +118,12 @@ public class AboutDartDialog extends Shell {
 
     if (DartSdk.isInstalled()) {
       builder.append("Dart SDK version " + DartSdk.getInstance().getSdkVersion());
-
-      builder.append(", ");
-
-      if (DartSdk.getInstance().isDartiumInstalled()) {
-        builder.append("Dartium version " + DartSdk.getInstance().getDartiumVersion());
-      } else {
-        builder.append("Dartium is not installed");
-      }
-
     } else {
       builder.append("Dart SDK is not installed");
     }
 
     buildDetailsText.setText(builder.toString());
-
-    buildDetailsText.getCaret().setSize(0, 0); //nuke the caret
+    buildDetailsText.setLineAlignment(1, 1, SWT.CENTER);
 
     // spacer
     newLabel(SWT.NONE);
@@ -146,8 +136,10 @@ public class AboutDartDialog extends Shell {
     center(copyrightLabel2);
     copyrightLabel2.setText(DialogsMessages.AboutDartDialog_copyright_line2);
 
-    //spacer
-    newLabel(SWT.NONE);
+    //spacer and caret repressor
+    final StyledText spacer = new StyledText(this, SWT.NONE);
+    spacer.setFocus();
+    spacer.getCaret().setSize(0, 0); //nuke the caret
 
     if (DartCoreDebug.ENABLE_UPDATE) {
 
@@ -156,9 +148,11 @@ public class AboutDartDialog extends Shell {
 
       //spacer
       newLabel(SWT.NONE);
+
     }
 
     setLocation(getInitialLocation(getSize()));
+
   }
 
   protected Point getInitialLocation(Point initialSize) {
