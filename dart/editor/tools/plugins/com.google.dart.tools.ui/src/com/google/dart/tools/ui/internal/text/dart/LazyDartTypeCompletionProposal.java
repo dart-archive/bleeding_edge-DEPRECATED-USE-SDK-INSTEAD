@@ -371,7 +371,7 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
           fImportContext = null;
           return rewrite;
         } else {
-          ImportRewrite rewrite = StubUtility.createImportRewrite(cu, true);
+          ImportRewrite rewrite = StubUtility.createImportRewrite(fCompilationUnit, cu, true);
           fImportContext = new ContextSensitiveImportRewriteContext(
               cu,
               fInvocationContext.getInvocationOffset(),

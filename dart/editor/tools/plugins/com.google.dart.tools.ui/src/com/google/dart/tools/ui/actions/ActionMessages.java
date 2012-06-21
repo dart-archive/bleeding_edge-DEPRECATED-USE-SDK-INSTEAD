@@ -283,6 +283,10 @@ public final class ActionMessages extends NLS {
   public static String OrganizeImportsAction_single_error_parse;
   public static String OrganizeImportsAction_summary_added;
   public static String OrganizeImportsAction_summary_removed;
+  public static String OrganizeImportsAction_summary_added_singular;
+  public static String OrganizeImportsAction_summary_added_plural;
+  public static String OrganizeImportsAction_summary_removed_singular;
+  public static String OrganizeImportsAction_summary_removed_plural;
   public static String OrganizeImportsAction_EmptySelection_description;
   public static String OrganizeImportsAction_EmptySelection_title;
   public static String FormatAllAction_label;

@@ -23,7 +23,7 @@ import org.eclipse.osgi.util.NLS;
  */
 public final class CorextMessages extends NLS {
 
-  private static final String BUNDLE_NAME = "org.eclipse.wst.jsdt.internal.corext.CorextMessages";//$NON-NLS-1$
+  private static final String BUNDLE_NAME = "com.google.dart.tools.ui.internal.util.CorextMessages";//$NON-NLS-1$
 
   public static String Resources_outOfSyncResources;
 

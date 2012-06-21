@@ -61,6 +61,7 @@ final class DartTextMessages extends NLS {
   public static String ContentAssistHistory_serialize_error;
   public static String ContentAssistHistory_deserialize_error;
   public static String ProposalSorterHandle_blame;
+  public static String ImportRewrite_processDescription;
 
   static {
     NLS.initializeMessages(BUNDLE_NAME, DartTextMessages.class);

@@ -159,9 +159,9 @@ public interface DartEditorActionDefinitionIds extends ITextEditorActionDefiniti
 
   /**
    * Action definition ID of the source -> organize imports action (value
-   * <code>"com.google.dart.tools.ui.edit.text.dart.organize.imports"</code>).
+   * <code>"com.google.dart.tools.ui.edit.text.organize.imports"</code>).
    */
-//  public static final String ORGANIZE_IMPORTS = "com.google.dart.tools.ui.edit.text.dart.organize.imports"; //$NON-NLS-1$
+  public static final String ORGANIZE_IMPORTS = "com.google.dart.tools.ui.edit.text.organize.imports"; //$NON-NLS-1$
 
   /**
    * Action definition ID of the source -> sort order action (value

@@ -32,13 +32,14 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
  * TODO(brianwilkerson): This is a temporary interface, used to resolve compilation errors.
  */
 public class StubUtility {
-  public static ImportRewrite createImportRewrite(CompilationUnit fCompilationUnit, boolean b)
+  public static ImportRewrite createImportRewrite(CompilationUnit compilationUnit, boolean b)
       throws CoreException {
-    return null;
+    return new ImportRewrite(compilationUnit, b);
   }
 
-  public static ImportRewrite createImportRewrite(DartUnit cu, boolean b) throws CoreException {
-    return null;
+  public static ImportRewrite createImportRewrite(
+      CompilationUnit compilationUnit, DartUnit ast, boolean b) throws CoreException {
+    return new ImportRewrite(compilationUnit, ast, b);
   }
 
   public static String getLineDelimiterPreference(IProject project) {

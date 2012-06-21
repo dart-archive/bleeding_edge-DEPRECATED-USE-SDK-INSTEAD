@@ -31,6 +31,7 @@ import com.google.dart.tools.ui.IWorkingCopyManager;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.GenerateActionGroup;
+import com.google.dart.tools.ui.actions.OrganizeImportsAction;
 import com.google.dart.tools.ui.actions.RefactorActionGroup;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.DartStatusConstants;
@@ -52,6 +53,7 @@ import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -1210,6 +1212,9 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       fContextMenuGroup.setContext(null);
     }
     addAction(menu, "ToggleComment");
+    // add Organize Imports action to menu
+//    menu.add(new Separator());
+//    addAction(menu, "OrganizeImports");
   }
 
   /*
@@ -1384,6 +1389,10 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     markAsStateDependentAction("Format", true); //$NON-NLS-1$
     markAsSelectionDependentAction("Format", true); //$NON-NLS-1$
     PlatformUI.getWorkbench().getHelpSystem().setHelp(action, DartHelpContextIds.FORMAT_ACTION);
+
+    action = new OrganizeImportsAction(this);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.ORGANIZE_IMPORTS);
+    setAction("OrganizeImports", action);
 
     //     action = new AddBlockCommentAction(
     //     DartEditorMessages.getBundleForConstructedKeys(),

@@ -13,15 +13,25 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.ast.DartDirective;
+import com.google.dart.compiler.ast.DartImportDirective;
+import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.ui.ContextSensitiveImportRewriteContext;
-import com.google.dart.tools.ui.DartX;
+import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.text.edits.InsertEdit;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.TextEdit;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -30,13 +40,41 @@ import java.util.List;
 public class ImportRewrite {
 
   private CompilationUnit compUnit;
+  private DartUnit dartUnit;
   private boolean restoreExistingImports;
+
   List<String> imports = new ArrayList<String>();
+  private List<String> addedImports;
+
+  private List<String> removedImports;
+  private String[] createdImports;
+//  private String[] importOrder;
+  private boolean useContextToFilterImplicitImports;
+
+  private Object filterImplicitImports;
 
   public ImportRewrite(CompilationUnit compUnit, boolean restoreExistingImports) {
-    DartX.todo();
+    this(compUnit, null, restoreExistingImports);
+  }
+
+  public ImportRewrite(
+      CompilationUnit compUnit, DartUnit dartUnit, boolean restoreExistingImports) {
+
     this.compUnit = compUnit;
+    if (dartUnit == null) {
+      try {
+        // TODO:(keertip) Get resolved ast to find and add imports
+        Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
+        this.dartUnit = DartCompilerUtilities.parseUnit(compUnit, parseErrors);
+      } catch (DartModelException e) {
+
+        DartToolsPlugin.log(e);
+      }
+    } else {
+      this.dartUnit = dartUnit;
+    }
     this.restoreExistingImports = restoreExistingImports;
+    initializeImports();
   }
 
   public String addImport(String importString) {
@@ -54,16 +92,74 @@ public class ImportRewrite {
   }
 
   public boolean hasRecordedChanges() {
-    // TODO(messick) proper implementation
-    return false;
+    return !this.restoreExistingImports || (this.addedImports != null
+        && !this.addedImports.isEmpty()) || (this.removedImports != null
+        && !this.removedImports.isEmpty());
   }
 
+  /**
+   * Converts all modifications recorded by this rewriter into an object representing the
+   * corresponding text edits to the source code of the rewrite's compilation unit. The compilation
+   * unit itself is not modified.
+   */
   public TextEdit rewriteImports(IProgressMonitor monitor) {
-    if (monitor != null) {
-      if (restoreExistingImports) {
-        monitor.worked(0);
+    if (monitor == null) {
+      monitor = new NullProgressMonitor();
+    }
+
+    try {
+      monitor.beginTask(DartTextMessages.ImportRewrite_processDescription, 2);
+      if (!hasRecordedChanges()) {
+        this.createdImports = CharOperation.NO_STRINGS;
+        return new MultiTextEdit();
+      }
+
+      DartUnit usedAstRoot = this.dartUnit;
+      if (usedAstRoot == null && compUnit != null) {
+        Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
+        try {
+          dartUnit = DartCompilerUtilities.parseUnit(compUnit, parseErrors);
+        } catch (DartModelException e) {
+          DartToolsPlugin.log(e);
+        }
+      }
+
+      ImportRewriteAnalyzer computer = new ImportRewriteAnalyzer(
+          usedAstRoot,
+          this.compUnit,
+          this.restoreExistingImports,
+          this.useContextToFilterImplicitImports);
+      computer.setFilterImplicitImports(this.filterImplicitImports);
+
+      if (this.addedImports != null) {
+        for (int i = 0; i < this.addedImports.size(); i++) {
+          String curr = this.addedImports.get(i);
+          computer.addImport(curr.substring(1));
+        }
+      }
+
+      if (this.removedImports != null) {
+        for (int i = 0; i < this.removedImports.size(); i++) {
+          String curr = this.removedImports.get(i);
+          computer.removeImport(curr.substring(1));
+        }
+      }
+
+      TextEdit result = computer.getResultingEdits(new SubProgressMonitor(monitor, 1));
+      this.createdImports = computer.getCreatedImports();
+
+      return result;
+    } finally {
+      monitor.done();
+    }
+  }
+
+  private void initializeImports() {
+    List<DartDirective> directives = dartUnit.getDirectives();
+    for (DartDirective directive : directives) {
+      if (directive instanceof DartImportDirective) {
+        imports.add(directive.toString());
       }
     }
-    return new InsertEdit(0, "");
   }
 }

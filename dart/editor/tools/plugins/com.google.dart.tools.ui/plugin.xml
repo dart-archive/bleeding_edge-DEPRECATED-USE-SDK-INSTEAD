@@ -1573,14 +1573,13 @@
             description="%ActionDefinition.addImport.description"
             categoryId="org.eclipse.wst.jsdt.ui.category.source"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.add.import">
-      </command>
+      </command-->
       <command
             name="%ActionDefinition.organizeImports.name"
             description="%ActionDefinition.organizeImports.description"
             categoryId="org.eclipse.wst.jsdt.ui.category.source"
-            id="org.eclipse.wst.jsdt.ui.edit.text.java.organize.imports">
-      </command>
-      -->
+            id="com.google.dart.tools.ui.edit.text.organize.imports">
+      </command>     
       <command
             name="%ActionDefinition.overrideMethods.name"
             description="%ActionDefinition.overrideMethods.description"
@@ -2856,6 +2855,10 @@
             commandId="org.eclipse.ui.edit.findReplace"
             sequence="M1+F"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+       <key
+            commandId="com.google.dart.tools.ui.edit.text.organize.imports"
+            sequence="M1+M2+O"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />     
       <key
             commandId="org.eclipse.ui.navigate.next"
             sequence="M1+."

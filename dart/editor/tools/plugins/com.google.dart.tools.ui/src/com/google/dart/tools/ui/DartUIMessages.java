@@ -160,6 +160,8 @@ public final class DartUIMessages extends NLS {
   public static String TypeInfoViewer_library_name_format;
   public static String InitializeAfterLoadJob_starter_job_name;
 
+  public static String OrganizeImportsOperation_description;
+
   static {
     NLS.initializeMessages(BUNDLE_NAME, DartUIMessages.class);
   }
