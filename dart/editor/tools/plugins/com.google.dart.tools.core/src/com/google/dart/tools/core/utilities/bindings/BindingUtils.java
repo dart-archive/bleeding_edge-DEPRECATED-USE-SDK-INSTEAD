@@ -521,6 +521,9 @@ public class BindingUtils {
    * @return the Dart model element corresponding to the resolved library
    */
   public static DartLibrary getDartElement(DartLibrary library, LibraryElement libraryBinding) {
+    if (library == null) {
+      return null;
+    }
     LibrarySource librarySource = ((DartLibraryImpl) library).getLibrarySourceFile();
     if (librarySource == null) {
       return null;
