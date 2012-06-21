@@ -300,20 +300,26 @@ public class FileSearchPage extends AbstractTextSearchViewPage implements IAdapt
     addSortActions(mgr);
     fActionGroup.setContext(new ActionContext(getSite().getSelectionProvider().getSelection()));
     fActionGroup.fillContextMenu(mgr);
-//refactoring support		
-//		FileSearchQuery query= (FileSearchQuery) getInput().getQuery();
-//		if (query.getSearchString().length() > 0) {
-//			IStructuredSelection selection= (IStructuredSelection) getViewer().getSelection();
-//			if (!selection.isEmpty()) {
-//				ReplaceAction replaceSelection= new ReplaceAction(getSite().getShell(), (FileSearchResult)getInput(), selection.toArray());
-//				replaceSelection.setText(SearchMessages.ReplaceAction_label_selected);
-//				mgr.appendToGroup(IContextMenuConstants.GROUP_REORGANIZE, replaceSelection);
-//
-//			}
-//			ReplaceAction replaceAll= new ReplaceAction(getSite().getShell(), (FileSearchResult)getInput(), null);
-//			replaceAll.setText(SearchMessages.ReplaceAction_label_all);
-//			mgr.appendToGroup(IContextMenuConstants.GROUP_REORGANIZE, replaceAll);
-//		}
+
+    FileSearchQuery query = (FileSearchQuery) getInput().getQuery();
+    if (query.getSearchString().length() > 0) {
+      IStructuredSelection selection = (IStructuredSelection) getViewer().getSelection();
+      if (!selection.isEmpty()) {
+        ReplaceAction replaceSelection = new ReplaceAction(
+            getSite().getShell(),
+            (FileSearchResult) getInput(),
+            selection.toArray());
+        replaceSelection.setText(SearchMessages.ReplaceAction_label_selected);
+        mgr.appendToGroup(IContextMenuConstants.GROUP_REORGANIZE, replaceSelection);
+
+      }
+      ReplaceAction replaceAll = new ReplaceAction(
+          getSite().getShell(),
+          (FileSearchResult) getInput(),
+          null);
+      replaceAll.setText(SearchMessages.ReplaceAction_label_all);
+      mgr.appendToGroup(IContextMenuConstants.GROUP_REORGANIZE, replaceAll);
+    }
   }
 
   @Override

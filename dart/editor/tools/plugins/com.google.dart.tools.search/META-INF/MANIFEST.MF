@@ -27,7 +27,9 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jface.text,
  org.eclipse.ui.forms,
  org.eclipse.core.filesystem,
- com.google.dart.tools.core
+ com.google.dart.tools.core,
+ org.eclipse.ltk.core.refactoring,
+ org.eclipse.ltk.ui.refactoring
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Import-Package: com.ibm.icu.text
