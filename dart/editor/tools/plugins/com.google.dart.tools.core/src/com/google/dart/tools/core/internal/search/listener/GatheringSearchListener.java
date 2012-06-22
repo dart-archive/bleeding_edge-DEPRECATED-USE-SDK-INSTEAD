@@ -27,22 +27,22 @@ public class GatheringSearchListener implements SearchListener {
   private final List<SearchMatch> matches = new ArrayList<SearchMatch>();
 
   /**
-   * The number of times that this listener has been told that the search is complete.
+   * A flag indicating whether the search is complete.
    */
-  private int completedCount = 0;
-
-  /**
-   * Return the number of times that this listener has been told that the search is complete.
-   * 
-   * @return the number of times that this listener has been told that the search is complete
-   */
-  public int getCompletedCount() {
-    return completedCount;
-  }
+  private boolean isComplete = false;
 
   public List<SearchMatch> getMatches() {
     Collections.sort(matches, SearchMatch.SORT_BY_ELEMENT_NAME);
     return matches;
+  }
+
+  /**
+   * Return <code>true</code> if the search is complete.
+   * 
+   * @return <code>true</code> if the search is complete
+   */
+  public boolean isComplete() {
+    return isComplete;
   }
 
   @Override
@@ -52,6 +52,6 @@ public class GatheringSearchListener implements SearchListener {
 
   @Override
   public void searchComplete() {
-    completedCount++;
+    isComplete = true;
   }
 }

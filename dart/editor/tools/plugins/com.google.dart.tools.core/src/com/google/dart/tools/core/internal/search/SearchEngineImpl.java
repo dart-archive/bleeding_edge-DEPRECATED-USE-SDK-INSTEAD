@@ -28,6 +28,7 @@ import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
+import com.google.dart.tools.core.internal.search.listener.CountingSearchListener;
 import com.google.dart.tools.core.internal.search.listener.FilteredSearchListener;
 import com.google.dart.tools.core.internal.search.listener.GatheringSearchListener;
 import com.google.dart.tools.core.internal.search.listener.NameMatchingSearchListener;
@@ -377,7 +378,7 @@ public class SearchEngineImpl implements SearchEngine {
       final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
       throws SearchException {
     final Element[] elements = createElements(scope);
-    return gatherResults(elements.length, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchConstructorDeclarations(elements, pattern, filter, listener, monitor);
@@ -397,7 +398,7 @@ public class SearchEngineImpl implements SearchEngine {
       final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
       throws SearchException {
     final Element[] elements = createElements(scope);
-    return gatherResults(elements.length, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchFieldDeclarations(elements, pattern, filter, listener, monitor);
@@ -417,7 +418,7 @@ public class SearchEngineImpl implements SearchEngine {
       final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
       throws SearchException {
     final Element[] elements = createElements(scope);
-    return gatherResults(elements.length, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchFunctionDeclarations(elements, pattern, filter, listener, monitor);
@@ -435,7 +436,7 @@ public class SearchEngineImpl implements SearchEngine {
   @Override
   public List<SearchMatch> searchImplementors(final Type type, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
-    return gatherResults(1, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchImplementors(type, scope, filter, listener, monitor);
@@ -460,7 +461,7 @@ public class SearchEngineImpl implements SearchEngine {
       final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
       throws SearchException {
     final Element[] elements = createElements(scope);
-    return gatherResults(elements.length, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchMethodDeclarations(elements, pattern, filter, listener, monitor);
@@ -478,7 +479,7 @@ public class SearchEngineImpl implements SearchEngine {
   @Override
   public List<SearchMatch> searchReferences(final DartFunction function, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
-    return gatherResults(2, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchReferences(function, scope, filter, listener, monitor);
@@ -492,21 +493,22 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
+    SearchListener filteredListener = new CountingSearchListener(2, applyFilter(filter, listener));
     index.getRelationships(
         createElement(function),
         IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        new RelationshipCallbackImpl(MatchKind.FUNCTION_EXECUTION, applyFilter(filter, listener)));
+        new RelationshipCallbackImpl(MatchKind.FUNCTION_EXECUTION, filteredListener));
     index.getRelationships(
         createElement(function),
         IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
-        new RelationshipCallbackImpl(MatchKind.FUNCTION_EXECUTION, applyFilter(filter, listener)));
+        new RelationshipCallbackImpl(MatchKind.FUNCTION_EXECUTION, filteredListener));
   }
 
   @Override
   public List<SearchMatch> searchReferences(final DartFunctionTypeAlias alias,
       final SearchScope scope, final SearchFilter filter, final IProgressMonitor monitor)
       throws SearchException {
-    return gatherResults(1, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchReferences(alias, scope, filter, listener, monitor);
@@ -531,7 +533,7 @@ public class SearchEngineImpl implements SearchEngine {
   @Override
   public List<SearchMatch> searchReferences(final DartImport imprt, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
-    return gatherResults(1, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchReferences(imprt, scope, filter, listener, monitor);
@@ -555,7 +557,7 @@ public class SearchEngineImpl implements SearchEngine {
   public List<SearchMatch> searchReferences(final DartVariableDeclaration variable,
       final SearchScope scope, final SearchFilter filter, final IProgressMonitor monitor)
       throws SearchException {
-    return gatherResults(2, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchReferences(variable, scope, filter, listener, monitor);
@@ -570,20 +572,21 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
+    SearchListener filteredListener = new CountingSearchListener(2, applyFilter(filter, listener));
     index.getRelationships(
         createElement(variable),
         IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
-        new RelationshipCallbackImpl(MatchKind.FIELD_READ, applyFilter(filter, listener)));
+        new RelationshipCallbackImpl(MatchKind.FIELD_READ, filteredListener));
     index.getRelationships(
         createElement(variable),
         IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
-        new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, applyFilter(filter, listener)));
+        new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, filteredListener));
   }
 
   @Override
   public List<SearchMatch> searchReferences(final Field field, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
-    return gatherResults(4, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchReferences(field, scope, filter, listener, monitor);
@@ -598,28 +601,29 @@ public class SearchEngineImpl implements SearchEngine {
       throw new IllegalArgumentException("listener cannot be null");
     }
     Element fieldElement = createElement(field);
+    SearchListener filteredListener = new CountingSearchListener(4, applyFilter(filter, listener));
     index.getRelationships(
         fieldElement,
         IndexConstants.IS_ACCESSED_BY_QUALIFIED,
-        new RelationshipCallbackImpl(MatchKind.FIELD_READ, applyFilter(filter, listener)));
+        new RelationshipCallbackImpl(MatchKind.FIELD_READ, filteredListener));
     index.getRelationships(
         fieldElement,
         IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
-        new RelationshipCallbackImpl(MatchKind.FIELD_READ, applyFilter(filter, listener)));
+        new RelationshipCallbackImpl(MatchKind.FIELD_READ, filteredListener));
     index.getRelationships(
         fieldElement,
         IndexConstants.IS_MODIFIED_BY_QUALIFIED,
-        new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, applyFilter(filter, listener)));
+        new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, filteredListener));
     index.getRelationships(
         fieldElement,
         IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
-        new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, applyFilter(filter, listener)));
+        new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, filteredListener));
   }
 
   @Override
   public List<SearchMatch> searchReferences(final IFile file, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
-    return gatherResults(1, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchReferences(file, scope, filter, listener, monitor);
@@ -642,7 +646,7 @@ public class SearchEngineImpl implements SearchEngine {
   @Override
   public List<SearchMatch> searchReferences(final Method method, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
-    return gatherResults(2, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchReferences(method, scope, filter, listener, monitor);
@@ -656,20 +660,21 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
+    SearchListener filteredListener = new CountingSearchListener(2, applyFilter(filter, listener));
     index.getRelationships(
         createElement(method),
         IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        new RelationshipCallbackImpl(MatchKind.METHOD_INVOCATION, applyFilter(filter, listener)));
+        new RelationshipCallbackImpl(MatchKind.METHOD_INVOCATION, filteredListener));
     index.getRelationships(
         createElement(method),
         IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
-        new RelationshipCallbackImpl(MatchKind.METHOD_INVOCATION, applyFilter(filter, listener)));
+        new RelationshipCallbackImpl(MatchKind.METHOD_INVOCATION, filteredListener));
   }
 
   @Override
   public List<SearchMatch> searchReferences(final Type type, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
-    return gatherResults(1, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchReferences(type, scope, filter, listener, monitor);
@@ -692,7 +697,7 @@ public class SearchEngineImpl implements SearchEngine {
   @Override
   public List<SearchMatch> searchSubtypes(final Type type, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
-    return gatherResults(2, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchSubtypes(type, scope, filter, listener, monitor);
@@ -706,20 +711,21 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
+    SearchListener filteredListener = new CountingSearchListener(2, applyFilter(filter, listener));
     index.getRelationships(
         createElement(type),
         IndexConstants.IS_EXTENDED_BY,
-        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
+        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, filteredListener));
     index.getRelationships(
         createElement(type),
         IndexConstants.IS_IMPLEMENTED_BY,
-        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
+        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, filteredListener));
   }
 
   @Override
   public List<SearchMatch> searchSupertypes(final Type type, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
-    return gatherResults(2, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchSupertypes(type, scope, filter, listener, monitor);
@@ -733,21 +739,22 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
+    SearchListener filteredListener = new CountingSearchListener(2, applyFilter(filter, listener));
     index.getRelationships(
         createElement(type),
         IndexConstants.EXTENDS,
-        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
+        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, filteredListener));
     index.getRelationships(
         createElement(type),
         IndexConstants.IMPLEMENTS,
-        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
+        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, filteredListener));
   }
 
   @Override
   public List<SearchMatch> searchTypeDeclarations(SearchScope scope, final SearchPattern pattern,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
     final Element[] elements = createElements(scope);
-    return gatherResults(elements.length * 3, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchTypeDeclarations(elements, pattern, filter, listener, monitor);
@@ -772,7 +779,7 @@ public class SearchEngineImpl implements SearchEngine {
       final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
       throws SearchException {
     final Element[] elements = createElements(scope);
-    return gatherResults(elements.length, new SearchRunner() {
+    return gatherResults(new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchVariableDeclarations(elements, pattern, filter, listener, monitor);
@@ -924,11 +931,10 @@ public class SearchEngineImpl implements SearchEngine {
    * @return the results that were produced
    * @throws SearchException if the results of at least one of the searched could not be computed
    */
-  private List<SearchMatch> gatherResults(int searchCount, SearchRunner runner)
-      throws SearchException {
+  private List<SearchMatch> gatherResults(SearchRunner runner) throws SearchException {
     GatheringSearchListener listener = new GatheringSearchListener();
     runner.performSearch(listener);
-    while (listener.getCompletedCount() < searchCount) {
+    while (!listener.isComplete()) {
       Thread.yield();
     }
     return listener.getMatches();
@@ -956,10 +962,13 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
+    SearchListener filteredListener = new CountingSearchListener(elements.length, applyFilter(
+        filter,
+        applyPattern(pattern, new ConstructorConverter(listener))));
     for (Element element : elements) {
       index.getRelationships(element, IndexConstants.DEFINES_CLASS, new RelationshipCallbackImpl(
           MatchKind.NOT_A_REFERENCE,
-          applyFilter(filter, applyPattern(pattern, new ConstructorConverter(listener)))));
+          filteredListener));
     }
   }
 
@@ -969,10 +978,13 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
+    SearchListener filteredListener = new CountingSearchListener(elements.length, applyFilter(
+        filter,
+        applyPattern(pattern, listener)));
     for (Element element : elements) {
       index.getRelationships(element, IndexConstants.DEFINES_FIELD, new RelationshipCallbackImpl(
           MatchKind.NOT_A_REFERENCE,
-          applyFilter(filter, applyPattern(pattern, listener))));
+          filteredListener));
     }
   }
 
@@ -982,13 +994,14 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
+    SearchListener filteredListener = new CountingSearchListener(elements.length, applyFilter(
+        filter,
+        applyPattern(pattern, listener)));
     for (Element element : elements) {
       index.getRelationships(
           element,
           IndexConstants.DEFINES_FUNCTION,
-          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(
-              filter,
-              applyPattern(pattern, listener))));
+          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, filteredListener));
     }
   }
 
@@ -998,10 +1011,13 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
+    SearchListener filteredListener = new CountingSearchListener(elements.length, applyFilter(
+        filter,
+        applyPattern(pattern, listener)));
     for (Element element : elements) {
       index.getRelationships(element, IndexConstants.DEFINES_METHOD, new RelationshipCallbackImpl(
           MatchKind.NOT_A_REFERENCE,
-          applyFilter(filter, applyPattern(pattern, listener))));
+          filteredListener));
     }
   }
 
@@ -1011,7 +1027,9 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    SearchListener filteredListener = applyFilter(filter, applyPattern(pattern, listener));
+    SearchListener filteredListener = new CountingSearchListener(elements.length * 3, applyFilter(
+        filter,
+        applyPattern(pattern, listener)));
     for (Element element : elements) {
       index.getRelationships(element, IndexConstants.DEFINES_CLASS, new RelationshipCallbackImpl(
           MatchKind.NOT_A_REFERENCE,
@@ -1033,13 +1051,14 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
+    SearchListener filteredListener = new CountingSearchListener(elements.length, applyFilter(
+        filter,
+        applyPattern(pattern, listener)));
     for (Element element : elements) {
       index.getRelationships(
           element,
           IndexConstants.DEFINES_FUNCTION,
-          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(
-              filter,
-              applyPattern(pattern, listener))));
+          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, filteredListener));
     }
   }
 }
