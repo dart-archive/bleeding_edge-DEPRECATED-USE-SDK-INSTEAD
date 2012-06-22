@@ -334,9 +334,12 @@ public class SearchEngineImpl implements SearchEngine {
           }
         }
       } catch (Exception exception) {
-        // Fall through to report an error and return null
+        DartCore.logInformation("Could not find compilation unit \"" + unitUri + "\" in library \""
+            + libraryUri + "\"", exception);
+        return null;
       }
-      DartCore.logError("No files linked to URI " + unitUri);
+      DartCore.logInformation("Could not find compilation unit \"" + unitUri + "\" in library \""
+          + libraryUri + "\"");
       return null;
     }
   }
