@@ -58,6 +58,12 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
     return method.invoke(obj);
   }
 
+  private static void callReflectMethod(Object obj, String methodName, int param) throws Exception {
+    Method method = obj.getClass().getDeclaredMethod(methodName, int.class);
+    method.setAccessible(true);
+    method.invoke(obj, param);
+  }
+
   private static void callReflectMethod(Object obj, String methodName, long param) throws Exception {
     Method method = obj.getClass().getDeclaredMethod(methodName, long.class);
     method.setAccessible(true);
@@ -124,16 +130,22 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
    * @param shell the main application shell
    */
   private void enableFullScreenMode(Shell shell) {
-    final long FULL_SCREEN_MODE = 1 << 7;
+    final int FULL_SCREEN_MODE = 1 << 7;
 
     try {
       // NSView nsView = shell.view;
       // NSWindow nsWindow = nsView.window();
       // nsWindow.setCollectionBehavior(behavior);
 
-      Object nsView = getReflectField(shell, "view");
-      Object nsWindow = callReflectMethod(nsView, "window");
-      callReflectMethod(nsWindow, "setCollectionBehavior", FULL_SCREEN_MODE);
+      if (DartCore.is32Bit()) {
+        Object nsView = getReflectField(shell, "view");
+        Object nsWindow = callReflectMethod(nsView, "window");
+        callReflectMethod(nsWindow, "setCollectionBehavior", FULL_SCREEN_MODE);
+      } else {
+        Object nsView = getReflectField(shell, "view");
+        Object nsWindow = callReflectMethod(nsView, "window");
+        callReflectMethod(nsWindow, "setCollectionBehavior", (long) FULL_SCREEN_MODE);
+      }
     } catch (Throwable t) {
       Activator.logError(t);
     }

@@ -478,6 +478,10 @@ public class DartCore extends Plugin {
     return version.getMajor() + "." + version.getMinor() + "." + version.getMicro();
   }
 
+  public static boolean is32Bit() {
+    return Platform.getOSArch().indexOf("64") == -1;
+  }
+
   /**
    * Return <code>true</code> if the given resource should be analyzed. All resources are to be
    * analyzed unless they have been excluded.
