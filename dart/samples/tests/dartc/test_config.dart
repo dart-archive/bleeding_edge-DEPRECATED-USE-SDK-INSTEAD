@@ -25,7 +25,6 @@ class SamplesDartcTestSuite extends DartcCompilationTestSuite {
                 'markdown',
                 'matrix',
                 'pond',
-                'proxy',
                 'sample_extension',
                 'slider',
                 'spirodraw',
@@ -34,7 +33,6 @@ class SamplesDartcTestSuite extends DartcCompilationTestSuite {
                 'tests',
                 'third_party',
                 'time',
-                'total',
                 'ui_lib',
               ],
               ['samples/tests/dartc/dartc.status']);
