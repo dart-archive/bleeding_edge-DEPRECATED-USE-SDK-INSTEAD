@@ -4,6 +4,7 @@
 
 #library("chat_server.dart");
 #import("dart:io");
+#import("dart:isolate");
 #import("chat_server_lib.dart");
 
 

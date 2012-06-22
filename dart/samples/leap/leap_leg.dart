@@ -106,7 +106,7 @@ Current character offset: ${range.startOffset}''';
 
   // Creates a compiler isolate in its own iframe. This should prevent
   // the compiler from blocking the UI.
-  html.spawnDomIsolate(html.document.query('#isolate').contentWindow,
+  spawnDomIsolate(html.document.query('#isolate').contentWindow,
                        'compilerIsolate').then((sendPort) {
     // The compiler isolate is now ready to talk. Store the port so
     // that the update function starts requesting outlines whenever

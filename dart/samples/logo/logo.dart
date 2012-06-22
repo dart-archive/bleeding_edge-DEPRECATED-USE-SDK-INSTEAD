@@ -99,7 +99,7 @@ class Color {
   String _hexPair(double color) {
     assert(color >= 0 && color <= 1);
     final str = (color * 0xff).round().toRadixString(16);
-    return str.length == 1 ? '0$str' : str;;
+    return str.length == 1 ? '0$str' : str;
   }
 }
 
@@ -174,7 +174,7 @@ void main() {
 </svg>
 """);
 
-  document.query("#icon").elements.add(logo);
+  query("#icon").elements.add(logo);
   logo.queryAll("path").forEach((p) {
     defaultColors[p.id] = new Color.hex(p.style.getPropertyValue('fill'));
   });

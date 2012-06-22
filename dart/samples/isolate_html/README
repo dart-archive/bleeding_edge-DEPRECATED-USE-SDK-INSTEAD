@@ -9,8 +9,8 @@ Building and running:
 1. go to the top-level directory of the project:
   $ cd dart/
 
-2. build the dartc compiler:
-  $ ./tools/build.py --arch=ia32
+2. build the dart sdk
+  $ ./tools/build.py -m release
 
 3. either compile the Dart code to JavaScript, or load the code directly into
    Dartium:

@@ -291,8 +291,8 @@ class ViewUtil {
   static void placeNodeAt(Element node, int x, int y) {
     int xoffset = x * 50;
     int yoffset = y * 50;
-    node.style.setProperty("top", yoffset.toString() + "px");
-    node.style.setProperty("left", xoffset.toString() + "px");
+    node.style.setProperty("top", "${yoffset}px");
+    node.style.setProperty("left", "${xoffset}px");
   }
 
   /** Create a div node with a given class name. */

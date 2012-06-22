@@ -43,14 +43,22 @@ $ cd samples/chat
 First step is to compile the client Dart source into JavaScript for
 the browser.
 
-$ ../../out/Release_ia32/dart2js dart_client/chat.dart
+on linux,
+$ ../../out/ReleaseIA32/dart2js dart_client/chat.dart
+
+on a Mac,
+$ ../../xcodebuild/ReleaseIA32/dart2js dart_client/chat.dart
 
 This will create the JavaScript for the Dart application in the out.js
 file.
 
 Next step is to start the server
 
-$ ../../out/Release_ia32/dart chat_server.dart
+on linux,
+$ ../../out/ReleaseIA32/dart chat_server.dart
+
+on a Mac,
+$ ../../xcodebuild/ReleaseIA32/dart chat_server.dart
 
 Now navigate you Chrome browser to http://localhost:8123 and start
 chatting.
