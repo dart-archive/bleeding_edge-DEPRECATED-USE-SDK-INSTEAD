@@ -92,6 +92,7 @@ public class OmniBoxPopup extends BasePopupDialog {
   private class OmniRefreshJob extends Job {
     OmniRefreshJob() {
       super("Refreshing searchbox results...");
+      setSystem(true); //suppress UI notifications on refresh
     }
 
     @Override
@@ -173,7 +174,7 @@ public class OmniBoxPopup extends BasePopupDialog {
   private Command invokingCommand;
   private KeyAdapter keyAdapter;
 
-  private boolean showAllMatches = false;
+  private boolean showAllMatches = true;
 
   protected boolean resized = false;
 
