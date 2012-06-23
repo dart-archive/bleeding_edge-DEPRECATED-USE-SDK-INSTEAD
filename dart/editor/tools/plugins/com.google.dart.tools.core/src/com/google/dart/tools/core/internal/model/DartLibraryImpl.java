@@ -27,7 +27,6 @@ import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.dom.visitor.SafeDartNodeTraverser;
 import com.google.dart.tools.core.internal.model.delta.DartElementDeltaImpl;
@@ -274,12 +273,10 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 
   @Override
   public void delete(IProgressMonitor monitor) throws DartModelException {
-    if (DartCoreDebug.ANALYSIS_SERVER) {
-      if (libraryFile != null) {
-        IPath location = libraryFile.getLocation();
-        if (location != null) {
-          SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(location.toFile());
-        }
+    if (libraryFile != null) {
+      IPath location = libraryFile.getLocation();
+      if (location != null) {
+        SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(location.toFile());
       }
     }
     DartProject project = getDartProject();

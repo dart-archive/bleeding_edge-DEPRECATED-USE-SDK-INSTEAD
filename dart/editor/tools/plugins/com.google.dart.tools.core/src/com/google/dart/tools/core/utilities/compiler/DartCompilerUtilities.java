@@ -33,7 +33,6 @@ import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.util.DartSourceString;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.internal.builder.LocalArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
@@ -839,8 +838,7 @@ public class DartCompilerUtilities {
 
     long start = System.currentTimeMillis();
     LibraryUnit unit;
-    if (DartCoreDebug.ANALYSIS_SERVER && parsedUnits == null
-        && !(librarySource instanceof LibraryWithSuppliedSources)) {
+    if (parsedUnits == null && !(librarySource instanceof LibraryWithSuppliedSources)) {
 
       // Resolve dart:<libname> to file URI before calling AnalysisServer
       EditorLibraryManager manager = SystemLibraryManagerProvider.getSystemLibraryManager();

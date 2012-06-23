@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.internal.model.delta;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.DartElementImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
@@ -283,10 +282,8 @@ public class DeltaProcessor {
         try {
           if (resource.getType() == IResource.PROJECT) {
             IProject project = (IProject) resource;
-            if (DartCoreDebug.ANALYSIS_SERVER) {
-              File projDir = project.getLocation().toFile();
-              SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(projDir);
-            }
+            File projDir = project.getLocation().toFile();
+            SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(projDir);
             if (project.hasNature(DartCore.DART_PROJECT_NATURE)) {
               DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(project);
               dartProject.close();

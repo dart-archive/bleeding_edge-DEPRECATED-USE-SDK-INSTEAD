@@ -13,16 +13,15 @@
  */
 package com.google.dart.tools.core.internal.index.impl;
 
-import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.SystemLibraryManager;
-import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.analysis.ResolveCallback;
 import com.google.dart.tools.core.analysis.SavedContext;
 import com.google.dart.tools.core.index.Attribute;
 import com.google.dart.tools.core.index.AttributeCallback;
@@ -57,11 +56,11 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -428,38 +427,22 @@ public class InMemoryIndex implements Index {
     EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
     ArrayList<String> librarySpecs = new ArrayList<String>(libraryManager.getAllLibrarySpecs());
     if (librarySpecs.remove("dart:html")) {
-      if (DartCoreDebug.ANALYSIS_SERVER) {
-        librarySpecs.add("dart:html");
-      } else {
-        librarySpecs.add(0, "dart:html");
-      }
+      librarySpecs.add("dart:html");
     }
-    ArrayList<DartUnit> contributedUnits = new ArrayList<DartUnit>();
-    ArrayList<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
-    HashSet<URI> initializedLibraries = new HashSet<URI>();
     AnalysisServer analysisServer = SystemLibraryManagerProvider.getDefaultAnalysisServer();
     SavedContext savedContext = analysisServer.getSavedContext();
     for (String urlSpec : librarySpecs) {
       try {
         URI libraryUri = new URI(urlSpec);
-        UrlLibrarySource librarySource = new UrlLibrarySource(libraryUri, libraryManager);
-        if (DartCoreDebug.ANALYSIS_SERVER) {
-          File libraryFile = new File(libraryManager.resolveDartUri(libraryUri));
-          savedContext.resolve(libraryFile, null);
-        } else {
-          LibraryUnit libraryUnit = DartCompilerUtilities.resolveLibrary(
-              librarySource,
-              contributedUnits,
-              parseErrors);
-          indexBundledLibrary(libraryUnit, initializedLibraries);
-        }
+        File libraryFile = new File(libraryManager.resolveDartUri(libraryUri));
+        ResolveCallback.Sync callback = new ResolveCallback.Sync();
+        savedContext.resolve(libraryFile, callback);
+        // Block until library is resolved so that we know it has been indexed
+        callback.waitForResolve(5 * 60 * 1000); // Five minutes
       } catch (URISyntaxException exception) {
         librariesIndexed = false;
         DartCore.logError("Invalid URI returned from the system library manager: \"" + urlSpec
             + "\"", exception);
-      } catch (DartModelException exception) {
-        librariesIndexed = false;
-        DartCore.logError("Could not resolve bundled library: \"" + urlSpec + "\"", exception);
       } catch (Exception exception) {
         librariesIndexed = false;
         DartCore.logError("Could not index bundled libraries", exception);
@@ -474,58 +457,29 @@ public class InMemoryIndex implements Index {
   }
 
   /**
-   * Initialize this index with information from the given bundled library.
-   * 
-   * @param libraryUnit the library to be used to initialize the index
-   * @param initializedLibraries the URI's of libraries that have already been used to initialize
-   *          the index
-   */
-  private void indexBundledLibrary(LibraryUnit libraryUnit, HashSet<URI> initializedLibraries) {
-    LibrarySource librarySource = libraryUnit.getSource();
-    URI libraryUri = librarySource.getUri();
-    if (initializedLibraries.contains(libraryUri)) {
-      return;
-    }
-    initializedLibraries.add(libraryUri);
-    DartLibraryImpl library = new DartLibraryImpl(librarySource);
-    for (DartUnit ast : libraryUnit.getUnits()) {
-      DartSource unitSource = (DartSource) ast.getSourceInfo().getSource();
-      URI unitUri = unitSource.getUri();
-      Resource resource = new Resource(unitUri.toString());
-      String relativePath = unitSource.getRelativePath();
-      CompilationUnit compilationUnit = new ExternalCompilationUnitImpl(
-          library,
-          relativePath,
-          librarySource.getSourceFor(relativePath));
-      long startTime = System.currentTimeMillis();
-      indexResource(resource, compilationUnit, ast);
-      long endTime = System.currentTimeMillis();
-      initIndexingTime += endTime - startTime;
-    }
-    for (LibraryUnit importedLibrary : libraryUnit.getImportedLibraries()) {
-      indexBundledLibrary(importedLibrary, initializedLibraries);
-    }
-  }
-
-  /**
    * Initialize this index with information from the user libraries.
    */
   private boolean indexUserLibraries() {
     boolean librariesIndexed = true;
     try {
-      ArrayList<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
-      HashSet<URI> initializedLibraries = new HashSet<URI>();
+      AnalysisServer analysisServer = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+      SavedContext savedContext = analysisServer.getSavedContext();
       DartModel model = DartCore.create(ResourcesPlugin.getWorkspace().getRoot());
       for (DartProject project : model.getDartProjects()) {
         for (DartLibrary library : project.getDartLibraries()) {
-          LibraryUnit libraryUnit = DartCompilerUtilities.resolveLibrary(
-              (DartLibraryImpl) library,
-              true,
-              parseErrors);
-          // If AnalysisServer is active, then indexer receives resolved units via listener
-          if (!DartCoreDebug.ANALYSIS_SERVER) {
-            indexUserLibrary(libraryUnit, initializedLibraries);
+          IResource libraryResource = library.getResource();
+          if (libraryResource == null) {
+            continue;
           }
+          IPath libraryLocation = libraryResource.getLocation();
+          if (libraryLocation == null) {
+            continue;
+          }
+          File libraryFile = libraryLocation.toFile();
+          ResolveCallback.Sync callback = new ResolveCallback.Sync();
+          savedContext.resolve(libraryFile, callback);
+          // Block until library is resolved so that we know it has been indexed
+          callback.waitForResolve(5 * 60 * 1000); // Five minutes
         }
       }
     } catch (Exception exception) {

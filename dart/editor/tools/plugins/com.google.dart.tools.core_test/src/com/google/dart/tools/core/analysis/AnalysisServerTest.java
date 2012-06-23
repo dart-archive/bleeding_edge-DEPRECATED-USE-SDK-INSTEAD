@@ -16,7 +16,6 @@ package com.google.dart.tools.core.analysis;
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.test.util.FileOperation;
@@ -890,9 +889,6 @@ public class AnalysisServerTest extends TestCase {
   }
 
   private void setupDefaultServer() throws Exception {
-    if (!DartCoreDebug.ANALYSIS_SERVER) {
-      fail("Do not call this method when analysis server is not enabled");
-    }
     defaultServer = SystemLibraryManagerProvider.getDefaultAnalysisServer();
     server = defaultServer;
     listener = new Listener(server);

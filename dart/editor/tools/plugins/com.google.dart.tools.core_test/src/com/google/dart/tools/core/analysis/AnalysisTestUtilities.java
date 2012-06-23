@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
 import static junit.framework.Assert.fail;
@@ -24,9 +23,7 @@ public class AnalysisTestUtilities {
    * Wait for any background analysis to be complete
    */
   public static void waitForAnalysis() {
-    if (DartCoreDebug.ANALYSIS_SERVER) {
-      waitForIdle(60000);
-    }
+    waitForIdle(60000);
   }
 
   /**

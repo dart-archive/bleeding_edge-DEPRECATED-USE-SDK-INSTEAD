@@ -832,9 +832,7 @@ public class DartCore extends Plugin {
   @Override
   public void stop(BundleContext context) throws Exception {
     try {
-      if (DartCoreDebug.ANALYSIS_SERVER) {
-        SystemLibraryManagerProvider.stop();
-      }
+      SystemLibraryManagerProvider.stop();
       DartModelManager.shutdown();
       RootArtifactProvider.shutdown();
       FrogManager.shutdown();
