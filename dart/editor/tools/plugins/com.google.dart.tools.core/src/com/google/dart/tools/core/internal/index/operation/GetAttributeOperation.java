@@ -62,6 +62,11 @@ public class GetAttributeOperation implements IndexOperation {
   }
 
   @Override
+  public boolean isQuery() {
+    return true;
+  }
+
+  @Override
   public void performOperation() {
     String value;
     synchronized (indexStore) {

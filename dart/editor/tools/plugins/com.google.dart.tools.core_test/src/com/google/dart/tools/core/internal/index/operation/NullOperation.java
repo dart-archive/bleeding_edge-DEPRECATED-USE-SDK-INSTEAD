@@ -17,6 +17,11 @@ import com.google.dart.tools.core.index.Resource;
 
 public class NullOperation implements IndexOperation {
   @Override
+  public boolean isQuery() {
+    return false;
+  }
+
+  @Override
   public void performOperation() {
   }
 

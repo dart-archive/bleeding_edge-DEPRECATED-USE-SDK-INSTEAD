@@ -23,9 +23,14 @@ import java.util.ArrayList;
  */
 public class OperationQueue {
   /**
-   * The operations that are waiting to be performed.
+   * The non-query operations that are waiting to be performed.
    */
-  private ArrayList<IndexOperation> operations = new ArrayList<IndexOperation>();
+  private ArrayList<IndexOperation> nonQueryOperations = new ArrayList<IndexOperation>();
+
+  /**
+   * The query operations that are waiting to be performed.
+   */
+  private ArrayList<IndexOperation> queryOperations = new ArrayList<IndexOperation>();
 
   /**
    * Initialize a newly created operation queue to be empty.
@@ -57,17 +62,20 @@ public class OperationQueue {
    *           while it was waiting for an operation to be added to the queue
    */
   public IndexOperation dequeue(long timeout) throws InterruptedException {
-    synchronized (operations) {
-      if (operations.isEmpty()) {
+    synchronized (nonQueryOperations) {
+      if (nonQueryOperations.isEmpty() && queryOperations.isEmpty()) {
         if (timeout <= 0L) {
           return null;
         }
-        operations.wait(timeout);
-        if (operations.isEmpty()) {
-          return null;
-        }
+        nonQueryOperations.wait(timeout);
       }
-      return operations.remove(0);
+      if (!nonQueryOperations.isEmpty()) {
+        return nonQueryOperations.remove(0);
+      }
+      if (!queryOperations.isEmpty()) {
+        return queryOperations.remove(0);
+      }
+      return null;
     }
   }
 
@@ -77,17 +85,26 @@ public class OperationQueue {
    * @param operation the operation to be added to the queue
    */
   public void enqueue(IndexOperation operation) {
-    synchronized (operations) {
+    synchronized (nonQueryOperations) {
       if (operation instanceof RemoveResourceOperation) {
         Resource resource = ((RemoveResourceOperation) operation).getResource();
-        for (int i = operations.size() - 1; i >= 0; i--) {
-          if (operations.get(i).removeWhenResourceRemoved(resource)) {
-            operations.remove(i);
+        for (int i = nonQueryOperations.size() - 1; i >= 0; i--) {
+          if (nonQueryOperations.get(i).removeWhenResourceRemoved(resource)) {
+            nonQueryOperations.remove(i);
+          }
+        }
+        for (int i = queryOperations.size() - 1; i >= 0; i--) {
+          if (queryOperations.get(i).removeWhenResourceRemoved(resource)) {
+            queryOperations.remove(i);
           }
         }
       }
-      operations.add(operation);
-      operations.notifyAll();
+      if (operation.isQuery()) {
+        queryOperations.add(operation);
+      } else {
+        nonQueryOperations.add(operation);
+      }
+      nonQueryOperations.notifyAll();
     }
   }
 
@@ -97,8 +114,8 @@ public class OperationQueue {
    * @return the number of operations on the queue
    */
   public int size() {
-    synchronized (operations) {
-      return operations.size();
+    synchronized (nonQueryOperations) {
+      return nonQueryOperations.size() + queryOperations.size();
     }
   }
 }

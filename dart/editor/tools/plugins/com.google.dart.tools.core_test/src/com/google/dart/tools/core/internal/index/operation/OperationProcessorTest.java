@@ -28,6 +28,11 @@ public class OperationProcessorTest extends TestCase {
     OperationQueue queue = new OperationQueue();
     queue.enqueue(new IndexOperation() {
       @Override
+      public boolean isQuery() {
+        return false;
+      }
+
+      @Override
       public void performOperation() {
         wasRun[0] = true;
       }

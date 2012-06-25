@@ -21,6 +21,13 @@ import com.google.dart.tools.core.index.Resource;
  */
 public interface IndexOperation {
   /**
+   * Return <code>true</code> if this operation returns information from the index.
+   * 
+   * @return <code>true</code> if this operation returns information from the index
+   */
+  public boolean isQuery();
+
+  /**
    * Perform the operation implemented by this operation.
    */
   public void performOperation();

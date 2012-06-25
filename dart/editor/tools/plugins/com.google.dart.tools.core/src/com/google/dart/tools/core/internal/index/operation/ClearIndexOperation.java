@@ -44,6 +44,11 @@ public class ClearIndexOperation implements IndexOperation {
   }
 
   @Override
+  public boolean isQuery() {
+    return false;
+  }
+
+  @Override
   public void performOperation() {
     synchronized (indexStore) {
       indexStore.clear();

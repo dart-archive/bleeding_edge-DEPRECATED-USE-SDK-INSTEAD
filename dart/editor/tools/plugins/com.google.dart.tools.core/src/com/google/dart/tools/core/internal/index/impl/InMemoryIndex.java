@@ -318,6 +318,10 @@ public class InMemoryIndex implements Index {
    */
   public void notify(final NotifyCallback callback) {
     queue.enqueue(new IndexOperation() {
+      @Override
+      public boolean isQuery() {
+        return false;
+      }
 
       @Override
       public void performOperation() {

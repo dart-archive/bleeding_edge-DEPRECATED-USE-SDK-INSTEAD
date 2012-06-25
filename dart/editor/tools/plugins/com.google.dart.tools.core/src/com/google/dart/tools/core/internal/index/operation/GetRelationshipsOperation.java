@@ -63,6 +63,11 @@ public class GetRelationshipsOperation implements IndexOperation {
   }
 
   @Override
+  public boolean isQuery() {
+    return true;
+  }
+
+  @Override
   public void performOperation() {
     Location[] locations;
     synchronized (indexStore) {
