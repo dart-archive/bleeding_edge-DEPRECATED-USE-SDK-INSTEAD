@@ -74,6 +74,11 @@ public class IndexResourceOperation implements IndexOperation {
   }
 
   @Override
+  public boolean isQuery() {
+    return false;
+  }
+
+  @Override
   public void performOperation() {
     if (!compilationUnit.exists()) {
       return;
