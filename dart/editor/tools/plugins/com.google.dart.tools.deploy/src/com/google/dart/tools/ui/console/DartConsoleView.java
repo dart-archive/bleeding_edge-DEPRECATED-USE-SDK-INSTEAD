@@ -84,16 +84,9 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   private class FontPropertyChangeListener implements IPropertyChangeListener {
     @Override
     public void propertyChange(final PropertyChangeEvent event) {
-      Display.getDefault().asyncExec(new Runnable() {
-        @Override
-        public void run() {
-          if (page != null && page.getControl() != null) {
-            if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
-              updateFont();
-            }
-          }
-        }
-      });
+      if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
+        updateFont();
+      }
     }
   }
 
@@ -396,12 +389,17 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   }
 
   private void updateFont() {
-    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
-    if (page != null && page.getControl() != null) {
-      Font oldFont = page.getControl().getFont();
-      Font font = SWTUtil.changeFontSize(oldFont, newFont);
-      page.getControl().setFont(font);
-    }
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
+        if (page != null && page.getControl() != null) {
+          Font oldFont = page.getControl().getFont();
+          Font font = SWTUtil.changeFontSize(oldFont, newFont);
+          page.getControl().setFont(font);
+        }
+      }
+    });
   }
 
   private void updateIcon() {
