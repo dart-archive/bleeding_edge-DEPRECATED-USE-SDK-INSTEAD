@@ -64,7 +64,15 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
       return "[" + getName() + "]";
     }
 
-    return getName();
+    // The names of private fields are mangled by the VM.
+    // _foo@652376 ==> _foo
+    String name = getName();
+
+    if (name.indexOf('@') != -1) {
+      name = name.substring(0, name.indexOf('@'));
+    }
+
+    return name;
   }
 
   @Override
