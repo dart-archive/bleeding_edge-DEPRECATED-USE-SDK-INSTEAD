@@ -16,7 +16,6 @@ package com.google.dart.tools.ui;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.IdleListener;
 import com.google.dart.tools.core.index.NotifyCallback;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.DartModelManager;
@@ -219,61 +218,21 @@ public class DartUIStartup implements IStartup {
      * Wait for any background analysis to be complete
      */
     private void waitForAnalysis() {
-      waitForIdle(SystemLibraryManagerProvider.getDefaultAnalysisServer(), 120000); // 2 minutes
-    }
+      AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
 
-    /**
-     * Wait up to the specified amount of time for the specified analysis server to be idle. If the
-     * specified number is less than or equal to zero, then this method returns immediately.
-     * 
-     * @param server the analysis server to be tested (not <code>null</code>)
-     * @param milliseconds the maximum number of milliseconds to wait
-     */
-    private void waitForIdle(AnalysisServer server, long milliseconds) {
-      final Object waitForIdleLock = new Object();
-
-      IdleListener listener = new IdleListener() {
-        @Override
-        public void idle(boolean idle) {
-          if (idle) {
-            synchronized (waitForIdleLock) {
-              waitForIdleLock.notifyAll();
-            }
-          }
+      // Ensure ResourceChangeListener background scanning gets time to run
+      // TODO (danrubel): Remove this once background scanning is integrated into AnalysisServer
+      if (server.isIdle()) {
+        try {
+          Thread.sleep(50);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
         }
-      };
+      }
 
-      server.addIdleListener(listener);
-      try {
-
-        // Ensure ResourceChangeListener background scanning gets time to run
-        // TODO (danrubel): Remove this once background scanning is integrated into AnalysisServer
-        synchronized (waitForIdleLock) {
-          if (server.isIdle()) {
-            try {
-              Thread.sleep(50);
-            } catch (InterruptedException e) {
-              //$FALL-THROUGH$
-            }
-          }
-        }
-
-        long endTime = System.currentTimeMillis() + milliseconds;
-        synchronized (waitForIdleLock) {
-          while (!server.isIdle()) {
-            long delta = endTime - System.currentTimeMillis();
-            if (delta <= 0) {
-              System.err.println("Stopped waiting for the analysis server.");
-            }
-            try {
-              waitForIdleLock.wait(delta);
-            } catch (InterruptedException e) {
-              //$FALL-THROUGH$
-            }
-          }
-        }
-      } finally {
-        server.removeIdleListener(listener);
+      // Wait up to 2 minutes for the server to be idle
+      if (!server.waitForIdle(120000)) {
+        System.err.println("Stopped waiting for the analysis server.");
       }
     }
 

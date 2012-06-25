@@ -662,6 +662,7 @@ public class AnalysisServerTest extends TestCase {
 
         server.stop();
         assertTrue(server.isIdle());
+        assertTrue(listener.isIdle());
       }
     });
   }
@@ -672,6 +673,10 @@ public class AnalysisServerTest extends TestCase {
     server.analyze(new File(libFileName).getAbsoluteFile());
     assertEquals(1, getServerQueue().size());
     assertEquals("AnalyzeContextTask", getServerQueue().get(0).getClass().getSimpleName());
+    synchronized (getServerQueue()) {
+      server.start();
+      server.stop();
+    }
     StringWriter writer = new StringWriter(5000);
     writeCache(writer);
     assertTrue(writer.toString().indexOf(libFileName) > 0);

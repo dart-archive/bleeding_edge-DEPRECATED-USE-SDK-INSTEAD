@@ -34,37 +34,8 @@ public class AnalysisTestUtilities {
    * @param milliseconds the maximum number of milliseconds to wait
    */
   public static void waitForIdle(AnalysisServer server, long milliseconds) {
-    final Object waitForIdleLock = new Object();
-
-    IdleListener listener = new IdleListener() {
-      @Override
-      public void idle(boolean idle) {
-        if (idle) {
-          synchronized (waitForIdleLock) {
-            waitForIdleLock.notifyAll();
-          }
-        }
-      }
-    };
-
-    server.addIdleListener(listener);
-    try {
-      long endTime = System.currentTimeMillis() + milliseconds;
-      synchronized (waitForIdleLock) {
-        while (!server.isIdle()) {
-          long delta = endTime - System.currentTimeMillis();
-          if (delta <= 0) {
-            fail("AnalysisServer not idle");
-          }
-          try {
-            waitForIdleLock.wait(delta);
-          } catch (InterruptedException e) {
-            //$FALL-THROUGH$
-          }
-        }
-      }
-    } finally {
-      server.removeIdleListener(listener);
+    if (!server.waitForIdle(milliseconds)) {
+      fail("AnalysisServer not idle");
     }
   }
 

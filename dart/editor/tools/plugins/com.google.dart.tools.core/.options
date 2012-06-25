@@ -19,7 +19,6 @@ com.google.dart.tools.core/logging/debugger = false
 
 com.google.dart.tools.core/perf/analysis/filescan = false
 
-com.google.dart.tools.core/experimental/analysis/server = false
 com.google.dart.tools.core/experimental/altKeyBindings = false
 com.google.dart.tools.core/experimental/update = false
 com.google.dart.tools.core/experimental/semanticHighlighting = false

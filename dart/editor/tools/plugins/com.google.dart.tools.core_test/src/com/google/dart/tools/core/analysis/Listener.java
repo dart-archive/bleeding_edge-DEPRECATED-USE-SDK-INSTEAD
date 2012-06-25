@@ -28,6 +28,8 @@ import java.util.TreeSet;
 class Listener implements AnalysisListener, IdleListener {
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
+  private boolean idle;
+
   private final HashMap<String, HashSet<String>> parsed = new HashMap<String, HashSet<String>>();
   private final HashSet<String> resolved = new HashSet<String>();
   private final HashSet<String> discarded = new HashSet<String>();
@@ -51,6 +53,11 @@ class Listener implements AnalysisListener, IdleListener {
 
   @Override
   public void idle(boolean idle) {
+    this.idle = idle;
+  }
+
+  public boolean isIdle() {
+    return idle;
   }
 
   @Override

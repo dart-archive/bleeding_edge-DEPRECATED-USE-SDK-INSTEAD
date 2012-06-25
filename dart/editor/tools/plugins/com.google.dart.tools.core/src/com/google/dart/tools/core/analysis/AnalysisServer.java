@@ -15,6 +15,7 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 
 import java.io.BufferedReader;
@@ -98,15 +99,16 @@ public class AnalysisServer {
   private final EditContext editContext = new EditContext(this, savedContext);
 
   /**
-   * <code>true</code> if the background thread should continue executing analysis tasks
+   * <code>true</code> if the background thread should continue executing analysis tasks. Lock
+   * against {@link #queue} before accessing this field.
    */
   private boolean analyze;
 
   /**
-   * Flag indicating whether the background thread is waiting for more tasks to be queued. Lock
-   * against {@link #queue} before accessing this field.
+   * Flag indicating whether the server is waiting for more tasks to be queued. Lock against
+   * {@link #queue} before accessing this field.
    */
-  private boolean isBackgroundThreadIdle = false;
+  private boolean isServerIdle = false;
 
   /**
    * Create a new instance that processes analysis tasks on a background thread
@@ -214,7 +216,7 @@ public class AnalysisServer {
    */
   public boolean isIdle() {
     synchronized (queue) {
-      return isBackgroundThreadIdle && queue.isEmpty();
+      return isServerIdle;
     }
   }
 
@@ -291,73 +293,55 @@ public class AnalysisServer {
         return;
       }
       analyze = true;
+      isServerIdle = false;
       backgroundThread = new Thread(new Runnable() {
 
         @Override
         public void run() {
           try {
+            while (true) {
 
-            while (analyze) {
-
-              // Get a task from the queue or null if the queue is empty
-              // and determine if the thread has changed idle state
-              Task task = null;
-              boolean notify = false;
-              synchronized (queue) {
-                if (queue.size() > 0) {
+              // Running :: Execute tasks from the queue
+              while (true) {
+                Task task;
+                synchronized (queue) {
+                  // if no longer analyzing or queue is empty, then switch to idle state
+                  if (!analyze || queue.isEmpty()) {
+                    break;
+                  }
                   queueIndex = 0;
                   task = queue.remove(0);
-                  if (isBackgroundThreadIdle) {
-                    isBackgroundThreadIdle = false;
-                    notify = true;
-                  }
-                } else {
-                  if (!isBackgroundThreadIdle) {
-                    isBackgroundThreadIdle = true;
-                    notify = true;
-                  }
                 }
-              }
-
-              // Notify others if the receiver's idle state has changed
-              if (notify) {
-                notifyIdle(task == null);
-              }
-
-              // Perform the task or wait for a new task to be added to the queue
-              if (task != null) {
                 try {
                   task.perform();
                 } catch (Throwable e) {
                   DartCore.logError("Analysis Task Exception", e);
                 }
-              } else {
-                synchronized (queue) {
-                  if (analyze && queue.isEmpty()) {
-                    try {
-                      queue.wait();
-                    } catch (InterruptedException e) {
-                      //$FALL-THROUGH$
-                    }
+              }
+
+              // Notify :: Changing state from Running to Idle
+              notifyAndSetServerIdle(true);
+
+              // Idle :: Wait for new tasks on the queue
+              synchronized (queue) {
+                // while analyzing wait for new tasks
+                while (analyze && queue.isEmpty()) {
+                  try {
+                    queue.wait();
+                  } catch (InterruptedException e) {
+                    //$FALL-THROUGH$
                   }
+                }
+                // if no longer analyzing, then exit background thread
+                if (!analyze) {
+                  break;
                 }
               }
 
-            }
+              // Notify :: Changing state from Idle to Running
+              notifyAndSetServerIdle(false);
 
-            // Ensure #stop method is unblocked and notify others that idle state has changed
-            boolean notify = false;
-            synchronized (queue) {
-              if (!isBackgroundThreadIdle) {
-                isBackgroundThreadIdle = true;
-                notify = true;
-                queue.notifyAll();
-              }
             }
-            if (notify) {
-              notifyIdle(true);
-            }
-
           } catch (Throwable e) {
             DartCore.logError("Analysis Server Exception", e);
           }
@@ -368,7 +352,7 @@ public class AnalysisServer {
   }
 
   /**
-   * Signal the background analysis thread to stop and block until it does or 5 seconds have passed.
+   * Signal the background analysis thread to stop and wait for up to 5 seconds for it to do so.
    */
   public void stop() {
     synchronized (queue) {
@@ -376,22 +360,22 @@ public class AnalysisServer {
         return;
       }
       analyze = false;
-      queue.clear();
       queue.notifyAll();
-      long end = System.currentTimeMillis() + 5000;
-      while (!isBackgroundThreadIdle) {
-        long delta = end - System.currentTimeMillis();
-        if (delta <= 0) {
-          DartCore.logError("Gave up waiting for " + getClass().getSimpleName() + " to stop");
-          break;
-        }
-        try {
-          queue.wait(delta);
-        } catch (InterruptedException e) {
-          //$FALL-THROUGH$
-        }
+      if (!waitForIdle(5000)) {
+        DartCore.logError("Gave up waiting for " + getClass().getSimpleName() + " to stop");
       }
     }
+  }
+
+  /**
+   * Wait up to the specified number of milliseconds for the receiver to be idle. If the specified
+   * number is less than or equal to zero, then this method returns immediately.
+   * 
+   * @param milliseconds the number of milliseconds to wait for idle
+   * @return <code>true</code> if the receiver is idle
+   */
+  public boolean waitForIdle(long milliseconds) {
+    return waitForIdle(true, milliseconds);
   }
 
   /**
@@ -454,8 +438,7 @@ public class AnalysisServer {
       } else {
         index = 0;
       }
-      queue.add(index, new AnalyzeContextTask(this, savedContext));
-      queue.notifyAll();
+      queueTask(index, new AnalyzeContextTask(this, savedContext));
     }
   }
 
@@ -464,18 +447,18 @@ public class AnalysisServer {
    * performed... use {@link #queueSubTask(Task)} instead.
    */
   void queueNewTask(Task task) {
-    if (analyze) {
-      synchronized (queue) {
-        int index = 0;
-        if (!task.isPriority()) {
-          while (index < queue.size() && queue.get(index).isPriority()) {
-            index++;
-          }
-        }
-        queue.add(index, task);
-        queueIndex++;
-        queue.notifyAll();
+    synchronized (queue) {
+      if (!analyze) {
+        return;
       }
+      int index = 0;
+      if (!task.isPriority()) {
+        while (index < queue.size() && queue.get(index).isPriority()) {
+          index++;
+        }
+      }
+      queueIndex++;
+      queueTask(index, task);
     }
   }
 
@@ -484,14 +467,15 @@ public class AnalysisServer {
    * priority of new tasks that have been queued while the current task is executing
    */
   void queueSubTask(Task subtask) {
-    if (analyze) {
-      if (Thread.currentThread() != backgroundThread) {
-        throw new IllegalStateException();
+    if (Thread.currentThread() != backgroundThread) {
+      throw new IllegalStateException();
+    }
+    synchronized (queue) {
+      if (!analyze) {
+        return;
       }
-      synchronized (queue) {
-        queue.add(queueIndex, subtask);
-        queueIndex++;
-      }
+      queue.add(queueIndex, subtask);
+      queueIndex++;
     }
   }
 
@@ -581,12 +565,38 @@ public class AnalysisServer {
     }
   }
 
-  private void notifyIdle(boolean idle) {
+  private void notifyAndSetServerIdle(boolean idle) {
     for (IdleListener listener : getIdleListeners()) {
       try {
         listener.idle(idle);
       } catch (Throwable e) {
         DartCore.logError("Exception during idle notification", e);
+      }
+    }
+    synchronized (queue) {
+      isServerIdle = idle;
+      queue.notifyAll();
+    }
+    Thread.yield();
+  }
+
+  /**
+   * Append a task to the queue and wait for the background task to notify listeners that it is no
+   * longer idle.
+   */
+  private void queueTask(int index, Task task) {
+    synchronized (queue) {
+      queue.add(index, task);
+      queue.notifyAll();
+
+      // Wait for the background thread to notify others that the server is no longer idle
+      if (!waitForIdle(false, 5000) && DartCoreDebug.DEBUG_ANALYSIS) {
+        try {
+          throw new RuntimeException(
+              "Gave up waiting for background thread to run after adding task");
+        } catch (Exception e) {
+          DartCore.logError(e);
+        }
       }
     }
   }
@@ -598,8 +608,10 @@ public class AnalysisServer {
    * @return <code>true</code> if successful
    */
   private boolean readCache(Reader reader) throws IOException {
-    if (analyze) {
-      throw new IllegalStateException();
+    synchronized (queue) {
+      if (analyze) {
+        throw new IllegalStateException();
+      }
     }
     CacheReader cacheReader = new CacheReader(reader);
 
@@ -666,12 +678,42 @@ public class AnalysisServer {
   }
 
   /**
+   * Wait up to the specified number of milliseconds for the receiver to have the specified idle
+   * state. If the specified number is less than or equal to zero, then this method returns
+   * immediately.
+   * 
+   * @param idleState <code>true</code> if waiting for the receiver to be idle or <code>false</code>
+   *          if waiting for the receiver to be running
+   * @param milliseconds the number of milliseconds to wait for idle
+   * @return <code>true</code> if the receiver is idle
+   */
+  private boolean waitForIdle(boolean idleState, long milliseconds) {
+    synchronized (queue) {
+      long end = System.currentTimeMillis() + milliseconds;
+      while (isServerIdle != idleState) {
+        long delta = end - System.currentTimeMillis();
+        if (delta <= 0) {
+          return false;
+        }
+        try {
+          queue.wait(delta);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
+      }
+      return true;
+    }
+  }
+
+  /**
    * Write the cached information to the specified file. This method must be called after
    * {@link #stop()} has been called when the server is not running.
    */
   private void writeCache(Writer writer) {
-    if (analyze) {
-      throw new IllegalStateException();
+    synchronized (queue) {
+      if (analyze) {
+        throw new IllegalStateException();
+      }
     }
     CacheWriter cacheWriter = new CacheWriter(writer);
     cacheWriter.writeString(CACHE_V3_TAG);

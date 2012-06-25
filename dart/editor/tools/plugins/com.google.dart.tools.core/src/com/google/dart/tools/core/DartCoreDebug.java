@@ -48,7 +48,6 @@ public class DartCoreDebug {
 
   // Experimental functionality options.
 
-  public static final boolean ANALYSIS_SERVER = true; //isOptionTrue("experimental/analysis/server");
   public static final boolean ENABLE_UPDATE = isOptionTrue("experimental/update");
   public static final boolean ENABLE_ALT_KEY_BINDINGS = isOptionTrue("experimental/altKeyBindings");
   public static final boolean ENABLE_SEMANTIC_HIGHLIGHTING = true; //isOptionTrue("experimental/semanticHighlighting");
