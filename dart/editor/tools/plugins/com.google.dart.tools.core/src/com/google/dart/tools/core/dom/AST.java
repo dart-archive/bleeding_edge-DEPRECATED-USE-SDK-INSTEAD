@@ -118,7 +118,7 @@ public class AST {
           false,
           Modifiers.NONE);
     } else if (nodeClass == DartComment.class) {
-      return (N) new DartComment(null, 0, 0, 0, 0, null);
+      return (N) new DartComment(null, 0, 0, null);
     } else if (nodeClass == DartConditional.class) {
       return (N) new DartConditional(null, null, null);
     } else if (nodeClass == DartContinueStatement.class) {
