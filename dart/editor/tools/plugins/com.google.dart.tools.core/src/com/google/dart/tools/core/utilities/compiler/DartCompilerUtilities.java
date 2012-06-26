@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.utilities.compiler;
 
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartArtifactProvider;
@@ -28,7 +29,6 @@ import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.compiler.parser.CommentPreservingParser;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.util.DartSourceString;
@@ -400,14 +400,7 @@ public class DartCompilerUtilities {
     }
 
     private DartParser createParser() {
-      if (preserveComments) {
-        return new CommentPreservingParser(CommentPreservingParser.createContext(
-            sourceRef,
-            source,
-            this), false);
-      } else {
-        return new DartParser(sourceRef, source, this);
-      }
+      return new DartParser(sourceRef, source, false, Sets.<String> newHashSet(), this, null);
     }
   }
 
@@ -883,7 +876,7 @@ public class DartCompilerUtilities {
   public static DartUnit secureParseUnit(DartParser parser, DartSource sourceRef) {
     // All calls to DartC must be synchronized
     synchronized (compilerLock) {
-      return parser.parseUnit(sourceRef);
+      return parser.parseUnit();
     }
   }
 

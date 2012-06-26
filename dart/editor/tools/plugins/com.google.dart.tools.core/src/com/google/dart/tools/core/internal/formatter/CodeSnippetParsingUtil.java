@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.formatter;
 
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ast.DartComment;
@@ -20,8 +21,7 @@ import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.parser.CommentPreservingParser;
-import com.google.dart.compiler.parser.DartScannerParserContext;
+import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
@@ -35,7 +35,7 @@ import java.util.Map;
  * @deprecated Consider removing this class
  */
 @Deprecated
-@SuppressWarnings({"unused", "rawtypes"})
+@SuppressWarnings({"rawtypes"})
 public class CodeSnippetParsingUtil {
   class RecordedParsingInformation {
     public CategorizedProblem[] problems;
@@ -143,8 +143,13 @@ public class CodeSnippetParsingUtil {
         compilationResult.problemCount += 1;
       }
     };
-    DartScannerParserContext ctx = new DartScannerParserContext(null, sourceCode, listener);
-    CommentPreservingParser parser = new CommentPreservingParser(sourceCode, listener, false);
+    DartParser parser = new DartParser(
+        null,
+        sourceCode,
+        false,
+        Sets.<String> newHashSet(),
+        listener,
+        null);
     DartUnit compilationUnit = DartCompilerUtilities.secureParseUnit(parser, null);
     if (recordParsingInformation) {
       recordedParsingInformation = getRecordedParsingInformation(

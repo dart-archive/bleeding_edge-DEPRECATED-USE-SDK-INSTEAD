@@ -54,8 +54,6 @@ import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.common.SourceInfo;
-import com.google.dart.compiler.parser.DartScannerParserContext;
-import com.google.dart.compiler.parser.ParserContext;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
@@ -1462,7 +1460,6 @@ public class CompletionEngine {
     CompletionMetrics metrics = requestor.getMetrics();
 
     DartCompilerListener listener = DartCompilerListener.EMPTY;
-    ParserContext ctx = new DartScannerParserContext(sourceFile, source, listener);
     prefixes = new HashSet<String>();
     if (currentCompilationUnit != null) {
       DartImport[] imports = currentCompilationUnit.getLibrary().getImports();
@@ -1473,7 +1470,7 @@ public class CompletionEngine {
         }
       }
     }
-    CompletionParser parser = new CompletionParser(ctx, prefixes);
+    CompletionParser parser = new CompletionParser(sourceFile, source, prefixes, listener, null);
     parser.setCompletionPosition(completionPosition);
     parsedUnit = DartCompilerUtilities.secureParseUnit(parser, sourceFile);
 

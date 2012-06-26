@@ -28,8 +28,6 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartPrefixParser;
-import com.google.dart.compiler.parser.DartScannerParserContext;
-import com.google.dart.compiler.parser.ParserContext;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.builder.CachingArtifactProvider;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
@@ -91,8 +89,13 @@ class AnalysisUtility {
     DartUnit dartUnit = null;
     if (sourceCode != null) {
       try {
-        ParserContext parserCtx = new DartScannerParserContext(source, sourceCode, listener);
-        DartParser parser = new DartPrefixParser(parserCtx, false, prefixes);
+        DartParser parser = new DartPrefixParser(
+            source,
+            sourceCode,
+            false,
+            prefixes,
+            listener,
+            null);
         dartUnit = DartCompilerUtilities.secureParseUnit(parser, source);
       } catch (Throwable e) {
         DartCore.logError("Exception while parsing " + sourceFile.getPath(), e);

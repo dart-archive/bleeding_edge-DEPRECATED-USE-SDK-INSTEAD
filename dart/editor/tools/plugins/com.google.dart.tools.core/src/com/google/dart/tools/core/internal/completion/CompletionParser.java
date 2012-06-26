@@ -13,46 +13,6 @@
  */
 package com.google.dart.tools.core.internal.completion;
 
-import com.google.dart.compiler.ErrorCode;
-import com.google.dart.compiler.ast.DartBlock;
-import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.ast.DartField;
-import com.google.dart.compiler.ast.DartFunction;
-import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartIfStatement;
-import com.google.dart.compiler.ast.DartMethodInvocation;
-import com.google.dart.compiler.ast.DartNewExpression;
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartParameter;
-import com.google.dart.compiler.ast.DartPropertyAccess;
-import com.google.dart.compiler.ast.DartReturnStatement;
-import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
-import com.google.dart.compiler.ast.DartSyntheticErrorIdentifier;
-import com.google.dart.compiler.ast.DartTypeNode;
-import com.google.dart.compiler.ast.DartTypeParameter;
-import com.google.dart.compiler.ast.DartVariableStatement;
-import com.google.dart.compiler.parser.DartParser;
-import com.google.dart.compiler.parser.DartScanner;
-import com.google.dart.compiler.parser.DartScanner.Location;
-import com.google.dart.compiler.parser.ParserContext;
-import com.google.dart.compiler.parser.Token;
-import com.google.dart.tools.core.internal.completion.ast.BlockCompleter;
-import com.google.dart.tools.core.internal.completion.ast.ClassCompleter;
-import com.google.dart.tools.core.internal.completion.ast.CompletionNode;
-import com.google.dart.tools.core.internal.completion.ast.FieldCompleter;
-import com.google.dart.tools.core.internal.completion.ast.FunctionCompleter;
-import com.google.dart.tools.core.internal.completion.ast.IdentifierCompleter;
-import com.google.dart.tools.core.internal.completion.ast.IfCompleter;
-import com.google.dart.tools.core.internal.completion.ast.MethodInvocationCompleter;
-import com.google.dart.tools.core.internal.completion.ast.NewExpressionCompleter;
-import com.google.dart.tools.core.internal.completion.ast.ParameterCompleter;
-import com.google.dart.tools.core.internal.completion.ast.PropertyAccessCompleter;
-import com.google.dart.tools.core.internal.completion.ast.ReturnCompleter;
-import com.google.dart.tools.core.internal.completion.ast.SuperConstructorInvocationCompleter;
-import com.google.dart.tools.core.internal.completion.ast.TypeCompleter;
-import com.google.dart.tools.core.internal.completion.ast.TypeParameterCompleter;
-import com.google.dart.tools.core.internal.completion.ast.VariableStatementCompleter;
-
 import static com.google.dart.tools.core.internal.completion.Mark.ArrayLiteral;
 import static com.google.dart.tools.core.internal.completion.Mark.BinaryExpression;
 import static com.google.dart.tools.core.internal.completion.Mark.Block;
@@ -118,6 +78,48 @@ import static com.google.dart.tools.core.internal.completion.Mark.VarDeclaration
 import static com.google.dart.tools.core.internal.completion.Mark.VariableDeclaration;
 import static com.google.dart.tools.core.internal.completion.Mark.WhileStatement;
 
+import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.Source;
+import com.google.dart.compiler.ast.DartBlock;
+import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartField;
+import com.google.dart.compiler.ast.DartFunction;
+import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartIfStatement;
+import com.google.dart.compiler.ast.DartMethodInvocation;
+import com.google.dart.compiler.ast.DartNewExpression;
+import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartParameter;
+import com.google.dart.compiler.ast.DartPropertyAccess;
+import com.google.dart.compiler.ast.DartReturnStatement;
+import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
+import com.google.dart.compiler.ast.DartSyntheticErrorIdentifier;
+import com.google.dart.compiler.ast.DartTypeNode;
+import com.google.dart.compiler.ast.DartTypeParameter;
+import com.google.dart.compiler.ast.DartVariableStatement;
+import com.google.dart.compiler.metrics.CompilerMetrics;
+import com.google.dart.compiler.parser.DartParser;
+import com.google.dart.compiler.parser.DartScanner;
+import com.google.dart.compiler.parser.DartScanner.Location;
+import com.google.dart.compiler.parser.Token;
+import com.google.dart.tools.core.internal.completion.ast.BlockCompleter;
+import com.google.dart.tools.core.internal.completion.ast.ClassCompleter;
+import com.google.dart.tools.core.internal.completion.ast.CompletionNode;
+import com.google.dart.tools.core.internal.completion.ast.FieldCompleter;
+import com.google.dart.tools.core.internal.completion.ast.FunctionCompleter;
+import com.google.dart.tools.core.internal.completion.ast.IdentifierCompleter;
+import com.google.dart.tools.core.internal.completion.ast.IfCompleter;
+import com.google.dart.tools.core.internal.completion.ast.MethodInvocationCompleter;
+import com.google.dart.tools.core.internal.completion.ast.NewExpressionCompleter;
+import com.google.dart.tools.core.internal.completion.ast.ParameterCompleter;
+import com.google.dart.tools.core.internal.completion.ast.PropertyAccessCompleter;
+import com.google.dart.tools.core.internal.completion.ast.ReturnCompleter;
+import com.google.dart.tools.core.internal.completion.ast.SuperConstructorInvocationCompleter;
+import com.google.dart.tools.core.internal.completion.ast.TypeCompleter;
+import com.google.dart.tools.core.internal.completion.ast.TypeParameterCompleter;
+import com.google.dart.tools.core.internal.completion.ast.VariableStatementCompleter;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -128,13 +130,9 @@ public class CompletionParser extends DartParser {
   private int completionPosition;
   private Token completionToken;
 
-  public CompletionParser(ParserContext ctx) {
-    super(ctx, false);
-    stack = new Stack<Mark>();
-  }
-
-  public CompletionParser(ParserContext ctx, Set<String> prefixes) {
-    super(ctx, false, prefixes);
+  public CompletionParser(Source source, String sourceCode, Set<String> prefixes,
+      DartCompilerListener listener, CompilerMetrics compilerMetrics) {
+    super(source, sourceCode, false, prefixes, listener, compilerMetrics);
     stack = new Stack<Mark>();
   }
 
