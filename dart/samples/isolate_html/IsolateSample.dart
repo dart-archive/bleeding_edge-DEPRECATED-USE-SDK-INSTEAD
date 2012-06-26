@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,8 +7,8 @@
  * that we create.
  */
 class MessageId {
-  static final INIT = "init";
-  static final GREETING = "greeting";
+  static final INIT = 'init';
+  static final GREETING = 'greeting';
 }
 
 /**
@@ -18,7 +18,7 @@ class MessageId {
 class IsolateSample  {
 
   /**
-   * map from isolate name to the port used to send messages to that
+   * Map from isolate name to the port used to send messages to that
    * isolate.
    */
   final Map<String, SendPort> ports;
@@ -40,37 +40,37 @@ class IsolateSample  {
    * what.
    */
   void createIsolate(String name) {
-    new DemoIsolate().spawn().then((SendPort port) {
-      var message = { "id" : MessageId.INIT, "args" : [name, chirpPort] };
-      port.call(message);
-      ports[name] = port;
+    spawnDomIsolate(window, 'isolateEventLoop').then((SendPort sendport) { 
+      var message = { 'id' : MessageId.INIT, 
+                      'args' : [name, chirpPort.toSendPort()] }; 
+      sendport.send(message, null);
+      ports[name] = sendport; 
     });
   }
 
-  /**
-   * DOM is loaded, so do initialization and set up event handlers.
-   */
+  /** DOM is loaded, so do initialization and set up event handlers. */
   void ready() {
 
-    document.query("#appTitle").text = "Hello, isolates.";
-    document.query("#vmStatus").text = isVm().toString();
+    document.query('#appTitle').text = 'Hello, isolates.';
+    document.query('#vmStatus').text = isVm().toString();
 
     Element replyElement =
-        document.query(".isolateMain .replyText");
+        document.query('.isolateMain .replyText');
 
-    createIsolate("A");
-    createIsolate("B");
+    createIsolate('A');
+    createIsolate('B');
 
-    for (Element element in document.queryAll(".sendButton")) {
+    for (Element element in document.queryAll('.sendButton')) {
       element.on.click.add((Event e) {
-        replyElement.text = "waiting for reply...";
+        replyElement.text = 'waiting for reply...';
 
         // get the last letter on the button (assuming the button text is, for
         // example, "send message to A".
-        String buttonText = e.currentTarget.dynamic.attributes["value"];
-        String isolateName = buttonText[buttonText.length - 1];
-        String greeting = document.query("#greetingText").dynamic.value;
-        var message = { "id": MessageId.GREETING, "args" : [ greeting ] };
+        // TODO(samhop): make this less hacky
+        var buttonText = e.currentTarget.value;
+        var isolateName = buttonText[buttonText.length - 1];
+        var greeting = document.query('#greetingText').value;
+        var message = { 'id': MessageId.GREETING, 'args' : [ greeting ] };
         ports[isolateName].call(message).then((var msg) {
           replyElement.text = msg;
         });
@@ -94,45 +94,28 @@ class IsolateSample  {
 }
 
 /**
- * Each instance of this class runs in a separate isolate, so it doesn't
- * share any program state with the main isolate.  In this app it
- * runs on the main UI thread (so it can interact with the window and
- * document).
+ * This function will run in a separate isolate, which shares almost
+ * no state with the main isolate. They will both run in the main
+ * UI thread, though, so that they can share DOM state. 
  */
-class DemoIsolate extends Isolate {
+void isolateEventLoop(ReceivePort port) {
 
   Element div;
   String isolateName;
   SendPort chirpPort;
 
-  DemoIsolate() : super.light() {}
-
-  void main() {
-    this.port.receive((message, SendPort replyTo) {
-      switch(message["id"]) {
-        case MessageId.INIT:
-          init(message["args"][0], message["args"][1]);
-          break;
-        case MessageId.GREETING:
-          greeting(message["args"][0], replyTo);
-          break;
-      }
-    });
-  }
-
   void init(String isolateName_, SendPort chirpPort_) {
-    this.isolateName = isolateName_;
-    this.chirpPort = chirpPort_;
-    div = new Element.tag("div");
-    div.classes = ["isolate", "isolate${isolateName}"];
-    div.innerHTML = document.query("#isolateTemplate").
-        firstElementChild.dynamic.innerHTML;
-    div.query(".isolateName").text = isolateName;
-    document.query("#isolateParent").nodes.add(div);
-    div.query(".chirpButton").on.click.add(
-        void _(event) { chirpPort.call(
-              "this is a chirp message from isolate " + isolateName);
-    }, false);
+    isolateName = isolateName_;
+    chirpPort = chirpPort_;
+    div = new DivElement();
+    div.classes = ['isolate', 'isolate${isolateName}'];
+    div.innerHTML = document.query('#isolateTemplate').innerHTML;
+    div.query('.isolateName').text = isolateName;
+    query('#isolateParent').nodes.add(div);
+    div.query('.chirpButton').on.click.add((event) { 
+      chirpPort.send(
+        'this is a chirp message from isolate $isolateName', null);
+    });
   }
 
   /**
@@ -140,14 +123,25 @@ class DemoIsolate extends Isolate {
    * the user has unchecked the reply checkbox).
    */
   void greeting(String message, SendPort replyTo) {
-      div.query(".messageBox").dynamic.innerHTML =
-        "received message: <span class='messageText'>'${message}'</span>";
-      if (div.query(".replyCheckbox").dynamic.checked) {
-        InputElement element = div.query(".delayTextbox");
-        int millis = Math.parseInt(element.value);
-        window.setTimeout(() {
-          replyTo.send("this is a reply from isolate '${isolateName}'", null);
-        }, millis);
-      }
+    div.query('.messageBox').innerHTML =
+      'received message: <span class="messageText">"${message}"</span>';
+    if (div.query('.replyCheckbox').checked) {
+      InputElement element = div.query('.delayTextbox');
+      int millis = Math.parseInt(element.value);
+      window.setTimeout(() {
+        replyTo.send('this is a reply from isolate "${isolateName}"', null);
+      }, millis);
+    }
   }
+
+  port.receive((message, SendPort replyTo) {
+    switch(message['id']) {
+      case MessageId.INIT:
+        init(message['args'][0], message['args'][1]);
+      break;
+      case MessageId.GREETING:
+        greeting(message['args'][0], replyTo);
+      break;
+    }
+  });
 }

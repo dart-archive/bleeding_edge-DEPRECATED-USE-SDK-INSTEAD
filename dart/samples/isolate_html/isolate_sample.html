@@ -18,17 +18,26 @@
     <div class="isolate isolateMain">
       <div class="isolateName">This is the main isolate.</div>
       <input type="text" id="greetingText" value="hello" />
-      <div><input type="button" class="sendButton" value = "send message to A" /></div>
-      <div><input type="button" class="sendButton" value = "send message to B"/></div>
+      <div>
+        <input type="button" class="sendButton" value = "send message to A" />
+      </div>
+      <div>
+        <input type="button" class="sendButton" value = "send message to B"/>
+      </div>
       <div class="replyText"></div>
     </div>
 
     <div id="isolateTemplate">
       <div class="isolate">
-        <div class="isolateTitle">isolate <span class="isolateName"></span></div>
+        <div class="isolateTitle">
+          isolate<span class="isolateName"></span>
+        </div>
         <div class="messageBox"></div>
-        <input class="replyCheckbox" type="checkbox" checked="checked" /><label>Send reply</label>
-        <div>delay reply: <input class="delayTextbox" type="text" value="1200" />ms</div>
+        <input class="replyCheckbox" type="checkbox" checked="checked" />
+        <label>Send reply</label>
+        <div>
+          delay reply: <input class="delayTextbox" type="text" value="1200" />ms
+        </div>
         <input class="chirpButton" type="button" value="chirp" />
       </div>
     </div>
@@ -37,8 +46,10 @@
     <div id="isolateParent"></div>
 
     <div class="spacer"></div>
-    <div class="systemInfo">app version: .03</div>
-    <div class="systemInfo">running on vm: <span id="vmStatus">dart is not running</span></div>
+    <div class="systemInfo">app version: .04</div>
+    <div class="systemInfo">
+      running on vm: <span id="vmStatus">dart is not running</span>
+    </div>
 
     <script src="http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js"></script>
   </body>
