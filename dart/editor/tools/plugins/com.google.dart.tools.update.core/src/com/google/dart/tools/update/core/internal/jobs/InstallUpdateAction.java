@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.update.core.internal.jobs;
 
+import com.google.dart.tools.update.core.UpdateCore;
 import com.google.dart.tools.update.core.UpdateManager;
 import com.google.dart.tools.update.core.internal.UpdateUtils;
 
@@ -101,6 +102,7 @@ public class InstallUpdateAction extends Action {
       applyUpdate();
       restart();
     } catch (Throwable th) {
+      UpdateCore.logError(th);
       MessageDialog.openError(
           getShell(),
           UpdateJobMessages.InstallUpdateAction_errorTitle,

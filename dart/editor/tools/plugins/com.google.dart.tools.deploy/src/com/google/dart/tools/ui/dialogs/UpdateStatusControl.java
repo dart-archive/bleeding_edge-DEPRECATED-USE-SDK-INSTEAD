@@ -103,6 +103,18 @@ class UpdateStatusControl extends UpdateAdapter implements DisposeListener {
   }
 
   @Override
+  public void checkFailed(final String message) {
+    System.out.println("UpdateStatusControl.checkFailed()");
+    asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        setStatus(message, regularFont);
+        setActionEnabled(checkFordUpdatesAction);
+      }
+    });
+  }
+
+  @Override
   public void checkStarted() {
     asyncExec(new Runnable() {
       @Override

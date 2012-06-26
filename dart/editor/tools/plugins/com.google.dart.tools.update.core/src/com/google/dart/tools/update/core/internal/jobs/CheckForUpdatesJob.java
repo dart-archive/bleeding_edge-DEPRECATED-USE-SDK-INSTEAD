@@ -31,6 +31,7 @@ public class CheckForUpdatesJob extends Job {
 
   private final DownloadManager downloadManager;
   private Revision latest;
+  private String message;
 
   /**
    * Create an instance.
@@ -40,6 +41,15 @@ public class CheckForUpdatesJob extends Job {
   public CheckForUpdatesJob(DownloadManager downloadManager) {
     super(UpdateJobMessages.CheckForUpdatesJob_job_label);
     this.downloadManager = downloadManager;
+  }
+
+  /**
+   * Get details in case an error occurred during check for updates.
+   * 
+   * @return the message a displayable error message (or <code>null</code> if none was recorded)
+   */
+  public String getErrorMessage() {
+    return message;
   }
 
   /**
@@ -56,7 +66,8 @@ public class CheckForUpdatesJob extends Job {
     try {
       latest = downloadManager.getLatestRevision();
     } catch (IOException e) {
-      return UpdateCore.createErrorStatus("Unable to get latest revision: " + e.getMessage()); //$NON-NLS-1$
+      message = "Unable to get latest revision.";
+      UpdateCore.logError(message);//$NON-NLS-1$
     }
     return Status.OK_STATUS;
   }

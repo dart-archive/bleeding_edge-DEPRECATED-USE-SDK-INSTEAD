@@ -16,10 +16,8 @@ package com.google.dart.tools.update.core.internal;
 import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateCore;
 
-import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.util.Util;
 import org.eclipse.swt.internal.Library;
 
@@ -252,17 +250,6 @@ public class UpdateUtils {
    * @return the install directory
    */
   public static File getUpdateInstallDir() {
-
-    try {
-      URL url = FileLocator.find(UpdateCore.getInstance().getBundle(), Path.EMPTY, null);
-      if (url != null) {
-        File bundle = new File(FileLocator.resolve(url).toURI());
-        //dart/plugins/XXXX.jar
-        return bundle.getParentFile().getParentFile();
-      }
-    } catch (Exception e) {
-      return null;
-    }
 
     if (UpdateCore.DEBUGGING_IN_RUNTIME_WS) {
       //TODO (pquitslund): for local testing

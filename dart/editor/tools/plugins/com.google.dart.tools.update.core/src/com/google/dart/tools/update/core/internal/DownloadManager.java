@@ -157,11 +157,13 @@ public class DownloadManager {
 
   private void doCheckForUpdate() {
 
-    //TODO(pquitslund): sysout for debgging
-    System.out.println("UpdateManager.doCheckForUpdate()");
+    //TODO(pquitslund): sysout for debugging
+    System.out.println("DownloadManager.doCheckForUpdate()");
 
     //ensure jobs don't stack
     if (updateJob != null) {
+      //TODO(pquitslund): sysout for debugging
+      System.out.println("(update job active -- check canceled)");
       return;
     }
 
@@ -170,17 +172,25 @@ public class DownloadManager {
       @Override
       public void done(IJobChangeEvent event) {
         Revision latest = ((CheckForUpdatesJob) updateJob).getLatest();
-        model.setLatestAvailableRevision(latest);
-        updateJob = null;
-        model.enterState(State.CHECKED);
+        if (latest == null) {
+          model.setErrorMessage(((CheckForUpdatesJob) updateJob).getErrorMessage());
+          model.enterState(State.FAILED);
+        } else {
 
-        Revision staged = getLatestStaged();
-        if (latest.isMoreCurrentThan(UpdateCore.getCurrentRevision())) {
-          model.enterState(State.AVAILABLE);
+          model.setLatestAvailableRevision(latest);
+          model.enterState(State.CHECKED);
+
+          Revision staged = getLatestStaged();
+          if (latest.isMoreCurrentThan(UpdateCore.getCurrentRevision())) {
+            model.enterState(State.AVAILABLE);
+          }
+          if (latest.isEqualTo(staged)) {
+            model.enterState(State.DOWNLOADED);
+          }
         }
-        if (latest.isEqualTo(staged)) {
-          model.enterState(State.DOWNLOADED);
-        }
+
+        updateJob = null;
+
       }
 
       @Override

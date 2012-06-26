@@ -24,6 +24,10 @@ public class UpdateAdapter implements UpdateListener {
   }
 
   @Override
+  public void checkFailed(String errorDetails) {
+  }
+
+  @Override
   public void checkStarted() {
   }
 

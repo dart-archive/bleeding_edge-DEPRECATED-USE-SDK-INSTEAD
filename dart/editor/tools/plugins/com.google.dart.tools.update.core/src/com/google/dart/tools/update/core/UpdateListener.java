@@ -25,6 +25,13 @@ public interface UpdateListener {
   void checkComplete();
 
   /**
+   * Called when an update check failed.
+   * 
+   * @param errorDetails a printable string describing the update check error
+   */
+  void checkFailed(String errorDetails);
+
+  /**
    * Called when an update check has started.
    */
   void checkStarted();

@@ -37,6 +37,12 @@ public class UpdateModel {
         //no-op
       }
     },
+    FAILED {
+      @Override
+      public void notify(UpdateListener listener) {
+        listener.checkFailed(errorMessage);
+      }
+    },
     CHECKING {
       @Override
       public void notify(UpdateListener listener) {
@@ -105,6 +111,8 @@ public class UpdateModel {
   private static Revision latestRevision = Revision.UNKNOWN;
 
   private final CopyOnWriteArrayList<UpdateListener> listeners = new CopyOnWriteArrayList<UpdateListener>();
+
+  private static String errorMessage;
 
   /**
    * Add the given update listener.
@@ -184,13 +192,21 @@ public class UpdateModel {
   }
 
   /**
+   * Caches an error message for state notifications.
+   * 
+   * @param msg the error message
+   */
+  void setErrorMessage(String msg) {
+    errorMessage = msg;
+  }
+
+  /**
    * Caches a revision number for state notifications.
    * 
    * @param revision the latest available revision
    */
-  @SuppressWarnings("static-access")
   void setLatestAvailableRevision(Revision revision) {
-    this.latestRevision = revision;
+    latestRevision = revision;
   }
 
   /**
