@@ -67,11 +67,12 @@ public class AnalysisMarkerManager implements AnalysisListener {
       }
 
       int severity;
+      ErrorSeverity errorSeverity = error.getErrorCode().getErrorSeverity();
       if (error.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
         severity = IMarker.SEVERITY_WARNING;
-      } else if (error.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+      } else if (errorSeverity == ErrorSeverity.ERROR) {
         severity = IMarker.SEVERITY_ERROR;
-      } else if (error.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
+      } else if (errorSeverity == ErrorSeverity.WARNING || errorSeverity == ErrorSeverity.INFO) {
         severity = IMarker.SEVERITY_WARNING;
       } else {
         return;
