@@ -22,6 +22,7 @@ import com.google.dart.tools.core.model.DartConventions;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
+import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
@@ -552,6 +553,8 @@ public class RenameLinkedMode {
     }
 
     switch (fDartElement.getElementType()) {
+      case DartElement.IMPORT:
+        return RenameSupport.create((DartImport) fDartElement, newName);
       case DartElement.FUNCTION:
         return RenameSupport.create((DartFunction) fDartElement, newName);
       case DartElement.FUNCTION_TYPE_ALIAS:

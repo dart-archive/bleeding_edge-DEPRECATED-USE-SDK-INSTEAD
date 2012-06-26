@@ -208,6 +208,90 @@ public class DartElementLocatorTest extends TestCase {
     }
   }
 
+  /**
+   * Test for {@link DartImport}.
+   */
+  public void test_DartImport_onPrefixUsage_inFieldReference() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResourceA = testProject.setUnitContent(
+          "LibA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('libA');",
+              "var field;",
+              "")).getResource();
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('LibA.dart', prefix: 'aaa');",
+              "f() {",
+              "  aaa.field = 0;",
+              "}",
+              "")).getResource();
+      TestProject.waitForAutoBuild();
+      DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      // usage of "aaa" = "libraryA"
+      {
+        DartImport imprt = assertLocation(
+            libraryTest.getDefiningCompilationUnit(),
+            "aaa.field",
+            DartImport.class,
+            "'aaa');",
+            5);
+        assertEquals(libraryA, imprt.getLibrary());
+        assertEquals("aaa", imprt.getPrefix());
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  /**
+   * Test for {@link DartImport}.
+   */
+  public void test_DartImport_onPrefixUsage_inFunctionReference() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResourceA = testProject.setUnitContent(
+          "LibA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('libA');",
+              "f() {}",
+              "")).getResource();
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('LibA.dart', prefix: 'aaa');",
+              "f() {",
+              "  aaa.f();",
+              "}",
+              "")).getResource();
+      TestProject.waitForAutoBuild();
+      DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      // usage of "aaa" = "libraryA"
+      {
+        DartImport imprt = assertLocation(
+            libraryTest.getDefiningCompilationUnit(),
+            "aaa.f();",
+            DartImport.class,
+            "'aaa');",
+            5);
+        assertEquals(libraryA, imprt.getLibrary());
+        assertEquals("aaa", imprt.getPrefix());
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
   public void test_DartImport_onURI() throws Exception {
     TestProject testProject = new TestProject("Test");
     try {
