@@ -206,7 +206,13 @@ public class DartUIStartup implements IStartup {
               Performance.TIME_TO_INDEX_COMPLETE.log(DartEditorCommandLineManager.getStartTime());
               Performance.printResults_keyValue();
               if (DartEditorCommandLineManager.KILL_AFTER_PERF) {
-                System.exit(0);
+                // From the UI thread, call PlatformUI.getWorkbench().close() to exit the Dart Editor
+                Display.getDefault().syncExec(new Runnable() {
+                  @Override
+                  public void run() {
+                    PlatformUI.getWorkbench().close();
+                  }
+                });
               }
             }
           });
