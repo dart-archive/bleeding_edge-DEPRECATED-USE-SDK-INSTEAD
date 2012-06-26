@@ -320,20 +320,16 @@ public abstract class AbstractScannerTest extends TestCase {
     assertKeywordToken("is");
   }
 
-  public void test_AbstractScanner_keyword_native() throws Exception {
-    assertKeywordToken("native");
-  }
-
-  public void test_AbstractScanner_keyword_negate() throws Exception {
-    assertKeywordToken("negate");
-  }
-
   public void test_AbstractScanner_keyword_new() throws Exception {
     assertKeywordToken("new");
   }
 
   public void test_AbstractScanner_keyword_null() throws Exception {
     assertKeywordToken("null");
+  }
+
+  public void test_AbstractScanner_keyword_on() throws Exception {
+    assertKeywordToken("on");
   }
 
   public void test_AbstractScanner_keyword_operator() throws Exception {
