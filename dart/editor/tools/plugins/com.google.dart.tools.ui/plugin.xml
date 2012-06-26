@@ -474,6 +474,27 @@
       </editor>
    </extension>
    
+    <extension
+        point="org.eclipse.ui.editorActions">
+        <editorContribution
+            targetID="com.google.dart.tools.ui.text.editor.CompilationUnitEditor"
+            id="com.google.dart.tools.ui.text.editor.CompilationUnitEditor.ruler.actions">
+            <!--<action
+                label="%BookmarkRulerAction.label"
+                helpContextId="org.eclipse.ui.bookmark_action_context"
+                class="org.eclipse.ui.texteditor.BookmarkRulerAction"
+                actionID="RulerDoubleClick"
+                id="org.eclipse.jdt.internal.ui.javaeditor.BookmarkRulerAction">
+            </action>-->
+            <action
+                label="%DartSelectRulerAction.label"
+                class="com.google.dart.tools.ui.internal.text.editor.DartSelectRulerAction"
+                actionID="RulerClick"
+                id="com.google.dart.tools.ui.internal.text.editor.DartSelectRulerAction">
+            </action>
+        </editorContribution>
+    </extension>
+
    <extension
          point="org.eclipse.ui.themes">
         <themeElementCategory label="%javaPresentation.label" id="org.eclipse.wst.jsdt.ui.presentation"/>

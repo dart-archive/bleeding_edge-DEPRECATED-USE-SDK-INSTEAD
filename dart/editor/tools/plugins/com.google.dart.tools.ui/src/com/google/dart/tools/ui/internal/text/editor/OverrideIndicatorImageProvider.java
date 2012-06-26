@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -26,16 +26,9 @@ import org.eclipse.ui.texteditor.IAnnotationImageProvider;
  */
 public class OverrideIndicatorImageProvider implements IAnnotationImageProvider {
 
-  /*
-   * @see org.eclipse.ui.texteditor.IAnnotationImageProvider#getManagedImage(org.
-   * eclipse.jface.text.source.Annotation)
-   */
   private static final String OVERRIDE_IMG_DESC_ID = "JavaPluginImages.DESC_OBJ_OVERRIDES"; //$NON-NLS-1$
   private static final String OVERWRITE_IMG_DESC_ID = "JavaPluginImages.DESC_OBJ_IMPLEMENTS"; //$NON-NLS-1$
 
-  /*
-   * @see org.eclipse.ui.texteditor.IAnnotationImageProvider#getImageDescriptor(java .lang.String)
-   */
   @Override
   public ImageDescriptor getImageDescriptor(String imageDescritporId) {
     if (OVERWRITE_IMG_DESC_ID.equals(imageDescritporId)) {
@@ -47,20 +40,16 @@ public class OverrideIndicatorImageProvider implements IAnnotationImageProvider 
     return null;
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.IAnnotationImageProvider#getImageDescriptorId
-   * (org.eclipse.jface.text.source.Annotation)
-   */
   @Override
   public String getImageDescriptorId(Annotation annotation) {
     if (!isImageProviderFor(annotation)) {
       return null;
     }
 
-    if (isOverwriting(annotation)) {
-      return OVERWRITE_IMG_DESC_ID;
-    } else {
+    if (isOverride(annotation)) {
       return OVERRIDE_IMG_DESC_ID;
+    } else {
+      return OVERWRITE_IMG_DESC_ID;
     }
   }
 
@@ -74,7 +63,7 @@ public class OverrideIndicatorImageProvider implements IAnnotationImageProvider 
         && OverrideIndicatorManager.ANNOTATION_TYPE.equals(annotation.getType());
   }
 
-  private boolean isOverwriting(Annotation annotation) {
-    return ((OverrideIndicatorManager.OverrideIndicator) annotation).isOverwriteIndicator();
+  private boolean isOverride(Annotation annotation) {
+    return ((OverrideIndicatorManager.OverrideIndicator) annotation).isOverride();
   }
 }

@@ -71,12 +71,12 @@ public class DartElementLocator extends ASTVisitor<Void> {
   /**
    * The start offset of the range used to identify the element.
    */
-  private final int startOffset;
+  private int startOffset;
 
   /**
    * The end offset of the range used to identify the element.
    */
-  private final int endOffset;
+  private int endOffset;
 
   /**
    * A flag indicating whether elements should be returned for declaration sites as well as for
@@ -107,6 +107,15 @@ public class DartElementLocator extends ASTVisitor<Void> {
    * <code>null</code> if there is no such element.
    */
   private Element resolvedElement;
+
+  /**
+   * Constructor for the case when you know not just offset in source, but resolved {@link Element},
+   * so not need to visit AST, etc - just convert to the {@link DartElement}.
+   */
+  public DartElementLocator(CompilationUnit input, Element targetSymbol) {
+    this(input, 0, 0, false);
+    findElementFor(targetSymbol);
+  }
 
   /**
    * Initialize a newly created locator to locate one or more {@link DartElement Dart elements} by
