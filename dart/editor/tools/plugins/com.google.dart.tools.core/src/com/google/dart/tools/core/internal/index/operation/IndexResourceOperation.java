@@ -73,6 +73,15 @@ public class IndexResourceOperation implements IndexOperation {
     this.performanceRecorder = performanceRecorder;
   }
 
+  /**
+   * Return the compilation unit to be indexed.
+   * 
+   * @return the compilation unit to be indexed
+   */
+  public CompilationUnit getCompilationUnit() {
+    return compilationUnit;
+  }
+
   @Override
   public boolean isQuery() {
     return false;

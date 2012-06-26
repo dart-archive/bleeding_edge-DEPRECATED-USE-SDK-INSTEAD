@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.index.operation;
 import com.google.dart.tools.core.index.Resource;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Instances of the class <code>OperationQueue</code> represent a queue of operations against the
@@ -106,6 +107,21 @@ public class OperationQueue {
       }
       nonQueryOperations.notifyAll();
     }
+  }
+
+  /**
+   * Return a list containing all of the operations that are currently on the queue. Modifying this
+   * list will not affect the state of the queue.
+   * 
+   * @return all of the operations that are currently on the queue
+   */
+  public List<IndexOperation> getOperations() {
+    ArrayList<IndexOperation> operations = new ArrayList<IndexOperation>();
+    synchronized (nonQueryOperations) {
+      operations.addAll(nonQueryOperations);
+      operations.addAll(queryOperations);
+    }
+    return operations;
   }
 
   /**

@@ -15,9 +15,11 @@ package com.google.dart.tools.core.internal.index.operation;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.model.CompilationUnit;
 
 import java.text.DateFormat;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 
 /**
  * Instances of the class <code>OperationProcessor</code> process the operations on a single
@@ -136,13 +138,13 @@ public class OperationProcessor {
    * @param wait <code>true</code> if this method will wait until the last operation has completed
    *          before returning
    */
-  public void stop(boolean wait) {
+  public CompilationUnit[] stop(boolean wait) {
     synchronized (this) {
       if (state == ProcessorState.READY) {
         state = ProcessorState.STOPPED;
-        return;
+        return getUnanalyzedCompilationUnits();
       } else if (state == ProcessorState.STOPPED) {
-        return;
+        return getUnanalyzedCompilationUnits();
       } else if (state == ProcessorState.RUNNING) {
         state = ProcessorState.STOP_REQESTED;
       }
@@ -150,7 +152,7 @@ public class OperationProcessor {
     while (wait) {
       synchronized (this) {
         if (state == ProcessorState.STOPPED) {
-          return;
+          return getUnanalyzedCompilationUnits();
         }
       }
       try {
@@ -159,6 +161,23 @@ public class OperationProcessor {
         // Ignored
       }
     }
+    return getUnanalyzedCompilationUnits();
+  }
+
+  /**
+   * Return an array containing the compilation units that need to be analyzed when a new session is
+   * started.
+   * 
+   * @return the compilation units that need to be analyzed
+   */
+  private CompilationUnit[] getUnanalyzedCompilationUnits() {
+    HashSet<CompilationUnit> units = new HashSet<CompilationUnit>();
+    for (IndexOperation operation : queue.getOperations()) {
+      if (operation instanceof IndexResourceOperation) {
+        units.add(((IndexResourceOperation) operation).getCompilationUnit());
+      }
+    }
+    return units.toArray(new CompilationUnit[units.size()]);
   }
 
   /**
