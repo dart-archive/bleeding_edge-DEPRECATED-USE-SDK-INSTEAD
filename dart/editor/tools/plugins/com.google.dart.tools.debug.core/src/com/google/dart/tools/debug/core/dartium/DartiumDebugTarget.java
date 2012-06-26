@@ -320,8 +320,9 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       breakpointManager.connect();
     }
 
+    // TODO(devoncarew): listen for changes to DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS
     // Turn on break-on-exceptions.
-    if (breakpointManager != null) {
+    if (breakpointManager != null && DartDebugCorePlugin.getPlugin().getBreakOnExceptions()) {
       connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.uncaught);
     }
 

@@ -188,6 +188,7 @@ public final class PreferencesMessages extends NLS {
   public static String DartEditorPreferencePage_foregroundForCompletionReplacement;
   public static String DartEditorPreferencePage_sourceHoverBackgroundColor;
   public static String DartEditorPreferencePage_general;
+  public static String DartBasePreferencePage_save;
   public static String DartEditorPreferencePage_colors;
   public static String DartEditorPreferencePage_empty_input;
   public static String DartEditorPreferencePage_invalid_input;

@@ -120,21 +120,19 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         composite);
     GridLayoutFactory.fillDefaults().spacing(0, 8).margins(0, 10).applyTo(composite);
 
-    // General
+    // General preferences
     Group generalGroup = new Group(composite, SWT.NONE);
     generalGroup.setText(PreferencesMessages.DartBasePreferencePage_general);
     GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
         generalGroup);
-    GridLayoutFactory.fillDefaults().numColumns(3).margins(8, 8).applyTo(generalGroup);
+    GridLayoutFactory.fillDefaults().numColumns(2).margins(8, 8).applyTo(generalGroup);
 
-    // line numbers
     lineNumbersCheck = createCheckBox(
         generalGroup,
         PreferencesMessages.DartBasePreferencePage_show_line_numbers,
         PreferencesMessages.DartBasePreferencePage_show_line_numbers_tooltip);
-    GridDataFactory.fillDefaults().span(3, 1).applyTo(lineNumbersCheck);
+    GridDataFactory.fillDefaults().span(2, 1).applyTo(lineNumbersCheck);
 
-    // print margin
     printMarginCheck = createCheckBox(
         generalGroup,
         PreferencesMessages.DartBasePreferencePage_show_print_margin,
@@ -150,13 +148,19 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     printMarginText.setTextLimit(5);
     GridDataFactory.fillDefaults().hint(50, SWT.DEFAULT).applyTo(printMarginText);
 
+    Group saveGroup = new Group(composite, SWT.NONE);
+    saveGroup.setText(PreferencesMessages.DartBasePreferencePage_save);
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
+        saveGroup);
+    GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(saveGroup);
+
     removeTrailingWhitespaceCheck = createCheckBox(
-        generalGroup,
+        saveGroup,
         PreferencesMessages.DartBasePreferencePage_trailing_ws_label,
         PreferencesMessages.DartBasePreferencePage_trailing_ws_details);
-    GridDataFactory.fillDefaults().span(3, 1).applyTo(removeTrailingWhitespaceCheck);
+    GridDataFactory.fillDefaults().applyTo(removeTrailingWhitespaceCheck);
 
-    // Package: preferences
+    // Package directory preferences
     Group packageGroup = new Group(composite, SWT.NONE);
     packageGroup.setText(PreferencesMessages.DartBasePreferencePage_Package_Title);
     GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
@@ -186,13 +190,13 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
       updateGroup.setText(PreferencesMessages.DartBasePreferencePage_update_group_label);
       GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
           updateGroup);
-      GridLayoutFactory.fillDefaults().numColumns(3).margins(8, 8).applyTo(updateGroup);
+      GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(updateGroup);
 
       autoDownloadCheck = createCheckBox(
           updateGroup,
           PreferencesMessages.DartBasePreferencePage_auto_download_label,
           PreferencesMessages.DartBasePreferencePage_auto_download_tooltip);
-      GridDataFactory.fillDefaults().span(3, 1).applyTo(autoDownloadCheck);
+      GridDataFactory.fillDefaults().applyTo(autoDownloadCheck);
     }
 
     initFromPrefs();

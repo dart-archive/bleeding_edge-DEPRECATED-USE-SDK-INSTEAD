@@ -304,6 +304,28 @@
             id="com.google.dart.tools.debug.ui.launchDialog"
             name="%launchDialogCommandName">
       </command>
+      <command
+            categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.debug.ui.internal.view.RemoveAllBreakpointsHandler"
+            description="%removeBreakpointsCommandName"
+            id="com.google.dart.tools.debug.ui.removeBreakpoints"
+            name="%removeBreakpointsCommandName">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.debug.ui.launch.ToggleBreakOnExceptionsHandler"
+            description="%toggleBreakOnExceptionsName"
+            id="com.google.dart.tools.debug.ui.toggleBreakOnExceptions"
+            name="%toggleBreakOnExceptionsName">
+            <state class="org.eclipse.jface.commands.ToggleState" id="STYLE"/>
+      </command>
+      <!-- command
+            categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.debug.ui.launch.ManageLaunchesHandler"
+            description="%launchDialogCommandName"
+            id="com.google.dart.tools.debug.ui.launchDialog"
+            name="%launchDialogCommandName">
+      </command -->
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -333,7 +355,7 @@
       </menuContribution>
       <menuContribution
             allPopups="false"
-            locationURI="menu:org.eclipse.ui.run?after=runGroup">
+            locationURI="menu:org.eclipse.ui.run?after=breakpointGroup">
          <command
                commandId="com.google.dart.tools.debug.ui.run.selection"
                icon="icons/obj16/run_exc.gif"
@@ -348,6 +370,19 @@
          <command
                commandId="com.google.dart.tools.debug.ui.launchDialog"
                style="push">
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:org.eclipse.ui.run?after=runGroup">
+         <command
+               commandId="com.google.dart.tools.debug.ui.removeBreakpoints"
+               style="push"
+               icon="icons/obj16/rem_all_brk.gif">
+         </command>
+         <command
+               commandId="com.google.dart.tools.debug.ui.toggleBreakOnExceptions"
+               style="toggle">
          </command>
       </menuContribution>
    </extension>
@@ -526,4 +561,13 @@
       </helper>
    </extension>
    
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            name="%debugPrefPageName"
+            class="com.google.dart.tools.debug.ui.internal.preferences.DebugPreferencePage"
+            id="com.google.dart.tools.debug.debugPreferencePage">
+      </page>
+   </extension>
+
 </plugin>

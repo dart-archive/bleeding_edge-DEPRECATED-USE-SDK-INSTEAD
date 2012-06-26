@@ -84,6 +84,8 @@ public class DartDebugCorePlugin extends Plugin {
 
   public static final String PREFS_DEFAULT_BROWSER = "defaultBrowser";
 
+  public static final String PREFS_BREAK_ON_EXCEPTIONS = "breakOnExceptions";
+
   /**
    * Create a Status object with the given message and this plugin's ID.
    * 
@@ -180,6 +182,10 @@ public class DartDebugCorePlugin extends Plugin {
 
   private IUserAgentManager userAgentManager;
 
+  public boolean getBreakOnExceptions() {
+    return getPrefs().getBoolean(PREFS_BREAK_ON_EXCEPTIONS, true);
+  }
+
   /**
    * Returns the path to the Browser executable, if it has been set. Otherwise, this method returns
    * the empty string.
@@ -214,6 +220,16 @@ public class DartDebugCorePlugin extends Plugin {
 
   public IUserAgentManager getUserAgentManager() {
     return userAgentManager;
+  }
+
+  public void setBreakOnExceptions(boolean value) {
+    getPrefs().putBoolean(PREFS_BREAK_ON_EXCEPTIONS, value);
+
+    try {
+      getPrefs().flush();
+    } catch (BackingStoreException exception) {
+      logError(exception);
+    }
   }
 
   /**

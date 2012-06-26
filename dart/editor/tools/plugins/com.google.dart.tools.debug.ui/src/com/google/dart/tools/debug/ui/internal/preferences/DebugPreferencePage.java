@@ -13,24 +13,16 @@
  */
 package com.google.dart.tools.debug.ui.internal.preferences;
 
-import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
-import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -41,13 +33,13 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
   public static final String PAGE_ID = "com.google.dart.tools.debug.debugPreferencePage"; //$NON-NLS-1$
 
-  private Text vmField;
+  private Button exceptionsCheckbox;
 
   /**
    * Create a new preference page.
    */
   public DebugPreferencePage() {
-    setDescription("Dart Launch Preferences");
+
   }
 
   @Override
@@ -57,9 +49,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
   @Override
   public boolean performOk() {
-    if (vmField != null) {
-      DartDebugCorePlugin.getPlugin().setDartVmExecutablePath(vmField.getText());
-    }
+    DartDebugCorePlugin.getPlugin().setBreakOnExceptions(exceptionsCheckbox.getSelection());
 
     return true;
   }
@@ -71,54 +61,20 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
         composite);
     GridLayoutFactory.fillDefaults().spacing(0, 8).margins(0, 10).applyTo(composite);
 
-    // Dart VM
-    if (!DartSdk.isInstalled()) { // no sdk is installed
-      createVmConfig(composite);
-      if (DartDebugCorePlugin.getPlugin().getDartVmExecutablePath() != null) {
-        vmField.setText(DartDebugCorePlugin.getPlugin().getDartVmExecutablePath());
-      }
-    } else {
-      Label label = new Label(composite, SWT.NONE);
-      label.setText("There are no launch settings available.");
-    }
+    createDebuggerConfig(composite);
 
     return composite;
   }
 
-  protected void handleVmBrowseButton() {
-    FileDialog fd = new FileDialog(getShell(), SWT.OPEN);
+  private void createDebuggerConfig(Composite composite) {
+    Group group = new Group(composite, SWT.NONE);
+    group.setText("Debugging");
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(group);
+    GridLayoutFactory.fillDefaults().numColumns(1).margins(8, 8).applyTo(group);
 
-    String filePath = fd.open();
-
-    if (filePath != null) {
-      vmField.setText(filePath);
-    }
-  }
-
-  private void createVmConfig(Composite composite) {
-    Group vmGroup = new Group(composite, SWT.NONE);
-    vmGroup.setText(DebugPreferenceMessages.DebugPreferencePage_VMExecutableLocation);
-    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(vmGroup);
-    GridLayoutFactory.fillDefaults().numColumns(3).margins(8, 8).applyTo(vmGroup);
-
-    Label vmLabel = new Label(vmGroup, SWT.NONE);
-    vmLabel.setText(DebugPreferenceMessages.DebugPreferencePage_VMPath);
-    vmField = new Text(vmGroup, SWT.SINGLE | SWT.BORDER);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(100, SWT.DEFAULT).grab(
-        true,
-        false).applyTo(vmField);
-
-    Button browseVmButton = new Button(vmGroup, SWT.PUSH);
-    browseVmButton.setText(DebugPreferenceMessages.DebugPreferencePage_Browse);
-    PixelConverter converter = new PixelConverter(browseVmButton);
-    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
-    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(browseVmButton);
-    browseVmButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        handleVmBrowseButton();
-      }
-    });
+    exceptionsCheckbox = new Button(group, SWT.CHECK);
+    exceptionsCheckbox.setText("Break on uncaught exceptions");
+    exceptionsCheckbox.setSelection(DartDebugCorePlugin.getPlugin().getBreakOnExceptions());
   }
 
 }
