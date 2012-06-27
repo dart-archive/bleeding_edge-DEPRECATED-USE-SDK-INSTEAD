@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.util;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
 import org.eclipse.core.resources.IResource;
@@ -49,7 +50,11 @@ public class CleanLibrariesJob extends Job {
       // Refresh the workspace.
       root.refreshLocal(IResource.DEPTH_INFINITE, subMonitor.newChild(50));
 
-      // Reanalyze the source.
+      // Clear the index before triggering reanalyze so that updates from re-analysis
+      // will be included in the rebuilt index
+      InMemoryIndex.getInstance().clear();
+
+      // Reanalyze the workspace sources.
       root.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_INFINITE);
       SystemLibraryManagerProvider.getDefaultAnalysisServer().reanalyze();
 
