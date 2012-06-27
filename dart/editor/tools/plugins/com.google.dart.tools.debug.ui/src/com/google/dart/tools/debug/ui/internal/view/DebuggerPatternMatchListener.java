@@ -14,6 +14,9 @@
 
 package com.google.dart.tools.debug.ui.internal.view;
 
+import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.ui.DartUI;
 
@@ -142,7 +145,6 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
       // don't create a hyperlink
 
     }
-
   }
 
   private IFile getIFileForAbsolutePath(String pathStr) {
@@ -178,6 +180,13 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
       // /Users/foo/dart/serverapp/serverapp.dart
       // file:///Users/foo/dart/webapp2/webapp2.dart
       // http://0.0.0.0:3030/webapp/webapp.dart
+      // package:ihavea/ihavea.dart
+
+      // resolve package: urls to file: urls
+      if (SystemLibraryManager.isPackageSpec(url)
+          && DartCore.getPlugin().getPackageRootPref() != null) {
+        url = SystemLibraryManagerProvider.getSystemLibraryManager().resolvePackageUri(url).toString();
+      }
 
       // Handle both fully absolute path names and http: urls.
       if (url.startsWith("/")) {

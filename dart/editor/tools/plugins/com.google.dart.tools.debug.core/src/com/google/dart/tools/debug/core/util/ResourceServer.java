@@ -76,8 +76,8 @@ public class ResourceServer implements IResourceResolver {
 
   @Override
   public String getUrlForResource(IResource resource) {
-
     URI fileUri = resource.getLocation().toFile().toURI();
+
     return getUrlForUri(fileUri);
   }
 
@@ -107,13 +107,13 @@ public class ResourceServer implements IResourceResolver {
 
       // localhost? 127.0.0.1? serverSocket.getInetAddress().getHostAddress()?
       URI uri = new URI(
-          "http", 
-           null, 
-           "127.0.0.1", 
-           serverSocket.getLocalPort(), 
-           pathSegment, 
-           null, 
-           null);
+          "http",
+          null,
+          "127.0.0.1",
+          serverSocket.getLocalPort(),
+          pathSegment,
+          null,
+          null);
       return uri.toString();
     } catch (URISyntaxException e) {
       DartDebugCorePlugin.logError(e);

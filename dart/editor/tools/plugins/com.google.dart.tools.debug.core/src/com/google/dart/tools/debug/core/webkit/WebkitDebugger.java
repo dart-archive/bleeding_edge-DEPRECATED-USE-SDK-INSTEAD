@@ -547,10 +547,14 @@ public class WebkitDebugger extends WebkitDomain {
     } else if (method.equals(DEBUGGER_SCRIPT_PARSED)) {
       WebkitScript script = WebkitScript.createFrom(params);
 
-      scriptMap.put(script.getScriptId(), script);
+      // We get a blizzard of empty script parsed events from Dartium due to the way they integrated
+      // the Dart VM into the Webkit debugger.
+      if (script.getUrl().length() > 0) {
+        scriptMap.put(script.getScriptId(), script);
 
-      for (DebuggerListener listener : listeners) {
-        listener.debuggerScriptParsed(script);
+        for (DebuggerListener listener : listeners) {
+          listener.debuggerScriptParsed(script);
+        }
       }
     } else if (method.equals(DEBUGGER_BREAKPOINT_RESOLVED)) {
       WebkitBreakpoint breakpoint = WebkitBreakpoint.createFrom(params);

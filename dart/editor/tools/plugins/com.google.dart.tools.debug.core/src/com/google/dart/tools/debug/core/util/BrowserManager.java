@@ -531,18 +531,23 @@ public class BrowserManager {
       env.put("DART_FLAGS", "--enable-checked-mode");
     }
 
-    //pass in pref value for --package-root if set
+    // Pass in --package-root if the preference is set
     String packageRoot = DartCore.getPlugin().getPackageRootPref();
-    // TODO (keertip): if using default "packages" directory, do not set env variable
+    // TODO(keertip): if using default "packages" directory, do not set env variable
+    // TODO(devoncarew): why are we only passing package root in when launching a file (not a url)?
     if (packageRoot != null && launchConfig.getShouldLaunchFile()) {
-      String packageRootUri;
       try {
-        packageRootUri = getResourceServer().getUrlForFile(new Path(packageRoot).toFile());
+        String packageRootUri = getResourceServer().getUrlForFile(new Path(packageRoot).toFile());
+
+        // Strip a trailing slash off the uri if the user setting didn't have one.
+        if (!packageRoot.endsWith("/") && packageRootUri.endsWith("/")) {
+          packageRootUri = packageRootUri.substring(0, packageRootUri.length() - 1);
+        }
+
         env.put("DART_PACKAGE_ROOT", packageRootUri);
       } catch (IOException e) {
         DartDebugCorePlugin.logError(e);
       }
-
     }
 
     devToolsPortNumber = DEVTOOLS_PORT_NUMBER;
@@ -596,7 +601,6 @@ public class BrowserManager {
       }
       browserProcess = null;
     }
-
   }
 
   private void waitForProcessToTerminate(Process process, int maxWaitTimeMs) {

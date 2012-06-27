@@ -14,6 +14,9 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.debug.core.source.ISourceLookup;
 
 import org.eclipse.debug.core.DebugException;
@@ -104,6 +107,12 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
   @Override
   public String getSourceLocationPath() {
     URI uri = URI.create(vmFrame.getLocation().getUrl());
+
+    // Resolve a package: reference.
+    if (SystemLibraryManager.isPackageUri(uri) && DartCore.getPlugin().getPackageRootPref() != null) {
+      uri = SystemLibraryManagerProvider.getSystemLibraryManager().resolvePackageUri(
+          vmFrame.getLocation().getUrl());
+    }
 
     if ("file".equals(uri.getScheme())) {
       return uri.getPath();

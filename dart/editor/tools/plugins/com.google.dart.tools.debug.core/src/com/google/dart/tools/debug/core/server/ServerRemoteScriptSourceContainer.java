@@ -50,6 +50,7 @@ public class ServerRemoteScriptSourceContainer extends AbstractSourceContainer {
 
   @Override
   public Object[] findSourceElements(String name) throws CoreException {
+    // TODO(devoncarew): the VM sends in bootstrap_impl also, but we can't retrieve source for that library.
     if (name != null && name.startsWith("dart:")) {
       ServerDebugTarget target = ServerDebugTarget.getActiveTarget();
 
