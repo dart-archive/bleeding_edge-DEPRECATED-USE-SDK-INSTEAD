@@ -109,12 +109,6 @@ public class IndexContributor extends ASTVisitor<Void> {
   private CompilationUnit compilationUnit;
 
   /**
-   * The cached source of the compilation unit being visited, or <code>null</code> if the source has
-   * not yet been accessed.
-   */
-  private String sourceCode;
-
-  /**
    * A resource representing the compilation unit that defines the library containing the
    * compilation unit being visited. This can be the same as the compilation unit being visited.
    */
@@ -163,11 +157,6 @@ public class IndexContributor extends ASTVisitor<Void> {
    * The element id used for library elements.
    */
   private static final String LIBRARY_ELEMENT_ID = "#library";
-
-  /**
-   * A marker that is used to indicate that the source for the compilation unit cannot be accessed.
-   */
-  private static String MISSING_SOURCE = "";
 
   /**
    * A stack containing one value for each name scope that has been entered, where the values are a
@@ -249,15 +238,9 @@ public class IndexContributor extends ASTVisitor<Void> {
     if (operatorToken.isUserDefinableOperator()) {
       com.google.dart.compiler.resolver.Element element = node.getElement();
       if (element instanceof MethodElement) {
-        String operator = operatorToken.getSyntax();
-        DartExpression leftOperand = node.getArg1();
-        DartExpression rghtOperand = node.getArg2();
-        int offset = findOffset(operator, leftOperand.getSourceInfo().getOffset()
-            + leftOperand.getSourceInfo().getLength(), rghtOperand.getSourceInfo().getOffset() - 1);
-        if (offset < 0) {
-          // TODO(brianwilkerson) Handle a missing offset.
-        }
-        processMethodInvocation(offset, operator.length(), (MethodElement) element);
+        int offset = node.getOperatorOffset();
+        int length = operatorToken.getSyntax().length();
+        processMethodInvocation(offset, length, (MethodElement) element);
       } else {
         notFound("binary expression: " + operatorToken.getSyntax(), node);
       }
@@ -515,23 +498,9 @@ public class IndexContributor extends ASTVisitor<Void> {
   public Void visitUnaryExpression(DartUnaryExpression node) {
     com.google.dart.compiler.resolver.Element element = node.getElement();
     if (element instanceof MethodElement) {
-      String operator = node.getOperator().getSyntax();
-      DartExpression operand = node.getArg();
-      int offset;
-      if (node.isPrefix()) {
-        offset = findOffset(
-            operator,
-            node.getSourceInfo().getOffset(),
-            operand.getSourceInfo().getOffset() - 1);
-      } else {
-        offset = findOffset(operator, operand.getSourceInfo().getOffset()
-            + operand.getSourceInfo().getLength(), node.getSourceInfo().getOffset()
-            + node.getSourceInfo().getLength() - 1);
-      }
-      if (offset < 0) {
-        // TODO(brianwilkerson) Handle a missing offset.
-      }
-      processMethodInvocation(offset, operator.length(), (MethodElement) element);
+      int offset = node.getOperatorOffset();
+      int length = node.getOperator().getSyntax().length();
+      processMethodInvocation(offset, length, (MethodElement) element);
     } else {
       notFound("unary expression: " + node.getOperator().getSyntax(), node);
     }
@@ -637,30 +606,6 @@ public class IndexContributor extends ASTVisitor<Void> {
       }
     }
     return null;
-  }
-
-  /**
-   * Return the offset in the source of the first occurrence of the target string that occurs
-   * between the given start and end indexes. Return a negative value if the target could not be
-   * located.
-   * 
-   * @param target the string being searched for
-   * @param startIndex the smallest index that can be returned
-   * @param endIndex the largest index that can be returned
-   * @return the location of the given string within the given range
-   */
-  private int findOffset(String target, int startIndex, int endIndex) {
-    String source = getSource();
-    if (source == null) {
-      return -1;
-    }
-    // TODO(brianwilkerson) This doesn't handle the possibility that the found occurrence is inside
-    // a comment.
-    int offset = source.indexOf(target, startIndex);
-    if (offset > endIndex - target.length()) {
-      return -1;
-    }
-    return startIndex;
   }
 
   /**
@@ -923,29 +868,6 @@ public class IndexContributor extends ASTVisitor<Void> {
       }
     }
     return libraryResource;
-  }
-
-  /**
-   * Return the source of the compilation unit being visited, or <code>null</code> if the source
-   * cannot be accessed.
-   * 
-   * @return the source of the compilation unit being visited
-   */
-  private String getSource() {
-    if (sourceCode == null) {
-      try {
-        sourceCode = compilationUnit.getSource();
-      } catch (DartModelException exception) {
-        DartCore.logError(
-            "Could not access source for " + compilationUnit.getElementName(),
-            exception);
-        sourceCode = MISSING_SOURCE;
-      }
-    }
-    if (sourceCode == MISSING_SOURCE) {
-      return null;
-    }
-    return sourceCode;
   }
 
   /**
