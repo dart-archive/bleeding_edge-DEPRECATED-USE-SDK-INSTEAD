@@ -13,8 +13,10 @@
  */
 package com.google.dart.tools.deploy;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.feedback.FeedbackControlContribution;
 import com.google.dart.tools.ui.omni.OmniBoxControlContribution;
+import com.google.dart.tools.ui.update.SettingsControlContribution;
 
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.util.Util;
@@ -24,7 +26,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
 
 /**
- * Contributes Dart Toolbar controls (search box, feedback button, ...).
+ * Contributes Dart Toolbar controls (search box, feedback button, settings/update button...).
  */
 public class DartEditorToolbarControlContribution extends WorkbenchWindowControlContribution {
 
@@ -32,6 +34,7 @@ public class DartEditorToolbarControlContribution extends WorkbenchWindowControl
 
   private FeedbackControlContribution feedbackButton;
   private OmniBoxControlContribution searchBox;
+  private SettingsControlContribution settingsButton;
 
   @Override
   public void dispose() {
@@ -44,7 +47,7 @@ public class DartEditorToolbarControlContribution extends WorkbenchWindowControl
   protected Control createControl(Composite parent) {
 
     Composite composite = new Composite(parent, SWT.NONE);
-    GridLayoutFactory.fillDefaults().numColumns(2).margins(4, VERTICAL_NUDGE).spacing(4, 0).applyTo(
+    GridLayoutFactory.fillDefaults().numColumns(4).margins(4, VERTICAL_NUDGE).spacing(2, 0).applyTo(
         composite);
 
     searchBox = new OmniBoxControlContribution(this);
@@ -52,6 +55,11 @@ public class DartEditorToolbarControlContribution extends WorkbenchWindowControl
 
     feedbackButton = new FeedbackControlContribution(this);
     feedbackButton.createControl(composite);
+
+    if (DartCoreDebug.ENABLE_UPDATE) {
+      settingsButton = new SettingsControlContribution(this);
+      settingsButton.createControl(composite);
+    }
 
     return composite;
   }

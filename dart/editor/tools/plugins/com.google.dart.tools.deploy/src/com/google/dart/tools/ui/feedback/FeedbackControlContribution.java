@@ -68,6 +68,9 @@ public class FeedbackControlContribution {
 
   private Control createLabel(Composite parent) {
 
+    Label spacer = new Label(parent, SWT.NONE);
+    GridDataFactory.fillDefaults().hint(2, 0).applyTo(spacer);
+
     label = new CLabel(parent, SWT.NONE);
     label.setAlignment(SWT.CENTER);
     label.setText(FeedbackMessages.FeedbackButtonControl_Text);
@@ -76,9 +79,6 @@ public class FeedbackControlContribution {
     label.setForeground(label.getDisplay().getSystemColor(SWT.COLOR_WHITE));
     label.setToolTipText(FeedbackMessages.FeedbackControlContribution_control_tootip);
     GridDataFactory.fillDefaults().grab(true, false).applyTo(label);
-
-    Label spacer = new Label(parent, SWT.NONE);
-    GridDataFactory.fillDefaults().hint(4, 0).applyTo(spacer);
 
     return label;
   }

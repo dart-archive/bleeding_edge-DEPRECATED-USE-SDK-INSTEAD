@@ -18,12 +18,15 @@ import com.google.dart.tools.core.DartCoreDebug;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.ui.PlatformUI;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
 
@@ -80,6 +83,11 @@ public class UpdateCore extends Plugin {
    * Preference key for auto checking for updates.
    */
   private static final String PREFS_AUTO_UPDATE_CHECK = "autoCheckUpdates";
+
+  /**
+   * Delay for initialization of the update manager post startup,
+   */
+  private static final long UPDATE_MANAGER_INIT_DELAY = 10000;
 
   //The activated plugin
   private static UpdateCore PLUGIN;
@@ -247,6 +255,8 @@ public class UpdateCore extends Plugin {
 
   private IEclipsePreferences preferences;
 
+  private Job managerInitializationJob;
+
   /**
    * Return the preferences node that contains the preferences for the Update Core plugin.
    * 
@@ -262,18 +272,46 @@ public class UpdateCore extends Plugin {
   @Override
   public void start(BundleContext context) throws Exception {
     PLUGIN = this;
-    getUpdateManager().start();
+
+    scheduleManagerStart();
+
     super.start(context);
   }
 
   @Override
   public void stop(BundleContext context) throws Exception {
     try {
+      Job job = managerInitializationJob;
+
+      if (job != null) {
+        job.cancel();
+      }
+
       getUpdateManager().stop();
     } finally {
       super.stop(context);
       PLUGIN = null;
     }
+  }
+
+  private void scheduleManagerStart() {
+    //wait a bit before checking for updates to avoid competing for resources at startup
+    //note that update checks can still be manually initiated
+    managerInitializationJob = new Job("Update manager initialization") {
+      @Override
+      protected IStatus run(IProgressMonitor monitor) {
+        //make doubly sure that the workbench is up and running 
+        if (PlatformUI.isWorkbenchRunning()) {
+          managerInitializationJob = null;
+          getUpdateManager().start();
+        } else {
+          schedule(500);
+        }
+        return Status.OK_STATUS;
+      }
+    };
+
+    managerInitializationJob.schedule(UPDATE_MANAGER_INIT_DELAY);
   }
 
 }
