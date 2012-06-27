@@ -139,15 +139,18 @@ public class AnalysisServer {
    * Analyze the specified library, and keep that analysis current by tracking any changes. Also see
    * {@link Context#resolve(File, ResolveCallback)}.
    * 
-   * @param file the library file (not <code>null</code>)
+   * @param libraryFile the library file (not <code>null</code>)
    */
-  public void analyze(File file) {
-    if (!file.isAbsolute()) {
-      throw new IllegalArgumentException("File path must be absolute: " + file);
+  public void analyze(File libraryFile) {
+    if (!libraryFile.isAbsolute()) {
+      throw new IllegalArgumentException("File path must be absolute: " + libraryFile);
+    }
+    if (libraryFile.isDirectory()) {
+      throw new IllegalArgumentException("Cannot analyze a directory: " + libraryFile);
     }
     synchronized (queue) {
-      if (!libraryFiles.contains(file)) {
-        libraryFiles.add(file);
+      if (!libraryFiles.contains(libraryFile)) {
+        libraryFiles.add(libraryFile);
         // Append analysis task to the end of the queue so that any user requests take precedence
         queueAnalyzeContext();
       }

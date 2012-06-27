@@ -17,7 +17,6 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
@@ -71,7 +70,6 @@ import java.io.ObjectOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashSet;
 
 /**
  * The unique instance of the class <code>InMemoryIndex</code> maintains an in-memory {@link Index
@@ -471,7 +469,11 @@ public class InMemoryIndex implements Index {
       DartModel model = DartCore.create(ResourcesPlugin.getWorkspace().getRoot());
       for (DartProject project : model.getDartProjects()) {
         for (DartLibrary library : project.getDartLibraries()) {
-          IResource libraryResource = library.getResource();
+          CompilationUnit compilationUnit = library.getDefiningCompilationUnit();
+          if (compilationUnit == null) {
+            continue;
+          }
+          IResource libraryResource = compilationUnit.getResource();
           if (libraryResource == null) {
             continue;
           }
@@ -491,41 +493,6 @@ public class InMemoryIndex implements Index {
       DartCore.logError("Could not index user libraries", exception);
     }
     return librariesIndexed;
-  }
-
-  /**
-   * Initialize this index with information from the given user library.
-   * 
-   * @param libraryUnit the library to be used to initialize the index
-   * @param initializedLibraries the URI's of libraries that have already been used to initialize
-   *          the index
-   */
-  private void indexUserLibrary(LibraryUnit libraryUnit, HashSet<URI> initializedLibraries) {
-    LibrarySource librarySource = libraryUnit.getSource();
-    URI libraryUri = librarySource.getUri();
-    if (SystemLibraryManager.isDartUri(libraryUri) || initializedLibraries.contains(libraryUri)) {
-      return;
-    }
-    initializedLibraries.add(libraryUri);
-    DartLibraryImpl library = new DartLibraryImpl(librarySource);
-    for (DartUnit ast : libraryUnit.getUnits()) {
-      DartSource unitSource = (DartSource) ast.getSourceInfo().getSource();
-      URI unitUri = unitSource.getUri();
-      Resource resource = new Resource(unitUri.toString());
-      CompilationUnit compilationUnit = new CompilationUnitImpl(
-          library,
-          unitUri,
-          DefaultWorkingCopyOwner.getInstance());
-      // library.getCompilationUnit(unitUri);
-      long startTime = System.currentTimeMillis();
-      indexResource(resource, compilationUnit, ast);
-      long endTime = System.currentTimeMillis();
-      initIndexingTime += endTime - startTime;
-    }
-    for (LibraryUnit importedLibrary : libraryUnit.getImportedLibraries()) {
-      // library.getImportedLibrary(importedLibrary.getSource().getUri());
-      indexUserLibrary(importedLibrary, initializedLibraries);
-    }
   }
 
   /**

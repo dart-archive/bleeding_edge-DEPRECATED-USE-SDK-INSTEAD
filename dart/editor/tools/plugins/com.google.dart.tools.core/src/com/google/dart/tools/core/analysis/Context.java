@@ -102,6 +102,12 @@ class Context {
    *          <code>null</code> if none
    */
   public void parse(File libraryFile, File dartFile, ParseCallback callback) {
+    if (!libraryFile.isAbsolute()) {
+      throw new IllegalArgumentException("File path must be absolute: " + libraryFile);
+    }
+    if (libraryFile.isDirectory()) {
+      throw new IllegalArgumentException("Cannot parse a directory: " + libraryFile);
+    }
     String relPath = libraryFile.toURI().relativize(dartFile.toURI()).getPath();
     server.queueNewTask(new ParseFileTask(server, this, libraryFile, relPath, dartFile, callback));
   }
@@ -136,6 +142,9 @@ class Context {
   public void resolve(File libraryFile, ResolveCallback callback) {
     if (!libraryFile.isAbsolute()) {
       throw new IllegalArgumentException("File path must be absolute: " + libraryFile);
+    }
+    if (libraryFile.isDirectory()) {
+      throw new IllegalArgumentException("Cannot resolve a directory: " + libraryFile);
     }
     server.queueNewTask(new AnalyzeLibraryTask(server, this, libraryFile, callback));
   }
