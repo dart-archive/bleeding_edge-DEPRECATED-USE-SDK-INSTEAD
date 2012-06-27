@@ -13,8 +13,11 @@
  */
 package com.google.dart.tools.debug.ui.internal.presentation;
 
+import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
+import com.google.dart.tools.debug.core.dartium.DartiumDebugStackFrame;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugVariable;
+import com.google.dart.tools.debug.core.server.ServerDebugStackFrame;
 import com.google.dart.tools.debug.core.server.ServerDebugVariable;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
@@ -25,13 +28,17 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.ILineBreakpoint;
+import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.sourcelookup.containers.LocalFileStorage;
 import org.eclipse.debug.ui.IDebugModelPresentation;
+import org.eclipse.debug.ui.IInstructionPointerPresentation;
 import org.eclipse.debug.ui.IValueDetailListener;
+import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.part.FileEditorInput;
 
 import java.net.URI;
@@ -44,7 +51,8 @@ import java.util.concurrent.TimeUnit;
  * A debug model presentation is responsible for providing labels, images, and editors associated
  * with debug elements in a specific debug model.
  */
-public class DartDebugModelPresentation implements IDebugModelPresentation {
+public class DartDebugModelPresentation implements IDebugModelPresentation,
+    IInstructionPointerPresentation {
 
   private static final String DART_EDITOR_ID = "com.google.dart.tools.ui.text.editor.CompilationUnitEditor";
 
@@ -153,7 +161,6 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       } else if (variable.isListValue()) {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");
-        //return DartDebugUIPlugin.getImage("obj16/list_obj.png");
       } else {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       }
@@ -169,9 +176,74 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
       } else {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       }
+    } else if (element instanceof DartBreakpoint) {
+      //return DartDebugUIPlugin.getImage("obj16/generic_element.gif");
+      return null;
     } else {
       return null;
     }
+  }
+
+  @Override
+  public Annotation getInstructionPointerAnnotation(IEditorPart editorPart, IStackFrame frame) {
+    return null;
+  }
+
+  @Override
+  public String getInstructionPointerAnnotationType(IEditorPart editorPart, IStackFrame frame) {
+    return null;
+  }
+
+  @Override
+  public Image getInstructionPointerImage(IEditorPart editorPart, IStackFrame frame) {
+    if (frame instanceof DartiumDebugStackFrame) {
+      DartiumDebugStackFrame f = (DartiumDebugStackFrame) frame;
+
+      if (f.isException()) {
+        return DartDebugUIPlugin.getImage("obj16/inst_ptr_exception.png");
+      }
+    }
+
+    if (frame instanceof ServerDebugStackFrame) {
+      ServerDebugStackFrame f = (ServerDebugStackFrame) frame;
+
+      if (f.isException()) {
+        return DartDebugUIPlugin.getImage("obj16/inst_ptr_exception.png");
+      }
+    }
+
+    try {
+      IStackFrame topOfStack = frame.getThread().getTopStackFrame();
+
+      if (frame.equals(topOfStack)) {
+        return DartDebugUIPlugin.getImage("obj16/inst_ptr_current.png");
+      }
+    } catch (DebugException de) {
+
+    }
+
+    return DartDebugUIPlugin.getImage("obj16/inst_ptr_normal.png");
+  }
+
+  @Override
+  public String getInstructionPointerText(IEditorPart editorPart, IStackFrame frame) {
+    if (frame instanceof DartiumDebugStackFrame) {
+      DartiumDebugStackFrame f = (DartiumDebugStackFrame) frame;
+
+      if (f.isException()) {
+        return f.getExceptionDisplayText();
+      }
+    }
+
+    if (frame instanceof ServerDebugStackFrame) {
+      ServerDebugStackFrame f = (ServerDebugStackFrame) frame;
+
+      if (f.isException()) {
+        return f.getExceptionDisplayText();
+      }
+    }
+
+    return null;
   }
 
   @Override
@@ -221,13 +293,7 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
     String varLabel = "<unknown name>";
     varLabel = var.getName();
 
-    DartiumDebugValue value = null;
-
-    try {
-      value = (DartiumDebugValue) var.getValue();
-    } catch (DebugException e1) {
-
-    }
+    DartiumDebugValue value = (DartiumDebugValue) var.getValue();
 
     StringBuffer buff = new StringBuffer();
     buff.append(varLabel);

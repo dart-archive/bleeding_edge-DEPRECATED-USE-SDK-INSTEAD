@@ -37,7 +37,15 @@ public class ServerDebugVariable extends ServerDebugElement implements IVariable
   public String getDisplayName() {
     // TODO(devoncarew): handle array elements
 
-    return getName();
+    // The names of private fields are mangled by the VM.
+    // _foo@652376 ==> _foo
+    String name = getName();
+
+    if (name.indexOf('@') != -1) {
+      name = name.substring(0, name.indexOf('@'));
+    }
+
+    return name;
   }
 
   @Override
@@ -47,12 +55,11 @@ public class ServerDebugVariable extends ServerDebugElement implements IVariable
 
   @Override
   public String getReferenceTypeName() throws DebugException {
-    // TODO Auto-generated method stub
-    return null;
+    return getValue().getReferenceTypeName();
   }
 
   @Override
-  public IValue getValue() throws DebugException {
+  public IValue getValue() {
     return value;
   }
 
@@ -77,36 +84,33 @@ public class ServerDebugVariable extends ServerDebugElement implements IVariable
 
   @Override
   public void setValue(IValue value) throws DebugException {
-    // TODO Auto-generated method stub
+    // Not supported.
 
   }
 
   @Override
   public void setValue(String expression) throws DebugException {
-    // TODO Auto-generated method stub
+    // Not supported.
 
   }
 
   @Override
   public boolean supportsValueModification() {
-    // TODO Auto-generated method stub
     return false;
   }
 
   @Override
   public boolean verifyValue(IValue value) throws DebugException {
-    // TODO Auto-generated method stub
+    // Not supported.
+
     return false;
   }
 
   @Override
   public boolean verifyValue(String expression) throws DebugException {
-    // TODO Auto-generated method stub
-    return false;
-  }
+    // Not supported.
 
-  protected void fillInValueFieldsAsync() {
-    value.fillInFieldsAsync();
+    return false;
   }
 
 }

@@ -19,7 +19,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -27,39 +26,57 @@ import java.util.List;
  */
 public class VmLibrary {
 
-  static List<VmLibrary> createFrom(JSONArray arr) throws JSONException {
-    if (arr == null) {
-      return Collections.emptyList();
-    }
-
-    List<VmLibrary> result = new ArrayList<VmLibrary>();
-
-    for (int i = 0; i < arr.length(); i++) {
-      result.add(VmLibrary.createFrom(arr.getJSONObject(i)));
-    }
-
-    return result;
-  }
-
-  static VmLibrary createFrom(JSONObject obj) {
+  static VmLibrary createFrom(int libraryId, JSONObject obj) throws JSONException {
     VmLibrary lib = new VmLibrary();
 
-    lib.id = obj.optInt("id");
+    // url
+    // imports
+    // globals
+
+    lib.libraryId = libraryId;
+
+    // url
     lib.url = obj.optString("url");
+
+    // imports
+    lib.importedLibraryIds = new ArrayList<Integer>();
+
+    JSONArray arr = obj.getJSONArray("imports");
+
+    for (int i = 0; i < arr.length(); i++) {
+      JSONObject entry = arr.getJSONObject(i);
+
+      lib.importedLibraryIds.add(entry.getInt("libraryId"));
+    }
+
+    // globals
+    lib.globals = VmVariable.createFrom(obj.optJSONArray("globals"));
 
     return lib;
   }
 
-  private int id;
+  private int libraryId;
 
   private String url;
+
+  private List<Integer> importedLibraryIds;
+
+  private List<VmVariable> globals;
 
   private VmLibrary() {
 
   }
 
-  public int getId() {
-    return id;
+  public List<VmVariable> getGlobals() {
+    return globals;
+  }
+
+  public List<Integer> getImportedLibraryIds() {
+    return importedLibraryIds;
+  }
+
+  public int getLibraryId() {
+    return libraryId;
   }
 
   public String getUrl() {
@@ -68,7 +85,7 @@ public class VmLibrary {
 
   @Override
   public String toString() {
-    return "[" + id + "," + url + "]";
+    return "[" + libraryId + "," + url + "]";
   }
 
 }

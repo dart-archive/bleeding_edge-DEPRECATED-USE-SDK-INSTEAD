@@ -140,7 +140,9 @@ public class VmConnection {
       sendRequest(request, new Callback() {
         @Override
         public void handleResult(JSONObject result) throws JSONException {
-          callback.handleResult(convertGetClassPropertiesResult(classId, result));
+          VmResult<VmClass> vmClassResult = convertGetClassPropertiesResult(classId, result);
+
+          callback.handleResult(vmClassResult);
         }
       });
     } catch (JSONException exception) {
@@ -148,13 +150,38 @@ public class VmConnection {
     }
   }
 
-  public void getLibraries(final VmCallback<List<VmLibrary>> callback) throws IOException {
+  public void getLibraries(final VmCallback<List<VmLibraryRef>> callback) throws IOException {
     sendSimpleCommand("getLibraries", new Callback() {
       @Override
       public void handleResult(JSONObject result) throws JSONException {
         callback.handleResult(convertGetLibrariesResult(result));
       }
     });
+  }
+
+  public void getLibraryProperties(final int libraryId, final VmCallback<VmLibrary> callback)
+      throws IOException {
+    if (callback == null) {
+      throw new IllegalArgumentException("a callback is required");
+    }
+
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "getLibraryProperties");
+      request.put("params", new JSONObject().put("libraryId", libraryId));
+
+      sendRequest(request, new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          VmResult<VmLibrary> retValue = convertGetLibraryPropertiesResult(libraryId, result);
+
+          callback.handleResult(retValue);
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
   }
 
   public void getObjectProperties(final int objectId, final VmCallback<VmObject> callback)
@@ -172,7 +199,9 @@ public class VmConnection {
       sendRequest(request, new Callback() {
         @Override
         public void handleResult(JSONObject result) throws JSONException {
-          callback.handleResult(convertGetObjectPropertiesResult(objectId, result));
+          VmResult<VmObject> vmObjectResult = convertGetObjectPropertiesResult(objectId, result);
+
+          callback.handleResult(vmObjectResult);
         }
       });
     } catch (JSONException exception) {
@@ -215,14 +244,14 @@ public class VmConnection {
       try {
         final CountDownLatch latch = new CountDownLatch(1);
 
-        getLibraries(new VmCallback<List<VmLibrary>>() {
+        getLibraries(new VmCallback<List<VmLibraryRef>>() {
           @Override
-          public void handleResult(VmResult<List<VmLibrary>> result) {
+          public void handleResult(VmResult<List<VmLibraryRef>> result) {
             if (result.isError()) {
               sourceCache.put(url, null);
               latch.countDown();
             } else {
-              for (VmLibrary library : result.getResult()) {
+              for (VmLibraryRef library : result.getResult()) {
                 if (url.equals(library.getUrl())) {
                   try {
                     getScriptSource(library.getId(), url, new VmCallback<String>() {
@@ -433,6 +462,22 @@ public class VmConnection {
     }
   }
 
+//  void resolveSuperClass(final VmClass vmClass, final VmCallback<VmClass> callback)
+//      throws IOException {
+//    getClassProperties(object.getClassId(), new VmCallback<VmClass>() {
+//      @Override
+//      public void handleResult(VmResult<VmClass> result) {
+//        if (!result.isError()) {
+//          object.setClassObject(result.getResult());
+//        }
+//
+//        if (callback != null) {
+//          callback.handleResult(result);
+//        }
+//      }
+//    });
+//  }
+
   void sendRequest(JSONObject request, Callback callback) throws IOException {
     int id = 0;
 
@@ -475,12 +520,24 @@ public class VmConnection {
     return result;
   }
 
-  private VmResult<List<VmLibrary>> convertGetLibrariesResult(JSONObject object)
+  private VmResult<List<VmLibraryRef>> convertGetLibrariesResult(JSONObject object)
       throws JSONException {
-    VmResult<List<VmLibrary>> result = VmResult.createFrom(object);
+    VmResult<List<VmLibraryRef>> result = VmResult.createFrom(object);
 
     if (object.has("result")) {
-      result.setResult(VmLibrary.createFrom(object.getJSONObject("result").optJSONArray("libraries")));
+      result.setResult(VmLibraryRef.createFrom(object.getJSONObject("result").optJSONArray(
+          "libraries")));
+    }
+
+    return result;
+  }
+
+  private VmResult<VmLibrary> convertGetLibraryPropertiesResult(int libraryId, JSONObject object)
+      throws JSONException {
+    VmResult<VmLibrary> result = VmResult.createFrom(object);
+
+    if (object.has("result")) {
+      result.setResult(VmLibrary.createFrom(libraryId, object.getJSONObject("result")));
     }
 
     return result;
@@ -566,6 +623,12 @@ public class VmConnection {
 
         callback.handleResolved(breakpoint);
       }
+    }
+  }
+
+  private void notifyDebuggerResumed() {
+    for (VmListener listener : listeners) {
+      listener.debuggerResumed();
     }
   }
 
@@ -694,9 +757,7 @@ public class VmConnection {
         VmResult<String> response = VmResult.createFrom(result);
 
         if (!response.isError()) {
-          for (VmListener listener : listeners) {
-            listener.debuggerResumed();
-          }
+          notifyDebuggerResumed();
         }
       }
     };

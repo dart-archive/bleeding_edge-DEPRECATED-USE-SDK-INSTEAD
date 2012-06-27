@@ -89,6 +89,10 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     return -1;
   }
 
+  public String getExceptionDisplayText() {
+    return "Exception: " + ((ServerDebugValue) locals.get(0).getValue()).getDisplayString();
+  }
+
   @Override
   public int getLineNumber() throws DebugException {
     return vmFrame.getLocation().getLineNumber();
@@ -139,6 +143,10 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
   @Override
   public boolean hasVariables() throws DebugException {
     return getVariables().length > 0;
+  }
+
+  public boolean isException() {
+    return isExceptionStackFrame;
   }
 
   @Override
@@ -198,10 +206,6 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     newLocals.addAll(locals);
 
     locals = newLocals;
-  }
-
-  protected boolean isException() {
-    return isExceptionStackFrame;
   }
 
   private List<ServerDebugVariable> createFrom(VmCallFrame frame) {

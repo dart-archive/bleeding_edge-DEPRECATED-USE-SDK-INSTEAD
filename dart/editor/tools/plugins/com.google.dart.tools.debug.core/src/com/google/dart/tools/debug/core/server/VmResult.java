@@ -32,7 +32,16 @@ public class VmResult<T> {
     return result;
   }
 
+  static <T> VmResult<T> createFrom(T object) {
+    VmResult<T> result = new VmResult<T>();
+
+    result.setResult(object);
+
+    return result;
+  }
+
   private String error;
+
   private T result;
 
   VmResult() {

@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.dartium.DartiumDebugValue.ValueCallback;
 import com.google.dart.tools.debug.core.source.ISourceLookup;
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
 import com.google.dart.tools.debug.core.webkit.WebkitLocation;
@@ -33,6 +34,8 @@ import org.eclipse.debug.core.model.IVariable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The IStackFrame implementation for the dartium debug elements. This stack frame element
@@ -113,6 +116,36 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     return -1;
   }
 
+  public String getExceptionDisplayText() {
+    DartiumDebugVariable variable;
+
+    try {
+      variable = (DartiumDebugVariable) variableCollector.getVariables()[0];
+    } catch (InterruptedException ie) {
+      return null;
+    }
+
+    final String[] result = new String[1];
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    ((DartiumDebugValue) variable.getValue()).computeDetail(new ValueCallback() {
+      @Override
+      public void detailComputed(String stringValue) {
+        result[0] = stringValue;
+
+        latch.countDown();
+      }
+    });
+
+    try {
+      latch.await(1000, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      return "Exception: " + ((DartiumDebugValue) variable.getValue()).getDisplayString();
+    }
+
+    return "Exception: " + result[0];
+  }
+
   @Override
   public int getLineNumber() throws DebugException {
     return WebkitLocation.webkitToElipseLine(webkitFrame.getLocation().getLineNumber());
@@ -175,6 +208,10 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     return getVariables().length > 0;
   }
 
+  public boolean isException() {
+    return isExceptionStackFrame;
+  }
+
   public boolean isPrivateMethod() {
     return webkitFrame.isPrivateMethod();
   }
@@ -222,10 +259,6 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   @Override
   public void terminate() throws DebugException {
     getThread().terminate();
-  }
-
-  protected boolean isException() {
-    return isExceptionStackFrame;
   }
 
   /**

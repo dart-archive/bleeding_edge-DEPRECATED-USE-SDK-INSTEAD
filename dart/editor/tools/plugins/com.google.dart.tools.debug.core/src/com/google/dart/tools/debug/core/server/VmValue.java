@@ -43,6 +43,8 @@ public class VmValue {
 
   private int objectId;
 
+  private VmObject vmObject;
+
   private VmValue() {
 
   }
@@ -62,6 +64,10 @@ public class VmValue {
     return text;
   }
 
+  public VmObject getVmObject() {
+    return vmObject;
+  }
+
   public boolean isObject() {
     return "object".equals(getKind());
   }
@@ -73,6 +79,10 @@ public class VmValue {
   @Override
   public String toString() {
     return getKind() + "," + getText();
+  }
+
+  void setVmObject(VmObject object) {
+    this.vmObject = object;
   }
 
 }

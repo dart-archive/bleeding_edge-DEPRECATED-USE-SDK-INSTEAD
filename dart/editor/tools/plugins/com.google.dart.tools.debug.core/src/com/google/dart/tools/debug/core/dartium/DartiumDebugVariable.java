@@ -86,7 +86,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
   }
 
   @Override
-  public IValue getValue() throws DebugException {
+  public IValue getValue() {
     if (value == null) {
       value = new DartiumDebugValue(getTarget(), this, descriptor.getValue());
     }
