@@ -377,7 +377,7 @@ class _GridTrackParser extends _Parser {
       }
 
       if (resultTracks != null) {
-        if (_peekChar() == R_PAREN) {
+        if (_peekChar() == _Parser.R_PAREN) {
           return;
         }
         resultTracks.add(new GridTrack(_parseTrackMinmax()));

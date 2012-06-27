@@ -18,7 +18,6 @@ chat/*: Skip
 chat/chat_server_test: Skip # Uses dart:io
 
 [ $runtime == drt ]
-lib/layout/layout_test: Skip # Issue 152
 lib/touch/touch_test: Skip # Issue 157
 
 [ $compiler == none && $runtime == drt ]
