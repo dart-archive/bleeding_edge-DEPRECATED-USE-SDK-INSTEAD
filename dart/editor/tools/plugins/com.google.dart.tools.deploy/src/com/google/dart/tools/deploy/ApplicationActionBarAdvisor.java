@@ -741,6 +741,11 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   private void addViewActions(MenuManager menu) {
     IViewDescriptor viewDesc;
 
+    if (DartCoreDebug.ENABLE_APPS_VIEW) {
+      viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_APPS_VIEW);
+      menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+    }
+
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_CALL_HIERARCHY);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
@@ -750,19 +755,16 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_FILE_EXPLORER);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
-    if (DartCoreDebug.ENABLE_APPS_VIEW) {
-      viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_APPS_VIEW);
-      menu.add(new AccessibleShowViewAction(window, viewDesc, false));
-    }
-
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(IPageLayout.ID_OUTLINE);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
-//    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartConsoleView.VIEW_ID);
-//    menu.add(new AccessibleShowViewAction(window, viewDesc, false));
-
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_PROBLEMS);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+
+    if (DartCoreDebug.ENABLE_TESTS_VIEW) {
+      viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_DARTUNIT_VIEW);
+      menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+    }
   }
 
   /**

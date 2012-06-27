@@ -407,6 +407,15 @@
             allowMultiple="true"
             id="com.google.dart.tools.ui.callhierarchy.view">
       </view>
+      
+      <view
+            category="com.google.dart.tools.ui.dart"
+            class="com.google.dart.tools.ui.internal.testing.DartUnitView"
+            icon="icons/full/tests/testok.gif"
+            id="com.google.dart.tools.ui.DartUnitView"
+            name="Tests"
+            restorable="true">
+      </view>
    </extension>
 
    <extension

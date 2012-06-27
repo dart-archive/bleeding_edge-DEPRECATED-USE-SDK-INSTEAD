@@ -182,6 +182,11 @@ public final class DartUI {
   public static final String ID_FILE_VIEW = "com.google.dart.tools.ui.FilesView"; //$NON-NLS-1$
 
   /**
+   * The view part id of the Tests view (<code>"com.google.dart.tools.ui.DartUnitView"</code>).
+   */
+  public static final String ID_DARTUNIT_VIEW = "com.google.dart.tools.ui.DartUnitView"; //$NON-NLS-1$
+
+  /**
    * The view part id of the JavaScript Documentation view (value
    * <code>"com.google.dart.tools.ui.JavadocView"</code>).
    * 
