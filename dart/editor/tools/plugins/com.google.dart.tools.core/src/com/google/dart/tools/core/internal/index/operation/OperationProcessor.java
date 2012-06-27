@@ -186,10 +186,8 @@ public class OperationProcessor {
    * @return <code>true</code> if this processor is running
    */
   private boolean isRunning() {
-    int queueSize = queue.size();
     synchronized (this) {
-      return state == ProcessorState.RUNNING
-          || (state == ProcessorState.STOP_REQESTED && queueSize > 0);
+      return state == ProcessorState.RUNNING;
     }
   }
 }

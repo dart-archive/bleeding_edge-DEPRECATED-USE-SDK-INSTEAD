@@ -291,20 +291,19 @@ public class InMemoryIndex implements Index {
         return;
       }
       hasBeenInitialized = true;
+      // TODO(brianwilkerson) Uncomment the lines below once we have solved the problem of ensuring
+      // that the index will be made consistent on start-up.
+//      indexStore.clear();
+//      if (!initializeIndexFrom(getIndexFile())) {
       indexStore.clear();
-      if (!initializeIndexFrom(getIndexFile())) {
-        indexStore.clear();
-        if (!initializeBundledLibraries()) {
-          return;
-        }
-        if (!indexUserLibraries()) {
-          indexStore.clear();
-          initializeBundledLibraries();
-          // TODO(brianwilkerson) Remove the line above and restore the line below once we are able
-          // to write out the initial index file.
-//          initializeIndexFrom(getInitialIndexFile());
-        }
+      if (!initializeBundledLibraries()) {
+        return;
       }
+      if (!indexUserLibraries()) {
+        indexStore.clear();
+        initializeBundledLibraries();
+      }
+//      }
     }
   }
 
@@ -381,7 +380,15 @@ public class InMemoryIndex implements Index {
   public void shutdown() {
     synchronized (indexStore) {
       if (hasBeenInitialized) {
-        writeIndexTo(getIndexFile());
+        if (hasPendingClear()) {
+          try {
+            getIndexFile().delete();
+          } catch (Exception exception) {
+            DartCore.logError("Could not delete the index file", exception);
+          }
+        } else {
+          writeIndexTo(getIndexFile());
+        }
       }
     }
   }
@@ -416,6 +423,21 @@ public class InMemoryIndex implements Index {
   private File getInitialIndexFile() {
     //DartCore.getPlugin().getBundle().getResource(INITIAL_INDEX_FILE).openStream();
     return new File(DartCore.getPlugin().getStateLocation().toFile(), INITIAL_INDEX_FILE);
+  }
+
+  /**
+   * Return <code>true</code> if there is an operation on the queue to clear the index. We can
+   * effectively do so by deleting the index file from disk.
+   * 
+   * @return <code>true</code> if there is an operation on the queue to clear the index
+   */
+  private boolean hasPendingClear() {
+    for (IndexOperation operation : queue.getOperations()) {
+      if (operation instanceof ClearIndexOperation) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
