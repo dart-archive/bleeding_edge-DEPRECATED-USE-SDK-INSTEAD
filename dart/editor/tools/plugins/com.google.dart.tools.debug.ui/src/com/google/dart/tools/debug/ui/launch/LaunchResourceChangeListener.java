@@ -39,7 +39,17 @@ public class LaunchResourceChangeListener implements IResourceChangeListener, IR
   @Override
   public void resourceChanged(IResourceChangeEvent event) {
     try {
-      event.getResource().accept(this);
+      IResource resource = event.getResource();
+
+      if (resource instanceof IProject) {
+        IProject project = (IProject) resource;
+
+        if (project.isOpen()) {
+          project.accept(this);
+        }
+      } else {
+        resource.accept(this);
+      }
     } catch (Exception e) {
       DartCore.logError("Failed to process resource changes for " + event.getResource(), e);
     }

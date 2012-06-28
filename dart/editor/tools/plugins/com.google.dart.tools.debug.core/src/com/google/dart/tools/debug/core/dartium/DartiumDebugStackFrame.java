@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.core.dartium;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue.ValueCallback;
 import com.google.dart.tools.debug.core.source.ISourceLookup;
+import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
 import com.google.dart.tools.debug.core.webkit.WebkitLocation;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
@@ -42,7 +43,7 @@ import java.util.concurrent.TimeUnit;
  * represents a Dart frame.
  */
 public class DartiumDebugStackFrame extends DartiumDebugElement implements IStackFrame,
-    ISourceLookup {
+    ISourceLookup, IExceptionStackFrame {
   private IThread thread;
   private WebkitCallFrame webkitFrame;
   private boolean isExceptionStackFrame;
@@ -69,17 +70,17 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
 
   @Override
   public boolean canStepInto() {
-    return !isException() && getThread().canStepInto();
+    return !hasException() && getThread().canStepInto();
   }
 
   @Override
   public boolean canStepOver() {
-    return !isException() && getThread().canStepOver();
+    return !hasException() && getThread().canStepOver();
   }
 
   @Override
   public boolean canStepReturn() {
-    return !isException() && getThread().canStepReturn();
+    return !hasException() && getThread().canStepReturn();
   }
 
   @Override
@@ -199,6 +200,11 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   @Override
+  public boolean hasException() {
+    return isExceptionStackFrame;
+  }
+
+  @Override
   public boolean hasRegisterGroups() throws DebugException {
     return false;
   }
@@ -206,10 +212,6 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   @Override
   public boolean hasVariables() throws DebugException {
     return getVariables().length > 0;
-  }
-
-  public boolean isException() {
-    return isExceptionStackFrame;
   }
 
   public boolean isPrivateMethod() {

@@ -570,4 +570,34 @@
       </page>
    </extension>
 
+   <!-- exception on breakpoint annotation -->
+   
+   <extension point="org.eclipse.ui.editors.annotationTypes">
+      <type
+         name="org.eclipse.debug.ui.currentIPEx">
+      </type>
+   </extension>   
+   
+   <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
+            icon="icons/obj16/inst_ptr_exception.png"
+            annotationType="org.eclipse.debug.ui.currentIPEx"
+            colorPreferenceKey="currentIPColorEx"
+            colorPreferenceValue="255,150,150"
+            highlightPreferenceKey="currentIPHighlight"
+            highlightPreferenceValue="true"
+            label="Debug Current Instruction Pointer"
+            overviewRulerPreferenceKey="currentIPOverviewRuler"
+            overviewRulerPreferenceValue="true"
+            presentationLayer="6"
+            textPreferenceKey="currentIPIndication"
+            textPreferenceValue="false"
+            verticalRulerPreferenceKey="currentIPVerticalRuler"
+            verticalRulerPreferenceValue="true"
+            textStylePreferenceKey="currentIPTextStyle"
+            textStylePreferenceValue="NONE"
+            includeOnPreferencePage="false">
+      </specification>
+   </extension>
+   
 </plugin>

@@ -18,6 +18,7 @@ import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.debug.core.source.ISourceLookup;
+import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -35,7 +36,8 @@ import java.util.List;
  * The IStackFrame implementation for the VM debug elements. This stack frame element represents a
  * Dart frame.
  */
-public class ServerDebugStackFrame extends ServerDebugElement implements IStackFrame, ISourceLookup {
+public class ServerDebugStackFrame extends ServerDebugElement implements IStackFrame,
+    ISourceLookup, IExceptionStackFrame {
   private IThread thread;
   private VmCallFrame vmFrame;
   private boolean isExceptionStackFrame;
@@ -56,17 +58,17 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 
   @Override
   public boolean canStepInto() {
-    return !isException() && getThread().canStepInto();
+    return !hasException() && getThread().canStepInto();
   }
 
   @Override
   public boolean canStepOver() {
-    return !isException() && getThread().canStepOver();
+    return !hasException() && getThread().canStepOver();
   }
 
   @Override
   public boolean canStepReturn() {
-    return !isException() && getThread().canStepReturn();
+    return !hasException() && getThread().canStepReturn();
   }
 
   @Override
@@ -89,6 +91,7 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     return -1;
   }
 
+  @Override
   public String getExceptionDisplayText() {
     return "Exception: " + ((ServerDebugValue) locals.get(0).getValue()).getDisplayString();
   }
@@ -136,6 +139,11 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
   }
 
   @Override
+  public boolean hasException() {
+    return isExceptionStackFrame;
+  }
+
+  @Override
   public boolean hasRegisterGroups() throws DebugException {
     return false;
   }
@@ -143,10 +151,6 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
   @Override
   public boolean hasVariables() throws DebugException {
     return getVariables().length > 0;
-  }
-
-  public boolean isException() {
-    return isExceptionStackFrame;
   }
 
   @Override
@@ -213,6 +217,8 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
       return Collections.emptyList();
     } else {
       List<ServerDebugVariable> variables = new ArrayList<ServerDebugVariable>();
+
+      // TODO: create a synthetic library variable
 
       for (VmVariable var : frame.getLocals()) {
         ServerDebugVariable serverVariable = new ServerDebugVariable(getTarget(), var);
