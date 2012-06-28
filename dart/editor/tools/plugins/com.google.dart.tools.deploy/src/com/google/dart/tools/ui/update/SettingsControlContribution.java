@@ -141,8 +141,10 @@ public class SettingsControlContribution extends UpdateAdapter implements Dispos
     asyncExec(new Runnable() {
       @Override
       public void run() {
-        settingsButton.setImage(updateState.getButtonImage());
-        settingsButton.setToolTipText(updateState.getTooltipText());
+        if (!settingsButton.isDisposed()) {
+          settingsButton.setImage(updateState.getButtonImage());
+          settingsButton.setToolTipText(updateState.getTooltipText());
+        }
       }
     });
   }
