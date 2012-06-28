@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.core.analysis;
+package com.google.dart.tools.core.analysis.index;
 
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ErrorCode;
@@ -20,6 +20,10 @@ import com.google.dart.compiler.SubSystem;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.AnalysisError;
+import com.google.dart.tools.core.analysis.AnalysisEvent;
+import com.google.dart.tools.core.analysis.AnalysisListener;
+import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 
 import org.eclipse.core.resources.IMarker;
@@ -37,7 +41,7 @@ import java.util.Collection;
  * Updates problem markers on a background thread based upon information from the
  * {@link AnalysisServer}.
  */
-public class AnalysisMarkerManager implements AnalysisListener {
+class AnalysisMarkerManager implements AnalysisListener {
 
   /**
    * Adds markers for the specified errors and warnings

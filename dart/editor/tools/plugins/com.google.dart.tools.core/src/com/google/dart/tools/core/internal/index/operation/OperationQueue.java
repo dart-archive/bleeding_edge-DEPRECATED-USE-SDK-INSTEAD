@@ -34,6 +34,12 @@ public class OperationQueue {
   private ArrayList<IndexOperation> queryOperations = new ArrayList<IndexOperation>();
 
   /**
+   * <code>true</code> if query operations should be returned by {@link #dequeue(long)} or
+   * <code>false</code> if not.
+   */
+  private boolean processQueries = true;
+
+  /**
    * Initialize a newly created operation queue to be empty.
    */
   public OperationQueue() {
@@ -42,13 +48,13 @@ public class OperationQueue {
 
   /**
    * If this queue is not empty, then remove the next operation from the head of this queue and
-   * return it. If this queue is empty, then the behavior of this method depends on the value of the
-   * argument. If the argument is less than or equal to zero (<code>0</code>), then
-   * <code>null</code> will be returned immediately. If the argument is greater than zero, then this
-   * method will wait until at least one operation has been added to this queue or until the given
-   * amount of time has passed. If, at the end of that time, this queue is empty, then
-   * <code>null</code> will be returned. If this queue is not empty, then the first operation will
-   * be removed and returned.
+   * return it. If this queue is empty (see {@link #setProcessQueries(boolean)}, then the behavior
+   * of this method depends on the value of the argument. If the argument is less than or equal to
+   * zero (<code>0</code>), then <code>null</code> will be returned immediately. If the argument is
+   * greater than zero, then this method will wait until at least one operation has been added to
+   * this queue or until the given amount of time has passed. If, at the end of that time, this
+   * queue is empty, then <code>null</code> will be returned. If this queue is not empty, then the
+   * first operation will be removed and returned.
    * <p>
    * Note that <code>null</code> can be returned, even if a positive timeout is given.
    * <p>
@@ -64,7 +70,7 @@ public class OperationQueue {
    */
   public IndexOperation dequeue(long timeout) throws InterruptedException {
     synchronized (nonQueryOperations) {
-      if (nonQueryOperations.isEmpty() && queryOperations.isEmpty()) {
+      if (nonQueryOperations.isEmpty() && (!processQueries || queryOperations.isEmpty())) {
         if (timeout <= 0L) {
           return null;
         }
@@ -73,7 +79,7 @@ public class OperationQueue {
       if (!nonQueryOperations.isEmpty()) {
         return nonQueryOperations.remove(0);
       }
-      if (!queryOperations.isEmpty()) {
+      if (processQueries && !queryOperations.isEmpty()) {
         return queryOperations.remove(0);
       }
       return null;
@@ -122,6 +128,25 @@ public class OperationQueue {
       operations.addAll(queryOperations);
     }
     return operations;
+  }
+
+  /**
+   * Set whether the receiver's {@link #dequeue(long)} method should return query operations.
+   * 
+   * @param processQueries <code>true</code> if the receiver's {@link #dequeue(long)} method should
+   *          return query operations or <code>false</code> if query operations should be queued but
+   *          not returned by the receiver's {@link #dequeue(long)} method until this method is
+   *          called with a value of <code>true</code>.
+   */
+  public void setProcessQueries(boolean processQueries) {
+    synchronized (nonQueryOperations) {
+      if (this.processQueries != processQueries) {
+        this.processQueries = processQueries;
+        if (processQueries && !queryOperations.isEmpty()) {
+          nonQueryOperations.notifyAll();
+        }
+      }
+    }
   }
 
   /**

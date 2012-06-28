@@ -27,9 +27,9 @@ import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartPreferenceConstants;
+import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.generator.DartProjectGenerator;
-import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.delta.DartElementDeltaBuilder;
 import com.google.dart.tools.core.internal.model.delta.DeltaProcessingState;
 import com.google.dart.tools.core.internal.model.delta.DeltaProcessor;
@@ -1701,10 +1701,6 @@ public class DartModelManager {
     // // Stop listening to content-type changes
     // Platform.getContentTypeManager().removeContentTypeChangeListener(this);
 
-    // Stop indexing
-    InMemoryIndex.getInstance().getOperationProcessor().stop(true);
-    InMemoryIndex.getInstance().shutdown();
-
     // Stop listening to preferences changes
     preferences.removePreferenceChangeListener(propertyListener);
     ((IEclipsePreferences) preferencesLookup[PREF_DEFAULT].parent()).removeNodeChangeListener(defaultNodeListener);
@@ -1725,18 +1721,6 @@ public class DartModelManager {
 
     // Note: no need to close the Dart model as this just removes Dart element
     // infos from the Dart model cache
-  }
-
-  /**
-   * Initiate the background indexing process. This should be deferred after the plug-in activation.
-   */
-  private void startIndexing() {
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        InMemoryIndex.getInstance().getOperationProcessor().run();
-      }
-    }, "Index Operation Processor").start(); //$NON-NLS-1$
   }
 
   private void startupImpl() {
@@ -1803,7 +1787,7 @@ public class DartModelManager {
 //       | IResourceChangeEvent.PRE_REFRESH
       );
 
-      startIndexing();
+      AnalysisIndexManager.startIndexing();
 
       ResourceUtil.startup();
       DartCore.notYetImplemented();

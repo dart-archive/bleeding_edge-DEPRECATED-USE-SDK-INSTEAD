@@ -20,7 +20,6 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.ResolveCallback;
 import com.google.dart.tools.core.analysis.SavedContext;
 import com.google.dart.tools.core.index.Attribute;
 import com.google.dart.tools.core.index.AttributeCallback;
@@ -261,7 +260,10 @@ public class InMemoryIndex implements Index {
     } else {
       indexerResource = ResourceFactory.getResource(compilationUnit);
     }
-    indexResource(indexerResource, compilationUnit, dartUnit);
+
+    // Queue the resource to be indexed
+
+    indexResource(indexerResource, libraryFile, compilationUnit, dartUnit);
   }
 
   /**
@@ -269,14 +271,18 @@ public class InMemoryIndex implements Index {
    * data and relationships found within the resource.
    * 
    * @param resource the resource containing the elements defined in the compilation unit
+   * @param libraryFile the library file defining the library containing the compilation unit to be
+   *          indexed or <code>null</code> if the library is not on disk
    * @param compilationUnit the compilation unit being indexed
    * @param unit the compilation unit to be indexed
    */
   @Override
-  public void indexResource(Resource resource, CompilationUnit compilationUnit, DartUnit unit) {
+  public void indexResource(Resource resource, File libraryFile, CompilationUnit compilationUnit,
+      DartUnit unit) {
     queue.enqueue(new IndexResourceOperation(
         indexStore,
         resource,
+        libraryFile,
         compilationUnit,
         unit,
         performanceRecorder));
@@ -291,19 +297,17 @@ public class InMemoryIndex implements Index {
         return;
       }
       hasBeenInitialized = true;
-      // TODO(brianwilkerson) Uncomment the lines below once we have solved the problem of ensuring
-      // that the index will be made consistent on start-up.
-//      indexStore.clear();
-//      if (!initializeIndexFrom(getIndexFile())) {
       indexStore.clear();
-      if (!initializeBundledLibraries()) {
-        return;
-      }
-      if (!indexUserLibraries()) {
+      if (!initializeIndexFrom(getIndexFile())) {
         indexStore.clear();
-        initializeBundledLibraries();
+        if (!initializeBundledLibraries()) {
+          return;
+        }
+        if (!indexUserLibraries()) {
+          indexStore.clear();
+          initializeBundledLibraries();
+        }
       }
-//      }
     }
   }
 
@@ -375,6 +379,17 @@ public class InMemoryIndex implements Index {
           + performanceRecorder.getTotalBindingTime() + " ms in binding]");
       performanceRecorder.clear();
     }
+  }
+
+  /**
+   * Set whether the index should process query requests.
+   * 
+   * @param processQueries <code>true</code> if the index should process incomming query requests or
+   *          <code>false</code> if query requests should be queued but not processed until this
+   *          method is called with a value of <code>true</code>.
+   */
+  public void setProcessQueries(boolean processQueries) {
+    queue.setProcessQueries(processQueries);
   }
 
   public void shutdown() {
@@ -459,10 +474,7 @@ public class InMemoryIndex implements Index {
       try {
         URI libraryUri = new URI(urlSpec);
         File libraryFile = new File(libraryManager.resolveDartUri(libraryUri));
-        ResolveCallback.Sync callback = new ResolveCallback.Sync();
-        savedContext.resolve(libraryFile, callback);
-        // Block until library is resolved so that we know it has been indexed
-        callback.waitForResolve(5 * 60 * 1000); // Five minutes
+        savedContext.resolve(libraryFile, null);
       } catch (URISyntaxException exception) {
         librariesIndexed = false;
         DartCore.logError("Invalid URI returned from the system library manager: \"" + urlSpec
@@ -504,10 +516,7 @@ public class InMemoryIndex implements Index {
             continue;
           }
           File libraryFile = libraryLocation.toFile();
-          ResolveCallback.Sync callback = new ResolveCallback.Sync();
-          savedContext.resolve(libraryFile, callback);
-          // Block until library is resolved so that we know it has been indexed
-          callback.waitForResolve(5 * 60 * 1000); // Five minutes
+          savedContext.resolve(libraryFile, null);
         }
       }
     } catch (Exception exception) {

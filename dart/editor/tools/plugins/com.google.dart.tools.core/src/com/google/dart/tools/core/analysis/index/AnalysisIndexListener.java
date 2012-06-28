@@ -11,10 +11,13 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.core.analysis;
+package com.google.dart.tools.core.analysis.index;
 
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.AnalysisEvent;
+import com.google.dart.tools.core.analysis.AnalysisListener;
+import com.google.dart.tools.core.analysis.IdleListener;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 
 import java.io.File;
@@ -23,14 +26,14 @@ import java.util.Map.Entry;
 /**
  * Forwards resolved units to the indexServer for processing
  */
-public class AnalysisIndexManager implements AnalysisListener {
+class AnalysisIndexListener implements AnalysisListener, IdleListener {
   private final InMemoryIndex index;
 
-  public AnalysisIndexManager() {
+  public AnalysisIndexListener() {
     index = InMemoryIndex.getInstance();
   }
 
-  public AnalysisIndexManager(InMemoryIndex index) {
+  public AnalysisIndexListener(InMemoryIndex index) {
     this.index = index;
   }
 
@@ -41,6 +44,11 @@ public class AnalysisIndexManager implements AnalysisListener {
     for (File sourceFile : event.getFiles()) {
       index.removeResource(libraryFile, sourceFile);
     }
+  }
+
+  @Override
+  public void idle(boolean idle) {
+    index.setProcessQueries(idle);
   }
 
   @Override

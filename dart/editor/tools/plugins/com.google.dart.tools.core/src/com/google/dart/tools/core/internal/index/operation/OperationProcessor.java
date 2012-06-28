@@ -15,8 +15,8 @@ package com.google.dart.tools.core.internal.index.operation;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.CompilationUnit;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
@@ -137,8 +137,10 @@ public class OperationProcessor {
    * 
    * @param wait <code>true</code> if this method will wait until the last operation has completed
    *          before returning
+   * @return the library files for the libraries that need to be analyzed when a new session is
+   *         started.
    */
-  public CompilationUnit[] stop(boolean wait) {
+  public File[] stop(boolean wait) {
     synchronized (this) {
       if (state == ProcessorState.READY) {
         state = ProcessorState.STOPPED;
@@ -165,19 +167,22 @@ public class OperationProcessor {
   }
 
   /**
-   * Return an array containing the compilation units that need to be analyzed when a new session is
+   * Return an array containing the library files that need to be analyzed when a new session is
    * started.
    * 
-   * @return the compilation units that need to be analyzed
+   * @return the library files that need to be analyzed
    */
-  private CompilationUnit[] getUnanalyzedCompilationUnits() {
-    HashSet<CompilationUnit> units = new HashSet<CompilationUnit>();
+  private File[] getUnanalyzedCompilationUnits() {
+    HashSet<File> libraryFiles = new HashSet<File>();
     for (IndexOperation operation : queue.getOperations()) {
       if (operation instanceof IndexResourceOperation) {
-        units.add(((IndexResourceOperation) operation).getCompilationUnit());
+        File libraryFile = ((IndexResourceOperation) operation).getLibraryFile();
+        if (libraryFile != null) {
+          libraryFiles.add(libraryFile);
+        }
       }
     }
-    return units.toArray(new CompilationUnit[units.size()]);
+    return libraryFiles.toArray(new File[libraryFiles.size()]);
   }
 
   /**

@@ -16,9 +16,20 @@ package com.google.dart.tools.core.internal.index.operation;
 import com.google.dart.tools.core.index.Resource;
 
 public class NullOperation implements IndexOperation {
+
+  private final boolean isQuery;
+
+  public NullOperation() {
+    this(false);
+  }
+
+  public NullOperation(boolean isQuery) {
+    this.isQuery = isQuery;
+  }
+
   @Override
   public boolean isQuery() {
-    return false;
+    return isQuery;
   }
 
   @Override

@@ -16,6 +16,8 @@ package com.google.dart.tools.core.index;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
 
+import java.io.File;
+
 /**
  * The interface <code>Index</code> defines the behavior of objects that maintain an index storing
  * information about the {@link Element elements} in a collection of {@link Resource resources}.
@@ -76,10 +78,13 @@ public interface Index {
    * within the resource.
    * 
    * @param resource the resource containing the elements defined in the compilation unit
+   * @param libraryFile the library file defining the library containing the compilation unit to be
+   *          indexed or <code>null</code> if the library is not on disk
    * @param compilationUnit the compilation unit being indexed
    * @param unit the compilation unit to be indexed
    */
-  public void indexResource(Resource resource, CompilationUnit compilationUnit, DartUnit unit);
+  public void indexResource(Resource resource, File libraryFile, CompilationUnit compilationUnit,
+      DartUnit unit);
 
   /**
    * Asynchronously remove from the index all of the information associated with elements or

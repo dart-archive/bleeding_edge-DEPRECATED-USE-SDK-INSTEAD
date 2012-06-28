@@ -13,9 +13,6 @@
  */
 package com.google.dart.tools.core.search;
 
-import static com.google.dart.tools.core.test.util.MoneyProjectUtilities.getMoneyProject;
-import static org.fest.assertions.Assertions.assertThat;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.dart.compiler.DartCompilationError;
@@ -39,11 +36,15 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
+import static com.google.dart.tools.core.test.util.MoneyProjectUtilities.getMoneyProject;
+
 import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.NullProgressMonitor;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1065,6 +1066,7 @@ public class SearchEngineTest extends TestCase {
     for (CompilationUnit unit : units) {
       index.indexResource(
           ResourceFactory.getResource(unit),
+          null,
           unit,
           DartCompilerUtilities.resolveUnit(unit, errors));
     }

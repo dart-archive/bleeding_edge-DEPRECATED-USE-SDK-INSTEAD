@@ -64,9 +64,6 @@ public class DartUIStartup implements IStartup {
     protected IStatus run(IProgressMonitor monitor) {
       try {
         if (!getThread().isInterrupted()) {
-          indexWarmup();
-        }
-        if (!getThread().isInterrupted()) {
           modelWarmup();
         }
         if (!getThread().isInterrupted()) {
@@ -112,19 +109,6 @@ public class DartUIStartup implements IStartup {
     private void detectStartupComplete() {
       if (DartEditorCommandLineManager.MEASURE_PERFORMANCE) {
         Performance.TIME_TO_START_UI.log(DartEditorCommandLineManager.getStartTime());
-      }
-    }
-
-    /**
-     * Initialize the indexer.
-     */
-    private void indexWarmup() {
-      // Warm up the type cache.
-      long start = System.currentTimeMillis();
-      InMemoryIndex.getInstance().initializeIndex();
-      if (DartCoreDebug.WARMUP) {
-        long delta = System.currentTimeMillis() - start;
-        DartCore.logInformation("Warmup Indexer : " + delta);
       }
     }
 

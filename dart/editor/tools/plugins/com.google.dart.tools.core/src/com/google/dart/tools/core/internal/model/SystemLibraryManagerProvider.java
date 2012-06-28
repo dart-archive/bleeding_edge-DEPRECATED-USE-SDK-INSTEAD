@@ -15,17 +15,9 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.AnalysisDebug;
-import com.google.dart.tools.core.analysis.AnalysisIndexManager;
-import com.google.dart.tools.core.analysis.AnalysisMarkerManager;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.EditContext;
-import com.google.dart.tools.core.analysis.SavedContext;
+import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.model.DartSdk;
-
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 
 import java.io.File;
 
@@ -36,13 +28,6 @@ import java.io.File;
 public class SystemLibraryManagerProvider {
   private static final Object lock = new Object();
   private static EditorLibraryManager ANY_LIBRARY_MANAGER;
-
-  private static AnalysisServer defaultAnalysisServer;
-  private static AnalysisMarkerManager markerManager;
-  private static AnalysisDebug analysisDebugSaved;
-  private static AnalysisDebug analysisDebugEdit;
-
-  //private static ResourceChangeListener defaultAnalysisChangeListener;
 
   /**
    * Return the manager for VM libraries
@@ -82,30 +67,7 @@ public class SystemLibraryManagerProvider {
    * Answer the server used to analyze source against the "dart-sdk/lib" directory
    */
   public static AnalysisServer getDefaultAnalysisServer() {
-    synchronized (lock) {
-      if (defaultAnalysisServer == null) {
-        defaultAnalysisServer = new AnalysisServer(getAnyLibraryManager());
-        SavedContext savedContext = defaultAnalysisServer.getSavedContext();
-        EditContext editContext = defaultAnalysisServer.getEditContext();
-        savedContext.addAnalysisListener(new AnalysisIndexManager());
-        markerManager = new AnalysisMarkerManager();
-        savedContext.addAnalysisListener(markerManager);
-        if (DartCoreDebug.DEBUG_ANALYSIS) {
-          analysisDebugSaved = new AnalysisDebug("Saved");
-          defaultAnalysisServer.addIdleListener(analysisDebugSaved);
-          savedContext.addAnalysisListener(analysisDebugSaved);
-          analysisDebugEdit = new AnalysisDebug("Edit");
-          editContext.addAnalysisListener(analysisDebugEdit);
-        }
-        if (!defaultAnalysisServer.readCache()) {
-          for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-            defaultAnalysisServer.scan(project.getLocation().toFile(), true);
-          }
-        }
-        defaultAnalysisServer.start();
-      }
-    }
-    return defaultAnalysisServer;
+    return AnalysisIndexManager.getServer();
   }
 
   /**
@@ -113,28 +75,5 @@ public class SystemLibraryManagerProvider {
    */
   public static EditorLibraryManager getSystemLibraryManager() {
     return getAnyLibraryManager();
-  }
-
-  /**
-   * Stop any active analysis servers
-   */
-  public static void stop() {
-    synchronized (lock) {
-      if (defaultAnalysisServer != null) {
-        if (analysisDebugSaved != null) {
-          analysisDebugSaved.stop();
-          analysisDebugSaved = null;
-        }
-        if (analysisDebugEdit != null) {
-          analysisDebugEdit.stop();
-          analysisDebugEdit = null;
-        }
-        markerManager.stop();
-        markerManager = null;
-        defaultAnalysisServer.stop();
-        defaultAnalysisServer.writeCache();
-        defaultAnalysisServer = null;
-      }
-    }
   }
 }

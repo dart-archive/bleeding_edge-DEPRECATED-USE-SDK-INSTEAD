@@ -23,6 +23,8 @@ import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 
+import java.io.File;
+
 /**
  * Instances of the class <code>IndexResourceOperation</code> implement an operation that adds data
  * to the index based on the content of a specified resource.
@@ -37,6 +39,12 @@ public class IndexResourceOperation implements IndexOperation {
    * The resource being indexed.
    */
   private Resource resource;
+
+  /**
+   * The library file defining the library containing the compilation unit to be indexed or
+   * <code>null</code> if the library is not on disk.
+   */
+  private final File libraryFile;
 
   /**
    * The compilation unit being indexed.
@@ -59,15 +67,18 @@ public class IndexResourceOperation implements IndexOperation {
    * 
    * @param indexStore the index store against which this operation is being run
    * @param resource the resource being indexed
+   * @param libraryFile the library file defining the library containing the compilation unit to be
+   *          indexed or <code>null</code> if the library is not on disk
    * @param compilationUnit the compilation unit being indexed
    * @param unit the fully resolved AST structure representing the contents of the resource
    * @param performanceRecorder the object used to record performance information about this
    *          operation
    */
-  public IndexResourceOperation(IndexStore indexStore, Resource resource,
+  public IndexResourceOperation(IndexStore indexStore, Resource resource, File libraryFile,
       CompilationUnit compilationUnit, DartUnit unit, IndexPerformanceRecorder performanceRecorder) {
     this.indexStore = indexStore;
     this.resource = resource;
+    this.libraryFile = libraryFile;
     this.compilationUnit = compilationUnit;
     this.unit = unit;
     this.performanceRecorder = performanceRecorder;
@@ -80,6 +91,14 @@ public class IndexResourceOperation implements IndexOperation {
    */
   public CompilationUnit getCompilationUnit() {
     return compilationUnit;
+  }
+
+  /**
+   * Answer the library file defining the library containing the compilation unit to be indexed or
+   * <code>null</code> if the library is not on disk
+   */
+  public File getLibraryFile() {
+    return libraryFile;
   }
 
   @Override

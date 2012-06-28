@@ -380,8 +380,7 @@ public class AnalysisServerTest extends TestCase {
     File[] trackedLibraryFiles = getTrackedLibraryFiles();
     assertEquals(1, trackedLibraryFiles.length);
     assertEquals("one", trackedLibraryFiles[0].getName());
-    assertEquals(1, getServerQueue().size());
-    assertEquals("AnalyzeContextTask", getServerQueue().get(0).getClass().getSimpleName());
+    assertQueuedTasks("AnalyzeContextTask");
   }
 
   public void test_AnalysisServer_read_analyzeLibrary() throws Exception {
@@ -389,29 +388,25 @@ public class AnalysisServerTest extends TestCase {
     File[] trackedLibraryFiles = getTrackedLibraryFiles();
     assertEquals(1, trackedLibraryFiles.length);
     assertEquals("one", trackedLibraryFiles[0].getName());
-    assertEquals(1, getServerQueue().size());
-    assertEquals("AnalyzeLibraryTask", getServerQueue().get(0).getClass().getSimpleName());
+    assertQueuedTasks("AnalyzeLibraryTask");
   }
 
   public void test_AnalysisServer_read_empty() throws Exception {
     initServer(new StringReader(EMPTY_CACHE_CONTENT));
     assertEquals(0, getTrackedLibraryFiles().length);
-    assertEquals(1, getServerQueue().size());
-    assertEquals("AnalyzeLibraryTask", getServerQueue().get(0).getClass().getSimpleName());
+    assertQueuedTasks("AnalyzeLibraryTask");
   }
 
   public void test_AnalysisServer_read_empty_v1() throws Exception {
     initServer(new StringReader("v1\n</end-libraries>\nsome-stuff"));
     assertEquals(0, getTrackedLibraryFiles().length);
-    assertEquals(1, getServerQueue().size());
-    assertEquals("AnalyzeContextTask", getServerQueue().get(0).getClass().getSimpleName());
+    assertQueuedTasks("AnalyzeContextTask");
   }
 
   public void test_AnalysisServer_read_empty_v2() throws Exception {
     initServer(new StringReader("v2\n</end-libraries>\n</end-cache>"));
     assertEquals(0, getTrackedLibraryFiles().length);
-    assertEquals(1, getServerQueue().size());
-    assertEquals("AnalyzeContextTask", getServerQueue().get(0).getClass().getSimpleName());
+    assertQueuedTasks("AnalyzeContextTask");
   }
 
   public void test_AnalysisServer_read_one() throws Exception {
@@ -419,8 +414,7 @@ public class AnalysisServerTest extends TestCase {
     File[] trackedLibraryFiles = getTrackedLibraryFiles();
     assertEquals(1, trackedLibraryFiles.length);
     assertEquals("one", trackedLibraryFiles[0].getName());
-    assertEquals(1, getServerQueue().size());
-    assertEquals("AnalyzeLibraryTask", getServerQueue().get(0).getClass().getSimpleName());
+    assertQueuedTasks("AnalyzeLibraryTask");
   }
 
   public void test_AnalysisServer_read_one_v1() throws Exception {
@@ -428,8 +422,7 @@ public class AnalysisServerTest extends TestCase {
     File[] trackedLibraryFiles = getTrackedLibraryFiles();
     assertEquals(1, trackedLibraryFiles.length);
     assertEquals("one", trackedLibraryFiles[0].getName());
-    assertEquals(1, getServerQueue().size());
-    assertEquals("AnalyzeContextTask", getServerQueue().get(0).getClass().getSimpleName());
+    assertQueuedTasks("AnalyzeContextTask");
   }
 
   public void test_AnalysisServer_read_one_v2() throws Exception {
@@ -437,8 +430,7 @@ public class AnalysisServerTest extends TestCase {
     File[] trackedLibraryFiles = getTrackedLibraryFiles();
     assertEquals(1, trackedLibraryFiles.length);
     assertEquals("one", trackedLibraryFiles[0].getName());
-    assertEquals(1, getServerQueue().size());
-    assertEquals("AnalyzeContextTask", getServerQueue().get(0).getClass().getSimpleName());
+    assertQueuedTasks("AnalyzeContextTask");
   }
 
   public void test_AnalysisServer_read_version_invalid() throws Exception {
@@ -663,29 +655,37 @@ public class AnalysisServerTest extends TestCase {
         server.stop();
         assertTrue(server.isIdle());
         assertTrue(listener.isIdle());
+
+        assertQueuedTasks();
+        server.getSavedContext().resolve(libFile, null);
+        assertQueuedTasks("AnalyzeLibraryTask");
       }
     });
   }
 
   public void test_AnalysisServer_write_1() throws Exception {
+    final String libraryFileName1 = "myLibrary.dart";
+    final String libraryFileName2 = "someOtherAbcLibrary.dart";
+
     initServer(null);
-    String libFileName = "myLibrary.dart";
-    server.analyze(new File(libFileName).getAbsoluteFile());
-    assertEquals(1, getServerQueue().size());
-    assertEquals("AnalyzeContextTask", getServerQueue().get(0).getClass().getSimpleName());
+    server.analyze(new File(libraryFileName1).getAbsoluteFile());
+    assertQueuedTasks("AnalyzeContextTask");
     synchronized (getServerQueue()) {
       server.start();
       server.stop();
     }
+    server.getSavedContext().resolve(new File(libraryFileName2).getAbsoluteFile(), null);
+
     StringWriter writer = new StringWriter(5000);
     writeCache(writer);
-    assertTrue(writer.toString().indexOf(libFileName) > 0);
+    assertTrue(writer.toString().indexOf(libraryFileName1) > 0);
+    assertTrue(writer.toString().indexOf(libraryFileName2) > 0);
     assertTrue(writer.toString().indexOf("AnalyzeContext") > 0);
   }
 
   public void test_AnalysisServer_write_empty() throws Exception {
     initServer(null);
-    assertEquals(0, getServerQueue().size());
+    assertQueuedTasks();
     StringWriter writer = new StringWriter(5000);
     writeCache(writer);
     Assert.assertEquals(EMPTY_CACHE_CONTENT, writer.toString());
@@ -699,17 +699,23 @@ public class AnalysisServerTest extends TestCase {
 
         assertTrackedLibraryFiles(libFile);
         assertTrue(isLibraryResolved(libFile));
-        assertEquals(0, getServerQueue().size());
+        assertQueuedTasks();
 
         StringWriter writer = new StringWriter(5000);
         server.stop();
+        server.getSavedContext().resolve(new File("someFile.dart").getAbsoluteFile(), null);
+        server.getSavedContext().resolve(new File("otherFile.dart").getAbsoluteFile(), null);
         writeCache(writer);
-        setupServer(new StringReader(writer.toString()));
+
+        initServer(new StringReader(writer.toString()));
+        assertQueuedTasks("AnalyzeLibraryTask", "AnalyzeLibraryTask"); // someFile, otherFile
+        server.start();
+        waitForIdle();
 
         assertTrackedLibraryFiles(libFile);
         assertTrue(isLibraryCached(libFile));
         assertFalse(isLibraryResolved(libFile));
-        assertEquals(0, getServerQueue().size());
+        assertQueuedTasks();
       }
     });
   }
@@ -747,10 +753,16 @@ public class AnalysisServerTest extends TestCase {
         StringWriter writer = new StringWriter(5000);
         server.stop();
         writeCache(writer);
-        setupServer(new StringReader(writer.toString()));
+
+        initServer(new StringReader(writer.toString()));
+        assertQueuedTasks("AnalyzeLibraryTask"); // dart:core
+        server.start();
+        waitForIdle();
+
         assertTrackedLibraryFiles(libFile);
         assertTrue(isLibraryCached(libFile));
         assertFalse(isLibraryResolved(libFile));
+        assertQueuedTasks();
       }
     });
   }
@@ -807,6 +819,29 @@ public class AnalysisServerTest extends TestCase {
     Set<String> actualNames = unit.getTopDeclarationNames();
     if (actualNames.size() != 0) {
       fail("Expected no top level declarations, but found " + actualNames);
+    }
+  }
+
+  private void assertQueuedTasks(String... expectedTaskNames) throws Exception {
+    ArrayList<Task> queue = getServerQueue();
+    int index = 0;
+    for (String name : expectedTaskNames) {
+      if (index >= queue.size()) {
+        fail("Expected task(" + index + ") to be " + name + ", but end of queue");
+      }
+      String taskClassName = queue.get(index).getClass().getSimpleName();
+      if (!name.equals(taskClassName)) {
+        fail("Expected task(" + index + ") to be " + name + ", but found " + taskClassName);
+      }
+      index++;
+    }
+    if (index < queue.size()) {
+      String message = "Expected " + expectedTaskNames.length + " tasks, but found " + queue.size();
+      while (index < queue.size()) {
+        message += "\n  " + queue.get(index).getClass().getSimpleName();
+        index++;
+      }
+      fail(message);
     }
   }
 

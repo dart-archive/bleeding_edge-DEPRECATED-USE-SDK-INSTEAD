@@ -47,4 +47,48 @@ public class OperationQueueTest extends TestCase {
     queue.enqueue(operation);
     assertEquals(operation, queue.dequeue(0));
   }
+
+  public void test_OperationQueue_dequeue_queries() throws InterruptedException {
+    OperationQueue queue = new OperationQueue();
+    IndexOperation operation1 = new NullOperation();
+    IndexOperation operation2 = new NullOperation();
+    IndexOperation query1 = new NullOperation(true);
+    IndexOperation query2 = new NullOperation(true);
+
+    queue.enqueue(operation1);
+    queue.enqueue(query1);
+    queue.enqueue(query2);
+    queue.enqueue(operation2);
+
+    assertEquals(operation1, queue.dequeue(0));
+    assertEquals(operation2, queue.dequeue(0));
+    assertEquals(query1, queue.dequeue(0));
+    assertEquals(query2, queue.dequeue(0));
+    assertNull(queue.dequeue(0));
+  }
+
+  public void test_OperationQueue_dequeue_queries_pending() throws InterruptedException {
+    OperationQueue queue = new OperationQueue();
+    IndexOperation operation1 = new NullOperation();
+    IndexOperation operation2 = new NullOperation();
+    IndexOperation query1 = new NullOperation(true);
+    IndexOperation query2 = new NullOperation(true);
+
+    queue.enqueue(operation1);
+    queue.enqueue(query1);
+    queue.enqueue(query2);
+    queue.enqueue(operation2);
+
+    queue.setProcessQueries(false);
+
+    assertEquals(operation1, queue.dequeue(0));
+    assertEquals(operation2, queue.dequeue(0));
+    assertNull(queue.dequeue(0));
+
+    queue.setProcessQueries(true);
+
+    assertEquals(query1, queue.dequeue(0));
+    assertEquals(query2, queue.dequeue(0));
+    assertNull(queue.dequeue(0));
+  }
 }

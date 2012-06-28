@@ -451,9 +451,6 @@ public class AnalysisServer {
    */
   void queueNewTask(Task task) {
     synchronized (queue) {
-      if (!analyze) {
-        return;
-      }
       int index = 0;
       if (!task.isPriority()) {
         while (index < queue.size() && queue.get(index).isPriority()) {
@@ -593,7 +590,7 @@ public class AnalysisServer {
       queue.notifyAll();
 
       // Wait for the background thread to notify others that the server is no longer idle
-      if (!waitForIdle(false, 5000) && DartCoreDebug.DEBUG_ANALYSIS) {
+      if (analyze && !waitForIdle(false, 5000) && DartCoreDebug.DEBUG_ANALYSIS) {
         try {
           throw new RuntimeException(
               "Gave up waiting for background thread to run after adding task");

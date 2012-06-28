@@ -13,13 +13,13 @@
  */
 package com.google.dart.tools.core;
 
+import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.frog.FrogManager;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.directoryset.DirectorySetManager;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.internal.operation.BatchOperation;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
@@ -832,7 +832,7 @@ public class DartCore extends Plugin {
   @Override
   public void stop(BundleContext context) throws Exception {
     try {
-      SystemLibraryManagerProvider.stop();
+      AnalysisIndexManager.stopServerAndIndexing();
       DartModelManager.shutdown();
       RootArtifactProvider.shutdown();
       FrogManager.shutdown();
