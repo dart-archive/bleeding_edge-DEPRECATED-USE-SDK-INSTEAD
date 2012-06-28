@@ -572,9 +572,6 @@ public class BindingUtils {
       com.google.dart.tools.core.model.DartFunction method = getDartElement(
           library,
           (MethodElement) enclosingElement);
-      if (method == null) {
-        return null;
-      }
       return getFunction(method, methodName);
     }
     com.google.dart.compiler.type.Type enclosingType = enclosingElement.getType();
@@ -1210,6 +1207,9 @@ public class BindingUtils {
    */
   private static com.google.dart.tools.core.model.DartFunction getFunction(
       com.google.dart.tools.core.model.DartFunction parent, String functionName) {
+    if (parent == null || functionName == null) {
+      return null;
+    }
     try {
       for (DartElement child : parent.getChildren()) {
         if (child instanceof com.google.dart.tools.core.model.DartFunction) {
