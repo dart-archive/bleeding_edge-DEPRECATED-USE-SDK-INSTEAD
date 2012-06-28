@@ -4,6 +4,7 @@
 
 #library("client_dartc_test_config");
 
+#import("dart:io");
 #import("../../../tools/testing/dart/test_suite.dart");
 
 class SamplesDartcTestSuite extends DartcCompilationTestSuite {
@@ -42,7 +43,8 @@ class SamplesDartcTestSuite extends DartcCompilationTestSuite {
     // Using readOptionsFromFile here causes the file to be read twice,
     // because readOptionsFromFile is called again in the superclass.
     // Avoid this in new code.
-    return readOptionsFromFile(filename)["containsLeadingHash"];
+    return readOptionsFromFile(new Path.fromNative(filename))
+        ["containsLeadingHash"];
   }
 
   bool listRecursively() => true;
