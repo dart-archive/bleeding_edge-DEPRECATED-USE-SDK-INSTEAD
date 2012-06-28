@@ -26,6 +26,7 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.layout.PixelConverter;
+import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
@@ -41,8 +42,10 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.internal.editors.text.EditorsPlugin;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
+import org.osgi.service.prefs.BackingStoreException;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Page for setting general Dart plug-in preferences (the root of all Dart preferences).
@@ -88,14 +91,18 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
           printMarginText.getText());
     }
 
+    handleSave(editorPreferences);
+
 //TODO(pquitslund): re-enable/move to rcp-only contributed update preference page
 //    if (DartCoreDebug.ENABLE_UPDATE) {
 //      UpdateCore.enableAutoDownload(autoDownloadCheck.getSelection());
 //    }
 
-    PreferenceConstants.getPreferenceStore().setValue(
+    IPreferenceStore toolsPreferenceStore = PreferenceConstants.getPreferenceStore();
+    toolsPreferenceStore.setValue(
         PreferenceConstants.EDITOR_REMOVE_TRAILING_WS,
         removeTrailingWhitespaceCheck.getSelection());
+    handleSave(toolsPreferenceStore);
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
@@ -103,6 +110,11 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
       String newRoot = packageRootDir.getText().trim();
       if (!root.equals(newRoot)) {
         prefs.put(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, newRoot);
+        try {
+          prefs.flush();
+        } catch (BackingStoreException e) {
+          DartToolsPlugin.log(e);
+        }
         SystemLibraryManagerProvider.getAnyLibraryManager().setPackageRoot(new File(newRoot));
         Job job = new CleanLibrariesJob();
         job.schedule();
@@ -221,6 +233,16 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 
     if (dirPath != null) {
       packageRootDir.setText(dirPath);
+    }
+  }
+
+  private void handleSave(IPreferenceStore store) {
+    if (store != null && store.needsSaving() && store instanceof IPersistentPreferenceStore) {
+      try {
+        ((IPersistentPreferenceStore) store).save();
+      } catch (IOException e) {
+        DartToolsPlugin.log(e);
+      }
     }
   }
 
