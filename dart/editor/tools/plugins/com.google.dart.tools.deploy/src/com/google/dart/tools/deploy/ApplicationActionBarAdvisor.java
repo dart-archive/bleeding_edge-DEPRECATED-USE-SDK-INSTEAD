@@ -182,6 +182,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private QuickMenuAction newQuickMenu;
 
+  private IWorkbenchAction refreshAction;
+
   // IDE-specific retarget actions
   //private CommandContributionItem minimizeItem;
 
@@ -316,6 +318,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     propPrefListener = null;
     openOnlineDocsAction = null;
     openApiDocsAction = null;
+    refreshAction = null;
     //minimizeItem = null;
     //zoomItem = null;
     //arrangeWindowsItem = null;
@@ -494,6 +497,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     saveAllAction = ActionFactory.SAVE_ALL.create(window);
     register(saveAllAction);
+
+    refreshAction = ActionFactory.REFRESH.create(window);
+    register(refreshAction);
 
     newWindowAction = ActionFactory.OPEN_NEW_WINDOW.create(getWindow());
     newWindowAction.setText(IDEWorkbenchMessages.Workbench_openNewWindow);

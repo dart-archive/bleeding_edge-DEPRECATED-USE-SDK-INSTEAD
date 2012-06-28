@@ -25,6 +25,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.window.SameShellProvider;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.internal.ide.IDEWorkbenchMessages;
 import org.eclipse.ui.internal.ide.StatusUtil;
@@ -45,6 +46,7 @@ public class RefreshAction extends org.eclipse.ui.actions.RefreshAction {
   public RefreshAction(FilesView view) {
     super(new SameShellProvider(view.getShell()));
     DartPluginImages.setLocalImageDescriptors(this, "refresh.gif");//$NON-NLS-1$
+    setActionDefinitionId(IWorkbenchCommandConstants.FILE_REFRESH);
     this.view = view;
   }
 

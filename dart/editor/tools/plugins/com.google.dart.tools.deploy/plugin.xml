@@ -67,6 +67,11 @@
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+SHIFT+M">
       </key>
+      <key
+            commandId="org.eclipse.ui.file.refresh"
+            sequence="F5"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration">
+      </key>      
    </extension>
    
    <extension

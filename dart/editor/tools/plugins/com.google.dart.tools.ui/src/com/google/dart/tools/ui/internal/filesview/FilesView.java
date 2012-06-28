@@ -447,6 +447,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     actionBars.setGlobalActionHandler(ActionFactory.COPY.getId(), copyAction);
     actionBars.setGlobalActionHandler(ActionFactory.PASTE.getId(), pasteAction);
+    actionBars.setGlobalActionHandler(ActionFactory.REFRESH.getId(), refreshAction);
 
   }
 
