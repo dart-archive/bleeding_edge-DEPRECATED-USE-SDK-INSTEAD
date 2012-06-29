@@ -25,16 +25,17 @@ public class MethodInvocationCompleter extends DartMethodInvocation implements C
   static final long serialVersionUID = 1L;
 
   public static MethodInvocationCompleter from(DartMethodInvocation node) {
-    return CompletionUtil.init(
-        new MethodInvocationCompleter(node.getTarget(), node.getFunctionName(), node.getArguments()),
-        node);
+    return CompletionUtil.init(new MethodInvocationCompleter(
+        node.getTarget(),
+        node.getFunctionName(),
+        node.getArguments()), node);
   }
 
   private Stack<Mark> stack;
 
-  public MethodInvocationCompleter(DartExpression target, DartIdentifier functionName,
-      List<DartExpression> args) {
-    super(target, functionName, args);
+  public MethodInvocationCompleter(
+      DartExpression target, DartIdentifier functionName, List<DartExpression> args) {
+    super(target, false, functionName, args);
   }
 
   @Override
