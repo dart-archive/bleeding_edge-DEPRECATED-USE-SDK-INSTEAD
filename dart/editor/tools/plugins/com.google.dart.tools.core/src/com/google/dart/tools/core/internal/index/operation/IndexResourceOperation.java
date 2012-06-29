@@ -15,8 +15,10 @@ package com.google.dart.tools.core.internal.index.operation;
 
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.contributor.IndexContributor;
+import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.index.impl.IndexPerformanceRecorder;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
@@ -115,6 +117,9 @@ public class IndexResourceOperation implements IndexOperation {
     long indexEnd = 0L;
     long bindingTime = 0L;
     synchronized (indexStore) {
+      if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+        InMemoryIndex.getInstance().logIndexStats("Before indexing " + resource.getResourceId());
+      }
       indexStart = System.currentTimeMillis();
       indexStore.regenerateResource(resource);
       try {
@@ -129,6 +134,9 @@ public class IndexResourceOperation implements IndexOperation {
         DartCore.logError(
             "Could not index " + compilationUnit.getResource().getLocation(),
             exception);
+      }
+      if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+        InMemoryIndex.getInstance().logIndexStats("After indexing " + resource.getResourceId());
       }
     }
     if (performanceRecorder != null && indexEnd > 0L) {

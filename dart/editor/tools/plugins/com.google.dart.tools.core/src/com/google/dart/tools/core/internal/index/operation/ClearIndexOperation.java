@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.core.internal.index.operation;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.index.Resource;
+import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
 
 /**
@@ -51,9 +53,15 @@ public class ClearIndexOperation implements IndexOperation {
   @Override
   public void performOperation() {
     synchronized (indexStore) {
+      if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+        InMemoryIndex.getInstance().logIndexStats("Before clearing the index");
+      }
       indexStore.clear();
       if (postClearRunnable != null) {
         postClearRunnable.run();
+      }
+      if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+        InMemoryIndex.getInstance().logIndexStats("After clearing the index");
       }
     }
   }

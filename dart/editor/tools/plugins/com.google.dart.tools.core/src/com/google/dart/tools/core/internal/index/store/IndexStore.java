@@ -107,6 +107,32 @@ public class IndexStore {
   }
 
   /**
+   * Return the number of attributes that are currently recorded in this index.
+   * 
+   * @return the number of attributes that are currently recorded in this index
+   */
+  public int getAttributeCount() {
+    int count = 0;
+    for (HashMap<Attribute, String> elementAttributeMap : attributeMap.values()) {
+      count += elementAttributeMap.size();
+    }
+    return count;
+  }
+
+  /**
+   * Return the number of elements that are currently recorded in this index.
+   * 
+   * @return the number of elements that are currently recorded in this index
+   */
+  public int getElementCount() {
+    int count = 0;
+    for (Set<Element> elementSet : resourceToElementMap.values()) {
+      count += elementSet.size();
+    }
+    return count;
+  }
+
+  /**
    * Return the number of relationships that are currently recorded in this index.
    * 
    * @return the number of relationships that are currently recorded in this index
@@ -145,6 +171,15 @@ public class IndexStore {
       }
     }
     return Location.EMPTY_ARRAY;
+  }
+
+  /**
+   * Return the number of resources that are currently recorded in this index.
+   * 
+   * @return the number of resources that are currently recorded in this index
+   */
+  public int getResourceCount() {
+    return resourceToElementMap.size();
   }
 
   /**

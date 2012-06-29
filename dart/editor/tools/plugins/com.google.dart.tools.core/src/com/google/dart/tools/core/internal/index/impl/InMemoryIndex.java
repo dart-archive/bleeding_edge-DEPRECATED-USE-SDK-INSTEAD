@@ -308,7 +308,29 @@ public class InMemoryIndex implements Index {
           initializeBundledLibraries();
         }
       }
+      if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+        logIndexStats("After initializing the index");
+      }
     }
+  }
+
+  /**
+   * Write index statistics to the log.
+   */
+  public void logIndexStats(String message) {
+    int relationshipCount;
+    int attributeCount;
+    int elementCount;
+    int resourceCount;
+    synchronized (indexStore) {
+      relationshipCount = indexStore.getRelationshipCount();
+      attributeCount = indexStore.getAttributeCount();
+      elementCount = indexStore.getElementCount();
+      resourceCount = indexStore.getResourceCount();
+    }
+    DartCore.logInformation(message + ": " + relationshipCount + " relationships and "
+        + attributeCount + " attributes in " + elementCount + " elements in " + resourceCount
+        + " resources");
   }
 
   /**
@@ -394,6 +416,9 @@ public class InMemoryIndex implements Index {
 
   public void shutdown() {
     synchronized (indexStore) {
+      if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+        logIndexStats("Before writing the index");
+      }
       if (hasBeenInitialized) {
         if (hasPendingClear()) {
           try {

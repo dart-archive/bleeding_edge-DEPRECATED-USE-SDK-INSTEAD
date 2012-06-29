@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.core.internal.index.operation;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.index.Resource;
+import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
 
 /**
@@ -59,7 +61,13 @@ public class RemoveResourceOperation implements IndexOperation {
   @Override
   public void performOperation() {
     synchronized (indexStore) {
+      if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+        InMemoryIndex.getInstance().logIndexStats("Before removing " + resource.getResourceId());
+      }
       indexStore.removeResource(resource);
+      if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+        InMemoryIndex.getInstance().logIndexStats("After removing " + resource.getResourceId());
+      }
     }
   }
 
