@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,6 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.google.dart.tools.ui.internal.text.dartdoc;
 
 import com.google.dart.tools.ui.internal.text.functions.DartCommentScanner;
@@ -19,8 +20,16 @@ import com.google.dart.tools.ui.text.IDartColorConstants;
 
 import org.eclipse.core.runtime.Preferences;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.text.rules.IRule;
+import org.eclipse.jface.text.rules.MultiLineRule;
+import org.eclipse.jface.text.rules.SingleLineRule;
+import org.eclipse.jface.text.rules.Token;
 
-// TODO write this scanner
+import java.util.List;
+
+/**
+ * A scanner to syntax highlight dartdoc text.
+ */
 public class DartDocScanner extends DartCommentScanner {
 
   private static String[] fgTokenProperties = {
@@ -35,4 +44,28 @@ public class DartDocScanner extends DartCommentScanner {
     super(manager, store, coreStore, IDartColorConstants.JAVADOC_DEFAULT, fgTokenProperties);
   }
 
+  @Override
+  protected List<IRule> createRules() {
+    // available styles are: JAVADOC_KEYWORD, JAVADOC_TAG, TASK_TAG, 
+
+    List<IRule> rules = super.createRules();
+
+    Token codeToken = getToken(IDartColorConstants.JAVADOC_TAG);
+
+    // in-line code
+    // 4 spaces == a code indent, plus a 5th space for the [* ]
+    rules.add(new SingleLineRule("     ", null, codeToken));
+
+    // in-line code
+    // TODO(devoncarew): handle the case where bracket-colons are nested?
+    rules.add(new MultiLineRule("[:", ":]", codeToken));
+
+    // identifier reference
+    rules.add(new SingleLineRule("[", "]", codeToken));
+
+    // TODO(devoncarew): possibily show headers in bold
+    //rules.add(new SingleLineRule("# ", null, codeToken));
+
+    return rules;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,6 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.google.dart.tools.ui.internal.text.functions;
 
 import com.google.dart.tools.ui.internal.text.functions.CombinedWordRule.CharacterBuffer;
@@ -22,6 +23,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Preferences;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.rules.ICharacterScanner;
+import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.IWordDetector;
 import org.eclipse.jface.text.rules.Token;
@@ -36,7 +38,6 @@ import java.util.StringTokenizer;
 public class DartCommentScanner extends AbstractDartScanner {
 
   private static class IdentifierDetector implements IWordDetector {
-
     @Override
     public boolean isWordPart(char c) {
       return c == '.' || Character.isJavaIdentifierPart(c);
@@ -78,10 +79,6 @@ public class DartCommentScanner extends AbstractDartScanner {
       }
     }
 
-    /*
-     * @see com.google.dart.tools.ui.functions.CombinedWordRule.WordMatcher#addWord
-     * (java.lang.String, org.eclipse.jface.text.rules.IToken)
-     */
     @Override
     public synchronized void addWord(String word, IToken token) {
       Assert.isNotNull(word);
@@ -91,20 +88,12 @@ public class DartCommentScanner extends AbstractDartScanner {
       fUppercaseWords.put(new CombinedWordRule.CharacterBuffer(word.toUpperCase()), token);
     }
 
-    /*
-     * @see com.google.dart.tools.ui.functions.CombinedWordRule.WordMatcher#clearWords ()
-     */
     @Override
     public synchronized void clearWords() {
       super.clearWords();
       fUppercaseWords.clear();
     }
 
-    /*
-     * @see com.google.dart.tools.ui.functions.CombinedWordRule.WordMatcher#evaluate
-     * (org.eclipse.jface.text.rules.ICharacterScanner,
-     * com.google.dart.tools.ui.functions.CombinedWordRule.CharacterBuffer)
-     */
     @Override
     public synchronized IToken evaluate(ICharacterScanner scanner,
         CombinedWordRule.CharacterBuffer word) {
@@ -213,10 +202,6 @@ public class DartCommentScanner extends AbstractDartScanner {
     this(manager, store, null, defaultTokenProperty, tokenProperties);
   }
 
-  /*
-   * @see com.google.dart.tools.ui.functions.AbstractJavaScanner#adaptToPreferenceChange
-   * (org.eclipse.jface.util.PropertyChangeEvent)
-   */
   @Override
   public void adaptToPreferenceChange(PropertyChangeEvent event) {
     if (fTaskTagMatcher != null && event.getProperty().equals(COMPILER_TASK_TAGS)) {
@@ -237,10 +222,6 @@ public class DartCommentScanner extends AbstractDartScanner {
     }
   }
 
-  /*
-   * @see com.google.dart.tools.ui.functions.AbstractJavaScanner#affectsBehavior(
-   * org.eclipse.jface.util.PropertyChangeEvent)
-   */
   @Override
   public boolean affectsBehavior(PropertyChangeEvent event) {
     return event.getProperty().equals(COMPILER_TASK_TAGS)
@@ -265,6 +246,7 @@ public class DartCommentScanner extends AbstractDartScanner {
       tasks = fCorePreferenceStore.getString(COMPILER_TASK_TAGS);
       isCaseSensitive = ENABLED.equals(fCorePreferenceStore.getString(COMPILER_TASK_CASE_SENSITIVE));
     }
+
     if (tasks != null) {
       fTaskTagMatcher = new TaskTagMatcher(getToken(TASK_TAG));
       fTaskTagMatcher.addTaskTags(tasks);
@@ -275,12 +257,9 @@ public class DartCommentScanner extends AbstractDartScanner {
     return list;
   }
 
-  /*
-   * @see AbstractDartScanner#createRules()
-   */
   @Override
-  protected List<CombinedWordRule> createRules() {
-    List<CombinedWordRule> list = new ArrayList<CombinedWordRule>();
+  protected List<IRule> createRules() {
+    List<IRule> list = new ArrayList<IRule>();
     Token defaultToken = getToken(fDefaultTokenProperty);
 
     List<TaskTagMatcher> matchers = createMatchers();
@@ -299,9 +278,6 @@ public class DartCommentScanner extends AbstractDartScanner {
     return list;
   }
 
-  /*
-   * @see com.google.dart.tools.ui.functions.AbstractJavaScanner#getTokenProperties()
-   */
   @Override
   protected String[] getTokenProperties() {
     return fTokenProperties;

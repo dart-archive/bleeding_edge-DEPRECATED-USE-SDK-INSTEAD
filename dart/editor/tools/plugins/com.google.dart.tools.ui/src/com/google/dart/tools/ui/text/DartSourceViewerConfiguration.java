@@ -590,7 +590,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
 
     dr = new DefaultDamagerRepairer(getJavaDocScanner());
-    reconciler.setDamager(dr, DartPartitions.DART_DOC);
+    reconciler.setDamager(new DartIndiscriminateDamager(), DartPartitions.DART_DOC);
     reconciler.setRepairer(dr, DartPartitions.DART_DOC);
 
     dr = new DefaultDamagerRepairer(getMultilineCommentScanner());
