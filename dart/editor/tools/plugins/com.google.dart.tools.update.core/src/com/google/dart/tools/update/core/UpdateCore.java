@@ -341,6 +341,7 @@ public class UpdateCore extends Plugin {
         return Status.OK_STATUS;
       }
     };
+    managerInitializationJob.setSystem(true);
 
     managerInitializationJob.schedule(UPDATE_MANAGER_INIT_DELAY);
   }

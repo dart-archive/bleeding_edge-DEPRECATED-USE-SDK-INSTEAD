@@ -30,6 +30,7 @@ public class UpdateScheduler {
 
     public UpdateCheckTimer() {
       super("Update Checker");
+      setSystem(true);
     }
 
     @Override
