@@ -24,8 +24,11 @@ import java.io.File;
  */
 public class TextSearchScopeFilter {
 
-  private static final String LIB_CONFIG_PATH = "dart-sdk" + File.separator + "lib"
-      + File.separator + "config";
+  /**
+   * A whitelist of file extensions that should be included in external file search.
+   */
+  private static final String[] SEARCHABLE_EXTERNAL_FILE_EXTENSIONS = {
+      ".css", ".dart", ".html", ".js"};
 
   /**
    * Checks if the given file should be filtered out of a search scope.
@@ -34,21 +37,32 @@ public class TextSearchScopeFilter {
    * @return <code>true</code> if the file should be excluded, <code>false</code> otherwise
    */
   public static boolean isFiltered(File file) {
-    //dart-sdk/lib/config
-    if (file.getAbsolutePath().endsWith(LIB_CONFIG_PATH)) {
-      return true;
-    }
-    return isFiltered(file.getName());
+    return file.isFile() && isExternaFileNameFiltered(file.getName());
   }
 
   /**
-   * Checks if the given file should be filtered out of a search scope.
+   * Checks if the given workspace file should be filtered out of a search scope.
    * 
    * @param file the file to check
    * @return <code>true</code> if the file should be excluded, <code>false</code> otherwise
    */
   public static boolean isFiltered(IResourceProxy file) {
-    return isFiltered(file.getName());
+    return isWorkspaceFileNameFiltered(file.getName());
+  }
+
+  /**
+   * Checks if the given external file should be filtered out of a search scope.
+   * 
+   * @param fileName the fileName to check
+   * @return <code>true</code> if the file should be excluded, <code>false</code> otherwise
+   */
+  private static boolean isExternaFileNameFiltered(String fileName) {
+    for (String ext : SEARCHABLE_EXTERNAL_FILE_EXTENSIONS) {
+      if (fileName.endsWith(ext)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -57,16 +71,12 @@ public class TextSearchScopeFilter {
    * @param fileName the file name to check
    * @return <code>true</code> if the file should be excluded, <code>false</code> otherwise
    */
-  private static boolean isFiltered(String fileName) {
+  private static boolean isWorkspaceFileNameFiltered(String fileName) {
     //ignore .files (and avoid traversing into folders prefixed with a '.')
     if (fileName.startsWith(".")) {
       return true;
     }
     if (fileName.endsWith(".dart.js")) {
-      return true;
-    }
-    //dart2js-gened file (temporary)
-    if (fileName.endsWith(".dart.js_")) {
       return true;
     }
 
