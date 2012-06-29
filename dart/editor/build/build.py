@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-"""Copyright (c) 2011 The Chromium Authors. All rights reserved.
+"""Copyright (c) 2012 The Chromium Authors. All rights reserved.
 
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
@@ -346,8 +346,7 @@ def main():
         os.remove(sdk_zip)
       
       dartbuildscript = os.path.join(toolspath, 'build.py')
-      cmds = [sys.executable, dartbuildscript,
-              '--mode=release', 'create_sdk']
+      cmds = [sys.executable, dartbuildscript, '--mode=release', 'create_sdk']
       cwd = os.getcwd()
       try:
         os.chdir(dartpath)
@@ -938,6 +937,10 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
     if tmp_zip_name is not None and add_path is not None:
       files = _FindRcpZipFiles(buildout)
       for f in files:
+        # Do not add Dartium to the linux 32 bit build - Dartium on linux is only 64 bit.
+        if (f.endswith('-linux.gtk.x86.zip')):
+          continue
+        
         dart_zip_path = os.path.join(buildout, f)
         print ('_installDartium: before '
                '{0} is {1}'.format(dart_zip_path,
@@ -991,13 +994,12 @@ def _PrintSeparator(text):
 
   #used to print separators during the build process
   tag_line_sep = '================================'
-  tag_line_text = '= {0}'
 
+  print
+  print
+  print text
   print tag_line_sep
-  print tag_line_sep
-  print tag_line_text.format(text)
-  print tag_line_sep
-  print tag_line_sep
+  print
   sys.stdout.flush()
 
 
@@ -1006,11 +1008,11 @@ def _PrintError(text):
   error_sep = '*****************************'
   error_text = ' {0}'
 
-  print error_sep
+  print
   print error_sep
   print error_text.format(text)
   print error_sep
-  print error_sep
+  print
   sys.stdout.flush()
   sys.stderr.flush()
 
