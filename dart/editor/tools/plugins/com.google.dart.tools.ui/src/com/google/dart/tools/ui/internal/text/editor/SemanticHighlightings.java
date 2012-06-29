@@ -26,14 +26,77 @@ import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.RGB;
 
 /**
- * Semantic highlightings
+ * Semantic highlightings.
  */
 public class SemanticHighlightings {
 
   /**
+   * Abstract {@link SemanticHighlighting} with empty methods by default.
+   */
+  private static abstract class DefaultSemanticHighlighting extends SemanticHighlighting {
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return new RGB(0, 0, 0);
+    }
+
+    @Override
+    public boolean isBoldByDefault() {
+      return false;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return false;
+    }
+
+    @Override
+    public boolean isItalicByDefault() {
+      return false;
+    }
+
+    @Override
+    public boolean isStrikethroughByDefault() {
+      return false;
+    }
+
+    @Override
+    public boolean isUnderlineByDefault() {
+      return false;
+    }
+  }
+
+  /**
+   * Semantic highlighting deprecated elements.
+   */
+  private static final class DeprecatedElementHighlighting extends DefaultSemanticHighlighting {
+    @Override
+    public boolean consumes(SemanticToken token) {
+      DartIdentifier node = token.getNode();
+      NodeElement element = node.getElement();
+      return element != null && element.getMetadata().isDeprecated();
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_deprecatedElement;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return DEPRECATED_ELEMENT;
+    }
+
+    @Override
+    public boolean isStrikethroughByDefault() {
+      return true;
+    }
+  }
+
+  /**
    * Semantic highlighting for variables with dynamic types.
    */
-  private static final class DynamicTypeHighlighting extends SemanticHighlighting {
+  private static final class DynamicTypeHighlighting extends DefaultSemanticHighlighting {
 
     @Override
     public boolean consumes(SemanticToken token) {
@@ -58,32 +121,12 @@ public class SemanticHighlightings {
     public String getPreferenceKey() {
       return DYNAMIC_TYPE;
     }
-
-    @Override
-    public boolean isBoldByDefault() {
-      return false;
-    }
-
-    @Override
-    public boolean isEnabledByDefault() {
-      return false;
-    }
-
-    @Override
-    public boolean isItalicByDefault() {
-      return false;
-    }
-
-    @Override
-    public boolean isUnderlineByDefault() {
-      return false;
-    }
   }
 
   /**
    * Semantic highlighting for fields.
    */
-  private static class FieldHighlighting extends SemanticHighlighting {
+  private static class FieldHighlighting extends DefaultSemanticHighlighting {
 
     @Override
     public boolean consumes(SemanticToken token) {
@@ -115,32 +158,12 @@ public class SemanticHighlightings {
     public String getPreferenceKey() {
       return FIELD;
     }
-
-    @Override
-    public boolean isBoldByDefault() {
-      return false;
-    }
-
-    @Override
-    public boolean isEnabledByDefault() {
-      return false;
-    }
-
-    @Override
-    public boolean isItalicByDefault() {
-      return false;
-    }
-
-    @Override
-    public boolean isUnderlineByDefault() {
-      return false;
-    }
   }
 
   /**
    * Semantic highlighting for static fields.
    */
-  private static class StaticFieldHighlighting extends FieldHighlighting {
+  private static class StaticFieldHighlighting extends DefaultSemanticHighlighting {
     @Override
     public boolean consumes(SemanticToken token) {
       DartIdentifier node = token.getNode();
@@ -170,6 +193,11 @@ public class SemanticHighlightings {
     }
 
   }
+
+  /**
+   * A named preference part that controls the highlighting of deprecated elements.
+   */
+  public static final String DEPRECATED_ELEMENT = "deprecated"; //$NON-NLS-1$
 
   /**
    * A named preference part that controls the highlighting of static final fields.
@@ -362,7 +390,8 @@ public class SemanticHighlightings {
   public static SemanticHighlighting[] getSemanticHighlightings() {
     if (SEMANTIC_HIGHTLIGHTINGS == null) {
       SEMANTIC_HIGHTLIGHTINGS = new SemanticHighlighting[] {
-          new StaticFieldHighlighting(), new FieldHighlighting(), new DynamicTypeHighlighting()};
+          new DeprecatedElementHighlighting(), new StaticFieldHighlighting(),
+          new FieldHighlighting(), new DynamicTypeHighlighting()};
     }
     return SEMANTIC_HIGHTLIGHTINGS;
   }
