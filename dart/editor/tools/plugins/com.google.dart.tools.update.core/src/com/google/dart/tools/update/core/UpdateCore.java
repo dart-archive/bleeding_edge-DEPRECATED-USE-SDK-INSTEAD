@@ -30,7 +30,9 @@ import org.eclipse.ui.PlatformUI;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
 
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The plugin activator for the com.google.dart.tools.update.core plugin.
@@ -65,6 +67,11 @@ public class UpdateCore extends Plugin {
   private static final String CHANGELOG_URL = "http://commondatastorage.googleapis.com/dart-editor-archive-integration/latest/changelog.html";
 
   /**
+   * Key to fetch the default update check interval.
+   */
+  private static final String UPDATE_CHECK_INTERVAL_PROP_KEY = "updateCheckInterval";
+
+  /**
    * Key to fetch the update URL.
    */
   private static final String UPDATE_URL_PROP_KEY = "updateUrl";
@@ -87,7 +94,12 @@ public class UpdateCore extends Plugin {
   /**
    * Delay for initialization of the update manager post startup,
    */
-  private static final long UPDATE_MANAGER_INIT_DELAY = 10000;
+  private static final long UPDATE_MANAGER_INIT_DELAY = TimeUnit.MINUTES.toMillis(5);
+
+  /**
+   * Default update check interval.
+   */
+  private static final long DEFAULT_UPDATE_CHECK_INTERVAL = TimeUnit.DAYS.toMillis(1);
 
   //The activated plugin
   private static UpdateCore PLUGIN;
@@ -147,9 +159,24 @@ public class UpdateCore extends Plugin {
   }
 
   /**
-   * Get the directory location for locally staging updates.
+   * Get the interval for automatic update checks.
    * 
-   * @return
+   * @return the interval (or {@link #DEFAULT_UPDATE_CHECK_INTERVAL} if unset).
+   */
+  public static long getUpdateCheckInterval() {
+    ResourceBundle resourceBundle = getResourceBundle();
+    try {
+      String value = (String) resourceBundle.getObject(UPDATE_CHECK_INTERVAL_PROP_KEY);
+      return Integer.parseInt(value);
+    } catch (MissingResourceException e) {
+      return DEFAULT_UPDATE_CHECK_INTERVAL;
+    } catch (NumberFormatException e) {
+      return DEFAULT_UPDATE_CHECK_INTERVAL;
+    }
+  }
+
+  /**
+   * Get the directory location for locally staging updates.
    */
   public static IPath getUpdateDirPath() {
     IPath location = ResourcesPlugin.getWorkspace().getRoot().getLocation();
@@ -169,10 +196,7 @@ public class UpdateCore extends Plugin {
    * @return the URL (or <code>null</code> if unset).
    */
   public static String getUpdateUrl() {
-    if (PLUGIN == null) {
-      throw new IllegalStateException("update checks are only valid post bundle activation");
-    }
-    ResourceBundle resourceBundle = Platform.getResourceBundle(PLUGIN.getBundle());
+    ResourceBundle resourceBundle = getResourceBundle();
     return (String) resourceBundle.getObject(UPDATE_URL_PROP_KEY);
   }
 
@@ -251,6 +275,13 @@ public class UpdateCore extends Plugin {
     if (PLUGIN != null) {
       PLUGIN.getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, message, exception));
     }
+  }
+
+  private static ResourceBundle getResourceBundle() {
+    if (PLUGIN == null) {
+      throw new IllegalStateException("update checks are only valid post bundle activation");
+    }
+    return Platform.getResourceBundle(PLUGIN.getBundle());
   }
 
   private IEclipsePreferences preferences;

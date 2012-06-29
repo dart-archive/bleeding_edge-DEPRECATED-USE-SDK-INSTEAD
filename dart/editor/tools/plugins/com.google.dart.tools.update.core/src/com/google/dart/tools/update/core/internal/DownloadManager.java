@@ -113,7 +113,7 @@ public class DownloadManager {
    */
   public void scheduleUpdateCheck() {
     //don't over-check
-    if (!model.isUpdateAvailable() && model.isIdle()) {
+    if (model.isIdle()) {
       doCheckForUpdate();
     }
   }

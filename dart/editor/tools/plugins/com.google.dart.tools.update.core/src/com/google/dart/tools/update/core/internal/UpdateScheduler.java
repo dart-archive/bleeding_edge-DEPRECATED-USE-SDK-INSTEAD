@@ -54,7 +54,7 @@ public class UpdateScheduler {
     }
   }
 
-  private static final int UPDATE_CHECK_INTERVAL = 10000;
+  private static final long UPDATE_CHECK_INTERVAL = UpdateCore.getUpdateCheckInterval();
 
   private UpdateCheckTimer autoUpdateTimer;
 
