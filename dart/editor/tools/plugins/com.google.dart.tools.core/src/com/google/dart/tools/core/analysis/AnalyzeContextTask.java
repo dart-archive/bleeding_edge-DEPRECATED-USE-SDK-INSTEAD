@@ -28,17 +28,17 @@ class AnalyzeContextTask extends Task {
   }
 
   @Override
-  boolean isBackgroundAnalysis() {
+  public boolean isBackgroundAnalysis() {
     return true;
   }
 
   @Override
-  boolean isPriority() {
+  public boolean isPriority() {
     return false;
   }
 
   @Override
-  void perform() {
+  public void perform() {
     for (File libraryFile : server.getTrackedLibraryFiles()) {
       server.queueSubTask(new AnalyzeLibraryTask(server, context, libraryFile, null));
     }

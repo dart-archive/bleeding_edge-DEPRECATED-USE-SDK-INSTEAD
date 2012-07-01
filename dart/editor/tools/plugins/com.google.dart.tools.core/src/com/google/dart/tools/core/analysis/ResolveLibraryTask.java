@@ -49,17 +49,17 @@ class ResolveLibraryTask extends Task {
   }
 
   @Override
-  boolean isBackgroundAnalysis() {
+  public boolean isBackgroundAnalysis() {
     return true;
   }
 
   @Override
-  boolean isPriority() {
+  public boolean isPriority() {
     return false;
   }
 
   @Override
-  void perform() {
+  public void perform() {
     if (rootLibrary.getLibraryUnit() != null) {
       return;
     }

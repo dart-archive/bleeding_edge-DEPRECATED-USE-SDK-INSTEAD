@@ -42,17 +42,17 @@ class ParseFileTask extends Task {
   }
 
   @Override
-  boolean isBackgroundAnalysis() {
+  public boolean isBackgroundAnalysis() {
     return true;
   }
 
   @Override
-  boolean isPriority() {
+  public boolean isPriority() {
     return false;
   }
 
   @Override
-  void perform() {
+  public void perform() {
 
     // Don't parse sourced files without first parsing the library file
     // because we need import prefixes for DartC to parse correctly

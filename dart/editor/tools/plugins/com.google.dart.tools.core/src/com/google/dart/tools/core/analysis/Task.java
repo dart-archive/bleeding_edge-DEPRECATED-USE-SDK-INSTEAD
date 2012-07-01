@@ -23,17 +23,17 @@ public abstract class Task {
    * assumption is that analysis tasks with explicit callbacks are related to user requests and thus
    * are not considered "background" analysis.
    */
-  abstract boolean isBackgroundAnalysis();
+  public abstract boolean isBackgroundAnalysis();
 
   /**
    * Answer <code>true</code> if this task removes cached information and thus should be executed
    * before other tasks
    */
-  abstract boolean isPriority();
+  public abstract boolean isPriority();
 
   /**
    * Perform the task. This is executed in the background thread and may modify any aspect of the
    * analysis model or cached elements.
    */
-  abstract void perform();
+  public abstract void perform();
 }

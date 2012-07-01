@@ -59,17 +59,17 @@ public class LibraryScanTask extends Task {
   }
 
   @Override
-  boolean isBackgroundAnalysis() {
+  public boolean isBackgroundAnalysis() {
     return false;
   }
 
   @Override
-  boolean isPriority() {
+  public boolean isPriority() {
     return false;
   }
 
   @Override
-  void perform() {
+  public void perform() {
     if (scanEndThreshold == 0) {
       scanEndThreshold = System.currentTimeMillis() + SCAN_TIME_THRESHOLD;
     }

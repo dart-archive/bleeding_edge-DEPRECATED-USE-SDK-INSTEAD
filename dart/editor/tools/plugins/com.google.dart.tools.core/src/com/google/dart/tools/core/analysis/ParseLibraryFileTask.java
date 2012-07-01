@@ -49,17 +49,17 @@ class ParseLibraryFileTask extends Task {
   }
 
   @Override
-  boolean isBackgroundAnalysis() {
+  public boolean isBackgroundAnalysis() {
     return callback == null;
   }
 
   @Override
-  boolean isPriority() {
+  public boolean isPriority() {
     return false;
   }
 
   @Override
-  void perform() {
+  public void perform() {
     Library library = context.getCachedLibrary(libraryFile);
 
     // Get the cached unit or parse the source

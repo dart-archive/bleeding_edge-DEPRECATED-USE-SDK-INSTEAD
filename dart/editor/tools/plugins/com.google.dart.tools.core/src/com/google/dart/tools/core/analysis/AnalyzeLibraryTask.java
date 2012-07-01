@@ -49,17 +49,17 @@ class AnalyzeLibraryTask extends Task {
   }
 
   @Override
-  boolean isBackgroundAnalysis() {
+  public boolean isBackgroundAnalysis() {
     return callback == null;
   }
 
   @Override
-  boolean isPriority() {
+  public boolean isPriority() {
     return false;
   }
 
   @Override
-  void perform() {
+  public void perform() {
     if (start == 0) {
       start = System.currentTimeMillis();
     }

@@ -33,17 +33,17 @@ class DiscardLibraryTask extends Task {
   }
 
   @Override
-  boolean isBackgroundAnalysis() {
+  public boolean isBackgroundAnalysis() {
     return false;
   }
 
   @Override
-  boolean isPriority() {
+  public boolean isPriority() {
     return true;
   }
 
   @Override
-  void perform() {
+  public void perform() {
     AnalysisEvent event = null;
     Library library = context.getCachedLibrary(libraryFile);
     if (library != null) {
