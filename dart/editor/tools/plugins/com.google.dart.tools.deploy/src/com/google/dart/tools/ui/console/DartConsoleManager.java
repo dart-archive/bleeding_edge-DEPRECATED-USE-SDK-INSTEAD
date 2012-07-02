@@ -111,9 +111,19 @@ public class DartConsoleManager implements IConsoleListener {
       return;
     }
 
+    final Display display = Display.getDefault();
+
+    if (display.isDisposed()) {
+      return;
+    }
+
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
+        if (display.isDisposed()) {
+          return;
+        }
+
         boolean found = false;
 
         for (DartConsoleView view : consoleViews) {
