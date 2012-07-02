@@ -21,6 +21,7 @@ import org.eclipse.osgi.util.NLS;
 public class UpdateJobMessages extends NLS {
   private static final String BUNDLE_NAME = "com.google.dart.tools.update.core.internal.jobs.UpdateJobMessages"; //$NON-NLS-1$
   public static String CheckForUpdatesJob_job_label;
+  public static String CleanupInstallationJob_label;
   public static String DownloadUpdatesJob_editor_rev_label;
   public static String DownloadUpdatesJob_job_label;
   public static String DownloadUpdatesJob_progress_label;

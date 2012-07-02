@@ -97,6 +97,11 @@ public class UpdateCore extends Plugin {
   private static final long UPDATE_MANAGER_INIT_DELAY = TimeUnit.MINUTES.toMillis(5);
 
   /**
+   * Delay for installation cleanup post startup,
+   */
+  private static final long INSTALLATION_CLEANUP_INIT_DELAY = TimeUnit.MINUTES.toMillis(3);
+
+  /**
    * Default update check interval.
    */
   private static final long DEFAULT_UPDATE_CHECK_INTERVAL = TimeUnit.DAYS.toMillis(1);
@@ -286,6 +291,7 @@ public class UpdateCore extends Plugin {
 
   private IEclipsePreferences preferences;
 
+  private Job installationCleanupJob;
   private Job managerInitializationJob;
 
   /**
@@ -304,6 +310,7 @@ public class UpdateCore extends Plugin {
   public void start(BundleContext context) throws Exception {
     PLUGIN = this;
 
+    scheduleInstallationCleanup();
     scheduleManagerStart();
 
     super.start(context);
@@ -312,10 +319,16 @@ public class UpdateCore extends Plugin {
   @Override
   public void stop(BundleContext context) throws Exception {
     try {
-      Job job = managerInitializationJob;
+      Job initJob = managerInitializationJob;
 
-      if (job != null) {
-        job.cancel();
+      if (initJob != null) {
+        initJob.cancel();
+      }
+
+      Job cleanupJob = installationCleanupJob;
+
+      if (cleanupJob != null) {
+        cleanupJob.cancel();
       }
 
       getUpdateManager().stop();
@@ -323,6 +336,22 @@ public class UpdateCore extends Plugin {
       super.stop(context);
       PLUGIN = null;
     }
+  }
+
+  private void scheduleInstallationCleanup() {
+//TODO(pquitslund): enable after testing
+//    installationCleanupJob = new CleanupInstallationJob() {
+//      @Override
+//      protected IStatus run(IProgressMonitor monitor) {
+//        try {
+//          return super.run(monitor);
+//        } finally {
+//          installationCleanupJob = null;
+//        }
+//      }
+//    };
+//
+//    installationCleanupJob.schedule(INSTALLATION_CLEANUP_INIT_DELAY);
   }
 
   private void scheduleManagerStart() {
