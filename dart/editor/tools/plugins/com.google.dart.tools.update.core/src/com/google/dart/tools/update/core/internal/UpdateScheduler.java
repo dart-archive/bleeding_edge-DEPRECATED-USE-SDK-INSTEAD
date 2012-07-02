@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.update.core.internal;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateCore;
 
@@ -39,8 +40,9 @@ public class UpdateScheduler {
         return Status.CANCEL_STATUS;
       }
 
-      //TODO(pquitslund): sysout for debugging
-      System.out.println("check timer pulse");
+      if (DartCoreDebug.TRACE_UPDATE) {
+        UpdateCore.logInfo("check timer pulse");//$NON-NLS-1$
+      }
 
       try {
         if (shouldCheckForUpdates()) {

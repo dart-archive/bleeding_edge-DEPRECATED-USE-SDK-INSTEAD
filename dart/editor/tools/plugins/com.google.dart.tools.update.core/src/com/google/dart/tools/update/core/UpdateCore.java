@@ -260,6 +260,27 @@ public class UpdateCore extends Plugin {
   }
 
   /**
+   * Log the given informational message.
+   * 
+   * @param message an informational message
+   */
+  public static void logInfo(String message) {
+    logInfo(message, null);
+  }
+
+  /**
+   * Log the given exception as one representing an informational message.
+   * 
+   * @param message an explanation of why the error occurred or what it means
+   * @param exception the exception being logged
+   */
+  public static void logInfo(String message, Throwable exception) {
+    if (PLUGIN != null) {
+      PLUGIN.getLog().log(new Status(Status.INFO, PLUGIN_ID, "INFO: " + message, exception));
+    }
+  }
+
+  /**
    * Log the given message as a warning to the Eclipse log.
    * 
    * @param message the message to log

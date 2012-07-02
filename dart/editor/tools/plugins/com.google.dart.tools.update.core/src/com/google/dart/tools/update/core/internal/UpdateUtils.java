@@ -97,11 +97,6 @@ public class UpdateUtils {
         if (!toFile.exists() || overwriteFilter.accept(toFile)) {
           copyFile(f, toFile, monitor);
         }
-//        else {
-//          System.out.println("skipping + " + toFile.getPath());
-//          UpdateCore.logWarning("skipping + " + toFile.getPath());
-//        }
-
       } else {
         if (!toFile.isDirectory()) {
           toFile.delete();
@@ -121,8 +116,6 @@ public class UpdateUtils {
    */
   public static void copyFile(File fromFile, File toFile, IProgressMonitor monitor)
       throws IOException {
-
-//    System.out.println("copying " + fromFile.getName());
 
     byte[] data = new byte[4096];
 

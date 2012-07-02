@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.update.core.internal.jobs;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateCore;
 import com.google.dart.tools.update.core.internal.UpdateUtils;
@@ -49,8 +50,9 @@ public class DownloadUpdatesJob extends Job {
 
     //add checking
     try {
-      //TODO(pquitslund): sysout for testing
-      System.out.println("DownloadUpdatesJob.run()"); //$NON-NLS-1$
+      if (DartCoreDebug.TRACE_UPDATE) {
+        UpdateCore.logInfo("DownloadUpdatesJob.run()");//$NON-NLS-1$
+      }
       downloadRevision(revision, monitor);
     } catch (IOException e) {
       return UpdateCore.createCancelStatus(e.getMessage());
@@ -86,8 +88,11 @@ public class DownloadUpdatesJob extends Job {
       if (updateFile != null) {
         //ensure file is valid
         if (!UpdateUtils.isZipValid(updateFile)) {
-          //TODO(pquitslund): sysout for testing
-          System.out.println(updateFile.getName() + " invalid -- deleting");
+
+          if (DartCoreDebug.TRACE_UPDATE) {
+            UpdateCore.logInfo(updateFile.getName() + " invalid -- deleting");//$NON-NLS-1$
+          }
+
           updateFile.delete();
         }
       }

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.update.core.internal;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateCore;
 import com.google.dart.tools.update.core.UpdateListener;
@@ -131,8 +132,11 @@ public class UpdateModel {
    * @param state the new state
    */
   public void enterState(State state) {
-    //TODO (pquitslund): sysout for testing
-    System.out.println(this.state + "->" + state);
+
+    if (DartCoreDebug.TRACE_UPDATE) {
+      UpdateCore.logInfo(this.state + "->" + state);//$NON-NLS-1$
+    }
+
     this.state = state;
     notifyListeners(state);
   }

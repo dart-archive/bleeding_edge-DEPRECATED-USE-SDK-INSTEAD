@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.update.core.internal;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateAdapter;
 import com.google.dart.tools.update.core.UpdateCore;
@@ -151,8 +152,11 @@ public class DownloadManager {
     File zip = latestStaged.getLocalPath().toFile();
     if (zip.exists()) {
       if (!UpdateUtils.isZipValid(zip)) {
-        //TODO(pquitslund): sysout for debugging
-        System.out.println("deleting invalid zip: " + zip.getName());
+
+        if (DartCoreDebug.TRACE_UPDATE) {
+          UpdateCore.logInfo("deleting invalid zip: " + zip.getName());//$NON-NLS-1$
+        }
+
         zip.delete();
       }
     }
@@ -160,13 +164,17 @@ public class DownloadManager {
 
   private void doCheckForUpdate() {
 
-    //TODO(pquitslund): sysout for debugging
-    System.out.println("DownloadManager.doCheckForUpdate()");
+    if (DartCoreDebug.TRACE_UPDATE) {
+      UpdateCore.logInfo("DownloadManager.doCheckForUpdate()");//$NON-NLS-1$
+    }
 
     //ensure jobs don't stack
     if (updateJob != null) {
-      //TODO(pquitslund): sysout for debugging
-      System.out.println("(update job active -- check canceled)");
+
+      if (DartCoreDebug.TRACE_UPDATE) {
+        UpdateCore.logInfo("(update job active -- check canceled)");//$NON-NLS-1$
+      }
+
       return;
     }
 

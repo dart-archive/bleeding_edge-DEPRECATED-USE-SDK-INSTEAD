@@ -37,6 +37,7 @@ public class DartCoreDebug {
   public static final boolean TRACE_INDEX_CONTRIBUTOR = isOptionTrue("trace/index/contributor");
   public static final boolean TRACE_INDEX_PROCESSOR = isOptionTrue("trace/index/processor");
   public static final boolean TRACE_INDEX_STATISTICS = isOptionTrue("trace/index/statistics");
+  public static final boolean TRACE_UPDATE = isOptionTrue("trace/update");
 
   public static final boolean ENABLE_CONTENT_ASSIST_TIMING = isOptionTrue("debug/ResultCollector");
   public static final boolean ENABLE_MARK_OCCURRENCES = true; //isOptionTrue("debug/markOccurrences");
