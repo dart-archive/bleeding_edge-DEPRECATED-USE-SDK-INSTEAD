@@ -32,9 +32,4 @@ public abstract class CompilationUnitMember extends Declaration {
   public CompilationUnitMember(Comment comment) {
     super(comment);
   }
-
-  @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
-    return visitor.visitCompilationUnitMember(this);
-  }
 }
