@@ -43,6 +43,13 @@ public interface LibraryElement extends Element {
   public LibraryElement[] getImportedLibraries();
 
   /**
+   * Return an array containing specifications of all of the imports defined in this library.
+   * 
+   * @return the imports defined in this library
+   */
+  public ImportSpecification[] getImports();
+
+  /**
    * Return an array containing elements for each of the prefixes used to {@code #import} libraries
    * into this library. Each prefix can be used in more than one {@code #import} directive.
    * 
