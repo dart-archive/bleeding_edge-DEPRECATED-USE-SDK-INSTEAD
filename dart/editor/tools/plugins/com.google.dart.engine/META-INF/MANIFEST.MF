@@ -8,6 +8,7 @@ Bundle-SymbolicName: com.google.dart.engine;singleton:=true
 Bundle-Version: 0.1.0.qualifier
 Bundle-Vendor: %providerName
 Export-Package: com.google.dart.engine.ast,
+ com.google.dart.engine.ast.visitor,
  com.google.dart.engine.cmdline,
  com.google.dart.engine.element,
  com.google.dart.engine.error,
