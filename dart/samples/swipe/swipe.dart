@@ -16,26 +16,26 @@ var timeoutHandle;
 
 void main() {
   target = query('#target');
-  
+
   initialize3D();
-  
+
   // Handle touch events.
   int touchStartX;
-  
+
   target.on.touchStart.add((TouchEvent event) {
     event.preventDefault();
-    
+
     if (event.touches.length > 0) {
       touchStartX = event.touches[0].pageX;
     }
   });
-  
+
   target.on.touchMove.add((TouchEvent event) {
     event.preventDefault();
-    
+
     if (touchStartX != null && event.touches.length > 0) {
       int newTouchX = event.touches[0].pageX;
-      
+
       if (newTouchX > touchStartX) {
         spinFigure(target, ((newTouchX - touchStartX) / 20).toInt() + 1);
         touchStartX = null;
@@ -45,13 +45,13 @@ void main() {
       }
     }
   });
-  
+
   target.on.touchEnd.add((TouchEvent event) {
     event.preventDefault();
-    
+
     touchStartX = null;
   });
-  
+
   // Handle key events.
   document.on.keyDown.add((KeyboardEvent event) {
     switch (event.keyIdentifier) {
@@ -63,38 +63,42 @@ void main() {
         break;
     }
   });
-  
+
   document.on.keyUp.add((event) => stopSpin());
 }
 
 void initialize3D() {
+  target.classes.add("transformable");
+
   num childCount = target.elements.length;
-  
+
   query("#target").rect.then((ElementRect r) {
     num width = r.client.width;
     figureWidth = ((width / 2) / Math.tan(Math.PI / childCount)).toInt();
-   
+
     target.style.transform = "translateZ(-${figureWidth}px)";
-   
+
     num radius = (figureWidth * 1.2).round();
     query('#container2').style.width = "${radius}px";
-   
+
     for (int i = 0; i < childCount; i++) {
       var panel = target.elements[i];
-      
+
+      panel.classes.add("transformable");
+
       panel.style.transform =
           "rotateY(${i * (360 / childCount)}deg) translateZ(${radius}px)";
     }
-    
+
     spinFigure(target, -1);
   });
 }
 
 void spinFigure(Element figure, int direction) {
   num childCount = target.elements.length;
-  
+
   anglePos += (360.0 / childCount) * direction;
-  
+
   figure.style.transform =
       'translateZ(-${figureWidth}px) rotateY(${anglePos}deg)';
 }
@@ -106,7 +110,7 @@ void startSpin(Element figure, int direction) {
   // If we're not already spinning -
   if (timeoutHandle == null) {
     spinFigure(figure, direction);
-    
+
     timeoutHandle = window.setInterval(
         () => spinFigure(figure, direction), 100);
   }
