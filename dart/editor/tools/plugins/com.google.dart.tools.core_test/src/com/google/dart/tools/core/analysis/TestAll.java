@@ -21,6 +21,7 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(AnalysisServerTest.class);
     suite.addTestSuite(CacheTest.class);
+    suite.addTestSuite(TaskQueueTest.class);
     return suite;
   }
 }
