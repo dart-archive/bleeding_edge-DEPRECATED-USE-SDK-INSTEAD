@@ -42,7 +42,6 @@ public class BrowserMainTab extends DartiumMainTab {
   private Button selectBrowserButton;
   private Button defaultBrowserButton;
   private Text browserText;
-  private Text argsText;
 
   @Override
   public void createControl(Composite parent) {
@@ -84,7 +83,7 @@ public class BrowserMainTab extends DartiumMainTab {
     });
 
     Label browserLabel = new Label(browserGroup, SWT.NONE);
-    browserLabel.setText(Messages.BrowserMainTab_Browser);
+    browserLabel.setText(Messages.BrowserMainTab_BrowserLabel);
     GridDataFactory.swtDefaults().hint(getLabelColumnWidth(), -1).applyTo(browserLabel);
 
     browserText = new Text(browserGroup, SWT.BORDER | SWT.SINGLE);
@@ -106,8 +105,9 @@ public class BrowserMainTab extends DartiumMainTab {
     Label argsLabel = new Label(browserGroup, SWT.NONE);
     argsLabel.setText("Arguments:");
 
-    argsText = new Text(browserGroup, SWT.BORDER | SWT.SINGLE);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(argsText);
+    argumentText = new Text(browserGroup, SWT.BORDER | SWT.SINGLE);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(
+        argumentText);
 
     setControl(composite);
   }
@@ -115,6 +115,7 @@ public class BrowserMainTab extends DartiumMainTab {
   @Override
   public void dispose() {
     Control control = getControl();
+
     if (control != null) {
       control.dispose();
       setControl(null);
@@ -163,7 +164,9 @@ public class BrowserMainTab extends DartiumMainTab {
   @Override
   public void initializeFrom(ILaunchConfiguration config) {
     super.initializeFrom(config);
+
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(config);
+
     if (dartLauncher.getUseDefaultBrowser()) {
       defaultBrowserButton.setSelection(true);
       setEnablement(false);
@@ -171,9 +174,8 @@ public class BrowserMainTab extends DartiumMainTab {
       defaultBrowserButton.setSelection(false);
       setEnablement(true);
     }
-    browserText.setText(dartLauncher.getBrowserName());
-    argsText.setText(dartLauncher.getArguments());
 
+    browserText.setText(dartLauncher.getBrowserName());
   }
 
   /**
@@ -186,15 +188,14 @@ public class BrowserMainTab extends DartiumMainTab {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(config);
     dartLauncher.setUseDefaultBrowser(defaultBrowserButton.getSelection());
     dartLauncher.setBrowserName(browserText.getText().trim());
-    dartLauncher.setArguments(argsText.getText().trim());
   }
 
   @Override
   public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
     super.setDefaults(configuration);
+
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
     dartLauncher.setUseDefaultBrowser(true);
-
   }
 
   @Override
@@ -205,7 +206,6 @@ public class BrowserMainTab extends DartiumMainTab {
   }
 
   private void handleBrowserConfigBrowseButton() {
-
     FileDialog fd = new FileDialog(getShell(), SWT.OPEN);
 
     String filePath = fd.open();
@@ -218,7 +218,7 @@ public class BrowserMainTab extends DartiumMainTab {
   private void setEnablement(boolean value) {
     selectBrowserButton.setEnabled(value);
     browserText.setEnabled(value);
-    argsText.setEnabled(value);
+    argumentText.setEnabled(value);
   }
 
 }

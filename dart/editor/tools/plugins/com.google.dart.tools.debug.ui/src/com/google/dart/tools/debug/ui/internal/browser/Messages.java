@@ -37,6 +37,7 @@ public class Messages extends NLS {
   public static String BrowserMainTab_LaunchTarget;
   public static String BrowserMainTab_Name;
   public static String BrowserMainTab_Select;
+  public static String BrowserMainTab_BrowserLabel;
   public static String BrowserMainTab_DialogTitle;
   public static String BrowserMainTab_DialogMessage;
 

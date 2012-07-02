@@ -103,6 +103,8 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   private Button enableDebuggingButton;
 
+  protected Text argumentText;
+
   /**
    * Create a new instance of DartServerMainTab.
    */
@@ -132,11 +134,11 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     group = new Group(composite, SWT.NONE);
     group.setText("Dartium settings");
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-    GridLayoutFactory.swtDefaults().numColumns(2).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
 
     checkedModeButton = new Button(group, SWT.CHECK);
     checkedModeButton.setText("Run in checked mode");
-    GridDataFactory.swtDefaults().span(2, 1).applyTo(checkedModeButton);
+    GridDataFactory.swtDefaults().span(3, 1).applyTo(checkedModeButton);
     checkedModeButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
@@ -146,13 +148,27 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
     enableDebuggingButton = new Button(group, SWT.CHECK);
     enableDebuggingButton.setText("Enable debugging");
-    GridDataFactory.swtDefaults().span(2, 1).applyTo(enableDebuggingButton);
+    GridDataFactory.swtDefaults().span(3, 1).applyTo(enableDebuggingButton);
     enableDebuggingButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
         notifyPanelChanged();
       }
     });
+
+    // additional browser arguments
+    Label argsLabel = new Label(group, SWT.NONE);
+    argsLabel.setText("Arguments:");
+    GridDataFactory.swtDefaults().hint(getLabelColumnWidth(), -1).applyTo(argsLabel);
+
+    argumentText = new Text(group, SWT.BORDER | SWT.SINGLE);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(
+        argumentText);
+
+    Label spacer = new Label(group, SWT.NONE);
+    PixelConverter converter = new PixelConverter(spacer);
+    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).hint(widthHint, -1).applyTo(spacer);
 
     setControl(composite);
   }
@@ -196,6 +212,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
   @Override
   public void initializeFrom(ILaunchConfiguration configuration) {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
+
     if (dartLauncher.getShouldLaunchFile()) {
       htmlButton.setSelection(true);
       htmlText.setText(dartLauncher.getApplicationName());
@@ -211,12 +228,16 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
       htmlButton.setSelection(false);
       updateEnablements(false);
     }
+
     if (checkedModeButton != null) {
       checkedModeButton.setSelection(dartLauncher.getCheckedMode());
     }
+
     if (enableDebuggingButton != null) {
       enableDebuggingButton.setSelection(dartLauncher.getEnableDebugging());
     }
+
+    argumentText.setText(dartLauncher.getArguments());
   }
 
   @Override
@@ -255,12 +276,16 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     dartLauncher.setApplicationName(htmlText.getText());
     dartLauncher.setUrl(urlText.getText().trim());
     dartLauncher.setProjectName(projectText.getText().trim());
+
     if (checkedModeButton != null) {
       dartLauncher.setCheckedMode(checkedModeButton.getSelection());
     }
+
     if (enableDebuggingButton != null) {
       dartLauncher.setEnableDebugging(enableDebuggingButton.getSelection());
     }
+
+    dartLauncher.setArguments(argumentText.getText().trim());
   }
 
   @Override

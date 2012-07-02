@@ -250,8 +250,8 @@ public class BrowserManager {
     monitor.worked(1);
   }
 
-  private List<String> buildArgumentsList(IPath browserLocation, String url,
-      boolean enableDebugging, int devToolsPortNumber) {
+  private List<String> buildArgumentsList(DartLaunchConfigWrapper launchConfig,
+      IPath browserLocation, String url, boolean enableDebugging, int devToolsPortNumber) {
     List<String> arguments = new ArrayList<String>();
 
     arguments.add(browserLocation.toOSString());
@@ -284,6 +284,10 @@ public class BrowserManager {
 
     // Bypass the error dialog when the profile lock couldn't be attained.
     arguments.add("--no-process-singleton-dialog");
+
+    for (String arg : launchConfig.getArgumentsAsArray()) {
+      arguments.add(arg);
+    }
 
     // Causes the browser to launch directly into incognito mode.
     // We use this to prevent the previous session's tabs from re-opening.
@@ -564,6 +568,7 @@ public class BrowserManager {
     }
 
     List<String> arguments = buildArgumentsList(
+        launchConfig,
         browserLocation,
         url,
         enableDebugging,
