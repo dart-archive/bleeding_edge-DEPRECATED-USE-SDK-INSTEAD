@@ -23,26 +23,21 @@ import java.util.List;
  * 
  * <pre>
  * variableDeclarationList ::=
- *     finalVarOrType {@link VariableDeclaration variableDeclaration} (',' {@link VariableDeclaration variableDeclaration})*
+ *     finalConstVarOrType {@link VariableDeclaration variableDeclaration} (',' {@link VariableDeclaration variableDeclaration})*
  * 
- * finalVarOrType ::=
+ * finalConstVarOrType ::=
  *   | 'final' {@link TypeName type}?
+ *   | 'const' {@link TypeName type}?
  *   | 'var'
  *   | {@link TypeName type}
  * </pre>
  */
 public class VariableDeclarationList extends ASTNode {
   /**
-   * The token representing the 'var' keyword, or <code>null</code> if the 'var' keyword was not
-   * included.
+   * The token representing the 'final', 'const' or 'var' keyword, or <code>null</code> if no
+   * keyword was included.
    */
-  private Token varKeyword;
-
-  /**
-   * The token representing the 'final' keyword, or <code>null</code> if the 'final' keyword was not
-   * included.
-   */
-  private Token finalKeyword;
+  private Token keyword;
 
   /**
    * The type of the variables being declared, or <code>null</code> if no type was provided.
@@ -55,25 +50,22 @@ public class VariableDeclarationList extends ASTNode {
   private NodeList<VariableDeclaration> variables = new NodeList<VariableDeclaration>(this);
 
   /**
-   * Initialize a newly created field declaration.
+   * Initialize a newly created variable declaration list.
    */
   public VariableDeclarationList() {
   }
 
   /**
-   * Initialize a newly created field declaration.
+   * Initialize a newly created variable declaration list.
    * 
-   * @param varKeyword the token representing the 'var' keyword
-   * @param finalKeyword the token representing the 'final' keyword
+   * @param keyword the token representing the 'final', 'const' or 'var' keyword
    * @param type the type of the variables being declared
-   * @param fields a list containing the individual variables being declared
+   * @param variables a list containing the individual variables being declared
    */
-  public VariableDeclarationList(Token varKeyword, Token finalKeyword, TypeName type,
-      List<VariableDeclaration> fields) {
-    this.varKeyword = varKeyword;
-    this.finalKeyword = finalKeyword;
+  public VariableDeclarationList(Token keyword, TypeName type, List<VariableDeclaration> variables) {
+    this.keyword = keyword;
     this.type = becomeParentOf(type);
-    this.variables.addAll(fields);
+    this.variables.addAll(variables);
   }
 
   @Override
@@ -83,10 +75,8 @@ public class VariableDeclarationList extends ASTNode {
 
   @Override
   public Token getBeginToken() {
-    if (varKeyword != null) {
-      return varKeyword;
-    } else if (finalKeyword != null) {
-      return finalKeyword;
+    if (keyword != null) {
+      return keyword;
     }
     return type.getBeginToken();
   }
@@ -95,20 +85,18 @@ public class VariableDeclarationList extends ASTNode {
   public Token getEndToken() {
     if (type != null) {
       return type.getEndToken();
-    } else if (finalKeyword != null) {
-      return finalKeyword;
     }
-    return varKeyword;
+    return keyword;
   }
 
   /**
-   * Return the token representing the 'final' keyword, or <code>null</code> if the 'final' keyword
-   * was not included.
+   * Return the token representing the 'final', 'const' or 'var' keyword, or <code>null</code> if no
+   * keyword was included.
    * 
-   * @return the token representing the 'final' keyword
+   * @return the token representing the 'final', 'const' or 'var' keyword
    */
-  public Token getFinalKeyword() {
-    return finalKeyword;
+  public Token getKeyword() {
+    return keyword;
   }
 
   /**
@@ -130,22 +118,12 @@ public class VariableDeclarationList extends ASTNode {
   }
 
   /**
-   * Return the token representing the 'var' keyword, or <code>null</code> if the 'var' keyword was
-   * not included.
+   * Set the token representing the 'final', 'const' or 'var' keyword to the given token.
    * 
-   * @return the token representing the 'var' keyword
+   * @param keyword the token representing the 'final', 'const' or 'var' keyword
    */
-  public Token getVarKeyword() {
-    return varKeyword;
-  }
-
-  /**
-   * Set the token representing the 'final' keyword to the given token.
-   * 
-   * @param finalKeyword the token representing the 'final' keyword
-   */
-  public void setFinalKeyword(Token finalKeyword) {
-    this.finalKeyword = finalKeyword;
+  public void setKeyword(Token keyword) {
+    this.keyword = keyword;
   }
 
   /**
@@ -155,15 +133,6 @@ public class VariableDeclarationList extends ASTNode {
    */
   public void setType(TypeName typeName) {
     type = becomeParentOf(typeName);
-  }
-
-  /**
-   * Set the token representing the 'var' keyword to the given token.
-   * 
-   * @param varKeyword the token representing the 'var' keyword
-   */
-  public void setVarKeyword(Token varKeyword) {
-    this.varKeyword = varKeyword;
   }
 
   @Override

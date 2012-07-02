@@ -44,9 +44,18 @@ public class ForStatement extends Statement {
   private Token leftParenthesis;
 
   /**
-   * The declaration of the loop variables, or <code>null</code> if there are no variables.
+   * The declaration of the loop variables, or <code>null</code> if there are no variables. Note
+   * that a for statement cannot have both a variable list and an initialization expression, but can
+   * validly have neither.
    */
-  private NamedFormalParameter variable;
+  private VariableDeclarationList variableList;
+
+  /**
+   * The initialization expression, or <code>null</code> if there is no initialization expression.
+   * Note that a for statement cannot have both a variable list and an initialization expression,
+   * but can validly have neither.
+   */
+  private Expression initialization;
 
   /**
    * The semicolon separating the initializer and the condition.
@@ -89,7 +98,8 @@ public class ForStatement extends Statement {
    * 
    * @param forKeyword the token representing the 'for' keyword
    * @param leftParenthesis the left parenthesis
-   * @param variable the declaration of the loop variable
+   * @param variableList the declaration of the loop variables
+   * @param initialization the initialization expression
    * @param leftSeparator the semicolon separating the initializer and the condition
    * @param condition the condition used to determine when to terminate the loop
    * @param rightSeparator the semicolon separating the condition and the updater
@@ -97,12 +107,14 @@ public class ForStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  public ForStatement(Token forKeyword, Token leftParenthesis, NamedFormalParameter variable,
-      Token leftSeparator, Expression condition, Token rightSeparator, List<Expression> updaters,
+  public ForStatement(Token forKeyword, Token leftParenthesis,
+      VariableDeclarationList variableList, Expression initialization, Token leftSeparator,
+      Expression condition, Token rightSeparator, List<Expression> updaters,
       Token rightParenthesis, Statement body) {
     this.forKeyword = forKeyword;
     this.leftParenthesis = leftParenthesis;
-    this.variable = becomeParentOf(variable);
+    this.variableList = becomeParentOf(variableList);
+    this.initialization = becomeParentOf(initialization);
     this.leftSeparator = leftSeparator;
     this.condition = becomeParentOf(condition);
     this.rightSeparator = rightSeparator;
@@ -154,6 +166,16 @@ public class ForStatement extends Statement {
   }
 
   /**
+   * Return the initialization expression, or <code>null</code> if there is no initialization
+   * expression.
+   * 
+   * @return the initialization expression
+   */
+  public Expression getInitialization() {
+    return initialization;
+  }
+
+  /**
    * Return the left parenthesis.
    * 
    * @return the left parenthesis
@@ -199,12 +221,12 @@ public class ForStatement extends Statement {
   }
 
   /**
-   * Return the declaration of the loop variable, or <code>null</code> if there is no variable.
+   * Return the declaration of the loop variables, or <code>null</code> if there are no variables.
    * 
-   * @return the declaration of the loop variable, or <code>null</code> if there is no variable
+   * @return the declaration of the loop variables, or <code>null</code> if there are no variables
    */
-  public NamedFormalParameter getVariable() {
-    return variable;
+  public VariableDeclarationList getVariables() {
+    return variableList;
   }
 
   /**
@@ -232,6 +254,15 @@ public class ForStatement extends Statement {
    */
   public void setForKeyword(Token forKeyword) {
     this.forKeyword = forKeyword;
+  }
+
+  /**
+   * Set the initialization expression to the given expression.
+   * 
+   * @param initialization the initialization expression
+   */
+  public void setInitialization(Expression initialization) {
+    this.initialization = becomeParentOf(initialization);
   }
 
   /**
@@ -271,18 +302,18 @@ public class ForStatement extends Statement {
   }
 
   /**
-   * Set the declaration of the loop variable to the given parameter.
+   * Set the declaration of the loop variables to the given parameter.
    * 
-   * @param parameter the declaration of the loop variable, or <code>null</code> if there is no
-   *          variable
+   * @param variableList the declaration of the loop variables
    */
-  public void setVariable(NamedFormalParameter parameter) {
-    variable = becomeParentOf(parameter);
+  public void setVariables(VariableDeclarationList variableList) {
+    variableList = becomeParentOf(variableList);
   }
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(variable, visitor);
+    safelyVisitChild(variableList, visitor);
+    safelyVisitChild(initialization, visitor);
     safelyVisitChild(condition, visitor);
     updaters.accept(visitor);
     safelyVisitChild(body, visitor);
