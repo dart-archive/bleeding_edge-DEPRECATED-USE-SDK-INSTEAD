@@ -203,8 +203,8 @@ public class UpdateUtils {
    * Parse the latest revision from the revision listing at the given url.
    * 
    * @param url the url to check
-   * @return the latest revision, or <code>null</code> if none were found
-   * @throws IOException if an exception occured in retrieving the revision
+   * @return the latest revision, or <code>null</code> if none is found
+   * @throws IOException if an exception occurred in retrieving the revision
    */
   public static Revision getLatestRevision(String url) throws IOException {
     List<Revision> revisions = parseRevisions(url);

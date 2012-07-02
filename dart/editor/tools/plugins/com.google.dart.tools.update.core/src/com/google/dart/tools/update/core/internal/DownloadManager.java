@@ -48,12 +48,15 @@ public class DownloadManager {
 
   private final UpdateModel model;
 
+  private UpdateResolver updateResolver;
+
   /**
    * Create a manager instance.
    */
   public DownloadManager(UpdateModel model) {
     this.model = model;
     model.addListener(new StateChangeListener());
+    updateResolver = UpdateResolver.forIntegration();
   }
 
   /**
@@ -63,7 +66,7 @@ public class DownloadManager {
    * @throws IOException if an error occurs accessing revision info
    */
   public Revision getLatestRevision() throws IOException {
-    return UpdateUtils.getLatestRevision(UpdateCore.getUpdateUrl());
+    return updateResolver.getLatest();
   }
 
   /**
