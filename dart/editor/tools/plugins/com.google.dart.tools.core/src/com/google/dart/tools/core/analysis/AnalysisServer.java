@@ -15,7 +15,6 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 
 import java.io.BufferedReader;
@@ -42,6 +41,13 @@ public class AnalysisServer {
   private static final String ANALYZE_CONTEXT_TAG = AnalyzeContextTask.class.getSimpleName();
   private static final String END_LIBRARIES_TAG = "</end-libraries>";
   private static final String END_QUEUE_TAG = "</end-queue>";
+
+  /**
+   * The maximum amount of time (milliseconds) that the requesting thread should wait for the
+   * background thread to switch from an idle state to a running state and notify others that it is
+   * no longer idle.
+   */
+  private static final int MAX_WAIT_FOR_RUNNING = 5000;
 
   private static PerformanceListener performanceListener;
 
@@ -109,6 +115,12 @@ public class AnalysisServer {
    * {@link #queue} before accessing this field.
    */
   private boolean isServerIdle = false;
+
+  /**
+   * A flag used by {@link #waitForRunning()} to determine if the background thread has run. Lock
+   * against {@link #queue} before accessing this field.
+   */
+  private boolean wasRunning = false;
 
   /**
    * Create a new instance that processes analysis tasks on a background thread
@@ -575,6 +587,9 @@ public class AnalysisServer {
     }
     synchronized (queue) {
       isServerIdle = idle;
+      if (!idle) {
+        wasRunning = true;
+      }
       queue.notifyAll();
     }
     Thread.yield();
@@ -588,16 +603,7 @@ public class AnalysisServer {
     synchronized (queue) {
       queue.add(index, task);
       queue.notifyAll();
-
-      // Wait for the background thread to notify others that the server is no longer idle
-      if (analyze && !waitForIdle(false, 5000) && DartCoreDebug.DEBUG_ANALYSIS) {
-        try {
-          throw new RuntimeException(
-              "Gave up waiting for background thread to run after adding task");
-        } catch (Exception e) {
-          DartCore.logError(e);
-        }
-      }
+      waitForRunning();
     }
   }
 
@@ -702,6 +708,36 @@ public class AnalysisServer {
         }
       }
       return true;
+    }
+  }
+
+  /**
+   * Wait for the background thread to notify listeners that it is no longer idle.
+   */
+  private void waitForRunning() {
+    synchronized (queue) {
+      if (!analyze || !isServerIdle) {
+        return;
+      }
+      long end = System.currentTimeMillis() + MAX_WAIT_FOR_RUNNING;
+      wasRunning = false;
+      while (!wasRunning) {
+        long delta = end - System.currentTimeMillis();
+        if (delta <= 0) {
+          try {
+            throw new RuntimeException(
+                "Gave up waiting for background thread to run after adding task");
+          } catch (Exception e) {
+            DartCore.logError(e);
+          }
+          return;
+        }
+        try {
+          queue.wait(delta);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
+      }
     }
   }
 
