@@ -876,12 +876,12 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     //  menu.add(saveAsAction);
     menu.add(saveAllAction);
     menu.add(actionFactory.getRevertItem());
-    //menu.add(new Separator());
+    menu.add(new Separator());
     //TODO (pquitslund): re-enable when we have proper refactoring support implemented
 //    menu.add(actionFactory.getMoveItem());
 //    menu.add(actionFactory.getRenameItem());
 
-    //menu.add(actionFactory.getRefreshItem());
+    menu.add(actionFactory.getRefreshItem());
 
     menu.add(new GroupMarker(IWorkbenchActionConstants.SAVE_EXT));
     //menu.add(new Separator());
