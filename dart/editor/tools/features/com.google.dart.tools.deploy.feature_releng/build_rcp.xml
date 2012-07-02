@@ -454,6 +454,8 @@ build system.  The PDE build system has to run under Eclipse.
                 <include name="*.zip" />
             </fileset>
         </copy>
+        <echo message="creating build VERSION file"/>
+        <echo file="${build.out}/VERSION" message="${build.revision}${line.separator}"/>
     </target>
 
     <!-- - - - - - - - - - - - - - - - - - 
