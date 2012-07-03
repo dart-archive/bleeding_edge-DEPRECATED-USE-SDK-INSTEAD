@@ -28,8 +28,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
 
   private DartiumDebugVariable parent;
   private DartiumDebugValue value;
-  private boolean isThisObject;
-  private boolean thrownException;
+  private boolean isSpecialObject;
 
   /**
    * Create a new Dartium Debug Variable
@@ -49,11 +48,11 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
    * @param isThisObject
    */
   public DartiumDebugVariable(DartiumDebugTarget target, WebkitPropertyDescriptor descriptor,
-      boolean isThisObject) {
+      boolean isSpecialObject) {
     super(target);
 
     this.descriptor = descriptor;
-    this.isThisObject = isThisObject;
+    this.isSpecialObject = isSpecialObject;
   }
 
   /**
@@ -101,6 +100,10 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
     return false;
   }
 
+  public boolean isLibraryObject() {
+    return isSpecialObject && getName().equals("library");
+  }
+
   public boolean isListValue() {
     return value.isList();
   }
@@ -110,11 +113,11 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
   }
 
   public boolean isThisObject() {
-    return isThisObject;
+    return isSpecialObject && getName().equals("this");
   }
 
   public boolean isThrownException() {
-    return thrownException;
+    return isSpecialObject && getName().equals("exception");
   }
 
   @Override
@@ -159,10 +162,6 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
 
   protected void setParent(DartiumDebugVariable parent) {
     this.parent = parent;
-  }
-
-  protected void setThrownException(boolean value) {
-    thrownException = value;
   }
 
   private boolean isListMember() {

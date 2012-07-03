@@ -39,9 +39,9 @@ public class DebuggerEditorInput extends FileStoreEditorInput {
   @Override
   public String getName() {
     // Convert dart_foo$123456.dart to dart:foo.
-    String name = super.getName().replaceFirst("_", ":");
+    String name = super.getName().replaceFirst("\\$", ":");
 
-    int index = name.indexOf('$');
+    int index = name.indexOf("$$");
 
     if (index != -1) {
       name = name.substring(0, index);

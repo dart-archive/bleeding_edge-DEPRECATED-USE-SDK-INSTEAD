@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core.source;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -39,12 +40,14 @@ public class WorkspaceSourceContainer extends AbstractSourceContainer {
 
   @Override
   public Object[] findSourceElements(String path) throws CoreException {
+    // Look for a resource reference (/project/directory/file.dart).
     IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(path);
 
     if (resource != null) {
       return new Object[] {resource};
     }
 
+    // Look for a file system reference.
     File file = new File(path);
 
     if (file.exists() && !file.isDirectory()) {
@@ -52,6 +55,31 @@ public class WorkspaceSourceContainer extends AbstractSourceContainer {
 
       if (files.length > 0) {
         return new Object[] {files[0]};
+      }
+    }
+
+    // TODO(devoncarew): we'll want to revisit this in the future to handle files that are served from
+    // urls that do not contain their parent project's name.
+    // TODO(devoncarew): use a user specified way of resolving the location? use the project info in
+    // the launch config?
+
+    // Try and find a match by removing prefixes from the path.
+    // /foo/bar/project/directory/file.dart ==> /project/directory/file.dart
+    for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+      if (!project.isOpen()) {
+        continue;
+      }
+
+      String token = "/" + project.getName() + "/";
+
+      int index = path.indexOf(token);
+
+      if (index != -1) {
+        resource = ResourcesPlugin.getWorkspace().getRoot().findMember(path.substring(index));
+
+        if (resource != null) {
+          return new Object[] {resource};
+        }
       }
     }
 

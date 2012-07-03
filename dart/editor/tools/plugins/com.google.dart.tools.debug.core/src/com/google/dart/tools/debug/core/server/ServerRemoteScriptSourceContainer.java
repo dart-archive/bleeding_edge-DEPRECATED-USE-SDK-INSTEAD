@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
 import org.eclipse.core.runtime.CoreException;
@@ -50,22 +51,48 @@ public class ServerRemoteScriptSourceContainer extends AbstractSourceContainer {
 
   @Override
   public Object[] findSourceElements(String name) throws CoreException {
-    // TODO(devoncarew): the VM sends in bootstrap_impl also, but we can't retrieve source for that library.
-    if (name != null && name.startsWith("dart:")) {
-      ServerDebugTarget target = ServerDebugTarget.getActiveTarget();
+    if (name != null) {
+      if (name.startsWith("builtin:")) {
+        ServerDebugTarget target = ServerDebugTarget.getActiveTarget();
 
-      if (target != null) {
-        String source = target.getConnection().getScriptSource(name);
+        if (target != null) {
+          String[] strs = name.split(":");
 
-        if (source != null) {
-          try {
-            return new Object[] {getCreateStorageFor(name, source)};
-          } catch (IOException e) {
-            throw new CoreException(new Status(
-                IStatus.ERROR,
-                DartDebugCorePlugin.PLUGIN_ID,
-                e.toString(),
-                e));
+          int libraryId = Integer.parseInt(strs[1]);
+          String url = strs[2];
+
+          String source = target.getConnection().getScriptSource(libraryId, url);
+
+          if (source != null) {
+            try {
+              return new Object[] {getCreateStorageFor(url, source)};
+            } catch (IOException e) {
+              throw new CoreException(new Status(
+                  IStatus.ERROR,
+                  DartDebugCorePlugin.PLUGIN_ID,
+                  e.toString(),
+                  e));
+            }
+          }
+        }
+      }
+
+      if (SystemLibraryManager.isDartSpec(name)) {
+        ServerDebugTarget target = ServerDebugTarget.getActiveTarget();
+
+        if (target != null) {
+          String source = target.getConnection().getScriptSource(name);
+
+          if (source != null) {
+            try {
+              return new Object[] {getCreateStorageFor(name, source)};
+            } catch (IOException e) {
+              throw new CoreException(new Status(
+                  IStatus.ERROR,
+                  DartDebugCorePlugin.PLUGIN_ID,
+                  e.toString(),
+                  e));
+            }
           }
         }
       }
@@ -86,7 +113,13 @@ public class ServerRemoteScriptSourceContainer extends AbstractSourceContainer {
 
   private LocalFileStorage getCreateStorageFor(String url, String source) throws IOException {
     if (!cachedSourceMap.containsKey(url)) {
-      File file = File.createTempFile(url.replace(':', '_') + "$", ".dart");
+      String fileName = url;
+
+      if (fileName.equals("bootstrap_impl")) {
+        fileName = "dart:" + fileName;
+      }
+
+      File file = File.createTempFile(fileName.replace(':', '$') + "$$", ".dart");
       file.deleteOnExit();
 
       Writer out = new OutputStreamWriter(new FileOutputStream(file), Charset.forName("UTF8"));

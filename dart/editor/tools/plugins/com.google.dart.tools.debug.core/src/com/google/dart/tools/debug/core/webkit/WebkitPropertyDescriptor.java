@@ -25,20 +25,11 @@ import org.json.JSONObject;
  */
 public class WebkitPropertyDescriptor {
 
-  public static WebkitPropertyDescriptor createExceptionObjectDescriptor(
-      WebkitRemoteObject thisObject) {
+  public static WebkitPropertyDescriptor createObjectDescriptor(WebkitRemoteObject thisObject,
+      String name) {
     WebkitPropertyDescriptor descriptor = new WebkitPropertyDescriptor();
 
-    descriptor.name = "<exception>";
-    descriptor.value = thisObject;
-
-    return descriptor;
-  }
-
-  public static WebkitPropertyDescriptor createThisObjectDescriptor(WebkitRemoteObject thisObject) {
-    WebkitPropertyDescriptor descriptor = new WebkitPropertyDescriptor();
-
-    descriptor.name = "this";
+    descriptor.name = name;
     descriptor.value = thisObject;
 
     return descriptor;

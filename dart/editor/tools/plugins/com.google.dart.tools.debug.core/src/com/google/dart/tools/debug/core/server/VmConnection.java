@@ -184,6 +184,31 @@ public class VmConnection {
     }
   }
 
+  public void getListElements(int listObjectId, int index, final VmCallback<VmValue> callback)
+      throws IOException {
+    if (callback == null) {
+      throw new IllegalArgumentException("a callback is required");
+    }
+
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "getListElements");
+      request.put("params", new JSONObject().put("objectId", listObjectId).put("index", index));
+
+      sendRequest(request, new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          VmResult<VmValue> vmObjectResult = convertGetListElementsResult(result);
+
+          callback.handleResult(vmObjectResult);
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+  }
+
   public void getObjectProperties(final int objectId, final VmCallback<VmObject> callback)
       throws IOException {
     if (callback == null) {
@@ -209,27 +234,38 @@ public class VmConnection {
     }
   }
 
-  public void getScriptSource(int libraryId, String url, final VmCallback<String> callback)
-      throws IOException {
-    if (callback == null) {
-      throw new IllegalArgumentException("a callback is required");
+  public String getScriptSource(final int libraryId, String url) {
+    final String cacheKey = libraryId + ":" + url;
+
+    if (!sourceCache.containsKey(cacheKey)) {
+      final CountDownLatch latch = new CountDownLatch(1);
+
+      try {
+        getScriptSourceAsync(libraryId, url, new VmCallback<String>() {
+          @Override
+          public void handleResult(VmResult<String> result) {
+            if (result.isError()) {
+              sourceCache.put(cacheKey, null);
+            } else {
+              sourceCache.put(cacheKey, result.getResult());
+            }
+
+            latch.countDown();
+          }
+        });
+      } catch (IOException e) {
+        sourceCache.put(cacheKey, null);
+        latch.countDown();
+      }
+
+      try {
+        latch.await();
+      } catch (InterruptedException e) {
+
+      }
     }
 
-    try {
-      JSONObject request = new JSONObject();
-
-      request.put("command", "getScriptSource");
-      request.put("params", new JSONObject().put("libraryId", libraryId).put("url", url));
-
-      sendRequest(request, new Callback() {
-        @Override
-        public void handleResult(JSONObject result) throws JSONException {
-          callback.handleResult(convertGetScriptSourceResult(result));
-        }
-      });
-    } catch (JSONException exception) {
-      throw new IOException(exception);
-    }
+    return sourceCache.get(cacheKey);
   }
 
   /**
@@ -254,16 +290,16 @@ public class VmConnection {
               for (VmLibraryRef library : result.getResult()) {
                 if (url.equals(library.getUrl())) {
                   try {
-                    getScriptSource(library.getId(), url, new VmCallback<String>() {
+                    getScriptSourceAsync(library.getId(), url, new VmCallback<String>() {
                       @Override
                       public void handleResult(VmResult<String> result) {
                         if (result.isError()) {
                           sourceCache.put(url, null);
-                          latch.countDown();
                         } else {
                           sourceCache.put(url, result.getResult());
-                          latch.countDown();
                         }
+
+                        latch.countDown();
                       }
                     });
                   } catch (IOException e) {
@@ -293,6 +329,29 @@ public class VmConnection {
     }
 
     return sourceCache.get(url);
+  }
+
+  public void getScriptSourceAsync(int libraryId, String url, final VmCallback<String> callback)
+      throws IOException {
+    if (callback == null) {
+      throw new IllegalArgumentException("a callback is required");
+    }
+
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "getScriptSource");
+      request.put("params", new JSONObject().put("libraryId", libraryId).put("url", url));
+
+      sendRequest(request, new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          callback.handleResult(convertGetScriptSourceResult(result));
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
   }
 
   public void getScriptURLs(int libraryId, final VmCallback<List<String>> callback)
@@ -538,6 +597,16 @@ public class VmConnection {
 
     if (object.has("result")) {
       result.setResult(VmLibrary.createFrom(libraryId, object.getJSONObject("result")));
+    }
+
+    return result;
+  }
+
+  private VmResult<VmValue> convertGetListElementsResult(JSONObject object) throws JSONException {
+    VmResult<VmValue> result = VmResult.createFrom(object);
+
+    if (object.has("result")) {
+      result.setResult(VmValue.createFrom(object.getJSONObject("result")));
     }
 
     return result;

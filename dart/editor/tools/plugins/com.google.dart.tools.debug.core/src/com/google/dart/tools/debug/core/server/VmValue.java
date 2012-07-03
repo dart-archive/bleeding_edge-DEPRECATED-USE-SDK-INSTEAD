@@ -33,6 +33,7 @@ public class VmValue {
     value.objectId = obj.optInt("objectId");
     value.kind = obj.optString("kind");
     value.text = obj.optString("text");
+    value.length = obj.optInt("length", 0);
 
     return value;
   }
@@ -42,6 +43,8 @@ public class VmValue {
   private String kind;
 
   private int objectId;
+
+  private int length;
 
   private VmObject vmObject;
 
@@ -56,6 +59,15 @@ public class VmValue {
     return kind;
   }
 
+  /**
+   * If this value is a list type, this method returns the list length;
+   * 
+   * @return
+   */
+  public int getLength() {
+    return length;
+  }
+
   public int getObjectId() {
     return objectId;
   }
@@ -66,6 +78,10 @@ public class VmValue {
 
   public VmObject getVmObject() {
     return vmObject;
+  }
+
+  public boolean isList() {
+    return "list".equals(getKind());
   }
 
   public boolean isObject() {

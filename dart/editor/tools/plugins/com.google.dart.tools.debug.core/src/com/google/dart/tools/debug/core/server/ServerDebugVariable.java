@@ -19,24 +19,103 @@ import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+
 /**
  * An IVariable implementation for VM debugging.
  */
 public class ServerDebugVariable extends ServerDebugElement implements IVariable {
-  private VmVariable vmVariable;
+  public static interface IValueRetriever {
+    public String getDisplayName();
 
+    public List<IVariable> getVariables();
+  }
+
+  public static ServerDebugVariable createLibraryVariable(final ServerDebugTarget target,
+      final int libraryId) {
+    return new ServerDebugVariable(target, "library", new IValueRetriever() {
+      private String name = "";
+
+      @Override
+      public String getDisplayName() {
+        return name;
+      }
+
+      @Override
+      public List<IVariable> getVariables() {
+        String[] nameResult = new String[1];
+
+        List<IVariable> result = createLibraryVariables(target, libraryId, nameResult);
+
+        name = nameResult[0];
+
+        return result;
+      }
+    });
+  }
+
+  protected static List<IVariable> createLibraryVariables(final ServerDebugTarget target,
+      int libraryId, final String[] nameResult) {
+    final List<IVariable> variables = new ArrayList<IVariable>();
+
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    try {
+      target.getConnection().getLibraryProperties(libraryId, new VmCallback<VmLibrary>() {
+        @Override
+        public void handleResult(VmResult<VmLibrary> result) {
+          if (!result.isError()) {
+            VmLibrary library = result.getResult();
+
+            nameResult[0] = library.getUrl();
+
+            for (VmVariable variable : library.getGlobals()) {
+              variables.add(new ServerDebugVariable(target, variable));
+            }
+          }
+
+          latch.countDown();
+        }
+      });
+    } catch (IOException e) {
+      latch.countDown();
+    }
+
+    try {
+      latch.await();
+    } catch (InterruptedException e) {
+
+    }
+
+    return variables;
+  }
+
+  private VmVariable vmVariable;
   private ServerDebugValue value;
+
+  private String name;
+
+  public ServerDebugVariable(IDebugTarget target, String name, IValueRetriever valueRetriever) {
+    super(target);
+
+    this.name = name;
+
+    this.value = new ServerDebugValue(target, valueRetriever);
+  }
 
   public ServerDebugVariable(IDebugTarget target, VmVariable vmVariable) {
     super(target);
 
     this.vmVariable = vmVariable;
     this.value = new ServerDebugValue(target, vmVariable.getValue());
+
+    this.name = vmVariable.getName();
   }
 
   public String getDisplayName() {
-    // TODO(devoncarew): handle array elements
-
     // The names of private fields are mangled by the VM.
     // _foo@652376 ==> _foo
     String name = getName();
@@ -50,7 +129,7 @@ public class ServerDebugVariable extends ServerDebugElement implements IVariable
 
   @Override
   public String getName() {
-    return vmVariable.getName();
+    return name;
   }
 
   @Override
@@ -70,8 +149,12 @@ public class ServerDebugVariable extends ServerDebugElement implements IVariable
     return false;
   }
 
+  public boolean isLibraryObject() {
+    return value.isValueRetriever() && "library".equals(getName());
+  }
+
   public boolean isListValue() {
-    return value != null && value.isListValue();
+    return value.isListValue();
   }
 
   public boolean isThisObject() {
@@ -79,7 +162,7 @@ public class ServerDebugVariable extends ServerDebugElement implements IVariable
   }
 
   public boolean isThrownException() {
-    return vmVariable.getIsException();
+    return vmVariable != null && vmVariable.getIsException();
   }
 
   @Override

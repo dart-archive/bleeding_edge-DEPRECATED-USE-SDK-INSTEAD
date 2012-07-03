@@ -123,8 +123,10 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 
     if ("file".equals(uri.getScheme())) {
       return uri.getPath();
-    } else {
+    } else if (SystemLibraryManager.isDartUri(uri)) {
       return uri.toString();
+    } else {
+      return "builtin:" + vmFrame.getLibraryId() + ":" + vmFrame.getLocation().getUrl();
     }
   }
 
@@ -218,14 +220,11 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     } else {
       List<ServerDebugVariable> variables = new ArrayList<ServerDebugVariable>();
 
-      // TODO: create a synthetic library variable
+      // create a synthetic library variable
+      variables.add(ServerDebugVariable.createLibraryVariable(getTarget(), vmFrame.getLibraryId()));
 
       for (VmVariable var : frame.getLocals()) {
         ServerDebugVariable serverVariable = new ServerDebugVariable(getTarget(), var);
-
-        // TODO(devoncarew): this can cause getObjectProperties to be called after a resume, which
-        // VM does not like.
-        //serverVariable.fillInValueFieldsAsync();
 
         variables.add(serverVariable);
       }
@@ -233,5 +232,4 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
       return variables;
     }
   }
-
 }

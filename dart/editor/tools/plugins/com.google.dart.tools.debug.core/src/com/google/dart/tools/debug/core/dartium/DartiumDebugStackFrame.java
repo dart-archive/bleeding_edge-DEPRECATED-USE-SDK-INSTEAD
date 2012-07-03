@@ -117,6 +117,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     return -1;
   }
 
+  @Override
   public String getExceptionDisplayText() {
     DartiumDebugVariable variable;
 
@@ -279,9 +280,13 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
       thisObject = webkitFrame.getThisObject();
     }
 
+    WebkitRemoteObject libraryObject = null;
+
     for (WebkitScope scope : webkitFrame.getScopeChain()) {
       if (!scope.isGlobal()) {
         remoteObjects.add(scope.getObject());
+      } else {
+        libraryObject = scope.getObject();
       }
     }
 
@@ -289,6 +294,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
         getTarget(),
         thisObject,
         remoteObjects,
+        libraryObject,
         exception);
   }
 

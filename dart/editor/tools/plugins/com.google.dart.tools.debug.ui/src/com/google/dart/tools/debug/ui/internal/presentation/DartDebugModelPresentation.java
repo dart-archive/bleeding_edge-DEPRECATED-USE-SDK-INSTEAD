@@ -157,9 +157,9 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
       if (variable.isThrownException()) {
         return DartDebugUIPlugin.getImage("obj16/object_exception.png");
       } else if (variable.isThisObject()) {
-        return DartDebugUIPlugin.getImage("obj16/this_obj.gif");
-      } else if (variable.isPrimitiveValue()) {
-        return DartDebugUIPlugin.getImage("obj16/object_obj.png");
+        return DartDebugUIPlugin.getImage("obj16/object_this.png");
+      } else if (variable.isLibraryObject()) {
+        return DartDebugUIPlugin.getImage("obj16/object_library.png");
       } else if (variable.isListValue()) {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       } else {
@@ -171,7 +171,9 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
       if (variable.isThrownException()) {
         return DartDebugUIPlugin.getImage("obj16/object_exception.png");
       } else if (variable.isThisObject()) {
-        return DartDebugUIPlugin.getImage("obj16/this_obj.gif");
+        return DartDebugUIPlugin.getImage("obj16/object_this.png");
+      } else if (variable.isLibraryObject()) {
+        return DartDebugUIPlugin.getImage("obj16/object_library.png");
       } else if (variable.isListValue()) {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       } else {

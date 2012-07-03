@@ -18,13 +18,65 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * This class represents a VM variable.
  */
 public class VmVariable {
+
+  static class LazyValue {
+    private VmConnection connection;
+
+    private VmValue listValue;
+    private int index;
+
+    public LazyValue(VmConnection connection, VmValue listValue, int index) {
+      this.connection = connection;
+      this.listValue = listValue;
+      this.index = index;
+    }
+
+    public VmValue evaluate() {
+      final VmValue[] result = new VmValue[1];
+
+      final CountDownLatch latch = new CountDownLatch(1);
+
+      try {
+        connection.getListElements(listValue.getObjectId(), index, new VmCallback<VmValue>() {
+          @Override
+          public void handleResult(VmResult<VmValue> r) {
+            result[0] = r.getResult();
+
+            latch.countDown();
+          }
+        });
+      } catch (IOException e) {
+        latch.countDown();
+      }
+
+      try {
+        latch.await();
+      } catch (InterruptedException e) {
+
+      }
+
+      return result[0];
+    }
+  }
+
+  static VmVariable createArrayEntry(VmConnection connection, VmValue listValue, int index) {
+    VmVariable var = new VmVariable();
+
+    var.name = "[" + Integer.toString(index) + "]";
+    // var.value is lazyily populated
+    var.lazyValue = new LazyValue(connection, listValue, index);
+
+    return var;
+  }
 
   static List<VmVariable> createFrom(JSONArray arr) throws JSONException {
     if (arr == null) {
@@ -53,7 +105,7 @@ public class VmVariable {
   static VmVariable createFromException(VmValue exception) {
     VmVariable variable = new VmVariable();
 
-    variable.name = "<exception>";
+    variable.name = "exception";
     variable.value = exception;
     variable.isException = true;
 
@@ -65,6 +117,8 @@ public class VmVariable {
   private String name;
 
   private boolean isException;
+
+  private LazyValue lazyValue;
 
   private VmVariable() {
 
@@ -79,6 +133,11 @@ public class VmVariable {
   }
 
   public VmValue getValue() {
+    if (lazyValue != null) {
+      value = lazyValue.evaluate();
+      lazyValue = null;
+    }
+
     return value;
   }
 
@@ -86,5 +145,4 @@ public class VmVariable {
   public String toString() {
     return "[" + getName() + "," + getValue() + "]";
   }
-
 }

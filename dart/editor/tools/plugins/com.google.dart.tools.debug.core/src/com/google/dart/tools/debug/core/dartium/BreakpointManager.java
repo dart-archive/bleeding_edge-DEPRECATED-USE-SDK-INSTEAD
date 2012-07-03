@@ -159,12 +159,14 @@ class BreakpointManager implements IBreakpointListener {
 
   private void addBreakpoint(DartBreakpoint breakpoint) throws IOException {
     if (breakpoint.isBreakpointEnabled()) {
-      String url = resourceResolver.getUrlForResource(breakpoint.getFile());
+      // String url = resourceResolver.getUrlForResource(breakpoint.getFile());
+      String regex = breakpoint.getFile().getFullPath().toPortableString();
+
       int line = WebkitLocation.eclipseToWebkitLine(breakpoint.getLine());
 
       debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(
-          url,
           null,
+          regex,
           line,
           new WebkitCallback<WebkitBreakpoint>() {
             @Override

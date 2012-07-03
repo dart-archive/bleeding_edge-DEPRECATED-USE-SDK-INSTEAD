@@ -14,6 +14,8 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import com.google.dart.tools.debug.core.server.ServerDebugVariable.IValueRetriever;
+
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IValue;
@@ -29,7 +31,15 @@ import java.util.concurrent.CountDownLatch;
  */
 public class ServerDebugValue extends ServerDebugElement implements IValue {
   private VmValue value;
-  private List<ServerDebugVariable> fields;
+  private IValueRetriever valueRetriever;
+
+  private List<IVariable> fields;
+
+  public ServerDebugValue(IDebugTarget target, IValueRetriever valueRetriever) {
+    super(target);
+
+    this.valueRetriever = valueRetriever;
+  }
 
   public ServerDebugValue(IDebugTarget target, VmValue value) {
     super(target);
@@ -40,25 +50,33 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
   public String getDisplayString() {
     fillInFields();
 
-    if (value.isString()) {
+    if (value == null) {
+      return getValueString();
+    } else if (value.isString()) {
       return "\"" + getValueString() + "\"";
     } else if (value.isObject()) {
       // TODO(devoncarew): show the type of object here
 
       return getValueString();
+    } else if (value.isList()) {
+      return "List[" + getListLength() + "]";
     } else {
       return getValueString();
     }
   }
 
   @Override
-  public String getReferenceTypeName() throws DebugException {
-    return value.getKind();
+  public String getReferenceTypeName() {
+    return value == null ? null : value.getKind();
   }
 
   @Override
   public String getValueString() {
-    return value.getText();
+    if (valueRetriever != null) {
+      return valueRetriever.getDisplayName();
+    } else {
+      return value.getText();
+    }
   }
 
   @Override
@@ -79,9 +97,7 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
   }
 
   public boolean isListValue() {
-    // TODO(devoncarew): we need more plumbing in the wire protocol
-
-    return false;
+    return value == null ? false : value.isList();
   }
 
   protected void fillInFieldsAsync(final CountDownLatch latch) {
@@ -103,8 +119,14 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
     }
   }
 
+  protected boolean isValueRetriever() {
+    return valueRetriever != null;
+  }
+
   synchronized void fillInFields() {
-    if (value.isObject()) {
+    if (value == null) {
+      fields = valueRetriever.getVariables();
+    } else if (value.isObject()) {
       if (fields == null) {
         CountDownLatch latch = new CountDownLatch(1);;
 
@@ -116,6 +138,15 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
 
         }
       }
+    } else if (value.isList()) {
+      fields = new ArrayList<IVariable>();
+
+      for (int i = 0; i < value.getLength(); i++) {
+        fields.add(new ServerDebugVariable(getTarget(), VmVariable.createArrayEntry(
+            getConnection(),
+            value,
+            i)));
+      }
     } else {
       if (fields == null) {
         fields = Collections.emptyList();
@@ -123,12 +154,12 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
     }
   }
 
-  private List<ServerDebugVariable> convert(VmResult<VmObject> result) {
+  private List<IVariable> convert(VmResult<VmObject> result) {
     if (result.isError()) {
       return Collections.emptyList();
     }
 
-    List<ServerDebugVariable> vars = new ArrayList<ServerDebugVariable>();
+    List<IVariable> vars = new ArrayList<IVariable>();
 
     VmObject vmObject = result.getResult();
 
@@ -148,6 +179,10 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
     }
 
     return vars;
+  }
+
+  private int getListLength() {
+    return value.getLength();
   }
 
 }

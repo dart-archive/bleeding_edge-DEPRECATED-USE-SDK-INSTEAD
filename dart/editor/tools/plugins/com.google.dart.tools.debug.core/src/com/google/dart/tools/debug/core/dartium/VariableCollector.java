@@ -60,21 +60,25 @@ class VariableCollector {
 
   public static VariableCollector createCollector(DartiumDebugTarget target,
       List<WebkitRemoteObject> remoteObjects) {
-    return createCollector(target, (WebkitRemoteObject) null, remoteObjects, null);
+    return createCollector(target, (WebkitRemoteObject) null, remoteObjects, null, null);
   }
 
   public static VariableCollector createCollector(DartiumDebugTarget target,
       WebkitRemoteObject thisObject, List<WebkitRemoteObject> remoteObjects) {
-    return createCollector(target, (WebkitRemoteObject) null, remoteObjects, null);
+    return createCollector(target, (WebkitRemoteObject) null, remoteObjects, null, null);
   }
 
   public static VariableCollector createCollector(DartiumDebugTarget target,
       WebkitRemoteObject thisObject, List<WebkitRemoteObject> remoteObjects,
-      WebkitRemoteObject exception) {
+      WebkitRemoteObject libraryObject, WebkitRemoteObject exception) {
     final VariableCollector collector = new VariableCollector(target, remoteObjects.size());
 
     if (exception != null) {
       collector.createExceptionVariable(exception);
+    }
+
+    if (libraryObject != null) {
+      collector.createLibraryVariable(libraryObject);
     }
 
     if (thisObject != null) {
@@ -150,18 +154,22 @@ class VariableCollector {
   private void createExceptionVariable(WebkitRemoteObject thisObject) {
     DartiumDebugVariable variable = new DartiumDebugVariable(
         target,
-        WebkitPropertyDescriptor.createExceptionObjectDescriptor(thisObject));
-
-    variable.setThrownException(true);
+        WebkitPropertyDescriptor.createObjectDescriptor(thisObject, "exception"),
+        true);
 
     variables.add(variable);
   }
 
+  private void createLibraryVariable(WebkitRemoteObject libraryObject) {
+    variables.add(new DartiumDebugVariable(target, WebkitPropertyDescriptor.createObjectDescriptor(
+        libraryObject,
+        "library"), true));
+  }
+
   private void createThisVariable(WebkitRemoteObject thisObject) {
-    variables.add(new DartiumDebugVariable(
-        target,
-        WebkitPropertyDescriptor.createThisObjectDescriptor(thisObject),
-        true));
+    variables.add(new DartiumDebugVariable(target, WebkitPropertyDescriptor.createObjectDescriptor(
+        thisObject,
+        "this"), true));
   }
 
   private boolean isListLength(WebkitPropertyDescriptor descriptor) {
