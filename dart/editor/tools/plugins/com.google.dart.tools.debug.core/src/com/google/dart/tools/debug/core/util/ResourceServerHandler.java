@@ -550,15 +550,15 @@ class ResourceServerHandler implements Runnable {
 
       // {"response":["\"logging from sunflower\""],"cmd":"remote console.log","type":""}
 
-      if (obj.has("response")) {
-        JSONArray arr = obj.optJSONArray("response");
+      if (obj.has("message")) {
+        JSONArray arr = obj.optJSONArray("message");
 
         if (arr != null) {
           for (int i = 0; i < arr.length(); i++) {
             DartCore.getConsole().println(stripQuotes(arr.getString(i)));
           }
         } else {
-          String log = obj.getString("response");
+          String log = obj.getString("message");
 
           DartCore.getConsole().println(log);
         }

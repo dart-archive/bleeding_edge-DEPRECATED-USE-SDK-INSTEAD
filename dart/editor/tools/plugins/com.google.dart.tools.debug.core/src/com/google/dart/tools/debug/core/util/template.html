@@ -1,44 +1,52 @@
 <!DOCTYPE html>
 
+<!-- Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
 <html>
 <head>
     <title>Dart Editor</title>
+    
+    <!-- This tag improves the experience on mobile browsers. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    
+    <!-- These tags improve web apps on ios. -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
     <style>
-        body {
-          font-family: 'Open Sans', sans-serif;
-          font-size: 15px;
-          background-color: #fff;
-          color: #444;
-        }
-        h3 {
-          color: #15C;
-          font-size: 18px;
-          font-style: normal;
-          font-variant: normal;
-          font-weight: bold;
-          display: inline;
-        }
-        img {
-          border: 0px;
-        }
-        .app {
-          margin: 5px 0px 5px 10px;
-          padding: 3px;
-        }
-        .app:hover {
-          background: #ddd;
-          -moz-border-radius: 3px;
-          border-radius: 3px;
-        }
-        .footer {
-          text-align: center;
-        }
+body {
+  background-color: #F8F8F8;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1.2em;
+  margin: 15px;
+}
+
+p {
+  color: #333;
+}
+
+img {
+  border: 0px;
+}
+
+.app {
+  margin: 5px 0px 5px 10px;
+  padding: 3px;
+}
+
+.app:hover {
+  background: #ddd;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
     </style>
 <head>
 <body>
-  <h3>Dart Editor</h3>
-  <p>Available applications:</p>
+  <h1>Dart Editor</h1>
+  <p>Available applications</p>
   ${apps}
-  <!-- div class="footer"><a href="http://www.dartlang.org/">www.dartlang.org</a></div -->
 </body>
 </html>
