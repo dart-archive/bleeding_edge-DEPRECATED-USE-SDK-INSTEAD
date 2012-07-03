@@ -17,6 +17,8 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.actions.CopyDetailsToClipboardAction;
+import com.google.dart.tools.ui.actions.CopyDetailsToClipboardAction.DetailsProvider;
 import com.google.dart.tools.update.core.UpdateAdapter;
 import com.google.dart.tools.update.core.UpdateCore;
 import com.google.dart.tools.update.core.UpdateListener;
@@ -41,7 +43,7 @@ import org.eclipse.swt.widgets.Shell;
 /**
  * A minimal "About Dart" dialog shell.
  */
-public class AboutDartDialog extends Shell {
+public class AboutDartDialog extends Shell implements DetailsProvider {
 
   private static final ImageDescriptor ABOUT_IMG_DESC = ImageDescriptor.createFromURL(Platform.getBundle(
       DartUI.ID_PLUGIN).getEntry(DialogsMessages.AboutDartDialog_about_image));
@@ -71,6 +73,25 @@ public class AboutDartDialog extends Shell {
     super.dispose();
   }
 
+  //for copying to the clipboard
+  @Override
+  public String getDetails() {
+    StringBuilder builder = new StringBuilder();
+
+    builder.append(DialogsMessages.AboutDartDialog_version_string_prefix + getVersion() + ", "
+        + "Build " + DartToolsPlugin.getBuildId());
+
+    builder.append(NEW_LINE);
+
+    if (DartSdk.isInstalled()) {
+      builder.append("Dart SDK version " + DartSdk.getInstance().getSdkVersion());
+    } else {
+      builder.append("Dart SDK is not installed");
+    }
+
+    return builder.toString();
+  }
+
   @Override
   public void open() {
     super.open();
@@ -91,6 +112,8 @@ public class AboutDartDialog extends Shell {
 
     setSize(size);
 
+    addCopyDetailsPopup(this);
+
     setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
 
     Label graphic = newLabel(SWT.SHADOW_NONE | SWT.CENTER);
@@ -98,10 +121,14 @@ public class AboutDartDialog extends Shell {
         graphic);
     graphic.setImage(DartToolsPlugin.getImage(ABOUT_IMG_DESC));
 
+    addCopyDetailsPopup(graphic);
+
     Label productNameLabel = newLabel(SWT.BOLD);
     productNameLabel.setFont(JFaceResources.getBannerFont());
     productNameLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
     productNameLabel.setText(DialogsMessages.AboutDartDialog_product_label);
+
+    addCopyDetailsPopup(productNameLabel);
 
     StyledText buildDetailsText = new StyledText(this, SWT.WRAP);
     buildDetailsText.setLineSpacing(7);
@@ -109,21 +136,12 @@ public class AboutDartDialog extends Shell {
     buildDetailsText.setEditable(false);
     center(buildDetailsText);
 
-    StringBuilder builder = new StringBuilder();
+    String buildDetails = getDetails();
 
-    builder.append(DialogsMessages.AboutDartDialog_version_string_prefix + getVersion() + ", "
-        + "Build " + DartToolsPlugin.getBuildId());
-
-    builder.append(NEW_LINE);
-
-    if (DartSdk.isInstalled()) {
-      builder.append("Dart SDK version " + DartSdk.getInstance().getSdkVersion());
-    } else {
-      builder.append("Dart SDK is not installed");
-    }
-
-    buildDetailsText.setText(builder.toString());
+    buildDetailsText.setText(buildDetails);
     buildDetailsText.setLineAlignment(1, 1, SWT.CENTER);
+
+    addCopyDetailsPopup(buildDetailsText);
 
     // spacer
     newLabel(SWT.NONE);
@@ -132,9 +150,13 @@ public class AboutDartDialog extends Shell {
     center(copyrightLabel);
     copyrightLabel.setText(DialogsMessages.AboutDartDialog_copyright);
 
+    addCopyDetailsPopup(copyrightLabel);
+
     Label copyrightLabel2 = newLabel(SWT.NONE);
     center(copyrightLabel2);
     copyrightLabel2.setText(DialogsMessages.AboutDartDialog_copyright_line2);
+
+    addCopyDetailsPopup(copyrightLabel2);
 
     //spacer and caret repressor
     final StyledText spacer = new StyledText(this, SWT.NONE);
@@ -167,6 +189,10 @@ public class AboutDartDialog extends Shell {
             - initialSize.y)));
   }
 
+  private void addCopyDetailsPopup(Control control) {
+    CopyDetailsToClipboardAction.addCopyDetailsPopup(control, this);
+  }
+
   private void center(Control control) {
     GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(control);
   }
@@ -180,4 +206,5 @@ public class AboutDartDialog extends Shell {
     label.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
     return label;
   }
+
 }

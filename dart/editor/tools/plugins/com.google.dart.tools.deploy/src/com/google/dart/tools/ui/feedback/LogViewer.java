@@ -13,18 +13,22 @@
  */
 package com.google.dart.tools.ui.feedback;
 
+import com.google.dart.tools.ui.actions.CopyDetailsToClipboardAction;
+import com.google.dart.tools.ui.actions.CopyDetailsToClipboardAction.DetailsProvider;
+
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
 /**
  * A lightweight FeedbackReport log previewer.
  */
-public class LogViewer extends Shell {
+public class LogViewer extends Shell implements DetailsProvider {
 
   private StyledText logText;
 
@@ -56,6 +60,14 @@ public class LogViewer extends Shell {
   }
 
   @Override
+  public String getDetails() {
+    if (logText != null) {
+      return logText.getText();
+    }
+    return "";
+  }
+
+  @Override
   protected void checkSubclass() {
     // Disable the check that prevents subclassing of SWT components
   }
@@ -63,6 +75,12 @@ public class LogViewer extends Shell {
   protected void createContents() {
     setText(FeedbackMessages.LogViewer_LogViewer_title);
     setSize(750, 350);
+    addCopyDetailsPopup(this);
+    addCopyDetailsPopup(logText);
+  }
+
+  private void addCopyDetailsPopup(Control control) {
+    CopyDetailsToClipboardAction.addCopyDetailsPopup(control, this);
   }
 
   private void centerShell(Shell parent) {
