@@ -64,7 +64,7 @@ class AntWrapper(object):
       extra_args: any extra args to ant
       sdk_zip: the place to write the sdk zip file
       running_on_bot: True if running on buildbot False otherwise
-      extra_artifacts: the directory where extra artifacts will be deplsited
+      extra_artifacts: the directory where extra artifacts will be deposited
 
     Returns:
       returns the status of the ant call
@@ -450,6 +450,9 @@ def main():
     if buildos:
       found_zips = _FindRcpZipFiles(buildout)
       _InstallArtifacts(buildout, buildos, extra_artifacts)
+      version_file = _FindVersionFile(buildout)
+      if version_file:
+        found_zips.append(version_file)
       (status, gs_objects) = _DeployToContinuous(buildos,
                                                  to_bucket,
                                                  found_zips,
@@ -809,7 +812,7 @@ def _CopySdk(buildos, revision, bucket_to, from_dir, buildroot, gsu):
 
 
 def _FindRcpZipFiles(out_dir):
-  """Fint the Zipped RCP files.
+  """Find the Zipped RCP files.
 
   Args:
     out_dir: the directory the files will be located in
@@ -826,6 +829,20 @@ def _FindRcpZipFiles(out_dir):
       found_zips.append(os.path.join(out_dir, element))
   return found_zips
 
+def _FindVersionFile(out_dir):
+  """Find the build version file.
+
+  Args:
+    out_dir: the directory to search
+
+  Returns:
+    the build version file (or None if none was found)
+  """
+  out_dir = os.path.normpath(os.path.normcase(out_dir))
+  print '_FindVersionFile({0})'.format(out_dir)
+
+  version_file = os.path.join(out_dir, 'VERSION');
+  return version_file if os.path.exists(version_file) else None
 
 def _InstallSdk(buildroot, buildout, buildos, sdk):
   """Install the SDk into the RCP zip files(s).
@@ -972,12 +989,12 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
 
 
 def _InstallArtifacts(buildout, buildos, extra_artifacts):
-  """Install the SDk into the RCP zip files(s).
+  """Install the SDK into the RCP zip files(s).
 
   Args:
     buildout: the location of the ant build output
     buildos: the OS the build is running under
-    extra_artifacts: the directoryt he extra artifacts are in
+    extra_artifacts: the directory containing the extra artifacts
   """
   print '_InstallArtifacts({0}, {1}, {2})'.format(buildout,
                                                   buildos,
