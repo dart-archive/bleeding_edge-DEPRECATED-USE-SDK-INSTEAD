@@ -190,7 +190,7 @@ public class BrowserManager {
       // avg: 383ms
       timer.startTask("get chromium tabs");
 
-      List<ChromiumTabInfo> tabs = getChromiumTabs(runtimeProcess, devToolsPortNumber);
+      ChromiumTabInfo chromiumTab = getChromiumTab(runtimeProcess, devToolsPortNumber);
 
       monitor.worked(2);
 
@@ -199,14 +199,12 @@ public class BrowserManager {
       // avg: 46ms
       timer.startTask("open WIP connection");
 
-      if (tabs.size() == 0) {
+      if (chromiumTab == null) {
         throw new DebugException(new Status(
             IStatus.ERROR,
             DartDebugCorePlugin.PLUGIN_ID,
             "Unable to connect to Dartium"));
       }
-
-      ChromiumTabInfo chromiumTab = tabs.get(0);
 
       if (chromiumTab == null || chromiumTab.getWebSocketDebuggerUrl() == null) {
         throw new DebugException(new Status(
@@ -304,7 +302,8 @@ public class BrowserManager {
   }
 
   private ChromiumTabInfo findTargetTab(List<ChromiumTabInfo> tabs) {
-    final String aboutBlank = "about:blank";
+    //final String aboutBlank = "about:blank";
+    final String aboutBlank = "blank";
 
     for (ChromiumTabInfo tab : tabs) {
       if (tab.getTitle().contains(aboutBlank)) {
@@ -316,17 +315,28 @@ public class BrowserManager {
       }
     }
 
-    if (tabs.size() == 1) {
-      return tabs.get(0);
+    // TODO(devoncarew): is this the right thing to do? are there ever any invisible system tabs?
+//    if (tabs.size() == 1) {
+//      return tabs.get(0);
+//    }
+
+    StringBuilder builder = new StringBuilder("unable to locate target dartium tab [" + tabs.size()
+        + " tabs]\n");
+
+    for (ChromiumTabInfo tab : tabs) {
+      builder.append("  " + tab.getUrl() + " [" + tab.getTitle() + "]\n");
     }
+
+    // TODO(devoncarew): this logging is in here to help us resolve an issue launching on windows
+    DartDebugCorePlugin.logError(builder.toString().trim());
 
     return null;
   }
 
-  private List<ChromiumTabInfo> getChromiumTabs(Process runtimeProcess, int devToolsPortNumber)
+  private ChromiumTabInfo getChromiumTab(Process runtimeProcess, int devToolsPortNumber)
       throws IOException, CoreException {
-    // Give Chromium 25 seconds to start up.
-    final int maxStartupDelay = 25 * 1000;
+    // Give Chromium 20 seconds to start up.
+    final int maxStartupDelay = 20 * 1000;
 
     long endTime = System.currentTimeMillis() + maxStartupDelay;
 
@@ -342,8 +352,10 @@ public class BrowserManager {
       try {
         List<ChromiumTabInfo> tabs = ChromiumConnector.getAvailableTabs(devToolsPortNumber);
 
-        if (findTargetTab(tabs) != null) {
-          return tabs;
+        ChromiumTabInfo targetTab = findTargetTab(tabs);
+
+        if (targetTab != null) {
+          return targetTab;
         }
       } catch (IOException exception) {
         if (System.currentTimeMillis() > endTime) {
@@ -396,14 +408,18 @@ public class BrowserManager {
 
   private String getProcessStreamMessage() {
     StringBuilder msg = new StringBuilder();
+
     if (stdout.length() != 0) {
       msg.append("Dartium stdout: ").append(stdout).append("\n");
     }
+
     boolean expired = false;
+
     if (stderr.length() != 0) {
       if (stderr.indexOf("Dartium build has expired") != -1) {
         expired = true;
       }
+
       if (expired) {
         msg.append("\nThis build of Dartium has expired.\n\n");
         msg.append("Please download a new Dart Editor or Dartium build from \n");
@@ -417,11 +433,13 @@ public class BrowserManager {
       msg.append("\nFor information on how to setup your machine to run Dartium visit ");
       msg.append("http://code.google.com/p/dart/wiki/PreparingYourMachine#Linux");
     }
+
     if (msg.length() != 0) {
       msg.insert(0, ":\n\n");
     } else {
       msg.append(".");
     }
+
     return msg.toString();
   }
 
@@ -429,6 +447,7 @@ public class BrowserManager {
     if (resourceResolver == null) {
       resourceResolver = ResourceServerManager.getServer();
     }
+
     return resourceResolver;
   }
 
@@ -437,6 +456,7 @@ public class BrowserManager {
       if (process != null) {
         process.exitValue();
       }
+
       return true;
     } catch (IllegalThreadStateException ex) {
       return false;
@@ -497,6 +517,7 @@ public class BrowserManager {
           "Could not launch browser - unable to start embedded server",
           exception));
     }
+
     return url;
   }
 
@@ -604,6 +625,7 @@ public class BrowserManager {
         waitForProcessToTerminate(browserProcess, 200);
         //sleep(100);
       }
+
       browserProcess = null;
     }
   }
@@ -619,4 +641,5 @@ public class BrowserManager {
       sleep(10);
     }
   }
+
 }

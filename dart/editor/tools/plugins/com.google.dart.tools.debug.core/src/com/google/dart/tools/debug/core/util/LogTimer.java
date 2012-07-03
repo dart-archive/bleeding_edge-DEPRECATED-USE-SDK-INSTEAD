@@ -34,6 +34,8 @@ public class LogTimer {
     public void timerLog(String actionName, long durationMs);
   }
 
+  private static boolean ENABLE = false;
+
   private static List<LogListener> listeners = new ArrayList<LogTimer.LogListener>();
 
   public static void addLogListener(LogListener listener) {
@@ -81,7 +83,9 @@ public class LogTimer {
   public void stopTask() {
     long duration = System.currentTimeMillis() - taskStart;
 
-    DartDebugCorePlugin.logInfo(taskName + " time: " + duration + "ms");
+    if (ENABLE) {
+      DartDebugCorePlugin.logInfo(taskName + " time: " + duration + "ms");
+    }
 
     taskName = null;
   }
@@ -92,7 +96,9 @@ public class LogTimer {
   public void stopTimer() {
     long duration = System.currentTimeMillis() - startTime;
 
-    DartDebugCorePlugin.logInfo(name + " total time: " + getSeconds(duration) + " sec");
+    if (ENABLE) {
+      DartDebugCorePlugin.logInfo(name + " total time: " + getSeconds(duration) + " sec");
+    }
 
     for (LogListener listener : listeners) {
       listener.timerLog(name, duration);
