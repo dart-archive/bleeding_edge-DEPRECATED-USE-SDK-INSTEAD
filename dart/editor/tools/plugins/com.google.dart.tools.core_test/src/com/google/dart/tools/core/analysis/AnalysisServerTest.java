@@ -110,14 +110,15 @@ public class AnalysisServerTest extends TestCase {
     });
   }
 
-  public void test_AnalysisServer_discardFile() throws Exception {
-    TestUtilities.runWithTempDirectory(new FileOperation() {
-      @Override
-      public void run(File tempDir) throws Exception {
-        test_AnalysisServer_discardLib(tempDir, false);
-      }
-    });
-  }
+//TODO (pquitslund): flaky test --- fix and re-enable
+//  public void test_AnalysisServer_discardFile() throws Exception {
+//    TestUtilities.runWithTempDirectory(new FileOperation() {
+//      @Override
+//      public void run(File tempDir) throws Exception {
+//        test_AnalysisServer_discardLib(tempDir, false);
+//      }
+//    });
+//  }
 
   public File test_AnalysisServer_discardLib(File tempDir, boolean discardParent) throws Exception {
     File libFile = test_AnalysisServer_analyzeLibrary(tempDir);
