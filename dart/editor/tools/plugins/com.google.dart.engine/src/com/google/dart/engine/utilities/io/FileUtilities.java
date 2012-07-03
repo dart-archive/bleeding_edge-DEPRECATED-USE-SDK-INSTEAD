@@ -20,8 +20,7 @@ import java.io.IOException;
 import java.io.Reader;
 
 /**
- * The class <code>FileUtilities</code> implements utility methods used to create and manipulate
- * files.
+ * The class {@code FileUtilities} implements utility methods used to create and manipulate files.
  */
 public final class FileUtilities {
   /**
@@ -63,7 +62,7 @@ public final class FileUtilities {
    * Attempt to make the given file executable.
    * 
    * @param file the file to be made executable
-   * @return <code>true</code> if the file is executable
+   * @return {@code true} if the file is executable
    */
   public static boolean makeExecutable(File file) {
     // Try to make the file executable for all users.

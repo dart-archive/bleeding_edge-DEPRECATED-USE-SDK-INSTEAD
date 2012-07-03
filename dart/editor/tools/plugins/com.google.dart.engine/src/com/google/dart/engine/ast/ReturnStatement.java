@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ReturnStatement</code> represent a return statement.
+ * Instances of the class {@code ReturnStatement} represent a return statement.
  * 
  * <pre>
  * returnStatement ::=
@@ -30,8 +30,8 @@ public class ReturnStatement extends Statement {
   private Token keyword;
 
   /**
-   * The expression computing the value to be returned, or <code>null</code> if no explicit value
-   * was provided.
+   * The expression computing the value to be returned, or {@code null} if no explicit value was
+   * provided.
    */
   private Expression expression;
 
@@ -75,8 +75,8 @@ public class ReturnStatement extends Statement {
   }
 
   /**
-   * Return the expression computing the value to be returned, or <code>null</code> if no explicit
-   * value was provided.
+   * Return the expression computing the value to be returned, or {@code null} if no explicit value
+   * was provided.
    * 
    * @return the expression computing the value to be returned
    */

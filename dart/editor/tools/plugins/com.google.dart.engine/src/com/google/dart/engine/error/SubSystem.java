@@ -14,7 +14,8 @@
 package com.google.dart.engine.error;
 
 /**
- * A subsystem of the analysis engine.
+ * Instances of the enumeration {@code SubSystem} represent the subsystem of the analysis engine
+ * that produced an error.
  */
 public enum SubSystem {
   SCANNER,

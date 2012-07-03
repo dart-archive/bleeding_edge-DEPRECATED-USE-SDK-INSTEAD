@@ -16,8 +16,8 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>FieldDeclaration</code> represent the declaration of one or more
- * fields of the same type.
+ * Instances of the class {@code FieldDeclaration} represent the declaration of one or more fields
+ * of the same type.
  * 
  * <pre>
  * fieldDeclaration ::=
@@ -26,7 +26,7 @@ import com.google.dart.engine.scanner.Token;
  */
 public class FieldDeclaration extends TypeMember {
   /**
-   * The token representing the 'static' keyword, or <code>null</code> if the fields are not static.
+   * The token representing the 'static' keyword, or {@code null} if the fields are not static.
    */
   private Token keyword;
 
@@ -93,7 +93,7 @@ public class FieldDeclaration extends TypeMember {
   }
 
   /**
-   * Return the token representing the 'static' keyword, or <code>null</code> if the fields are not
+   * Return the token representing the 'static' keyword, or {@code null} if the fields are not
    * static.
    * 
    * @return the token representing the 'static' keyword

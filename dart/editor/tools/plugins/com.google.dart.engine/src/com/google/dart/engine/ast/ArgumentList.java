@@ -65,7 +65,9 @@ public class ArgumentList extends ASTNode {
   }
 
   /**
-   * Return the expressions producing the values of the arguments.
+   * Return the expressions producing the values of the arguments. Although the language requires
+   * that positional arguments appear before named arguments, this class allows them to be
+   * intermixed.
    * 
    * @return the expressions producing the values of the arguments
    */

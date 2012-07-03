@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ThisExpression</code> represent a this expression.
+ * Instances of the class {@code ThisExpression} represent a this expression.
  * 
  * <pre>
  * thisExpression ::=

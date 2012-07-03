@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>IfStatement</code> represent an if statement.
+ * Instances of the class {@code IfStatement} represent an if statement.
  * 
  * <pre>
  * ifStatement ::=
@@ -45,7 +45,7 @@ public class IfStatement extends Statement {
   private Token rightParenthesis;
 
   /**
-   * The statement that is executed if the condition evaluates to <code>true</code>.
+   * The statement that is executed if the condition evaluates to {@code true}.
    */
   private Statement thenStatement;
 
@@ -55,8 +55,8 @@ public class IfStatement extends Statement {
   private Token elseKeyword;
 
   /**
-   * The statement that is executed if the condition evaluates to <code>false</code>, or
-   * <code>null</code> if there is no else statement.
+   * The statement that is executed if the condition evaluates to {@code false}, or {@code null} if
+   * there is no else statement.
    */
   private Statement elseStatement;
 
@@ -73,11 +73,9 @@ public class IfStatement extends Statement {
    * @param leftParenthesis the left parenthesis
    * @param condition the condition used to determine which of the statements is executed next
    * @param rightParenthesis the right parenthesis
-   * @param thenStatement the statement that is executed if the condition evaluates to
-   *          <code>true</code>
+   * @param thenStatement the statement that is executed if the condition evaluates to {@code true}
    * @param elseKeyword the token representing the 'else' keyword
-   * @param elseStatement the statement that is executed if the condition evaluates to
-   *          <code>false</code>
+   * @param elseStatement the statement that is executed if the condition evaluates to {@code false}
    */
   public IfStatement(Token ifKeyword, Token leftParenthesis, Expression condition,
       Token rightParenthesis, Statement thenStatement, Token elseKeyword, Statement elseStatement) {
@@ -119,10 +117,10 @@ public class IfStatement extends Statement {
   }
 
   /**
-   * Return the statement that is executed if the condition evaluates to <code>false</code>, or
-   * <code>null</code> if there is no else statement.
+   * Return the statement that is executed if the condition evaluates to {@code false}, or
+   * {@code null} if there is no else statement.
    * 
-   * @return the statement that is executed if the condition evaluates to <code>false</code>
+   * @return the statement that is executed if the condition evaluates to {@code false}
    */
   public Statement getElseStatement() {
     return elseStatement;
@@ -164,9 +162,9 @@ public class IfStatement extends Statement {
   }
 
   /**
-   * Return the statement that is executed if the condition evaluates to <code>true</code>.
+   * Return the statement that is executed if the condition evaluates to {@code true}.
    * 
-   * @return the statement that is executed if the condition evaluates to <code>true</code>
+   * @return the statement that is executed if the condition evaluates to {@code true}
    */
   public Statement getThenStatement() {
     return thenStatement;
@@ -192,11 +190,10 @@ public class IfStatement extends Statement {
   }
 
   /**
-   * Set the statement that is executed if the condition evaluates to <code>false</code> to the
-   * given statement.
+   * Set the statement that is executed if the condition evaluates to {@code false} to the given
+   * statement.
    * 
-   * @param statement the statement that is executed if the condition evaluates to
-   *          <code>false</code>
+   * @param statement the statement that is executed if the condition evaluates to {@code false}
    */
   public void setElseStatement(Statement statement) {
     elseStatement = becomeParentOf(statement);
@@ -230,10 +227,10 @@ public class IfStatement extends Statement {
   }
 
   /**
-   * Set the statement that is executed if the condition evaluates to <code>true</code> to the given
+   * Set the statement that is executed if the condition evaluates to {@code true} to the given
    * statement.
    * 
-   * @param statement the statement that is executed if the condition evaluates to <code>true</code>
+   * @param statement the statement that is executed if the condition evaluates to {@code true}
    */
   public void setThenStatement(Statement statement) {
     thenStatement = becomeParentOf(statement);

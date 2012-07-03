@@ -14,7 +14,7 @@
 package com.google.dart.engine.ast;
 
 /**
- * The abstract class <code>FormalParameter</code> defines the behavior of objects representing a
+ * The abstract class {@code FormalParameter} defines the behavior of objects representing a
  * parameter to a function.
  * 
  * <pre>

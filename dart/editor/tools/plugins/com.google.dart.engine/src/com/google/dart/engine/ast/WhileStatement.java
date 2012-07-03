@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>WhileStatement</code> represent a while statement.
+ * Instances of the class {@code WhileStatement} represent a while statement.
  * 
  * <pre>
  * whileStatement ::=

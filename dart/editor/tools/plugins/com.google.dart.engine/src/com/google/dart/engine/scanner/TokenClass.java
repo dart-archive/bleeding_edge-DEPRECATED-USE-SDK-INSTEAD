@@ -14,8 +14,7 @@
 package com.google.dart.engine.scanner;
 
 /**
- * The enumeration <code>TokenClass</code> represents classes (or groups) of tokens with a similar
- * use.
+ * The enumeration {@code TokenClass} represents classes (or groups) of tokens with a similar use.
  */
 public enum TokenClass {
   /**
@@ -99,8 +98,8 @@ public enum TokenClass {
   SHIFT_OPERATOR(11);
 
   /**
-   * The precedence of tokens of this class, or <code>0</code> if the such tokens do not represent
-   * an operator.
+   * The precedence of tokens of this class, or {@code 0} if the such tokens do not represent an
+   * operator.
    */
   private int precedence;
 
@@ -113,8 +112,8 @@ public enum TokenClass {
   }
 
   /**
-   * Return the precedence of tokens of this class, or <code>0</code> if the such tokens do not
-   * represent an operator.
+   * Return the precedence of tokens of this class, or {@code 0} if the such tokens do not represent
+   * an operator.
    * 
    * @return the precedence of tokens of this class
    */

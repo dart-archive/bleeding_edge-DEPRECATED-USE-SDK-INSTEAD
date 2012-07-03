@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>ListLiteral</code> represent a list literal.
+ * Instances of the class {@code ListLiteral} represent a list literal.
  * 
  * <pre>
  * listLiteral ::=
@@ -51,8 +51,8 @@ public class ListLiteral extends TypedLiteral {
    * Initialize a newly created list literal.
    * 
    * @param modifier the const modifier associated with this literal
-   * @param typeArguments the type argument associated with this literal, or <code>null</code> if no
-   *          type arguments were declared
+   * @param typeArguments the type argument associated with this literal, or {@code null} if no type
+   *          arguments were declared
    * @param leftBracket the left square bracket
    * @param elements the expressions used to compute the elements of the list
    * @param rightBracket the right square bracket

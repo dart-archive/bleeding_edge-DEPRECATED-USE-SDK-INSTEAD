@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>Block</code> represent a sequence of statements.
+ * Instances of the class {@code Block} represent a sequence of statements.
  * 
  * <pre>
  * block ::=

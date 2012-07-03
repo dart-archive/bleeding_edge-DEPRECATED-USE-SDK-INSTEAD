@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>CatchClause</code> represent a catch clause within a try statement.
+ * Instances of the class {@code CatchClause} represent a catch clause within a try statement.
  * 
  * <pre>
  * catchClause ::=

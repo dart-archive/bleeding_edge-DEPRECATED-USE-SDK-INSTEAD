@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>BinaryExpression</code> represent a binary (infix) expression.
+ * Instances of the class {@code BinaryExpression} represent a binary (infix) expression.
  * 
  * <pre>
  * binaryExpression ::=

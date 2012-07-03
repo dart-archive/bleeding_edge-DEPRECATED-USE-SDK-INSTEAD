@@ -14,8 +14,8 @@
 package com.google.dart.engine.scanner;
 
 /**
- * Instances of the class <code>StringToken</code> represent a token whose value is independent of
- * it's type.
+ * Instances of the class {@code StringToken} represent a token whose value is independent of it's
+ * type.
  */
 public class StringToken extends Token {
   /**

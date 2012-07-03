@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The abstract class <code>AbstractScanner</code> implements a scanner for Dart code. Subclasses
- * are required to implement the interface used to access the characters being scanned.
+ * The abstract class {@code AbstractScanner} implements a scanner for Dart code. Subclasses are
+ * required to implement the interface used to access the characters being scanned.
  */
 public abstract class AbstractScanner {
   // Based on leg scanner revision 6073.

@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>IsExpression</code> represent an is expression.
+ * Instances of the class {@code IsExpression} represent an is expression.
  * 
  * <pre>
  * isExpression ::=
@@ -35,7 +35,7 @@ public class IsExpression extends Expression {
   private Token isOperator;
 
   /**
-   * The not operator, or <code>null</code> if the sense of the test is not negated.
+   * The not operator, or {@code null} if the sense of the test is not negated.
    */
   private Token notOperator;
 
@@ -55,8 +55,7 @@ public class IsExpression extends Expression {
    * 
    * @param expression the expression used to compute the value whose type is being tested
    * @param isOperator the is operator
-   * @param notOperator the not operator, or <code>null</code> if the sense of the test is not
-   *          negated
+   * @param notOperator the not operator, or {@code null} if the sense of the test is not negated
    * @param type the name of the type being tested for
    */
   public IsExpression(Expression expression, Token isOperator, Token notOperator, TypeName type) {

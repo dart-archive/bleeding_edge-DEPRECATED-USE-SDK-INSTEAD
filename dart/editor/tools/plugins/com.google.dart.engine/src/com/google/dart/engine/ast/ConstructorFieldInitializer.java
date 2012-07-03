@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ConstructorFieldInitializer</code> represent the initialization of a
+ * Instances of the class {@code ConstructorFieldInitializer} represent the initialization of a
  * field within a constructor's initialization list.
  * 
  * <pre>
@@ -26,12 +26,12 @@ import com.google.dart.engine.scanner.Token;
  */
 public class ConstructorFieldInitializer extends ConstructorInitializer {
   /**
-   * The token for the 'this' keyword, or <code>null</code> if there is no 'this' keyword.
+   * The token for the 'this' keyword, or {@code null} if there is no 'this' keyword.
    */
   private Token keyword;
 
   /**
-   * The token for the period after the 'this' keyword, or <code>null</code> if there is no 'this'
+   * The token for the period after the 'this' keyword, or {@code null} if there is no 'this'
    * keyword.
    */
   private Token period;
@@ -123,7 +123,7 @@ public class ConstructorFieldInitializer extends ConstructorInitializer {
   }
 
   /**
-   * Return the token for the 'this' keyword, or <code>null</code> if there is no 'this' keyword.
+   * Return the token for the 'this' keyword, or {@code null} if there is no 'this' keyword.
    * 
    * @return the token for the 'this' keyword
    */
@@ -132,8 +132,8 @@ public class ConstructorFieldInitializer extends ConstructorInitializer {
   }
 
   /**
-   * Return the token for the period after the 'this' keyword, or <code>null</code> if there is no
-   * 'this' keyword.
+   * Return the token for the period after the 'this' keyword, or {@code null} if there is no 'this'
+   * keyword.
    * 
    * @return the token for the period after the 'this' keyword
    */

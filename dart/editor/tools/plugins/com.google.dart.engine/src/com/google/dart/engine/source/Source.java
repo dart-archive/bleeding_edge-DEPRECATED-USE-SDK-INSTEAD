@@ -16,21 +16,21 @@ package com.google.dart.engine.source;
 import java.io.File;
 
 /**
- * The interface <code>Source</code> defines the behavior of objects representing source code that
- * can be compiled.
+ * The interface {@code Source} defines the behavior of objects representing source code that can be
+ * compiled.
  */
 public interface Source {
   /**
-   * Return the file represented by this source, or <code>null</code> if this source does not exist.
+   * Return the file represented by this source, or {@code null} if this source does not exist.
    * 
    * @return the file represented by this source
    */
   public File getFile();
 
   /**
-   * Return <code>true</code> if this source is in one of the system libraries.
+   * Return {@code true} if this source is in one of the system libraries.
    * 
-   * @return <code>true</code> if this is in a system library
+   * @return {@code true} if this is in a system library
    */
   public boolean isInSystemLibrary();
 

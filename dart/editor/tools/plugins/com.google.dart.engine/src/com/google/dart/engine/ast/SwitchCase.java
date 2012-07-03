@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>SwitchCase</code> represent the case in a switch statement.
+ * Instances of the class {@code SwitchCase} represent the case in a switch statement.
  * 
  * <pre>
  * switchCase ::=

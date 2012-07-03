@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>AssignmentExpression</code> represent an assignment expression.
+ * Instances of the class {@code AssignmentExpression} represent an assignment expression.
  * 
  * <pre>
  * assignmentExpression ::=

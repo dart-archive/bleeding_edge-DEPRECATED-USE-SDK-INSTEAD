@@ -14,8 +14,8 @@
 package com.google.dart.engine.ast;
 
 /**
- * The abstract class <code>FunctionBody</code> defines the behavior common to objects representing
- * the body of a function or method.
+ * The abstract class {@code FunctionBody} defines the behavior common to objects representing the
+ * body of a function or method.
  * 
  * <pre>
  * functionBody ::=

@@ -16,13 +16,13 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>VariableDeclaration</code> represent an identifier that has an
- * initial value associated with it. Instances of this class are always children of the class
+ * Instances of the class {@code VariableDeclaration} represent an identifier that has an initial
+ * value associated with it. Instances of this class are always children of the class
  * {@link VariableDeclarationList}.
  * 
  * <pre>
  * variableDeclaration ::=
- *     {@link SimpleIdentifier identifier} '=' {@link Expression initialValue}
+ *     {@link SimpleIdentifier identifier} ('=' {@link Expression initialValue})?
  * </pre>
  */
 public class VariableDeclaration extends Declaration {
@@ -32,13 +32,13 @@ public class VariableDeclaration extends Declaration {
   private SimpleIdentifier name;
 
   /**
-   * The equal sign separating the variable name from the initial value, or <code>null</code> if the
+   * The equal sign separating the variable name from the initial value, or {@code null} if the
    * initial value was not specified.
    */
   private Token equals;
 
   /**
-   * The expression used to compute the initial value for the variable, or <code>null</code> if the
+   * The expression used to compute the initial value for the variable, or {@code null} if the
    * initial value was not specified.
    */
   private Expression initializer;
@@ -84,8 +84,8 @@ public class VariableDeclaration extends Declaration {
   }
 
   /**
-   * Return the equal sign separating the variable name from the initial value, or <code>null</code>
-   * if the initial value was not specified.
+   * Return the equal sign separating the variable name from the initial value, or {@code null} if
+   * the initial value was not specified.
    * 
    * @return the equal sign separating the variable name from the initial value
    */
@@ -94,8 +94,8 @@ public class VariableDeclaration extends Declaration {
   }
 
   /**
-   * Return the expression used to compute the initial value for the variable, or <code>null</code>
-   * if the initial value was not specified.
+   * Return the expression used to compute the initial value for the variable, or {@code null} if
+   * the initial value was not specified.
    * 
    * @return the expression used to compute the initial value for the variable
    */

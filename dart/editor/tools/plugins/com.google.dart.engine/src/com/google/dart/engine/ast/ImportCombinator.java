@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ImportCombinator</code> represent the combinator associated with an
+ * Instances of the class {@code ImportCombinator} represent the combinator associated with an
  * import directive.
  * 
  * <pre>

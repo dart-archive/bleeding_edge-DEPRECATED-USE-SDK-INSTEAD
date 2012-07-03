@@ -16,8 +16,8 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ScriptTag</code> represent the script tag that can optionally occur
- * at the beginning of a compilation unit.
+ * Instances of the class {@code ScriptTag} represent the script tag that can optionally occur at
+ * the beginning of a compilation unit.
  * 
  * <pre>
  * scriptTag ::=

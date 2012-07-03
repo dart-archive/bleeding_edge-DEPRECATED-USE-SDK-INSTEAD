@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>BooleanLiteral</code> represent a boolean literal expression.
+ * Instances of the class {@code BooleanLiteral} represent a boolean literal expression.
  * 
  * <pre>
  * booleanLiteral ::=

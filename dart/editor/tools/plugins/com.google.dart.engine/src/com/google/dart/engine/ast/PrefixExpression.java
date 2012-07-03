@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>PrefixExpression</code> represent a prefix unary expression.
+ * Instances of the class {@code PrefixExpression} represent a prefix unary expression.
  * 
  * <pre>
  * prefixExpression ::=

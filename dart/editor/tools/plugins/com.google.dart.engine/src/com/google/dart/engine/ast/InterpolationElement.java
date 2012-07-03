@@ -14,8 +14,8 @@
 package com.google.dart.engine.ast;
 
 /**
- * The abstract class <code>InterpolationElement</code> defines the behavior common to elements
- * within a {@link StringInterpolation string interpolation}.
+ * The abstract class {@code InterpolationElement} defines the behavior common to elements within a
+ * {@link StringInterpolation string interpolation}.
  * 
  * <pre>
  * interpolationElement ::=
@@ -25,11 +25,9 @@ package com.google.dart.engine.ast;
  */
 public abstract class InterpolationElement extends ASTNode {
   /**
-   * Return <code>true</code> if this element is a valid element within a compile-time constant
-   * string.
+   * Return {@code true} if this element is a valid element within a compile-time constant string.
    * 
-   * @return <code>true</code> if this element is a valid element within a compile-time constant
-   *         string
+   * @return {@code true} if this element is a valid element within a compile-time constant string
    */
   public abstract boolean isConstant();
 }

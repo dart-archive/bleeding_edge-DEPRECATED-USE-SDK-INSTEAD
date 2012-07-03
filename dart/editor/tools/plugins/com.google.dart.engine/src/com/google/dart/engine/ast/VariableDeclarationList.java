@@ -18,8 +18,8 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>VariableDeclarationList</code> represent the declaration of one or
- * more variables of the same type.
+ * Instances of the class {@code VariableDeclarationList} represent the declaration of one or more
+ * variables of the same type.
  * 
  * <pre>
  * variableDeclarationList ::=
@@ -34,13 +34,13 @@ import java.util.List;
  */
 public class VariableDeclarationList extends ASTNode {
   /**
-   * The token representing the 'final', 'const' or 'var' keyword, or <code>null</code> if no
-   * keyword was included.
+   * The token representing the 'final', 'const' or 'var' keyword, or {@code null} if no keyword was
+   * included.
    */
   private Token keyword;
 
   /**
-   * The type of the variables being declared, or <code>null</code> if no type was provided.
+   * The type of the variables being declared, or {@code null} if no type was provided.
    */
   private TypeName type;
 
@@ -90,7 +90,7 @@ public class VariableDeclarationList extends ASTNode {
   }
 
   /**
-   * Return the token representing the 'final', 'const' or 'var' keyword, or <code>null</code> if no
+   * Return the token representing the 'final', 'const' or 'var' keyword, or {@code null} if no
    * keyword was included.
    * 
    * @return the token representing the 'final', 'const' or 'var' keyword
@@ -100,7 +100,7 @@ public class VariableDeclarationList extends ASTNode {
   }
 
   /**
-   * Return the type of the variables being declared, or <code>null</code> if no type was provided.
+   * Return the type of the variables being declared, or {@code null} if no type was provided.
    * 
    * @return the type of the variables being declared
    */

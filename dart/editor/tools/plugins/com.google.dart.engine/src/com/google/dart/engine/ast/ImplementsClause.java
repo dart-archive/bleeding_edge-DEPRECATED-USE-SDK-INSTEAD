@@ -18,8 +18,8 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>ImplementsClause</code> represent the "implements" clause in an
- * class declaration.
+ * Instances of the class {@code ImplementsClause} represent the "implements" clause in an class
+ * declaration.
  * 
  * <pre>
  * implementsClause ::=

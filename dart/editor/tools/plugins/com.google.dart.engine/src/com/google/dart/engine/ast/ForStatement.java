@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>ForStatement</code> represent a for statement.
+ * Instances of the class {@code ForStatement} represent a for statement.
  * 
  * <pre>
  * forStatement ::=
@@ -44,16 +44,16 @@ public class ForStatement extends Statement {
   private Token leftParenthesis;
 
   /**
-   * The declaration of the loop variables, or <code>null</code> if there are no variables. Note
-   * that a for statement cannot have both a variable list and an initialization expression, but can
+   * The declaration of the loop variables, or {@code null} if there are no variables. Note that a
+   * for statement cannot have both a variable list and an initialization expression, but can
    * validly have neither.
    */
   private VariableDeclarationList variableList;
 
   /**
-   * The initialization expression, or <code>null</code> if there is no initialization expression.
-   * Note that a for statement cannot have both a variable list and an initialization expression,
-   * but can validly have neither.
+   * The initialization expression, or {@code null} if there is no initialization expression. Note
+   * that a for statement cannot have both a variable list and an initialization expression, but can
+   * validly have neither.
    */
   private Expression initialization;
 
@@ -166,8 +166,7 @@ public class ForStatement extends Statement {
   }
 
   /**
-   * Return the initialization expression, or <code>null</code> if there is no initialization
-   * expression.
+   * Return the initialization expression, or {@code null} if there is no initialization expression.
    * 
    * @return the initialization expression
    */
@@ -221,9 +220,9 @@ public class ForStatement extends Statement {
   }
 
   /**
-   * Return the declaration of the loop variables, or <code>null</code> if there are no variables.
+   * Return the declaration of the loop variables, or {@code null} if there are no variables.
    * 
-   * @return the declaration of the loop variables, or <code>null</code> if there are no variables
+   * @return the declaration of the loop variables, or {@code null} if there are no variables
    */
   public VariableDeclarationList getVariables() {
     return variableList;

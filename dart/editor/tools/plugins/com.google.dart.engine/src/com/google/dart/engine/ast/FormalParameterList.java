@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>FormalParameterList</code> represent the formal parameter list of a
+ * Instances of the class {@code FormalParameterList} represent the formal parameter list of a
  * method declaration, function declaration, or function type alias.
  * 
  * <pre>

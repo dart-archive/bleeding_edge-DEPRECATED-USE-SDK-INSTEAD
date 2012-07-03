@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>ImportDirective</code> represent an import directive.
+ * Instances of the class {@code ImportDirective} represent an import directive.
  * 
  * <pre>
  * importDirective ::=

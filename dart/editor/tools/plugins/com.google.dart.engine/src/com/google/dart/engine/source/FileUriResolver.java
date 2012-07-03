@@ -17,27 +17,27 @@ import java.io.File;
 import java.net.URI;
 
 /**
- * Instances of the class <code>FileUriResolver</code> resolve <code>file</code> URI's.
+ * Instances of the class {@code FileUriResolver} resolve {@code file} URI's.
  */
 public class FileUriResolver extends UriResolver {
   /**
-   * The name of the <code>file</code> scheme.
+   * The name of the {@code file} scheme.
    */
   private static final String FILE_SCHEME = "file";
 
   /**
-   * Return <code>true</code> if the given URI is a <code>file</code> URI.
+   * Return {@code true} if the given URI is a {@code file} URI.
    * 
    * @param uri the URI being tested
-   * @return <code>true</code> if the given URI is a <code>file</code> URI
+   * @return {@code true} if the given URI is a {@code file} URI
    */
   public static boolean isFileUri(URI uri) {
     return uri.getScheme().equals(FILE_SCHEME);
   }
 
   /**
-   * Initialize a newly created resolver to resolve <code>file</code> URI's relative to the given
-   * root directory.
+   * Initialize a newly created resolver to resolve {@code file} URI's relative to the given root
+   * directory.
    */
   public FileUriResolver() {
     super();

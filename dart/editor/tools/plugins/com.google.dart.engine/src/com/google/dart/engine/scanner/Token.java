@@ -14,7 +14,7 @@
 package com.google.dart.engine.scanner;
 
 /**
- * Instances of the class <code>Token</code> represent a token that was scanned from the input. Each
+ * Instances of the class {@code Token} represent a token that was scanned from the input. Each
  * token knows which token follows it, acting as the head of a linked list of tokens.
  */
 public class Token {
@@ -101,9 +101,9 @@ public class Token {
   }
 
   /**
-   * Return <code>true</code> if this token represents an operator that can be defined by users.
+   * Return {@code true} if this token represents an operator that can be defined by users.
    * 
-   * @return <code>true</code> if this token represents an operator that can be defined by users
+   * @return {@code true} if this token represents an operator that can be defined by users
    */
   public boolean isUserDefinableOperator() {
     return type.isUserDefinableOperator();

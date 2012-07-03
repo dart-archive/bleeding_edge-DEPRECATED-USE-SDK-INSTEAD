@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ThrowStatement</code> represent a throw statement.
+ * Instances of the class {@code ThrowStatement} represent a throw statement.
  * 
  * <pre>
  * throwStatement ::=
@@ -30,9 +30,9 @@ public class ThrowStatement extends Statement {
   private Token keyword;
 
   /**
-   * The expression computing the exception to be thrown, or <code>null</code> if the current
-   * exception is to be re-thrown. (The latter case can only occur if the throw statement is inside
-   * a catch clause.)
+   * The expression computing the exception to be thrown, or {@code null} if the current exception
+   * is to be re-thrown. (The latter case can only occur if the throw statement is inside a catch
+   * clause.)
    */
   private Expression expression;
 
@@ -76,7 +76,7 @@ public class ThrowStatement extends Statement {
   }
 
   /**
-   * Return the expression computing the exception to be thrown, or <code>null</code> if the current
+   * Return the expression computing the exception to be thrown, or {@code null} if the current
    * exception is to be re-thrown. (The latter case can only occur if the throw statement is inside
    * a catch clause.)
    * 

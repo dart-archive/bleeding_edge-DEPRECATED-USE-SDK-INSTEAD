@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ArrayAccess</code> represent an array access expression.
+ * Instances of the class {@code ArrayAccess} represent an array access expression.
  * 
  * <pre>
  * arrayAccess ::=

@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>DoStatement</code> represent a do statement.
+ * Instances of the class {@code DoStatement} represent a do statement.
  * 
  * <pre>
  * doStatement ::=

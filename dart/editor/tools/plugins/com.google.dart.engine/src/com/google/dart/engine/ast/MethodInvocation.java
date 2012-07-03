@@ -16,11 +16,11 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>MethodInvocation</code> represent the invocation of either a
- * function or a method. Invocations of functions resulting from evaluating an expression are
- * represented by {@link FunctionExpressionInvocation function expression invocation} nodes.
- * Invocations of getters and setters are represented by either {@link PrefixedIdentifier prefixed
- * identifier} or {@link PropertyAccess property access} nodes.
+ * Instances of the class {@code MethodInvocation} represent the invocation of either a function or
+ * a method. Invocations of functions resulting from evaluating an expression are represented by
+ * {@link FunctionExpressionInvocation function expression invocation} nodes. Invocations of getters
+ * and setters are represented by either {@link PrefixedIdentifier prefixed identifier} or
+ * {@link PropertyAccess property access} nodes.
  * 
  * <pre>
  * methodInvoction ::=
@@ -29,13 +29,13 @@ import com.google.dart.engine.scanner.Token;
  */
 public class MethodInvocation extends Expression {
   /**
-   * The expression producing the object on which the method is defined, or <code>null</code> if
-   * there is no target (that is, the target is implicitly <code>this</code>).
+   * The expression producing the object on which the method is defined, or {@code null} if there is
+   * no target (that is, the target is implicitly {@code this}).
    */
   private Expression target;
 
   /**
-   * The period that separates the target from the method name, or <code>null</code> if there is no
+   * The period that separates the target from the method name, or {@code null} if there is no
    * target.
    */
   private Token period;
@@ -109,8 +109,8 @@ public class MethodInvocation extends Expression {
   }
 
   /**
-   * Return the period that separates the target from the method name, or <code>null</code> if there
-   * is no target.
+   * Return the period that separates the target from the method name, or {@code null} if there is
+   * no target.
    * 
    * @return the period that separates the target from the method name
    */
@@ -119,8 +119,8 @@ public class MethodInvocation extends Expression {
   }
 
   /**
-   * Return the expression producing the object on which the method is defined, or <code>null</code>
-   * if there is no target (that is, the target is implicitly <code>this</code>).
+   * Return the expression producing the object on which the method is defined, or {@code null} if
+   * there is no target (that is, the target is implicitly {@code this}).
    * 
    * @return the expression producing the object on which the method is defined
    */

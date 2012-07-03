@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>InterpolationExpression</code> represent an expression embedded in a
+ * Instances of the class {@code InterpolationExpression} represent an expression embedded in a
  * string interpolation.
  * 
  * <pre>
@@ -38,8 +38,7 @@ public class InterpolationExpression extends InterpolationElement {
   private Expression expression;
 
   /**
-   * The right curly bracket, or <code>null</code> if the expression is an identifier without
-   * brackets.
+   * The right curly bracket, or {@code null} if the expression is an identifier without brackets.
    */
   private Token rightBracket;
 

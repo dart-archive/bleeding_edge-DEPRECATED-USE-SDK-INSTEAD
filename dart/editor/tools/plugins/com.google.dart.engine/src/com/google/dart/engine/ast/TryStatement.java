@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>TryStatement</code> represent a try statement.
+ * Instances of the class {@code TryStatement} represent a try statement.
  * 
  * <pre>
  * tryStatement ::=
@@ -45,14 +45,14 @@ public class TryStatement extends Statement {
   private NodeList<CatchClause> catchClauses = new NodeList<CatchClause>(this);
 
   /**
-   * The token representing the 'finally' keyword, or <code>null</code> if the statement does not
-   * contain a finally clause.
+   * The token representing the 'finally' keyword, or {@code null} if the statement does not contain
+   * a finally clause.
    */
   private Token finallyKeyword;
 
   /**
-   * The finally clause contained in the try statement, or <code>null</code> if the statement does
-   * not contain a finally clause.
+   * The finally clause contained in the try statement, or {@code null} if the statement does not
+   * contain a finally clause.
    */
   private Block finallyClause;
 
@@ -121,8 +121,8 @@ public class TryStatement extends Statement {
   }
 
   /**
-   * Return the finally clause contained in the try statement, or <code>null</code> if the statement
-   * does not contain a finally clause.
+   * Return the finally clause contained in the try statement, or {@code null} if the statement does
+   * not contain a finally clause.
    * 
    * @return the finally clause contained in the try statement
    */
@@ -131,8 +131,8 @@ public class TryStatement extends Statement {
   }
 
   /**
-   * Return the token representing the 'finally' keyword, or <code>null</code> if the statement does
-   * not contain a finally clause.
+   * Return the token representing the 'finally' keyword, or {@code null} if the statement does not
+   * contain a finally clause.
    * 
    * @return the token representing the 'finally' keyword
    */

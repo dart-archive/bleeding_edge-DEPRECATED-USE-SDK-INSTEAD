@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>TypeAlias</code> represent a type alias.
+ * Instances of the class {@code TypeAlias} represent a type alias.
  * 
  * <pre>
  * typeAlias ::=
@@ -41,7 +41,7 @@ public class TypeAlias extends CompilationUnitMember {
   private SimpleIdentifier name;
 
   /**
-   * The type parameters for the type, or <code>null</code> if the type does not have any type
+   * The type parameters for the type, or {@code null} if the type does not have any type
    * parameters.
    */
   private TypeParameterList typeParameters;
@@ -145,8 +145,8 @@ public class TypeAlias extends CompilationUnitMember {
   }
 
   /**
-   * Return the type parameters for the function type, or <code>null</code> if the type does not
-   * have any type parameters.
+   * Return the type parameters for the function type, or {@code null} if the type does not have any
+   * type parameters.
    * 
    * @return the type parameters for the function type
    */

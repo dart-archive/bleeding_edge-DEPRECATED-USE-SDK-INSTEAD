@@ -14,7 +14,7 @@
 package com.google.dart.engine.ast;
 
 /**
- * Instances of the class <code>ConstructorInitializer</code> defines the behavior of nodes that can
+ * Instances of the class {@code ConstructorInitializer} defines the behavior of nodes that can
  * occur in the initializer list of a constructor declaration.
  * 
  * <pre>

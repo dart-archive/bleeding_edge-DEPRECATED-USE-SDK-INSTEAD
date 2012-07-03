@@ -17,9 +17,9 @@ import java.io.File;
 import java.net.URI;
 
 /**
- * The abstract class <code>UriResolver</code> defines the behavior of objects that are used to
- * resolve URI's for a source factory. Subclasses of this class are expected to resolve a single
- * scheme of absolute URI.
+ * The abstract class {@code UriResolver} defines the behavior of objects that are used to resolve
+ * URI's for a source factory. Subclasses of this class are expected to resolve a single scheme of
+ * absolute URI.
  */
 public abstract class UriResolver {
   /**
@@ -32,8 +32,7 @@ public abstract class UriResolver {
   /**
    * Working on behalf of the given source factory, resolve the (possibly relative) contained URI
    * against the URI associated with the containing source object. Return a {@link Source source}
-   * representing the file to which it was resolved, or <code>null</code> if it could not be
-   * resolved.
+   * representing the file to which it was resolved, or {@code null} if it could not be resolved.
    * 
    * @param factory the source factory requesting the resolution of the URI
    * @param containingSource the source containing the given URI
@@ -50,7 +49,7 @@ public abstract class UriResolver {
 
   /**
    * Resolve the given absolute URI. Return a {@link Source source} representing the file to which
-   * it was resolved, or <code>null</code> if it could not be resolved.
+   * it was resolved, or {@code null} if it could not be resolved.
    * 
    * @param uri the URI to be resolved
    * @return a {@link Source source} representing the URI to which given URI was resolved
@@ -60,7 +59,7 @@ public abstract class UriResolver {
   /**
    * Resolve the relative (contained) URI against the URI associated with the containing source
    * object. Return a {@link Source source} representing the file to which it was resolved, or
-   * <code>null</code> if it could not be resolved.
+   * {@code null} if it could not be resolved.
    * 
    * @param containingSource the source containing the given URI
    * @param containedUri the (possibly relative) URI to be resolved against the containing source

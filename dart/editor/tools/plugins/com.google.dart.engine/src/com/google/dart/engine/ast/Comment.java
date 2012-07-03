@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Instances of the class <code>Comment</code> represent a comment within the source code.
+ * Instances of the class {@code Comment} represent a comment within the source code.
  * 
  * <pre>
  * comment ::=
@@ -40,7 +40,7 @@ import java.util.List;
  */
 public class Comment extends ASTNode {
   /**
-   * The enumeration <code>CommentType</code> encodes all the different types of comments that are
+   * The enumeration {@code CommentType} encodes all the different types of comments that are
    * recognized by the parser.
    */
   private enum CommentType {
@@ -155,27 +155,27 @@ public class Comment extends ASTNode {
   }
 
   /**
-   * Return <code>true</code> if this is a block comment.
+   * Return {@code true} if this is a block comment.
    * 
-   * @return <code>true</code> if this is a block comment
+   * @return {@code true} if this is a block comment
    */
   public boolean isBlock() {
     return type == CommentType.BLOCK;
   }
 
   /**
-   * Return <code>true</code> if this is a documentation comment.
+   * Return {@code true} if this is a documentation comment.
    * 
-   * @return <code>true</code> if this is a documentation comment
+   * @return {@code true} if this is a documentation comment
    */
   public boolean isDocumentation() {
     return type == CommentType.DOCUMENTATION;
   }
 
   /**
-   * Return <code>true</code> if this is an end-of-line comment.
+   * Return {@code true} if this is an end-of-line comment.
    * 
-   * @return <code>true</code> if this is an end-of-line comment
+   * @return {@code true} if this is an end-of-line comment
    */
   public boolean isEndOfLine() {
     return type == CommentType.END_OF_LINE;

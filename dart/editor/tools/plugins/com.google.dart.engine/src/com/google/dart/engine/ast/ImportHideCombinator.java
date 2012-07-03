@@ -16,8 +16,8 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ImportHideCombinator</code> represent a combinator that restricts
- * the names being imported to those that are not in a given list.
+ * Instances of the class {@code ImportHideCombinator} represent a combinator that restricts the
+ * names being imported to those that are not in a given list.
  * 
  * <pre>
  * importHideCombinator ::=

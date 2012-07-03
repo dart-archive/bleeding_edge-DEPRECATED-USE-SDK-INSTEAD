@@ -14,8 +14,8 @@
 package com.google.dart.engine.utilities.os;
 
 /**
- * The class <code>OSUtilities</code> implements utility methods used to determine which operating
- * system we are running on.
+ * The class {@code OSUtilities} implements utility methods used to determine which operating system
+ * we are running on.
  */
 public final class OSUtilities {
   /**
@@ -35,28 +35,28 @@ public final class OSUtilities {
   private static final String OS_PROPERTY_NAME = "os.name"; //$NON-NLS-1$
 
   /**
-   * Return <code>true</code> if we are running on a Linux OS. This method currently assumes that
-   * there are only three possible operating systems: Linux, Macintosh, and Windows.
+   * Return {@code true} if we are running on a Linux OS. This method currently assumes that there
+   * are only three possible operating systems: Linux, Macintosh, and Windows.
    * 
-   * @return <code>true</code> if we are running on Linux
+   * @return {@code true} if we are running on Linux
    */
   public static boolean isLinux() {
     return !isMac() && !isWindows();
   }
 
   /**
-   * Return <code>true</code> if we are running on a Macintosh OS.
+   * Return {@code true} if we are running on a Macintosh OS.
    * 
-   * @return <code>true</code> if we are running on a Mac
+   * @return {@code true} if we are running on a Mac
    */
   public static boolean isMac() {
     return System.getProperty(OS_PROPERTY_NAME).toLowerCase().startsWith(OS_PREFIX_MAC);
   }
 
   /**
-   * Return <code>true</code> if we are running on a Windows OS.
+   * Return {@code true} if we are running on a Windows OS.
    * 
-   * @return <code>true</code> if we are running on Windows
+   * @return {@code true} if we are running on Windows
    */
   public static boolean isWindows() {
     return System.getProperty(OS_PROPERTY_NAME).toLowerCase().startsWith(OS_PREFIX_WIN);

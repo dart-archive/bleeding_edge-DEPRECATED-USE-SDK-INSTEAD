@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ResourceDirective</code> represent a resource directive.
+ * Instances of the class {@code ResourceDirective} represent a resource directive.
  * 
  * <pre>
  * resourceDirective ::=

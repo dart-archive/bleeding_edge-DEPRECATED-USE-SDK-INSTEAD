@@ -16,8 +16,8 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>FunctionTypedFormalParameter</code> represent a function-typed
- * formal parameter.
+ * Instances of the class {@code FunctionTypedFormalParameter} represent a function-typed formal
+ * parameter.
  * 
  * <pre>
  * functionSignature ::=
@@ -26,8 +26,7 @@ import com.google.dart.engine.scanner.Token;
  */
 public class FunctionTypedFormalParameter extends NormalFormalParameter {
   /**
-   * The return type of the function, or <code>null</code> if the function does not have a return
-   * type.
+   * The return type of the function, or {@code null} if the function does not have a return type.
    */
   private TypeName returnType;
 
@@ -50,8 +49,8 @@ public class FunctionTypedFormalParameter extends NormalFormalParameter {
   /**
    * Initialize a newly created formal parameter.
    * 
-   * @param returnType the return type of the function, or <code>null</code> if the function does
-   *          not have a return type
+   * @param returnType the return type of the function, or {@code null} if the function does not
+   *          have a return type
    * @param identifier the name of the function-typed parameter
    * @param parameters the parameters of the function-typed parameter
    */
@@ -99,8 +98,8 @@ public class FunctionTypedFormalParameter extends NormalFormalParameter {
   }
 
   /**
-   * Return the return type of the function, or <code>null</code> if the function does not have a
-   * return type.
+   * Return the return type of the function, or {@code null} if the function does not have a return
+   * type.
    * 
    * @return the return type of the function
    */

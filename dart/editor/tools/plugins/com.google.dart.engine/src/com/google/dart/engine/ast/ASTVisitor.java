@@ -14,8 +14,8 @@
 package com.google.dart.engine.ast;
 
 /**
- * The interface <code>ASTVisitor</code> defines the behavior of objects that can be used to visit
- * an AST structure.
+ * The interface {@code ASTVisitor} defines the behavior of objects that can be used to visit an AST
+ * structure.
  */
 public interface ASTVisitor<R> {
   public R visitAdjacentStrings(AdjacentStrings node);

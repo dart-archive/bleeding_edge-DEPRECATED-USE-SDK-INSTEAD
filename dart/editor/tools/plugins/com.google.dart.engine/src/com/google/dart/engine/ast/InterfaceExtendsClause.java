@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>InterfaceExtendsClause</code> represent the "extends" clause in an
+ * Instances of the class {@code InterfaceExtendsClause} represent the "extends" clause in an
  * interface declaration.
  * 
  * <pre>

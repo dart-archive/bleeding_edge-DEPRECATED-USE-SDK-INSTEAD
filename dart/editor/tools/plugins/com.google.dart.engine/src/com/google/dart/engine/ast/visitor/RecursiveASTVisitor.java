@@ -16,9 +16,9 @@ package com.google.dart.engine.ast.visitor;
 import com.google.dart.engine.ast.*;
 
 /**
- * Instances of the class <code>RecursiveASTVisitor</code> implement an AST visitor that will
- * recursively visit all of the nodes in an AST structure. For example, using an instance of this
- * class to visit a {@link Block} will also cause all of the statements in the block to be visited.
+ * Instances of the class {@code RecursiveASTVisitor} implement an AST visitor that will recursively
+ * visit all of the nodes in an AST structure. For example, using an instance of this class to visit
+ * a {@link Block} will also cause all of the statements in the block to be visited.
  * <p>
  * Subclasses that override a visit method must either invoke the overridden visit method or must
  * explicitly ask the visited node to visit its children. Failure to do so will cause the children

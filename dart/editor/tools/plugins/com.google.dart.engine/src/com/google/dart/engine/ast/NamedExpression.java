@@ -16,8 +16,8 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>NamedExpression</code> represent an expression that has a name
- * associated with it. They are used in method invocations when there are named parameters.
+ * Instances of the class {@code NamedExpression} represent an expression that has a name associated
+ * with it. They are used in method invocations when there are named parameters.
  * 
  * <pre>
  * namedExpression ::=

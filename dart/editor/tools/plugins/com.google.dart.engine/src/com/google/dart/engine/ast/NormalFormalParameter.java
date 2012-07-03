@@ -14,7 +14,8 @@
 package com.google.dart.engine.ast;
 
 /**
- * The abstract class <code>NormalFormalParameter</code>
+ * The abstract class {@code NormalFormalParameter} defines the behavior common to formal parameters
+ * that are required (are not optional).
  * 
  * <pre>
  * normalFormalParameter ::=

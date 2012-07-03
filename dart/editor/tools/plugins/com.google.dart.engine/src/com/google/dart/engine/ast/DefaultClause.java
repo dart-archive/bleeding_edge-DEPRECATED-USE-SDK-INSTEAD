@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>DefaultClause</code> represent the default clause in an interface
+ * Instances of the class {@code DefaultClause} represent the default clause in an interface
  * declaration.
  * 
  * <pre>
@@ -36,8 +36,8 @@ public class DefaultClause extends ASTNode {
   private Identifier defaultName;
 
   /**
-   * The type parameters for the default class, or <code>null</code> if the default type does not
-   * have any type parameters.
+   * The type parameters for the default class, or {@code null} if the default type does not have
+   * any type parameters.
    */
   private TypeParameterList defaultTypeParameters;
 
@@ -80,8 +80,8 @@ public class DefaultClause extends ASTNode {
   }
 
   /**
-   * Return the type parameters for the default class, or <code>null</code> if the default type does
-   * not have any type parameters.
+   * Return the type parameters for the default class, or {@code null} if the default type does not
+   * have any type parameters.
    * 
    * @return the type parameters for the default class
    */

@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>NullLiteral</code> represent a null literal expression.
+ * Instances of the class {@code NullLiteral} represent a null literal expression.
  * 
  * <pre>
  * nullLiteral ::=

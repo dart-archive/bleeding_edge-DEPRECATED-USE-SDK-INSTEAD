@@ -14,13 +14,13 @@
 package com.google.dart.engine.ast;
 
 /**
- * The abstract class <code>Declaration</code> defines the behavior common to nodes that represent
- * the declaration of a name. Each declared name is visible within a name scope.
+ * The abstract class {@code Declaration} defines the behavior common to nodes that represent the
+ * declaration of a name. Each declared name is visible within a name scope.
  */
 public abstract class Declaration extends ASTNode {
   /**
-   * The documentation comment associated with this declaration, or <code>null</code> if this
-   * declaration does not have a documentation comment associated with it.
+   * The documentation comment associated with this declaration, or {@code null} if this declaration
+   * does not have a documentation comment associated with it.
    */
   private Comment comment;
 
@@ -40,7 +40,7 @@ public abstract class Declaration extends ASTNode {
   }
 
   /**
-   * Return the documentation comment associated with this declaration, or <code>null</code> if this
+   * Return the documentation comment associated with this declaration, or {@code null} if this
    * declaration does not have a documentation comment associated with it.
    * 
    * @return the documentation comment associated with this declaration

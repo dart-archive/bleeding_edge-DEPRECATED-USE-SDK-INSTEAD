@@ -16,7 +16,7 @@ package com.google.dart.engine.source;
 import java.io.File;
 
 /**
- * Instances of the class <code>SourceImpl</code> implement a basic source object.
+ * Instances of the class {@code SourceImpl} implement a basic source object.
  */
 public class SourceImpl implements Source {
   /**
@@ -51,7 +51,7 @@ public class SourceImpl implements Source {
    * 
    * @param factory the source factory that created this source
    * @param file the file represented by this source
-   * @param inSystemLibrary <code>true</code> if this source is in one of the system libraries
+   * @param inSystemLibrary {@code true} if this source is in one of the system libraries
    */
   public SourceImpl(SourceFactory factory, File file, boolean inSystemLibrary) {
     this.factory = factory;

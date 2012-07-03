@@ -14,7 +14,7 @@
 package com.google.dart.engine.ast;
 
 /**
- * Instances of the class <code>StringLiteral</code> represent a string literal expression.
+ * Instances of the class {@code StringLiteral} represent a string literal expression.
  * 
  * <pre>
  * stringLiteral ::=

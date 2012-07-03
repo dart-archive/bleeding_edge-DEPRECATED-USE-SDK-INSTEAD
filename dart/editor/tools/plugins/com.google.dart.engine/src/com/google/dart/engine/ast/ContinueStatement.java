@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ContinueStatement</code> represent a continue statement.
+ * Instances of the class {@code ContinueStatement} represent a continue statement.
  * 
  * <pre>
  * continueStatement ::=
@@ -30,7 +30,7 @@ public class ContinueStatement extends Statement {
   private Token keyword;
 
   /**
-   * The label associated with the statement, or <code>null</code> if there is no label.
+   * The label associated with the statement, or {@code null} if there is no label.
    */
   private SimpleIdentifier label;
 
@@ -83,7 +83,7 @@ public class ContinueStatement extends Statement {
   }
 
   /**
-   * Return the label associated with the statement, or <code>null</code> if there is no label.
+   * Return the label associated with the statement, or {@code null} if there is no label.
    * 
    * @return the label associated with the statement
    */

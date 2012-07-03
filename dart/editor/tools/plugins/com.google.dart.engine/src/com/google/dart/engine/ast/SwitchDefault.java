@@ -18,8 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>SwitchDefault</code> represent the default case in a switch
- * statement.
+ * Instances of the class {@code SwitchDefault} represent the default case in a switch statement.
  * 
  * <pre>
  * switchDefault ::=

@@ -18,8 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>InterfaceDeclaration</code> represent the declaration of an
- * interface.
+ * Instances of the class {@code InterfaceDeclaration} represent the declaration of an interface.
  * 
  * <pre>
  * interfaceDeclaration ::=
@@ -31,13 +30,13 @@ import java.util.List;
  */
 public class InterfaceDeclaration extends TypeDeclaration {
   /**
-   * The extends clause for the interface, or <code>null</code> if the interface does not extend any
+   * The extends clause for the interface, or {@code null} if the interface does not extend any
    * other interfaces.
    */
   private InterfaceExtendsClause interfaceExtendsClause;
 
   /**
-   * The default clause for the interface, or <code>null</code> if the interface does not define a
+   * The default clause for the interface, or {@code null} if the interface does not define a
    * default class.
    */
   private DefaultClause defaultClause;
@@ -75,8 +74,8 @@ public class InterfaceDeclaration extends TypeDeclaration {
   }
 
   /**
-   * Return the default clause for the interface, or <code>null</code> if the interface does not
-   * define a default class.
+   * Return the default clause for the interface, or {@code null} if the interface does not define a
+   * default class.
    * 
    * @return the default clause for the interface
    */
@@ -85,8 +84,8 @@ public class InterfaceDeclaration extends TypeDeclaration {
   }
 
   /**
-   * Return the extends clause for the interface, or <code>null</code> if the interface does not
-   * extend any other interfaces.
+   * Return the extends clause for the interface, or {@code null} if the interface does not extend
+   * any other interfaces.
    * 
    * @return the extends clause for this interface
    */

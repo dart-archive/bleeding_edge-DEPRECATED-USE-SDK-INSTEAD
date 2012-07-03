@@ -16,8 +16,8 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>CommentReference</code> represent a reference to a Dart element that
- * is found within a documentation comment.
+ * Instances of the class {@code CommentReference} represent a reference to a Dart element that is
+ * found within a documentation comment.
  * 
  * <pre>
  * commentReference ::=

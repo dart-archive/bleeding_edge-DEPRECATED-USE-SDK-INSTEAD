@@ -16,8 +16,8 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ImportExportCombinator</code> represent a combinator that restricts
- * the names being imported to those in a given list.
+ * Instances of the class {@code ImportExportCombinator} represent a combinator that restricts the
+ * names being imported to those in a given list.
  * 
  * <pre>
  * importExportCombinator ::=

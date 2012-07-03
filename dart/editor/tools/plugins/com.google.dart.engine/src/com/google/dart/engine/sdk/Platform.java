@@ -17,8 +17,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Instances of the class <code>Platform</code> represent a platform for which Dart applications can
- * be targeted.
+ * Instances of the class {@code Platform} represent a platform for which Dart applications can be
+ * targeted.
  */
 public class Platform {
   /**

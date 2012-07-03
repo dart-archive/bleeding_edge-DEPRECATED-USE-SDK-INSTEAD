@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>TypeParameterList</code> represent type parameters within a declaration.
+ * Instances of the class {@code TypeParameterList} represent type parameters within a declaration.
  *
  * <pre>
  * typeParameterList ::=

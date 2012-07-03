@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>ClassDeclaration</code> represent the declaration of a class.
+ * Instances of the class {@code ClassDeclaration} represent the declaration of a class.
  * 
  * <pre>
  * classDeclaration ::=
@@ -30,18 +30,17 @@ import java.util.List;
  */
 public class ClassDeclaration extends TypeDeclaration {
   /**
-   * The 'abstract' keyword, or <code>null</code> if the keyword was absent.
+   * The 'abstract' keyword, or {@code null} if the keyword was absent.
    */
   private Token abstractKeyword;
 
   /**
-   * The extends clause for the class, or <code>null</code> if the class does not extend any other
-   * class.
+   * The extends clause for the class, or {@code null} if the class does not extend any other class.
    */
   private ClassExtendsClause classExtendsClause;
 
   /**
-   * The implements clause for the class, or <code>null</code> if the class does not implement any
+   * The implements clause for the class, or {@code null} if the class does not implement any
    * interfaces.
    */
   private ImplementsClause implementsClause;
@@ -56,7 +55,7 @@ public class ClassDeclaration extends TypeDeclaration {
    * Initialize a newly created class declaration.
    * 
    * @param comment the documentation comment associated with this member
-   * @param abstractKeyword the 'abstract' keyword, or <code>null</code> if the keyword was absent
+   * @param abstractKeyword the 'abstract' keyword, or {@code null} if the keyword was absent
    * @param keyword the token representing the 'class' keyword
    * @param name the name of the class being declared
    * @param typeParameters the type parameters for the class
@@ -82,7 +81,7 @@ public class ClassDeclaration extends TypeDeclaration {
   }
 
   /**
-   * Return the 'abstract' keyword, or <code>null</code> if the keyword was absent.
+   * Return the 'abstract' keyword, or {@code null} if the keyword was absent.
    * 
    * @return the 'abstract' keyword
    */
@@ -91,7 +90,7 @@ public class ClassDeclaration extends TypeDeclaration {
   }
 
   /**
-   * Return the extends clause for this class, or <code>null</code> if the class does not extend any
+   * Return the extends clause for this class, or {@code null} if the class does not extend any
    * other class.
    * 
    * @return the extends clause for this class
@@ -101,8 +100,8 @@ public class ClassDeclaration extends TypeDeclaration {
   }
 
   /**
-   * Return the implements clause for the class, or <code>null</code> if the class does not
-   * implement any interfaces.
+   * Return the implements clause for the class, or {@code null} if the class does not implement any
+   * interfaces.
    * 
    * @return the implements clause for the class
    */

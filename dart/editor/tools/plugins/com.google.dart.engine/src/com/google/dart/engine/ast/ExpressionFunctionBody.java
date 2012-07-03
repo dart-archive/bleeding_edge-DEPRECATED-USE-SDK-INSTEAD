@@ -16,8 +16,8 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ExpressionFunctionBody</code> represent a function body consisting
- * of a single expression.
+ * Instances of the class {@code ExpressionFunctionBody} represent a function body consisting of a
+ * single expression.
  * 
  * <pre>
  * expressionFunctionBody ::=

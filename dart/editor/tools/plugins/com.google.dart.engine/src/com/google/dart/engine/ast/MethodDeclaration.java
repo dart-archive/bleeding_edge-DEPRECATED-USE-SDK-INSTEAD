@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>MethodDeclaration</code> represent a method declaration.
+ * Instances of the class {@code MethodDeclaration} represent a method declaration.
  * 
  * <pre>
  * methodDeclaration ::=
@@ -33,25 +33,25 @@ import com.google.dart.engine.scanner.Token;
  */
 public class MethodDeclaration extends TypeMember {
   /**
-   * The token representing the 'abstract' or 'static' keyword, or <code>null</code> if neither
-   * modifier was specified.
+   * The token representing the 'abstract' or 'static' keyword, or {@code null} if neither modifier
+   * was specified.
    */
   private Token modifierKeyword;
 
   /**
-   * The return type of the method, or <code>null</code> if no return type was declared.
+   * The return type of the method, or {@code null} if no return type was declared.
    */
   private TypeName returnType;
 
   /**
-   * The token representing the 'get' or 'set' keyword, or <code>null</code> if this is a method
+   * The token representing the 'get' or 'set' keyword, or {@code null} if this is a method
    * declaration rather than a property declaration.
    */
   private Token propertyKeyword;
 
   /**
-   * The token representing the 'operator' keyword, or <code>null</code> if this method does not
-   * declare an operator.
+   * The token representing the 'operator' keyword, or {@code null} if this method does not declare
+   * an operator.
    */
   private Token operatorKeyword;
 
@@ -138,8 +138,8 @@ public class MethodDeclaration extends TypeMember {
   }
 
   /**
-   * Return the token representing the 'abstract' or 'static' keyword, or <code>null</code> if
-   * neither modifier was specified.
+   * Return the token representing the 'abstract' or 'static' keyword, or {@code null} if neither
+   * modifier was specified.
    * 
    * @return the token representing the 'abstract' or 'static' keyword
    */
@@ -157,8 +157,8 @@ public class MethodDeclaration extends TypeMember {
   }
 
   /**
-   * Return the token representing the 'operator' keyword, or <code>null</code> if this method does
-   * not declare an operator.
+   * Return the token representing the 'operator' keyword, or {@code null} if this method does not
+   * declare an operator.
    * 
    * @return the token representing the 'operator' keyword
    */
@@ -176,8 +176,8 @@ public class MethodDeclaration extends TypeMember {
   }
 
   /**
-   * Return the token representing the 'get' or 'set' keyword, or <code>null</code> if this is a
-   * method declaration rather than a property declaration.
+   * Return the token representing the 'get' or 'set' keyword, or {@code null} if this is a method
+   * declaration rather than a property declaration.
    * 
    * @return the token representing the 'get' or 'set' keyword
    */
@@ -186,7 +186,7 @@ public class MethodDeclaration extends TypeMember {
   }
 
   /**
-   * Return the return type of the method, or <code>null</code> if no return type was declared.
+   * Return the return type of the method, or {@code null} if no return type was declared.
    * 
    * @return the return type of the method
    */

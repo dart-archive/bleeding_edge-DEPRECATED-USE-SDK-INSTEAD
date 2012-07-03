@@ -14,8 +14,8 @@
 package com.google.dart.engine.ast;
 
 /**
- * Instances of the class <code>Expression</code> defines the behavior common to nodes that
- * represent an expression.
+ * Instances of the class {@code Expression} defines the behavior common to nodes that represent an
+ * expression.
  * 
  * <pre>
  * expression ::=
@@ -25,9 +25,9 @@ package com.google.dart.engine.ast;
  */
 public abstract class Expression extends ASTNode {
   /**
-   * Return <code>true</code> if this expression is a compile-time constant expression.
+   * Return {@code true} if this expression is a compile-time constant expression.
    * 
-   * @return <code>true</code> if this expression is a compile-time constant expression
+   * @return {@code true} if this expression is a compile-time constant expression
    */
   public boolean isConstant() {
     return false;

@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>FunctionExpressionInvocation</code> represent the invocation of a
+ * Instances of the class {@code FunctionExpressionInvocation} represent the invocation of a
  * function resulting from evaluating an expression. Invocations of methods and other forms of
  * functions are represented by {@link MethodInvocation method invocation} nodes. Invocations of
  * getters and setters are represented by either {@link PrefixedIdentifier prefixed identifier} or

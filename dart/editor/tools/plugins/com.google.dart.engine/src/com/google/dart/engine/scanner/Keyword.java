@@ -17,7 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * The enumeration <code>Keyword</code> defines the keywords in the Dart programming language.
+ * The enumeration {@code Keyword} defines the keywords in the Dart programming language.
  */
 public enum Keyword {
   BREAK("break"),
@@ -106,10 +106,10 @@ public enum Keyword {
 
   /**
    * Initialize a newly created keyword to have the given syntax. The keyword is a pseudo-keyword if
-   * the given flag is <code>true</code>.
+   * the given flag is {@code true}.
    * 
    * @param syntax the lexeme for the keyword
-   * @param isPseudoKeyword <code>true</code> if this keyword is a pseudo-keyword
+   * @param isPseudoKeyword {@code true} if this keyword is a pseudo-keyword
    */
   Keyword(String syntax, boolean isPseudoKeyword) {
     this.syntax = syntax;
@@ -126,10 +126,10 @@ public enum Keyword {
   }
 
   /**
-   * Return <code>true</code> if this keyword is a pseudo-keyword. Pseudo keywords can be used as
+   * Return {@code true} if this keyword is a pseudo-keyword. Pseudo keywords can be used as
    * identifiers.
    * 
-   * @return <code>true</code> if this keyword is a pseudo-keyword
+   * @return {@code true} if this keyword is a pseudo-keyword
    */
   public boolean isPseudoKeyword() {
     return isPseudoKeyword;

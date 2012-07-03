@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>FieldFormalParameter</code> represent a field formal parameter.
+ * Instances of the class {@code FieldFormalParameter} represent a field formal parameter.
  * 
  * <pre>
  * fieldFormalParameter ::=
@@ -25,14 +25,14 @@ import com.google.dart.engine.scanner.Token;
  */
 public class FieldFormalParameter extends NormalFormalParameter {
   /**
-   * The token representing either the 'final', 'const' or 'var' keyword, or <code>null</code> if no
+   * The token representing either the 'final', 'const' or 'var' keyword, or {@code null} if no
    * keyword was used.
    */
   private Token keyword;
 
   /**
-   * The name of the declared type of the parameter, or <code>null</code> if the parameter does not
-   * have a declared type.
+   * The name of the declared type of the parameter, or {@code null} if the parameter does not have
+   * a declared type.
    */
   private TypeName type;
 
@@ -132,8 +132,8 @@ public class FieldFormalParameter extends NormalFormalParameter {
   }
 
   /**
-   * Return the name of the declared type of the parameter, or <code>null</code> if the parameter
-   * does not have a declared type.
+   * Return the name of the declared type of the parameter, or {@code null} if the parameter does
+   * not have a declared type.
    * 
    * @return the name of the declared type of the parameter
    */

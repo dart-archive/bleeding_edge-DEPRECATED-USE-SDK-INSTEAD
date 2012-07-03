@@ -18,8 +18,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 /**
- * Instances of the class <code>SourceFactory</code> resolve possibly relative URI's against an
- * existing {@link Source source}.
+ * Instances of the class {@code SourceFactory} resolve possibly relative URI's against an existing
+ * {@link Source source}.
  */
 public class SourceFactory {
   /**
@@ -49,8 +49,8 @@ public class SourceFactory {
   /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or
-   * <code>null</code> if either the contained URI is invalid or if it cannot be resolved against
-   * the source object's URI.
+   * {@code null} if either the contained URI is invalid or if it cannot be resolved against the
+   * source object's URI.
    * 
    * @param containingSource the source containing the given URI
    * @param containedUri the (possibly relative) URI to be resolved against the containing source
@@ -68,8 +68,8 @@ public class SourceFactory {
   /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or
-   * <code>null</code> if either the contained URI is invalid or if it cannot be resolved against
-   * the source object's URI.
+   * {@code null} if either the contained URI is invalid or if it cannot be resolved against the
+   * source object's URI.
    * 
    * @param containingSource the source containing the given URI
    * @param containedUri the (possibly relative) URI to be resolved against the containing source

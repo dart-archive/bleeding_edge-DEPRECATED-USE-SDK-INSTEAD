@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>SuperConstructorInvocation</code> represent the invocation of a
+ * Instances of the class {@code SuperConstructorInvocation} represent the invocation of a
  * superclass' constructor from within a constructor's initialization list.
  * 
  * <pre>
@@ -32,13 +32,13 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
 
   /**
    * The token for the period before the name of the constructor that is being invoked, or
-   * <code>null</code> if the unnamed constructor is being invoked.
+   * {@code null} if the unnamed constructor is being invoked.
    */
   private Token period;
 
   /**
-   * The name of the constructor that is being invoked, or <code>null</code> if the unnamed
-   * constructor is being invoked.
+   * The name of the constructor that is being invoked, or {@code null} if the unnamed constructor
+   * is being invoked.
    */
   private SimpleIdentifier constructorName;
 
@@ -91,7 +91,7 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
   }
 
   /**
-   * Return the name of the constructor that is being invoked, or <code>null</code> if the unnamed
+   * Return the name of the constructor that is being invoked, or {@code null} if the unnamed
    * constructor is being invoked.
    * 
    * @return the name of the constructor that is being invoked
@@ -116,7 +116,7 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
 
   /**
    * Return the token for the period before the name of the constructor that is being invoked, or
-   * <code>null</code> if the unnamed constructor is being invoked.
+   * {@code null} if the unnamed constructor is being invoked.
    * 
    * @return the token for the period before the name of the constructor that is being invoked
    */

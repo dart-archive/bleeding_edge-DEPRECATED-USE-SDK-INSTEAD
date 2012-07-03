@@ -16,8 +16,8 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>SimpleStringLiteral</code> represent a string literal expression
- * that does not contain any interpolations.
+ * Instances of the class {@code SimpleStringLiteral} represent a string literal expression that
+ * does not contain any interpolations.
  * 
  * <pre>
  * simpleStringLiteral ::=
@@ -107,9 +107,9 @@ public class SimpleStringLiteral extends StringLiteral {
   }
 
   /**
-   * Return <code>true</code> if this string literal is a multi-line string.
+   * Return {@code true} if this string literal is a multi-line string.
    * 
-   * @return <code>true</code> if this string literal is a multi-line string
+   * @return {@code true} if this string literal is a multi-line string
    */
   public boolean isMultiline() {
     if (value.length() < 6) {
@@ -119,9 +119,9 @@ public class SimpleStringLiteral extends StringLiteral {
   }
 
   /**
-   * Return <code>true</code> if this string literal is a raw string.
+   * Return {@code true} if this string literal is a raw string.
    * 
-   * @return <code>true</code> if this string literal is a raw string
+   * @return {@code true} if this string literal is a raw string
    */
   public boolean isRaw() {
     return value.charAt(0) == '@';

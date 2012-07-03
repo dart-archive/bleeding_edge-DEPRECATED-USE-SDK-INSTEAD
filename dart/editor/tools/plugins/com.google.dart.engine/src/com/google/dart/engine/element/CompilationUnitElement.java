@@ -15,8 +15,6 @@ package com.google.dart.engine.element;
 
 import com.google.dart.engine.source.Source;
 
-import javax.lang.model.element.TypeElement;
-
 /**
  * The interface {@code CompilationUnitElement} defines the behavior of elements representing a
  * compilation unit.

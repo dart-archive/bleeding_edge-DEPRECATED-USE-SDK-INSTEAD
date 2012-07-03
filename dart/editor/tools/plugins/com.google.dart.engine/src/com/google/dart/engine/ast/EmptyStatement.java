@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>EmptyStatement</code> represent an empty statement.
+ * Instances of the class {@code EmptyStatement} represent an empty statement.
  * 
  * <pre>
  * emptyStatement ::=

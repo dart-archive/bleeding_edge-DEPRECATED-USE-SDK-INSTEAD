@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ExpressionStatement</code> wrap an expression as a statement.
+ * Instances of the class {@code ExpressionStatement} wrap an expression as a statement.
  * 
  * <pre>
  * expressionStatement ::=

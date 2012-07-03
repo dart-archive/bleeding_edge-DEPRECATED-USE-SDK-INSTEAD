@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.math.BigInteger;
 
 /**
- * Instances of the class <code>IntegerLiteral</code> represent an integer literal expression.
+ * Instances of the class {@code IntegerLiteral} represent an integer literal expression.
  * 
  * <pre>
  * integerLiteral ::=

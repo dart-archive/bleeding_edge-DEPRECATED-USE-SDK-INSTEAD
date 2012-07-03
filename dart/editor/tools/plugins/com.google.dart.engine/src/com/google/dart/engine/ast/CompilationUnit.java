@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>CompilationUnit</code> represent a compilation unit.
+ * Instances of the class {@code CompilationUnit} represent a compilation unit.
  * 
  * <pre>
  * compilationUnit ::=
@@ -39,8 +39,8 @@ import java.util.List;
  */
 public class CompilationUnit extends ASTNode {
   /**
-   * The script tag at the beginning of the compilation unit, or <code>null</code> if there is no
-   * script tag in this compilation unit.
+   * The script tag at the beginning of the compilation unit, or {@code null} if there is no script
+   * tag in this compilation unit.
    */
   private ScriptTag scriptTag;
 
@@ -116,8 +116,8 @@ public class CompilationUnit extends ASTNode {
   }
 
   /**
-   * Return the script tag at the beginning of the compilation unit, or <code>null</code> if there
-   * is no script tag in this compilation unit.
+   * Return the script tag at the beginning of the compilation unit, or {@code null} if there is no
+   * script tag in this compilation unit.
    * 
    * @return the script tag at the beginning of the compilation unit
    */

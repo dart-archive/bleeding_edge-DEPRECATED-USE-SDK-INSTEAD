@@ -16,8 +16,8 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ImportPrefixCombinator</code> represent a combinator that adds a
- * prefix to imported names.
+ * Instances of the class {@code ImportPrefixCombinator} represent a combinator that adds a prefix
+ * to imported names.
  * 
  * <pre>
  * importPrefixCombinator ::=

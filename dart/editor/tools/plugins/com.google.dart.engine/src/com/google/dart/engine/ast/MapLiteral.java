@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>MapLiteral</code> represent a literal map.
+ * Instances of the class {@code MapLiteral} represent a literal map.
  * 
  * <pre>
  * mapLiteral ::=
@@ -51,8 +51,8 @@ public class MapLiteral extends TypedLiteral {
    * Initialize a newly created map literal.
    * 
    * @param modifier the const modifier associated with this literal
-   * @param typeArguments the type argument associated with this literal, or <code>null</code> if no
-   *          type arguments were declared
+   * @param typeArguments the type argument associated with this literal, or {@code null} if no type
+   *          arguments were declared
    * @param leftBracket the left curly bracket
    * @param entries the entries in the map
    * @param rightBracket the right curly bracket

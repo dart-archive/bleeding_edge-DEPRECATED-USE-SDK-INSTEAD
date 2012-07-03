@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>Label</code> represent a label.
+ * Instances of the class {@code Label} represent a label.
  * 
  * <pre>
  * label ::=

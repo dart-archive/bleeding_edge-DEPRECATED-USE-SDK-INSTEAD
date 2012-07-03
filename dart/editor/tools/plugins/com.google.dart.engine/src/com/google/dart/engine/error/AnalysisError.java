@@ -16,8 +16,8 @@ package com.google.dart.engine.error;
 import com.google.dart.engine.source.Source;
 
 /**
- * Instances of the class <code>AnalysisError</code> represent an error discovered during the
- * analysis of some Dart code.
+ * Instances of the class {@code AnalysisError} represent an error discovered during the analysis of
+ * some Dart code.
  * 
  * @see AnalysisErrorListener
  */
@@ -33,7 +33,7 @@ public class AnalysisError {
   private String message;
 
   /**
-   * The source in which the error occurred or <code>null</code> if unknown.
+   * The source in which the error occurred or {@code null} if unknown.
    */
   private Source source;
 
@@ -172,7 +172,7 @@ public class AnalysisError {
   }
 
   /**
-   * Return the source in which the error occurred or <code>null</code> if unknown.
+   * Return the source in which the error occurred or {@code null} if unknown.
    */
   public Source getSource() {
     return source;
@@ -187,7 +187,7 @@ public class AnalysisError {
   }
 
   /**
-   * Set the source in which the error occurred or <code>null</code> if unknown.
+   * Set the source in which the error occurred or {@code null} if unknown.
    */
   public void setSource(Source source) {
     this.source = source;

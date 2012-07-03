@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>SourceDirective</code> represent a source directive.
+ * Instances of the class {@code SourceDirective} represent a source directive.
  * 
  * <pre>
  * sourceDirective ::=

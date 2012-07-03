@@ -16,8 +16,8 @@ package com.google.dart.engine.scanner;
 import java.util.Arrays;
 
 /**
- * Instances of the abstract class <code>KeywordState</code> represent a state in a state machine
- * used to scan keywords.
+ * Instances of the abstract class {@code KeywordState} represent a state in a state machine used to
+ * scan keywords.
  */
 public final class KeywordState {
   /**
@@ -98,14 +98,13 @@ public final class KeywordState {
 
   /**
    * A table mapping characters to the states to which those characters will transition. (The index
-   * into the array is the offset from the character <code>'a'</code> to the transitioning
-   * character.)
+   * into the array is the offset from the character {@code 'a'} to the transitioning character.)
    */
   private final KeywordState[] table;
 
   /**
-   * The keyword that is recognized by this state, or <code>null</code> if this state is not a
-   * terminal state.
+   * The keyword that is recognized by this state, or {@code null} if this state is not a terminal
+   * state.
    */
   private final Keyword keyword;
 
@@ -122,8 +121,8 @@ public final class KeywordState {
   }
 
   /**
-   * Return the keyword that was recognized by this state, or <code>null</code> if this state does
-   * not recognized a keyword.
+   * Return the keyword that was recognized by this state, or {@code null} if this state does not
+   * recognized a keyword.
    * 
    * @return the keyword that was matched by reaching this state
    */
@@ -133,7 +132,7 @@ public final class KeywordState {
 
   /**
    * Return the state that follows this state on a transition of the given character, or
-   * <code>null</code> if there is no valid state reachable from this state with such a transition.
+   * {@code null} if there is no valid state reachable from this state with such a transition.
    * 
    * @param c the character used to transition from this state to another state
    * @return the state that follows this state on a transition of the given character

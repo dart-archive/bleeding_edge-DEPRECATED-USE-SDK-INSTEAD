@@ -14,8 +14,8 @@
 package com.google.dart.engine.error;
 
 /**
- * The behavior common to objects representing error codes associated with {@link AnalysisError
- * analysis errors}.
+ * Instances of the class {@code ErrorCode} define the behavior common to objects representing error
+ * codes associated with {@link AnalysisError analysis errors}.
  */
 public interface ErrorCode {
   /**
@@ -34,8 +34,8 @@ public interface ErrorCode {
   public SubSystem getSubSystem();
 
   /**
-   * Return <code>true</code> if this {@link ErrorCode} should cause recompilation of the source
-   * during the next incremental compilation.
+   * Return {@code true} if this {@link ErrorCode} should cause recompilation of the source during
+   * the next incremental compilation.
    */
   public boolean needsRecompilation();
 }

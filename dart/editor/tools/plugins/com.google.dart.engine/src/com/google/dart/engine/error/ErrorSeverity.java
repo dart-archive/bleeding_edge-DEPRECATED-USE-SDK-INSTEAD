@@ -14,7 +14,8 @@
 package com.google.dart.engine.error;
 
 /**
- * The severity of an {@link ErrorCode}.
+ * Instances of the enumeration {@code ErrorSeverity} represent the severity of an {@link ErrorCode}
+ * .
  */
 public enum ErrorSeverity {
   /**
@@ -23,8 +24,8 @@ public enum ErrorSeverity {
   ERROR("E"),
 
   /**
-   * The severity representing a warning. Warnings can become errors if the <code>-Werror</code>
-   * command line flag is specified.
+   * The severity representing a warning. Warnings can become errors if the {@code -Werror} command
+   * line flag is specified.
    */
   WARNING("W");
 

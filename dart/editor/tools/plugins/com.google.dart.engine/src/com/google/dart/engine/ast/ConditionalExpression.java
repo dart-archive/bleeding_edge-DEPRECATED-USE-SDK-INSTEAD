@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ConditionalExpression</code> represent a conditional expression.
+ * Instances of the class {@code ConditionalExpression} represent a conditional expression.
  * 
  * <pre>
  * conditionalExpression ::=
@@ -35,7 +35,7 @@ public class ConditionalExpression extends Expression {
   private Token question;
 
   /**
-   * The expression that is executed if the condition evaluates to <code>true</code>.
+   * The expression that is executed if the condition evaluates to {@code true}.
    */
   private Expression thenExpression;
 
@@ -45,7 +45,7 @@ public class ConditionalExpression extends Expression {
   private Token colon;
 
   /**
-   * The expression that is executed if the condition evaluates to <code>false</code>.
+   * The expression that is executed if the condition evaluates to {@code false}.
    */
   private Expression elseExpression;
 
@@ -61,10 +61,10 @@ public class ConditionalExpression extends Expression {
    * @param condition the condition used to determine which expression is executed next
    * @param question the token used to separate the condition from the then expression
    * @param thenExpression the expression that is executed if the condition evaluates to
-   *          <code>true</code>
+   *          {@code true}
    * @param colon the token used to separate the then expression from the else expression
    * @param elseExpression the expression that is executed if the condition evaluates to
-   *          <code>false</code>
+   *          {@code false}
    */
   public ConditionalExpression(Expression condition, Token question, Expression thenExpression,
       Token colon, Expression elseExpression) {
@@ -104,9 +104,9 @@ public class ConditionalExpression extends Expression {
   }
 
   /**
-   * Return the expression that is executed if the condition evaluates to <code>false</code>.
+   * Return the expression that is executed if the condition evaluates to {@code false}.
    * 
-   * @return the expression that is executed if the condition evaluates to <code>false</code>
+   * @return the expression that is executed if the condition evaluates to {@code false}
    */
   public Expression getElseExpression() {
     return elseExpression;
@@ -127,9 +127,9 @@ public class ConditionalExpression extends Expression {
   }
 
   /**
-   * Return the expression that is executed if the condition evaluates to <code>true</code>.
+   * Return the expression that is executed if the condition evaluates to {@code true}.
    * 
-   * @return the expression that is executed if the condition evaluates to <code>true</code>
+   * @return the expression that is executed if the condition evaluates to {@code true}
    */
   public Expression getThenExpression() {
     return thenExpression;
@@ -155,11 +155,10 @@ public class ConditionalExpression extends Expression {
   }
 
   /**
-   * Set the expression that is executed if the condition evaluates to <code>false</code> to the
-   * given expression.
+   * Set the expression that is executed if the condition evaluates to {@code false} to the given
+   * expression.
    * 
-   * @param expression the expression that is executed if the condition evaluates to
-   *          <code>false</code>
+   * @param expression the expression that is executed if the condition evaluates to {@code false}
    */
   public void setElseExpression(Expression expression) {
     elseExpression = becomeParentOf(expression);
@@ -175,11 +174,10 @@ public class ConditionalExpression extends Expression {
   }
 
   /**
-   * Set the expression that is executed if the condition evaluates to <code>true</code> to the
-   * given expression.
+   * Set the expression that is executed if the condition evaluates to {@code true} to the given
+   * expression.
    * 
-   * @param expression the expression that is executed if the condition evaluates to
-   *          <code>true</code>
+   * @param expression the expression that is executed if the condition evaluates to {@code true}
    */
   public void setThenExpression(Expression expression) {
     thenExpression = becomeParentOf(expression);

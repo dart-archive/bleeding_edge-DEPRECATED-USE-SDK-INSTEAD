@@ -17,18 +17,18 @@ import java.io.File;
 import java.net.URI;
 
 /**
- * Instances of the class <code>PackageUriResolver</code> resolve <code>package</code> URI's in the
- * context of an application.
+ * Instances of the class {@code PackageUriResolver} resolve {@code package} URI's in the context of
+ * an application.
  */
 public class PackageUriResolver extends UriResolver {
   /**
    * The "packages" directory within the root directory (the directory that contains the
-   * <code>.dart</code> file that defines the application).
+   * {@code .dart} file that defines the application).
    */
   private File packagesDirectory;
 
   /**
-   * The name of the <code>package</code> scheme.
+   * The name of the {@code package} scheme.
    */
   private static final String PACKAGE_SCHEME = "package";
 
@@ -38,18 +38,18 @@ public class PackageUriResolver extends UriResolver {
   private static final String PACKAGES_DIRECTORY_NAME = "packages";
 
   /**
-   * Return <code>true</code> if the given URI is a <code>package</code> URI.
+   * Return {@code true} if the given URI is a {@code package} URI.
    * 
    * @param uri the URI being tested
-   * @return <code>true</code> if the given URI is a <code>package</code> URI
+   * @return {@code true} if the given URI is a {@code package} URI
    */
   public static boolean isPackageUri(URI uri) {
     return uri.getScheme().equals(PACKAGE_SCHEME);
   }
 
   /**
-   * Initialize a newly created resolver to resolve <code>package</code> URI's relative to the given
-   * root directory.
+   * Initialize a newly created resolver to resolve {@code package} URI's relative to the given root
+   * directory.
    * 
    * @param rootDirectory the directory that contains the root of the application
    */

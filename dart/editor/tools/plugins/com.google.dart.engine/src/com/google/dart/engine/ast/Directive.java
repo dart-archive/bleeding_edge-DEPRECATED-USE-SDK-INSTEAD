@@ -14,8 +14,8 @@
 package com.google.dart.engine.ast;
 
 /**
- * Instances of the class <code>Directive</code> defines the behavior common to nodes that represent
- * a directive.
+ * Instances of the class {@code Directive} defines the behavior common to nodes that represent a
+ * directive.
  * 
  * <pre>
  * directive ::=

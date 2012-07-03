@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>LibraryDirective</code> represent a library directive.
+ * Instances of the class {@code LibraryDirective} represent a library directive.
  * 
  * <pre>
  * libraryDirective ::=

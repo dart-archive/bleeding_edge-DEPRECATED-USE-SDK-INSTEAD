@@ -16,8 +16,8 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>VariableDeclarationStatement</code> represent a list of variables
- * that are being declared in a context where a statement is required.
+ * Instances of the class {@code VariableDeclarationStatement} represent a list of variables that
+ * are being declared in a context where a statement is required.
  * 
  * <pre>
  * variableDeclarationStatement ::=

@@ -21,8 +21,8 @@ import junit.framework.Assert;
 import java.util.ArrayList;
 
 /**
- * Instances of the class <code>ASTValidator</code> are used to validate the correct construction of
- * an AST structure.
+ * Instances of the class {@code ASTValidator} are used to validate the correct construction of an
+ * AST structure.
  */
 public class ASTValidator extends GeneralizingASTVisitor<Void> {
   /**

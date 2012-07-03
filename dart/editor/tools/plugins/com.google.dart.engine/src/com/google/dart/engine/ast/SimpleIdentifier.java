@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>SimpleIdentifier</code> represent a simple identifier.
+ * Instances of the class {@code SimpleIdentifier} represent a simple identifier.
  * 
  * <pre>
  * simpleIdentifier ::=

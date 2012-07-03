@@ -16,8 +16,8 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * The abstract class <code>TypedLiteral</code> defines the behavior common to literals that have a
- * type associated with them.
+ * The abstract class {@code TypedLiteral} defines the behavior common to literals that have a type
+ * associated with them.
  * 
  * <pre>
  * listLiteral ::=
@@ -27,13 +27,13 @@ import com.google.dart.engine.scanner.Token;
  */
 public abstract class TypedLiteral extends Literal {
   /**
-   * The const modifier associated with this literal, or <code>null</code> if the literal is not a
+   * The const modifier associated with this literal, or {@code null} if the literal is not a
    * constant.
    */
   private Token modifier;
 
   /**
-   * The type argument associated with this literal, or <code>null</code> if no type arguments were
+   * The type argument associated with this literal, or {@code null} if no type arguments were
    * declared.
    */
   private TypeArgumentList typeArguments;
@@ -48,8 +48,8 @@ public abstract class TypedLiteral extends Literal {
    * Initialize a newly created typed literal.
    * 
    * @param modifier the const modifier associated with this literal
-   * @param typeArguments the type argument associated with this literal, or <code>null</code> if no
-   *          type arguments were declared
+   * @param typeArguments the type argument associated with this literal, or {@code null} if no type
+   *          arguments were declared
    */
   public TypedLiteral(Token modifier, TypeArgumentList typeArguments) {
     this.modifier = modifier;
@@ -66,8 +66,8 @@ public abstract class TypedLiteral extends Literal {
   }
 
   /**
-   * Return the type argument associated with this literal, or <code>null</code> if no type
-   * arguments were declared.
+   * Return the type argument associated with this literal, or {@code null} if no type arguments
+   * were declared.
    * 
    * @return the type argument associated with this literal
    */

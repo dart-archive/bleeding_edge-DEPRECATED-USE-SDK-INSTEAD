@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * The abstract class <code>SwitchMember</code> defines the behavior common to objects representing
+ * The abstract class {@code SwitchMember} defines the behavior common to objects representing
  * elements within a switch statement.
  * 
  * <pre>
@@ -29,7 +29,7 @@ import java.util.List;
  */
 public abstract class SwitchMember extends ASTNode {
   /**
-   * The label associated with the switch member, or <code>null</code> if there is no label.
+   * The label associated with the switch member, or {@code null} if there is no label.
    */
   private Label label;
 
@@ -104,7 +104,7 @@ public abstract class SwitchMember extends ASTNode {
   }
 
   /**
-   * Return the label associated with the switch member, or <code>null</code> if there is no label.
+   * Return the label associated with the switch member, or {@code null} if there is no label.
    * 
    * @return the label associated with the switch member
    */

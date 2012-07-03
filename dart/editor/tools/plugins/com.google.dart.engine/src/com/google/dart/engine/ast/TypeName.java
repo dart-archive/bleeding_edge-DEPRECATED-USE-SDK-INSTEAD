@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>TypeName</code> represent the name of a type, which can optionally
+ * Instances of the class {@code TypeName} represent the name of a type, which can optionally
  * include type arguments.
  * 
  * <pre>
@@ -31,8 +31,7 @@ public class TypeName extends ASTNode {
   private Identifier name;
 
   /**
-   * The type arguments associated with the type, or <code>null</code> if there are no type
-   * arguments.
+   * The type arguments associated with the type, or {@code null} if there are no type arguments.
    */
   private TypeArgumentList typeArguments;
 
@@ -46,8 +45,8 @@ public class TypeName extends ASTNode {
    * Initialize a newly created type name.
    * 
    * @param name the name of the type
-   * @param typeArguments the type arguments associated with the type, or <code>null</code> if there
-   *          are no type arguments
+   * @param typeArguments the type arguments associated with the type, or {@code null} if there are
+   *          no type arguments
    */
   public TypeName(Identifier name, TypeArgumentList typeArguments) {
     this.name = becomeParentOf(name);
@@ -82,7 +81,7 @@ public class TypeName extends ASTNode {
   }
 
   /**
-   * Return the type arguments associated with the type, or <code>null</code> if there are no type
+   * Return the type arguments associated with the type, or {@code null} if there are no type
    * arguments.
    * 
    * @return the type arguments associated with the type

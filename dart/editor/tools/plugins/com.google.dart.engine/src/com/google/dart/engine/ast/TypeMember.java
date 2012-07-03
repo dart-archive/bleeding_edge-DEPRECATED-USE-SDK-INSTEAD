@@ -14,8 +14,8 @@
 package com.google.dart.engine.ast;
 
 /**
- * The abstract class <code>TypeMember</code> defines the behavior common to nodes that declare a
- * name within the scope of a type.
+ * The abstract class {@code TypeMember} defines the behavior common to nodes that declare a name
+ * within the scope of a type.
  */
 public abstract class TypeMember extends Declaration {
   /**

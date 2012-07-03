@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>SwitchStatement</code> represent a switch statement.
+ * Instances of the class {@code SwitchStatement} represent a switch statement.
  * 
  * <pre>
  * switchStatement ::=

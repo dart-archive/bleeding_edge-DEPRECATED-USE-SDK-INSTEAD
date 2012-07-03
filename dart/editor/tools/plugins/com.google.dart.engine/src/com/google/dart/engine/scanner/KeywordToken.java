@@ -14,7 +14,7 @@
 package com.google.dart.engine.scanner;
 
 /**
- * Instances of the class <code>KeywordToken</code> represent a keyword in the language.
+ * Instances of the class {@code KeywordToken} represent a keyword in the language.
  */
 public class KeywordToken extends Token {
   /**

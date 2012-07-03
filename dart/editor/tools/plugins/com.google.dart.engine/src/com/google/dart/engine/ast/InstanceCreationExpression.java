@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>InstanceCreationExpression</code> represent an instance creation
+ * Instances of the class {@code InstanceCreationExpression} represent an instance creation
  * expression.
  * 
  * <pre>
@@ -36,14 +36,14 @@ public class InstanceCreationExpression extends Expression {
   private TypeName type;
 
   /**
-   * The period that separates the type from the constructor name, or <code>null</code> if the
-   * unnamed constructor is to be invoked.
+   * The period that separates the type from the constructor name, or {@code null} if the unnamed
+   * constructor is to be invoked.
    */
   private Token period;
 
   /**
-   * The name of the constructor to be invoked, or <code>null</code> if the unnamed constructor is
-   * to be invoked.
+   * The name of the constructor to be invoked, or {@code null} if the unnamed constructor is to be
+   * invoked.
    */
   private SimpleIdentifier identifier;
 
@@ -101,8 +101,8 @@ public class InstanceCreationExpression extends Expression {
   }
 
   /**
-   * Return the name of the constructor to be invoked, or <code>null</code> if the unnamed
-   * constructor is to be invoked.
+   * Return the name of the constructor to be invoked, or {@code null} if the unnamed constructor is
+   * to be invoked.
    * 
    * @return the name of the constructor to be invoked
    */
@@ -120,8 +120,8 @@ public class InstanceCreationExpression extends Expression {
   }
 
   /**
-   * Return the period that separates the type from the constructor name, or <code>null</code> if
-   * the unnamed constructor is to be invoked.
+   * Return the period that separates the type from the constructor name, or {@code null} if the
+   * unnamed constructor is to be invoked.
    * 
    * @return the period that separates the type from the constructor name
    */

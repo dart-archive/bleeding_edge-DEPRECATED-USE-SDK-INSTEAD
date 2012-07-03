@@ -14,22 +14,20 @@
 package com.google.dart.engine.ast;
 
 /**
- * The abstract class <code>Identifier</code> defines the behavior common to nodes that represent an
+ * The abstract class {@code Identifier{@code  defines the behavior common to nodes that represent an
  * identifier.
  * 
  * <pre>
- * identifier ::=
- *     {@link SimpleIdentifier simpleIdentifier}
- *   | {@link PrefixedIdentifier prefixedIdentifier}
- * </pre>
+ * identifier ::= {@link SimpleIdentifier simpleIdentifier} | {@link PrefixedIdentifier
+ * prefixedIdentifier} </pre>
  */
 public abstract class Identifier extends Expression {
   /**
-   * Return <code>true</code> if the given name is visible only within the library in which it is
+   * Return {@code true} if the given name is visible only within the library in which it is
    * declared.
    * 
    * @param name the name being tested
-   * @return <code>true</code> if the given name is private
+   * @return {@code true} if the given name is private
    */
   public static boolean isPrivateName(String name) {
     return name.startsWith("_");

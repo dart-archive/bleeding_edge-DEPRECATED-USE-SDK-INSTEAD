@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>TypeParameter</code> represent a type parameter.
+ * Instances of the class {@code TypeParameter} represent a type parameter.
  * 
  * <pre>
  * typeParameter ::=
@@ -30,14 +30,14 @@ public class TypeParameter extends ASTNode {
   private SimpleIdentifier name;
 
   /**
-   * The token representing the 'extends' keyword, or <code>null</code> if there was no explicit
-   * upper bound.
+   * The token representing the 'extends' keyword, or {@code null} if there was no explicit upper
+   * bound.
    */
   private Token keyword;
 
   /**
-   * The name of the upper bound for legal arguments, or <code>null</code> if there was no explicit
-   * upper bound.
+   * The name of the upper bound for legal arguments, or {@code null} if there was no explicit upper
+   * bound.
    */
   private TypeName bound;
 
@@ -71,7 +71,7 @@ public class TypeParameter extends ASTNode {
   }
 
   /**
-   * Return the name of the upper bound for legal arguments, or <code>null</code> if there was no
+   * Return the name of the upper bound for legal arguments, or {@code null} if there was no
    * explicit upper bound.
    * 
    * @return the name of the upper bound for legal arguments

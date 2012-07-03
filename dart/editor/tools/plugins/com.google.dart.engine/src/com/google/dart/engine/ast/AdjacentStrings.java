@@ -18,8 +18,8 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>AdjacentStrings</code> represents two or more string literals that
- * are implicitly concatenated because of being adjacent (separated only by whitespace).
+ * Instances of the class {@code AdjacentStrings} represents two or more string literals that are
+ * implicitly concatenated because of being adjacent (separated only by whitespace).
  * 
  * <pre>
  * adjacentStrings ::=

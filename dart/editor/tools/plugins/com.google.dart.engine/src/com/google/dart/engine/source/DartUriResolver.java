@@ -20,7 +20,7 @@ import java.io.File;
 import java.net.URI;
 
 /**
- * Instances of the class <code>DartUriResolver</code> resolve <code>dart</code> URI's.
+ * Instances of the class {@code DartUriResolver} resolve {@code dart} URI's.
  */
 public class DartUriResolver extends UriResolver {
   /**
@@ -34,15 +34,15 @@ public class DartUriResolver extends UriResolver {
   private final Platform platform;
 
   /**
-   * The name of the <code>dart</code> scheme.
+   * The name of the {@code dart} scheme.
    */
   private static final String DART_SCHEME = "dart";
 
   /**
-   * Return <code>true</code> if the given URI is a <code>dart:</code> URI.
+   * Return {@code true} if the given URI is a {@code dart:} URI.
    * 
    * @param uri the URI being tested
-   * @return <code>true</code> if the given URI is a <code>dart:</code> URI
+   * @return {@code true} if the given URI is a {@code dart:} URI
    */
   public static boolean isDartUri(URI uri) {
     return uri.getScheme().equals(DART_SCHEME);

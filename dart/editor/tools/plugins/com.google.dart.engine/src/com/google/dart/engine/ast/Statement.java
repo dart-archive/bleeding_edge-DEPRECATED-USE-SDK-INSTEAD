@@ -14,8 +14,8 @@
 package com.google.dart.engine.ast;
 
 /**
- * Instances of the class <code>Statement</code> defines the behavior common to nodes that represent
- * a statement.
+ * Instances of the class {@code Statement} defines the behavior common to nodes that represent a
+ * statement.
  * 
  * <pre>
  * statement ::=
@@ -33,7 +33,6 @@ package com.google.dart.engine.ast;
  *   | {@link ReturnStatement returnStatement}
  *   | {@link ThrowStatement throwStatement}
  *   | {@link ExpressionStatement expressionStatement}
- *   | {@link AssertStatement assertStatement}
  *   | {@link FunctionDeclarationStatement functionSignature functionBody}
  * </pre>
  */

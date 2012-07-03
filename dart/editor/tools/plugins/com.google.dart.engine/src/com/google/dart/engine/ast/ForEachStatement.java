@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ForEachStatement</code> represent a for-each statement.
+ * Instances of the class {@code ForEachStatement} represent a for-each statement.
  * 
  * <pre>
  * forEachStatement ::=

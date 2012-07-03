@@ -16,8 +16,8 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>BlockFunctionBody</code> represent a function body that consists of
- * a block of statements.
+ * Instances of the class {@code BlockFunctionBody} represent a function body that consists of a
+ * block of statements.
  * 
  * <pre>
  * blockFunctionBody ::=

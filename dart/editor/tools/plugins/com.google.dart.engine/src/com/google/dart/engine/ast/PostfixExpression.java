@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>PostfixExpression</code> represent a postfix unary expression.
+ * Instances of the class {@code PostfixExpression} represent a postfix unary expression.
  * 
  * <pre>
  * postfixExpression ::=

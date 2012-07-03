@@ -31,7 +31,7 @@ import static com.google.dart.engine.scanner.TokenClass.RELATIONAL_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.SHIFT_OPERATOR;
 
 /**
- * The enumeration <code>TokenType</code> defines the types of tokens that can be returned by the
+ * The enumeration {@code TokenType} defines the types of tokens that can be returned by the
  * scanner.
  */
 public enum TokenType {
@@ -118,8 +118,8 @@ public enum TokenType {
   private TokenClass tokenClass;
 
   /**
-   * The lexeme that defines this type of token, or <code>null</code> if there is more than one
-   * possible lexeme for this type of token.
+   * The lexeme that defines this type of token, or {@code null} if there is more than one possible
+   * lexeme for this type of token.
    */
   private String lexeme;
 
@@ -133,8 +133,8 @@ public enum TokenType {
   }
 
   /**
-   * Return the lexeme that defines this type of token, or <code>null</code> if there is more than
-   * one possible lexeme for this type of token.
+   * Return the lexeme that defines this type of token, or {@code null} if there is more than one
+   * possible lexeme for this type of token.
    * 
    * @return the lexeme that defines this type of token
    */
@@ -143,8 +143,7 @@ public enum TokenType {
   }
 
   /**
-   * Return the precedence of the token, or <code>0</code> if the token does not represent an
-   * operator.
+   * Return the precedence of the token, or {@code 0} if the token does not represent an operator.
    * 
    * @return the precedence of the token
    */
@@ -153,74 +152,72 @@ public enum TokenType {
   }
 
   /**
-   * Return <code>true</code> if this type of token represents an additive operator.
+   * Return {@code true} if this type of token represents an additive operator.
    * 
-   * @return <code>true</code> if this type of token represents an additive operator
+   * @return {@code true} if this type of token represents an additive operator
    */
   public boolean isAdditiveOperator() {
     return tokenClass == ADDITIVE_OPERATOR;
   }
 
   /**
-   * Return <code>true</code> if this type of token represents an assignment operator.
+   * Return {@code true} if this type of token represents an assignment operator.
    * 
-   * @return <code>true</code> if this type of token represents an assignment operator
+   * @return {@code true} if this type of token represents an assignment operator
    */
   public boolean isAssignmentOperator() {
     return tokenClass == ASSIGNMENT_OPERATOR;
   }
 
   /**
-   * Return <code>true</code> if this type of token represents an equality operator.
+   * Return {@code true} if this type of token represents an equality operator.
    * 
-   * @return <code>true</code> if this type of token represents an equality operator
+   * @return {@code true} if this type of token represents an equality operator
    */
   public boolean isEqualityOperator() {
     return tokenClass == EQUALITY_OPERATOR;
   }
 
   /**
-   * Return <code>true</code> if this type of token represents an increment operator.
+   * Return {@code true} if this type of token represents an increment operator.
    * 
-   * @return <code>true</code> if this type of token represents an increment operator
+   * @return {@code true} if this type of token represents an increment operator
    */
   public boolean isIncrementOperator() {
     return tokenClass == INCREMENT_OPERATOR;
   }
 
   /**
-   * Return <code>true</code> if this type of token represents a multiplicative operator.
+   * Return {@code true} if this type of token represents a multiplicative operator.
    * 
-   * @return <code>true</code> if this type of token represents a multiplicative operator
+   * @return {@code true} if this type of token represents a multiplicative operator
    */
   public boolean isMultiplicativeOperator() {
     return tokenClass == MULTIPLICATIVE_OPERATOR;
   }
 
   /**
-   * Return <code>true</code> if this type of token represents a relational operator.
+   * Return {@code true} if this type of token represents a relational operator.
    * 
-   * @return <code>true</code> if this type of token represents a relational operator
+   * @return {@code true} if this type of token represents a relational operator
    */
   public boolean isRelationalOperator() {
     return tokenClass == RELATIONAL_OPERATOR;
   }
 
   /**
-   * Return <code>true</code> if this type of token represents a shift operator.
+   * Return {@code true} if this type of token represents a shift operator.
    * 
-   * @return <code>true</code> if this type of token represents a shift operator
+   * @return {@code true} if this type of token represents a shift operator
    */
   public boolean isShiftOperator() {
     return tokenClass == SHIFT_OPERATOR;
   }
 
   /**
-   * Return <code>true</code> if this token type represents an operator that can be defined by
-   * users.
+   * Return {@code true} if this token type represents an operator that can be defined by users.
    * 
-   * @return <code>true</code> if this token type represents an operator that can be defined by
-   *         users
+   * @return {@code true} if this token type represents an operator that can be defined by users
    */
   public boolean isUserDefinableOperator() {
     return lexeme == "==" || lexeme == "~" || lexeme == "negate" || lexeme == "[]"

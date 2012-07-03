@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>DoubleLiteral</code> represent a floating point literal expression.
+ * Instances of the class {@code DoubleLiteral} represent a floating point literal expression.
  * 
  * <pre>
  * doubleLiteral ::=

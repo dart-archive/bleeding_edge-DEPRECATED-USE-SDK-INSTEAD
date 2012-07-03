@@ -16,8 +16,8 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>LabeledStatement</code> represent a statement that has a label
- * associated with them.
+ * Instances of the class {@code LabeledStatement} represent a statement that has a label associated
+ * with them.
  * 
  * <pre>
  * labeledStatement ::=

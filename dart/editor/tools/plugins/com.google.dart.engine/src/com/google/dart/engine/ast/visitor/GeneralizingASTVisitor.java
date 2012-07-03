@@ -16,7 +16,7 @@ package com.google.dart.engine.ast.visitor;
 import com.google.dart.engine.ast.*;
 
 /**
- * Instances of the class <code>GeneralizingASTVisitor</code> implement an AST visitor that will
+ * Instances of the class {@code GeneralizingASTVisitor} implement an AST visitor that will
  * recursively visit all of the nodes in an AST structure (like instances of the class
  * {@link RecursiveASTVisitor}). In addition, when a node of a specific type is visited not only
  * will the visit method for that specific type of node be invoked, but additional methods for the

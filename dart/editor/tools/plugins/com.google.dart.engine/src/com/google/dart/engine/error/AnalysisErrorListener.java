@@ -14,14 +14,14 @@
 package com.google.dart.engine.error;
 
 /**
- * The interface <code>AnalysisErrorListener</code> defines the behavior of objects that listen for
+ * The interface {@code AnalysisErrorListener} defines the behavior of objects that listen for
  * {@link AnalysisError analysis errors} being produced by the analysis engine.
  */
 public interface AnalysisErrorListener {
   /**
    * This method is invoked when an error has been found by the analysis engine.
    * 
-   * @param error the error that was just found (not <code>null</code>)
+   * @param error the error that was just found (not {@code null})
    */
-  public void onError(AnalysisError event);
+  public void onError(AnalysisError error);
 }

@@ -16,8 +16,8 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>NamedFormalParameter</code> represent a formal parameter with a
- * default value.
+ * Instances of the class {@code NamedFormalParameter} represent a formal parameter with a default
+ * value.
  * 
  * <pre>
  * namedFormalParameter ::=

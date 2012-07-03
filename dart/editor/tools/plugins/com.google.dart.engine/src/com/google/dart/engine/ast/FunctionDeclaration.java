@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>FunctionDeclaration</code> wrap a {@link FunctionExpression function
+ * Instances of the class {@code FunctionDeclaration} wrap a {@link FunctionExpression function
  * expression} as a top-level declaration.
  * 
  * <pre>

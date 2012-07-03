@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>StringInterpolation</code> represent a string interpolation literal.
+ * Instances of the class {@code StringInterpolation} represent a string interpolation literal.
  * 
  * <pre>
  * stringInterpolation ::=

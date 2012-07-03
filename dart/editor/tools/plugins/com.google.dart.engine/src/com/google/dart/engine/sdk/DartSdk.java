@@ -28,13 +28,12 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 /**
- * Instances of the class <code>DartSdk</code> represent a Dart SDK installed in a specified
- * location.
+ * Instances of the class {@code DartSdk} represent a Dart SDK installed in a specified location.
  */
 public class DartSdk {
   /**
-   * Instances of the class <code>LibraryMap</code> map Dart library URI's to the file within the
-   * SDK representing that library.
+   * Instances of the class {@code LibraryMap} map Dart library URI's to the file within the SDK
+   * representing that library.
    */
   public static class LibraryMap {
     /**
@@ -60,7 +59,7 @@ public class DartSdk {
 
     /**
      * Return the file within the SDK that represents the library with the given URI, or
-     * <code>null</code> if the URI does not map to a file.
+     * {@code null} if the URI does not map to a file.
      * 
      * @param dartUri the URI to be mapped to a file
      * @return the file within the SDK that represents the library with the given URI
@@ -85,14 +84,13 @@ public class DartSdk {
   private final File sdkDirectory;
 
   /**
-   * The revision number of this SDK, or <code>"0"</code> if the revision number cannot be
-   * discovered.
+   * The revision number of this SDK, or {@code "0"} if the revision number cannot be discovered.
    */
   private String sdkVersion;
 
   /**
-   * The revision number of Dartium that is included in this SDK, or <code>"0"</code> if the
-   * revision number cannot be discovered.
+   * The revision number of Dartium that is included in this SDK, or {@code "0"} if the revision
+   * number cannot be discovered.
    */
   private String dartiumVersion;
 
@@ -216,8 +214,8 @@ public class DartSdk {
   private static final String VM_EXECUTABLE_NAME = "dart"; //$NON-NLS-1$
 
   /**
-   * Return the default Dart SDK, or <code>null</code> if the directory containing the default SDK
-   * cannot be determined (or does not exist).
+   * Return the default Dart SDK, or {@code null} if the directory containing the default SDK cannot
+   * be determined (or does not exist).
    * 
    * @return the default Dart SDK
    */
@@ -230,9 +228,9 @@ public class DartSdk {
   }
 
   /**
-   * Return the default directory for the Dart SDK, or <code>null</code> if the directory cannot be
+   * Return the default directory for the Dart SDK, or {@code null} if the directory cannot be
    * determined (or does not exist). The default directory is provided by a {@link System} property
-   * named <code>com.google.dart.sdk</code>.
+   * named {@code com.google.dart.sdk}.
    * 
    * @return the default directory for the Dart SDK
    */
@@ -260,7 +258,7 @@ public class DartSdk {
   }
 
   /**
-   * Return the file containing the Dartium executable, or <code>null</code> if it does not exist.
+   * Return the file containing the Dartium executable, or {@code null} if it does not exist.
    * 
    * @return the file containing the Dartium executable
    */
@@ -328,8 +326,8 @@ public class DartSdk {
   }
 
   /**
-   * Return the auxiliary documentation file for the given library, or <code>null</code> if no such
-   * file exists.
+   * Return the auxiliary documentation file for the given library, or {@code null} if no such file
+   * exists.
    * 
    * @param libraryName the name of the library associated with the documentation file to be
    *          returned
@@ -367,7 +365,7 @@ public class DartSdk {
   }
 
   /**
-   * Return the revision number of this SDK, or <code>"0"</code> if the revision number cannot be
+   * Return the revision number of this SDK, or {@code "0"} if the revision number cannot be
    * discovered.
    * 
    * @return the revision number of this SDK
@@ -400,7 +398,7 @@ public class DartSdk {
   }
 
   /**
-   * Return the file containing the VM executable, or <code>null</code> if it does not exist.
+   * Return the file containing the VM executable, or {@code null} if it does not exist.
    * 
    * @return the file containing the VM executable
    */
@@ -417,18 +415,18 @@ public class DartSdk {
   }
 
   /**
-   * Return <code>true</code> if this SDK includes documentation.
+   * Return {@code true} if this SDK includes documentation.
    * 
-   * @return <code>true</code> if this installation of the SDK has documentation
+   * @return {@code true} if this installation of the SDK has documentation
    */
   public boolean hasDocumentation() {
     return getDocDirectory().exists();
   }
 
   /**
-   * Return <code>true</code if the Dartium binary is available.
+   * Return {@code true} if the Dartium binary is available.
    * 
-   * @return <code>true</code if the Dartium binary is available
+   * @return {@code true} if the Dartium binary is available
    */
   public boolean isDartiumInstalled() {
     return getDartiumExecutable() != null;
@@ -573,10 +571,10 @@ public class DartSdk {
   }
 
   /**
-   * Return <code>true</code> if the given file name is the name of a configuration file.
+   * Return {@code true} if the given file name is the name of a configuration file.
    * 
    * @param fileName the file name being tested
-   * @return <code>true</code> if the given file name is the name of a configuration file
+   * @return {@code true} if the given file name is the name of a configuration file
    */
   private boolean isConfigFileName(String fileName) {
     return fileName.startsWith(CONFIG_FILE_PREFIX) && fileName.endsWith(CONFIG_FILE_SUFFIX);

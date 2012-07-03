@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>ConstructorDeclaration</code> represent a constructor declaration.
+ * Instances of the class {@code ConstructorDeclaration} represent a constructor declaration.
  * 
  * <pre>
  * constructorDeclaration ::=
@@ -53,13 +53,13 @@ public class ConstructorDeclaration extends TypeMember {
   private Identifier returnType;
 
   /**
-   * The token for the period before the constructor name, or <code>null</code> if the constructor
-   * being declared is unnamed.
+   * The token for the period before the constructor name, or {@code null} if the constructor being
+   * declared is unnamed.
    */
   private Token period;
 
   /**
-   * The name of the constructor, or <code>null</code> if the constructor being declared is unnamed.
+   * The name of the constructor, or {@code null} if the constructor being declared is unnamed.
    */
   private SimpleIdentifier name;
 
@@ -69,8 +69,7 @@ public class ConstructorDeclaration extends TypeMember {
   private FormalParameterList parameters;
 
   /**
-   * The token for the colon before the initializers, or <code>null</code> if there are no
-   * initializers.
+   * The token for the colon before the initializers, or {@code null} if there are no initializers.
    */
   private Token colon;
 
@@ -80,7 +79,7 @@ public class ConstructorDeclaration extends TypeMember {
   private NodeList<ConstructorInitializer> initializers = new NodeList<ConstructorInitializer>(this);
 
   /**
-   * The body of the constructor, or <code>null</code> if the constructor does not have a body.
+   * The body of the constructor, or {@code null} if the constructor does not have a body.
    */
   private FunctionBody body;
 
@@ -131,8 +130,7 @@ public class ConstructorDeclaration extends TypeMember {
   }
 
   /**
-   * Return the body of the constructor, or <code>null</code> if the constructor does not have a
-   * body.
+   * Return the body of the constructor, or {@code null} if the constructor does not have a body.
    * 
    * @return the body of the constructor
    */
@@ -141,7 +139,7 @@ public class ConstructorDeclaration extends TypeMember {
   }
 
   /**
-   * Return the token for the colon before the initializers, or <code>null</code> if there are no
+   * Return the token for the colon before the initializers, or {@code null} if there are no
    * initializers.
    * 
    * @return the token for the colon before the initializers
@@ -179,7 +177,7 @@ public class ConstructorDeclaration extends TypeMember {
   }
 
   /**
-   * Return the name of the constructor, or <code>null</code> if the constructor being declared is
+   * Return the name of the constructor, or {@code null} if the constructor being declared is
    * unnamed.
    * 
    * @return the name of the constructor
@@ -198,8 +196,8 @@ public class ConstructorDeclaration extends TypeMember {
   }
 
   /**
-   * Return the token for the period before the constructor name, or <code>null</code> if the
-   * constructor being declared is unnamed.
+   * Return the token for the period before the constructor name, or {@code null} if the constructor
+   * being declared is unnamed.
    * 
    * @return the token for the period before the constructor name
    */

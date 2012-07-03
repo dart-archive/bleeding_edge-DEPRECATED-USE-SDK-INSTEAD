@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>ClassExtendsClause</code> represent the "extends" clause in a class
+ * Instances of the class {@code ClassExtendsClause} represent the "extends" clause in a class
  * declaration.
  * 
  * <pre>

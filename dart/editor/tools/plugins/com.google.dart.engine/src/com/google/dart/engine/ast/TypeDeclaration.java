@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * The abstract class <code>TypeDeclaration</code> defines the behavior common to the declaration of
+ * The abstract class {@code TypeDeclaration} defines the behavior common to the declaration of
  * either a class or an interface.
  * 
  * <pre>
@@ -39,7 +39,7 @@ public abstract class TypeDeclaration extends CompilationUnitMember {
   private SimpleIdentifier name;
 
   /**
-   * The type parameters for the type, or <code>null</code> if the type does not have any type
+   * The type parameters for the type, or {@code null} if the type does not have any type
    * parameters.
    */
   private TypeParameterList typeParameters;
@@ -148,8 +148,8 @@ public abstract class TypeDeclaration extends CompilationUnitMember {
   }
 
   /**
-   * Return the type parameters for the type, or <code>null</code> if the type does not have any
-   * type parameters.
+   * Return the type parameters for the type, or {@code null} if the type does not have any type
+   * parameters.
    * 
    * @return the type parameters for the type
    */

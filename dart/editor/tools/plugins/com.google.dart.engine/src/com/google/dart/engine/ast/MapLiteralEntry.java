@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>MapLiteralEntry</code> represent a single key/value pair in a map
+ * Instances of the class {@code MapLiteralEntry} represent a single key/value pair in a map
  * literal.
  * 
  * <pre>

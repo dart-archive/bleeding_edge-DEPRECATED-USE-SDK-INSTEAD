@@ -16,12 +16,12 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * The abstract class <code>ASTNode</code> defines the behavior common to all nodes in the AST
- * structure for a Dart program.
+ * The abstract class {@code ASTNode} defines the behavior common to all nodes in the AST structure
+ * for a Dart program.
  */
 public abstract class ASTNode {
   /**
-   * The parent of the node, or <code>null</code> if the node is the root of an AST structure.
+   * The parent of the node, or {@code null} if the node is the root of an AST structure.
    */
   private ASTNode parent;
 
@@ -69,13 +69,12 @@ public abstract class ASTNode {
   }
 
   /**
-   * Return this node's parent node, or <code>null</code> if this node is the root of an AST
-   * structure.
+   * Return this node's parent node, or {@code null} if this node is the root of an AST structure.
    * <p>
    * Note that the relationship between an AST node and its parent node may change over the lifetime
    * of a node.
    * 
-   * @return the parent of this node, or <code>null</code> if none
+   * @return the parent of this node, or {@code null} if none
    */
   public final ASTNode getParent() {
     return parent;
@@ -120,7 +119,7 @@ public abstract class ASTNode {
   }
 
   /**
-   * If the given child is not <code>null</code>, use the given visitor to visit it.
+   * If the given child is not {@code null}, use the given visitor to visit it.
    * 
    * @param child the child to be visited
    * @param visitor the visitor that will be used to visit the child

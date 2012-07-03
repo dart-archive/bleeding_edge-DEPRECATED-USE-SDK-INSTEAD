@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>FunctionExpression</code> represent a function expression.
+ * Instances of the class {@code FunctionExpression} represent a function expression.
  * 
  * <pre>
  * functionExpression ::=
@@ -25,12 +25,12 @@ import com.google.dart.engine.scanner.Token;
  */
 public class FunctionExpression extends Expression {
   /**
-   * The return type of the function, or <code>null</code> if no return type was declared.
+   * The return type of the function, or {@code null} if no return type was declared.
    */
   private TypeName returnType;
 
   /**
-   * The name of the function, or <code>null</code> if the function is not named.
+   * The name of the function, or {@code null} if the function is not named.
    */
   private SimpleIdentifier name;
 
@@ -96,7 +96,7 @@ public class FunctionExpression extends Expression {
   }
 
   /**
-   * Return the name of the function, or <code>null</code> if the function is not named.
+   * Return the name of the function, or {@code null} if the function is not named.
    * 
    * @return the name of the function
    */
@@ -114,7 +114,7 @@ public class FunctionExpression extends Expression {
   }
 
   /**
-   * Return the return type of the function, or <code>null</code> if no return type was declared.
+   * Return the return type of the function, or {@code null} if no return type was declared.
    * 
    * @return the return type of the function
    */

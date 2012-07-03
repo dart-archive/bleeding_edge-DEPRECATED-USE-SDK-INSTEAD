@@ -16,7 +16,7 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>InterpolationString</code> represent a non-empty substring of an
+ * Instances of the class {@code InterpolationString} represent a non-empty substring of an
  * interpolated string.
  * 
  * <pre>

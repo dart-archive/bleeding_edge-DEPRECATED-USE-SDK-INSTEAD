@@ -14,8 +14,8 @@
 package com.google.dart.engine.ast;
 
 /**
- * The abstract class <code>Literal</code> defines the behavior common to nodes that represent a
- * literal expression.
+ * The abstract class {@code Literal} defines the behavior common to nodes that represent a literal
+ * expression.
  * 
  * <pre>
  * literal ::=
