@@ -1,0 +1,30 @@
+/* Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file */
+/* for details. All rights reserved. Use of this source code is governed by a */
+/* BSD-style license that can be found in the LICENSE file. */
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#map_canvas {
+    height: 100%;
+}
+
+#directions_panel {
+    height: 100%;
+    float: right;
+    width: 390px;
+    overflow: auto;
+}
+
+#control {
+    background: #fff;
+    padding: 5px;
+    font-size: 14px;
+    font-family: Arial;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 2px rgba(33, 33, 33, 0.4);
+    display: none;
+}
