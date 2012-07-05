@@ -41,13 +41,25 @@ public class TaskQueue {
   private int subTaskIndex = 0;
 
   /**
-   * Add a new {@link AnalyzeContextTask} to the end of the queue
+   * <code>true</code> if the background thread should continue executing analysis tasks. Lock
+   * against {@link #lock} before accessing this field.
+   */
+  private boolean analyzing;
+
+  /**
+   * Add a new {@link AnalyzeContextTask} to the end of the queue. If this task has already been
+   * added to the end of the queue, don't add it again.
    * 
    * @param task the task (not <code>null</code>)
    */
   public void addLastTask(Task task) {
     synchronized (queue) {
-      queue.add(queue.size(), task);
+      int index = queue.size();
+      if (index > 0 && queue.get(index - 1) == task) {
+        return;
+      }
+      queue.add(index, task);
+      // notify any threads blocked in waitForTask()
       queue.notifyAll();
     }
   }
@@ -66,6 +78,7 @@ public class TaskQueue {
         newTaskIndex++;
       }
       subTaskIndex++;
+      // notify any threads blocked in waitForTask()
       queue.notifyAll();
     }
   }
@@ -81,18 +94,6 @@ public class TaskQueue {
     synchronized (queue) {
       queue.add(subTaskIndex, task);
       subTaskIndex++;
-    }
-  }
-
-  /**
-   * Answer the last task in the queue or <code>null</code> if none
-   */
-  public Task getLastTask() {
-    synchronized (queue) {
-      if (queue.isEmpty()) {
-        return null;
-      }
-      return queue.get(queue.size() - 1);
     }
   }
 
@@ -116,6 +117,17 @@ public class TaskQueue {
   }
 
   /**
+   * Answer <code>true</code> if the receiver's {@link #removeNextTask()} will return the next task
+   * on the queue or <code>false</code> if the that method will always return <code>null</code>
+   * regardless of how many tasks are queued.
+   */
+  public boolean isAnalyzing() {
+    synchronized (queue) {
+      return analyzing;
+    }
+  }
+
+  /**
    * Remove all background tasks
    */
   public void removeBackgroundTasks() {
@@ -130,12 +142,12 @@ public class TaskQueue {
   }
 
   /**
-   * Remove the next task to be performed from the queue and answer that task. If the queue is
-   * empty, then return <code>null</code>
+   * Remove the next task to be performed from the queue and answer that task. If the queue is empty
+   * or {@link #isAnalyzing()} is false, then return <code>null</code>
    */
   public Task removeNextTask() {
     synchronized (queue) {
-      if (queue.isEmpty()) {
+      if (!analyzing || queue.isEmpty()) {
         return null;
       }
       if (newTaskIndex > 0) {
@@ -147,22 +159,47 @@ public class TaskQueue {
   }
 
   /**
+   * Set the receiver's analyzing state. If <code>true</code> then receiver's
+   * {@link #removeNextTask()} will return the next task on the queue otherwise that method will
+   * always return <code>null</code> regardless of how many tasks are queued.
+   * 
+   * @return the analyzing state of the receiver prior to calling this method
+   */
+  public boolean setAnalyzing(boolean analyzing) {
+    synchronized (queue) {
+      if (this.analyzing == analyzing) {
+        return analyzing;
+      }
+      this.analyzing = analyzing;
+      // If no longer analyzing, notify any threads blocked in waitForTask()
+      if (!analyzing) {
+        queue.notifyAll();
+      }
+      return !analyzing;
+    }
+  }
+
+  /**
    * Wait for a task to be added to the queue
    * 
-   * @return <code>true</code> if the queue has tasks, or <code>false</code> if the wait was
-   *         interrupted before a new task was added
+   * @return <code>true</code> if the queue has tasks, or <code>false</code> if analysis was
+   *         canceled.
    */
   public boolean waitForTask() {
     synchronized (queue) {
-      if (!queue.isEmpty()) {
-        return true;
+      while (true) {
+        if (!analyzing) {
+          return false;
+        }
+        if (!queue.isEmpty()) {
+          return true;
+        }
+        try {
+          queue.wait();
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
       }
-      try {
-        queue.wait();
-      } catch (InterruptedException e) {
-        //$FALL-THROUGH$
-      }
-      return !queue.isEmpty();
     }
   }
 }

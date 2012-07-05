@@ -16,23 +16,25 @@ package com.google.dart.tools.core.analysis;
 class NullTask extends Task {
 
   public static NullTask newBackgroundTask() {
-    return new NullTask(false, true);
+    return new NullTask(false, true, "background");
   }
 
   public static NullTask newRequestTask() {
-    return new NullTask(false, false);
+    return new NullTask(false, false, "request");
   }
 
   public static NullTask newUpdateTask() {
-    return new NullTask(true, false);
+    return new NullTask(true, false, "update");
   }
 
   private final boolean isPriority;
   private final boolean isBackground;
+  private final String typeName;
 
-  private NullTask(boolean isPriority, boolean isBackground) {
+  private NullTask(boolean isPriority, boolean isBackground, String typeName) {
     this.isPriority = isPriority;
     this.isBackground = isBackground;
+    this.typeName = typeName;
   }
 
   @Override
@@ -47,5 +49,10 @@ class NullTask extends Task {
 
   @Override
   public void perform() {
+  }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "[" + typeName + "," + hashCode() + "]";
   }
 }

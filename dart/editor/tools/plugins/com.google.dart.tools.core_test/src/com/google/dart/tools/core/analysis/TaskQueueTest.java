@@ -29,7 +29,7 @@ public class TaskQueueTest extends TestCase {
   }
 
   /**
-   * Assert addLastTask adds to the end of the queue
+   * Assert addLastTask adds to the end of the queue only once
    */
   public void test_TaskQueue_addLastTask() throws Exception {
     NullTask backgroundTask = NullTask.newBackgroundTask();
@@ -40,6 +40,7 @@ public class TaskQueueTest extends TestCase {
     queue.addNewTask(backgroundTask);
     queue.addLastTask(lastTask);
     queue.addSubTask(subTask);
+    queue.addLastTask(lastTask);
     queue.addNewTask(requestTask);
 
     Task[] tasks = queue.getTasks();
@@ -164,6 +165,52 @@ public class TaskQueueTest extends TestCase {
     assertNull(queue.removeNextTask());
   }
 
+  /**
+   * Assert that analyzing determines whether or not removeNextTask removes tasks from the queue but
+   * that you can always add tasks to the queue
+   */
+  public void test_TaskQueue_analyzing() throws Exception {
+    NullTask backgroundTask = NullTask.newBackgroundTask();
+    NullTask requestTask1 = NullTask.newRequestTask();
+    NullTask requestTask2 = NullTask.newRequestTask();
+    NullTask subTask1 = NullTask.newUpdateTask();
+    NullTask subTask2 = NullTask.newUpdateTask();
+    NullTask lastTask1 = NullTask.newUpdateTask();
+    NullTask lastTask2 = NullTask.newUpdateTask();
+
+    queue.addNewTask(backgroundTask);
+    queue.addLastTask(lastTask1);
+    queue.addSubTask(subTask1);
+    queue.addNewTask(requestTask1);
+
+    assertTrue(queue.isAnalyzing());
+    assertTrue(requestTask1 == queue.removeNextTask());
+    assertTrue(queue.setAnalyzing(false));
+    assertFalse(queue.isAnalyzing());
+    assertNull(queue.removeNextTask());
+
+    queue.addLastTask(lastTask2);
+    queue.addSubTask(subTask2);
+    queue.addNewTask(requestTask2);
+
+    assertFalse(queue.isAnalyzing());
+    assertNull(queue.removeNextTask());
+    assertFalse(queue.setAnalyzing(true));
+    assertTrue(queue.isAnalyzing());
+    assertTrue(requestTask2 == queue.removeNextTask());
+    assertTrue(subTask2 == queue.removeNextTask());
+    assertTrue(backgroundTask == queue.removeNextTask());
+    assertTrue(queue.setAnalyzing(false));
+    assertFalse(queue.isAnalyzing());
+    assertNull(queue.removeNextTask());
+    assertFalse(queue.setAnalyzing(true));
+    assertTrue(queue.isAnalyzing());
+    assertTrue(subTask1 == queue.removeNextTask());
+    assertTrue(lastTask1 == queue.removeNextTask());
+    assertTrue(lastTask2 == queue.removeNextTask());
+    assertNull(queue.removeNextTask());
+  }
+
   public void test_TaskQueue_empty() throws Exception {
     assertNull(queue.removeNextTask());
   }
@@ -203,15 +250,22 @@ public class TaskQueueTest extends TestCase {
   }
 
   /**
-   * Assert that waitForTask returns <code>false</code> when interrupted
+   * Assert that waitForTask returns <code>false</code> when not analyzing
    */
-  public void test_TaskQueue_waitForTask_interrupted() throws Exception {
+  public void test_TaskQueue_waitForTask_analyzing() throws Exception {
+    queue.setAnalyzing(false);
+    assertFalse(queue.waitForTask());
+    queue.setAnalyzing(true);
+
     WaitForTask wait = new WaitForTask(queue);
     wait.start();
     assertTrue(wait.isWaiting());
     wait.waitForResult(10);
     assertTrue(wait.isWaiting());
     wait.interrupt();
+    wait.waitForResult(10);
+    assertTrue(wait.isWaiting());
+    queue.setAnalyzing(false);
     wait.waitForResult(10);
     assertFalse(wait.isWaiting());
     assertFalse(wait.getResult());
@@ -260,5 +314,6 @@ public class TaskQueueTest extends TestCase {
   @Override
   protected void setUp() {
     queue = new TaskQueue();
+    queue.setAnalyzing(true);
   }
 }
