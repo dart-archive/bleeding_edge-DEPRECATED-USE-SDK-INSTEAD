@@ -8,7 +8,7 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "121805",
+  "webkit_revision": "121881",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
@@ -61,7 +61,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "11978",
+  "v8_revision": "11988",
   "webrtc_revision": "2486",
   "jsoncpp_revision": "248",
   "nss_revision": "144018",
@@ -128,7 +128,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@55",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1427",
+    (Var("googlecode_url") % "gyp") + "/trunk@1429",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
