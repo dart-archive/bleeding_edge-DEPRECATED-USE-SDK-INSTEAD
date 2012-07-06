@@ -20,7 +20,7 @@ import org.eclipse.osgi.util.NLS;
  */
 public final class RefactoringMessages extends NLS {
   ///////////////////////////////////////////////////////////////////////////////////////
-  // Rename factoring
+  // Rename refactoring
   ///////////////////////////////////////////////////////////////////////////////////////
   // RenameAction
   public static String RenameAction_text;
@@ -74,7 +74,7 @@ public final class RefactoringMessages extends NLS {
   public static String DeleteResourceParticipant_remove_reference;
 
   ///////////////////////////////////////////////////////////////////////////////////////
-  // Extract local factoring
+  // Extract local refactoring
   ///////////////////////////////////////////////////////////////////////////////////////
   public static String ExtractLocalAction_label;
   public static String ExtractLocalAction_dialog_title;
@@ -82,6 +82,23 @@ public final class RefactoringMessages extends NLS {
   public static String ExtractLocalInputPage_variable_name;
   public static String ExtractLocalInputPage_replace_all;
   public static String ExtractLocalWizard_defaultPageTitle;
+
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // Inline action
+  ///////////////////////////////////////////////////////////////////////////////////////
+  public static String InlineAction_dialog_title;
+  public static String InlineAction_Inline;
+  public static String InlineAction_select;
+
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // Inline local refactoring
+  ///////////////////////////////////////////////////////////////////////////////////////
+  public static String InlineLocalAction_dialog_title;
+  public static String InlineLocalAction_label;
+  public static String InlineLocalInputPage_message_multi;
+  public static String InlineLocalInputPage_message_zero;
+  public static String InlineLocalInputPage_message_one;
+  public static String InlineLocalWizard_defaultPageTitle;
 
   // XXX
   // These constants are not used yet in Dart refactoring.
@@ -423,12 +440,6 @@ public final class RefactoringMessages extends NLS {
 
   public static String InferTypeArgumentsWizard_lengthyDescription;
 
-  public static String InlineAction_dialog_title;
-
-  public static String InlineAction_Inline;
-
-  public static String InlineAction_select;
-
   public static String InlineConstantAction_dialog_title;
 
   public static String InlineConstantAction_inline_Constant;
@@ -470,18 +481,6 @@ public final class RefactoringMessages extends NLS {
   public static String InlineMethodInputPage_only_selected;
 
   public static String InlineMethodWizard_page_title;
-
-  public static String InlineTempAction_inline_temp;
-
-  public static String InlineTempAction_label;
-
-  public static String InlineTempInputPage_message_multi;
-
-  public static String InlineTempInputPage_message_one;
-
-  public static String InlineTempInputPage_message_zero;
-
-  public static String InlineTempWizard_defaultPageTitle;
 
   public static String IntroduceFactoryAction_description;
 

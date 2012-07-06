@@ -89,6 +89,16 @@ public final class RefactoringCoreMessages extends NLS {
   public static String ExtractLocalRefactoring_declare_local_variable;
   public static String ExtractLocalRefactoring_replace;
 
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // Inline local variable refactoring
+  ///////////////////////////////////////////////////////////////////////////////////////
+  public static String InlineLocalRefactoring_assigned_more_once;
+  public static String InlineLocalRefactoring_name;
+  public static String InlineLocalRefactoring_not_initialized;
+  public static String InlineLocalRefactoring_preview;
+  public static String InlineLocalRefactoring_select_temp;
+  public static String InlineLocalRefactoring_declaration_inStatement;
+
   // XXX
   // These constants were used, but later we decided to don't use them.
   //
@@ -903,38 +913,17 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String InlineMethodRefactoring_SourceAnalyzer_typedeclaration_has_errors;
 
-  public static String InlineTempRefactoring_assigned_more_once;
-
   public static String InlineTempRefactoring_descriptor_description;
-
   public static String InlineTempRefactoring_descriptor_description_short;
-
   public static String InlineTempRefactoring_exceptions_declared;
-
   public static String InlineTempRefactoring_for_initializers;
-
   public static String InlineTempRefactoring_inline;
-
   public static String InlineTempRefactoring_inline_edit_name;
-
   public static String InlineTempRefactoring_method_parameter;
-
-  public static String InlineTempRefactoring_name;
-
-  public static String InlineTempRefactoring_not_initialized;
-
   public static String InlineTempRefactoring_original_pattern;
-
-  public static String InlineTempRefactoring_preview;
-
   public static String InlineTempRefactoring_remove_edit_name;
-
   public static String InlineTempRefactoring_resource_in_try_with_resources;
-
-  public static String InlineTempRefactoring_select_temp;
-
   public static String InlineTemRefactoring_error_message_fieldsCannotBeInlined;
-
   public static String InlineTemRefactoring_error_message_nulLiteralsCannotBeInlined;
 
   public static String IntroduceFactory_addFactoryMethod;

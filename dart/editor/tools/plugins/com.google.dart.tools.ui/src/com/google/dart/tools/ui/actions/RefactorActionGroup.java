@@ -131,7 +131,7 @@ public class RefactorActionGroup extends ActionGroup {
 //  private SelectionDispatchAction fUseSupertypeAction;
 //
 //  private SelectionDispatchAction fInferTypeArgumentsAction;
-//  private SelectionDispatchAction fInlineAction;
+  private SelectionDispatchAction fInlineAction;
 //  //private SelectionDispatchAction fReplaceInvocationsAction;
 //  private SelectionDispatchAction fIntroduceIndirectionAction;
 //  private SelectionDispatchAction fExtractMethodAction;
@@ -270,10 +270,10 @@ public class RefactorActionGroup extends ActionGroup {
 //    fUseSupertypeAction= new UseSupertypeAction(editor);
 //    initAction(fUseSupertypeAction, selection, IJavaEditorActionDefinitionIds.USE_SUPERTYPE);
 //    editor.setAction("UseSupertype", fUseSupertypeAction); //$NON-NLS-1$
-//
-//    fInlineAction= new InlineAction(editor);
-//    initAction(fInlineAction, selection, IJavaEditorActionDefinitionIds.INLINE);
-//    editor.setAction("Inline", fInlineAction); //$NON-NLS-1$
+
+    fInlineAction = new InlineAction(editor);
+    initAction(fInlineAction, selection, DartEditorActionDefinitionIds.INLINE);
+    editor.setAction("Inline", fInlineAction); //$NON-NLS-1$
 
     installQuickAccessAction();
 
@@ -363,10 +363,15 @@ public class RefactorActionGroup extends ActionGroup {
 //
 //    fConvertAnonymousToNestedAction= new ConvertAnonymousToNestedAction(fSite);
 //    initUpdatingAction(fConvertAnonymousToNestedAction, fSelectionProvider, selectionProvider, selection, IJavaEditorActionDefinitionIds.CONVERT_ANONYMOUS_TO_NESTED);
-//
-//    fInlineAction= new InlineAction(fSite);
-//    initUpdatingAction(fInlineAction, fSelectionProvider, selectionProvider, selection, IJavaEditorActionDefinitionIds.INLINE);
-//
+
+    fInlineAction = new InlineAction(fSite);
+    initUpdatingAction(
+        fInlineAction,
+        fSelectionProvider,
+        selectionProvider,
+        selection,
+        DartEditorActionDefinitionIds.INLINE);
+
 //    fUseSupertypeAction= new UseSupertypeAction(fSite);
 //    initUpdatingAction(fUseSupertypeAction, fSelectionProvider, selectionProvider, selection, IJavaEditorActionDefinitionIds.USE_SUPERTYPE);
 //
@@ -415,7 +420,7 @@ public class RefactorActionGroup extends ActionGroup {
 //    disposeAction(fConvertLocalToFieldAction, fSelectionProvider);
 //    disposeAction(fConvertAnonymousToNestedAction, fSelectionProvider);
 //    disposeAction(fIntroduceIndirectionAction, fSelectionProvider);
-//    disposeAction(fInlineAction, fSelectionProvider);
+    disposeAction(fInlineAction, fSelectionProvider);
 //    disposeAction(fUseSupertypeAction, fSelectionProvider);
     if (fQuickAccessHandlerActivation != null && fHandlerService != null) {
       fHandlerService.deactivateHandler(fQuickAccessHandlerActivation);
@@ -450,7 +455,7 @@ public class RefactorActionGroup extends ActionGroup {
 //    actionBars.setGlobalActionHandler(JdtActionConstants.CONVERT_LOCAL_TO_FIELD, fConvertLocalToFieldAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.CONVERT_ANONYMOUS_TO_NESTED, fConvertAnonymousToNestedAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.INTRODUCE_PARAMETER_OBJECT, fIntroduceParameterObjectAction);
-//    actionBars.setGlobalActionHandler(JdtActionConstants.INLINE, fInlineAction);
+    actionBars.setGlobalActionHandler(JdtActionConstants.INLINE, fInlineAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.USE_SUPERTYPE, fUseSupertypeAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.INTRODUCE_INDIRECTION, fIntroduceIndirectionAction);
     if (fUndoRedoActionGroup != null) {
@@ -562,6 +567,7 @@ public class RefactorActionGroup extends ActionGroup {
     refactorSubmenu.appendToGroup(fGroupName, new Separator(GROUP_REORG));
     added += addAction(refactorSubmenu, GROUP_REORG, fRenameAction);
     added += addAction(refactorSubmenu, GROUP_REORG, fExtractLocalAction);
+    added += addAction(refactorSubmenu, GROUP_REORG, fInlineAction);
 //    added += addAction(refactorSubmenu, fMoveAction);
 
     refactorSubmenu.add(new Separator(GROUP_CODING));

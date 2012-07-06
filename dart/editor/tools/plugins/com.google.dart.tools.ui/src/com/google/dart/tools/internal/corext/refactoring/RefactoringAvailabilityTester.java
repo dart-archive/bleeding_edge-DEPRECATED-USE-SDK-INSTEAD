@@ -764,22 +764,22 @@ public class RefactoringAvailabilityTester {
 //    }
 //    return null;
 //  }
-//
-//  public static boolean isInlineTempAvailable(DartVariableDeclaration variable)
-//      throws DartModelException {
-//    return Checks.isAvailable(variable);
-//  }
-//
-//  public static boolean isInlineTempAvailable(DartTextSelection selection)
-//      throws DartModelException {
-//    DartElement[] elements = selection.resolveElementAtOffset();
-//    if (elements.length != 1) {
-//      return false;
-//    }
-//    return elements[0] instanceof DartVariableDeclaration
-//        && isInlineTempAvailable((DartVariableDeclaration) elements[0]);
-//  }
-//
+
+  public static boolean isInlineTempAvailable(DartTextSelection selection)
+      throws DartModelException {
+    DartElement[] elements = selection.resolveElementAtOffset();
+    if (elements.length != 1) {
+      return false;
+    }
+    return elements[0] instanceof DartVariableDeclaration
+        && isInlineTempAvailable((DartVariableDeclaration) elements[0]);
+  }
+
+  public static boolean isInlineTempAvailable(DartVariableDeclaration variable)
+      throws DartModelException {
+    return Checks.isAvailable(variable);
+  }
+
 //  public static boolean isIntroduceFactoryAvailable(Method method) throws DartModelException {
 //    return Checks.isAvailable(method) && method.isConstructor();
 //  }

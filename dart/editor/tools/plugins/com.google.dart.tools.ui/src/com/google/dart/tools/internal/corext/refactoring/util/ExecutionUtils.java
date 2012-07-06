@@ -79,6 +79,17 @@ public class ExecutionUtils {
   }
 
   /**
+   * Runs given {@link RunnableEx} and logs exception.
+   */
+  public static void runLog(RunnableEx runnable) {
+    try {
+      runnable.run();
+    } catch (Throwable e) {
+      DartCore.logError(e);
+    }
+  }
+
+  /**
    * Runs given {@link RunnableObjectEx} and re-throws exception.
    * 
    * @return the {@link Object} returned by {@link RunnableObjectEx#run()}.

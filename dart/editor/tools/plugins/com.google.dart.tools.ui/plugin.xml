@@ -988,6 +988,13 @@
                 id="com.google.dart.tools.ui.actions.ExtractLocal">
             </action>
             <action
+                definitionId="com.google.dart.tools.ui.edit.text.dart.inline"
+                label="%Refactoring.inlineAction.label"
+                retarget="true"
+                menubarPath="edit/endEdit"
+                id="com.google.dart.tools.ui.actions.Inline">
+            </action>
+            <action
                 definitionId="com.google.dart.tools.ui.edit.text.dart.rename.element"
                 label="%Refactoring.renameAction.label"
                 retarget="true"
@@ -1086,14 +1093,14 @@
          </action>
          
 <!-- coding group  -->         
-         <!--<action
-               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.inline"
+         <action
+             definitionId="com.google.dart.tools.ui.edit.text.dart.inline"
                label="%Refactoring.inlineAction.label"
                retarget="true"
                menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
-               id="org.eclipse.wst.jsdt.ui.actions.Inline">
+               id="com.google.dart.tools.ui.actions.Inline">
          </action>
-         <action
+          <!--<action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.constant"
                label="%Refactoring.extractConstantAction.label"
                retarget="true"
@@ -1988,7 +1995,7 @@
             name="%ActionDefinition.inline.name"
             description="%ActionDefinition.inline.description"
             categoryId="com.google.dart.tools.ui.category.refactoring"
-            id="org.eclipse.wst.jsdt.ui.edit.text.java.inline">
+            id="com.google.dart.tools.ui.edit.text.dart.inline">
       </command>
       <command
             name="%ActionDefinition.extractMethod.name"
@@ -3124,9 +3131,18 @@
            commandId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
        <key
+           sequence="M2+M3+I"
+           commandId="com.google.dart.tools.ui.edit.text.dart.inline"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+       <key
            platform="carbon"
            sequence="COMMAND+ALT+L"
            commandId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+       <key
+           platform="carbon"
+           sequence="COMMAND+ALT+I"
+           commandId="com.google.dart.tools.ui.edit.text.dart.inline"
            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
       <!-- disable the key binding for Carbon as it conflicts with another one in the SDK -->
       <key
