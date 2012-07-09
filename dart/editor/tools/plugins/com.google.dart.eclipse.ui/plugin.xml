@@ -31,5 +31,17 @@
             sequence="M1+O">
       </key>
    </extension>
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            name="%dart.perspective.name"
+            icon="$nl$/icons/dperspective.png"
+            class="com.google.dart.eclipse.ui.internal.DartPerspective"
+            id="com.google.dart.tools.ui.DartPerspective">
+         <description>
+            %dart.perspective.description
+         </description>
+      </perspective>    
+   </extension>
 
 </plugin>
