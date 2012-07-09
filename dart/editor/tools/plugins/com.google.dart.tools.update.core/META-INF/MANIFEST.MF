@@ -7,7 +7,8 @@ Bundle-Version: 0.1.0.qualifier
 Bundle-Vendor: %providerName
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
-Export-Package: com.google.dart.tools.update.core
+Export-Package: com.google.dart.tools.update.core,
+ com.google.dart.tools.update.core.internal.jobs;x-friends:="com.google.dart.tools.ui_test"
 Bundle-Activator: com.google.dart.tools.update.core.UpdateCore
 Require-Bundle: org.eclipse.core.resources,
  org.eclipse.core.runtime,

@@ -22,6 +22,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.Version;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,6 +45,16 @@ public class CleanupInstallationJob extends Job {
   private static final Comparator<File> BUNDLE_SORTER = new Comparator<File>() {
     @Override
     public int compare(File f1, File f2) {
+
+      try {
+
+        return lexicalCompareBundleFileNames(f1.getName(), f2.getName());
+
+      } catch (IllegalArgumentException e) {
+        UpdateCore.logError("error parsing bundle versions", e);
+      }
+
+      //fall back to lexicographic ordering
       return f2.getName().compareTo(f1.getName());
     }
   };
@@ -52,6 +63,20 @@ public class CleanupInstallationJob extends Job {
    * Threshold for how many versions of a bundle to keep around.
    */
   private static final int MATCH_THRESHOLD = 2;
+
+  //public for testing
+  public static final int lexicalCompareBundleFileNames(String b1, String b2)
+      throws IllegalArgumentException {
+
+    if (b1.equalsIgnoreCase(b2)) {
+      return 0;
+    }
+
+    Version v1 = Version.parseVersion(getBundleVersionDetails(b1));
+    Version v2 = Version.parseVersion(getBundleVersionDetails(b2));
+
+    return v1.compareTo(v2);
+  }
 
   /**
    * Builds a map of (unqualified) bundle names to lists of bundle files. An example entry might
@@ -90,6 +115,14 @@ public class CleanupInstallationJob extends Job {
     //for example: org.eclipse.osgi_3.7.2.v20120110-1415.jar => org.eclipse.osgi
     String name = file.getName();
     return name.split("_[0-9].*")[0];
+  }
+
+  private static String getBundleVersionDetails(String bundleName) {
+    //strips off name prefix and extension suffix info
+    //for example: org.eclipse.osgi_3.7.2.v20120110-1415.jar => 3.7.2.v20120110-1415
+    String version = bundleName.indexOf('_') != -1 ? bundleName.split("_")[1] : bundleName;
+    return version.indexOf(".jar") != -1 ? version.substring(0, version.lastIndexOf(".jar"))
+        : version;
   }
 
   private static File getInstallDir() throws IOException {
