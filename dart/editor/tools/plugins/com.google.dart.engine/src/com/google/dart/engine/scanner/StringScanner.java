@@ -17,7 +17,8 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.source.Source;
 
 /**
- * Scanner that reads from a byte array and creates tokens that points to the same array.
+ * Instances of the class {@code StringScanner} implement a scanner that reads from a string. The
+ * scanning logic is in the superclass.
  */
 public class StringScanner extends AbstractScanner {
   /**

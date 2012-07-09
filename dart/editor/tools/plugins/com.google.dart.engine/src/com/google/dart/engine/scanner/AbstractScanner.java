@@ -25,10 +25,14 @@ import java.util.List;
 /**
  * The abstract class {@code AbstractScanner} implements a scanner for Dart code. Subclasses are
  * required to implement the interface used to access the characters being scanned.
+ * <p>
+ * The lexical structure of Dart is ambiguous without knowledge of the context in which a token is
+ * being scanned. For example, without context we cannot determine whether source of the form "<<"
+ * should be scanned as a single left-shift operator or as two left angle brackets. This scanner
+ * does not have any context, so it always resolves such conflicts by scanning the longest possible
+ * token.
  */
 public abstract class AbstractScanner {
-  // Based on leg scanner revision 6073.
-
   /**
    * The source being scanned.
    */
@@ -90,6 +94,7 @@ public abstract class AbstractScanner {
     this.source = source;
     this.errorListener = errorListener;
     tokens = new Token(TokenType.EOF, -1);
+    tokens.setNext(tokens);
     tail = tokens;
     tokenStart = -1;
     lineStarts.add(0);

@@ -26,7 +26,12 @@ public class Token {
   /**
    * The offset from the beginning of the file to the first character in the token.
    */
-  private final int offset;
+  private int offset;
+
+  /**
+   * The previous token in the token stream.
+   */
+  private Token previous;
 
   /**
    * The next token in the token stream.
@@ -92,6 +97,15 @@ public class Token {
   }
 
   /**
+   * Return the previous token in the token stream.
+   * 
+   * @return the previous token in the token stream
+   */
+  public Token getPrevious() {
+    return previous;
+  }
+
+  /**
    * Return the type of the token.
    * 
    * @return the type of the token
@@ -117,7 +131,18 @@ public class Token {
    */
   public Token setNext(Token token) {
     next = token;
+    token.setPrevious(this);
     return token;
+  }
+
+  /**
+   * Set the offset from the beginning of the file to the first character in the token to the given
+   * offset.
+   * 
+   * @param offset the offset from the beginning of the file to the first character in the token
+   */
+  public void setOffset(int offset) {
+    this.offset = offset;
   }
 
   @Override
@@ -133,5 +158,14 @@ public class Token {
    */
   public Object value() {
     return type.getLexeme();
+  }
+
+  /**
+   * Set the previous token in the token stream to the given token.
+   * 
+   * @param previous the previous token in the token stream
+   */
+  private void setPrevious(Token previous) {
+    this.previous = previous;
   }
 }

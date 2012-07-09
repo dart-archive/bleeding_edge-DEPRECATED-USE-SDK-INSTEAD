@@ -19,7 +19,8 @@ import com.google.dart.engine.source.Source;
 import java.nio.CharBuffer;
 
 /**
- * Scanner that reads from a byte array and creates tokens that points to the same array.
+ * Instances of the class {@code CharBufferScanner} implement a scanner that reads from a character
+ * buffer. The scanning logic is in the superclass.
  */
 public class CharBufferScanner extends AbstractScanner {
   /**
