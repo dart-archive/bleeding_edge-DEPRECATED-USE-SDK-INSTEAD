@@ -312,20 +312,6 @@
             </enablement>
         </statusContextViewer>
     </extension>
-    
-    
-   <extension
-         point="org.eclipse.ui.perspectives">
-      <perspective
-            name="%dart.perspective.name"
-            icon="$nl$/icons/full/eview16/dperspective.png"
-            class="com.google.dart.tools.ui.DartPerspective"
-            id="com.google.dart.tools.ui.DartPerspective">
-         <description>
-            %dart.perspective.description
-         </description>
-      </perspective>    
-   </extension>
    
    <extension point="org.eclipse.ui.perspectiveExtensions">
       <!-- shortcuts to Dart perspective -->
@@ -372,26 +358,6 @@
             name="%viewCategoryName"
             id="com.google.dart.tools.ui.dart">
       </category>
-      
-      <!-- Errors view -->
-    
-      <view
-            name="%problemsViewName"
-            category="com.google.dart.tools.ui.dart"
-            class="com.google.dart.tools.ui.internal.problemsview.ProblemsView"
-            icon="icons/full/eview16/problems_view.gif"
-            id="com.google.dart.tools.ui.ProblemsView">
-      </view>
-
-      <view
-            allowMultiple="false"
-            category="com.google.dart.tools.ui.dart"
-            class="com.google.dart.tools.ui.internal.filesview.FilesView"
-            icon="icons/full/obj16/file_folder.gif"
-            id="com.google.dart.tools.ui.FileExplorer"
-            name="Files"
-            restorable="true">
-      </view>
 
       <view
             allowMultiple="false"

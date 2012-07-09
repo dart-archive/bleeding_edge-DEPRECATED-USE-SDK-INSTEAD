@@ -250,9 +250,32 @@
             file-extensions="js">
       </file-association>
    </extension>
-    <extension
+   
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            name="%dart.perspective.name"
+            icon="$nl$/icons/full/eview16/dperspective.png"
+            class="com.google.dart.tools.ui.DartPerspective"
+            id="com.google.dart.tools.ui.DartPerspective">
+         <description>
+            %dart.perspective.description
+         </description>
+      </perspective>    
+   </extension>
+      
+   <extension
           point="org.eclipse.ui.views">
-       <view
+      <view
+            allowMultiple="false"
+            category="com.google.dart.tools.ui.dart"
+            class="com.google.dart.tools.ui.internal.filesview.FilesView"
+            icon="icons/full/obj16/file_folder.gif"
+            id="com.google.dart.tools.ui.FileExplorer"
+            name="Files"
+            restorable="true">
+      </view>
+      <view
              allowMultiple="true"
              category="com.google.dart.tools.ui.dart"
              class="com.google.dart.tools.ui.console.DartConsoleView"
@@ -260,8 +283,15 @@
              id="com.google.dart.tools.ui.console"
              name="Output"
              restorable="false">
-       </view>
-    </extension>
+      </view>
+      <view
+            name="%problemsViewName"
+            category="com.google.dart.tools.ui.dart"
+            class="com.google.dart.tools.ui.internal.problemsview.ProblemsView"
+            icon="icons/full/eview16/problems_view.gif"
+            id="com.google.dart.tools.ui.ProblemsView">
+      </view>    
+   </extension>
 
    <extension
          point="org.eclipse.ui.commands">
