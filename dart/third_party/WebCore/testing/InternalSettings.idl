@@ -43,7 +43,6 @@ module window {
         void setTouchEventEmulationEnabled(in boolean enabled) raises(DOMException);
         void setDeviceSupportsTouch(in boolean enabled) raises(DOMException);
         void setDeviceSupportsMouse(in boolean enabled) raises(DOMException);
-        void setDeviceScaleFactor(in float scaleFactor) raises(DOMException);
         void setShadowDOMEnabled(in boolean enabled) raises(DOMException);
         void setStandardFontFamily(in DOMString family, in DOMString script) raises(DOMException);
         void setSerifFontFamily(in DOMString family, in DOMString script) raises(DOMException);
@@ -55,6 +54,8 @@ module window {
         void setEnableScrollAnimator(in boolean enabled) raises(DOMException);
         boolean scrollAnimatorEnabled() raises(DOMException);
         void setCSSExclusionsEnabled(in boolean enabled) raises(DOMException);
+        void setCSSVariablesEnabled(in boolean enabled) raises(DOMException);
+        boolean cssVariablesEnabled() raises(DOMException);
         void setMediaPlaybackRequiresUserGesture(in boolean enabled) raises(DOMException);
         void setEditingBehavior(in DOMString behavior) raises(DOMException);
         void setFixedPositionCreatesStackingContext(in boolean creates) raises(DOMException);
