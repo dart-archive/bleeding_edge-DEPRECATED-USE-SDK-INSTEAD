@@ -40,8 +40,6 @@ public interface ASTVisitor<R> {
 
   public R visitClassDeclaration(ClassDeclaration node);
 
-  public R visitClassExtendsClause(ClassExtendsClause node);
-
   public R visitComment(Comment node);
 
   public R visitCommentReference(CommentReference node);
@@ -62,11 +60,15 @@ public interface ASTVisitor<R> {
 
   public R visitDoubleLiteral(DoubleLiteral node);
 
+  public R visitEmptyFunctionBody(EmptyFunctionBody emptyFunctionBody);
+
   public R visitEmptyStatement(EmptyStatement node);
 
   public R visitExpressionFunctionBody(ExpressionFunctionBody node);
 
   public R visitExpressionStatement(ExpressionStatement node);
+
+  public R visitExtendsClause(ExtendsClause node);
 
   public R visitFieldDeclaration(FieldDeclaration node);
 

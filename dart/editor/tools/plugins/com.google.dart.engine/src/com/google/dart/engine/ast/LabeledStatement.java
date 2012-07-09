@@ -15,23 +15,25 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code LabeledStatement} represent a statement that has a label associated
  * with them.
  * 
  * <pre>
  * labeledStatement ::=
- *    {@link Label label} {@link Statement statement}
+ *    {@link Label label}+ {@link Statement statement}
  * </pre>
  */
 public class LabeledStatement extends Statement {
   /**
-   * The label being associated with the statement.
+   * The labels being associated with the statement.
    */
-  private Label label;
+  private NodeList<Label> labels = new NodeList<Label>(this);
 
   /**
-   * The statement with which the label is being associated.
+   * The statement with which the labels are being associated.
    */
   private Statement statement;
 
@@ -44,11 +46,11 @@ public class LabeledStatement extends Statement {
   /**
    * Initialize a newly created labeled statement.
    * 
-   * @param label the label being associated with the statement
-   * @param statement the statement with which the label is being associated
+   * @param labels the labels being associated with the statement
+   * @param statement the statement with which the labels are being associated
    */
-  public LabeledStatement(Label label, Statement statement) {
-    this.label = becomeParentOf(label);
+  public LabeledStatement(List<Label> labels, Statement statement) {
+    this.labels.addAll(labels);
     this.statement = becomeParentOf(statement);
   }
 
@@ -59,7 +61,7 @@ public class LabeledStatement extends Statement {
 
   @Override
   public Token getBeginToken() {
-    return label.getBeginToken();
+    return labels.getBeginToken();
   }
 
   @Override
@@ -68,36 +70,27 @@ public class LabeledStatement extends Statement {
   }
 
   /**
-   * Return the label being associated with the statement.
+   * Return the labels being associated with the statement.
    * 
-   * @return the label being associated with the statement
+   * @return the labels being associated with the statement
    */
-  public Label getLabel() {
-    return label;
+  public NodeList<Label> getLabels() {
+    return labels;
   }
 
   /**
-   * Return the statement with which the label is being associated.
+   * Return the statement with which the labels are being associated.
    * 
-   * @return the statement with which the label is being associated
+   * @return the statement with which the labels are being associated
    */
   public Statement getStatement() {
     return statement;
   }
 
   /**
-   * Set the label being associated with the statement to the given label.
+   * Set the statement with which the labels are being associated to the given statement.
    * 
-   * @param label the label being associated with the statement
-   */
-  public void setLabel(Label label) {
-    this.label = becomeParentOf(label);
-  }
-
-  /**
-   * Set the statement with which the label is being associated to the given statement.
-   * 
-   * @param statement the statement with which the label is being associated
+   * @param statement the statement with which the labels are being associated
    */
   public void setStatement(Statement statement) {
     this.statement = becomeParentOf(statement);
@@ -105,7 +98,7 @@ public class LabeledStatement extends Statement {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(label, visitor);
+    labels.accept(visitor);
     safelyVisitChild(statement, visitor);
   }
 }

@@ -22,7 +22,7 @@ import java.util.List;
  * 
  * <pre>
  * switchCase ::=
- *     {@link SimpleIdentifier label}? ('case' {@link Expression expression} ':')+ {@link Statement statement}*
+ *     {@link SimpleIdentifier label}* 'case' {@link Expression expression} ':' {@link Statement statement}*
  * </pre>
  */
 public class SwitchCase extends SwitchMember {
@@ -40,15 +40,15 @@ public class SwitchCase extends SwitchMember {
   /**
    * Initialize a newly created switch case.
    * 
-   * @param label the label associated with the switch member
+   * @param labels the labels associated with the switch member
    * @param keyword the token representing the 'case' or 'default' keyword
    * @param expression the expression controlling whether the statements will be executed
    * @param colon the colon separating the keyword or the expression from the statements
    * @param statements the statements that will be executed if this switch member is selected
    */
-  public SwitchCase(Label label, Token keyword, Expression expression, Token colon,
+  public SwitchCase(List<Label> labels, Token keyword, Expression expression, Token colon,
       List<Statement> statements) {
-    super(label, keyword, colon, statements);
+    super(labels, keyword, colon, statements);
     this.expression = becomeParentOf(expression);
   }
 
@@ -77,7 +77,7 @@ public class SwitchCase extends SwitchMember {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(getLabel(), visitor);
+    getLabels().accept(visitor);
     safelyVisitChild(expression, visitor);
     getStatements().accept(visitor);
   }

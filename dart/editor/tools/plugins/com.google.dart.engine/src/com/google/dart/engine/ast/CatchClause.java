@@ -25,9 +25,20 @@ import com.google.dart.engine.scanner.Token;
  */
 public class CatchClause extends ASTNode {
   /**
-   * The token representing the 'catch' keyword.
+   * The token representing the 'on' keyword, or {@code null} if there is no 'on' keyword.
    */
-  private Token keyword;
+  private Token onKeyword;
+
+  /**
+   * The type of exceptions caught by this catch clause, or {@code null} if this catch clause
+   * catches every type of exception.
+   */
+  private TypeName exceptionType;
+
+  /**
+   * The token representing the 'catch' keyword, or {@code null} if there is no 'catch' keyword.
+   */
+  private Token catchKeyword;
 
   /**
    * The left parenthesis.
@@ -37,7 +48,7 @@ public class CatchClause extends ASTNode {
   /**
    * The parameter whose value will be the exception that was thrown.
    */
-  private SimpleFormalParameter exceptionParameter;
+  private SimpleIdentifier exceptionParameter;
 
   /**
    * The comma separating the exception parameter from the stack trace parameter.
@@ -47,7 +58,7 @@ public class CatchClause extends ASTNode {
   /**
    * The parameter whose value will be the stack trace associated with the exception.
    */
-  private SimpleFormalParameter stackTraceParameter;
+  private SimpleIdentifier stackTraceParameter;
 
   /**
    * The right parenthesis.
@@ -68,7 +79,8 @@ public class CatchClause extends ASTNode {
   /**
    * Initialize a newly created catch clause.
    * 
-   * @param keyword the token representing the 'catch' keyword
+   * @param onKeyword the token representing the 'on' keyword
+   * @param exceptionType the type of exceptions caught by this catch clause
    * @param leftParenthesis the left parenthesis
    * @param exceptionParameter the parameter whose value will be the exception that was thrown
    * @param comma the comma separating the exception parameter from the stack trace parameter
@@ -77,10 +89,12 @@ public class CatchClause extends ASTNode {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the catch block
    */
-  public CatchClause(Token keyword, Token leftParenthesis,
-      SimpleFormalParameter exceptionParameter, Token comma,
-      SimpleFormalParameter stackTraceParameter, Token rightParenthesis, Block body) {
-    this.keyword = keyword;
+  public CatchClause(Token onKeyword, TypeName exceptionType, Token catchKeyword, Token leftParenthesis,
+      SimpleIdentifier exceptionParameter, Token comma, SimpleIdentifier stackTraceParameter,
+      Token rightParenthesis, Block body) {
+    this.onKeyword = onKeyword;
+    this.exceptionType = becomeParentOf(exceptionType);
+    this.catchKeyword = catchKeyword;
     this.leftParenthesis = leftParenthesis;
     this.exceptionParameter = becomeParentOf(exceptionParameter);
     this.comma = comma;
@@ -96,7 +110,10 @@ public class CatchClause extends ASTNode {
 
   @Override
   public Token getBeginToken() {
-    return keyword;
+    if (onKeyword != null) {
+      return onKeyword;
+    }
+    return catchKeyword;
   }
 
   /**
@@ -106,6 +123,16 @@ public class CatchClause extends ASTNode {
    */
   public Block getBody() {
     return body;
+  }
+
+  /**
+   * Return the token representing the 'catch' keyword, or {@code null} if there is no 'catch'
+   * keyword.
+   * 
+   * @return the token representing the 'catch' keyword
+   */
+  public Token getCatchKeyword() {
+    return catchKeyword;
   }
 
   /**
@@ -127,17 +154,18 @@ public class CatchClause extends ASTNode {
    * 
    * @return the parameter whose value will be the exception that was thrown
    */
-  public SimpleFormalParameter getExceptionParameter() {
+  public SimpleIdentifier getExceptionParameter() {
     return exceptionParameter;
   }
 
   /**
-   * Return the token representing the 'assert' keyword.
+   * Return the type of exceptions caught by this catch clause, or {@code null} if this catch clause
+   * catches every type of exception.
    * 
-   * @return the token representing the 'assert' keyword
+   * @return the type of exceptions caught by this catch clause
    */
-  public Token getKeyword() {
-    return keyword;
+  public TypeName getExceptionType() {
+    return exceptionType;
   }
 
   /**
@@ -147,6 +175,15 @@ public class CatchClause extends ASTNode {
    */
   public Token getLeftParenthesis() {
     return leftParenthesis;
+  }
+
+  /**
+   * Return the token representing the 'on' keyword, or {@code null} if there is no 'on' keyword.
+   * 
+   * @return the token representing the 'on' keyword
+   */
+  public Token getOnKeyword() {
+    return onKeyword;
   }
 
   /**
@@ -163,7 +200,7 @@ public class CatchClause extends ASTNode {
    * 
    * @return the parameter whose value will be the stack trace associated with the exception
    */
-  public SimpleFormalParameter getStackTraceParameter() {
+  public SimpleIdentifier getStackTraceParameter() {
     return stackTraceParameter;
   }
 
@@ -174,6 +211,15 @@ public class CatchClause extends ASTNode {
    */
   public void setBody(Block block) {
     body = becomeParentOf(block);
+  }
+
+  /**
+   * Set the token representing the 'catch' keyword to the given token.
+   * 
+   * @param catchKeyword the token representing the 'catch' keyword
+   */
+  public void setCatchKeyword(Token catchKeyword) {
+    this.catchKeyword = catchKeyword;
   }
 
   /**
@@ -190,17 +236,17 @@ public class CatchClause extends ASTNode {
    * 
    * @param parameter the parameter whose value will be the exception that was thrown
    */
-  public void setExceptionParameter(SimpleFormalParameter parameter) {
+  public void setExceptionParameter(SimpleIdentifier parameter) {
     exceptionParameter = becomeParentOf(parameter);
   }
 
   /**
-   * Set the token representing the 'assert' keyword to the given token.
+   * Set the type of exceptions caught by this catch clause to the given type.
    * 
-   * @param keyword the token representing the 'assert' keyword
+   * @param exceptionType the type of exceptions caught by this catch clause
    */
-  public void setKeyword(Token keyword) {
-    this.keyword = keyword;
+  public void setExceptionType(TypeName exceptionType) {
+    this.exceptionType = exceptionType;
   }
 
   /**
@@ -210,6 +256,15 @@ public class CatchClause extends ASTNode {
    */
   public void setLeftParenthesis(Token parenthesis) {
     leftParenthesis = parenthesis;
+  }
+
+  /**
+   * Set the token representing the 'on' keyword to the given keyword.
+   * 
+   * @param onKeyword the token representing the 'on' keyword
+   */
+  public void setOnKeyword(Token onKeyword) {
+    this.onKeyword = onKeyword;
   }
 
   /**
@@ -228,12 +283,13 @@ public class CatchClause extends ASTNode {
    * @param parameter the parameter whose value will be the stack trace associated with the
    *          exception
    */
-  public void setStackTraceParameter(SimpleFormalParameter parameter) {
+  public void setStackTraceParameter(SimpleIdentifier parameter) {
     stackTraceParameter = becomeParentOf(parameter);
   }
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    safelyVisitChild(exceptionType, visitor);
     safelyVisitChild(exceptionParameter, visitor);
     safelyVisitChild(stackTraceParameter, visitor);
     safelyVisitChild(body, visitor);

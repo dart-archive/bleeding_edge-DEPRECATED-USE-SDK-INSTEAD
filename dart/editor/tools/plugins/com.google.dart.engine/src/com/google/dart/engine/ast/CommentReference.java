@@ -21,14 +21,14 @@ import com.google.dart.engine.scanner.Token;
  * 
  * <pre>
  * commentReference ::=
- *     '[' {@link SimpleIdentifier identifier} ']'
+ *     '[' {@link Identifier identifier} ']'
  * </pre>
  */
 public class CommentReference extends ASTNode {
   /**
    * The identifier being referenced.
    */
-  private SimpleIdentifier identifier;
+  private Identifier identifier;
 
   /**
    * Initialize a newly created reference to a Dart element.
@@ -41,7 +41,7 @@ public class CommentReference extends ASTNode {
    * 
    * @param identifier the identifier being referenced
    */
-  public CommentReference(SimpleIdentifier identifier) {
+  public CommentReference(Identifier identifier) {
     this.identifier = becomeParentOf(identifier);
   }
 
@@ -52,12 +52,12 @@ public class CommentReference extends ASTNode {
 
   @Override
   public Token getBeginToken() {
-    return getParent().getBeginToken();
+    return identifier.getBeginToken();
   }
 
   @Override
   public Token getEndToken() {
-    return getParent().getEndToken();
+    return identifier.getEndToken();
   }
 
   /**
@@ -65,7 +65,7 @@ public class CommentReference extends ASTNode {
    * 
    * @return the identifier being referenced
    */
-  public SimpleIdentifier getIdentifier() {
+  public Identifier getIdentifier() {
     return identifier;
   }
 
@@ -74,7 +74,7 @@ public class CommentReference extends ASTNode {
    * 
    * @param identifier the identifier being referenced
    */
-  public void setIdentifier(SimpleIdentifier identifier) {
+  public void setIdentifier(Identifier identifier) {
     identifier = becomeParentOf(identifier);
   }
 

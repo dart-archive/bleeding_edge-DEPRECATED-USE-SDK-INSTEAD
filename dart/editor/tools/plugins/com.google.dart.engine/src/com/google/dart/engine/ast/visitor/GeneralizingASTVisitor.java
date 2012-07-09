@@ -88,11 +88,6 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitClassExtendsClause(ClassExtendsClause node) {
-    return visitNode(node);
-  }
-
-  @Override
   public R visitComment(Comment node) {
     return visitNode(node);
   }
@@ -159,6 +154,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitEmptyFunctionBody(EmptyFunctionBody node) {
+    return visitFunctionBody(node);
+  }
+
+  @Override
   public R visitEmptyStatement(EmptyStatement node) {
     return visitStatement(node);
   }
@@ -175,6 +175,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   @Override
   public R visitExpressionStatement(ExpressionStatement node) {
     return visitStatement(node);
+  }
+
+  @Override
+  public R visitExtendsClause(ExtendsClause node) {
+    return visitNode(node);
   }
 
   @Override

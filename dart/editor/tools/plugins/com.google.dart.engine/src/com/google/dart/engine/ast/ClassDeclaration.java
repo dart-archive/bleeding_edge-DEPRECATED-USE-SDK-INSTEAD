@@ -23,7 +23,7 @@ import java.util.List;
  * <pre>
  * classDeclaration ::=
  *     'class' {@link SimpleIdentifier name} {@link TypeParameterList typeParameterList}?
- *     {@link ClassExtendsClause classExtendsClause}?
+ *     {@link ExtendsClause classExtendsClause}?
  *     {@link ImplementsClause implementsClause}?
  *     '{' classMemberDefinition* '}'
  * </pre>
@@ -37,7 +37,7 @@ public class ClassDeclaration extends TypeDeclaration {
   /**
    * The extends clause for the class, or {@code null} if the class does not extend any other class.
    */
-  private ClassExtendsClause classExtendsClause;
+  private ExtendsClause classExtendsClause;
 
   /**
    * The implements clause for the class, or {@code null} if the class does not implement any
@@ -67,7 +67,7 @@ public class ClassDeclaration extends TypeDeclaration {
    */
   public ClassDeclaration(Comment comment, Token abstractKeyword, Token keyword,
       SimpleIdentifier name, TypeParameterList typeParameters,
-      ClassExtendsClause classExtendsClause, ImplementsClause implementsClause, Token leftBracket,
+      ExtendsClause classExtendsClause, ImplementsClause implementsClause, Token leftBracket,
       List<TypeMember> members, Token rightBracket) {
     super(comment, keyword, name, typeParameters, leftBracket, members, rightBracket);
     this.abstractKeyword = abstractKeyword;
@@ -95,7 +95,7 @@ public class ClassDeclaration extends TypeDeclaration {
    * 
    * @return the extends clause for this class
    */
-  public ClassExtendsClause getExtendsClause() {
+  public ExtendsClause getExtendsClause() {
     return classExtendsClause;
   }
 
@@ -123,7 +123,7 @@ public class ClassDeclaration extends TypeDeclaration {
    * 
    * @param clause the extends clause for this class
    */
-  public void setExtendsClause(ClassExtendsClause clause) {
+  public void setExtendsClause(ExtendsClause clause) {
     classExtendsClause = becomeParentOf(clause);
   }
 

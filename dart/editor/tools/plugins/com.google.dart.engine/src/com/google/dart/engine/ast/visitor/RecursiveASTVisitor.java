@@ -92,12 +92,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitClassExtendsClause(ClassExtendsClause node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
   public R visitComment(Comment node) {
     node.visitChildren(this);
     return null;
@@ -178,6 +172,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitEmptyFunctionBody(EmptyFunctionBody node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
   public R visitEmptyStatement(EmptyStatement node) {
     node.visitChildren(this);
     return null;
@@ -196,6 +196,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitExpressionStatement(ExpressionStatement node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public R visitExtendsClause(ExtendsClause node) {
     node.visitChildren(this);
     return null;
   }

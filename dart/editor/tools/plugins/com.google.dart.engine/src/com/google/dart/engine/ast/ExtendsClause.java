@@ -16,15 +16,15 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class {@code ClassExtendsClause} represent the "extends" clause in a class
+ * Instances of the class {@code ExtendsClause} represent the "extends" clause in a class
  * declaration.
  * 
  * <pre>
- * classExtendsClause ::=
+ * extendsClause ::=
  *     'extends' {@link TypeName superclass}
  * </pre>
  */
-public class ClassExtendsClause extends ASTNode {
+public class ExtendsClause extends ASTNode {
   /**
    * The token representing the 'extends' keyword.
    */
@@ -38,7 +38,7 @@ public class ClassExtendsClause extends ASTNode {
   /**
    * Initialize a newly created extends clause.
    */
-  public ClassExtendsClause() {
+  public ExtendsClause() {
   }
 
   /**
@@ -47,14 +47,14 @@ public class ClassExtendsClause extends ASTNode {
    * @param keyword the token representing the 'extends' keyword
    * @param superclass the name of the class that is being extended
    */
-  public ClassExtendsClause(Token keyword, TypeName superclass) {
+  public ExtendsClause(Token keyword, TypeName superclass) {
     this.keyword = keyword;
     this.superclass = becomeParentOf(superclass);
   }
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
-    return visitor.visitClassExtendsClause(this);
+    return visitor.visitExtendsClause(this);
   }
 
   @Override

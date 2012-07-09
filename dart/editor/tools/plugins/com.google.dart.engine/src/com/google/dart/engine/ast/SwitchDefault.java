@@ -22,7 +22,7 @@ import java.util.List;
  * 
  * <pre>
  * switchDefault ::=
- *     {@link SimpleIdentifier label}? ('case' {@link Expression expression} ':')* 'default' ':' {@link Statement statement}*
+ *     {@link SimpleIdentifier label}* 'default' ':' {@link Statement statement}*
  * </pre>
  */
 public class SwitchDefault extends SwitchMember {
@@ -35,13 +35,13 @@ public class SwitchDefault extends SwitchMember {
   /**
    * Initialize a newly created switch default.
    * 
-   * @param label the label associated with the switch member
+   * @param labels the labels associated with the switch member
    * @param keyword the token representing the 'case' or 'default' keyword
    * @param colon the colon separating the keyword or the expression from the statements
    * @param statements the statements that will be executed if this switch member is selected
    */
-  public SwitchDefault(Label label, Token keyword, Token colon, List<Statement> statements) {
-    super(label, keyword, colon, statements);
+  public SwitchDefault(List<Label> labels, Token keyword, Token colon, List<Statement> statements) {
+    super(labels, keyword, colon, statements);
   }
 
   @Override
@@ -51,7 +51,7 @@ public class SwitchDefault extends SwitchMember {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(getLabel(), visitor);
+    getLabels().accept(visitor);
     getStatements().accept(visitor);
   }
 }

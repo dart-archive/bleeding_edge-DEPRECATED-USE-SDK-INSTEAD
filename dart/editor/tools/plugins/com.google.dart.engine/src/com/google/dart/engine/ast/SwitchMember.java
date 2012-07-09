@@ -29,9 +29,9 @@ import java.util.List;
  */
 public abstract class SwitchMember extends ASTNode {
   /**
-   * The label associated with the switch member, or {@code null} if there is no label.
+   * The labels associated with the switch member.
    */
-  private Label label;
+  private NodeList<Label> labels = new NodeList<Label>(this);
 
   /**
    * The token representing the 'case' or 'default' keyword.
@@ -57,13 +57,13 @@ public abstract class SwitchMember extends ASTNode {
   /**
    * Initialize a newly created switch member.
    * 
-   * @param label the label associated with the switch member
+   * @param labels the labels associated with the switch member
    * @param keyword the token representing the 'case' or 'default' keyword
    * @param colon the colon separating the keyword or the expression from the statements
    * @param statements the statements that will be executed if this switch member is selected
    */
-  public SwitchMember(Label label, Token keyword, Token colon, List<Statement> statements) {
-    this.label = becomeParentOf(label);
+  public SwitchMember(List<Label> labels, Token keyword, Token colon, List<Statement> statements) {
+    this.labels.addAll(labels);
     this.keyword = keyword;
     this.colon = colon;
     this.statements.addAll(statements);
@@ -71,8 +71,8 @@ public abstract class SwitchMember extends ASTNode {
 
   @Override
   public Token getBeginToken() {
-    if (label != null) {
-      return label.getBeginToken();
+    if (!labels.isEmpty()) {
+      return labels.getBeginToken();
     }
     return keyword;
   }
@@ -104,12 +104,12 @@ public abstract class SwitchMember extends ASTNode {
   }
 
   /**
-   * Return the label associated with the switch member, or {@code null} if there is no label.
+   * Return the labels associated with the switch member.
    * 
-   * @return the label associated with the switch member
+   * @return the labels associated with the switch member
    */
-  public Label getLabel() {
-    return label;
+  public NodeList<Label> getLabels() {
+    return labels;
   }
 
   /**
@@ -137,14 +137,5 @@ public abstract class SwitchMember extends ASTNode {
    */
   public void setKeyword(Token keyword) {
     this.keyword = keyword;
-  }
-
-  /**
-   * Set the label associated with the switch member to the given label.
-   * 
-   * @param label the label associated with the switch member
-   */
-  public void setLabel(Label label) {
-    this.label = becomeParentOf(label);
   }
 }
