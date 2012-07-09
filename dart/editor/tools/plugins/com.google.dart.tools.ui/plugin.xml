@@ -29,7 +29,7 @@
          id="com.google.dart.tools.ui.cleanUps">
       </cleanUp>
     </extension>
-
+<!--
    <extension
       point="org.eclipse.ui.decorators">
       <decorator
@@ -49,6 +49,7 @@
          </enablement>
       </decorator>   
    </extension>
+-->   
    
    <extension point="org.eclipse.core.runtime.adapters">
       <factory 
@@ -250,8 +251,10 @@
    </extension>
    
    <!-- Note: Do not change the sequence of those hover contributions -->
+<!--
    <extension
          point="com.google.dart.tools.ui.dartEditorTextHovers">
+
       <hover
             label="%sequentialHover"
             description="%sequentialHoverDescription"
@@ -282,16 +285,17 @@
             class="com.google.dart.tools.ui.functions.java.hover.JavaSourceHover"
             id="org.eclipse.wst.jsdt.ui.JavaSourceHover">
       </hover>
-<!--
+
       <hover
             label="%annotationHover"
             description="%annotationHoverDescription"
             class="com.google.dart.tools.ui.functions.java.hover.AnnotationHover"
             id="org.eclipse.wst.jsdt.ui.AnnotationHover">
       </hover>
--->
+
    </extension>
-    
+-->
+
     <!-- =========================================================================== -->
     <!-- Refactoring                                                                 -->
     <!-- =========================================================================== -->
@@ -935,42 +939,6 @@
                id="org.eclipse.wst.jsdt.ui.actions.Open">
          </action>
       </actionSet>
-   </extension>
-   <extension
-         point="org.eclipse.ui.actionSetPartAssociations">
-      <actionSetPartAssociation
-            targetID="org.eclipse.wst.jsdt.ui.A_OpenActionSet">
-         <!-- part
-               id="org.eclipse.search.SearchResultView">
-         </part -->
-         <part
-               id="org.eclipse.wst.jsdt.ui.PackageExplorer">
-         </part>
-         <part
-               id="org.eclipse.wst.jsdt.ui.TypeHierarchy">
-         </part>
-         <part
-               id="org.eclipse.wst.jsdt.ui.CompilationUnitEditor">
-         </part>
-         <part
-               id="org.eclipse.wst.jsdt.ui.PropertiesFileEditor">
-         </part>
-         <part
-               id="org.eclipse.wst.jsdt.ui.ProjectsView">
-         </part>
-         <part
-               id="org.eclipse.wst.jsdt.ui.PackagesView">
-         </part>
-         <part
-               id="org.eclipse.wst.jsdt.ui.TypesView">
-         </part>
-         <part
-               id="org.eclipse.wst.jsdt.ui.MembersView">
-         </part>
-         <part
-               id="org.eclipse.wst.jsdt.ui.SourceView">
-         </part>
-      </actionSetPartAssociation>
    </extension>
 <!-- End JavaScript Open action contributions  -->
     <extension
@@ -2177,79 +2145,7 @@
       </command>
       
    </extension>
-   
       
-   <extension point="org.eclipse.ui.ide.markerSupport">
-      <markerTypeCategory name="%markerCategory.problem">
-         <markerTypeReference id="org.eclipse.wst.jsdt.core.problem"/>
-      </markerTypeCategory>
-      <markerTypeCategory name="%markerCategory.buildpath_problem">
-         <markerTypeReference id="org.eclipse.wst.jsdt.core.buildpath_problem"/>
-         <!-- <markerTypeReference id="org.eclipse.wst.jsdt.launching.jreContainerMarker"/> -->
-      </markerTypeCategory>
-      
-    <markerGrouping id="org.eclipse.wst.jsdt.ui.java_marker_category" label="%MarkerCategory.name"/>
-    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.buildpath"
-        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
-        label="%MarkerCategory.buildpath"
-        priority="100"/>
-    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.fatal"
-        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
-        label="%MarkerCategory.fatal"
-        priority="90"/>
-    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.documentation"
-        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
-        label="%MarkerCategory.documentation"
-        priority="80"/>
-    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.potential"
-        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
-        label="%MarkerCategory.potential"
-        priority="70"/>        
-    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.codestyle"
-        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
-        label="%MarkerCategory.codestyle"
-        priority="60"/>
-    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.restrictedAPI"
-        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
-        label="%MarkerCategory.restrictedAPI"
-        priority="50"/>        
-    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.deprecation"
-        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
-        label="%MarkerCategory.deprecation"
-        priority="40"/>
-    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.generictypes"
-        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
-        label="%MarkerCategory.generictypes"
-        priority="30"/>
-    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.unnecessary"
-        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
-        label="%MarkerCategory.unnecessary"
-        priority="20"/>          
-    <markerGroupingEntry id="org.eclipse.wst.jsdt.ui.category.nls"
-        markerGrouping="org.eclipse.wst.jsdt.ui.java_marker_category"
-        label="%MarkerCategory.nls"
-        priority="10"/>
-    <markerAttributeGrouping markerType="org.eclipse.wst.jsdt.core.problem" attribute="categoryId">
-        <markerAttributeMapping value="10" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.buildpath"/>
-        <markerAttributeMapping value="20" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.fatal"/>
-        <markerAttributeMapping value="30" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.fatal"/>
-        <markerAttributeMapping value="40" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.fatal"/>
-        <markerAttributeMapping value="50" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.fatal"/>
-        <markerAttributeMapping value="60" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.fatal"/>
-        <markerAttributeMapping value="70" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.documentation"/>
-        <markerAttributeMapping value="80" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.codestyle"/>
-        <markerAttributeMapping value="90" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.potential"/>
-        <markerAttributeMapping value="100" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.potential"/>
-        <markerAttributeMapping value="110" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.deprecation"/>
-        <markerAttributeMapping value="120" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.unnecessary"/>
-        <markerAttributeMapping value="130" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.generictypes"/>
-        <markerAttributeMapping value="140" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.nls"/>
-        <markerAttributeMapping value="150" markerGroupingEntry="org.eclipse.wst.jsdt.ui.category.restrictedAPI"/>
-     </markerAttributeGrouping>
-     <markerAttributeGrouping markerType="org.eclipse.wst.jsdt.core.buildpath_problem"
-        defaultGroupingEntry="org.eclipse.wst.jsdt.ui.category.buildpath"/>
-   </extension>
-   
    <extension
       point= "com.google.dart.tools.ui.foldingStructureProviders">
       <provider
