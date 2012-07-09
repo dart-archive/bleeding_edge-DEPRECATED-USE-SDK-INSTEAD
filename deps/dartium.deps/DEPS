@@ -8,14 +8,14 @@ execfile(os.path.join(path, 'dartium.deps', 'DEPS.chromium')) # Include proper C
 
 vars.update({
   "chromium_url": "http://src.chromium.org/svn",
-  "chromium_revision": "145518",
+  "chromium_revision": "145647",
   # The Dart repository URL is pulled out here so that it can be easily
   # updated to "https" for committers.
   "dart_branch": "/branches/bleeding_edge",
   "multivm_url": "http://src.chromium.org/multivm/trunk",
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
-  "dartium_webkit_revision": "682",
-  "dartium_tools_revision": "680",
+  "dartium_webkit_revision": "683",
+  "dartium_tools_revision": "684",
 })
 
 def massage_deps(deps):
