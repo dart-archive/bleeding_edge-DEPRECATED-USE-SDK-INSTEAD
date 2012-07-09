@@ -345,7 +345,8 @@ def main():
         os.remove(sdk_zip)
       
       dartbuildscript = os.path.join(toolspath, 'build.py')
-      cmds = [sys.executable, dartbuildscript, '--mode=release', '--arch=ia32,x64', 'create_sdk']
+      # --arch=ia32,x64
+      cmds = [sys.executable, dartbuildscript, '--mode=release', '--arch=ia32', 'create_sdk']
       cwd = os.getcwd()
       try:
         os.chdir(dartpath)
@@ -1015,10 +1016,11 @@ def _PrintError(text):
 
 # delete the given file - do not re-throw any exceptions that occur
 def _FileDelete(file):
-  try:
-    os.remove(file)
-  except IOError as e:
-    print 'error deleting %s' % file
+  if os.path.exists(file):
+    try:
+      os.remove(file)
+    except:
+      print 'error deleting %s' % file
 
 if __name__ == '__main__':
   exit_code = main()
