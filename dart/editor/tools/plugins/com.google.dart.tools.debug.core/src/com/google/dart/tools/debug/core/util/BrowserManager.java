@@ -260,19 +260,17 @@ public class BrowserManager {
     // In order to start up multiple Chrome processes, we need to specify a different user dir.
     arguments.add("--user-data-dir=" + getCreateUserDataDirectoryPath());
 
-    //arguments.add("--disable-breakpad");
-
     // Indicates that the browser is in "browse without sign-in" (Guest session) mode. Should 
     // completely disable extensions, sync and bookmarks.
-    arguments.add("--bwsi");
+    // devoncarew: This only works under _CHROMEOS.
+    //arguments.add("--bwsi");
 
-    // On ChromeOS, file:// access is disabled except for certain whitelisted directories. This
-    // switch re-enables file:// for testing.
-    //arguments.add("--allow-file-access");
+    // Disable extensions. Several extensions in the wild have errors that prevent connecting the
+    // debugger to Dartium.
+    arguments.add("--disable-extensions");
 
-    // By default, file:// URIs cannot read other file:// URIs. This is an override for developers
-    // who need the old behavior for testing
-    //arguments.add("--allow-file-access-from-files");
+    // Disables syncing browser data to a Google Account. Do we want to do this?
+    //arguments.add("--disable-sync");
 
     // Whether or not it's actually the first run.
     arguments.add("--no-first-run");
@@ -377,7 +375,8 @@ public class BrowserManager {
    * @return the user data directory path
    */
   private String getCreateUserDataDirectoryPath() {
-    String dataDirPath = System.getProperty("user.home") + File.separator + ".dartiumPrefs";
+    // TODO(devoncarew): delete old .dartiumSettings, .dartiumPrefs?
+    String dataDirPath = System.getProperty("user.home") + File.separator + ".dartium";
 
     File dataDir = new File(dataDirPath);
 
