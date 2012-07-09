@@ -41,7 +41,7 @@ public class Revision implements Comparable<Revision> {
    */
   public static Revision forValue(String revision) {
     try {
-      int intValue = Integer.parseInt(revision);
+      int intValue = Integer.parseInt(revision.trim());
       return new Revision(intValue);
     } catch (NumberFormatException e) {
       return UNKNOWN;

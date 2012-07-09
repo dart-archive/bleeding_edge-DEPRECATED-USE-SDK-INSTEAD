@@ -308,6 +308,18 @@ public class UpdateUtils {
   }
 
   /**
+   * Parse the latest revision from the VERSION file at the given url.
+   * 
+   * @param url the url to check
+   * @return the latest revision, or <code>null</code> if none is found
+   * @throws IOException if an exception occurred in retrieving the revision
+   */
+  public static Revision parseVersionFile(String url) throws IOException {
+    String versionFileContents = readUrlStream(url);
+    return Revision.forValue(versionFileContents);
+  }
+
+  /**
    * Read, as a string, the stream at the given url string.
    */
   public static String readUrlStream(String urlString) throws MalformedURLException, IOException {

@@ -26,6 +26,8 @@ public abstract class UpdateResolver {
   /**
    * Infers a latest build from a directory listing fetched from a URL.
    */
+  @Deprecated
+  @SuppressWarnings("unused")
   private static class DirectoryListingResolver extends UpdateResolver {
 
     private final String url;
@@ -42,12 +44,31 @@ public abstract class UpdateResolver {
   }
 
   /**
+   * Parses revision number from a VERSION file found at a given URL.
+   */
+  private static class VersionFileResolver extends UpdateResolver {
+
+    private final String url;
+
+    VersionFileResolver(String url) {
+      this.url = url;
+    }
+
+    @Override
+    public Revision getLatest() throws IOException {
+      return UpdateUtils.parseVersionFile(url);
+    }
+
+  }
+
+  /**
    * Create an update resolver for the continuous update channel.
    * 
    * @return an update resolver for the continuous update channel
    */
   public static UpdateResolver forIntegration() {
-    return new DirectoryListingResolver(UpdateCore.getUpdateUrl());
+    //return new DirectoryListingResolver(UpdateCore.getUpdateUrl());
+    return new VersionFileResolver(UpdateCore.getUpdateUrl() + "latest/VERSION");
   }
 
   /**
