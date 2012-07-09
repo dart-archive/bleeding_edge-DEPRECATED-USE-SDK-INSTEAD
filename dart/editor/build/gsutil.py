@@ -98,7 +98,7 @@ class GsUtil(object):
       error_flag: True this is an error message, false this is informational
     """
     if error_flag:
-      self._PrintFailure('{0}\nsee details below'.format(header))
+      self._PrintFailure('{0}'.format(header))
     else:
       print header
     print str(stream)
@@ -327,11 +327,32 @@ class GsUtil(object):
       return p.returncode
     return 0
 
+  def RemoveAll(self, item_uri):
+    """remove an item form GoogleStorage (rm -R).
+    """
+    args = []
+    args.extend(self._CommandGsutil())
+    args.append('rm')
+    args.append('-R')
+    args.append(item_uri)
+    #echo the command to the screen
+    print ' '.join(args)
+    if not self._dryrun:
+      p = subprocess.Popen(args, stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE,
+                           shell=self._useshell)
+      (out, err) = p.communicate()
+      if p.returncode:
+        failure_message = 'failed to remove {0}\n'.format(item_uri)
+        self._LogStream(err, failure_message, True)
+      else:
+        self._LogStream(out, '')
+          
   def Remove(self, item_uri):
     """remove an item form GoogleStorage.
 
     Args:
-      item_uri: the uri fo the item to remove
+      item_uri: the uri of the item to remove
     """
     args = []
     args.extend(self._CommandGsutil())
@@ -492,13 +513,12 @@ class GsUtil(object):
   def _PrintFailure(self, text):
     """Print a failure message."""
     error_line_seperator = '*****************************'
-    error_line_text = '{0}'
 
+    print
     print error_line_seperator
+    print text
     print error_line_seperator
-    print error_line_text.format(text)
-    print error_line_seperator
-    print error_line_seperator
+    print
 
   def _CommandGsutil(self):
     """Execute a gsutil command.

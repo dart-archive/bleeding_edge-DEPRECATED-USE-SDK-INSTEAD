@@ -333,8 +333,7 @@ def main():
       print 'JAVA_HOME = {0}'.format(str(sdk_environment['JAVA_HOME']))
     builder_name = str(options.name)
 
-    if (run_sdk_build and
-        builder_name != 'dart-editor'):
+    if (run_sdk_build and builder_name != 'dart-editor'):
       _PrintSeparator('running the build of the Dart SDK')
       
       sdkpath = build_util.SdkZipLocation()
@@ -346,7 +345,7 @@ def main():
         os.remove(sdk_zip)
       
       dartbuildscript = os.path.join(toolspath, 'build.py')
-      cmds = [sys.executable, dartbuildscript, '--mode=release', 'create_sdk']
+      cmds = [sys.executable, dartbuildscript, '--mode=release', '--arch=ia32,x64', 'create_sdk']
       cwd = os.getcwd()
       try:
         os.chdir(dartpath)
@@ -821,7 +820,6 @@ def _FindRcpZipFiles(out_dir):
     a collection of rcp zip files
   """
   out_dir = os.path.normpath(os.path.normcase(out_dir))
-  print '_FindRcpZipFiles({0})'.format(out_dir)
   rcp_out_dir = os.listdir(out_dir)
   found_zips = []
   for element in rcp_out_dir:
@@ -875,7 +873,7 @@ def _InstallSdk(buildroot, buildout, buildos, sdk):
 
 
 def _InstallDartium(buildroot, buildout, buildos, gsu):
-  """Install the SDk into the RCP zip files(s).
+  """Install the SDK into the RCP zip files(s).
 
   Args:
     buildroot: the boot of the build output
@@ -885,55 +883,67 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
   Raises:
     Exception: if no dartium files can be found
   """
-  print '_InstallDartium({0}, {1}, {2}, gsu)'.format(buildroot,
-                                                     buildout,
-                                                     buildos)
-  file_types = ['linlucful', 'macmacful', 'winwinful']
-  tmp_zip_name = None
+  print '_InstallDartium(%s, %s, %s)' % (buildroot, buildout, buildos)
 
-  try:
-    # dartium-win-full-6091.6091.zip
-    file_name_re = re.compile(r'dartium-([lmw].+)-(.+)-.+\.(\d+)M?.+')
-    tmp_dir = os.path.join(buildroot, 'tmp')
-    unzip_dir = os.path.join(tmp_dir, 'unzip_dartium')
-    elements = gsu.ReadBucket('gs://dartium-archive/latest/*.zip')
-    add_path = None
+  # dartium-lucid32-full-9420.9420.zip
+  # dartium-lucid64-full-9420.9420.zip
+  # dartium-mac-full-9420.9420.zip
+  # dartium-win-full-9420.9420.zip
+  tmp_dir = os.path.join(buildroot, 'tmp')
+  dartiumFiles = gsu.ReadBucket('gs://dartium-archive/latest/dartium-*-full-*.zip')
 
-    if not elements:
-      raise Exception("can''t find any dartium files")
+  if not dartiumFiles:
+    raise Exception("could not find any dartium files")
 
-    dartum_version = None
-    for element in elements:
-      base_name = os.path.basename(element)
-      print 'processing {0} ({1})'.format(element, base_name)
-      try:
-        dartum_os = '    '
-        dartum_type = '    '
-        dartum_version = '    '
-        file_match = file_name_re.search(base_name)
-        if file_match is not None:
-          dartum_os = file_match.group(1)
-          dartum_type = file_match.group(2)
-          dartum_version = file_match.group(3)
-      except IndexError:
-        _PrintError('Regular Expression error processing {0}'.format(element))
+  print
+  for dartiumFile in dartiumFiles:
+    print '  found dartium: %s' % dartiumFile
+  print
+    
+  rcpZipFiles = _FindRcpZipFiles(buildout)
+  
+  for rcpZipFile in rcpZipFiles:
+    print '  found rcp: %s' % rcpZipFile
+  print
+  
+  for rcpZipFile in rcpZipFiles:
+    searchString = None;
+    
+    # dart-editor-linux.gtk.x86.zip
+    # dart-editor-linux.gtk.x86_64.zip
+    # dart-editor-macosx.cocoa.x86.zip
+    # dart-editor-macosx.cocoa.x86_64.zip
+    # dart-editor-win32.win32.x86.zip
+    # dart-editor-win32.win32.x86_64.zip
 
-      key = buildos[:3] + dartum_os[:3] + dartum_type[:3]
-      if key in file_types:
-        tmp_zip_file = tempfile.NamedTemporaryFile(suffix='.zip',
-                                                   prefix='dartium',
-                                                   dir=tmp_dir,
-                                                   delete=False)
-        tmp_zip_name = tmp_zip_file.name
-        tmp_zip_file.close()
-        gsu.Copy(element, tmp_zip_name, False)
+    if '-linux.gtk.x86.zip' in rcpZipFile:
+      searchString = 'dartium-lucid32-full-';
+    if '-linux.gtk.x86_64.zip' in rcpZipFile:
+      searchString = 'dartium-lucid64-full-';
+    if 'macosx' in rcpZipFile:
+      searchString = 'dartium-mac-full-';
+    if 'win32' in rcpZipFile:
+      searchString = 'dartium-win-full-';
+    
+    for dartiumFile in dartiumFiles:
+      if searchString in dartiumFile:
+        #download and unzip dartium
+        unzip_dir = os.path.join(tmp_dir, os.path.splitext(os.path.basename(dartiumFile))[0])
         if not os.path.exists(unzip_dir):
           os.makedirs(unzip_dir)
-          
-        # Dartium is unzipped into something like unzip_dir/dartium-win-inc-7665.7665
-        dartium_zip = ziputils.ZipUtil(tmp_zip_name, buildos)
-        dartium_zip.UnZip(unzip_dir)
+        tmp_zip_file = os.path.join(tmp_dir, os.path.basename(dartiumFile))
         
+        if not os.path.exists(tmp_zip_file):
+          gsu.Copy(dartiumFile, tmp_zip_file, False)
+          
+          # Dartium is unzipped into something like unzip_dir/dartium-win-inc-7665.7665
+          dartium_zip = ziputils.ZipUtil(tmp_zip_file, buildos)
+          dartium_zip.UnZip(unzip_dir)
+        else:
+          dartium_zip = ziputils.ZipUtil(tmp_zip_file, buildos)
+
+        add_path = None
+  
         if 'lin' in buildos:
           paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
           add_path = paths[0]
@@ -943,50 +953,20 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
           add_path = paths[0]
           zip_rel_path = 'dart/dart-sdk/chromium'
           # remove extra files
-          os.remove(os.path.join(add_path, 'DumpRenderTree.exe'))
-          os.remove(os.path.join(add_path, 'mini_installer.exe'))
-          os.remove(os.path.join(add_path, 'sync_unit_tests.exe'))
+          _FileDelete(os.path.join(add_path, 'DumpRenderTree.exe'))
+          _FileDelete(os.path.join(add_path, 'mini_installer.exe'))
+          _FileDelete(os.path.join(add_path, 'sync_unit_tests.exe'))
         if 'mac' in buildos:
           paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
           add_path = os.path.join(paths[0], 'Chromium.app')
           zip_rel_path = 'dart/dart-sdk/Chromium.app'
-
-    if tmp_zip_name is not None and add_path is not None:
-      files = _FindRcpZipFiles(buildout)
-      for f in files:
-        # Do not add Dartium to the linux 32 bit build - Dartium on linux is only 64 bit.
-        if (f.endswith('-linux.gtk.x86.zip')):
-          continue
         
-        dart_zip_path = os.path.join(buildout, f)
-        print ('_installDartium: before '
-               '{0} is {1}'.format(dart_zip_path,
-                                   os.path.getsize(dart_zip_path)))
+        #add to the rcp zip
+        dart_zip_path = os.path.join(buildout, rcpZipFile)
         dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
         dart_zip.AddDirectoryTree(add_path, zip_rel_path)
-        revision_properties = None
-        try:
-          revision_properties_path = os.path.join(tmp_dir,
-                                                  'chromium.properties')
-          revision_properties = open(revision_properties_path, 'w')
-          revision_properties.write('chromium.version = {0}{1}'.
-                                    format(dartum_version, os.linesep))
-        finally:
-          revision_properties.close()
-        dart_zip.AddFile(revision_properties_path,
-                         'dart/dart-sdk/chromium.properties')
-        print ('_installDartium: after  '
-               '{0} is {1}'.format(dart_zip_path,
-                                   os.path.getsize(dart_zip_path)))
-    else:
-      msg = 'no Dartium files found'
-      _PrintError(msg)
-      raise Exception(msg)
-
-  finally:
-    if tmp_zip_name is not None:
-      os.remove(tmp_zip_name)
-
+        
+  shutil.rmtree(tmp_dir, True)
 
 def _InstallArtifacts(buildout, buildos, extra_artifacts):
   """Install the SDK into the RCP zip files(s).
@@ -1033,10 +1013,18 @@ def _PrintError(text):
   sys.stdout.flush()
   sys.stderr.flush()
 
+# delete the given file - do not re-throw any exceptions that occur
+def _FileDelete(file):
+  try:
+    os.remove(file)
+  except IOError as e:
+    print 'error deleting %s' % file
+
 if __name__ == '__main__':
   exit_code = main()
   print 'exit code = {0}'.format(exit_code)
   sys.exit(exit_code)
+  
 #  scriptdir = os.path.dirname(sys.argv[0])
 #  editorpath = os.path.abspath(os.path.join(scriptdir, '..'))
 #  homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')

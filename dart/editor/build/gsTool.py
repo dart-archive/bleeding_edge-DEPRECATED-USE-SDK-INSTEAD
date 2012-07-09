@@ -209,7 +209,7 @@ def _RemoveElements(gsu, bucket, version_dirs, keepcount):
     version_dirs.sort()
     for gs_dir in version_dirs:
       if count < delete_count:
-        gsu.Remove('{0}/{1}/*'.format(bucket, gs_dir))
+        gsu.RemoveAll('{0}/{1}/*'.format(bucket, gs_dir))
       else:
         print 'version {0}/{1} will be saved'.format(bucket, gs_dir)
       count += 1
