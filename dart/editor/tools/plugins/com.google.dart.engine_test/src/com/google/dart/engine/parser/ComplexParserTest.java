@@ -52,7 +52,8 @@ public class ComplexParserTest extends EngineTestCase {
     //
     // a(b)(c).d(e)
     //
-    FunctionExpressionInvocation invocation2 = assertInstanceOf(FunctionExpressionInvocation.class,
+    FunctionExpressionInvocation invocation2 = assertInstanceOf(
+        FunctionExpressionInvocation.class,
         propertyAccess1.getTarget());
     ArgumentList argumentList2 = invocation2.getArgumentList();
     assertNotNull(argumentList2);
@@ -60,13 +61,15 @@ public class ComplexParserTest extends EngineTestCase {
     //
     // a(b)(c).d
     //
-    PropertyAccess propertyAccess3 = assertInstanceOf(PropertyAccess.class,
+    PropertyAccess propertyAccess3 = assertInstanceOf(
+        PropertyAccess.class,
         invocation2.getFunction());
     assertEquals("d", propertyAccess3.getPropertyName().getIdentifier());
     //
     // a(b)(c)
     //
-    FunctionExpressionInvocation invocation4 = assertInstanceOf(FunctionExpressionInvocation.class,
+    FunctionExpressionInvocation invocation4 = assertInstanceOf(
+        FunctionExpressionInvocation.class,
         propertyAccess3.getTarget());
     ArgumentList argumentList4 = invocation4.getArgumentList();
     assertNotNull(argumentList4);
@@ -74,7 +77,8 @@ public class ComplexParserTest extends EngineTestCase {
     //
     // a(b)
     //
-    FunctionExpressionInvocation invocation5 = assertInstanceOf(FunctionExpressionInvocation.class,
+    FunctionExpressionInvocation invocation5 = assertInstanceOf(
+        FunctionExpressionInvocation.class,
         invocation4.getFunction());
     assertInstanceOf(SimpleIdentifier.class, invocation5.getFunction());
     ArgumentList argumentList5 = invocation4.getArgumentList();

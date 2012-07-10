@@ -414,7 +414,8 @@ public class SimpleParserTest extends EngineTestCase {
   }
 
   public void test_parseClassDeclaration_extendsAndImplements() throws Exception {
-    ClassDeclaration declaration = parse("parseClassDeclaration",
+    ClassDeclaration declaration = parse(
+        "parseClassDeclaration",
         "class A extends B implements C {}");
     assertNull(declaration.getAbstractKeyword());
     assertNotNull(declaration.getExtendsClause());
@@ -468,7 +469,8 @@ public class SimpleParserTest extends EngineTestCase {
   public void test_parseCommentReference_prefixed() throws Exception {
     CommentReference reference = parse("parseCommentReference", new Class[] {
         String.class, int.class}, new Object[] {"a.b", 7}, "");
-    PrefixedIdentifier prefixedIdentifier = assertInstanceOf(PrefixedIdentifier.class,
+    PrefixedIdentifier prefixedIdentifier = assertInstanceOf(
+        PrefixedIdentifier.class,
         reference.getIdentifier());
     SimpleIdentifier prefix = prefixedIdentifier.getPrefix();
     assertNotNull(prefix.getToken());
@@ -484,7 +486,8 @@ public class SimpleParserTest extends EngineTestCase {
   public void test_parseCommentReference_simple() throws Exception {
     CommentReference reference = parse("parseCommentReference", new Class[] {
         String.class, int.class}, new Object[] {"a", 5}, "");
-    SimpleIdentifier identifier = assertInstanceOf(SimpleIdentifier.class,
+    SimpleIdentifier identifier = assertInstanceOf(
+        SimpleIdentifier.class,
         reference.getIdentifier());
     assertNotNull(identifier.getToken());
     assertEquals("a", identifier.getIdentifier());
@@ -492,10 +495,15 @@ public class SimpleParserTest extends EngineTestCase {
   }
 
   public void test_parseCommentReferences_multiLine() throws Exception {
-    Token[] tokens = new Token[] {new StringToken(TokenType.MULTI_LINE_COMMENT,
-        "/** xxx [a] yyy [b] zzz */", 3),};
-    List<CommentReference> references = parse("parseCommentReferences",
-        new Class[] {Token[].class}, new Object[] {tokens}, "");
+    Token[] tokens = new Token[] {new StringToken(
+        TokenType.MULTI_LINE_COMMENT,
+        "/** xxx [a] yyy [b] zzz */",
+        3),};
+    List<CommentReference> references = parse(
+        "parseCommentReferences",
+        new Class[] {Token[].class},
+        new Object[] {tokens},
+        "");
     assertEquals(2, references.size());
     CommentReference reference = references.get(0);
     assertNotNull(reference);
@@ -512,8 +520,11 @@ public class SimpleParserTest extends EngineTestCase {
     Token[] tokens = new Token[] {
         new StringToken(TokenType.SINGLE_LINE_COMMENT, "/// xxx [a] yyy [b] zzz", 3),
         new StringToken(TokenType.SINGLE_LINE_COMMENT, "/// x [c]", 28),};
-    List<CommentReference> references = parse("parseCommentReferences",
-        new Class[] {Token[].class}, new Object[] {tokens}, "");
+    List<CommentReference> references = parse(
+        "parseCommentReferences",
+        new Class[] {Token[].class},
+        new Object[] {tokens},
+        "");
     assertEquals(3, references.size());
     CommentReference reference = references.get(0);
     assertNotNull(reference);
@@ -723,8 +734,11 @@ public class SimpleParserTest extends EngineTestCase {
   }
 
   public void test_parseFinalConstVarOrType_const_noType() throws Exception {
-    Parser.FinalConstVarOrType result = parse("parseFinalConstVarOrType",
-        new Class[] {boolean.class}, new Object[] {false}, "const");
+    Parser.FinalConstVarOrType result = parse(
+        "parseFinalConstVarOrType",
+        new Class[] {boolean.class},
+        new Object[] {false},
+        "const");
     Token keyword = result.getKeyword();
     assertNotNull(keyword);
     assertEquals(TokenType.KEYWORD, keyword.getType());
@@ -733,8 +747,11 @@ public class SimpleParserTest extends EngineTestCase {
   }
 
   public void test_parseFinalConstVarOrType_const_type() throws Exception {
-    Parser.FinalConstVarOrType result = parse("parseFinalConstVarOrType",
-        new Class[] {boolean.class}, new Object[] {false}, "const A a");
+    Parser.FinalConstVarOrType result = parse(
+        "parseFinalConstVarOrType",
+        new Class[] {boolean.class},
+        new Object[] {false},
+        "const A a");
     Token keyword = result.getKeyword();
     assertNotNull(keyword);
     assertEquals(TokenType.KEYWORD, keyword.getType());
@@ -743,8 +760,11 @@ public class SimpleParserTest extends EngineTestCase {
   }
 
   public void test_parseFinalConstVarOrType_final_noType() throws Exception {
-    Parser.FinalConstVarOrType result = parse("parseFinalConstVarOrType",
-        new Class[] {boolean.class}, new Object[] {false}, "final");
+    Parser.FinalConstVarOrType result = parse(
+        "parseFinalConstVarOrType",
+        new Class[] {boolean.class},
+        new Object[] {false},
+        "final");
     Token keyword = result.getKeyword();
     assertNotNull(keyword);
     assertEquals(TokenType.KEYWORD, keyword.getType());
@@ -753,8 +773,11 @@ public class SimpleParserTest extends EngineTestCase {
   }
 
   public void test_parseFinalConstVarOrType_final_type() throws Exception {
-    Parser.FinalConstVarOrType result = parse("parseFinalConstVarOrType",
-        new Class[] {boolean.class}, new Object[] {false}, "final A a");
+    Parser.FinalConstVarOrType result = parse(
+        "parseFinalConstVarOrType",
+        new Class[] {boolean.class},
+        new Object[] {false},
+        "final A a");
     Token keyword = result.getKeyword();
     assertNotNull(keyword);
     assertEquals(TokenType.KEYWORD, keyword.getType());
@@ -763,15 +786,21 @@ public class SimpleParserTest extends EngineTestCase {
   }
 
   public void test_parseFinalConstVarOrType_type() throws Exception {
-    Parser.FinalConstVarOrType result = parse("parseFinalConstVarOrType",
-        new Class[] {boolean.class}, new Object[] {false}, "A a");
+    Parser.FinalConstVarOrType result = parse(
+        "parseFinalConstVarOrType",
+        new Class[] {boolean.class},
+        new Object[] {false},
+        "A a");
     assertNull(result.getKeyword());
     assertNotNull(result.getType());
   }
 
   public void test_parseFinalConstVarOrType_var() throws Exception {
-    Parser.FinalConstVarOrType result = parse("parseFinalConstVarOrType",
-        new Class[] {boolean.class}, new Object[] {false}, "var");
+    Parser.FinalConstVarOrType result = parse(
+        "parseFinalConstVarOrType",
+        new Class[] {boolean.class},
+        new Object[] {false},
+        "var");
     Token keyword = result.getKeyword();
     assertNotNull(keyword);
     assertEquals(TokenType.KEYWORD, keyword.getType());
@@ -845,7 +874,8 @@ public class SimpleParserTest extends EngineTestCase {
   }
 
   public void test_parseFormalParameterList_optional_multiple() throws Exception {
-    FormalParameterList parameterList = parse("parseFormalParameterList",
+    FormalParameterList parameterList = parse(
+        "parseFormalParameterList",
         "([A a = null, B b, C c = null])");
     assertNotNull(parameterList.getLeftParenthesis());
     assertNotNull(parameterList.getLeftBracket());
@@ -987,7 +1017,8 @@ public class SimpleParserTest extends EngineTestCase {
   }
 
   public void test_parseForStatement_loop_iicuu() throws Exception {
-    ForStatement statement = parse("parseForStatement",
+    ForStatement statement = parse(
+        "parseForStatement",
         "for (int i = 0, j = count; i < j; i++, j--) {}");
     assertNotNull(statement.getForKeyword());
     assertNotNull(statement.getLeftParenthesis());
@@ -1127,8 +1158,11 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseImportDirective_export() throws Exception {
     Token hash = new Token(TokenType.HASH, 0);
-    ImportDirective directive = parse("parseImportDirective", new Class[] {Token.class},
-        new Object[] {hash}, "import('lib/lib.dart', export: true);");
+    ImportDirective directive = parse(
+        "parseImportDirective",
+        new Class[] {Token.class},
+        new Object[] {hash},
+        "import('lib/lib.dart', export: true);");
     assertNotNull(directive.getHash());
     assertNotNull(directive.getKeyword());
     assertNotNull(directive.getLeftParenthesis());
@@ -1140,7 +1174,9 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseImportDirective_full() throws Exception {
     Token hash = new Token(TokenType.HASH, 0);
-    ImportDirective directive = parse("parseImportDirective", new Class[] {Token.class},
+    ImportDirective directive = parse(
+        "parseImportDirective",
+        new Class[] {Token.class},
         new Object[] {hash},
         "import('lib/lib.dart', export: true, hide: ['A'], show: ['B'], prefix: 'a');");
     assertNotNull(directive.getHash());
@@ -1154,8 +1190,11 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseImportDirective_hide() throws Exception {
     Token hash = new Token(TokenType.HASH, 0);
-    ImportDirective directive = parse("parseImportDirective", new Class[] {Token.class},
-        new Object[] {hash}, "import('lib/lib.dart', hide: ['A']);");
+    ImportDirective directive = parse(
+        "parseImportDirective",
+        new Class[] {Token.class},
+        new Object[] {hash},
+        "import('lib/lib.dart', hide: ['A']);");
     assertNotNull(directive.getHash());
     assertNotNull(directive.getKeyword());
     assertNotNull(directive.getLeftParenthesis());
@@ -1167,8 +1206,11 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseImportDirective_noCombinator() throws Exception {
     Token hash = new Token(TokenType.HASH, 0);
-    ImportDirective directive = parse("parseImportDirective", new Class[] {Token.class},
-        new Object[] {hash}, "import('lib/lib.dart');");
+    ImportDirective directive = parse(
+        "parseImportDirective",
+        new Class[] {Token.class},
+        new Object[] {hash},
+        "import('lib/lib.dart');");
     assertNotNull(directive.getHash());
     assertNotNull(directive.getKeyword());
     assertNotNull(directive.getLeftParenthesis());
@@ -1180,8 +1222,11 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseImportDirective_prefix() throws Exception {
     Token hash = new Token(TokenType.HASH, 0);
-    ImportDirective directive = parse("parseImportDirective", new Class[] {Token.class},
-        new Object[] {hash}, "import('lib/lib.dart', prefix: 'a');");
+    ImportDirective directive = parse(
+        "parseImportDirective",
+        new Class[] {Token.class},
+        new Object[] {hash},
+        "import('lib/lib.dart', prefix: 'a');");
     assertNotNull(directive.getHash());
     assertNotNull(directive.getKeyword());
     assertNotNull(directive.getLeftParenthesis());
@@ -1193,8 +1238,11 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseImportDirective_show() throws Exception {
     Token hash = new Token(TokenType.HASH, 0);
-    ImportDirective directive = parse("parseImportDirective", new Class[] {Token.class},
-        new Object[] {hash}, "import('lib/lib.dart', show: ['A']);");
+    ImportDirective directive = parse(
+        "parseImportDirective",
+        new Class[] {Token.class},
+        new Object[] {hash},
+        "import('lib/lib.dart', show: ['A']);");
     assertNotNull(directive.getHash());
     assertNotNull(directive.getKeyword());
     assertNotNull(directive.getLeftParenthesis());
@@ -1206,8 +1254,11 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseInstanceCreationExpression() throws Exception {
     Token token = new KeywordToken(Keyword.NEW, 0);
-    InstanceCreationExpression expression = parse("parseInstanceCreationExpression",
-        new Class[] {Token.class}, new Object[] {token}, "A()");
+    InstanceCreationExpression expression = parse(
+        "parseInstanceCreationExpression",
+        new Class[] {Token.class},
+        new Object[] {token},
+        "A()");
     assertNotNull(expression.getArgumentList());
     assertNull(expression.getIdentifier());
     assertEquals(token, expression.getKeyword());
@@ -1216,8 +1267,11 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseLibraryDirective() throws Exception {
     Token hash = new Token(TokenType.HASH, 0);
-    LibraryDirective directive = parse("parseLibraryDirective", new Class[] {Token.class},
-        new Object[] {hash}, "library('lib');");
+    LibraryDirective directive = parse(
+        "parseLibraryDirective",
+        new Class[] {Token.class},
+        new Object[] {hash},
+        "library('lib');");
     assertNotNull(directive.getHash());
     assertNotNull(directive.getKeyword());
     assertNotNull(directive.getLeftParenthesis());
@@ -1283,8 +1337,10 @@ public class SimpleParserTest extends EngineTestCase {
   public void test_parseMapLiteral_empty() throws Exception {
     Token token = new KeywordToken(Keyword.CONST, 0);
     TypeArgumentList typeArguments = new TypeArgumentList(null, null, null);
-    MapLiteral literal = parse("parseMapLiteral",
-        new Class[] {Token.class, TypeArgumentList.class}, new Object[] {token, typeArguments},
+    MapLiteral literal = parse(
+        "parseMapLiteral",
+        new Class[] {Token.class, TypeArgumentList.class},
+        new Object[] {token, typeArguments},
         "{}");
     assertEquals(token, literal.getModifier());
     assertEquals(typeArguments, literal.getTypeArguments());
@@ -1296,8 +1352,10 @@ public class SimpleParserTest extends EngineTestCase {
   }
 
   public void test_parseMapLiteral_multiple() throws Exception {
-    MapLiteral literal = parse("parseMapLiteral",
-        new Class[] {Token.class, TypeArgumentList.class}, new Object[] {null, null},
+    MapLiteral literal = parse(
+        "parseMapLiteral",
+        new Class[] {Token.class, TypeArgumentList.class},
+        new Object[] {null, null},
         "{'a' : b, 'x' : y}");
     assertNotNull(literal.getLeftBracket());
     NodeList<MapLiteralEntry> entries = literal.getEntries();
@@ -1307,8 +1365,11 @@ public class SimpleParserTest extends EngineTestCase {
   }
 
   public void test_parseMapLiteral_single() throws Exception {
-    MapLiteral literal = parse("parseMapLiteral",
-        new Class[] {Token.class, TypeArgumentList.class}, new Object[] {null, null}, "{'x' : y}");
+    MapLiteral literal = parse(
+        "parseMapLiteral",
+        new Class[] {Token.class, TypeArgumentList.class},
+        new Object[] {null, null},
+        "{'x' : y}");
     assertNotNull(literal.getLeftBracket());
     NodeList<MapLiteralEntry> entries = literal.getEntries();
     assertNotNull(entries);
@@ -1468,8 +1529,11 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseResourceDirective() throws Exception {
     Token hash = new Token(TokenType.HASH, 0);
-    ResourceDirective directive = parse("parseResourceDirective", new Class[] {Token.class},
-        new Object[] {hash}, "resource('lib/lib.dart');");
+    ResourceDirective directive = parse(
+        "parseResourceDirective",
+        new Class[] {Token.class},
+        new Object[] {hash},
+        "resource('lib/lib.dart');");
     assertNotNull(directive.getHash());
     assertNotNull(directive.getKeyword());
     assertNotNull(directive.getLeftParenthesis());
@@ -1544,8 +1608,11 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseSourceDirective() throws Exception {
     Token hash = new Token(TokenType.HASH, 0);
-    SourceDirective directive = parse("parseSourceDirective", new Class[] {Token.class},
-        new Object[] {hash}, "source('lib/lib.dart');");
+    SourceDirective directive = parse(
+        "parseSourceDirective",
+        new Class[] {Token.class},
+        new Object[] {hash},
+        "source('lib/lib.dart');");
     assertNotNull(directive.getHash());
     assertNotNull(directive.getKeyword());
     assertNotNull(directive.getLeftParenthesis());
@@ -1680,7 +1747,8 @@ public class SimpleParserTest extends EngineTestCase {
   }
 
   public void test_parseTryStatement_multiple() throws Exception {
-    TryStatement statement = parse("parseTryStatement",
+    TryStatement statement = parse(
+        "parseTryStatement",
         "try {} on NPE catch (e) {} on Error {} catch (e) {}");
     assertNotNull(statement.getTryKeyword());
     assertNotNull(statement.getBody());
@@ -1730,7 +1798,8 @@ public class SimpleParserTest extends EngineTestCase {
   }
 
   public void test_parseTryStatement_on_catch_finally() throws Exception {
-    TryStatement statement = parse("parseTryStatement",
+    TryStatement statement = parse(
+        "parseTryStatement",
         "try {} on Error catch (e, s) {} finally {}");
     assertNotNull(statement.getTryKeyword());
     assertNotNull(statement.getBody());
@@ -1911,16 +1980,22 @@ public class SimpleParserTest extends EngineTestCase {
   }
 
   public void test_parseVariableDeclaration_equals() throws Exception {
-    VariableDeclaration declaration = parse("parseVariableDeclaration",
-        new Class[] {Comment.class}, new Object[] {null}, "a = b");
+    VariableDeclaration declaration = parse(
+        "parseVariableDeclaration",
+        new Class[] {Comment.class},
+        new Object[] {null},
+        "a = b");
     assertNotNull(declaration.getName());
     assertNotNull(declaration.getEquals());
     assertNotNull(declaration.getInitializer());
   }
 
   public void test_parseVariableDeclaration_noEquals() throws Exception {
-    VariableDeclaration declaration = parse("parseVariableDeclaration",
-        new Class[] {Comment.class}, new Object[] {null}, "a");
+    VariableDeclaration declaration = parse(
+        "parseVariableDeclaration",
+        new Class[] {Comment.class},
+        new Object[] {null},
+        "a");
     assertNotNull(declaration.getName());
     assertNull(declaration.getEquals());
     assertNull(declaration.getInitializer());
@@ -1990,7 +2065,8 @@ public class SimpleParserTest extends EngineTestCase {
   }
 
   public void test_parseVariableDeclarationStatement_multiple() throws Exception {
-    VariableDeclarationStatement statement = parse("parseVariableDeclarationStatement",
+    VariableDeclarationStatement statement = parse(
+        "parseVariableDeclarationStatement",
         "var x, y, z;");
     assertNotNull(statement.getSemicolon());
     VariableDeclarationList variableList = statement.getVariables();

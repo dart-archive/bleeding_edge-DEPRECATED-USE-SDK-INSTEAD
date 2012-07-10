@@ -872,8 +872,17 @@ public class Parser {
       members.add(parseClassMember());
     }
     Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
-    return new ClassDeclaration(comment, abstractKeyword, keyword, name, typeParameters,
-        extendsClause, implementsClause, leftBracket, members, rightBracket);
+    return new ClassDeclaration(
+        comment,
+        abstractKeyword,
+        keyword,
+        name,
+        typeParameters,
+        extendsClause,
+        implementsClause,
+        leftBracket,
+        members,
+        rightBracket);
   }
 
   /**
@@ -991,7 +1000,9 @@ public class Parser {
             && thirdToken.getType() == TokenType.IDENTIFIER) {
           secondToken.setOffset(secondToken.getOffset() + sourceOffset);
           thirdToken.setOffset(thirdToken.getOffset() + sourceOffset);
-          identifier = new PrefixedIdentifier(new SimpleIdentifier(firstToken), secondToken,
+          identifier = new PrefixedIdentifier(
+              new SimpleIdentifier(firstToken),
+              secondToken,
               new SimpleIdentifier(thirdToken));
           nextToken = thirdToken.getNext();
         } else {
@@ -1024,7 +1035,8 @@ public class Parser {
         int rightIndex = comment.indexOf(']', leftIndex);
         if (rightIndex >= 0) {
           CommentReference reference = parseCommentReference(
-              comment.substring(leftIndex + 1, rightIndex), token.getOffset() + leftIndex + 1);
+              comment.substring(leftIndex + 1, rightIndex),
+              token.getOffset() + leftIndex + 1);
           if (reference != null) {
             references.add(reference);
           }
@@ -1272,8 +1284,14 @@ public class Parser {
     Expression condition = parseExpression();
     Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new DoStatement(doKeyword, body, whileKeyword, leftParenthesis, condition,
-        rightParenthesis, semicolon);
+    return new DoStatement(
+        doKeyword,
+        body,
+        whileKeyword,
+        leftParenthesis,
+        condition,
+        rightParenthesis,
+        semicolon);
   }
 
   /**
@@ -1456,8 +1474,16 @@ public class Parser {
     Token colon = null;
     List<ConstructorInitializer> initializers = new ArrayList<ConstructorInitializer>();
     FunctionBody body = parseFunctionBody(true, false);
-    return new ConstructorDeclaration(comment, keyword, returnType, period, name, parameters,
-        colon, initializers, body);
+    return new ConstructorDeclaration(
+        comment,
+        keyword,
+        returnType,
+        period,
+        name,
+        parameters,
+        colon,
+        initializers,
+        body);
   }
 
   /**
@@ -1568,7 +1594,11 @@ public class Parser {
     } while (optional(TokenType.COMMA));
     Token rightBracket = leftBracket == null ? null : expect(TokenType.CLOSE_SQUARE_BRACKET);
     Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
-    return new FormalParameterList(leftParenthesis, parameters, leftBracket, rightBracket,
+    return new FormalParameterList(
+        leftParenthesis,
+        parameters,
+        leftBracket,
+        rightBracket,
         rightParenthesis);
   }
 
@@ -1613,14 +1643,22 @@ public class Parser {
         if (variable.getInitializer() != null) {
           // reportError(ParserErrorCode.?);
         }
-        SimpleFormalParameter loopParameter = new SimpleFormalParameter(variableList.getKeyword(),
-            variableList.getType(), variable.getName());
+        SimpleFormalParameter loopParameter = new SimpleFormalParameter(
+            variableList.getKeyword(),
+            variableList.getType(),
+            variable.getName());
         Token inKeyword = expect(Keyword.IN);
         Expression iterator = parseExpression();
         Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
         Statement body = parseStatement();
-        return new ForEachStatement(forKeyword, leftParenthesis, loopParameter, inKeyword,
-            iterator, rightParenthesis, body);
+        return new ForEachStatement(
+            forKeyword,
+            leftParenthesis,
+            loopParameter,
+            inKeyword,
+            iterator,
+            rightParenthesis,
+            body);
       }
       // Ensure that the loop parameter is not final.
       // reportError(ParserErrorCode.?);
@@ -1637,8 +1675,17 @@ public class Parser {
     }
     Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
     Statement body = parseStatement();
-    return new ForStatement(forKeyword, leftParenthesis, variableList, initialization,
-        leftSeparator, condition, rightSeparator, updaters, rightParenthesis, body);
+    return new ForStatement(
+        forKeyword,
+        leftParenthesis,
+        variableList,
+        initialization,
+        leftSeparator,
+        condition,
+        rightSeparator,
+        updaters,
+        rightParenthesis,
+        body);
   }
 
   /**
@@ -1753,8 +1800,14 @@ public class Parser {
       elseKeyword = getAndAdvance();
       elseStatement = parseStatement();
     }
-    return new IfStatement(ifKeyword, leftParenthesis, condition, rightParenthesis, thenStatement,
-        elseKeyword, elseStatement);
+    return new IfStatement(
+        ifKeyword,
+        leftParenthesis,
+        condition,
+        rightParenthesis,
+        thenStatement,
+        elseKeyword,
+        elseStatement);
   }
 
   /**
@@ -1852,8 +1905,14 @@ public class Parser {
     // reportError(ParserErrorCode.?));
     Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new ImportDirective(hash, keyword, leftParenthesis, libraryUri, combinators,
-        rightParenthesis, semicolon);
+    return new ImportDirective(
+        hash,
+        keyword,
+        leftParenthesis,
+        libraryUri,
+        combinators,
+        rightParenthesis,
+        semicolon);
   }
 
   /**
@@ -1896,7 +1955,12 @@ public class Parser {
     StringLiteral libraryName = parseStringLiteral();
     Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new LibraryDirective(hash, keyword, leftParenthesis, libraryName, rightParenthesis,
+    return new LibraryDirective(
+        hash,
+        keyword,
+        leftParenthesis,
+        libraryName,
+        rightParenthesis,
         semicolon);
   }
 
@@ -2180,13 +2244,20 @@ public class Parser {
         // reportError(ParserErrorCode.?);
       }
       FormalParameterList parameters = parseFormalParameterList();
-      return new FunctionTypedFormalParameter(holder.getKeyword(), holder.getType(), identifier,
+      return new FunctionTypedFormalParameter(
+          holder.getKeyword(),
+          holder.getType(),
+          identifier,
           parameters);
     }
     // Validate that the type is not void because this is not a function signature.
     // reportError(ParserErrorCode.?));
     if (thisKeyword != null) {
-      return new FieldFormalParameter(holder.getKeyword(), holder.getType(), thisKeyword, period,
+      return new FieldFormalParameter(
+          holder.getKeyword(),
+          holder.getType(),
+          thisKeyword,
+          period,
           identifier);
     }
     return new SimpleFormalParameter(holder.getKeyword(), holder.getType(), identifier);
@@ -2362,7 +2433,12 @@ public class Parser {
     StringLiteral resourceUri = parseStringLiteral();
     Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new ResourceDirective(hash, keyword, leftParenthesis, resourceUri, rightParenthesis,
+    return new ResourceDirective(
+        hash,
+        keyword,
+        leftParenthesis,
+        resourceUri,
+        rightParenthesis,
         semicolon);
   }
 
@@ -2495,7 +2571,12 @@ public class Parser {
     StringLiteral sourceUri = parseStringLiteral();
     Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new SourceDirective(hash, keyword, leftParenthesis, sourceUri, rightParenthesis,
+    return new SourceDirective(
+        hash,
+        keyword,
+        leftParenthesis,
+        sourceUri,
+        rightParenthesis,
         semicolon);
   }
 
@@ -2646,8 +2727,14 @@ public class Parser {
       }
     }
     Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
-    return new SwitchStatement(keyword, leftParenthesis, expression, rightParenthesis, leftBracket,
-        members, rightBracket);
+    return new SwitchStatement(
+        keyword,
+        leftParenthesis,
+        expression,
+        rightParenthesis,
+        leftBracket,
+        members,
+        rightBracket);
   }
 
   /**
@@ -2734,8 +2821,16 @@ public class Parser {
         rightParenthesis = expect(TokenType.CLOSE_PAREN);
       }
       Block catchBody = parseBlock();
-      catchClauses.add(new CatchClause(onKeyword, exceptionType, catchKeyword, leftParenthesis,
-          exceptionParameter, comma, stackTraceParameter, rightParenthesis, catchBody));
+      catchClauses.add(new CatchClause(
+          onKeyword,
+          exceptionType,
+          catchKeyword,
+          leftParenthesis,
+          exceptionParameter,
+          comma,
+          stackTraceParameter,
+          rightParenthesis,
+          catchBody));
     }
     Token finallyKeyword = null;
     if (matches(Keyword.FINALLY)) {
@@ -2908,7 +3003,8 @@ public class Parser {
           secondOperator.setNext(currentToken);
           firstOperator.setNext(secondOperator);
           operator.getPrevious().setNext(firstOperator);
-          return new PrefixExpression(firstOperator, new PrefixExpression(secondOperator,
+          return new PrefixExpression(firstOperator, new PrefixExpression(
+              secondOperator,
               new SuperExpression(getAndAdvance())));
         } else {
           // Invalid operator before 'super'
@@ -2940,7 +3036,10 @@ public class Parser {
       equals = getAndAdvance();
       initializer = parseExpression();
     }
-    return new VariableDeclaration(localComment == null ? comment : localComment, name, equals,
+    return new VariableDeclaration(
+        localComment == null ? comment : localComment,
+        name,
+        equals,
         initializer);
   }
 
@@ -3084,7 +3183,8 @@ public class Parser {
         // reportError(ParserErrorCode.?));
       } else {
         builder.append((char) ((Character.digit(firstDigit, 16) << 4) + Character.digit(
-            secondDigit, 16)));
+            secondDigit,
+            16)));
       }
       return currentIndex + 3;
     } else if (currentChar == 'u') {
@@ -3146,9 +3246,13 @@ public class Parser {
           // Illegal escape sequence: invalid hex digits
           // reportError(ParserErrorCode.?));
         } else {
-          appendScalarValue(builder, ((((((Character.digit(firstDigit, 16) << 4) + Character.digit(
-              secondDigit, 16)) << 4) + Character.digit(thirdDigit, 16)) << 4) + Character.digit(
-              fourthDigit, 16)), index, currentIndex + 3);
+          appendScalarValue(
+              builder,
+              ((((((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)) << 4) + Character.digit(
+                  thirdDigit,
+                  16)) << 4) + Character.digit(fourthDigit, 16)),
+              index,
+              currentIndex + 3);
         }
         return currentIndex + 4;
       }
