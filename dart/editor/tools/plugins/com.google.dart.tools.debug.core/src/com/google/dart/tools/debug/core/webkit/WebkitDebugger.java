@@ -407,10 +407,10 @@ public class WebkitDebugger extends WebkitDomain {
    * @param urlRegex Regex pattern for the URLs of the resources to set breakpoints on. Either url
    *          or urlRegex must be specified.
    * @param line line number to set breakpoint at
-   * @param callback
+   * @param callback the breakpointId of the created breakpoint
    */
   public void setBreakpointByUrl(String url, String urlRegex, int line,
-      final WebkitCallback<WebkitBreakpoint> callback) throws IOException {
+      final WebkitCallback<String> callback) throws IOException {
     try {
       JSONObject params = new JSONObject();
 
@@ -435,7 +435,19 @@ public class WebkitDebugger extends WebkitDomain {
         connection.sendRequest(request, new Callback() {
           @Override
           public void handleResult(JSONObject result) throws JSONException {
-            callback.handleResult(convertSetBreakpointByUrlResult(result));
+            List<WebkitBreakpoint> resolvedBreakpoints = new ArrayList<WebkitBreakpoint>();
+
+            callback.handleResult(convertSetBreakpointByUrlResult(result, resolvedBreakpoints));
+
+            // This will resolve immediately if the script is loaded in the browser. Otherwise the 
+            // breakpoint info will be sent to us using the breakpoint resolved notification.
+            if (resolvedBreakpoints.size() > 0) {
+              WebkitBreakpoint bp = resolvedBreakpoints.get(0);
+
+              for (DebuggerListener listener : listeners) {
+                listener.debuggerBreakpointResolved(bp);
+              }
+            }
           }
         });
       }
@@ -641,28 +653,31 @@ public class WebkitDebugger extends WebkitDomain {
     return result;
   }
 
-  private WebkitResult<WebkitBreakpoint> convertSetBreakpointByUrlResult(JSONObject object)
-      throws JSONException {
+  private WebkitResult<String> convertSetBreakpointByUrlResult(JSONObject object,
+      List<WebkitBreakpoint> resolvedBreakpoints) throws JSONException {
     // "result":{
     //   "locations":[{"lineNumber":9,"scriptId":"-1","columnNumber":0}],
     //   "breakpointId":"http://0.0.0.0:3030/webapp/webapp.dart:9:0"
     // }
 
-    WebkitResult<WebkitBreakpoint> result = WebkitResult.createFrom(object);
+    WebkitResult<String> result = WebkitResult.createFrom(object);
 
     if (object.has("result")) {
       JSONObject temp = object.getJSONObject("result");
+
+      String breakpointId = temp.optString("breakpointId");
+
+      result.setResult(breakpointId);
 
       if (temp.has("locations")) {
         JSONArray arr = temp.getJSONArray("locations");
 
         if (arr.length() > 0) {
-          String breakpointId = JsonUtils.getString(temp, "breakpointId");
           WebkitLocation location = WebkitLocation.createFrom(arr.getJSONObject(0));
 
           WebkitBreakpoint breakpoint = WebkitBreakpoint.createFrom(breakpointId, location);
 
-          result.setResult(breakpoint);
+          resolvedBreakpoints.add(breakpoint);
         }
       }
     }
