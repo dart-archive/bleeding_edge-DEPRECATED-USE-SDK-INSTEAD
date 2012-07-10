@@ -420,6 +420,19 @@ public class CompletionEngineTest extends TestCase {
     test(source, "1+x", "1+x[]");
   }
 
+  public void testCommentSnippets061() throws Exception {
+    test(
+        "class A{m(){!1f(3);!2}}n(){!3f(3);!4}f(x)=>x*3;",
+        "1+f",
+        "1+n",
+        "2+f",
+        "2+n",
+        "3+f",
+        "3+n",
+        "4+f",
+        "4+n");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test

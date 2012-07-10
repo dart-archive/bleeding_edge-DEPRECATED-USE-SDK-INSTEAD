@@ -227,9 +227,6 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
   @Override
   public Void visitUnit(DartUnit unit) {
     for (DartNode node : unit.getTopLevelNodes()) {
-      if (node == immediateChild) {
-        continue;
-      }
       if (node instanceof DartFieldDefinition) {
         DartFieldDefinition field = (DartFieldDefinition) node;
         addToScope(field);
@@ -248,9 +245,11 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
   }
 
   private void addToScope(DartFieldDefinition fieldDef) {
+    boolean notTopLevel = fieldDef.getParent() != null
+        && !(fieldDef.getParent() instanceof DartUnit);
     for (DartField field : fieldDef.getFields()) {
       DartIdentifier name = field.getName();
-      if (!isInRange(name)) {
+      if (notTopLevel && !isInRange(name)) {
         continue;
       }
       String nameString = name.getName();
@@ -262,7 +261,8 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
   }
 
   private void addToScope(DartMethodDefinition method) {
-    if (!isInRange(method.getName())) {
+    boolean notTopLevel = method.getParent() != null && !(method.getParent() instanceof DartUnit);
+    if (notTopLevel && !isInRange(method.getName())) {
       return;
     }
     String name = method.getElement().getName();

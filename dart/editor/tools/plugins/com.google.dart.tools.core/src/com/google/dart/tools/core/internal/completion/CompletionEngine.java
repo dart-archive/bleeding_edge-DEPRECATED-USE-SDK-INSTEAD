@@ -64,6 +64,7 @@ import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.FieldNodeElement;
 import com.google.dart.compiler.resolver.FunctionAliasElement;
 import com.google.dart.compiler.resolver.LibraryElement;
+import com.google.dart.compiler.resolver.LibraryPrefixElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.MethodNodeElement;
 import com.google.dart.compiler.resolver.NodeElement;
@@ -211,24 +212,6 @@ public class CompletionEngine {
 
     private IdentifierCompletionProposer(DartIdentifier node) {
       this.identifier = node;
-    }
-
-    private void proposeIdentifierPrefixCompletions(DartNode node) {
-      // Complete an unqualified identifier prefix.
-      // We know there is a prefix, otherwise the parser would not produce a DartIdentifier.
-      // TODO Determine if statics are being handled properly
-      boolean isStatic = resolvedMember.getModifiers().isStatic();
-      createCompletionsForLocalVariables(identifier, identifier, resolvedMember);
-      Element parentElement = resolvedMember.getElement().getEnclosingElement();
-      if (parentElement instanceof ClassElement) {
-        Type type = ((ClassElement) parentElement).getType();
-        createCompletionsForPropertyAccess(identifier, type, false, false, isStatic);
-        createCompletionsForMethodInvocation(identifier, type, false, false, isStatic);
-        proposeTypesForPrefix(identifier, false);
-      } else {
-        // TODO top-level element
-        proposeTypesForPrefix(identifier, false);
-      }
     }
 
     @Override
@@ -475,7 +458,7 @@ public class CompletionEngine {
         TypeCompleter typeCompleter = (TypeCompleter) completionNode;
         Stack<Mark> s = typeCompleter.getCompletionParsingContext();
         if (s.size() < 2) {
-          throw new IllegalArgumentException(); // TODO Clean up: this should never happen
+          throw new IllegalArgumentException(); // this should never happen
         }
         if (s.peek() == Mark.ConstructorName) {
           // { new x! }
@@ -578,6 +561,24 @@ public class CompletionEngine {
       }
       return null;
     }
+
+    private void proposeIdentifierPrefixCompletions(DartNode node) {
+      // Complete an unqualified identifier prefix.
+      // We know there is a prefix, otherwise the parser would not produce a DartIdentifier.
+      // TODO Determine if statics are being handled properly
+      boolean isStatic = resolvedMember.getModifiers().isStatic();
+      createCompletionsForLocalVariables(identifier, identifier, resolvedMember);
+      Element parentElement = resolvedMember.getElement().getEnclosingElement();
+      if (parentElement instanceof ClassElement) {
+        Type type = ((ClassElement) parentElement).getType();
+        createCompletionsForPropertyAccess(identifier, type, false, false, isStatic);
+        createCompletionsForMethodInvocation(identifier, type, false, false, isStatic);
+        proposeTypesForPrefix(identifier, false);
+      } else {
+        // TODO top-level element
+        proposeTypesForPrefix(identifier, false);
+      }
+    }
   }
 
   /**
@@ -594,12 +595,6 @@ public class CompletionEngine {
       this.mustIncludeStatics = mustIncludeStatics;
     }
 
-    private void add(NodeElement element) {
-      if (filter(element.getName())) {
-        elements.add(element);
-      }
-    }
-
     @Override
     public void element(FieldNodeElement element) {
       if (mustIncludeStatics || !element.isStatic()) {
@@ -614,16 +609,22 @@ public class CompletionEngine {
       }
     }
 
+    public Set<Element> getElements() {
+      return elements;
+    }
+
+    private void add(NodeElement element) {
+      if (filter(element.getName())) {
+        elements.add(element);
+      }
+    }
+
     private boolean filter(String name) {
       if (prefix == null) {
         return true;
       } else {
         return name.startsWith(prefix);
       }
-    }
-
-    public Set<Element> getElements() {
-      return elements;
     }
   }
 
@@ -760,6 +761,8 @@ public class CompletionEngine {
       DartExpression expr = node.getExpression();
       if (expr instanceof DartNewExpression) {
         expr.accept(this);
+      } else {
+        proposeIdentifierPrefixCompletions(node);
       }
       return null;
     }
@@ -874,9 +877,18 @@ public class CompletionEngine {
             functionName = null;
           }
           // { foo.! doFoo(); }
-          Type type = analyzeType(completionNode.getTarget());
-          if (type != null) {
-            createCompletionsForQualifiedMemberAccess(functionName, type, false, false);
+          DartExpression expr = completionNode.getTarget();
+          if (expr.getElement().getKind() == ElementKind.LIBRARY_PREFIX
+              && expr instanceof DartIdentifier) {
+            DartIdentifier ident = (DartIdentifier) expr;
+            for (LibraryElement lib : ((LibraryPrefixElement) expr.getElement()).getLibraries()) {
+              createCompletionsForLibraryPrefix(ident, lib);
+            }
+          } else {
+            Type type = analyzeType(completionNode.getTarget());
+            if (type != null) {
+              createCompletionsForQualifiedMemberAccess(functionName, type, false, false);
+            }
           }
         } else {
           // { methodWithCallback(!) }
@@ -1120,10 +1132,7 @@ public class CompletionEngine {
 
     @Override
     public Void visitVariable(DartVariable node) {
-      if (source.charAt(actualCompletionPosition) == '=') {
-        // { num y =! } Note: no space after equals
-        proposeVariables(completionNode, null, resolvedMember);
-      }
+      proposeIdentifierPrefixCompletions(node);
       return null;
     }
 
@@ -1143,6 +1152,22 @@ public class CompletionEngine {
       }
       return null;
     }
+
+    private void proposeIdentifierPrefixCompletions(DartNode node) {
+      // TODO unify with similar method in identifier visitor
+      boolean isStatic = resolvedMember.getModifiers().isStatic();
+      createCompletionsForLocalVariables(node, null, resolvedMember);
+      Element parentElement = resolvedMember.getElement().getEnclosingElement();
+      if (parentElement instanceof ClassElement) {
+        Type type = ((ClassElement) parentElement).getType();
+        createCompletionsForPropertyAccess(null, type, false, false, isStatic);
+        createCompletionsForMethodInvocation(null, type, false, false, isStatic);
+        proposeTypesForPrefix(null, false);
+      } else {
+        // TODO top-level element
+        proposeTypesForPrefix(null, false);
+      }
+    }
   }
 
   @SuppressWarnings("unused")
@@ -1158,6 +1183,14 @@ public class CompletionEngine {
     }
   }
 
+  public static char[][] createDefaultParameterNames(int length) {
+    char[][] names = new char[length][];
+    for (int i = 0; i < length; i++) {
+      names[i] = ("p" + (i + 1)).toCharArray();
+    }
+    return names;
+  }
+
   static private int countPositionalParameters(List<VariableElement> params) {
     int posParamCount = 0;
     for (VariableElement elem : params) {
@@ -1167,14 +1200,6 @@ public class CompletionEngine {
       posParamCount++;
     }
     return posParamCount;
-  }
-
-  public static char[][] createDefaultParameterNames(int length) {
-    char[][] names = new char[length][];
-    for (int i = 0; i < length; i++) {
-      names[i] = ("p" + (i + 1)).toCharArray();
-    }
-    return names;
   }
 
   static private Set<Element> findAllElements(LibraryUnit library, String prefix,
@@ -1373,20 +1398,6 @@ public class CompletionEngine {
     }
   }
 
-  private Type analyzeType(DartNode target) {
-    Type type = target.getType();
-    if (type != null) {
-      return type;
-    }
-    return Types.newDynamicType();
-  }
-
-  private void checkCancel() {
-    if (monitor != null && monitor.isCanceled()) {
-      throw new OperationCanceledException();
-    }
-  }
-
   public void complete(CompilationUnit sourceUnit, int completionPosition, int pos)
       throws DartModelException {
     if (metrics != null) {
@@ -1532,6 +1543,44 @@ public class CompletionEngine {
     requestor.acceptContext(new InternalCompletionContext());
     resolvedNode.accept(new OuterCompletionProposer(resolvedNode));
     requestor.endReporting();
+  }
+
+  public CompletionEnvironment getEnvironment() {
+    return environment;
+  }
+
+  public IProgressMonitor getMonitor() {
+    return monitor;
+  }
+
+  public WorkingCopyOwner getOwner() {
+    return owner;
+  }
+
+  public DartProject getProject() {
+    return project;
+  }
+
+  public CompletionRequestor getRequestor() {
+    return requestor;
+  }
+
+  public HashMap<Object, Object> getTypeCache() {
+    return typeCache;
+  }
+
+  private Type analyzeType(DartNode target) {
+    Type type = target.getType();
+    if (type != null) {
+      return type;
+    }
+    return Types.newDynamicType();
+  }
+
+  private void checkCancel() {
+    if (monitor != null && monitor.isCanceled()) {
+      throw new OperationCanceledException();
+    }
   }
 
   private void createCompletionForIndexer(FieldElement field, boolean includeDeclaration,
@@ -1833,7 +1882,7 @@ public class CompletionEngine {
       if (prefix != null && !name.startsWith(prefix)) {
         continue;
       }
-      // TODO Filtering: No operators appear following '.'; only operators if no '.'
+      // No operators appear following '.'; only operators if no '.'
       boolean isOperator = elem.getModifiers().isOperator();
       if (isCompletionAfterDot && isOperator) {
         continue;
@@ -2338,30 +2387,6 @@ public class CompletionEngine {
   private CompilationUnit getCurrentCompilationUnit() {
     // This is actually useful -- type search does not find local defs
     return currentCompilationUnit;
-  }
-
-  public CompletionEnvironment getEnvironment() {
-    return environment;
-  }
-
-  public IProgressMonitor getMonitor() {
-    return monitor;
-  }
-
-  public WorkingCopyOwner getOwner() {
-    return owner;
-  }
-
-  public DartProject getProject() {
-    return project;
-  }
-
-  public CompletionRequestor getRequestor() {
-    return requestor;
-  }
-
-  public HashMap<Object, Object> getTypeCache() {
-    return typeCache;
   }
 
   private boolean isCompletionNode(DartNode node) {
