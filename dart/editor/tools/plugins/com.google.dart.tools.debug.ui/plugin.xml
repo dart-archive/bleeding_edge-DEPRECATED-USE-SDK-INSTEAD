@@ -560,15 +560,6 @@
             class="com.google.dart.tools.debug.ui.internal.DefaultDebugUIHelper">
       </helper>
    </extension>
-   
-   <extension
-         point="org.eclipse.ui.preferencePages">
-      <page
-            name="%debugPrefPageName"
-            class="com.google.dart.tools.debug.ui.internal.preferences.DebugPreferencePage"
-            id="com.google.dart.tools.debug.debugPreferencePage">
-      </page>
-   </extension>
 
    <!-- exception on breakpoint annotation -->
    

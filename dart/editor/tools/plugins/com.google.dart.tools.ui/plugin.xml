@@ -695,30 +695,6 @@
             targetId="com.google.dart.tools.ui.dartCode">
       </hyperlinkDetector>
    </extension>
-
-   <extension
-         point="org.eclipse.ui.preferencePages">
-      <page
-            name="%analysisPrefName"
-            class="com.google.dart.tools.ui.internal.preferences.DartAnalysisPreferencePage"
-            id="com.google.dart.tools.ui.preferences.DartAnalysisPreferencePage">
-      </page>
-      <page
-            name="%dartPrefName"
-            class="com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage"
-            id="com.google.dart.tools.ui.preferences.DartBasePreferencePage">
-      </page>
-      <page
-            class="com.google.dart.tools.ui.internal.preferences.FontPreferencePage"
-            id="com.google.dart.tools.ui.fontOptionsPage"
-            name="%dartFontsPrefName">
-      </page>
-      <page
-            name="%dartKeysPrefName"
-            class="com.google.dart.tools.ui.internal.preferences.DartKeyBindingPreferencePage"
-            id="com.google.dart.tools.ui.preferences.DartKeyBindingPreferencePage">
-      </page>
-   </extension>
    
    <extension
          point="org.eclipse.ui.keywords">
