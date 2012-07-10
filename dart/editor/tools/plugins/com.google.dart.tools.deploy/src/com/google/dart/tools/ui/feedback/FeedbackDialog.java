@@ -27,6 +27,8 @@ import org.eclipse.jface.operation.ModalContext;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.wizard.ProgressMonitorPart;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -47,7 +49,7 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * A dialog to collect user feedback.
  */
-public class FeedbackDialog extends Dialog implements IRunnableContext {
+public class FeedbackDialog extends Dialog implements IRunnableContext, DisposeListener {
 
   /**
    * Key used to retrieve stored settings from the activator's cache.
@@ -72,13 +74,17 @@ public class FeedbackDialog extends Dialog implements IRunnableContext {
   private FeedbackReport feedbackReport = new FeedbackReport();
 
   /**
+   * Feedback image, cached for proper disposal.
+   */
+  private Image feedbackImage;
+
+  /**
    * Create the feedback dialog.
    * 
    * @param parentShell
    */
   public FeedbackDialog(Shell parentShell) {
     super(parentShell);
-
   }
 
   @Override
@@ -86,6 +92,13 @@ public class FeedbackDialog extends Dialog implements IRunnableContext {
       throws InvocationTargetException, InterruptedException {
     progressMonitorPart.getParent().setVisible(true);
     ModalContext.run(runnable, fork, progressMonitorPart, getShell().getDisplay());
+  }
+
+  @Override
+  public void widgetDisposed(DisposeEvent e) {
+    if (feedbackImage != null) {
+      feedbackImage.dispose();
+    }
   }
 
   @Override
@@ -98,6 +111,7 @@ public class FeedbackDialog extends Dialog implements IRunnableContext {
   protected void configureShell(Shell newShell) {
     super.configureShell(newShell);
     newShell.setText(FeedbackMessages.FeedbackDialog_Title);
+    newShell.addDisposeListener(this);
   }
 
   @Override
@@ -149,8 +163,8 @@ public class FeedbackDialog extends Dialog implements IRunnableContext {
     data.verticalSpan = 2;
     imageLabel.setLayoutData(data);
     ImageDescriptor imageDescriptor = DartToolsPlugin.getImageDescriptor("icons/insert_comment.png"); //$NON-NLS-1$
-    Image image = imageDescriptor.createImage();
-    imageLabel.setImage(image);
+    feedbackImage = imageDescriptor.createImage();
+    imageLabel.setImage(feedbackImage);
 
     Label inviteText = new Label(composite, SWT.NONE);
     inviteText.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
