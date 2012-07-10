@@ -454,8 +454,20 @@ build system.  The PDE build system has to run under Eclipse.
                 <include name="*.zip" />
             </fileset>
         </copy>
+        <!--
+          {
+            "revision" : "9826",
+            "version"  : "0.0.1_v2012070961811",
+            "date"     : "2012-07-09"
+          }
+        -->
         <echo message="creating build VERSION file"/>
-        <echo file="${build.out}/VERSION" message="${build.revision}${line.separator}"/>
+        <!-- TODO(pquitslund): add version string info -->
+        <echo file="${build.out}/VERSION">{ 
+  "revision": "${build.revision}",
+  "version" : "",
+  "date"    : "${build.date}"
+}</echo>
     </target>
 
     <!-- - - - - - - - - - - - - - - - - - 

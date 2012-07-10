@@ -13,14 +13,24 @@
  */
 package com.google.dart.tools.ui.internal.update;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import com.google.dart.tools.update.core.internal.UpdateUtils;
 
-public class TestAll {
-  public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(CleanupInstallationJobTest.class);
-    suite.addTestSuite(UpdateUtilsTest.class);
-    return suite;
+import junit.framework.TestCase;
+
+public class UpdateUtilsTest extends TestCase {
+
+  public void testParseRevisionJSON() throws Exception {
+
+    // {
+    //   "revision" : "9826",
+    //   "version"  : "0.0.1_v2012070961811",
+    //   "date"     : "2012-07-09"
+    // }  
+    String json = new StringBuilder().append("{ \"revision\": \"9826\", ").append(
+        "\"version\": \"0.0.1_v2012070961811\", ").append("\"date\": \"2012-07-09\"").append(" }").toString();
+
+    String revision = UpdateUtils.parseRevisionNumberFromJSON(json);
+    assertEquals(revision, "9826");
+
   }
 }

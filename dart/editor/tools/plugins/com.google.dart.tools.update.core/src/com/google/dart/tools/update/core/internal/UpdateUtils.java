@@ -20,6 +20,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.util.Util;
 import org.eclipse.swt.internal.Library;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -308,6 +310,33 @@ public class UpdateUtils {
   }
 
   /**
+   * Parse the revision number from a JSON string.
+   * <p>
+   * Sample payload:
+   * </p>
+   * 
+   * <pre>
+   * { 
+   *   "revision" : "9826", 
+   *   "version"  : "0.0.1_v2012070961811", 
+   *   "date"     : "2012-07-09" 
+   * }
+   * </pre>
+   * 
+   * @param versionJSON the json
+   * @return a revision number or <code>null</code> if none can be found
+   * @throws IOException
+   */
+  public static String parseRevisionNumberFromJSON(String versionJSON) throws IOException {
+    try {
+      JSONObject obj = new JSONObject(versionJSON);
+      return obj.optString("revision", null);
+    } catch (JSONException e) {
+      throw new IOException(e);
+    }
+  }
+
+  /**
    * Parse the latest revision from the VERSION file at the given url.
    * 
    * @param url the url to check
@@ -315,8 +344,15 @@ public class UpdateUtils {
    * @throws IOException if an exception occurred in retrieving the revision
    */
   public static Revision parseVersionFile(String url) throws IOException {
+
     String versionFileContents = readUrlStream(url);
-    return Revision.forValue(versionFileContents);
+
+    //TODO (pquitslund): temporary check for "old" numeric format, 
+    //to be removed once the JSON format is final
+    String revisionString = versionFileContents.trim().matches("-?\\d+(.\\d+)?")
+        ? versionFileContents : parseRevisionNumberFromJSON(versionFileContents);
+
+    return Revision.forValue(revisionString);
   }
 
   /**
