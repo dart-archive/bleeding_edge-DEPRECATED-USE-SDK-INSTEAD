@@ -31,6 +31,7 @@ com.google.dart.tools.core/trace/index/processor = false
 com.google.dart.tools.core/trace/index/statistics = false
 
 com.google.dart.tools.core/perf/index = false
+com.google.dart.tools.core/perf/osResources = false
 
 com.google.dart.tools.core/debug/markOccurrences = false
 com.google.dart.tools.core/debug/appsView = false

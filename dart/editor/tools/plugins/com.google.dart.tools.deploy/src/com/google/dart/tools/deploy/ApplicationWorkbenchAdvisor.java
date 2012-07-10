@@ -14,6 +14,7 @@
 package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole.MessageStream;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
@@ -56,6 +57,7 @@ import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferenceConstants;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.activities.IActivityManager;
 import org.eclipse.ui.application.IWorkbenchConfigurer;
@@ -151,26 +153,17 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
     super.eventLoopIdle(display);
   }
 
-  /**
-   * @see org.eclipse.ui.application.WorkbenchAdvisor#getDefaultPageInput
-   */
   @Override
   public IAdaptable getDefaultPageInput() {
     // use workspace root
     return ResourcesPlugin.getWorkspace().getRoot();
   }
 
-  /**
-   * @see org.eclipse.ui.application.WorkbenchAdvisor#getInitialWindowPerspectiveId
-   */
   @Override
   public String getInitialWindowPerspectiveId() {
     return PERSPECTIVE_ID;
   }
 
-  /**
-   * @see org.eclipse.ui.application.WorkbenchAdvisor#initialize
-   */
   @Override
   public void initialize(IWorkbenchConfigurer configurer) {
 
@@ -199,9 +192,6 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
     workspaceUndoMonitor = WorkspaceUndoMonitor.getInstance();
   }
 
-  /**
-   * @see org.eclipse.ui.application.WorkbenchAdvisor#postShutdown
-   */
   @Override
   public void postShutdown() {
     if (activityHelper != null) {
@@ -221,9 +211,6 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
     }
   }
 
-  /**
-   * @see org.eclipse.ui.application.WorkbenchAdvisor#postStartup()
-   */
   @Override
   public void postStartup() {
     try {
@@ -285,23 +272,20 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
       ICommandService cmd = (ICommandService) workbench.getService(ICommandService.class);
       DartKeyBindingPersistence persist = new DartKeyBindingPersistence(act, bind, cmd);
       persist.restoreBindingPreferences();
+
+      optionallyEnableSWTResourceProfiling();
+
     } finally {// Resume background jobs after we startup
       Job.getJobManager().resume();
     }
   }
 
-  /**
-   * @see org.eclipse.ui.application.WorkbenchAdvisor#preShutdown()
-   */
   @Override
   public boolean preShutdown() {
     //Display.getCurrent().removeListener(SWT.Settings, settingsChangeListener);
     return super.preShutdown();
   }
 
-  /**
-   * @see org.eclipse.ui.application.WorkbenchAdvisor#preStartup()
-   */
   @Override
   public void preStartup() {
 
@@ -548,6 +532,42 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
     // auto-refresh setting
     Preferences preferences = ResourcesPlugin.getPlugin().getPluginPreferences();
     preferences.setValue(ResourcesPlugin.PREF_AUTO_REFRESH, true);
+  }
+
+  private void optionallyEnableSWTResourceProfiling() {
+
+    // Optionally enable SWT resource leak debugging
+    //
+    // requires:
+    //   * the swt tools plugin (http://www.eclipse.org/swt/updates/3.6), and
+    //   * the following tracing options:
+    //         org.eclipse.ui/debug=true 
+    //         org.eclipse.ui/trace/graphics=true
+    if (DartCoreDebug.PERF_OS_RESOURCES) {
+
+      try {
+
+        String debugFlag = Platform.getDebugOption("org.eclipse.ui/debug");
+        if (!"true".equals(debugFlag)) {
+          System.err.println("the \"org.eclipse.ui/debug\" trace option must be set to true for resource profiling");
+          return;
+        }
+
+        String graphicsTracingFlag = Platform.getDebugOption("org.eclipse.ui/trace/graphics");
+        if (!"true".equals(graphicsTracingFlag)) {
+          System.err.println("the \"org.eclipse.ui/trace/graphics\" trace option must be set to true for resource profiling");
+          return;
+        }
+
+        PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(
+            "org.eclipse.swt.tools.views.SleakView");
+
+      } catch (PartInitException e) {
+        System.err.println("OS resource profiling requires SWT tools to be installed");
+        e.printStackTrace();
+      }
+
+    }
   }
 
   private void refreshFromLocal() {

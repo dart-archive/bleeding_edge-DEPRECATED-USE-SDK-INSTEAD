@@ -47,6 +47,7 @@ public class DartCoreDebug {
 
   public static final boolean PERF_ANALYSIS_FILESCAN = isOptionTrue("perf/analysis/filescan");
   public static final boolean PERF_INDEX = isOptionTrue("perf/index");
+  public static final boolean PERF_OS_RESOURCES = isOptionTrue("perf/osResources");
 
   // Experimental functionality options.
 
