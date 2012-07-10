@@ -10,6 +10,13 @@
             properties="canLaunch"
             type="org.eclipse.jface.viewers.ISelection">
       </propertyTester>
+      <propertyTester
+            class="com.google.dart.tools.debug.ui.launch.RunInBrowserPropertyTester"
+            id="com.google.dart.tools.debug.ui.run.browserPropertyTester"
+            namespace="com.google.dart.tools.debug.ui.launch"
+            properties="canLaunchBrowser"
+            type="org.eclipse.jface.viewers.ISelection">
+      </propertyTester>
    </extension>
    <extension
          point="org.eclipse.core.expressions.propertyTesters">
@@ -297,6 +304,20 @@
             id="com.google.dart.tools.debug.ui.run.selection"
             name="%runCommandName">
       </command>
+       <command
+            categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.debug.ui.launch.RunInDartiumHandler"
+            description="Run in Dartium"
+            id="com.google.dart.tools.debug.ui.run.dartium"
+            name="%runDartiumName">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.debug.ui.launch.RunInBrowserHandler"
+            description="Run as JavaScript"
+            id="com.google.dart.tools.debug.ui.run.browser"
+            name="%runBrowserName">
+      </command>
       <command
             categoryId="org.eclipse.ui.category.window"
             defaultHandler="com.google.dart.tools.debug.ui.launch.ManageLaunchesHandler"
@@ -347,6 +368,55 @@
                         <test
                               forcePluginActivation="true"
                               property="com.google.dart.tools.debug.ui.launch.canLaunch">
+                        </test>
+                  </and>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="true"
+            locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
+         <command
+               commandId="com.google.dart.tools.debug.ui.run.dartium"
+               icon="icons/obj16/run_exc.gif"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <and>
+                        <test
+                              forcePluginActivation="true"
+                              property="com.google.dart.tools.debug.ui.launch.canLaunchBrowser">
+                        </test>
+                  </and>
+               </with>
+            </visibleWhen>
+         </command>
+        
+      </menuContribution>
+      <menuContribution
+            allPopups="true"
+            locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
+         <command
+               commandId="com.google.dart.tools.debug.ui.run.browser"
+               icon="icons/obj16/run_exc.gif"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <and>
+                        <test
+                              forcePluginActivation="true"
+                              property="com.google.dart.tools.debug.ui.launch.canLaunchBrowser">
                         </test>
                   </and>
                </with>

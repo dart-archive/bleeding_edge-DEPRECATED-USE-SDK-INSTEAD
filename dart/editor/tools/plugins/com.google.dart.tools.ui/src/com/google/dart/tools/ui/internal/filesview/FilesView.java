@@ -346,7 +346,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       manager.add(ignoreResourceAction);
       manager.add(new Separator());
       manager.add(deleteAction);
-
+      manager.add(new Separator());
     }
   }
 

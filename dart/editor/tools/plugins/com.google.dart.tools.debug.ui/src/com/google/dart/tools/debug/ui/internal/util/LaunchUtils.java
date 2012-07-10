@@ -22,6 +22,8 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
+import com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchShortcut;
+import com.google.dart.tools.debug.ui.internal.dartium.DartiumLaunchShortcut;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -177,6 +179,24 @@ public class LaunchUtils {
     return candidates;
   }
 
+  public static ILaunchShortcut getBrowserLaunchShortcut() {
+    for (ILaunchShortcut shortcut : shortcuts) {
+      if (shortcut instanceof BrowserLaunchShortcut) {
+        return shortcut;
+      }
+    }
+    return null;
+  }
+
+  public static ILaunchShortcut getDartiumLaunchShortcut() {
+    for (ILaunchShortcut shortcut : shortcuts) {
+      if (shortcut instanceof DartiumLaunchShortcut) {
+        return shortcut;
+      }
+    }
+    return null;
+  }
+
   /**
    * @return given an IResource, return the corresponding DartLibrary
    */
@@ -212,6 +232,20 @@ public class LaunchUtils {
     }
     return new DartLibrary[] {};
 
+  }
+
+  public static List<ILaunchConfiguration> getExistingLaunchesFor(IResource resource) {
+    Set<ILaunchConfiguration> configs = new LinkedHashSet<ILaunchConfiguration>();
+
+    for (ILaunchShortcut shortcut : getAllLaunchShortcuts()) {
+      if (shortcut instanceof ILaunchShortcutExt) {
+        ILaunchShortcutExt handler = (ILaunchShortcutExt) shortcut;
+
+        configs.addAll(Arrays.asList(handler.getAssociatedLaunchConfigurations(resource)));
+      }
+    }
+
+    return new ArrayList<ILaunchConfiguration>(configs);
   }
 
   public static List<ILaunchConfiguration> getLaunchesFor(IProject project) {
@@ -368,20 +402,6 @@ public class LaunchUtils {
       }
     }
     return false;
-  }
-
-  private static List<ILaunchConfiguration> getExistingLaunchesFor(IResource resource) {
-    Set<ILaunchConfiguration> configs = new LinkedHashSet<ILaunchConfiguration>();
-
-    for (ILaunchShortcut shortcut : getAllLaunchShortcuts()) {
-      if (shortcut instanceof ILaunchShortcutExt) {
-        ILaunchShortcutExt handler = (ILaunchShortcutExt) shortcut;
-
-        configs.addAll(Arrays.asList(handler.getAssociatedLaunchConfigurations(resource)));
-      }
-    }
-
-    return new ArrayList<ILaunchConfiguration>(configs);
   }
 
   private LaunchUtils() {

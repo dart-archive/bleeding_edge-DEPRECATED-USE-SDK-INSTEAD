@@ -14,11 +14,13 @@
 package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchShortcut;
@@ -30,22 +32,22 @@ import org.eclipse.ui.IWorkbenchWindow;
 import java.util.List;
 
 /**
- * Action to generate JavaScript and launch in default browser
+ * Launch in Dartium
  */
-public class RunInBrowserAction extends DartAbstractAction {
+public class RunInDartiumAction extends DartAbstractAction {
 
-  public RunInBrowserAction() {
+  public RunInDartiumAction() {
     this(null);
   }
 
-  public RunInBrowserAction(IWorkbenchWindow window) {
+  public RunInDartiumAction(IWorkbenchWindow window) {
     this(window, false);
   }
 
-  public RunInBrowserAction(IWorkbenchWindow window, boolean noMenu) {
-    super(window, "Run as JavaScript", noMenu ? IAction.AS_PUSH_BUTTON : IAction.AS_DROP_DOWN_MENU);
+  public RunInDartiumAction(IWorkbenchWindow window, boolean noMenu) {
+    super(window, "Run in Dartium", noMenu ? IAction.AS_PUSH_BUTTON : IAction.AS_DROP_DOWN_MENU);
 
-    setActionDefinitionId("com.google.dart.tools.debug.ui.run.browser");
+    setActionDefinitionId("com.google.dart.tools.debug.ui.run.dartium");
     setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.gif"));
   }
 
@@ -57,13 +59,17 @@ public class RunInBrowserAction extends DartAbstractAction {
 
         List<ILaunchConfiguration> launchConfigs = LaunchUtils.getExistingLaunchesFor(resource);
         for (ILaunchConfiguration config : launchConfigs) {
-          if (config.getType().getIdentifier().equals(DartDebugCorePlugin.BROWSER_LAUNCH_CONFIG_ID)) {
-            DebugUITools.launch(config, ILaunchManager.RUN_MODE);
+          if (config.getType().getIdentifier().equals(DartDebugCorePlugin.DARTIUM_LAUNCH_CONFIG_ID)) {
+            ILaunchConfigurationWorkingCopy configCopy = config.copy(LaunchUtils.DARTIUM_LAUNCH_NAME);
+            DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(config);
+            launchConfig.markAsLaunched();
+            LaunchUtils.clearDartiumConsoles();
+            DebugUITools.launch(configCopy, ILaunchManager.DEBUG_MODE);
             return;
           }
         }
         // new launch config
-        ILaunchShortcut shortcut = LaunchUtils.getBrowserLaunchShortcut();
+        ILaunchShortcut shortcut = LaunchUtils.getDartiumLaunchShortcut();
         ISelection selection = new StructuredSelection(resource);
         launch(shortcut, selection);
 
@@ -72,5 +78,4 @@ public class RunInBrowserAction extends DartAbstractAction {
       // TODO: handle exception
     }
   }
-
 }

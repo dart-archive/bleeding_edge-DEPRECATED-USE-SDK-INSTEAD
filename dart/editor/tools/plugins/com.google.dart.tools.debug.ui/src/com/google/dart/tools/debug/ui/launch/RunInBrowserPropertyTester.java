@@ -11,7 +11,6 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.tools.core.DartCore;
@@ -25,23 +24,30 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
 /**
- * A {@link PropertyTester} for checking whether the resource can be launched. It is used to
- * contribute the Run context menu in the Files view. Defines the property "canLaunch"
+ * A {@link PropertyTester} for checking whether the resource can be launched in the browser. It is
+ * used to contribute the Run in Dartium and Run as JavaScript context menus in the Files view.
+ * Defines the property "canLaunchBrowser"
  */
+public class RunInBrowserPropertyTester extends PropertyTester {
 
-public class RunPropertyTester extends PropertyTester {
-
-  public RunPropertyTester() {
+  public RunInBrowserPropertyTester() {
 
   }
 
   @Override
   public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
 
-    if ("canLaunch".equalsIgnoreCase(property)) {
+    if ("canLaunchBrowser".equalsIgnoreCase(property)) {
       if (receiver instanceof IStructuredSelection) {
         Object o = ((IStructuredSelection) receiver).getFirstElement();
-        if (o instanceof IFile && DartCore.isDartLikeFileName(((IFile) o).getName())) {
+        if (o instanceof IFile) {
+          if (DartCore.isHTMLLikeFileName(((IFile) o).getName())) {
+            DartElement element = DartCore.create((IFile) o);
+            if (element != null) {
+              return true;
+            }
+            return false;
+          }
 
           DartElement element = DartCore.create((IFile) o);
           if (element instanceof CompilationUnitImpl
@@ -49,7 +55,7 @@ public class RunPropertyTester extends PropertyTester {
             DartLibrary library = ((CompilationUnitImpl) element).getLibrary();
             if (library instanceof DartLibraryImpl) {
               DartLibraryImpl impl = (DartLibraryImpl) library;
-              if (impl.isServerApplication()) {
+              if (impl.isBrowserApplication()) {
                 return true;
               }
             }
