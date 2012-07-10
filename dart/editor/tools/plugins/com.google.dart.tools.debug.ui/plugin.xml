@@ -290,13 +290,6 @@
 
    <extension
       point="org.eclipse.ui.commands">
-      <command
-            categoryId="org.eclipse.ui.category.window"
-            defaultHandler="com.google.dart.tools.debug.ui.launch.DartRunLastHandler"
-            description="%runCommandName"
-            id="com.google.dart.tools.debug.ui.run.last"
-            name="%runCommandName">
-      </command>
        <command
             categoryId="org.eclipse.ui.category.window"
             defaultHandler="com.google.dart.tools.debug.ui.launch.DartRunHandler"
@@ -340,13 +333,6 @@
             name="%toggleBreakOnExceptionsName">
             <state class="org.eclipse.jface.commands.ToggleState" id="STYLE"/>
       </command>
-      <!-- command
-            categoryId="org.eclipse.ui.category.window"
-            defaultHandler="com.google.dart.tools.debug.ui.launch.ManageLaunchesHandler"
-            description="%launchDialogCommandName"
-            id="com.google.dart.tools.debug.ui.launchDialog"
-            name="%launchDialogCommandName">
-      </command -->
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -511,103 +497,6 @@
             sequence="CTRL+Z"
             platform="win32"/ -->                                
     </extension>
-   <!--extension
-         point="org.eclipse.ui.actionSets">
-      <actionSet
-            id="com.google.dart.tools.debug.ui.runActionSet"
-            label="Run actions"
-            visible="true">
-            <action
-               class="com.google.dart.tools.debug.ui.launch.DartRunAction"
-               definitionId="com.google.dart.tools.debug.ui.run.selection"
-               id="com.google.dart.tools.debug.ui.run.selection.action"
-                menubarPath="org.eclipse.ui.run/runGroup"
-               label="Run selection"
-               style="push">
-         </action>
-         <action
-               class="com.google.dart.tools.debug.ui.launch.DartRunLastAction"
-               definitionId="com.google.dart.tools.debug.ui.run.last"
-               id="com.google.dart.tools.debug.ui.run.last.action"
-               label="%runCommandName"
-               menubarPath="org.eclipse.ui.run/runGroup"
-               style="push"
-               tooltip="Run last launched">
-         </action>
-         
-      </actionSet>
-      <actionSet
-            id="com.google.dart.tools.debug.ui.launchActionSet"
-            label="Manage launches"
-            visible="true">
-         <action
-               class="com.google.dart.tools.debug.ui.launch.ManageLaunchesAction"
-               definitionId="com.google.dart.tools.debug.ui.launchDialog"
-               id="com.google.dart.tools.debug.ui.launchDialog.action"
-               label="Manage Launches"
-               menubarPath="org.eclipse.ui.run/emptyLaunchGroup"
-               style="push">
-         </action>
-      </actionSet>
-   </extension-->  
-
- <!--extension
-         point="org.eclipse.ui.popupMenus">
-      <objectContribution
-            adaptable="false"
-            id="com.google.dart.tools.ui.launch.chrome"
-            nameFilter="*.html"
-            objectClass="org.eclipse.core.resources.IFile">
-         <action
-               class="com.google.dart.tools.ui.launch.context.DebugInChromeAction"
-               enablesFor="1"
-               icon="icons/full/etool16/debug_exc.gif"
-               id="com.google.dart.tools.ui.launch.DebugInChromeAction"
-               label="Debug"
-               menubarPath="additions">
-         </action>
-         <action
-               class="com.google.dart.tools.ui.launch.context.RunInChromeAction"
-               enablesFor="1"
-               icon="icons/full/etool16/run_exc.gif"
-               id="com.google.dart.tools.ui.launch.RunInChromeAction"
-               label="Run"
-               menubarPath="additions">
-         </action>
-      </objectContribution>
-   </extension-->
-
-   <!--extension point="org.eclipse.ui.actionSets">
-      <actionSet
-            label="Launch and Debug Actions"
-            visible="true"
-            id="com.google.dart.tools.deploy.launchActionSet">
-         <action
-               id="com.google.dart.tools.ui.launch.DebugToolbarAction"
-               toolbarPath="debug"
-               hoverIcon="icons/full/etool16/debug_exc.gif"
-               class="com.google.dart.tools.ui.launch.DebugToolbarAction"
-               disabledIcon="icons/full/dtool16/debug_exc.gif"
-               icon="icons/full/etool16/debug_exc.gif"
-               helpContextId="debug_action_context"
-               label="Debug"
-               style="pulldown">
-         </action>
-         <action
-               id="com.google.dart.tools.ui.launch.RunToolbarAction"
-               toolbarPath="debug"
-               hoverIcon="icons/full/etool16/run_exc.gif"
-               class="com.google.dart.tools.ui.launch.RunToolbarAction"
-               disabledIcon="icons/full/dtool16/run_exc.gif"
-               icon="icons/full/etool16/run_exc.gif"
-               helpContextId="run_action_context"
-               label="Run"
-               style="pulldown">
-         </action>
-      </actionSet>
-   </extension-->
-
-
    <extension
          point="org.eclipse.ltk.core.refactoring.deleteParticipants">
       <deleteParticipant
