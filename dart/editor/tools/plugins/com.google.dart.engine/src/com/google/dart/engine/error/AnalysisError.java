@@ -28,12 +28,12 @@ public class AnalysisError {
   private ErrorCode errorCode;
 
   /**
-   * The compilation error message.
+   * The localized error message.
    */
   private String message;
 
   /**
-   * The source in which the error occurred or {@code null} if unknown.
+   * The source in which the error occurred, or {@code null} if unknown.
    */
   private Source source;
 
@@ -43,37 +43,17 @@ public class AnalysisError {
   private int offset = 0;
 
   /**
-   * The number of characters from the startPosition to the end of the source which encompasses the
+   * The number of characters from the offset to the end of the source which encompasses the
    * compilation error.
    */
   private int length = 0;
 
   /**
-   * The line number in the source (one based) where the error occurred or -1 if it is undefined.
-   */
-  private int lineNumber = -1;
-
-  /**
-   * The column number in the source (one based) where the error occurred or -1 if it is undefined.
-   */
-  private int columnNumber = -1;
-
-//  /**
-//   * Compilation error at the {@link SourceInfo} from specified {@link HasSourceInfo}.
-//   * 
-//   * @param hasSourceInfo the provider of {@link SourceInfo} where the error occurred
-//   * @param errorCode the {@link ErrorCode} to be associated with this error
-//   * @param arguments the arguments used to build the error message
-//   */
-//  public AnalysisError(HasSourceInfo hasSourceInfo, ErrorCode errorCode, Object... arguments) {
-//    this(hasSourceInfo.getSourceInfo(), errorCode, arguments);
-//  }
-
-  /**
-   * Compilation error for the specified {@link Source}, without location.
+   * Initialize a newly created analysis error for the specified source. The error has no location
+   * information.
    * 
-   * @param source the {@link Source} for which the exception occurred
-   * @param errorCode the {@link ErrorCode} to be associated with this error
+   * @param source the source for which the exception occurred
+   * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
   public AnalysisError(Source source, ErrorCode errorCode, Object... arguments) {
@@ -82,82 +62,47 @@ public class AnalysisError {
     this.message = String.format(errorCode.getMessage(), arguments);
   }
 
-//  /**
-//   * Instantiate a new instance representing a compilation error at the specified location.
-//   * 
-//   * @param source the source reference
-//   * @param location the source range where the error occurred
-//   * @param errorCode the error code to be associated with this error
-//   * @param arguments the arguments used to build the error message
-//   */
-//  public AnalysisError(Source source, Location location, ErrorCode errorCode, Object... arguments) {
-//    this.source = source;
-//    this.errorCode = errorCode;
-//    this.message = String.format(errorCode.getMessage(), arguments);
-//    if (location != null) {
-//      Position begin = location.getBegin();
-//      if (begin != null) {
-//        offset = begin.getPos();
-//        lineNumber = begin.getLine();
-//        columnNumber = begin.getCol();
-//      }
-//      Position end = location.getEnd();
-//      if (end != null) {
-//        length = end.getPos() - offset;
-//        if (length < 0) {
-//          length = 0;
-//        }
-//      }
-//    }
-//  }
-
-//  /**
-//   * Compilation error at the specified {@link SourceInfo}.
-//   * 
-//   * @param sourceInfo the {@link SourceInfo} where the error occurred
-//   * @param errorCode the {@link ErrorCode} to be associated with this error
-//   * @param arguments the arguments used to build the error message
-//   */
-//  public AnalysisError(SourceInfo sourceInfo, ErrorCode errorCode, Object... arguments) {
-//    this.source = sourceInfo.getSource();
-//    this.lineNumber = sourceInfo.getLine();
-//    this.columnNumber = sourceInfo.getColumn();
-//    this.offset = sourceInfo.getOffset();
-//    this.length = sourceInfo.getLength();
-//    this.errorCode = errorCode;
-//    this.message = String.format(errorCode.getMessage(), arguments);
-//  }
-
   /**
-   * Return the column number in the source (one based) where the error occurred.
+   * Initialize a newly created analysis error for the specified source at the given location.
+   * 
+   * @param source the source for which the exception occurred
+   * @param offset the offset of the location of the error
+   * @param length the length of the location of the error
+   * @param errorCode the error code to be associated with this error
+   * @param arguments the arguments used to build the error message
    */
-  public int getColumnNumber() {
-    return columnNumber;
+  public AnalysisError(Source source, int offset, int length, ErrorCode errorCode,
+      Object... arguments) {
+    this.source = source;
+    this.offset = offset;
+    this.length = length;
+    this.errorCode = errorCode;
+    this.message = String.format(errorCode.getMessage(), arguments);
   }
 
   /**
    * Return the error code associated with the error.
+   * 
+   * @return the error code associated with the error
    */
   public ErrorCode getErrorCode() {
     return errorCode;
   }
 
   /**
-   * Return the length of the error location.
+   * Return the number of characters from the offset to the end of the source which encompasses the
+   * compilation error.
+   * 
+   * @return the length of the error location
    */
   public int getLength() {
     return length;
   }
 
   /**
-   * Return the line number in the source (one based) where the error occurred.
-   */
-  public int getLineNumber() {
-    return lineNumber;
-  }
-
-  /**
-   * Return the compilation error message.
+   * Return the localized error message.
+   * 
+   * @return the localized error message
    */
   public String getMessage() {
     return message;
@@ -166,13 +111,17 @@ public class AnalysisError {
   /**
    * Return the character offset from the beginning of the source (zero based) where the error
    * occurred.
+   * 
+   * @return the offset to the start of the error location
    */
   public int getOffset() {
     return offset;
   }
 
   /**
-   * Return the source in which the error occurred or {@code null} if unknown.
+   * Return the source in which the error occurred, or {@code null} if unknown.
+   * 
+   * @return the source in which the error occurred
    */
   public Source getSource() {
     return source;
@@ -187,7 +136,9 @@ public class AnalysisError {
   }
 
   /**
-   * Set the source in which the error occurred or {@code null} if unknown.
+   * Set the source in which the error occurred to the given source.
+   * 
+   * @param source the source in which the error occurred
    */
   public void setSource(Source source) {
     this.source = source;
@@ -197,7 +148,12 @@ public class AnalysisError {
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append((source != null) ? source.getFile().getAbsolutePath() : "<unknown source>");
-    builder.append("(" + lineNumber + ":" + columnNumber + "): ");
+    builder.append("(");
+    builder.append(offset);
+    builder.append("..");
+    builder.append(offset + length - 1);
+    builder.append("): ");
+    //builder.append("(" + lineNumber + ":" + columnNumber + "): ");
     builder.append(message);
     return builder.toString();
   }

@@ -19,14 +19,64 @@ import com.google.dart.engine.metrics.DartEventType;
 import com.google.dart.engine.metrics.JvmMetrics;
 import com.google.dart.engine.metrics.Tracer;
 import com.google.dart.engine.metrics.Tracer.TraceEvent;
+import com.google.dart.engine.scanner.CharBufferScanner;
+import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 
 /**
  * Scans, Parses, and analyzes a library.
  */
 public class Analyzer {
+  /**
+   * The character set used to decode bytes into characters.
+   */
+  private static final Charset utf8Charset = Charset.forName("UTF-8");
+
+  /**
+   * Return a character buffer containing the contents of the file represented by the given source,
+   * or {@code null} if the given source does not represent a file.
+   * 
+   * @param source the source representing the file whose contents are being requested
+   * @return the contents of the given source file represented as a character buffer
+   * @throws IOException if the contents of the file cannot be read
+   */
+  private static CharBuffer getBufferFromFile(File sourceFile) throws IOException {
+    RandomAccessFile file = new RandomAccessFile(sourceFile.getAbsolutePath(), "r");
+    FileChannel channel = null;
+    ByteBuffer byteBuffer = null;
+    try {
+      channel = file.getChannel();
+      long size = channel.size();
+      if (size > Integer.MAX_VALUE) {
+        throw new IllegalStateException("File is too long to be read");
+      }
+      int length = (int) size;
+      byte[] bytes = new byte[length];
+      byteBuffer = ByteBuffer.wrap(bytes);
+      byteBuffer.position(0);
+      byteBuffer.limit(length);
+      channel.read(byteBuffer);
+    } finally {
+      if (channel != null) {
+        try {
+          channel.close();
+        } catch (IOException exception) {
+          // Ignored
+        }
+      }
+    }
+    return utf8Charset.decode(byteBuffer);
+  }
 
   private static void maybeShowMetrics(AnalysisConfiguration config) {
     AnalysisMetrics analyzerMetrics = config.analyzerMetrics();
@@ -56,6 +106,13 @@ public class Analyzer {
         sourceFile.toString()) : null;
     try {
       // TODO(zundel): Start scanning, parsing, and analyzing
+      CharBuffer buffer = getBufferFromFile(sourceFile);
+      Source source = new SourceFactory().forFile(sourceFile);
+      CharBufferScanner scanner = new CharBufferScanner(source, buffer, listener);
+      Token token = scanner.tokenize();
+      ((CommandLineErrorListener) listener).setLineInfo(
+          source,
+          new LineInfo(scanner.getLineStarts()));
       System.err.println("Not Implemented");
     } finally {
       Tracer.end(logEvent);

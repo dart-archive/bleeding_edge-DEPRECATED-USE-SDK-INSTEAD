@@ -17,6 +17,7 @@ import com.google.common.io.Closeables;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -67,7 +68,7 @@ public class CommandLineErrorFormatter {
     this.useColor = useColor;
   }
 
-  public void format(AnalysisError event) {
+  public void format(AnalysisError event, LineInfo lineInfo) {
     Source sourceFile = event.getSource();
 
     BufferedReader reader = null;
@@ -78,7 +79,8 @@ public class CommandLineErrorFormatter {
       }
 
       // get the error line and the line above it (note: line starts at 1)
-      int line = event.getLineNumber();
+      LineInfo.Location location = lineInfo.getLocation(event.getOffset());
+      int line = location.getLineNumber();
       String lineBefore = null;
       String lineText = null;
 
@@ -89,12 +91,12 @@ public class CommandLineErrorFormatter {
 
       // if there is no line to highlight, default to the basic error formatter
       if (lineText == null) {
-        plainFormat(event);
+        plainFormat(event, lineInfo);
         return;
       }
 
       // get column/length and ensure they are within the line limits.
-      int col = event.getColumnNumber() - 1;
+      int col = location.getColumnNumber() - 1;
       int length = event.getLength();
       col = between(col, 0, lineText.length());
       length = between(length, 0, lineText.length() - col);
@@ -113,7 +115,7 @@ public class CommandLineErrorFormatter {
             escapePipe(event.getErrorCode().getSubSystem().toString()),
             escapePipe(event.getErrorCode().toString()),
             escapePipe(sourceFile.getFile().getAbsolutePath()),
-            event.getLineNumber(),
+            location.getLineNumber(),
             1 + col,
             length,
             escapePipe(event.getMessage())));
@@ -123,7 +125,7 @@ public class CommandLineErrorFormatter {
         buf.append(String.format(
             "%s:%d: %s%s",
             sourceName,
-            event.getLineNumber(),
+            location.getLineNumber(),
             event.getMessage(),
             includeFrom));
       }
@@ -168,7 +170,7 @@ public class CommandLineErrorFormatter {
 
       outputStream.print(buf.toString());
     } catch (IOException ex) {
-      plainFormat(event);
+      plainFormat(event, lineInfo);
     } finally {
       if (reader != null) {
         Closeables.closeQuietly(reader);
@@ -212,7 +214,7 @@ public class CommandLineErrorFormatter {
     return currentLine;
   }
 
-  private void plainFormat(AnalysisError event) {
+  private void plainFormat(AnalysisError event, LineInfo lineInfo) {
     String sourceName = "<unknown-source-file>";
     Source sourceFile = event.getSource();
     String includeFrom = getImportString(sourceFile);
@@ -220,11 +222,12 @@ public class CommandLineErrorFormatter {
     if (sourceFile != null) {
       sourceName = sourceFile.getFile().getAbsolutePath();
     }
+    LineInfo.Location location = lineInfo.getLocation(event.getOffset());
     outputStream.printf(
         "%s:%d:%d: %s%s\n",
         sourceName,
-        event.getLineNumber(),
-        event.getColumnNumber(),
+        location.getLineNumber(),
+        location.getColumnNumber(),
         event.getMessage(),
         includeFrom);
   }

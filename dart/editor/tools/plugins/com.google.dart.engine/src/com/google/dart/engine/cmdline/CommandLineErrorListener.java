@@ -17,12 +17,21 @@ import com.google.common.collect.Lists;
 import com.google.dart.engine.cmdline.CommandLineOptions.AnalyzerOptions;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.io.PrintStream;
+import java.util.HashMap;
 import java.util.List;
 
 public class CommandLineErrorListener implements AnalysisErrorListener {
   private final AnalyzerOptions options;
+
+  /**
+   * A table mapping sources to the line information for the source.
+   */
+  private HashMap<Source, LineInfo> lineInfoMap = new HashMap<Source, LineInfo>();
+
   private final List<AnalysisError> events = Lists.newArrayList();
   int warningCount = 0;
   int errorCount = 0;
@@ -53,7 +62,17 @@ public class CommandLineErrorListener implements AnalysisErrorListener {
         true,
         options.printErrorFormat());
     for (AnalysisError event : events) {
-      formatter.format(event);
+      formatter.format(event, lineInfoMap.get(event.getSource()));
     }
+  }
+
+  /**
+   * Set the line information associated with the given source to the given information.
+   * 
+   * @param source the source with which the line information is associated
+   * @param lineInfo the line information to be associated with the source
+   */
+  public void setLineInfo(Source source, LineInfo lineInfo) {
+    lineInfoMap.put(source, lineInfo);
   }
 }
