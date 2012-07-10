@@ -487,6 +487,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
   public R visitResourceDirective(ResourceDirective node) {
     node.visitChildren(this);
     return null;

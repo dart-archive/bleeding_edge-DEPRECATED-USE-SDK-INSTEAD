@@ -424,6 +424,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    return visitConstructorInitializer(node);
+  }
+
+  @Override
   public R visitResourceDirective(ResourceDirective node) {
     return visitDirective(node);
   }

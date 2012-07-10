@@ -150,6 +150,8 @@ public interface ASTVisitor<R> {
 
   public R visitPropertyAccess(PropertyAccess node);
 
+  public R visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node);
+
   public R visitResourceDirective(ResourceDirective node);
 
   public R visitReturnStatement(ReturnStatement node);
