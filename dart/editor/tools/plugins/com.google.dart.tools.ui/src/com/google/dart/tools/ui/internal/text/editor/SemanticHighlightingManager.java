@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.internal.text.functions.DartPresentationReconciler;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
 import com.google.dart.tools.ui.text.IColorManager;
@@ -658,12 +657,12 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
    */
   private boolean isEnabled() {
 //  return SemanticHighlightings.isEnabled(fPreferenceStore);
-    return DartCoreDebug.ENABLE_SEMANTIC_HIGHLIGHTING;
+    return true;
   }
 
   private boolean isEnabled(SemanticHighlighting semanticHighlighting) {
 //  return fPreferenceStore.getBoolean(SemanticHighlightings.getEnabledPreferenceKey(semanticHighlighting));
-    return DartCoreDebug.ENABLE_SEMANTIC_HIGHLIGHTING;
+    return true;
   }
 
   private void removeColor(String colorKey) {
