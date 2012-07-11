@@ -13,7 +13,7 @@
    <extension-point id="documentationProvider" name="%documentationProvider" schema="schema/DocumentationProvider.exsd"/>
    <extension-point id="com.google.dart.tools.ui.cleanUps" name="Clean Ups" schema="schema/com.google.dart.tools.ui.cleanUps.exsd"/>
 
-   <extension point="com.google.dart.tools.ui.cleanUps">
+   <!--extension point="com.google.dart.tools.ui.cleanUps">
       <cleanUpConfigurationUI
          class="com.google.dart.tools.ui.internal.cleanup.preference.CodeFormatingTabPage"
          name="%CleanUpTabPage.CodeOrganizing.name"
@@ -28,7 +28,7 @@
          class="com.google.dart.tools.ui.internal.cleanup.CodeFormatCleanUp"
          id="com.google.dart.tools.ui.cleanUps">
       </cleanUp>
-    </extension>
+    </extension -->
 <!--
    <extension
       point="org.eclipse.ui.decorators">
@@ -476,7 +476,6 @@
 
    <extension
          point="org.eclipse.ui.themes">
-        <themeElementCategory label="%javaPresentation.label" id="org.eclipse.wst.jsdt.ui.presentation"/>
         <themeElementCategory label="%dartPresentation.label" id="com.google.dart.tools.ui.presentation"/>
       <!-- defaultsTo="org.eclipse.jface.textfont" -->
       <fontDefinition
@@ -515,69 +514,6 @@
             %defaultEditorFontDefintion.description
          </description>
       </fontDefinition>
-      <fontDefinition
-            label="%javadocDisplayFontDefiniton.label"
-            defaultsTo="org.eclipse.jface.dialogfont"
-            categoryId="org.eclipse.wst.jsdt.ui.presentation"
-            id="org.eclipse.wst.jsdt.ui.javadocfont">
-         <description>
-            %javadocDisplayFontDefiniton.description
-         </description>
-      </fontDefinition>
-      <colorDefinition
-            label="%JavadocViewBackgroundColor.label"
-            categoryId="org.eclipse.wst.jsdt.ui.presentation"
-            value="COLOR_INFO_BACKGROUND"
-            id="org.eclipse.wst.jsdt.ui.JavadocView.backgroundColor">
-         <description>
-            %JavadocViewBackgroundColor.description
-         </description>
-      </colorDefinition>
-      <colorDefinition
-            label="%DeclarationViewBackgroundColor.label"
-            categoryId="org.eclipse.wst.jsdt.ui.presentation"
-            value="COLOR_INFO_BACKGROUND"
-            id="org.eclipse.wst.jsdt.ui.DeclarationView.backgroundColor">
-         <description>
-            %DeclarationViewBackgroundColor.description
-         </description>
-      </colorDefinition>
-     <colorDefinition
-            label="%coloredLabels.qualifier.label"
-            categoryId="org.eclipse.wst.jsdt.ui.presentation"
-            value="COLOR_DARK_GRAY"
-            id="org.eclipse.wst.jsdt.ui.ColoredLabels.qualifier">
-         <description>
-            %coloredLabels.qualifier.description
-         </description>
-      </colorDefinition>
-      <colorDefinition
-            label="%coloredLabels.decorations.label"
-            categoryId="org.eclipse.wst.jsdt.ui.presentation"
-            value="149,125,71"
-            id="org.eclipse.wst.jsdt.ui.ColoredLabels.decorations">
-         <description>
-            %coloredLabels.decorations.description
-         </description>
-      </colorDefinition>      
-      <colorDefinition
-            label="%coloredLabels.counter.label"
-            categoryId="org.eclipse.wst.jsdt.ui.presentation"
-            value="0,127,174"
-            id="org.eclipse.wst.jsdt.ui.ColoredLabels.counter">
-         <description>
-            %coloredLabels.counter.description
-         </description>
-      </colorDefinition>
-      <colorDefinition
-            label="%coloredLabels.inherited.label"
-            categoryId="org.eclipse.wst.jsdt.ui.presentation"
-            value="COLOR_DARK_BLUE"
-            id="org.eclipse.wst.jsdt.ui.ColoredLabels.inherited">
-         <description>
-            %coloredLabels.inherited.description
-         </description>
-      </colorDefinition>
     </extension>
    
    
@@ -696,94 +632,7 @@
       </hyperlinkDetector>
    </extension>
    
-   <extension
-         point="org.eclipse.ui.keywords">
-      <keyword
-            label="%preferenceKeywords.general"
-            id="org.eclipse.wst.jsdt.ui.general"/>
-      <keyword
-            label="%preferenceKeywords.appearance"
-            id="org.eclipse.wst.jsdt.ui.appearance"/>
-      <keyword
-            label="%preferenceKeywords.sortorder"
-            id="org.eclipse.wst.jsdt.ui.sortorder"/>
-      <keyword
-            label="%preferenceKeywords.typefilter"
-            id="org.eclipse.wst.jsdt.ui.typefilter"/>
-      <keyword
-            label="%preferenceKeywords.buildpathoptions"
-            id="org.eclipse.wst.jsdt.ui.buildpathoptions"/>
-      <keyword
-            label="%preferenceKeywords.buildpath"
-            id="org.eclipse.wst.jsdt.ui.buildpath"/>      
-      <keyword
-            label="%preferenceKeywords.cpvars"
-            id="org.eclipse.wst.jsdt.ui.cpvars"/>
-      <keyword
-            label="%preferenceKeywords.userlibs"
-            id="org.eclipse.wst.jsdt.ui.userlibs"/>
-      <keyword
-            label="%preferenceKeywords.codestyle"
-            id="org.eclipse.wst.jsdt.ui.codestyle"/>
-      <keyword
-            label="%preferenceKeywords.codetemplates"
-            id="org.eclipse.wst.jsdt.ui.codetemplates"/>
-      <keyword
-            label="%preferenceKeywords.formatter"
-            id="org.eclipse.wst.jsdt.ui.formatter"/>  
-      <keyword
-            label="%preferenceKeywords.cleanup"
-            id="org.eclipse.wst.jsdt.ui.cleanup"/>     
-      <keyword
-            label="%preferenceKeywords.organizeimports"
-            id="org.eclipse.wst.jsdt.ui.organizeimports"/>
-      <keyword
-            label="%preferenceKeywords.compliance"
-            id="org.eclipse.wst.jsdt.ui.compliance"/>      
-      <keyword
-            label="%preferenceKeywords.building"
-            id="org.eclipse.wst.jsdt.ui.building"/>
-      <keyword
-            label="%preferenceKeywords.severities"
-            id="org.eclipse.wst.jsdt.ui.severities"/>      
-      <keyword
-            label="%preferenceKeywords.javadocproblems"
-            id="org.eclipse.wst.jsdt.ui.javadocproblems"/>   
-      <keyword
-            label="%preferenceKeywords.todo"
-            id="org.eclipse.wst.jsdt.ui.todo"/>            
-      <keyword
-            label="%preferenceKeywords.javaeditor"
-            id="org.eclipse.wst.jsdt.ui.javaeditor"/>      
-      <keyword
-            label="%preferenceKeywords.contentassist"
-            id="org.eclipse.wst.jsdt.ui.contentassist"/>   
-      <keyword
-            label="%preferenceKeywords.hover"
-            id="org.eclipse.wst.jsdt.ui.hover"/>
-      <keyword
-            label="%preferenceKeywords.syntaxcoloring"
-            id="org.eclipse.wst.jsdt.ui.syntaxcoloring"/>   
-      <keyword
-            label="%preferenceKeywords.templates"
-            id="org.eclipse.wst.jsdt.ui.templates"/>
-      <keyword
-            label="%preferenceKeywords.propertieseditor"
-            id="org.eclipse.wst.jsdt.ui.propertieseditor"/>
-      <keyword
-            label="%preferenceKeywords.folding"
-            id="org.eclipse.wst.jsdt.ui.folding"/>
-      <keyword
-            label="%preferenceKeywords.markoccurrences"
-            id="org.eclipse.wst.jsdt.ui.markoccurrences"/>
-      <keyword
-            label="%preferenceKeywords.smarttyping"
-            id="org.eclipse.wst.jsdt.ui.smarttyping"/>
-     <keyword
-            label="%preferenceKeywords.saveparticipant"
-            id="org.eclipse.wst.jsdt.ui.saveparticipant"/>
-   </extension>  
-
+ 
 <!-- =========================================================================== -->
 <!-- Dart Launching and debugging                                                -->
 <!-- =========================================================================== -->
