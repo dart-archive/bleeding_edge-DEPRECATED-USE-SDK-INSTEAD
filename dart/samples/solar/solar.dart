@@ -88,7 +88,7 @@ class SolarSystem {
 
     sun.addPlanet(new PlanetaryBody(this, "Mars", "red", 0.532, 1.524, 1.88));
 
-    addAsteroidBelt(sun, 250);
+    addAsteroidBelt(sun, 150);
 
     final f = 0.1;
     final h = 1 / 1500.0;
@@ -213,7 +213,7 @@ class PlanetaryBody {
       context.fillStyle = color;
       context.strokeStyle = color;
 
-      if (bodySize >= 1.0) {
+      if (bodySize >= 2.0) {
         context.shadowOffsetX = 2;
         context.shadowOffsetY = 2;
         context.shadowBlur = 2;

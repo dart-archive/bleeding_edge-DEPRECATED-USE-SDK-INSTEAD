@@ -9,13 +9,13 @@
   <body>
     <h1>SomeRandomTitle</h1>
     
-    <br/>
+    <p>Hello world from Dart!</p>
     
-    <div id="content">
-      <div id="text"></div>
+    <div id="container">
+      <p id="text"></p>
     </div>
-    
+
     <script type="application/dart" src="ANewDartType.dart"></script>
-    <script src="dart.js"></script>
+    <script src="http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js"></script>
   </body>
 </html>

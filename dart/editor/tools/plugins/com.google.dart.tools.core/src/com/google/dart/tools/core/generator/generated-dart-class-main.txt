@@ -1,11 +1,19 @@
+
 #import('dart:html');
 
+num rotatePos = 0;
+
 void main() {
-  showMessage('Welcome to Dart!');
+  query("#text").text = "Welcome to Dart!";
+
+  query("#text").on.click.add(rotateText);
 }
 
-void showMessage(String message) {
-  var textElement = query('#text');
+void rotateText(Event event) {
+  rotatePos += 360;
 
-  textElement.text = message;
+  var textElement = query("#text");
+
+  textElement.style.transition = "1s";
+  textElement.style.transform = "rotate(${rotatePos}deg)";
 }
