@@ -8,7 +8,7 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "122171",
+  "webkit_revision": "122287",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
@@ -57,14 +57,14 @@ vars = {
   "ffmpeg_hash": "23f177366e3bce3a628a7d3feedceed4e18dcc04",
 
   "sfntly_revision": "134",
-  "skia_revision": "4436",
+  "skia_revision": "4500",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "12006",
+  "v8_revision": "12029",
   "webrtc_revision": "2486",
   "jsoncpp_revision": "248",
-  "nss_revision": "144018",
+  "nss_revision": "145873",
 }
 
 deps = {
@@ -87,7 +87,7 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@405",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@1196",
+    (Var("googlecode_url") % "angleproject") + "/trunk@1203",
 
   "src/third_party/trace-viewer":
     (Var("googlecode_url") % "trace-viewer") + "/trunk@57",
@@ -100,7 +100,7 @@ deps = {
     "/trunk/deps/third_party/WebKit@76115",
 
   "src/third_party/icu":
-    "/trunk/deps/third_party/icu46@145521",
+    "/trunk/deps/third_party/icu46@145871",
 
   "src/third_party/libexif/sources":
     "/trunk/deps/third_party/libexif/sources@141967",
@@ -404,6 +404,9 @@ deps_os = {
     "src/third_party/GTM":
       (Var("googlecode_url") % "google-toolbox-for-mac") + "/trunk@" +
       Var("gtm_revision"),
+
+    "src/third_party/nss":
+      "/trunk/deps/third_party/nss@" + Var("nss_revision"),
   },
   "mac": {
     "src/chrome/tools/test/reference_build/chrome_mac":
