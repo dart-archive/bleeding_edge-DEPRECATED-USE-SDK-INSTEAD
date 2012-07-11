@@ -12,57 +12,53 @@
  * the License.
  */
 
-package com.google.dart.tools.debug.core.source;
+package com.google.dart.tools.debug.core.dartium;
 
-import org.eclipse.core.resources.IFile;
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.sourcelookup.ISourceContainerType;
 import org.eclipse.debug.core.sourcelookup.containers.AbstractSourceContainer;
 
-import java.io.File;
-
 /**
- * A source container that expects its input path to be a workspace relative path.
+ * A source lookup container while launch/debug from url
  */
-public class WorkspaceSourceContainer extends AbstractSourceContainer {
+public class DartiumUrlScriptSourceContainer extends AbstractSourceContainer {
+
   public static final String TYPE_ID = DebugPlugin.getUniqueIdentifier()
       + ".containerType.workspace"; //$NON-NLS-1$
 
-  private static final Object[] EMPTY_COLLECTION = new Object[0];
-
-  public WorkspaceSourceContainer() {
-
-  }
-
   @Override
-  public Object[] findSourceElements(String path) throws CoreException {
-    // Look for a resource reference (/project/directory/file.dart).
-    IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(path);
+  public Object[] findSourceElements(String name) throws CoreException {
 
-    if (resource != null) {
-      return new Object[] {resource};
+    ILaunch launch = DartiumDebugTarget.getActiveTarget().getLaunch();
+    DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(
+        launch.getLaunchConfiguration());
+    IProject project = launchConfig.getProject();
+
+    if (project == null) {
+      return EMPTY;
     }
 
-    // Look for a file system reference.
-    File file = new File(path);
-
-    if (file.exists() && !file.isDirectory()) {
-      IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(file.toURI());
-
-      if (files.length > 0) {
-        return new Object[] {files[0]};
+    Path path = new Path(name);
+    for (int i = path.segmentCount() - 1; i >= 0; i--) {
+      IResource resource = project.findMember(path.removeFirstSegments(i));
+      if (resource != null) {
+        return new Object[] {resource};
       }
     }
 
-    return EMPTY_COLLECTION;
+    return EMPTY;
   }
 
   @Override
   public String getName() {
-    return "Workspace";
+    return "Remote Url Scripts";
   }
 
   @Override

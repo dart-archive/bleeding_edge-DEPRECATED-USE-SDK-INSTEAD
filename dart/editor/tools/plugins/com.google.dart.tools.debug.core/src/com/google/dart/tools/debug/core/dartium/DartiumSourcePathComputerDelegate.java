@@ -36,7 +36,9 @@ public class DartiumSourcePathComputerDelegate implements ISourcePathComputerDel
       IProgressMonitor monitor) throws CoreException {
 
     return new ISourceContainer[] {
-        new WorkspaceSourceContainer(), new DartiumRemoteScriptSourceContainer()};
+        new WorkspaceSourceContainer(),
+        new DartiumRemoteScriptSourceContainer(),
+        new DartiumUrlScriptSourceContainer()};
   }
 
 }
