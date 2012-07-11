@@ -18,7 +18,6 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -3774,13 +3773,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           currentNode.getSourceInfo().getLength());
     }
 
-    if (DartCoreDebug.ENABLE_MARK_OCCURRENCES) {
-      fOccurrencesFinderJob = new OccurrencesFinderJob(document, positions, selection);
+    fOccurrencesFinderJob = new OccurrencesFinderJob(document, positions, selection);
 //      fOccurrencesFinderJob.setPriority(Job.DECORATE);
 //      fOccurrencesFinderJob.setSystem(true);
 //      fOccurrencesFinderJob.schedule();
-      fOccurrencesFinderJob.run(new NullProgressMonitor());
-    }
+    fOccurrencesFinderJob.run(new NullProgressMonitor());
   }
 
   @Override
@@ -4035,8 +4032,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * @return <code>true</code> if Semantic Highlighting is enabled.
    */
   private boolean isSemanticHighlightingEnabled() {
-    DartX.todo();
-    return DartCoreDebug.ENABLE_SEMANTIC_HIGHLIGHTING;
+    return true;
 //    return SemanticHighlightings.isEnabled(getPreferenceStore());
   }
 

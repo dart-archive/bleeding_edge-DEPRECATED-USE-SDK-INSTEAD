@@ -30,7 +30,6 @@ public class DartCoreDebug {
   public static final boolean METRICS = isOptionTrue("debug/metrics");
   public static final boolean WARMUP = isOptionTrue("debug/warmup");
   public static final boolean VERBOSE = isOptionTrue("debug/verbose");
-  public static final boolean LOGGING_FROG = isOptionTrue("logging/frog");
   public static final boolean LOGGING_DEBUGGER = isOptionTrue("logging/debugger");
 
   public static final boolean TRACE_ARTIFACT_PROVIDER = isOptionTrue("trace/artifactProvider");
@@ -40,8 +39,6 @@ public class DartCoreDebug {
   public static final boolean TRACE_UPDATE = isOptionTrue("trace/update");
 
   public static final boolean ENABLE_CONTENT_ASSIST_TIMING = isOptionTrue("debug/ResultCollector");
-  public static final boolean ENABLE_MARK_OCCURRENCES = true; //isOptionTrue("debug/markOccurrences");
-  public static final boolean ENABLE_APPS_VIEW = true; //isOptionTrue("debug/appsView");
 
   // Performance measurement and reporting options.
 
@@ -53,7 +50,6 @@ public class DartCoreDebug {
 
   public static final boolean ENABLE_UPDATE = isOptionTrue("experimental/update");
   public static final boolean ENABLE_ALT_KEY_BINDINGS = isOptionTrue("experimental/altKeyBindings");
-  public static final boolean ENABLE_SEMANTIC_HIGHLIGHTING = true; //isOptionTrue("experimental/semanticHighlighting");
   public static final boolean HIDE_SHADOW_WARNINGS = isOptionTrue("experimental/hideShadowWarnings");
   public static final boolean ENABLE_TESTS_VIEW = isOptionTrue("experimental/testsView");
 

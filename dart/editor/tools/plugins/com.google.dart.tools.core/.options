@@ -14,14 +14,12 @@ com.google.dart.tools.core/debug/index/contributor = false
 com.google.dart.tools.core/debug/metrics = false
 com.google.dart.tools.core/debug/warmup = false
 com.google.dart.tools.core/debug/verbose = false
-com.google.dart.tools.core/logging/frog = false
 com.google.dart.tools.core/logging/debugger = false
 
 com.google.dart.tools.core/perf/analysis/filescan = false
 
 com.google.dart.tools.core/experimental/altKeyBindings = false
 com.google.dart.tools.core/experimental/update = false
-com.google.dart.tools.core/experimental/semanticHighlighting = false
 com.google.dart.tools.core/experimental/hideShadowWarnings = false
 com.google.dart.tools.core/experimental/testsView = false
 
@@ -32,6 +30,3 @@ com.google.dart.tools.core/trace/index/statistics = false
 
 com.google.dart.tools.core/perf/index = false
 com.google.dart.tools.core/perf/osResources = false
-
-com.google.dart.tools.core/debug/markOccurrences = false
-com.google.dart.tools.core/debug/appsView = false

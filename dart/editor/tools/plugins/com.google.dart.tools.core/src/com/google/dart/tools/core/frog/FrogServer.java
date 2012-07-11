@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.frog;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 
 import org.eclipse.core.runtime.IPath;
 import org.json.JSONException;
@@ -58,9 +57,9 @@ public class FrogServer {
         } catch (SocketException exception) {
           // java.net.SocketException: Socket closed
           if (!exception.toString().contains(" closed")) {
-            if (DartCoreDebug.LOGGING_FROG) {
-              DartCore.logError("Exception from frog server", exception);
-            }
+//            if (DartCoreDebug.LOGGING_FROG) {
+//              DartCore.logError("Exception from frog server", exception);
+//            }
           }
         } catch (IOException exception) {
           // java.io.IOException: ...stream is closed

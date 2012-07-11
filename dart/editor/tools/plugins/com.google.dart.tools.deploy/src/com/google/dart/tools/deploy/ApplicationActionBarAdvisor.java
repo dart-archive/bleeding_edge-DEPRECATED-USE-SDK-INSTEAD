@@ -747,10 +747,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   private void addViewActions(MenuManager menu) {
     IViewDescriptor viewDesc;
 
-    if (DartCoreDebug.ENABLE_APPS_VIEW) {
-      viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_APPS_VIEW);
-      menu.add(new AccessibleShowViewAction(window, viewDesc, false));
-    }
+    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_APPS_VIEW);
+    menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_CALL_HIERARCHY);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));

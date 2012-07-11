@@ -15,7 +15,6 @@
 package com.google.dart.tools.core.frog;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdk;
 
 import java.io.BufferedReader;
@@ -108,9 +107,9 @@ public class FrogProcess {
           String line = reader.readLine();
 
           while (line != null) {
-            if (DartCoreDebug.LOGGING_FROG) {
-              DartCore.logInformation("frog: [" + line.trim() + "]");
-            }
+//            if (DartCoreDebug.LOGGING_FROG) {
+//              DartCore.logInformation("frog: [" + line.trim() + "]");
+//            }
 
             if (line.contains(FROG_STARTUP_TOKEN)) {
               frogRunning = true;
@@ -132,9 +131,9 @@ public class FrogProcess {
                 if (line == null || line.trim().length() == 0) {
                   break;
                 }
-                if (DartCoreDebug.LOGGING_FROG) {
-                  DartCore.logInformation("frog: [" + line.trim() + "]");
-                }
+//                if (DartCoreDebug.LOGGING_FROG) {
+//                  DartCore.logInformation("frog: [" + line.trim() + "]");
+//                }
               }
               DartCore.logError(message.toString());
             }
