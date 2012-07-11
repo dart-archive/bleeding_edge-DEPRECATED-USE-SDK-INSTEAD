@@ -2027,11 +2027,14 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       // the AST, in which case we would compute the AST twice when we don't need to.
       try {
         long creationTime = System.nanoTime();
-        CompilationUnit input = getInputDartElement().getAncestor(CompilationUnit.class);
-        if (input != null) {
-          ast = DartCompilerUtilities.resolveUnit(input);
-          if (ast != null) {
-            astCache.setAST(creationTime, ast);
+        DartElement dartElement = getInputDartElement();
+        if (dartElement != null) {
+          CompilationUnit input = dartElement.getAncestor(CompilationUnit.class);
+          if (input != null) {
+            ast = DartCompilerUtilities.resolveUnit(input);
+            if (ast != null) {
+              astCache.setAST(creationTime, ast);
+            }
           }
         }
       } catch (Throwable exception) {
