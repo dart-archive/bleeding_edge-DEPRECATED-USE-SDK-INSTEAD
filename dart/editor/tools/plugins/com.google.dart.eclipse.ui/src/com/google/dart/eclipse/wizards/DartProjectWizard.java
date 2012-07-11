@@ -29,9 +29,11 @@ package com.google.dart.eclipse.wizards;
 import com.google.dart.eclipse.DartEclipseUI;
 import com.google.dart.tools.core.DartCore;
 
+import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
 
 /**
@@ -49,6 +51,10 @@ public class DartProjectWizard extends BasicNewProjectResourceWizard {
       try {
         IProjectDescription description = project.getDescription();
         description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
+        ICommand command = description.newCommand();
+        command.setBuilderName(DartCore.DART_BUILDER_ID);
+        description.setBuildSpec(new ICommand[] {command});
+        project.setDescription(description, new NullProgressMonitor());
       } catch (CoreException e) {
         DartEclipseUI.logError(e);
       }
