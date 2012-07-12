@@ -121,7 +121,7 @@ class ResourceServerHandler implements Runnable {
     public static final int UNAUTHORIZED = 401; // "Unauthorized"
 
     public static final DateFormat RFC_1123_DATE_FORMAT = new SimpleDateFormat(
-        "EEE, dd MMM yyyy HH:mm:ss zzz",
+        "EEE, dd MMM yyyy HH:mm:ss z",
         Locale.US);
 
     public int responseCode = OK;
@@ -362,9 +362,14 @@ class ResourceServerHandler implements Runnable {
 
     HttpResponse response = new HttpResponse();
 
-    // Last-Modified: Wed, 08 Jan 2003 23:11:55 GMT
-    Date date = new Date(javaFile.lastModified());
-    response.headers.put("Last-Modified", HttpResponse.RFC_1123_DATE_FORMAT.format(date));
+    try {
+      // Last-Modified: Wed, 08 Jan 2003 23:11:55 GMT
+      Date date = new Date(javaFile.lastModified());
+      response.headers.put("Last-Modified", HttpResponse.RFC_1123_DATE_FORMAT.format(date));
+    } catch (Throwable t) {
+      // Some (bad?) file times can cause exceptions to be thrown from the formatter. 
+      DartDebugCorePlugin.logError(t);
+    }
 
     // Content-Type: text/html[; charset=UTF-8]
     String contentType = getContentType(getFileExtension(javaFile.getName()));
