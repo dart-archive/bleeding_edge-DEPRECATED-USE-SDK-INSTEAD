@@ -14,7 +14,6 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.LibraryElement;
 
 import java.util.EnumSet;
@@ -76,12 +75,6 @@ public abstract class ElementImpl implements Element {
   @Override
   public LibraryElement getLibrary() {
     return getAncestor(LibraryElement.class);
-  }
-
-  @Override
-  public ElementLocation getLocation() {
-    // TODO(brianwilkerson) Implement this
-    return null;
   }
 
   @Override
