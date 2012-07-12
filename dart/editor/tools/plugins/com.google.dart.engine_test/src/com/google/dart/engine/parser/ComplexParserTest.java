@@ -16,8 +16,10 @@ package com.google.dart.engine.parser;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.BinaryExpression;
+import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
+import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.ReturnStatement;
@@ -39,6 +41,16 @@ public class ComplexParserTest extends EngineTestCase {
   public void test_additiveExpression_normal() throws Exception {
     BinaryExpression expression = parseExpression("x + y - z");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_additiveExpression_precedence_multiplicative_left() throws Exception {
+    BinaryExpression expression = parseExpression("x * y + z");
+    assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_additiveExpression_precedence_multiplicative_right() throws Exception {
+    BinaryExpression expression = parseExpression("x + y * z");
+    assertInstanceOf(BinaryExpression.class, expression.getRightOperand());
   }
 
   public void test_additiveExpression_super() throws Exception {
@@ -91,6 +103,16 @@ public class ComplexParserTest extends EngineTestCase {
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
+  public void test_bitwiseAndExpression_precedence_equality_left() throws Exception {
+    BinaryExpression expression = parseExpression("x == y & z");
+    assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_bitwiseAndExpression_precedence_equality_right() throws Exception {
+    BinaryExpression expression = parseExpression("x & y == z");
+    assertInstanceOf(BinaryExpression.class, expression.getRightOperand());
+  }
+
   public void test_bitwiseAndExpression_super() throws Exception {
     BinaryExpression expression = parseExpression("super & y & z");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
@@ -99,6 +121,16 @@ public class ComplexParserTest extends EngineTestCase {
   public void test_bitwiseOrExpression_normal() throws Exception {
     BinaryExpression expression = parseExpression("x | y | z");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_bitwiseOrExpression_precedence_xor_left() throws Exception {
+    BinaryExpression expression = parseExpression("x ^ y | z");
+    assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_bitwiseOrExpression_precedence_xor_right() throws Exception {
+    BinaryExpression expression = parseExpression("x | y ^ z");
+    assertInstanceOf(BinaryExpression.class, expression.getRightOperand());
   }
 
   public void test_bitwiseOrExpression_super() throws Exception {
@@ -111,14 +143,39 @@ public class ComplexParserTest extends EngineTestCase {
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
+  public void test_bitwiseXorExpression_precedence_and_left() throws Exception {
+    BinaryExpression expression = parseExpression("x & y ^ z");
+    assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_bitwiseXorExpression_precedence_and_right() throws Exception {
+    BinaryExpression expression = parseExpression("x ^ y & z");
+    assertInstanceOf(BinaryExpression.class, expression.getRightOperand());
+  }
+
   public void test_bitwiseXorExpression_super() throws Exception {
     BinaryExpression expression = parseExpression("super ^ y ^ z");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
+  public void test_conditionalExpression_presidence_logicalOrExpression() throws Exception {
+    ConditionalExpression expression = parseExpression("a | b ? y : z");
+    assertInstanceOf(BinaryExpression.class, expression.getCondition());
+  }
+
   public void test_equalityExpression_normal() throws Exception {
     BinaryExpression expression = parseExpression("x == y != z");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_equalityExpression_precedence_relational_left() throws Exception {
+    BinaryExpression expression = parseExpression("x is y == z");
+    assertInstanceOf(IsExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_equalityExpression_precedence_relational_right() throws Exception {
+    BinaryExpression expression = parseExpression("x == y is z");
+    assertInstanceOf(IsExpression.class, expression.getRightOperand());
   }
 
   public void test_equalityExpression_super() throws Exception {
@@ -155,6 +212,16 @@ public class ComplexParserTest extends EngineTestCase {
   public void test_shiftExpression_normal() throws Exception {
     BinaryExpression expression = parseExpression("x >> 4 << 3");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_shiftExpression_precedence_additive_left() throws Exception {
+    BinaryExpression expression = parseExpression("x + y << z");
+    assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_shiftExpression_precedence_additive_right() throws Exception {
+    BinaryExpression expression = parseExpression("x << y + z");
+    assertInstanceOf(BinaryExpression.class, expression.getRightOperand());
   }
 
   public void test_shiftExpression_super() throws Exception {
