@@ -53,13 +53,19 @@ class OverrideIndicatorManager implements IDartReconcilingListener {
    * Overwrite and override indicator annotation.
    */
   class OverrideIndicator extends Annotation {
-    private final Element astElement;
     private final boolean isOverride;
+    private final DartElement dartElement;
 
     OverrideIndicator(Element astElement, String text, boolean isOverride) {
       super(ANNOTATION_TYPE, false, text);
-      this.astElement = astElement;
       this.isOverride = isOverride;
+      // TODO(scheglov) we (probably) can optimize this, don't compiler Element's, but also don't
+      // create DartElement. We need to remember enough lightweight information to do this.
+      {
+        CompilationUnit dartUnit = managerDartElement.getAncestor(CompilationUnit.class);
+        DartElementLocator locator = new DartElementLocator(dartUnit, astElement);
+        dartElement = locator.getFoundElement();
+      }
     }
 
     /**
@@ -75,9 +81,6 @@ class OverrideIndicatorManager implements IDartReconcilingListener {
      */
     public void open() {
       try {
-        CompilationUnit dartUnit = managerDartElement.getAncestor(CompilationUnit.class);
-        DartElementLocator locator = new DartElementLocator(dartUnit, astElement);
-        DartElement dartElement = locator.getFoundElement();
         if (dartElement != null) {
           DartUI.openInEditor(dartElement);
         } else {

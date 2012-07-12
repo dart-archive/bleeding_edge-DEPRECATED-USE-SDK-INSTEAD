@@ -181,6 +181,7 @@ import org.eclipse.ui.views.contentoutline.ContentOutline;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.osgi.service.prefs.BackingStoreException;
 
+import java.lang.ref.SoftReference;
 import java.lang.reflect.InvocationTargetException;
 import java.text.CharacterIterator;
 import java.util.ArrayList;
@@ -1079,7 +1080,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
      * The AST corresponding to the contents of the editor's document, or <code>null</code> if the
      * AST structure has not been accessed since the last time the cache was cleared.
      */
-    private DartUnit cachedAST;
+    private SoftReference<DartUnit> cachedAST;
 
     /**
      * Initialize a newly created class to be empty.
@@ -1107,8 +1108,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
      */
     public DartUnit getAST() {
       synchronized (this) {
-        return cachedAST;
+        if (cachedAST != null) {
+          return cachedAST.get();
+        }
       }
+      return null;
     }
 
     /**
@@ -1121,7 +1125,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     public void setAST(long creationTime, DartUnit ast) {
       synchronized (this) {
         if (creationTime > clearTime) {
-          cachedAST = ast;
+          cachedAST = new SoftReference<DartUnit>(ast);
         }
       }
     }
