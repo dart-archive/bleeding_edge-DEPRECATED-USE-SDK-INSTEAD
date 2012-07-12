@@ -1018,7 +1018,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       while (true) {
 
         Token token = scanner.next();
-        start = scanner.getTokenLocation().getBegin().getPos();
+        start = scanner.getTokenLocation().getBegin();
         if (start > stop) {
           break;
         }
@@ -1027,7 +1027,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 //          case ITerminalSymbols.TokenNameCOMMENT_JAVADOC:
 //          case ITerminalSymbols.TokenNameCOMMENT_BLOCK: {
         if (token == Token.COMMENT) {
-          int end = scanner.getTokenLocation().getEnd().getPos() + 1;
+          int end = scanner.getTokenLocation().getEnd() + 1;
           regions.add(new Region(start, end - start));
           continue;
         }
@@ -1219,13 +1219,13 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 
       if (terminal == Token.COMMENT) {
         if (!foundComment) {
-          headerStart = scanner.getTokenLocation().getBegin().getPos();
+          headerStart = scanner.getTokenLocation().getBegin();
         }
-        headerEnd = scanner.getTokenLocation().getEnd().getPos();
+        headerEnd = scanner.getTokenLocation().getEnd();
         foundComment = true;
       }
       terminal = scanner.next();
-      if (scanner.getTokenLocation().getBegin().getPos() > end) {
+      if (scanner.getTokenLocation().getBegin() > end) {
         break;
       }
     }

@@ -100,7 +100,6 @@ import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartParser;
-import com.google.dart.compiler.parser.DartScanner;
 import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.tools.core.internal.completion.ast.BlockCompleter;
@@ -560,8 +559,8 @@ public class CompletionParser extends DartParser {
   protected Token next() {
     Token next = super.next();
     Location loc = ctx.getTokenLocation();
-    int start = loc.getBegin().getPos();
-    int end = loc.getEnd().getPos();
+    int start = loc.getBegin();
+    int end = loc.getEnd();
     if (start <= completionPosition && completionPosition <= end) {
       completionToken = next;
     } else {
@@ -571,8 +570,7 @@ public class CompletionParser extends DartParser {
   }
 
   @Override
-  protected void reportError(DartScanner.Position position, ErrorCode errorCode,
-      Object... arguments) {
+  protected void reportError(int position, ErrorCode errorCode, Object... arguments) {
     // TODO completion analysis
     peekMark();
 //    if (completionToken != null) {
@@ -583,7 +581,7 @@ public class CompletionParser extends DartParser {
   }
 
   @Override
-  protected void reportUnexpectedToken(DartScanner.Position position, Token expected, Token actual) {
+  protected void reportUnexpectedToken(int position, Token expected, Token actual) {
     super.reportUnexpectedToken(position, expected, actual);
   }
 

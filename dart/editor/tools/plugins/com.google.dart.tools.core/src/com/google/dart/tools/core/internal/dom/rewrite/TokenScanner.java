@@ -63,7 +63,7 @@ public class TokenScanner {
    * @return Returns the offset after the current token
    */
   public int getCurrentEndOffset() {
-    return scanner.getTokenLocation().getEnd().getPos() + 1;
+    return scanner.getTokenLocation().getEnd() + 1;
   }
 
   /**
@@ -77,7 +77,7 @@ public class TokenScanner {
    * @return Returns the start offset of the current token
    */
   public int getCurrentStartOffset() {
-    return scanner.getTokenLocation().getBegin().getPos();
+    return scanner.getTokenLocation().getBegin();
   }
 
   /**

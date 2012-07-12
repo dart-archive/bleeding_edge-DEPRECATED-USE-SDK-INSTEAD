@@ -412,9 +412,9 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       }
 
       DartScanner.Location location = scanner.getTokenLocation();
-      int tokenOffset = location.getBegin().getPos();
-      int tokenLength = location.getEnd().getPos() + 1 - tokenOffset; // inclusive
-                                                                      // end
+      int tokenOffset = location.getBegin();
+      int tokenLength = location.getEnd() + 1 - tokenOffset; // inclusive
+                                                             // end
       return new Region(tokenOffset + scanRegion.getOffset(), tokenLength);
 
     } catch (BadLocationException x) {

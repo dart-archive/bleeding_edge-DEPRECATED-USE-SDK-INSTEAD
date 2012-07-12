@@ -46,7 +46,7 @@ public class Scanner {
     }
 
     @Override
-    protected void recordCommentLocation(int begin, int stop, int line, int col) {
+    protected void recordCommentLocation(int begin, int stop) {
       int start = begin; // - 1;
       int size = commentLocs.size();
       if (size > 0) {
@@ -310,6 +310,50 @@ public class Scanner {
     resetTo(0, source.length);
   }
 
+  int getNextChar() {
+    // only called while formatting comments
+    try {
+      startPosition = currentPosition;
+      currentCharacter = source[currentPosition++];
+      nextTokenIsWhitespace = Character.isWhitespace(source[currentPosition]);
+      // The Dart scanner won't skip chars so we need to toss it and
+      // create a new one that starts scanning at the next char.
+      scanner = null;
+      startPos = currentPosition;
+    } catch (IndexOutOfBoundsException ex) {
+      currentCharacter = -1;
+      nextTokenIsWhitespace = false;
+    }
+    return currentCharacter;
+  }
+
+  boolean getNextChar(int ch) {
+    // no state change on failure
+    if (startPosition >= source.length) {
+      return false;
+    }
+    if (source[currentPosition] == ch) {
+      getNextChar();
+      return true;
+    }
+    return false;
+  }
+
+  void skipNewline() {
+    if (nextTokenIsWhitespace && currentCharacter == '\n') {
+      if (++currentPosition < source.length) {
+        currentCharacter = source[currentPosition];
+        nextTokenIsWhitespace = Character.isWhitespace(currentCharacter);
+      } else {
+        currentPosition -= 1;
+        currentCharacter = -1;
+        nextTokenIsWhitespace = false;
+      }
+      startPos = startPosition = currentPosition;
+      scanner = null;
+    }
+  }
+
   private Token getNextComment() {
     int[] cl = null;
     for (int[] loc : commentLocs) {
@@ -329,8 +373,8 @@ public class Scanner {
 
   private Token getNextFromScanner() throws InvalidInputException {
     Token tok = getScanner().next();
-    startPosition = getScanner().getTokenLocation().getBegin().getPos();
-    currentPosition = getScanner().getTokenLocation().getEnd().getPos();
+    startPosition = getScanner().getTokenLocation().getBegin();
+    currentPosition = getScanner().getTokenLocation().getEnd();
 //    System.out.println("Scanner.getNextFromScanner {");
 //    System.out.print(" " + tok + "(" + getScanner().getTokenValue() + ")");
 //    System.out.println(" current loc " + getScanner().getTokenLocation().getBegin().toString());
@@ -454,49 +498,5 @@ public class Scanner {
       }
     }
     return endOffset;
-  }
-
-  int getNextChar() {
-    // only called while formatting comments
-    try {
-      startPosition = currentPosition;
-      currentCharacter = source[currentPosition++];
-      nextTokenIsWhitespace = Character.isWhitespace(source[currentPosition]);
-      // The Dart scanner won't skip chars so we need to toss it and
-      // create a new one that starts scanning at the next char.
-      scanner = null;
-      startPos = currentPosition;
-    } catch (IndexOutOfBoundsException ex) {
-      currentCharacter = -1;
-      nextTokenIsWhitespace = false;
-    }
-    return currentCharacter;
-  }
-
-  boolean getNextChar(int ch) {
-    // no state change on failure
-    if (startPosition >= source.length) {
-      return false;
-    }
-    if (source[currentPosition] == ch) {
-      getNextChar();
-      return true;
-    }
-    return false;
-  }
-
-  void skipNewline() {
-    if (nextTokenIsWhitespace && currentCharacter == '\n') {
-      if (++currentPosition < source.length) {
-        currentCharacter = source[currentPosition];
-        nextTokenIsWhitespace = Character.isWhitespace(currentCharacter);
-      } else {
-        currentPosition -= 1;
-        currentCharacter = -1;
-        nextTokenIsWhitespace = false;
-      }
-      startPos = startPosition = currentPosition;
-      scanner = null;
-    }
   }
 }

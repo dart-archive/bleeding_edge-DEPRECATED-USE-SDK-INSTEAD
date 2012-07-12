@@ -97,7 +97,7 @@ public class NodeFinder extends ASTVisitor<Void> {
         DartScanner scanner = new DartScanner(src);
         Token token = scanner.next();
         if (token != Token.EOS) {
-          int tStart = scanner.getTokenLocation().getBegin().getPos();
+          int tStart = scanner.getTokenLocation().getBegin();
           if (tStart == result.getSourceInfo().getOffset() - start) {
             int idx = tStart + result.getSourceInfo().getLength();
             String nsrc = src.substring(idx, idx + length - 1);
