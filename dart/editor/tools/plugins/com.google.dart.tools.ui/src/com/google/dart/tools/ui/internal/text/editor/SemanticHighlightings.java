@@ -13,9 +13,14 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.FieldElement;
+import com.google.dart.compiler.resolver.LibraryElement;
+import com.google.dart.compiler.resolver.LibraryPrefixElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.tools.core.utilities.ast.DynamicTypesFinder;
 import com.google.dart.tools.ui.PreferenceConstants;
@@ -163,7 +168,7 @@ public class SemanticHighlightings {
   /**
    * Semantic highlighting for static fields.
    */
-  private static class StaticFieldHighlighting extends DefaultSemanticHighlighting {
+  private static class StaticFieldHighlighting extends FieldHighlighting {
     @Override
     public boolean consumes(SemanticToken token) {
       DartIdentifier node = token.getNode();
@@ -195,6 +200,53 @@ public class SemanticHighlightings {
   }
 
   /**
+   * Semantic highlighting for top level members.
+   */
+  private static class TopLevelMemberHighlighting extends DefaultSemanticHighlighting {
+    @Override
+    public boolean consumes(SemanticToken token) {
+
+      DartIdentifier node = token.getNode();
+      NodeElement element = node.getElement();
+
+      if (element == null || element instanceof ClassElement
+          || element instanceof LibraryPrefixElement) {
+        return false;
+      }
+
+      DartNode parent = node.getParent();
+      if (parent instanceof DartDeclaration<?>) {
+        if (((DartDeclaration<?>) parent).getName().equals(node)) {
+          return false;
+        }
+      }
+
+      return element.getEnclosingElement() instanceof LibraryElement;
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return new RGB(63, 127, 95); //multi-line comment green
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_topLevelMember;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return TOP_LEVEL_MEMBER;
+    }
+
+    @Override
+    public boolean isItalicByDefault() {
+      return false;
+    }
+
+  }
+
+  /**
    * A named preference part that controls the highlighting of deprecated elements.
    */
   public static final String DEPRECATED_ELEMENT = "deprecated"; //$NON-NLS-1$
@@ -208,6 +260,11 @@ public class SemanticHighlightings {
    * A named preference part that controls the highlighting of static fields.
    */
   public static final String STATIC_FIELD = "staticField"; //$NON-NLS-1$
+
+  /**
+   * A named preference part that controls the highlighting of top level members.
+   */
+  public static final String TOP_LEVEL_MEMBER = "topLevelMember"; //$NON-NLS-1$
 
   /**
    * A named preference part that controls the highlighting of fields.
@@ -391,7 +448,7 @@ public class SemanticHighlightings {
     if (SEMANTIC_HIGHTLIGHTINGS == null) {
       SEMANTIC_HIGHTLIGHTINGS = new SemanticHighlighting[] {
           new DeprecatedElementHighlighting(), new StaticFieldHighlighting(),
-          new FieldHighlighting(), new DynamicTypeHighlighting()};
+          new FieldHighlighting(), new DynamicTypeHighlighting(), new TopLevelMemberHighlighting()};
     }
     return SEMANTIC_HIGHTLIGHTINGS;
   }
