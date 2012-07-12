@@ -26,5 +26,3 @@
 #source('Views.dart');
 #source('CSS.dart');
 
-// TODO(jimhug): Remove this when deploying.
-#source('CannedData.dart');
