@@ -58,7 +58,6 @@ public abstract class ElementImpl implements Element {
   }
 
 //  @Override
-  @Override
   @SuppressWarnings("unchecked")
   public <E extends Element> E getAncestor(Class<E> elementClass) {
     Element ancestor = enclosingElement;
