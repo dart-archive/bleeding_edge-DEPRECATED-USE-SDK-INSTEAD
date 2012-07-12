@@ -31,6 +31,11 @@ class Sections implements Collection<Section> {
   // TODO(jimhug): Track down callers!
   Iterator<Section> iterator() => _sections.iterator();
 
+  // TODO(jimhug): Better support for switching between local dev and server.
+  static bool get runningFromFile() {
+    return window.location.protocol.startsWith('file:');
+  }
+
   static String get home() {
     // TODO(jmesserly): window.location.origin not available on Safari 4.
     // Move this workaround to the DOM code. See bug 5389503.
@@ -49,14 +54,18 @@ class Sections implements Collection<Section> {
     callback(new Sections(sections));
   }
 
-  static void initializeFromUrl(void callback(Sections sections)) {   
-    // TODO(jmesserly): display an error if we fail here! Silent failure bad.
-    new XMLHttpRequest.get('data/user.data',
-        EventBatch.wrap((request) {
-          // TODO(jimhug): Nice response if get error back from server.
-          // TODO(jimhug): Might be more efficient to parse request in sections.
-          initializeFromData(request.responseText, callback);
-        }));
+  static void initializeFromUrl(void callback(Sections sections)) {
+    if (Sections.runningFromFile) {
+      initializeFromData(CannedData.data['user.data'], callback);
+    } else {
+      // TODO(jmesserly): display an error if we fail here! Silent failure bad.
+      new XMLHttpRequest.get('data/user.data',
+          EventBatch.wrap((request) {
+        // TODO(jimhug): Nice response if get error back from server.
+        // TODO(jimhug): Might be more efficient to parse request in sections.
+        initializeFromData(request.responseText, callback);
+      }));
+    }
   }
 
   Section findSectionById(String id) {
@@ -193,7 +202,12 @@ class Article {
   String get thumbUrl() {
     if (!hasThumbnail) return null;
 
-    var home = Sections.home;
+    var home;
+    if (Sections.runningFromFile) {
+      home = 'http://dart.googleplex.com';
+    } else {
+      home = Sections.home;
+    }
     // By default images from the real server are cached.
     // Bump the version flag if you change the thumbnail size, and you want to
     // get the new images. Our server ignores the query params but it gets
@@ -207,11 +221,15 @@ class Article {
     if (_htmlBody !== null) return;
 
     var name = '$dataUri.html';
-    // TODO(jimhug): Remove this truly evil synchronous xhr.
-    final req = new XMLHttpRequest();
-    req.open('GET', 'data/$name', false);
-    req.send();
-    _htmlBody = req.responseText;
+    if (Sections.runningFromFile) {
+      _htmlBody = CannedData.data[name];
+    } else {
+      // TODO(jimhug): Remove this truly evil synchronoush xhr.
+      final req = new XMLHttpRequest();
+      req.open('GET', 'data/$name', false);
+      req.send();
+      _htmlBody = req.responseText;
+    }
   }
 
   static Article decodeHeader(Feed source, Decoder decoder) {
