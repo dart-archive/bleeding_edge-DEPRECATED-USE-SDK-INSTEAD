@@ -139,24 +139,30 @@ public class LinkWithEditorAction extends PartEventAction implements ISelectionC
       if (element instanceof IFile) {
         IFile file = (IFile) element;
 
-        for (IEditorReference editor : page.getEditorReferences()) {
-          IEditorInput input = editor.getEditorInput();
+        // If the active editor is editing this file, don't bring any other parts to the front.
+        if (!isActiveEditorInput(file)) {
+          for (IEditorReference editor : page.getEditorReferences()) {
+            IEditorInput input = editor.getEditorInput();
 
-          if (input instanceof IFileEditorInput) {
-            if (file.equals(((IFileEditorInput) input).getFile())) {
-              page.bringToTop(editor.getPart(true));
+            if (input instanceof IFileEditorInput) {
+              if (file.equals(((IFileEditorInput) input).getFile())) {
+                page.bringToTop(editor.getPart(true));
+              }
             }
           }
         }
       } else if (element instanceof IFileStore) {
         IFileStore file = (IFileStore) element;
 
-        for (IEditorReference editor : page.getEditorReferences()) {
-          IEditorInput input = editor.getEditorInput();
+        // If the active editor is editing this file, don't bring any other parts to the front.
+        if (!isActiveEditorInput(file)) {
+          for (IEditorReference editor : page.getEditorReferences()) {
+            IEditorInput input = editor.getEditorInput();
 
-          if (input instanceof FileStoreEditorInput) {
-            if (file.toURI().equals(((FileStoreEditorInput) input).getURI())) {
-              page.bringToTop(editor.getPart(true));
+            if (input instanceof FileStoreEditorInput) {
+              if (file.toURI().equals(((FileStoreEditorInput) input).getURI())) {
+                page.bringToTop(editor.getPart(true));
+              }
             }
           }
         }
@@ -182,6 +188,34 @@ public class LinkWithEditorAction extends PartEventAction implements ISelectionC
     } else {
       return null;
     }
+  }
+
+  private boolean isActiveEditorInput(IFile file) {
+    IEditorPart part = page.getActiveEditor();
+
+    if (part != null) {
+      if (part.getEditorInput() instanceof IFileEditorInput) {
+        IFileEditorInput editorInput = (IFileEditorInput) part.getEditorInput();
+
+        return file.equals(editorInput.getFile());
+      }
+    }
+
+    return false;
+  }
+
+  private boolean isActiveEditorInput(IFileStore file) {
+    IEditorPart part = page.getActiveEditor();
+
+    if (part != null) {
+      if (part.getEditorInput() instanceof FileStoreEditorInput) {
+        FileStoreEditorInput editorInput = (FileStoreEditorInput) part.getEditorInput();
+
+        return file.toURI().equals(editorInput.getURI());
+      }
+    }
+
+    return false;
   }
 
 }
