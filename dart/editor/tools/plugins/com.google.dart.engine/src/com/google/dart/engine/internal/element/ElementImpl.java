@@ -57,6 +57,7 @@ public abstract class ElementImpl implements Element {
     return name.equals(other.getName()) && enclosingElement.equals(other.getEnclosingElement());
   }
 
+//  @Override
   @Override
   @SuppressWarnings("unchecked")
   public <E extends Element> E getAncestor(Class<E> elementClass) {
