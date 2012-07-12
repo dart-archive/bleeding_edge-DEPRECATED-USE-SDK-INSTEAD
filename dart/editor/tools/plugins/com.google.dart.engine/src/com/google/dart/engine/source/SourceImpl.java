@@ -60,8 +60,18 @@ public class SourceImpl implements Source {
   }
 
   @Override
+  public boolean equals(Object object) {
+    return this.getClass() == object.getClass() && file.equals(((SourceImpl) object).getFile());
+  }
+
+  @Override
   public File getFile() {
     return file;
+  }
+
+  @Override
+  public int hashCode() {
+    return file.hashCode();
   }
 
   @Override

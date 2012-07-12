@@ -87,11 +87,4 @@ public interface TypeElement extends Element {
    * @return {@code true} if this type is abstract
    */
   public boolean isAbstract();
-
-  /**
-   * Return {@code true} if this element represents an interface.
-   * 
-   * @return {@code true} if this element represents an interface
-   */
-  public boolean isInterface();
 }
