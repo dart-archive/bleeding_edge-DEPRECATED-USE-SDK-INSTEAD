@@ -53,7 +53,6 @@ import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -1069,7 +1068,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   public CompilationUnitEditor() {
     super();
     setDocumentProvider(DartToolsPlugin.getDefault().getCompilationUnitDocumentProvider());
-    setEditorContextMenuId("#JavaScriptEditorContext"); //$NON-NLS-1$
+    setEditorContextMenuId("#DartEditorContext"); //$NON-NLS-1$
     setRulerContextMenuId("#DartRulerContext"); //$NON-NLS-1$
     setOutlinerContextMenuId("#JavaScriptOutlinerContext"); //$NON-NLS-1$
     // don't set help contextId, we install our own help context

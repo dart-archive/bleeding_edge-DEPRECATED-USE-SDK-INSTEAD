@@ -446,9 +446,40 @@
    <extension point="org.eclipse.ui.perspectiveExtensions">
       <perspectiveExtension targetID="com.google.dart.tools.ui.DartPerspective">
          <actionSet id="org.eclipse.debug.ui.debugActionSet"/>
+         <actionSet id="com.google.dart.tools.debug.ui.breakpointActionSet"/>
       </perspectiveExtension>
    </extension>
    
+   <extension point="org.eclipse.ui.actionSets">
+      <actionSet
+            label="%BreakpointActionSet.label"
+            visible="false"
+            id="com.google.dart.tools.debug.ui.breakpointActionSet">
+         <action
+               definitionId="org.eclipse.debug.ui.commands.ToggleBreakpoint"
+               label="%ToggleBreakpointAction.label"
+               icon="icons/obj16/brkp_obj.gif"
+               class="com.google.dart.tools.debug.ui.internal.breakpoints.RetargetToggleBreakpointAction"
+               menubarPath="org.eclipse.ui.run/runGroup"
+               id="org.eclipse.debug.ui.actions.ToggleBreakpoint">
+         </action>         
+      </actionSet>
+   </extension>
+
+   <!-- extension point="org.eclipse.ui.popupMenus"> 
+      <viewerContribution 
+         id="com.google.dart.tools.debug.ui.breakpointActionSet.popup"
+         targetID="#DartEditorContext"> 
+         <action
+            id="com.google.dart.tools.debug.ui.breakpointActionSet.popup.1" 
+            label="%ToggleBreakpointAction.label"
+            icon="icons/obj16/brkp_obj.gif"
+            menubarPath="additions" 
+            class="com.google.dart.tools.debug.ui.internal.breakpoints.DartBreakpointContextMenuDelegate"> 
+         </action> 
+      </viewerContribution> 
+   </extension -->
+
    <extension point="org.eclipse.ui.bindings">
       <key
             sequence="F5"
