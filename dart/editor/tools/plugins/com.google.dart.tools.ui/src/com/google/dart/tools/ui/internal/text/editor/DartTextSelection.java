@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -37,7 +37,8 @@ import org.eclipse.jface.text.TextSelection;
  */
 public class DartTextSelection extends TextSelection {
 
-  private DartElement fElement;
+  private final DartEditor editor;
+  private final DartElement fElement;
   private DartElement[] fResolvedElements;
 
   private boolean fEnclosingElementRequested;
@@ -62,9 +63,11 @@ public class DartTextSelection extends TextSelection {
   /**
    * Creates a new text selection at the given offset and length.
    */
-  public DartTextSelection(DartElement element, IDocument document, int offset, int length) {
+  public DartTextSelection(DartEditor editor, DartElement element, IDocument document, int offset,
+      int length) {
     super(document, offset, length);
-    fElement = element;
+    this.editor = editor;
+    this.fElement = element;
   }
 
   public DartNode resolveCoveringNode() {
@@ -87,7 +90,7 @@ public class DartTextSelection extends TextSelection {
       return fResolvedElements;
     }
     // long start= System.currentTimeMillis();
-    fResolvedElements = SelectionConverter.codeResolve(fElement, this);
+    fResolvedElements = SelectionConverter.codeResolve(editor, fElement, this);
     // System.out.println("Time resolving element: " +
     // (System.currentTimeMillis() - start));
     return fResolvedElements;

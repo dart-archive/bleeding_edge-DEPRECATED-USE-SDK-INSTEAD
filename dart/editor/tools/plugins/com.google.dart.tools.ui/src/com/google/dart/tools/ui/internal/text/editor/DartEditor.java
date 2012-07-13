@@ -2025,7 +2025,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * @return the AST structure corresponding to the current contents of this editor's document
    */
   public DartUnit getAST() {
-    DartUnit ast = astCache.getAST();
+    DartUnit ast;
+    synchronized (astCache) {
+      ast = astCache.getAST();
+    }
     if (ast == null) {
       // There is a small chance that another thread could ask for the AST while we are computing
       // the AST, in which case we would compute the AST twice when we don't need to.
@@ -2037,7 +2040,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           if (input != null) {
             ast = DartCompilerUtilities.resolveUnit(input);
             if (ast != null) {
-              astCache.setAST(creationTime, ast);
+              synchronized (astCache) {
+                astCache.setAST(creationTime, ast);
+              }
             }
           }
         }
@@ -2210,6 +2215,15 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     DartX.todo("folding");
     if (fProjectionModelUpdater != null) {
       fProjectionModelUpdater.initialize();
+    }
+  }
+
+  /**
+   * Sets the AST resolved at the given moment of time.
+   */
+  public void setAST(long creaitonTime, DartUnit ast) {
+    synchronized (astCache) {
+      astCache.setAST(creaitonTime, ast);
     }
   }
 

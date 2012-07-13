@@ -534,6 +534,7 @@ public class RefactorActionGroup extends ActionGroup {
       }
       ITextSelection textSelection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
       DartTextSelection dartSelection = new DartTextSelection(
+          fEditor,
           element,
           getDocument(),
           textSelection.getOffset(),
@@ -675,6 +676,7 @@ public class RefactorActionGroup extends ActionGroup {
 //    });
     ITextSelection textSelection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
     DartTextSelection dartSelection = new DartTextSelection(
+        fEditor,
         getEditorInput(),
         getDocument(),
         textSelection.getOffset(),

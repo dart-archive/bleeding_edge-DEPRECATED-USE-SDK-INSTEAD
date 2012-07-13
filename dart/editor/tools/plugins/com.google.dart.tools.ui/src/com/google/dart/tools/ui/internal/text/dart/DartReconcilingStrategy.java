@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,6 +19,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.WorkingCopyManager;
 
 import org.eclipse.core.runtime.Assert;
@@ -129,6 +130,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
     final DartUnit[] ast = new DartUnit[1];
     try {
+      final long astCreationTime = System.nanoTime();
       final CompilationUnit unit = fManager.getWorkingCopy(fEditor.getEditorInput(), false);
       if (unit != null) {
         SafeRunner.run(new ISafeRunnable() {
@@ -160,6 +162,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
                 if (fIsJavaReconcilingListener && isASTNeeded) {
 
                   ast[0] = ((CompilationUnitImpl) unit).reconcile(true, null, fProgressMonitor);
+                  ((DartEditor) fEditor).setAST(astCreationTime, ast[0]);
 //                  if (ast[0] != null) {
 //                    // mark as unmodifiable
 //                    ASTNodes.setFlagsToAST(ast[0], DartNode.PROTECT);
