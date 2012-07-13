@@ -73,7 +73,7 @@ public class MethodDeclaration extends TypeMember {
   /**
    * Initialize a newly created method declaration.
    */
-  private MethodDeclaration() {
+  public MethodDeclaration() {
   }
 
   /**
@@ -88,7 +88,7 @@ public class MethodDeclaration extends TypeMember {
    * @param parameters the parameters associated with the method
    * @param body the body of the method
    */
-  private MethodDeclaration(Comment comment, Token modifierKeyword, TypeName returnType,
+  public MethodDeclaration(Comment comment, Token modifierKeyword, TypeName returnType,
       Token propertyKeyword, Token operatorKeyword, Identifier name,
       FormalParameterList parameters, FunctionBody body) {
     super(comment);

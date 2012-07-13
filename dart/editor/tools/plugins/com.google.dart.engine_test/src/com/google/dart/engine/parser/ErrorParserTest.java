@@ -27,6 +27,27 @@ import java.lang.reflect.Method;
  * sequences to ensure that errors are correctly reported.
  */
 public class ErrorParserTest extends EngineTestCase {
+  public void test_operatorCannotBeStatic_noReturnType() throws Exception {
+    parse(
+        "parseClassMember",
+        "static operator +(int x) => x + 1",
+        ParserErrorCode.OPERATOR_CANNOT_BE_STATIC);
+  }
+
+  public void test_operatorCannotBeStatic_returnType() throws Exception {
+    parse(
+        "parseClassMember",
+        "static int operator +(int x) => x + 1",
+        ParserErrorCode.OPERATOR_CANNOT_BE_STATIC);
+  }
+
+  public void test_operatorIsNotUserDefinable() throws Exception {
+    parse(
+        "parseClassMember",
+        "operator +=(int x) => x + 1",
+        ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE);
+  }
+
   public void test_positionalAfterNamedArgument() throws Exception {
     parse("parseArgumentList", "(x: 1, 2)", ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
   }

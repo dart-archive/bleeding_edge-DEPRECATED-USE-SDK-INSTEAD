@@ -13,104 +13,7 @@
  */
 package com.google.dart.engine.parser;
 
-import com.google.dart.engine.ast.AdjacentStrings;
-import com.google.dart.engine.ast.ArgumentList;
-import com.google.dart.engine.ast.ArrayAccess;
-import com.google.dart.engine.ast.AssignmentExpression;
-import com.google.dart.engine.ast.BinaryExpression;
-import com.google.dart.engine.ast.Block;
-import com.google.dart.engine.ast.BlockFunctionBody;
-import com.google.dart.engine.ast.BooleanLiteral;
-import com.google.dart.engine.ast.BreakStatement;
-import com.google.dart.engine.ast.CatchClause;
-import com.google.dart.engine.ast.ClassDeclaration;
-import com.google.dart.engine.ast.Comment;
-import com.google.dart.engine.ast.CommentReference;
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.CompilationUnitMember;
-import com.google.dart.engine.ast.ConditionalExpression;
-import com.google.dart.engine.ast.ConstructorDeclaration;
-import com.google.dart.engine.ast.ConstructorInitializer;
-import com.google.dart.engine.ast.ContinueStatement;
-import com.google.dart.engine.ast.Directive;
-import com.google.dart.engine.ast.DoStatement;
-import com.google.dart.engine.ast.DoubleLiteral;
-import com.google.dart.engine.ast.EmptyFunctionBody;
-import com.google.dart.engine.ast.EmptyStatement;
-import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.ast.ExpressionFunctionBody;
-import com.google.dart.engine.ast.ExtendsClause;
-import com.google.dart.engine.ast.FieldDeclaration;
-import com.google.dart.engine.ast.FieldFormalParameter;
-import com.google.dart.engine.ast.ForEachStatement;
-import com.google.dart.engine.ast.ForStatement;
-import com.google.dart.engine.ast.FormalParameter;
-import com.google.dart.engine.ast.FormalParameterList;
-import com.google.dart.engine.ast.FunctionBody;
-import com.google.dart.engine.ast.FunctionExpression;
-import com.google.dart.engine.ast.FunctionExpressionInvocation;
-import com.google.dart.engine.ast.FunctionTypedFormalParameter;
-import com.google.dart.engine.ast.Identifier;
-import com.google.dart.engine.ast.IfStatement;
-import com.google.dart.engine.ast.ImplementsClause;
-import com.google.dart.engine.ast.ImportCombinator;
-import com.google.dart.engine.ast.ImportDirective;
-import com.google.dart.engine.ast.ImportExportCombinator;
-import com.google.dart.engine.ast.ImportHideCombinator;
-import com.google.dart.engine.ast.ImportPrefixCombinator;
-import com.google.dart.engine.ast.ImportShowCombinator;
-import com.google.dart.engine.ast.InstanceCreationExpression;
-import com.google.dart.engine.ast.IntegerLiteral;
-import com.google.dart.engine.ast.InterpolationElement;
-import com.google.dart.engine.ast.InterpolationExpression;
-import com.google.dart.engine.ast.InterpolationString;
-import com.google.dart.engine.ast.IsExpression;
-import com.google.dart.engine.ast.Label;
-import com.google.dart.engine.ast.LabeledStatement;
-import com.google.dart.engine.ast.LibraryDirective;
-import com.google.dart.engine.ast.ListLiteral;
-import com.google.dart.engine.ast.MapLiteral;
-import com.google.dart.engine.ast.MapLiteralEntry;
-import com.google.dart.engine.ast.MethodInvocation;
-import com.google.dart.engine.ast.NamedExpression;
-import com.google.dart.engine.ast.NamedFormalParameter;
-import com.google.dart.engine.ast.NodeList;
-import com.google.dart.engine.ast.NormalFormalParameter;
-import com.google.dart.engine.ast.NullLiteral;
-import com.google.dart.engine.ast.ParenthesizedExpression;
-import com.google.dart.engine.ast.PostfixExpression;
-import com.google.dart.engine.ast.PrefixExpression;
-import com.google.dart.engine.ast.PrefixedIdentifier;
-import com.google.dart.engine.ast.PropertyAccess;
-import com.google.dart.engine.ast.ResourceDirective;
-import com.google.dart.engine.ast.ReturnStatement;
-import com.google.dart.engine.ast.ScriptTag;
-import com.google.dart.engine.ast.SimpleFormalParameter;
-import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.SimpleStringLiteral;
-import com.google.dart.engine.ast.SourceDirective;
-import com.google.dart.engine.ast.Statement;
-import com.google.dart.engine.ast.StringInterpolation;
-import com.google.dart.engine.ast.StringLiteral;
-import com.google.dart.engine.ast.SuperExpression;
-import com.google.dart.engine.ast.SwitchCase;
-import com.google.dart.engine.ast.SwitchDefault;
-import com.google.dart.engine.ast.SwitchMember;
-import com.google.dart.engine.ast.SwitchStatement;
-import com.google.dart.engine.ast.ThisExpression;
-import com.google.dart.engine.ast.ThrowStatement;
-import com.google.dart.engine.ast.TryStatement;
-import com.google.dart.engine.ast.TypeAlias;
-import com.google.dart.engine.ast.TypeArgumentList;
-import com.google.dart.engine.ast.TypeMember;
-import com.google.dart.engine.ast.TypeName;
-import com.google.dart.engine.ast.TypeParameter;
-import com.google.dart.engine.ast.TypeParameterList;
-import com.google.dart.engine.ast.TypedLiteral;
-import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.VariableDeclarationList;
-import com.google.dart.engine.ast.VariableDeclarationStatement;
-import com.google.dart.engine.ast.WhileStatement;
+import com.google.dart.engine.ast.*;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.scanner.Keyword;
@@ -306,6 +209,17 @@ public class Parser {
   /**
    * Check that the given expression is assignable and report an error if it isn't.
    * 
+   * <pre>
+   * assignableExpression ::=
+   *     primary (arguments* assignableSelector)+
+   *   | 'super' assignableSelector
+   *   | identifier
+   *
+   * assignableSelector ::=
+   *     '[' expression ']'
+   *   | '.' identifier
+   * </pre>
+   * 
    * @param expression the expression being checked
    */
   private void ensureAssignable(Expression expression) {
@@ -379,6 +293,62 @@ public class Parser {
   private boolean isHexDigit(char character) {
     return ('0' <= character && character <= '9') || ('A' <= character && character <= 'F')
         || ('a' <= character && character <= 'f');
+  }
+
+  /**
+   * Return {@code true} if the current token is the first token in an initialized variable
+   * declaration rather than an expression.
+   * 
+   * <pre>
+   * initializedVariableDeclaration ::=
+   *     declaredIdentifier ('=' expression)? (',' initializedIdentifier)*
+   * 
+   * declaredIdentifier ::=
+   *     finalConstVarOrType identifier
+   * 
+   * finalConstVarOrType ::=
+   *     'final' type?
+   *   | 'const' type?
+   *   | 'var'
+   *   | type
+   * 
+   * type ::=
+   *     qualified typeArguments?
+   * 
+   * initializedIdentifier ::=
+   *     identifier ('=' expression)?
+   * </pre>
+   * 
+   * @return {@code true} if the current token is the first token in an initialized variable
+   *         declaration
+   */
+  private boolean isInitializedVariableDeclaration() {
+    if (matches(Keyword.FINAL) || matches(Keyword.CONST) || matches(Keyword.VAR)) {
+      // An expression cannot start with a keyword.
+      return true;
+    }
+    if (!matches(TokenType.IDENTIFIER)) {
+      // A variable declaration must start with either a keyword (handled above) or an identifier.
+      return false;
+    }
+    // We know that we have an identifier, and need to see whether it might be a type name.
+    int index = 1;
+    if (peekMatches(index, TokenType.PERIOD)) {
+      index++;
+      if (peekMatches(index, TokenType.IDENTIFIER)) {
+        index++;
+      } else {
+        // This isn't a qualified name, so it can't be a type name.
+        return false;
+      }
+    }
+    if (peekMatches(index, TokenType.LT)) {
+      // We're guessing that this is a type argument. It could be a less-than operator, but there is
+      // little or no utility in an expression with no side-effect, so rather than spend the time to
+      // parse type arguments we're risking a false positive.
+      return true;
+    }
+    return peekMatches(index, TokenType.IDENTIFIER);
   }
 
   /**
@@ -868,7 +838,7 @@ public class Parser {
     }
     Token leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
     List<TypeMember> members = new ArrayList<TypeMember>();
-    while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)) {
+    while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET) && !matches(Keyword.CLASS)) {
       members.add(parseClassMember());
     }
     Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
@@ -897,73 +867,83 @@ public class Parser {
    * @return the class member that was parsed
    */
   private TypeMember parseClassMember() {
-    if (matches(Keyword.FACTORY)) {
-      return parseFactoryConstructor();
+    Comment comment = parseDocumentationComment();
+    if (matches(Keyword.CONST)) {
+      if (peekMatches(TokenType.IDENTIFIER)) {
+        if (peekMatches(2, TokenType.OPEN_PAREN)) {
+          return parseConstantConstructor(comment);
+        } else if (peekMatches(2, TokenType.PERIOD) && peekMatches(4, TokenType.OPEN_PAREN)) {
+          return parseConstantConstructor(comment);
+        }
+      }
+      return new FieldDeclaration(
+          comment,
+          null,
+          parseVariableDeclarationList(),
+          expect(TokenType.SEMICOLON));
+    } else if (matches(Keyword.FACTORY)) {
+      return parseFactoryConstructor(comment);
+    } else if (matches(Keyword.FINAL)) {
+      return new FieldDeclaration(
+          comment,
+          null,
+          parseVariableDeclarationList(),
+          expect(TokenType.SEMICOLON));
+    }
+    Token staticKeyword = null;
+    if (matches(Keyword.STATIC)) {
+      if (peekMatches(Keyword.FINAL) || peekMatches(Keyword.CONST)) {
+        return new FieldDeclaration(
+            comment,
+            getAndAdvance(),
+            parseVariableDeclarationList(),
+            expect(TokenType.SEMICOLON));
+      }
+      staticKeyword = getAndAdvance();
     }
     // TODO(brianwilkerson) Implement the rest of this method.
-//    Token start = currentToken;
-//    parseModifiers();
-    Token getOrSet = null;
-    if (matches(Keyword.GET) || matches(Keyword.SET)) {
-      getOrSet = getAndAdvance();
-    }
-//    Token peek = peekAfterType(token);
-//    if (isIdentifier(peek) && !token.getLexeme().equals("operator")) {
-//      // Skip type.
-//      token = peek;
-//    }
-//    if (token == getOrSet) {
-//      token = token.getNext();
-//    }
-//    if (optional("operator", token)) {
-//      token = parseOperatorName(token);
-//    } else {
-//      SimpleIdentifier name = parseSimpleIdentifier();
-//    }
-    boolean isField;
-    if (matches(TokenType.OPEN_PAREN) || matches(TokenType.PERIOD)) {
-      isField = false;
-    } else if (matches(TokenType.EQ) || matches(TokenType.SEMICOLON) || matches(TokenType.COMMA)) {
-      isField = true;
-    } else {
-      // reportError(ParserErrorCode.?));
-      return null;
-    }
-    if (isField) {
-      Token keyword = null;
-      TypeName type = null;
-      List<VariableDeclaration> fields = new ArrayList<VariableDeclaration>();
-//      if (getOrSet != null) {
-//        //listener.recoverableError("unexpected", getOrSet);
-//      }
-      Token equals = null;
-      Expression initializer = null;
-      if (matches(TokenType.EQ)) {
-        equals = getAndAdvance();
-        initializer = parseExpression();
-      }
-      fields.add(new VariableDeclaration(null, null /* name */, equals, initializer));
-      while (optional(TokenType.COMMA)) {
-        advance();
-        SimpleIdentifier name = parseSimpleIdentifier();
-        equals = null;
-        initializer = null;
-        if (matches(TokenType.EQ)) {
-          equals = getAndAdvance();
-          initializer = parseExpression();
+    if (matches(TokenType.IDENTIFIER)) {
+      if (peekMatches(TokenType.OPEN_PAREN)) {
+        if (staticKeyword != null) {
+          return parseMethodDeclaration(comment, staticKeyword);
         }
-        fields.add(new VariableDeclaration(null, name, equals, initializer));
+        return parseMethodOrConstructor(comment, staticKeyword, null);
+      } else if (peekMatches(TokenType.PERIOD) && peekMatches(3, TokenType.OPEN_PAREN)) {
+        return parseConstructor(
+            comment,
+            staticKeyword,
+            parseSimpleIdentifier(),
+            getAndAdvance(),
+            parseSimpleIdentifier(),
+            parseFormalParameterList());
       }
-      VariableDeclarationList fieldList = new VariableDeclarationList(keyword, type, fields);
-      Token semicolon = expect(TokenType.SEMICOLON);
-      return new FieldDeclaration(null, null, fieldList, semicolon);
-    } else {
-//      token = parseQualifiedRestOpt(token);
-//      token = parseFormalParameters(token);
-//      token = parseInitializersOpt(token);
-//      token = parseFunctionBody(token, false);
-      return null;
+    } else if (matches(Keyword.VAR)) {
+      return parseInitializedIdentifierList(comment, staticKeyword, getAndAdvance(), null);
+    } else if (matches(Keyword.GET)) {
+      return parseGetter(comment, staticKeyword, null);
+    } else if (matches(Keyword.SET)) {
+      return parseSetter(comment, staticKeyword, null);
+    } else if (matches(Keyword.OPERATOR)) {
+      if (staticKeyword != null) {
+        reportError(ParserErrorCode.OPERATOR_CANNOT_BE_STATIC, staticKeyword);
+      }
+      return parseOperator(comment, null);
     }
+    TypeName returnType = parseReturnType();
+    if (matches(Keyword.GET)) {
+      return parseGetter(comment, staticKeyword, returnType);
+    } else if (matches(Keyword.SET)) {
+      return parseSetter(comment, staticKeyword, returnType);
+    } else if (matches(Keyword.OPERATOR)) {
+      if (staticKeyword != null) {
+        reportError(ParserErrorCode.OPERATOR_CANNOT_BE_STATIC, staticKeyword);
+      }
+      return parseOperator(comment, returnType);
+    }
+    if (peekMatches(TokenType.PERIOD) || peekMatches(TokenType.OPEN_PAREN)) {
+      return parseMethodOrConstructor(comment, staticKeyword, returnType);
+    }
+    return parseInitializedIdentifierList(comment, staticKeyword, null, returnType);
   }
 
   /**
@@ -1150,6 +1130,42 @@ public class Parser {
   }
 
   /**
+   * Parse a constant constructor.
+   * 
+   * <pre>
+   * constantConstructor ::=
+   *     constantConstructorSignature (redirection | initializers)? ';'
+   * 
+   * constantConstructorSignature ::=
+   *     'const' qualified formalParameterList
+   * 
+   * initializers ::=
+   *     ':' superCallOrFieldInitializer (',' superCallOrFieldInitializer)*
+   * 
+   * superCallOrFieldInitializer ::=
+   *     superConstructorInvocation
+   *   | fieldInitializer
+   * 
+   * redirection ::=
+   *     ':' redirectingConstructorInvocation
+   * </pre>
+   * 
+   * @param comment the documentation comment to be associated with the declaration
+   * @return the constant constructor that was parsed
+   */
+  private ConstructorDeclaration parseConstantConstructor(Comment comment) {
+    Token keyword = expect(Keyword.CONST);
+    SimpleIdentifier returnType = parseSimpleIdentifier();
+    Token period = null;
+    SimpleIdentifier name = null;
+    if (matches(TokenType.PERIOD)) {
+      period = getAndAdvance();
+      name = parseSimpleIdentifier();
+    }
+    return parseConstructor(comment, keyword, returnType, period, name, parseFormalParameterList());
+  }
+
+  /**
    * Parse a const expression.
    * 
    * <pre>
@@ -1171,6 +1187,65 @@ public class Parser {
       return parseListOrMapLiteral(keyword);
     }
     return parseInstanceCreationExpression(keyword);
+  }
+
+  private ConstructorDeclaration parseConstructor(Comment comment, Token keyword,
+      SimpleIdentifier returnType, Token period, SimpleIdentifier name,
+      FormalParameterList parameters) {
+    Token colon = null;
+    List<ConstructorInitializer> initializers = new ArrayList<ConstructorInitializer>();
+    if (matches(TokenType.COLON)) {
+      colon = getAndAdvance();
+      do {
+        if (matches(Keyword.THIS)) {
+          if (peekMatches(TokenType.OPEN_PAREN)) {
+            initializers.add(parseRedirectingConstructorInvocation());
+          } else if (peekMatches(TokenType.PERIOD) && peekMatches(3, TokenType.OPEN_PAREN)) {
+            initializers.add(parseRedirectingConstructorInvocation());
+          } else {
+            initializers.add(parseConstructorFieldInitializer());
+          }
+        } else if (matches(Keyword.SUPER)) {
+          initializers.add(parseSuperConstructorInvocation());
+        } else {
+          initializers.add(parseConstructorFieldInitializer());
+        }
+      } while (optional(TokenType.COMMA));
+    }
+    FunctionBody body = new EmptyFunctionBody(expect(TokenType.SEMICOLON));
+    return new ConstructorDeclaration(
+        comment,
+        keyword,
+        returnType,
+        period,
+        name,
+        parameters,
+        colon,
+        initializers,
+        body);
+  }
+
+  /**
+   * Parse a field initializer within a constructor.
+   * 
+   * <pre>
+   * fieldInitializer:
+   *     ('this' '.')? identifier '=' conditionalExpression
+   * </pre>
+   * 
+   * @return the field initializer that was parsed
+   */
+  private ConstructorFieldInitializer parseConstructorFieldInitializer() {
+    Token keyword = null;
+    Token period = null;
+    if (matches(Keyword.THIS)) {
+      keyword = getAndAdvance();
+      period = expect(TokenType.PERIOD);
+    }
+    SimpleIdentifier fieldName = parseSimpleIdentifier();
+    Token equals = expect(TokenType.EQ);
+    Expression expression = parseConditionalExpression();
+    return new ConstructorFieldInitializer(keyword, period, fieldName, equals, expression);
   }
 
   /**
@@ -1453,10 +1528,10 @@ public class Parser {
    *     'factory' qualified  ('.' identifier)? formalParameterList
    * </pre>
    * 
+   * @param comment the documentation comment to be associated with the declaration
    * @return the factory constructor that was parsed
    */
-  private ConstructorDeclaration parseFactoryConstructor() {
-    Comment comment = parseDocumentationComment();
+  private ConstructorDeclaration parseFactoryConstructor(Comment comment) {
     Token keyword = expect(Keyword.FACTORY);
     Identifier returnType = parseSimpleIdentifier();
     Token period = null;
@@ -1631,8 +1706,10 @@ public class Parser {
         List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
         variables.add(new VariableDeclaration(null, parseSimpleIdentifier(), null, null));
         variableList = new VariableDeclarationList(null, null, variables);
-      } else {
+      } else if (isInitializedVariableDeclaration()) {
         variableList = parseVariableDeclarationList();
+      } else {
+        initialization = parseExpression();
       }
       if (matches(Keyword.IN)) {
         NodeList<VariableDeclaration> variables = variableList.getVariables();
@@ -1697,12 +1774,12 @@ public class Parser {
    *   | block
    * </pre>
    * 
-   * @param inConstructor {@code true} if the function body is being parsed as part of a constructor
+   * @param mayBeEmpty {@code true} if the function body is allowed to be empty
    * @param inExpression {@code true} if the function body is being parsed as part of an expression
    * @return the function body that was parsed
    */
-  private FunctionBody parseFunctionBody(boolean inConstructor, boolean inExpression) {
-    if (inConstructor && matches(TokenType.SEMICOLON)) {
+  private FunctionBody parseFunctionBody(boolean mayBeEmpty, boolean inExpression) {
+    if (mayBeEmpty && matches(TokenType.SEMICOLON)) {
       return new EmptyFunctionBody(getAndAdvance());
     } else if (matches(TokenType.FUNCTION)) {
       Token functionDefinition = getAndAdvance();
@@ -1719,6 +1796,35 @@ public class Parser {
       // reportError(ParserErrorCode.?));
       return null;
     }
+  }
+
+  /**
+   * Parse a function expression.
+   * 
+   * <pre>
+   * functionExpression ::=
+   *     (returnType? identifier)? formalParameterList functionExpressionBody
+   * 
+   * functionExpressionBody ::=
+   *     '=>' expression
+   *   | block
+   * </pre>
+   * 
+   * @return the function expression that was parsed
+   */
+  private FunctionExpression parseFunctionExpression() {
+    TypeName returnType = null;
+    if (matches(Keyword.VOID)
+        || (matches(TokenType.IDENTIFIER) && (peekMatches(TokenType.IDENTIFIER) || peekMatches(TokenType.LT)))) {
+      returnType = parseReturnType();
+    }
+    SimpleIdentifier name = null;
+    if (matches(TokenType.IDENTIFIER)) {
+      name = parseSimpleIdentifier();
+    }
+    FormalParameterList parameters = parseFormalParameterList();
+    FunctionBody body = parseFunctionBody(false, true);
+    return new FunctionExpression(returnType, name, parameters, body);
   }
 
 //  /**
@@ -1750,32 +1856,35 @@ public class Parser {
 //  }
 
   /**
-   * Parse a function expression.
+   * Parse a getter.
    * 
    * <pre>
-   * functionExpression ::=
-   *     (returnType? identifier)? formalParameterList functionExpressionBody
-   * 
-   * functionExpressionBody ::=
-   *     '=>' expression
-   *   | block
+   * getter ::=
+   *     getterSignature functionBody?
+   *
+   * getterSignature ::=
+   *     'static'? returnType? 'get' identifier
    * </pre>
    * 
-   * @return the function expression that was parsed
+   * @param comment the documentation comment to be associated with the declaration
+   * @param staticKeyword the static keyword, or {@code null} if the getter is not static
+   * @param the return type that has already been parsed, or {@code null} if there was no return
+   *          type
+   * @return the getter that was parsed
    */
-  private Expression parseFunctionExpression() {
-    TypeName returnType = null;
-    if (matches(Keyword.VOID)
-        || (matches(TokenType.IDENTIFIER) && (peekMatches(TokenType.IDENTIFIER) || peekMatches(TokenType.LT)))) {
-      returnType = parseReturnType();
-    }
-    SimpleIdentifier name = null;
-    if (matches(TokenType.IDENTIFIER)) {
-      name = parseSimpleIdentifier();
-    }
-    FormalParameterList parameters = parseFormalParameterList();
-    FunctionBody body = parseFunctionBody(false, true);
-    return new FunctionExpression(returnType, name, parameters, body);
+  private MethodDeclaration parseGetter(Comment comment, Token staticKeyword, TypeName returnType) {
+    Token propertyKeyword = expect(Keyword.GET);
+    SimpleIdentifier name = parseSimpleIdentifier();
+    FunctionBody body = parseFunctionBody(true, false);
+    return new MethodDeclaration(
+        comment,
+        staticKeyword,
+        returnType,
+        propertyKeyword,
+        null,
+        name,
+        null,
+        body);
   }
 
   /**
@@ -1913,6 +2022,33 @@ public class Parser {
         combinators,
         rightParenthesis,
         semicolon);
+  }
+
+  /**
+   * Parse a list of initialized identifiers.
+   * 
+   * <pre>
+   * ?? ::=
+   *     'static'? ('var' | type) initializedIdentifierList ';'
+   *   | 'final' type? initializedIdentifierList ';'
+   * 
+   * initializedIdentifierList ::=
+   *     initializedIdentifier (',' initializedIdentifier)*
+   * 
+   * initializedIdentifier ::=
+   *     identifier ('=' expression)?
+   * </pre>
+   * 
+   * @param comment the documentation comment to be associated with the declaration
+   * @param staticKeyword the static keyword, or {@code null} if the getter is not static
+   * @param the 'var' keyword, or {@code null} if a type was provided
+   * @param type the type that has already been parsed, or {@code null} if 'var' was provided
+   * @return the getter that was parsed
+   */
+  private FieldDeclaration parseInitializedIdentifierList(Comment comment, Token staticKeyword,
+      Token varKeyword, TypeName type) {
+    VariableDeclarationList fieldList = parseVariableDeclarationList(varKeyword, type);
+    return new FieldDeclaration(comment, staticKeyword, fieldList, expect(TokenType.SEMICOLON));
   }
 
   /**
@@ -2108,6 +2244,100 @@ public class Parser {
   }
 
   /**
+   * Parse a function declaration.
+   * 
+   * <pre>
+   * functionDeclaration ::=
+   *     'static'? functionSignature functionBody
+   *   | functionSignature ';'
+   * </pre>
+   * 
+   * @param comment the documentation comment to be associated with the declaration
+   * @param staticKeyword the static keyword, or {@code null} if the getter is not static
+   * @return the function declaration that was parsed
+   */
+  private MethodDeclaration parseMethodDeclaration(Comment comment, Token staticKeyword) {
+    TypeName returnType = null;
+    if (!peekMatches(TokenType.OPEN_PAREN)) {
+      returnType = parseReturnType();
+    }
+    Identifier name = parseSimpleIdentifier();
+    FormalParameterList parameters = parseFormalParameterList();
+    FunctionBody body = parseFunctionBody(staticKeyword == null, false);
+    return new MethodDeclaration(
+        comment,
+        staticKeyword,
+        returnType,
+        null,
+        null,
+        name,
+        parameters,
+        body);
+  }
+
+  /**
+   * Parse either a method or a constructor declaration.
+   * 
+   * <pre>
+   * methodOrConstructor ::=
+   *     'static'? functionSignature functionBody
+   *   | functionSignature ';'
+   *   | constructorSignature (redirection | initializers)? ';'
+   *   | constructorSignature initializers? functionBody
+   * </pre>
+   * 
+   * @param comment the documentation comment to be associated with the declaration
+   * @param staticKeyword the static keyword, or {@code null} if the getter is not static
+   * @param returnType the return type that was declared, or {@code null} if no return type was
+   *          declared
+   * @return the method or constructor declaration that was parsed
+   */
+  private TypeMember parseMethodOrConstructor(Comment comment, Token staticKeyword,
+      TypeName returnType) {
+    if (matches(TokenType.PERIOD)) {
+      if (staticKeyword != null) {
+        // Constructors cannot be static
+        // reportError(ParserErrorCode.?);
+      }
+      SimpleIdentifier realReturnType = null;
+      if (returnType.getName() instanceof SimpleIdentifier) {
+        realReturnType = (SimpleIdentifier) returnType.getName();
+      } else {
+        // reportError(ParserErrorCode.?);
+      }
+      Token period = getAndAdvance();
+      SimpleIdentifier name = parseSimpleIdentifier();
+      FormalParameterList parameters = parseFormalParameterList();
+      return parseConstructor(comment, null, realReturnType, period, name, parameters);
+    }
+    SimpleIdentifier name = parseSimpleIdentifier();
+    FormalParameterList parameters = parseFormalParameterList();
+    if (matches(TokenType.COLON)) {
+      if (staticKeyword != null) {
+        // Constructors cannot be static
+        // reportError(ParserErrorCode.?);
+      }
+      SimpleIdentifier realReturnType = null;
+      if (returnType.getName() instanceof SimpleIdentifier) {
+        realReturnType = (SimpleIdentifier) returnType.getName();
+      } else {
+        // reportError(ParserErrorCode.?);
+      }
+      return parseConstructor(comment, null, realReturnType, null, null, parameters);
+    }
+    FunctionBody body = parseFunctionBody(staticKeyword == null, false);
+    return new MethodDeclaration(
+        comment,
+        staticKeyword,
+        returnType,
+        null,
+        null,
+        name,
+        parameters,
+        body);
+  }
+
+  /**
    * Parse a multiplicative expression.
    * 
    * <pre>
@@ -2264,6 +2494,41 @@ public class Parser {
   }
 
   /**
+   * Parse an operator declaration.
+   * 
+   * <pre>
+   * operatorDeclaration ::=
+   *     operatorSignature (';' | functionBody)
+   *
+   * operatorSignature ::=
+   *     returnType? 'operator' operator formalParameterList
+   * </pre>
+   * 
+   * @param comment the documentation comment to be associated with the declaration
+   * @param the return type that has already been parsed, or {@code null} if there was no return
+   *          type
+   * @return the operator declaration that was parsed
+   */
+  private MethodDeclaration parseOperator(Comment comment, TypeName returnType) {
+    Token operatorKeyword = expect(Keyword.OPERATOR);
+    if (!currentToken.isUserDefinableOperator()) {
+      reportError(ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE);
+    }
+    SimpleIdentifier name = new SimpleIdentifier(getAndAdvance());
+    FormalParameterList parameters = parseFormalParameterList();
+    FunctionBody body = parseFunctionBody(true, false);
+    return new MethodDeclaration(
+        comment,
+        null,
+        returnType,
+        null,
+        operatorKeyword,
+        name,
+        parameters,
+        body);
+  }
+
+  /**
    * Parse a postfix expression.
    * 
    * <pre>
@@ -2377,6 +2642,28 @@ public class Parser {
   }
 
   /**
+   * Parse a redirecting constructor invocation.
+   * 
+   * <pre>
+   * redirectingConstructorInvocation ::=
+   *     'this' ('.' identifier)? arguments
+   * </pre>
+   * 
+   * @return the redirecting constructor invocation that was parsed
+   */
+  private RedirectingConstructorInvocation parseRedirectingConstructorInvocation() {
+    Token keyword = expect(Keyword.THIS);
+    Token period = null;
+    SimpleIdentifier constructorName = null;
+    if (matches(TokenType.PERIOD)) {
+      period = getAndAdvance();
+      constructorName = parseSimpleIdentifier();
+    }
+    ArgumentList argumentList = parseArgumentList();
+    return new RedirectingConstructorInvocation(keyword, period, constructorName, argumentList);
+  }
+
+  /**
    * Parse a relational expression.
    * 
    * <pre>
@@ -2479,6 +2766,40 @@ public class Parser {
     } else {
       return parseTypeName();
     }
+  }
+
+  /**
+   * Parse a setter.
+   * 
+   * <pre>
+   * setter ::=
+   *     setterSignature functionBody?
+   *
+   * setterSignature ::=
+   *     'static'? returnType? 'set' identifier '=' formalParameterList
+   * </pre>
+   * 
+   * @param comment the documentation comment to be associated with the declaration
+   * @param staticKeyword the static keyword, or {@code null} if the setter is not static
+   * @param the return type that has already been parsed, or {@code null} if there was no return
+   *          type
+   * @return the setter that was parsed
+   */
+  private MethodDeclaration parseSetter(Comment comment, Token staticKeyword, TypeName returnType) {
+    Token propertyKeyword = expect(Keyword.SET);
+    SimpleIdentifier name = parseSimpleIdentifier();
+    expect(TokenType.EQ);
+    FormalParameterList parameters = parseFormalParameterList();
+    FunctionBody body = parseFunctionBody(true, false);
+    return new MethodDeclaration(
+        comment,
+        staticKeyword,
+        returnType,
+        propertyKeyword,
+        null,
+        name,
+        parameters,
+        body);
   }
 
   /**
@@ -2681,6 +3002,28 @@ public class Parser {
   }
 
   /**
+   * Parse a super constructor invocation.
+   * 
+   * <pre>
+   * superConstructorInvocation ::=
+   *     'super' ('.' identifier)? arguments
+   * </pre>
+   * 
+   * @return the super constructor invocation that was parsed
+   */
+  private SuperConstructorInvocation parseSuperConstructorInvocation() {
+    Token keyword = expect(Keyword.SUPER);
+    Token period = null;
+    SimpleIdentifier constructorName = null;
+    if (matches(TokenType.PERIOD)) {
+      period = getAndAdvance();
+      constructorName = parseSimpleIdentifier();
+    }
+    ArgumentList argumentList = parseArgumentList();
+    return new SuperConstructorInvocation(keyword, period, constructorName, argumentList);
+  }
+
+  /**
    * Parse a switch statement.
    * 
    * <pre>
@@ -2871,19 +3214,19 @@ public class Parser {
     return new TypeAlias(comment, keyword, returnType, name, typeParameters, parameters, semicolon);
   }
 
-/**
-     * Parse a list of type arguments.
-     * 
-     * <pre>
-     * typeArguments ::=
-     *     '<' typeList '>'
-     * 
-     * typeList ::=
-     *     type (',' type)*
-     * </pre>
-     * 
-     * @return the type name that was parsed
-     */
+  /**
+   * Parse a list of type arguments.
+   * 
+   * <pre>
+   * typeArguments ::=
+   *     '<' typeList '>'
+   * 
+   * typeList ::=
+   *     type (',' type)*
+   * </pre>
+   * 
+   * @return the type name that was parsed
+   */
   private TypeArgumentList parseTypeArgumentList() {
     Token leftBracket = expect(TokenType.LT);
     ArrayList<TypeName> arguments = new ArrayList<TypeName>();
@@ -3027,7 +3370,7 @@ public class Parser {
    * 
    * @return the variable declaration that was parsed
    */
-  private VariableDeclaration parseVariableDeclaration(Comment comment) {
+  private VariableDeclaration parseVariableDeclaration() {
     Comment localComment = parseDocumentationComment();
     SimpleIdentifier name = parseSimpleIdentifier();
     Token equals = null;
@@ -3036,11 +3379,7 @@ public class Parser {
       equals = getAndAdvance();
       initializer = parseExpression();
     }
-    return new VariableDeclaration(
-        localComment == null ? comment : localComment,
-        name,
-        equals,
-        initializer);
+    return new VariableDeclaration(localComment, name, equals, initializer);
   }
 
   /**
@@ -3054,15 +3393,36 @@ public class Parser {
    * @return the variable declaration list that was parsed
    */
   private VariableDeclarationList parseVariableDeclarationList() {
-    Comment comment = parseDocumentationComment();
     FinalConstVarOrType holder = parseFinalConstVarOrType(false);
     List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
-    variables.add(parseVariableDeclaration(comment));
+    variables.add(parseVariableDeclaration());
     while (matches(TokenType.COMMA)) {
       getAndAdvance();
-      variables.add(parseVariableDeclaration(comment));
+      variables.add(parseVariableDeclaration());
     }
     return new VariableDeclarationList(holder.getKeyword(), holder.getType(), variables);
+  }
+
+  /**
+   * Parse a variable declaration list.
+   * 
+   * <pre>
+   * variableDeclarationList ::=
+   *     finalConstVarOrType variableDeclaration (',' variableDeclaration)*
+   * </pre>
+   * 
+   * @param keyword the token representing the 'var' keyword, or {@code null} if there is no keyword
+   * @param type the type of the variables in the list
+   * @return the variable declaration list that was parsed
+   */
+  private VariableDeclarationList parseVariableDeclarationList(Token keyword, TypeName type) {
+    List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
+    variables.add(parseVariableDeclaration());
+    while (matches(TokenType.COMMA)) {
+      getAndAdvance();
+      variables.add(parseVariableDeclaration());
+    }
+    return new VariableDeclarationList(keyword, type, variables);
   }
 
   /**
@@ -3101,6 +3461,22 @@ public class Parser {
   }
 
   /**
+   * Return {@code true} if the token the given distance after the current token has the given type.
+   * 
+   * @param distance the number of tokens to look ahead, where {@code 0} is the current token,
+   *          {@code 1} is the next token (equivalent to {@link #peekMatches(TokenType)}), etc.
+   * @param type the type of token that can optionally appear at the specified location
+   * @return {@code true} if the token at the specified location has the given type
+   */
+  private boolean peekMatches(int distance, TokenType type) {
+    Token token = currentToken;
+    for (int i = 0; i < distance; i++) {
+      token = token.getNext();
+    }
+    return token.getType() == type;
+  }
+
+  /**
    * Return {@code true} if the token following the current token matches the given keyword.
    * 
    * @param keyword the keyword that can optionally appear after the current location
@@ -3128,7 +3504,23 @@ public class Parser {
    * @param arguments the arguments to the error, used to compose the error message
    */
   private void reportError(ParserErrorCode errorCode, Object... arguments) {
-    errorListener.onError(new AnalysisError(source, errorCode, arguments));
+    reportError(errorCode, currentToken, arguments);
+  }
+
+  /**
+   * Report an error with the given error code and arguments.
+   * 
+   * @param errorCode the error code of the error to be reported
+   * @param token the token specifying the location of the error
+   * @param arguments the arguments to the error, used to compose the error message
+   */
+  private void reportError(ParserErrorCode errorCode, Token token, Object... arguments) {
+    errorListener.onError(new AnalysisError(
+        source,
+        token.getOffset(),
+        token.getLength(),
+        errorCode,
+        arguments));
   }
 
   /**
