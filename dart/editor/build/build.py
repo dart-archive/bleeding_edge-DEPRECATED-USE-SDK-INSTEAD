@@ -778,7 +778,7 @@ def _CopySdk(buildos, revision, bucket_to, from_dir, buildroot, gsu):
     the location of the dar-sdk.zip file
 
   Raises:
-    Exception: the dart-sdk.zip could nto be found
+    Exception: the dart-sdk.zip could not be found
   """
   print '_CopySdk({0}, {1}, {2}, {3}, {4}, gsu)'.format(buildos, revision,
                                                         bucket_to, from_dir,
@@ -886,26 +886,25 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
   """
   print '_InstallDartium(%s, %s, %s)' % (buildroot, buildout, buildos)
 
-  # dartium-lucid32-full-9420.9420.zip
-  # dartium-lucid64-full-9420.9420.zip
-  # dartium-mac-full-9420.9420.zip
-  # dartium-win-full-9420.9420.zip
   tmp_dir = os.path.join(buildroot, 'tmp')
-  dartiumFiles = gsu.ReadBucket('gs://dartium-archive/latest/dartium-*-full-*.zip')
-
-  if not dartiumFiles:
-    raise Exception("could not find any dartium files")
-
-  print
-  for dartiumFile in dartiumFiles:
-    print '  found dartium: %s' % dartiumFile
-  print
-    
+  
   rcpZipFiles = _FindRcpZipFiles(buildout)
   
   for rcpZipFile in rcpZipFiles:
     print '  found rcp: %s' % rcpZipFile
-  print
+    
+  # dartium-lucid32-full-9420.9420.zip
+  # dartium-lucid64-full-9420.9420.zip
+  # dartium-mac-full-9420.9420.zip
+  # dartium-win-full-9420.9420.zip
+  # exclude dartium-lucid64-full-trunk-9571.9571.zip
+  dartiumFiles = gsu.ReadBucket('gs://dartium-archive/latest/dartium-*-full-[0-9]*.zip')
+
+  if not dartiumFiles:
+    raise Exception("could not find any dartium files")
+
+  for dartiumFile in dartiumFiles:
+    print '  found dartium: %s' % dartiumFile
   
   for rcpZipFile in rcpZipFiles:
     searchString = None;
