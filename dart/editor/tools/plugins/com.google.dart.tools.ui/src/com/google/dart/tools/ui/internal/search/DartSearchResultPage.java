@@ -85,10 +85,14 @@ public class DartSearchResultPage extends AbstractTextSearchViewPage implements 
 
     @Override
     public int category(Object element) {
+      //SDK libs last
+      if (element instanceof DartLibrary) {
+        return 2;
+      }
       if (element instanceof DartElement || element instanceof IResource) {
         return 1;
       }
-      return 2;
+      return 3;
     }
 
     @SuppressWarnings("unchecked")

@@ -17,7 +17,6 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.search.ui.text.AbstractTextSearchResult;
-import com.google.dart.tools.ui.StandardDartElementContentProvider;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
@@ -36,7 +35,7 @@ import java.util.Set;
 public class LevelTreeContentProvider extends DartSearchContentProvider implements
     ITreeContentProvider {
 
-  static class FastDartElementProvider extends StandardDartElementContentProvider {
+  static class FastDartElementProvider extends DartElementSearchContentProvider {
     @Override
     public Object getParent(Object element) {
       Object parent = internalGetParent(element);
@@ -62,15 +61,15 @@ public class LevelTreeContentProvider extends DartSearchContentProvider implemen
   public static final int LEVEL_PROJECT = 4;
   public static final int LEVEL_TYPE = 1;
   private static final int[][] DART_ELEMENT_TYPES = {
-      {DartElement.TYPE}, {DartElement.LIBRARY}, {DartElement.DART_PROJECT, DartElement.LIBRARY},
-      {DartElement.DART_MODEL}};
+      {DartElement.TYPE}, /*{DartElement.LIBRARY}, */
+      {DartElement.DART_PROJECT /*, DartElement.LIBRARY */}, {DartElement.DART_MODEL}};
 
   private static final int MAX_LEVEL = DART_ELEMENT_TYPES.length - 1;
   private static final int[][] RESOURCE_TYPES = {
       {}, {IResource.FILE}, {IResource.FOLDER}, {IResource.PROJECT}, {IResource.ROOT}};
 
   private Map<Object, Set<Object>> childrenMap;
-  private StandardDartElementContentProvider contentProvider;
+  private DartElementSearchContentProvider contentProvider;
   private int currentLevel;
 
   public LevelTreeContentProvider(DartSearchResultPage page, int level) {

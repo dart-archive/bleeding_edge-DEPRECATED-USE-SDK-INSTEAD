@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.search;
 
+import com.google.dart.tools.core.search.MatchQuality;
 import com.google.dart.tools.search.ui.NewSearchUI;
 import com.google.dart.tools.search.ui.text.AbstractTextSearchResult;
 import com.google.dart.tools.search.ui.text.Match;
@@ -207,9 +208,10 @@ public abstract class SearchLabelProvider extends AppearanceAwareLabelProvider i
       Match[] matches = result.getMatches(element);
       for (int i = 0; i < matches.length; i++) {
         if ((matches[i]) instanceof DartElementMatch) {
-          //TODO (pquitslund): fix this accuracy check
-//          if (((DartElementMatch)matches[i]).getAccuracy() == SearchMatch.A_INACCURATE)
-          res++;
+          //TODO (pquitslund): ultimately move away from cheesy use of ordinal for encoding accuracy
+          if (((DartElementMatch) matches[i]).getAccuracy() != MatchQuality.EXACT.ordinal()) {
+            res++;
+          }
         }
       }
     }

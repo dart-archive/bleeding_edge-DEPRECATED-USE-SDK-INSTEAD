@@ -70,7 +70,7 @@ public class DartSearchQuery implements ISearchQuery {
           0 /* match.getRule() */,
           range.getOffset(),
           range.getLength(),
-          0 /* accuracy */,
+          match.getQuality().ordinal() /* accuracy */,
           false /* isReadAccess */,
           false /* isWriteAccess */,
           false,
