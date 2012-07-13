@@ -19,6 +19,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.index.NotifyCallback;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 
@@ -50,6 +51,7 @@ public class TestProject {
    * Wait for auto-build notification to occur, that is for the auto-build to finish.
    */
   public static void waitForAutoBuild() {
+    DartLibraryImpl.clearLocalUrisCache();
     while (true) {
       try {
         IJobManager jobManager = Job.getJobManager();

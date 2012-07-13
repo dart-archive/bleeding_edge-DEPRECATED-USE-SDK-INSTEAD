@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
@@ -86,6 +87,14 @@ import java.util.Set;
 public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     CompilationUnitContainer {
   public static final DartLibraryImpl[] EMPTY_LIBRARY_ARRAY = new DartLibraryImpl[0];
+  private static final Map<URI, Boolean> localUris = Maps.newHashMap();
+
+  /**
+   * Clears "local or not" cache, for example when set of projects was changed.
+   */
+  public static void clearLocalUrisCache() {
+    localUris.clear();
+  }
 
   /**
    * Add the transitive closure of CompilationUnits from the given library to the units list. Record
@@ -601,15 +610,13 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
    */
   @Override
   public boolean isLocal() {
-    // Check the most common case
-    IProject project = ((DartProjectImpl) getParent()).getProject();
-    if (project.isOpen()) {
-      return true;
+    URI uri = sourceFile.getUri();
+    Boolean local = localUris.get(uri);
+    if (local == null) {
+      local = isLocal0();
+      localUris.put(uri, local);
     }
-
-    // Check for external reference to file in open project
-    IResource resource = ResourceUtil.getResource(sourceFile);
-    return resource != null && resource.getProject().isOpen();
+    return local.booleanValue();
   }
 
   /**
@@ -1138,6 +1145,17 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       }
     }
     return false;
+  }
+
+  private Boolean isLocal0() {
+    // Check the most common case
+    IProject project = ((DartProjectImpl) getParent()).getProject();
+    if (project.isOpen()) {
+      return true;
+    }
+    // Check for external reference to file in open project
+    IResource resource = ResourceUtil.getResource(sourceFile);
+    return resource != null && resource.getProject().isOpen();
   }
 
   /**

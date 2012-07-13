@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.index.util;
 
+import com.google.common.collect.MapMaker;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.EnclosingElement;
@@ -28,6 +29,8 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.utilities.bindings.BindingUtils;
 
+import java.util.Map;
+
 /**
  * The class <code>ElementFactory</code> defines utility methods used to create {@link Element
  * elements}.
@@ -37,6 +40,8 @@ public final class ElementFactory {
    * The element id used for library elements.
    */
   public static final String LIBRARY_ELEMENT_ID = "#library";
+  private static final Map<com.google.dart.compiler.resolver.Element, Element> compilerToModelElement = new MapMaker().weakKeys().softValues().makeMap();
+  private static final Map<com.google.dart.compiler.resolver.FieldElement, Element[]> compilerToModelFieldElement = new MapMaker().weakKeys().softValues().makeMap();
 
   /**
    * Compose the element id of the given parent element and the name of a child element into an
@@ -78,16 +83,14 @@ public final class ElementFactory {
     if (element.isDynamic()) {
       return null;
     }
-    LibraryElement libraryElement = getLibraryElement(element);
-//    long start = System.currentTimeMillis();
-    CompilationUnitElement dartType = BindingUtils.getDartElement(
-        BindingUtils.getDartElement(libraryElement),
-        element);
-//    bindingTime += (System.currentTimeMillis() - start);
-    if (dartType == null) {
-      return null;
+    Element result = compilerToModelElement.get(element);
+    if (result == null) {
+      result = getElement0(element);
+      if (result != null) {
+        compilerToModelElement.put(element, result);
+      }
     }
-    return new Element(ResourceFactory.getResource(dartType), composeElementId(element.getName()));
+    return result;
   }
 
   /**
@@ -103,26 +106,15 @@ public final class ElementFactory {
     if (element instanceof ClassElement) {
       return getElement((ClassElement) element);
     } else if (element instanceof FieldElement) {
-      return getElement((FieldElement) element);
+      return getElement((FieldElement) element, false, false);
     } else if (element instanceof LibraryElement) {
       return getElement((LibraryElement) element);
     } else if (element instanceof MethodElement) {
       return getElement((MethodElement) element);
+    } else {
+      DartCore.logInformation("Could not getElement for " + element.getClass().getName());
+      return null;
     }
-    DartCore.logInformation("Could not getElement for " + element.getClass().getName());
-    return null;
-  }
-
-  /**
-   * Return an element representing the given field.
-   * 
-   * @param element the field element to be represented
-   * @return an element representing the given field
-   * @throws DartModelException if a resource could not be created to represent the compilation unit
-   *           containing the field
-   */
-  public static Element getElement(FieldElement element) throws DartModelException {
-    return getElement(element, false, false);
   }
 
   /**
@@ -137,24 +129,21 @@ public final class ElementFactory {
    */
   public static Element getElement(FieldElement element, boolean allowGetter, boolean allowSetter)
       throws DartModelException {
-//    long start = System.currentTimeMillis();
-    CompilationUnitElement field = BindingUtils.getDartElement(
-        BindingUtils.getDartElement(BindingUtils.getLibrary(element)),
-        element,
-        allowGetter,
-        allowSetter);
-//    bindingTime += (System.currentTimeMillis() - start);
-    if (field == null) {
-      DartCore.logInformation("Could not getElement for field " + pathTo(element));
-      return null;
+    int index = (allowGetter ? 2 : 0) + (allowSetter ? 1 : 0);
+    // prepare array for getter/setter
+    Element[] resultArray = compilerToModelFieldElement.get(element);
+    if (resultArray == null) {
+      resultArray = new Element[4];
+      compilerToModelFieldElement.put(element, resultArray);
     }
-    EnclosingElement parentElement = element.getEnclosingElement();
-    if (parentElement instanceof LibraryElement) {
-      return new Element(ResourceFactory.getResource(field), composeElementId(element.getName()));
+    // prepare single array element
+    Element result = resultArray[index];
+    if (result == null) {
+      result = getElement0(element, allowGetter, allowSetter);
+      resultArray[index] = result;
     }
-    return new Element(ResourceFactory.getResource(field), composeElementId(
-        getElement(parentElement),
-        element.getName()));
+    // done
+    return result;
   }
 
   /**
@@ -192,14 +181,56 @@ public final class ElementFactory {
    *           containing the method
    */
   public static Element getElement(MethodElement element) throws DartModelException {
-//    long start = System.currentTimeMillis();
+    Element result = compilerToModelElement.get(element);
+    if (result == null) {
+      result = getElement0(element);
+      if (result != null) {
+        compilerToModelElement.put(element, result);
+      }
+    }
+    return result;
+  }
+
+  private static Element getElement0(ClassElement element) throws DartModelException {
+    Element result;
+    LibraryElement libraryElement = getLibraryElement(element);
+    CompilationUnitElement dartType = BindingUtils.getDartElement(
+        BindingUtils.getDartElement(libraryElement),
+        element);
+    if (dartType == null) {
+      return null;
+    }
+    result = new Element(ResourceFactory.getResource(dartType), composeElementId(element.getName()));
+    return result;
+  }
+
+  private static Element getElement0(FieldElement element, boolean allowGetter, boolean allowSetter)
+      throws DartModelException {
+    CompilationUnitElement field = BindingUtils.getDartElement(
+        BindingUtils.getDartElement(BindingUtils.getLibrary(element)),
+        element,
+        allowGetter,
+        allowSetter);
+    if (field == null) {
+      DartCore.logInformation("Could not getElement for field " + pathTo(element));
+      return null;
+    }
+    EnclosingElement parentElement = element.getEnclosingElement();
+    if (parentElement instanceof LibraryElement) {
+      return new Element(ResourceFactory.getResource(field), composeElementId(element.getName()));
+    }
+    return new Element(ResourceFactory.getResource(field), composeElementId(
+        getElement(parentElement),
+        element.getName()));
+  }
+
+  private static Element getElement0(MethodElement element) throws DartModelException {
     DartLibrary library = BindingUtils.getDartElement(BindingUtils.getLibrary(element));
     if (library == null) {
       DartCore.logInformation("Could not getElement for method " + pathTo(element));
       return null;
     }
     CompilationUnitElement method = BindingUtils.getDartElement(library, element);
-//    bindingTime += (System.currentTimeMillis() - start);
     if (method == null) {
       DartCore.logInformation("Could not getElement for method " + pathTo(element));
       return null;

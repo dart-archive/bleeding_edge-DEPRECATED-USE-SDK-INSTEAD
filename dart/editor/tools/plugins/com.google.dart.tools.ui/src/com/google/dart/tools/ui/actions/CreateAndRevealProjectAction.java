@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 import com.google.dart.tools.ui.internal.projects.ProjectMessages;
@@ -66,6 +67,7 @@ public class CreateAndRevealProjectAction extends Action {
 
   @Override
   public void run() {
+    DartLibraryImpl.clearLocalUrisCache();
     status = Status.OK_STATUS; //will get unset if any creation fails
     for (String d : directories) {
       createAndRevealProject(d);
