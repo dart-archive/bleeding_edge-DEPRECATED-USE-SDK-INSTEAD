@@ -8,11 +8,11 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "122399",
+  "webkit_revision": "122440",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "9100",
+  "nacl_revision": "9121",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "9016",  # native_client/DEPS: tools_rev
@@ -30,21 +30,21 @@ vars = {
   "nacl_toolchain_mac_x86_newlib_hash":
       "1e94ee62258eacfe8c9c8cd562e93e65427e58e1",
   "nacl_toolchain_pnacl_linux_x86_32_hash":
-      "e8cfbe1ec6e56594a705a8cbb85ba4f2e6a15cbd",
+      "640b146a6f9b6fa75c86889b02d79e0347b6d6ae",
   "nacl_toolchain_pnacl_linux_x86_64_hash":
-      "3ccf6a31f97a5ea779fc08e4150725cacb7204dc",
+      "1ced4adbfd532afe6af12992cbd49a5073bbac62",
   "nacl_toolchain_pnacl_mac_x86_32_hash":
-      "45e0c17aeedb747797a5ff2ef50f3444384d232e",
+      "8402a8e08d7ff4b5e22fd0446ca2baf7fd83f626",
   "nacl_toolchain_pnacl_translator_hash":
-      "43a6a7469d679f21263aa1f9b99bf0aa8fa64c1f",
+      "7bbb4b1d4cc55b5855c86e174fc09c5213e665c2",
   "nacl_toolchain_pnacl_win_x86_32_hash":
-      "c0ba23e5a40c89cb1555eabbf9439840e208ea67",
+      "f12a43ce3156dc0e7958fdee112dd2025575cb28",
   "nacl_toolchain_win_x86_hash":
       "a65981a52a9e8efd06d45c7347e31acdfe2d8c92",
   "nacl_toolchain_win_x86_newlib_hash":
       "2a88bdecf2a53000bddc775ca632f732d3d9fe2b",
   "nacl_toolchain_revision": "9093",
-  "pnacl_toolchain_revision": "9044",
+  "pnacl_toolchain_revision": "9117",
 
   "libjingle_revision": "157",
   "libphonenumber_revision": "456",
@@ -57,11 +57,11 @@ vars = {
   "ffmpeg_hash": "23f177366e3bce3a628a7d3feedceed4e18dcc04",
 
   "sfntly_revision": "134",
-  "skia_revision": "4500",
+  "skia_revision": "4552",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "12029",
+  "v8_revision": "12057",
   "webrtc_revision": "2486",
   "jsoncpp_revision": "248",
   "nss_revision": "145873",
@@ -87,10 +87,10 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@405",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@1203",
+    (Var("googlecode_url") % "angleproject") + "/trunk@1222",
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@77",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@78",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -100,7 +100,7 @@ deps = {
     "/trunk/deps/third_party/WebKit@76115",
 
   "src/third_party/icu":
-    "/trunk/deps/third_party/icu46@145871",
+    "/trunk/deps/third_party/icu46@146346",
 
   "src/third_party/libexif/sources":
     "/trunk/deps/third_party/libexif/sources@141967",
@@ -125,7 +125,7 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@63",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@55",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@56",
 
   "src/tools/gyp":
     (Var("googlecode_url") % "gyp") + "/trunk@1429",
@@ -312,7 +312,7 @@ deps = {
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
 
   "src/third_party/libyuv":
-    (Var("googlecode_url") % "libyuv") + "/trunk@247",
+    (Var("googlecode_url") % "libyuv") + "/trunk@303",
 
   "src/third_party/mozc/session":
     (Var("googlecode_url") % "mozc") + "/trunk/src/session@83",
