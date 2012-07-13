@@ -226,7 +226,7 @@ public class SemanticHighlightings {
 
     @Override
     public RGB getDefaultDefaultTextColor() {
-      return new RGB(63, 127, 95); //multi-line comment green
+      return new RGB(0x40, 0x40, 0x40);
     }
 
     @Override
@@ -237,6 +237,11 @@ public class SemanticHighlightings {
     @Override
     public String getPreferenceKey() {
       return TOP_LEVEL_MEMBER;
+    }
+
+    @Override
+    public boolean isBoldByDefault() {
+      return true;
     }
 
     @Override
