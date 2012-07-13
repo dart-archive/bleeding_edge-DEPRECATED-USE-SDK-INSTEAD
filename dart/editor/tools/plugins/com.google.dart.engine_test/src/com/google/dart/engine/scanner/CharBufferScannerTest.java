@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.scanner;
 
-import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 
 import java.io.IOException;
@@ -21,15 +20,10 @@ import java.nio.CharBuffer;
 
 public class CharBufferScannerTest extends AbstractScannerTest {
   @Override
-  protected Token scan(String source) {
+  protected Token scan(String source, AnalysisErrorListener listener) {
     try {
       CharBuffer buffer = CharBuffer.wrap(source);
-      CharBufferScanner scanner = new CharBufferScanner(null, buffer, new AnalysisErrorListener() {
-        @Override
-        public void onError(AnalysisError event) {
-          // Ignore errors
-        }
-      });
+      CharBufferScanner scanner = new CharBufferScanner(null, buffer, listener);
       return scanner.tokenize();
     } catch (IOException exception) {
       fail("Unexpected exception: " + exception.getMessage());

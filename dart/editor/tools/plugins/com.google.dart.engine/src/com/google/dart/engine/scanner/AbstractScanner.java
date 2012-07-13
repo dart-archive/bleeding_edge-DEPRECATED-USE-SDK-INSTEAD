@@ -266,6 +266,14 @@ public abstract class AbstractScanner {
       return advance();
     }
 
+    if (next == 'r') {
+      int peek = peek();
+      if (peek == '"' || peek == '\'') {
+        int start = getOffset();
+        return tokenizeString(advance(), start, true);
+      }
+    }
+
     if ('a' <= next && next <= 'z') {
       return tokenizeKeywordOrIdentifier(next, true);
     }
@@ -390,7 +398,8 @@ public abstract class AbstractScanner {
     }
 
     if (next == '@') {
-      return tokenizeRawString(next);
+      appendToken(TokenType.AT);
+      return advance();
     }
 
     if (next == '"' || next == '\'') {
@@ -424,11 +433,7 @@ public abstract class AbstractScanner {
       return advance();
     }
 
-    errorListener.onError(new AnalysisError(
-        getSource(),
-        ScannerErrorCode.ILLEGAL_CHARACTER,
-        next,
-        getOffset()));
+    reportError(ScannerErrorCode.ILLEGAL_CHARACTER, Integer.valueOf(next));
     return advance();
   }
 
@@ -450,6 +455,16 @@ public abstract class AbstractScanner {
    */
   private void recordStartOfLine() {
     lineStarts.add(getOffset());
+  }
+
+  /**
+   * Report an error at the current offset.
+   * 
+   * @param errorCode the error code indicating the nature of the error
+   * @param arguments any arguments needed to complete the error message
+   */
+  private void reportError(ScannerErrorCode errorCode, Object... arguments) {
+    errorListener.onError(new AnalysisError(getSource(), getOffset(), 1, errorCode, arguments));
   }
 
   private int select(char choice, TokenType yesType, TokenType noType) throws IOException {
@@ -544,10 +559,7 @@ public abstract class AbstractScanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          errorListener.onError(new AnalysisError(
-              getSource(),
-              ScannerErrorCode.MISSING_DIGIT,
-              getOffset()));
+          reportError(ScannerErrorCode.MISSING_DIGIT);
         }
         return next;
       }
@@ -624,10 +636,7 @@ public abstract class AbstractScanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          errorListener.onError(new AnalysisError(
-              getSource(),
-              ScannerErrorCode.MISSING_HEX_DIGIT,
-              getOffset()));
+          reportError(ScannerErrorCode.MISSING_HEX_DIGIT);
         }
         appendStringToken(TokenType.HEXADECIMAL, getString(start, next < 0 ? 0 : -1));
         return next;
@@ -738,10 +747,7 @@ public abstract class AbstractScanner {
     next = advance();
     while (true) {
       if (-1 == next) {
-        errorListener.onError(new AnalysisError(
-            getSource(),
-            ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT,
-            getOffset()));
+        reportError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT);
         appendCommentToken(TokenType.MULTI_LINE_COMMENT, getString(tokenStart, 0));
         return next;
       } else if ('*' == next) {
@@ -785,10 +791,7 @@ public abstract class AbstractScanner {
         }
       }
     }
-    errorListener.onError(new AnalysisError(
-        getSource(),
-        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-        getOffset()));
+    reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
     appendStringToken(TokenType.STRING, getString(start, 0));
     return advance();
   }
@@ -825,10 +828,7 @@ public abstract class AbstractScanner {
       }
       next = advance();
     }
-    errorListener.onError(new AnalysisError(
-        getSource(),
-        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-        getOffset()));
+    reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
     appendStringToken(TokenType.STRING, getString(start, 0));
     return advance();
   }
@@ -889,18 +889,6 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeRawString(int next) throws IOException {
-    int start = getOffset();
-    next = advance();
-    if (next != '"' && next != '\'') {
-      errorListener.onError(new AnalysisError(
-          getSource(),
-          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-          getOffset()));
-    }
-    return tokenizeString(next, start, true);
-  }
-
   private int tokenizeSingleLineComment(int next) throws IOException {
     while (true) {
       next = advance();
@@ -918,19 +906,13 @@ public abstract class AbstractScanner {
         appendStringToken(TokenType.STRING, getString(start, 0));
         return advance();
       } else if (next == '\r' || next == '\n') {
-        errorListener.onError(new AnalysisError(
-            getSource(),
-            ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-            getOffset()));
+        reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
         appendStringToken(TokenType.STRING, getString(start, 0));
         return advance();
       }
       next = advance();
     }
-    errorListener.onError(new AnalysisError(
-        getSource(),
-        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-        getOffset()));
+    reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
     appendStringToken(TokenType.STRING, getString(start, 0));
     return advance();
   }
@@ -947,10 +929,7 @@ public abstract class AbstractScanner {
         continue;
       }
       if (next <= '\r' && (next == '\n' || next == '\r' || next == -1)) {
-        errorListener.onError(new AnalysisError(
-            getSource(),
-            ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-            getOffset()));
+        reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
         appendStringToken(TokenType.STRING, getString(start, 0));
         return advance();
       }

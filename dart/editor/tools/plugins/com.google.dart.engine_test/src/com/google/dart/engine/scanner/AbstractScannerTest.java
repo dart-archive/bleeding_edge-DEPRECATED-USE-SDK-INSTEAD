@@ -13,7 +13,13 @@
  */
 package com.google.dart.engine.scanner;
 
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.GatheringErrorListener;
+
 import junit.framework.TestCase;
+
+import java.util.List;
 
 public abstract class AbstractScannerTest extends TestCase {
   public void test_AbstractScanner_ampersand() throws Exception {
@@ -26,6 +32,10 @@ public abstract class AbstractScannerTest extends TestCase {
 
   public void test_AbstractScanner_ampersand_eq() throws Exception {
     assertToken(TokenType.AMPERSAND_EQ, "&=");
+  }
+
+  public void test_AbstractScanner_at() throws Exception {
+    assertToken(TokenType.AT, "@");
   }
 
   public void test_AbstractScanner_backping() throws Exception {
@@ -92,6 +102,10 @@ public abstract class AbstractScannerTest extends TestCase {
     assertComment(TokenType.MULTI_LINE_COMMENT, "/* comment */");
   }
 
+  public void test_AbstractScanner_comment_multi_unterminated() throws Exception {
+    assertError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, 3, "/* x");
+  }
+
   public void test_AbstractScanner_comment_nested() throws Exception {
     assertComment(TokenType.MULTI_LINE_COMMENT, "/* comment /* within a */ comment */");
   }
@@ -134,6 +148,10 @@ public abstract class AbstractScannerTest extends TestCase {
 
   public void test_AbstractScanner_double_fraction_Ed() throws Exception {
     assertToken(TokenType.DOUBLE, ".123E4d");
+  }
+
+  public void test_AbstractScanner_double_missingDigitInExponent() throws Exception {
+    assertError(ScannerErrorCode.MISSING_DIGIT, 1, "1e");
   }
 
   public void test_AbstractScanner_double_whole_d() throws Exception {
@@ -204,8 +222,16 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.HEXADECIMAL, "0x1A2B3C");
   }
 
+  public void test_AbstractScanner_hexidecimal_missingDigit() throws Exception {
+    assertError(ScannerErrorCode.MISSING_HEX_DIGIT, 1, "0x");
+  }
+
   public void test_AbstractScanner_identifier() throws Exception {
-    assertToken(TokenType.IDENTIFIER, "identifier");
+    assertToken(TokenType.IDENTIFIER, "result");
+  }
+
+  public void test_AbstractScanner_illegalChar() throws Exception {
+    assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "\u0312");
   }
 
   public void test_AbstractScanner_index() throws Exception {
@@ -537,12 +563,36 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.STRING, "'''string'''");
   }
 
-  public void test_AbstractScanner_string_raw_double() throws Exception {
-    assertToken(TokenType.STRING, "@\"string\"");
+  public void test_AbstractScanner_string_multi_unterminated() throws Exception {
+    assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "'''string");
   }
 
-  public void test_AbstractScanner_string_raw_single() throws Exception {
-    assertToken(TokenType.STRING, "@'string'");
+  public void test_AbstractScanner_string_raw_multi_double() throws Exception {
+    assertToken(TokenType.STRING, "r\"\"\"string\"\"\"");
+  }
+
+  public void test_AbstractScanner_string_raw_multi_single() throws Exception {
+    assertToken(TokenType.STRING, "r'''string'''");
+  }
+
+  public void test_AbstractScanner_string_raw_multi_unterminated() throws Exception {
+    assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9, "r'''string");
+  }
+
+  public void test_AbstractScanner_string_raw_simple_double() throws Exception {
+    assertToken(TokenType.STRING, "r\"string\"");
+  }
+
+  public void test_AbstractScanner_string_raw_simple_single() throws Exception {
+    assertToken(TokenType.STRING, "r'string'");
+  }
+
+  public void test_AbstractScanner_string_raw_simple_unterminated_eof() throws Exception {
+    assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "r'string");
+  }
+
+  public void test_AbstractScanner_string_raw_simple_unterminated_eol() throws Exception {
+    assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "r'string\n");
   }
 
   public void test_AbstractScanner_string_simple_double() throws Exception {
@@ -588,6 +638,14 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.STRING, "'string'");
   }
 
+  public void test_AbstractScanner_string_simple_unterminated_eof() throws Exception {
+    assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6, "'string");
+  }
+
+  public void test_AbstractScanner_string_simple_unterminated_eol() throws Exception {
+    assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "'string\r");
+  }
+
   public void test_AbstractScanner_tilde() throws Exception {
     assertToken(TokenType.TILDE, "~");
   }
@@ -600,7 +658,7 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.TILDE_SLASH_EQ, "~/=");
   }
 
-  protected abstract Token scan(String source);
+  protected abstract Token scan(String source, AnalysisErrorListener listener);
 
   private void assertComment(TokenType commentType, String source) throws Exception {
     Token token = scan(source);
@@ -613,6 +671,23 @@ public abstract class AbstractScannerTest extends TestCase {
     assertEquals(0, comment.getOffset());
     assertEquals(source.length(), comment.getLength());
     assertEquals(source, comment.getLexeme());
+  }
+
+  /**
+   * Assert that scanning the given source produces an error with the given code.
+   * 
+   * @param illegalCharacter
+   * @param i
+   * @param source the source to be scanned to produce the error
+   */
+  private void assertError(ScannerErrorCode expectedError, int expectedOffset, String source) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    scan(source, listener);
+    List<AnalysisError> errors = listener.getErrors();
+    assertEquals(1, errors.size());
+    AnalysisError error = errors.get(0);
+    assertEquals(expectedError, error.getErrorCode());
+    assertEquals(expectedOffset, error.getOffset());
   }
 
   /**
@@ -705,5 +780,12 @@ public abstract class AbstractScannerTest extends TestCase {
       assertNotNull(token);
     }
     assertEquals(TokenType.EOF, token.getType());
+  }
+
+  private Token scan(String source) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Token token = scan(source, listener);
+    listener.assertNoErrors();
+    return token;
   }
 }

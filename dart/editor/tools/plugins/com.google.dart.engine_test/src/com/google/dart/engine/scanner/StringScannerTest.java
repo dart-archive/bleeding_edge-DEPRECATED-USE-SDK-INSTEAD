@@ -13,21 +13,15 @@
  */
 package com.google.dart.engine.scanner;
 
-import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 
 import java.io.IOException;
 
 public class StringScannerTest extends AbstractScannerTest {
   @Override
-  protected Token scan(String source) {
+  protected Token scan(String source, AnalysisErrorListener listener) {
     try {
-      StringScanner scanner = new StringScanner(null, source, new AnalysisErrorListener() {
-        @Override
-        public void onError(AnalysisError event) {
-          // Ignore errors
-        }
-      });
+      StringScanner scanner = new StringScanner(null, source, listener);
       return scanner.tokenize();
     } catch (IOException exception) {
       fail("Unexpected exception: " + exception.getMessage());
