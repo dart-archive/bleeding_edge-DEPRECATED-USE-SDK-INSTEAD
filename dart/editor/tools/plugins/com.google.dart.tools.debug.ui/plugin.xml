@@ -62,7 +62,7 @@
             class="com.google.dart.tools.debug.ui.internal.dartium.DartiumLaunchShortcut"
             icon="icons/chromium_16.png"
             id="com.google.dart.tools.debug.ui.dartChromeShortcut"
-            label="%dart.chromelaunch.shortcut.label"
+            label="%dart.dartiumlaunch.shortcut.label"
             modes="run,debug">
          <configurationType
                id="com.google.dart.tools.debug.core.dartiumLaunchConfig">
@@ -127,34 +127,36 @@
             class="com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchShortcut"
             icon="icons/obj16/globe_dark.png"
             id="com.google.dart.tools.debug.ui.dartBrowserShortcut"
-            label="%dart.launch.config.client.name"
+            label="%dart.clientlaunch.shortcut.label"
             modes="run">
          <configurationType
                id="com.google.dart.tools.debug.core.browserLaunchConfig">
          </configurationType>
+          <contextualLaunch>
+            <enablement>
+               <with variable="selection">
+                  <count value="1">
+                  </count>
+                  <iterate>
+                     <adapt type="org.eclipse.core.resources.IResource">
+                        <or>
+                           <and>
+                              <test property="com.google.dart.tools.debug.isInDartProject"/>
+                              <or>
+                                 <test property="org.eclipse.core.resources.extension" value="html"/>
+                                 <test property="org.eclipse.core.resources.extension" value="dart"/>
+                              </or>
+                           </and>
+                           <test property="com.google.dart.tools.debug.isDartProject"/>
+                        </or>
+                     </adapt>
+                  </iterate>
+               </with>
+            </enablement>
+         </contextualLaunch>
       </shortcut>
    </extension>
        
-   <!-- Remote launch configuration -->
-
-   <!--extension
-         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
-      <launchConfigurationTypeImage
-            configTypeID="com.google.dart.tools.debug.core.remoteLaunchConfig"
-            icon="icons/chromium_16_remote.png"
-            id="com.google.dart.tools.debug.core.remoteLaunchConfigImage">
-      </launchConfigurationTypeImage>
-   </extension>
-
-   <extension
-         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
-      <launchConfigurationTabGroup
-            class="com.google.dart.tools.debug.ui.internal.remote.DartRemoteTabGroup"
-            id="com.google.dart.tools.debug.core.remoteLaunchConfigTabGroup"
-            type="com.google.dart.tools.debug.core.remoteLaunchConfig">
-      </launchConfigurationTabGroup>
-   </extension-->
-
    <!-- Server launch configuration -->
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTypeImages">
@@ -179,9 +181,9 @@
       <shortcut
             class="com.google.dart.tools.debug.ui.internal.server.DartServerLaunchShortcut"
             id="com.google.dart.tools.debug.ui.serverLaunchShortcut"
-            label="Dart Command-line Application"
+            label="%dart.serverlaunch.shortcut.label"
             icon="icons/obj16/osprc_obj.png"
-            modes="run">
+            modes="run,debug">
          <configurationType
                id="com.google.dart.tools.debug.core.serverLaunchConfig">
          </configurationType>

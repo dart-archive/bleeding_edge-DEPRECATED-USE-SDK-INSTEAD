@@ -17,7 +17,7 @@
             delegate="com.google.dart.tools.debug.core.configs.DartiumLaunchConfigurationDelegate"
             id="com.google.dart.tools.debug.core.dartiumLaunchConfig"
             modes="run,debug"
-            name="%launchconfig.chrome.name"
+            name="%launchconfig.dartium.name"
             sourceLocatorId="com.google.dart.tools.debug.core.sourceLookupDirector"
             sourcePathComputerId="com.google.dart.tools.debug.core.dartiumSourcePathComputer">
       </launchConfigurationType>

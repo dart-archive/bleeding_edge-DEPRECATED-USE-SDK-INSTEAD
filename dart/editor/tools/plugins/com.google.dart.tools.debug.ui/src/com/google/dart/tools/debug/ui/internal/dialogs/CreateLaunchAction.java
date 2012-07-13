@@ -151,7 +151,7 @@ public class CreateLaunchAction extends Action implements IWorkbenchWindowPulldo
     // Iterate through all the launch configuration types and add them to the pulldown menu.
     for (final ILaunchConfigurationType configType : sort(manager.getLaunchConfigurationTypes())) {
       Action launchAction = new Action(
-          "New " + configType.getName(),
+          configType.getName(),
           DebugUITools.getDefaultImageDescriptor(configType)) {
         @Override
         public void run() {
