@@ -243,6 +243,10 @@
          point="org.eclipse.core.contenttype.contentTypes">
       <file-association
             content-type="org.eclipse.core.runtime.text"
+            file-extensions="map">
+      </file-association>
+      <file-association
+            content-type="org.eclipse.core.runtime.text"
             file-extensions="css">
       </file-association>
       <file-association
