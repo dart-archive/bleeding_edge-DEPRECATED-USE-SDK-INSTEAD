@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.projects;
 
-import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IFile;
@@ -75,7 +74,6 @@ public class HideProjectAction extends CloseResourceAction {
     } finally {
 
       ((IProject) resource).delete(false, true, monitor);
-      DartLibraryImpl.clearLocalUrisCache();
     }
   }
 
