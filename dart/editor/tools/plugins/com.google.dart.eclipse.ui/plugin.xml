@@ -14,13 +14,44 @@
             class="com.google.dart.eclipse.wizards.DartProjectWizard"
             finalPerspective="com.google.dart.tools.ui.DartPerspective"
             icon="icons/newprj_wiz.gif"
-            id="com.google.dart.eclipse.wizards.project.mainwiz"
+            id="com.google.dart.eclipse.wizards.newProject"
             name="Dart Project"
             project="true">
             <description>
                Create a new Dart project
             </description>
       </wizard>
+      
+      <wizard
+            canFinishEarly="false"
+            category="com.google.dart.eclipse.wizards.projects"
+            class="com.google.dart.tools.ui.internal.projects.CreateFileWizard"
+            finalPerspective="com.google.dart.tools.ui.DartPerspective"
+            icon="icons/newfile_wiz.gif"
+            id="com.google.dart.eclipse.wizards.newFile"
+            name="Dart File">
+            <description>
+               Create a new Dart file
+            </description>
+      </wizard>
+      
+      <!-- TODO(pquitslund): the New Application Wizard needs an update     
+      
+      <wizard
+            canFinishEarly="false"
+            category="com.google.dart.eclipse.wizards.projects"
+            class="com.google.dart.tools.ui.internal.projects.CreateApplicationWizard"
+            finalPerspective="com.google.dart.tools.ui.DartPerspective"
+            icon="icons/library_new.png"
+            id="com.google.dart.eclipse.wizards.newApplcation"
+            name="Dart Application">
+            <description>
+               Create a new Dart application
+            </description>
+      </wizard>
+      
+      -->
+      
    </extension>
    <extension
          point="org.eclipse.ui.bindings">

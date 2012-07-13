@@ -49,10 +49,9 @@ public class DartPerspective implements IPerspectiveFactory {
   private static final String TR = "topRight"; //$NON-NLS-1$
   private static final String OUTLINE_FOLDER = "outlineFolder"; //$NON-NLS-1$
 
-  private static final String WIZARD_NEW_PROJECT = "com.google.dart.project.wizard"; //$NON-NLS-1$
-  private static final String WIZARD_NEW_FILE = "org.eclipse.ui.wizards.new.file"; //$NON-NLS-1$
+  private static final String WIZARD_NEW_PROJECT = "com.google.dart.eclipse.wizards.newProject"; //$NON-NLS-1$
+  private static final String WIZARD_NEW_FILE = "com.google.dart.eclipse.wizards.newFile"; //$NON-NLS-1$
   private static final String WIZARD_NEW_FOLDER = "org.eclipse.ui.wizards.new.folder"; //$NON-NLS-1$
-  private static final String WIZARD_NEW_TEXT = "org.eclipse.ui.editors.wizards.UntitledTextFileWizard"; //$NON-NLS-1$
 
   public DartPerspective() {
   }
@@ -109,6 +108,5 @@ public class DartPerspective implements IPerspectiveFactory {
     layout.addNewWizardShortcut(WIZARD_NEW_PROJECT);
     layout.addNewWizardShortcut(WIZARD_NEW_FOLDER);
     layout.addNewWizardShortcut(WIZARD_NEW_FILE);
-    layout.addNewWizardShortcut(WIZARD_NEW_TEXT);
   }
 }
