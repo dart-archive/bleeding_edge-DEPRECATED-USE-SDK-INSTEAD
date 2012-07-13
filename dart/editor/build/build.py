@@ -947,11 +947,11 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
         if 'lin' in buildos:
           paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
           add_path = paths[0]
-          zip_rel_path = 'dart/dart-sdk/chromium'
+          zip_rel_path = 'dart/chromium'
         if 'win' in buildos:
           paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
           add_path = paths[0]
-          zip_rel_path = 'dart/dart-sdk/chromium'
+          zip_rel_path = 'dart/chromium'
           # remove extra files
           _FileDelete(os.path.join(add_path, 'DumpRenderTree.exe'))
           _FileDelete(os.path.join(add_path, 'mini_installer.exe'))
@@ -959,7 +959,7 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
         if 'mac' in buildos:
           paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
           add_path = os.path.join(paths[0], 'Chromium.app')
-          zip_rel_path = 'dart/dart-sdk/Chromium.app'
+          zip_rel_path = 'dart/Chromium.app'
         
         #add to the rcp zip
         dart_zip_path = os.path.join(buildout, rcpZipFile)

@@ -594,7 +594,7 @@ public class BrowserManager {
         enableDebugging,
         devToolsPortNumber);
     builder.command(arguments);
-    builder.directory(new File(DartSdk.getInstance().getDartiumWorkingDirectory()));
+    builder.directory(DartSdk.getInstance().getDartiumWorkingDirectory());
 
     try {
       process = builder.start();

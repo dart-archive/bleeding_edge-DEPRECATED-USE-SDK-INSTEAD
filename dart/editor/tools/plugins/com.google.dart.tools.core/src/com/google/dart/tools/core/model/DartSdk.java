@@ -21,17 +21,15 @@ import org.eclipse.core.runtime.Platform;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Properties;
 
 /**
  * Represents the Dart SDK...
  * 
  * <pre>
+ *    Chromium/    <-- Dartium
  *    dart-sdk/
- *       Chromium    <-- Dartium
  *       bin/
  *          dart[.exe]  <-- VM   
  *       lib/
@@ -99,42 +97,22 @@ public class DartSdk {
   public File getDartiumExecutable() {
     synchronized (lock) {
       if (dartium == null) {
-        File file = sdkPath.append(getDartiumBinaryName()).toFile();
+        File file = getDartiumBinary(getDartiumWorkingDirectory());
+
         if (file.exists()) {
           dartium = file;
         }
       }
     }
+
     return dartium;
   }
 
   /**
-   * @return the revision number of the SDK
+   * Returns the directory where Dartium can be found.
    */
-  public String getDartiumVersion() {
-    File versionFile = new File(getDirectory(), "chromium.properties");
-
-    try {
-      Properties props = new Properties();
-      props.load(new FileInputStream(versionFile));
-
-      return props.getProperty("chromium.version");
-    } catch (IOException ioe) {
-
-    }
-
-    return "0";
-  }
-
-  /**
-   * Returns the directory where dartium can be found in the dart-sdk
-   */
-  public String getDartiumWorkingDirectory() {
-    if (DartCore.isWindows() || DartCore.isMac()) {
-      return sdkPath.toOSString();
-    } else {
-      return sdkPath.toOSString().concat("/chromium");
-    }
+  public File getDartiumWorkingDirectory() {
+    return getInstallDirectory();
   }
 
   /**
@@ -231,6 +209,7 @@ public class DartSdk {
     if (getDartiumExecutable() != null) {
       return true;
     }
+
     return false;
   }
 
@@ -264,13 +243,16 @@ public class DartSdk {
     }
   }
 
-  private String getDartiumBinaryName() {
+  private File getDartiumBinary(File installDir) {
     if (DartCore.isWindows()) {
-      return "chromium/Chrome.exe";
+      return new File(new File(installDir, "chromium"), "Chrome.exe");
     } else if (DartCore.isMac()) {
-      return "Chromium.app/Contents/MacOS/Chromium";
+      return new File(
+          new File(new File(new File(installDir, "Chromium.app"), "Contents"), "MacOS"),
+          "Chromium");
     } else {
-      return "chromium/chrome";
+      // Linux
+      return new File(new File(installDir, "chromium"), "chrome");
     }
   }
 
