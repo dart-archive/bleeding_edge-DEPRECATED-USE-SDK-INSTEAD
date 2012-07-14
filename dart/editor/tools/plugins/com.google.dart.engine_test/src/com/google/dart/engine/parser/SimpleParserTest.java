@@ -191,7 +191,6 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseAdditiveExpression_super() throws Exception {
     BinaryExpression expression = parse("parseAdditiveExpression", "super + y");
-    assertNotNull(expression.getLeftOperand());
     assertInstanceOf(SuperExpression.class, expression.getLeftOperand());
     assertNotNull(expression.getOperator());
     assertEquals(TokenType.PLUS, expression.getOperator().getType());
@@ -253,7 +252,6 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseAssignableExpression_dot_super() throws Exception {
     PropertyAccess propertyAccess = parse("parseAssignableExpression", "super.y");
-    assertNotNull(propertyAccess.getTarget());
     assertInstanceOf(SuperExpression.class, propertyAccess.getTarget());
     assertNotNull(propertyAccess.getOperator());
     assertEquals(TokenType.PERIOD, propertyAccess.getOperator().getType());
@@ -294,7 +292,6 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseBitwiseAndExpression_super() throws Exception {
     BinaryExpression expression = parse("parseBitwiseAndExpression", "super & y");
-    assertNotNull(expression.getLeftOperand());
     assertInstanceOf(SuperExpression.class, expression.getLeftOperand());
     assertNotNull(expression.getOperator());
     assertEquals(TokenType.AMPERSAND, expression.getOperator().getType());
@@ -311,7 +308,6 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseBitwiseOrExpression_super() throws Exception {
     BinaryExpression expression = parse("parseBitwiseOrExpression", "super | y");
-    assertNotNull(expression.getLeftOperand());
     assertInstanceOf(SuperExpression.class, expression.getLeftOperand());
     assertNotNull(expression.getOperator());
     assertEquals(TokenType.BAR, expression.getOperator().getType());
@@ -328,7 +324,6 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseBitwiseXorExpression_super() throws Exception {
     BinaryExpression expression = parse("parseBitwiseXorExpression", "super ^ y");
-    assertNotNull(expression.getLeftOperand());
     assertInstanceOf(SuperExpression.class, expression.getLeftOperand());
     assertNotNull(expression.getOperator());
     assertEquals(TokenType.CARET, expression.getOperator().getType());
@@ -834,7 +829,6 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseEqualityExpression_super() throws Exception {
     BinaryExpression expression = parse("parseEqualityExpression", "super == y");
-    assertNotNull(expression.getLeftOperand());
     assertInstanceOf(SuperExpression.class, expression.getLeftOperand());
     assertNotNull(expression.getOperator());
     assertEquals(TokenType.EQ_EQ, expression.getOperator().getType());
@@ -1052,6 +1046,28 @@ public class SimpleParserTest extends EngineTestCase {
     NodeList<FormalParameter> parameters = parameterList.getParameters();
     assertNotNull(parameters);
     assertEquals(2, parameters.size());
+    assertNotNull(parameterList.getRightBracket());
+    assertNotNull(parameterList.getRightParenthesis());
+  }
+
+  public void test_parseFormalParameterList_named_multiple() throws Exception {
+    FormalParameterList parameterList = parse("parseFormalParameterList", "([A a, B b, C c])");
+    assertNotNull(parameterList.getLeftParenthesis());
+    assertNotNull(parameterList.getLeftBracket());
+    NodeList<FormalParameter> parameters = parameterList.getParameters();
+    assertNotNull(parameters);
+    assertEquals(3, parameters.size());
+    assertNotNull(parameterList.getRightBracket());
+    assertNotNull(parameterList.getRightParenthesis());
+  }
+
+  public void test_parseFormalParameterList_named_single() throws Exception {
+    FormalParameterList parameterList = parse("parseFormalParameterList", "([A a])");
+    assertNotNull(parameterList.getLeftParenthesis());
+    assertNotNull(parameterList.getLeftBracket());
+    NodeList<FormalParameter> parameters = parameterList.getParameters();
+    assertNotNull(parameters);
+    assertEquals(1, parameters.size());
     assertNotNull(parameterList.getRightBracket());
     assertNotNull(parameterList.getRightParenthesis());
   }
@@ -1311,6 +1327,15 @@ public class SimpleParserTest extends EngineTestCase {
     assertNotNull(functionBody.getSemicolon());
   }
 
+  public void test_parseFunctionExpression_body_inExpression() throws Exception {
+    FunctionExpression expression = parse("parseFunctionExpression", "(int i) => i++");
+    assertNotNull(expression.getBody());
+    assertNull(expression.getName());
+    assertNotNull(expression.getParameters());
+    assertNull(expression.getReturnType());
+    assertNull(((ExpressionFunctionBody) expression.getBody()).getSemicolon());
+  }
+
   public void test_parseFunctionExpression_minimal() throws Exception {
     FunctionExpression expression = parse("parseFunctionExpression", "() {}");
     assertNotNull(expression.getBody());
@@ -1542,17 +1567,60 @@ public class SimpleParserTest extends EngineTestCase {
     assertNotNull(declaration.getSemicolon());
   }
 
-  public void test_parseInstanceCreationExpression() throws Exception {
+  public void test_parseInstanceCreationExpression_qualifiedType() throws Exception {
+    Token token = new KeywordToken(Keyword.NEW, 0);
+    InstanceCreationExpression expression = parse(
+        "parseInstanceCreationExpression",
+        new Class[] {Token.class},
+        new Object[] {token},
+        "A.B()");
+    assertEquals(token, expression.getKeyword());
+    assertNotNull(expression.getType());
+    assertNull(expression.getPeriod());
+    assertNull(expression.getIdentifier());
+    assertNotNull(expression.getArgumentList());
+  }
+
+  public void test_parseInstanceCreationExpression_qualifiedTypeWithIdentifier() throws Exception {
+    Token token = new KeywordToken(Keyword.NEW, 0);
+    InstanceCreationExpression expression = parse(
+        "parseInstanceCreationExpression",
+        new Class[] {Token.class},
+        new Object[] {token},
+        "A.B.c()");
+    assertEquals(token, expression.getKeyword());
+    assertNotNull(expression.getType());
+    assertNotNull(expression.getPeriod());
+    assertNotNull(expression.getIdentifier());
+    assertNotNull(expression.getArgumentList());
+  }
+
+  public void test_parseInstanceCreationExpression_type() throws Exception {
     Token token = new KeywordToken(Keyword.NEW, 0);
     InstanceCreationExpression expression = parse(
         "parseInstanceCreationExpression",
         new Class[] {Token.class},
         new Object[] {token},
         "A()");
-    assertNotNull(expression.getArgumentList());
-    assertNull(expression.getIdentifier());
     assertEquals(token, expression.getKeyword());
     assertNotNull(expression.getType());
+    assertNull(expression.getPeriod());
+    assertNull(expression.getIdentifier());
+    assertNotNull(expression.getArgumentList());
+  }
+
+  public void test_parseInstanceCreationExpression_type_withArg() throws Exception {
+    Token token = new KeywordToken(Keyword.NEW, 0);
+    InstanceCreationExpression expression = parse(
+        "parseInstanceCreationExpression",
+        new Class[] {Token.class},
+        new Object[] {token},
+        "A<B>.c()");
+    assertEquals(token, expression.getKeyword());
+    assertNotNull(expression.getType());
+    assertNotNull(expression.getPeriod());
+    assertNotNull(expression.getIdentifier());
+    assertNotNull(expression.getArgumentList());
   }
 
   public void test_parseLibraryDirective() throws Exception {
@@ -1575,6 +1643,20 @@ public class SimpleParserTest extends EngineTestCase {
     TypeArgumentList typeArguments = new TypeArgumentList(null, null, null);
     ListLiteral literal = parse("parseListLiteral", new Class[] {
         Token.class, TypeArgumentList.class}, new Object[] {token, typeArguments}, "[]");
+    assertEquals(token, literal.getModifier());
+    assertEquals(typeArguments, literal.getTypeArguments());
+    assertNotNull(literal.getLeftBracket());
+    NodeList<Expression> elements = literal.getElements();
+    assertNotNull(elements);
+    assertEquals(0, elements.size());
+    assertNotNull(literal.getRightBracket());
+  }
+
+  public void test_parseListLiteral_empty_twoTokens() throws Exception {
+    Token token = new KeywordToken(Keyword.CONST, 0);
+    TypeArgumentList typeArguments = new TypeArgumentList(null, null, null);
+    ListLiteral literal = parse("parseListLiteral", new Class[] {
+        Token.class, TypeArgumentList.class}, new Object[] {token, typeArguments}, "[ ]");
     assertEquals(token, literal.getModifier());
     assertEquals(typeArguments, literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
@@ -1731,7 +1813,7 @@ public class SimpleParserTest extends EngineTestCase {
 
   public void test_parseMultiplicativeExpression_super() throws Exception {
     BinaryExpression expression = parse("parseMultiplicativeExpression", "super * y");
-    assertNotNull(expression.getLeftOperand());
+    assertInstanceOf(SuperExpression.class, expression.getLeftOperand());
     assertNotNull(expression.getOperator());
     assertEquals(TokenType.STAR, expression.getOperator().getType());
     assertNotNull(expression.getRightOperand());
@@ -1744,6 +1826,9 @@ public class SimpleParserTest extends EngineTestCase {
     assertNotNull(expression.getKeyword());
     assertNotNull(expression.getType());
   }
+
+  // TODO add tests for parseNonLabeledStatement()?
+  // TODO add tests for parseNormalFormalParameter()?
 
   public void test_parseOperator() throws Exception {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
@@ -1802,6 +1887,7 @@ public class SimpleParserTest extends EngineTestCase {
   public void test_parsePrimaryExpression_false() throws Exception {
     BooleanLiteral literal = parse("parsePrimaryExpression", "false");
     assertNotNull(literal.getLiteral());
+    assertFalse(literal.getValue());
   }
 
   public void test_parsePrimaryExpression_hex() throws Exception {
@@ -1836,6 +1922,7 @@ public class SimpleParserTest extends EngineTestCase {
   public void test_parsePrimaryExpression_true() throws Exception {
     BooleanLiteral literal = parse("parsePrimaryExpression", "true");
     assertNotNull(literal.getLiteral());
+    assertTrue(literal.getValue());
   }
 
   public void test_Parser() {

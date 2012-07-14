@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.LabeledStatement;
+import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -188,9 +189,29 @@ public class ComplexParserTest extends EngineTestCase {
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
+  public void test_logicalAndExpression_precedence_bitwiseOr_left() throws Exception {
+    BinaryExpression expression = parseExpression("x | y && z");
+    assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_logicalAndExpression_precedence_bitwiseOr_right() throws Exception {
+    BinaryExpression expression = parseExpression("x && y | z");
+    assertInstanceOf(BinaryExpression.class, expression.getRightOperand());
+  }
+
   public void test_logicalOrExpression() throws Exception {
     BinaryExpression expression = parseExpression("x || y || z");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_logicalOrExpression_precedence_logicalAnd_left() throws Exception {
+    BinaryExpression expression = parseExpression("x && y || z");
+    assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_logicalOrExpression_precedence_logicalAnd_right() throws Exception {
+    BinaryExpression expression = parseExpression("x || y && z");
+    assertInstanceOf(BinaryExpression.class, expression.getRightOperand());
   }
 
   public void test_multipleLabels() throws Exception {
@@ -202,6 +223,16 @@ public class ComplexParserTest extends EngineTestCase {
   public void test_multiplicativeExpression_normal() throws Exception {
     BinaryExpression expression = parseExpression("x * y / z");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_multiplicativeExpression_precedence_unary_left() throws Exception {
+    BinaryExpression expression = parseExpression("-x * y");
+    assertInstanceOf(PrefixExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_multiplicativeExpression_precedence_unary_right() throws Exception {
+    BinaryExpression expression = parseExpression("x * -y");
+    assertInstanceOf(PrefixExpression.class, expression.getRightOperand());
   }
 
   public void test_multiplicativeExpression_super() throws Exception {
