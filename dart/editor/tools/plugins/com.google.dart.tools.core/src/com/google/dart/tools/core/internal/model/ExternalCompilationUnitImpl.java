@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -45,6 +45,7 @@ import java.util.Map;
 public class ExternalCompilationUnitImpl extends CompilationUnitImpl {
   private final String relPath;
   private DartSource source;
+  private String elementName;
 
   public ExternalCompilationUnitImpl(DartLibraryImpl library, String relPath) {
     this(library, relPath, null);
@@ -78,21 +79,10 @@ public class ExternalCompilationUnitImpl extends CompilationUnitImpl {
 
   @Override
   public String getElementName() {
-    DartSource source = getDartSource();
-    if (source == null) {
-      // This can happen if the element does not exist. Normal compilation units have a file, even
-      // when that file doesn't exist, but apparently we don't create a non-existent source object.
-      return "";
+    if (elementName == null) {
+      elementName = getElementName0();
     }
-    URI uri = source.getUri();
-    String path = uri.getPath();
-
-    // getPath() returns null for "jar:/..." URIs, so get scheme specific part instead
-    if (path == null) {
-      path = uri.getSchemeSpecificPart();
-    }
-
-    return new Path(path).lastSegment();
+    return elementName;
   }
 
   @Override
@@ -191,5 +181,23 @@ public class ExternalCompilationUnitImpl extends CompilationUnitImpl {
       source = libSrc.getSourceFor(relPath);
     }
     return source;
+  }
+
+  private String getElementName0() {
+    DartSource source = getDartSource();
+    if (source == null) {
+      // This can happen if the element does not exist. Normal compilation units have a file, even
+      // when that file doesn't exist, but apparently we don't create a non-existent source object.
+      return "";
+    }
+    URI uri = source.getUri();
+    String path = uri.getPath();
+
+    // getPath() returns null for "jar:/..." URIs, so get scheme specific part instead
+    if (path == null) {
+      path = uri.getSchemeSpecificPart();
+    }
+
+    return new Path(path).lastSegment();
   }
 }

@@ -159,6 +159,11 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   private LibrarySource sourceFile;
 
   /**
+   * Cached name of this library.
+   */
+  private String elementName;
+
+  /**
    * An empty array of libraries.
    */
   public static final DartLibraryImpl[] EMPTY_ARRAY = new DartLibraryImpl[0];
@@ -449,15 +454,10 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
    */
   @Override
   public String getElementName() {
-    if (sourceFile != null) {
-      EditorLibraryManager libMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
-      URI shortUri = libMgr.getShortUri(sourceFile.getUri());
-      if (shortUri != null) {
-        return shortUri.toString();
-      }
-      return sourceFile.getName();
+    if (elementName == null) {
+      elementName = getElementName0();
     }
-    return libraryFile.getName();
+    return elementName;
   }
 
   @Override
@@ -1108,6 +1108,18 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     } catch (DartModelException exception) {
       return null;
     }
+  }
+
+  private String getElementName0() {
+    if (sourceFile != null) {
+      EditorLibraryManager libMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
+      URI shortUri = libMgr.getShortUri(sourceFile.getUri());
+      if (shortUri != null) {
+        return shortUri.toString();
+      }
+      return sourceFile.getName();
+    }
+    return libraryFile.getName();
   }
 
   private boolean hasReferencingHtmlFile() {

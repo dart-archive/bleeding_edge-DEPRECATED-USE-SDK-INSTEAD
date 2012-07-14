@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.internal.index.store;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.dart.tools.core.index.Attribute;
 import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Location;
@@ -27,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -55,6 +58,12 @@ public class IndexStore {
    */
   private HashMap<Resource, Set<Element>> resourceToElementMap = new HashMap<Resource, Set<Element>>(
       256);
+
+  /**
+   * Contains {@link ContributedLocation}s contributed by their
+   * {@link ContributedLocation#getContributor()}.
+   */
+  private Map<Resource, List<ContributedLocation>> contributorToContributedLocations = Maps.newHashMap();
 
   /**
    * Initialize a newly created index to be empty.
@@ -240,17 +249,30 @@ public class IndexStore {
     }
     recordElement(element);
     recordElement(location.getElement());
-    HashMap<Relationship, ArrayList<ContributedLocation>> elementRelationshipMap = relationshipMap.get(element);
-    if (elementRelationshipMap == null) {
-      elementRelationshipMap = new HashMap<Relationship, ArrayList<ContributedLocation>>();
-      relationshipMap.put(element, elementRelationshipMap);
+    // add ContributedLocationfor "element"
+    ContributedLocation contributedLocation;
+    {
+      HashMap<Relationship, ArrayList<ContributedLocation>> elementRelationshipMap = relationshipMap.get(element);
+      if (elementRelationshipMap == null) {
+        elementRelationshipMap = new HashMap<Relationship, ArrayList<ContributedLocation>>();
+        relationshipMap.put(element, elementRelationshipMap);
+      }
+      ArrayList<ContributedLocation> locations = elementRelationshipMap.get(relationship);
+      if (locations == null) {
+        locations = new ArrayList<ContributedLocation>();
+        elementRelationshipMap.put(relationship, locations);
+      }
+      contributedLocation = new ContributedLocation(locations, contributor, location);
     }
-    ArrayList<ContributedLocation> locations = elementRelationshipMap.get(relationship);
-    if (locations == null) {
-      locations = new ArrayList<ContributedLocation>();
-      elementRelationshipMap.put(relationship, locations);
+    // add to "contributor" -> "locations" map
+    {
+      List<ContributedLocation> locations = contributorToContributedLocations.get(contributor);
+      if (locations == null) {
+        locations = Lists.newArrayList();
+        contributorToContributedLocations.put(contributor, locations);
+      }
+      locations.add(contributedLocation);
     }
-    locations.add(new ContributedLocation(contributor, location));
   }
 
   /**
@@ -266,26 +288,10 @@ public class IndexStore {
   public void regenerateResource(Resource resource) {
     resourceToElementMap.remove(resource);
 
-    Set<Entry<Element, HashMap<Relationship, ArrayList<ContributedLocation>>>> relationshipSet = relationshipMap.entrySet();
-    Iterator<Entry<Element, HashMap<Relationship, ArrayList<ContributedLocation>>>> relationshipSetIterator = relationshipSet.iterator();
-    while (relationshipSetIterator.hasNext()) {
-      Set<Entry<Relationship, ArrayList<ContributedLocation>>> elementRelationshipMap = relationshipSetIterator.next().getValue().entrySet();
-      Iterator<Entry<Relationship, ArrayList<ContributedLocation>>> relationshipIterator = elementRelationshipMap.iterator();
-      while (relationshipIterator.hasNext()) {
-        ArrayList<ContributedLocation> locations = relationshipIterator.next().getValue();
-        Iterator<ContributedLocation> locationIterator = locations.iterator();
-        while (locationIterator.hasNext()) {
-          ContributedLocation location = locationIterator.next();
-          if (location.getContributor().equals(resource)) {
-            locationIterator.remove();
-          }
-        }
-        if (locations.isEmpty()) {
-          relationshipIterator.remove();
-        }
-      }
-      if (elementRelationshipMap.isEmpty()) {
-        relationshipSetIterator.remove();
+    List<ContributedLocation> locations = contributorToContributedLocations.get(resource);
+    if (locations != null) {
+      for (ContributedLocation location : locations) {
+        location.getOwner().remove(location);
       }
     }
   }

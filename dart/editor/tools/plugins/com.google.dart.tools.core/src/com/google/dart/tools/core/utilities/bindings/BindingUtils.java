@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.utilities.bindings;
 
+import com.google.common.collect.MapMaker;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartClass;
@@ -61,6 +62,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -115,6 +117,8 @@ public class BindingUtils {
       return this.modificationStamp != modificationStamp;
     }
   }
+
+  private static final Map<LibraryElement, DartLibrary> libraryElementToModel = new MapMaker().weakKeys().softValues().makeMap();
 
   /**
    * A table mapping the handle identifiers of libraries to a cache entry holding a type map for
@@ -714,41 +718,14 @@ public class BindingUtils {
    * @return the library corresponding to the given library element
    */
   public static DartLibrary getDartElement(LibraryElement library) {
-    if (library == null) {
-      return null;
-    }
-    if (library.isDynamic()) {
-      return null;
-    }
-    LibraryUnit libraryUnit = library.getLibraryUnit();
-    if (libraryUnit == null) {
-      return null;
-    }
-    LibrarySource librarySource = libraryUnit.getSource();
-    URI uri = librarySource.getUri();
-    if (SystemLibraryManager.isDartUri(uri)) {
-      return new DartLibraryImpl(librarySource);
-    }
-    if (SystemLibraryManager.isPackageUri(uri)) {
-      uri = SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(uri);
-    }
-    String targetUri = uri.toString();
-    IResource file = com.google.dart.tools.core.internal.util.ResourceUtil.getResource(uri);
-    if (file != null) {
-      return findLibrary(DartCore.create(file.getProject()), targetUri);
-    }
-    try {
-      for (DartProject project : DartModelManager.getInstance().getDartModel().getDartProjects()) {
-        DartLibrary foundLibrary = findLibrary(project, targetUri);
-        if (foundLibrary != null) {
-          return foundLibrary;
-        }
+    DartLibrary dartLibrary = libraryElementToModel.get(library);
+    if (dartLibrary == null) {
+      dartLibrary = getDartElement0(library);
+      if (dartLibrary != null) {
+        libraryElementToModel.put(library, dartLibrary);
       }
-    } catch (DartModelException exception) {
-      DartCore.logError("Could not access Dart projects while trying to find library with URI "
-          + targetUri, exception);
     }
-    return null;
+    return dartLibrary;
   }
 
   /**
@@ -1195,6 +1172,44 @@ public class BindingUtils {
       libraries.add(DartModelManager.getInstance().getDartModel().getCoreLibrary());
     }
     return libraries;
+  }
+
+  private static DartLibrary getDartElement0(LibraryElement library) {
+    if (library == null) {
+      return null;
+    }
+    if (library.isDynamic()) {
+      return null;
+    }
+    LibraryUnit libraryUnit = library.getLibraryUnit();
+    if (libraryUnit == null) {
+      return null;
+    }
+    LibrarySource librarySource = libraryUnit.getSource();
+    URI uri = librarySource.getUri();
+    if (SystemLibraryManager.isDartUri(uri)) {
+      return new DartLibraryImpl(librarySource);
+    }
+    if (SystemLibraryManager.isPackageUri(uri)) {
+      uri = SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(uri);
+    }
+    String targetUri = uri.toString();
+    IResource file = com.google.dart.tools.core.internal.util.ResourceUtil.getResource(uri);
+    if (file != null) {
+      return findLibrary(DartCore.create(file.getProject()), targetUri);
+    }
+    try {
+      for (DartProject project : DartModelManager.getInstance().getDartModel().getDartProjects()) {
+        DartLibrary foundLibrary = findLibrary(project, targetUri);
+        if (foundLibrary != null) {
+          return foundLibrary;
+        }
+      }
+    } catch (DartModelException exception) {
+      DartCore.logError("Could not access Dart projects while trying to find library with URI "
+          + targetUri, exception);
+    }
+    return null;
   }
 
   /**

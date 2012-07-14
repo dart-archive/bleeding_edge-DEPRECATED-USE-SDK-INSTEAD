@@ -18,7 +18,6 @@ import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Location;
 import com.google.dart.tools.core.index.Relationship;
 import com.google.dart.tools.core.index.Resource;
-import com.google.dart.tools.core.internal.index.store.ContributedLocation;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
 import com.google.dart.tools.core.model.DartSdk;
 
@@ -133,17 +132,6 @@ public class IndexReader {
   }
 
   /**
-   * Read a contributed location from the given input stream.
-   * 
-   * @param input the stream from which the contributed location is to be read
-   * @return the contributed location that was read
-   * @throws IOException if the contributed location could not be read
-   */
-  private ContributedLocation readContributedLocation(ObjectInputStream input) throws IOException {
-    return new ContributedLocation(readResource(input), readLocation(input));
-  }
-
-  /**
    * Read an element from the given input stream.
    * 
    * @param input the stream from which the element is to be read
@@ -199,12 +187,9 @@ public class IndexReader {
         Relationship relationship = readRelationship(input);
         int locationCount = input.readInt();
         for (int k = 0; k < locationCount; k++) {
-          ContributedLocation location = readContributedLocation(input);
-          index.recordRelationship(
-              location.getContributor(),
-              element,
-              relationship,
-              location.getLocation());
+          Resource readResource = readResource(input);
+          Location readLocation = readLocation(input);
+          index.recordRelationship(readResource, element, relationship, readLocation);
         }
       }
     }
