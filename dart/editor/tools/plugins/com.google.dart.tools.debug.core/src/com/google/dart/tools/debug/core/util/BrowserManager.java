@@ -313,10 +313,9 @@ public class BrowserManager {
       }
     }
 
-    // TODO(devoncarew): is this the right thing to do? are there ever any invisible system tabs?
-//    if (tabs.size() == 1) {
-//      return tabs.get(0);
-//    }
+    if (tabs.size() == 1) {
+      return tabs.get(0);
+    }
 
     StringBuilder builder = new StringBuilder("unable to locate target dartium tab [" + tabs.size()
         + " tabs]\n");
@@ -325,7 +324,6 @@ public class BrowserManager {
       builder.append("  " + tab.getUrl() + " [" + tab.getTitle() + "]\n");
     }
 
-    // TODO(devoncarew): this logging is in here to help us resolve an issue launching on windows
     DartDebugCorePlugin.logError(builder.toString().trim());
 
     return null;
@@ -524,6 +522,7 @@ public class BrowserManager {
     try {
       Thread.sleep(millis);
     } catch (Exception exception) {
+
     }
   }
 
