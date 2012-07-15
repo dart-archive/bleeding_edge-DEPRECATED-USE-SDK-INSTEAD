@@ -209,17 +209,6 @@ public class DartUIStartup implements IStartup {
      */
     private void waitForAnalysis() {
       AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
-
-      // Ensure ResourceChangeListener background scanning gets time to run
-      // TODO (danrubel): Remove this once background scanning is integrated into AnalysisServer
-      if (server.isIdle()) {
-        try {
-          Thread.sleep(50);
-        } catch (InterruptedException e) {
-          //$FALL-THROUGH$
-        }
-      }
-
       // Wait up to 2 minutes for the server to be idle
       if (!server.waitForIdle(120000)) {
         System.err.println("Stopped waiting for the analysis server.");
