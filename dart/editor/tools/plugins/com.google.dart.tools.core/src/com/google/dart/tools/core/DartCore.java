@@ -46,6 +46,7 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
@@ -77,6 +78,12 @@ public class DartCore extends Plugin {
    * The unique instance of this class.
    */
   private static DartCore PLUG_IN;
+
+  /**
+   * The log used by {@link #logError(String)} and other local methods for logging errors, warnings,
+   * and information or <code>null</code> to use the default system log.
+   */
+  private static ILog PLUGIN_LOG;
 
   /**
    * The id of the plug-in that defines the Dart model.
@@ -470,6 +477,16 @@ public class DartCore extends Plugin {
   }
 
   /**
+   * Answer the log used by {@link #logError(String)} and other local methods for logging errors,
+   * warnings, and information.
+   * 
+   * @return the log (not <code>null</code>)
+   */
+  public static ILog getPluginLog() {
+    return PLUGIN_LOG != null ? PLUGIN_LOG : getPlugin().getLog();
+  }
+
+  /**
    * @return the version text for this plugin (i.e. 1.1.0)
    */
   public static String getVersion() {
@@ -583,7 +600,7 @@ public class DartCore extends Plugin {
    * @param message an explanation of why the error occurred or what it means
    */
   public static void logError(String message) {
-    getPlugin().getLog().log(new Status(Status.ERROR, PLUGIN_ID, message, null));
+    getPluginLog().log(new Status(Status.ERROR, PLUGIN_ID, message, null));
   }
 
   /**
@@ -593,7 +610,7 @@ public class DartCore extends Plugin {
    * @param exception the exception being logged
    */
   public static void logError(String message, Throwable exception) {
-    getPlugin().getLog().log(new Status(Status.ERROR, PLUGIN_ID, message, exception));
+    getPluginLog().log(new Status(Status.ERROR, PLUGIN_ID, message, exception));
   }
 
   /**
@@ -602,7 +619,7 @@ public class DartCore extends Plugin {
    * @param exception the exception being logged
    */
   public static void logError(Throwable exception) {
-    getPlugin().getLog().log(new Status(Status.ERROR, PLUGIN_ID, exception.getMessage(), exception));
+    getPluginLog().log(new Status(Status.ERROR, PLUGIN_ID, exception.getMessage(), exception));
   }
 
   /**
@@ -623,7 +640,7 @@ public class DartCore extends Plugin {
    */
   public static void logInformation(String message, Throwable exception) {
     if (DartCoreDebug.VERBOSE) {
-      getPlugin().getLog().log(new Status(Status.INFO, PLUGIN_ID, "INFO: " + message, exception));
+      getPluginLog().log(new Status(Status.INFO, PLUGIN_ID, "INFO: " + message, exception));
     }
   }
 
@@ -764,6 +781,19 @@ public class DartCore extends Plugin {
    */
   public static void setOptions(Hashtable<String, String> newOptions) {
     DartModelManager.getInstance().setOptions(newOptions);
+  }
+
+  /**
+   * TESTING ONLY: Set the log used by {@link #logError(String)} and other local methods for logging
+   * errors, warnings, and information.
+   * 
+   * @param log the log or <code>null</code> to use the default system log
+   * @return the log prior to calling this method or <code>null</code> for the default system log
+   */
+  public static ILog setPluginLog(ILog log) {
+    ILog oldLog = PLUGIN_LOG;
+    PLUGIN_LOG = log;
+    return oldLog;
   }
 
   /**
