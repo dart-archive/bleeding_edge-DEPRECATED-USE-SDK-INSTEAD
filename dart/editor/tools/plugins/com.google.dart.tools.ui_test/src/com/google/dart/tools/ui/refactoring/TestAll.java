@@ -39,6 +39,7 @@ public class TestAll {
     // extract
     suite.addTestSuite(ExtractUtilsTest.class);
     suite.addTestSuite(ExtractLocalRefactoringTest.class);
+    suite.addTestSuite(ExtractMethodRefactoringTest.class);
     // inline
     suite.addTestSuite(InlineLocalRefactoringTest.class);
     // done

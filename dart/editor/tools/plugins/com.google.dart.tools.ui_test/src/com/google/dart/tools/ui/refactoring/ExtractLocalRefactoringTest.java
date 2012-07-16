@@ -477,10 +477,10 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
   /**
    * Creates refactoring and checks all conditions.
    */
-  private void createRefactoring(String tempName) throws Exception {
+  private void createRefactoring(String name) throws Exception {
     int selectionLength = selectionEnd - selectionStart;
     refactoring = new ExtractLocalRefactoring(testUnit, selectionStart, selectionLength);
-    refactoring.setLocalName(tempName);
+    refactoring.setLocalName(name);
     refactoring.setReplaceAllOccurrences(replaceAllOccurences);
     refactoringStatus = refactoring.checkAllConditions(pm);
   }

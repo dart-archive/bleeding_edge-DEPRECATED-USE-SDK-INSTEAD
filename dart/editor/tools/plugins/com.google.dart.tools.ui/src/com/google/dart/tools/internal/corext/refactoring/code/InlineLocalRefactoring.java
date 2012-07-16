@@ -37,6 +37,9 @@ import org.eclipse.text.edits.ReplaceEdit;
 
 import java.util.List;
 
+/**
+ * @coverage dart.editor.ui.refactoring.core
+ */
 public class InlineLocalRefactoring extends Refactoring {
 
   private static ReplaceEdit createReplaceEdit(SourceRange range, String text) {

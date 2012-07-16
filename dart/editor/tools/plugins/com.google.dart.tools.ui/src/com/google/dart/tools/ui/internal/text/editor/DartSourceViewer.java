@@ -14,11 +14,13 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.comment.CommentFormattingContext;
 import com.google.dart.tools.ui.internal.text.functions.SmartBackspaceManager;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
+import com.google.dart.tools.ui.text.IDartColorConstants;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -49,6 +51,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
@@ -191,6 +194,32 @@ public class DartSourceViewer extends ProjectionViewer implements IPropertyChang
       IPreferenceStore store) {
     super(parent, verticalRuler, overviewRuler, showAnnotationsOverview, styles);
     setPreferenceStore(store);
+  }
+
+  /**
+   * Sets the viewer's background color to the given control's background color. The background
+   * color is <em>only</em> set if it's visibly distinct from the default Dart source text color.
+   * 
+   * @param control the control with the default background color
+   */
+  public void adaptBackgroundColor(Control control) {
+    Color defaultColor = control.getBackground();
+    float[] defaultBgHSB = defaultColor.getRGB().getHSB();
+
+    Color javaDefaultColor = DartUI.getColorManager().getColor(IDartColorConstants.JAVA_DEFAULT);
+    RGB javaDefaultRGB = javaDefaultColor != null ? javaDefaultColor.getRGB() : new RGB(
+        255,
+        255,
+        255);
+    float[] javaDefaultHSB = javaDefaultRGB.getHSB();
+
+    if (Math.abs(defaultBgHSB[2] - javaDefaultHSB[2]) >= 0.5f) {
+      getTextWidget().setBackground(defaultColor);
+      if (fBackgroundColor != null) {
+        fBackgroundColor.dispose();
+        fBackgroundColor = null;
+      }
+    }
   }
 
   /*

@@ -747,6 +747,13 @@
                 id="com.google.dart.tools.ui.actions.ExtractLocal">
             </action>
             <action
+                definitionId="com.google.dart.tools.ui.edit.text.dart.extract.method"
+                label="%Refactoring.extractMethodAction.label"
+                retarget="true"
+                menubarPath="edit/endEdit"
+                id="com.google.dart.tools.ui.actions.ExtractMethod">
+            </action>
+            <action
                 definitionId="com.google.dart.tools.ui.edit.text.dart.inline"
                 label="%Refactoring.inlineAction.label"
                 retarget="true"
@@ -872,6 +879,13 @@
                retarget="true"
                menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
                id="com.google.dart.tools.ui.actions.ExtractLocal">
+         </action>
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.dart.extract.method"
+               label="%Refactoring.extractMethodAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
+               id="com.google.dart.tools.ui.actions.ExtractMethod">
          </action>
          <!--<action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.method"
@@ -1760,7 +1774,7 @@
             name="%ActionDefinition.extractMethod.name"
             description="%ActionDefinition.extractMethod.description"
             categoryId="com.google.dart.tools.ui.category.refactoring"
-            id="org.eclipse.wst.jsdt.ui.edit.text.java.extract.method">
+            id="com.google.dart.tools.ui.edit.text.dart.extract.method">
       </command>
       <command
             name="%ActionDefinition.extractLocalVariable.name"
@@ -2818,6 +2832,10 @@
            commandId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
        <key
+           sequence="M2+M3+M"
+           commandId="com.google.dart.tools.ui.edit.text.dart.extract.method"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+       <key
            sequence="M2+M3+I"
            commandId="com.google.dart.tools.ui.edit.text.dart.inline"
            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
@@ -2825,6 +2843,11 @@
            platform="carbon"
            sequence="COMMAND+ALT+L"
            commandId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+       <key
+           platform="carbon"
+           sequence="COMMAND+ALT+M"
+           commandId="com.google.dart.tools.ui.edit.text.dart.extract.method"
            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
        <key
            platform="carbon"

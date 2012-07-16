@@ -134,7 +134,7 @@ public class RefactorActionGroup extends ActionGroup {
   private SelectionDispatchAction fInlineAction;
 //  //private SelectionDispatchAction fReplaceInvocationsAction;
 //  private SelectionDispatchAction fIntroduceIndirectionAction;
-//  private SelectionDispatchAction fExtractMethodAction;
+  private SelectionDispatchAction fExtractMethodAction;
   private SelectionDispatchAction fExtractLocalAction;
 //  private SelectionDispatchAction fExtractConstantAction;
 //  private SelectionDispatchAction fExtractClassAction;
@@ -191,6 +191,15 @@ public class RefactorActionGroup extends ActionGroup {
         DartEditorActionDefinitionIds.EXTRACT_LOCAL_VARIABLE);
     editor.setAction("ExtractLocalVariable", fExtractLocalAction); //$NON-NLS-1$
 
+    fExtractMethodAction = new ExtractMethodAction(editor);
+    initUpdatingAction(
+        fExtractMethodAction,
+        provider,
+        null,
+        selection,
+        DartEditorActionDefinitionIds.EXTRACT_METHOD);
+    editor.setAction("ExtractMethod", fExtractMethodAction); //$NON-NLS-1$
+
 //    fMoveAction= new MoveAction(editor);
 //    initAction(fMoveAction, selection, IJavaEditorActionDefinitionIds.MOVE_ELEMENT);
 //    editor.setAction("MoveElement", fMoveAction); //$NON-NLS-1$
@@ -234,10 +243,6 @@ public class RefactorActionGroup extends ActionGroup {
 //    fInferTypeArgumentsAction= new InferTypeArgumentsAction(editor);
 //    initAction(fInferTypeArgumentsAction, selection, IJavaEditorActionDefinitionIds.INFER_TYPE_ARGUMENTS_ACTION);
 //    editor.setAction("InferTypeArguments", fInferTypeArgumentsAction); //$NON-NLS-1$
-//
-//    fExtractMethodAction= new ExtractMethodAction(editor);
-//    initUpdatingAction(fExtractMethodAction, provider, null, selection, IJavaEditorActionDefinitionIds.EXTRACT_METHOD);
-//    editor.setAction("ExtractMethod", fExtractMethodAction); //$NON-NLS-1$
 //
 //    fExtractConstantAction= new ExtractConstantAction(editor);
 //    initUpdatingAction(fExtractConstantAction, provider, null, selection, IJavaEditorActionDefinitionIds.EXTRACT_CONSTANT);
@@ -409,7 +414,7 @@ public class RefactorActionGroup extends ActionGroup {
 //    disposeAction(fIntroduceParameterAction, fSelectionProvider);
 //    disposeAction(fIntroduceParameterObjectAction, fSelectionProvider);
 //    disposeAction(fIntroduceFactoryAction, fSelectionProvider);
-//    disposeAction(fExtractMethodAction, fSelectionProvider);
+    disposeAction(fExtractMethodAction, fSelectionProvider);
 //    disposeAction(fReplaceInvocationsAction, provider);
 //    disposeAction(fExtractInterfaceAction, fSelectionProvider);
 //    disposeAction(fExtractClassAction, fSelectionProvider);
@@ -444,7 +449,7 @@ public class RefactorActionGroup extends ActionGroup {
 //    actionBars.setGlobalActionHandler(JdtActionConstants.EXTRACT_CONSTANT, fExtractConstantAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.INTRODUCE_PARAMETER, fIntroduceParameterAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.INTRODUCE_FACTORY, fIntroduceFactoryAction);
-//    actionBars.setGlobalActionHandler(JdtActionConstants.EXTRACT_METHOD, fExtractMethodAction);
+    actionBars.setGlobalActionHandler(JdtActionConstants.EXTRACT_METHOD, fExtractMethodAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.REPLACE_INVOCATIONS, fReplaceInvocationsAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.EXTRACT_INTERFACE, fExtractInterfaceAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.EXTRACT_CLASS, fExtractClassAction);
@@ -568,6 +573,7 @@ public class RefactorActionGroup extends ActionGroup {
     refactorSubmenu.appendToGroup(fGroupName, new Separator(GROUP_REORG));
     added += addAction(refactorSubmenu, GROUP_REORG, fRenameAction);
     added += addAction(refactorSubmenu, GROUP_REORG, fExtractLocalAction);
+    added += addAction(refactorSubmenu, GROUP_REORG, fExtractMethodAction);
     added += addAction(refactorSubmenu, GROUP_REORG, fInlineAction);
 //    added += addAction(refactorSubmenu, fMoveAction);
 

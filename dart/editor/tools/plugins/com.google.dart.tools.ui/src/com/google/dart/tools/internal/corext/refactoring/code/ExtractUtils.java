@@ -14,6 +14,7 @@
 package com.google.dart.tools.internal.corext.refactoring.code;
 
 import com.google.common.collect.Lists;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartFunction;
@@ -122,6 +123,85 @@ public class ExtractUtils {
   public static boolean rangeStartsBetween(SourceRange range, DartNode first, DartNode next) {
     int pos = range.getOffset();
     return first.getSourceInfo().getEnd() <= pos && pos <= next.getSourceInfo().getOffset();
+  }
+
+  /**
+   * @return {@link DartExpression}s from <code>operands</code> which are completely covered by
+   *         given {@link SourceRange}. Range should start and end between given
+   *         {@link DartExpression}s.
+   */
+  private static List<DartExpression> getOperandsForSourceRange(List<DartExpression> operands,
+      SourceRange range) {
+    Assert.isTrue(!operands.isEmpty());
+    List<DartExpression> subOperands = Lists.newArrayList();
+    // track range enter/exit
+    boolean entered = false;
+    boolean exited = false;
+    // may be range starts exactly on first operand
+    if (range.getOffset() == operands.get(0).getSourceInfo().getOffset()) {
+      entered = true;
+    }
+    // iterate over gaps between operands
+    for (int i = 0; i < operands.size() - 1; i++) {
+      DartExpression operand = operands.get(i);
+      DartExpression nextOperand = operands.get(i + 1);
+      // add operand, if already entered range
+      if (entered) {
+        subOperands.add(operand);
+        // may be last operand in range
+        if (ExtractUtils.rangeEndsBetween(range, operand, nextOperand)) {
+          exited = true;
+        }
+      } else {
+        // may be first operand in range
+        if (ExtractUtils.rangeStartsBetween(range, operand, nextOperand)) {
+          entered = true;
+        }
+      }
+    }
+    // check if last operand is in range
+    DartExpression lastGroupMember = operands.get(operands.size() - 1);
+    if (SourceRangeUtils.getEnd(range) == lastGroupMember.getSourceInfo().getEnd()) {
+      subOperands.add(lastGroupMember);
+      exited = true;
+    }
+    // we expect that range covers only given operands
+    if (!exited) {
+      return Lists.newArrayList();
+    }
+    // done
+    return subOperands;
+  }
+
+  /**
+   * @return all operands of the given {@link DartBinaryExpression} and its children with the same
+   *         operator.
+   */
+  private static List<DartExpression> getOperandsInOrderFor(final DartBinaryExpression groupRoot) {
+    final List<DartExpression> operands = Lists.newArrayList();
+    groupRoot.accept(new ASTVisitor<Void>() {
+      @Override
+      public Void visitExpression(DartExpression node) {
+        if (node instanceof DartBinaryExpression
+            && ((DartBinaryExpression) node).getOperator() == groupRoot.getOperator()) {
+          return super.visitNode(node);
+        }
+        operands.add(node);
+        return null;
+      }
+    });
+    return operands;
+  }
+
+  /**
+   * @return the {@link SourceRange} which covers given ordered list of operands.
+   */
+  private static SourceRange getRangeOfOperands(List<DartExpression> operands) {
+    DartExpression first = operands.get(0);
+    DartExpression last = operands.get(operands.size() - 1);
+    int offset = first.getSourceInfo().getOffset();
+    int length = last.getSourceInfo().getEnd() - offset;
+    return new SourceRangeImpl(offset, length);
   }
 
   /**
@@ -307,6 +387,30 @@ public class ExtractUtils {
   }
 
   /**
+   * @return <code>true</code> if given range of {@link DartBinaryExpression} can be extracted.
+   */
+  public boolean validateBinaryExpressionRange(DartBinaryExpression binaryExpression,
+      SourceRange range) {
+    // only parts of associative expression are safe to extract
+    if (!ExtractUtils.isAssociative(binaryExpression)) {
+      return false;
+    }
+    // prepare selected operands
+    List<DartExpression> operands = getOperandsInOrderFor(binaryExpression);
+    List<DartExpression> subOperands = getOperandsForSourceRange(operands, range);
+    // if empty, then something wrong with selection
+    if (subOperands.isEmpty()) {
+      return false;
+    }
+    // may be some punctuation included into selection - operators, braces, etc
+    if (selectionIncludesNonWhitespaceOutsideOperands(subOperands, range)) {
+      return false;
+    }
+    // OK
+    return true;
+  }
+
+  /**
    * @return the index of the last space or tab on the left from the given {@link DartNode}.
    */
   private int getNodePrefixStartIndex(DartNode node) {
@@ -355,6 +459,11 @@ public class ExtractUtils {
         return scanner.next() == Token.EOS;
       }
     }, false).booleanValue();
+  }
+
+  private boolean selectionIncludesNonWhitespaceOutsideOperands(List<DartExpression> operands,
+      SourceRange selectionRange) {
+    return rangeIncludesNonWhitespaceOutsideRange(selectionRange, getRangeOfOperands(operands));
   }
 
 }

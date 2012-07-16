@@ -14,9 +14,7 @@
 package com.google.dart.tools.internal.corext.refactoring.code;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartExpression;
@@ -24,7 +22,6 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.dom.NodeFinder;
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -66,104 +63,19 @@ import java.util.Set;
  */
 public class ExtractLocalRefactoring extends Refactoring {
 
-  /**
-   * @return {@link DartExpression}s from <code>operands</code> which are completely covered by
-   *         given {@link SourceRange}. Range should start and end between given
-   *         {@link DartExpression}s.
-   */
-  private static List<DartExpression> getOperandsForSourceRange(List<DartExpression> operands,
-      SourceRange range) {
-    Assert.isTrue(!operands.isEmpty());
-    List<DartExpression> subOperands = Lists.newArrayList();
-    // track range enter/exit
-    boolean entered = false;
-    boolean exited = false;
-    // may be range starts exactly on first operand
-    if (range.getOffset() == operands.get(0).getSourceInfo().getOffset()) {
-      entered = true;
-    }
-    // iterate over gaps between operands
-    for (int i = 0; i < operands.size() - 1; i++) {
-      DartExpression operand = operands.get(i);
-      DartExpression nextOperand = operands.get(i + 1);
-      // add operand, if already entered range
-      if (entered) {
-        subOperands.add(operand);
-        // may be last operand in range
-        if (ExtractUtils.rangeEndsBetween(range, operand, nextOperand)) {
-          exited = true;
-        }
-      } else {
-        // may be first operand in range
-        if (ExtractUtils.rangeStartsBetween(range, operand, nextOperand)) {
-          entered = true;
-        }
-      }
-    }
-    // check if last operand is in range
-    DartExpression lastGroupMember = operands.get(operands.size() - 1);
-    if (SourceRangeUtils.getEnd(range) == lastGroupMember.getSourceInfo().getEnd()) {
-      subOperands.add(lastGroupMember);
-      exited = true;
-    }
-    // we expect that range covers only given operands
-    if (!exited) {
-      return Lists.newArrayList();
-    }
-    // done
-    return subOperands;
-  }
-
-  /**
-   * @return all operands of the given {@link DartBinaryExpression} and its children with the same
-   *         operator.
-   */
-  private static List<DartExpression> getOperandsInOrderFor(final DartBinaryExpression groupRoot) {
-    final List<DartExpression> operands = Lists.newArrayList();
-    groupRoot.accept(new ASTVisitor<Void>() {
-      @Override
-      public Void visitExpression(DartExpression node) {
-        if (node instanceof DartBinaryExpression
-            && ((DartBinaryExpression) node).getOperator() == groupRoot.getOperator()) {
-          return super.visitNode(node);
-        }
-        operands.add(node);
-        return null;
-      }
-    });
-    return operands;
-  }
-
-  /**
-   * @return the {@link SourceRange} which covers given ordered list of operands.
-   */
-  private static SourceRange getRangeOfOperands(List<DartExpression> operands) {
-    DartExpression first = operands.get(0);
-    DartExpression last = operands.get(operands.size() - 1);
-    int offset = first.getSourceInfo().getOffset();
-    int length = last.getSourceInfo().getEnd() - offset;
-    return new SourceRangeImpl(offset, length);
-  }
-
   private final CompilationUnit unit;
-  private final int selectionLength;
-
   private final int selectionStart;
+  private final int selectionLength;
   private final SourceRange selectionRange;
   private final CompilationUnitChange change;
 
   private ExtractUtils utils;
-
   private DartUnit unitNode;
-
-  private String localName;
-
-  private String[] guessedNames;
-
   private SelectionAnalyzer selectionAnalyzer;
-
   private DartExpression rootExpression;
 
+  private String localName;
+  private String[] guessedNames;
   private Set<String> excludedVariableNames;
   private boolean replaceAllOccurrences;
 
@@ -173,7 +85,7 @@ public class ExtractLocalRefactoring extends Refactoring {
     this.unit = unit;
     this.selectionStart = selectionStart;
     this.selectionLength = selectionLength;
-    this.selectionRange = new SourceRangeImpl(selectionStart, selectionLength);
+    this.selectionRange = SourceRangeFactory.forStartLength(selectionStart, selectionLength);
     change = new CompilationUnitChange(unit.getElementName(), unit);
     localName = ""; //$NON-NLS-1$
   }
@@ -189,6 +101,45 @@ public class ExtractLocalRefactoring extends Refactoring {
             RefactoringCoreMessages.ExtractTempRefactoring_another_variable,
             localName));
       }
+      // done
+      return result;
+    } finally {
+      pm.done();
+    }
+  }
+
+  @Override
+  public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException {
+    try {
+      pm.beginTask("", 4); //$NON-NLS-1$
+      RefactoringStatus result = new RefactoringStatus();
+      // prepare AST
+      utils = new ExtractUtils(unit);
+      unitNode = utils.getUnitNode();
+      pm.worked(1);
+      // check selection
+      result.merge(checkSelection(new SubProgressMonitor(pm, 3)));
+      // done
+      return result;
+    } finally {
+      pm.done();
+    }
+  }
+
+  public RefactoringStatus checkLocalName(String newName) {
+    RefactoringStatus status = Checks.checkVariableName(newName);
+    if (getExcludedVariableNames().contains(newName)) {
+      status.addWarning(Messages.format(
+          RefactoringCoreMessages.ExtractTempRefactoring_another_variable,
+          newName));
+    }
+    return status;
+  }
+
+  @Override
+  public Change createChange(IProgressMonitor pm) throws CoreException {
+    try {
+      pm.beginTask(RefactoringCoreMessages.ExtractLocalRefactoring_checking_preconditions, 1);
       // configure Change
       change.setEdit(new MultiTextEdit());
       change.setKeepPreviewEdits(true);
@@ -235,44 +186,6 @@ public class ExtractLocalRefactoring extends Refactoring {
             edit));
       }
       // done
-      return result;
-    } finally {
-      pm.done();
-    }
-  }
-
-  @Override
-  public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException {
-    try {
-      pm.beginTask("", 4); //$NON-NLS-1$
-      RefactoringStatus result = new RefactoringStatus();
-      // prepare AST
-      utils = new ExtractUtils(unit);
-      unitNode = utils.getUnitNode();
-      pm.worked(1);
-      // check selection
-      result.merge(checkSelection(new SubProgressMonitor(pm, 3)));
-      // done
-      return result;
-    } finally {
-      pm.done();
-    }
-  }
-
-  public RefactoringStatus checkLocalName(String newName) {
-    RefactoringStatus status = Checks.checkVariableName(newName);
-    if (getExcludedVariableNames().contains(newName)) {
-      status.addWarning(Messages.format(
-          RefactoringCoreMessages.ExtractTempRefactoring_another_variable,
-          newName));
-    }
-    return status;
-  }
-
-  @Override
-  public Change createChange(IProgressMonitor pm) throws CoreException {
-    try {
-      pm.beginTask(RefactoringCoreMessages.ExtractLocalRefactoring_checking_preconditions, 1);
       return change;
     } finally {
       pm.done();
@@ -337,15 +250,9 @@ public class ExtractLocalRefactoring extends Refactoring {
       DartNode coveringNode = selectionAnalyzer.getLastCoveringNode();
       if (coveringNode instanceof DartBinaryExpression) {
         DartBinaryExpression binaryExpression = (DartBinaryExpression) coveringNode;
-        if (ExtractUtils.isAssociative(binaryExpression)) {
-          List<DartExpression> operands = getOperandsInOrderFor(binaryExpression);
-          List<DartExpression> subOperands = getOperandsForSourceRange(operands, selectionRange);
-          if (!subOperands.isEmpty()) {
-            if (!selectionIncludesNonWhitespaceOutsideOperands(subOperands)) {
-              rootExpression = binaryExpression;
-              return new RefactoringStatus();
-            }
-          }
+        if (utils.validateBinaryExpressionRange(binaryExpression, selectionRange)) {
+          rootExpression = binaryExpression;
+          return new RefactoringStatus();
         }
       }
     }
@@ -363,7 +270,7 @@ public class ExtractLocalRefactoring extends Refactoring {
           DartNode enclosingNode = NodeFinder.perform(unitNode, selectionStart, 0);
           DartBlock enclosingBlock = ASTNodes.getParent(enclosingNode, DartBlock.class);
           if (element != null && enclosingBlock != null) {
-            SourceRange newVariableVisibleRange = new SourceRangeImpl(
+            SourceRange newVariableVisibleRange = SourceRangeFactory.forStartEnd(
                 selectionStart,
                 enclosingBlock.getSourceInfo().getEnd());
             DartFunction enclosingFunction = element.getAncestor(DartFunction.class);
@@ -380,11 +287,5 @@ public class ExtractLocalRefactoring extends Refactoring {
       });
     }
     return excludedVariableNames;
-  }
-
-  private boolean selectionIncludesNonWhitespaceOutsideOperands(List<DartExpression> operands) {
-    return utils.rangeIncludesNonWhitespaceOutsideRange(
-        selectionRange,
-        getRangeOfOperands(operands));
   }
 }

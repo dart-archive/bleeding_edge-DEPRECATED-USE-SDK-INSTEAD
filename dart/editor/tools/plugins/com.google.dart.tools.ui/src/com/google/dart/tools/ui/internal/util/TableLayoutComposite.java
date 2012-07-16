@@ -56,9 +56,11 @@ public class TableLayoutComposite extends Composite {
         Table table = (Table) getChildren()[0];
         Point preferredSize = computeTableSize(table);
         int width = area.width - 2 * table.getBorderWidth();
+        // TODO(scheglov) by some reason I always had horizontal scrolling, so reduce width
+        width -= 2;
+        // Subtract the scrollbar width from the total column width
+        // if a vertical scrollbar will be required
         if (preferredSize.y > area.height) {
-          // Subtract the scrollbar width from the total column width
-          // if a vertical scrollbar will be required
           Point vBarSize = table.getVerticalBar().getSize();
           width -= vBarSize.x;
         }

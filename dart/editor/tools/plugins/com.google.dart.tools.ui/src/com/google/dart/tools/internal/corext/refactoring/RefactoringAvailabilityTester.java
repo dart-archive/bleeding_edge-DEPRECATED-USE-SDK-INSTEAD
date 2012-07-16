@@ -15,6 +15,7 @@ package com.google.dart.tools.internal.corext.refactoring;
 
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
@@ -367,29 +368,34 @@ public class RefactoringAvailabilityTester {
 //      throws DartModelException {
 //    return isExtractInterfaceAvailable(RefactoringActions.getEnclosingOrPrimaryType(selection));
 //  }
-//
-//  public static boolean isExtractMethodAvailable(ASTNode[] nodes) {
-//    if (nodes != null && nodes.length != 0) {
-//      if (nodes.length == 1) {
-//        return nodes[0] instanceof Statement || Checks.isExtractableExpression(nodes[0]);
-//      } else {
-//        for (int index = 0; index < nodes.length; index++) {
-//          if (!(nodes[index] instanceof Statement)) {
-//            return false;
-//          }
-//        }
-//        return true;
-//      }
-//    }
-//    return false;
-//  }
-//
-//  public static boolean isExtractMethodAvailable(DartTextSelection selection) {
-//    return (selection.resolveInMethodBody() || selection.resolveInClassInitializer() || selection.resolveInVariableInitializer())
+
+  public static boolean isExtractLocalAvailable(DartTextSelection selection) {
+    DartNode[] nodes = selection.resolveSelectedNodes();
+    return (selection.resolveInMethodBody() || selection.resolveInClassInitializer())
+        && (Checks.isExtractableExpression(nodes, selection.resolveCoveringNode()) || nodes != null
+            && nodes.length == 1 && nodes[0] instanceof DartExprStmt);
+//    return (selection.resolveInMethodBody() || selection.resolveInClassInitializer())
 //        && !selection.resolveInAnnotation()
-//        && RefactoringAvailabilityTester.isExtractMethodAvailable(selection.resolveSelectedNodes());
-//  }
-//
+//        && (Checks.isExtractableExpression(nodes, selection.resolveCoveringNode()) || nodes != null
+//        && nodes.length == 1 && nodes[0] instanceof DartExprStmt);
+  }
+
+  public static boolean isExtractMethodAvailable(DartNode[] nodes) {
+    if (nodes != null && nodes.length != 0) {
+      if (nodes.length == 1) {
+        return nodes[0] instanceof DartStatement || Checks.isExtractableExpression(nodes[0]);
+      } else {
+        for (int index = 0; index < nodes.length; index++) {
+          if (!(nodes[index] instanceof DartStatement)) {
+            return false;
+          }
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
 //  public static boolean isExtractSupertypeAvailable(TypeMember member) throws DartModelException {
 //    if (!member.exists()) {
 //      return false;
@@ -481,15 +487,9 @@ public class RefactoringAvailabilityTester {
 //    return isExtractSupertypeAvailable(new TypeMember[]{(TypeMember) element});
 //  }
 
-  public static boolean isExtractLocalAvailable(DartTextSelection selection) {
-    DartNode[] nodes = selection.resolveSelectedNodes();
-    return (selection.resolveInMethodBody() || selection.resolveInClassInitializer())
-        && (Checks.isExtractableExpression(nodes, selection.resolveCoveringNode()) || nodes != null
-            && nodes.length == 1 && nodes[0] instanceof DartExprStmt);
-//    return (selection.resolveInMethodBody() || selection.resolveInClassInitializer())
-//        && !selection.resolveInAnnotation()
-//        && (Checks.isExtractableExpression(nodes, selection.resolveCoveringNode()) || nodes != null
-//        && nodes.length == 1 && nodes[0] instanceof DartExprStmt);
+  public static boolean isExtractMethodAvailable(DartTextSelection selection) {
+    return (selection.resolveInMethodBody() || selection.resolveInClassInitializer() || selection.resolveInVariableInitializer())
+        && isExtractMethodAvailable(selection.resolveSelectedNodes());
   }
 
 //  public static boolean isGeneralizeTypeAvailable(DartElement element)
