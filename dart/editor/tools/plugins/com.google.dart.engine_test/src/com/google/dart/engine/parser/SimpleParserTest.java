@@ -87,6 +87,7 @@ import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.ThrowStatement;
+import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypeAlias;
 import com.google.dart.engine.ast.TypeArgumentList;
@@ -630,10 +631,66 @@ public class SimpleParserTest extends ParserTestCase {
     assertEmpty("class member", declaration.getMembers());
   }
 
+  public void test_parseCompilationUnitMember_constVariable() throws Exception {
+    TopLevelVariableDeclaration declaration = parse(
+        "parseCompilationUnitMember",
+        "const int x = 0;");
+    assertNotNull(declaration.getSemicolon());
+    assertNotNull(declaration.getVariables());
+  }
+
+  public void test_parseCompilationUnitMember_finalVariable() throws Exception {
+    TopLevelVariableDeclaration declaration = parse("parseCompilationUnitMember", "final x = 0;");
+    assertNotNull(declaration.getSemicolon());
+    assertNotNull(declaration.getVariables());
+  }
+
+  public void test_parseCompilationUnitMember_function_noType() throws Exception {
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember", "f() {}");
+    assertNotNull(declaration.getFunctionExpression());
+    assertNull(declaration.getPropertyKeyword());
+  }
+
+  public void test_parseCompilationUnitMember_function_type() throws Exception {
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember", "int f() {}");
+    assertNotNull(declaration.getFunctionExpression());
+    assertNull(declaration.getPropertyKeyword());
+  }
+
+  public void test_parseCompilationUnitMember_getter_noType() throws Exception {
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember", "get p() => 0;");
+    assertNotNull(declaration.getFunctionExpression());
+    assertNotNull(declaration.getPropertyKeyword());
+  }
+
+  public void test_parseCompilationUnitMember_getter_type() throws Exception {
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember", "int get p() => 0;");
+    assertNotNull(declaration.getFunctionExpression());
+    assertNotNull(declaration.getPropertyKeyword());
+  }
+
+  public void test_parseCompilationUnitMember_setter_noType() throws Exception {
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember", "set p=(v) {}");
+    assertNotNull(declaration.getFunctionExpression());
+    assertNotNull(declaration.getPropertyKeyword());
+  }
+
+  public void test_parseCompilationUnitMember_setter_type() throws Exception {
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember", "void set p=(int v) {}");
+    assertNotNull(declaration.getFunctionExpression());
+    assertNotNull(declaration.getPropertyKeyword());
+  }
+
   public void test_parseCompilationUnitMember_typedef() throws Exception {
     TypeAlias typeAlias = parse("parseCompilationUnitMember", "typedef F();");
     assertEquals("F", typeAlias.getName().getIdentifier());
     assertEmpty("parameter", typeAlias.getParameters().getParameters());
+  }
+
+  public void test_parseCompilationUnitMember_variable() throws Exception {
+    TopLevelVariableDeclaration declaration = parse("parseCompilationUnitMember", "var x = 0;");
+    assertNotNull(declaration.getSemicolon());
+    assertNotNull(declaration.getVariables());
   }
 
   public void test_parseConditionalExpression() throws Exception {
@@ -777,8 +834,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getSemicolon());
   }
 
-  // TODO add parseDirective() tests
-
   public void test_parseContinueStatement_noLabel() throws Exception {
     ContinueStatement statement = parse("parseContinueStatement", "continue;");
     assertNotNull(statement.getKeyword());
@@ -810,6 +865,8 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getRightParenthesis());
     assertNotNull(statement.getSemicolon());
   }
+
+  // TODO add parseDirective() tests
 
   public void test_parseEmptyStatement() throws Exception {
     EmptyStatement statement = parse("parseEmptyStatement", ";");
@@ -844,10 +901,6 @@ public class SimpleParserTest extends ParserTestCase {
     List<Expression> result = parse("parseExpressionList", "1, 2, 3");
     assertEquals(3, result.size());
   }
-
-  // TODO add tests for parseExpressionStatementOrDeclaration()
-
-  // TODO add tests for parseExpressionWithoutCascade()
 
   public void test_parseExpressionList_single() throws Exception {
     List<Expression> result = parse("parseExpressionList", "1");
@@ -898,6 +951,10 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(constructor.getPeriod());
     assertNotNull(constructor.getReturnType());
   }
+
+  // TODO add tests for parseExpressionStatementOrDeclaration()
+
+  // TODO add tests for parseExpressionWithoutCascade()
 
   public void test_parseFinalConstVarOrType_const_noType() throws Exception {
     Parser.FinalConstVarOrType result = parse(
@@ -1322,6 +1379,51 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(functionBody.getFunctionDefinition());
     assertNotNull(functionBody.getExpression());
     assertNotNull(functionBody.getSemicolon());
+  }
+
+  public void test_parseFunctionDeclaration_function() throws Exception {
+    Comment comment = Comment.createDocumentationComment(new Token[0]);
+    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    FunctionDeclaration declaration = parse("parseFunctionDeclaration", new Class[] {
+        Comment.class, TypeName.class}, new Object[] {comment, returnType}, "f() {}");
+    assertEquals(comment, declaration.getDocumentationComment());
+    FunctionExpression expression = declaration.getFunctionExpression();
+    assertNotNull(expression);
+    assertNotNull(expression.getBody());
+    assertNotNull(expression.getName());
+    assertNotNull(expression.getParameters());
+    assertEquals(returnType, expression.getReturnType());
+    assertNull(declaration.getPropertyKeyword());
+  }
+
+  public void test_parseFunctionDeclaration_getter() throws Exception {
+    Comment comment = Comment.createDocumentationComment(new Token[0]);
+    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    FunctionDeclaration declaration = parse("parseFunctionDeclaration", new Class[] {
+        Comment.class, TypeName.class}, new Object[] {comment, returnType}, "get p() => 0;");
+    assertEquals(comment, declaration.getDocumentationComment());
+    FunctionExpression expression = declaration.getFunctionExpression();
+    assertNotNull(expression);
+    assertNotNull(expression.getBody());
+    assertNotNull(expression.getName());
+    assertNotNull(expression.getParameters());
+    assertEquals(returnType, expression.getReturnType());
+    assertNotNull(declaration.getPropertyKeyword());
+  }
+
+  public void test_parseFunctionDeclaration_setter() throws Exception {
+    Comment comment = Comment.createDocumentationComment(new Token[0]);
+    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    FunctionDeclaration declaration = parse("parseFunctionDeclaration", new Class[] {
+        Comment.class, TypeName.class}, new Object[] {comment, returnType}, "set p=(v) {}");
+    assertEquals(comment, declaration.getDocumentationComment());
+    FunctionExpression expression = declaration.getFunctionExpression();
+    assertNotNull(expression);
+    assertNotNull(expression.getBody());
+    assertNotNull(expression.getName());
+    assertNotNull(expression.getParameters());
+    assertEquals(returnType, expression.getReturnType());
+    assertNotNull(declaration.getPropertyKeyword());
   }
 
   public void test_parseFunctionExpression_body_inExpression() throws Exception {
@@ -1824,9 +1926,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getType());
   }
 
-  // TODO add tests for parseNonLabeledStatement()?
-  // TODO add tests for parseNormalFormalParameter()?
-
   public void test_parseOperator() throws Exception {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
@@ -1844,6 +1943,9 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(method.getPropertyKeyword());
     assertEquals(returnType, method.getReturnType());
   }
+
+  // TODO add tests for parseNonLabeledStatement()?
+  // TODO add tests for parseNormalFormalParameter()?
 
   public void test_parsePostfixExpression_decrement() throws Exception {
     PostfixExpression expression = parse("parsePostfixExpression", "i--");
@@ -2503,7 +2605,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(declaration.getInitializer());
   }
 
-  public void test_parseVariableDeclarationList_constNoType() throws Exception {
+  public void test_parseVariableDeclarationList_const_noType() throws Exception {
     VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "const a");
     assertNotNull(declarationList.getKeyword());
     assertNull(declarationList.getType());
@@ -2512,7 +2614,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(1, variables.size());
   }
 
-  public void test_parseVariableDeclarationList_constType() throws Exception {
+  public void test_parseVariableDeclarationList_const_type() throws Exception {
     VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "const A a");
     assertNotNull(declarationList.getKeyword());
     assertNotNull(declarationList.getType());
@@ -2521,7 +2623,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(1, variables.size());
   }
 
-  public void test_parseVariableDeclarationList_finalNoType() throws Exception {
+  public void test_parseVariableDeclarationList_final_noType() throws Exception {
     VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "final a");
     assertNotNull(declarationList.getKeyword());
     assertNull(declarationList.getType());
@@ -2530,7 +2632,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(1, variables.size());
   }
 
-  public void test_parseVariableDeclarationList_finalType() throws Exception {
+  public void test_parseVariableDeclarationList_final_type() throws Exception {
     VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "final A a");
     assertNotNull(declarationList.getKeyword());
     assertNotNull(declarationList.getType());
@@ -2564,6 +2666,20 @@ public class SimpleParserTest extends ParserTestCase {
     NodeList<VariableDeclaration> variables = declarationList.getVariables();
     assertNotNull(variables);
     assertEquals(1, variables.size());
+  }
+
+  public void test_parseVariableDeclarationList1() throws Exception {
+    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    VariableDeclarationList declarationList = parse(
+        "parseVariableDeclarationList",
+        new Class[] {TypeName.class},
+        new Object[] {returnType},
+        "a, b;");
+    assertNull(declarationList.getKeyword());
+    assertEquals(returnType, declarationList.getType());
+    NodeList<VariableDeclaration> variables = declarationList.getVariables();
+    assertNotNull(variables);
+    assertEquals(2, variables.size());
   }
 
   public void test_parseVariableDeclarationList2_type() throws Exception {

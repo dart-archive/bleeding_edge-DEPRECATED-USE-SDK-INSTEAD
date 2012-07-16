@@ -838,7 +838,8 @@ public class Parser {
     }
     Token leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
     List<TypeMember> members = new ArrayList<TypeMember>();
-    while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET) && !matches(Keyword.CLASS)) {
+    while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)
+        && !matches(Keyword.CLASS)) {
       members.add(parseClassMember());
     }
     Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
@@ -901,7 +902,6 @@ public class Parser {
       }
       staticKeyword = getAndAdvance();
     }
-    // TODO(brianwilkerson) Implement the rest of this method.
     if (matches(TokenType.IDENTIFIER)) {
       if (peekMatches(TokenType.OPEN_PAREN)) {
         if (staticKeyword != null) {
@@ -1097,14 +1097,28 @@ public class Parser {
       return parseClassDeclaration();
     } else if (matches(Keyword.TYPEDEF)) {
       return parseTypeAlias();
-    } else if (matches(TokenType.KEYWORD)) {
-      Keyword keyword = ((KeywordToken) currentToken).getKeyword();
-      if (keyword == Keyword.VAR || keyword == Keyword.FINAL || keyword == Keyword.CONST) {
-        //return parseTopLevelVariables();
-      }
     }
-    // TODO(brianwilkerson) Finish implementing this
-    return null;
+    Comment comment = parseDocumentationComment();
+    if (matches(Keyword.CONST) || matches(Keyword.FINAL) || matches(Keyword.VAR)) {
+      return new TopLevelVariableDeclaration(
+          comment,
+          parseVariableDeclarationList(),
+          expect(TokenType.SEMICOLON));
+    } else if (matches(Keyword.GET) || matches(Keyword.SET)) {
+      return parseFunctionDeclaration(comment, null);
+    } else if (matches(TokenType.IDENTIFIER) && peekMatches(TokenType.OPEN_PAREN)) {
+      return parseFunctionDeclaration(comment, null);
+    }
+    TypeName returnType = parseReturnType();
+    if (matches(Keyword.GET) || matches(Keyword.SET)) {
+      return parseFunctionDeclaration(comment, returnType);
+    } else if (matches(TokenType.IDENTIFIER) && peekMatches(TokenType.OPEN_PAREN)) {
+      return parseFunctionDeclaration(comment, returnType);
+    }
+    return new TopLevelVariableDeclaration(
+        comment,
+        parseVariableDeclarationList(returnType),
+        expect(TokenType.SEMICOLON));
   }
 
   /**
@@ -1799,6 +1813,37 @@ public class Parser {
   }
 
   /**
+   * Parse a function declaration.
+   * 
+   * <pre>
+   * functionDeclaration ::=
+   *     functionSignature functionBody
+   *   | returnType? getOrSet identifier formalParameterList functionBody
+   * </pre>
+   * 
+   * @param comment the documentation comment to be associated with the declaration
+   * @param returnType the return type, or {@code null} if there is no return type
+   * @return the function declaration that was parsed
+   */
+  private FunctionDeclaration parseFunctionDeclaration(Comment comment, TypeName returnType) {
+    Token keyword = null;
+    if (matches(Keyword.GET) || matches(Keyword.SET)) {
+      keyword = getAndAdvance();
+    }
+    SimpleIdentifier name = parseSimpleIdentifier();
+    if (keyword != null && ((KeywordToken) keyword).getKeyword() == Keyword.SET) {
+      expect(TokenType.EQ);
+    }
+    FormalParameterList parameters = parseFormalParameterList();
+    FunctionBody body = parseFunctionBody(false, false);
+    return new FunctionDeclaration(comment, keyword, new FunctionExpression(
+        returnType,
+        name,
+        parameters,
+        body));
+  }
+
+  /**
    * Parse a function expression.
    * 
    * <pre>
@@ -1826,34 +1871,6 @@ public class Parser {
     FunctionBody body = parseFunctionBody(false, true);
     return new FunctionExpression(returnType, name, parameters, body);
   }
-
-//  /**
-//   * Parse a function signature.
-//   * 
-//   * <pre>
-//   * functionSignature ::=
-//   *     returnType? identifier formalParameterList
-//   * </pre>
-//   * 
-//   * @return the function signature that was parsed
-//   */
-//  private void parseFunctionSignature() {
-//    TypeName returnType = parseReturnType();
-//    SimpleIdentifier functionName = null;
-//    if (!matches(TokenType.IDENTIFIER)) {
-//      if (returnType.getName() instanceof SimpleIdentifier && returnType.getTypeArguments() == null) {
-//        functionName = (SimpleIdentifier) returnType.getName();
-//        returnType = null;
-//      } else {
-//        // Missing identifier
-//        // reportError(ParserErrorCode.?));
-//      }
-//    } else {
-//      functionName = parseSimpleIdentifier();
-//    }
-//    parseFormalParameterList();
-//    // TODO(brianwilkerson) Implement this
-//  }
 
   /**
    * Parse a getter.
@@ -2119,6 +2136,10 @@ public class Parser {
       Token leftBracket = new Token(TokenType.OPEN_SQUARE_BRACKET, currentToken.getOffset());
       ArrayList<Expression> elements = new ArrayList<Expression>();
       Token rightBracket = new Token(TokenType.CLOSE_SQUARE_BRACKET, currentToken.getOffset() + 1);
+      rightBracket.setNext(currentToken.getNext());
+      leftBracket.setNext(rightBracket);
+      currentToken.getPrevious().setNext(leftBracket);
+      currentToken = currentToken.getNext();
       return new ListLiteral(modifier, typeArguments, leftBracket, elements, rightBracket);
     }
     Token leftBracket = expect(TokenType.OPEN_SQUARE_BRACKET);
@@ -2244,7 +2265,7 @@ public class Parser {
   }
 
   /**
-   * Parse a function declaration.
+   * Parse a method declaration.
    * 
    * <pre>
    * functionDeclaration ::=
@@ -2254,14 +2275,14 @@ public class Parser {
    * 
    * @param comment the documentation comment to be associated with the declaration
    * @param staticKeyword the static keyword, or {@code null} if the getter is not static
-   * @return the function declaration that was parsed
+   * @return the method declaration that was parsed
    */
   private MethodDeclaration parseMethodDeclaration(Comment comment, Token staticKeyword) {
     TypeName returnType = null;
     if (!peekMatches(TokenType.OPEN_PAREN)) {
       returnType = parseReturnType();
     }
-    Identifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier();
     FormalParameterList parameters = parseFormalParameterList();
     FunctionBody body = parseFunctionBody(staticKeyword == null, false);
     return new MethodDeclaration(
@@ -3214,7 +3235,7 @@ public class Parser {
     return new TypeAlias(comment, keyword, returnType, name, typeParameters, parameters, semicolon);
   }
 
-  /**
+/**
    * Parse a list of type arguments.
    * 
    * <pre>
@@ -3423,6 +3444,27 @@ public class Parser {
       variables.add(parseVariableDeclaration());
     }
     return new VariableDeclarationList(keyword, type, variables);
+  }
+
+  /**
+   * Parse a variable declaration list.
+   * 
+   * <pre>
+   * variableDeclarationList ::=
+   *     finalConstVarOrType variableDeclaration (',' variableDeclaration)*
+   * </pre>
+   * 
+   * @param type the type of the variables
+   * @return the variable declaration list that was parsed
+   */
+  private VariableDeclarationList parseVariableDeclarationList(TypeName type) {
+    List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
+    variables.add(parseVariableDeclaration());
+    while (matches(TokenType.COMMA)) {
+      getAndAdvance();
+      variables.add(parseVariableDeclaration());
+    }
+    return new VariableDeclarationList(null, type, variables);
   }
 
   /**
