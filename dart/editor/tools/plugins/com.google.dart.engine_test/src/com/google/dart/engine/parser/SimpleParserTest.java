@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.parser;
 
-import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.ArrayAccess;
@@ -103,12 +102,10 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
-import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.List;
@@ -120,7 +117,7 @@ import java.util.List;
  * <p>
  * More complex tests should be defined in the class {@link ComplexParserTest}.
  */
-public class SimpleParserTest extends EngineTestCase {
+public class SimpleParserTest extends ParserTestCase {
   public void test_computeStringValue_escape_b() throws Exception {
     assertEquals("\b", computeStringValue("'\\b'"));
   }
@@ -2656,79 +2653,5 @@ public class SimpleParserTest extends EngineTestCase {
     Method method = Parser.class.getDeclaredMethod("computeStringValue", String.class);
     method.setAccessible(true);
     return (String) method.invoke(parser, lexeme);
-  }
-
-  /**
-   * Invoke a parse method in {@link Parser}. The method is assumed to have the given number and
-   * type of parameters and will be invoked with the given arguments.
-   * <p>
-   * The given source is scanned and the parser is initialized to start with the first token in the
-   * source before the parse method is invoked.
-   * 
-   * @param methodName the name of the parse method that should be invoked to parse the source
-   * @param classes the types of the arguments to the method
-   * @param objects the values of the arguments to the method
-   * @param source the source to be parsed by the parse method
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   */
-  @SuppressWarnings("unchecked")
-  private <E> E parse(String methodName, Class<?>[] classes, Object[] objects, String source)
-      throws Exception {
-    if (classes.length != objects.length) {
-      fail("Invalid test: number of parameters specified (" + classes.length
-          + ") does not match number of arguments provided (" + objects.length + ")");
-    }
-    AnalysisErrorListener listener = new AnalysisErrorListener() {
-      @Override
-      public void onError(AnalysisError event) {
-        fail("Unexpected compilation error: " + event.getMessage() + " (" + event.getOffset()
-            + ", " + event.getLength() + ")");
-      }
-    };
-    StringScanner scanner = new StringScanner(null, source, listener);
-    Token tokenStream = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
-    Field currentTokenField = Parser.class.getDeclaredField("currentToken");
-    currentTokenField.setAccessible(true);
-    currentTokenField.set(parser, tokenStream);
-    Method parseMethod = Parser.class.getDeclaredMethod(methodName, classes);
-    parseMethod.setAccessible(true);
-    Object result = parseMethod.invoke(parser, objects);
-    assertNotNull(result);
-    return (E) result;
-  }
-
-  /**
-   * Invoke a parse method in {@link Parser}. The method is assumed to have no arguments.
-   * <p>
-   * The given source is scanned and the parser is initialized to start with the first token in the
-   * source before the parse method is invoked.
-   * 
-   * @param methodName the name of the parse method that should be invoked to parse the source
-   * @param source the source to be parsed by the parse method
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   */
-  @SuppressWarnings("unchecked")
-  private <E> E parse(String methodName, String source) throws Exception {
-    AnalysisErrorListener listener = new AnalysisErrorListener() {
-      @Override
-      public void onError(AnalysisError event) {
-        fail("Unexpected compilation error: " + event.getMessage() + " (" + event.getOffset()
-            + ", " + event.getLength() + ")");
-      }
-    };
-    StringScanner scanner = new StringScanner(null, source, listener);
-    Token tokenStream = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
-    Field currentTokenField = Parser.class.getDeclaredField("currentToken");
-    currentTokenField.setAccessible(true);
-    currentTokenField.set(parser, tokenStream);
-    Method parseMethod = Parser.class.getDeclaredMethod(methodName);
-    parseMethod.setAccessible(true);
-    Object result = parseMethod.invoke(parser);
-    assertNotNull(result);
-    return (E) result;
   }
 }

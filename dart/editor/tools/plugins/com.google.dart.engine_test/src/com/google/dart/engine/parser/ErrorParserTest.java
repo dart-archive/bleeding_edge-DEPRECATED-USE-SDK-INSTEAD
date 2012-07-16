@@ -13,20 +13,11 @@
  */
 package com.google.dart.engine.parser;
 
-import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.error.ErrorCode;
-import com.google.dart.engine.error.GatheringErrorListener;
-import com.google.dart.engine.scanner.StringScanner;
-import com.google.dart.engine.scanner.Token;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 /**
  * The class {@code ErrorParserTest} defines parser tests that test the parsing of invalid code
  * sequences to ensure that errors are correctly reported.
  */
-public class ErrorParserTest extends EngineTestCase {
+public class ErrorParserTest extends ParserTestCase {
   public void test_operatorCannotBeStatic_noReturnType() throws Exception {
     parse(
         "parseClassMember",
@@ -50,34 +41,5 @@ public class ErrorParserTest extends EngineTestCase {
 
   public void test_positionalAfterNamedArgument() throws Exception {
     parse("parseArgumentList", "(x: 1, 2)", ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
-  }
-
-  /**
-   * Invoke a parse method in {@link Parser}. The method is assumed to have no arguments.
-   * <p>
-   * The given source is scanned and the parser is initialized to start with the first token in the
-   * source before the parse method is invoked.
-   * 
-   * @param methodName the name of the parse method that should be invoked to parse the source
-   * @param source the source to be parsed by the parse method
-   * @param errorCodes the error codes of the errors that should be generated
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   */
-  @SuppressWarnings("unchecked")
-  private <E> E parse(String methodName, String source, ErrorCode... errorCodes) throws Exception {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(null, source, listener);
-    Token tokenStream = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
-    Field currentTokenField = Parser.class.getDeclaredField("currentToken");
-    currentTokenField.setAccessible(true);
-    currentTokenField.set(parser, tokenStream);
-    Method parseMethod = Parser.class.getDeclaredMethod(methodName);
-    parseMethod.setAccessible(true);
-    Object result = parseMethod.invoke(parser);
-    assertNotNull(result);
-    listener.assertErrors(errorCodes);
-    return (E) result;
   }
 }

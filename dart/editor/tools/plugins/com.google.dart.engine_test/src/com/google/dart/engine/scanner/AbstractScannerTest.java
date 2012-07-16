@@ -14,471 +14,468 @@
 package com.google.dart.engine.scanner;
 
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.GatheringErrorListener;
 
 import junit.framework.TestCase;
 
-import java.util.List;
-
 public abstract class AbstractScannerTest extends TestCase {
-  public void test_AbstractScanner_ampersand() throws Exception {
+  public void test_ampersand() throws Exception {
     assertToken(TokenType.AMPERSAND, "&");
   }
 
-  public void test_AbstractScanner_ampersand_ampersand() throws Exception {
+  public void test_ampersand_ampersand() throws Exception {
     assertToken(TokenType.AMPERSAND_AMPERSAND, "&&");
   }
 
-  public void test_AbstractScanner_ampersand_eq() throws Exception {
+  public void test_ampersand_eq() throws Exception {
     assertToken(TokenType.AMPERSAND_EQ, "&=");
   }
 
-  public void test_AbstractScanner_at() throws Exception {
+  public void test_at() throws Exception {
     assertToken(TokenType.AT, "@");
   }
 
-  public void test_AbstractScanner_backping() throws Exception {
+  public void test_backping() throws Exception {
     assertToken(TokenType.BACKPING, "`");
   }
 
-  public void test_AbstractScanner_backslash() throws Exception {
+  public void test_backslash() throws Exception {
     assertToken(TokenType.BACKSLASH, "\\");
   }
 
-  public void test_AbstractScanner_bang() throws Exception {
+  public void test_bang() throws Exception {
     assertToken(TokenType.BANG, "!");
   }
 
-  public void test_AbstractScanner_bang_eq() throws Exception {
+  public void test_bang_eq() throws Exception {
     assertToken(TokenType.BANG_EQ, "!=");
   }
 
-  public void test_AbstractScanner_bang_eq_eq() throws Exception {
+  public void test_bang_eq_eq() throws Exception {
     assertToken(TokenType.BANG_EQ_EQ, "!==");
   }
 
-  public void test_AbstractScanner_bar() throws Exception {
+  public void test_bar() throws Exception {
     assertToken(TokenType.BAR, "|");
   }
 
-  public void test_AbstractScanner_bar_bar() throws Exception {
+  public void test_bar_bar() throws Exception {
     assertToken(TokenType.BAR_BAR, "||");
   }
 
-  public void test_AbstractScanner_bar_eq() throws Exception {
+  public void test_bar_eq() throws Exception {
     assertToken(TokenType.BAR_EQ, "|=");
   }
 
-  public void test_AbstractScanner_caret() throws Exception {
+  public void test_caret() throws Exception {
     assertToken(TokenType.CARET, "^");
   }
 
-  public void test_AbstractScanner_caret_eq() throws Exception {
+  public void test_caret_eq() throws Exception {
     assertToken(TokenType.CARET_EQ, "^=");
   }
 
-  public void test_AbstractScanner_close_curly_bracket() throws Exception {
+  public void test_close_curly_bracket() throws Exception {
     assertToken(TokenType.CLOSE_CURLY_BRACKET, "}");
   }
 
-  public void test_AbstractScanner_close_paren() throws Exception {
+  public void test_close_paren() throws Exception {
     assertToken(TokenType.CLOSE_PAREN, ")");
   }
 
-  public void test_AbstractScanner_close_quare_bracket() throws Exception {
+  public void test_close_quare_bracket() throws Exception {
     assertToken(TokenType.CLOSE_SQUARE_BRACKET, "]");
   }
 
-  public void test_AbstractScanner_colon() throws Exception {
+  public void test_colon() throws Exception {
     assertToken(TokenType.COLON, ":");
   }
 
-  public void test_AbstractScanner_comma() throws Exception {
+  public void test_comma() throws Exception {
     assertToken(TokenType.COMMA, ",");
   }
 
-  public void test_AbstractScanner_comment_multi() throws Exception {
+  public void test_comment_multi() throws Exception {
     assertComment(TokenType.MULTI_LINE_COMMENT, "/* comment */");
   }
 
-  public void test_AbstractScanner_comment_multi_unterminated() throws Exception {
+  public void test_comment_multi_unterminated() throws Exception {
     assertError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, 3, "/* x");
   }
 
-  public void test_AbstractScanner_comment_nested() throws Exception {
+  public void test_comment_nested() throws Exception {
     assertComment(TokenType.MULTI_LINE_COMMENT, "/* comment /* within a */ comment */");
   }
 
-  public void test_AbstractScanner_comment_single() throws Exception {
+  public void test_comment_single() throws Exception {
     assertComment(TokenType.SINGLE_LINE_COMMENT, "// comment");
   }
 
-  public void test_AbstractScanner_double_both_e() throws Exception {
+  public void test_double_both_e() throws Exception {
     assertToken(TokenType.DOUBLE, "0.123e4");
   }
 
-  public void test_AbstractScanner_double_both_E() throws Exception {
+  public void test_double_both_E() throws Exception {
     assertToken(TokenType.DOUBLE, "0.123E4");
   }
 
-  public void test_AbstractScanner_double_fraction() throws Exception {
+  public void test_double_fraction() throws Exception {
     assertToken(TokenType.DOUBLE, ".123");
   }
 
-  public void test_AbstractScanner_double_fraction_d() throws Exception {
+  public void test_double_fraction_d() throws Exception {
     assertToken(TokenType.DOUBLE, ".123d");
   }
 
-  public void test_AbstractScanner_double_fraction_D() throws Exception {
+  public void test_double_fraction_D() throws Exception {
     assertToken(TokenType.DOUBLE, ".123D");
   }
 
-  public void test_AbstractScanner_double_fraction_e() throws Exception {
+  public void test_double_fraction_e() throws Exception {
     assertToken(TokenType.DOUBLE, ".123e4");
   }
 
-  public void test_AbstractScanner_double_fraction_E() throws Exception {
+  public void test_double_fraction_E() throws Exception {
     assertToken(TokenType.DOUBLE, ".123E4");
   }
 
-  public void test_AbstractScanner_double_fraction_ed() throws Exception {
+  public void test_double_fraction_ed() throws Exception {
     assertToken(TokenType.DOUBLE, ".123e4d");
   }
 
-  public void test_AbstractScanner_double_fraction_Ed() throws Exception {
+  public void test_double_fraction_Ed() throws Exception {
     assertToken(TokenType.DOUBLE, ".123E4d");
   }
 
-  public void test_AbstractScanner_double_missingDigitInExponent() throws Exception {
+  public void test_double_missingDigitInExponent() throws Exception {
     assertError(ScannerErrorCode.MISSING_DIGIT, 1, "1e");
   }
 
-  public void test_AbstractScanner_double_whole_d() throws Exception {
+  public void test_double_whole_d() throws Exception {
     assertToken(TokenType.DOUBLE, "12d");
   }
 
-  public void test_AbstractScanner_double_whole_D() throws Exception {
+  public void test_double_whole_D() throws Exception {
     assertToken(TokenType.DOUBLE, "12D");
   }
 
-  public void test_AbstractScanner_double_whole_e() throws Exception {
+  public void test_double_whole_e() throws Exception {
     assertToken(TokenType.DOUBLE, "12e4");
   }
 
-  public void test_AbstractScanner_double_whole_E() throws Exception {
+  public void test_double_whole_E() throws Exception {
     assertToken(TokenType.DOUBLE, "12E4");
   }
 
-  public void test_AbstractScanner_double_whole_ed() throws Exception {
+  public void test_double_whole_ed() throws Exception {
     assertToken(TokenType.DOUBLE, "12e4d");
   }
 
-  public void test_AbstractScanner_double_whole_Ed() throws Exception {
+  public void test_double_whole_Ed() throws Exception {
     assertToken(TokenType.DOUBLE, "12E4d");
   }
 
-  public void test_AbstractScanner_eq() throws Exception {
+  public void test_eq() throws Exception {
     assertToken(TokenType.EQ, "=");
   }
 
-  public void test_AbstractScanner_eq_eq() throws Exception {
+  public void test_eq_eq() throws Exception {
     assertToken(TokenType.EQ_EQ, "==");
   }
 
-  public void test_AbstractScanner_eq_eq_eq() throws Exception {
+  public void test_eq_eq_eq() throws Exception {
     assertToken(TokenType.EQ_EQ_EQ, "===");
   }
 
-  public void test_AbstractScanner_gt() throws Exception {
+  public void test_gt() throws Exception {
     assertToken(TokenType.GT, ">");
   }
 
-  public void test_AbstractScanner_gt_eq() throws Exception {
+  public void test_gt_eq() throws Exception {
     assertToken(TokenType.GT_EQ, ">=");
   }
 
-  public void test_AbstractScanner_gt_gt() throws Exception {
+  public void test_gt_gt() throws Exception {
     assertToken(TokenType.GT_GT, ">>");
   }
 
-  public void test_AbstractScanner_gt_gt_eq() throws Exception {
+  public void test_gt_gt_eq() throws Exception {
     assertToken(TokenType.GT_GT_EQ, ">>=");
   }
 
-  public void test_AbstractScanner_gt_gt_gt() throws Exception {
+  public void test_gt_gt_gt() throws Exception {
     assertToken(TokenType.GT_GT_GT, ">>>");
   }
 
-  public void test_AbstractScanner_gt_gt_gt_eq() throws Exception {
+  public void test_gt_gt_gt_eq() throws Exception {
     assertToken(TokenType.GT_GT_GT_EQ, ">>>=");
   }
 
-  public void test_AbstractScanner_hash() throws Exception {
+  public void test_hash() throws Exception {
     assertToken(TokenType.HASH, "#");
   }
 
-  public void test_AbstractScanner_hexidecimal() throws Exception {
+  public void test_hexidecimal() throws Exception {
     assertToken(TokenType.HEXADECIMAL, "0x1A2B3C");
   }
 
-  public void test_AbstractScanner_hexidecimal_missingDigit() throws Exception {
+  public void test_hexidecimal_missingDigit() throws Exception {
     assertError(ScannerErrorCode.MISSING_HEX_DIGIT, 1, "0x");
   }
 
-  public void test_AbstractScanner_identifier() throws Exception {
+  public void test_identifier() throws Exception {
     assertToken(TokenType.IDENTIFIER, "result");
   }
 
-  public void test_AbstractScanner_illegalChar() throws Exception {
+  public void test_illegalChar() throws Exception {
     assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "\u0312");
   }
 
-  public void test_AbstractScanner_index() throws Exception {
+  public void test_index() throws Exception {
     assertToken(TokenType.INDEX, "[]");
   }
 
-  public void test_AbstractScanner_index_eq() throws Exception {
+  public void test_index_eq() throws Exception {
     assertToken(TokenType.INDEX_EQ, "[]=");
   }
 
-  public void test_AbstractScanner_int() throws Exception {
+  public void test_int() throws Exception {
     assertToken(TokenType.INT, "123");
   }
 
-  public void test_AbstractScanner_int_initialZero() throws Exception {
+  public void test_int_initialZero() throws Exception {
     assertToken(TokenType.INT, "0123");
   }
 
-  public void test_AbstractScanner_keyword_abstract() throws Exception {
+  public void test_keyword_abstract() throws Exception {
     assertKeywordToken("abstract");
   }
 
-  public void test_AbstractScanner_keyword_as() throws Exception {
+  public void test_keyword_as() throws Exception {
     assertKeywordToken("as");
   }
 
-  public void test_AbstractScanner_keyword_assert() throws Exception {
+  public void test_keyword_assert() throws Exception {
     assertKeywordToken("assert");
   }
 
-  public void test_AbstractScanner_keyword_break() throws Exception {
+  public void test_keyword_break() throws Exception {
     assertKeywordToken("break");
   }
 
-  public void test_AbstractScanner_keyword_case() throws Exception {
+  public void test_keyword_case() throws Exception {
     assertKeywordToken("case");
   }
 
-  public void test_AbstractScanner_keyword_catch() throws Exception {
+  public void test_keyword_catch() throws Exception {
     assertKeywordToken("catch");
   }
 
-  public void test_AbstractScanner_keyword_class() throws Exception {
+  public void test_keyword_class() throws Exception {
     assertKeywordToken("class");
   }
 
-  public void test_AbstractScanner_keyword_const() throws Exception {
+  public void test_keyword_const() throws Exception {
     assertKeywordToken("const");
   }
 
-  public void test_AbstractScanner_keyword_continue() throws Exception {
+  public void test_keyword_continue() throws Exception {
     assertKeywordToken("continue");
   }
 
-  public void test_AbstractScanner_keyword_default() throws Exception {
+  public void test_keyword_default() throws Exception {
     assertKeywordToken("default");
   }
 
-  public void test_AbstractScanner_keyword_do() throws Exception {
+  public void test_keyword_do() throws Exception {
     assertKeywordToken("do");
   }
 
-  public void test_AbstractScanner_keyword_else() throws Exception {
+  public void test_keyword_else() throws Exception {
     assertKeywordToken("else");
   }
 
-  public void test_AbstractScanner_keyword_extends() throws Exception {
+  public void test_keyword_extends() throws Exception {
     assertKeywordToken("extends");
   }
 
-  public void test_AbstractScanner_keyword_factory() throws Exception {
+  public void test_keyword_factory() throws Exception {
     assertKeywordToken("factory");
   }
 
-  public void test_AbstractScanner_keyword_false() throws Exception {
+  public void test_keyword_false() throws Exception {
     assertKeywordToken("false");
   }
 
-  public void test_AbstractScanner_keyword_final() throws Exception {
+  public void test_keyword_final() throws Exception {
     assertKeywordToken("final");
   }
 
-  public void test_AbstractScanner_keyword_finally() throws Exception {
+  public void test_keyword_finally() throws Exception {
     assertKeywordToken("finally");
   }
 
-  public void test_AbstractScanner_keyword_for() throws Exception {
+  public void test_keyword_for() throws Exception {
     assertKeywordToken("for");
   }
 
-  public void test_AbstractScanner_keyword_get() throws Exception {
+  public void test_keyword_get() throws Exception {
     assertKeywordToken("get");
   }
 
-  public void test_AbstractScanner_keyword_if() throws Exception {
+  public void test_keyword_if() throws Exception {
     assertKeywordToken("if");
   }
 
-  public void test_AbstractScanner_keyword_implements() throws Exception {
+  public void test_keyword_implements() throws Exception {
     assertKeywordToken("implements");
   }
 
-  public void test_AbstractScanner_keyword_in() throws Exception {
+  public void test_keyword_in() throws Exception {
     assertKeywordToken("in");
   }
 
-  public void test_AbstractScanner_keyword_interface() throws Exception {
+  public void test_keyword_interface() throws Exception {
     assertKeywordToken("interface");
   }
 
-  public void test_AbstractScanner_keyword_is() throws Exception {
+  public void test_keyword_is() throws Exception {
     assertKeywordToken("is");
   }
 
-  public void test_AbstractScanner_keyword_new() throws Exception {
+  public void test_keyword_new() throws Exception {
     assertKeywordToken("new");
   }
 
-  public void test_AbstractScanner_keyword_null() throws Exception {
+  public void test_keyword_null() throws Exception {
     assertKeywordToken("null");
   }
 
-  public void test_AbstractScanner_keyword_on() throws Exception {
+  public void test_keyword_on() throws Exception {
     assertKeywordToken("on");
   }
 
-  public void test_AbstractScanner_keyword_operator() throws Exception {
+  public void test_keyword_operator() throws Exception {
     assertKeywordToken("operator");
   }
 
-  public void test_AbstractScanner_keyword_return() throws Exception {
+  public void test_keyword_return() throws Exception {
     assertKeywordToken("return");
   }
 
-  public void test_AbstractScanner_keyword_set() throws Exception {
+  public void test_keyword_set() throws Exception {
     assertKeywordToken("set");
   }
 
-  public void test_AbstractScanner_keyword_static() throws Exception {
+  public void test_keyword_static() throws Exception {
     assertKeywordToken("static");
   }
 
-  public void test_AbstractScanner_keyword_super() throws Exception {
+  public void test_keyword_super() throws Exception {
     assertKeywordToken("super");
   }
 
-  public void test_AbstractScanner_keyword_switch() throws Exception {
+  public void test_keyword_switch() throws Exception {
     assertKeywordToken("switch");
   }
 
-  public void test_AbstractScanner_keyword_this() throws Exception {
+  public void test_keyword_this() throws Exception {
     assertKeywordToken("this");
   }
 
-  public void test_AbstractScanner_keyword_throw() throws Exception {
+  public void test_keyword_throw() throws Exception {
     assertKeywordToken("throw");
   }
 
-  public void test_AbstractScanner_keyword_true() throws Exception {
+  public void test_keyword_true() throws Exception {
     assertKeywordToken("true");
   }
 
-  public void test_AbstractScanner_keyword_try() throws Exception {
+  public void test_keyword_try() throws Exception {
     assertKeywordToken("try");
   }
 
-  public void test_AbstractScanner_keyword_typedef() throws Exception {
+  public void test_keyword_typedef() throws Exception {
     assertKeywordToken("typedef");
   }
 
-  public void test_AbstractScanner_keyword_var() throws Exception {
+  public void test_keyword_var() throws Exception {
     assertKeywordToken("var");
   }
 
-  public void test_AbstractScanner_keyword_void() throws Exception {
+  public void test_keyword_void() throws Exception {
     assertKeywordToken("void");
   }
 
-  public void test_AbstractScanner_keyword_while() throws Exception {
+  public void test_keyword_while() throws Exception {
     assertKeywordToken("while");
   }
 
-  public void test_AbstractScanner_lt() throws Exception {
+  public void test_lt() throws Exception {
     assertToken(TokenType.LT, "<");
   }
 
-  public void test_AbstractScanner_lt_eq() throws Exception {
+  public void test_lt_eq() throws Exception {
     assertToken(TokenType.LT_EQ, "<=");
   }
 
-  public void test_AbstractScanner_lt_lt() throws Exception {
+  public void test_lt_lt() throws Exception {
     assertToken(TokenType.LT_LT, "<<");
   }
 
-  public void test_AbstractScanner_lt_lt_eq() throws Exception {
+  public void test_lt_lt_eq() throws Exception {
     assertToken(TokenType.LT_LT_EQ, "<<=");
   }
 
-  public void test_AbstractScanner_minus() throws Exception {
+  public void test_minus() throws Exception {
     assertToken(TokenType.MINUS, "-");
   }
 
-  public void test_AbstractScanner_minus_eq() throws Exception {
+  public void test_minus_eq() throws Exception {
     assertToken(TokenType.MINUS_EQ, "-=");
   }
 
-  public void test_AbstractScanner_minus_minus() throws Exception {
+  public void test_minus_minus() throws Exception {
     assertToken(TokenType.MINUS_MINUS, "--");
   }
 
-  public void test_AbstractScanner_open_curly_bracket() throws Exception {
+  public void test_open_curly_bracket() throws Exception {
     assertToken(TokenType.OPEN_CURLY_BRACKET, "{");
   }
 
-  public void test_AbstractScanner_open_paren() throws Exception {
+  public void test_open_paren() throws Exception {
     assertToken(TokenType.OPEN_PAREN, "(");
   }
 
-  public void test_AbstractScanner_open_square_bracket() throws Exception {
+  public void test_open_square_bracket() throws Exception {
     assertToken(TokenType.OPEN_SQUARE_BRACKET, "[");
   }
 
-  public void test_AbstractScanner_openSquareBracket() throws Exception {
+  public void test_openSquareBracket() throws Exception {
     assertToken(TokenType.OPEN_SQUARE_BRACKET, "[");
   }
 
-  public void test_AbstractScanner_percent() throws Exception {
+  public void test_percent() throws Exception {
     assertToken(TokenType.PERCENT, "%");
   }
 
-  public void test_AbstractScanner_percent_eq() throws Exception {
+  public void test_percent_eq() throws Exception {
     assertToken(TokenType.PERCENT_EQ, "%=");
   }
 
-  public void test_AbstractScanner_period() throws Exception {
+  public void test_period() throws Exception {
     assertToken(TokenType.PERIOD, ".");
   }
 
-  public void test_AbstractScanner_period_period() throws Exception {
+  public void test_period_period() throws Exception {
     assertToken(TokenType.PERIOD_PERIOD, "..");
   }
 
-  public void test_AbstractScanner_period_period_period() throws Exception {
+  public void test_period_period_period() throws Exception {
     assertToken(TokenType.PERIOD_PERIOD_PERIOD, "...");
   }
 
-  public void test_AbstractScanner_periodAfterNumberNotIncluded() throws Exception {
+  public void test_periodAfterNumberNotIncluded() throws Exception {
     assertTokens(
         "42.isEven()",
         new StringToken(TokenType.INT, "42", 0),
@@ -488,59 +485,59 @@ public abstract class AbstractScannerTest extends TestCase {
         new Token(TokenType.CLOSE_PAREN, 10));
   }
 
-  public void test_AbstractScanner_plus() throws Exception {
+  public void test_plus() throws Exception {
     assertToken(TokenType.PLUS, "+");
   }
 
-  public void test_AbstractScanner_plus_eq() throws Exception {
+  public void test_plus_eq() throws Exception {
     assertToken(TokenType.PLUS_EQ, "+=");
   }
 
-  public void test_AbstractScanner_plus_plus() throws Exception {
+  public void test_plus_plus() throws Exception {
     assertToken(TokenType.PLUS_PLUS, "++");
   }
 
-  public void test_AbstractScanner_question() throws Exception {
+  public void test_question() throws Exception {
     assertToken(TokenType.QUESTION, "?");
   }
 
-  public void test_AbstractScanner_scriptTag_withArgs() throws Exception {
+  public void test_scriptTag_withArgs() throws Exception {
     assertToken(TokenType.SCRIPT_TAG, "#!/bin/dart -debug");
   }
 
-  public void test_AbstractScanner_scriptTag_withoutSpace() throws Exception {
+  public void test_scriptTag_withoutSpace() throws Exception {
     assertToken(TokenType.SCRIPT_TAG, "#!/bin/dart");
   }
 
-  public void test_AbstractScanner_scriptTag_withSpace() throws Exception {
+  public void test_scriptTag_withSpace() throws Exception {
     assertToken(TokenType.SCRIPT_TAG, "#! /bin/dart");
   }
 
-  public void test_AbstractScanner_semicolon() throws Exception {
+  public void test_semicolon() throws Exception {
     assertToken(TokenType.SEMICOLON, ";");
   }
 
-  public void test_AbstractScanner_slash() throws Exception {
+  public void test_slash() throws Exception {
     assertToken(TokenType.SLASH, "/");
   }
 
-  public void test_AbstractScanner_slash_eq() throws Exception {
+  public void test_slash_eq() throws Exception {
     assertToken(TokenType.SLASH_EQ, "/=");
   }
 
-  public void test_AbstractScanner_star() throws Exception {
+  public void test_star() throws Exception {
     assertToken(TokenType.STAR, "*");
   }
 
-  public void test_AbstractScanner_star_eq() throws Exception {
+  public void test_star_eq() throws Exception {
     assertToken(TokenType.STAR_EQ, "*=");
   }
 
-  public void test_AbstractScanner_string_multi_double() throws Exception {
+  public void test_string_multi_double() throws Exception {
     assertToken(TokenType.STRING, "\"\"\"multi-line\nstring\"\"\"");
   }
 
-  public void test_AbstractScanner_string_multi_interpolation_block() throws Exception {
+  public void test_string_multi_interpolation_block() throws Exception {
     assertTokens(
         "\"Hello ${name}!\"",
         new StringToken(TokenType.STRING, "\"Hello ", 0),
@@ -550,7 +547,7 @@ public abstract class AbstractScannerTest extends TestCase {
         new StringToken(TokenType.STRING, "!\"", 14));
   }
 
-  public void test_AbstractScanner_string_multi_interpolation_identifier() throws Exception {
+  public void test_string_multi_interpolation_identifier() throws Exception {
     assertTokens( //
         "\"Hello $name!\"",
         new StringToken(TokenType.STRING, "\"Hello ", 0),
@@ -559,51 +556,51 @@ public abstract class AbstractScannerTest extends TestCase {
         new StringToken(TokenType.STRING, "!\"", 12));
   }
 
-  public void test_AbstractScanner_string_multi_single() throws Exception {
+  public void test_string_multi_single() throws Exception {
     assertToken(TokenType.STRING, "'''string'''");
   }
 
-  public void test_AbstractScanner_string_multi_unterminated() throws Exception {
+  public void test_string_multi_unterminated() throws Exception {
     assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "'''string");
   }
 
-  public void test_AbstractScanner_string_raw_multi_double() throws Exception {
+  public void test_string_raw_multi_double() throws Exception {
     assertToken(TokenType.STRING, "r\"\"\"string\"\"\"");
   }
 
-  public void test_AbstractScanner_string_raw_multi_single() throws Exception {
+  public void test_string_raw_multi_single() throws Exception {
     assertToken(TokenType.STRING, "r'''string'''");
   }
 
-  public void test_AbstractScanner_string_raw_multi_unterminated() throws Exception {
+  public void test_string_raw_multi_unterminated() throws Exception {
     assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9, "r'''string");
   }
 
-  public void test_AbstractScanner_string_raw_simple_double() throws Exception {
+  public void test_string_raw_simple_double() throws Exception {
     assertToken(TokenType.STRING, "r\"string\"");
   }
 
-  public void test_AbstractScanner_string_raw_simple_single() throws Exception {
+  public void test_string_raw_simple_single() throws Exception {
     assertToken(TokenType.STRING, "r'string'");
   }
 
-  public void test_AbstractScanner_string_raw_simple_unterminated_eof() throws Exception {
+  public void test_string_raw_simple_unterminated_eof() throws Exception {
     assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "r'string");
   }
 
-  public void test_AbstractScanner_string_raw_simple_unterminated_eol() throws Exception {
+  public void test_string_raw_simple_unterminated_eol() throws Exception {
     assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "r'string\n");
   }
 
-  public void test_AbstractScanner_string_simple_double() throws Exception {
+  public void test_string_simple_double() throws Exception {
     assertToken(TokenType.STRING, "\"string\"");
   }
 
-  public void test_AbstractScanner_string_simple_escapedDollar() throws Exception {
+  public void test_string_simple_escapedDollar() throws Exception {
     assertToken(TokenType.STRING, "'a\\$b'");
   }
 
-  public void test_AbstractScanner_string_simple_interpolation_block() throws Exception {
+  public void test_string_simple_interpolation_block() throws Exception {
     assertTokens(
         "'Hello ${name}!'",
         new StringToken(TokenType.STRING, "'Hello ", 0),
@@ -613,7 +610,7 @@ public abstract class AbstractScannerTest extends TestCase {
         new StringToken(TokenType.STRING, "!'", 14));
   }
 
-  public void test_AbstractScanner_string_simple_interpolation_firstAndLast() throws Exception {
+  public void test_string_simple_interpolation_firstAndLast() throws Exception {
     assertTokens( //
         "'$greeting $name'",
         new StringToken(TokenType.STRING, "'", 0),
@@ -625,7 +622,7 @@ public abstract class AbstractScannerTest extends TestCase {
         new StringToken(TokenType.STRING, "'", 16));
   }
 
-  public void test_AbstractScanner_string_simple_interpolation_identifier() throws Exception {
+  public void test_string_simple_interpolation_identifier() throws Exception {
     assertTokens( //
         "'Hello $name!'",
         new StringToken(TokenType.STRING, "'Hello ", 0),
@@ -634,31 +631,31 @@ public abstract class AbstractScannerTest extends TestCase {
         new StringToken(TokenType.STRING, "!'", 12));
   }
 
-  public void test_AbstractScanner_string_simple_single() throws Exception {
+  public void test_string_simple_single() throws Exception {
     assertToken(TokenType.STRING, "'string'");
   }
 
-  public void test_AbstractScanner_string_simple_unterminated_eof() throws Exception {
+  public void test_string_simple_unterminated_eof() throws Exception {
     assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6, "'string");
   }
 
-  public void test_AbstractScanner_string_simple_unterminated_eol() throws Exception {
+  public void test_string_simple_unterminated_eol() throws Exception {
     assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "'string\r");
   }
 
-  public void test_AbstractScanner_tilde() throws Exception {
+  public void test_tilde() throws Exception {
     assertToken(TokenType.TILDE, "~");
   }
 
-  public void test_AbstractScanner_tilde_slash() throws Exception {
+  public void test_tilde_slash() throws Exception {
     assertToken(TokenType.TILDE_SLASH, "~/");
   }
 
-  public void test_AbstractScanner_tilde_slash_eq() throws Exception {
+  public void test_tilde_slash_eq() throws Exception {
     assertToken(TokenType.TILDE_SLASH_EQ, "~/=");
   }
 
-  protected abstract Token scan(String source, AnalysisErrorListener listener);
+  protected abstract Token scan(String source, GatheringErrorListener listener);
 
   private void assertComment(TokenType commentType, String source) throws Exception {
     Token token = scan(source);
@@ -683,11 +680,12 @@ public abstract class AbstractScannerTest extends TestCase {
   private void assertError(ScannerErrorCode expectedError, int expectedOffset, String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
     scan(source, listener);
-    List<AnalysisError> errors = listener.getErrors();
-    assertEquals(1, errors.size());
-    AnalysisError error = errors.get(0);
-    assertEquals(expectedError, error.getErrorCode());
-    assertEquals(expectedOffset, error.getOffset());
+    listener.assertErrors(new AnalysisError(
+        null,
+        expectedOffset,
+        1,
+        expectedError,
+        (int) source.charAt(expectedOffset)));
   }
 
   /**
