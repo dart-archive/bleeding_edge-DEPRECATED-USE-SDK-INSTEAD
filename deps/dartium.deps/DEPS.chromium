@@ -46,7 +46,7 @@ vars = {
   "nacl_toolchain_revision": "9093",
   "pnacl_toolchain_revision": "9117",
 
-  "libjingle_revision": "157",
+  "libjingle_revision": "159",
   "libphonenumber_revision": "456",
   "libvpx_revision": "134182",
   "lss_revision": "11",
@@ -57,7 +57,7 @@ vars = {
   "ffmpeg_hash": "23f177366e3bce3a628a7d3feedceed4e18dcc04",
 
   "sfntly_revision": "134",
-  "skia_revision": "4552",
+  "skia_revision": "4573",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -100,7 +100,7 @@ deps = {
     "/trunk/deps/third_party/WebKit@76115",
 
   "src/third_party/icu":
-    "/trunk/deps/third_party/icu46@146346",
+    "/trunk/deps/third_party/icu46@146527",
 
   "src/third_party/libexif/sources":
     "/trunk/deps/third_party/libexif/sources@141967",
@@ -312,7 +312,7 @@ deps = {
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
 
   "src/third_party/libyuv":
-    (Var("googlecode_url") % "libyuv") + "/trunk@303",
+    (Var("googlecode_url") % "libyuv") + "/trunk@305",
 
   "src/third_party/mozc/session":
     (Var("googlecode_url") % "mozc") + "/trunk/src/session@83",
@@ -394,7 +394,7 @@ deps_os = {
     # Binary level profile guided optimizations. This points to the
     # latest release binaries for the toolchain.
     "src/third_party/syzygy/binaries":
-      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@782",
+      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@991",
 
     # Binaries for nacl sdk.
     "src/third_party/nacl_sdk_binaries":
