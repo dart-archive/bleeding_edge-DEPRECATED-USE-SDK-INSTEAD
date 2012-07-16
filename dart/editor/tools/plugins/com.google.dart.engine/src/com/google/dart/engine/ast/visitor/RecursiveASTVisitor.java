@@ -32,6 +32,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitAnnotation(Annotation node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
   public R visitArgumentList(ArgumentList node) {
     node.visitChildren(this);
     return null;

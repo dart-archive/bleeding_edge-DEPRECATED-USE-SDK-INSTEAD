@@ -38,6 +38,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitAnnotation(Annotation node) {
+    return visitNode(node);
+  }
+
+  @Override
   public R visitArgumentList(ArgumentList node) {
     return visitNode(node);
   }

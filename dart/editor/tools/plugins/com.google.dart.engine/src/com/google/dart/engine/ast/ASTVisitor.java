@@ -20,6 +20,8 @@ package com.google.dart.engine.ast;
 public interface ASTVisitor<R> {
   public R visitAdjacentStrings(AdjacentStrings node);
 
+  public R visitAnnotation(Annotation node);
+
   public R visitArgumentList(ArgumentList node);
 
   public R visitArrayAccess(ArrayAccess node);
