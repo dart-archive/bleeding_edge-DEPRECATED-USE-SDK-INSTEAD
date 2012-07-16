@@ -343,6 +343,7 @@ public class Parser {
       }
     }
     if (peekMatches(index, TokenType.LT)) {
+      // TODO(brianwilkerson) Fix this.
       // We're guessing that this is a type argument. It could be a less-than operator, but there is
       // little or no utility in an expression with no side-effect, so rather than spend the time to
       // parse type arguments we're risking a false positive.
@@ -381,21 +382,6 @@ public class Parser {
    */
   private boolean matches(TokenType type) {
     return currentToken.getType() == type;
-  }
-
-  /**
-   * If the current token is a keyword matching the given string, then advance to the next token and
-   * return {@code true}. Otherwise, return {@code false} without advancing.
-   * 
-   * @param keyword the keyword that can optionally appear in the current location
-   * @return {@code true} if the current token is a keyword matching the given string
-   */
-  private boolean optional(Keyword keyword) {
-    if (matches(keyword)) {
-      advance();
-      return true;
-    }
-    return false;
   }
 
   /**
@@ -1475,21 +1461,6 @@ public class Parser {
   }
 
   /**
-   * Parse either an expression statement or a declaration.
-   * 
-   * <pre>
-   * topLevelVariables ::=
-   *     variableDeclarationList ';'
-   * </pre>
-   * 
-   * @return the expression statement or declaration that was parsed
-   */
-  private Statement parseExpressionStatementOrDeclaration() {
-    // TODO(brianwilkerson) Implement this
-    return null;
-  }
-
-  /**
    * Parse an expression that does not contain any cascades.
    * 
    * <pre>
@@ -2455,8 +2426,10 @@ public class Parser {
       }
     } else if (matches(TokenType.SEMICOLON)) {
       return parseEmptyStatement();
+    } else if (isInitializedVariableDeclaration()) {
+      return parseVariableDeclarationStatement();
     } else {
-      return parseExpressionStatementOrDeclaration();
+      return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
     }
   }
 
@@ -2849,33 +2822,6 @@ public class Parser {
   }
 
   /**
-   * Parse a simple formal parameter.
-   * 
-   * <pre>
-   * simpleFormalParameter ::=
-   *     finalConstVarOrType? identifier
-   * </pre>
-   * 
-   * @return the simple formal parameter that was parsed
-   */
-  private SimpleFormalParameter parseSimpleFormalParameter() {
-    FinalConstVarOrType holder = parseFinalConstVarOrType(true);
-    SimpleIdentifier identifier = null;
-    if (matches(TokenType.IDENTIFIER)) {
-      identifier = parseSimpleIdentifier();
-    } else {
-      if (holder.getKeyword() == null && holder.getType().getName() instanceof SimpleIdentifier
-          && holder.getType().getTypeArguments() == null) {
-        identifier = (SimpleIdentifier) holder.getType().getName();
-      } else {
-        // Missing parameter name
-        // reportError(ParserErrorCode.?));
-      }
-    }
-    return new SimpleFormalParameter(holder.getKeyword(), holder.getType(), identifier);
-  }
-
-  /**
    * Parse a simple identifier.
    * 
    * <pre>
@@ -3119,21 +3065,6 @@ public class Parser {
     Expression expression = parseExpression();
     Token semicolon = expect(TokenType.SEMICOLON);
     return new ThrowStatement(keyword, expression, semicolon);
-  }
-
-  /**
-   * Parse a list of top-level variables.
-   * 
-   * <pre>
-   * topLevelVariables ::=
-   *     variableDeclarationList ';'
-   * </pre>
-   * 
-   * @return the top-level variables that were parsed
-   */
-  private VariableDeclarationList parseTopLevelVariables() {
-    // TODO(brianwilkerson) Define the AST node that should be returned and then implement this
-    return null;
   }
 
   /**

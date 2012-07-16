@@ -101,6 +101,7 @@ import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.StringToken;
@@ -119,6 +120,17 @@ import java.util.List;
  * More complex tests should be defined in the class {@link ComplexParserTest}.
  */
 public class SimpleParserTest extends ParserTestCase {
+  // TODO Add tests for the following methods:
+  // parseCascadeSection(Expression)
+  // parseDirective()
+  // parseExpressionWithoutCascade()
+  // parseNonLabeledStatement()?
+  // parseNormalFormalParameter()?
+
+//  public void test_parseExpressionWithoutCascade() throws Exception {
+//    ASTNode expression = parse("parseExpressionWithoutCascade", "");
+//  }
+
   public void test_computeStringValue_escape_b() throws Exception {
     assertEquals("\b", computeStringValue("'\\b'"));
   }
@@ -177,6 +189,56 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_computeStringValue_raw_withEscape() throws Exception {
     assertEquals("two\\nlines", computeStringValue("@'two\\nlines'"));
+  }
+
+  public void test_isInitializedVariableDeclaration_assignment() throws Exception {
+    assertFalse(isInitializedVariableDeclaration("a = null;"));
+  }
+
+  public void test_isInitializedVariableDeclaration_conditional() throws Exception {
+    assertFalse(isInitializedVariableDeclaration("a == null ? init() : update();"));
+  }
+
+  public void test_isInitializedVariableDeclaration_const_noType_initialized() throws Exception {
+    assertTrue(isInitializedVariableDeclaration("const a = 0;"));
+  }
+
+  public void test_isInitializedVariableDeclaration_const_noType_uninitialized() throws Exception {
+    assertTrue(isInitializedVariableDeclaration("const a;"));
+  }
+
+  public void test_isInitializedVariableDeclaration_final_noType_initialized() throws Exception {
+    assertTrue(isInitializedVariableDeclaration("final a = 0;"));
+  }
+
+  public void test_isInitializedVariableDeclaration_final_noType_uninitialized() throws Exception {
+    assertTrue(isInitializedVariableDeclaration("final a;"));
+  }
+
+  public void test_isInitializedVariableDeclaration_noType_initialized() throws Exception {
+    assertTrue(isInitializedVariableDeclaration("var a = 0;"));
+  }
+
+  public void test_isInitializedVariableDeclaration_noType_uninitialized() throws Exception {
+    assertTrue(isInitializedVariableDeclaration("var a;"));
+  }
+
+  public void test_isInitializedVariableDeclaration_parameterizedType_initialized()
+      throws Exception {
+    assertTrue(isInitializedVariableDeclaration("List<int> a = null;"));
+  }
+
+  public void test_isInitializedVariableDeclaration_parameterizedType_uninitialized()
+      throws Exception {
+    assertTrue(isInitializedVariableDeclaration("List<int> a;"));
+  }
+
+  public void test_isInitializedVariableDeclaration_simpleType_initialized() throws Exception {
+    assertTrue(isInitializedVariableDeclaration("int a = 0;"));
+  }
+
+  public void test_isInitializedVariableDeclaration_simpleType_uninitialized() throws Exception {
+    assertTrue(isInitializedVariableDeclaration("int a;"));
   }
 
   public void test_parseAdditiveExpression_normal() throws Exception {
@@ -371,8 +433,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(statement.getLabel());
     assertNotNull(statement.getSemicolon());
   }
-
-  // TODO add methods to test cascades: test_parseCascaseSection_*
 
   public void test_parseClassDeclaration_abstract() throws Exception {
     ClassDeclaration declaration = parse("parseClassDeclaration", "abstract class A {}");
@@ -866,8 +926,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getSemicolon());
   }
 
-  // TODO add parseDirective() tests
-
   public void test_parseEmptyStatement() throws Exception {
     EmptyStatement statement = parse("parseEmptyStatement", ";");
     assertNotNull(statement.getSemicolon());
@@ -951,10 +1009,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(constructor.getPeriod());
     assertNotNull(constructor.getReturnType());
   }
-
-  // TODO add tests for parseExpressionStatementOrDeclaration()
-
-  // TODO add tests for parseExpressionWithoutCascade()
 
   public void test_parseFinalConstVarOrType_const_noType() throws Exception {
     Parser.FinalConstVarOrType result = parse(
@@ -1944,9 +1998,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(returnType, method.getReturnType());
   }
 
-  // TODO add tests for parseNonLabeledStatement()?
-  // TODO add tests for parseNormalFormalParameter()?
-
   public void test_parsePostfixExpression_decrement() throws Exception {
     PostfixExpression expression = parse("parsePostfixExpression", "i--");
     assertNotNull(expression.getOperand());
@@ -2172,27 +2223,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getOperator());
     assertEquals(TokenType.LT_LT, expression.getOperator().getType());
     assertNotNull(expression.getRightOperand());
-  }
-
-  public void test_parseSimpleFormalParameter_final() throws Exception {
-    SimpleFormalParameter parameter = parse("parseSimpleFormalParameter", "final A a");
-    assertNotNull(parameter.getIdentifier());
-    assertNotNull(parameter.getKeyword());
-    assertNotNull(parameter.getType());
-  }
-
-  public void test_parseSimpleFormalParameter_type() throws Exception {
-    SimpleFormalParameter parameter = parse("parseSimpleFormalParameter", "A a");
-    assertNotNull(parameter.getIdentifier());
-    assertNull(parameter.getKeyword());
-    assertNotNull(parameter.getType());
-  }
-
-  public void test_parseSimpleFormalParameter_var() throws Exception {
-    SimpleFormalParameter parameter = parse("parseSimpleFormalParameter", "var a");
-    assertNotNull(parameter.getIdentifier());
-    assertNotNull(parameter.getKeyword());
-    assertNull(parameter.getType());
   }
 
   public void test_parseSimpleIdentifier() throws Exception {
@@ -2731,25 +2761,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getBody());
   }
 
-//  public void xtest_parseCompilationUnitMember() throws Exception {
-//    CompilationUnitMember declaration = parse("parseCompilationUnitMember", "");
-//  }
-
-  public void xtest_parseCompilationUnitMember_function() throws Exception {
-    FunctionDeclaration declaration = parse("parseCompilationUnitMember", "f() {}");
-    assertNotNull(declaration.getFunctionExpression());
-  }
-
-//  public void xtest_parseExpressionWithoutCascade() throws Exception {
-//    ASTNode expression = parse("parseExpressionWithoutCascade", "");
-//  }
-
-  public void xtest_parseCompilationUnitMember_variable() throws Exception {
-    VariableDeclaration declaration = parse("parseCompilationUnitMember", "var x;");
-    assertNull(declaration.getInitializer());
-    assertNotNull(declaration.getName());
-  }
-
   /**
    * Invoke the method {@link Parser#computeStringValue(String)} with the given argument.
    * 
@@ -2769,5 +2780,18 @@ public class SimpleParserTest extends ParserTestCase {
     Method method = Parser.class.getDeclaredMethod("computeStringValue", String.class);
     method.setAccessible(true);
     return (String) method.invoke(parser, lexeme);
+  }
+
+  /**
+   * Invoke the method {@link Parser#isInitializedVariableDeclaration()} with the parser set to the
+   * token stream produced by scanning the given source.
+   * 
+   * @param source the source to be scanned to produce the token stream being tested
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   */
+  private boolean isInitializedVariableDeclaration(String source) throws Exception {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    return invokeParserMethod("isInitializedVariableDeclaration", source, listener);
   }
 }

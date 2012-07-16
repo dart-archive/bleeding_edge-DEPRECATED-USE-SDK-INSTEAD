@@ -77,7 +77,7 @@ public class ParserTestCase extends EngineTestCase {
   public static <E> E parse(String methodName, Class<?>[] classes, Object[] objects, String source,
       AnalysisError... errors) throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
-    E result = parse(methodName, classes, objects, source, listener);
+    E result = invokeParserMethod(methodName, classes, objects, source, listener);
     listener.assertErrors(errors);
     return result;
   }
@@ -102,7 +102,7 @@ public class ParserTestCase extends EngineTestCase {
   public static <E> E parse(String methodName, Class<?>[] classes, Object[] objects, String source,
       ErrorCode... errorCodes) throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
-    E result = parse(methodName, classes, objects, source, listener);
+    E result = invokeParserMethod(methodName, classes, objects, source, listener);
     listener.assertErrors(errorCodes);
     return result;
   }
@@ -127,16 +127,16 @@ public class ParserTestCase extends EngineTestCase {
   }
 
   /**
-   * Invoke a parse method in {@link Parser}. The method is assumed to have the given number and
-   * type of parameters and will be invoked with the given arguments.
+   * Invoke a method in {@link Parser}. The method is assumed to have the given number and type of
+   * parameters and will be invoked with the given arguments.
    * <p>
    * The given source is scanned and the parser is initialized to start with the first token in the
-   * source before the parse method is invoked.
+   * source before the method is invoked.
    * 
-   * @param methodName the name of the parse method that should be invoked to parse the source
+   * @param methodName the name of the method that should be invoked
    * @param classes the types of the arguments to the method
    * @param objects the values of the arguments to the method
-   * @param source the source to be parsed by the parse method
+   * @param source the source to be processed by the parse method
    * @param listener the error listener that will be used for both scanning and parsing
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
@@ -144,8 +144,8 @@ public class ParserTestCase extends EngineTestCase {
    *           scanning and parsing the source do not match the expected errors
    */
   @SuppressWarnings("unchecked")
-  private static <E> E parse(String methodName, Class<?>[] classes, Object[] objects,
-      String source, GatheringErrorListener listener) throws Exception {
+  protected static <E> E invokeParserMethod(String methodName, Class<?>[] classes,
+      Object[] objects, String source, GatheringErrorListener listener) throws Exception {
     if (classes.length != objects.length) {
       fail("Invalid test: number of parameters specified (" + classes.length
           + ") does not match number of arguments provided (" + objects.length + ")");
@@ -171,5 +171,24 @@ public class ParserTestCase extends EngineTestCase {
     //
     assertNotNull(result);
     return (E) result;
+  }
+
+  /**
+   * Invoke a method in {@link Parser}. The method is assumed to have no arguments.
+   * <p>
+   * The given source is scanned and the parser is initialized to start with the first token in the
+   * source before the method is invoked.
+   * 
+   * @param methodName the name of the method that should be invoked
+   * @param source the source to be processed by the parse method
+   * @param listener the error listener that will be used for both scanning and parsing
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   * @throws AssertionFailedError if the result is {@code null} or the errors produced while
+   *           scanning and parsing the source do not match the expected errors
+   */
+  protected static <E> E invokeParserMethod(String methodName, String source,
+      GatheringErrorListener listener) throws Exception {
+    return invokeParserMethod(methodName, EMPTY_PARAMETERS, EMPTY_ARGUMENTS, source, listener);
   }
 }
