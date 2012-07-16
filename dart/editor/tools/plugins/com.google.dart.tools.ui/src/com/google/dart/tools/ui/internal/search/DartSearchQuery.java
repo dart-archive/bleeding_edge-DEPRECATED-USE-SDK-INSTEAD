@@ -16,6 +16,8 @@ package com.google.dart.tools.ui.internal.search;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
+import com.google.dart.tools.core.model.DartImport;
+import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
@@ -231,6 +233,15 @@ public class DartSearchQuery implements ISearchQuery {
           engine.searchReferences((DartFunction) element, scope, null, collector, monitor);
         } else if (element instanceof Type) {
           engine.searchReferences((Type) element, scope, null, collector, monitor);
+        } else if (element instanceof DartImport) {
+          engine.searchReferences((DartImport) element, scope, null, collector, monitor);
+        } else if (element instanceof DartVariableDeclaration) {
+          engine.searchReferences(
+              (DartVariableDeclaration) element,
+              scope,
+              null,
+              collector,
+              monitor);
         } else {
           throw new UnsupportedOperationException("unsupported search type: " + element.getClass()); //$NON-NLS-1$
         }
