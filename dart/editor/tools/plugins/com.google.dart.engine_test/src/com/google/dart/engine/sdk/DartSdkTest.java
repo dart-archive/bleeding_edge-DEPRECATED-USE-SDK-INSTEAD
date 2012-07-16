@@ -18,39 +18,39 @@ import junit.framework.TestCase;
 import java.io.File;
 
 public class DartSdkTest extends TestCase {
-  public void test_DartSdk() {
+  public void test_creation() {
     DartSdk sdk = createDartSdk();
     assertNotNull(sdk);
   }
 
-  public void test_DartSdk_getDartiumVersion() {
+  public void test_getDartiumVersion() {
     DartSdk sdk = createDartSdk();
     String version = sdk.getDartiumVersion();
     assertNotNull(version);
     assertTrue(version.length() > 0);
   }
 
-  public void test_DartSdk_getDartiumWorkingDirectory() {
+  public void test_getDartiumWorkingDirectory() {
     DartSdk sdk = createDartSdk();
     File directory = sdk.getDartiumWorkingDirectory();
     assertNotNull(directory);
     assertTrue(directory.exists());
   }
 
-  public void test_DartSdk_getDirectory() {
+  public void test_getDirectory() {
     DartSdk sdk = createDartSdk();
     File directory = sdk.getDirectory();
     assertNotNull(directory);
     assertTrue(directory.exists());
   }
 
-  public void test_DartSdk_getDocDirectory() {
+  public void test_getDocDirectory() {
     DartSdk sdk = createDartSdk();
     File directory = sdk.getDocDirectory();
     assertNotNull(directory);
   }
 
-  public void test_DartSdk_getLibrariesForPlatform() {
+  public void test_getLibrariesForPlatform() {
     DartSdk sdk = createDartSdk();
     Platform[] platforms = sdk.getSupportedPlatforms();
     assertNotNull(platforms);
@@ -68,28 +68,28 @@ public class DartSdkTest extends TestCase {
     }
   }
 
-  public void test_DartSdk_getLibraryDirectory() {
+  public void test_getLibraryDirectory() {
     DartSdk sdk = createDartSdk();
     File directory = sdk.getLibraryDirectory();
     assertNotNull(directory);
     assertTrue(directory.exists());
   }
 
-  public void test_DartSdk_getSdkVersion() {
+  public void test_getSdkVersion() {
     DartSdk sdk = createDartSdk();
     String version = sdk.getSdkVersion();
     assertNotNull(version);
     assertTrue(version.length() > 0);
   }
 
-  public void test_DartSdk_getSupportedPlatforms() {
+  public void test_getSupportedPlatforms() {
     DartSdk sdk = createDartSdk();
     Platform[] platforms = sdk.getSupportedPlatforms();
     assertNotNull(platforms);
     assertEquals(4, platforms.length);
   }
 
-  public void test_DartSdk_getVmExecutable() {
+  public void test_getVmExecutable() {
     DartSdk sdk = createDartSdk();
     File executable = sdk.getVmExecutable();
     assertNotNull(executable);
@@ -97,7 +97,7 @@ public class DartSdkTest extends TestCase {
     assertTrue(executable.canExecute());
   }
 
-  public void xtest_DartSdk_getDartiumExecutable() {
+  public void xtest_getDartiumExecutable() {
     // There is no Dartium executable in a run-time workbench
     DartSdk sdk = createDartSdk();
     File executable = sdk.getDartiumExecutable();
@@ -106,7 +106,7 @@ public class DartSdkTest extends TestCase {
     assertTrue(executable.canExecute());
   }
 
-  public void xtest_DartSdk_getDocFileFor() {
+  public void xtest_getDocFileFor() {
     // Enable this test when documentation files are being produced.
     DartSdk sdk = createDartSdk();
     File docFile = sdk.getDocFileFor("html");

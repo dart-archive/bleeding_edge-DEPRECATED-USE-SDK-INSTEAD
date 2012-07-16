@@ -19,12 +19,12 @@ import java.io.File;
 import java.net.URI;
 
 public class PackageUriResolverTest extends TestCase {
-  public void test_PackageUriResolver() {
+  public void test_creation() {
     File directory = new File("/does/not/exist");
     assertNotNull(new PackageUriResolver(directory));
   }
 
-  public void test_PackageUriResolver_resolve_nonPackage() throws Exception {
+  public void test_resolve_nonPackage() throws Exception {
     SourceFactory factory = new SourceFactory();
     File directory = new File("/does/not/exist");
     UriResolver resolver = new PackageUriResolver(directory);
@@ -32,7 +32,7 @@ public class PackageUriResolverTest extends TestCase {
     assertNull(result);
   }
 
-  public void test_PackageUriResolver_resolve_package() throws Exception {
+  public void test_resolve_package() throws Exception {
     SourceFactory factory = new SourceFactory();
     File directory = new File("/does/not/exist");
     UriResolver resolver = new PackageUriResolver(directory);

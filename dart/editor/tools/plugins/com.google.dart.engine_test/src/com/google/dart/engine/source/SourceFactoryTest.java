@@ -19,11 +19,11 @@ import java.io.File;
 import java.net.URI;
 
 public class SourceFactoryTest extends TestCase {
-  public void test_SourceFactory() {
+  public void test_creation() {
     assertNotNull(new SourceFactory());
   }
 
-  public void test_SourceFactory_forFile() {
+  public void test_forFile() {
     SourceFactory factory = new SourceFactory();
     File file = new File("/does/not/exist.dart");
     Source result = factory.forFile(file);
@@ -32,7 +32,7 @@ public class SourceFactoryTest extends TestCase {
     assertFalse(result.isInSystemLibrary());
   }
 
-  public void test_SourceFactory_resolveUri_absolute() throws Exception {
+  public void test_resolveUri_absolute() throws Exception {
     final boolean[] invoked = {false};
     SourceFactory factory = new SourceFactory(new UriResolver() {
       @Override
@@ -45,7 +45,7 @@ public class SourceFactoryTest extends TestCase {
     assertTrue(invoked[0]);
   }
 
-  public void test_SourceFactory_resolveUri_nonAbsolute_absolute() throws Exception {
+  public void test_resolveUri_nonAbsolute_absolute() throws Exception {
     SourceFactory factory = new SourceFactory(new UriResolver() {
       @Override
       protected Source resolveAbsolute(SourceFactory factory, URI uri) {
@@ -58,7 +58,7 @@ public class SourceFactoryTest extends TestCase {
     assertEquals(absolutePath, result.getFile().getAbsolutePath());
   }
 
-  public void test_SourceFactory_resolveUri_nonAbsolute_relative() throws Exception {
+  public void test_resolveUri_nonAbsolute_relative() throws Exception {
     SourceFactory factory = new SourceFactory(new UriResolver() {
       @Override
       protected Source resolveAbsolute(SourceFactory factory, URI uri) {

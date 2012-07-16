@@ -18,11 +18,11 @@ import junit.framework.TestCase;
 import java.net.URI;
 
 public class FileUriResolverTest extends TestCase {
-  public void test_FileUriResolver() {
+  public void test_creation() {
     assertNotNull(new FileUriResolver());
   }
 
-  public void test_FileUriResolver_resolve_file() throws Exception {
+  public void test_resolve_file() throws Exception {
     SourceFactory factory = new SourceFactory();
     UriResolver resolver = new FileUriResolver();
     Source result = resolver.resolve(factory, null, new URI("file:/does/not/exist.dart"));
@@ -30,7 +30,7 @@ public class FileUriResolverTest extends TestCase {
     assertEquals("/does/not/exist.dart", result.getFile().getAbsolutePath());
   }
 
-  public void test_FileUriResolver_resolve_nonFile() throws Exception {
+  public void test_resolve_nonFile() throws Exception {
     SourceFactory factory = new SourceFactory();
     UriResolver resolver = new FileUriResolver();
     Source result = resolver.resolve(factory, null, new URI("dart:core"));

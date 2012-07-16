@@ -16,7 +16,21 @@ package com.google.dart.engine.utilities.collection;
 import junit.framework.TestCase;
 
 public class IntListTest extends TestCase {
-  public void test_IntList() {
+  public void test_add_grow() {
+    IntList list = new IntList(2);
+    list.add(1);
+    list.add(2);
+    list.add(3);
+    assertEquals(3, list.size());
+  }
+
+  public void test_add_noGrow() {
+    IntList list = new IntList(20);
+    list.add(1);
+    assertEquals(1, list.size());
+  }
+
+  public void test_creation() {
     IntList firstList = new IntList();
     assertNotNull(firstList);
     assertEquals(0, firstList.size());
@@ -26,28 +40,14 @@ public class IntListTest extends TestCase {
     assertEquals(0, secondList.size());
   }
 
-  public void test_IntList_add_grow() {
-    IntList list = new IntList(2);
-    list.add(1);
-    list.add(2);
-    list.add(3);
-    assertEquals(3, list.size());
-  }
-
-  public void test_IntList_add_noGrow() {
-    IntList list = new IntList(20);
-    list.add(1);
-    assertEquals(1, list.size());
-  }
-
-  public void test_IntList_toArray_empty() {
+  public void test_toArray_empty() {
     IntList list = new IntList(20);
     int[] result = list.toArray();
     assertNotNull(result);
     assertEquals(0, result.length);
   }
 
-  public void test_IntList_toArray_nonEmpty() {
+  public void test_toArray_nonEmpty() {
     IntList list = new IntList(20);
     list.add(1);
     list.add(2);

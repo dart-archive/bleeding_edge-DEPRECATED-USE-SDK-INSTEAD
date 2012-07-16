@@ -18,7 +18,7 @@ import junit.framework.TestCase;
 import java.io.File;
 
 public class SourceImplTest extends TestCase {
-  public void test_SourceImpl_nonSystem() {
+  public void test_nonSystem() {
     SourceFactory factory = new SourceFactory();
     File file = new File("/does/not/exist.dart");
     SourceImpl source = new SourceImpl(factory, file);
@@ -27,7 +27,7 @@ public class SourceImplTest extends TestCase {
     assertFalse(source.isInSystemLibrary());
   }
 
-  public void test_SourceImpl_system() {
+  public void test_system() {
     SourceFactory factory = new SourceFactory();
     File file = new File("/does/not/exist.dart");
     SourceImpl source = new SourceImpl(factory, file, true);

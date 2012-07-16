@@ -22,7 +22,7 @@ import java.io.File;
 import java.net.URI;
 
 public class DartUriResolverTest extends TestCase {
-  public void test_DartUriResolver() {
+  public void test_creation() {
     File sdkDirectory = DartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DartSdk(sdkDirectory);
@@ -30,7 +30,7 @@ public class DartUriResolverTest extends TestCase {
     assertNotNull(new DartUriResolver(sdk, platform));
   }
 
-  public void test_DartUriResolver_resolve_dart() throws Exception {
+  public void test_resolve_dart() throws Exception {
     SourceFactory factory = new SourceFactory();
     File sdkDirectory = DartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
@@ -41,7 +41,7 @@ public class DartUriResolverTest extends TestCase {
     assertNotNull(result);
   }
 
-  public void test_DartUriResolver_resolve_nonDart() throws Exception {
+  public void test_resolve_nonDart() throws Exception {
     SourceFactory factory = new SourceFactory();
     File sdkDirectory = DartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
