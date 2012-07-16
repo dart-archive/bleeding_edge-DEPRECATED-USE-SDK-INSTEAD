@@ -58,7 +58,7 @@ class User {
     markActivity();
   }
 
-  void markActivity() => _lastActive = new Date.now();
+  void markActivity() { _lastActive = new Date.now(); }
   Duration idleTime(Date now) => now.difference(_lastActive);
 
   String get handle() => _handle;
@@ -90,7 +90,7 @@ class Message {
   User get from() => _from;
   Date get received() => _received;
   String get message() => _message;
-  void set messageNumber(int n) => _messageNumber = n;
+  void set messageNumber(int n) { _messageNumber = n; }
 
   Map toMap() {
     Map map = new Map();
