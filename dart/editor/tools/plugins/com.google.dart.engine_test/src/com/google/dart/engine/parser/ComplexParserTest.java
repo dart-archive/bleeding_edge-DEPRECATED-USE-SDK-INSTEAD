@@ -240,6 +240,11 @@ public class ComplexParserTest extends EngineTestCase {
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
+  public void test_relationalExpression_precedence_shift_right() throws Exception {
+    IsExpression expression = parseExpression("x << y is z");
+    assertInstanceOf(BinaryExpression.class, expression.getExpression());
+  }
+
   public void test_shiftExpression_normal() throws Exception {
     BinaryExpression expression = parseExpression("x >> 4 << 3");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());

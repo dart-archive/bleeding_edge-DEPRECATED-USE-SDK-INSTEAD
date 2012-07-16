@@ -2105,7 +2105,7 @@ public class Parser {
   private ListLiteral parseListLiteral(Token modifier, TypeArgumentList typeArguments) {
     if (matches(TokenType.INDEX)) {
       Token leftBracket = new Token(TokenType.OPEN_SQUARE_BRACKET, currentToken.getOffset());
-      ArrayList<Expression> elements = new ArrayList<Expression>();
+      ArrayList<Expression> elements = new ArrayList<Expression>(0);
       Token rightBracket = new Token(TokenType.CLOSE_SQUARE_BRACKET, currentToken.getOffset() + 1);
       rightBracket.setNext(currentToken.getNext());
       leftBracket.setNext(rightBracket);
@@ -2631,6 +2631,7 @@ public class Parser {
     } else if (matches(TokenType.LT)) {
       return parseListOrMapLiteral(null);
     } else {
+      // TODO This case is never reached due to the condition of matches(TokenType.OPEN_PAREN) above
       return parseFunctionExpression();
     }
   }

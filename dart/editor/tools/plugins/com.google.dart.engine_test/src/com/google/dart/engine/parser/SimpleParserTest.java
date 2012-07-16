@@ -67,6 +67,7 @@ import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NamedFormalParameter;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.NullLiteral;
+import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -2027,6 +2028,11 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals("bar", identifier.getIdentifier().getIdentifier());
   }
 
+  public void test_parsePrimaryExpression_const() throws Exception {
+    InstanceCreationExpression expression = parse("parsePrimaryExpression", "const A()");
+    assertNotNull(expression);
+  }
+
   public void test_parsePrimaryExpression_double() throws Exception {
     String doubleLiteral = "3.2e4";
     DoubleLiteral literal = parse("parsePrimaryExpression", doubleLiteral);
@@ -2047,6 +2053,11 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(BigInteger.valueOf(Integer.parseInt(hexLiteral, 16)), literal.getValue());
   }
 
+  public void test_parsePrimaryExpression_identifier() throws Exception {
+    SimpleIdentifier identifier = parse("parsePrimaryExpression", "a");
+    assertNotNull(identifier);
+  }
+
   public void test_parsePrimaryExpression_int() throws Exception {
     String intLiteral = "472";
     IntegerLiteral literal = parse("parsePrimaryExpression", intLiteral);
@@ -2054,9 +2065,47 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(BigInteger.valueOf(Integer.parseInt(intLiteral)), literal.getValue());
   }
 
+  public void test_parsePrimaryExpression_lt() throws Exception {
+    MapLiteral literal = parse("parsePrimaryExpression", "<A>{}");
+    assertNotNull(literal.getTypeArguments());
+    assertEquals(1, literal.getTypeArguments().getArguments().size());
+  }
+
+  public void test_parsePrimaryExpression_new() throws Exception {
+    InstanceCreationExpression expression = parse("parsePrimaryExpression", "new A()");
+    assertNotNull(expression);
+  }
+
   public void test_parsePrimaryExpression_null() throws Exception {
     NullLiteral literal = parse("parsePrimaryExpression", "null");
     assertNotNull(literal.getLiteral());
+  }
+
+  public void test_parsePrimaryExpression_openCurlyBracket() throws Exception {
+    MapLiteral literal = parse("parsePrimaryExpression", "{}");
+    assertNotNull(literal);
+  }
+
+  public void test_parsePrimaryExpression_openParenthesis() throws Exception {
+    ParenthesizedExpression expression = parse("parsePrimaryExpression", "()");
+    assertNotNull(expression);
+  }
+
+  public void test_parsePrimaryExpression_squareBracket() throws Exception {
+    ListLiteral literal = parse("parsePrimaryExpression", "[ ]");
+    assertNotNull(literal);
+  }
+
+  public void test_parsePrimaryExpression_squareBracket_index() throws Exception {
+    ListLiteral literal = parse("parsePrimaryExpression", "[]");
+    assertNotNull(literal);
+  }
+
+  public void test_parsePrimaryExpression_string() throws Exception {
+    SimpleStringLiteral literal = parse("parsePrimaryExpression", "\"string\"");
+    assertTrue(literal.isConstant());
+    assertFalse(literal.isMultiline());
+    assertEquals(literal.getValue(), "string");
   }
 
   public void test_parsePrimaryExpression_super() throws Exception {
@@ -2245,6 +2294,18 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(directive.getSourceUri());
     assertNotNull(directive.getRightParenthesis());
     assertNotNull(directive.getSemicolon());
+  }
+
+  public void test_parseStatement_mulipleLabels() throws Exception {
+    LabeledStatement statement = parse("parseStatement", "l: m: return x;");
+    assertEquals(2, statement.getLabels().size());
+    assertNotNull(statement.getStatement());
+  }
+
+  public void test_parseStatement_noLabels() throws Exception {
+    LabeledStatement statement = parse("parseStatement", "return x;");
+    assertEquals(0, statement.getLabels().size());
+    assertNotNull(statement.getStatement());
   }
 
   public void test_parseStatement_singleLabel() throws Exception {
