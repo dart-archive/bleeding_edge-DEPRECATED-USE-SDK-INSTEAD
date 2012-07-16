@@ -41,6 +41,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.TextConsole;
+import org.eclipse.ui.views.IViewDescriptor;
 
 /**
  * Manages the Debugger view during the debug session.
@@ -140,16 +141,18 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
-        openDebuggerView();
-        IWorkbenchWindow window = DartDebugUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow();
+        if (hasDebuggerView()) {
+          openDebuggerView();
+          IWorkbenchWindow window = DartDebugUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow();
 
-        if (window == null) {
-          window = getWindowWithView(DebuggerView.ID);
+          if (window == null) {
+            window = getWindowWithView(DebuggerView.ID);
+          }
+
+          window.getShell().forceActive();
+          IViewReference viewReference = window.getActivePage().findViewReference(DebuggerView.ID);
+          window.getActivePage().activate(viewReference.getPart(true));
         }
-
-        window.getShell().forceActive();
-        IViewReference viewReference = window.getActivePage().findViewReference(DebuggerView.ID);
-        window.getActivePage().activate(viewReference.getPart(true));
       }
     });
   }
@@ -218,6 +221,19 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
     }
 
     return null;
+  }
+
+  /**
+   * Check if the debugger view has been contributed
+   */
+  private boolean hasDebuggerView() {
+    IViewDescriptor[] views = DartDebugUIPlugin.getDefault().getWorkbench().getViewRegistry().getViews();
+    for (IViewDescriptor view : views) {
+      if (view.getId().equals(DebuggerView.ID)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void openDebuggerView() {

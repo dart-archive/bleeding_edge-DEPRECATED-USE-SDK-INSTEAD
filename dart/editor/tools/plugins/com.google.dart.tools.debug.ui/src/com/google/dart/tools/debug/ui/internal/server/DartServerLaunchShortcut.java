@@ -165,7 +165,6 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
    * @param mode the launch mode ("run", "debug", ...)
    */
   protected void launch(IResource resource, String mode) {
-    mode = ILaunchManager.RUN_MODE;
 
     if (resource == null) {
       return;

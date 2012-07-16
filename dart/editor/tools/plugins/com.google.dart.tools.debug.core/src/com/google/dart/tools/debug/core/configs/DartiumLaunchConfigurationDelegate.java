@@ -59,7 +59,8 @@ public class DartiumLaunchConfigurationDelegate extends LaunchConfigurationDeleg
 
     launchConfig.markAsLaunched();
 
-    boolean enableDebugging = launchConfig.getEnableDebugging();
+    boolean enableDebugging = ILaunchManager.DEBUG_MODE.equals(mode)
+        && launchConfig.getEnableDebugging();
 
     // Launch the browser - show errors if we couldn't.
     IResource resource = null;

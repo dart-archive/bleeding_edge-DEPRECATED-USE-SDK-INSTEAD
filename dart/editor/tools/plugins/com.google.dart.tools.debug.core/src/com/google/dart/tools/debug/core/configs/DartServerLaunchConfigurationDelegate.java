@@ -30,6 +30,7 @@ import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 
@@ -67,12 +68,14 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
     launchConfig.markAsLaunched();
 
-    launchVM(launch, launchConfig, monitor);
+    boolean enableDebugging = launchConfig.getEnableDebugging()
+        && ILaunchManager.DEBUG_MODE.equals(mode);
+
+    launchVM(launch, launchConfig, enableDebugging, monitor);
   }
 
   protected void launchVM(ILaunch launch, DartLaunchConfigWrapper launchConfig,
-      IProgressMonitor monitor) throws CoreException {
-    boolean enableDebugging = launchConfig.getEnableDebugging();
+      boolean enableDebugging, IProgressMonitor monitor) throws CoreException {
 
     // Usage: dart [options] script.dart [arguments]
 

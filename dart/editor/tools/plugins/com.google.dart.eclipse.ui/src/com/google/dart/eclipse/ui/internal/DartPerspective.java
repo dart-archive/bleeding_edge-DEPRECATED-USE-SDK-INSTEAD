@@ -42,8 +42,6 @@ import org.eclipse.ui.progress.IProgressConstants;
  */
 public class DartPerspective implements IPerspectiveFactory {
 
-  private static final String DEBUGGER_VIEW_ID = "com.google.dart.tools.debug.debuggerView"; //$NON-NLS-1$
-
   private static final String BR = "bottomRight"; //$NON-NLS-1$
   private static final String TL = "topLeft"; //$NON-NLS-1$
   private static final String TR = "topRight"; //$NON-NLS-1$
@@ -84,14 +82,6 @@ public class DartPerspective implements IPerspectiveFactory {
     //outputfolder.addPlaceholder(DartUI.ID_CONSOLE_VIEW);
     outputfolder.addPlaceholder(IPageLayout.ID_TASK_LIST);
     outputfolder.addPlaceholder(IProgressConstants.PROGRESS_VIEW_ID);
-
-    // Top right: Debugger View
-    IPlaceholderFolderLayout debuggerFolder = layout.createPlaceholderFolder(
-        TR,
-        IPageLayout.RIGHT,
-        0.70f,
-        editorArea);
-    debuggerFolder.addPlaceholder(DEBUGGER_VIEW_ID);
 
     outlinefolder.addPlaceholder(IPageLayout.ID_OUTLINE);
 
