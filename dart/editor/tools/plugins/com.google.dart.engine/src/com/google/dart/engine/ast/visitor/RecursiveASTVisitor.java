@@ -604,6 +604,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
   public R visitTryStatement(TryStatement node) {
     node.visitChildren(this);
     return null;

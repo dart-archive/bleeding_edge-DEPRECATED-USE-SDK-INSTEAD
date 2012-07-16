@@ -184,6 +184,8 @@ public interface ASTVisitor<R> {
 
   public R visitThrowStatement(ThrowStatement node);
 
+  public R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node);
+
   public R visitTryStatement(TryStatement node);
 
   public R visitTypeAlias(TypeAlias node);

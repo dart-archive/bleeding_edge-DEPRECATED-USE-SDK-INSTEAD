@@ -1,0 +1,119 @@
+/*
+ * Copyright 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+package com.google.dart.engine.ast;
+
+import com.google.dart.engine.scanner.Token;
+
+/**
+ * Instances of the class {@code TopLevelVariableDeclaration} represent the declaration of one or
+ * more top-level variables of the same type.
+ * 
+ * <pre>
+ * topLevelVariableDeclaration ::=
+ *     ('final' | 'const') type? staticFinalDeclarationList ';'
+ *   | variableDeclaration ';'
+ * </pre>
+ */
+public class TopLevelVariableDeclaration extends CompilationUnitMember {
+  /**
+   * The top-level variables being declared.
+   */
+  private VariableDeclarationList variableList;
+
+  /**
+   * The semicolon terminating the declaration.
+   */
+  private Token semicolon;
+
+  /**
+   * Initialize a newly created field declaration.
+   */
+  public TopLevelVariableDeclaration() {
+  }
+
+  /**
+   * Initialize a newly created top-level variable declaration.
+   * 
+   * @param comment the documentation comment associated with this member
+   * @param variableList the top-level variables being declared
+   * @param semicolon the semicolon terminating the declaration
+   */
+  public TopLevelVariableDeclaration(Comment comment, VariableDeclarationList variableList,
+      Token semicolon) {
+    super(comment);
+    this.variableList = becomeParentOf(variableList);
+    this.semicolon = semicolon;
+  }
+
+  @Override
+  public <R> R accept(ASTVisitor<R> visitor) {
+    return visitor.visitTopLevelVariableDeclaration(this);
+  }
+
+  @Override
+  public Token getBeginToken() {
+    Comment comment = getDocumentationComment();
+    if (comment != null) {
+      return comment.getBeginToken();
+    }
+    return variableList.getBeginToken();
+  }
+
+  @Override
+  public Token getEndToken() {
+    return semicolon;
+  }
+
+  /**
+   * Return the semicolon terminating the declaration.
+   * 
+   * @return the semicolon terminating the declaration
+   */
+  public Token getSemicolon() {
+    return semicolon;
+  }
+
+  /**
+   * Return the top-level variables being declared.
+   * 
+   * @return the top-level variables being declared
+   */
+  public VariableDeclarationList getVariables() {
+    return variableList;
+  }
+
+  /**
+   * Set the semicolon terminating the declaration to the given token.
+   * 
+   * @param semicolon the semicolon terminating the declaration
+   */
+  public void setSemicolon(Token semicolon) {
+    this.semicolon = semicolon;
+  }
+
+  /**
+   * Set the top-level variables being declared to the given list of variables.
+   * 
+   * @param variableList the top-level variables being declared
+   */
+  public void setVariables(VariableDeclarationList variableList) {
+    variableList = becomeParentOf(variableList);
+  }
+
+  @Override
+  public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChild(variableList, visitor);
+  }
+}

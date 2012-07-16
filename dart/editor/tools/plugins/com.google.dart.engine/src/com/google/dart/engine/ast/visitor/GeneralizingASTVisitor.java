@@ -381,14 +381,6 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
     return visitFormalParameter(node);
   }
 
-//  public R visitNativeDirective(NativeDirective node) {
-//    return visitDirective(node);
-//  }
-//
-//  public R visitNativeFunctionBody(NativeFunctionBody node) {
-//    return visitFunctionBody(node);
-//  }
-
   public R visitNode(ASTNode node) {
     node.visitChildren(this);
     return null;
@@ -518,6 +510,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   @Override
   public R visitThrowStatement(ThrowStatement node) {
     return visitStatement(node);
+  }
+
+  @Override
+  public R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    return visitCompilationUnitMember(node);
   }
 
   @Override

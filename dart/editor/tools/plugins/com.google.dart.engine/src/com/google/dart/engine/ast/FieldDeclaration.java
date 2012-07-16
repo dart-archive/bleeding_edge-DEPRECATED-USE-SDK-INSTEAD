@@ -112,12 +112,12 @@ public class FieldDeclaration extends TypeMember {
   }
 
   /**
-   * Return the fields being declared.
+   * Set the fields being declared to the given list of variables.
    * 
-   * @return the fields being declared
+   * @param fieldList the fields being declared
    */
-  public void setFields(VariableDeclarationList list) {
-    fieldList = becomeParentOf(list);
+  public void setFields(VariableDeclarationList fieldList) {
+    fieldList = becomeParentOf(fieldList);
   }
 
   /**

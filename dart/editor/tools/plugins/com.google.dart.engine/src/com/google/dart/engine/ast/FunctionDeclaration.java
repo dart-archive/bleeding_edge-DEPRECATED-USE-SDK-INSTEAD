@@ -29,6 +29,12 @@ import com.google.dart.engine.scanner.Token;
  */
 public class FunctionDeclaration extends CompilationUnitMember {
   /**
+   * The token representing the 'get' or 'set' keyword, or {@code null} if this is a function
+   * declaration rather than a property declaration.
+   */
+  private Token propertyKeyword;
+
+  /**
    * The function expression being wrapped.
    */
   private FunctionExpression functionExpression;
@@ -42,12 +48,14 @@ public class FunctionDeclaration extends CompilationUnitMember {
   /**
    * Initialize a newly created function declaration.
    * 
-   * @param returnType the return type of the function
-   * @param name the name of the function
-   * @param parameters the parameters associated with the function
-   * @param body the body of the function
+   * @param comment the documentation comment associated with this member
+   * @param propertyKeyword the token representing the 'get' or 'set' keyword
+   * @param functionExpression the function expression being wrapped
    */
-  public FunctionDeclaration(FunctionExpression functionExpression) {
+  public FunctionDeclaration(Comment comment, Token propertyKeyword,
+      FunctionExpression functionExpression) {
+    super(comment);
+    this.propertyKeyword = propertyKeyword;
     this.functionExpression = becomeParentOf(functionExpression);
   }
 
@@ -76,12 +84,31 @@ public class FunctionDeclaration extends CompilationUnitMember {
   }
 
   /**
+   * Return the token representing the 'get' or 'set' keyword, or {@code null} if this is a function
+   * declaration rather than a property declaration.
+   * 
+   * @return the token representing the 'get' or 'set' keyword
+   */
+  public Token getPropertyKeyword() {
+    return propertyKeyword;
+  }
+
+  /**
    * Set the function expression being wrapped to the given function expression.
    * 
    * @param functionExpression the function expression being wrapped
    */
   public void setFunctionExpression(FunctionExpression functionExpression) {
     functionExpression = becomeParentOf(functionExpression);
+  }
+
+  /**
+   * Set the token representing the 'get' or 'set' keyword to the given token.
+   * 
+   * @param propertyKeyword the token representing the 'get' or 'set' keyword
+   */
+  public void setPropertyKeyword(Token propertyKeyword) {
+    this.propertyKeyword = propertyKeyword;
   }
 
   @Override
