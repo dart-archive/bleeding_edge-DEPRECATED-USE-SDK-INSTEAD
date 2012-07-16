@@ -17,6 +17,7 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue.ValueCallback;
 import com.google.dart.tools.debug.core.source.ISourceLookup;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
+import com.google.dart.tools.debug.core.util.IVariableResolver;
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
 import com.google.dart.tools.debug.core.webkit.WebkitLocation;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
@@ -43,7 +44,7 @@ import java.util.concurrent.TimeUnit;
  * represents a Dart frame.
  */
 public class DartiumDebugStackFrame extends DartiumDebugElement implements IStackFrame,
-    ISourceLookup, IExceptionStackFrame {
+    ISourceLookup, IExceptionStackFrame, IVariableResolver {
   private IThread thread;
   private WebkitCallFrame webkitFrame;
   private boolean isExceptionStackFrame;
@@ -93,11 +94,13 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     return getThread().canTerminate();
   }
 
-  public DartiumDebugVariable findVariable(String varName) throws DebugException {
+  @Override
+  public IVariable findVariable(String varName) throws DebugException {
     IVariable[] variables = getVariables();
 
     for (int i = 0; i < variables.length; i++) {
-      DartiumDebugVariable var = (DartiumDebugVariable) variables[i];
+      IVariable var = variables[i];
+
       if (var.getName().equals(varName)) {
         return var;
       }

@@ -29,6 +29,7 @@ import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.ILineBreakpoint;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IValue;
+import org.eclipse.debug.core.model.IVariable;
 import org.eclipse.debug.core.sourcelookup.containers.LocalFileStorage;
 import org.eclipse.debug.ui.IDebugModelPresentation;
 import org.eclipse.debug.ui.IInstructionPointerPresentation;
@@ -132,15 +133,23 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
     return null;
   }
 
-  public String getFormattedValueText(DartiumDebugValue value) throws DebugException {
-    String valueString = "<unknown value>";
+  public String getFormattedValueText(IValue value) throws DebugException {
+    String valueString = null;
 
-    if (value != null) {
-      valueString = getValueText(value);
+    if (value instanceof DartiumDebugValue) {
+      DartiumDebugValue dartiumValue = (DartiumDebugValue) value;
+
+      valueString = getValueText(dartiumValue);
+    } else if (value != null) {
+      valueString = value.getValueString();
 
       if (valueString == null) {
         valueString = "<unknown value>";
       }
+    }
+
+    if (valueString == null) {
+      valueString = "<unknown value>";
     }
 
     return valueString;
@@ -160,8 +169,6 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
         return DartDebugUIPlugin.getImage("obj16/object_this.png");
       } else if (variable.isLibraryObject()) {
         return DartDebugUIPlugin.getImage("obj16/object_library.png");
-      } else if (variable.isListValue()) {
-        return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       } else {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       }
@@ -174,13 +181,10 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
         return DartDebugUIPlugin.getImage("obj16/object_this.png");
       } else if (variable.isLibraryObject()) {
         return DartDebugUIPlugin.getImage("obj16/object_library.png");
-      } else if (variable.isListValue()) {
-        return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       } else {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       }
     } else if (element instanceof DartBreakpoint) {
-      //return DartDebugUIPlugin.getImage("obj16/generic_element.gif");
       return null;
     } else {
       return null;
@@ -246,66 +250,25 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
     return null;
   }
 
-  /**
-   * Build the text for an {@link DartiumDebugValue}. This can be a long running call since we wait
-   * for the toString call to get back with the value.
-   */
-  public String getValueText(DartiumDebugValue value) throws DebugException {
-    boolean isPrimitive = value.isPrimitive();
-    boolean isArray = value.isList();
-
-    final String valueString[] = new String[1];
-
-    if (!isPrimitive) {
-
-      final CountDownLatch latch = new CountDownLatch(1);
-      this.getClass();
-
-      computeDetail(value, new IValueDetailListener() {
-        @Override
-        public void detailComputed(IValue value, String result) {
-          valueString[0] = result;
-          latch.countDown();
-        }
-      });
-      try {
-        latch.await(3, TimeUnit.SECONDS);
-      } catch (InterruptedException e) {
-        return null;
-      }
-      if (isArray) {
-        valueString[0] = "[" + valueString[0] + "]";
-      }
-      return valueString[0];
-
-    } else {
-      return value.getDisplayString();
-    }
-
-  }
-
-  public String getVariableText(DartiumDebugVariable var) {
-    String varLabel = "<unknown name>";
-    varLabel = var.getName();
-
-    DartiumDebugValue value = (DartiumDebugValue) var.getValue();
-
-    StringBuffer buff = new StringBuffer();
-    buff.append(varLabel);
-
-    String valueString = null;
+  public String getVariableText(IVariable var) {
     try {
-      valueString = getFormattedValueText(value);
+      StringBuffer buff = new StringBuffer();
+
+      buff.append(var.getName());
+
+      IValue value = var.getValue();
+
+      String valueString = getFormattedValueText(value);
+
+      if (valueString.length() != 0) {
+        buff.append(" = ");
+        buff.append(valueString);
+      }
+
+      return buff.toString();
     } catch (DebugException e) {
       return null;
     }
-
-    if (valueString.length() != 0) {
-      buff.append(" = "); //$NON-NLS-1$
-      buff.append(valueString);
-    }
-
-    return buff.toString();
   }
 
   @Override
@@ -321,6 +284,43 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
   @Override
   public void setAttribute(String attribute, Object value) {
 
+  }
+
+  /**
+   * Build the text for an {@link DartiumDebugValue}. This can be a long running call since we wait
+   * for the toString call to get back with the value.
+   */
+  protected String getValueText(DartiumDebugValue value) throws DebugException {
+    boolean isPrimitive = value.isPrimitive();
+    boolean isArray = value.isList();
+
+    final String valueString[] = new String[1];
+
+    if (!isPrimitive) {
+      final CountDownLatch latch = new CountDownLatch(1);
+
+      computeDetail(value, new IValueDetailListener() {
+        @Override
+        public void detailComputed(IValue value, String result) {
+          valueString[0] = result;
+          latch.countDown();
+        }
+      });
+
+      try {
+        latch.await(3, TimeUnit.SECONDS);
+      } catch (InterruptedException e) {
+        return null;
+      }
+
+      if (isArray) {
+        valueString[0] = "[" + valueString[0] + "]";
+      }
+
+      return valueString[0];
+    } else {
+      return value.getDisplayString();
+    }
   }
 
 }

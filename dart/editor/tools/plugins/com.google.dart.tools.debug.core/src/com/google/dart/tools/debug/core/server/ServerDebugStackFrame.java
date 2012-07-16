@@ -19,6 +19,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.debug.core.source.ISourceLookup;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
+import com.google.dart.tools.debug.core.util.IVariableResolver;
 
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -37,7 +38,7 @@ import java.util.List;
  * Dart frame.
  */
 public class ServerDebugStackFrame extends ServerDebugElement implements IStackFrame,
-    ISourceLookup, IExceptionStackFrame {
+    ISourceLookup, IExceptionStackFrame, IVariableResolver {
   private IThread thread;
   private VmCallFrame vmFrame;
   private boolean isExceptionStackFrame;
@@ -79,6 +80,22 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
   @Override
   public boolean canTerminate() {
     return getThread().canTerminate();
+  }
+
+  @Override
+  public IVariable findVariable(String varName) throws DebugException {
+    IVariable[] variables = getVariables();
+
+    for (int i = 0; i < variables.length; i++) {
+      IVariable var = variables[i];
+
+      if (var.getName().equals(varName)) {
+        return var;
+      }
+
+    }
+
+    return null;
   }
 
   @Override

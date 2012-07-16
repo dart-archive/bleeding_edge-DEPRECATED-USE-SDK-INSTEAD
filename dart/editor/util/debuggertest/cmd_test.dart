@@ -18,7 +18,6 @@ void main() {
 
   tempCat.performAction();
 
-  // TODO(devoncarew): cmd-line: rudimentary tooltips
   var dog = new Dog("Scooter");
 
   dog.performAction();
