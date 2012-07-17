@@ -101,6 +101,8 @@ public class Parser {
   private static final String RESOURCE_DIRECTIVE = "resource"; //$NON-NLS-1$
   private static final String SOURCE_DIRECTIVE = "source"; //$NON-NLS-1$
 
+  private static final ArrayList<Expression> EMPTY_EXPRESSION_LIST = new ArrayList<Expression>(0);
+
   /**
    * Initialize a newly created parser.
    * 
@@ -2105,19 +2107,28 @@ public class Parser {
   private ListLiteral parseListLiteral(Token modifier, TypeArgumentList typeArguments) {
     if (matches(TokenType.INDEX)) {
       Token leftBracket = new Token(TokenType.OPEN_SQUARE_BRACKET, currentToken.getOffset());
-      ArrayList<Expression> elements = new ArrayList<Expression>(0);
       Token rightBracket = new Token(TokenType.CLOSE_SQUARE_BRACKET, currentToken.getOffset() + 1);
       rightBracket.setNext(currentToken.getNext());
       leftBracket.setNext(rightBracket);
       currentToken.getPrevious().setNext(leftBracket);
       currentToken = currentToken.getNext();
-      return new ListLiteral(modifier, typeArguments, leftBracket, elements, rightBracket);
+      return new ListLiteral(
+          modifier,
+          typeArguments,
+          leftBracket,
+          EMPTY_EXPRESSION_LIST,
+          rightBracket);
     }
     Token leftBracket = expect(TokenType.OPEN_SQUARE_BRACKET);
-    ArrayList<Expression> elements = new ArrayList<Expression>();
     if (matches(TokenType.CLOSE_SQUARE_BRACKET)) {
-      return new ListLiteral(modifier, typeArguments, leftBracket, elements, getAndAdvance());
+      return new ListLiteral(
+          modifier,
+          typeArguments,
+          leftBracket,
+          EMPTY_EXPRESSION_LIST,
+          getAndAdvance());
     }
+    ArrayList<Expression> elements = new ArrayList<Expression>();
     elements.add(parseExpression());
     while (optional(TokenType.COMMA)) {
       if (matches(TokenType.CLOSE_SQUARE_BRACKET)) {
