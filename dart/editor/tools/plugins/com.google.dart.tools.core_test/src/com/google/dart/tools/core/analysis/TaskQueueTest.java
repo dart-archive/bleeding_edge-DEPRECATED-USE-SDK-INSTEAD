@@ -13,9 +13,10 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import junit.framework.TestCase;
+import com.google.dart.tools.core.AbstractDartCoreTest;
 
-public class TaskQueueTest extends TestCase {
+
+public class TaskQueueTest extends AbstractDartCoreTest {
 
   private TaskQueue queue;
 
@@ -257,8 +258,7 @@ public class TaskQueueTest extends TestCase {
     assertFalse(queue.waitForTask());
     queue.setAnalyzing(true);
 
-    WaitForTask wait = new WaitForTask(queue);
-    wait.start();
+    WaitForTask wait = new WaitForTask(queue).start();
     assertTrue(wait.isWaiting());
     wait.waitForResult(10);
     assertTrue(wait.isWaiting());
@@ -280,8 +280,7 @@ public class TaskQueueTest extends TestCase {
     assertTrue(queue.waitForTask());
     assertTrue(task == queue.removeNextTask());
 
-    WaitForTask wait = new WaitForTask(queue);
-    wait.start();
+    WaitForTask wait = new WaitForTask(queue).start();
     assertTrue(wait.isWaiting());
     task = NullTask.newRequestTask();
     queue.addLastTask(task);
@@ -300,8 +299,7 @@ public class TaskQueueTest extends TestCase {
     assertTrue(queue.waitForTask());
     assertTrue(task == queue.removeNextTask());
 
-    WaitForTask wait = new WaitForTask(queue);
-    wait.start();
+    WaitForTask wait = new WaitForTask(queue).start();
     assertTrue(wait.isWaiting());
     task = NullTask.newBackgroundTask();
     queue.addNewTask(task);

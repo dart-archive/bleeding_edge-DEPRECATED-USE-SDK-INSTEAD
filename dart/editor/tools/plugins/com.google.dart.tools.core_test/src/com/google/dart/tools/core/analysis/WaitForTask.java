@@ -41,7 +41,7 @@ public class WaitForTask {
     }
   }
 
-  public void start() {
+  public WaitForTask start() {
     synchronized (lock) {
       waiting = true;
       thread = new Thread(getClass().getSimpleName()) {
@@ -56,6 +56,7 @@ public class WaitForTask {
       };
       thread.start();
     }
+    return this;
   }
 
   /**
