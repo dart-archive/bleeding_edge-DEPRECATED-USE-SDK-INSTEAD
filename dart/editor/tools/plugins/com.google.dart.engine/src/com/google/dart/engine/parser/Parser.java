@@ -19,6 +19,7 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
@@ -384,6 +385,19 @@ public class Parser {
    */
   private boolean matches(TokenType type) {
     return currentToken.getType() == type;
+  }
+
+  /**
+   * Return {@code true} if the current token is a valid identifier. Valid identifiers include
+   * built-in identifiers (pseudo-keywords).
+   * 
+   * @return {@code true} if the current token is a valid identifier
+   */
+  private boolean matchesIdentifier() {
+    // TODO(brianwilkerson) Use this in most of the places where matches(TokenType.IDENTIFIER) is
+    // currently being used.
+    return matches(TokenType.IDENTIFIER)
+        || (matches(TokenType.KEYWORD) && ((KeywordToken) currentToken).getKeyword().isPseudoKeyword());
   }
 
   /**
@@ -2851,7 +2865,7 @@ public class Parser {
       return new SimpleIdentifier(getAndAdvance());
     }
     reportError(ParserErrorCode.EXPECTED_IDENTIFIER);
-    return null;
+    return new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, "", currentToken.getOffset()));
   }
 
   /**

@@ -84,6 +84,11 @@ public class ExpressionStatement extends Statement {
     return semicolon;
   }
 
+  @Override
+  public boolean isSynthetic() {
+    return expression.isSynthetic() && semicolon.isSynthetic();
+  }
+
   /**
    * Set the expression that comprises the statement to the given expression.
    * 

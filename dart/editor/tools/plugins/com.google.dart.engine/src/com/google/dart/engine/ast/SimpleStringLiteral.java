@@ -127,6 +127,11 @@ public class SimpleStringLiteral extends StringLiteral {
     return value.charAt(0) == '@';
   }
 
+  @Override
+  public boolean isSynthetic() {
+    return literal.isSynthetic();
+  }
+
   /**
    * Set the token representing the literal to the given token.
    * 

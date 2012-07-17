@@ -82,6 +82,11 @@ public class SimpleIdentifier extends Identifier {
     return token;
   }
 
+  @Override
+  public boolean isSynthetic() {
+    return token.isSynthetic();
+  }
+
   /**
    * Set the token representing the identifier to the given token.
    * 

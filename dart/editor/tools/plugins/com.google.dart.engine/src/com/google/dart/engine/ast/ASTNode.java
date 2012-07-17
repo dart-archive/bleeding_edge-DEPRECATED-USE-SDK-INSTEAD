@@ -97,6 +97,17 @@ public abstract class ASTNode {
   }
 
   /**
+   * Return {@code true} if this node is a synthetic node. A synthetic node is a node that was
+   * introduced by the parser in order to recover from an error in the code. Synthetic nodes always
+   * have a length of zero ({@code 0}).
+   * 
+   * @return {@code true} if this node is a synthetic node
+   */
+  public boolean isSynthetic() {
+    return false;
+  }
+
+  /**
    * Use the given visitor to visit all of the children of this node. The children will be visited
    * in source order.
    * 

@@ -89,6 +89,11 @@ public class BooleanLiteral extends Literal {
     return true;
   }
 
+  @Override
+  public boolean isSynthetic() {
+    return literal.isSynthetic();
+  }
+
   /**
    * Set the token representing the literal to the given token.
    * 
