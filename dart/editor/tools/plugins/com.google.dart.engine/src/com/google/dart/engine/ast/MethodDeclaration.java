@@ -31,7 +31,7 @@ import com.google.dart.engine.scanner.Token;
  *   | 'operator' {@link SimpleIdentifier operator}
  * </pre>
  */
-public class MethodDeclaration extends TypeMember {
+public class MethodDeclaration extends ClassMember {
   /**
    * The token representing the 'abstract' or 'static' keyword, or {@code null} if neither modifier
    * was specified.

@@ -13,7 +13,98 @@
  */
 package com.google.dart.engine.ast.visitor;
 
-import com.google.dart.engine.ast.*;
+import com.google.dart.engine.ast.ASTVisitor;
+import com.google.dart.engine.ast.AdjacentStrings;
+import com.google.dart.engine.ast.Annotation;
+import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.ArrayAccess;
+import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.BinaryExpression;
+import com.google.dart.engine.ast.Block;
+import com.google.dart.engine.ast.BlockFunctionBody;
+import com.google.dart.engine.ast.BooleanLiteral;
+import com.google.dart.engine.ast.BreakStatement;
+import com.google.dart.engine.ast.CatchClause;
+import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.Comment;
+import com.google.dart.engine.ast.CommentReference;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ConditionalExpression;
+import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.ConstructorFieldInitializer;
+import com.google.dart.engine.ast.ContinueStatement;
+import com.google.dart.engine.ast.DoStatement;
+import com.google.dart.engine.ast.DoubleLiteral;
+import com.google.dart.engine.ast.EmptyFunctionBody;
+import com.google.dart.engine.ast.EmptyStatement;
+import com.google.dart.engine.ast.ExpressionFunctionBody;
+import com.google.dart.engine.ast.ExpressionStatement;
+import com.google.dart.engine.ast.ExtendsClause;
+import com.google.dart.engine.ast.FieldDeclaration;
+import com.google.dart.engine.ast.FieldFormalParameter;
+import com.google.dart.engine.ast.ForEachStatement;
+import com.google.dart.engine.ast.ForStatement;
+import com.google.dart.engine.ast.FormalParameterList;
+import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionDeclarationStatement;
+import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.FunctionExpressionInvocation;
+import com.google.dart.engine.ast.FunctionTypedFormalParameter;
+import com.google.dart.engine.ast.IfStatement;
+import com.google.dart.engine.ast.ImplementsClause;
+import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.ImportExportCombinator;
+import com.google.dart.engine.ast.ImportHideCombinator;
+import com.google.dart.engine.ast.ImportPrefixCombinator;
+import com.google.dart.engine.ast.ImportShowCombinator;
+import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.ast.IntegerLiteral;
+import com.google.dart.engine.ast.InterpolationExpression;
+import com.google.dart.engine.ast.InterpolationString;
+import com.google.dart.engine.ast.IsExpression;
+import com.google.dart.engine.ast.Label;
+import com.google.dart.engine.ast.LabeledStatement;
+import com.google.dart.engine.ast.LibraryDirective;
+import com.google.dart.engine.ast.ListLiteral;
+import com.google.dart.engine.ast.MapLiteral;
+import com.google.dart.engine.ast.MapLiteralEntry;
+import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NamedExpression;
+import com.google.dart.engine.ast.NamedFormalParameter;
+import com.google.dart.engine.ast.NullLiteral;
+import com.google.dart.engine.ast.ParenthesizedExpression;
+import com.google.dart.engine.ast.PostfixExpression;
+import com.google.dart.engine.ast.PrefixExpression;
+import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.PropertyAccess;
+import com.google.dart.engine.ast.RedirectingConstructorInvocation;
+import com.google.dart.engine.ast.ResourceDirective;
+import com.google.dart.engine.ast.ReturnStatement;
+import com.google.dart.engine.ast.ScriptTag;
+import com.google.dart.engine.ast.SimpleFormalParameter;
+import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SimpleStringLiteral;
+import com.google.dart.engine.ast.SourceDirective;
+import com.google.dart.engine.ast.StringInterpolation;
+import com.google.dart.engine.ast.SuperConstructorInvocation;
+import com.google.dart.engine.ast.SuperExpression;
+import com.google.dart.engine.ast.SwitchCase;
+import com.google.dart.engine.ast.SwitchDefault;
+import com.google.dart.engine.ast.SwitchStatement;
+import com.google.dart.engine.ast.ThisExpression;
+import com.google.dart.engine.ast.ThrowStatement;
+import com.google.dart.engine.ast.TopLevelVariableDeclaration;
+import com.google.dart.engine.ast.TryStatement;
+import com.google.dart.engine.ast.TypeAlias;
+import com.google.dart.engine.ast.TypeArgumentList;
+import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.TypeParameter;
+import com.google.dart.engine.ast.TypeParameterList;
+import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.ast.VariableDeclarationStatement;
+import com.google.dart.engine.ast.WhileStatement;
 
 /**
  * Instances of the class {@code RecursiveASTVisitor} implement an AST visitor that will recursively
@@ -115,11 +206,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
     return null;
   }
 
-  public R visitCompilationUnitMember(CompilationUnitMember node) {
-    node.visitChildren(this);
-    return null;
-  }
-
   @Override
   public R visitConditionalExpression(ConditionalExpression node) {
     node.visitChildren(this);
@@ -138,29 +224,8 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
     return null;
   }
 
-  public R visitConstructorInitializer(ConstructorInitializer node) {
-    node.visitChildren(this);
-    return null;
-  }
-
   @Override
   public R visitContinueStatement(ContinueStatement node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  public R visitDeclaration(Declaration node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public R visitDefaultClause(DefaultClause node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  public R visitDirective(Directive node) {
     node.visitChildren(this);
     return null;
   }
@@ -185,11 +250,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitEmptyStatement(EmptyStatement node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  public R visitExpression(Expression node) {
     node.visitChildren(this);
     return null;
   }
@@ -230,11 +290,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
     return null;
   }
 
-  public R visitFormalParameter(FormalParameter node) {
-    node.visitChildren(this);
-    return null;
-  }
-
   @Override
   public R visitFormalParameterList(FormalParameterList node) {
     node.visitChildren(this);
@@ -243,11 +298,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitForStatement(ForStatement node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  public R visitFunctionBody(FunctionBody node) {
     node.visitChildren(this);
     return null;
   }
@@ -282,11 +332,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
     return null;
   }
 
-  public R visitIdentifier(Identifier node) {
-    node.visitChildren(this);
-    return null;
-  }
-
   @Override
   public R visitIfStatement(IfStatement node) {
     node.visitChildren(this);
@@ -295,11 +340,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitImplementsClause(ImplementsClause node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  public R visitImportCombinator(ImportCombinator node) {
     node.visitChildren(this);
     return null;
   }
@@ -347,23 +387,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitInterfaceDeclaration(InterfaceDeclaration node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public R visitInterfaceExtendsClause(InterfaceExtendsClause node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  public R visitInterpolationElement(InterpolationElement node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
   public R visitInterpolationExpression(InterpolationExpression node) {
     node.visitChildren(this);
     return null;
@@ -405,11 +428,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
     return null;
   }
 
-  public R visitLiteral(Literal node) {
-    node.visitChildren(this);
-    return null;
-  }
-
   @Override
   public R visitMapLiteral(MapLiteral node) {
     node.visitChildren(this);
@@ -442,16 +460,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitNamedFormalParameter(NamedFormalParameter node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  public R visitNode(ASTNode node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  public R visitNormalFormalParameter(NormalFormalParameter node) {
     node.visitChildren(this);
     return null;
   }
@@ -540,18 +548,8 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
     return null;
   }
 
-  public R visitStatement(Statement node) {
-    node.visitChildren(this);
-    return null;
-  }
-
   @Override
   public R visitStringInterpolation(StringInterpolation node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  public R visitStringLiteral(StringLiteral node) {
     node.visitChildren(this);
     return null;
   }
@@ -576,11 +574,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitSwitchDefault(SwitchDefault node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  public R visitSwitchMember(SwitchMember node) {
     node.visitChildren(this);
     return null;
   }
@@ -623,21 +616,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitTypeArguments(TypeArgumentList node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  public R visitTypeDeclaration(TypeDeclaration node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  public R visitTypedLiteral(TypedLiteral node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  public R visitTypeMember(TypeMember node) {
     node.visitChildren(this);
     return null;
   }

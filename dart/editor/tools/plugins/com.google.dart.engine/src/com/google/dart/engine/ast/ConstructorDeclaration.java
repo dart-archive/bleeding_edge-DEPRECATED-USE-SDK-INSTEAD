@@ -40,7 +40,7 @@ import java.util.List;
  *     ':' {@link ConstructorInitializer initializer} (',' {@link ConstructorInitializer initializer})*
  * </pre>
  */
-public class ConstructorDeclaration extends TypeMember {
+public class ConstructorDeclaration extends ClassMember {
   /**
    * The token for the 'factory' or 'const' keyword.
    */

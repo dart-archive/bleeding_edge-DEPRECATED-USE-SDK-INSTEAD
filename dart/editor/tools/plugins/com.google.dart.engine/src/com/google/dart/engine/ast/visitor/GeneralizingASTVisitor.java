@@ -89,7 +89,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitClassDeclaration(ClassDeclaration node) {
-    return visitTypeDeclaration(node);
+    return visitCompilationUnitMember(node);
   }
 
   @Override
@@ -118,7 +118,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitConstructorDeclaration(ConstructorDeclaration node) {
-    return visitTypeMember(node);
+    return visitClassMember(node);
   }
 
   @Override
@@ -136,11 +136,6 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   public R visitDeclaration(Declaration node) {
-    return visitNode(node);
-  }
-
-  @Override
-  public R visitDefaultClause(DefaultClause node) {
     return visitNode(node);
   }
 
@@ -189,7 +184,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitFieldDeclaration(FieldDeclaration node) {
-    return visitTypeMember(node);
+    return visitClassMember(node);
   }
 
   @Override
@@ -298,16 +293,6 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
     return visitLiteral(node);
   }
 
-  @Override
-  public R visitInterfaceDeclaration(InterfaceDeclaration node) {
-    return visitTypeDeclaration(node);
-  }
-
-  @Override
-  public R visitInterfaceExtendsClause(InterfaceExtendsClause node) {
-    return visitNode(node);
-  }
-
   public R visitInterpolationElement(InterpolationElement node) {
     return visitNode(node);
   }
@@ -363,7 +348,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitMethodDeclaration(MethodDeclaration node) {
-    return visitTypeMember(node);
+    return visitClassMember(node);
   }
 
   @Override
@@ -532,15 +517,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
     return visitNode(node);
   }
 
-  public R visitTypeDeclaration(TypeDeclaration node) {
-    return visitCompilationUnitMember(node);
-  }
-
   public R visitTypedLiteral(TypedLiteral node) {
     return visitLiteral(node);
   }
 
-  public R visitTypeMember(TypeMember node) {
+  public R visitClassMember(ClassMember node) {
     return visitDeclaration(node);
   }
 

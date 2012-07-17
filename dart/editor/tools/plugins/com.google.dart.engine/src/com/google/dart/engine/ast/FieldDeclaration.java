@@ -24,7 +24,7 @@ import com.google.dart.engine.scanner.Token;
  *     'static'? {@link VariableDeclarationList fieldList} ';'
  * </pre>
  */
-public class FieldDeclaration extends TypeMember {
+public class FieldDeclaration extends ClassMember {
   /**
    * The token representing the 'static' keyword, or {@code null} if the fields are not static.
    */

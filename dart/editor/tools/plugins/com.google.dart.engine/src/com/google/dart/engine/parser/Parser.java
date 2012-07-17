@@ -823,7 +823,7 @@ public class Parser {
       implementsClause = parseImplementsClause();
     }
     Token leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
-    List<TypeMember> members = new ArrayList<TypeMember>();
+    List<ClassMember> members = new ArrayList<ClassMember>();
     while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)
         && !matches(Keyword.CLASS)) {
       members.add(parseClassMember());
@@ -853,7 +853,7 @@ public class Parser {
    * 
    * @return the class member that was parsed
    */
-  private TypeMember parseClassMember() {
+  private ClassMember parseClassMember() {
     Comment comment = parseDocumentationComment();
     if (matches(Keyword.CONST)) {
       if (peekMatches(TokenType.IDENTIFIER)) {
@@ -2284,7 +2284,7 @@ public class Parser {
    *          declared
    * @return the method or constructor declaration that was parsed
    */
-  private TypeMember parseMethodOrConstructor(Comment comment, Token staticKeyword,
+  private ClassMember parseMethodOrConstructor(Comment comment, Token staticKeyword,
       TypeName returnType) {
     if (matches(TokenType.PERIOD)) {
       if (staticKeyword != null) {

@@ -56,8 +56,6 @@ public interface ASTVisitor<R> {
 
   public R visitContinueStatement(ContinueStatement node);
 
-  public R visitDefaultClause(DefaultClause node);
-
   public R visitDoStatement(DoStatement node);
 
   public R visitDoubleLiteral(DoubleLiteral node);
@@ -109,10 +107,6 @@ public interface ASTVisitor<R> {
   public R visitInstanceCreationExpression(InstanceCreationExpression node);
 
   public R visitIntegerLiteral(IntegerLiteral node);
-
-  public R visitInterfaceDeclaration(InterfaceDeclaration node);
-
-  public R visitInterfaceExtendsClause(InterfaceExtendsClause node);
 
   public R visitInterpolationExpression(InterpolationExpression node);
 
