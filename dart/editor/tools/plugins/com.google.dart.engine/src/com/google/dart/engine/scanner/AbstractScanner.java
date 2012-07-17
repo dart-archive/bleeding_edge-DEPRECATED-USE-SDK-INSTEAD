@@ -181,15 +181,17 @@ public abstract class AbstractScanner {
   }
 
   private void appendEofToken() {
+    Token eofToken;
     if (firstComment == null) {
-      tail = tail.setNext(new Token(TokenType.EOF, getOffset()));
+      eofToken = new Token(TokenType.EOF, getOffset());
     } else {
-      tail = tail.setNext(new TokenWithComment(TokenType.EOF, getOffset(), firstComment));
+      eofToken = new TokenWithComment(TokenType.EOF, getOffset(), firstComment);
       firstComment = null;
       lastComment = null;
     }
     // The EOF token points to itself so that there is always infinite look-ahead.
-    tail.setNext(tail);
+    eofToken.setNext(eofToken);
+    tail = tail.setNext(eofToken);
     if (!groupingStack.isEmpty()) {
       // TODO(brianwilkerson) Fix the ungrouped tokens?
     }

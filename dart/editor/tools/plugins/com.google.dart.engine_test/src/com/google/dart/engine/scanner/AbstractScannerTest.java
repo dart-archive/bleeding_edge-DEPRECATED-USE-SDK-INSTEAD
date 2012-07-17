@@ -533,6 +533,16 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.STAR_EQ, "*=");
   }
 
+  public void test_startAndEnd() {
+    Token token = scan("a");
+    Token previous = token.getPrevious();
+    assertEquals(token, previous.getNext());
+    assertEquals(previous, previous.getPrevious());
+    Token next = token.getNext();
+    assertEquals(next, next.getNext());
+    assertEquals(token, next.getPrevious());
+  }
+
   public void test_string_multi_double() throws Exception {
     assertToken(TokenType.STRING, "\"\"\"multi-line\nstring\"\"\"");
   }
