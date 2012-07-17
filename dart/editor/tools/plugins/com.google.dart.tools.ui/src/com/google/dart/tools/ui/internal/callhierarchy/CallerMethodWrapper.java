@@ -18,6 +18,7 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
@@ -66,6 +67,7 @@ public class CallerMethodWrapper extends MethodWrapper {
       case DartElement.FUNCTION_TYPE_ALIAS:
       case DartElement.METHOD:
       case DartElement.TYPE:
+      case DartElement.VARIABLE:
         return true;
       default:
         return false;
@@ -155,6 +157,10 @@ public class CallerMethodWrapper extends MethodWrapper {
           break;
         case DartElement.FUNCTION_TYPE_ALIAS:
           matches = searchEngine.searchReferences((DartFunctionTypeAlias) member, scope, f, monitor);
+          break;
+        case DartElement.VARIABLE:
+          DartVariableDeclaration varDecl = (DartVariableDeclaration) member;
+          matches = searchEngine.searchReferences(varDecl, scope, f, monitor);
           break;
         default:
           matches = new ArrayList<SearchMatch>();
