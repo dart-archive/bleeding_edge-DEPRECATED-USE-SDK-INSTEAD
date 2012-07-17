@@ -156,6 +156,11 @@ public class DartSdk {
   private static final int CONFIG_FILE_SUFFIX_LENGTH = CONFIG_FILE_SUFFIX.length();
 
   /**
+   * The name of the environment variable whose value is the path to the default Dart SDK directory.
+   */
+  private static final String DART_SDK_ENVIRONMENT_VARIABLE_NAME = "DART_SDK"; //$NON-NLS-1$
+
+  /**
    * The name of the file containing the Dartium executable on Linux.
    */
   private static final String DARTIUM_EXECUTABLE_NAME_LINUX = "chromium/chrome"; //$NON-NLS-1$
@@ -230,14 +235,18 @@ public class DartSdk {
   /**
    * Return the default directory for the Dart SDK, or {@code null} if the directory cannot be
    * determined (or does not exist). The default directory is provided by a {@link System} property
-   * named {@code com.google.dart.sdk}.
+   * named {@code com.google.dart.sdk}, or, if the property is not defined, an environment variable
+   * named {@code DART_SDK}.
    * 
    * @return the default directory for the Dart SDK
    */
   public static File getDefaultSdkDirectory() {
     String sdkProperty = System.getProperty(DEFAULT_DIRECTORY_PROPERTY_NAME);
     if (sdkProperty == null) {
-      return null;
+      sdkProperty = System.getenv(DART_SDK_ENVIRONMENT_VARIABLE_NAME);
+      if (sdkProperty == null) {
+        return null;
+      }
     }
     File sdkDirectory = new File(sdkProperty);
     if (!sdkDirectory.exists()) {
