@@ -41,6 +41,15 @@ public class Metric {
     this.printIndividualResults = printWhileLogging;
   }
 
+  public long getResultAverage() {
+    // compute average, being careful of division by zero
+    long resultAverage = 0;
+    if (resultCount != 0) {
+      resultAverage = resultTotal / resultCount;
+    }
+    return resultAverage;
+  }
+
   /**
    * Log the elapsed time
    * 
@@ -89,15 +98,10 @@ public class Metric {
   }
 
   public void printKeyValue() {
-    // compute average, being careful of division by zero
-    long resultAverage = 0;
-    if (resultCount != 0) {
-      resultAverage = resultTotal / resultCount;
-    }
     StringBuilder line = new StringBuilder();
     line.append(name);
     line.append(":");
-    line.append(resultAverage);
+    line.append(getResultAverage());
     System.out.println(line);
   }
 }

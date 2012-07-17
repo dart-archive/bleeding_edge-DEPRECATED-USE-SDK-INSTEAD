@@ -124,7 +124,15 @@ public class Performance {
 
       @Override
       public int compare(Metric m1, Metric m2) {
-        return m1.name.compareTo(m2.name);
+        long m1Average = m1.getResultAverage();
+        long m2Average = m2.getResultAverage();
+        if (m1Average < m2Average) {
+          return -1;
+        } else if (m1Average > m2Average) {
+          return 1;
+        } else {
+          return 0;
+        }
       }
     });
     for (Result result : allResults) {
