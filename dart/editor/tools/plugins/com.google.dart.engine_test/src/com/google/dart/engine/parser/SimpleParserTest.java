@@ -132,6 +132,22 @@ public class SimpleParserTest extends ParserTestCase {
 //    ASTNode expression = parse("parseExpressionWithoutCascade", "");
 //  }
 
+  public void fail_parsePrimaryExpression_function_arguments() throws Exception {
+    FunctionExpression expression = parse("parsePrimaryExpression", "(int i) => i + 1");
+    assertNull(expression.getReturnType());
+    assertNull(expression.getName());
+    assertNotNull(expression.getParameters());
+    assertNotNull(expression.getBody());
+  }
+
+  public void fail_parsePrimaryExpression_function_noArguments() throws Exception {
+    FunctionExpression expression = parse("parsePrimaryExpression", "() => 42");
+    assertNull(expression.getReturnType());
+    assertNull(expression.getName());
+    assertNotNull(expression.getParameters());
+    assertNotNull(expression.getBody());
+  }
+
   public void test_computeStringValue_escape_b() throws Exception {
     assertEquals("\b", computeStringValue("'\\b'"));
   }
@@ -2065,7 +2081,28 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(BigInteger.valueOf(Integer.parseInt(intLiteral)), literal.getValue());
   }
 
-  public void test_parsePrimaryExpression_lt() throws Exception {
+  public void test_parsePrimaryExpression_listLiteral() throws Exception {
+    ListLiteral literal = parse("parsePrimaryExpression", "[ ]");
+    assertNotNull(literal);
+  }
+
+  public void test_parsePrimaryExpression_listLiteral_index() throws Exception {
+    ListLiteral literal = parse("parsePrimaryExpression", "[]");
+    assertNotNull(literal);
+  }
+
+  public void test_parsePrimaryExpression_listLiteral_typed() throws Exception {
+    ListLiteral literal = parse("parsePrimaryExpression", "<A>[ ]");
+    assertNotNull(literal.getTypeArguments());
+    assertEquals(1, literal.getTypeArguments().getArguments().size());
+  }
+
+  public void test_parsePrimaryExpression_mapLiteral() throws Exception {
+    MapLiteral literal = parse("parsePrimaryExpression", "{}");
+    assertNotNull(literal);
+  }
+
+  public void test_parsePrimaryExpression_mapLiteral_typed() throws Exception {
     MapLiteral literal = parse("parsePrimaryExpression", "<A>{}");
     assertNotNull(literal.getTypeArguments());
     assertEquals(1, literal.getTypeArguments().getArguments().size());
@@ -2081,24 +2118,9 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(literal.getLiteral());
   }
 
-  public void test_parsePrimaryExpression_openCurlyBracket() throws Exception {
-    MapLiteral literal = parse("parsePrimaryExpression", "{}");
-    assertNotNull(literal);
-  }
-
-  public void test_parsePrimaryExpression_openParenthesis() throws Exception {
+  public void test_parsePrimaryExpression_parenthesized() throws Exception {
     ParenthesizedExpression expression = parse("parsePrimaryExpression", "()");
     assertNotNull(expression);
-  }
-
-  public void test_parsePrimaryExpression_squareBracket() throws Exception {
-    ListLiteral literal = parse("parsePrimaryExpression", "[ ]");
-    assertNotNull(literal);
-  }
-
-  public void test_parsePrimaryExpression_squareBracket_index() throws Exception {
-    ListLiteral literal = parse("parsePrimaryExpression", "[]");
-    assertNotNull(literal);
   }
 
   public void test_parsePrimaryExpression_string() throws Exception {
