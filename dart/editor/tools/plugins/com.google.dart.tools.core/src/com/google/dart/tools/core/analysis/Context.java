@@ -28,7 +28,7 @@ import java.util.Map.Entry;
 /**
  * The context (saved on disk, editor buffer, refactoring) in which analysis occurs.
  */
-class Context {
+public class Context {
 
   private static final String END_CACHE_TAG = "</end-cache>";
 
