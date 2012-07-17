@@ -23,26 +23,26 @@ import java.util.Iterator;
 public class TaskQueue {
 
   /**
-   * A queue of tasks to be performed. Lock against this object before accessing it.
+   * A queue of tasks to be performed. Synchronize against this object before accessing it.
    */
   private final ArrayList<Task> queue = new ArrayList<Task>();
 
   /**
-   * The index at which new tasks are inserted into the queue. Lock against {@link #queue} before
-   * accessing this field.
+   * The index at which new tasks are inserted into the queue. Synchronize against {@link #queue}
+   * before accessing this field.
    */
   private int newTaskIndex = 0;
 
   /**
    * The index at which the task being performed can insert new tasks. Tracking this allows new
-   * tasks to take priority and be first in the queue. Lock against {@link #queue} before accessing
-   * this field.
+   * tasks to take priority and be first in the queue. Synchronize against {@link #queue} before
+   * accessing this field.
    */
   private int subTaskIndex = 0;
 
   /**
-   * <code>true</code> if the background thread should continue executing analysis tasks. Lock
-   * against {@link #lock} before accessing this field.
+   * <code>true</code> if the background thread should continue executing analysis tasks.
+   * Synchronize against {@link #queue} before accessing this field.
    */
   private boolean analyzing;
 
@@ -95,15 +95,6 @@ public class TaskQueue {
       queue.add(subTaskIndex, task);
       subTaskIndex++;
     }
-  }
-
-  /**
-   * Answer the object used to synchronize and notify
-   * 
-   * @return the object (not <code>null</code>)
-   */
-  public Object getSharedLock() {
-    return queue;
   }
 
   /**

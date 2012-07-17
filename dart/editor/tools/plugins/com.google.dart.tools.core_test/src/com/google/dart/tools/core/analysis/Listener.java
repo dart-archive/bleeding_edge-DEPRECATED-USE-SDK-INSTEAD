@@ -13,27 +13,26 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.tools.core.internal.model.EditorLibraryManager;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
-
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.net.URI;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
 
 class Listener implements AnalysisListener, IdleListener {
-  private static final String LINE_SEPARATOR = System.getProperty("line.separator");
-
-  private boolean idle;
-
+  private final Object lock = new Object();
   private final HashMap<String, HashSet<String>> parsed = new HashMap<String, HashSet<String>>();
   private final HashSet<String> resolved = new HashSet<String>();
   private final HashSet<String> discarded = new HashSet<String>();
-  private final StringBuilder duplicates = new StringBuilder();
+
+  private final StringWriter duplicates = new StringWriter();
+
+  private boolean idle;
 
   private final ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
 
@@ -45,138 +44,295 @@ class Listener implements AnalysisListener, IdleListener {
 
   @Override
   public void discarded(AnalysisEvent event) {
-    discarded.add(event.getLibraryFile().getPath());
-    for (File file : event.getFiles()) {
-      discarded.add(file.getPath());
+    synchronized (lock) {
+      discarded.add(event.getLibraryFile().getPath());
+      for (File file : event.getFiles()) {
+        discarded.add(file.getPath());
+      }
+      lock.notifyAll();
     }
   }
 
   @Override
   public void idle(boolean idle) {
-    this.idle = idle;
-  }
-
-  public boolean isIdle() {
-    return idle;
+    synchronized (lock) {
+      this.idle = idle;
+      lock.notifyAll();
+    }
   }
 
   @Override
   public void parsed(AnalysisEvent event) {
-    String libFilePath = event.getLibraryFile().getPath();
-    HashSet<String> parsedInLib = parsed.get(libFilePath);
-    if (parsedInLib == null) {
-      parsedInLib = new HashSet<String>();
-      parsed.put(libFilePath, parsedInLib);
-    }
-    for (File file : event.getFiles()) {
-      if (!parsedInLib.add(file.getPath())) {
-        if (duplicates.length() > 0) {
-          duplicates.append(LINE_SEPARATOR);
-        }
-        duplicates.append("Duplicate parse: " + file + LINE_SEPARATOR + "  in " + libFilePath);
+    synchronized (lock) {
+      String libFilePath = event.getLibraryFile().getPath();
+      HashSet<String> parsedInLib = parsed.get(libFilePath);
+      if (parsedInLib == null) {
+        parsedInLib = new HashSet<String>();
+        parsed.put(libFilePath, parsedInLib);
       }
+      for (File file : event.getFiles()) {
+        if (!parsedInLib.add(file.getPath())) {
+          PrintWriter pw = new PrintWriter(duplicates);
+          pw.println("Duplicate parse: " + file);
+          pw.println("  in " + libFilePath);
+        }
+      }
+      errors.addAll(event.getErrors());
+      lock.notifyAll();
     }
-    errors.addAll(event.getErrors());
   }
 
   @Override
   public void resolved(AnalysisEvent event) {
-    String libPath = event.getLibraryFile().getPath();
-    if (!resolved.add(libPath)) {
-      if (duplicates.length() > 0) {
-        duplicates.append(LINE_SEPARATOR);
+    synchronized (lock) {
+      String libPath = event.getLibraryFile().getPath();
+      if (!resolved.add(libPath)) {
+        new PrintWriter(duplicates).println("Duplicate resolution: " + libPath);
       }
-      duplicates.append("Duplicate resolution: " + libPath);
+      errors.addAll(event.getErrors());
+      lock.notifyAll();
     }
-    errors.addAll(event.getErrors());
   }
 
-  void assertBundledLibrariesResolved() throws Exception {
-    ArrayList<String> notResolved = new ArrayList<String>();
-    EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
-    ArrayList<String> librarySpecs = new ArrayList<String>(libraryManager.getAllLibrarySpecs());
-    for (String urlSpec : librarySpecs) {
-      URI libraryUri = new URI(urlSpec);
-      File libraryFile = new File(libraryManager.resolveDartUri(libraryUri));
-      String libraryPath = libraryFile.getPath();
-      if (!resolved.contains(libraryPath)) {
-        notResolved.add(libraryPath);
+  void assertDiscarded(File... files) {
+    synchronized (lock) {
+      if (!wasDiscarded(files)) {
+        failDiscarded(files);
       }
     }
-    if (notResolved.size() > 0) {
-      AnalysisServerTest.fail("Expected these libraries to be resolved: " + notResolved);
+  }
+
+  void assertErrorCount(int expectedErrorCount) {
+    synchronized (lock) {
+      assertEquals(expectedErrorCount, errors.size());
     }
   }
 
   void assertNoDiscards() {
-    if (discarded.size() > 0) {
-      String errMsg = "Expected no discards, but found:";
-      for (String path : new TreeSet<String>(discarded)) {
-        errMsg += LINE_SEPARATOR + "  " + path;
+    synchronized (lock) {
+      if (discarded.size() > 0) {
+        StringWriter sw = new StringWriter(200);
+        PrintWriter pw = new PrintWriter(sw);
+        pw.println("Expected no discards, but found:");
+        for (String path : new TreeSet<String>(discarded)) {
+          pw.println("  " + path);
+        }
+        fail(sw.toString().trim());
       }
-      fail(errMsg);
     }
   }
 
   void assertNoDuplicates() {
-    if (duplicates.length() > 0) {
-      AnalysisServerTest.fail(duplicates.toString());
-    }
-  }
-
-  void assertWasDiscarded(File file) {
-    if (!discarded.contains(file.getPath())) {
-      String errMsg = "Expected discard" + LINE_SEPARATOR + "  " + file.getPath();
-      errMsg += LINE_SEPARATOR + "but found:";
-      for (String path : new TreeSet<String>(discarded)) {
-        errMsg += LINE_SEPARATOR + "  " + path;
+    synchronized (lock) {
+      if (duplicates.getBuffer().length() > 0) {
+        fail(duplicates.toString());
       }
-      fail(errMsg);
     }
   }
 
-  void assertWasNotParsed(File libraryFile, File file) {
-    HashSet<String> parsedInLib = parsed.get(libraryFile.getPath());
-    if (parsedInLib != null && parsedInLib.contains(file.getPath())) {
-      fail("Did not expect parse notification for " + file + "  in " + libraryFile);
+  void assertNoErrors() {
+    assertErrorCount(0);
+  }
+
+  void assertParsed(File libraryFile, File... dartFiles) {
+    synchronized (lock) {
+      if (!wasParsed(libraryFile, dartFiles)) {
+        failParsed(libraryFile, dartFiles);
+      }
     }
   }
 
-  void assertWasParsed(File libraryFile, File file) {
-    HashSet<String> parsedInLib = parsed.get(libraryFile.getPath());
-    if (parsedInLib == null || !parsedInLib.contains(file.getPath())) {
-      fail("Expected parse notification for " + file + LINE_SEPARATOR + "  in " + libraryFile
-          + " but found " + (parsedInLib != null ? parsedInLib : parsed));
+  void assertParsedCount(int expectedParseCount) {
+    assertEquals(expectedParseCount, getParsedCount());
+  }
+
+  void assertResolved(File... libraryFiles) {
+    synchronized (lock) {
+      if (!wasResolved(libraryFiles)) {
+        failResolved(libraryFiles);
+      }
     }
   }
 
-  void assertWasResolved(File libraryFile) {
-    if (!resolved.contains(libraryFile.getPath())) {
-      fail("Expected resolved notification for " + libraryFile + " but found " + resolved);
+  void assertResolvedCount(int expectedResolvedCount) {
+    synchronized (lock) {
+      assertEquals(expectedResolvedCount, resolved.size());
     }
   }
 
-  ArrayList<AnalysisError> getErrors() {
-    return errors;
+  int getErrorCount() {
+    synchronized (lock) {
+      return errors.size();
+    }
   }
 
   int getParsedCount() {
-    int count = 0;
-    for (HashSet<String> parsedInLib : parsed.values()) {
-      count += parsedInLib.size();
+    synchronized (lock) {
+      int count = 0;
+      for (HashSet<String> parsedInLib : parsed.values()) {
+        count += parsedInLib.size();
+      }
+      return count;
     }
-    return count;
   }
 
-  HashSet<String> getResolved() {
-    return resolved;
+  boolean isIdle() {
+    synchronized (lock) {
+      return idle;
+    }
   }
 
   void reset() {
     parsed.clear();
     resolved.clear();
     discarded.clear();
-    duplicates.setLength(0);
+    duplicates.getBuffer().setLength(0);
     errors.clear();
+  }
+
+  void waitForDiscarded(long milliseconds, File... files) {
+    synchronized (lock) {
+      long end = System.currentTimeMillis() + milliseconds;
+      while (!wasDiscarded(files)) {
+        long delta = end - System.currentTimeMillis();
+        if (delta <= 0) {
+          failDiscarded(files);
+          return;
+        }
+        try {
+          lock.wait(delta);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
+      }
+    }
+  }
+
+  void waitForParsed(long milliseconds, final File libraryFile, final File... dartFiles) {
+    synchronized (lock) {
+      long end = System.currentTimeMillis() + milliseconds;
+      while (!wasParsed(libraryFile, dartFiles)) {
+        long delta = end - System.currentTimeMillis();
+        if (delta <= 0) {
+          failParsed(libraryFile, dartFiles);
+          return;
+        }
+        try {
+          lock.wait(delta);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
+      }
+    }
+  }
+
+  void waitForResolved(long milliseconds, final File libraryFiles) {
+    synchronized (lock) {
+      long end = System.currentTimeMillis() + milliseconds;
+      while (!wasResolved(libraryFiles)) {
+        long delta = end - System.currentTimeMillis();
+        if (delta <= 0) {
+          failResolved(libraryFiles);
+          return;
+        }
+        try {
+          lock.wait(delta);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
+      }
+    }
+  }
+
+  boolean wasDiscarded(File... files) {
+    synchronized (lock) {
+      for (File file : files) {
+        if (!discarded.contains(file.getPath())) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  boolean wasParsed(File libraryFile, File... dartFiles) {
+    synchronized (lock) {
+      HashSet<String> parsedInLibrary = parsed.get(libraryFile.getPath());
+      if (parsedInLibrary == null) {
+        return false;
+      }
+      for (File dartFile : dartFiles) {
+        if (!parsedInLibrary.contains(dartFile.getPath())) {
+          return false;
+        }
+
+      }
+      return true;
+    }
+  }
+
+  boolean wasResolved(File... libraryFiles) {
+    synchronized (lock) {
+      for (File libraryFile : libraryFiles) {
+        if (!resolved.contains(libraryFile.getPath())) {
+          return false;
+        }
+
+      }
+      return true;
+    }
+  }
+
+  private void failDiscarded(File... files) {
+    StringWriter sw = new StringWriter(200);
+    PrintWriter pw = new PrintWriter(sw);
+    pw.println("Expected " + files.length + " files discarded, but found " + discarded.size());
+    if (files.length > 0) {
+      pw.println("  expected:");
+      for (File file : files) {
+        pw.println("    " + file.getPath());
+      }
+    }
+    if (discarded.size() > 0) {
+      pw.println("  found:");
+      for (String path : discarded) {
+        pw.println("    " + path);
+      }
+    }
+    fail(sw.toString().trim());
+  }
+
+  private void failParsed(File libraryFile, File... dartFiles) {
+    StringWriter sw = new StringWriter(200);
+    PrintWriter pw = new PrintWriter(sw);
+    HashSet<String> parsedInLibrary = parsed.get(libraryFile.getPath());
+    pw.println("Expected at least " + dartFiles.length + " parsed files in "
+        + libraryFile.getName() + ", but found " + parsedInLibrary.size());
+    pw.println("  " + libraryFile.getPath());
+    pw.println("  expected:");
+    for (File dartFile : dartFiles) {
+      pw.println("    " + dartFile.getPath());
+    }
+    pw.println("  found:");
+    for (String path : parsedInLibrary) {
+      pw.println("    " + path);
+    }
+    fail(sw.toString().trim());
+  }
+
+  private void failResolved(File... libraryFiles) {
+    StringWriter sw = new StringWriter(200);
+    PrintWriter pw = new PrintWriter(sw);
+    pw.println("Expected at least " + libraryFiles.length + " resolved libraries, but found "
+        + resolved.size());
+    pw.println("  expected:");
+    for (File libraryFile : libraryFiles) {
+      pw.println("    " + libraryFile.getPath());
+    }
+    pw.println("  found:");
+    for (String path : resolved) {
+      pw.println("    " + path);
+    }
+    fail(sw.toString().trim());
   }
 }

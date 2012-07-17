@@ -42,13 +42,6 @@ public class AnalysisServer {
   private static final String END_LIBRARIES_TAG = "</end-libraries>";
   private static final String END_QUEUE_TAG = "</end-queue>";
 
-  /**
-   * The maximum amount of time (milliseconds) that the requesting thread should wait for the
-   * background thread to switch from an idle state to a running state and notify others that it is
-   * no longer idle.
-   */
-  private static final int MAX_WAIT_FOR_RUNNING = 5000;
-
   private static PerformanceListener performanceListener;
 
   public static PerformanceListener getPerformanceListener() {
@@ -59,8 +52,6 @@ public class AnalysisServer {
     AnalysisServer.performanceListener = performanceListener;
   }
 
-  private IdleListener[] idleListeners = new IdleListener[0];
-
   /**
    * The target (VM, Dartium, JS) against which user libraries are resolved. Targets are immutable
    * and can be accessed on any thread.
@@ -68,29 +59,20 @@ public class AnalysisServer {
   private final EditorLibraryManager libraryManager;
 
   /**
-   * The library files being analyzed by the receiver. Lock against {@link #queue} before accessing
-   * this object.
+   * The library files being analyzed by the receiver. Synchronize against this object before
+   * accessing it.
    */
   private final ArrayList<File> libraryFiles = new ArrayList<File>();
 
   /**
-   * The outstanding tasks to be performed. Lock against this object before accessing it.
+   * The outstanding tasks to be performed.
    */
-  private final ArrayList<Task> queue = new ArrayList<Task>();
+  private final TaskQueue queue = new TaskQueue();
 
   /**
-   * The index at which the task being performed can insert new tasks. Tracking this allows new
-   * tasks to take priority and be first in the queue. Lock against {@link #queue} before accessing
-   * this field.
+   * The object performing analysis tasks
    */
-  private int queueIndex = 0;
-
-  /**
-   * The background thread on which analysis tasks are performed or <code>null</code> if the
-   * background process has not been started yet. Lock against {@link #queue} before accessing this
-   * field.
-   */
-  private Thread backgroundThread;
+  private final TaskProcessor processor = new TaskProcessor(queue);
 
   /**
    * A context representing what is "saved on disk". Contents of this object should only be accessed
@@ -99,28 +81,17 @@ public class AnalysisServer {
   private final SavedContext savedContext = new SavedContext(this);
 
   /**
+   * A singleton for background analysis of the savedContext
+   */
+  private final AnalyzeContextTask savedContextAnalysisTask = new AnalyzeContextTask(
+      this,
+      savedContext);
+
+  /**
    * A context representing what is "currently being edited". Contents of this object should only be
    * accessed on the background thread.
    */
   private final EditContext editContext = new EditContext(this, savedContext);
-
-  /**
-   * <code>true</code> if the background thread should continue executing analysis tasks. Lock
-   * against {@link #queue} before accessing this field.
-   */
-  private boolean analyze;
-
-  /**
-   * Flag indicating whether the server is waiting for more tasks to be queued. Lock against
-   * {@link #queue} before accessing this field.
-   */
-  private boolean isServerIdle = false;
-
-  /**
-   * A flag used by {@link #waitForRunning()} to determine if the background thread has run. Lock
-   * against {@link #queue} before accessing this field.
-   */
-  private boolean wasRunning = false;
 
   /**
    * Create a new instance that processes analysis tasks on a background thread
@@ -134,17 +105,14 @@ public class AnalysisServer {
     this.libraryManager = libraryManager;
   }
 
+  /**
+   * Add an object to be notified when there are no tasks queued (or analyzing is <code>false</code>
+   * ) and no tasks being performed.
+   * 
+   * @param listener the object to be notified
+   */
   public void addIdleListener(IdleListener listener) {
-    for (int i = 0; i < idleListeners.length; i++) {
-      if (idleListeners[i] == listener) {
-        return;
-      }
-    }
-    int oldLen = idleListeners.length;
-    IdleListener[] newListeners = new IdleListener[oldLen + 1];
-    System.arraycopy(idleListeners, 0, newListeners, 0, oldLen);
-    newListeners[oldLen] = listener;
-    idleListeners = newListeners;
+    processor.addIdleListener(listener);
   }
 
   /**
@@ -160,7 +128,7 @@ public class AnalysisServer {
     if (libraryFile.isDirectory()) {
       throw new IllegalArgumentException("Cannot analyze a directory: " + libraryFile);
     }
-    synchronized (queue) {
+    synchronized (libraryFiles) {
       if (!libraryFiles.contains(libraryFile)) {
         libraryFiles.add(libraryFile);
         // Append analysis task to the end of the queue so that any user requests take precedence
@@ -189,7 +157,7 @@ public class AnalysisServer {
     // If this is a dart file, then discard the library
 
     if (file.isFile() || (!file.exists() && DartCore.isDartLikeFileName(file.getName()))) {
-      synchronized (queue) {
+      synchronized (libraryFiles) {
         libraryFiles.remove(file);
         queueNewTask(new DiscardLibraryTask(this, savedContext, file));
       }
@@ -199,7 +167,7 @@ public class AnalysisServer {
     // Otherwise, discard all libraries in the specified directory tree
 
     String prefix = file.getAbsolutePath() + File.separator;
-    synchronized (queue) {
+    synchronized (libraryFiles) {
       Iterator<File> iter = libraryFiles.iterator();
       while (iter.hasNext()) {
         File libraryFile = iter.next();
@@ -230,9 +198,7 @@ public class AnalysisServer {
    * background thread is waiting for new tasks to be queued.
    */
   public boolean isIdle() {
-    synchronized (queue) {
-      return isServerIdle;
-    }
+    return processor.isIdle();
   }
 
   /**
@@ -273,15 +239,7 @@ public class AnalysisServer {
   }
 
   public void removeIdleListener(IdleListener listener) {
-    int oldLen = idleListeners.length;
-    for (int i = 0; i < oldLen; i++) {
-      if (idleListeners[i] == listener) {
-        IdleListener[] newListeners = new IdleListener[oldLen - 1];
-        System.arraycopy(idleListeners, 0, newListeners, 0, i);
-        System.arraycopy(idleListeners, i + 1, newListeners, i, oldLen - 1 - i);
-        return;
-      }
-    }
+    processor.removeIdleListener(listener);
   }
 
   /**
@@ -303,66 +261,8 @@ public class AnalysisServer {
    * Start the background analysis process if it has not already been started
    */
   public void start() {
-    synchronized (queue) {
-      if (analyze) {
-        return;
-      }
-      analyze = true;
-      isServerIdle = false;
-      backgroundThread = new Thread(new Runnable() {
-
-        @Override
-        public void run() {
-          try {
-            while (true) {
-
-              // Running :: Execute tasks from the queue
-              while (true) {
-                Task task;
-                synchronized (queue) {
-                  // if no longer analyzing or queue is empty, then switch to idle state
-                  if (!analyze || queue.isEmpty()) {
-                    break;
-                  }
-                  queueIndex = 0;
-                  task = queue.remove(0);
-                }
-                try {
-                  task.perform();
-                } catch (Throwable e) {
-                  DartCore.logError("Analysis Task Exception", e);
-                }
-              }
-
-              // Notify :: Changing state from Running to Idle
-              notifyAndSetServerIdle(true);
-
-              // Idle :: Wait for new tasks on the queue
-              synchronized (queue) {
-                // while analyzing wait for new tasks
-                while (analyze && queue.isEmpty()) {
-                  try {
-                    queue.wait();
-                  } catch (InterruptedException e) {
-                    //$FALL-THROUGH$
-                  }
-                }
-                // if no longer analyzing, then exit background thread
-                if (!analyze) {
-                  break;
-                }
-              }
-
-              // Notify :: Changing state from Idle to Running
-              notifyAndSetServerIdle(false);
-
-            }
-          } catch (Throwable e) {
-            DartCore.logError("Analysis Server Exception", e);
-          }
-        }
-      }, getClass().getSimpleName());
-      backgroundThread.start();
+    if (!queue.setAnalyzing(true)) {
+      processor.start();
     }
   }
 
@@ -370,13 +270,8 @@ public class AnalysisServer {
    * Signal the background analysis thread to stop and wait for up to 5 seconds for it to do so.
    */
   public void stop() {
-    synchronized (queue) {
-      if (!analyze) {
-        return;
-      }
-      analyze = false;
-      queue.notifyAll();
-      if (!waitForIdle(5000)) {
+    if (queue.setAnalyzing(false)) {
+      if (!processor.waitForIdle(5000)) {
         DartCore.logError("Gave up waiting for " + getClass().getSimpleName() + " to stop");
       }
     }
@@ -390,7 +285,7 @@ public class AnalysisServer {
    * @return <code>true</code> if the receiver is idle
    */
   public boolean waitForIdle(long milliseconds) {
-    return waitForIdle(true, milliseconds);
+    return processor.waitForIdle(milliseconds);
   }
 
   /**
@@ -419,10 +314,6 @@ public class AnalysisServer {
     }
   }
 
-  IdleListener[] getIdleListeners() {
-    return idleListeners;
-  }
-
   EditorLibraryManager getLibraryManager() {
     return libraryManager;
   }
@@ -433,7 +324,7 @@ public class AnalysisServer {
    * @return an array of files (not <code>null</code>, contains no <code>null</code>s)
    */
   File[] getTrackedLibraryFiles() {
-    synchronized (queue) {
+    synchronized (libraryFiles) {
       return libraryFiles.toArray(new File[libraryFiles.size()]);
     }
   }
@@ -443,18 +334,9 @@ public class AnalysisServer {
    * {@link AnalyzeContextTask} to the end of the queue if it has not already been added.
    */
   void queueAnalyzeContext() {
-    synchronized (queue) {
-      int index = queue.size() - 1;
-      if (index >= 0) {
-        Task lastTask = queue.get(index);
-        if (lastTask instanceof AnalyzeContextTask) {
-          return;
-        }
-      } else {
-        index = 0;
-      }
-      queueTask(index, new AnalyzeContextTask(this, savedContext));
-    }
+    queue.addLastTask(savedContextAnalysisTask);
+    // Give background thread a chance to run
+    Thread.yield();
   }
 
   /**
@@ -462,16 +344,9 @@ public class AnalysisServer {
    * performed... use {@link #queueSubTask(Task)} instead.
    */
   void queueNewTask(Task task) {
-    synchronized (queue) {
-      int index = 0;
-      if (!task.isPriority()) {
-        while (index < queue.size() && queue.get(index).isPriority()) {
-          index++;
-        }
-      }
-      queueIndex++;
-      queueTask(index, task);
-    }
+    queue.addNewTask(task);
+    // Give background thread a chance to run
+    Thread.yield();
   }
 
   /**
@@ -479,16 +354,7 @@ public class AnalysisServer {
    * priority of new tasks that have been queued while the current task is executing
    */
   void queueSubTask(Task subtask) {
-    if (Thread.currentThread() != backgroundThread) {
-      throw new IllegalStateException();
-    }
-    synchronized (queue) {
-      if (!analyze) {
-        return;
-      }
-      queue.add(queueIndex, subtask);
-      queueIndex++;
-    }
+    queue.addSubTask(subtask);
   }
 
   /**
@@ -497,17 +363,7 @@ public class AnalysisServer {
    * This should only be called from the background thread.
    */
   void removeAllBackgroundAnalysisTasks() {
-    if (Thread.currentThread() != backgroundThread) {
-      throw new IllegalStateException();
-    }
-    synchronized (queue) {
-      Iterator<Task> iter = queue.iterator();
-      while (iter.hasNext()) {
-        if (iter.next().isBackgroundAnalysis()) {
-          iter.remove();
-        }
-      }
-    }
+    queue.removeBackgroundTasks();
   }
 
   /**
@@ -559,9 +415,7 @@ public class AnalysisServer {
    */
   @SuppressWarnings("unused")
   private boolean isLibraryCached(File file) {
-    synchronized (queue) {
-      return savedContext.getCachedLibrary(file) != null;
-    }
+    return savedContext.getCachedLibrary(file) != null;
   }
 
   /**
@@ -571,40 +425,8 @@ public class AnalysisServer {
    */
   @SuppressWarnings("unused")
   private boolean isLibraryResolved(File file) {
-    synchronized (queue) {
-      Library library = savedContext.getCachedLibrary(file);
-      return library != null && library.getLibraryUnit() != null;
-    }
-  }
-
-  private void notifyAndSetServerIdle(boolean idle) {
-    for (IdleListener listener : getIdleListeners()) {
-      try {
-        listener.idle(idle);
-      } catch (Throwable e) {
-        DartCore.logError("Exception during idle notification", e);
-      }
-    }
-    synchronized (queue) {
-      isServerIdle = idle;
-      if (!idle) {
-        wasRunning = true;
-      }
-      queue.notifyAll();
-    }
-    Thread.yield();
-  }
-
-  /**
-   * Append a task to the queue and wait for the background task to notify listeners that it is no
-   * longer idle.
-   */
-  private void queueTask(int index, Task task) {
-    synchronized (queue) {
-      queue.add(index, task);
-      queue.notifyAll();
-      waitForRunning();
-    }
+    Library library = savedContext.getCachedLibrary(file);
+    return library != null && library.getLibraryUnit() != null;
   }
 
   /**
@@ -614,10 +436,8 @@ public class AnalysisServer {
    * @return <code>true</code> if successful
    */
   private boolean readCache(Reader reader) throws IOException {
-    synchronized (queue) {
-      if (analyze) {
-        throw new IllegalStateException();
-      }
+    if (queue.isAnalyzing()) {
+      throw new IllegalStateException();
     }
     CacheReader cacheReader = new CacheReader(reader);
 
@@ -648,7 +468,7 @@ public class AnalysisServer {
     }
 
     // Queued tasks
-    int index = 0;
+    boolean tasksAdded = false;
     while (true) {
       String path = cacheReader.readString();
       if (path == null) {
@@ -657,16 +477,17 @@ public class AnalysisServer {
       if (path.equals(END_QUEUE_TAG)) {
         break;
       }
+      tasksAdded = true;
       if (path.equals(ANALYZE_CONTEXT_TAG)) {
         queueAnalyzeContext();
         continue;
       }
       File libraryFile = new File(path);
-      queue.add(index++, new AnalyzeLibraryTask(this, savedContext, libraryFile, null));
+      queue.addLastTask(new AnalyzeLibraryTask(this, savedContext, libraryFile, null));
     }
 
     // If no queued tasks, then at minimum resolve dart:core
-    if (queue.size() == 0) {
+    if (!tasksAdded) {
       URI dartCoreUri = null;
       try {
         dartCoreUri = new URI("dart:core");
@@ -676,7 +497,7 @@ public class AnalysisServer {
       }
       File dartCoreFile = AnalysisUtility.toFile(this, dartCoreUri);
       if (dartCoreFile != null) {
-        queue.add(index++, new AnalyzeLibraryTask(this, savedContext, dartCoreFile, null));
+        queue.addLastTask(new AnalyzeLibraryTask(this, savedContext, dartCoreFile, null));
       }
     }
 
@@ -684,72 +505,12 @@ public class AnalysisServer {
   }
 
   /**
-   * Wait up to the specified number of milliseconds for the receiver to have the specified idle
-   * state. If the specified number is less than or equal to zero, then this method returns
-   * immediately.
-   * 
-   * @param idleState <code>true</code> if waiting for the receiver to be idle or <code>false</code>
-   *          if waiting for the receiver to be running
-   * @param milliseconds the number of milliseconds to wait for idle
-   * @return <code>true</code> if the receiver is idle
-   */
-  private boolean waitForIdle(boolean idleState, long milliseconds) {
-    synchronized (queue) {
-      long end = System.currentTimeMillis() + milliseconds;
-      while (isServerIdle != idleState) {
-        long delta = end - System.currentTimeMillis();
-        if (delta <= 0) {
-          return false;
-        }
-        try {
-          queue.wait(delta);
-        } catch (InterruptedException e) {
-          //$FALL-THROUGH$
-        }
-      }
-      return true;
-    }
-  }
-
-  /**
-   * Wait for the background thread to notify listeners that it is no longer idle.
-   */
-  private void waitForRunning() {
-    synchronized (queue) {
-      if (!analyze || !isServerIdle) {
-        return;
-      }
-      long end = System.currentTimeMillis() + MAX_WAIT_FOR_RUNNING;
-      wasRunning = false;
-      while (!wasRunning) {
-        long delta = end - System.currentTimeMillis();
-        if (delta <= 0) {
-          try {
-            throw new RuntimeException(
-                "Gave up waiting for background thread to run after adding task");
-          } catch (Exception e) {
-            DartCore.logError(e);
-          }
-          return;
-        }
-        try {
-          queue.wait(delta);
-        } catch (InterruptedException e) {
-          //$FALL-THROUGH$
-        }
-      }
-    }
-  }
-
-  /**
    * Write the cached information to the specified file. This method must be called after
    * {@link #stop()} has been called when the server is not running.
    */
   private void writeCache(Writer writer) {
-    synchronized (queue) {
-      if (analyze) {
-        throw new IllegalStateException();
-      }
+    if (queue.isAnalyzing()) {
+      throw new IllegalStateException();
     }
     CacheWriter cacheWriter = new CacheWriter(writer);
     cacheWriter.writeString(CACHE_V3_TAG);
@@ -757,7 +518,7 @@ public class AnalysisServer {
 
     savedContext.writeCache(cacheWriter);
 
-    for (Task task : queue) {
+    for (Task task : queue.getTasks()) {
       if (task instanceof AnalyzeLibraryTask) {
         AnalyzeLibraryTask libTask = (AnalyzeLibraryTask) task;
         cacheWriter.writeString(libTask.getRootLibraryFile().getPath());
