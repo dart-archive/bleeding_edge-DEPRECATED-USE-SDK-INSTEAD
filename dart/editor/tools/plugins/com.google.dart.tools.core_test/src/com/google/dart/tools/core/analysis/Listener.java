@@ -208,6 +208,25 @@ class Listener implements AnalysisListener, IdleListener {
     }
   }
 
+  void waitForIdle(long milliseconds) {
+    synchronized (lock) {
+      long end = System.currentTimeMillis() + milliseconds;
+      while (!idle) {
+        long delta = end - System.currentTimeMillis();
+        if (delta <= 0) {
+          fail("Expected idle notification");
+          return;
+        }
+        try {
+          lock.wait(delta);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
+      }
+    }
+
+  }
+
   void waitForParsed(long milliseconds, final File libraryFile, final File... dartFiles) {
     synchronized (lock) {
       long end = System.currentTimeMillis() + milliseconds;

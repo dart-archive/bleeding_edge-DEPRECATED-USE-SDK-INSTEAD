@@ -329,8 +329,8 @@ public class AnalysisServerTest extends TestCase {
         server.getSavedContext().resolve(libFile, FIVE_MINUTES_MS);
         server.stop();
 
-        assertTrue(server.isIdle());
-        assertTrue(listener.isIdle());
+        assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
+        listener.waitForIdle(FIVE_MINUTES_MS);
 
         assertQueuedTasks();
         server.getSavedContext().resolve(libFile, null);
@@ -373,14 +373,14 @@ public class AnalysisServerTest extends TestCase {
       public void run(File tempDir) throws Exception {
         File libFile = test_analyzeLibrary(tempDir);
 
-        assertTrackedLibraryFiles(libFile);
-        assertTrue(isLibraryResolved(libFile));
+        waitForIdle();
         assertQueuedTasks();
 
         StringWriter writer = new StringWriter(5000);
         server.stop();
-        server.getSavedContext().resolve(new File("someFile.dart").getAbsoluteFile(), null);
-        server.getSavedContext().resolve(new File("otherFile.dart").getAbsoluteFile(), null);
+        SavedContext savedContext = server.getSavedContext();
+        savedContext.resolve(new File("someFile.dart").getAbsoluteFile(), null);
+        savedContext.resolve(new File("otherFile.dart").getAbsoluteFile(), null);
         writeCache(writer);
 
         initServer(new StringReader(writer.toString()));
@@ -431,14 +431,11 @@ public class AnalysisServerTest extends TestCase {
         writeCache(writer);
 
         initServer(new StringReader(writer.toString()));
-        assertQueuedTasks("AnalyzeLibraryTask"); // dart:core
-        server.start();
-        waitForIdle();
 
+        assertQueuedTasks("AnalyzeLibraryTask"); // dart:core
         assertTrackedLibraryFiles(libFile);
         assertTrue(isLibraryCached(libFile));
         assertFalse(isLibraryResolved(libFile));
-        assertQueuedTasks();
       }
     });
   }
