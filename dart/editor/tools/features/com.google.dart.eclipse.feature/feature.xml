@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="com.google.dart.tools.feature"
+      id="com.google.dart.eclipse.feature"
       label="%featureName"
       version="0.1.0.qualifier"
       provider-name="%providerName"
       plugin="com.google.dart.tools.ui">
 
-   <description url="http://www.example.com/description">
+   <description>
       %description
    </description>
 
-   <copyright url="http://www.example.com/copyright">
+   <copyright>
       %copyright
    </copyright>
 
-   <license url="http://www.example.com/license">
+   <license url="%licenseUrl">
       %license
    </license>
 
@@ -62,6 +62,18 @@
 
    <plugin
          id="com.google.dart.tools.search"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="com.google.dart.eclipse.core"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="com.google.dart.eclipse.ui"
          download-size="0"
          install-size="0"
          version="0.0.0"/>

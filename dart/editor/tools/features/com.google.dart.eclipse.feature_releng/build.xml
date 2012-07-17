@@ -1,0 +1,213 @@
+<project name="Dart Editor for Eclipse" default="build">
+
+    <!-- init -->
+    <target name="init">
+        <fail message="please create a ${user.name}.properties file in build-settings/ to config this build (see sample.properties)">
+            <condition>
+                <not>
+                    <available file="build-settings/${user.name}.properties" type="file" />
+                </not>
+            </condition>
+        </fail>
+        
+        <property file="build-settings/${user.name}.properties" />
+		
+        <fail unless="build.dir" message="build.dir property is required"/>
+        <mkdir dir="${build.dir}"/>
+        
+        <fail unless="source.dir" message="source.dir property is required"/>
+        <fail message="source.dir does not exist: ${source.dir}">
+            <condition>
+                <not>
+                    <available file="${source.dir}" type="dir" />
+                </not>
+            </condition>
+        </fail>
+    </target>
+
+    <!-- clean -->
+    <target name="clean" depends="init">
+        <delete dir="${build.dir}/I.build"/>
+        <delete dir="${build.dir}/buildRepo"/>
+    	  
+        <delete dir="${build.dir}/com.google.dart.eclipse.feature_releng"/>
+        <delete dir="${build.dir}/features"/>
+        <delete dir="${build.dir}/plugins"/>
+    	  
+        <delete dir="${build.dir}/workspace"/>
+    </target>
+    
+    <!-- copysources -->
+    <target name="copysources" depends="init">
+    	
+      <!-- plugin and feature source -->
+      	
+    	<copy todir="${build.dir}/plugins/">
+          <fileset dir="${source.dir}/plugins">
+              <exclude name="*_test/**" />
+              <exclude name="**/bin/**" />
+          </fileset>
+    	</copy>
+    	
+      <copy todir="${build.dir}/features/">
+          <fileset dir="${source.dir}/features">
+              <exclude name="*_test/**" />
+              <exclude name="**/bin/**" />
+          </fileset>
+      </copy> 
+    	
+    	<!-- extra dependencies... -->
+    	
+      <property name="source.root" 
+                location="${source.dir}/../.." /> 	
+      <property name="third_party.dir" 
+                location="${source.root}/third_party" />
+    	
+    	<!-- compiler.js dependencies-->
+    	
+    	<property name="dart.compiler.js.dir" 
+    	          location="${build.dir}/plugins/com.google.dart.compiler.js" />
+    	      
+    	<mkdir dir="${dart.compiler.js.dir}/src-compiler" />
+    	<copy todir="${dart.compiler.js.dir}/src-compiler">
+    	    <fileset dir="${source.root}/compiler/java" />
+    	</copy>
+    	
+      <mkdir dir="${dart.compiler.js.dir}/third_party" />
+      <copy todir="${dart.compiler.js.dir}/third_party">
+          <fileset dir="${third_party.dir}">
+              <include name="args4j/**" />
+              <include name="guava/**" />
+              <include name="hamcrest/**" />
+              <include name="json/**" />
+          </fileset>
+      </copy>
+    	
+    	
+      <!-- dart.engine dependencies -->
+    	
+      <property name="dart.engine.dir" 
+                location="${build.dir}/plugins/com.google.dart.engine" />
+    	
+      <mkdir dir="${dart.engine.dir}/third_party" />
+      <copy todir="${dart.engine.dir}/third_party">
+          <fileset dir="${third_party.dir}">
+              <include name="args4j/**" />
+              <include name="guava/**" />
+              <include name="hamcrest/**" />
+              <include name="json/**" />
+          </fileset>
+      </copy>
+    	 
+    </target>
+    
+    <!-- build -->
+    <target name="build" depends="clean, init,copysources,setup,pde_build">
+        <!-- all the work is done in the dependent targets -->
+    </target>
+   
+    <!-- setup -->
+    <target name="setup">
+        <echo message="build dir is ${build.dir}"/>
+    	
+        <get src="http://commondatastorage.googleapis.com/dart-editor-build/eclipses/eclipse-SDK-3.7-linux-gtk-x86_64.tar.gz"
+            dest="${build.dir}" 
+            verbose="true"
+            usetimestamp="true"/>
+    
+        <property name="eclipse.dir" location="${build.dir}/eclipse_37/eclipse"/>
+        
+          	
+        <untar src="${build.dir}/eclipse-SDK-3.7-linux-gtk-x86_64.tar.gz" dest="${eclipse.dir}/.." compression="gzip"/>
+    	
+    	  <!-- clean repo -->
+        <delete dir="${build.dir}/buildRepo"/>
+        <delete dir="${build.dir}/I.build"/>
+        <delete dir="${build.dir}/workspace"/>
+        <delete includes="dart-tools-updatesite-*.zip" dir="${build.dir}"/>
+    	
+        <touch file="${build.dir}/features/com.google.dart.eclipse.feature/feature.xml"/>
+        
+    	  <xmlproperty file="${build.dir}/features/com.google.dart.eclipse.feature/feature.xml" collapseAttributes="true"/>
+    	
+        <echo message="Dart Tools version ${feature.version}"/>
+        <echo message="Building for Eclipse 3.7+"/>
+    </target>
+    
+    <!-- pde_build -->
+	  <target name="pde_build" depends="setup">
+	      <mkdir dir="${build.dir}/buildRepo"/>
+	      
+	      <!-- invoke PDE -->
+        <sequential>
+            <java jar="${eclipse.dir}/plugins/org.eclipse.equinox.launcher_1.2.0.v20110502.jar" fork="true" 
+                  failonerror="false" errorproperty="pde.build.error">
+                <arg value="-data" />
+                <arg value="${build.dir}/workspace" />
+                <arg value="-application" />
+                <arg value="org.eclipse.ant.core.antRunner" />
+                <arg value="-quiet" />
+                <arg value="-f" />
+                <arg value="${eclipse.dir}/plugins/org.eclipse.pde.build_3.7.0.v20110512-1320/scripts/build.xml" />
+                <arg value="-Dbuilder=${build.dir}/features/com.google.dart.eclipse.feature_releng" />
+                <arg value="-Dbuild.tmp=${build.dir}/tmp" />
+                <arg value="-Dbuild.target=${eclipse.dir}" />
+                <arg value="-Dbuild.stage=${build.dir}/stage" />
+                <arg value="-DbuildDirectory=${build.dir}" />
+                <arg value="-DbaseLocation=${eclipse.dir}" />
+                <arg value="-Dbase=${build.dir}/base" />
+                <arg value="-noinput" />
+                <arg value="-vmargs" />
+                <arg value="-Xms256M" />
+                <arg value="-Xmx512M" />
+            </java>
+        </sequential>
+        
+        <echo message="PDE build exited: ${pde.build.error}" />
+        
+        <fail message="PDE build failed">
+            <condition>
+                <not>
+                    <equals arg1="" arg2="${pde.build.error}" trim="true" />
+                </not>
+            </condition>
+        </fail>
+	  	  
+	      <!-- use the P2 Publisher app to create a category in the update site -->
+        <sequential>
+            <java jar="${eclipse.dir}/plugins/org.eclipse.equinox.launcher_1.2.0.v20110502.jar" fork="true">
+                <arg value="-data" />
+                <arg value="${build.dir}/workspace" />
+                <arg value="-application" />
+                <arg value="org.eclipse.equinox.p2.publisher.CategoryPublisher" />
+                
+                <arg value="-artifactRepository" />
+                <arg value="file:/${build.dir}/buildRepo" />
+                <arg value="-metadataRepository" />
+                <arg value="file:/${build.dir}/buildRepo" />
+                <arg value="-source" />
+                <arg value="${build.dir}/buildRepo" />
+                
+                <arg value="-categoryDefinition" />
+                <arg value="file:/${build.dir}/features/com.google.dart.eclipse.feature_releng/category.xml" />
+                <arg value="-categoryQualifier" />
+                <arg value="-compress" />
+                
+                <arg value="-vmargs" />
+                <arg value="-Xms256M" />
+                <arg value="-Xmx512M" />
+            </java>
+        </sequential>
+	      
+        <delete>
+            <fileset dir="${build.dir}">
+                <include name="assemble.com.google.dart.eclipse.*.xml"/>
+                <include name="final*.properties"/>
+                <include name="package.com.google.dart.eclipse.feature.*.xml"/>
+            </fileset>
+        </delete>
+	  	  
+	  	  <zip destfile="${build.dir}/updatesite-${feature.version}.zip" basedir="${build.dir}/buildRepo"/>
+	  </target>
+	
+</project>

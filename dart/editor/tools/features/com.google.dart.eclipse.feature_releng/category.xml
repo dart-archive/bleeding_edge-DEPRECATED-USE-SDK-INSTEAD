@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature id="com.google.dart.eclipse.feature">
+      <category name="Dart Editor"/>
+   </feature>
+   <category-def name="Dart Editor" label="Dart Editor">
+      <description>Dart Editor is an Eclipse plug-in that provides support for programming with Dart.
+
+Copyright (c) 2012, the Dart project authors</description>
+   </category-def>
+</site>
