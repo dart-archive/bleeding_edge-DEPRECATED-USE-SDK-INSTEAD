@@ -13,12 +13,12 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.tools.core.test.util.PrintStringWriter;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,7 +30,7 @@ class Listener implements AnalysisListener, IdleListener {
   private final HashSet<String> resolved = new HashSet<String>();
   private final HashSet<String> discarded = new HashSet<String>();
 
-  private final StringWriter duplicates = new StringWriter();
+  private final PrintStringWriter duplicates = new PrintStringWriter();
 
   private boolean idle;
 
@@ -72,9 +72,8 @@ class Listener implements AnalysisListener, IdleListener {
       }
       for (File file : event.getFiles()) {
         if (!parsedInLib.add(file.getPath())) {
-          PrintWriter pw = new PrintWriter(duplicates);
-          pw.println("Duplicate parse: " + file);
-          pw.println("  in " + libFilePath);
+          duplicates.println("Duplicate parse: " + file);
+          duplicates.println("  in " + libFilePath);
         }
       }
       errors.addAll(event.getErrors());
@@ -87,7 +86,7 @@ class Listener implements AnalysisListener, IdleListener {
     synchronized (lock) {
       String libPath = event.getLibraryFile().getPath();
       if (!resolved.add(libPath)) {
-        new PrintWriter(duplicates).println("Duplicate resolution: " + libPath);
+        duplicates.println("Duplicate resolution: " + libPath);
       }
       errors.addAll(event.getErrors());
       lock.notifyAll();
@@ -111,21 +110,20 @@ class Listener implements AnalysisListener, IdleListener {
   void assertNoDiscards() {
     synchronized (lock) {
       if (discarded.size() > 0) {
-        StringWriter sw = new StringWriter(200);
-        PrintWriter pw = new PrintWriter(sw);
-        pw.println("Expected no discards, but found:");
+        PrintStringWriter psw = new PrintStringWriter();
+        psw.println("Expected no discards, but found:");
         for (String path : new TreeSet<String>(discarded)) {
-          pw.println("  " + path);
+          psw.println("  " + path);
         }
-        fail(sw.toString().trim());
+        fail(psw.toString().trim());
       }
     }
   }
 
   void assertNoDuplicates() {
     synchronized (lock) {
-      if (duplicates.getBuffer().length() > 0) {
-        fail(duplicates.toString());
+      if (duplicates.getLength() > 0) {
+        fail(duplicates.toString().trim());
       }
     }
   }
@@ -186,7 +184,7 @@ class Listener implements AnalysisListener, IdleListener {
     parsed.clear();
     resolved.clear();
     discarded.clear();
-    duplicates.getBuffer().setLength(0);
+    duplicates.setLength(0);
     errors.clear();
   }
 
@@ -303,55 +301,52 @@ class Listener implements AnalysisListener, IdleListener {
   }
 
   private void failDiscarded(File... files) {
-    StringWriter sw = new StringWriter(200);
-    PrintWriter pw = new PrintWriter(sw);
-    pw.println("Expected " + files.length + " files discarded, but found " + discarded.size());
+    PrintStringWriter psw = new PrintStringWriter();
+    psw.println("Expected " + files.length + " files discarded, but found " + discarded.size());
     if (files.length > 0) {
-      pw.println("  expected:");
+      psw.println("  expected:");
       for (File file : files) {
-        pw.println("    " + file.getPath());
+        psw.println("    " + file.getPath());
       }
     }
     if (discarded.size() > 0) {
-      pw.println("  found:");
+      psw.println("  found:");
       for (String path : discarded) {
-        pw.println("    " + path);
+        psw.println("    " + path);
       }
     }
-    fail(sw.toString().trim());
+    fail(psw.toString().trim());
   }
 
   private void failParsed(File libraryFile, File... dartFiles) {
-    StringWriter sw = new StringWriter(200);
-    PrintWriter pw = new PrintWriter(sw);
+    PrintStringWriter psw = new PrintStringWriter();
     HashSet<String> parsedInLibrary = parsed.get(libraryFile.getPath());
-    pw.println("Expected at least " + dartFiles.length + " parsed files in "
+    psw.println("Expected at least " + dartFiles.length + " parsed files in "
         + libraryFile.getName() + ", but found " + parsedInLibrary.size());
-    pw.println("  " + libraryFile.getPath());
-    pw.println("  expected:");
+    psw.println("  " + libraryFile.getPath());
+    psw.println("  expected:");
     for (File dartFile : dartFiles) {
-      pw.println("    " + dartFile.getPath());
+      psw.println("    " + dartFile.getPath());
     }
-    pw.println("  found:");
+    psw.println("  found:");
     for (String path : parsedInLibrary) {
-      pw.println("    " + path);
+      psw.println("    " + path);
     }
-    fail(sw.toString().trim());
+    fail(psw.toString().trim());
   }
 
   private void failResolved(File... libraryFiles) {
-    StringWriter sw = new StringWriter(200);
-    PrintWriter pw = new PrintWriter(sw);
-    pw.println("Expected at least " + libraryFiles.length + " resolved libraries, but found "
+    PrintStringWriter psw = new PrintStringWriter();
+    psw.println("Expected at least " + libraryFiles.length + " resolved libraries, but found "
         + resolved.size());
-    pw.println("  expected:");
+    psw.println("  expected:");
     for (File libraryFile : libraryFiles) {
-      pw.println("    " + libraryFile.getPath());
+      psw.println("    " + libraryFile.getPath());
     }
-    pw.println("  found:");
+    psw.println("  found:");
     for (String path : resolved) {
-      pw.println("    " + path);
+      psw.println("    " + path);
     }
-    fail(sw.toString().trim());
+    fail(psw.toString().trim());
   }
 }
