@@ -15,12 +15,11 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.tools.core.AbstractDartCoreTest;
 
-
 public class TaskQueueTest extends AbstractDartCoreTest {
 
   private TaskQueue queue;
 
-  public void test_TaskQueue_addBackgroundTask() throws Exception {
+  public void test_addBackgroundTask() throws Exception {
     NullTask backgroundTask = NullTask.newBackgroundTask();
 
     queue.addNewTask(backgroundTask);
@@ -32,7 +31,7 @@ public class TaskQueueTest extends AbstractDartCoreTest {
   /**
    * Assert addLastTask adds to the end of the queue only once
    */
-  public void test_TaskQueue_addLastTask() throws Exception {
+  public void test_addLastTask() throws Exception {
     NullTask backgroundTask = NullTask.newBackgroundTask();
     NullTask requestTask = NullTask.newRequestTask();
     NullTask subTask = NullTask.newUpdateTask();
@@ -62,7 +61,7 @@ public class TaskQueueTest extends AbstractDartCoreTest {
   /**
    * Assert that requests and background tasks are queued in the reverse order received
    */
-  public void test_TaskQueue_addNewTask_requests() throws Exception {
+  public void test_addNewTask_requests() throws Exception {
     NullTask backgroundTask1 = NullTask.newBackgroundTask();
     NullTask backgroundTask2 = NullTask.newBackgroundTask();
     NullTask requestTask1 = NullTask.newRequestTask();
@@ -83,7 +82,7 @@ public class TaskQueueTest extends AbstractDartCoreTest {
   /**
    * Assert that updates are queued in the order received and before background tasks
    */
-  public void test_TaskQueue_addNewTask_updatesBeforeBackgroundTasks() throws Exception {
+  public void test_addNewTask_updatesBeforeBackgroundTasks() throws Exception {
     NullTask backgroundTask = NullTask.newBackgroundTask();
     NullTask updateTask1 = NullTask.newUpdateTask();
     NullTask updateTask2 = NullTask.newUpdateTask();
@@ -101,7 +100,7 @@ public class TaskQueueTest extends AbstractDartCoreTest {
   /**
    * Assert that updates are queued in the order received and before requests
    */
-  public void test_TaskQueue_addNewTask_updatesBeforeRequests() throws Exception {
+  public void test_addNewTask_updatesBeforeRequests() throws Exception {
     NullTask requestTask = NullTask.newRequestTask();
     NullTask updateTask1 = NullTask.newUpdateTask();
     NullTask updateTask2 = NullTask.newUpdateTask();
@@ -119,7 +118,7 @@ public class TaskQueueTest extends AbstractDartCoreTest {
   /**
    * Assert subtasks are queued in the order received
    */
-  public void test_TaskQueue_addSubTask_order() throws Exception {
+  public void test_addSubTask_order() throws Exception {
     NullTask subTask1 = NullTask.newUpdateTask();
     NullTask subTask2 = NullTask.newUpdateTask();
 
@@ -134,7 +133,7 @@ public class TaskQueueTest extends AbstractDartCoreTest {
   /**
    * Assert subtasks are queued relative to the last task removed after priority tasks
    */
-  public void test_TaskQueue_addSubTask_relative() throws Exception {
+  public void test_addSubTask_relative() throws Exception {
     NullTask updateTask1 = NullTask.newUpdateTask();
     NullTask updateTask2 = NullTask.newUpdateTask();
     NullTask requestTask1 = NullTask.newRequestTask();
@@ -170,7 +169,7 @@ public class TaskQueueTest extends AbstractDartCoreTest {
    * Assert that analyzing determines whether or not removeNextTask removes tasks from the queue but
    * that you can always add tasks to the queue
    */
-  public void test_TaskQueue_analyzing() throws Exception {
+  public void test_analyzing() throws Exception {
     NullTask backgroundTask = NullTask.newBackgroundTask();
     NullTask requestTask1 = NullTask.newRequestTask();
     NullTask requestTask2 = NullTask.newRequestTask();
@@ -212,11 +211,11 @@ public class TaskQueueTest extends AbstractDartCoreTest {
     assertNull(queue.removeNextTask());
   }
 
-  public void test_TaskQueue_empty() throws Exception {
+  public void test_empty() throws Exception {
     assertNull(queue.removeNextTask());
   }
 
-  public void test_TaskQueue_removeBackgroundTasks() throws Exception {
+  public void test_removeBackgroundTasks() throws Exception {
     NullTask backgroundTask1 = NullTask.newBackgroundTask();
     NullTask backgroundTask2 = NullTask.newBackgroundTask();
     NullTask requestTask1 = NullTask.newRequestTask();
@@ -253,7 +252,7 @@ public class TaskQueueTest extends AbstractDartCoreTest {
   /**
    * Assert that waitForTask returns <code>false</code> when not analyzing
    */
-  public void test_TaskQueue_waitForTask_analyzing() throws Exception {
+  public void test_waitForTask_analyzing() throws Exception {
     queue.setAnalyzing(false);
     assertFalse(queue.waitForTask());
     queue.setAnalyzing(true);
@@ -274,7 +273,7 @@ public class TaskQueueTest extends AbstractDartCoreTest {
   /**
    * Assert that addLastTask notifies waitForTask
    */
-  public void test_TaskQueue_waitForTask_last() throws Exception {
+  public void test_waitForTask_last() throws Exception {
     NullTask task = NullTask.newRequestTask();
     queue.addLastTask(task);
     assertTrue(queue.waitForTask());
@@ -293,7 +292,7 @@ public class TaskQueueTest extends AbstractDartCoreTest {
   /**
    * Assert that addNewTask notifies waitForTask
    */
-  public void test_TaskQueue_waitForTask_new() throws Exception {
+  public void test_waitForTask_new() throws Exception {
     NullTask task = NullTask.newBackgroundTask();
     queue.addNewTask(task);
     assertTrue(queue.waitForTask());
