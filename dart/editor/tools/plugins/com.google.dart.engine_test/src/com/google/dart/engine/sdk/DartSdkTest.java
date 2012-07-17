@@ -18,6 +18,12 @@ import junit.framework.TestCase;
 import java.io.File;
 
 public class DartSdkTest extends TestCase {
+  public void fail_getDocFileFor() {
+    DartSdk sdk = createDartSdk();
+    File docFile = sdk.getDocFileFor("html");
+    assertNotNull(docFile);
+  }
+
   public void test_creation() {
     DartSdk sdk = createDartSdk();
     assertNotNull(sdk);
@@ -104,13 +110,6 @@ public class DartSdkTest extends TestCase {
     assertNotNull(executable);
     assertTrue(executable.exists());
     assertTrue(executable.canExecute());
-  }
-
-  public void xtest_getDocFileFor() {
-    // Enable this test when documentation files are being produced.
-    DartSdk sdk = createDartSdk();
-    File docFile = sdk.getDocFileFor("html");
-    assertNotNull(docFile);
   }
 
   private DartSdk createDartSdk() {
