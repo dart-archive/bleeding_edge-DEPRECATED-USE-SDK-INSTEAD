@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.deploy;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.perf.DartEditorCommandLineManager;
 import com.google.dart.tools.core.internal.perf.Performance;
 
@@ -42,6 +43,7 @@ public class DartIDEApplication implements IApplication {
       // Now that the start time of the Editor has been recorded from the command line, we can
       // record the time taken to start the Application
       if (DartEditorCommandLineManager.MEASURE_PERFORMANCE) {
+        System.out.println("Dart Editor build " + DartCore.getBuildIdOrDate());
         Performance.TIME_TO_START_ECLIPSE.log(DartEditorCommandLineManager.getStartTime());
       }
 
