@@ -829,28 +829,39 @@ public class DartCompilerUtilities {
       Map<URI, DartUnit> parsedUnits, final CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
 
-    long start = System.currentTimeMillis();
-    LibraryUnit unit;
+    EditorLibraryManager manager = SystemLibraryManagerProvider.getSystemLibraryManager();
+    AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+
+    URI librarySourceUri = librarySource.getUri();
+
     if (parsedUnits == null && !(librarySource instanceof LibraryWithSuppliedSources)) {
 
       // Resolve dart:<libname> to file URI before calling AnalysisServer
-      EditorLibraryManager manager = SystemLibraryManagerProvider.getSystemLibraryManager();
-      URI libraryUri = manager.resolveDartUri(librarySource.getUri());
+      URI libraryFileUri = manager.resolveDartUri(librarySourceUri);
+      File libraryFile = new File(libraryFileUri.getPath());
 
-      File libraryFile = new File(libraryUri.getPath());
-      AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+      return server.getSavedContext().resolve(libraryFile, 30000);
+    }
 
-      unit = server.getSavedContext().resolve(libraryFile, 30000);
-    } else {
-      // All calls to DartC must be synchronized
-      synchronized (compilerLock) {
-        unit = DartCompiler.analyzeLibrary(librarySource, parsedUnits, config, provider, listener);
-      }
+    // Resolve the specified library against all currently cached libraries
+    Map<URI, LibraryUnit> resolvedLibs = server.getSavedContext().getResolvedLibraries(50);
+    resolvedLibs.remove(librarySourceUri);
+
+    Map<URI, LibraryUnit> libMap;
+    // All calls to DartC must be synchronized
+    synchronized (compilerLock) {
+      libMap = DartCompiler.analyzeLibraries(
+          librarySource,
+          resolvedLibs,
+          parsedUnits,
+          config,
+          provider,
+          manager,
+          listener,
+          false);
     }
-    if (performanceListener != null) {
-      performanceListener.analysisComplete(start, librarySource.getName());
-    }
-    return unit;
+    return libMap.get(librarySourceUri);
+
   }
 
   /**

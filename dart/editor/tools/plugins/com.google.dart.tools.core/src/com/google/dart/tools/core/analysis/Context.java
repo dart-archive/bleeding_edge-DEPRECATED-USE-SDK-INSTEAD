@@ -23,6 +23,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 /**
@@ -69,6 +70,57 @@ public class Context {
     System.arraycopy(analysisListeners, 0, newListeners, 0, oldLen);
     newListeners[oldLen] = listener;
     analysisListeners = newListeners;
+  }
+
+  /**
+   * Answer the currently resolved system libraries. If the result is not available within the
+   * specified amount of time, then return an empty map.
+   * 
+   * @param millseconds the number of milliseconds to wait for a result
+   * @return a map of absolute File URI to resolved library. Modifications to this map will not
+   *         affect future analysis.
+   */
+  // TODO (danrubel): Optimization for code completion
+  // Remove this method once code completion calls analysis server
+  @SuppressWarnings("unchecked")
+  public Map<URI, LibraryUnit> getResolvedLibraries(long millseconds) {
+    final Map<?, ?>[] result = new Map[1];
+    server.queueNewTask(new Task() {
+
+      @Override
+      public boolean isBackgroundAnalysis() {
+        return false;
+      }
+
+      @Override
+      public boolean isPriority() {
+        return false;
+      }
+
+      @Override
+      public void perform() {
+        HashMap<URI, LibraryUnit> resolvedLibraries = getResolvedLibraries();
+        synchronized (result) {
+          result[0] = resolvedLibraries;
+          result.notifyAll();
+        }
+      }
+    });
+    long end = System.currentTimeMillis() + millseconds;
+    synchronized (result) {
+      while (result[0] == null) {
+        long delta = end - System.currentTimeMillis();
+        if (delta <= 0) {
+          return new HashMap<URI, LibraryUnit>();
+        }
+        try {
+          result.wait(delta);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
+      }
+      return (Map<URI, LibraryUnit>) result[0];
+    }
   }
 
   /**
@@ -261,7 +313,21 @@ public class Context {
   }
 
   /**
-   * Answer units that have been parsed by not resolved.
+   * Answer the currently cached and resolved libraries
+   */
+  HashMap<URI, LibraryUnit> getResolvedLibraries() {
+    HashMap<URI, LibraryUnit> resolvedLibs = new HashMap<URI, LibraryUnit>();
+    for (Library lib : getCachedLibraries()) {
+      LibraryUnit libUnit = lib.getLibraryUnit();
+      if (libUnit != null) {
+        resolvedLibs.put(libUnit.getSource().getUri(), libUnit);
+      }
+    }
+    return resolvedLibs;
+  }
+
+  /**
+   * Answer units that have been parsed but not resolved.
    */
   HashMap<URI, DartUnit> getUnresolvedUnits() {
     return unresolvedUnits;

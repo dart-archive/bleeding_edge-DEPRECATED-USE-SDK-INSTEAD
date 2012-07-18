@@ -66,15 +66,8 @@ class ResolveLibraryTask extends Task {
 
     // Collect resolved libraries and parsed units
 
-    HashMap<URI, LibraryUnit> resolvedLibs = new HashMap<URI, LibraryUnit>();
     HashMap<URI, DartUnit> parsedUnits = context.getUnresolvedUnits();
-
-    for (Library lib : context.getCachedLibraries()) {
-      LibraryUnit libUnit = lib.getLibraryUnit();
-      if (libUnit != null) {
-        resolvedLibs.put(libUnit.getSource().getUri(), libUnit);
-      }
-    }
+    HashMap<URI, LibraryUnit> resolvedLibs = context.getResolvedLibraries();
     ErrorListener errorListener = new ErrorListener(server);
 
     // Calling #resolve(...) modifies map of parsed units,
