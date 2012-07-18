@@ -92,6 +92,10 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
     return visitCompilationUnitMember(node);
   }
 
+  public R visitClassMember(ClassMember node) {
+    return visitDeclaration(node);
+  }
+
   @Override
   public R visitComment(Comment node) {
     return visitNode(node);
@@ -264,17 +268,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitImportExportCombinator(ImportExportCombinator node) {
-    return visitImportCombinator(node);
-  }
-
-  @Override
   public R visitImportHideCombinator(ImportHideCombinator node) {
-    return visitImportCombinator(node);
-  }
-
-  @Override
-  public R visitImportPrefixCombinator(ImportPrefixCombinator node) {
     return visitImportCombinator(node);
   }
 
@@ -386,6 +380,16 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitPartDirective(PartDirective node) {
+    return visitDirective(node);
+  }
+
+  @Override
+  public R visitPartOfDirective(PartOfDirective node) {
+    return visitDirective(node);
+  }
+
+  @Override
   public R visitPostfixExpression(PostfixExpression node) {
     return visitExpression(node);
   }
@@ -438,11 +442,6 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   @Override
   public R visitSingleStringLiteral(SimpleStringLiteral node) {
     return visitStringLiteral(node);
-  }
-
-  @Override
-  public R visitSourceDirective(SourceDirective node) {
-    return visitDirective(node);
   }
 
   public R visitStatement(Statement node) {
@@ -519,10 +518,6 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
 
   public R visitTypedLiteral(TypedLiteral node) {
     return visitLiteral(node);
-  }
-
-  public R visitClassMember(ClassMember node) {
-    return visitDeclaration(node);
   }
 
   @Override

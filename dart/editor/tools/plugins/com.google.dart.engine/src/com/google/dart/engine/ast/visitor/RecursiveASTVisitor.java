@@ -53,9 +53,7 @@ import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
-import com.google.dart.engine.ast.ImportExportCombinator;
 import com.google.dart.engine.ast.ImportHideCombinator;
-import com.google.dart.engine.ast.ImportPrefixCombinator;
 import com.google.dart.engine.ast.ImportShowCombinator;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
@@ -74,6 +72,8 @@ import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NamedFormalParameter;
 import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.ParenthesizedExpression;
+import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -85,7 +85,6 @@ import com.google.dart.engine.ast.ScriptTag;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
-import com.google.dart.engine.ast.SourceDirective;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SuperExpression;
@@ -351,19 +350,7 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitImportExportCombinator(ImportExportCombinator node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
   public R visitImportHideCombinator(ImportHideCombinator node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public R visitImportPrefixCombinator(ImportPrefixCombinator node) {
     node.visitChildren(this);
     return null;
   }
@@ -477,6 +464,18 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitPartDirective(PartDirective node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public R visitPartOfDirective(PartOfDirective node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
   public R visitPostfixExpression(PostfixExpression node) {
     node.visitChildren(this);
     return null;
@@ -538,12 +537,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitSingleStringLiteral(SimpleStringLiteral node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public R visitSourceDirective(SourceDirective node) {
     node.visitChildren(this);
     return null;
   }

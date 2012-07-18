@@ -15,20 +15,22 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code ImportHideCombinator} represent a combinator that restricts the
  * names being imported to those that are not in a given list.
  * 
  * <pre>
  * importHideCombinator ::=
- *     'hide:' {@link ListLiteral listLiteral}
+ *     'hide' {@link SimpleIdentifier identifier} (',' {@link SimpleIdentifier identifier})*
  * </pre>
  */
 public class ImportHideCombinator extends ImportCombinator {
   /**
    * The list of names from the library that are hidden by this combinator.
    */
-  private ListLiteral hiddenNames;
+  private NodeList<Identifier> hiddenNames = new NodeList<Identifier>(this);
 
   /**
    * Initialize a newly created import show combinator.
@@ -40,14 +42,12 @@ public class ImportHideCombinator extends ImportCombinator {
   /**
    * Initialize a newly created import show combinator.
    * 
-   * @param comma the comma introducing the combinator
    * @param keyword the comma introducing the combinator
-   * @param colon the colon separating the keyword from the following literal
    * @param hiddenNames the list of names from the library that are hidden by this combinator
    */
-  public ImportHideCombinator(Token comma, Token keyword, Token colon, ListLiteral hiddenNames) {
-    super(comma, keyword, colon);
-    this.hiddenNames = hiddenNames;
+  public ImportHideCombinator(Token keyword, List<Identifier> hiddenNames) {
+    super(keyword);
+    this.hiddenNames.addAll(hiddenNames);
   }
 
   @Override
@@ -65,21 +65,12 @@ public class ImportHideCombinator extends ImportCombinator {
    * 
    * @return the list of names from the library that are hidden by this combinator
    */
-  public ListLiteral getHiddenNames() {
+  public NodeList<Identifier> getHiddenNames() {
     return hiddenNames;
-  }
-
-  /**
-   * Set the list of names from the library that are hidden by this combinator to the given list.
-   * 
-   * @param hiddenNames the list of names from the library that are hidden by this combinator
-   */
-  public void setHiddenNames(ListLiteral hiddenNames) {
-    this.hiddenNames = becomeParentOf(hiddenNames);
   }
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(hiddenNames, visitor);
+    hiddenNames.accept(visitor);
   }
 }

@@ -96,11 +96,7 @@ public interface ASTVisitor<R> {
 
   public R visitImportDirective(ImportDirective node);
 
-  public R visitImportExportCombinator(ImportExportCombinator node);
-
   public R visitImportHideCombinator(ImportHideCombinator node);
-
-  public R visitImportPrefixCombinator(ImportPrefixCombinator node);
 
   public R visitImportShowCombinator(ImportShowCombinator node);
 
@@ -138,6 +134,10 @@ public interface ASTVisitor<R> {
 
   public R visitParenthesizedExpression(ParenthesizedExpression node);
 
+  public R visitPartDirective(PartDirective node);
+
+  public R visitPartOfDirective(PartOfDirective node);
+
   public R visitPostfixExpression(PostfixExpression node);
 
   public R visitPrefixedIdentifier(PrefixedIdentifier node);
@@ -159,8 +159,6 @@ public interface ASTVisitor<R> {
   public R visitSimpleIdentifier(SimpleIdentifier node);
 
   public R visitSingleStringLiteral(SimpleStringLiteral node);
-
-  public R visitSourceDirective(SourceDirective node);
 
   public R visitStringInterpolation(StringInterpolation node);
 

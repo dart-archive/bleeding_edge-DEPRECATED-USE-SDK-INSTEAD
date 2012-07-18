@@ -36,7 +36,7 @@ public class ErrorParserTest extends ParserTestCase {
   public void test_directiveOutOfOrder_classBeforeDirective() throws Exception {
     CompilationUnit unit = parse(
         "parseCompilationUnit",
-        "class Foo{}\n#library('LibraryName');",
+        "class Foo{}\nlibrary l;",
         ParserErrorCode.DIRECTIVE_OUT_OF_ORDER);
     assertNotNull(unit);
   }
@@ -44,7 +44,7 @@ public class ErrorParserTest extends ParserTestCase {
   public void test_directiveOutOfOrder_classBetweenDirectives() throws Exception {
     CompilationUnit unit = parse(
         "parseCompilationUnit",
-        "#library('LibraryName');\nclass Foo{}\n#source('a.dart');",
+        "library l;\nclass Foo{}\npart 'a.dart';",
         ParserErrorCode.DIRECTIVE_OUT_OF_ORDER);
     assertNotNull(unit);
   }
@@ -76,7 +76,7 @@ public class ErrorParserTest extends ParserTestCase {
   public void test_onlyOneLibraryDirective() throws Exception {
     CompilationUnit unit = parse(
         "parseCompilationUnit",
-        "#library('LibraryName');#library('LibraryName2');",
+        "library l;library m;",
         ParserErrorCode.ONLY_ONE_LIBRARY_DIRECTIVE);
     assertNotNull(unit);
   }

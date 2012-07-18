@@ -20,24 +20,14 @@ import com.google.dart.engine.scanner.Token;
  * 
  * <pre>
  * resourceDirective ::=
- *     '#' 'resource' '(' {@link StringLiteral resourceUri} ')' ';'
+ *     'resource' {@link StringLiteral resourceUri} ';'
  * </pre>
  */
 public class ResourceDirective extends Directive {
   /**
-   * The hash mark introducing the directive.
+   * The token representing the 'resource' token.
    */
-  private Token hash;
-
-  /**
-   * The token representing the 'resource' keyword.
-   */
-  private Token keyword;
-
-  /**
-   * The left parenthesis.
-   */
-  private Token leftParenthesis;
+  private Token resourceToken;
 
   /**
    * The URI of the resource being specified.
@@ -45,12 +35,7 @@ public class ResourceDirective extends Directive {
   private StringLiteral resourceUri;
 
   /**
-   * The right parenthesis.
-   */
-  private Token rightParenthesis;
-
-  /**
-   * The semicolon terminating the statement.
+   * The semicolon terminating the directive.
    */
   private Token semicolon;
 
@@ -63,20 +48,13 @@ public class ResourceDirective extends Directive {
   /**
    * Initialize a newly created resource directive.
    * 
-   * @param hash the hash mark introducing the directive
-   * @param keyword the token representing the 'resource' keyword
-   * @param leftParenthesis the left parenthesis
+   * @param resourceToken the token representing the 'resource' token
    * @param resourceUri the URI of the resource being specified
-   * @param rightParenthesis the right parenthesis
-   * @param semicolon the semicolon terminating the statement
+   * @param semicolon the semicolon terminating the directive
    */
-  public ResourceDirective(Token hash, Token keyword, Token leftParenthesis,
-      StringLiteral resourceUri, Token rightParenthesis, Token semicolon) {
-    this.hash = hash;
-    this.keyword = keyword;
-    this.leftParenthesis = leftParenthesis;
+  public ResourceDirective(Token resourceToken, StringLiteral resourceUri, Token semicolon) {
+    this.resourceToken = resourceToken;
     this.resourceUri = becomeParentOf(resourceUri);
-    this.rightParenthesis = rightParenthesis;
     this.semicolon = semicolon;
   }
 
@@ -87,7 +65,7 @@ public class ResourceDirective extends Directive {
 
   @Override
   public Token getBeginToken() {
-    return hash;
+    return resourceToken;
   }
 
   @Override
@@ -96,30 +74,12 @@ public class ResourceDirective extends Directive {
   }
 
   /**
-   * Return the hash mark introducing the directive.
+   * Return the token representing the 'resource' token.
    * 
-   * @return the hash mark introducing the directive
+   * @return the token representing the 'resource' token
    */
-  public Token getHash() {
-    return hash;
-  }
-
-  /**
-   * Return the token representing the 'resource' keyword.
-   * 
-   * @return the token representing the 'resource' keyword
-   */
-  public Token getKeyword() {
-    return keyword;
-  }
-
-  /**
-   * Return the left parenthesis.
-   * 
-   * @return the left parenthesis
-   */
-  public Token getLeftParenthesis() {
-    return leftParenthesis;
+  public Token getResourceToken() {
+    return resourceToken;
   }
 
   /**
@@ -132,48 +92,21 @@ public class ResourceDirective extends Directive {
   }
 
   /**
-   * Return the right parenthesis.
+   * Return the semicolon terminating the directive.
    * 
-   * @return the right parenthesis
-   */
-  public Token getRightParenthesis() {
-    return rightParenthesis;
-  }
-
-  /**
-   * Return the semicolon terminating the statement.
-   * 
-   * @return the semicolon terminating the statement
+   * @return the semicolon terminating the directive
    */
   public Token getSemicolon() {
     return semicolon;
   }
 
   /**
-   * Set the hash mark introducing the directive to the given token.
+   * Set the token representing the 'resource' token to the given token.
    * 
-   * @param hash the hash mark introducing the directive
+   * @param resourceToken the token representing the 'resource' token
    */
-  public void setHash(Token hash) {
-    this.hash = hash;
-  }
-
-  /**
-   * Set the token representing the 'resource' keyword to the given token.
-   * 
-   * @param keyword the token representing the 'resource' keyword
-   */
-  public void setKeyword(Token keyword) {
-    this.keyword = keyword;
-  }
-
-  /**
-   * Set the left parenthesis to the given token.
-   * 
-   * @param parenthesis the left parenthesis
-   */
-  public void setLeftParenthesis(Token parenthesis) {
-    leftParenthesis = parenthesis;
+  public void setResourceToken(Token resourceToken) {
+    this.resourceToken = resourceToken;
   }
 
   /**
@@ -186,18 +119,9 @@ public class ResourceDirective extends Directive {
   }
 
   /**
-   * Set the right parenthesis to the given token.
+   * Set the semicolon terminating the directive to the given token.
    * 
-   * @param parenthesis the right parenthesis
-   */
-  public void setRightParenthesis(Token parenthesis) {
-    rightParenthesis = parenthesis;
-  }
-
-  /**
-   * Set the semicolon terminating the statement to the given token.
-   * 
-   * @param semicolon the semicolon terminating the statement
+   * @param semicolon the semicolon terminating the directive
    */
   public void setSemicolon(Token semicolon) {
     this.semicolon = semicolon;

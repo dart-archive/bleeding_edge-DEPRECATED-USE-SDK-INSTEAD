@@ -25,7 +25,8 @@ import java.util.List;
  *     {@link ScriptTag scriptTag}? directives compilationUnitMember*
  * 
  * directives ::=
- *     {@link LibraryDirective libraryDirective}? {@link ImportDirective importDirective}* {@link SourceDirective sourceDirective}* {@link ResourceDirective resourceDirective}*
+ *     {@link LibraryDirective libraryDirective}? {@link ImportDirective importDirective}* {@link PartDirective partDirective}* {@link ResourceDirective resourceDirective}*
+ *   | {@link PartOfDirective partOfDirective}
  * 
  * compilationUnitMember ::=
  *     {@link ClassDeclaration classDeclaration}

@@ -22,29 +22,14 @@ import java.util.List;
  * 
  * <pre>
  * importDirective ::=
- *     '#import' '(' {@link StringLiteral libraryUri} (',' {@link ImportExportCombinator importExportCombinator})?
- *     (',' combinator )* (',' {@link ImportPrefixCombinator importPrefixCombinator})? ')' ';'
- * 
- * combinator ::=
- *     {@link ImportHideCombinator importHideCombinator}
- *   | {@link ImportShowCombinator importShowCombinator}
+ *     'import' {@link StringLiteral libraryUri} ('as' identifier)? {@link ImportCombinator combinator}* ('&' 'export')? ';'
  * </pre>
  */
 public class ImportDirective extends Directive {
   /**
-   * The hash mark introducing the directive.
+   * The token representing the 'import' token.
    */
-  private Token hash;
-
-  /**
-   * The token representing the 'import' keyword.
-   */
-  private Token keyword;
-
-  /**
-   * The left parenthesis.
-   */
-  private Token leftParenthesis;
+  private Token importToken;
 
   /**
    * The URI of the library being imported.
@@ -52,14 +37,31 @@ public class ImportDirective extends Directive {
   private StringLiteral libraryUri;
 
   /**
+   * The token representing the 'as' token, or {@code null} if the imported names are not prefixed.
+   */
+  private Token asToken;
+
+  /**
+   * The prefix to be used with the imported names, or {@code null} if the imported names are not
+   * prefixed.
+   */
+  private SimpleIdentifier prefix;
+
+  /**
    * The combinators used to control how names are imported.
    */
   private NodeList<ImportCombinator> combinators = new NodeList<ImportCombinator>(this);
 
   /**
-   * The right parenthesis.
+   * The token representing the ampersand, or {@code null} if the imported names are not re-export.
    */
-  private Token rightParenthesis;
+  private Token ampersand;
+
+  /**
+   * The token representing the 'export' token, or {@code null} if the imported names are not
+   * re-export.
+   */
+  private Token exportToken;
 
   /**
    * The semicolon terminating the statement.
@@ -75,23 +77,24 @@ public class ImportDirective extends Directive {
   /**
    * Initialize a newly created import directive.
    * 
-   * @param hash the hash mark introducing the directive
-   * @param keyword the token representing the 'import' keyword
-   * @param leftParenthesis the left parenthesis
+   * @param importToken the token representing the 'import' token
    * @param libraryUri the URI of the library being imported
+   * @param asToken the token representing the 'as' token
    * @param combinators the combinators used to control how names are imported
-   * @param rightParenthesis the right parenthesis
+   * @param ampersand the token representing the ampersand
+   * @param exportToken the token representing the 'export' token
    * @param semicolon the semicolon terminating the statement
    */
-  public ImportDirective(Token hash, Token keyword, Token leftParenthesis,
-      StringLiteral libraryUri, List<ImportCombinator> combinators, Token rightParenthesis,
-      Token semicolon) {
-    this.hash = hash;
-    this.keyword = keyword;
-    this.leftParenthesis = leftParenthesis;
+  public ImportDirective(Token importToken, StringLiteral libraryUri, Token asToken,
+      SimpleIdentifier prefix, List<ImportCombinator> combinators, Token ampersand,
+      Token exportToken, Token semicolon) {
+    this.importToken = importToken;
     this.libraryUri = becomeParentOf(libraryUri);
+    this.asToken = asToken;
+    this.prefix = becomeParentOf(prefix);
     this.combinators.addAll(combinators);
-    this.rightParenthesis = rightParenthesis;
+    this.ampersand = ampersand;
+    this.exportToken = exportToken;
     this.semicolon = semicolon;
   }
 
@@ -100,9 +103,29 @@ public class ImportDirective extends Directive {
     return visitor.visitImportDirective(this);
   }
 
+  /**
+   * Return the token representing the ampersand, or {@code null} if the imported names are not
+   * re-export.
+   * 
+   * @return the token representing the ampersand
+   */
+  public Token getAmpersand() {
+    return ampersand;
+  }
+
+  /**
+   * Return the token representing the 'as' token, or {@code null} if the imported names are not
+   * prefixed.
+   * 
+   * @return the token representing the 'as' token
+   */
+  public Token getAsToken() {
+    return asToken;
+  }
+
   @Override
   public Token getBeginToken() {
-    return hash;
+    return importToken;
   }
 
   /**
@@ -120,30 +143,22 @@ public class ImportDirective extends Directive {
   }
 
   /**
-   * Return the hash mark introducing the directive.
+   * Return the token representing the 'export' token, or {@code null} if the imported names are not
+   * re-export.
    * 
-   * @return the hash mark introducing the directive
+   * @return the token representing the 'export' token
    */
-  public Token getHash() {
-    return hash;
+  public Token getExportToken() {
+    return exportToken;
   }
 
   /**
-   * Return the token representing the 'import' keyword.
+   * Return the token representing the 'import' token.
    * 
-   * @return the token representing the 'import' keyword
+   * @return the token representing the 'import' token
    */
-  public Token getKeyword() {
-    return keyword;
-  }
-
-  /**
-   * Return the left parenthesis.
-   * 
-   * @return the left parenthesis
-   */
-  public Token getLeftParenthesis() {
-    return leftParenthesis;
+  public Token getImportToken() {
+    return importToken;
   }
 
   /**
@@ -156,12 +171,13 @@ public class ImportDirective extends Directive {
   }
 
   /**
-   * Return the right parenthesis.
+   * Return the prefix to be used with the imported names, or {@code null} if the imported names are
+   * not prefixed.
    * 
-   * @return the right parenthesis
+   * @return the prefix to be used with the imported names
    */
-  public Token getRightParenthesis() {
-    return rightParenthesis;
+  public SimpleIdentifier getPrefix() {
+    return prefix;
   }
 
   /**
@@ -174,30 +190,39 @@ public class ImportDirective extends Directive {
   }
 
   /**
-   * Set the hash mark introducing the directive to the given token.
+   * Set the token representing the ampersand to the given token.
    * 
-   * @param hash the hash mark introducing the directive
+   * @param ampersand the token representing the ampersand
    */
-  public void setHash(Token hash) {
-    this.hash = hash;
+  public void setAmpersand(Token ampersand) {
+    this.ampersand = ampersand;
   }
 
   /**
-   * Set the token representing the 'import' keyword to the given token.
+   * Set the token representing the 'as' token to the given token.
    * 
-   * @param keyword the token representing the 'import' keyword
+   * @param asToken the token representing the 'as' token
    */
-  public void setKeyword(Token keyword) {
-    this.keyword = keyword;
+  public void setAsToken(Token asToken) {
+    this.asToken = asToken;
   }
 
   /**
-   * Set the left parenthesis to the given token.
+   * Set the token representing the 'export' token to the given token.
    * 
-   * @param parenthesis the left parenthesis
+   * @param exportToken the token representing the 'export' token
    */
-  public void setLeftParenthesis(Token parenthesis) {
-    leftParenthesis = parenthesis;
+  public void setExportToken(Token exportToken) {
+    this.exportToken = exportToken;
+  }
+
+  /**
+   * Set the token representing the 'import' token to the given token.
+   * 
+   * @param importToken the token representing the 'import' token
+   */
+  public void setImportToken(Token importToken) {
+    this.importToken = importToken;
   }
 
   /**
@@ -210,12 +235,12 @@ public class ImportDirective extends Directive {
   }
 
   /**
-   * Set the right parenthesis to the given token.
+   * Set the prefix to be used with the imported names to the given identifier.
    * 
-   * @param parenthesis the right parenthesis
+   * @param prefix the prefix to be used with the imported names
    */
-  public void setRightParenthesis(Token parenthesis) {
-    rightParenthesis = parenthesis;
+  public void setPrefix(SimpleIdentifier prefix) {
+    this.prefix = becomeParentOf(prefix);
   }
 
   /**
@@ -230,6 +255,7 @@ public class ImportDirective extends Directive {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(libraryUri, visitor);
+    safelyVisitChild(prefix, visitor);
     combinators.accept(visitor);
   }
 }

@@ -20,26 +20,16 @@ import com.google.dart.engine.scanner.Token;
  * import directive.
  * 
  * <pre>
- * importCombinator ::=
- *     {@link ImportPrefixCombinator importPrefixCombinator}
+ * combinator ::=
+ *     {@link ImportHideCombinator importHideCombinator}
  *   | {@link ImportShowCombinator importShowCombinator}
  * </pre>
  */
 public abstract class ImportCombinator extends ASTNode {
   /**
-   * The comma introducing the combinator.
-   */
-  private Token comma;
-
-  /**
    * The keyword specifying what kind of processing is to be done on the imported names.
    */
   private Token keyword;
-
-  /**
-   * The colon separating the keyword from the following literal.
-   */
-  private Token colon;
 
   /**
    * Initialize a newly created import combinator.
@@ -51,38 +41,16 @@ public abstract class ImportCombinator extends ASTNode {
   /**
    * Initialize a newly created import combinator.
    * 
-   * @param comma the comma introducing the combinator
    * @param keyword the keyword specifying what kind of processing is to be done on the imported
    *          names
-   * @param colon the colon separating the keyword from the following literal
    */
-  public ImportCombinator(Token comma, Token keyword, Token colon) {
-    this.comma = comma;
+  public ImportCombinator(Token keyword) {
     this.keyword = keyword;
-    this.colon = colon;
   }
 
   @Override
   public Token getBeginToken() {
-    return comma;
-  }
-
-  /**
-   * Return the colon separating the keyword from the following literal.
-   * 
-   * @return the colon separating the keyword from the following literal
-   */
-  public Token getColon() {
-    return colon;
-  }
-
-  /**
-   * Return the comma introducing the combinator.
-   * 
-   * @return the comma introducing the combinator
-   */
-  public Token getComma() {
-    return comma;
+    return keyword;
   }
 
   /**
@@ -92,24 +60,6 @@ public abstract class ImportCombinator extends ASTNode {
    */
   public Token getKeyword() {
     return keyword;
-  }
-
-  /**
-   * Set the colon separating the keyword from the following literal to the given token.
-   * 
-   * @param colon the colon separating the keyword from the following literal
-   */
-  public void setColon(Token colon) {
-    this.colon = colon;
-  }
-
-  /**
-   * Set the comma introducing the combinator to the given token.
-   * 
-   * @param comma the comma introducing the combinator
-   */
-  public void setComma(Token comma) {
-    this.comma = comma;
   }
 
   /**

@@ -16,23 +16,23 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class {@code LibraryDirective} represent a library directive.
+ * Instances of the class {@code PartDirective} represent a part directive.
  * 
  * <pre>
- * libraryDirective ::=
- *     'library' {@link Identifier name} ';'
+ * partDirective ::=
+ *     'part' {@link StringLiteral partUri} ';'
  * </pre>
  */
-public class LibraryDirective extends Directive {
+public class PartDirective extends Directive {
   /**
-   * The token representing the 'library' token.
+   * The token representing the 'part' token.
    */
-  private Token libraryToken;
+  private Token partToken;
 
   /**
-   * The name of the library being defined.
+   * The URI of the part being included.
    */
-  private Identifier name;
+  private StringLiteral partUri;
 
   /**
    * The semicolon terminating the directive.
@@ -40,32 +40,32 @@ public class LibraryDirective extends Directive {
   private Token semicolon;
 
   /**
-   * Initialize a newly created library directive.
+   * Initialize a newly created part directive.
    */
-  public LibraryDirective() {
+  public PartDirective() {
   }
 
   /**
-   * Initialize a newly created library directive.
+   * Initialize a newly created part directive.
    * 
-   * @param libraryToken the token representing the 'library' token
-   * @param name the name of the library being defined
+   * @param partToken the token representing the 'part' token
+   * @param partUri the URI of the part being included
    * @param semicolon the semicolon terminating the directive
    */
-  public LibraryDirective(Token libraryToken, Identifier name, Token semicolon) {
-    this.libraryToken = libraryToken;
-    this.name = becomeParentOf(name);
+  public PartDirective(Token partToken, StringLiteral partUri, Token semicolon) {
+    this.partToken = partToken;
+    this.partUri = becomeParentOf(partUri);
     this.semicolon = semicolon;
   }
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
-    return visitor.visitLibraryDirective(this);
+    return visitor.visitPartDirective(this);
   }
 
   @Override
   public Token getBeginToken() {
-    return libraryToken;
+    return partToken;
   }
 
   @Override
@@ -74,21 +74,21 @@ public class LibraryDirective extends Directive {
   }
 
   /**
-   * Return the token representing the 'library' token.
+   * Return the token representing the 'part' token.
    * 
-   * @return the token representing the 'library' token
+   * @return the token representing the 'part' token
    */
-  public Token getLibraryToken() {
-    return libraryToken;
+  public Token getPartToken() {
+    return partToken;
   }
 
   /**
-   * Return the name of the library being defined.
+   * Return the URI of the part being included.
    * 
-   * @return the name of the library being defined
+   * @return the URI of the part being included
    */
-  public Identifier getName() {
-    return name;
+  public StringLiteral getPartUri() {
+    return partUri;
   }
 
   /**
@@ -101,21 +101,21 @@ public class LibraryDirective extends Directive {
   }
 
   /**
-   * Set the token representing the 'library' token to the given token.
+   * Set the token representing the 'part' token to the given token.
    * 
-   * @param libraryToken the token representing the 'library' token
+   * @param partToken the token representing the 'part' token
    */
-  public void setLibraryToken(Token libraryToken) {
-    this.libraryToken = libraryToken;
+  public void setPartToken(Token partToken) {
+    this.partToken = partToken;
   }
 
   /**
-   * Set the name of the library being defined to the given string.
+   * Set the URI of the part being included to the given string.
    * 
-   * @param name the name of the library being defined
+   * @param partUri the URI of the part being included
    */
-  public void setName(Identifier name) {
-    this.name = becomeParentOf(name);
+  public void setPartUri(StringLiteral partUri) {
+    this.partUri = becomeParentOf(partUri);
   }
 
   /**
@@ -129,6 +129,6 @@ public class LibraryDirective extends Directive {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(name, visitor);
+    safelyVisitChild(partUri, visitor);
   }
 }

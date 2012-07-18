@@ -69,6 +69,8 @@ import com.google.dart.engine.ast.NamedFormalParameter;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.ParenthesizedExpression;
+import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -79,7 +81,6 @@ import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
-import com.google.dart.engine.ast.SourceDirective;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
@@ -659,16 +660,14 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseCompilationUnit_directives_multiple() throws Exception {
-    CompilationUnit unit = parse(
-        "parseCompilationUnit",
-        "#library('LibraryName');\n#source('A.dart');");
+    CompilationUnit unit = parse("parseCompilationUnit", "library l;\npart 'a.dart';");
     assertNull(unit.getScriptTag());
     assertEquals(2, unit.getDirectives().size());
     assertEmpty("declaration", unit.getDeclarations());
   }
 
   public void test_parseCompilationUnit_directives_single() throws Exception {
-    CompilationUnit unit = parse("parseCompilationUnit", "#library('LibraryName');");
+    CompilationUnit unit = parse("parseCompilationUnit", "library l;");
     assertNull(unit.getScriptTag());
     assertEquals(1, unit.getDirectives().size());
     assertEmpty("declaration", unit.getDeclarations());
@@ -1608,98 +1607,76 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseImportDirective_export() throws Exception {
-    Token hash = new Token(TokenType.HASH, 0);
-    ImportDirective directive = parse(
-        "parseImportDirective",
-        new Class[] {Token.class},
-        new Object[] {hash},
-        "import('lib/lib.dart', export: true);");
-    assertNotNull(directive.getHash());
-    assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLeftParenthesis());
+    ImportDirective directive = parse("parseImportDirective", "import 'lib/lib.dart' & export;");
+    assertNotNull(directive.getImportToken());
     assertNotNull(directive.getLibraryUri());
-    assertEquals(1, directive.getCombinators().size());
-    assertNotNull(directive.getRightParenthesis());
+    assertNull(directive.getAsToken());
+    assertNull(directive.getPrefix());
+    assertEquals(0, directive.getCombinators().size());
+    assertNotNull(directive.getAmpersand());
+    assertNotNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
   }
 
   public void test_parseImportDirective_full() throws Exception {
-    Token hash = new Token(TokenType.HASH, 0);
     ImportDirective directive = parse(
         "parseImportDirective",
-        new Class[] {Token.class},
-        new Object[] {hash},
-        "import('lib/lib.dart', export: true, hide: ['A'], show: ['B'], prefix: 'a');");
-    assertNotNull(directive.getHash());
-    assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLeftParenthesis());
+        "import 'lib/lib.dart' as a hide A show B & export;");
+    assertNotNull(directive.getImportToken());
     assertNotNull(directive.getLibraryUri());
-    assertEquals(4, directive.getCombinators().size());
-    assertNotNull(directive.getRightParenthesis());
+    assertNotNull(directive.getAsToken());
+    assertNotNull(directive.getPrefix());
+    assertEquals(2, directive.getCombinators().size());
+    assertNotNull(directive.getAmpersand());
+    assertNotNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
   }
 
   public void test_parseImportDirective_hide() throws Exception {
-    Token hash = new Token(TokenType.HASH, 0);
-    ImportDirective directive = parse(
-        "parseImportDirective",
-        new Class[] {Token.class},
-        new Object[] {hash},
-        "import('lib/lib.dart', hide: ['A']);");
-    assertNotNull(directive.getHash());
-    assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLeftParenthesis());
+    ImportDirective directive = parse("parseImportDirective", "import 'lib/lib.dart' hide A, B;");
+    assertNotNull(directive.getImportToken());
     assertNotNull(directive.getLibraryUri());
+    assertNull(directive.getAsToken());
+    assertNull(directive.getPrefix());
     assertEquals(1, directive.getCombinators().size());
-    assertNotNull(directive.getRightParenthesis());
+    assertNull(directive.getAmpersand());
+    assertNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
   }
 
   public void test_parseImportDirective_noCombinator() throws Exception {
-    Token hash = new Token(TokenType.HASH, 0);
-    ImportDirective directive = parse(
-        "parseImportDirective",
-        new Class[] {Token.class},
-        new Object[] {hash},
-        "import('lib/lib.dart');");
-    assertNotNull(directive.getHash());
-    assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLeftParenthesis());
+    ImportDirective directive = parse("parseImportDirective", "import 'lib/lib.dart';");
+    assertNotNull(directive.getImportToken());
     assertNotNull(directive.getLibraryUri());
+    assertNull(directive.getAsToken());
+    assertNull(directive.getPrefix());
     assertEquals(0, directive.getCombinators().size());
-    assertNotNull(directive.getRightParenthesis());
+    assertNull(directive.getAmpersand());
+    assertNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
   }
 
   public void test_parseImportDirective_prefix() throws Exception {
-    Token hash = new Token(TokenType.HASH, 0);
-    ImportDirective directive = parse(
-        "parseImportDirective",
-        new Class[] {Token.class},
-        new Object[] {hash},
-        "import('lib/lib.dart', prefix: 'a');");
-    assertNotNull(directive.getHash());
-    assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLeftParenthesis());
+    ImportDirective directive = parse("parseImportDirective", "import 'lib/lib.dart' as a;");
+    assertNotNull(directive.getImportToken());
     assertNotNull(directive.getLibraryUri());
-    assertEquals(1, directive.getCombinators().size());
-    assertNotNull(directive.getRightParenthesis());
+    assertNotNull(directive.getAsToken());
+    assertNotNull(directive.getPrefix());
+    assertEquals(0, directive.getCombinators().size());
+    assertNull(directive.getAmpersand());
+    assertNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
   }
 
   public void test_parseImportDirective_show() throws Exception {
-    Token hash = new Token(TokenType.HASH, 0);
-    ImportDirective directive = parse(
-        "parseImportDirective",
-        new Class[] {Token.class},
-        new Object[] {hash},
-        "import('lib/lib.dart', show: ['A']);");
-    assertNotNull(directive.getHash());
-    assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLeftParenthesis());
+    ImportDirective directive = parse("parseImportDirective", "import 'lib/lib.dart' show A, B;");
+    assertNotNull(directive.getImportToken());
     assertNotNull(directive.getLibraryUri());
+    assertNull(directive.getAsToken());
+    assertNull(directive.getPrefix());
     assertEquals(1, directive.getCombinators().size());
-    assertNotNull(directive.getRightParenthesis());
+    assertNull(directive.getAmpersand());
+    assertNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
   }
 
@@ -1793,18 +1770,17 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getArgumentList());
   }
 
-  public void test_parseLibraryDirective() throws Exception {
-    Token hash = new Token(TokenType.HASH, 0);
-    LibraryDirective directive = parse(
-        "parseLibraryDirective",
-        new Class[] {Token.class},
-        new Object[] {hash},
-        "library('lib');");
-    assertNotNull(directive.getHash());
-    assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLeftParenthesis());
+  public void test_parseLibraryDirective_multiple() throws Exception {
+    LibraryDirective directive = parse("parseLibraryDirective", "library l.m;");
+    assertNotNull(directive.getLibraryToken());
     assertNotNull(directive.getName());
-    assertNotNull(directive.getRightParenthesis());
+    assertNotNull(directive.getSemicolon());
+  }
+
+  public void test_parseLibraryDirective_single() throws Exception {
+    LibraryDirective directive = parse("parseLibraryDirective", "library l;");
+    assertNotNull(directive.getLibraryToken());
+    assertNotNull(directive.getName());
     assertNotNull(directive.getSemicolon());
   }
 
@@ -2015,6 +1991,21 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(returnType, method.getReturnType());
   }
 
+  public void test_parsePartDirective_part() throws Exception {
+    PartDirective directive = parse("parsePartDirective", "part 'lib/lib.dart';");
+    assertNotNull(directive.getPartToken());
+    assertNotNull(directive.getPartUri());
+    assertNotNull(directive.getSemicolon());
+  }
+
+  public void test_parsePartDirective_partOf() throws Exception {
+    PartOfDirective directive = parse("parsePartDirective", "part of l;");
+    assertNotNull(directive.getPartToken());
+    assertNotNull(directive.getOfToken());
+    assertNotNull(directive.getLibraryName());
+    assertNotNull(directive.getSemicolon());
+  }
+
   public void test_parsePostfixExpression_decrement() throws Exception {
     PostfixExpression expression = parse("parsePostfixExpression", "i--");
     assertNotNull(expression.getOperand());
@@ -2211,17 +2202,9 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseResourceDirective() throws Exception {
-    Token hash = new Token(TokenType.HASH, 0);
-    ResourceDirective directive = parse(
-        "parseResourceDirective",
-        new Class[] {Token.class},
-        new Object[] {hash},
-        "resource('lib/lib.dart');");
-    assertNotNull(directive.getHash());
-    assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLeftParenthesis());
+    ResourceDirective directive = parse("parseResourceDirective", "resource 'lib/lib.dart';");
+    assertNotNull(directive.getResourceToken());
     assertNotNull(directive.getResourceUri());
-    assertNotNull(directive.getRightParenthesis());
     assertNotNull(directive.getSemicolon());
   }
 
@@ -2301,21 +2284,6 @@ public class SimpleParserTest extends ParserTestCase {
     SimpleIdentifier identifier = parse("parseSimpleIdentifier", lexeme);
     assertNotNull(identifier.getToken());
     assertEquals(lexeme, identifier.getIdentifier());
-  }
-
-  public void test_parseSourceDirective() throws Exception {
-    Token hash = new Token(TokenType.HASH, 0);
-    SourceDirective directive = parse(
-        "parseSourceDirective",
-        new Class[] {Token.class},
-        new Object[] {hash},
-        "source('lib/lib.dart');");
-    assertNotNull(directive.getHash());
-    assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLeftParenthesis());
-    assertNotNull(directive.getSourceUri());
-    assertNotNull(directive.getRightParenthesis());
-    assertNotNull(directive.getSemicolon());
   }
 
   public void test_parseStatement_mulipleLabels() throws Exception {

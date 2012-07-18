@@ -21,8 +21,8 @@ package com.google.dart.engine.ast;
  * directive ::=
  *     {@link ImportDirective importDirective}
  *   | {@link LibraryDirective libraryDirective}
- *   | {@link NativeDirective nativeDirective}
- *   | {@link SourceDirective sourceDirective}
+ *   | {@link PartDirective partDirective}
+ *   | {@link PartOfDirective partOfDirective}
  *   | {@link ResourceDirective resourceDirective}
  * </pre>
  */

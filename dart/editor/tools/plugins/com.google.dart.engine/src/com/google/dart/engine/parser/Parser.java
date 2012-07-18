@@ -97,10 +97,14 @@ public class Parser {
    */
   private Token currentToken;
 
-  private static final String LIBRARY_DIRECTIVE = "library"; //$NON-NLS-1$
-  private static final String IMPORT_DIRECTIVE = "import"; //$NON-NLS-1$
-  private static final String RESOURCE_DIRECTIVE = "resource"; //$NON-NLS-1$
-  private static final String SOURCE_DIRECTIVE = "source"; //$NON-NLS-1$
+  private static final String EXPORT = "export"; //$NON-NLS-1$
+  private static final String HIDE = "hide"; //$NON-NLS-1$
+  private static final String IMPORT = "import"; //$NON-NLS-1$
+  private static final String LIBRARY = "library"; //$NON-NLS-1$
+  private static final String OF = "of"; //$NON-NLS-1$
+  private static final String PART = "part"; //$NON-NLS-1$
+  private static final String RESOURCE = "resource"; //$NON-NLS-1$
+  private static final String SHOW = "show"; //$NON-NLS-1$
 
   private static final ArrayList<Expression> EMPTY_EXPRESSION_LIST = new ArrayList<Expression>(0);
 
@@ -1052,7 +1056,7 @@ public class Parser {
     List<Directive> directives = new ArrayList<Directive>();
     List<CompilationUnitMember> declarations = new ArrayList<CompilationUnitMember>();
     while (!matches(TokenType.EOF)) {
-      if (matches(TokenType.HASH)) {
+      if (matches(IMPORT) || matches(LIBRARY) || matches(PART) || matches(RESOURCE)) {
         if (declarationFound && !errorGenerated) {
           // reportError(ParserErrorCode.?));
           errorGenerated = true;
@@ -1289,34 +1293,28 @@ public class Parser {
    * 
    * <pre>
    * directive ::=
-   *     libraryDirective
-   *   | importDirective
-   *   | sourceDirective
+   *     importDirective
+   *   | libraryDirective
+   *   | partDirective
    *   | resourceDirective
    * </pre>
    * 
    * @return the directive that was parsed
    */
   private Directive parseDirective() {
-    Token hash = expect(TokenType.HASH);
-    if (currentToken.getOffset() != hash.getOffset() + 1) {
-      // reportError(ParserErrorCode.?);
+    String lexeme = currentToken.getLexeme();
+    if (lexeme.equals(IMPORT)) {
+      return parseImportDirective();
+    } else if (lexeme.equals(LIBRARY)) {
+      return parseLibraryDirective();
+    } else if (lexeme.equals(PART)) {
+      return parsePartDirective();
+    } else if (lexeme.equals(RESOURCE)) {
+      return parseResourceDirective();
+    } else {
+      // Internal error
+      return null;
     }
-    if (matches(TokenType.IDENTIFIER)) {
-      String lexeme = currentToken.getLexeme();
-      if (lexeme.equals(LIBRARY_DIRECTIVE)) {
-        return parseLibraryDirective(hash);
-      } else if (lexeme.equals(IMPORT_DIRECTIVE)) {
-        return parseImportDirective(hash);
-      } else if (lexeme.equals(SOURCE_DIRECTIVE)) {
-        return parseSourceDirective(hash);
-      } else if (lexeme.equals(RESOURCE_DIRECTIVE)) {
-        return parseResourceDirective(hash);
-      } else {
-        // reportError(ParserErrorCode.?, lexeme);
-      }
-    }
-    return null;
   }
 
   /**
@@ -1892,6 +1890,26 @@ public class Parser {
   }
 
   /**
+   * Parse a list of identifiers.
+   * 
+   * <pre>
+   * identifierList ::=
+   *     identifier (',' identifier)*
+   * </pre>
+   * 
+   * @return the list of identifiers that were parsed
+   */
+  private List<Identifier> parseIdentifierList() {
+    List<Identifier> identifiers = new ArrayList<Identifier>();
+    identifiers.add(parseSimpleIdentifier());
+    while (matches(TokenType.COMMA)) {
+      advance();
+      identifiers.add(parseSimpleIdentifier());
+    }
+    return identifiers;
+  }
+
+  /**
    * Parse an if statement.
    * 
    * <pre>
@@ -1948,83 +1966,50 @@ public class Parser {
    * 
    * <pre>
    * importDirective ::=
-   *     '#import' '(' stringLiteral (',' export)? (',' combinator )* (',' prefix)? ')' ';'
-   * 
-   * export ::=
-   *     'export:' booleanLiteral
+   *     'import' stringLiteral ('as' identifier)? combinator* ('&' 'export')? ';'
    * 
    * combinator ::=
-   *     'show:' listLiteral
-   *   | 'hide:' listLiteral
-   * 
-   * prefix ::=
-   *     'prefix:' stringLiteral
+   *     'show' identifier (',' identifier)*
+   *   | 'hide' identifier (',' identifier)*
    * </pre>
    * 
-   * @param hash the token for the hash sign preceding the import keyword
    * @return the import directive that was parsed
    */
-  private ImportDirective parseImportDirective(Token hash) {
-    Token keyword = expect(IMPORT_DIRECTIVE);
-    Token leftParenthesis = expect(TokenType.OPEN_PAREN);
+  private ImportDirective parseImportDirective() {
+    Token importKeyword = expect(IMPORT);
     StringLiteral libraryUri = parseStringLiteral();
+    Token asToken = null;
+    SimpleIdentifier prefix = null;
+    if (matches(Keyword.AS)) {
+      asToken = getAndAdvance();
+      prefix = parseSimpleIdentifier();
+    }
     List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
-    boolean hasExport = false;
-    boolean hasShow = false;
-    boolean hasHide = false;
-    boolean hasPrefix = false;
-    while (matches(TokenType.COMMA)) {
-      Token comma = getAndAdvance();
+    while (matches(SHOW) || matches(HIDE)) {
       Token kind = expect(TokenType.IDENTIFIER);
-      Token colon = expect(TokenType.COLON);
-      if (kind.getLexeme().equals("export")) { //$NON-NLS-1$
-        if (hasExport) {
-          // Duplicated combinator
-          // reportError(ParserErrorCode.?));
-        }
-        hasExport = true;
-        BooleanLiteral shouldExport = parseBooleanLiteral();
-        combinators.add(new ImportExportCombinator(comma, kind, colon, shouldExport));
-      } else if (kind.getLexeme().equals("show")) { //$NON-NLS-1$
-        if (hasShow) {
-          // Duplicated combinator
-          // reportError(ParserErrorCode.?));
-        }
-        hasShow = true;
-        ListLiteral shownNames = parseListLiteral(null, null);
-        combinators.add(new ImportShowCombinator(comma, kind, colon, shownNames));
-      } else if (kind.getLexeme().equals("hide")) { //$NON-NLS-1$
-        if (hasHide) {
-          // Duplicated combinator
-          // reportError(ParserErrorCode.?));
-        }
-        hasHide = true;
-        ListLiteral hiddenNames = parseListLiteral(null, null);
-        combinators.add(new ImportHideCombinator(comma, kind, colon, hiddenNames));
-      } else if (kind.getLexeme().equals("prefix")) { //$NON-NLS-1$
-        if (hasPrefix) {
-          // Duplicated combinator
-          // reportError(ParserErrorCode.?));
-        }
-        hasPrefix = true;
-        StringLiteral prefix = parseStringLiteral();
-        combinators.add(new ImportPrefixCombinator(comma, kind, colon, prefix));
+      if (kind.getLexeme().equals(SHOW)) {
+        List<Identifier> shownNames = parseIdentifierList();
+        combinators.add(new ImportShowCombinator(kind, shownNames));
       } else {
-        // Illegal combinator.
-        // reportError(ParserErrorCode.?, kind.getLexeme()));
+        List<Identifier> hiddenNames = parseIdentifierList();
+        combinators.add(new ImportHideCombinator(kind, hiddenNames));
       }
     }
-    // Check the order of the combinators.
-    // reportError(ParserErrorCode.?));
-    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
+    Token ampersand = null;
+    Token exportToken = null;
+    if (matches(TokenType.AMPERSAND)) {
+      ampersand = getAndAdvance();
+      exportToken = expect(EXPORT);
+    }
     Token semicolon = expect(TokenType.SEMICOLON);
     return new ImportDirective(
-        hash,
-        keyword,
-        leftParenthesis,
+        importKeyword,
         libraryUri,
+        asToken,
+        prefix,
         combinators,
-        rightParenthesis,
+        ampersand,
+        exportToken,
         semicolon);
   }
 
@@ -2083,25 +2068,16 @@ public class Parser {
    * 
    * <pre>
    * libraryDirective ::=
-   *     '#library' '(' stringLiteral ')' ';'
+   *     'library' qualified ';'
    * </pre>
    * 
-   * @param hash the token for the hash sign preceding the library keyword
    * @return the library directive that was parsed
    */
-  private LibraryDirective parseLibraryDirective(Token hash) {
-    Token keyword = expect(LIBRARY_DIRECTIVE);
-    Token leftParenthesis = expect(TokenType.OPEN_PAREN);
-    StringLiteral libraryName = parseStringLiteral();
-    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
+  private LibraryDirective parseLibraryDirective() {
+    Token keyword = expect(LIBRARY);
+    Identifier libraryName = parsePrefixedIdentifier();
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new LibraryDirective(
-        hash,
-        keyword,
-        leftParenthesis,
-        libraryName,
-        rightParenthesis,
-        semicolon);
+    return new LibraryDirective(keyword, libraryName, semicolon);
   }
 
   /**
@@ -2549,6 +2525,32 @@ public class Parser {
   }
 
   /**
+   * Parse a part or part-of directive.
+   * 
+   * <pre>
+   * partDirective ::=
+   *     'part' stringLiteral ';'
+   * 
+   * partOfDirective ::=
+   *     'part' 'of' qualified ';'
+   * </pre>
+   * 
+   * @return the part or part-of directive that was parsed
+   */
+  private Directive parsePartDirective() {
+    Token partKeyword = expect(PART);
+    if (matches(OF)) {
+      Token ofKeyword = getAndAdvance();
+      Identifier libraryName = parsePrefixedIdentifier();
+      Token semicolon = expect(TokenType.SEMICOLON);
+      return new PartOfDirective(partKeyword, ofKeyword, libraryName, semicolon);
+    }
+    StringLiteral partUri = parseStringLiteral();
+    Token semicolon = expect(TokenType.SEMICOLON);
+    return new PartDirective(partKeyword, partUri, semicolon);
+  }
+
+  /**
    * Parse a postfix expression.
    * 
    * <pre>
@@ -2729,25 +2731,16 @@ public class Parser {
    * 
    * <pre>
    * resourceDirective ::=
-   *     '#resource' '(' stringLiteral ')' ';'
+   *     'resource' stringLiteral ';'
    * </pre>
    * 
-   * @param hash the token for the hash sign preceding the resource keyword
    * @return the resource directive that was parsed
    */
-  private ResourceDirective parseResourceDirective(Token hash) {
-    Token keyword = expect(RESOURCE_DIRECTIVE);
-    Token leftParenthesis = expect(TokenType.OPEN_PAREN);
+  private ResourceDirective parseResourceDirective() {
+    Token keyword = expect(RESOURCE);
     StringLiteral resourceUri = parseStringLiteral();
-    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new ResourceDirective(
-        hash,
-        keyword,
-        leftParenthesis,
-        resourceUri,
-        rightParenthesis,
-        semicolon);
+    return new ResourceDirective(keyword, resourceUri, semicolon);
   }
 
   /**
@@ -2867,32 +2860,6 @@ public class Parser {
     }
     reportError(ParserErrorCode.EXPECTED_IDENTIFIER);
     return new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, "", currentToken.getOffset()));
-  }
-
-  /**
-   * Parse a source directive.
-   * 
-   * <pre>
-   * sourceDirective ::=
-   *     '#source' '(' stringLiteral ')' ';'
-   * </pre>
-   * 
-   * @param hash the token for the hash sign preceding the source keyword
-   * @return the source directive that was parsed
-   */
-  private SourceDirective parseSourceDirective(Token hash) {
-    Token keyword = expect(SOURCE_DIRECTIVE);
-    Token leftParenthesis = expect(TokenType.OPEN_PAREN);
-    StringLiteral sourceUri = parseStringLiteral();
-    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
-    Token semicolon = expect(TokenType.SEMICOLON);
-    return new SourceDirective(
-        hash,
-        keyword,
-        leftParenthesis,
-        sourceUri,
-        rightParenthesis,
-        semicolon);
   }
 
   /**

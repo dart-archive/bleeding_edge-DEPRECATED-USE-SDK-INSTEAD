@@ -15,20 +15,22 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code ImportShowCombinator} represent a combinator that restricts the
  * names being imported to those in a given list.
  * 
  * <pre>
  * importShowCombinator ::=
- *     'show:' {@link ListLiteral listLiteral}
+ *     'show' {@link SimpleIdentifier identifier} (',' {@link SimpleIdentifier identifier})*
  * </pre>
  */
 public class ImportShowCombinator extends ImportCombinator {
   /**
    * The list of names from the library that are made visible by this combinator.
    */
-  private ListLiteral shownNames;
+  private NodeList<Identifier> shownNames = new NodeList<Identifier>(this);
 
   /**
    * Initialize a newly created import show combinator.
@@ -40,14 +42,12 @@ public class ImportShowCombinator extends ImportCombinator {
   /**
    * Initialize a newly created import show combinator.
    * 
-   * @param comma the comma introducing the combinator
    * @param keyword the comma introducing the combinator
-   * @param colon the colon separating the keyword from the following literal
    * @param shownNames the list of names from the library that are made visible by this combinator
    */
-  public ImportShowCombinator(Token comma, Token keyword, Token colon, ListLiteral shownNames) {
-    super(comma, keyword, colon);
-    this.shownNames = shownNames;
+  public ImportShowCombinator(Token keyword, List<Identifier> shownNames) {
+    super(keyword);
+    this.shownNames.addAll(shownNames);
   }
 
   @Override
@@ -65,22 +65,12 @@ public class ImportShowCombinator extends ImportCombinator {
    * 
    * @return the list of names from the library that are made visible by this combinator
    */
-  public ListLiteral getShownNames() {
+  public NodeList<Identifier> getShownNames() {
     return shownNames;
-  }
-
-  /**
-   * Set the list of names from the library that are made visible by this combinator to the given
-   * list.
-   * 
-   * @param shownNames the list of names from the library that are made visible by this combinator
-   */
-  public void setShownNames(ListLiteral shownNames) {
-    this.shownNames = becomeParentOf(shownNames);
   }
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(shownNames, visitor);
+    shownNames.accept(visitor);
   }
 }
