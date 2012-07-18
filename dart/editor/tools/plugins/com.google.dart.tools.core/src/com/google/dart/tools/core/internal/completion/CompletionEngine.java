@@ -1370,6 +1370,7 @@ public class CompletionEngine {
   private CompilationUnit currentCompilationUnit;
   private CompletionMetrics metrics;
   private Set<String> prefixes;
+  private LibraryElement currentLib;
 
   private static final String C_EXTENDS = "extends";
   private static final String C_IMPLEMENTS = "implements";
@@ -1492,6 +1493,10 @@ public class CompletionEngine {
       return;
     }
     Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
+    if (parsedUnit.getLibrary() != null) {
+      // completion tests do not have a library
+      currentLib = parsedUnit.getLibrary().getElement();
+    }
 
     NodeFinder finder = NodeFinder.find(parsedUnit, completionPosition, 0);
     DartNode resolvedNode = finder.selectNode();
@@ -1588,6 +1593,9 @@ public class CompletionEngine {
     if (!isIndexableType(field.getType())) {
       return;
     }
+    if (!isVisibleToCurrentLibrary(field)) {
+      return;
+    }
     InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
         CompletionProposal.FIELD_REF,
         actualCompletionPosition - offset);
@@ -1613,6 +1621,9 @@ public class CompletionEngine {
   }
 
   private void createCompletionsForAliasRef(FunctionAliasType funcAlias) {
+    if (!isVisibleToCurrentLibrary(funcAlias.getElement())) {
+      return;
+    }
     InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
         CompletionProposal.POTENTIAL_METHOD_DECLARATION,
         actualCompletionPosition - offset);
@@ -1653,6 +1664,9 @@ public class CompletionEngine {
       if (isConst && !method.getModifiers().isConstant()) {
         continue;
       }
+      if (!isVisibleToCurrentLibrary(method)) {
+        continue;
+      }
       String name = method.getName();
       if (prefix != null && !name.startsWith(prefix)) {
         continue;
@@ -1683,6 +1697,9 @@ public class CompletionEngine {
   }
 
   private void createCompletionsForFunctionRef(FunctionType func) {
+    if (!isVisibleToCurrentLibrary(func.getElement())) {
+      return;
+    }
     InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
         CompletionProposal.POTENTIAL_METHOD_DECLARATION,
         actualCompletionPosition - offset);
@@ -1809,6 +1826,9 @@ public class CompletionEngine {
         continue;
       }
       Element element = para.getSymbol();
+      if (!isVisibleToCurrentLibrary(element)) {
+        return;
+      }
       boolean isSetter = element.getModifiers().isSetter();
       boolean isGetter = element.getModifiers().isGetter();
       boolean isMethod = element.getKind() == ElementKind.METHOD;
@@ -1870,6 +1890,9 @@ public class CompletionEngine {
       boolean candidateMethodIsStatic = elem.getModifiers().isStatic();
       if (isMethodStatic && !candidateMethodIsStatic || isQualifiedByThis
           && candidateMethodIsStatic) {
+        continue;
+      }
+      if (!isVisibleToCurrentLibrary(method)) {
         continue;
       }
       String name = method.getName();
@@ -1954,6 +1977,9 @@ public class CompletionEngine {
         if (field.getEnclosingElement() != parent.getQualifier().getElement()) {
           continue;
         }
+      }
+      if (!isVisibleToCurrentLibrary(field)) {
+        continue;
       }
       String name = field.getName();
       String sig = name + field.getType().getElement().getName();
@@ -2104,6 +2130,9 @@ public class CompletionEngine {
       }
     }
     if (disallowPrivate && name.startsWith("_")) {
+      return;
+    }
+    if (!isVisibleToCurrentLibrary(type.getElement())) {
       return;
     }
     InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
@@ -2389,6 +2418,14 @@ public class CompletionEngine {
     return currentCompilationUnit;
   }
 
+  private LibraryElement getLibrary(Element elem) {
+    Element e = elem;
+    while (e != null && !(e instanceof LibraryElement)) {
+      e = e.getEnclosingElement();
+    }
+    return (LibraryElement) e;
+  }
+
   private boolean isCompletionNode(DartNode node) {
     int completionPos = actualCompletionPosition + 1;
     int nodeStart = node.getSourceInfo().getOffset();
@@ -2435,6 +2472,15 @@ public class CompletionEngine {
       return false;
     }
     return false;
+  }
+
+  private boolean isVisibleToCurrentLibrary(Element elem) {
+    if (elem.getName().startsWith("_")) {
+      // make sure it is in the same library as the current file
+      LibraryElement lib = getLibrary(elem);
+      return lib == currentLib;
+    }
+    return true;
   }
 
   private String makeSig(String name, char[][] paramTypeNames) {
