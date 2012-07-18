@@ -92,7 +92,13 @@ public class WebkitRemoteObject {
   }
 
   public String getValue() {
-    return value;
+    // Only numbers are returned with a description, and it's often more useful then the value
+    // field (for things like Infinity).
+    if (isNumber() && description != null) {
+      return description;
+    } else {
+      return value;
+    }
   }
 
   public boolean hasObjectId() {
@@ -105,6 +111,10 @@ public class WebkitRemoteObject {
 
   public boolean isList() {
     return "array".equals(subtype);
+  }
+
+  public boolean isNumber() {
+    return "number".equals(type);
   }
 
   public boolean isPrimitive() {
