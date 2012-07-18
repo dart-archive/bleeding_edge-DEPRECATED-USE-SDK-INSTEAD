@@ -33,7 +33,7 @@ module core {
         Conditional=MUTATION_OBSERVERS,
         CustomConstructor,
         ConstructorParameters=1
-    ] WebKitMutationObserver {
+    ] MutationObserver {
         void observe(in Node target, in Dictionary options)
             raises(DOMException);
         sequence<MutationRecord> takeRecords();
