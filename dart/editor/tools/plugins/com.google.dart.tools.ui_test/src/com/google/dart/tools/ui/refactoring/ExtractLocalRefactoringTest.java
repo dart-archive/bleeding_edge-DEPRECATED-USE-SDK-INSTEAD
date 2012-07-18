@@ -297,6 +297,27 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
         "}");
   }
 
+  public void test_occurences_whenSpace() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int foo(String s) => 42;",
+        "main() {",
+        "  int a = 1 + foo('has space');",
+        "  int b = 2 +  foo('has space'); // marker",
+        "}");
+    selectionStart = findOffset("  foo('has space');") + 2;
+    selectionEnd = findOffset("; // marker");
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int foo(String s) => 42;",
+        "main() {",
+        "  int res = foo('has space');",
+        "  int a = 1 + res;",
+        "  int b = 2 +  res; // marker",
+        "}");
+  }
+
   public void test_singleExpression() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

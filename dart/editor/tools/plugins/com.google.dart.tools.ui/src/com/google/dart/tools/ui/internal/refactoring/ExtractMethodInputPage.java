@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractMethodRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.ParameterInfo;
+import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
@@ -35,8 +36,11 @@ import org.eclipse.ltk.ui.refactoring.UserInputWizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -194,27 +198,27 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 //      }
 //    });
 //    layouter.perform(checkBox);
-//
-//    int duplicates = fRefactoring.getNumberOfDuplicates();
-//    checkBox = new Button(result, SWT.CHECK);
-//    if (duplicates == 0) {
-//      checkBox.setText(RefactoringMessages.ExtractMethodInputPage_duplicates_none);
-//    } else if (duplicates == 1) {
-//      checkBox.setText(RefactoringMessages.ExtractMethodInputPage_duplicates_single);
-//    } else {
-//      checkBox.setText(Messages.format(
-//          RefactoringMessages.ExtractMethodInputPage_duplicates_multi,
-//          new Integer(duplicates)));
-//    }
-//    checkBox.setSelection(fRefactoring.getReplaceDuplicates());
-//    checkBox.setEnabled(duplicates > 0);
-//    checkBox.addSelectionListener(new SelectionAdapter() {
-//      @Override
-//      public void widgetSelected(SelectionEvent e) {
-//        fRefactoring.setReplaceDuplicates(((Button) e.widget).getSelection());
-//      }
-//    });
-//    layouter.perform(checkBox);
+
+    int duplicates = fRefactoring.getNumberOfDuplicates();
+    Button checkBox = new Button(result, SWT.CHECK);
+    if (duplicates == 0) {
+      checkBox.setText(RefactoringMessages.ExtractMethodInputPage_duplicates_none);
+    } else if (duplicates == 1) {
+      checkBox.setText(RefactoringMessages.ExtractMethodInputPage_duplicates_single);
+    } else {
+      checkBox.setText(Messages.format(
+          RefactoringMessages.ExtractMethodInputPage_duplicates_multi,
+          new Integer(duplicates)));
+    }
+    checkBox.setSelection(fRefactoring.getReplaceAllOccurrences());
+    checkBox.setEnabled(duplicates > 0);
+    checkBox.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        fRefactoring.setReplaceAllOccurrences(((Button) e.widget).getSelection());
+      }
+    });
+    layouter.perform(checkBox);
 
     label = new Label(result, SWT.SEPARATOR | SWT.HORIZONTAL);
     label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

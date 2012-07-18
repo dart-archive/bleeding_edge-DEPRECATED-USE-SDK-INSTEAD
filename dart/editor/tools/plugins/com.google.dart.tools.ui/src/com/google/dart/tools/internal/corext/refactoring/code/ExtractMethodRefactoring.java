@@ -13,19 +13,20 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.code;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.compiler.ast.ASTVisitor;
-import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClassMember;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.util.apache.StringUtils;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
@@ -35,6 +36,7 @@ import com.google.dart.tools.internal.corext.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.dom.ASTNodes;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
+import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.internal.text.Selection;
 import com.google.dart.tools.ui.internal.text.SelectionAnalyzer;
 
@@ -49,11 +51,9 @@ import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 import org.eclipse.text.edits.TextEditGroup;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * Extracts a method in a compilation unit based on a text selection range.
@@ -61,8 +61,41 @@ import java.util.Set;
  * @coverage dart.editor.ui.refactoring.core
  */
 public class ExtractMethodRefactoring extends Refactoring {
+  /**
+   * Description of the single occurrence of the selected expression or set of statements.
+   */
+  private static class Occurrence {
+    final SourceRange range;
+    final boolean isSelection;
+    final Map<String, String> parameterOldToOccurrenceName = Maps.newHashMap();
 
-//  private static class UsedNamesCollector extends ASTVisitor {
+    public Occurrence(SourceRange range, boolean isSelection) {
+      this.range = range;
+      this.isSelection = isSelection;
+    }
+  }
+
+  /**
+   * Generalized version of some source, in which references to the specific variables are replaced
+   * with pattern variables, with back mapping from pattern to original variable names.
+   */
+  private static class SourcePattern {
+    final Map<String, String> originalToPatternNames = Maps.newHashMap();
+    String patternSource;
+  }
+
+  private static final String TOKEN_SEPARATOR = "\uFFFF";
+
+  /**
+   * @return the "normalized" version of the given source, which is built form tokens, so ignores
+   *         all comments and spaces.
+   */
+  private static String getNormalizedSource(String s) {
+    List<Token> selectionTokens = ExtractUtils.tokenizeSource(s);
+    return StringUtils.join(selectionTokens, TOKEN_SEPARATOR);
+  }
+
+  //  private static class UsedNamesCollector extends ASTVisitor {
 //    public static Set<String> perform(ASTNode[] nodes) {
 //      UsedNamesCollector collector = new UsedNamesCollector();
 //      for (int i = 0; i < nodes.length; i++) {
@@ -153,18 +186,21 @@ public class ExtractMethodRefactoring extends Refactoring {
   private final CompilationUnit unit;
   private final int selectionStart;
   private final int selectionLength;
+
   private final SourceRange selectionRange;
   private final CompilationUnitChange change;
-
   private ExtractUtils utils;
   private DartUnit unitNode;
   private final List<ParameterInfo> parameters = Lists.newArrayList();
-  private final LinkedHashMap<String, SourceRange> identifierNameToRange = Maps.newLinkedHashMap();
-  private SelectionAnalyzer selectionAnalyzer;
-  private DartExpression rootExpression;
 
+  private SelectionAnalyzer selectionAnalyzer;
+  private final Map<String, List<SourceRange>> selectionParametersToRanges = Maps.newHashMap();
+  private DartExpression selectionExpression;
+
+  private final List<Occurrence> occurrences = Lists.newArrayList();
   private String fMethodName;
-  private boolean replaceAllOccurrences;
+
+  private boolean replaceAllOccurrences = true;
 
   //  private AST fAST;
 //  private ASTRewrite fRewriter;
@@ -194,9 +230,26 @@ public class ExtractMethodRefactoring extends Refactoring {
     this.selectionStart = selectionStart;
     this.selectionLength = selectionLength;
     this.selectionRange = SourceRangeFactory.forStartLength(selectionStart, selectionLength);
-    this.change = new CompilationUnitChange(unit.getElementName(), unit);
     this.fMethodName = "extracted"; //$NON-NLS-1$
+    {
+      this.change = new CompilationUnitChange(unit.getElementName(), unit);
+      change.setEdit(new MultiTextEdit());
+      change.setKeepPreviewEdits(true);
+    }
   }
+
+//
+//  /**
+//   * Creates a new extract method refactoring
+//   * 
+//   * @param astRoot the AST root of an AST created from a compilation unit
+//   * @param selectionStart start
+//   * @param selectionLength length
+//   */
+//  public ExtractMethodRefactoring(DartUnit astRoot, int selectionStart, int selectionLength) {
+//    this((CompilationUnit) astRoot.getTypeRoot(), selectionStart, selectionLength);
+//    fRoot = astRoot;
+//  }
 
   @Override
   public RefactoringStatus checkFinalConditions(IProgressMonitor pm) throws CoreException {
@@ -221,19 +274,6 @@ public class ExtractMethodRefactoring extends Refactoring {
     return result;
   }
 
-//
-//  /**
-//   * Creates a new extract method refactoring
-//   * 
-//   * @param astRoot the AST root of an AST created from a compilation unit
-//   * @param selectionStart start
-//   * @param selectionLength length
-//   */
-//  public ExtractMethodRefactoring(DartUnit astRoot, int selectionStart, int selectionLength) {
-//    this((CompilationUnit) astRoot.getTypeRoot(), selectionStart, selectionLength);
-//    fRoot = astRoot;
-//  }
-
   /**
    * Checks if the refactoring can be activated. Activation typically means, if a corresponding menu
    * entry can be added to the UI.
@@ -244,7 +284,6 @@ public class ExtractMethodRefactoring extends Refactoring {
    */
   @Override
   public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException {
-    // TODO(scheglov)
     try {
       pm.beginTask("", 4); //$NON-NLS-1$
       RefactoringStatus result = new RefactoringStatus();
@@ -256,6 +295,7 @@ public class ExtractMethodRefactoring extends Refactoring {
       result.merge(checkSelection(new SubProgressMonitor(pm, 3)));
       // prepare elements
       initializeParameters();
+      initializeOccurrences();
       // done
       return result;
     } finally {
@@ -324,42 +364,47 @@ public class ExtractMethodRefactoring extends Refactoring {
 //    }
     pm.beginTask("", 2); //$NON-NLS-1$
     try {
-      // configure Change
-      change.setEdit(new MultiTextEdit());
-      change.setKeepPreviewEdits(true);
-      // prepare occurrences
-      // TODO(scheglov) support for multiple occurences
-      List<SourceRange> occurences;
-      occurences = ImmutableList.of(SourceRangeFactory.forStartLength(
-          selectionStart,
-          selectionLength));
       // add method declaration
       {
-        // prepare return type
-        String returnTypeSource = ExtractUtils.getTypeSource(rootExpression);
-        if (returnTypeSource == null || returnTypeSource.equals("Dynamic")) {
-          returnTypeSource = "";
-        } else {
-          returnTypeSource += " ";
-        }
         // prepare environment
-        DartClassMember<?> parentMember = ASTNodes.getParent(rootExpression, DartClassMember.class);
+        DartClassMember<?> parentMember = ASTNodes.getParent(
+            selectionExpression,
+            DartClassMember.class);
         String prefix = utils.getNodePrefix(parentMember);
         String eol = utils.getEndOfLine();
+        // prepare annotations
+        String annotations = "";
+        {
+          // may be "static"
+          if (parentMember.getModifiers().isStatic()) {
+            annotations = "static ";
+          }
+          // add return type
+          String returnTypeName = ExtractUtils.getTypeSource(selectionExpression);
+          if (returnTypeName != null && !returnTypeName.equals("Dynamic")) {
+            annotations += returnTypeName + " ";
+          }
+        }
         // prepare declaration source
         String returnExpressionSource = getReturnExpressionSource();
-        String declarationSource = returnTypeSource + getSignature() + " => "
-            + returnExpressionSource + ";";
+        String declarationSource = annotations + getSignature() + " => " + returnExpressionSource
+            + ";";
         // insert declaration
         TextEdit edit = new ReplaceEdit(parentMember.getSourceInfo().getEnd(), 0, eol + prefix
             + declarationSource);
         change.addEdit(edit);
-        change.addTextEditGroup(new TextEditGroup(
-            RefactoringCoreMessages.ExtractLocalRefactoring_declare_local_variable,
-            edit));
+        change.addTextEditGroup(new TextEditGroup(Messages.format(
+            RefactoringCoreMessages.ExtractMethodRefactoring_add_method,
+            fMethodName), edit));
       }
-      // replace occurrences with method invocation XXX
-      for (SourceRange range : occurences) {
+      // replace occurrences with method invocation
+      for (Occurrence occurence : occurrences) {
+        SourceRange range = occurence.range;
+        // may be replacement of duplicates disabled
+        if (!replaceAllOccurrences && !occurence.isSelection) {
+          continue;
+        }
+        // prepare invocation source
         String invocationSource;
         {
           StringBuilder sb = new StringBuilder();
@@ -367,21 +412,29 @@ public class ExtractMethodRefactoring extends Refactoring {
           sb.append("(");
           boolean firstParameter = true;
           for (ParameterInfo parameter : parameters) {
+            // may be comma
             if (firstParameter) {
               firstParameter = false;
             } else {
               sb.append(", ");
             }
-            sb.append(parameter.getOldName());
+            // argument name
+            {
+              String parameterOldName = parameter.getOldName();
+              String argumentName = occurence.parameterOldToOccurrenceName.get(parameterOldName);
+              sb.append(argumentName);
+            }
           }
           sb.append(")");
           invocationSource = sb.toString();
         }
+        // add replace edit
         TextEdit edit = new ReplaceEdit(range.getOffset(), range.getLength(), invocationSource);
         change.addEdit(edit);
-        change.addTextEditGroup(new TextEditGroup(
-            RefactoringCoreMessages.ExtractLocalRefactoring_replace,
-            edit));
+        String msg = Messages.format(occurence.isSelection
+            ? RefactoringCoreMessages.ExtractMethodRefactoring_substitute_with_call
+            : RefactoringCoreMessages.ExtractMethodRefactoring_duplicates_single, fMethodName);
+        change.addTextEditGroup(new TextEditGroup(msg, edit));
       }
       // done
       return change;
@@ -479,10 +532,6 @@ public class ExtractMethodRefactoring extends Refactoring {
     return RefactoringCoreMessages.ExtractMethodRefactoring_name;
   }
 
-  public List<ParameterInfo> getParameters() {
-    return parameters;
-  }
-
 //  /**
 //   * Checks if the parameter names are valid.
 //   * 
@@ -530,50 +579,19 @@ public class ExtractMethodRefactoring extends Refactoring {
 //  }
 
   /**
-   * @return the signature of the extracted method
+   * @return the number of other occurrences of the same source as selection (but not including
+   *         selection itself).
    */
-  public String getSignature() {
-    return getSignature(fMethodName);
+  public int getNumberOfDuplicates() {
+    return occurrences.size() - 1;
   }
 
-  /**
-   * @param methodName the method name used for the new method
-   * @return the signature of the extracted method
-   */
-  public String getSignature(String methodName) {
-    StringBuilder sb = new StringBuilder();
-    sb.append(methodName);
-    sb.append("(");
-    // add all parameters
-    boolean firstParameter = true;
-    for (ParameterInfo parameter : parameters) {
-      // may be comma
-      if (firstParameter) {
-        firstParameter = false;
-      } else {
-        sb.append(", ");
-      }
-      // type
-      {
-        String typeSource = parameter.getNewTypeName();
-        if (!"Dynamic".equals(typeSource)) {
-          sb.append(typeSource);
-          sb.append(" ");
-        }
-      }
-      // name
-      sb.append(parameter.getNewName());
-    }
-    // done
-    sb.append(")");
-    return sb.toString();
+  public List<ParameterInfo> getParameters() {
+    return parameters;
   }
 
-  /**
-   * Sets the method name to be used for the extracted method.
-   */
-  public void setMethodName(String name) {
-    fMethodName = name;
+  public boolean getReplaceAllOccurrences() {
+    return replaceAllOccurrences;
   }
 
 //
@@ -630,44 +648,44 @@ public class ExtractMethodRefactoring extends Refactoring {
 //    return fReplaceDuplicates;
 //  }
 
-  public void setReplaceAllOccurrences(boolean replaceAllOccurrences) {
-    this.replaceAllOccurrences = replaceAllOccurrences;
+  /**
+   * @return the signature of the extracted method
+   */
+  public String getSignature() {
+    return getSignature(fMethodName);
   }
 
   /**
-   * Checks if {@link #selectionRange} selects {@link DartExpression} which can be extracted, and
-   * location of this {@link DartExpression} is AST allows extracting.
+   * @param methodName the method name used for the new method
+   * @return the signature of the extracted method
    */
-  private RefactoringStatus checkSelection(IProgressMonitor pm) throws DartModelException {
-    Selection selection = Selection.createFromStartLength(
-        selectionRange.getOffset(),
-        selectionRange.getLength());
-    selectionAnalyzer = new SelectionAnalyzer(selection, false);
-    unitNode.accept(selectionAnalyzer);
-    // single node selected
-    if (selectionAnalyzer.getSelectedNodes().length == 1
-        && !utils.rangeIncludesNonWhitespaceOutsideNode(
-            selectionRange,
-            selectionAnalyzer.getFirstSelectedNode())) {
-      DartNode selectedNode = selectionAnalyzer.getFirstSelectedNode();
-      if (selectedNode instanceof DartExpression) {
-        rootExpression = (DartExpression) selectedNode;
-        return new RefactoringStatus();
+  public String getSignature(String methodName) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(methodName);
+    sb.append("(");
+    // add all parameters
+    boolean firstParameter = true;
+    for (ParameterInfo parameter : parameters) {
+      // may be comma
+      if (firstParameter) {
+        firstParameter = false;
+      } else {
+        sb.append(", ");
       }
-    }
-    // fragment of binary expression selected
-    {
-      DartNode coveringNode = selectionAnalyzer.getLastCoveringNode();
-      if (coveringNode instanceof DartBinaryExpression) {
-        DartBinaryExpression binaryExpression = (DartBinaryExpression) coveringNode;
-        if (utils.validateBinaryExpressionRange(binaryExpression, selectionRange)) {
-          rootExpression = binaryExpression;
-          return new RefactoringStatus();
+      // type
+      {
+        String typeSource = parameter.getNewTypeName();
+        if (!"Dynamic".equals(typeSource)) {
+          sb.append(typeSource);
+          sb.append(" ");
         }
       }
+      // name
+      sb.append(parameter.getNewName());
     }
-    // invalid selection
-    return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.ExtractLocalRefactoring_select_expression);
+    // done
+    sb.append(")");
+    return sb.toString();
   }
 
 //  /**
@@ -702,32 +720,14 @@ public class ExtractMethodRefactoring extends Refactoring {
 //  }
 
   /**
-   * @return the selected {@link DartExpression} source, with applying new parameter names.
+   * Sets the method name to be used for the extracted method.
    */
-  private String getReturnExpressionSource() {
-    String source = utils.getText(selectionStart, selectionLength);
-    // prepare replacements to apply, add them in the reverse order
-    final LinkedList<SourceRange> replaceRanges = Lists.newLinkedList();
-    final LinkedList<String> replaceNames = Lists.newLinkedList();
-    Set<Entry<String, SourceRange>> entrySet = identifierNameToRange.entrySet();
-    for (Entry<String, SourceRange> entry : entrySet) {
-      String name = entry.getKey();
-      for (ParameterInfo parameter : parameters) {
-        if (StringUtils.equals(name, parameter.getOldName())) {
-          replaceRanges.addFirst(entry.getValue());
-          replaceNames.addFirst(parameter.getNewName());
-        }
-      }
-    }
-    // apply replacements
-    for (int i = 0; i < replaceRanges.size(); i++) {
-      SourceRange range = replaceRanges.get(i);
-      String replace = replaceNames.get(i);
-      String s1 = source.substring(0, range.getOffset() - selectionStart);
-      String s2 = source.substring(SourceRangeUtils.getEnd(range) - selectionStart);
-      source = s1 + replace + s2;
-    }
-    return source;
+  public void setMethodName(String name) {
+    fMethodName = name;
+  }
+
+  public void setReplaceAllOccurrences(boolean replaceAllOccurrences) {
+    this.replaceAllOccurrences = replaceAllOccurrences;
   }
 
 //  /**
@@ -1378,7 +1378,141 @@ public class ExtractMethodRefactoring extends Refactoring {
 //  }
 
   /**
-   * XXX
+   * Checks if {@link #selectionRange} selects {@link DartExpression} or set of
+   * {@link DartStatement}s which can be extracted, and location in AST allows extracting.
+   */
+  private RefactoringStatus checkSelection(IProgressMonitor pm) throws DartModelException {
+    Selection selection = Selection.createFromStartLength(
+        selectionRange.getOffset(),
+        selectionRange.getLength());
+    selectionAnalyzer = new SelectionAnalyzer(selection, false);
+    unitNode.accept(selectionAnalyzer);
+    // single expression selected
+    if (selectionAnalyzer.getSelectedNodes().length == 1
+        && !utils.rangeIncludesNonWhitespaceOutsideNode(
+            selectionRange,
+            selectionAnalyzer.getFirstSelectedNode())) {
+      DartNode selectedNode = selectionAnalyzer.getFirstSelectedNode();
+      if (selectedNode instanceof DartExpression) {
+        selectionExpression = (DartExpression) selectedNode;
+        return new RefactoringStatus();
+      }
+    }
+    // invalid selection
+    return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.ExtractMethodAnalyzer_single_expression_or_set);
+  }
+
+  /**
+   * @return the selected {@link DartExpression} source, with applying new parameter names.
+   */
+  private String getReturnExpressionSource() {
+    String source = utils.getText(selectionStart, selectionLength);
+    // prepare ReplaceEdit operators to apply
+    List<ReplaceEdit> replaceEdits = Lists.newArrayList();
+    for (Entry<String, List<SourceRange>> entry : selectionParametersToRanges.entrySet()) {
+      String name = entry.getKey();
+      for (ParameterInfo parameter : parameters) {
+        if (StringUtils.equals(name, parameter.getOldName())) {
+          for (SourceRange range : entry.getValue()) {
+            replaceEdits.add(new ReplaceEdit(
+                range.getOffset() - selectionStart,
+                range.getLength(),
+                parameter.getNewName()));
+          }
+        }
+      }
+    }
+    // apply replacements
+    return ExtractUtils.applyReplaceEdits(source, replaceEdits);
+  }
+
+  private SourcePattern getSourcePattern(final SourceRange partRange) {
+    String originalSource = utils.getText(partRange.getOffset(), partRange.getLength());
+    final SourcePattern pattern = new SourcePattern();
+    final List<ReplaceEdit> replaceEdits = Lists.newArrayList();
+    unitNode.accept(new ASTVisitor<Void>() {
+      @Override
+      public Void visitIdentifier(DartIdentifier node) {
+        SourceRange nodeRange = SourceRangeFactory.create(node);
+        if (SourceRangeUtils.covers(partRange, nodeRange)) {
+          if (ElementKind.of(node.getElement()) == ElementKind.VARIABLE) {
+            String originalName = ((VariableElement) node.getElement()).getName();
+            String patternName = pattern.originalToPatternNames.get(originalName);
+            if (patternName == null) {
+              patternName = "__dartEditorVariable" + pattern.originalToPatternNames.size();
+              pattern.originalToPatternNames.put(originalName, patternName);
+            }
+            replaceEdits.add(new ReplaceEdit(
+                nodeRange.getOffset() - partRange.getOffset(),
+                nodeRange.getLength(),
+                patternName));
+          }
+        }
+        return null;
+      }
+    });
+    pattern.patternSource = ExtractUtils.applyReplaceEdits(originalSource, replaceEdits);
+    return pattern;
+  }
+
+  /**
+   * Fills {@link #occurrences} field.
+   */
+  private void initializeOccurrences() {
+    if (selectionExpression != null) {
+      // prepare selection
+      SourcePattern selectionPattern = getSourcePattern(selectionRange);
+      final String selectionSource = getNormalizedSource(selectionPattern.patternSource);
+      final Map<String, String> patternToSelectionName = HashBiMap.create(
+          selectionPattern.originalToPatternNames).inverse();
+      // prepare context and enclosing parent - class or unit
+      final boolean staticContext;
+      DartNode enclosingMemberParent;
+      {
+        DartNode coveringNode = selectionAnalyzer.getLastCoveringNode();
+        DartClassMember<?> parentMember = ASTNodes.getAncestor(coveringNode, DartClassMember.class);
+        staticContext = parentMember.getModifiers().isStatic();
+        enclosingMemberParent = parentMember.getParent();
+      }
+      // visit nodes which will able to access extracted method
+      enclosingMemberParent.accept(new ASTVisitor<Void>() {
+        @Override
+        public Void visitClassMember(DartClassMember<?> node) {
+          if (staticContext || !node.getModifiers().isStatic()) {
+            return super.visitClassMember(node);
+          }
+          return null;
+        }
+
+        @Override
+        public Void visitExpression(DartExpression node) {
+          if (node.getClass() == selectionExpression.getClass()) {
+            SourceRange nodeRange = SourceRangeFactory.create(node);
+            // prepare normalized node source
+            SourcePattern nodePattern = getSourcePattern(nodeRange);
+            String nodeSource = getNormalizedSource(nodePattern.patternSource);
+            // if matches normalized node source, then add as occurrence
+            if (nodeSource.equals(selectionSource)) {
+              Occurrence occurrence = new Occurrence(nodeRange, node == selectionExpression);
+              occurrences.add(occurrence);
+              // prepare mapping of parameter names to the occurence variables
+              for (Entry<String, String> entry : nodePattern.originalToPatternNames.entrySet()) {
+                String patternName = entry.getValue();
+                String originalName = entry.getKey();
+                String selectionName = patternToSelectionName.get(patternName);
+                occurrence.parameterOldToOccurrenceName.put(selectionName, originalName);
+              }
+            }
+          }
+          return super.visitExpression(node);
+        }
+      });
+    }
+  }
+
+  /**
+   * Fills {@link #parameters} with information about used variables, which should be turned into
+   * parameters.
    */
   private void initializeParameters() {
     unitNode.accept(new ASTVisitor<Void>() {
@@ -1387,12 +1521,23 @@ public class ExtractMethodRefactoring extends Refactoring {
         if (ElementKind.of(node.getElement()) == ElementKind.VARIABLE) {
           SourceRange nodeRange = SourceRangeFactory.create(node);
           if (SourceRangeUtils.covers(selectionRange, nodeRange)) {
-            VariableElement variable = (VariableElement) node.getElement();
-            parameters.add(new ParameterInfo(variable));
-            identifierNameToRange.put(variable.getName(), nodeRange);
+            VariableElement variableElement = (VariableElement) node.getElement();
+            String variableName = variableElement.getName();
+            // add parameter
+            if (!selectionParametersToRanges.containsKey(variableName)) {
+              parameters.add(new ParameterInfo(variableElement));
+            }
+            // add reference to parameter
+            {
+              List<SourceRange> ranges = selectionParametersToRanges.get(variableName);
+              if (ranges == null) {
+                ranges = Lists.newArrayList();
+                selectionParametersToRanges.put(variableName, ranges);
+              }
+              ranges.add(nodeRange);
+            }
           }
         }
-//        if (node.getSourceInfo().getOffset() >= selectionStart && node.getSourceInfo().getEnd() < )
         return null;
       }
     });

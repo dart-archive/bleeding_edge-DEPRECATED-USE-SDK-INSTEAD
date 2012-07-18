@@ -339,13 +339,248 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "");
   }
 
+  public void test_singleExpression_occurrences() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v1 = 1;",
+        "  int v2 = 2;",
+        "  int v3 = 3;",
+        "  int positiveA = v1 + v2; // marker",
+        "  int positiveB = v2 + v3;",
+        "  int positiveC = v1 +  v2;",
+        "  int positiveD = v1/*abc*/ + v2;",
+        "  int negA = 1 + 2;",
+        "  int negB = 1 + v2;",
+        "  int negC = v1 + 2;",
+        "  int negD = v1 * v2;",
+        "}",
+        "");
+    selectionStart = findOffset("v1 +");
+    selectionEnd = findOffset("; // marker");
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v1 = 1;",
+        "  int v2 = 2;",
+        "  int v3 = 3;",
+        "  int positiveA = res(v1, v2); // marker",
+        "  int positiveB = res(v2, v3);",
+        "  int positiveC = res(v1, v2);",
+        "  int positiveD = res(v1, v2);",
+        "  int negA = 1 + 2;",
+        "  int negB = 1 + v2;",
+        "  int negC = v1 + 2;",
+        "  int negD = v1 * v2;",
+        "}",
+        "int res(int v1, int v2) => v1 + v2;",
+        "");
+  }
+
+  public void test_singleExpression_occurrences_disabled() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v1 = 1;",
+        "  int v2 = 2;",
+        "  int v3 = 3;",
+        "  int a = v1 + v2; // marker",
+        "  int b = v2 + v3;",
+        "}",
+        "");
+    selectionStart = findOffset("v1 +");
+    selectionEnd = findOffset("; // marker");
+    replaceAllOccurences = false;
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v1 = 1;",
+        "  int v2 = 2;",
+        "  int v3 = 3;",
+        "  int a = res(v1, v2); // marker",
+        "  int b = v2 + v3;",
+        "}",
+        "int res(int v1, int v2) => v1 + v2;",
+        "");
+  }
+
+  public void test_singleExpression_occurrences_extractInstance() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  instanceMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = v1 + v2; // marker",
+        "  }",
+        "  instanceMethodB() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveB = v1 + v2;",
+        "  }",
+        "  static staticMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = v1 + v2;",
+        "  }",
+        "}",
+        "");
+    selectionStart = findOffset("v1 +");
+    selectionEnd = findOffset("; // marker");
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  instanceMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = res(v1, v2); // marker",
+        "  }",
+        "  int res(int v1, int v2) => v1 + v2;",
+        "  instanceMethodB() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveB = res(v1, v2);",
+        "  }",
+        "  static staticMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = v1 + v2;",
+        "  }",
+        "}",
+        "");
+  }
+
+  public void test_singleExpression_occurrences_extractStatic() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static staticMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = v1 + v2; // marker",
+        "  }",
+        "  static staticMethodB() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveB = v1 + v2;",
+        "  }",
+        "  instanceMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = v1 + v2;",
+        "  }",
+        "}",
+        "");
+    selectionStart = findOffset("v1 +");
+    selectionEnd = findOffset("; // marker");
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static staticMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = res(v1, v2); // marker",
+        "  }",
+        "  static int res(int v1, int v2) => v1 + v2;",
+        "  static staticMethodB() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveB = res(v1, v2);",
+        "  }",
+        "  instanceMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = res(v1, v2);",
+        "  }",
+        "}",
+        "");
+  }
+
+  public void test_singleExpression_occurrences_inClassOnly() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  myMethod() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = v1 + v2; // marker",
+        "  }",
+        "}",
+        "main() {",
+        "  int v1 = 1;",
+        "  int v2 = 2;",
+        "  int negA = v1 + v2;",
+        "}",
+        "");
+    selectionStart = findOffset("v1 +");
+    selectionEnd = findOffset("; // marker");
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  myMethod() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = res(v1, v2); // marker",
+        "  }",
+        "  int res(int v1, int v2) => v1 + v2;",
+        "}",
+        "main() {",
+        "  int v1 = 1;",
+        "  int v2 = 2;",
+        "  int negA = v1 + v2;",
+        "}",
+        "");
+  }
+
+  public void test_singleExpression_occurrences_inWholeUnit() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v1 = 1;",
+        "  int v2 = 2;",
+        "  int positiveA = v1 + v2; // marker",
+        "}",
+        "class A {",
+        "  myMethod() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveB = v1 + v2;",
+        "  }",
+        "}",
+        "");
+    selectionStart = findOffset("v1 +");
+    selectionEnd = findOffset("; // marker");
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v1 = 1;",
+        "  int v2 = 2;",
+        "  int positiveA = res(v1, v2); // marker",
+        "}",
+        "int res(int v1, int v2) => v1 + v2;",
+        "class A {",
+        "  myMethod() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveB = res(v1, v2);",
+        "  }",
+        "}",
+        "");
+  }
+
   public void test_singleExpression_withVariables() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  int v1 = 1;",
         "  int v2 = 2;",
-        "  int a = v1 + v2; // marker",
+        "  int a = v1 + v2 + v1; // marker",
         "}",
         "");
     selectionStart = findOffset("v1 +");
@@ -358,7 +593,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  int v2 = 2;",
         "  int a = res(v1, v2); // marker",
         "}",
-        "int res(int v1, int v2) => v1 + v2;",
+        "int res(int v1, int v2) => v1 + v2 + v1;",
         "");
   }
 
@@ -368,7 +603,9 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "main() {",
         "  int v1 = 1;",
         "  int v2 = 2;",
-        "  int a = v1 + v2; // marker",
+        "  int v3 = 3;",
+        "  int a = v1 + v2 + v1; // marker",
+        "  int b = v2 + v3 + v2;",
         "}",
         "");
     selectionStart = findOffset("v1 +");
@@ -389,9 +626,11 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "main() {",
         "  int v1 = 1;",
         "  int v2 = 2;",
+        "  int v3 = 3;",
         "  int a = res(v1, v2); // marker",
+        "  int b = res(v2, v3);",
         "}",
-        "int res(int par1, int param2) => par1 + param2;",
+        "int res(int par1, int param2) => par1 + param2 + par1;",
         "");
   }
 
@@ -401,7 +640,9 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "main() {",
         "  int v1 = 1;",
         "  int v2 = 2;",
+        "  int v3 = 3;",
         "  int a = v1 + v2; // marker",
+        "  int b = v2 + v3;",
         "}",
         "");
     selectionStart = findOffset("v1 +");
@@ -422,7 +663,9 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "main() {",
         "  int v1 = 1;",
         "  int v2 = 2;",
+        "  int v3 = 3;",
         "  int a = res(v2, v1); // marker",
+        "  int b = res(v3, v2);",
         "}",
         "int res(int v2, int v1) => v1 + v2;",
         "");

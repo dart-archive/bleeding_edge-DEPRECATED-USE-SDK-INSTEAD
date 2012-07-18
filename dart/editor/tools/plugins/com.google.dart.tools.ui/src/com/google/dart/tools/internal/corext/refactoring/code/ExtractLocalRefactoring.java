@@ -14,6 +14,7 @@
 package com.google.dart.tools.internal.corext.refactoring.code;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
@@ -21,6 +22,8 @@ import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -62,19 +65,21 @@ import java.util.Set;
  * @coverage dart.editor.ui.refactoring.core
  */
 public class ExtractLocalRefactoring extends Refactoring {
+  private static final String TOKEN_SEPARATOR = "\uFFFF";
 
   private final CompilationUnit unit;
+
   private final int selectionStart;
   private final int selectionLength;
   private final SourceRange selectionRange;
   private final CompilationUnitChange change;
-
   private ExtractUtils utils;
+
   private DartUnit unitNode;
   private SelectionAnalyzer selectionAnalyzer;
   private DartExpression rootExpression;
-
   private String localName;
+
   private String[] guessedNames;
   private Set<String> excludedVariableNames;
   private boolean replaceAllOccurrences;
@@ -146,7 +151,7 @@ public class ExtractLocalRefactoring extends Refactoring {
       // prepare occurrences
       List<SourceRange> occurences;
       if (replaceAllOccurrences) {
-        occurences = utils.getOccurrences(selectionStart, selectionLength);
+        occurences = getOccurrences();
       } else {
         occurences = ImmutableList.of(SourceRangeFactory.forStartLength(
             selectionStart,
@@ -226,7 +231,7 @@ public class ExtractLocalRefactoring extends Refactoring {
 
   /**
    * Checks if {@link #selectionRange} selects {@link DartExpression} which can be extracted, and
-   * location of this {@link DartExpression} is AST allows extracting.
+   * location of this {@link DartExpression} in AST allows extracting.
    */
   private RefactoringStatus checkSelection(IProgressMonitor pm) throws DartModelException {
     Selection selection = Selection.createFromStartLength(
@@ -287,5 +292,65 @@ public class ExtractLocalRefactoring extends Refactoring {
       });
     }
     return excludedVariableNames;
+  }
+
+  /**
+   * @return all occurrences of the source which matches given selection, sorted by offset. First
+   *         {@link SourceRange} is same as the given selection. May be empty, but not
+   *         <code>null</code>.
+   */
+  private List<SourceRange> getOccurrences() throws DartModelException {
+    List<SourceRange> occurrences = Lists.newArrayList();
+    // prepare selection
+    String selectionSource = utils.getText(selectionStart, selectionLength);
+    List<com.google.dart.engine.scanner.Token> selectionTokens = ExtractUtils.tokenizeSource(selectionSource);
+    selectionSource = StringUtils.join(selectionTokens, TOKEN_SEPARATOR);
+    // prepare enclosing function
+    com.google.dart.compiler.ast.DartFunction function;
+    {
+      DartNode selectionNode = NodeFinder.perform(unitNode, selectionStart, 0);
+      function = ASTNodes.getAncestor(
+          selectionNode,
+          com.google.dart.compiler.ast.DartFunction.class);
+    }
+    // ...we need function
+    if (function != null) {
+      SourceInfo functionSourceInfo = function.getBody().getSourceInfo();
+      int functionOffset = functionSourceInfo.getOffset();
+      String functionSource = utils.getText(functionOffset, functionSourceInfo.getLength());
+      // prepare function tokens
+      List<com.google.dart.engine.scanner.Token> functionTokens = ExtractUtils.tokenizeSource(functionSource);
+      functionSource = StringUtils.join(functionTokens, TOKEN_SEPARATOR);
+      // find "selection" in "function" tokens
+      int lastIndex = 0;
+      while (true) {
+        // find next occurrence
+        int index = functionSource.indexOf(selectionSource, lastIndex);
+        if (index == -1) {
+          break;
+        }
+        lastIndex = index + selectionSource.length();
+        // find start/end tokens
+        int startTokenIndex = StringUtils.countMatches(
+            functionSource.substring(0, index),
+            TOKEN_SEPARATOR);
+        int endTokenIndex = StringUtils.countMatches(
+            functionSource.substring(0, lastIndex),
+            TOKEN_SEPARATOR);
+        com.google.dart.engine.scanner.Token startToken = functionTokens.get(startTokenIndex);
+        com.google.dart.engine.scanner.Token endToken = functionTokens.get(endTokenIndex);
+        // add occurrence range
+        int occuStart = functionOffset + startToken.getOffset();
+        int occuEnd = functionOffset + endToken.getOffset() + endToken.getLength();
+        SourceRange occuRange = SourceRangeFactory.forStartEnd(occuStart, occuEnd);
+        if (SourceRangeUtils.intersects(occuRange, selectionRange)) {
+          occurrences.add(selectionRange);
+        } else {
+          occurrences.add(occuRange);
+        }
+      }
+    }
+    // done
+    return occurrences;
   }
 }
