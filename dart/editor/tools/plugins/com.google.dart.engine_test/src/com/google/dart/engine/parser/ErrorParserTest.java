@@ -13,11 +13,74 @@
  */
 package com.google.dart.engine.parser;
 
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.ast.TryStatement;
+import com.google.dart.engine.ast.TypedLiteral;
+
 /**
  * The class {@code ErrorParserTest} defines parser tests that test the parsing of invalid code
  * sequences to ensure that errors are correctly reported.
  */
 public class ErrorParserTest extends ParserTestCase {
+
+  public void fail_expectedListOrMapLiteral() throws Exception {
+    TypedLiteral literal = parse(
+        "parseListOrMapLiteral",
+        "1",
+        ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL);
+    assertTrue(literal.isSynthetic());
+  }
+
+  public void test_directiveOutOfOrder_classBeforeDirective() throws Exception {
+    CompilationUnit unit = parse(
+        "parseCompilationUnit",
+        "class Foo{}\n#library('LibraryName');",
+        ParserErrorCode.DIRECTIVE_OUT_OF_ORDER);
+    assertNotNull(unit);
+  }
+
+  public void test_directiveOutOfOrder_classBetweenDirectives() throws Exception {
+    CompilationUnit unit = parse(
+        "parseCompilationUnit",
+        "#library('LibraryName');\nclass Foo{}\n#source('a.dart');",
+        ParserErrorCode.DIRECTIVE_OUT_OF_ORDER);
+    assertNotNull(unit);
+  }
+
+  public void test_expectedCatchOrFinallyExpected() throws Exception {
+    TryStatement statement = parse(
+        "parseTryStatement",
+        "try {}",
+        ParserErrorCode.CATCH_OR_FINALLY_EXPECTED);
+    assertNotNull(statement);
+  }
+
+  public void test_expectedIdentifier_number() throws Exception {
+    SimpleIdentifier expression = parse(
+        "parseSimpleIdentifier",
+        "1",
+        ParserErrorCode.EXPECTED_IDENTIFIER);
+    assertTrue(expression.isSynthetic());
+  }
+
+  public void test_expectedStringLiteral() throws Exception {
+    StringLiteral expression = parse(
+        "parseStringLiteral",
+        "1",
+        ParserErrorCode.EXPECTED_STRING_LITERAL);
+    assertTrue(expression.isSynthetic());
+  }
+
+  public void test_onlyOneLibraryDirective() throws Exception {
+    CompilationUnit unit = parse(
+        "parseCompilationUnit",
+        "#library('LibraryName');#library('LibraryName2');",
+        ParserErrorCode.ONLY_ONE_LIBRARY_DIRECTIVE);
+    assertNotNull(unit);
+  }
+
   public void test_operatorCannotBeStatic_noReturnType() throws Exception {
     parse(
         "parseClassMember",
@@ -42,4 +105,5 @@ public class ErrorParserTest extends ParserTestCase {
   public void test_positionalAfterNamedArgument() throws Exception {
     parse("parseArgumentList", "(x: 1, 2)", ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
   }
+
 }

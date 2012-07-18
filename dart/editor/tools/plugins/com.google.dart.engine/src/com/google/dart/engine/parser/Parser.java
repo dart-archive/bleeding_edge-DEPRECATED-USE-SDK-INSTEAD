@@ -2175,6 +2175,7 @@ public class Parser {
       return parseListLiteral(modifier, typeArguments);
     }
     reportError(ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL);
+    // TODO (jwren) return a synthetic node?
     return null;
   }
 
@@ -2986,7 +2987,9 @@ public class Parser {
     }
     if (strings.size() < 1) {
       reportError(ParserErrorCode.EXPECTED_STRING_LITERAL);
-      return null;
+      return new SimpleStringLiteral(
+          new StringToken(TokenType.STRING, "", currentToken.getOffset()),
+          "");
     } else if (strings.size() == 1) {
       return strings.get(0);
     } else {
