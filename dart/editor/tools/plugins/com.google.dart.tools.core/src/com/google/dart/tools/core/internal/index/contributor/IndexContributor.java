@@ -403,6 +403,10 @@ public class IndexContributor extends ASTVisitor<Void> {
       // record only getter/setter here, there are special handlers for explicit invocations
       if (methodElement.getModifiers().isGetter() || methodElement.getModifiers().isSetter()) {
         processMethodInvocation(node, (MethodElement) element);
+      } else if (!isExplicitInvocation(node)) {
+        Element indexElement = getElement(methodElement);
+        Location location = getLocation(node);
+        recordRelationship(indexElement, IndexConstants.IS_REFERENCED_BY, location);
       }
     } else if (element instanceof LibraryElement) {
       LibraryElement importLibraryElement = (LibraryElement) element;
@@ -909,6 +913,16 @@ public class IndexContributor extends ASTVisitor<Void> {
       parent = child.getParent();
     }
     return false;
+  }
+
+  private boolean isExplicitInvocation(DartIdentifier identifier) {
+    DartNode parent = identifier.getParent();
+    return (parent instanceof DartFunctionObjectInvocation && ((DartFunctionObjectInvocation) parent).getTarget() == identifier)
+        || (parent instanceof DartMethodInvocation && ((DartMethodInvocation) parent).getFunctionName() == identifier)
+        || (parent instanceof DartNewExpression && ((DartNewExpression) parent).getConstructor() == identifier)
+        || (parent instanceof DartRedirectConstructorInvocation && ((DartRedirectConstructorInvocation) parent).getName() == identifier)
+        || (parent instanceof DartSuperConstructorInvocation && ((DartSuperConstructorInvocation) parent).getName() == identifier)
+        || (parent instanceof DartUnqualifiedInvocation && ((DartUnqualifiedInvocation) parent).getTarget() == identifier);
   }
 
   /**
