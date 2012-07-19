@@ -70,13 +70,6 @@ import java.util.Map;
  */
 public class DartCompilerUtilities {
 
-  public interface PerformanceListener {
-
-    void analysisComplete(long start, String libName);
-
-    void compileComplete(long start, String libName);
-  }
-
   /**
    * The abstract class <code>CompilerRunner</code> defines behavior common to classes used to
    * safely invoke the parser, record compilation errors, and capture any parser exception.
@@ -492,7 +485,6 @@ public class DartCompilerUtilities {
 
   private static LRUCache<LibrarySource, LibraryUnit> cachedLibraries = new LRUCache<LibrarySource, LibraryUnit>(
       10);
-  private static PerformanceListener performanceListener = null;
 
   public static DartNode analyzeDelta(LibrarySource library, String sourceString,
       DartUnit suppliedUnit, DartNode completionNode, int completionLocation,
@@ -846,9 +838,6 @@ public class DartCompilerUtilities {
     synchronized (compilerLock) {
       DartCompiler.compileLib(libSource, embeddedLibraries, config, provider, listener);
     }
-    if (performanceListener != null) {
-      performanceListener.compileComplete(start, libSource.getName());
-    }
   }
 
   /**
@@ -859,10 +848,6 @@ public class DartCompilerUtilities {
     synchronized (compilerLock) {
       return parser.parseUnit();
     }
-  }
-
-  public static void setPerformanceListener(PerformanceListener performanceListener) {
-    DartCompilerUtilities.performanceListener = performanceListener;
   }
 
   private static Map<URI, DartUnit> createMap(Collection<DartUnit> suppliedUnits) {
