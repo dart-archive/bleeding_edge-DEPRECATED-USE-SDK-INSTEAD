@@ -39,15 +39,22 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
   private int selectionStart;
   private int selectionEnd;
   private boolean replaceAllOccurences = true;
+  private int expectedNumberOfDuplicates = -1;
   private ExtractMethodRefactoring refactoring;
   private RefactoringStatus refactoringStatus;
 
   public void test_access() throws Exception {
-    setTestUnitContent();
-    createRefactoring("res");
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = 1 + 2;",
+        "}",
+        "");
+    selectionStart = findOffset("1");
+    selectionEnd = findOffset("2;") + 1;
+    createRefactoring();
     assertEquals("Extract Method", refactoring.getName());
-//    assertThat(refactoring.guessNames()).isEmpty();
-//    assertEquals(true, refactoring.replaceAllOccurrences());
+    assertEquals(true, refactoring.getReplaceAllOccurrences());
   }
 
 //  public void test_bad_sameVariable_after() throws Exception {
@@ -671,6 +678,298 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "");
   }
 
+  public void test_statements_changeIndentation() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  {",
+        "// start",
+        "    if (true) {",
+        "      print(0);",
+        "    }",
+        "// end",
+        "  }",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  {",
+        "// start",
+        "    res();",
+        "// end",
+        "  }",
+        "}",
+        "void res() {",
+        "  if (true) {",
+        "    print(0);",
+        "  }",
+        "}",
+        "");
+  }
+
+  public void test_statements_definesVariable_notUsedOutside() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = 1;",
+        "  int b = 1;",
+        "// start",
+        "  int v = a + b;",
+        "  print(v);",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = 1;",
+        "  int b = 1;",
+        "// start",
+        "  res(a, b);",
+        "// end",
+        "}",
+        "void res(int a, int b) {",
+        "  int v = a + b;",
+        "  print(v);",
+        "}",
+        "");
+  }
+
+  public void test_statements_definesVariable_oneUsedOutside() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "myFunctionA() {",
+        "  int a = 1;",
+        "  int b = 2;",
+        "// start",
+        "  int v1 = a + b;",
+        "// end",
+        "  print(v1);",
+        "}",
+        "myFunctionB() {",
+        "  int a = 3;",
+        "  int b = 4;",
+        "  int v2 = a + b;",
+        "  print(v2);",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "myFunctionA() {",
+        "  int a = 1;",
+        "  int b = 2;",
+        "// start",
+        "  int v1 = res(a, b);",
+        "// end",
+        "  print(v1);",
+        "}",
+        "int res(int a, int b) {",
+        "  int v1 = a + b;",
+        "  return v1;",
+        "}",
+        "myFunctionB() {",
+        "  int a = 3;",
+        "  int b = 4;",
+        "  int v2 = res(a, b);",
+        "  print(v2);",
+        "}",
+        "");
+  }
+
+  public void test_statements_definesVariable_twoUsedOutside() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "myFunctionA() {",
+        "// start",
+        "  int varA = 1;",
+        "  int varB = 2;",
+        "// end",
+        "  int v = varA + varB;",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertThat(msg).contains("varA");
+      assertThat(msg).contains("varB");
+    }
+  }
+
+  public void test_statements_duplicate_absolutelySame() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "myFunctionA() {",
+        "  print(0);",
+        "  print(1);",
+        "}",
+        "myFunctionB() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    expectedNumberOfDuplicates = 1;
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "myFunctionA() {",
+        "  res();",
+        "}",
+        "myFunctionB() {",
+        "// start",
+        "  res();",
+        "// end",
+        "}",
+        "void res() {",
+        "  print(0);",
+        "  print(1);",
+        "}",
+        "");
+  }
+
+  /**
+   * We match code fragments regardless of the used variable names.
+   */
+  public void test_statements_duplicate_declaresDifferentlyNamedVariable() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "myFunctionA() {",
+        "  int varA = 1;",
+        "  print(varA);",
+        "}",
+        "myFunctionB() {",
+        "// start",
+        "  int varB = 1;",
+        "  print(varB);",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    expectedNumberOfDuplicates = 1;
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "myFunctionA() {",
+        "  res();",
+        "}",
+        "myFunctionB() {",
+        "// start",
+        "  res();",
+        "// end",
+        "}",
+        "void res() {",
+        "  int varB = 1;",
+        "  print(varB);",
+        "}",
+        "");
+  }
+
+  /**
+   * We should always add ";" when invoke method with extracted statements.
+   */
+  public void test_statements_endsWithBlock() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  if (true) {",
+        "    print(0);",
+        "  }",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  res();",
+        "// end",
+        "}",
+        "void res() {",
+        "  if (true) {",
+        "    print(0);",
+        "  }",
+        "}",
+        "");
+  }
+
+  public void test_statements_noDuplicates() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = 1;",
+        "  int b = 1;",
+        "// start",
+        "  print(a);",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    expectedNumberOfDuplicates = 0;
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = 1;",
+        "  int b = 1;",
+        "// start",
+        "  res(a);",
+        "// end",
+        "}",
+        "void res(int a) {",
+        "  print(a);",
+        "}",
+        "");
+  }
+
+  /**
+   * We have 3 identical statements, but select only 2. This should not cause problems.
+   */
+  public void test_statements_twoOfThree() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(0);",
+        "// end",
+        "  print(0);",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  res();",
+        "// end",
+        "  print(0);",
+        "}",
+        "void res() {",
+        "  print(0);",
+        "  print(0);",
+        "}",
+        "");
+  }
+
+  private void createRefactoring() throws Exception {
+    createRefactoring("res");
+  }
+
 //  public void test_singleExpression_getter() throws Exception {
 //    setTestUnitContent(
 //        "// filler filler filler filler filler filler filler filler filler filler",
@@ -821,6 +1120,8 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
     refactoring.setMethodName(name);
     refactoring.setReplaceAllOccurrences(replaceAllOccurences);
     refactoringStatus = refactoring.checkAllConditions(pm);
+    // just for coverage
+    assertEquals(replaceAllOccurences, refactoring.getReplaceAllOccurrences());
   }
 
   private void doSuccessfullRefactoring() throws Exception {
@@ -842,10 +1143,19 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
   }
 
   private void prepareSuccessfullRefactoring() throws Exception {
-    createRefactoring("res");
+    createRefactoring();
     // OK status
     if (!refactoringStatus.isOK()) {
       fail(refactoringStatus.toString());
     }
+    // may be check number of duplicates
+    if (expectedNumberOfDuplicates != -1) {
+      assertEquals(expectedNumberOfDuplicates, refactoring.getNumberOfDuplicates());
+    }
+  }
+
+  private void setSelectionFromStartEndComments() throws Exception {
+    selectionStart = findOffset("// start") + "// start".length() + "\n".length();
+    selectionEnd = findOffset("// end");
   }
 }

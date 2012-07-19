@@ -14,8 +14,26 @@
 package com.google.dart.tools.internal.corext.dom;
 
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.common.SourceInfo;
 
 public class ASTNodes {
+
+  /**
+   * @return the {@link DartNode} of given {@link Class} which is given {@link DartNode} itself, or
+   *         one of its parents.
+   */
+  @SuppressWarnings("unchecked")
+  public static <E extends DartNode> E getAncestor(DartNode node, Class<E> enclosingClass) {
+    while (node != null && !enclosingClass.isInstance(node)) {
+      node = node.getParent();
+    };
+    return (E) node;
+  }
+
+  public static int getExclusiveEnd(DartNode node) {
+    SourceInfo sourceInfo = node.getSourceInfo();
+    return sourceInfo.getOffset() + sourceInfo.getLength();
+  }
 
 //  private static class ChildrenCollector extends ASTVisitor<Void> {
 //    public List<DartNode> result;
@@ -532,16 +550,9 @@ public class ASTNodes {
 //    return current;
 //  }
 
-  /**
-   * @return the {@link DartNode} of given {@link Class} which is given {@link DartNode} itself, or
-   *         one of its parents.
-   */
-  @SuppressWarnings("unchecked")
-  public static <E extends DartNode> E getAncestor(DartNode node, Class<E> enclosingClass) {
-    while (node != null && !enclosingClass.isInstance(node)) {
-      node = node.getParent();
-    };
-    return (E) node;
+  public static int getInclusiveEnd(DartNode node) {
+    SourceInfo sourceInfo = node.getSourceInfo();
+    return sourceInfo.getOffset() + sourceInfo.getLength() - 1;
   }
 
   /**

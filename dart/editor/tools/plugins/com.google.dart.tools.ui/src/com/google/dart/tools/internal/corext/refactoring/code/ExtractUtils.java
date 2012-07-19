@@ -302,7 +302,14 @@ public class ExtractUtils {
    */
   public String getNodePrefix(DartNode node) {
     int endIndex = node.getSourceInfo().getOffset();
-    int startIndex = getNodePrefixStartIndex(node);
+    return getPrefix(endIndex);
+  }
+
+  /**
+   * @return the line prefix consisting of spaces and tabs on the left from the given offset.
+   */
+  public String getPrefix(int endIndex) {
+    int startIndex = getNodePrefixStartIndex(endIndex);
     return buffer.getText(startIndex, endIndex - startIndex);
   }
 
@@ -378,8 +385,7 @@ public class ExtractUtils {
   /**
    * @return the index of the last space or tab on the left from the given {@link DartNode}.
    */
-  private int getNodePrefixStartIndex(DartNode node) {
-    int endIndex = node.getSourceInfo().getOffset();
+  private int getNodePrefixStartIndex(int endIndex) {
     int startIndex = endIndex;
     while (true) {
       char c = buffer.getChar(startIndex - 1);

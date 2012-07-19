@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.base;
 
+import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
@@ -21,6 +22,7 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.search.SearchMatch;
+import com.google.dart.tools.internal.corext.SourceRangeFactory;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
 import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
@@ -149,6 +151,14 @@ public abstract class DartStatusContext extends RefactoringStatusContext {
 //    }
 //    return new ImportDeclarationSourceContext(declaration);
 //  }
+
+  /**
+   * @return the {@link RefactoringStatusContext} for given {@link CompilationUnit} and
+   *         {@link HasSourceInfo}, may be <code>null</code> if the context cannot be created.
+   */
+  public static RefactoringStatusContext create(CompilationUnit unit, HasSourceInfo hasSourceInfo) {
+    return create(unit, SourceRangeFactory.create(hasSourceInfo));
+  }
 
   /**
    * @return the {@link RefactoringStatusContext} for given {@link CompilationUnit} and
