@@ -668,36 +668,6 @@ public class DartCompilerUtilities {
    * {@link DartParser} will be logged and a {@link DartModelException} thrown.
    * 
    * @param library the library to be parsed (not <code>null</code>)
-   * @param forceFullAST <code>true</code> if full ASTs should be built for all compilation units
-   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
-   *          parse errors should be ignored
-   * @return the parse result
-   * @throws DartModelException if the library could not be parsed
-   */
-  public static LibraryUnit resolveLibrary(DartLibraryImpl library, boolean forceFullAST,
-      final Collection<DartCompilationError> parseErrors) throws DartModelException {
-    ResolverRunnable runnable = new ResolverRunnable(
-        library.getLibrarySourceFile(),
-        null,
-        null,
-        forceFullAST,
-        parseErrors);
-    runnable.runSafe();
-    if (runnable.exception != null) {
-      throw new DartModelException(new CoreException(new Status(
-          IStatus.ERROR,
-          DartCore.PLUGIN_ID,
-          "Failed to parse " + library.getElementName(),
-          runnable.exception)));
-    }
-    return runnable.libraryResult;
-  }
-
-  /**
-   * Parse the compilation units in the specified library. Any exceptions thrown by the
-   * {@link DartParser} will be logged and a {@link DartModelException} thrown.
-   * 
-   * @param library the library to be parsed (not <code>null</code>)
    * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
    *          parse errors should be ignored
    * @return the parse result
