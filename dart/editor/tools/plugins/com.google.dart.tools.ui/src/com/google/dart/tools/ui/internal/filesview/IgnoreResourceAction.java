@@ -19,6 +19,7 @@ import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Shell;
@@ -33,6 +34,10 @@ import java.util.Iterator;
  */
 public class IgnoreResourceAction extends SelectionListenerAction {
 
+  public static interface IgnoreListener {
+    void update();
+  }
+
   private static boolean allElementsAreResources(IStructuredSelection selection) {
     for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
       Object selectedElement = iterator.next();
@@ -45,10 +50,19 @@ public class IgnoreResourceAction extends SelectionListenerAction {
 
   private IResource resource;
   private final Shell shell;
+  private final ListenerList listeners = new ListenerList(ListenerList.IDENTITY);
 
   protected IgnoreResourceAction(Shell shell) {
     super(FilesViewMessages.IgnoreResourcesAction_dont_analyze_label);
     this.shell = shell;
+  }
+
+  public void addListener(IgnoreListener listener) {
+    listeners.add(listener);
+  }
+
+  public void removeListener(IgnoreListener listener) {
+    listeners.remove(listener);
   }
 
   @Override
@@ -65,11 +79,18 @@ public class IgnoreResourceAction extends SelectionListenerAction {
           File file = resource.getLocation().toFile();
           SystemLibraryManagerProvider.getDefaultAnalysisServer().scan(file, true);
         }
+        for (Object listener : listeners.getListeners()) {
+          if (listener instanceof IgnoreListener) {
+            ((IgnoreListener) listener).update();
+          }
+        }
       } catch (IOException e) {
         MessageDialog.openError(shell, "Error Ignoring Resource", e.getMessage());
         DartCore.logInformation("Could not access ignore file", e);
       } catch (CoreException e) {
         MessageDialog.openError(shell, "Error Deleting Markers", e.getMessage()); //$NON-NLS-1$
+      } finally {
+        resource = null;
       }
     }
   }

@@ -19,8 +19,10 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.DeleteAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
+import com.google.dart.tools.ui.internal.filesview.FilesView;
 import com.google.dart.tools.ui.internal.filesview.FilesViewDragAdapter;
 import com.google.dart.tools.ui.internal.filesview.FilesViewDropAdapter;
+import com.google.dart.tools.ui.internal.filesview.IgnoreResourceAction.IgnoreListener;
 import com.google.dart.tools.ui.internal.filesview.LinkWithEditorAction;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
@@ -58,7 +60,11 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
@@ -95,6 +101,8 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     }
   }
 
+  public static final String VIEW_ID = "com.google.dart.tools.ui.AppsView";
+
   private static final String LINK_WITH_EDITOR_ID = "linkWithEditor";
   //persistence tags
   private static final String TAG_ELEMENT = "element"; //$NON-NLS-1$
@@ -111,6 +119,19 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
   private OpenNewApplicationWizardAction createApplicationAction;
   private DeleteAction deleteAction;
   private UndoRedoActionGroup undoRedoActionGroup;
+  private IgnoreListener ignoreListener = new IgnoreListener() {
+    @Override
+    public void update() {
+      treeViewer.refresh();
+    }
+  };
+
+  public void connectToIgnoreAction() {
+    FilesView filesView = findFilesView();
+    if (filesView != null) {
+      filesView.getIgnoreResourceAction().addListener(ignoreListener);
+    }
+  }
 
   @Override
   public void createPartControl(Composite parent) {
@@ -146,6 +167,7 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
       }
     });
 
+    connectToIgnoreAction();
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
     updateTreeFont();
 
@@ -154,6 +176,10 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
 
   @Override
   public void dispose() {
+    FilesView filesView = findFilesView();
+    if (filesView != null) {
+      filesView.getIgnoreResourceAction().removeListener(ignoreListener);
+    }
     if (linkWithEditorAction != null) {
       linkWithEditorAction.dispose();
     }
@@ -303,11 +329,13 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
         Object element = container.findMember(mem.getString(TAG_PATH));
         if (element != null) {
           ElementTreeNode node = contentProvider.findNode(element);
-          if (node.isLeaf()) {
-            node = node.getParentNode();
-          }
           if (node != null) {
-            elements.add(node);
+            if (node.isLeaf()) {
+              node = node.getParentNode();
+            }
+            if (node != null) {
+              elements.add(node);
+            }
           }
         }
       }
@@ -349,6 +377,19 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
         IUndoContext.class);
     undoRedoActionGroup = new UndoRedoActionGroup(getViewSite(), workspaceContext, true);
     undoRedoActionGroup.fillActionBars(actionBars);
+  }
+
+  private FilesView findFilesView() {
+    IWorkbench wb = PlatformUI.getWorkbench();
+    IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
+    IWorkbenchPage page = win.getActivePage();
+    if (page != null) {
+      IViewPart viewPart = page.findView(FilesView.VIEW_ID);
+      if (viewPart != null) {
+        return (FilesView) viewPart;
+      }
+    }
+    return null;
   }
 
   private void initDragAndDrop() {

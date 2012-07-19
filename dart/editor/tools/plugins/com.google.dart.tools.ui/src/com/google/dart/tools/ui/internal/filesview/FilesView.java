@@ -21,6 +21,7 @@ import com.google.dart.tools.ui.actions.DeleteAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
+import com.google.dart.tools.ui.internal.appsview.AppsView;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
@@ -60,7 +61,11 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
@@ -95,6 +100,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
     }
   }
+
+  public static final String VIEW_ID = "com.google.dart.tools.ui.FileExplorer"; // from plugin.xml
 
   /**
    * A constant for the Link with Editor memento.
@@ -219,6 +226,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     }
 
     super.dispose();
+  }
+
+  public IgnoreResourceAction getIgnoreResourceAction() {
+    return ignoreResourceAction;
   }
 
   @Override
@@ -437,6 +448,18 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     return treeViewer;
   }
 
+  private void connectAppsView() {
+    IWorkbench wb = PlatformUI.getWorkbench();
+    IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
+    IWorkbenchPage page = win.getActivePage();
+    if (page != null) {
+      IViewPart viewPart = page.findView(AppsView.VIEW_ID);
+      if (viewPart != null) {
+        ((AppsView) viewPart).connectToIgnoreAction();
+      }
+    }
+  }
+
   private void fillInActionBars() {
 
     IActionBars actionBars = getViewSite().getActionBars();
@@ -480,6 +503,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         treeViewer.refresh();
       }
     };
+    connectAppsView();
     treeViewer.addSelectionChangedListener(ignoreResourceAction);
 
     clipboard = new Clipboard(getShell().getDisplay());
