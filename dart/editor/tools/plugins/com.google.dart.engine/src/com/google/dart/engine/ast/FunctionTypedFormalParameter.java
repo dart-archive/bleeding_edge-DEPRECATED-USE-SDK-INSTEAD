@@ -31,11 +31,6 @@ public class FunctionTypedFormalParameter extends NormalFormalParameter {
   private TypeName returnType;
 
   /**
-   * The name of the function-typed parameter.
-   */
-  private SimpleIdentifier identifier;
-
-  /**
    * The parameters of the function-typed parameter.
    */
   private FormalParameterList parameters;
@@ -56,8 +51,8 @@ public class FunctionTypedFormalParameter extends NormalFormalParameter {
    */
   public FunctionTypedFormalParameter(Token keyword, TypeName returnType,
       SimpleIdentifier identifier, FormalParameterList parameters) {
+    super(identifier);
     this.returnType = becomeParentOf(returnType);
-    this.identifier = becomeParentOf(identifier);
     this.parameters = becomeParentOf(parameters);
   }
 
@@ -71,21 +66,12 @@ public class FunctionTypedFormalParameter extends NormalFormalParameter {
     if (returnType != null) {
       return returnType.getBeginToken();
     }
-    return identifier.getBeginToken();
+    return getIdentifier().getBeginToken();
   }
 
   @Override
   public Token getEndToken() {
     return parameters.getEndToken();
-  }
-
-  /**
-   * Return the name of the parameter.
-   * 
-   * @return the name of the parameter
-   */
-  public SimpleIdentifier getIdentifier() {
-    return identifier;
   }
 
   /**
@@ -105,15 +91,6 @@ public class FunctionTypedFormalParameter extends NormalFormalParameter {
    */
   public TypeName getReturnType() {
     return returnType;
-  }
-
-  /**
-   * Set the name of the parameter to the given identifier.
-   * 
-   * @param identifier the name of the parameter
-   */
-  public void setIdentifier(SimpleIdentifier identifier) {
-    this.identifier = becomeParentOf(identifier);
   }
 
   /**
@@ -137,7 +114,7 @@ public class FunctionTypedFormalParameter extends NormalFormalParameter {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(returnType, visitor);
-    safelyVisitChild(identifier, visitor);
+    safelyVisitChild(getIdentifier(), visitor);
     safelyVisitChild(parameters, visitor);
   }
 }

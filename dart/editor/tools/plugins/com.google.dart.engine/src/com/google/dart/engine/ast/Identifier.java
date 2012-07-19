@@ -17,8 +17,7 @@ package com.google.dart.engine.ast;
  * The abstract class {@code Identifier{@code  defines the behavior common to nodes that represent an
  * identifier.
  * 
- * <pre>
- * identifier ::= {@link SimpleIdentifier simpleIdentifier} | {@link PrefixedIdentifier
+ * <pre> identifier ::= {@link SimpleIdentifier simpleIdentifier} | {@link PrefixedIdentifier
  * prefixedIdentifier} </pre>
  */
 public abstract class Identifier extends Expression {
@@ -32,4 +31,11 @@ public abstract class Identifier extends Expression {
   public static boolean isPrivateName(String name) {
     return name.startsWith("_");
   }
+
+  /**
+   * Return the lexical representation of the identifier.
+   * 
+   * @return the lexical representation of the identifier
+   */
+  public abstract String getName();
 }

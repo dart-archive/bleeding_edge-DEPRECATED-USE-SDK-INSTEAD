@@ -287,7 +287,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseArgument_unnamed() throws Exception {
     String lexeme = "x";
     SimpleIdentifier identifier = parse("parseArgument", lexeme);
-    assertEquals(lexeme, identifier.getIdentifier());
+    assertEquals(lexeme, identifier.getName());
   }
 
   public void test_parseArgumentList_empty() throws Exception {
@@ -591,12 +591,12 @@ public class SimpleParserTest extends ParserTestCase {
         reference.getIdentifier());
     SimpleIdentifier prefix = prefixedIdentifier.getPrefix();
     assertNotNull(prefix.getToken());
-    assertEquals("a", prefix.getIdentifier());
+    assertEquals("a", prefix.getName());
     assertEquals(7, prefix.getOffset());
     assertNotNull(prefixedIdentifier.getPeriod());
     SimpleIdentifier identifier = prefixedIdentifier.getIdentifier();
     assertNotNull(identifier.getToken());
-    assertEquals("b", identifier.getIdentifier());
+    assertEquals("b", identifier.getName());
     assertEquals(9, identifier.getOffset());
   }
 
@@ -607,7 +607,7 @@ public class SimpleParserTest extends ParserTestCase {
         SimpleIdentifier.class,
         reference.getIdentifier());
     assertNotNull(identifier.getToken());
-    assertEquals("a", identifier.getIdentifier());
+    assertEquals("a", identifier.getName());
     assertEquals(5, identifier.getOffset());
   }
 
@@ -703,7 +703,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseCompilationUnitMember_class() throws Exception {
     ClassDeclaration declaration = parse("parseCompilationUnitMember", "class A {}");
-    assertEquals("A", declaration.getName().getIdentifier());
+    assertEquals("A", declaration.getName().getName());
     assertEmpty("class member", declaration.getMembers());
   }
 
@@ -759,7 +759,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseCompilationUnitMember_typedef() throws Exception {
     TypeAlias typeAlias = parse("parseCompilationUnitMember", "typedef F();");
-    assertEquals("F", typeAlias.getName().getIdentifier());
+    assertEquals("F", typeAlias.getName().getName());
     assertEmpty("parameter", typeAlias.getParameters().getParameters());
   }
 
@@ -2024,15 +2024,15 @@ public class SimpleParserTest extends ParserTestCase {
     String lexeme = "bar";
     SimpleIdentifier identifier = parse("parsePrefixedIdentifier", lexeme);
     assertNotNull(identifier.getToken());
-    assertEquals(lexeme, identifier.getIdentifier());
+    assertEquals(lexeme, identifier.getName());
   }
 
   public void test_parsePrefixedIdentifier_prefix() throws Exception {
     String lexeme = "foo.bar";
     PrefixedIdentifier identifier = parse("parsePrefixedIdentifier", lexeme);
-    assertEquals("foo", identifier.getPrefix().getIdentifier());
+    assertEquals("foo", identifier.getPrefix().getName());
     assertNotNull(identifier.getPeriod());
-    assertEquals("bar", identifier.getIdentifier().getIdentifier());
+    assertEquals("bar", identifier.getIdentifier().getName());
   }
 
   public void test_parsePrimaryExpression_const() throws Exception {
@@ -2283,7 +2283,7 @@ public class SimpleParserTest extends ParserTestCase {
     String lexeme = "foo";
     SimpleIdentifier identifier = parse("parseSimpleIdentifier", lexeme);
     assertNotNull(identifier.getToken());
-    assertEquals(lexeme, identifier.getIdentifier());
+    assertEquals(lexeme, identifier.getName());
   }
 
   public void test_parseStatement_mulipleLabels() throws Exception {

@@ -84,6 +84,11 @@ public class PrefixedIdentifier extends Identifier {
     return identifier;
   }
 
+  @Override
+  public String getName() {
+    return prefix.getName() + "." + identifier.getName();
+  }
+
   /**
    * Return the period used to separate the prefix from the identifier.
    * 

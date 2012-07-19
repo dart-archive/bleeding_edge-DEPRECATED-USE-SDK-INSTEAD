@@ -47,11 +47,6 @@ public class FieldFormalParameter extends NormalFormalParameter {
   private Token period;
 
   /**
-   * The name of the parameter being declared.
-   */
-  private SimpleIdentifier identifier;
-
-  /**
    * Initialize a newly created formal parameter.
    */
   public FieldFormalParameter() {
@@ -68,11 +63,11 @@ public class FieldFormalParameter extends NormalFormalParameter {
    */
   public FieldFormalParameter(Token keyword, TypeName type, Token thisToken, Token period,
       SimpleIdentifier identifier) {
+    super(identifier);
     this.keyword = keyword;
     this.type = becomeParentOf(type);
     this.thisToken = thisToken;
     this.period = period;
-    this.identifier = becomeParentOf(identifier);
   }
 
   @Override
@@ -92,16 +87,7 @@ public class FieldFormalParameter extends NormalFormalParameter {
 
   @Override
   public Token getEndToken() {
-    return identifier.getEndToken();
-  }
-
-  /**
-   * Return the name of the parameter being declared.
-   * 
-   * @return the name of the parameter being declared
-   */
-  public SimpleIdentifier getIdentifier() {
-    return identifier;
+    return getIdentifier().getEndToken();
   }
 
   /**
@@ -139,15 +125,6 @@ public class FieldFormalParameter extends NormalFormalParameter {
    */
   public TypeName getType() {
     return type;
-  }
-
-  /**
-   * Set the name of the parameter being declared to the given identifier.
-   * 
-   * @param identifier the name of the parameter being declared
-   */
-  public void setIdentifier(SimpleIdentifier identifier) {
-    this.identifier = becomeParentOf(identifier);
   }
 
   /**
@@ -189,6 +166,6 @@ public class FieldFormalParameter extends NormalFormalParameter {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(type, visitor);
-    safelyVisitChild(identifier, visitor);
+    safelyVisitChild(getIdentifier(), visitor);
   }
 }

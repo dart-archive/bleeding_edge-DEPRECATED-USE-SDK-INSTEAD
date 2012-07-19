@@ -61,7 +61,7 @@ public class ComplexParserTest extends EngineTestCase {
 
   public void test_assignableExpression_arguments_normal_chain() throws Exception {
     PropertyAccess propertyAccess1 = parseExpression("a(b)(c).d(e).f");
-    assertEquals("f", propertyAccess1.getPropertyName().getIdentifier());
+    assertEquals("f", propertyAccess1.getPropertyName().getName());
     //
     // a(b)(c).d(e)
     //
@@ -77,7 +77,7 @@ public class ComplexParserTest extends EngineTestCase {
     PropertyAccess propertyAccess3 = assertInstanceOf(
         PropertyAccess.class,
         invocation2.getFunction());
-    assertEquals("d", propertyAccess3.getPropertyName().getIdentifier());
+    assertEquals("d", propertyAccess3.getPropertyName().getName());
     //
     // a(b)(c)
     //

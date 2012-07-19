@@ -37,11 +37,6 @@ public class SimpleFormalParameter extends NormalFormalParameter {
   private TypeName type;
 
   /**
-   * The name of the parameter being declared.
-   */
-  private SimpleIdentifier identifier;
-
-  /**
    * Initialize a newly created formal parameter.
    */
   public SimpleFormalParameter() {
@@ -55,9 +50,9 @@ public class SimpleFormalParameter extends NormalFormalParameter {
    * @param identifier the name of the parameter being declared
    */
   public SimpleFormalParameter(Token keyword, TypeName type, SimpleIdentifier identifier) {
+    super(identifier);
     this.keyword = keyword;
     this.type = becomeParentOf(type);
-    this.identifier = becomeParentOf(identifier);
   }
 
   @Override
@@ -72,21 +67,12 @@ public class SimpleFormalParameter extends NormalFormalParameter {
     } else if (type != null) {
       return type.getBeginToken();
     }
-    return identifier.getBeginToken();
+    return getIdentifier().getBeginToken();
   }
 
   @Override
   public Token getEndToken() {
-    return identifier.getEndToken();
-  }
-
-  /**
-   * Return the name of the parameter being declared.
-   * 
-   * @return the name of the parameter being declared
-   */
-  public SimpleIdentifier getIdentifier() {
-    return identifier;
+    return getIdentifier().getEndToken();
   }
 
   /**
@@ -106,15 +92,6 @@ public class SimpleFormalParameter extends NormalFormalParameter {
    */
   public TypeName getType() {
     return type;
-  }
-
-  /**
-   * Set the name of the parameter being declared to the given identifier.
-   * 
-   * @param identifier the name of the parameter being declared
-   */
-  public void setIdentifier(SimpleIdentifier identifier) {
-    this.identifier = becomeParentOf(identifier);
   }
 
   /**
@@ -138,6 +115,6 @@ public class SimpleFormalParameter extends NormalFormalParameter {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(type, visitor);
-    safelyVisitChild(identifier, visitor);
+    safelyVisitChild(getIdentifier(), visitor);
   }
 }

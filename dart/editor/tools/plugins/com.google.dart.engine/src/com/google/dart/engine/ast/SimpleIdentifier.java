@@ -63,14 +63,9 @@ public class SimpleIdentifier extends Identifier {
     return token;
   }
 
-  /**
-   * Return the lexical representation of the identifier.
-   * 
-   * @return the lexical representation of the identifier
-   */
-  public String getIdentifier() {
-    // TODO(brianwilkerson) Token needs a method specifically for this purpose.
-    return token.toString();
+  @Override
+  public String getName() {
+    return token.getLexeme();
   }
 
   /**

@@ -25,4 +25,41 @@ package com.google.dart.engine.ast;
  * </pre>
  */
 public abstract class NormalFormalParameter extends FormalParameter {
+  /**
+   * The name of the parameter being declared.
+   */
+  private SimpleIdentifier identifier;
+
+  /**
+   * Initialize a newly created formal parameter.
+   */
+  public NormalFormalParameter() {
+  }
+
+  /**
+   * Initialize a newly created formal parameter.
+   * 
+   * @param identifier the name of the parameter being declared
+   */
+  public NormalFormalParameter(SimpleIdentifier identifier) {
+    this.identifier = becomeParentOf(identifier);
+  }
+
+  /**
+   * Return the name of the parameter being declared.
+   * 
+   * @return the name of the parameter being declared
+   */
+  public SimpleIdentifier getIdentifier() {
+    return identifier;
+  }
+
+  /**
+   * Set the name of the parameter being declared to the given identifier.
+   * 
+   * @param identifier the name of the parameter being declared
+   */
+  public void setIdentifier(SimpleIdentifier identifier) {
+    this.identifier = becomeParentOf(identifier);
+  }
 }
