@@ -20,12 +20,8 @@ import com.google.dart.engine.error.SubSystem;
 /**
  * The enumeration {@code ParserErrorCode} defines the error codes used for errors detected by the
  * parser.
- * <p>
- * The convention in this file (with some exceptions) is that the enumeration name matches at least
- * the beginning default English translation of the message.
  */
 public enum ParserErrorCode implements ErrorCode {
-//  ABSTRACT_MEMBER_IN_INTERFACE("Abstract members are not allowed in interfaces"),
 //  ABSTRACT_METHOD_WITH_BODY("Abstract method cannot have a body"),
 //  ABSTRACT_TOP_LEVEL_ELEMENT("Only class can be abstract top-level element"),
 //  BREAK_OUTSIDE_OF_LOOP("'break' used outside of loop, case statement"),
@@ -48,7 +44,7 @@ public enum ParserErrorCode implements ErrorCode {
 //  DISALLOWED_STATIC_KEYWORD("Static keyword not allowed here"),
 //  EXPECTED_ARRAY_OR_MAP_LITERAL("Expected array or map literal"),
   EXPECTED_CASE_OR_DEFAULT("Expected 'case' or 'default'"),
-//  EXPECTED_CLASS_DECLARATION_LBRACE("Expected '{' in class or interface declaration"),
+//  EXPECTED_CLASS_DECLARATION_LBRACE("Expected '{' in class declaration"),
 //  EXPECTED_COMMA_OR_RIGHT_BRACE("Expected ',' or '}'"),
 //  EXPECTED_COMMA_OR_RIGHT_PAREN("Expected ',' or ')', but got '%s'"),
 //  EXPECTED_EOS("Unexpected token '%s' (expected end of file)"),
@@ -70,7 +66,6 @@ public enum ParserErrorCode implements ErrorCode {
 //  FACTORY_CANNOT_BE_ABSTRACT("A factory cannot be abstract"),
 //  FACTORY_CANNOT_BE_STATIC("A factory cannot be static"),
 //  FACTORY_CANNOT_BE_TOP_LEVEL("A factory cannot be top level, it must be a member of a class"),
-//  FACTORY_MEMBER_IN_INTERFACE("Factory members are not allowed in interfaces"),
 //  FINAL_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION("'final' is not allowed on a method definition"),
 //  FOR_IN_WITH_COMPLEX_VARIABLE("Only simple variables can be assigned to in a for-in construct"),
 //  FOR_IN_WITH_MULTIPLE_VARIABLES("Too many variable declarations in a for-in construct"),
@@ -81,7 +76,6 @@ public enum ParserErrorCode implements ErrorCode {
 //  ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
 //  ILLEGAL_NUMBER_OF_PARAMETERS("Illegal number of parameters"),
 //  INCOMPLETE_STRING_LITERAL("Incomplete string literal"),
-//  INTERFACE_METHOD_WITH_BODY("Interface method can not have a body"),
 //  INVALID_FIELD_DECLARATION("Wrong syntax for field declaration"),
 //  INVALID_IDENTIFIER("The token '%s' cannot be used as an identifier"),
 //  INVALID_OPERATOR_CHAINING("Cannot chain '%s'"),
@@ -92,7 +86,6 @@ public enum ParserErrorCode implements ErrorCode {
 //  NO_SPACE_AFTER_PLUS("Cannot have space between plus and numeric literal"),
 //  NO_SOUP_FOR_YOU("Too many errors"),
 //  NO_UNARY_PLUS_OPERATOR("No unary plus operator in Dart"),
-//  NON_FINAL_STATIC_MEMBER_IN_INTERFACE("Non-final static members are not allowed in interfaces"),
   ONLY_ONE_LIBRARY_DIRECTIVE("Only one library directive may be declared in a file"),
   OPERATOR_CANNOT_BE_STATIC("Operators cannot be static"),
   OPERATOR_IS_NOT_USER_DEFINABLE("Operator is not user definable"),
