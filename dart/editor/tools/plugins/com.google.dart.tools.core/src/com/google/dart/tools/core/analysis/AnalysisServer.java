@@ -129,8 +129,7 @@ public class AnalysisServer {
       throw new IllegalArgumentException("Cannot analyze a directory: " + libraryFile);
     }
     synchronized (libraryFiles) {
-      if (!libraryFiles.contains(libraryFile)) {
-        libraryFiles.add(libraryFile);
+      if (libraryFiles.add(libraryFile)) {
         // Append analysis task to the end of the queue so that any user requests take precedence
         queueAnalyzeContext();
       }
@@ -158,8 +157,9 @@ public class AnalysisServer {
 
     if (file.isFile() || (!file.exists() && DartCore.isDartLikeFileName(file.getName()))) {
       synchronized (libraryFiles) {
-        libraryFiles.remove(file);
-        queueNewTask(new DiscardLibraryTask(this, savedContext, file));
+        if (libraryFiles.remove(file)) {
+          queueNewTask(new DiscardLibraryTask(this, savedContext, file));
+        }
       }
       return;
     }
@@ -314,6 +314,16 @@ public class AnalysisServer {
     }
   }
 
+  /**
+   * Ensure that all libraries have been analyzed by adding an instance of
+   * {@link AnalyzeContextTask} to the end of the queue if it has not already been added.
+   */
+  protected void queueAnalyzeContext() {
+    queue.addLastTask(savedContextAnalysisTask);
+    // Give background thread a chance to run
+    Thread.yield();
+  }
+
   EditorLibraryManager getLibraryManager() {
     return libraryManager;
   }
@@ -327,16 +337,6 @@ public class AnalysisServer {
     synchronized (libraryFiles) {
       return libraryFiles.toArray(new File[libraryFiles.size()]);
     }
-  }
-
-  /**
-   * Ensure that all libraries have been analyzed by adding an instance of
-   * {@link AnalyzeContextTask} to the end of the queue if it has not already been added.
-   */
-  void queueAnalyzeContext() {
-    queue.addLastTask(savedContextAnalysisTask);
-    // Give background thread a chance to run
-    Thread.yield();
   }
 
   /**

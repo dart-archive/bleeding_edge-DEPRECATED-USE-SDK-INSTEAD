@@ -17,6 +17,12 @@ import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
 import static junit.framework.Assert.fail;
 
+import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashSet;
+
 public class AnalysisTestUtilities {
 
   /**
@@ -48,5 +54,70 @@ public class AnalysisTestUtilities {
    */
   public static void waitForIdle(long milliseconds) {
     waitForIdle(SystemLibraryManagerProvider.getDefaultAnalysisServer(), milliseconds);
+  }
+
+  static void assertQueuedTasks(AnalysisServer server, String... expectedTaskNames)
+      throws Exception {
+    Task[] actualTasks = getServerTaskQueue(server).getTasks();
+    int index = 0;
+    for (String name : expectedTaskNames) {
+      if (index >= actualTasks.length) {
+        fail("Expected task(" + index + ") to be " + name + ", but end of queue");
+      }
+      String taskClassName = actualTasks[index].getClass().getSimpleName();
+      if (!name.equals(taskClassName)) {
+        fail("Expected task(" + index + ") to be " + name + ", but found " + taskClassName);
+      }
+      index++;
+    }
+    if (index < actualTasks.length) {
+      String message = "Expected " + expectedTaskNames.length + " tasks, but found "
+          + actualTasks.length;
+      while (index < actualTasks.length) {
+        message += "\n  " + actualTasks[index].getClass().getSimpleName();
+        index++;
+      }
+      fail(message);
+    }
+  }
+
+  static void assertTrackedLibraryFiles(AnalysisServer server, File... expected) throws Exception {
+    File[] actual = getTrackedLibraryFiles(server);
+    if (actual.length == expected.length) {
+      HashSet<File> files = new HashSet<File>();
+      files.addAll(Arrays.asList(actual));
+      if (actual.length == files.size()) {
+        for (File file : expected) {
+          if (!files.remove(file)) {
+            break;
+          }
+        }
+      }
+      if (files.size() == 0) {
+        return;
+      }
+    }
+    String msg = "Expected:";
+    for (File file : expected) {
+      msg += "\n   " + file;
+    }
+    msg += "\nbut found:";
+    for (File file : actual) {
+      msg += "\n   " + file;
+    }
+    fail(msg);
+  }
+
+  static TaskQueue getServerTaskQueue(AnalysisServer server) throws Exception {
+    Field field = AnalysisServer.class.getDeclaredField("queue");
+    field.setAccessible(true);
+    return (TaskQueue) field.get(server);
+  }
+
+  static File[] getTrackedLibraryFiles(AnalysisServer server) throws Exception {
+    Method method = AnalysisServer.class.getDeclaredMethod("getTrackedLibraryFiles");
+    method.setAccessible(true);
+    Object result = method.invoke(server);
+    return (File[]) result;
   }
 }

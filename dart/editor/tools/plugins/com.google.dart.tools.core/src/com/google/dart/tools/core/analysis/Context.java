@@ -165,8 +165,8 @@ public class Context {
   }
 
   /**
-   * Resolve the specified library. Similar to {@link #analyze(File)}, but does not add the library
-   * to the list of libraries to be tracked.
+   * Resolve the specified library. Similar to {@link AnalysisServer#analyze(File)}, but does not
+   * add the library to the list of libraries to be tracked.
    * 
    * @param libraryFile the library file (not <code>null</code>).
    * @param milliseconds the number of milliseconds to wait for the library to be resolved.
@@ -184,8 +184,8 @@ public class Context {
   }
 
   /**
-   * Resolve the specified library. Similar to {@link #analyze(File)}, but does not add the library
-   * to the list of libraries to be tracked.
+   * Resolve the specified library. Similar to {@link AnalysisServer#analyze(File)}, but does not
+   * add the library to the list of libraries to be tracked.
    * 
    * @param libraryFile the library file (not <code>null</code>)
    * @param callback a listener that will be notified when the library has been resolved or

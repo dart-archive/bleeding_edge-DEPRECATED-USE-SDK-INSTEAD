@@ -21,6 +21,11 @@ import com.google.dart.tools.core.test.util.FileOperation;
 import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertQueuedTasks;
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTrackedLibraryFiles;
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.getServerTaskQueue;
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.getTrackedLibraryFiles;
+
 import junit.framework.TestCase;
 
 import org.junit.Assert;
@@ -34,8 +39,6 @@ import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 public class AnalysisServerTest extends TestCase {
@@ -46,7 +49,6 @@ public class AnalysisServerTest extends TestCase {
   private static final long FIVE_MINUTES_MS = 300000;
 
   private AnalysisServer server;
-  private AnalysisServer defaultServer;
   private Listener listener;
 
   public void test_analyzeLibrary() throws Exception {
@@ -61,14 +63,14 @@ public class AnalysisServerTest extends TestCase {
   public File test_analyzeLibrary(File tempDir) throws Exception, InterruptedException {
     File libFile = setupMoneyLibrary(tempDir);
     setupServer();
-    assertTrackedLibraryFiles();
+    assertTrackedLibraryFiles(server);
 
     server.analyze(libFile);
     listener.waitForResolved(FIVE_MINUTES_MS, libFile);
     listener.assertResolvedCount(3);
     listener.assertNoDuplicates();
     listener.assertNoDiscards();
-    assertTrackedLibraryFiles(libFile);
+    assertTrackedLibraryFiles(server, libFile);
     assertTrue(isLibraryResolved(libFile));
     return libFile;
   }
@@ -108,21 +110,21 @@ public class AnalysisServerTest extends TestCase {
 
   public File test_discardLib(File tempDir, boolean discardParent) throws Exception {
     File libFile = test_analyzeLibrary(tempDir);
-    assertTrackedLibraryFiles(libFile);
+    assertTrackedLibraryFiles(server, libFile);
 
     listener.reset();
     server.discard(discardParent ? libFile.getParentFile() : libFile);
     listener.waitForDiscarded(FIVE_MINUTES_MS, libFile);
     listener.assertResolvedCount(0);
     listener.assertNoDuplicates();
-    assertTrackedLibraryFiles();
+    assertTrackedLibraryFiles(server);
     assertFalse(isLibraryCached(libFile));
 
     listener.reset();
 
     // Use blocking task to ensure we can add 2 tasks to the queue without being processed
     BlockingTask blockingTask = new BlockingTask();
-    getServerTaskQueue().addNewTask(blockingTask);
+    getServerTaskQueue(server).addNewTask(blockingTask);
 
     // The discard task should prevent the analysis task from being executed
     server.analyze(libFile);
@@ -133,7 +135,7 @@ public class AnalysisServerTest extends TestCase {
     listener.assertResolvedCount(0);
     listener.assertNoDuplicates();
     listener.assertNoDiscards();
-    assertTrackedLibraryFiles();
+    assertTrackedLibraryFiles(server);
     assertFalse(isLibraryCached(libFile));
 
     return libFile;
@@ -179,60 +181,60 @@ public class AnalysisServerTest extends TestCase {
   public void test_read_analyzeContext() throws Exception {
     initServer(new StringReader(
         "v3\none\n</end-libraries>\n</end-cache>\nAnalyzeContextTask\n</end-queue>"));
-    File[] trackedLibraryFiles = getTrackedLibraryFiles();
+    File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
     assertEquals(1, trackedLibraryFiles.length);
     assertEquals("one", trackedLibraryFiles[0].getName());
-    assertQueuedTasks("AnalyzeContextTask");
+    assertQueuedTasks(server, "AnalyzeContextTask");
   }
 
   public void test_read_analyzeLibrary() throws Exception {
     initServer(new StringReader("v3\none\n</end-libraries>\n</end-cache>\none\n</end-queue>"));
-    File[] trackedLibraryFiles = getTrackedLibraryFiles();
+    File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
     assertEquals(1, trackedLibraryFiles.length);
     assertEquals("one", trackedLibraryFiles[0].getName());
-    assertQueuedTasks("AnalyzeLibraryTask");
+    assertQueuedTasks(server, "AnalyzeLibraryTask");
   }
 
   public void test_read_empty() throws Exception {
     initServer(new StringReader(EMPTY_CACHE_CONTENT));
-    assertEquals(0, getTrackedLibraryFiles().length);
-    assertQueuedTasks("AnalyzeLibraryTask");
+    assertEquals(0, getTrackedLibraryFiles(server).length);
+    assertQueuedTasks(server, "AnalyzeLibraryTask");
   }
 
   public void test_read_empty_v1() throws Exception {
     initServer(new StringReader("v1\n</end-libraries>\nsome-stuff"));
-    assertEquals(0, getTrackedLibraryFiles().length);
-    assertQueuedTasks("AnalyzeContextTask");
+    assertEquals(0, getTrackedLibraryFiles(server).length);
+    assertQueuedTasks(server, "AnalyzeContextTask");
   }
 
   public void test_read_empty_v2() throws Exception {
     initServer(new StringReader("v2\n</end-libraries>\n</end-cache>"));
-    assertEquals(0, getTrackedLibraryFiles().length);
-    assertQueuedTasks("AnalyzeContextTask");
+    assertEquals(0, getTrackedLibraryFiles(server).length);
+    assertQueuedTasks(server, "AnalyzeContextTask");
   }
 
   public void test_read_one() throws Exception {
     initServer(new StringReader("v3\none\n</end-libraries>\n</end-cache>\n</end-queue>"));
-    File[] trackedLibraryFiles = getTrackedLibraryFiles();
+    File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
     assertEquals(1, trackedLibraryFiles.length);
     assertEquals("one", trackedLibraryFiles[0].getName());
-    assertQueuedTasks("AnalyzeLibraryTask");
+    assertQueuedTasks(server, "AnalyzeLibraryTask");
   }
 
   public void test_read_one_v1() throws Exception {
     initServer(new StringReader("v1\none\n</end-libraries>\nsome-stuff"));
-    File[] trackedLibraryFiles = getTrackedLibraryFiles();
+    File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
     assertEquals(1, trackedLibraryFiles.length);
     assertEquals("one", trackedLibraryFiles[0].getName());
-    assertQueuedTasks("AnalyzeContextTask");
+    assertQueuedTasks(server, "AnalyzeContextTask");
   }
 
   public void test_read_one_v2() throws Exception {
     initServer(new StringReader("v2\none\n</end-libraries>\n</end-cache>"));
-    File[] trackedLibraryFiles = getTrackedLibraryFiles();
+    File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
     assertEquals(1, trackedLibraryFiles.length);
     assertEquals("one", trackedLibraryFiles[0].getName());
-    assertQueuedTasks("AnalyzeContextTask");
+    assertQueuedTasks(server, "AnalyzeContextTask");
   }
 
   public void test_read_version_invalid() throws Exception {
@@ -257,95 +259,13 @@ public class AnalysisServerTest extends TestCase {
     }
   }
 
-  public void test_scan() throws Exception {
-    TestUtilities.runWithTempDirectory(new FileOperation() {
-      @Override
-      public void run(File tempDir) throws Exception {
-        File libFile = setupMoneyLibrary(tempDir);
-        setupServer();
-        assertTrackedLibraryFiles();
-
-        listener.reset();
-        server.scan(libFile, true);
-        listener.waitForResolved(FIVE_MINUTES_MS, libFile);
-        assertTrackedLibraryFiles(libFile);
-        listener.assertResolvedCount(3);
-        listener.assertNoDuplicates();
-        listener.assertNoDiscards();
-      }
-    });
-  }
-
-  public void test_scanAndIndex() throws Exception {
-    TestUtilities.runWithTempDirectory(new FileOperation() {
-      @Override
-      public void run(File tempDir) throws Exception {
-        File libFile = setupMoneyLibrary(tempDir);
-        File sourcedFile = new File(libFile.getParent(), "currency.dart");
-        setupServer();
-        assertTrackedLibraryFiles();
-
-        //    final InMemoryIndex index = InMemoryIndex.newInstanceForTesting();
-        //    new Thread(getClass().getSimpleName() + " scanAndIndex") {
-        //      @Override
-        //      public void run() {
-        //        index.getOperationProcessor().run();
-        //      };
-        //    }.start();
-        //    server.addAnalysisListener(new AnalysisIndexManager(index));
-        //    assertEquals(0, index.getRelationshipCount());
-        //
-        //    Resource libResource = new Resource(composeResourceId(
-        //        libFile.toURI().toString(),
-        //        libFile.toURI().toString()));
-        //    libElement = new Element(libResource, "#library");
-
-        listener.reset();
-        server.scan(tempDir, true);
-        listener.waitForResolved(FIVE_MINUTES_MS, libFile);
-        assertTrackedLibraryFiles(libFile);
-        listener.assertResolvedCount(3);
-        listener.assertNoDuplicates();
-        listener.assertNoDiscards();
-
-        listener.reset();
-        server.scan(sourcedFile, true);
-        waitForIdle();
-        assertTrackedLibraryFiles(libFile);
-        listener.assertResolvedCount(0);
-        listener.assertNoDuplicates();
-        listener.assertNoDiscards();
-      }
-    });
-  }
-
-  public void test_stop() throws Exception {
-    TestUtilities.runWithTempDirectory(new FileOperation() {
-      @Override
-      public void run(File tempDir) throws Exception {
-        File libFile = setupMoneyLibrary(tempDir);
-        setupServer();
-
-        server.getSavedContext().resolve(libFile, FIVE_MINUTES_MS);
-        server.stop();
-
-        assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
-        listener.waitForIdle(FIVE_MINUTES_MS);
-
-        assertQueuedTasks();
-        server.getSavedContext().resolve(libFile, null);
-        assertQueuedTasks("AnalyzeLibraryTask");
-      }
-    });
-  }
-
   public void test_write_1() throws Exception {
     final String libraryFileName1 = "myLibrary.dart";
     final String libraryFileName2 = "someOtherAbcLibrary.dart";
 
     initServer(null);
     server.analyze(new File(libraryFileName1).getAbsoluteFile());
-    assertQueuedTasks("AnalyzeContextTask");
+    assertQueuedTasks(server, "AnalyzeContextTask");
     synchronized (getServerTaskQueueLock()) {
       server.start();
       server.stop();
@@ -361,7 +281,7 @@ public class AnalysisServerTest extends TestCase {
 
   public void test_write_empty() throws Exception {
     initServer(null);
-    assertQueuedTasks();
+    assertQueuedTasks(server);
     StringWriter writer = new StringWriter(5000);
     writeCache(writer);
     Assert.assertEquals(EMPTY_CACHE_CONTENT, writer.toString());
@@ -374,7 +294,7 @@ public class AnalysisServerTest extends TestCase {
         File libFile = test_analyzeLibrary(tempDir);
 
         waitForIdle();
-        assertQueuedTasks();
+        assertQueuedTasks(server);
 
         StringWriter writer = new StringWriter(5000);
         server.stop();
@@ -384,14 +304,14 @@ public class AnalysisServerTest extends TestCase {
         writeCache(writer);
 
         initServer(new StringReader(writer.toString()));
-        assertQueuedTasks("AnalyzeLibraryTask", "AnalyzeLibraryTask"); // someFile, otherFile
+        assertQueuedTasks(server, "AnalyzeLibraryTask", "AnalyzeLibraryTask"); // someFile, otherFile
         server.start();
         waitForIdle();
 
-        assertTrackedLibraryFiles(libFile);
+        assertTrackedLibraryFiles(server, libFile);
         assertTrue(isLibraryCached(libFile));
         assertFalse(isLibraryResolved(libFile));
-        assertQueuedTasks();
+        assertQueuedTasks(server);
       }
     });
   }
@@ -402,7 +322,7 @@ public class AnalysisServerTest extends TestCase {
       public void run(File tempDir) throws Exception {
         File libFile = setupMoneyLibrary(tempDir);
         setupServer();
-        assertTrackedLibraryFiles();
+        assertTrackedLibraryFiles(server);
 
         String contents = FileUtilities.getContents(libFile);
         String libraryDirective = "#library(\"Money\");";
@@ -423,7 +343,7 @@ public class AnalysisServerTest extends TestCase {
 
         server.analyze(libFile);
         listener.waitForResolved(FIVE_MINUTES_MS, libFile);
-        assertTrackedLibraryFiles(libFile);
+        assertTrackedLibraryFiles(server, libFile);
         assertTrue(isLibraryResolved(libFile));
 
         StringWriter writer = new StringWriter(5000);
@@ -432,8 +352,8 @@ public class AnalysisServerTest extends TestCase {
 
         initServer(new StringReader(writer.toString()));
 
-        assertQueuedTasks("AnalyzeLibraryTask"); // dart:core
-        assertTrackedLibraryFiles(libFile);
+        assertQueuedTasks(server, "AnalyzeLibraryTask"); // dart:core
+        assertTrackedLibraryFiles(server, libFile);
         assertTrue(isLibraryCached(libFile));
         assertFalse(isLibraryResolved(libFile));
       }
@@ -482,40 +402,8 @@ public class AnalysisServerTest extends TestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    if (server != null && server != defaultServer) {
+    if (server != null) {
       server.stop();
-    }
-  }
-
-  private void assertNoTopDeclaration(DartUnit unit) {
-    assertNotNull(unit);
-    Set<String> actualNames = unit.getTopDeclarationNames();
-    if (actualNames.size() != 0) {
-      fail("Expected no top level declarations, but found " + actualNames);
-    }
-  }
-
-  private void assertQueuedTasks(String... expectedTaskNames) throws Exception {
-    Task[] actualTasks = getServerTaskQueue().getTasks();
-    int index = 0;
-    for (String name : expectedTaskNames) {
-      if (index >= actualTasks.length) {
-        fail("Expected task(" + index + ") to be " + name + ", but end of queue");
-      }
-      String taskClassName = actualTasks[index].getClass().getSimpleName();
-      if (!name.equals(taskClassName)) {
-        fail("Expected task(" + index + ") to be " + name + ", but found " + taskClassName);
-      }
-      index++;
-    }
-    if (index < actualTasks.length) {
-      String message = "Expected " + expectedTaskNames.length + " tasks, but found "
-          + actualTasks.length;
-      while (index < actualTasks.length) {
-        message += "\n  " + actualTasks[index].getClass().getSimpleName();
-        index++;
-      }
-      fail(message);
     }
   }
 
@@ -527,53 +415,11 @@ public class AnalysisServerTest extends TestCase {
     }
   }
 
-  private void assertTrackedLibraryFiles(File... expected) throws Exception {
-    File[] actual = getTrackedLibraryFiles();
-    if (actual.length == expected.length) {
-      HashSet<File> files = new HashSet<File>();
-      files.addAll(Arrays.asList(actual));
-      if (actual.length == files.size()) {
-        for (File file : expected) {
-          if (!files.remove(file)) {
-            break;
-          }
-        }
-      }
-      if (files.size() == 0) {
-        return;
-      }
-    }
-    String msg = "Expected:";
-    for (File file : expected) {
-      msg += "\n   " + file;
-    }
-    msg += "\nbut found:";
-    for (File file : actual) {
-      msg += "\n   " + file;
-    }
-    fail(msg);
-  }
-
-  @SuppressWarnings("unchecked")
-  private TaskQueue getServerTaskQueue() throws Exception {
-    Field field = server.getClass().getDeclaredField("queue");
-    field.setAccessible(true);
-    return (TaskQueue) field.get(server);
-  }
-
-  @SuppressWarnings("unchecked")
   private Object getServerTaskQueueLock() throws Exception {
-    TaskQueue queue = getServerTaskQueue();
+    TaskQueue queue = getServerTaskQueue(server);
     Field field = queue.getClass().getDeclaredField("queue");
     field.setAccessible(true);
     return field.get(queue);
-  }
-
-  private File[] getTrackedLibraryFiles() throws Exception {
-    Method method = server.getClass().getDeclaredMethod("getTrackedLibraryFiles");
-    method.setAccessible(true);
-    Object result = method.invoke(server);
-    return (File[]) result;
   }
 
   private void initServer(Reader reader) throws Exception {
@@ -608,13 +454,6 @@ public class AnalysisServerTest extends TestCase {
     } catch (InvocationTargetException e) {
       throw (Exception) e.getCause();
     }
-  }
-
-  private void setupDefaultServer() throws Exception {
-    defaultServer = SystemLibraryManagerProvider.getDefaultAnalysisServer();
-    server = defaultServer;
-    listener = new Listener(server);
-    waitForIdle();
   }
 
   private File setupMoneyLibrary(File tempDir) throws IOException {

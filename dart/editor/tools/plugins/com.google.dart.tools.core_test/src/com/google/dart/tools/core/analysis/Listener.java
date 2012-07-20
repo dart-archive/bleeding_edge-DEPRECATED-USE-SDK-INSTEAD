@@ -33,6 +33,7 @@ class Listener implements AnalysisListener, IdleListener {
   private final PrintStringWriter duplicates = new PrintStringWriter();
 
   private boolean idle;
+  private int idleCount;
 
   private final ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
 
@@ -57,6 +58,9 @@ class Listener implements AnalysisListener, IdleListener {
   public void idle(boolean idle) {
     synchronized (lock) {
       this.idle = idle;
+      if (idle) {
+        this.idleCount++;
+      }
       lock.notifyAll();
     }
   }
@@ -206,6 +210,35 @@ class Listener implements AnalysisListener, IdleListener {
     }
   }
 
+  /**
+   * Wait up to the specified number of milliseconds for the receiver to have the specified idle
+   * count. If the specified number is less than or equal to zero, then this method returns
+   * immediately.
+   * 
+   * @param expectedIdleCount the expected idle count
+   * @param milliseconds the maximum number of milliseconds to wait
+   * @return <code>true</code> if the receiver has the specified idle count, else <code>false</code>
+   */
+  void waitForIdle(int expectedIdleCount, long milliseconds) {
+    synchronized (lock) {
+      long end = System.currentTimeMillis() + milliseconds;
+      while (expectedIdleCount > idleCount) {
+        long delta = end - System.currentTimeMillis();
+        if (delta <= 0) {
+          break;
+        }
+        try {
+          lock.wait(delta);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
+      }
+      if (expectedIdleCount != idleCount) {
+        fail("Expected idle count " + expectedIdleCount + " but found " + idleCount);
+      }
+    }
+  }
+
   void waitForIdle(long milliseconds) {
     synchronized (lock) {
       long end = System.currentTimeMillis() + milliseconds;
@@ -222,7 +255,6 @@ class Listener implements AnalysisListener, IdleListener {
         }
       }
     }
-
   }
 
   void waitForParsed(long milliseconds, final File libraryFile, final File... dartFiles) {
@@ -321,6 +353,9 @@ class Listener implements AnalysisListener, IdleListener {
   private void failParsed(File libraryFile, File... dartFiles) {
     PrintStringWriter psw = new PrintStringWriter();
     HashSet<String> parsedInLibrary = parsed.get(libraryFile.getPath());
+    if (parsedInLibrary == null) {
+      parsedInLibrary = new HashSet<String>();
+    }
     psw.println("Expected at least " + dartFiles.length + " parsed files in "
         + libraryFile.getName() + ", but found " + parsedInLibrary.size());
     psw.println("  " + libraryFile.getPath());

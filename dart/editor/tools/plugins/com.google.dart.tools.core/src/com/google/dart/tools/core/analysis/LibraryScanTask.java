@@ -30,7 +30,8 @@ import java.util.Iterator;
  * Scan the specified folder and all subfolders for Dart libraries. Add any libraries and loose dart
  * files found to the {@link AnalysisServer}.
  */
-public class LibraryScanTask extends Task {
+class LibraryScanTask extends Task {
+
   private static final long SCAN_BYTE_THRESHOLD = 10 * 1000 * 1024; // 10 MB
   private static final long SCAN_TIME_THRESHOLD = 10 * 1000; // ten seconds
 
@@ -112,8 +113,10 @@ public class LibraryScanTask extends Task {
       looseFiles.removeAll(lib.getSourceFiles());
       for (File sourcedFile : lib.getSourceFiles()) {
         Library otherLib = context.getCachedLibrary(sourcedFile);
-        if (otherLib != null && !otherLib.hasDirectives()) {
-          server.discard(otherLib.getFile());
+        // If there is no information about the sourcedFile currently in the cache
+        // make the assumption that it is not a library file rather than doing more work
+        if (otherLib == null || !otherLib.hasDirectives()) {
+          server.discard(sourcedFile);
         }
       }
       iter.remove();
