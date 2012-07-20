@@ -18,8 +18,10 @@ import junit.framework.TestCase;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 
 public abstract class SystemLibraryManagerProviderTest extends TestCase {
 
@@ -135,9 +137,10 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
   protected void testPackage(String libFileName, String uriString)
       throws AssertionError, URISyntaxException {
 
-    File packageRoot = SystemLibraryManagerProvider.getAnyLibraryManager().getPackageRoot();
-    SystemLibraryManagerProvider.getAnyLibraryManager()
-        .setPackageRoot(new File(System.getProperty("user.home")));
+    List<File> packageRoots = SystemLibraryManagerProvider.getAnyLibraryManager().getPackageRoots();
+    List<File> roots = new ArrayList<File>();
+    roots.add(new File(System.getProperty("user.home")));
+    SystemLibraryManagerProvider.getAnyLibraryManager().setPackageRoots(roots);
 
     final URI fullUri1 = getLibraryManager()
         .expandRelativeDartUri(new URI("package", null, "/" + libFileName, null));
@@ -145,6 +148,7 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     assertEquals("package", fullUri1.getScheme());
     assertTrue(fullUri1.getPath(), (fullUri1.getHost() + fullUri1.getPath()).endsWith(libFileName));
 
+    // TODO(keertip): fix test, this will fail, we now check for file exists
     URI translatedUri = getLibraryManager().resolveDartUri(fullUri1);
     assertNotNull(translatedUri);
     String scheme = translatedUri.getScheme();
@@ -153,7 +157,7 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     URI shortUri3 = getLibraryManager().getShortUri(translatedUri);
     assertEquals(new URI(uriString), shortUri3);
 
-    SystemLibraryManagerProvider.getAnyLibraryManager().setPackageRoot(packageRoot);
+    SystemLibraryManagerProvider.getAnyLibraryManager().setPackageRoots(packageRoots);
 
   }
 }

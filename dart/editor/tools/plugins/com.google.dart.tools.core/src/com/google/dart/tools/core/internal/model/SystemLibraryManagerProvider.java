@@ -20,10 +20,12 @@ import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.model.DartSdk;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * The class <code>SystemLibraryManagerProvider</code> manages the {@link SystemLibraryManager
- * system library managers} used by the tools.
+ * The class <code>SystemLibraryManagerProvider</code> manages the {@link SystemLibraryManager system library managers} used by
+ * the tools.
  */
 public class SystemLibraryManagerProvider {
   private static final Object lock = new Object();
@@ -51,11 +53,15 @@ public class SystemLibraryManagerProvider {
         DartCore.logInformation("Reading bundled libraries from " + sdkDir);
 
         ANY_LIBRARY_MANAGER = new EditorLibraryManager(sdkDir, "any");
-        String packageRoot = DartCore.getPlugin().getPrefs().get(
-            DartCore.PACKAGE_ROOT_DIR_PREFERENCE,
-            "");
+        String packageRoot = DartCore.getPlugin()
+            .getPrefs().get(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, "");
         if (packageRoot != null && !packageRoot.isEmpty()) {
-          ANY_LIBRARY_MANAGER.setPackageRoot(new File(packageRoot));
+          String[] roots = packageRoot.split(";");
+          List<File> packageRoots = new ArrayList<File>();
+          for (String path : roots) {
+            packageRoots.add(new File(path));
+          }
+          ANY_LIBRARY_MANAGER.setPackageRoots(packageRoots);
         }
 
       }
