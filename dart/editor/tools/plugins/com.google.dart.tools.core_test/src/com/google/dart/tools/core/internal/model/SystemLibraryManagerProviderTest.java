@@ -136,8 +136,8 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
 
   protected void testPackage(String libFileName, String uriString)
       throws AssertionError, URISyntaxException {
-
-    List<File> packageRoots = SystemLibraryManagerProvider.getAnyLibraryManager().getPackageRoots();
+    List<File> packageRoots = new ArrayList<File>();
+    packageRoots.addAll(SystemLibraryManagerProvider.getAnyLibraryManager().getPackageRoots());
     List<File> roots = new ArrayList<File>();
     roots.add(new File(System.getProperty("user.home")));
     SystemLibraryManagerProvider.getAnyLibraryManager().setPackageRoots(roots);
