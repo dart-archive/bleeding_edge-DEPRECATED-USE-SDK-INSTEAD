@@ -77,7 +77,7 @@ public class AppsViewContentProvider implements ITreeContentProvider, IResourceC
 
   private static void collectLibraries(ElementTreeNode node, Set<ElementTreeNode> children) {
     for (ElementTreeNode child : node.getChildNodes()) {
-      if (child.isLib()) {
+      if (child.isLib() && !children.contains(child)) {
         children.add(child);
         collectLibraries(child, children);
       }
