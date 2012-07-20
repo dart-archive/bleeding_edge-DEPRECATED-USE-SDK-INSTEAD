@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.test.util.TestProject;
+import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractMethodRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.ParameterInfo;
 
@@ -305,6 +306,710 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
 //        "  int b = 2 +  res; // marker",
 //        "}");
 //  }
+
+  public void test_bad_assignmentLeftHandSide() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int aaa;",
+        "// start",
+        "  aaa ",
+        "// end",
+        "   = 0;",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    selectionStart = findOffset("aaa ");
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.ExtractMethodAnalyzer_leftHandSideOfAssignment, msg);
+    }
+  }
+
+  public void test_bad_comment_selectionEndsInside() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "/*",
+        "// end",
+        "*/",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.CommentAnalyzer_ends_inside_comment, msg);
+    }
+  }
+
+  public void test_bad_comment_selectionStartsInside() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "/*",
+        "// start",
+        "*/",
+        "  print(0);",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.CommentAnalyzer_starts_inside_comment, msg);
+    }
+  }
+
+  public void test_bad_constructor_initializer() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int f;",
+        "  A() :",
+        "// start",
+        "    f = 0",
+        "// end",
+        "  {}",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.ExtractMethodAnalyzer_cannot_extract_initializer, msg);
+    }
+  }
+
+  public void test_bad_constructor_redirectingConstructor() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() :",
+        "// start",
+        "    this.named()",
+        "// end",
+        "  ;",
+        "  A.named() {}",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.ExtractMethodAnalyzer_cannot_extract_initializer, msg);
+    }
+  }
+
+  public void test_bad_constructor_superConstructor() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class B {}",
+        "class A extends B {",
+        "  A() :",
+        "// start",
+        "    super()",
+        "// end",
+        "  {}",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.ExtractMethodAnalyzer_cannot_extract_initializer, msg);
+    }
+  }
+
+  public void test_bad_doWhile_body() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  do ",
+        "// start",
+        "  { ",
+        "  }",
+        "// end",
+        "  while (true);",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.StatementAnalyzer_do_body, msg);
+    }
+  }
+
+  public void test_bad_emptySelection() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "// end",
+        "  int v = varA + varB;",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.ExtractMethodAnalyzer_single_expression_or_set, msg);
+    }
+  }
+
+  public void test_bad_forLoop_conditionAndUpdaters() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  for ( ",
+        "    int i = 0;",
+        "// start",
+        "    i < 10; ",
+        "    i++",
+        "// end",
+        "  ) {}",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.StatementAnalyzer_for_condition_updaters, msg);
+    }
+  }
+
+  public void test_bad_forLoop_init() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  for ( ",
+        "// start",
+        "    int i = 0;",
+        "// end",
+        "    i < 10; ",
+        "    i++",
+        "  ) {}",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(
+          RefactoringCoreMessages.ExtractMethodAnalyzer_cannot_extract_for_initializer,
+          msg);
+    }
+  }
+
+  public void test_bad_forLoop_initAndCondition() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  for ( ",
+        "// start",
+        "    int i = 0;",
+        "    i < 10; ",
+        "// end",
+        "    i++",
+        "  ) {}",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.StatementAnalyzer_for_initializer_condition, msg);
+    }
+  }
+
+  public void test_bad_forLoop_updaters() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  for ( ",
+        "    int i = 0;",
+        "    i < 10; ",
+        "// start",
+        "    i++",
+        "// end",
+        "  ) {}",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.ExtractMethodAnalyzer_cannot_extract_for_updater, msg);
+    }
+  }
+
+  public void test_bad_forLoop_updatersAndBody() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  for ( ",
+        "    int i = 0;",
+        "    i < 10; ",
+        "// start",
+        "    i++",
+        "  ) {}",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.StatementAnalyzer_for_updaters_body, msg);
+    }
+  }
+
+  public void test_bad_methodName_reference() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  main();",
+        "}",
+        "");
+    selectionStart = findOffset("main();");
+    selectionEnd = selectionStart + "main".length();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(
+          RefactoringCoreMessages.ExtractMethodAnalyzer_cannot_extract_method_name_reference,
+          msg);
+    }
+  }
+
+  public void test_bad_namePartOfDeclaration_method() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a;",
+        "}",
+        "");
+    selectionStart = findOffset("main() {");
+    selectionEnd = selectionStart + "main".length();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(
+          RefactoringCoreMessages.ExtractMethodAnalyzer_cannot_extract_name_in_declaration,
+          msg);
+    }
+  }
+
+  public void test_bad_namePartOfDeclaration_variable() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int vvv = 0;",
+        "}",
+        "");
+    selectionStart = findOffset("vvv =");
+    selectionEnd = selectionStart + "vvv".length();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(
+          RefactoringCoreMessages.ExtractMethodAnalyzer_cannot_extract_name_in_declaration,
+          msg);
+    }
+  }
+
+  public void test_bad_namePartOfQualified() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var fff;",
+        "}",
+        "main() {",
+        "  A a;",
+        "  a.fff = 1;",
+        "}",
+        "");
+    selectionStart = findOffset("fff =");
+    selectionEnd = selectionStart + "fff".length();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(
+          RefactoringCoreMessages.ExtractMethodAnalyzer_cannot_extract_part_of_qualified_name,
+          msg);
+    }
+  }
+
+  public void test_bad_newMethodName_notIdentifier() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring("badName-");
+    // check status
+    assertTrue(refactoringStatus.hasError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.ERROR);
+      assertEquals("The method name 'badName-' is not a valid identifier", msg);
+    }
+  }
+
+  public void test_bad_notSameParent() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  while (false) ",
+        "// start",
+        "  { ",
+        "  } ",
+        "  print(0);",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.ExtractMethodAnalyzer_parent_mismatch, msg);
+    }
+  }
+
+  public void test_bad_parameterName_duplicate() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v1 = 1;",
+        "  int v2 = 2;",
+        "// start",
+        "  int a = v1 + v2; // marker",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    // prepare
+    createRefactoring();
+    // update parameters
+    {
+      List<ParameterInfo> parameters = refactoring.getParameters();
+      assertThat(parameters).hasSize(2);
+      parameters.get(0).setNewName("dup");
+      parameters.get(1).setNewName("dup");
+    }
+    // check status
+    refactoringStatus = refactoring.checkFinalConditions(pm);
+    assertTrue(refactoringStatus.hasError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.ERROR);
+      assertEquals("A parameter 'dup' already exists", msg);
+    }
+  }
+
+  public void test_bad_parameterName_inUse() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v1 = 1;",
+        "  int v2 = 2;",
+        "// start",
+        "  int a = v1 + v2; // marker",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    // prepare
+    createRefactoring();
+    // update parameters
+    {
+      List<ParameterInfo> parameters = refactoring.getParameters();
+      assertThat(parameters).hasSize(2);
+      parameters.get(0).setNewName("a");
+    }
+    // check status
+    refactoringStatus = refactoring.checkFinalConditions(pm);
+    assertTrue(refactoringStatus.hasError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.ERROR);
+      assertEquals("'a' is already used as a name in the selected code", msg);
+    }
+  }
+
+  public void test_bad_selectionEndsInSomeNode() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    selectionEnd = findOffset("print(1)") + "pri".length();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.StatementAnalyzer_doesNotCover, msg);
+    }
+  }
+
+  public void test_bad_switch_switchMember() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  switch (0) ",
+        "// start",
+        "     switch (0) {}",
+        "// end",
+        "  } ",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.StatementAnalyzer_switch_statement, msg);
+    }
+  }
+
+  public void test_bad_tokensBetweenLastNodeAndSelectionEnd() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "}",
+        "// end",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.StatementAnalyzer_end_of_selection, msg);
+    }
+  }
+
+  public void test_bad_tokensBetweenSelectionStartAndFirstNode() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0); // marker",
+        "  print(1);",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    selectionStart = findOffset("// marker") - "); ".length();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.StatementAnalyzer_beginning_of_selection, msg);
+    }
+  }
+
+  public void test_bad_try_catchBlock_block() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  try",
+        "  {} ",
+        "  catch (",
+        "    Exception e",
+        "  )",
+        "// start",
+        "  {}",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.StatementAnalyzer_try_statement, msg);
+    }
+  }
+
+  public void test_bad_try_catchBlock_complete() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  try",
+        "  {} ",
+        "// start",
+        "  catch (",
+        "    Exception e",
+        "  )",
+        "  {}",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.StatementAnalyzer_try_statement, msg);
+    }
+  }
+
+  public void test_bad_try_catchBlock_exception() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  try",
+        "  {} ",
+        "  catch (",
+        "// start",
+        "    Exception e",
+        "// end",
+        "  )",
+        "  {}",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.StatementAnalyzer_try_statement, msg);
+    }
+  }
+
+  public void test_bad_try_finallyBlock() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  try",
+        "  {} ",
+        "  finally",
+        "// start",
+        "  {}",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.StatementAnalyzer_try_statement, msg);
+    }
+  }
+
+  public void test_bad_try_tryBlock() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  try",
+        "// start",
+        "  {} ",
+        "// end",
+        "  finally",
+        "  {}",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.StatementAnalyzer_try_statement, msg);
+    }
+  }
+
+  public void test_bad_typeReference() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a;",
+        "}",
+        "");
+    selectionStart = findOffset("int");
+    selectionEnd = selectionStart + "int".length();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.ExtractMethodAnalyzer_cannot_extract_type_reference, msg);
+    }
+  }
+
+  public void test_bad_variableDeclarationFragment() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int ",
+        "// start",
+        "    a = 1,",
+        "// end",
+        "    b = 2;",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(
+          RefactoringCoreMessages.ExtractMethodAnalyzer_cannot_extract_variable_declaration_fragment,
+          msg);
+    }
+  }
+
+  public void test_bad_while_conditionAndBody() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  while ",
+        "// start",
+        "    (false) ",
+        "  { ",
+        "  } ",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.StatementAnalyzer_while_expression_body, msg);
+    }
+  }
 
   public void test_singleExpression() throws Exception {
     setTestUnitContent(
@@ -740,7 +1445,46 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "");
   }
 
-  public void test_statements_definesVariable_oneUsedOutside() throws Exception {
+  public void test_statements_definesVariable_oneUsedOutside_assignment() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "myFunctionA() {",
+        "  int a = 1;",
+        "// start",
+        "  a += 10;",
+        "// end",
+        "  print(a);",
+        "}",
+        "myFunctionB() {",
+        "  int b = 2;",
+        "  b += 10;",
+        "  print(b);",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "myFunctionA() {",
+        "  int a = 1;",
+        "// start",
+        "  int a = res(a);",
+        "// end",
+        "  print(a);",
+        "}",
+        "int res(int a) {",
+        "  a += 10;",
+        "  return a;",
+        "}",
+        "myFunctionB() {",
+        "  int b = 2;",
+        "  int b = res(b);",
+        "  print(b);",
+        "}",
+        "");
+  }
+
+  public void test_statements_definesVariable_oneUsedOutside_declaration() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "myFunctionA() {",

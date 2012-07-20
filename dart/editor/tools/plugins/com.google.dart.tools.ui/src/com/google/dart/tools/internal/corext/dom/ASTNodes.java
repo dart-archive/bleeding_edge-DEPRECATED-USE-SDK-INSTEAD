@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.internal.corext.dom;
 
+import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.common.SourceInfo;
 
@@ -33,6 +34,11 @@ public class ASTNodes {
   public static int getExclusiveEnd(DartNode node) {
     SourceInfo sourceInfo = node.getSourceInfo();
     return sourceInfo.getOffset() + sourceInfo.getLength();
+  }
+
+  public static int getInclusiveEnd(DartNode node) {
+    SourceInfo sourceInfo = node.getSourceInfo();
+    return sourceInfo.getOffset() + sourceInfo.getLength() - 1;
   }
 
 //  private static class ChildrenCollector extends ASTVisitor<Void> {
@@ -550,11 +556,6 @@ public class ASTNodes {
 //    return current;
 //  }
 
-  public static int getInclusiveEnd(DartNode node) {
-    SourceInfo sourceInfo = node.getSourceInfo();
-    return sourceInfo.getOffset() + sourceInfo.getLength() - 1;
-  }
-
   /**
    * Returns the closest ancestor of <code>node</code> that is an instance of
    * <code>parentClass</code>, or <code>null</code> if none.
@@ -575,6 +576,15 @@ public class ASTNodes {
       node = node.getParent();
     } while (node != null && !parentClass.isInstance(node));
     return (E) node;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link DartNode} is the name of some {@link DartDeclaration}
+   *         .
+   */
+  public static boolean isNameOfDeclaration(DartNode node) {
+    return node.getParent() instanceof DartDeclaration<?>
+        && ((DartDeclaration<?>) node.getParent()).getName() == node;
   }
 
 //  /**

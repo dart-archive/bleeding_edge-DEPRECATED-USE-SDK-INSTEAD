@@ -14,8 +14,8 @@
 package com.google.dart.tools.internal.corext.refactoring.code;
 
 import com.google.dart.compiler.ast.DartCatchBlock;
+import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
-import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartForStatement;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartSwitchMember;
@@ -23,8 +23,16 @@ import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartWhileStatement;
+import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.tools.internal.corext.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
+import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 import com.google.dart.tools.ui.internal.text.Selection;
 import com.google.dart.tools.ui.internal.text.SelectionAnalyzer;
 
@@ -42,42 +50,21 @@ import java.util.List;
  * <li>it does not start or end in the middle of a comment.</li>
  * <li>no extract characters except the empty statement ";" is included in the selection.</li>
  * </ul>
+ * 
+ * @coverage dart.editor.ui.refactoring.core
  */
 public class StatementAnalyzer extends SelectionAnalyzer {
 
   protected static boolean contains(DartNode[] nodes, DartNode node) {
-    for (int i = 0; i < nodes.length; i++) {
-      if (nodes[i] == node) {
+    for (DartNode dartNode : nodes) {
+      if (dartNode == node) {
         return true;
       }
     }
     return false;
   }
-
-  protected static boolean contains(DartNode[] nodes, List<DartExpression> list) {
-    for (int i = 0; i < nodes.length; i++) {
-      if (list.contains(nodes[i])) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-//  private static List<SwitchCase> getSwitchCases(DartSwitchStatement node) {
-//    List<SwitchCase> result = Lists.newArrayList();
-//    for (Iterator<DartStatement> iter = node.statements().iterator(); iter.hasNext();) {
-//      Object element = iter.next();
-//      if (element instanceof SwitchCase) {
-//        result.add((SwitchCase) element);
-//      }
-//    }
-//    return result;
-//  }
 
   protected CompilationUnit fCUnit;
-
-//  private TokenScanner fScanner;
-
   private RefactoringStatus fStatus;
 
   public StatementAnalyzer(CompilationUnit cunit, Selection selection, boolean traverseSelectedNode)
@@ -86,7 +73,6 @@ public class StatementAnalyzer extends SelectionAnalyzer {
     Assert.isNotNull(cunit);
     fCUnit = cunit;
     fStatus = new RefactoringStatus();
-//    fScanner = new TokenScanner(fCUnit);
   }
 
   public RefactoringStatus getStatus() {
@@ -97,10 +83,8 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   public Void visitDoWhileStatement(DartDoWhileStatement node) {
     super.visitDoWhileStatement(node);
     DartNode[] selectedNodes = getSelectedNodes();
-    if (doAfterValidation(node, selectedNodes)) {
-      if (contains(selectedNodes, node.getBody()) && contains(selectedNodes, node.getCondition())) {
-        invalidSelection(RefactoringCoreMessages.StatementAnalyzer_do_body_expression);
-      }
+    if (contains(selectedNodes, node.getBody())) {
+      invalidSelection(RefactoringCoreMessages.StatementAnalyzer_do_body);
     }
     return null;
   }
@@ -109,16 +93,16 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   public Void visitForStatement(DartForStatement node) {
     super.visitForStatement(node);
     DartNode[] selectedNodes = getSelectedNodes();
-    if (doAfterValidation(node, selectedNodes)) {
-      boolean containsExpression = contains(selectedNodes, node.getCondition());
-      boolean containsUpdaters = contains(selectedNodes, node.getIncrement());
-      if (contains(selectedNodes, node.getInit()) && containsExpression) {
-        invalidSelection(RefactoringCoreMessages.StatementAnalyzer_for_initializer_expression);
-      } else if (containsExpression && containsUpdaters) {
-        invalidSelection(RefactoringCoreMessages.StatementAnalyzer_for_expression_updater);
-      } else if (containsUpdaters && contains(selectedNodes, node.getBody())) {
-        invalidSelection(RefactoringCoreMessages.StatementAnalyzer_for_updater_body);
-      }
+    boolean containsInit = contains(selectedNodes, node.getInit());
+    boolean containsCondition = contains(selectedNodes, node.getCondition());
+    boolean containsUpdaters = contains(selectedNodes, node.getIncrement());
+    boolean containsBody = contains(selectedNodes, node.getBody());
+    if (containsInit && containsCondition) {
+      invalidSelection(RefactoringCoreMessages.StatementAnalyzer_for_initializer_condition);
+    } else if (containsCondition && containsUpdaters) {
+      invalidSelection(RefactoringCoreMessages.StatementAnalyzer_for_condition_updaters);
+    } else if (containsUpdaters && containsBody) {
+      invalidSelection(RefactoringCoreMessages.StatementAnalyzer_for_updaters_body);
     }
     return null;
   }
@@ -127,13 +111,11 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   public Void visitSwitchStatement(DartSwitchStatement node) {
     super.visitSwitchStatement(node);
     DartNode[] selectedNodes = getSelectedNodes();
-    if (doAfterValidation(node, selectedNodes)) {
-      List<DartSwitchMember> switchMembers = node.getMembers();
-      for (DartNode topNode : selectedNodes) {
-        if (switchMembers.contains(topNode)) {
-          invalidSelection(RefactoringCoreMessages.StatementAnalyzer_switch_statement);
-          break;
-        }
+    List<DartSwitchMember> switchMembers = node.getMembers();
+    for (DartNode topNode : selectedNodes) {
+      if (switchMembers.contains(topNode)) {
+        invalidSelection(RefactoringCoreMessages.StatementAnalyzer_switch_statement);
+        break;
       }
     }
     return null;
@@ -143,17 +125,14 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   public Void visitTryStatement(DartTryStatement node) {
     super.visitTryStatement(node);
     DartNode firstSelectedNode = getFirstSelectedNode();
-    if (getSelection().getEndVisitSelectionMode(node) == Selection.AFTER) {
-      if (firstSelectedNode == node.getTryBlock() || firstSelectedNode == node.getFinallyBlock()) {
-        invalidSelection(RefactoringCoreMessages.StatementAnalyzer_try_statement);
-      } else {
-        List<DartCatchBlock> catchBlocks = node.getCatchBlocks();
-        for (DartCatchBlock catchBlock : catchBlocks) {
-          if (catchBlock == firstSelectedNode || catchBlock.getBlock() == firstSelectedNode) {
-            invalidSelection(RefactoringCoreMessages.StatementAnalyzer_try_statement);
-          } else if (catchBlock.getException() == firstSelectedNode) {
-            invalidSelection(RefactoringCoreMessages.StatementAnalyzer_catch_argument);
-          }
+    if (firstSelectedNode == node.getTryBlock() || firstSelectedNode == node.getFinallyBlock()) {
+      invalidSelection(RefactoringCoreMessages.StatementAnalyzer_try_statement);
+    } else {
+      List<DartCatchBlock> catchBlocks = node.getCatchBlocks();
+      for (DartCatchBlock catchBlock : catchBlocks) {
+        if (catchBlock == firstSelectedNode || catchBlock.getBlock() == firstSelectedNode
+            || catchBlock.getException() == firstSelectedNode) {
+          invalidSelection(RefactoringCoreMessages.StatementAnalyzer_try_statement);
         }
       }
     }
@@ -166,21 +145,24 @@ public class StatementAnalyzer extends SelectionAnalyzer {
     if (!hasSelectedNodes()) {
       return null;
     }
-    // TODO(scheglov) not sure if we need to check comments, at least right now
-//    {
-//      DartNode selectedNode = getFirstSelectedNode();
-//      Selection selection = getSelection();
-//      if (node != selectedNode) {
-//        DartNode parent = selectedNode.getParent();
-//        fStatus.merge(CommentAnalyzer.perform(
-//            selection,
-//            fScanner.getScanner(),
-//            parent.getStartPosition(),
-//            parent.getLength()));
-//      }
-//    }
+    // check that selection does not begin/end in comment
+    {
+      int selectionStart = getSelection().getOffset();
+      int selectionEnd = getSelection().getInclusiveEnd();
+      List<DartComment> comments = node.getComments();
+      for (DartComment comment : comments) {
+        SourceRange commentRange = SourceRangeFactory.create(comment);
+        if (SourceRangeUtils.contains(commentRange, selectionStart)) {
+          invalidSelection(RefactoringCoreMessages.CommentAnalyzer_starts_inside_comment);
+        }
+        if (SourceRangeUtils.contains(commentRange, selectionEnd)) {
+          invalidSelection(RefactoringCoreMessages.CommentAnalyzer_ends_inside_comment);
+        }
+      }
+    }
+    // more checks
     if (!fStatus.hasFatalError()) {
-      checkSelectedNodes();
+      checkSelectedNodes(node);
     }
     return null;
   }
@@ -189,75 +171,62 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   public Void visitWhileStatement(DartWhileStatement node) {
     super.visitWhileStatement(node);
     DartNode[] selectedNodes = getSelectedNodes();
-    if (doAfterValidation(node, selectedNodes)) {
-      if (contains(selectedNodes, node.getCondition()) && contains(selectedNodes, node.getBody())) {
-        invalidSelection(RefactoringCoreMessages.StatementAnalyzer_while_expression_body);
-      }
+    if (contains(selectedNodes, node.getCondition()) && contains(selectedNodes, node.getBody())) {
+      invalidSelection(RefactoringCoreMessages.StatementAnalyzer_while_expression_body);
     }
     return null;
   }
 
-  protected void checkSelectedNodes() {
-    // TODO(scheglov) Check:
-    // 1. StatementAnalyzer_end_of_selection = something not-blank selected after statement
-    // 2. StatementAnalyzer_beginning_of_selection = something not-blank selected before statement
-//    DartNode[] nodes = getSelectedNodes();
-//    if (nodes.length == 0) {
-//      return;
-//    }
-//
-//    DartNode node = nodes[0];
-//    int selectionOffset = getSelection().getOffset();
-//    try {
-//      int start = fScanner.getNextStartOffset(selectionOffset, true);
-//      if (start == node.getSourceInfo().getOffset()) {
-//        int lastNodeEnd = ASTNodes.getExclusiveEnd(nodes[nodes.length - 1]);
-//        int pos = fScanner.getNextStartOffset(lastNodeEnd, true);
-//        int selectionEnd = getSelection().getInclusiveEnd();
-//        if (pos <= selectionEnd) {
-//          IScanner scanner = fScanner.getScanner();
-//          char[] token = scanner.getCurrentTokenSource(); //see https://bugs.eclipse.org/324237
-//          if (start < lastNodeEnd && token.length == 1 && (token[0] == ';' || token[0] == ',')) {
-//            setSelection(Selection.createFromStartEnd(start, lastNodeEnd - 1));
-//          } else {
-//            SourceRange range = new SourceRangeImpl(lastNodeEnd, pos - lastNodeEnd);
-//            invalidSelection(
-//                RefactoringCoreMessages.StatementAnalyzer_end_of_selection,
-//                DartStatusContext.create(fCUnit, range));
-//          }
-//        }
-//        return; // success
-//      }
-//    } catch (CoreException e) {
-//      // fall through
-//    }
-//    SourceRange range = new SourceRangeImpl(selectionOffset, node.getSourceInfo().getOffset()
-//        - selectionOffset + 1);
-//    invalidSelection(
-//        RefactoringCoreMessages.StatementAnalyzer_beginning_of_selection,
-//        DartStatusContext.create(fCUnit, range));
+  protected void checkSelectedNodes(DartUnit unit) {
+    DartNode[] nodes = getSelectedNodes();
+    // some tokens before first selected node
+    {
+      int selectionOffset = getSelection().getOffset();
+      DartNode firstNode = nodes[0];
+      int firstNodeOffset = firstNode.getSourceInfo().getOffset();
+      if (hasTokens(selectionOffset, firstNodeOffset)) {
+        SourceRange range = SourceRangeFactory.forStartEnd(selectionOffset, firstNodeOffset);
+        invalidSelection(
+            RefactoringCoreMessages.StatementAnalyzer_beginning_of_selection,
+            DartStatusContext.create(fCUnit, range));
+      }
+    }
+    // some tokens after last selected node
+    {
+      int selectionEnd = getSelection().getExclusiveEnd();
+      DartNode lastNode = nodes[nodes.length - 1];
+      int lastNodeEnd = lastNode.getSourceInfo().getEnd();
+      if (hasTokens(lastNodeEnd, selectionEnd)) {
+        SourceRange range = SourceRangeFactory.forStartEnd(lastNodeEnd, selectionEnd);
+        invalidSelection(
+            RefactoringCoreMessages.StatementAnalyzer_end_of_selection,
+            DartStatusContext.create(fCUnit, range));
+      }
+    }
   }
 
-  protected CompilationUnit getCompilationUnit() {
-    return fCUnit;
-  }
-
-//  protected TokenScanner getTokenScanner() {
-//    return fScanner;
-//  }
-
-  protected void invalidSelection(String message) {
+  protected final void invalidSelection(String message) {
     fStatus.addFatalError(message);
     reset();
   }
 
-  protected void invalidSelection(String message, RefactoringStatusContext context) {
+  protected final void invalidSelection(String message, RefactoringStatusContext context) {
     fStatus.addFatalError(message, context);
     reset();
   }
 
-  private boolean doAfterValidation(DartNode node, DartNode[] selectedNodes) {
-    return selectedNodes.length > 0 && node == selectedNodes[0].getParent()
-        && getSelection().getEndVisitSelectionMode(node) == Selection.AFTER;
+  /**
+   * @return <code>true</code> if there are tokens in the given source range.
+   */
+  private boolean hasTokens(final int start, final int end) {
+    return ExecutionUtils.runObjectIgnore(new RunnableObjectEx<Boolean>() {
+      @Override
+      public Boolean runObject() throws Exception {
+        String text = fCUnit.getBuffer().getText(start, end - start);
+        StringScanner scanner = new StringScanner(null, text, null);
+        com.google.dart.engine.scanner.Token token = scanner.tokenize();
+        return token.getType() != TokenType.EOF;
+      }
+    }, false);
   }
 }

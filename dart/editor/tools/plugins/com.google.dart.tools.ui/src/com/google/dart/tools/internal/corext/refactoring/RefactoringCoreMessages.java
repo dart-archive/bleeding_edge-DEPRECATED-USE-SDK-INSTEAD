@@ -295,6 +295,8 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String Checks_methodName_exists;
 
+  public static String Checks_topLevelElement_exists;
+
   public static String Checks_methodName_overrides;
 
   public static String Checks_methodName_returnTypeClash;
@@ -636,6 +638,8 @@ public final class RefactoringCoreMessages extends NLS {
   public static String ExtractMethodAnalyzer_cannot_extract_variable_declaration;
 
   public static String ExtractMethodAnalyzer_cannot_extract_variable_declaration_fragment;
+
+  public static String ExtractMethodAnalyzer_cannot_extract_initializer;
 
   public static String ExtractMethodAnalyzer_compile_errors;
 
@@ -2276,17 +2280,17 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String StatementAnalyzer_catch_argument;
 
-  public static String StatementAnalyzer_do_body_expression;
+  public static String StatementAnalyzer_do_body;
 
   public static String StatementAnalyzer_doesNotCover;
 
   public static String StatementAnalyzer_end_of_selection;
 
-  public static String StatementAnalyzer_for_expression_updater;
+  public static String StatementAnalyzer_for_condition_updaters;
 
-  public static String StatementAnalyzer_for_initializer_expression;
+  public static String StatementAnalyzer_for_initializer_condition;
 
-  public static String StatementAnalyzer_for_updater_body;
+  public static String StatementAnalyzer_for_updaters_body;
 
   public static String StatementAnalyzer_switch_statement;
 

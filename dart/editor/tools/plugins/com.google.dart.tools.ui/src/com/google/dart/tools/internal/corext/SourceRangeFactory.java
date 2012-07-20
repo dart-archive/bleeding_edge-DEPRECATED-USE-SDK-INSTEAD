@@ -79,4 +79,12 @@ public class SourceRangeFactory {
     return forStartEnd(start, end);
   }
 
+  /**
+   * @return the {@link SourceRange} which start "start" and ends at start of "b".
+   */
+  public static SourceRange forStartStart(int start, HasSourceInfo b) {
+    int end = b.getSourceInfo().getOffset();
+    return forStartEnd(start, end);
+  }
+
 }

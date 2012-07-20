@@ -23,6 +23,7 @@ import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.internal.corext.SourceRangeFactory;
+import com.google.dart.tools.ui.internal.text.Selection;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
 import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
@@ -158,6 +159,17 @@ public abstract class DartStatusContext extends RefactoringStatusContext {
    */
   public static RefactoringStatusContext create(CompilationUnit unit, HasSourceInfo hasSourceInfo) {
     return create(unit, SourceRangeFactory.create(hasSourceInfo));
+  }
+
+  /**
+   * @return the {@link RefactoringStatusContext} for given {@link CompilationUnit} and
+   *         {@link Selection}, may be <code>null</code> if the context cannot be created.
+   */
+  public static RefactoringStatusContext create(CompilationUnit unit, Selection selection) {
+    SourceRange range = SourceRangeFactory.forStartLength(
+        selection.getOffset(),
+        selection.getLength());
+    return create(unit, range);
   }
 
   /**

@@ -59,6 +59,10 @@ public class ParameterInfo {
     return false;
   }
 
+  public boolean isRenamed() {
+    return !oldName.equals(newName);
+  }
+
   public void setDefaultValue(String defaultValue) {
     this.defaultValue = defaultValue;
   }
@@ -70,4 +74,5 @@ public class ParameterInfo {
   public void setNewTypeName(String newTypeName) {
     this.newTypeName = newTypeName;
   }
+
 }

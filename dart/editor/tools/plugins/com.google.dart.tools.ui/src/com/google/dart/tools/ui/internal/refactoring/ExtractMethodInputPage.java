@@ -47,6 +47,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 
+import java.util.List;
+
 public class ExtractMethodInputPage extends UserInputWizardPage {
 
   public static final String PAGE_NAME = "ExtractMethodInputPage";//$NON-NLS-1$
@@ -410,26 +412,23 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
     RefactoringStatus result = new RefactoringStatus();
     if (text) {
       result.merge(validateMethodName());
-//      result.merge(validateParameters());
+      result.merge(validateParameters());
     } else {
-//      result.merge(validateParameters());
+      result.merge(validateParameters());
       result.merge(validateMethodName());
     }
     return result;
   }
 
-//  private RefactoringStatus validateParameters() {
-//    RefactoringStatus result = new RefactoringStatus();
-//    List<ParameterInfo> parameters = fRefactoring.getParameterInfos();
-//    for (Iterator<ParameterInfo> iter = parameters.iterator(); iter.hasNext();) {
-//      ParameterInfo info = iter.next();
-//      if ("".equals(info.getNewName())) { //$NON-NLS-1$
-//        result.addFatalError(RefactoringMessages.ExtractMethodInputPage_validation_emptyParameterName);
-//        return result;
-//      }
-//    }
-//    result.merge(fRefactoring.checkParameterNames());
-//    result.merge(fRefactoring.checkVarargOrder());
-//    return result;
-//  }
+  private RefactoringStatus validateParameters() {
+    RefactoringStatus result = new RefactoringStatus();
+    for (ParameterInfo parameter : fRefactoring.getParameters()) {
+      if ("".equals(parameter.getNewName())) {
+        result.addFatalError(RefactoringMessages.ExtractMethodInputPage_validation_emptyParameterName);
+        return result;
+      }
+    }
+    result.merge(fRefactoring.checkParameterNames());
+    return result;
+  }
 }

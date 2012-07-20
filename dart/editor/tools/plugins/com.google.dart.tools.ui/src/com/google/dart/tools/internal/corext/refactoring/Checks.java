@@ -152,18 +152,6 @@ public class Checks {
   }
 
   /**
-   * Checks if the given name is a valid Dart identifier.
-   * 
-   * @param name the Dart identifier.
-   * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid Dart
-   *         identifier.
-   */
-//  public static RefactoringStatus checkIdentifier(String name, DartElement context) {
-//    return checkName(name, DartConventions.validateIdentifier(name, context));
-//  }
-
-  /**
    * Checks if the given name is a valid Dart function name.
    * 
    * @param name the Dart function name.
@@ -211,18 +199,6 @@ public class Checks {
   }
 
   /**
-   * Checks if the given name is a valid Dart package name.
-   * 
-   * @param name the Dart package name.
-   * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid Dart
-   *         package name.
-   */
-//  public static RefactoringStatus checkPackageName(String name, DartElement context) {
-//  	return checkName(name, DartConventions.validatePackageName(name));
-//  }
-
-  /**
    * Compare two parameter signatures.
    */
 //  public static boolean compareParamTypes(String[] paramTypes1, String[] paramTypes2) {
@@ -252,6 +228,18 @@ public class Checks {
     }
     return new RefactoringStatus();
   }
+
+  /**
+   * Checks if the given name is a valid Dart package name.
+   * 
+   * @param name the Dart package name.
+   * @param context an {@link DartElement} or <code>null</code>
+   * @return a refactoring status containing the error message if the name is not a valid Dart
+   *         package name.
+   */
+//  public static RefactoringStatus checkPackageName(String name, DartElement context) {
+//  	return checkName(name, DartConventions.validatePackageName(name));
+//  }
 
   /**
    * Checks if the given name is a valid Dart method name.
@@ -292,6 +280,13 @@ public class Checks {
       default: //no nothing
         return new RefactoringStatus();
     }
+  }
+
+  /**
+   * Checks if the given name is a valid Dart parameter.
+   */
+  public static RefactoringStatus checkParameter(String name) {
+    return checkName(name, DartConventions.validateParameter(name));
   }
 
   /**

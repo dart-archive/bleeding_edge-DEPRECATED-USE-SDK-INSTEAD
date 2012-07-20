@@ -323,6 +323,15 @@ public final class DartConventions {
   }
 
   /**
+   * Validates the given parameter name.
+   * 
+   * @return a status object indicating the validity of the name
+   */
+  public static IStatus validateParameter(String name) {
+    return validateLowerCamelCase(name, MessageHolder.forParameter());
+  }
+
+  /**
    * Validate the given parameter name. Return a status object indicating the validity of the name.
    * The status will have the code {@link IStatus.OK} if the name is valid as a parameter name, the
    * code {@link IStatus.WARNING} if the name is discouraged, or the code {@link IStatus.ERROR} if
