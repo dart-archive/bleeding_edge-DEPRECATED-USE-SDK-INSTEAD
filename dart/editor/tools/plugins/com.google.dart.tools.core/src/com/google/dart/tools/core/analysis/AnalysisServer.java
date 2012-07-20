@@ -27,7 +27,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 
 /**
@@ -62,7 +62,7 @@ public class AnalysisServer {
    * The library files being analyzed by the receiver. Synchronize against this object before
    * accessing it.
    */
-  private final ArrayList<File> libraryFiles = new ArrayList<File>();
+  private final HashSet<File> libraryFiles = new HashSet<File>();
 
   /**
    * The outstanding tasks to be performed.

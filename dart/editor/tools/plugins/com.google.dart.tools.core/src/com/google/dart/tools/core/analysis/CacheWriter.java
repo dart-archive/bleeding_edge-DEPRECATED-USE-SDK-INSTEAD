@@ -3,7 +3,7 @@ package com.google.dart.tools.core.analysis;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -32,7 +32,7 @@ public class CacheWriter {
    * @param files the collection of files (not <code>null</code> )
    * @param endTag the tag used to denote the end of the collection of file paths
    */
-  public void writeFilePaths(ArrayList<File> files, String endTag) {
+  public void writeFilePaths(Collection<File> files, String endTag) {
     for (File libFile : files) {
       writeString(libFile.getPath());
     }
