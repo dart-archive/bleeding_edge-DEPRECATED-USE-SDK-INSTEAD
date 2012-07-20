@@ -50,37 +50,37 @@ void main() {
     })
     .test('getElementsByTagName(div)', () {
       for (int i = 0; i < num; i++) {
-        ElementList elems = document.queryAll('div');
+        List<Element> elems = document.queryAll('div');
         ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName(p)', () {
       for (int i = 0; i < num; i++) {
-        ElementList elems = document.queryAll('p');
+        List<Element> elems = document.queryAll('p');
         ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName(a)', () {
       for (int i = 0; i < num; i++) {
-        ElementList elems = document.queryAll('a');
+        List<Element> elems = document.queryAll('a');
         ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName(*)', () {
       for (int i = 0; i < num; i++) {
-        ElementList elems = document.queryAll('*');
+        List<Element> elems = document.queryAll('*');
         ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName (not in document)', () {
       for (int i = 0; i < num; i++) {
-        ElementList elems = document.queryAll('strong');
+        List<Element> elems = document.queryAll('strong');
         ret = elems.isEmpty();
       }
     })
     .test('getElementsByName', () {
       for (int i = 0; i < num * 20; i++) {
-        ElementList elems = document.queryAll('[name="test$num"]');
+        List<Element> elems = document.queryAll('[name="test$num"]');
         ret = elems.last().$dom_nodeType;
         elems = document.queryAll('[name="test$num"]');
         ret = elems.last().$dom_nodeType;

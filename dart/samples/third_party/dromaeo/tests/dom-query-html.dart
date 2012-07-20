@@ -50,37 +50,37 @@ void main() {
     })
     .test('getElementsByTagName(div)', () {
       for (int i = 0; i < num; i++) {
-        NodeList elems = document.$dom_getElementsByTagName('div');
+        List<Element> elems = document.$dom_getElementsByTagName('div');
         ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName(p)', () {
       for (int i = 0; i < num; i++) {
-        NodeList elems = document.$dom_getElementsByTagName('p');
+        List<Element> elems = document.$dom_getElementsByTagName('p');
         ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName(a)', () {
       for (int i = 0; i < num; i++) {
-        NodeList elems = document.$dom_getElementsByTagName('a');
+        List<Element> elems = document.$dom_getElementsByTagName('a');
         ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName(*)', () {
       for (int i = 0; i < num; i++) {
-        NodeList elems = document.$dom_getElementsByTagName('*');
+        List<Element> elems = document.$dom_getElementsByTagName('*');
         ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName (not in document)', () {
       for (int i = 0; i < num; i++) {
-        NodeList elems = document.$dom_getElementsByTagName('strong');
+        List<Element> elems = document.$dom_getElementsByTagName('strong');
         ret = elems.length == 0;
       }
     })
     .test('getElementsByName', () {
       for (int i = 0; i < num * 20; i++) {
-        NodeList elems = document.$dom_getElementsByName('test$num');
+        List<Element> elems = document.$dom_getElementsByName('test$num');
         ret = elems[elems.length-1].$dom_nodeType;
         elems = document.$dom_getElementsByName('test$num');
         ret = elems[elems.length-1].$dom_nodeType;
