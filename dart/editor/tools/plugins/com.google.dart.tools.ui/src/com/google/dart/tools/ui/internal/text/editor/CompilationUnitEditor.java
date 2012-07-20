@@ -206,6 +206,11 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       }
       return super.requestWidgetToken(requester, priority);
     }
+
+    @Override
+    protected int getEmptySelectionChangedEventDelay() {
+      return 10; // reduced from 500 to speed up mark occurrences
+    }
   }
 
   interface ITextConverter {

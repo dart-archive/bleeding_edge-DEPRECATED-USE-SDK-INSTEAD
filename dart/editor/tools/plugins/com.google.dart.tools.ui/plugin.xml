@@ -542,7 +542,7 @@
             verticalRulerPreferenceKey="javaScriptOccurrenceIndicationInVerticalRuler"
             verticalRulerPreferenceValue="false"
             colorPreferenceKey="javaScriptOccurrenceIndicationColor"
-            colorPreferenceValue="212,212,212"
+            colorPreferenceValue="224,224,224"
             presentationLayer="4"
             showInNextPrevDropdownToolbarActionKey="javaScriptShowOccurrenceInNextPrevDropdownToolbarAction"
             showInNextPrevDropdownToolbarAction="true"
