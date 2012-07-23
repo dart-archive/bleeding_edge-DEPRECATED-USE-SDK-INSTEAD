@@ -129,12 +129,11 @@ public class LinkedNodeFinder {
 //    }
 //  }
 
-  private static final int FIELD = 1;
-
-  private static final int METHOD = 2;
-  private static final int TYPE = 4;
-  private static final int LABEL = 8;
-  private static final int NAME = FIELD | TYPE;
+//  private static final int FIELD = 1;
+//  private static final int METHOD = 2;
+//  private static final int TYPE = 4;
+//  private static final int LABEL = 8;
+//  private static final int NAME = FIELD | TYPE;
 
   /**
    * Find all nodes connected to the given binding. e.g. Declaration of a field and all references.

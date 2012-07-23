@@ -37,14 +37,14 @@ public class ExtractLocalWizard extends RefactoringWizard {
 
     private final boolean initialValid;
     private static final String DESCRIPTION = RefactoringMessages.ExtractLocalInputPage_enter_name;
-    private final String[] nameProposals;
+//    private final String[] nameProposals;
 
     private IDialogSettings fSettings;
 
     public ExtractLocalInputPage(String[] nameProposals) {
       super(DESCRIPTION, true, nameProposals.length == 0 ? "" : nameProposals[0]); //$NON-NLS-1$
       Assert.isNotNull(nameProposals);
-      this.nameProposals = nameProposals;
+//      this.nameProposals = nameProposals;
       initialValid = nameProposals.length > 0;
     }
 

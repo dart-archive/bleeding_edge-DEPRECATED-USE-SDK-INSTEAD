@@ -66,6 +66,7 @@ import java.util.List;
 /**
  * A special control to edit and reorder method parameters.
  */
+@SuppressWarnings("deprecation")
 public class ChangeParametersControl extends Composite {
 
   public static class Mode {
@@ -262,7 +263,7 @@ public class ChangeParametersControl extends Composite {
   private final Mode fMode;
   private final IParameterListChangeListener fListener;
   private List<ParameterInfo> fParameterInfos;
-  private final StubTypeContext fTypeContext;
+//  private final StubTypeContext fTypeContext;
 
   private final String[] fParamNameProposals;
   private ContentAssistHandler fNameContentAssistHandler;
@@ -301,7 +302,7 @@ public class ChangeParametersControl extends Composite {
     Assert.isNotNull(listener);
     fListener = listener;
     fMode = mode;
-    fTypeContext = typeContext;
+//    fTypeContext = typeContext;
     fParamNameProposals = paramNameProposals;
 
     GridLayout layout = new GridLayout();
@@ -343,7 +344,6 @@ public class ChangeParametersControl extends Composite {
     }
   }
 
-  @SuppressWarnings("deprecation")
   private void addCellEditors() {
     fTableViewer.setColumnProperties(PROPERTIES);
 
@@ -737,9 +737,9 @@ public class ChangeParametersControl extends Composite {
     return fTableViewer.getTable();
   }
 
-  private int getTableItemCount() {
-    return getTable().getItemCount();
-  }
+//  private int getTableItemCount() {
+//    return getTable().getItemCount();
+//  }
 
   //---- editing -----------------------------------------------------------------------------------------------
 
@@ -747,7 +747,6 @@ public class ChangeParametersControl extends Composite {
     return getTable().getSelectionCount();
   }
 
-  @SuppressWarnings("deprecation")
   private SubjectControlContentAssistant installParameterNameContentAssist(Text text) {
     VariableNamesProcessor processor = new VariableNamesProcessor(fParamNameProposals);
     SubjectControlContentAssistant contentAssistant = ControlContentAssistHelper.createJavaContentAssistant(processor);

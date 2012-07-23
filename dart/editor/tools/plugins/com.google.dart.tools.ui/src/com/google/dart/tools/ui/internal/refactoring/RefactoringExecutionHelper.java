@@ -46,6 +46,7 @@ import java.lang.reflect.InvocationTargetException;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
+@SuppressWarnings("restriction")
 public class RefactoringExecutionHelper {
 
   private class Operation implements IWorkspaceRunnable {
