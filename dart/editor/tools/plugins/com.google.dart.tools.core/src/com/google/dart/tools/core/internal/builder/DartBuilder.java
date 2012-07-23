@@ -35,40 +35,74 @@ import java.util.Map;
  */
 public class DartBuilder extends IncrementalProjectBuilder {
 
+  private final AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+
   @SuppressWarnings("rawtypes")
   @Override
   protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 
     IResourceDelta delta = getDelta(getProject());
 
-    if (delta == null) { // add project     
-      analyze(getProject(), IResourceDelta.ADDED);
-    } else {
+    // If delta is null, then building a new project
 
-      delta.accept(new IResourceDeltaVisitor() {
-        @Override
-        public boolean visit(IResourceDelta delta) {
-          IResource resource = delta.getResource();
-          if (resource.getType() != IResource.FILE) {
-            switch (delta.getKind()) {
-              case IResourceDelta.ADDED:
-              case IResourceDelta.REMOVED:
-                analyze(resource, delta.getKind());
-                return false;
-              case IResourceDelta.CHANGED:
-                return true;
-            }
-            return false;
-          }
-          String name = resource.getName();
-          if (name.endsWith(Extensions.DOT_DART)) {
-            analyze(resource, delta.getKind());
+    if (delta == null) {
+      IPath location = getProject().getLocation();
+      if (location != null) {
+        server.scan(location.toFile(), false);
+      }
+      return null;
+    }
+
+    // Recursively process the resource delta
+
+    delta.accept(new IResourceDeltaVisitor() {
+      @Override
+      public boolean visit(IResourceDelta delta) {
+
+        IResource resource = delta.getResource();
+        IPath location = resource.getLocation();
+        if (location == null) {
+          return false;
+        }
+        File file = location.toFile();
+
+        // Process folder
+
+        if (resource.getType() != IResource.FILE) {
+          switch (delta.getKind()) {
+            case IResourceDelta.ADDED:
+              server.scan(file, false);
+              return false;
+            case IResourceDelta.REMOVED:
+              server.discard(file);
+              return false;
+            case IResourceDelta.CHANGED:
+              // recurse child deltas
+              return true;
           }
           return false;
         }
-      });
 
-    }
+        // Process file
+
+        if (resource.getName().endsWith(Extensions.DOT_DART)) {
+          switch (delta.getKind()) {
+            case IResourceDelta.ADDED:
+              server.scan(file, false);
+              return false;
+            case IResourceDelta.REMOVED:
+              server.discard(file);
+              return false;
+            case IResourceDelta.CHANGED:
+              server.changed(file);
+              return false;
+          }
+          return false;
+        }
+
+        return false;
+      }
+    });
 
     return null;
   }
@@ -78,21 +112,4 @@ public class DartBuilder extends IncrementalProjectBuilder {
     AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
     server.reanalyze();
   }
-
-  private void analyze(IResource resource, int kind) {
-    AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
-    IPath location = resource.getLocation();
-    if (location == null) {
-      return;
-    }
-    File file = location.toFile();
-    server.changed(file);
-    if (kind == IResourceDelta.ADDED || kind == IResourceDelta.CHANGED) {
-      server.scan(file, false);
-    } else if (kind == IResourceDelta.REMOVED) {
-      server.discard(file);
-    }
-
-  }
-
 }

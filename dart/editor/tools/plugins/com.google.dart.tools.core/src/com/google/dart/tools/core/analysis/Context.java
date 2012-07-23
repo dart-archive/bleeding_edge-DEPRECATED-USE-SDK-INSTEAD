@@ -272,21 +272,16 @@ public class Context {
     if (library != null) {
       return new Library[] {library};
     }
-    Library[] result = NO_LIBRARIES;
 
     // If this is a file, then return the libraries that source the file
 
     if (file.isFile() || (!file.exists() && DartCore.isDartLikeFileName(file.getName()))) {
-      for (Library cachedLibrary : libraryCache.values()) {
-        if (cachedLibrary.getSourceFiles().contains(file)) {
-          result = append(result, cachedLibrary);
-        }
-      }
-      return result;
+      return getLibrariesSourcing(file);
     }
 
     // Otherwise return the libraries containing files in the specified directory tree
 
+    Library[] result = NO_LIBRARIES;
     String prefix = file.getAbsolutePath() + File.separator;
     for (Library cachedLibrary : libraryCache.values()) {
       for (File sourceFile : cachedLibrary.getSourceFiles()) {
@@ -307,6 +302,21 @@ public class Context {
     for (Library cachedLibrary : libraryCache.values()) {
       if (cachedLibrary.getImportedFiles().contains(file)) {
         result.add(cachedLibrary);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Answer the libraries that source the specified file
+   * 
+   * @return an array of libraries (not <code>null</code>, contains no <code>null</code>s)
+   */
+  Library[] getLibrariesSourcing(File file) {
+    Library[] result = NO_LIBRARIES;
+    for (Library cachedLibrary : libraryCache.values()) {
+      if (cachedLibrary.getSourceFiles().contains(file)) {
+        result = append(result, cachedLibrary);
       }
     }
     return result;

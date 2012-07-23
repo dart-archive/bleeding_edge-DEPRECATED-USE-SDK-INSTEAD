@@ -40,6 +40,9 @@ class AnalyzeContextTask extends Task {
   @Override
   public void perform() {
     for (File libraryFile : server.getTrackedLibraryFiles()) {
+      server.queueSubTask(new ParseLibraryFileTask(server, context, libraryFile, null));
+    }
+    for (File libraryFile : server.getTrackedLibraryFiles()) {
       server.queueSubTask(new AnalyzeLibraryTask(server, context, libraryFile, null));
     }
   }

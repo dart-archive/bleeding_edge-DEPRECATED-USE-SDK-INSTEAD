@@ -23,7 +23,7 @@ import java.util.Map.Entry;
 /**
  * Analyze a library
  */
-class AnalyzeLibraryTask extends Task {
+public class AnalyzeLibraryTask extends Task {
 
   private final AnalysisServer server;
   private final Context context;
@@ -34,7 +34,7 @@ class AnalyzeLibraryTask extends Task {
 
   private long start = 0;
 
-  AnalyzeLibraryTask(AnalysisServer server, Context context, File libraryFile,
+  public AnalyzeLibraryTask(AnalysisServer server, Context context, File libraryFile,
       ResolveCallback callback) {
     this.server = server;
     this.context = context;
@@ -42,10 +42,6 @@ class AnalyzeLibraryTask extends Task {
     this.callback = callback;
     this.parsed = new HashSet<File>(100);
     this.toAnalyze = new ArrayList<Library>(100);
-  }
-
-  public File getRootLibraryFile() {
-    return rootLibraryFile;
   }
 
   @Override
@@ -68,14 +64,37 @@ class AnalyzeLibraryTask extends Task {
 
     parsed.clear();
     toAnalyze.clear();
-    boolean subTasksQueued = parse(rootLibraryFile);
-    if (subTasksQueued) {
+    if (parse(rootLibraryFile)) {
       server.queueSubTask(this);
       return;
     }
 
+    // If this library has directives, 
+    // then discard any sourced files that don't have directives
+
+    Library rootLibrary = context.getCachedLibrary(rootLibraryFile);
+    if (rootLibrary.hasDirectives()) {
+      for (File sourceFile : rootLibrary.getSourceFiles()) {
+        Library library = context.getCachedLibrary(sourceFile);
+        if (library == null || !library.hasDirectives()) {
+          server.discard(sourceFile);
+        }
+      }
+    }
+
+    // If this library does not have directives and it is a background task (no callback)
+    // then discard this library if it is sourced by another library
+
+    else if (callback == null) {
+      if (context.getLibrariesSourcing(rootLibraryFile).length > 0) {
+        server.discard(rootLibraryFile);
+        return;
+      }
+    }
+
     // Resolve each library
 
+    boolean subTasksQueued = false;
     for (Library library : toAnalyze) {
       if (resolve(library)) {
         subTasksQueued = true;
@@ -107,7 +126,7 @@ class AnalyzeLibraryTask extends Task {
    * @param libraryFile the library file (not <code>null</code>)
    * @return <code>true</code> if sub tasks were queued
    */
-  private boolean parse(File libraryFile) {
+  protected boolean parse(File libraryFile) {
     if (parsed.contains(libraryFile)) {
       return false;
     }
@@ -133,7 +152,7 @@ class AnalyzeLibraryTask extends Task {
    * @param libraryFile the library file (not <code>null</code>)
    * @return <code>true</code> if sub tasks were queued
    */
-  private boolean resolve(Library library) {
+  protected boolean resolve(Library library) {
     if (library.getLibraryUnit() != null) {
       return false;
     }
@@ -144,5 +163,9 @@ class AnalyzeLibraryTask extends Task {
     }
     server.queueSubTask(new ResolveLibraryTask(server, context, library));
     return true;
+  }
+
+  File getRootLibraryFile() {
+    return rootLibraryFile;
   }
 }
