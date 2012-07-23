@@ -22,12 +22,34 @@ import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
 import org.eclipse.debug.internal.ui.model.elements.VariableLabelProvider;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationContext;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.FontData;
 
 /**
  * A label provider for VM debugger objects.
  */
 @SuppressWarnings("restriction")
 public class ServerVariableLabelProvider extends VariableLabelProvider {
+
+  @Override
+  protected FontData getFontData(TreePath elementPath, IPresentationContext presentationContext,
+      String columnId) throws CoreException {
+    FontData fontData = super.getFontData(elementPath, presentationContext, columnId);
+
+    // Show static variables in italics.
+    if (columnId.endsWith("_NAME")) {
+      if (elementPath.getLastSegment() instanceof ServerDebugVariable && fontData != null) {
+        ServerDebugVariable variable = (ServerDebugVariable) elementPath.getLastSegment();
+
+        if (variable.isStatic()) {
+          fontData = new FontData(fontData.getName(), fontData.getHeight(), SWT.ITALIC);
+        }
+      }
+    }
+
+    return fontData;
+  }
 
   @Override
   protected String getValueText(IVariable variable, IValue value, IPresentationContext context)

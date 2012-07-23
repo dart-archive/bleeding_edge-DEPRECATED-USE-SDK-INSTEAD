@@ -14,13 +14,6 @@ num rotatePos = 0;
 
 // TODO(devoncarew): I can still crash dartium w/ breakpoints
 
-// TODO(devoncarew): dartium: the main library show all libraries globals for it's globals;
-//       other libraries just show their own
-
-// TODO(devoncarew): dartium: an object's field values includes static fields as well
-
-// TODO(devoncarew): both: de-mangle private function names (_ListInputStream@14117cc4.write)
-
 void main() {
   query("#text").text = "Welcome to Dart!";
 
@@ -36,7 +29,7 @@ void rotateText(Event event) {
 
   textElement.style.transition = "1s";
   textElement.style.transform = "rotate(${rotatePos}deg)";
-  
+
   testAnimals();
 }
 

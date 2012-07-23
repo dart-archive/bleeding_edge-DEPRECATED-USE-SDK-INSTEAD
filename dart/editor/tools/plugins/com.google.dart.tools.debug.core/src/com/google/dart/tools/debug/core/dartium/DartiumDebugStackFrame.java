@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.core.dartium;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue.ValueCallback;
 import com.google.dart.tools.debug.core.source.ISourceLookup;
+import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 import com.google.dart.tools.debug.core.util.IVariableResolver;
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
@@ -158,7 +159,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
 
   @Override
   public String getName() throws DebugException {
-    return webkitFrame.getFunctionName() + "()";
+    return DebuggerUtils.demanglePrivateName(webkitFrame.getFunctionName()) + "()";
   }
 
   @Override

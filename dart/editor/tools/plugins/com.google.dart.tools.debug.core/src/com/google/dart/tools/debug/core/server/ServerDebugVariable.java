@@ -14,6 +14,8 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import com.google.dart.tools.debug.core.util.DebuggerUtils;
+
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IValue;
@@ -36,43 +38,33 @@ public class ServerDebugVariable extends ServerDebugElement implements IVariable
 
   public static ServerDebugVariable createLibraryVariable(final ServerDebugTarget target,
       final int libraryId) {
-    return new ServerDebugVariable(target, "library", new IValueRetriever() {
-      private String name = "";
-
+    return new ServerDebugVariable(target, "globals", new IValueRetriever() {
       @Override
       public String getDisplayName() {
-        return name;
+        return "";
       }
 
       @Override
       public List<IVariable> getVariables() {
-        String[] nameResult = new String[1];
-
-        List<IVariable> result = createLibraryVariables(target, libraryId, nameResult);
-
-        name = nameResult[0];
-
-        return result;
+        return createLibraryVariables(target, libraryId);
       }
     });
   }
 
   protected static List<IVariable> createLibraryVariables(final ServerDebugTarget target,
-      int libraryId, final String[] nameResult) {
+      int libraryId) {
     final List<IVariable> variables = new ArrayList<IVariable>();
 
     final CountDownLatch latch = new CountDownLatch(1);
 
     try {
-      target.getConnection().getLibraryProperties(libraryId, new VmCallback<VmLibrary>() {
+      target.getConnection().getGlobalVariables(libraryId, new VmCallback<List<VmVariable>>() {
         @Override
-        public void handleResult(VmResult<VmLibrary> result) {
+        public void handleResult(VmResult<List<VmVariable>> result) {
           if (!result.isError()) {
-            VmLibrary library = result.getResult();
+            List<VmVariable> globals = result.getResult();
 
-            nameResult[0] = library.getUrl();
-
-            for (VmVariable variable : library.getGlobals()) {
+            for (VmVariable variable : globals) {
               variables.add(new ServerDebugVariable(target, variable));
             }
           }
@@ -97,6 +89,7 @@ public class ServerDebugVariable extends ServerDebugElement implements IVariable
   private ServerDebugValue value;
 
   private String name;
+  private boolean isStatic;
 
   public ServerDebugVariable(IDebugTarget target, String name, IValueRetriever valueRetriever) {
     super(target);
@@ -118,13 +111,7 @@ public class ServerDebugVariable extends ServerDebugElement implements IVariable
   public String getDisplayName() {
     // The names of private fields are mangled by the VM.
     // _foo@652376 ==> _foo
-    String name = getName();
-
-    if (name.indexOf('@') != -1) {
-      name = name.substring(0, name.indexOf('@'));
-    }
-
-    return name;
+    return DebuggerUtils.demanglePrivateName(getName());
   }
 
   @Override
@@ -150,11 +137,15 @@ public class ServerDebugVariable extends ServerDebugElement implements IVariable
   }
 
   public boolean isLibraryObject() {
-    return value.isValueRetriever() && "library".equals(getName());
+    return value.isValueRetriever() && ("library".equals(getName()) || "globals".equals(getName()));
   }
 
   public boolean isListValue() {
     return value.isListValue();
+  }
+
+  public boolean isStatic() {
+    return isStatic;
   }
 
   public boolean isThisObject() {
@@ -194,6 +185,10 @@ public class ServerDebugVariable extends ServerDebugElement implements IVariable
     // Not supported.
 
     return false;
+  }
+
+  protected void setIsStatic(boolean value) {
+    this.isStatic = value;
   }
 
 }

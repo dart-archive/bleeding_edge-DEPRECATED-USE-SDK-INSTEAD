@@ -47,7 +47,7 @@ class VariableCollector {
             new WebkitCallback<WebkitPropertyDescriptor[]>() {
               @Override
               public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
-                collector.collect(result);
+                collector.collectFields(result);
               }
             });
       } catch (IOException e) {
@@ -56,16 +56,6 @@ class VariableCollector {
     }
 
     return collector;
-  }
-
-  public static VariableCollector createCollector(DartiumDebugTarget target,
-      List<WebkitRemoteObject> remoteObjects) {
-    return createCollector(target, (WebkitRemoteObject) null, remoteObjects, null, null);
-  }
-
-  public static VariableCollector createCollector(DartiumDebugTarget target,
-      WebkitRemoteObject thisObject, List<WebkitRemoteObject> remoteObjects) {
-    return createCollector(target, (WebkitRemoteObject) null, remoteObjects, null, null);
   }
 
   public static VariableCollector createCollector(DartiumDebugTarget target,
@@ -93,7 +83,7 @@ class VariableCollector {
             new WebkitCallback<WebkitPropertyDescriptor[]>() {
               @Override
               public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
-                collector.collect(result);
+                collector.collectFields(result);
               }
             });
       } catch (IOException e) {
@@ -112,7 +102,7 @@ class VariableCollector {
   private DartiumDebugVariable parentVariable;
 
   private CountDownLatch latch;
-  private List<IVariable> variables = new ArrayList<IVariable>();
+  private List<DartiumDebugVariable> variables = new ArrayList<DartiumDebugVariable>();
 
   private VariableCollector(DartiumDebugTarget target, int work) {
     this(target, work, null);
@@ -131,13 +121,102 @@ class VariableCollector {
     return variables.toArray(new IVariable[variables.size()]);
   }
 
-  private void collect(WebkitResult<WebkitPropertyDescriptor[]> results) {
+//  private boolean collectClassInfo(final WebkitRemoteObject classInfo, final CountDownLatch latch) {
+//    try {
+//      target.getConnection().getRuntime().getProperties(
+//          classInfo.getObjectId(),
+//          true,
+//          new WebkitCallback<WebkitPropertyDescriptor[]>() {
+//            @Override
+//            public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
+//              collectClassInfoResults(result, latch);
+//            }
+//          });
+//
+//      return true;
+//    } catch (IOException e) {
+//      return false;
+//    }
+//  }
+//
+//  private void collectClassInfoResults(WebkitResult<WebkitPropertyDescriptor[]> result,
+//      final CountDownLatch latch) {
+//    if (!result.isError()) {
+//      // library, class
+//      for (WebkitPropertyDescriptor descriptor : result.getResult()) {
+//        if ("class".equals(descriptor.getName())) {
+//          parentVariable.setClassName(descriptor.getValue().getValue());
+//        }
+//      }
+//    }
+//
+//    latch.countDown();
+//  }
+
+  private void collectFields(WebkitResult<WebkitPropertyDescriptor[]> results) {
+    boolean gettingStaticFields = false;
+
     if (results.isError()) {
       DartDebugCorePlugin.logError("Error retrieving webkit properties: " + results);
     } else {
       for (WebkitPropertyDescriptor descriptor : results.getResult()) {
-        if (descriptor.isEnumerable() && !shouldFilter(descriptor)) {
+        if (descriptor.isEnumerable()) {
+          if (!shouldFilter(descriptor)) {
+            DartiumDebugVariable variable = new DartiumDebugVariable(target, descriptor);
+
+            if (parentVariable != null) {
+              variable.setParent(parentVariable);
+            }
+
+            variables.add(variable);
+          }
+        } else {
+          if (parentVariable != null) {
+//            if (WebkitPropertyDescriptor.CLASS_INFO.equals(descriptor.getName())) {
+//              gettingClassInfo = collectClassInfo(descriptor.getValue(), latch);
+//            }
+
+            if (WebkitPropertyDescriptor.STATIC_FIELDS.equals(descriptor.getName())) {
+              gettingStaticFields = collectStaticFields(descriptor.getValue(), latch);
+            }
+          }
+        }
+      }
+    }
+
+    if (!gettingStaticFields) {
+      latch.countDown();
+    }
+  }
+
+  private boolean collectStaticFields(final WebkitRemoteObject classInfo, final CountDownLatch latch) {
+    try {
+      target.getConnection().getRuntime().getProperties(
+          classInfo.getObjectId(),
+          true,
+          new WebkitCallback<WebkitPropertyDescriptor[]>() {
+            @Override
+            public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
+              collectStaticFieldsResults(result, latch);
+            }
+          });
+
+      return true;
+    } catch (IOException e) {
+      return false;
+    }
+  }
+
+  private void collectStaticFieldsResults(WebkitResult<WebkitPropertyDescriptor[]> results,
+      CountDownLatch latch) {
+    if (results.isError()) {
+      DartDebugCorePlugin.logError("Error retrieving webkit properties: " + results);
+    } else {
+      for (WebkitPropertyDescriptor descriptor : results.getResult()) {
+        if (descriptor.isEnumerable()) {
           DartiumDebugVariable variable = new DartiumDebugVariable(target, descriptor);
+
+          variable.setIsStatic(true);
 
           if (parentVariable != null) {
             variable.setParent(parentVariable);
@@ -163,7 +242,7 @@ class VariableCollector {
   private void createLibraryVariable(WebkitRemoteObject libraryObject) {
     variables.add(new DartiumDebugVariable(target, WebkitPropertyDescriptor.createObjectDescriptor(
         libraryObject,
-        "library"), true));
+        "globals"), true));
   }
 
   private void createThisVariable(WebkitRemoteObject thisObject) {

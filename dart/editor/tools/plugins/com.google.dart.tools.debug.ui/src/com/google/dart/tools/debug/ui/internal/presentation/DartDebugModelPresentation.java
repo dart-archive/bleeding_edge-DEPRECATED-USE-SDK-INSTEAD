@@ -169,6 +169,8 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
         return DartDebugUIPlugin.getImage("obj16/object_this.png");
       } else if (variable.isLibraryObject()) {
         return DartDebugUIPlugin.getImage("obj16/object_library.png");
+      } else if (variable.isStatic()) {
+        return DartDebugUIPlugin.getImage("obj16/object_static.png");
       } else {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       }
@@ -181,6 +183,8 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
         return DartDebugUIPlugin.getImage("obj16/object_this.png");
       } else if (variable.isLibraryObject()) {
         return DartDebugUIPlugin.getImage("obj16/object_library.png");
+      } else if (variable.isStatic()) {
+        return DartDebugUIPlugin.getImage("obj16/object_static.png");
       } else {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       }

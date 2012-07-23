@@ -220,6 +220,12 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
     DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
 
+    try {
+      connection.enableAllStepping();
+    } catch (IOException e) {
+      DartDebugCorePlugin.logError(e);
+    }
+
     maybeResume();
   }
 

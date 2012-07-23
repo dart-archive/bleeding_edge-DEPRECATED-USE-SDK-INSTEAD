@@ -12,11 +12,11 @@ void main() {
   print("starting debuggertest");
 
   // TODO(devoncarew): cmd-line: bp here stops at next line
-  var tempCat = SPARKY;
+  var cat = SPARKY;
 
-  print("${tempCat}:");
+  print("my ${cat} says:");
 
-  tempCat.performAction();
+  cat.performAction();
 
   var dog = new Dog("Scooter");
 

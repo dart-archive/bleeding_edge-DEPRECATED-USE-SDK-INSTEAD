@@ -6,31 +6,32 @@ final num MAX_CATS = 10;
 final SPARKY = const Cat("Sparky");
 
 interface Animal {
-
   bool livesWith(Animal other);
-
   void performAction();
-
 }
 
 class Cat implements Animal {
-  // TODO(devoncarew): cmd-line: can't see static vars
   static final String BEST_CAT_NAME = "Spooky";
 
   static final BLACK_CAT = const Cat("Midnight");
 
   final String name;
 
+  final bool _declawed = false;
+
   const Cat(this.name);
 
   bool livesWith(Animal other) => other is Cat;
 
   void performAction() {
-    print("meow");
+    print("m${_eo()}w");
   }
 
   String toString() => "cat ${name}";
 
+  String _eo() {
+    return "eo";
+  }
 }
 
 class FloppyEars {
@@ -50,7 +51,6 @@ class Dog extends FloppyEars implements Animal {
 
   Date bornOn;
 
-  // TODO(devoncarew): both: stack trace shows Dog.Dog.() ("functionName":"Dog.Dog.")
   Dog(this.name) {
     fleaCount = (Math.random() * 10.0).round().toInt();
     bornOn = new Date.now();
@@ -76,12 +76,14 @@ List<Animal> getLotsOfAnimals() {
   return [
       new Dog("Scooter"),
       new Cat("Munchkins"),
+      new Cat("1月27日(金曜日)"),
       SPARKY,
       new Dog.withFleas(Dog.BEST_DOG_NAME, 2)
   ];
 }
 
 Map<String, Animal> getMapOfAnimals() {
+  // var map = {};
   Map<String, Animal> map = new Map<String, Animal>();
 
   for (var animal in getLotsOfAnimals()) {
@@ -89,4 +91,10 @@ Map<String, Animal> getMapOfAnimals() {
   }
 
   return map;
+}
+
+void testInfinity() {
+  var infTest = 1 / 0;
+
+  print(infTest); // Infinity
 }

@@ -31,10 +31,13 @@ import java.io.Reader;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -60,6 +63,13 @@ public class VmConnection {
   private static final String EVENT_BREAKPOINTRESOLVED = "breakpointResolved";
 
   private static Charset UTF8 = Charset.forName("UTF-8");
+
+  /**
+   * A set of core libraries - semantically considered part of the core Dart library implementation.
+   */
+  private static final Set<String> CORE_IMPL_LIBRARIES = new HashSet<String>(
+      Arrays.asList(new String[] {
+          "dart:core", "dart:coreimpl", "dart:nativewrappers", "dart:builtin"}));
 
   private List<VmListener> listeners = new ArrayList<VmListener>();
   private int port;
@@ -121,6 +131,31 @@ public class VmConnection {
     }).start();
   }
 
+  /**
+   * Enable stepping for all libraries (except for certain core ones).
+   * 
+   * @throws IOException
+   */
+  public void enableAllStepping() throws IOException {
+    getLibraries(new VmCallback<List<VmLibraryRef>>() {
+      @Override
+      public void handleResult(VmResult<List<VmLibraryRef>> result) {
+        if (!result.isError()) {
+          for (VmLibraryRef ref : result.getResult()) {
+            try {
+              //if (ref.getUrl().startsWith("dart:")) {
+              if (!CORE_IMPL_LIBRARIES.contains(ref.getUrl())) {
+                setLibraryProperties(ref.getId(), true);
+              }
+            } catch (IOException e) {
+
+            }
+          }
+        }
+      }
+    });
+  }
+
   public List<VmBreakpoint> getBreakpoints() {
     return breakpoints;
   }
@@ -143,6 +178,31 @@ public class VmConnection {
           VmResult<VmClass> vmClassResult = convertGetClassPropertiesResult(classId, result);
 
           callback.handleResult(vmClassResult);
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+  }
+
+  public void getGlobalVariables(final int libraryId, final VmCallback<List<VmVariable>> callback)
+      throws IOException {
+    if (callback == null) {
+      throw new IllegalArgumentException("a callback is required");
+    }
+
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "getGlobalVariables");
+      request.put("params", new JSONObject().put("libraryId", libraryId));
+
+      sendRequest(request, new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          VmResult<List<VmVariable>> retValue = convertGetGlobalVariablesResult(result);
+
+          callback.handleResult(retValue);
         }
       });
     } catch (JSONException exception) {
@@ -466,6 +526,31 @@ public class VmConnection {
   }
 
   /**
+   * Set the given library's properties; currently this enables / disables stepping into the
+   * library.
+   * 
+   * @param libraryId
+   * @param debuggingEnabled
+   * @throws IOException
+   */
+  public void setLibraryProperties(int libraryId, boolean debuggingEnabled) throws IOException {
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "setLibraryProperties");
+      request.put(
+          "params",
+          new JSONObject().put("libraryId", libraryId).put(
+              "debuggingEnabled",
+              Boolean.toString(debuggingEnabled)));
+
+      sendRequest(request, null);
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+  }
+
+  /**
    * Set the VM to pause on exceptions.
    * 
    * @param kind
@@ -521,22 +606,6 @@ public class VmConnection {
     }
   }
 
-//  void resolveSuperClass(final VmClass vmClass, final VmCallback<VmClass> callback)
-//      throws IOException {
-//    getClassProperties(object.getClassId(), new VmCallback<VmClass>() {
-//      @Override
-//      public void handleResult(VmResult<VmClass> result) {
-//        if (!result.isError()) {
-//          object.setClassObject(result.getResult());
-//        }
-//
-//        if (callback != null) {
-//          callback.handleResult(result);
-//        }
-//      }
-//    });
-//  }
-
   void sendRequest(JSONObject request, Callback callback) throws IOException {
     int id = 0;
 
@@ -567,6 +636,22 @@ public class VmConnection {
     }
   }
 
+//  void resolveSuperClass(final VmClass vmClass, final VmCallback<VmClass> callback)
+//      throws IOException {
+//    getClassProperties(object.getClassId(), new VmCallback<VmClass>() {
+//      @Override
+//      public void handleResult(VmResult<VmClass> result) {
+//        if (!result.isError()) {
+//          object.setClassObject(result.getResult());
+//        }
+//
+//        if (callback != null) {
+//          callback.handleResult(result);
+//        }
+//      }
+//    });
+//  }
+
   private VmResult<VmClass> convertGetClassPropertiesResult(int classId, JSONObject object)
       throws JSONException {
     VmResult<VmClass> result = VmResult.createFrom(object);
@@ -574,6 +659,19 @@ public class VmConnection {
     if (object.has("result")) {
       result.setResult(VmClass.createFrom(object.getJSONObject("result")));
       result.getResult().setClassId(classId);
+    }
+
+    return result;
+  }
+
+  private VmResult<List<VmVariable>> convertGetGlobalVariablesResult(JSONObject object)
+      throws JSONException {
+    VmResult<List<VmVariable>> result = VmResult.createFrom(object);
+
+    if (object.has("result")) {
+      JSONObject jsonResult = object.getJSONObject("result");
+
+      result.setResult(VmVariable.createFrom(jsonResult.optJSONArray("globals")));
     }
 
     return result;

@@ -18,6 +18,7 @@ import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.debug.core.source.ISourceLookup;
+import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 import com.google.dart.tools.debug.core.util.IVariableResolver;
 
@@ -120,7 +121,7 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 
   @Override
   public String getName() throws DebugException {
-    return vmFrame.getFunctionName() + "()";
+    return DebuggerUtils.demanglePrivateName(vmFrame.getFunctionName()) + "()";
   }
 
   @Override
@@ -237,7 +238,7 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     } else {
       List<ServerDebugVariable> variables = new ArrayList<ServerDebugVariable>();
 
-      // create a synthetic library variable
+      // create a synthetic globals variable
       variables.add(ServerDebugVariable.createLibraryVariable(getTarget(), vmFrame.getLibraryId()));
 
       for (VmVariable var : frame.getLocals()) {

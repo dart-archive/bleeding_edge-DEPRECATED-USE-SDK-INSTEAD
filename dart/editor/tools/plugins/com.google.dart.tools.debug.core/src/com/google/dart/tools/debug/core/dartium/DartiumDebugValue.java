@@ -37,6 +37,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
 
   private DartiumDebugVariable variable;
   private WebkitRemoteObject value;
+  private String overrideClassName;
 
   private VariableCollector variableCollector = VariableCollector.empty();
 
@@ -47,12 +48,13 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
     this.variable = variable;
     this.value = value;
 
+    // TODO: should maybe not populate here - wait until it's requested
     populate();
   }
 
   public void computeDetail(final ValueCallback callback) {
     // If the value is a primitive type, just return the display string.
-    if (value.isPrimitive()) {
+    if (value.isPrimitive() || variable.isLibraryObject()) {
       callback.detailComputed(getDisplayString());
 
       return;
@@ -64,7 +66,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
         @Override
         public void handleResult(WebkitResult<String> result) {
           if (result.isError()) {
-            callback.detailComputed(null);
+            callback.detailComputed("");
           } else {
             callback.detailComputed(result.getResult());
           }
@@ -82,8 +84,16 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
    * @throws DebugException
    */
   public String getDisplayString() {
+    if (variable.isLibraryObject()) {
+      return "";
+    }
+
     if (isPrimitive() && value.isString()) {
       return "\"" + getValueString() + "\"";
+    }
+
+    if (isPrimitive()) {
+      return getValueString();
     }
 
     if (isList()) {
@@ -94,16 +104,16 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
       }
     }
 
-    if (value.getClassName() != null) {
-      return value.getClassName();
-    }
-
-    return getValueString();
+    return getReferenceTypeName();
   }
 
   @Override
-  public String getReferenceTypeName() throws DebugException {
-    return value.getClassName();
+  public String getReferenceTypeName() {
+    if (overrideClassName != null) {
+      return overrideClassName;
+    } else {
+      return value.getClassName();
+    }
   }
 
   @Override
@@ -140,6 +150,10 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
 
   public boolean isPrimitive() {
     return value.isPrimitive();
+  }
+
+  protected void setClassName(String name) {
+    this.overrideClassName = name;
   }
 
   private int getListLength() {

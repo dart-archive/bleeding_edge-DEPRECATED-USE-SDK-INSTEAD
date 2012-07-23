@@ -22,12 +22,34 @@ import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
 import org.eclipse.debug.internal.ui.model.elements.VariableLabelProvider;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationContext;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.FontData;
 
 /**
  * A rich label provider for debug variables and values.
  */
 @SuppressWarnings("restriction")
 public class DartiumVariableLabelProvider extends VariableLabelProvider {
+
+  @Override
+  protected FontData getFontData(TreePath elementPath, IPresentationContext presentationContext,
+      String columnId) throws CoreException {
+    FontData fontData = super.getFontData(elementPath, presentationContext, columnId);
+
+    // Show static variables in italics.
+    if (columnId.endsWith("_NAME")) {
+      if (elementPath.getLastSegment() instanceof DartiumDebugVariable && fontData != null) {
+        DartiumDebugVariable variable = (DartiumDebugVariable) elementPath.getLastSegment();
+
+        if (variable.isStatic()) {
+          fontData = new FontData(fontData.getName(), fontData.getHeight(), SWT.ITALIC);
+        }
+      }
+    }
+
+    return fontData;
+  }
 
   @Override
   protected String getValueText(IVariable variable, IValue value, IPresentationContext context)

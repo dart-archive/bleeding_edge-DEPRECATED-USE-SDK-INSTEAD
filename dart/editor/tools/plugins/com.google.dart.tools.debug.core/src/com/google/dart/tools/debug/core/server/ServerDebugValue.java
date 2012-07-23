@@ -21,6 +21,7 @@ import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -100,21 +101,48 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
     return value == null ? false : value.isList();
   }
 
-  protected void fillInFieldsAsync(final CountDownLatch latch) {
+  protected void fillInFieldsSync() {
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    final List<IVariable> tempFields = new ArrayList<IVariable>();
+
     try {
       getConnection().getObjectProperties(value.getObjectId(), new VmCallback<VmObject>() {
         @Override
         public void handleResult(VmResult<VmObject> result) {
-          fields = convert(result);
+          if (!result.isError()) {
+            tempFields.addAll(convert(result.getResult()));
+          }
 
+          fillInStaticFields(result.getResult().getClassId(), tempFields, latch);
+        }
+      });
+    } catch (Exception e) {
+      latch.countDown();
+    }
+
+    try {
+      latch.await();
+
+      fields = tempFields;
+    } catch (InterruptedException e) {
+
+    }
+  }
+
+  protected void fillInStaticFields(int classId, final List<IVariable> tempFields,
+      final CountDownLatch latch) {
+    try {
+      getConnection().getClassProperties(classId, new VmCallback<VmClass>() {
+        @Override
+        public void handleResult(VmResult<VmClass> result) {
+          if (!result.isError()) {
+            tempFields.addAll(convert(result.getResult()));
+          }
           latch.countDown();
         }
       });
-
-      latch.await();
-    } catch (Exception e) {
-      fields = Collections.emptyList();
-
+    } catch (IOException e) {
       latch.countDown();
     }
   }
@@ -128,15 +156,7 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
       fields = valueRetriever.getVariables();
     } else if (value.isObject()) {
       if (fields == null) {
-        CountDownLatch latch = new CountDownLatch(1);;
-
-        fillInFieldsAsync(latch);
-
-        try {
-          latch.await();
-        } catch (InterruptedException e) {
-
-        }
+        fillInFieldsSync();
       }
     } else if (value.isList()) {
       fields = new ArrayList<IVariable>();
@@ -154,24 +174,23 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
     }
   }
 
-  private List<IVariable> convert(VmResult<VmObject> result) {
-    if (result.isError()) {
-      return Collections.emptyList();
-    }
-
+  private List<IVariable> convert(VmClass vmClass) {
     List<IVariable> vars = new ArrayList<IVariable>();
 
-    VmObject vmObject = result.getResult();
+    // Add static fields.
+    for (VmVariable vmVariable : vmClass.getFields()) {
+      ServerDebugVariable variable = new ServerDebugVariable(getTarget(), vmVariable);
 
-    // TODO(devoncarew): figure out a good strategy for populating these objects
-//    VmClass vmClass = vmObject.getClassObject();
-//
-//    // Add static fields.
-//    if (vmClass != null) {
-//      for (VmVariable vmVariable : vmClass.getFields()) {
-//        vars.add(new ServerDebugVariable(getTarget(), vmVariable));
-//      }
-//    }
+      variable.setIsStatic(true);
+
+      vars.add(variable);
+    }
+
+    return vars;
+  }
+
+  private List<IVariable> convert(VmObject vmObject) {
+    List<IVariable> vars = new ArrayList<IVariable>();
 
     // Add instance fields.
     for (VmVariable vmVariable : vmObject.getFields()) {

@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.webkit.WebkitPropertyDescriptor;
 
 import org.eclipse.debug.core.DebugException;
@@ -29,6 +30,9 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
   private DartiumDebugVariable parent;
   private DartiumDebugValue value;
   private boolean isSpecialObject;
+  private boolean isStatic;
+
+  private String overrideClassName;
 
   /**
    * Create a new Dartium Debug Variable
@@ -65,13 +69,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
 
     // The names of private fields are mangled by the VM.
     // _foo@652376 ==> _foo
-    String name = getName();
-
-    if (name.indexOf('@') != -1) {
-      name = name.substring(0, name.indexOf('@'));
-    }
-
-    return name;
+    return DebuggerUtils.demanglePrivateName(getName());
   }
 
   @Override
@@ -88,6 +86,10 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
   public IValue getValue() {
     if (value == null) {
       value = new DartiumDebugValue(getTarget(), this, descriptor.getValue());
+
+      if (overrideClassName != null) {
+        value.setClassName(overrideClassName);
+      }
     }
 
     return value;
@@ -101,7 +103,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
   }
 
   public boolean isLibraryObject() {
-    return isSpecialObject && getName().equals("library");
+    return isSpecialObject && (getName().equals("library") || getName().equals("globals"));
   }
 
   public boolean isListValue() {
@@ -110,6 +112,10 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
 
   public boolean isPrimitiveValue() {
     return value.isPrimitive();
+  }
+
+  public boolean isStatic() {
+    return isStatic;
   }
 
   public boolean isThisObject() {
@@ -158,6 +164,18 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
     // TODO(devoncarew): do verification for numbers
 
     return true;
+  }
+
+  protected void setClassName(String name) {
+    overrideClassName = name;
+
+    if (value != null) {
+      value.setClassName(name);
+    }
+  }
+
+  protected void setIsStatic(boolean value) {
+    isStatic = value;
   }
 
   protected void setParent(DartiumDebugVariable parent) {
