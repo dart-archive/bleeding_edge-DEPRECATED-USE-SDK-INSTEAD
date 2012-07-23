@@ -17,6 +17,7 @@ jpeg image/jpeg
 js application/x-javascript
 midi audio/x-midi
 mp3 audio/mpeg
+mp4 video/mp4
 mpeg video/mpeg
 ogg audio/ogg
 ogv video/ogg
@@ -40,6 +41,7 @@ tiff image/tiff
 tsv text/tab-separated-values
 txt text/plain
 wav audio/wav
+webm video/webm
 xls application/vnd.ms-excel
 xml application/xml
 zip application/zip

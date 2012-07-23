@@ -15,16 +15,10 @@
 package com.google.dart.tools.debug.core.util;
 
 import com.google.common.io.ByteStreams;
-import com.google.common.io.CharStreams;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
@@ -34,6 +28,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,28 +36,24 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.io.SequenceInputStream;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 // GET /index.html HTTP/1.1
 // Host: www.example.com
@@ -83,6 +74,8 @@ class ResourceServerHandler implements Runnable {
     public static final String METHOD_HEAD = "HEAD";
     public static final String METHOD_POST = "POST";
 
+    private static final String RANGE = "Range";
+
     public String method;
     public String file;
     public String version;
@@ -90,13 +83,50 @@ class ResourceServerHandler implements Runnable {
     public Map<String, String> headers = new LinkedHashMap<String, String>();
 
     public int getContentLength() {
-      String len = headers.get("Content-Length");
+      String len = headers.get(CONTENT_LENGTH);
 
       try {
         return len == null ? -1 : Integer.parseInt(len);
       } catch (NumberFormatException nfe) {
         return -1;
       }
+    }
+
+    public List<int[]> getRanges() {
+      // Range: bytes=0-99,500-1499,4000-
+      if (headers.containsKey(RANGE)) {
+        String rangeStr = headers.get(RANGE);
+
+        if (rangeStr.startsWith("bytes=")) {
+          rangeStr = rangeStr.substring("bytes=".length());
+
+          String[] strs = rangeStr.split(",");
+
+          List<int[]> result = new ArrayList<int[]>();
+
+          for (String str : strs) {
+            int index = str.indexOf('-');
+
+            try {
+              if (index == 0) {
+                result.add(new int[] {0, Integer.parseInt(str.substring(1))});
+              } else if (index == str.length() - 1) {
+                result.add(new int[] {Integer.parseInt(str.substring(0, index)), -1});
+              } else if (index != -1) {
+                result.add(new int[] {
+                    Integer.parseInt(str.substring(0, index)),
+                    Integer.parseInt(str.substring(index + 1))});
+              }
+            } catch (NumberFormatException nfe) {
+
+            }
+          }
+
+          return result;
+        }
+      }
+
+      return null;
     }
 
     @Override
@@ -117,6 +147,7 @@ class ResourceServerHandler implements Runnable {
 
   private static class HttpResponse {
     public static final int OK = 200; // "OK"
+    public static final int PARTIAL_CONTENT = 206; // "Partial Content"
     public static final int NOT_FOUND = 404; // "Not Found"
     public static final int UNAUTHORIZED = 401; // "Unauthorized"
 
@@ -141,6 +172,8 @@ class ResourceServerHandler implements Runnable {
 
   private static final String ISO_8859_1 = "ISO-8859-1";
   private static final String US_ASCII = "US-ASCII";
+
+  public static final String CONTENT_LENGTH = "Content-Length";
 
   private static final String TYPE_OCTET = "application/octet-stream";
 
@@ -185,6 +218,7 @@ class ResourceServerHandler implements Runnable {
    */
   private static final String[][] embeddedResources = new String[][] {
       {"/favicon.ico", TYPE_GIF, "/resources/dart_16_16.gif"},
+      {"/dart_32_32.gif", TYPE_GIF, "/resources/dart_32_32.gif"},
       {"/agent.html", TYPE_HTML, "agent.html"}, {"/agent.js", TYPE_JS, "agent.js"}};
 
   private static byte[] getJSAgentContent() {
@@ -302,7 +336,7 @@ class ResourceServerHandler implements Runnable {
     response.headers.put("Content-Type", "text/html");
     response.responseBodyText = "<html><head><title>404 Not Found</title></head><body>" + message
         + "</body></html>";
-    response.headers.put("Content-Length", Integer.toString(response.responseBodyText.length()));
+    response.headers.put(CONTENT_LENGTH, Integer.toString(response.responseBodyText.length()));
 
     addStandardResponseHeaders(response);
 
@@ -386,7 +420,7 @@ class ResourceServerHandler implements Runnable {
         length += getJSAgentContent().length;
       }
 
-      response.headers.put("Content-Length", Long.toString(length));
+      response.headers.put(CONTENT_LENGTH, Long.toString(length));
     }
 
     if (!headOnly) {
@@ -395,7 +429,27 @@ class ResourceServerHandler implements Runnable {
             new FileInputStream(javaFile),
             new ByteArrayInputStream(getJSAgentContent()));
       } else {
-        response.responseBodyStream = new FileInputStream(javaFile);
+        List<int[]> ranges = header.getRanges();
+
+        if (ranges != null) {
+          byte[] rangeData = readRangeData(javaFile, ranges);
+
+          response.responseBodyStream = new ByteArrayInputStream(rangeData);
+
+          response.responseCode = HttpResponse.PARTIAL_CONTENT;
+          response.responseText = "Partial Content";
+
+          response.headers.put(CONTENT_LENGTH, Long.toString(rangeData.length));
+          // Content-Range: bytes X-Y/Z
+          int[] range = ranges.get(0);
+          response.headers.put("Content-Range", "bytes " + range[0] + "-" + range[1] + "/"
+              + rangeData.length);
+        } else {
+          response.responseBodyStream = new FileInputStream(javaFile);
+        }
+
+        // Indicate that we support requesting a subset of the document.
+        response.headers.put("Accept-Ranges", "bytes");
       }
     }
 
@@ -412,7 +466,7 @@ class ResourceServerHandler implements Runnable {
 
     response.headers.put("Content-Type", "text/html");
     response.responseBodyText = "<html><head><title>401 Unauthorized</title></head><body>User agent not allowed.</body></html>";
-    response.headers.put("Content-Length", Integer.toString(response.responseBodyText.length()));
+    response.headers.put(CONTENT_LENGTH, Integer.toString(response.responseBodyText.length()));
 
     addStandardResponseHeaders(response);
 
@@ -446,73 +500,6 @@ class ResourceServerHandler implements Runnable {
     return response;
   }
 
-  private List<HTMLFile> getAllHtmlFiles() {
-    Set<HTMLFile> files = new HashSet<HTMLFile>();
-
-    for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-      DartProject dartProject = DartCore.create(project);
-
-      if (dartProject != null) {
-        try {
-          for (DartLibrary library : dartProject.getDartLibraries()) {
-            List<HTMLFile> htmlFiles = library.getChildrenOfType(HTMLFile.class);
-
-            files.addAll(htmlFiles);
-          }
-        } catch (DartModelException ex) {
-
-        }
-      }
-    }
-
-    return new ArrayList<HTMLFile>(files);
-  }
-
-  private String getAvailableAppsContent() throws IOException {
-    StringBuilder builder = new StringBuilder();
-
-    InputStream in = ResourceServer.class.getResourceAsStream("template.html");
-
-    String template = CharStreams.toString(new InputStreamReader(in));
-
-    final String appsTag = "${apps}";
-
-    int index = template.indexOf(appsTag);
-
-    String template1 = template.substring(0, index);
-    String template2 = template.substring(index + appsTag.length());
-
-    builder.append(template1);
-
-    List<HTMLFile> appFiles = getAllHtmlFiles();
-
-    Collections.sort(appFiles, new Comparator<HTMLFile>() {
-      @Override
-      public int compare(HTMLFile o1, HTMLFile o2) {
-        return o1.getElementName().compareToIgnoreCase(o2.getElementName());
-      }
-    });
-
-    if (appFiles.size() == 0) {
-      builder.append("The editor does not contain any web applications.");
-    } else {
-      for (HTMLFile appFile : appFiles) {
-        builder.append("<div class=\"app\">");
-        builder.append("<a href=\"" + getPathFor(appFile) + "\">");
-        builder.append("<img src=\"favicon.ico\" width=16 height=16>");
-        builder.append("</a>&nbsp;");
-        builder.append("<a href=\"" + getPathFor(appFile) + "\">");
-        builder.append(appFile.getElementName());
-        builder.append("</a>");
-        builder.append("</div>");
-      }
-    }
-
-    builder.append(template2);
-
-    return builder.toString();
-  }
-
   private String getContentType(String extension) {
     if (extension != null) {
       extension = extension.toLowerCase();
@@ -536,16 +523,6 @@ class ResourceServerHandler implements Runnable {
       return name.substring(index + 1);
     } else {
       return null;
-    }
-  }
-
-  private String getPathFor(HTMLFile htmlFile) throws IOException {
-    try {
-      String url = resourceServer.getUrlForResource(htmlFile.getCorrespondingResource());
-
-      return URI.create(url).getPath();
-    } catch (DartModelException ex) {
-      throw new IOException(ex);
     }
   }
 
@@ -700,6 +677,36 @@ class ResourceServerHandler implements Runnable {
     return header;
   }
 
+  private byte[] readRangeData(File file, List<int[]> ranges) throws IOException {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+    RandomAccessFile f = new RandomAccessFile(file, "r");
+
+    int maxLength = (int) f.length() - 1;
+
+    for (int[] range : ranges) {
+      if (range[1] > maxLength || range[1] == -1) {
+        range[1] = maxLength;
+      }
+
+      if (range[0] >= range[1]) {
+        continue;
+      }
+
+      f.seek(range[0]);
+
+      int count = range[1] - range[0] + 1;
+
+      byte[] temp = new byte[count];
+
+      f.readFully(temp);
+
+      out.write(temp);
+    }
+
+    return out.toByteArray();
+  }
+
   private void safeClose(Socket socket) {
     try {
       socket.close();
@@ -747,10 +754,10 @@ class ResourceServerHandler implements Runnable {
   private HttpResponse serveAvailableApps(HttpHeader header) throws IOException {
     HttpResponse response = new HttpResponse();
 
-    String content = getAvailableAppsContent();
+    String content = resourceServer.getAvailableAppsContent();
     byte[] bytes = content.getBytes("UTF-8");
 
-    response.headers.put("Content-Length", Integer.toString(bytes.length));
+    response.headers.put(CONTENT_LENGTH, Integer.toString(bytes.length));
     response.headers.put("Content-Type", "text/html; charset=UTF-8");
     response.headers.put("Cache-control", "no-cache");
     response.responseBodyStream = new ByteArrayInputStream(bytes);
@@ -769,7 +776,7 @@ class ResourceServerHandler implements Runnable {
 
         URLConnection conn = url.openConnection();
 
-        response.headers.put("Content-Length", Integer.toString(conn.getContentLength()));
+        response.headers.put(CONTENT_LENGTH, Integer.toString(conn.getContentLength()));
         response.headers.put("Content-Type", resourceInfo[1]);
         response.headers.put("Cache-control", "no-cache");
 

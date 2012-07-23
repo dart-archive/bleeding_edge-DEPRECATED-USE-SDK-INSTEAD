@@ -309,6 +309,13 @@
       </command>
       <command
             categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.debug.ui.internal.util.ShowWebConsoleHandler"
+            description="Show Web Server Address"
+            id="com.google.dart.tools.debug.ui.showWebConsole"
+            name="Show Web Server Address">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.window"
             defaultHandler="com.google.dart.tools.debug.ui.internal.view.RemoveAllBreakpointsHandler"
             description="%removeBreakpointsCommandName"
             id="com.google.dart.tools.debug.ui.removeBreakpoints"
@@ -415,6 +422,9 @@
          <command
                commandId="com.google.dart.tools.debug.ui.launchDialog"
                style="push">
+         </command>
+         <command
+               commandId="com.google.dart.tools.debug.ui.showWebConsole">
          </command>
       </menuContribution>
       <menuContribution

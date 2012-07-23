@@ -30,23 +30,51 @@ p {
 
 img {
   border: 0px;
+  margin-right: 0.5em;
+}
+
+a {
+  text-decoration: none;
+}
+
+table, tr, td {
+  border: 0;
+  border-spacing: 0;
 }
 
 .app {
-  margin: 5px 0px 5px 10px;
-  padding: 3px;
-}
-
-.app:hover {
-  background: #ddd;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  margin-bottom: 1em;
+  padding: 0.5em;
+  
   -moz-border-radius: 3px;
   border-radius: 3px;
+  
+  //float: left;
+}
+
+.app .title {
+  font-weight: bold;
+  font-family: monospace;
+}
+
+.app .info {
+  font-family: monospace;
+}
+
+.footer {
+  text-align: center;
 }
     </style>
 <head>
 <body>
   <h1>Dart Editor</h1>
-  <p>Available applications</p>
+  
+  <p>${count} web applications available</p>
+  
   ${apps}
+  
+  <p class="footer"><a href="http://www.dartlang.org/editor">www.dartlang.org/editor</a></p>
 </body>
 </html>

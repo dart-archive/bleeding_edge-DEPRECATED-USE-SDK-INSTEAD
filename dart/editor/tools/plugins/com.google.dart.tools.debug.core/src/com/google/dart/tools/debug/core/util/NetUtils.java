@@ -14,8 +14,10 @@
 package com.google.dart.tools.debug.core.util;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.URI;
+import java.net.UnknownHostException;
 
 /**
  * A collection of static networking utilities.
@@ -63,6 +65,17 @@ public class NetUtils {
     }
 
     return -1;
+  }
+
+  /**
+   * @return the user's IP address, if available (null otherwise)
+   */
+  public static String getIpAddress() {
+    try {
+      return InetAddress.getLocalHost().getHostAddress();
+    } catch (UnknownHostException e) {
+      return null;
+    }
   }
 
   private NetUtils() {
