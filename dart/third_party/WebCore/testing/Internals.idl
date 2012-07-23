@@ -71,6 +71,9 @@ module window {
 #endif
         DOMString[] formControlStateOfPreviousHistoryItem() raises(DOMException);
         void setFormControlStateOfPreviousHistoryItem(in DOMString[] values) raises(DOMException);
+#if defined(ENABLE_PAGE_POPUP) && ENABLE_PAGE_POPUP
+        readonly attribute PagePopupController pagePopupController;
+#endif
 
         ClientRect absoluteCaretBounds(in Document document) raises(DOMException);
 
@@ -86,7 +89,7 @@ module window {
 
         void setScrollViewPosition(in Document document, in long x, in long y) raises(DOMException);
 
-        void setPagination(in Document document, in DOMString mode, in long gap) raises(DOMException);
+        void setPagination(in Document document, in DOMString mode, in long gap, in [Optional] long pageLength) raises(DOMException);
 
         DOMString configurationForViewport(in Document document,
                                            in float devicePixelRatio,
@@ -165,6 +168,7 @@ module window {
         [Conditional=INSPECTOR] sequence<String> consoleMessageArgumentCounts(in Document document);
 
         DOMString counterValue(in Element element);
+        DOMString[] iconURLs(in Document document);
 
 #if defined(ENABLE_FULLSCREEN_API) && ENABLE_FULLSCREEN_API
         void webkitWillEnterFullScreenForElement(in Document document, in Element element);

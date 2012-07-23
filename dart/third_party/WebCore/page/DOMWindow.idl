@@ -135,7 +135,7 @@ module window {
 
         attribute [Replaceable, DoNotCheckSecurityOnGetter, V8CustomSetter] DOMWindow opener;
         attribute [Replaceable, DoNotCheckSecurityOnGetter] DOMWindow parent;
-        attribute [Replaceable, DoNotCheckSecurityOnGetter, V8Unforgeable, V8ReadOnly] DOMWindow top;
+        readonly attribute [DoNotCheckSecurityOnGetter, V8Unforgeable] DOMWindow top;
 
         // DOM Level 2 AbstractView Interface
         readonly attribute Document document;
@@ -406,7 +406,7 @@ module window {
         attribute HTMLButtonElementConstructor HTMLButtonElement;
         attribute HTMLCanvasElementConstructor HTMLCanvasElement;
         attribute HTMLDListElementConstructor HTMLDListElement;
-        attribute [Conditional=DATALIST] HTMLDataListElementConstructor HTMLDataListElement;
+        attribute [Conditional=DATALIST_ELEMENT] HTMLDataListElementConstructor HTMLDataListElement;
         attribute [Conditional=DIALOG_ELEMENT, V8EnabledPerContext=dialogElement] HTMLDialogElementConstructor HTMLDialogElement;
         attribute HTMLDirectoryElementConstructor HTMLDirectoryElement;
         attribute HTMLDivElementConstructor HTMLDivElement;
