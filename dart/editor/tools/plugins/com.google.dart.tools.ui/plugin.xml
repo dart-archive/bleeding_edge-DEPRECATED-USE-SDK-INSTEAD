@@ -434,7 +434,7 @@
             symbolicFontName="com.google.dart.tools.ui.editors.textfont"
             id="com.google.dart.tools.ui.text.editor.CompilationUnitEditor"
             extensions="dart">
-            <contentTypeBinding contentTypeId="com.google.dart.tools.core.dartSourceFile" /> 
+            <contentTypeBinding contentTypeId="com.google.dart.tools.core.dartSourceFile" />
       </editor>
 
       <editor
@@ -456,6 +456,18 @@
             symbolicFontName="com.google.dart.tools.ui.editors.textfont"
             id="com.google.dart.tools.ui.text.editor.TextEditor">
       </editor>
+      
+      <editor
+            name="%PubspecFileEditorName"
+            default="true"
+            icon="$nl$/icons/full/obj16/file_obj.gif"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            class="com.google.dart.tools.ui.internal.text.editor.SimpleTextEditor"
+            symbolicFontName="com.google.dart.tools.ui.editors.textfont"
+            id="com.google.dart.tools.ui.text.editor.PubspecEditor">
+         <contentTypeBinding contentTypeId="com.google.dart.tools.core.pubspecFile" /> 
+      </editor>
+
       <editor
             class="com.google.dart.tools.ui.internal.intro.IntroEditor"
             default="false"

@@ -29,6 +29,13 @@
             base-type="org.eclipse.core.runtime.text"
             file-extensions="dart"
             default-charset="UTF-8"/>
+      <content-type
+            id="com.google.dart.tools.core.pubspecFile"
+            name="%dart.contentType.pubspecFile.name"
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="pubspec"
+            file-names="pubspec"
+            default-charset="UTF-8"/>
    </extension>
 
 	<extension
