@@ -115,12 +115,28 @@ public class RenameAnalyzeUtil {
   }
 
   /**
+   * Converts error message by replacing "renamed" with "created".
+   */
+  public static String convertRenameMessageToCreateMessage(String msg) {
+    return StringUtils.replace(
+        msg,
+        RefactoringCoreMessages.RenameProcessor_wordRenamed,
+        RefactoringCoreMessages.RenameProcessor_wordCreated);
+  }
+
+  /**
    * @return the localized name of the {@link DartElement}.
    */
   public static String getElementTypeName(DartElement element) {
-    return Messages.format(
-        RefactoringCoreMessages.RenameProcessor_elementTypeName,
-        element.getElementType());
+    int elementType = element.getElementType();
+    return getElementTypeName(elementType);
+  }
+
+  /**
+   * @return the localized name of the {@link DartElement}.
+   */
+  public static String getElementTypeName(int elementType) {
+    return Messages.format(RefactoringCoreMessages.RenameProcessor_elementTypeName, elementType);
   }
 
   /**

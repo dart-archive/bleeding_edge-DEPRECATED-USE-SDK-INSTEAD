@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.Method;
@@ -61,10 +62,248 @@ import java.util.Set;
  */
 public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
 
-  protected final TypeMember member;
+  /**
+   * Analyzes possible conflicts when {@link DartElement} is renamed (or created) to the given
+   * "newName" - will it shadow some elements, or will it be shadowed by other elements.
+   */
+  public static RefactoringStatus analyzePossibleConflicts(int elementType, Type enclosingType,
+      String oldName, List<SearchMatch> references, String newName, IProgressMonitor pm)
+      throws CoreException {
+    RefactoringStatus result = new RefactoringStatus();
+    String elementTypeName = RenameAnalyzeUtil.getElementTypeName(elementType);
+    // prepare types
+    List<Type> subTypes = RenameAnalyzeUtil.getSubTypes(enclosingType);
+    Iterable<Type> enclosingAndSubTypes = Iterables.concat(ImmutableSet.of(enclosingType), subTypes);
+    // analyze top-level elements
+    pm.subTask("Analyze top-level elements");
+    {
+      CompilationUnitElement topLevelElement = RenameAnalyzeUtil.getTopLevelElementNamed(
+          enclosingType,
+          newName);
+      if (topLevelElement != null) {
+        DartLibrary shadowLibrary = topLevelElement.getAncestor(DartLibrary.class);
+        IPath libraryPath = shadowLibrary.getResource().getFullPath();
+        IPath resourcePath = topLevelElement.getResource().getFullPath();
+        // add warning for shadowing top-level declaration
+        {
+          String message = Messages.format(
+              RefactoringCoreMessages.RenameProcessor_topLevelDecl_shadowedBy_element,
+              new Object[] {
+                  RenameAnalyzeUtil.getElementTypeName(topLevelElement), newName,
+                  BasicElementLabels.getPathLabel(resourcePath, false),
+                  BasicElementLabels.getPathLabel(libraryPath, false), elementTypeName});
+          result.addWarning(message, DartStatusContext.create(topLevelElement));
+        }
+        // TypeMember shadows top-level element usage in enclosing type
+        {
+          List<SearchMatch> refs = RenameAnalyzeUtil.getReferences(topLevelElement, null);
+          for (SearchMatch ref : refs) {
+            if (SourceRangeUtils.intersects(ref.getSourceRange(), enclosingType.getSourceRange())) {
+              String message = Messages.format(
+                  RefactoringCoreMessages.RenameProcessor_topLevelUsage_shadowedBy_element,
+                  new Object[] {
+                      RenameAnalyzeUtil.getElementTypeName(topLevelElement), newName,
+                      BasicElementLabels.getPathLabel(resourcePath, false),
+                      BasicElementLabels.getPathLabel(libraryPath, false), elementTypeName});
+              result.addError(message, DartStatusContext.create(ref));
+            }
+          }
+        }
+        // top-level element shadows TypeMember usage in sub-type
+        // http://code.google.com/p/dart/issues/detail?id=1180
+        for (Type subType : subTypes) {
+          for (SearchMatch ref : references) {
+            if (SourceRangeUtils.intersects(ref.getSourceRange(), subType.getSourceRange())) {
+              String message = Messages.format(
+                  RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_topLevel,
+                  new Object[] {
+                      elementTypeName, enclosingType.getElementName(), oldName,
+                      RenameAnalyzeUtil.getElementTypeName(topLevelElement), newName,
+                      BasicElementLabels.getPathLabel(resourcePath, false),
+                      BasicElementLabels.getPathLabel(libraryPath, false)});
+              result.addError(message, DartStatusContext.create(ref));
+            }
+          }
+        }
+      }
+    }
+    // analyze supertypes
+    pm.subTask("Analyze supertypes");
+    {
+      Set<Type> superTypes = RenameAnalyzeUtil.getSuperTypes(enclosingType);
+      for (Type superType : superTypes) {
+        TypeMember[] superTypeMembers = superType.getExistingMembers(newName);
+        for (TypeMember superTypeMember : superTypeMembers) {
+          // add warning for hiding super-type TypeMember
+          {
+            IPath resourcePath = superType.getResource().getFullPath();
+            String message = Messages.format(
+                RefactoringCoreMessages.RenameProcessor_typeMemberDecl_shadowedBy_element,
+                new Object[] {
+                    RenameAnalyzeUtil.getElementTypeName(superTypeMember),
+                    superType.getElementName(), newName,
+                    BasicElementLabels.getPathLabel(resourcePath, false), elementTypeName});
+            result.addWarning(message, DartStatusContext.create(superTypeMember));
+          }
+          // add error for using hidden super-type TypeMember
+          {
+            List<SearchMatch> refs = RenameAnalyzeUtil.getReferences(superTypeMember, null);
+            for (SearchMatch ref : refs) {
+              for (Type subType : enclosingAndSubTypes) {
+                if (SourceRangeUtils.intersects(ref.getSourceRange(), subType.getSourceRange())) {
+                  IPath resourcePath = superType.getResource().getFullPath();
+                  String message = Messages.format(
+                      RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_element,
+                      new Object[] {
+                          RenameAnalyzeUtil.getElementTypeName(superTypeMember),
+                          superType.getElementName(), newName,
+                          BasicElementLabels.getPathLabel(resourcePath, false), elementTypeName});
+                  result.addError(message, DartStatusContext.create(ref));
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    pm.worked(1);
+    // analyze [sub-]type members
+    pm.subTask("Analyze subtypes");
+    for (Type subType : enclosingAndSubTypes) {
+      boolean isEnclosingType = subType == enclosingType;
+      IPath resourcePath = subType.getPath();
+      // TypeParameter shadowed by Renamed in enclosing type
+      if (isEnclosingType) {
+        DartTypeParameter[] typeParameters = subType.getTypeParameters();
+        for (DartTypeParameter parameter : typeParameters) {
+          if (Objects.equal(parameter.getElementName(), newName)) {
+            // add warning for shadowing TypeParameter declaration
+            {
+              String message = Messages.format(
+                  RefactoringCoreMessages.RenameProcessor_typeMemberDecl_shadowedBy_element,
+                  new Object[] {
+                      RenameAnalyzeUtil.getElementTypeName(parameter), subType.getElementName(),
+                      newName, resourcePath, elementTypeName,});
+              result.addWarning(message, DartStatusContext.create(parameter));
+            }
+            // add error for shadowing TypeParameter usage
+            List<SourceRange> parameterReferences = RenameAnalyzeUtil.getReferences(parameter);
+            for (SourceRange parameterReference : parameterReferences) {
+              if (SourceRangeUtils.intersects(parameterReference, subType.getSourceRange())) {
+                String message = Messages.format(
+                    RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_element,
+                    new Object[] {
+                        RenameAnalyzeUtil.getElementTypeName(parameter), subType.getElementName(),
+                        newName, resourcePath, elementTypeName,});
+                result.addError(
+                    message,
+                    DartStatusContext.create(subType.getCompilationUnit(), parameterReference));
+              }
+            }
+          }
+        }
+      }
+      // TypeParameter shadows Renamed in sub-types
+      if (!isEnclosingType) {
+        DartTypeParameter[] typeParameters = subType.getTypeParameters();
+        for (DartTypeParameter parameter : typeParameters) {
+          // add warning for shadowing member declaration
+          {
+            String message = Messages.format(
+                RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_typeMember,
+                new Object[] {
+                    elementTypeName, RenameAnalyzeUtil.getElementTypeName(parameter),
+                    subType.getElementName(), newName, resourcePath,});
+            result.addWarning(message, DartStatusContext.create(parameter));
+          }
+          // add error for shadowing member usage
+          for (SearchMatch reference : references) {
+            if (SourceRangeUtils.intersects(reference.getSourceRange(), subType.getSourceRange())) {
+              String message = Messages.format(
+                  RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_typeMember,
+                  new Object[] {
+                      elementTypeName, RenameAnalyzeUtil.getElementTypeName(parameter),
+                      subType.getElementName(), newName, resourcePath,});
+              result.addError(message, DartStatusContext.create(reference));
+            }
+          }
+        }
+      }
+      // check for declared members of sub-types
+      if (!Objects.equal(subType, enclosingType)) {
+        // analyze TypeMember children
+        TypeMember[] subTypeMembers = subType.getExistingMembers(newName);
+        for (TypeMember subTypeMember : subTypeMembers) {
+          // add warning for hiding Renamed declaration
+          {
+            String message = Messages.format(
+                RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_typeMember,
+                new Object[] {
+                    elementTypeName, RenameAnalyzeUtil.getElementTypeName(subTypeMember),
+                    subType.getElementName(), newName,
+                    BasicElementLabels.getPathLabel(resourcePath, false)});
+            result.addWarning(message, DartStatusContext.create(subTypeMember));
+          }
+          // add error for hiding Renamed usage
+          {
+            List<Type> subTypes2 = RenameAnalyzeUtil.getSubTypes(subType);
+            subTypes2.add(subType);
+            for (SearchMatch ref : references) {
+              Type refEnclosingType = ref.getElement().getAncestor(Type.class);
+              if (subTypes2.contains(refEnclosingType)) {
+                String message = Messages.format(
+                    RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_typeMember,
+                    new Object[] {
+                        elementTypeName, RenameAnalyzeUtil.getElementTypeName(subTypeMember),
+                        subType.getElementName(), newName,
+                        BasicElementLabels.getPathLabel(resourcePath, false)});
+                result.addError(message, DartStatusContext.create(ref));
+              }
+            }
+          }
+        }
+      }
+      // check for local variables
+      for (Method method : subType.getMethods()) {
+        List<FunctionLocalElement> localVariables = RenameAnalyzeUtil.getFunctionLocalElements(method);
+        for (FunctionLocalElement variable : localVariables) {
+          if (variable.getElementName().equals(newName)) {
+            CompilationUnitElement variableElement = variable.getElement();
+            // add warning for hiding Renamed declaration
+            {
+              String message = Messages.format(
+                  RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_variable_inMethod,
+                  new Object[] {
+                      elementTypeName, RenameAnalyzeUtil.getElementTypeName(variableElement),
+                      subType.getElementName(), method.getElementName(),
+                      BasicElementLabels.getPathLabel(resourcePath, false)});
+              result.addWarning(message, DartStatusContext.create(variableElement));
+            }
+            // add error for hiding Renamed usage
+            for (SearchMatch match : references) {
+              if (SourceRangeUtils.intersects(match.getSourceRange(), variable.getVisibleRange())) {
+                String message = Messages.format(
+                    RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_variable_inMethod,
+                    new Object[] {
+                        elementTypeName, RenameAnalyzeUtil.getElementTypeName(variableElement),
+                        subType.getElementName(), method.getElementName(),
+                        BasicElementLabels.getPathLabel(resourcePath, false)});
+                result.addError(message, DartStatusContext.create(match));
+              }
+            }
+          }
+        }
+      }
+    }
+    pm.worked(1);
+    // OK
+    return result;
+  }
 
+  protected final TypeMember member;
   private final String oldName;
   private final TextChangeManager changeManager = new TextChangeManager(true);
+
   private List<SearchMatch> declarations;
 
   private List<SearchMatch> references;
@@ -204,256 +443,24 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
 
   private RefactoringStatus analyzePossibleConflicts(IProgressMonitor pm) throws CoreException {
     pm.beginTask("Analyze possible conflicts", 3);
-    try {
-      RefactoringStatus result = new RefactoringStatus();
-      String newName = getNewElementName();
-      Type enclosingType = member.getAncestor(Type.class);
-      List<Type> subTypes = RenameAnalyzeUtil.getSubTypes(enclosingType);
-      Iterable<Type> enclosingAndSubTypes = Iterables.concat(
-          ImmutableSet.of(enclosingType),
-          subTypes);
-      // add error if will become private
-      result.merge(RenameAnalyzeUtil.checkBecomePrivate(oldName, newName, member, references));
-      // analyze top-level elements
-      pm.subTask("Analyze top-level elements");
-      {
-        CompilationUnitElement topLevelElement = RenameAnalyzeUtil.getTopLevelElementNamed(
-            member,
-            newName);
-        if (topLevelElement != null) {
-          DartLibrary shadowLibrary = topLevelElement.getAncestor(DartLibrary.class);
-          IPath libraryPath = shadowLibrary.getResource().getFullPath();
-          IPath resourcePath = topLevelElement.getResource().getFullPath();
-          // add warning for shadowing top-level declaration
-          {
-            String message = Messages.format(
-                RefactoringCoreMessages.RenameProcessor_topLevelDecl_shadowedBy_element,
-                new Object[] {
-                    RenameAnalyzeUtil.getElementTypeName(topLevelElement), newName,
-                    BasicElementLabels.getPathLabel(resourcePath, false),
-                    BasicElementLabels.getPathLabel(libraryPath, false),
-                    RenameAnalyzeUtil.getElementTypeName(member)});
-            result.addWarning(message, DartStatusContext.create(topLevelElement));
-          }
-          // TypeMember shadows top-level element usage in enclosing type
-          {
-            List<SearchMatch> refs = RenameAnalyzeUtil.getReferences(topLevelElement, null);
-            for (SearchMatch ref : refs) {
-              if (SourceRangeUtils.intersects(ref.getSourceRange(), enclosingType.getSourceRange())) {
-                String message = Messages.format(
-                    RefactoringCoreMessages.RenameProcessor_topLevelUsage_shadowedBy_element,
-                    new Object[] {
-                        RenameAnalyzeUtil.getElementTypeName(topLevelElement), newName,
-                        BasicElementLabels.getPathLabel(resourcePath, false),
-                        BasicElementLabels.getPathLabel(libraryPath, false),
-                        RenameAnalyzeUtil.getElementTypeName(member)});
-                result.addError(message, DartStatusContext.create(ref));
-              }
-            }
-          }
-          // top-level element shadows TypeMember usage in sub-type
-          // http://code.google.com/p/dart/issues/detail?id=1180
-          for (Type subType : subTypes) {
-            for (SearchMatch ref : references) {
-              if (SourceRangeUtils.intersects(ref.getSourceRange(), subType.getSourceRange())) {
-                String message = Messages.format(
-                    RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_topLevel,
-                    new Object[] {
-                        RenameAnalyzeUtil.getElementTypeName(member),
-                        enclosingType.getElementName(), member.getElementName(),
-                        RenameAnalyzeUtil.getElementTypeName(topLevelElement), newName,
-                        BasicElementLabels.getPathLabel(resourcePath, false),
-                        BasicElementLabels.getPathLabel(libraryPath, false)});
-                result.addError(message, DartStatusContext.create(ref));
-              }
-            }
-          }
-        }
-      }
-      // analyze supertypes
-      pm.subTask("Analyze supertypes");
-      {
-        Set<Type> superTypes = RenameAnalyzeUtil.getSuperTypes(enclosingType);
-        for (Type superType : superTypes) {
-          TypeMember[] superTypeMembers = superType.getExistingMembers(newName);
-          for (TypeMember superTypeMember : superTypeMembers) {
-            // add warning for hiding super-type TypeMember
-            {
-              IPath resourcePath = superType.getResource().getFullPath();
-              String message = Messages.format(
-                  RefactoringCoreMessages.RenameProcessor_typeMemberDecl_shadowedBy_element,
-                  new Object[] {
-                      RenameAnalyzeUtil.getElementTypeName(superTypeMember),
-                      superType.getElementName(), newName,
-                      BasicElementLabels.getPathLabel(resourcePath, false),
-                      RenameAnalyzeUtil.getElementTypeName(member)});
-              result.addWarning(message, DartStatusContext.create(superTypeMember));
-            }
-            // add error for using hidden super-type TypeMember
-            {
-              List<SearchMatch> refs = RenameAnalyzeUtil.getReferences(superTypeMember, null);
-              for (SearchMatch ref : refs) {
-                for (Type subType : enclosingAndSubTypes) {
-                  if (SourceRangeUtils.intersects(ref.getSourceRange(), subType.getSourceRange())) {
-                    IPath resourcePath = superType.getResource().getFullPath();
-                    String message = Messages.format(
-                        RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_element,
-                        new Object[] {
-                            RenameAnalyzeUtil.getElementTypeName(superTypeMember),
-                            superType.getElementName(), newName,
-                            BasicElementLabels.getPathLabel(resourcePath, false),
-                            RenameAnalyzeUtil.getElementTypeName(member)});
-                    result.addError(message, DartStatusContext.create(ref));
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-      pm.worked(1);
-      // analyze [sub-]type members
-      pm.subTask("Analyze subtypes");
-      for (Type subType : enclosingAndSubTypes) {
-        boolean isEnclosingType = subType == enclosingType;
-        IPath resourcePath = subType.getPath();
-        // TypeParameter shadowed by Renamed in enclosing type
-        if (isEnclosingType) {
-          DartTypeParameter[] typeParameters = subType.getTypeParameters();
-          for (DartTypeParameter parameter : typeParameters) {
-            if (Objects.equal(parameter.getElementName(), newName)) {
-              // add warning for shadowing TypeParameter declaration
-              {
-                String message = Messages.format(
-                    RefactoringCoreMessages.RenameProcessor_typeMemberDecl_shadowedBy_element,
-                    new Object[] {
-                        RenameAnalyzeUtil.getElementTypeName(parameter), subType.getElementName(),
-                        newName, resourcePath, RenameAnalyzeUtil.getElementTypeName(member),});
-                result.addWarning(message, DartStatusContext.create(parameter));
-              }
-              // add error for shadowing TypeParameter usage
-              List<SourceRange> parameterReferences = RenameAnalyzeUtil.getReferences(parameter);
-              for (SourceRange parameterReference : parameterReferences) {
-                if (SourceRangeUtils.intersects(parameterReference, subType.getSourceRange())) {
-                  String message = Messages.format(
-                      RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_element,
-                      new Object[] {
-                          RenameAnalyzeUtil.getElementTypeName(parameter),
-                          subType.getElementName(), newName, resourcePath,
-                          RenameAnalyzeUtil.getElementTypeName(member),});
-                  result.addError(
-                      message,
-                      DartStatusContext.create(subType.getCompilationUnit(), parameterReference));
-                }
-              }
-            }
-          }
-        }
-        // TypeParameter shadows Renamed in sub-types
-        if (!isEnclosingType) {
-          DartTypeParameter[] typeParameters = subType.getTypeParameters();
-          for (DartTypeParameter parameter : typeParameters) {
-            // add warning for shadowing member declaration
-            {
-              String message = Messages.format(
-                  RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_typeMember,
-                  new Object[] {
-                      RenameAnalyzeUtil.getElementTypeName(member),
-                      RenameAnalyzeUtil.getElementTypeName(parameter), subType.getElementName(),
-                      newName, resourcePath,});
-              result.addWarning(message, DartStatusContext.create(parameter));
-            }
-            // add error for shadowing member usage
-            for (SearchMatch reference : references) {
-              if (SourceRangeUtils.intersects(reference.getSourceRange(), subType.getSourceRange())) {
-                String message = Messages.format(
-                    RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_typeMember,
-                    new Object[] {
-                        RenameAnalyzeUtil.getElementTypeName(member),
-                        RenameAnalyzeUtil.getElementTypeName(parameter), subType.getElementName(),
-                        newName, resourcePath,});
-                result.addError(message, DartStatusContext.create(reference));
-              }
-            }
-          }
-        }
-        // check for declared members of sub-types
-        if (!Objects.equal(subType, enclosingType)) {
-          // analyze TypeMember children
-          TypeMember[] subTypeMembers = subType.getExistingMembers(newName);
-          for (TypeMember subTypeMember : subTypeMembers) {
-            // add warning for hiding Renamed declaration
-            {
-              String message = Messages.format(
-                  RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_typeMember,
-                  new Object[] {
-                      RenameAnalyzeUtil.getElementTypeName(member),
-                      RenameAnalyzeUtil.getElementTypeName(subTypeMember),
-                      subType.getElementName(), newName,
-                      BasicElementLabels.getPathLabel(resourcePath, false)});
-              result.addWarning(message, DartStatusContext.create(subTypeMember));
-            }
-            // add error for hiding Renamed usage
-            {
-              List<Type> subTypes2 = RenameAnalyzeUtil.getSubTypes(subType);
-              subTypes2.add(subType);
-              for (SearchMatch ref : references) {
-                Type refEnclosingType = ref.getElement().getAncestor(Type.class);
-                if (subTypes2.contains(refEnclosingType)) {
-                  String message = Messages.format(
-                      RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_typeMember,
-                      new Object[] {
-                          RenameAnalyzeUtil.getElementTypeName(member),
-                          RenameAnalyzeUtil.getElementTypeName(subTypeMember),
-                          subType.getElementName(), newName,
-                          BasicElementLabels.getPathLabel(resourcePath, false)});
-                  result.addError(message, DartStatusContext.create(ref));
-                }
-              }
-            }
-          }
-        }
-        // check for local variables
-        for (Method method : subType.getMethods()) {
-          List<FunctionLocalElement> localVariables = RenameAnalyzeUtil.getFunctionLocalElements(method);
-          for (FunctionLocalElement variable : localVariables) {
-            if (variable.getElementName().equals(newName)) {
-              CompilationUnitElement variableElement = variable.getElement();
-              // add warning for hiding Renamed declaration
-              {
-                String message = Messages.format(
-                    RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_variable_inMethod,
-                    new Object[] {
-                        RenameAnalyzeUtil.getElementTypeName(member),
-                        RenameAnalyzeUtil.getElementTypeName(variableElement),
-                        subType.getElementName(), method.getElementName(),
-                        BasicElementLabels.getPathLabel(resourcePath, false)});
-                result.addWarning(message, DartStatusContext.create(variableElement));
-              }
-              // add error for hiding Renamed usage
-              for (SearchMatch match : references) {
-                if (SourceRangeUtils.intersects(match.getSourceRange(), variable.getVisibleRange())) {
-                  String message = Messages.format(
-                      RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_variable_inMethod,
-                      new Object[] {
-                          RenameAnalyzeUtil.getElementTypeName(member),
-                          RenameAnalyzeUtil.getElementTypeName(variableElement),
-                          subType.getElementName(), method.getElementName(),
-                          BasicElementLabels.getPathLabel(resourcePath, false)});
-                  result.addError(message, DartStatusContext.create(match));
-                }
-              }
-            }
-          }
-        }
-      }
-      pm.worked(1);
-
-      // OK
-      return result;
-    } finally {
-      pm.done();
-    }
+    RefactoringStatus result = new RefactoringStatus();
+    // add error if will become private
+    result.merge(RenameAnalyzeUtil.checkBecomePrivate(oldName, newName, member, references));
+    pm.worked(1);
+    // analyze conflicts
+    int elementType = member.getElementType();
+    Type enclosingType = member.getAncestor(Type.class);
+    result.merge(analyzePossibleConflicts(
+        elementType,
+        enclosingType,
+        oldName,
+        references,
+        newName,
+        pm));
+    pm.worked(2);
+    // done
+    pm.done();
+    return result;
   }
 
   private void createChanges(IProgressMonitor pm) throws CoreException {

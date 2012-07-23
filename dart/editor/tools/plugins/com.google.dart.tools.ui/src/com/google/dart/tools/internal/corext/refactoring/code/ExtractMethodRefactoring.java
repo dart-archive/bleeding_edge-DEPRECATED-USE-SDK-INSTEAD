@@ -19,12 +19,14 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBlock;
+import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.VariableElement;
@@ -33,12 +35,19 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
+import com.google.dart.tools.core.search.SearchMatch;
+import com.google.dart.tools.core.utilities.bindings.BindingUtils;
 import com.google.dart.tools.internal.corext.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.dom.ASTNodes;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameTopLevelProcessor;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeMemberProcessor;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.internal.text.Selection;
 
@@ -48,6 +57,7 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
@@ -95,6 +105,24 @@ public class ExtractMethodRefactoring extends Refactoring {
   private static final String TOKEN_SEPARATOR = "\uFFFF";
 
   /**
+   * Basically just replaces "renamed" with "created" in all messages.
+   */
+  private static RefactoringStatus convertRenameToCreateStatus(RefactoringStatus renameStatus) {
+    RefactoringStatus result = new RefactoringStatus();
+    for (RefactoringStatusEntry entry : renameStatus.getEntries()) {
+      String msg = entry.getMessage();
+      msg = RenameAnalyzeUtil.convertRenameMessageToCreateMessage(msg);
+      result.addEntry(
+          entry.getSeverity(),
+          msg,
+          entry.getContext(),
+          entry.getPluginId(),
+          entry.getCode());
+    }
+    return result;
+  }
+
+  /**
    * @return the "normalized" version of the given source, which is built form tokens, so ignores
    *         all comments and spaces.
    */
@@ -103,26 +131,39 @@ public class ExtractMethodRefactoring extends Refactoring {
     return StringUtils.join(selectionTokens, TOKEN_SEPARATOR);
   }
 
+  /**
+   * @return <code>true</code> if given {@link DartNode} is left hand side of assignment, or
+   *         declaration of the variable.
+   */
+  private static boolean isLeftHandOfAssignment(DartIdentifier node) {
+    if (Elements.inSetterContext(node)) {
+      return true;
+    }
+    return PropertyDescriptorHelper.getLocationInParent(node) == PropertyDescriptorHelper.DART_VARIABLE_NAME;
+  }
+
   private final CompilationUnit unit;
   private final int selectionStart;
   private final int selectionLength;
+
   private final SourceRange selectionRange;
   private final CompilationUnitChange change;
-
   private ExtractUtils utils;
   private DartUnit unitNode;
   private final List<ParameterInfo> parameters = Lists.newArrayList();
+
   private final Set<String> usedNames = Sets.newHashSet();
   private VariableElement returnVariable;
-
   private ExtractMethodAnalyzer selectionAnalyzer;
   private DartClassMember<?> parentMember;
   private DartExpression selectionExpression;
+
   private List<DartStatement> selectionStatements;
   private final Map<String, List<SourceRange>> selectionParametersToRanges = Maps.newHashMap();
-
   private final List<Occurrence> occurrences = Lists.newArrayList();
+
   private String methodName;
+
   private boolean replaceAllOccurrences = true;
 
   private static final String EMPTY = ""; //$NON-NLS-1$
@@ -136,17 +177,6 @@ public class ExtractMethodRefactoring extends Refactoring {
       return (VariableElement) node.getElement();
     }
     return null;
-  }
-
-  /**
-   * @return <code>true</code> if given {@link DartNode} is left hand side of assignment, or
-   *         declaration of the variable.
-   */
-  private static boolean isLeftHandOfAssignment(DartIdentifier node) {
-    if (Elements.inSetterContext(node)) {
-      return true;
-    }
-    return PropertyDescriptorHelper.getLocationInParent(node) == PropertyDescriptorHelper.DART_VARIABLE_NAME;
   }
 
   public ExtractMethodRefactoring(CompilationUnit unit, int selectionStart, int selectionLength) {
@@ -432,21 +462,36 @@ public class ExtractMethodRefactoring extends Refactoring {
    * Checks if created method will shadow or will be shadowed by other elements.
    */
   private RefactoringStatus checkPossibleConflicts(IProgressMonitor pm) throws CoreException {
-    final RefactoringStatus result = new RefactoringStatus();
-    // TODO(scheglov)
-//    // top-level function
-//    if (parentMember.getParent() instanceof DartUnit) {
-//      List<SearchMatch> references = Lists.newArrayList();
-//      return RenameTopLevelProcessor.analyzePossibleConflicts(unit.getLibrary(), Messages.format(
-//          RefactoringCoreMessages.RenameProcessor_elementTypeName,
-//          DartElement.FUNCTION), false, references, methodName, pm);
-//    }
-//    // method of class
-//    if (parentMember.getParent() instanceof DartClass) {
-//      ClassElement classElement = (ClassElement) parentMember.getParent().getElement();
-//    }
-    // done
-    return result;
+    List<SearchMatch> references = Lists.newArrayList();
+    // top-level function
+    if (parentMember.getParent() instanceof DartUnit) {
+      RefactoringStatus conflictsStatus = RenameTopLevelProcessor.analyzePossibleConflicts(
+          unit.getLibrary(),
+          DartElement.FUNCTION,
+          false,
+          references,
+          methodName);
+      if (!conflictsStatus.isOK()) {
+        return convertRenameToCreateStatus(conflictsStatus);
+      }
+    }
+    // method of class
+    if (parentMember.getParent() instanceof DartClass) {
+      ClassElement enclosingClassElement = (ClassElement) parentMember.getParent().getElement();
+      Type enclosingType = (Type) BindingUtils.getDartElement(enclosingClassElement);
+      RefactoringStatus conflictsStatus = RenameTypeMemberProcessor.analyzePossibleConflicts(
+          DartElement.FUNCTION,
+          enclosingType,
+          methodName,
+          references,
+          methodName,
+          pm);
+      if (!conflictsStatus.isOK()) {
+        return convertRenameToCreateStatus(conflictsStatus);
+      }
+    }
+    // OK
+    return new RefactoringStatus();
   }
 
   /**

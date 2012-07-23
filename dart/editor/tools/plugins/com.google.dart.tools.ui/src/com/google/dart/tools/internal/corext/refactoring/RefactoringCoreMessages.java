@@ -28,6 +28,8 @@ public final class RefactoringCoreMessages extends NLS {
   ///////////////////////////////////////////////////////////////////////////////////////
   // Rename refactoring
   ///////////////////////////////////////////////////////////////////////////////////////
+  public static String RenameProcessor_wordRenamed;
+  public static String RenameProcessor_wordCreated;
   public static String RenameProcessor_willBecomePrivate;
   public static String RenameProcessor_notLocal;
   public static String RenameProcessor_elementTypeName;

@@ -368,6 +368,106 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
     }
   }
 
+  public void test_bad_conflict_method_willHideTopLevel() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "void res() {}",
+        "class B extends A {",
+        "  foo() {",
+        "// start",
+        "    print(0);",
+        "// end",
+        "  }",
+        "  foo() {",
+        "    res();",
+        "  }",
+        "}",
+        "");
+    TestProject.waitForAutoBuild();
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.ERROR);
+      assertEquals(
+          "Usage of function 'res' in file 'Test/Test.dart' in library 'Test' will be shadowed by created function",
+          msg);
+    }
+  }
+
+  public void test_bad_conflict_topLevel_alreadyDeclaresFunction() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "void res() {}",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "// end",
+        "}",
+        "");
+    TestProject.waitForAutoBuild();
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.ERROR);
+      assertEquals(
+          "File 'Test/Test.dart' in library 'Test' already declares top-level function 'res'",
+          msg);
+    }
+  }
+
+  public void test_bad_conflict_topLevel_alreadyDeclaresType() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class res {}",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "// end",
+        "}",
+        "");
+    TestProject.waitForAutoBuild();
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.ERROR);
+      assertEquals(
+          "File 'Test/Test.dart' in library 'Test' already declares top-level type 'res'",
+          msg);
+    }
+  }
+
+  public void test_bad_conflict_topLevel_willHideInheritedMemberUsage() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  void res() {}",
+        "}",
+        "class B extends A {",
+        "  foo() {",
+        "    res();",
+        "  }",
+        "}",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "// end",
+        "}",
+        "");
+    TestProject.waitForAutoBuild();
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.ERROR);
+      assertEquals(
+          "Usage of method 'A.res' declared in 'Test/Test.dart' will be shadowed by created function",
+          msg);
+    }
+  }
+
   public void test_bad_constructor_initializer() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
