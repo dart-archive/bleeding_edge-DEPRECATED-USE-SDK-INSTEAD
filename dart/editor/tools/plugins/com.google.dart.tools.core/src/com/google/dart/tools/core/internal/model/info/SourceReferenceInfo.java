@@ -34,7 +34,7 @@ public class SourceReferenceInfo extends DartElementInfo {
   }
 
   public SourceRange getSourceRange() {
-    return new SourceRangeImpl(sourceRangeStart, sourceRangeEnd - sourceRangeStart + 1);
+    return new SourceRangeImpl(sourceRangeStart, sourceRangeEnd - sourceRangeStart);
   }
 
   public void setSourceRangeEnd(int end) {

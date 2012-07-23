@@ -1218,100 +1218,6 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "");
   }
 
-  public void test_singleExpression_occurrences_extractInstance() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  instanceMethodA() {",
-        "    int v1 = 1;",
-        "    int v2 = 2;",
-        "    int positiveA = v1 + v2; // marker",
-        "  }",
-        "  instanceMethodB() {",
-        "    int v1 = 1;",
-        "    int v2 = 2;",
-        "    int positiveB = v1 + v2;",
-        "  }",
-        "  static staticMethodA() {",
-        "    int v1 = 1;",
-        "    int v2 = 2;",
-        "    int positiveA = v1 + v2;",
-        "  }",
-        "}",
-        "");
-    selectionStart = findOffset("v1 +");
-    selectionEnd = findOffset("; // marker");
-    doSuccessfullRefactoring();
-    assertTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  instanceMethodA() {",
-        "    int v1 = 1;",
-        "    int v2 = 2;",
-        "    int positiveA = res(v1, v2); // marker",
-        "  }",
-        "  int res(int v1, int v2) => v1 + v2;",
-        "  instanceMethodB() {",
-        "    int v1 = 1;",
-        "    int v2 = 2;",
-        "    int positiveB = res(v1, v2);",
-        "  }",
-        "  static staticMethodA() {",
-        "    int v1 = 1;",
-        "    int v2 = 2;",
-        "    int positiveA = v1 + v2;",
-        "  }",
-        "}",
-        "");
-  }
-
-  public void test_singleExpression_occurrences_extractStatic() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  static staticMethodA() {",
-        "    int v1 = 1;",
-        "    int v2 = 2;",
-        "    int positiveA = v1 + v2; // marker",
-        "  }",
-        "  static staticMethodB() {",
-        "    int v1 = 1;",
-        "    int v2 = 2;",
-        "    int positiveB = v1 + v2;",
-        "  }",
-        "  instanceMethodA() {",
-        "    int v1 = 1;",
-        "    int v2 = 2;",
-        "    int positiveA = v1 + v2;",
-        "  }",
-        "}",
-        "");
-    selectionStart = findOffset("v1 +");
-    selectionEnd = findOffset("; // marker");
-    doSuccessfullRefactoring();
-    assertTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  static staticMethodA() {",
-        "    int v1 = 1;",
-        "    int v2 = 2;",
-        "    int positiveA = res(v1, v2); // marker",
-        "  }",
-        "  static int res(int v1, int v2) => v1 + v2;",
-        "  static staticMethodB() {",
-        "    int v1 = 1;",
-        "    int v2 = 2;",
-        "    int positiveB = res(v1, v2);",
-        "  }",
-        "  instanceMethodA() {",
-        "    int v1 = 1;",
-        "    int v2 = 2;",
-        "    int positiveA = res(v1, v2);",
-        "  }",
-        "}",
-        "");
-  }
-
   public void test_singleExpression_occurrences_inClassOnly() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1382,6 +1288,156 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "    int v2 = 2;",
         "    int positiveB = res(v1, v2);",
         "  }",
+        "}",
+        "");
+  }
+
+  public void test_singleExpression_staticContext_extractFromInitializer() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A(int v) {}",
+        "}",
+        "class B extends A {",
+        "  B() : super(1 + 2) {}",
+        "}",
+        "");
+    selectionStart = findOffset("1 + 2");
+    selectionEnd = findOffset("2) {}") + 1;
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A(int v) {}",
+        "}",
+        "class B extends A {",
+        "  B() : super(res()) {}",
+        "  static int res() => 1 + 2;",
+        "}",
+        "");
+  }
+
+  public void test_singleExpression_staticContext_extractFromInstance() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  instanceMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = v1 + v2; // marker",
+        "  }",
+        "  instanceMethodB() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveB = v1 + v2;",
+        "  }",
+        "  static staticMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = v1 + v2;",
+        "  }",
+        "}",
+        "");
+    selectionStart = findOffset("v1 +");
+    selectionEnd = findOffset("; // marker");
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  instanceMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = res(v1, v2); // marker",
+        "  }",
+        "  static int res(int v1, int v2) => v1 + v2;",
+        "  instanceMethodB() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveB = res(v1, v2);",
+        "  }",
+        "  static staticMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = res(v1, v2);",
+        "  }",
+        "}",
+        "");
+  }
+
+  public void test_singleExpression_staticContext_extractFromStatic() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static staticMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = v1 + v2; // marker",
+        "  }",
+        "  static staticMethodB() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveB = v1 + v2;",
+        "  }",
+        "  instanceMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = v1 + v2;",
+        "  }",
+        "}",
+        "");
+    selectionStart = findOffset("v1 +");
+    selectionEnd = findOffset("; // marker");
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static staticMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = res(v1, v2); // marker",
+        "  }",
+        "  static int res(int v1, int v2) => v1 + v2;",
+        "  static staticMethodB() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveB = res(v1, v2);",
+        "  }",
+        "  instanceMethodA() {",
+        "    int v1 = 1;",
+        "    int v2 = 2;",
+        "    int positiveA = res(v1, v2);",
+        "  }",
+        "}",
+        "");
+  }
+
+  public void test_singleExpression_staticContext_hasInInitializer() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A(int v) {}",
+        "}",
+        "class B extends A {",
+        "  B() : super(1 + 2) {}",
+        "  foo() {",
+        "    print(1 + 2); // marker",
+        "  }",
+        "}",
+        "");
+    selectionStart = findOffset("1 + 2); // marker");
+    selectionEnd = findOffset("2); // marker") + 1;
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A(int v) {}",
+        "}",
+        "class B extends A {",
+        "  B() : super(res()) {}",
+        "  foo() {",
+        "    print(res()); // marker",
+        "  }",
+        "  static int res() => 1 + 2;",
         "}",
         "");
   }

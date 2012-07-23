@@ -660,6 +660,7 @@ public final class RefactoringCoreMessages extends NLS {
   public static String ExtractMethodAnalyzer_super_or_this;
 
   public static String ExtractMethodRefactoring_add_method;
+  public static String ExtractMethodRefactoring_add_method_expression;
 
   public static String ExtractMethodRefactoring_change_name;
 
