@@ -31,6 +31,9 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.ProblemsLabelDecorator.ProblemsLabelChangedEvent;
+import com.google.dart.tools.ui.actions.DartSearchActionGroup;
+import com.google.dart.tools.ui.actions.OpenViewActionGroup;
+import com.google.dart.tools.ui.actions.RefactorActionGroup;
 import com.google.dart.tools.ui.internal.actions.AbstractToggleLinkingAction;
 import com.google.dart.tools.ui.internal.libraryview.LibraryExplorerContentProvider;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
@@ -83,6 +86,8 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.OpenAndLinkWithEditorHelper;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.actions.ActionContext;
+import org.eclipse.ui.actions.ActionGroup;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 import org.eclipse.ui.model.WorkbenchAdapter;
 import org.eclipse.ui.part.IPageSite;
@@ -820,7 +825,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
   //private ToggleLinkingAction fToggleLinkingAction;
 
-  //private CompositeActionGroup fActionGroups;
+  private CompositeActionGroup fActionGroups;
 
   private IPropertyChangeListener fPropertyChangeListener;
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
@@ -918,7 +923,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     manager.addMenuListener(new IMenuListener() {
       @Override
       public void menuAboutToShow(IMenuManager m) {
-        //contextMenuAboutToShow(m);
+        contextMenuAboutToShow(m);
       }
     });
     fMenu = manager.createContextMenu(tree);
@@ -931,14 +936,10 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
     // we must create the groups after we have set the selection provider to the
     // site
-    DartX.todo();
-    //fActionGroups = new CompositeActionGroup(new ActionGroup[] {
-//        new OpenViewActionGroup(this), new CCPActionGroup(this),
-//    new GenerateActionGroup(this),
-//        new RefactorActionGroup(this),
-//        new JavaSearchActionGroup(this)
-//        new DartSearchActionGroup(this)
-//        });
+
+    fActionGroups = new CompositeActionGroup(new ActionGroup[] {
+        new OpenViewActionGroup(this), new RefactorActionGroup(this),
+        new DartSearchActionGroup(this)});
 
     // register global actions
     IActionBars actionBars = site.getActionBars();
@@ -963,7 +964,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
         fTogglePresentation);
 
     DartX.todo();
-    //fActionGroups.fillActionBars(actionBars);
+    fActionGroups.fillActionBars(actionBars);
 
     IStatusLineManager statusLineManager = actionBars.getStatusLineManager();
     if (statusLineManager != null) {
@@ -1051,10 +1052,9 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
       fMenu = null;
     }
 
-    DartX.todo();
-    //if (fActionGroups != null) {
-    //  fActionGroups.dispose();
-    //}
+    if (fActionGroups != null) {
+      fActionGroups.dispose();
+    }
 
     fTogglePresentation.setEditor(null);
 
@@ -1232,10 +1232,9 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
     DartToolsPlugin.createStandardGroups(menu);
 
-//    IStructuredSelection selection = (IStructuredSelection) getSelection();
-    DartX.todo();
-    //fActionGroups.setContext(new ActionContext(selection));
-    //fActionGroups.fillContextMenu(menu);
+    IStructuredSelection selection = (IStructuredSelection) getSelection();
+    fActionGroups.setContext(new ActionContext(selection));
+    fActionGroups.fillContextMenu(menu);
   }
 
   /**
