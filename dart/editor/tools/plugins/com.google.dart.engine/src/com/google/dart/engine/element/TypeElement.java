@@ -35,15 +35,6 @@ public interface TypeElement extends Element {
   public ConstructorElement[] getConstructors();
 
   /**
-   * If this type represents an interface, return the default class for the interface. Return
-   * {@code null} if either the interface does not have a default class or this type represents a
-   * class.
-   * 
-   * @return the default class for this type
-   */
-  public Type getDefaultClass();
-
-  /**
    * Return an array containing all of the fields contained in this type.
    * 
    * @return the fields contained in this type
@@ -51,9 +42,9 @@ public interface TypeElement extends Element {
   public FieldElement[] getFields();
 
   /**
-   * Return an array containing all of the interfaces that are implemented or extended by this type.
+   * Return an array containing all of the interfaces that are implemented by this type.
    * 
-   * @return the interfaces that are implemented or extended by this type
+   * @return the interfaces that are implemented by this type
    */
   public Type[] getInterfaces();
 
@@ -65,8 +56,8 @@ public interface TypeElement extends Element {
   public MethodElement[] getMethods();
 
   /**
-   * If this type represents a class, return the superclass of the class. Return {@code null} if
-   * either the class does not have an explicit superclass or if this type represents an interface.
+   * Return the superclass of the class. Return {@code null} if the class does not have an explicit
+   * superclass.
    * 
    * @return the superclass of this type
    */
@@ -80,9 +71,9 @@ public interface TypeElement extends Element {
   public TypeVariableElement[] getTypeVariables();
 
   /**
-   * Return {@code true} if this type is abstract. A type is abstract if it is an interface, it has
-   * an explicit {@code abstract} modifier, or it has an abstract method. Note, that this definition
-   * of <i>abstract</i> is different from <i>has unimplemented members</i>.
+   * Return {@code true} if this type is abstract. A type is abstract if it has an explicit
+   * {@code abstract} modifier or it explicitly defines at least one abstract method. Note, that
+   * this definition of <i>abstract</i> is different from <i>has unimplemented members</i>.
    * 
    * @return {@code true} if this type is abstract
    */

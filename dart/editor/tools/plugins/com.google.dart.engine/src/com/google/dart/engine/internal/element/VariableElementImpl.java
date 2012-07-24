@@ -85,7 +85,9 @@ public class VariableElementImpl extends ElementImpl implements VariableElement 
    * @param initializer the function representing this variable's initializer
    */
   public void setInitializer(FunctionElement initializer) {
-    ((FunctionElementImpl) initializer).setEnclosingElement(this);
+    if (initializer != null) {
+      ((FunctionElementImpl) initializer).setEnclosingElement(this);
+    }
     this.initializer = initializer;
   }
 }

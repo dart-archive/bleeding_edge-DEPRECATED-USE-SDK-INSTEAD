@@ -84,8 +84,10 @@ public class TypeAliasElementImpl extends ElementImpl implements TypeAliasElemen
    * @param parameters the parameters defined by this type alias
    */
   public void setParameters(VariableElement[] parameters) {
-    for (VariableElement parameter : parameters) {
-      ((VariableElementImpl) parameter).setEnclosingElement(this);
+    if (parameters != null) {
+      for (VariableElement parameter : parameters) {
+        ((VariableElementImpl) parameter).setEnclosingElement(this);
+      }
     }
     this.parameters = parameters;
   }

@@ -38,12 +38,6 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
   private ConstructorElement[] constructors = ConstructorElementImpl.EMPTY_ARRAY;
 
   /**
-   * The default class for the interface, or {@code null} if either the interface does not have a
-   * default class or this type represents a class.
-   */
-  private Type defaultClass;
-
-  /**
    * An array containing all of the fields contained in this type.
    */
   private FieldElement[] fields = FieldElementImpl.EMPTY_ARRAY;
@@ -91,11 +85,6 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
   @Override
   public ConstructorElement[] getConstructors() {
     return constructors;
-  }
-
-  @Override
-  public Type getDefaultClass() {
-    return defaultClass;
   }
 
   @Override
@@ -171,15 +160,6 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
       ((ConstructorElementImpl) constructor).setEnclosingElement(this);
     }
     this.constructors = constructors;
-  }
-
-  /**
-   * Set the default class for the interface to the given type.
-   * 
-   * @param defaultClass the default class for the interface
-   */
-  public void setDefaultClass(Type defaultClass) {
-    this.defaultClass = defaultClass;
   }
 
   /**
