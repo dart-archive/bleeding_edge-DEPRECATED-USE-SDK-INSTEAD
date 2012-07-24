@@ -24,14 +24,12 @@ import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
-import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
-import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.DoubleLiteral;
@@ -43,7 +41,6 @@ import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
-import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
@@ -81,12 +78,10 @@ import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
-import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SuperExpression;
-import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.ThrowStatement;
@@ -293,29 +288,25 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseArgumentList_empty() throws Exception {
     ArgumentList argumentList = parse("parseArgumentList", "()");
     NodeList<Expression> arguments = argumentList.getArguments();
-    assertNotNull(arguments);
-    assertEquals(0, arguments.size());
+    assertSize(0, arguments);
   }
 
   public void test_parseArgumentList_mixed() throws Exception {
     ArgumentList argumentList = parse("parseArgumentList", "(w, x, y: y, z: z)");
     NodeList<Expression> arguments = argumentList.getArguments();
-    assertNotNull(arguments);
-    assertEquals(4, arguments.size());
+    assertSize(4, arguments);
   }
 
   public void test_parseArgumentList_noNamed() throws Exception {
     ArgumentList argumentList = parse("parseArgumentList", "(x, y, z)");
     NodeList<Expression> arguments = argumentList.getArguments();
-    assertNotNull(arguments);
-    assertEquals(3, arguments.size());
+    assertSize(3, arguments);
   }
 
   public void test_parseArgumentList_onlyNamed() throws Exception {
     ArgumentList argumentList = parse("parseArgumentList", "(x: x, y: y)");
     NodeList<Expression> arguments = argumentList.getArguments();
-    assertNotNull(arguments);
-    assertEquals(2, arguments.size());
+    assertSize(2, arguments);
     assertTrue(arguments.get(0) instanceof NamedExpression);
     assertTrue(arguments.get(1) instanceof NamedExpression);
   }
@@ -357,7 +348,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(invocation.getFunction());
     ArgumentList argumentList = invocation.getArgumentList();
     assertNotNull(argumentList);
-    assertEquals(1, argumentList.getArguments().size());
+    assertSize(1, argumentList.getArguments());
   }
 
   public void test_parseBitwiseAndExpression_normal() throws Exception {
@@ -411,18 +402,14 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseBlock_empty() throws Exception {
     Block block = parse("parseBlock", "{}");
     assertNotNull(block.getLeftBracket());
-    NodeList<Statement> statements = block.getStatements();
-    assertNotNull(statements);
-    assertEquals(0, statements.size());
+    assertSize(0, block.getStatements());
     assertNotNull(block.getRightBracket());
   }
 
   public void test_parseBlock_nonEmpty() throws Exception {
     Block block = parse("parseBlock", "{;}");
     assertNotNull(block.getLeftBracket());
-    NodeList<Statement> statements = block.getStatements();
-    assertNotNull(statements);
-    assertEquals(1, statements.size());
+    assertSize(1, block.getStatements());
     assertNotNull(block.getRightBracket());
   }
 
@@ -461,9 +448,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(declaration.getClassKeyword());
     assertNotNull(declaration.getLeftBracket());
     assertNotNull(declaration.getName());
-    NodeList<ClassMember> members = declaration.getMembers();
-    assertNotNull(members);
-    assertEquals(0, members.size());
+    assertSize(0, declaration.getMembers());
     assertNotNull(declaration.getRightBracket());
     assertNull(declaration.getTypeParameters());
   }
@@ -477,9 +462,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(declaration.getClassKeyword());
     assertNotNull(declaration.getLeftBracket());
     assertNotNull(declaration.getName());
-    NodeList<ClassMember> members = declaration.getMembers();
-    assertNotNull(members);
-    assertEquals(0, members.size());
+    assertSize(0, declaration.getMembers());
     assertNotNull(declaration.getRightBracket());
     assertNull(declaration.getTypeParameters());
   }
@@ -493,9 +476,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(declaration.getClassKeyword());
     assertNotNull(declaration.getLeftBracket());
     assertNotNull(declaration.getName());
-    NodeList<ClassMember> members = declaration.getMembers();
-    assertNotNull(members);
-    assertEquals(0, members.size());
+    assertSize(0, declaration.getMembers());
     assertNotNull(declaration.getRightBracket());
     assertNull(declaration.getTypeParameters());
   }
@@ -509,9 +490,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(declaration.getClassKeyword());
     assertNotNull(declaration.getLeftBracket());
     assertNotNull(declaration.getName());
-    NodeList<ClassMember> members = declaration.getMembers();
-    assertNotNull(members);
-    assertEquals(0, members.size());
+    assertSize(0, declaration.getMembers());
     assertNotNull(declaration.getRightBracket());
     assertNull(declaration.getTypeParameters());
   }
@@ -527,9 +506,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(declaration.getClassKeyword());
     assertNotNull(declaration.getLeftBracket());
     assertNotNull(declaration.getName());
-    NodeList<ClassMember> members = declaration.getMembers();
-    assertNotNull(members);
-    assertEquals(0, members.size());
+    assertSize(0, declaration.getMembers());
     assertNotNull(declaration.getRightBracket());
     assertNull(declaration.getTypeParameters());
   }
@@ -543,9 +520,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(declaration.getClassKeyword());
     assertNotNull(declaration.getLeftBracket());
     assertNotNull(declaration.getName());
-    NodeList<ClassMember> members = declaration.getMembers();
-    assertNotNull(members);
-    assertEquals(0, members.size());
+    assertSize(0, declaration.getMembers());
     assertNotNull(declaration.getRightBracket());
     assertNull(declaration.getTypeParameters());
   }
@@ -559,9 +534,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(declaration.getClassKeyword());
     assertNotNull(declaration.getLeftBracket());
     assertNotNull(declaration.getName());
-    NodeList<ClassMember> members = declaration.getMembers();
-    assertNotNull(members);
-    assertEquals(1, members.size());
+    assertSize(1, declaration.getMembers());
     assertNotNull(declaration.getRightBracket());
     assertNull(declaration.getTypeParameters());
   }
@@ -575,12 +548,10 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(declaration.getClassKeyword());
     assertNotNull(declaration.getLeftBracket());
     assertNotNull(declaration.getName());
-    NodeList<ClassMember> members = declaration.getMembers();
-    assertNotNull(members);
-    assertEquals(0, members.size());
+    assertSize(0, declaration.getMembers());
     assertNotNull(declaration.getRightBracket());
     assertNotNull(declaration.getTypeParameters());
-    assertEquals(1, declaration.getTypeParameters().getTypeParameters().size());
+    assertSize(1, declaration.getTypeParameters().getTypeParameters());
   }
 
   public void test_parseCommentReference_prefixed() throws Exception {
@@ -621,7 +592,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Class[] {Token[].class},
         new Object[] {tokens},
         "");
-    assertEquals(2, references.size());
+    assertSize(2, references);
     CommentReference reference = references.get(0);
     assertNotNull(reference);
     assertNotNull(reference.getIdentifier());
@@ -642,7 +613,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Class[] {Token[].class},
         new Object[] {tokens},
         "");
-    assertEquals(3, references.size());
+    assertSize(3, references);
     CommentReference reference = references.get(0);
     assertNotNull(reference);
     assertNotNull(reference.getIdentifier());
@@ -662,49 +633,49 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseCompilationUnit_directives_multiple() throws Exception {
     CompilationUnit unit = parse("parseCompilationUnit", "library l;\npart 'a.dart';");
     assertNull(unit.getScriptTag());
-    assertEquals(2, unit.getDirectives().size());
-    assertEmpty("declaration", unit.getDeclarations());
+    assertSize(2, unit.getDirectives());
+    assertSize(0, unit.getDeclarations());
   }
 
   public void test_parseCompilationUnit_directives_single() throws Exception {
     CompilationUnit unit = parse("parseCompilationUnit", "library l;");
     assertNull(unit.getScriptTag());
-    assertEquals(1, unit.getDirectives().size());
-    assertEmpty("declaration", unit.getDeclarations());
+    assertSize(1, unit.getDirectives());
+    assertSize(0, unit.getDeclarations());
   }
 
   public void test_parseCompilationUnit_empty() throws Exception {
     CompilationUnit unit = parse("parseCompilationUnit", "");
     assertNull(unit.getScriptTag());
-    assertEmpty("directive", unit.getDirectives());
-    assertEmpty("declaration", unit.getDeclarations());
+    assertSize(0, unit.getDirectives());
+    assertSize(0, unit.getDeclarations());
   }
 
   public void test_parseCompilationUnit_nonEmpty() throws Exception {
     CompilationUnit unit = parse("parseCompilationUnit", "class Foo {}");
-    assertEquals(1, unit.getDeclarations().size());
-    assertEquals(0, unit.getDirectives().size());
+    assertSize(1, unit.getDeclarations());
+    assertSize(0, unit.getDirectives());
     assertNull(unit.getScriptTag());
   }
 
   public void test_parseCompilationUnit_script() throws Exception {
     CompilationUnit unit = parse("parseCompilationUnit", "#! /bin/dart");
     assertNotNull(unit.getScriptTag());
-    assertEmpty("directive", unit.getDirectives());
-    assertEmpty("declaration", unit.getDeclarations());
+    assertSize(0, unit.getDirectives());
+    assertSize(0, unit.getDeclarations());
   }
 
   public void test_parseCompilationUnit_topLevelDeclaration() throws Exception {
     CompilationUnit unit = parse("parseCompilationUnit", "class A {}");
     assertNull(unit.getScriptTag());
-    assertEmpty("directive", unit.getDirectives());
-    assertEquals(1, unit.getDeclarations().size());
+    assertSize(0, unit.getDirectives());
+    assertSize(1, unit.getDeclarations());
   }
 
   public void test_parseCompilationUnitMember_class() throws Exception {
     ClassDeclaration declaration = parse("parseCompilationUnitMember", "class A {}");
     assertEquals("A", declaration.getName().getName());
-    assertEmpty("class member", declaration.getMembers());
+    assertSize(0, declaration.getMembers());
   }
 
   public void test_parseCompilationUnitMember_constVariable() throws Exception {
@@ -760,7 +731,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseCompilationUnitMember_typedef() throws Exception {
     TypeAlias typeAlias = parse("parseCompilationUnitMember", "typedef F();");
     assertEquals("F", typeAlias.getName().getName());
-    assertEmpty("parameter", typeAlias.getParameters().getParameters());
+    assertSize(0, typeAlias.getParameters().getParameters());
   }
 
   public void test_parseCompilationUnitMember_variable() throws Exception {
@@ -788,8 +759,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertInstanceOf(EmptyFunctionBody.class, constructor.getBody());
     assertNotNull(constructor.getColon());
     assertEquals(comment, constructor.getDocumentationComment());
-    NodeList<ConstructorInitializer> initializers = constructor.getInitializers();
-    assertEquals(1, initializers.size());
+    assertSize(1, constructor.getInitializers());
     assertNotNull(constructor.getKeyword());
     assertNull(constructor.getName());
     assertNotNull(constructor.getParameters());
@@ -807,8 +777,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertInstanceOf(EmptyFunctionBody.class, constructor.getBody());
     assertNull(constructor.getColon());
     assertEquals(comment, constructor.getDocumentationComment());
-    NodeList<ConstructorInitializer> initializers = constructor.getInitializers();
-    assertEquals(0, initializers.size());
+    assertSize(0, constructor.getInitializers());
     assertNotNull(constructor.getKeyword());
     assertNull(constructor.getName());
     assertNotNull(constructor.getParameters());
@@ -826,8 +795,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertInstanceOf(EmptyFunctionBody.class, constructor.getBody());
     assertNotNull(constructor.getColon());
     assertEquals(comment, constructor.getDocumentationComment());
-    NodeList<ConstructorInitializer> initializers = constructor.getInitializers();
-    assertEquals(2, initializers.size());
+    assertSize(2, constructor.getInitializers());
     assertNotNull(constructor.getKeyword());
     assertNotNull(constructor.getName());
     assertNotNull(constructor.getParameters());
@@ -848,9 +816,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(literal.getModifier());
     assertNotNull(literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
-    NodeList<Expression> elements = literal.getElements();
-    assertNotNull(elements);
-    assertEquals(0, elements.size());
+    assertSize(0, literal.getElements());
     assertNotNull(literal.getRightBracket());
   }
 
@@ -859,18 +825,14 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(literal.getModifier());
     assertNull(literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
-    NodeList<Expression> elements = literal.getElements();
-    assertNotNull(elements);
-    assertEquals(0, elements.size());
+    assertSize(0, literal.getElements());
     assertNotNull(literal.getRightBracket());
   }
 
   public void test_parseConstExpression_mapLiteral_typed() throws Exception {
     MapLiteral literal = parse("parseConstExpression", "const <A> {}");
     assertNotNull(literal.getLeftBracket());
-    NodeList<MapLiteralEntry> entries = literal.getEntries();
-    assertNotNull(entries);
-    assertEquals(0, entries.size());
+    assertSize(0, literal.getEntries());
     assertNotNull(literal.getRightBracket());
     assertNotNull(literal.getTypeArguments());
   }
@@ -878,9 +840,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseConstExpression_mapLiteral_untyped() throws Exception {
     MapLiteral literal = parse("parseConstExpression", "const {}");
     assertNotNull(literal.getLeftBracket());
-    NodeList<MapLiteralEntry> entries = literal.getEntries();
-    assertNotNull(entries);
-    assertEquals(0, entries.size());
+    assertSize(0, literal.getEntries());
     assertNotNull(literal.getRightBracket());
     assertNull(literal.getTypeArguments());
   }
@@ -973,12 +933,12 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseExpressionList_multiple() throws Exception {
     List<Expression> result = parse("parseExpressionList", "1, 2, 3");
-    assertEquals(3, result.size());
+    assertSize(3, result);
   }
 
   public void test_parseExpressionList_single() throws Exception {
     List<Expression> result = parse("parseExpressionList", "1");
-    assertEquals(1, result.size());
+    assertSize(1, result);
   }
 
   public void test_parseExtendsClause() throws Exception {
@@ -997,9 +957,7 @@ public class SimpleParserTest extends ParserTestCase {
         "factory A.B.c()");
     assertNull(constructor.getColon());
     assertEquals(comment, constructor.getDocumentationComment());
-    NodeList<ConstructorInitializer> initializers = constructor.getInitializers();
-    assertNotNull(initializers);
-    assertEquals(0, initializers.size());
+    assertSize(0, constructor.getInitializers());
     assertNotNull(constructor.getKeyword());
     assertNotNull(constructor.getName());
     assertNotNull(constructor.getParameters());
@@ -1016,9 +974,7 @@ public class SimpleParserTest extends ParserTestCase {
         "factory A()");
     assertNull(constructor.getColon());
     assertEquals(comment, constructor.getDocumentationComment());
-    NodeList<ConstructorInitializer> initializers = constructor.getInitializers();
-    assertNotNull(initializers);
-    assertEquals(0, initializers.size());
+    assertSize(0, constructor.getInitializers());
     assertNotNull(constructor.getKeyword());
     assertNull(constructor.getName());
     assertNotNull(constructor.getParameters());
@@ -1156,9 +1112,7 @@ public class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = parse("parseFormalParameterList", "()");
     assertNotNull(parameterList.getLeftParenthesis());
     assertNull(parameterList.getLeftBracket());
-    NodeList<FormalParameter> parameters = parameterList.getParameters();
-    assertNotNull(parameters);
-    assertEquals(0, parameters.size());
+    assertSize(0, parameterList.getParameters());
     assertNull(parameterList.getRightBracket());
     assertNotNull(parameterList.getRightParenthesis());
   }
@@ -1167,9 +1121,7 @@ public class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = parse("parseFormalParameterList", "(A a, [B b])");
     assertNotNull(parameterList.getLeftParenthesis());
     assertNotNull(parameterList.getLeftBracket());
-    NodeList<FormalParameter> parameters = parameterList.getParameters();
-    assertNotNull(parameters);
-    assertEquals(2, parameters.size());
+    assertSize(2, parameterList.getParameters());
     assertNotNull(parameterList.getRightBracket());
     assertNotNull(parameterList.getRightParenthesis());
   }
@@ -1178,9 +1130,7 @@ public class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = parse("parseFormalParameterList", "([A a, B b, C c])");
     assertNotNull(parameterList.getLeftParenthesis());
     assertNotNull(parameterList.getLeftBracket());
-    NodeList<FormalParameter> parameters = parameterList.getParameters();
-    assertNotNull(parameters);
-    assertEquals(3, parameters.size());
+    assertSize(3, parameterList.getParameters());
     assertNotNull(parameterList.getRightBracket());
     assertNotNull(parameterList.getRightParenthesis());
   }
@@ -1189,9 +1139,7 @@ public class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = parse("parseFormalParameterList", "([A a])");
     assertNotNull(parameterList.getLeftParenthesis());
     assertNotNull(parameterList.getLeftBracket());
-    NodeList<FormalParameter> parameters = parameterList.getParameters();
-    assertNotNull(parameters);
-    assertEquals(1, parameters.size());
+    assertSize(1, parameterList.getParameters());
     assertNotNull(parameterList.getRightBracket());
     assertNotNull(parameterList.getRightParenthesis());
   }
@@ -1200,9 +1148,7 @@ public class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = parse("parseFormalParameterList", "(A a, B b, C c)");
     assertNotNull(parameterList.getLeftParenthesis());
     assertNull(parameterList.getLeftBracket());
-    NodeList<FormalParameter> parameters = parameterList.getParameters();
-    assertNotNull(parameters);
-    assertEquals(3, parameters.size());
+    assertSize(3, parameterList.getParameters());
     assertNull(parameterList.getRightBracket());
     assertNotNull(parameterList.getRightParenthesis());
   }
@@ -1211,9 +1157,7 @@ public class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = parse("parseFormalParameterList", "(A a)");
     assertNotNull(parameterList.getLeftParenthesis());
     assertNull(parameterList.getLeftBracket());
-    NodeList<FormalParameter> parameters = parameterList.getParameters();
-    assertNotNull(parameters);
-    assertEquals(1, parameters.size());
+    assertSize(1, parameterList.getParameters());
     assertNull(parameterList.getRightBracket());
     assertNotNull(parameterList.getRightParenthesis());
   }
@@ -1224,9 +1168,7 @@ public class SimpleParserTest extends ParserTestCase {
         "([A a = null, B b, C c = null])");
     assertNotNull(parameterList.getLeftParenthesis());
     assertNotNull(parameterList.getLeftBracket());
-    NodeList<FormalParameter> parameters = parameterList.getParameters();
-    assertNotNull(parameters);
-    assertEquals(3, parameters.size());
+    assertSize(3, parameterList.getParameters());
     assertNotNull(parameterList.getRightBracket());
     assertNotNull(parameterList.getRightParenthesis());
   }
@@ -1235,9 +1177,7 @@ public class SimpleParserTest extends ParserTestCase {
     FormalParameterList parameterList = parse("parseFormalParameterList", "([A a = null])");
     assertNotNull(parameterList.getLeftParenthesis());
     assertNotNull(parameterList.getLeftBracket());
-    NodeList<FormalParameter> parameters = parameterList.getParameters();
-    assertNotNull(parameters);
-    assertEquals(1, parameters.size());
+    assertSize(1, parameterList.getParameters());
     assertNotNull(parameterList.getRightBracket());
     assertNotNull(parameterList.getRightParenthesis());
   }
@@ -1284,9 +1224,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getLeftSeparator());
     assertNotNull(statement.getCondition());
     assertNotNull(statement.getRightSeparator());
-    NodeList<Expression> updaters = statement.getUpdaters();
-    assertNotNull(updaters);
-    assertEquals(0, updaters.size());
+    assertSize(0, statement.getUpdaters());
     assertNotNull(statement.getRightParenthesis());
     assertNotNull(statement.getBody());
   }
@@ -1300,9 +1238,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getLeftSeparator());
     assertNotNull(statement.getCondition());
     assertNotNull(statement.getRightSeparator());
-    NodeList<Expression> updaters = statement.getUpdaters();
-    assertNotNull(updaters);
-    assertEquals(1, updaters.size());
+    assertSize(1, statement.getUpdaters());
     assertNotNull(statement.getRightParenthesis());
     assertNotNull(statement.getBody());
   }
@@ -1316,9 +1252,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getLeftSeparator());
     assertNotNull(statement.getCondition());
     assertNotNull(statement.getRightSeparator());
-    NodeList<Expression> updaters = statement.getUpdaters();
-    assertNotNull(updaters);
-    assertEquals(1, updaters.size());
+    assertSize(1, statement.getUpdaters());
     assertNotNull(statement.getRightParenthesis());
     assertNotNull(statement.getBody());
   }
@@ -1329,14 +1263,12 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getLeftParenthesis());
     VariableDeclarationList variables = statement.getVariables();
     assertNotNull(variables);
-    assertEquals(1, variables.getVariables().size());
+    assertSize(1, variables.getVariables());
     assertNull(statement.getInitialization());
     assertNotNull(statement.getLeftSeparator());
     assertNull(statement.getCondition());
     assertNotNull(statement.getRightSeparator());
-    NodeList<Expression> updaters = statement.getUpdaters();
-    assertNotNull(updaters);
-    assertEquals(0, updaters.size());
+    assertSize(0, statement.getUpdaters());
     assertNotNull(statement.getRightParenthesis());
     assertNotNull(statement.getBody());
   }
@@ -1347,14 +1279,12 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getLeftParenthesis());
     VariableDeclarationList variables = statement.getVariables();
     assertNotNull(variables);
-    assertEquals(1, variables.getVariables().size());
+    assertSize(1, variables.getVariables());
     assertNull(statement.getInitialization());
     assertNotNull(statement.getLeftSeparator());
     assertNotNull(statement.getCondition());
     assertNotNull(statement.getRightSeparator());
-    NodeList<Expression> updaters = statement.getUpdaters();
-    assertNotNull(updaters);
-    assertEquals(0, updaters.size());
+    assertSize(0, statement.getUpdaters());
     assertNotNull(statement.getRightParenthesis());
     assertNotNull(statement.getBody());
   }
@@ -1365,14 +1295,12 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getLeftParenthesis());
     VariableDeclarationList variables = statement.getVariables();
     assertNotNull(variables);
-    assertEquals(1, variables.getVariables().size());
+    assertSize(1, variables.getVariables());
     assertNull(statement.getInitialization());
     assertNotNull(statement.getLeftSeparator());
     assertNotNull(statement.getCondition());
     assertNotNull(statement.getRightSeparator());
-    NodeList<Expression> updaters = statement.getUpdaters();
-    assertNotNull(updaters);
-    assertEquals(1, updaters.size());
+    assertSize(1, statement.getUpdaters());
     assertNotNull(statement.getRightParenthesis());
     assertNotNull(statement.getBody());
   }
@@ -1385,14 +1313,12 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getLeftParenthesis());
     VariableDeclarationList variables = statement.getVariables();
     assertNotNull(variables);
-    assertEquals(2, variables.getVariables().size());
+    assertSize(2, variables.getVariables());
     assertNull(statement.getInitialization());
     assertNotNull(statement.getLeftSeparator());
     assertNotNull(statement.getCondition());
     assertNotNull(statement.getRightSeparator());
-    NodeList<Expression> updaters = statement.getUpdaters();
-    assertNotNull(updaters);
-    assertEquals(2, updaters.size());
+    assertSize(2, statement.getUpdaters());
     assertNotNull(statement.getRightParenthesis());
     assertNotNull(statement.getBody());
   }
@@ -1403,14 +1329,12 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getLeftParenthesis());
     VariableDeclarationList variables = statement.getVariables();
     assertNotNull(variables);
-    assertEquals(1, variables.getVariables().size());
+    assertSize(1, variables.getVariables());
     assertNull(statement.getInitialization());
     assertNotNull(statement.getLeftSeparator());
     assertNull(statement.getCondition());
     assertNotNull(statement.getRightSeparator());
-    NodeList<Expression> updaters = statement.getUpdaters();
-    assertNotNull(updaters);
-    assertEquals(1, updaters.size());
+    assertSize(1, statement.getUpdaters());
     assertNotNull(statement.getRightParenthesis());
     assertNotNull(statement.getBody());
   }
@@ -1424,9 +1348,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getLeftSeparator());
     assertNull(statement.getCondition());
     assertNotNull(statement.getRightSeparator());
-    NodeList<Expression> updaters = statement.getUpdaters();
-    assertNotNull(updaters);
-    assertEquals(1, updaters.size());
+    assertSize(1, statement.getUpdaters());
     assertNotNull(statement.getRightParenthesis());
     assertNotNull(statement.getBody());
   }
@@ -1596,13 +1518,13 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseImplementsClause_multiple() throws Exception {
     ImplementsClause clause = parse("parseImplementsClause", "implements A, B, C");
-    assertEquals(3, clause.getInterfaces().size());
+    assertSize(3, clause.getInterfaces());
     assertNotNull(clause.getKeyword());
   }
 
   public void test_parseImplementsClause_single() throws Exception {
     ImplementsClause clause = parse("parseImplementsClause", "implements A");
-    assertEquals(1, clause.getInterfaces().size());
+    assertSize(1, clause.getInterfaces());
     assertNotNull(clause.getKeyword());
   }
 
@@ -1612,7 +1534,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(directive.getLibraryUri());
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
-    assertEquals(0, directive.getCombinators().size());
+    assertSize(0, directive.getCombinators());
     assertNotNull(directive.getAmpersand());
     assertNotNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
@@ -1626,7 +1548,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(directive.getLibraryUri());
     assertNotNull(directive.getAsToken());
     assertNotNull(directive.getPrefix());
-    assertEquals(2, directive.getCombinators().size());
+    assertSize(2, directive.getCombinators());
     assertNotNull(directive.getAmpersand());
     assertNotNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
@@ -1638,7 +1560,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(directive.getLibraryUri());
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
-    assertEquals(1, directive.getCombinators().size());
+    assertSize(1, directive.getCombinators());
     assertNull(directive.getAmpersand());
     assertNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
@@ -1650,7 +1572,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(directive.getLibraryUri());
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
-    assertEquals(0, directive.getCombinators().size());
+    assertSize(0, directive.getCombinators());
     assertNull(directive.getAmpersand());
     assertNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
@@ -1662,7 +1584,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(directive.getLibraryUri());
     assertNotNull(directive.getAsToken());
     assertNotNull(directive.getPrefix());
-    assertEquals(0, directive.getCombinators().size());
+    assertSize(0, directive.getCombinators());
     assertNull(directive.getAmpersand());
     assertNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
@@ -1674,7 +1596,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(directive.getLibraryUri());
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
-    assertEquals(1, directive.getCombinators().size());
+    assertSize(1, directive.getCombinators());
     assertNull(directive.getAmpersand());
     assertNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
@@ -1692,7 +1614,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(fields);
     assertNull(fields.getKeyword());
     assertEquals(type, fields.getType());
-    assertEquals(3, fields.getVariables().size());
+    assertSize(3, fields.getVariables());
     assertEquals(staticKeyword, declaration.getKeyword());
     assertNotNull(declaration.getSemicolon());
   }
@@ -1709,7 +1631,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(fields);
     assertEquals(varKeyword, fields.getKeyword());
     assertNull(fields.getType());
-    assertEquals(3, fields.getVariables().size());
+    assertSize(3, fields.getVariables());
     assertEquals(staticKeyword, declaration.getKeyword());
     assertNotNull(declaration.getSemicolon());
   }
@@ -1792,9 +1714,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(token, literal.getModifier());
     assertEquals(typeArguments, literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
-    NodeList<Expression> elements = literal.getElements();
-    assertNotNull(elements);
-    assertEquals(0, elements.size());
+    assertSize(0, literal.getElements());
     assertNotNull(literal.getRightBracket());
   }
 
@@ -1806,9 +1726,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(token, literal.getModifier());
     assertEquals(typeArguments, literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
-    NodeList<Expression> elements = literal.getElements();
-    assertNotNull(elements);
-    assertEquals(0, elements.size());
+    assertSize(0, literal.getElements());
     assertNotNull(literal.getRightBracket());
   }
 
@@ -1818,9 +1736,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(literal.getModifier());
     assertNull(literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
-    NodeList<Expression> elements = literal.getElements();
-    assertNotNull(elements);
-    assertEquals(3, elements.size());
+    assertSize(3, literal.getElements());
     assertNotNull(literal.getRightBracket());
   }
 
@@ -1830,9 +1746,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(literal.getModifier());
     assertNull(literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
-    NodeList<Expression> elements = literal.getElements();
-    assertNotNull(elements);
-    assertEquals(1, elements.size());
+    assertSize(1, literal.getElements());
     assertNotNull(literal.getRightBracket());
   }
 
@@ -1863,9 +1777,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(token, literal.getModifier());
     assertEquals(typeArguments, literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
-    NodeList<MapLiteralEntry> entries = literal.getEntries();
-    assertNotNull(entries);
-    assertEquals(0, entries.size());
+    assertSize(0, literal.getEntries());
     assertNotNull(literal.getRightBracket());
   }
 
@@ -1876,9 +1788,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {null, null},
         "{'a' : b, 'x' : y}");
     assertNotNull(literal.getLeftBracket());
-    NodeList<MapLiteralEntry> entries = literal.getEntries();
-    assertNotNull(entries);
-    assertEquals(2, entries.size());
+    assertSize(2, literal.getEntries());
     assertNotNull(literal.getRightBracket());
   }
 
@@ -1889,9 +1799,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {null, null},
         "{'x' : y}");
     assertNotNull(literal.getLeftBracket());
-    NodeList<MapLiteralEntry> entries = literal.getEntries();
-    assertNotNull(entries);
-    assertEquals(1, entries.size());
+    assertSize(1, literal.getEntries());
     assertNotNull(literal.getRightBracket());
   }
 
@@ -2085,7 +1993,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parsePrimaryExpression_listLiteral_typed() throws Exception {
     ListLiteral literal = parse("parsePrimaryExpression", "<A>[ ]");
     assertNotNull(literal.getTypeArguments());
-    assertEquals(1, literal.getTypeArguments().getArguments().size());
+    assertSize(1, literal.getTypeArguments().getArguments());
   }
 
   public void test_parsePrimaryExpression_mapLiteral() throws Exception {
@@ -2096,7 +2004,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parsePrimaryExpression_mapLiteral_typed() throws Exception {
     MapLiteral literal = parse("parsePrimaryExpression", "<A>{}");
     assertNotNull(literal.getTypeArguments());
-    assertEquals(1, literal.getTypeArguments().getArguments().size());
+    assertSize(1, literal.getTypeArguments().getArguments());
   }
 
   public void test_parsePrimaryExpression_new() throws Exception {
@@ -2288,27 +2196,26 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseStatement_mulipleLabels() throws Exception {
     LabeledStatement statement = parse("parseStatement", "l: m: return x;");
-    assertEquals(2, statement.getLabels().size());
+    assertSize(2, statement.getLabels());
     assertNotNull(statement.getStatement());
   }
 
   public void test_parseStatement_noLabels() throws Exception {
     LabeledStatement statement = parse("parseStatement", "return x;");
-    assertEquals(0, statement.getLabels().size());
+    assertSize(0, statement.getLabels());
     assertNotNull(statement.getStatement());
   }
 
   public void test_parseStatement_singleLabel() throws Exception {
     LabeledStatement statement = parse("parseStatement", "l: return x;");
-    assertEquals(1, statement.getLabels().size());
+    assertSize(1, statement.getLabels());
     assertNotNull(statement.getStatement());
   }
 
   public void test_parseStringLiteral_adjacent() throws Exception {
     AdjacentStrings literal = parse("parseStringLiteral", "'a' 'b'");
     NodeList<StringLiteral> strings = literal.getStrings();
-    assertNotNull(strings);
-    assertEquals(2, strings.size());
+    assertSize(2, strings);
     StringLiteral firstString = strings.get(0);
     StringLiteral secondString = strings.get(1);
     assertEquals("a", ((SimpleStringLiteral) firstString).getValue());
@@ -2318,8 +2225,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseStringLiteral_interpolated() throws Exception {
     StringInterpolation literal = parse("parseStringLiteral", "'a${b}c'");
     NodeList<InterpolationElement> elements = literal.getElements();
-    assertNotNull(elements);
-    assertEquals(3, elements.size());
+    assertSize(3, elements);
     InterpolationElement element1 = elements.get(0);
     InterpolationElement element2 = elements.get(1);
     InterpolationElement element3 = elements.get(2);
@@ -2356,9 +2262,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getKeyword());
     assertNotNull(statement.getLeftBracket());
     assertNotNull(statement.getLeftParenthesis());
-    NodeList<SwitchMember> members = statement.getMembers();
-    assertNotNull(members);
-    assertEquals(1, members.size());
+    assertSize(1, statement.getMembers());
     assertNotNull(statement.getRightBracket());
     assertNotNull(statement.getRightBracket());
   }
@@ -2369,9 +2273,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getKeyword());
     assertNotNull(statement.getLeftBracket());
     assertNotNull(statement.getLeftParenthesis());
-    NodeList<SwitchMember> members = statement.getMembers();
-    assertNotNull(members);
-    assertEquals(0, members.size());
+    assertSize(0, statement.getMembers());
     assertNotNull(statement.getRightBracket());
     assertNotNull(statement.getRightBracket());
   }
@@ -2395,8 +2297,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getTryKeyword());
     assertNotNull(statement.getBody());
     NodeList<CatchClause> catchClauses = statement.getCatchClauses();
-    assertNotNull(catchClauses);
-    assertEquals(1, catchClauses.size());
+    assertSize(1, catchClauses);
     CatchClause clause = catchClauses.get(0);
     assertNull(clause.getOnKeyword());
     assertNull(clause.getExceptionType());
@@ -2414,8 +2315,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getTryKeyword());
     assertNotNull(statement.getBody());
     NodeList<CatchClause> catchClauses = statement.getCatchClauses();
-    assertNotNull(catchClauses);
-    assertEquals(1, catchClauses.size());
+    assertSize(1, catchClauses);
     CatchClause clause = catchClauses.get(0);
     assertNull(clause.getOnKeyword());
     assertNull(clause.getExceptionType());
@@ -2432,9 +2332,7 @@ public class SimpleParserTest extends ParserTestCase {
     TryStatement statement = parse("parseTryStatement", "try {} finally {}");
     assertNotNull(statement.getTryKeyword());
     assertNotNull(statement.getBody());
-    NodeList<CatchClause> catchClauses = statement.getCatchClauses();
-    assertNotNull(catchClauses);
-    assertEquals(0, catchClauses.size());
+    assertSize(0, statement.getCatchClauses());
     assertNotNull(statement.getFinallyKeyword());
     assertNotNull(statement.getFinallyClause());
   }
@@ -2445,9 +2343,7 @@ public class SimpleParserTest extends ParserTestCase {
         "try {} on NPE catch (e) {} on Error {} catch (e) {}");
     assertNotNull(statement.getTryKeyword());
     assertNotNull(statement.getBody());
-    NodeList<CatchClause> catchClauses = statement.getCatchClauses();
-    assertNotNull(catchClauses);
-    assertEquals(3, catchClauses.size());
+    assertSize(3, statement.getCatchClauses());
     assertNull(statement.getFinallyKeyword());
     assertNull(statement.getFinallyClause());
   }
@@ -2457,8 +2353,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getTryKeyword());
     assertNotNull(statement.getBody());
     NodeList<CatchClause> catchClauses = statement.getCatchClauses();
-    assertNotNull(catchClauses);
-    assertEquals(1, catchClauses.size());
+    assertSize(1, catchClauses);
     CatchClause clause = catchClauses.get(0);
     assertNotNull(clause.getOnKeyword());
     assertNotNull(clause.getExceptionType());
@@ -2476,8 +2371,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getTryKeyword());
     assertNotNull(statement.getBody());
     NodeList<CatchClause> catchClauses = statement.getCatchClauses();
-    assertNotNull(catchClauses);
-    assertEquals(1, catchClauses.size());
+    assertSize(1, catchClauses);
     CatchClause clause = catchClauses.get(0);
     assertNotNull(clause.getOnKeyword());
     assertNotNull(clause.getExceptionType());
@@ -2497,8 +2391,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getTryKeyword());
     assertNotNull(statement.getBody());
     NodeList<CatchClause> catchClauses = statement.getCatchClauses();
-    assertNotNull(catchClauses);
-    assertEquals(1, catchClauses.size());
+    assertSize(1, catchClauses);
     CatchClause clause = catchClauses.get(0);
     assertNotNull(clause.getOnKeyword());
     assertNotNull(clause.getExceptionType());
@@ -2544,18 +2437,14 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseTypeArgumentList_multiple() throws Exception {
     TypeArgumentList argumentList = parse("parseTypeArgumentList", "<int, int, int>");
     assertNotNull(argumentList.getLeftBracket());
-    NodeList<TypeName> arguments = argumentList.getArguments();
-    assertNotNull(arguments);
-    assertEquals(3, arguments.size());
+    assertSize(3, argumentList.getArguments());
     assertNotNull(argumentList.getRightBracket());
   }
 
   public void test_parseTypeArgumentList_single() throws Exception {
     TypeArgumentList argumentList = parse("parseTypeArgumentList", "<int>");
     assertNotNull(argumentList.getLeftBracket());
-    NodeList<TypeName> arguments = argumentList.getArguments();
-    assertNotNull(arguments);
-    assertEquals(1, arguments.size());
+    assertSize(1, argumentList.getArguments());
     assertNotNull(argumentList.getRightBracket());
   }
 
@@ -2589,18 +2478,14 @@ public class SimpleParserTest extends ParserTestCase {
     TypeParameterList parameterList = parse("parseTypeParameterList", "<A, B extends C, D>");
     assertNotNull(parameterList.getLeftBracket());
     assertNotNull(parameterList.getRightBracket());
-    NodeList<TypeParameter> parameters = parameterList.getTypeParameters();
-    assertNotNull(parameters);
-    assertEquals(3, parameters.size());
+    assertSize(3, parameterList.getTypeParameters());
   }
 
   public void test_parseTypeParameterList_single() throws Exception {
     TypeParameterList parameterList = parse("parseTypeParameterList", "<A>");
     assertNotNull(parameterList.getLeftBracket());
     assertNotNull(parameterList.getRightBracket());
-    NodeList<TypeParameter> parameters = parameterList.getTypeParameters();
-    assertNotNull(parameters);
-    assertEquals(1, parameters.size());
+    assertSize(1, parameterList.getTypeParameters());
   }
 
   public void test_parseUnaryExpression_decrement_normal() throws Exception {
@@ -2690,63 +2575,49 @@ public class SimpleParserTest extends ParserTestCase {
     VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "const a");
     assertNotNull(declarationList.getKeyword());
     assertNull(declarationList.getType());
-    NodeList<VariableDeclaration> variables = declarationList.getVariables();
-    assertNotNull(variables);
-    assertEquals(1, variables.size());
+    assertSize(1, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList_const_type() throws Exception {
     VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "const A a");
     assertNotNull(declarationList.getKeyword());
     assertNotNull(declarationList.getType());
-    NodeList<VariableDeclaration> variables = declarationList.getVariables();
-    assertNotNull(variables);
-    assertEquals(1, variables.size());
+    assertSize(1, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList_final_noType() throws Exception {
     VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "final a");
     assertNotNull(declarationList.getKeyword());
     assertNull(declarationList.getType());
-    NodeList<VariableDeclaration> variables = declarationList.getVariables();
-    assertNotNull(variables);
-    assertEquals(1, variables.size());
+    assertSize(1, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList_final_type() throws Exception {
     VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "final A a");
     assertNotNull(declarationList.getKeyword());
     assertNotNull(declarationList.getType());
-    NodeList<VariableDeclaration> variables = declarationList.getVariables();
-    assertNotNull(variables);
-    assertEquals(1, variables.size());
+    assertSize(1, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList_multiple() throws Exception {
     VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "var a, b, c");
     assertNotNull(declarationList.getKeyword());
     assertNull(declarationList.getType());
-    NodeList<VariableDeclaration> variables = declarationList.getVariables();
-    assertNotNull(variables);
-    assertEquals(3, variables.size());
+    assertSize(3, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList_type() throws Exception {
     VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "A a");
     assertNull(declarationList.getKeyword());
     assertNotNull(declarationList.getType());
-    NodeList<VariableDeclaration> variables = declarationList.getVariables();
-    assertNotNull(variables);
-    assertEquals(1, variables.size());
+    assertSize(1, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList_var() throws Exception {
     VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "var a");
     assertNotNull(declarationList.getKeyword());
     assertNull(declarationList.getType());
-    NodeList<VariableDeclaration> variables = declarationList.getVariables();
-    assertNotNull(variables);
-    assertEquals(1, variables.size());
+    assertSize(1, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList1() throws Exception {
@@ -2758,9 +2629,7 @@ public class SimpleParserTest extends ParserTestCase {
         "a, b;");
     assertNull(declarationList.getKeyword());
     assertEquals(returnType, declarationList.getType());
-    NodeList<VariableDeclaration> variables = declarationList.getVariables();
-    assertNotNull(variables);
-    assertEquals(2, variables.size());
+    assertSize(2, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList2_type() throws Exception {
@@ -2769,9 +2638,7 @@ public class SimpleParserTest extends ParserTestCase {
         Token.class, TypeName.class}, new Object[] {null, type}, "a");
     assertNull(declarationList.getKeyword());
     assertEquals(type, declarationList.getType());
-    NodeList<VariableDeclaration> variables = declarationList.getVariables();
-    assertNotNull(variables);
-    assertEquals(1, variables.size());
+    assertSize(1, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList2_var() throws Exception {
@@ -2780,9 +2647,7 @@ public class SimpleParserTest extends ParserTestCase {
         Token.class, TypeName.class}, new Object[] {keyword, null}, "a");
     assertEquals(keyword, declarationList.getKeyword());
     assertNull(declarationList.getType());
-    NodeList<VariableDeclaration> variables = declarationList.getVariables();
-    assertNotNull(variables);
-    assertEquals(1, variables.size());
+    assertSize(1, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationStatement_multiple() throws Exception {
@@ -2792,7 +2657,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getSemicolon());
     VariableDeclarationList variableList = statement.getVariables();
     assertNotNull(variableList);
-    assertEquals(3, variableList.getVariables().size());
+    assertSize(3, variableList.getVariables());
   }
 
   public void test_parseVariableDeclarationStatement_single() throws Exception {
@@ -2800,7 +2665,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getSemicolon());
     VariableDeclarationList variableList = statement.getVariables();
     assertNotNull(variableList);
-    assertEquals(1, variableList.getVariables().size());
+    assertSize(1, variableList.getVariables());
   }
 
   public void test_parseWhileStatement() throws Exception {

@@ -70,7 +70,7 @@ public class ComplexParserTest extends EngineTestCase {
         propertyAccess1.getTarget());
     ArgumentList argumentList2 = invocation2.getArgumentList();
     assertNotNull(argumentList2);
-    assertEquals(1, argumentList2.getArguments().size());
+    assertSize(1, argumentList2.getArguments());
     //
     // a(b)(c).d
     //
@@ -86,7 +86,7 @@ public class ComplexParserTest extends EngineTestCase {
         propertyAccess3.getTarget());
     ArgumentList argumentList4 = invocation4.getArgumentList();
     assertNotNull(argumentList4);
-    assertEquals(1, argumentList4.getArguments().size());
+    assertSize(1, argumentList4.getArguments());
     //
     // a(b)
     //
@@ -96,7 +96,7 @@ public class ComplexParserTest extends EngineTestCase {
     assertInstanceOf(SimpleIdentifier.class, invocation5.getFunction());
     ArgumentList argumentList5 = invocation4.getArgumentList();
     assertNotNull(argumentList5);
-    assertEquals(1, argumentList5.getArguments().size());
+    assertSize(1, argumentList5.getArguments());
   }
 
   public void test_bitwiseAndExpression_normal() throws Exception {
@@ -216,7 +216,7 @@ public class ComplexParserTest extends EngineTestCase {
 
   public void test_multipleLabels() throws Exception {
     LabeledStatement statement = parseStatement("a: b: c: return x;");
-    assertEquals(3, statement.getLabels().size());
+    assertSize(3, statement.getLabels());
     assertInstanceOf(ReturnStatement.class, statement.getStatement());
   }
 

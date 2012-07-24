@@ -13,25 +13,43 @@
  */
 package com.google.dart.engine;
 
-import com.google.dart.engine.ast.NodeList;
-
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
+
+import java.util.List;
 
 /**
  * The class {@code EngineTestCase} defines utility methods for making assertions.
  */
 public class EngineTestCase extends TestCase {
   /**
-   * Assert that the given list is empty.
+   * Assert that the array of actual values contain exactly the same values as those in the array of
+   * expected value, with the exception that the order of the elements is not required to be the
+   * same.
    * 
-   * @param elementType a textual description of the kind of nodes in the list
-   * @param list the list being tested
-   * @throws AssertionFailedError if the list is not empty
+   * @param expectedValues the values that are expected to be found
+   * @param actualValues the actual values that are being compared against the expected values
    */
-  public static void assertEmpty(String elementType, NodeList<?> list) {
-    if (!list.isEmpty()) {
-      fail("Expected " + elementType + " list to be empty; contained " + list.size() + " elements");
+  public static void assertEqualsIgnoreOrder(Object[] expectedValues, Object[] actualValues) {
+    assertNotNull(actualValues);
+    int expectedLength = expectedValues.length;
+    assertEquals(expectedLength, actualValues.length);
+    boolean[] found = new boolean[expectedLength];
+    for (int i = 0; i < expectedLength; i++) {
+      found[i] = false;
+    }
+    for (Object actualValue : actualValues) {
+      boolean wasExpected = false;
+      for (int i = 0; i < expectedLength; i++) {
+        if (expectedValues[i].equals(actualValue) && !found[i]) {
+          found[i] = true;
+          wasExpected = true;
+          break;
+        }
+      }
+      if (!wasExpected) {
+        fail("The actual value " + actualValue + " was not expected");
+      }
     }
   }
 
@@ -50,5 +68,38 @@ public class EngineTestCase extends TestCase {
           + (object == null ? "null" : object.getClass().getName()));
     }
     return (E) object;
+  }
+
+  /**
+   * Assert that the given array is non-{@code null} and has the expected number of elements.
+   * 
+   * @param expectedLength the expected number of elements
+   * @param array the array being tested
+   * @throws AssertionFailedError if the array is {@code null} or does not have the expected number
+   *           of elements
+   */
+  public static void assertLength(int expectedLength, Object[] array) {
+    if (array == null) {
+      fail("Expected array of length " + expectedLength + "; found null");
+    } else if (array.length != expectedLength) {
+      fail("Expected array of length " + expectedLength + "; contained " + array.length
+          + " elements");
+    }
+  }
+
+  /**
+   * Assert that the given list is non-{@code null} and has the expected number of elements.
+   * 
+   * @param expectedSize the expected number of elements
+   * @param list the list being tested
+   * @throws AssertionFailedError if the list is {@code null} or does not have the expected number
+   *           of elements
+   */
+  public static void assertSize(int expectedSize, List<?> list) {
+    if (list == null) {
+      fail("Expected list of size " + expectedSize + "; found null");
+    } else if (list.size() != expectedSize) {
+      fail("Expected list of size " + expectedSize + "; contained " + list.size() + " elements");
+    }
   }
 }
