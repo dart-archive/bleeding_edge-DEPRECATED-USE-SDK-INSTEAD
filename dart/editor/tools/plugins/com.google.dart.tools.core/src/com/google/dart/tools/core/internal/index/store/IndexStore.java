@@ -288,7 +288,7 @@ public class IndexStore {
   public void regenerateResource(Resource resource) {
     resourceToElementMap.remove(resource);
 
-    List<ContributedLocation> locations = contributorToContributedLocations.get(resource);
+    List<ContributedLocation> locations = contributorToContributedLocations.remove(resource);
     if (locations != null) {
       for (ContributedLocation location : locations) {
         location.getOwner().remove(location);

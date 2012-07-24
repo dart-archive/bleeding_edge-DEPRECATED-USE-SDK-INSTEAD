@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.utilities.compiler;
 
+import com.google.common.collect.MapMaker;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
@@ -36,7 +37,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.internal.builder.LocalArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
-import com.google.dart.tools.core.internal.cache.LRUCache;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
@@ -483,8 +483,7 @@ public class DartCompilerUtilities {
    */
   private static final Object compilerLock = new Object();
 
-  private static LRUCache<LibrarySource, LibraryUnit> cachedLibraries = new LRUCache<LibrarySource, LibraryUnit>(
-      10);
+  private static Map<LibrarySource, LibraryUnit> cachedLibraries = new MapMaker().maximumSize(10).softValues().makeMap();
 
   public static DartNode analyzeDelta(LibrarySource library, String sourceString,
       DartUnit suppliedUnit, DartNode completionNode, int completionLocation,
@@ -651,7 +650,7 @@ public class DartCompilerUtilities {
    */
   public static void removeCachedLibrary(LibrarySource library) {
     synchronized (cachedLibraries) {
-      cachedLibraries.removeKey(library);
+      cachedLibraries.remove(library);
     }
   }
 
