@@ -14,7 +14,10 @@
 package com.google.dart.engine.parser;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.scanner.StringScanner;
@@ -190,5 +193,55 @@ public class ParserTestCase extends EngineTestCase {
   protected static <E> E invokeParserMethod(String methodName, String source,
       GatheringErrorListener listener) throws Exception {
     return invokeParserMethod(methodName, EMPTY_PARAMETERS, EMPTY_ARGUMENTS, source, listener);
+  }
+
+  /**
+   * Parse the given source as an expression.
+   * 
+   * @param source the source to be parsed
+   * @return the expression that was parsed
+   * @throws Exception if the source could not be parsed, if the source contains a compilation
+   *           error, or if the result would have been {@code null}.
+   */
+  @SuppressWarnings("unchecked")
+  protected <E extends Expression> E parseExpression(String source) throws Exception {
+    AnalysisErrorListener listener = new AnalysisErrorListener() {
+      @Override
+      public void onError(AnalysisError event) {
+        fail("Unexpected compilation error: " + event.getMessage() + " (" + event.getOffset()
+            + ", " + event.getLength() + ")");
+      }
+    };
+    StringScanner scanner = new StringScanner(null, source, listener);
+    Token token = scanner.tokenize();
+    Parser parser = new Parser(null, listener);
+    Expression expression = parser.parseExpression(token);
+    assertNotNull(expression);
+    return (E) expression;
+  }
+
+  /**
+   * Parse the given source as a statement.
+   * 
+   * @param source the source to be parsed
+   * @return the statement that was parsed
+   * @throws Exception if the source could not be parsed, if the source contains a compilation
+   *           error, or if the result would have been {@code null}.
+   */
+  @SuppressWarnings("unchecked")
+  protected <E extends Statement> E parseStatement(String source) throws Exception {
+    AnalysisErrorListener listener = new AnalysisErrorListener() {
+      @Override
+      public void onError(AnalysisError event) {
+        fail("Unexpected compilation error: " + event.getMessage() + " (" + event.getOffset()
+            + ", " + event.getLength() + ")");
+      }
+    };
+    StringScanner scanner = new StringScanner(null, source, listener);
+    Token token = scanner.tokenize();
+    Parser parser = new Parser(null, listener);
+    Statement statement = parser.parseStatement(token);
+    assertNotNull(statement);
+    return (E) statement;
   }
 }
