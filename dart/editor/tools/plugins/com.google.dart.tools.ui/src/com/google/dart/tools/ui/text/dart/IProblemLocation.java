@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.text.dart;
 
+import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 
@@ -79,7 +80,7 @@ public interface IProblemLocation {
    * 
    * @return The id of the problem.
    */
-  int getProblemId();
+  ErrorCode getProblemId();
 
   /**
    * Returns if the problem has error severity.

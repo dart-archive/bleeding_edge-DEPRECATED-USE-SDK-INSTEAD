@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.compiler.ErrorCode;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -31,6 +32,19 @@ public class DartMarkerAnnotation extends MarkerAnnotation implements IJavaAnnot
   public static final String WARNING_ANNOTATION_TYPE = "com.google.dart.tools.ui.warning"; //$NON-NLS-1$
   public static final String INFO_ANNOTATION_TYPE = "com.google.dart.tools.ui.info"; //$NON-NLS-1$
   public static final String TASK_ANNOTATION_TYPE = "org.eclipse.ui.workbench.texteditor.task"; //$NON-NLS-1$
+
+  /**
+   * @return <code>true</code> if the marker can be treated as a Dart annotation.
+   */
+  static final boolean isJavaAnnotation(IMarker marker) {
+    // Performance
+    String markerType = MarkerUtilities.getMarkerType(marker);
+    if (DartCore.DART_PROBLEM_MARKER_TYPE.equals(markerType)) {
+      return true;
+    }
+    // Generic
+    return MarkerUtilities.isMarkerType(marker, DartCore.DART_PROBLEM_MARKER_TYPE);
+  }
 
   private IJavaAnnotation fOverlay;
 
@@ -62,15 +76,18 @@ public class DartMarkerAnnotation extends MarkerAnnotation implements IJavaAnnot
   }
 
   @Override
-  public int getId() {
+  public ErrorCode getId() {
     IMarker marker = getMarker();
     if (marker == null || !marker.exists()) {
-      return -1;
+      return null;
     }
 
     if (isProblem()) {
-      // TODO(devoncarew): inlined from IJavaScriptModelMarker.ID
-      return marker.getAttribute("id", -1);
+      final String qualifiedName = marker.getAttribute("errorCode", (String) null);
+      if (qualifiedName != null) {
+        return ErrorCode.Helper.forQualifiedName(qualifiedName);
+      }
+      return null;
     }
 
 //		if (TASK_ANNOTATION_TYPE.equals(getAnnotationType())) {
@@ -83,7 +100,7 @@ public class DartMarkerAnnotation extends MarkerAnnotation implements IJavaAnnot
 //			}
 //		}
 
-    return -1;
+    return null;
   }
 
   @Override

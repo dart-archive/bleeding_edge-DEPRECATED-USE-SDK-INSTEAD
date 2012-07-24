@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.tools.core.DartCore;
@@ -43,7 +44,6 @@ import com.google.dart.tools.ui.internal.Logger;
 import com.google.dart.tools.ui.internal.text.DartStatusConstants;
 import com.google.dart.tools.ui.internal.text.dart.IProblemRequestorExtension;
 import com.google.dart.tools.ui.internal.text.editor.saveparticipant.IPostSaveListener;
-import com.google.dart.tools.ui.internal.text.spelling.DartSpellingReconcileStrategy;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 import com.google.dart.tools.ui.text.DartPartitions;
 
@@ -110,7 +110,6 @@ import org.eclipse.ui.texteditor.AnnotationPreference;
 import org.eclipse.ui.texteditor.AnnotationPreferenceLookup;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
-import org.eclipse.ui.texteditor.MarkerUtilities;
 import org.eclipse.ui.texteditor.ResourceMarkerAnnotationModel;
 
 import java.io.BufferedReader;
@@ -196,14 +195,16 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       fProblem = problem;
       fCompilationUnit = cu;
 
-      if (DartSpellingReconcileStrategy.SPELLING_PROBLEM_ID == fProblem.getID()) {
-        setType(SPELLING_ANNOTATION_TYPE);
-        fLayer = WARNING_LAYER;
-        DartX.todo("Task");
-        // } else if (Problem.Task == fProblem.getID()) {
-        // setType(DartMarkerAnnotation.TASK_ANNOTATION_TYPE);
-        // fLayer = TASK_LAYER;
-      } else if (fProblem.isWarning()) {
+      // TODO(scheglov) restore when we will implement this feature
+//      if (DartSpellingReconcileStrategy.SPELLING_PROBLEM_ID == fProblem.getID()) {
+//        setType(SPELLING_ANNOTATION_TYPE);
+//        fLayer = WARNING_LAYER;
+//        DartX.todo("Task");
+//        // } else if (Problem.Task == fProblem.getID()) {
+//        // setType(DartMarkerAnnotation.TASK_ANNOTATION_TYPE);
+//        // fLayer = TASK_LAYER;
+//      } else 
+      if (fProblem.isWarning()) {
         setType(DartMarkerAnnotation.WARNING_ANNOTATION_TYPE);
         fLayer = WARNING_LAYER;
       } else if (fProblem.isError()) {
@@ -234,7 +235,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
     }
 
     @Override
-    public int getId() {
+    public ErrorCode getId() {
       return fProblem.getID();
     }
 
@@ -409,13 +410,14 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
 
     @Override
     public void acceptProblem(Problem problem) {
-      if (fIsHandlingTemporaryProblems
-          || problem.getID() == DartSpellingReconcileStrategy.SPELLING_PROBLEM_ID) {
-        ProblemRequestorState state = fProblemRequestorState.get();
-        if (state != null) {
-          state.fReportedProblems.add(problem);
-        }
-      }
+      // TODO(scheglov) restore when we will implement this feature
+//      if (fIsHandlingTemporaryProblems
+//          || problem.getID() == DartSpellingReconcileStrategy.SPELLING_PROBLEM_ID) {
+//        ProblemRequestorState state = fProblemRequestorState.get();
+//        if (state != null) {
+//          state.fReportedProblems.add(problem);
+//        }
+//      }
     }
 
     @Override
@@ -517,8 +519,12 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
 
     @Override
     protected MarkerAnnotation createMarkerAnnotation(IMarker marker) {
-      String markerType = MarkerUtilities.getMarkerType(marker);
-      if (markerType != null && markerType.startsWith(DartMarkerAnnotation.JAVA_MARKER_TYPE_PREFIX)) {
+//      String markerType = MarkerUtilities.getMarkerType(marker);
+//      if (markerType != null && markerType.startsWith(DartMarkerAnnotation.JAVA_MARKER_TYPE_PREFIX)) {
+//        return new DartMarkerAnnotation(marker);
+//      }
+      // TODO(scheglov)
+      if (DartMarkerAnnotation.isJavaAnnotation(marker)) {
         return new DartMarkerAnnotation(marker);
       }
       return super.createMarkerAnnotation(marker);

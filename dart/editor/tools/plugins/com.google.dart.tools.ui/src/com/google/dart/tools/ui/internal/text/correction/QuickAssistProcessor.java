@@ -111,12 +111,12 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     return true;
   }
 
-  private final List<ICommandAccess> proposals = Lists.newArrayList();
+  private CompilationUnit unit;
   private int selectionOffset;
   private int selectionLength;
-  private CompilationUnit unit;
   private ExtractUtils utils;
   private DartNode node;
+  private final List<ICommandAccess> proposals = Lists.newArrayList();
   private final List<TextEdit> textEdits = Lists.newArrayList();
 
   @Override

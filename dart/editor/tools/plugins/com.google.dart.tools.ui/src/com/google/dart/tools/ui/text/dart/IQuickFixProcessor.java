@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.text.dart;
 
+import com.google.dart.compiler.ErrorCode;
 import com.google.dart.tools.core.model.CompilationUnit;
 
 import org.eclipse.core.runtime.CoreException;
@@ -60,6 +61,6 @@ public interface IQuickFixProcessor {
    *          specified in the extension point.
    * @return <code>true</code> if the processor has proposals for the given problem
    */
-  boolean hasCorrections(CompilationUnit unit, int problemId);
+  boolean hasCorrections(CompilationUnit unit, ErrorCode problemId);
 
 }

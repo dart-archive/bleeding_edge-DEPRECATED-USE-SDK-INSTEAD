@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.spelling;
 
+import com.google.dart.compiler.ErrorCode;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.internal.text.dart.DartCompletionProposal;
@@ -96,12 +97,6 @@ public class SpellingQuickFixProcessor implements IQuickFixProcessor {
       };
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.ui.texteditor.spelling.ISpellingProblemCollector#accept
-     * (org.eclipse.ui.texteditor.spelling.SpellingProblem)
-     */
     @Override
     public void accept(SpellingProblem problem) {
       ICompletionProposal[] proposals = problem.getProposals(fContext);
@@ -110,21 +105,11 @@ public class SpellingQuickFixProcessor implements IQuickFixProcessor {
       }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @seeorg.eclipse.ui.texteditor.spelling.ISpellingProblemCollector# beginCollecting()
-     */
     @Override
     public void beginCollecting() {
       fProposals.clear();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @seeorg.eclipse.ui.texteditor.spelling.ISpellingProblemCollector# endCollecting()
-     */
     @Override
     public void endCollecting() {
     }
@@ -142,92 +127,45 @@ public class SpellingQuickFixProcessor implements IQuickFixProcessor {
       fProposal = spellingProposal;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.jface.text.contentassist.ICompletionProposal#apply(
-     * org.eclipse.jface.text.IDocument)
-     */
     @Override
     public void apply(IDocument document) {
       fProposal.apply(document);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @seeorg.eclipse.jface.text.contentassist.ICompletionProposal# getAdditionalProposalInfo()
-     */
     @Override
     public String getAdditionalProposalInfo() {
       return fProposal.getAdditionalProposalInfo();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @seeorg.eclipse.jface.text.contentassist.ICompletionProposal# getContextInformation()
-     */
     @Override
     public IContextInformation getContextInformation() {
       return fProposal.getContextInformation();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @seeorg.eclipse.jface.text.contentassist.ICompletionProposal# getDisplayString()
-     */
     @Override
     public String getDisplayString() {
       return fProposal.getDisplayString();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.jface.text.contentassist.ICompletionProposal#getImage()
-     */
     @Override
     public Image getImage() {
       return fProposal.getImage();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.wst.jsdt.ui.text.java.IJavaCompletionProposal#getRelevance ()
-     */
     @Override
     public int getRelevance() {
       return 50;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.jface.text.contentassist.ICompletionProposal#getSelection
-     * (org.eclipse.jface.text.IDocument)
-     */
     @Override
     public Point getSelection(IDocument document) {
       return fProposal.getSelection(document);
     }
   }
 
-  /**
-	 * 
-	 */
   public SpellingQuickFixProcessor() {
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.wst.jsdt.ui.text.java.IQuickFixProcessor#getCorrections
-   * (org.eclipse.wst.jsdt.ui.text.java.IInvocationContext,
-   * org.eclipse.wst.jsdt.ui.text.java.IProblemLocation[])
-   */
   @Override
   public DartCompletionProposal[] getCorrections(IInvocationContext context,
       IProblemLocation[] locations) throws CoreException {
@@ -252,14 +190,8 @@ public class SpellingQuickFixProcessor implements IQuickFixProcessor {
     return collector.getProposals();
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.wst.jsdt.ui.text.java.IQuickFixProcessor#hasCorrections
-   * (org.eclipse.wst.jsdt.core.IJavaScriptUnit, int)
-   */
   @Override
-  public boolean hasCorrections(CompilationUnit unit, int problemId) {
+  public boolean hasCorrections(CompilationUnit unit, ErrorCode problemId) {
     return false;
   }
 

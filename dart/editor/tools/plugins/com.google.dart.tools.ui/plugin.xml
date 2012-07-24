@@ -541,15 +541,27 @@
     </extension>
    
    
-   <extension
+    <extension
          point="org.eclipse.ui.editors.annotationTypes">
-      <type
-         name="com.google.dart.tools.ui.occurrences">
-      </type>
-      <type
-         name="com.google.dart.tools.ui.overrideIndicator">
-      </type>
-   </extension>
+        <type
+            name="com.google.dart.tools.ui.error"
+            super="org.eclipse.ui.workbench.texteditor.error"
+            markerType="com.google.dart.tools.core.problem"
+            markerSeverity="2"/>
+        <type
+            name="com.google.dart.tools.ui.warning"
+            super="org.eclipse.ui.workbench.texteditor.warning"
+            markerType="com.google.dart.tools.core.problem"
+            markerSeverity="1"/>
+        <type
+            name="com.google.dart.tools.ui.info"
+            super="org.eclipse.ui.workbench.texteditor.info"
+            markerType="com.google.dart.tools.core.problem"
+            markerSeverity="0"/>
+      <type name="com.google.dart.tools.ui.occurrences"/>
+      <type name="com.google.dart.tools.ui.overrideIndicator"/>
+    </extension>
+    
    <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
      <specification
@@ -3236,6 +3248,23 @@
             </enablement>
       </deleteParticipant>
    </extension>
+
+    <extension
+        point="com.google.dart.tools.ui.quickFixProcessors">
+        <quickFixProcessor
+            name="%defaultQuickFixProcessor"
+            class="com.google.dart.tools.ui.internal.text.correction.QuickFixProcessor"
+            id="com.google.dart.tools.ui.internal.text.correction.QuickFixProcessor">
+        </quickFixProcessor>
+        <!--<quickFixProcessor
+            name="%spellingQuickFixProcessor"
+            class="org.eclipse.jdt.internal.ui.text.spelling.WordQuickFixProcessor"
+            id= "org.eclipse.jdt.ui.text.correction.spelling.QuickFixProcessor">
+            <handledMarkerTypes>
+                <markerType id="org.eclipse.jdt.ui.internal.spelling"/>
+            </handledMarkerTypes>
+        </quickFixProcessor>-->
+    </extension>
     
    <extension
          point="com.google.dart.tools.ui.quickAssistProcessors">

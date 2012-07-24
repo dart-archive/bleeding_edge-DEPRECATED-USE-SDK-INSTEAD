@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.compiler.ErrorCode;
 import com.google.dart.tools.core.model.CompilationUnit;
 
 import java.util.Iterator;
@@ -47,11 +48,9 @@ public interface IJavaAnnotation {
   CompilationUnit getCompilationUnit();
 
   /**
-   * Returns the problem id or <code>-1</code> if no problem id can be evaluated.
-   * 
-   * @return returns the problem id or <code>-1</code>
+   * @return the problem {@link ErrorCode} or <code>null</code> if problem code can't be evaluated.
    */
-  int getId();
+  ErrorCode getId();
 
   /**
    * Returns the marker type associated to this problem or <code>null<code> if no marker type

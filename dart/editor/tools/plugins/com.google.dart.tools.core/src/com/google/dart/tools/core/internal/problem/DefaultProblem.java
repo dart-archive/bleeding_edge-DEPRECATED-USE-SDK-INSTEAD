@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.problem;
 
+import com.google.dart.compiler.ErrorCode;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.compiler.Util;
 import com.google.dart.tools.core.internal.util.Messages;
@@ -22,7 +23,7 @@ import com.google.dart.tools.core.internal.util.Messages;
  */
 public class DefaultProblem extends CategorizedProblem {
   private char[] fileName;
-  private int id;
+  private ErrorCode id;
   private int startPosition;
   private int endPosition;
   private int line;
@@ -36,7 +37,7 @@ public class DefaultProblem extends CategorizedProblem {
 
   public static final Object[] EMPTY_VALUES = {};
 
-  public DefaultProblem(char[] originatingFileName, String message, int id,
+  public DefaultProblem(char[] originatingFileName, String message, ErrorCode id,
       String[] stringArguments, int severity, int startPosition, int endPosition, int line,
       int column) {
 
@@ -130,14 +131,8 @@ public class DefaultProblem extends CategorizedProblem {
     return CategorizedProblem.CAT_SYNTAX;
   }
 
-  /**
-   * Answer the type of problem.
-   * 
-   * @see org.eclipse.jdt.core.compiler.IProblem#getID()
-   * @return int
-   */
   @Override
-  public int getID() {
+  public ErrorCode getID() {
     return this.id;
   }
 

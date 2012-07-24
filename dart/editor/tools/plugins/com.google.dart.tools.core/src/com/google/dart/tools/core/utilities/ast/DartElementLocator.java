@@ -304,7 +304,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
             findElementFor(targetElement);
             // Import prefix is resolved into LibraryElement, so it is correct that corresponding
             // DartElement is DartLibrary, but this is not what we (and user) wants, because
-            // it looses information. We want DartImport, it gives both DartLibrary and name.
+            // it loses information. We want DartImport, it gives both DartLibrary and prefix.
             if (foundElement instanceof DartLibrary) {
               try {
                 DartImport[] imports = compilationUnit.getLibrary().getImports();

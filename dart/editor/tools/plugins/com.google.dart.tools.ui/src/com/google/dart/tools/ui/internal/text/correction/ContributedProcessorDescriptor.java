@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -116,11 +117,12 @@ public final class ContributedProcessorDescriptor {
         }
       }
     }
-//    if (map.isEmpty()) {
+    if (map.isEmpty()) {
+      map.add(DartCore.DART_PROBLEM_MARKER_TYPE);
 //      map.add(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
 //      map.add(IJavaModelMarker.BUILDPATH_PROBLEM_MARKER);
 //      map.add(IJavaModelMarker.TASK_MARKER);
-//    }
+    }
     return map;
   }
 

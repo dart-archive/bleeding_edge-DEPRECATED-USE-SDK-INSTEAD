@@ -269,13 +269,12 @@ public class ReconcileWorkingCopyOperation extends DartModelOperation {
     for (DartCompilationError error : parseErrors) {
       int startPosition = error.getStartPosition();
       DartCore.notYetImplemented();
-      // TODO(brianwilkerson) We don't currently have any way to get arguments,
-      // severity, or id.
+      // TODO(brianwilkerson) We don't currently have any way to get arguments, severity.
       Source source = error.getSource();
       problemArray[nextIndex++] = new DefaultProblem(
           (source == null ? "" : error.getSource().getName()).toCharArray(),
           error.getMessage(),
-          0,
+          error.getErrorCode(),
           arguments,
           ProblemSeverities.Error,
           startPosition,

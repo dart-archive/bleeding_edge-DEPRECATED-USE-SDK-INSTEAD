@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
+import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
@@ -28,12 +29,22 @@ import com.google.dart.tools.ui.text.dart.IProblemLocation;
  */
 public class ProblemLocation implements IProblemLocation {
 
-  private final int fId;
+  private final ErrorCode fId;
   private final String[] fArguments;
   private final int fOffset;
   private final int fLength;
   private final boolean fIsError;
   private final String fMarkerType;
+
+  public ProblemLocation(int offset, int length, ErrorCode id, String[] arguments, boolean isError,
+      String markerType) {
+    fId = id;
+    fArguments = arguments;
+    fOffset = offset;
+    fLength = length;
+    fIsError = isError;
+    fMarkerType = markerType;
+  }
 
   public ProblemLocation(int offset, int length, IJavaAnnotation annotation) {
     fId = annotation.getId();
@@ -45,16 +56,6 @@ public class ProblemLocation implements IProblemLocation {
 
     String markerType = annotation.getMarkerType();
     fMarkerType = markerType != null ? markerType : DartCore.DART_PROBLEM_MARKER_TYPE;
-  }
-
-  public ProblemLocation(int offset, int length, int id, String[] arguments, boolean isError,
-      String markerType) {
-    fId = id;
-    fArguments = arguments;
-    fOffset = offset;
-    fLength = length;
-    fIsError = isError;
-    fMarkerType = markerType;
   }
 
   public ProblemLocation(Problem problem) {
@@ -100,7 +101,7 @@ public class ProblemLocation implements IProblemLocation {
   }
 
   @Override
-  public int getProblemId() {
+  public ErrorCode getProblemId() {
     return fId;
   }
 
@@ -122,7 +123,7 @@ public class ProblemLocation implements IProblemLocation {
     return buf.toString();
   }
 
-  private String getErrorCode(int code) {
+  private String getErrorCode(ErrorCode code) {
     // TODO(scheglov) may be restore
     return "" + code;
 //    StringBuffer buf = new StringBuffer();

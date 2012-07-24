@@ -86,6 +86,7 @@ class AnalysisMarkerManager implements AnalysisListener {
       int length = error.getLength();
       int lineNumber = error.getLineNumber();
       String errMsg = error.getMessage();
+      String errorCodeString = ErrorCode.Helper.toQualifiedName(error.getErrorCode());
 
       // Remove newlines and indent spaces from the compiler's error messages
 
@@ -101,6 +102,7 @@ class AnalysisMarkerManager implements AnalysisListener {
         marker.setAttribute(IMarker.CHAR_START, offset);
         marker.setAttribute(IMarker.CHAR_END, offset + length);
         marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
+        marker.setAttribute("errorCode", errorCodeString);
       } catch (CoreException e) {
         DartCore.logError("Failed to create marker for " + res + "\n   at " + offset + " message: "
             + errMsg, e);

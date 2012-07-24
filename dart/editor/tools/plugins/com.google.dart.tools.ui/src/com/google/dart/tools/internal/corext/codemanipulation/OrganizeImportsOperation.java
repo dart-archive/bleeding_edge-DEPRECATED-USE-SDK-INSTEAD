@@ -332,8 +332,8 @@ public class OrganizeImportsOperation implements IWorkspaceRunnable {
 
   DartProject project;
 
-  public OrganizeImportsOperation(
-      CompilationUnit cu, DartUnit astRoot, boolean save, boolean allowSyntaxErrors) {
+  public OrganizeImportsOperation(CompilationUnit cu, DartUnit astRoot, boolean save,
+      boolean allowSyntaxErrors) {
 
     compilationUnit = cu;
     this.astRoot = astRoot;
@@ -350,8 +350,8 @@ public class OrganizeImportsOperation implements IWorkspaceRunnable {
 
   }
 
-  public TextEdit createTextEdit(IProgressMonitor monitor)
-      throws CoreException, OperationCanceledException {
+  public TextEdit createTextEdit(IProgressMonitor monitor) throws CoreException,
+      OperationCanceledException {
     if (monitor == null) {
       monitor = new NullProgressMonitor();
     }
@@ -487,8 +487,10 @@ public class OrganizeImportsOperation implements IWorkspaceRunnable {
     if (!allowSyntaxErrors) {
       IMarker[] problems;
       try {
-        problems = cu.getCorrespondingResource()
-            .findMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_ZERO);
+        problems = cu.getCorrespondingResource().findMarkers(
+            DartCore.DART_PROBLEM_MARKER_TYPE,
+            true,
+            IResource.DEPTH_ZERO);
 
         for (int i = 0; i < problems.length; i++) {
           IMarker curr = problems[i];
@@ -496,7 +498,7 @@ public class OrganizeImportsOperation implements IWorkspaceRunnable {
             parsingError = new DefaultProblem(
                 cu.getElementName().toCharArray(),
                 (String) curr.getAttribute(IMarker.MESSAGE),
-                0,
+                null,
                 new String[0],
                 ProblemSeverities.Error,
                 curr.getAttribute(IMarker.CHAR_START, 0),
@@ -528,8 +530,8 @@ public class OrganizeImportsOperation implements IWorkspaceRunnable {
 
   }
 
-  private void determineImportDifferences(
-      ImportRewrite importsStructure, Set<String> oldSingleImports, Set<String> oldDemandImports) {
+  private void determineImportDifferences(ImportRewrite importsStructure,
+      Set<String> oldSingleImports, Set<String> oldDemandImports) {
 
     ArrayList<String> importsAdded = new ArrayList<String>();
     //   importsAdded.addAll(Arrays.asList(importsStructure.getCreatedImports()));

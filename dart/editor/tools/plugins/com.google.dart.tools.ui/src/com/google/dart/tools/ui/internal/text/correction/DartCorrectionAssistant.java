@@ -14,13 +14,19 @@
 package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
+import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.internal.text.editor.ASTProvider;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IInformationControl;
 import org.eclipse.jface.text.IInformationControlCreator;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.contentassist.ContentAssistEvent;
@@ -29,14 +35,17 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
 import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
 import org.eclipse.jface.text.source.Annotation;
+import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPreferenceConstants;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -46,142 +55,138 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
 
   public static int collectQuickFixableAnnotations(ITextEditor editor, int invocationLocation,
       boolean goToClosest, List<Annotation> resultingAnnotations) throws BadLocationException {
-    // TODO(scheglov) restore this later
-    return invocationLocation;
-//    IAnnotationModel model = DartUI.getDocumentProvider().getAnnotationModel(
-//        editor.getEditorInput());
-//    if (model == null) {
-//      return invocationLocation;
-//    }
-//
-//    ensureUpdatedAnnotations(editor);
-//
-//    Iterator<Annotation> iter = model.getAnnotationIterator();
-//    if (goToClosest) {
-//      IRegion lineInfo = getRegionOfInterest(editor, invocationLocation);
-//      if (lineInfo == null) {
-//        return invocationLocation;
-//      }
-//      int rangeStart = lineInfo.getOffset();
-//      int rangeEnd = rangeStart + lineInfo.getLength();
-//
-//      ArrayList<Annotation> allAnnotations = new ArrayList<Annotation>();
-//      ArrayList<Position> allPositions = new ArrayList<Position>();
-//      int bestOffset = Integer.MAX_VALUE;
-//      while (iter.hasNext()) {
-//        Annotation annot = iter.next();
-//        if (DartCorrectionProcessor.isQuickFixableType(annot)) {
-//          Position pos = model.getPosition(annot);
-//          if (pos != null && isInside(pos.offset, rangeStart, rangeEnd)) { // inside our range?
-//            allAnnotations.add(annot);
-//            allPositions.add(pos);
-//            bestOffset = processAnnotation(annot, pos, invocationLocation, bestOffset);
-//          }
-//        }
-//      }
-//      if (bestOffset == Integer.MAX_VALUE) {
-//        return invocationLocation;
-//      }
-//      for (int i = 0; i < allPositions.size(); i++) {
-//        Position pos = allPositions.get(i);
-//        if (isInside(bestOffset, pos.offset, pos.offset + pos.length)) {
-//          resultingAnnotations.add(allAnnotations.get(i));
-//        }
-//      }
-//      return bestOffset;
-//    } else {
-//      while (iter.hasNext()) {
-//        Annotation annot = iter.next();
-//        if (DartCorrectionProcessor.isQuickFixableType(annot)) {
-//          Position pos = model.getPosition(annot);
-//          if (pos != null && isInside(invocationLocation, pos.offset, pos.offset + pos.length)) {
-//            resultingAnnotations.add(annot);
-//          }
-//        }
-//      }
-//      return invocationLocation;
-//    }
+    IAnnotationModel model = DartUI.getDocumentProvider().getAnnotationModel(
+        editor.getEditorInput());
+    if (model == null) {
+      return invocationLocation;
+    }
+
+    ensureUpdatedAnnotations(editor);
+
+    @SuppressWarnings("unchecked")
+    Iterator<Annotation> iter = model.getAnnotationIterator();
+    if (goToClosest) {
+      IRegion lineInfo = getRegionOfInterest(editor, invocationLocation);
+      if (lineInfo == null) {
+        return invocationLocation;
+      }
+      int rangeStart = lineInfo.getOffset();
+      int rangeEnd = rangeStart + lineInfo.getLength();
+
+      List<Annotation> allAnnotations = Lists.newArrayList();
+      List<Position> allPositions = Lists.newArrayList();
+      int bestOffset = Integer.MAX_VALUE;
+      while (iter.hasNext()) {
+        Annotation annot = iter.next();
+        if (DartCorrectionProcessor.isQuickFixableType(annot)) {
+          Position pos = model.getPosition(annot);
+          if (pos != null && isInside(pos.offset, rangeStart, rangeEnd)) { // inside our range?
+            allAnnotations.add(annot);
+            allPositions.add(pos);
+            bestOffset = processAnnotation(annot, pos, invocationLocation, bestOffset);
+          }
+        }
+      }
+      if (bestOffset == Integer.MAX_VALUE) {
+        return invocationLocation;
+      }
+      for (int i = 0; i < allPositions.size(); i++) {
+        Position pos = allPositions.get(i);
+        if (isInside(bestOffset, pos.offset, pos.offset + pos.length)) {
+          resultingAnnotations.add(allAnnotations.get(i));
+        }
+      }
+      return bestOffset;
+    } else {
+      while (iter.hasNext()) {
+        Annotation annot = iter.next();
+        if (DartCorrectionProcessor.isQuickFixableType(annot)) {
+          Position pos = model.getPosition(annot);
+          if (pos != null && isInside(invocationLocation, pos.offset, pos.offset + pos.length)) {
+            resultingAnnotations.add(annot);
+          }
+        }
+      }
+      return invocationLocation;
+    }
   }
 
-//  /**
-//   * Computes and returns the invocation offset given a new position, the initial offset and the
-//   * best invocation offset found so far.
-//   * <p>
-//   * The closest offset to the left of the initial offset is the best. If there is no offset on the
-//   * left, the closest on the right is the best.
-//   * </p>
-//   * 
-//   * @param newOffset the offset to look at
-//   * @param invocationLocation the invocation location
-//   * @param bestOffset the current best offset
-//   * @return -1 is returned if the given offset is not closer or the new best offset
-//   */
-//  private static int computeBestOffset(int newOffset, int invocationLocation, int bestOffset) {
-//    if (newOffset <= invocationLocation) {
-//      if (bestOffset > invocationLocation) {
-//        return newOffset; // closest was on the right, prefer on the left
-//      } else if (bestOffset <= newOffset) {
-//        return newOffset; // we are closer or equal
-//      }
-//      return -1; // further away
-//    }
-//
-//    if (newOffset <= bestOffset) {
-//      return newOffset; // we are closer or equal
-//    }
-//
-//    return -1; // further away
-//  }
+  /**
+   * Computes and returns the invocation offset given a new position, the initial offset and the
+   * best invocation offset found so far.
+   * <p>
+   * The closest offset to the left of the initial offset is the best. If there is no offset on the
+   * left, the closest on the right is the best.
+   * </p>
+   * 
+   * @param newOffset the offset to look at
+   * @param invocationLocation the invocation location
+   * @param bestOffset the current best offset
+   * @return -1 is returned if the given offset is not closer or the new best offset
+   */
+  private static int computeBestOffset(int newOffset, int invocationLocation, int bestOffset) {
+    if (newOffset <= invocationLocation) {
+      if (bestOffset > invocationLocation) {
+        return newOffset; // closest was on the right, prefer on the left
+      } else if (bestOffset <= newOffset) {
+        return newOffset; // we are closer or equal
+      }
+      return -1; // further away
+    }
 
-//  private static void ensureUpdatedAnnotations(ITextEditor editor) {
-//    Object inputElement = editor.getEditorInput().getAdapter(DartElement.class);
-//    if (inputElement instanceof CompilationUnit) {
-//      ASTProvider.getASTProvider().getAST(
-//          (CompilationUnit) inputElement,
-//          ASTProvider.WAIT_ACTIVE_ONLY,
-//          null);
-//    }
-//  }
-//
-//  private static IRegion getRegionOfInterest(ITextEditor editor, int invocationLocation)
-//      throws BadLocationException {
-//    IDocumentProvider documentProvider = editor.getDocumentProvider();
-//    if (documentProvider == null) {
-//      return null;
-//    }
-//    IDocument document = documentProvider.getDocument(editor.getEditorInput());
-//    if (document == null) {
-//      return null;
-//    }
-//    return document.getLineInformationOfOffset(invocationLocation);
-//  }
-//
-//  private static boolean isInside(int offset, int start, int end) {
-//    return offset == start || offset == end || offset > start && offset < end; // make sure to handle 0-length ranges
-//  }
-//
-//  private static int processAnnotation(
-//      Annotation annot,
-//      Position pos,
-//      int invocationLocation,
-//      int bestOffset) {
-//    int posBegin = pos.offset;
-//    int posEnd = posBegin + pos.length;
-//    if (isInside(invocationLocation, posBegin, posEnd)) { // covers invocation location?
-//      return invocationLocation;
-//    } else if (bestOffset != invocationLocation) {
-//      int newClosestPosition = computeBestOffset(posBegin, invocationLocation, bestOffset);
-//      if (newClosestPosition != -1) {
-//        if (newClosestPosition != bestOffset) { // new best
-//          // TODO(scheglov) restore this later
-////          if (DartCorrectionProcessor.hasCorrections(annot)) { // only jump to it if there are proposals
-////            return newClosestPosition;
-////          }
-//        }
-//      }
-//    }
-//    return bestOffset;
-//  }
+    if (newOffset <= bestOffset) {
+      return newOffset; // we are closer or equal
+    }
+
+    return -1; // further away
+  }
+
+  private static void ensureUpdatedAnnotations(ITextEditor editor) {
+    // TODO(scheglov) now sure if this works
+    Object inputElement = editor.getEditorInput().getAdapter(DartElement.class);
+    if (inputElement instanceof CompilationUnit) {
+      ASTProvider.getASTProvider().getAST(
+          (CompilationUnit) inputElement,
+          ASTProvider.WAIT_ACTIVE_ONLY,
+          null);
+    }
+  }
+
+  private static IRegion getRegionOfInterest(ITextEditor editor, int invocationLocation)
+      throws BadLocationException {
+    IDocumentProvider documentProvider = editor.getDocumentProvider();
+    if (documentProvider == null) {
+      return null;
+    }
+    IDocument document = documentProvider.getDocument(editor.getEditorInput());
+    if (document == null) {
+      return null;
+    }
+    return document.getLineInformationOfOffset(invocationLocation);
+  }
+
+  private static boolean isInside(int offset, int start, int end) {
+    return offset == start || offset == end || offset > start && offset < end; // make sure to handle 0-length ranges
+  }
+
+  private static int processAnnotation(Annotation annot, Position pos, int invocationLocation,
+      int bestOffset) {
+    int posBegin = pos.offset;
+    int posEnd = posBegin + pos.length;
+    if (isInside(invocationLocation, posBegin, posEnd)) { // covers invocation location?
+      return invocationLocation;
+    } else if (bestOffset != invocationLocation) {
+      int newClosestPosition = computeBestOffset(posBegin, invocationLocation, bestOffset);
+      if (newClosestPosition != -1) {
+        if (newClosestPosition != bestOffset) { // new best
+          if (DartCorrectionProcessor.hasCorrections(annot)) { // only jump to it if there are proposals
+            return newClosestPosition;
+          }
+        }
+      }
+    }
+    return bestOffset;
+  }
 
   private ITextViewer fViewer;
 
