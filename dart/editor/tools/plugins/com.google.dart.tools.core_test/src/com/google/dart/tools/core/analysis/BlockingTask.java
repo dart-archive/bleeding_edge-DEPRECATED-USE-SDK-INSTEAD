@@ -3,6 +3,7 @@ package com.google.dart.tools.core.analysis;
 public class BlockingTask extends Task {
 
   private Object lock = new Object();
+  private boolean started = false;
   private boolean blocked = true;
   private boolean performed = false;
 
@@ -19,6 +20,8 @@ public class BlockingTask extends Task {
   @Override
   public void perform() {
     synchronized (lock) {
+      started = true;
+      lock.notifyAll();
       while (blocked) {
         try {
           lock.wait();
@@ -49,10 +52,10 @@ public class BlockingTask extends Task {
     }
   }
 
-  boolean waitForPerformed(long milliseconds) {
+  boolean waitUntilStarted(long milliseconds) {
     long end = System.currentTimeMillis() + milliseconds;
     synchronized (lock) {
-      while (!performed) {
+      while (!started) {
         long delta = end - System.currentTimeMillis();
         if (delta <= 0) {
           return false;

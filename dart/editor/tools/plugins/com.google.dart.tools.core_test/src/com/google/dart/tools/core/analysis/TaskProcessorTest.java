@@ -4,9 +4,127 @@ import com.google.dart.tools.core.AbstractDartCoreTest;
 
 public class TaskProcessorTest extends AbstractDartCoreTest {
 
+  private class AddTaskThread extends Thread {
+    private Object lock = new Object();
+    private final Task task;
+    private boolean complete = false;
+    private boolean result;
+
+    public AddTaskThread(Task task) {
+      super("AddTaskThread");
+      this.task = task;
+    }
+
+    public void assertResult(boolean expectedResult) {
+      assertEquals(expectedResult, result);
+    }
+
+    @Override
+    public void run() {
+      result = processor.addNewTaskAndWaitUntilRunning(task, 100);
+      synchronized (lock) {
+        complete = true;
+        lock.notifyAll();
+      }
+    }
+
+    boolean waitForComplete(long milliseconds) {
+      synchronized (lock) {
+        long end = System.currentTimeMillis() + milliseconds;
+        while (!complete) {
+          long delta = end - System.currentTimeMillis();
+          if (delta <= 0) {
+            return false;
+          }
+          try {
+            lock.wait(delta);
+          } catch (InterruptedException e) {
+            //$FALL-THROUGH$
+          }
+        }
+      }
+      return true;
+    }
+  }
+
+  private static class BlockingIdleListener implements IdleListener {
+    private final Object lock = new Object();
+    private boolean blocked = false;
+
+    @Override
+    public void idle(boolean idle) {
+      synchronized (lock) {
+        blocked = true;
+        while (blocked) {
+          try {
+            lock.wait();
+          } catch (InterruptedException e) {
+            //$FALL-THROUGH$
+          }
+        }
+      }
+    }
+
+    void unblock() {
+      synchronized (lock) {
+        blocked = false;
+        lock.notifyAll();
+      }
+    }
+
+    boolean waitUntilBlocked(long milliseconds) {
+      synchronized (lock) {
+        long end = System.currentTimeMillis() + milliseconds;
+        while (!blocked) {
+          long delta = end - System.currentTimeMillis();
+          if (delta <= 0) {
+            return false;
+          }
+          try {
+            lock.wait(delta);
+          } catch (InterruptedException e) {
+            //$FALL-THROUGH$
+          }
+        }
+      }
+      return true;
+    }
+  }
+
   private TaskQueue queue;
   private TaskProcessor processor;
   private WaitForIdle listener;
+
+  /**
+   * Assert addNewAndWaitForRunning returns true when analysis is stopped
+   */
+  public void test_addTaskWhenStopped() throws Exception {
+    queue.setAnalyzing(false);
+    assertTrue(processor.waitForIdle(10));
+    BlockingTask task = new BlockingTask();
+    assertTrue(processor.addNewTaskAndWaitUntilRunning(task, 10));
+  }
+
+  /**
+   * Assert that notification will always happen before addNewAndWaitForRunning returns
+   */
+  public void test_addTaskWhileRunning() throws Exception {
+    final BlockingIdleListener blockingListener = new BlockingIdleListener();
+    waitAndAssertIdle(1);
+    assertTrue(listener.isIdle());
+
+    processor.addIdleListener(blockingListener);
+    final BlockingTask task = new BlockingTask();
+    final AddTaskThread thread = new AddTaskThread(task);
+    thread.start();
+    assertTrue(blockingListener.waitUntilBlocked(10));
+    assertFalse(thread.waitForComplete(10));
+    processor.removeIdleListener(blockingListener);
+    blockingListener.unblock();
+
+    assertTrue(thread.waitForComplete(10));
+    thread.assertResult(true);
+  }
 
   /**
    * Assert processor with no tasks moves to idle state

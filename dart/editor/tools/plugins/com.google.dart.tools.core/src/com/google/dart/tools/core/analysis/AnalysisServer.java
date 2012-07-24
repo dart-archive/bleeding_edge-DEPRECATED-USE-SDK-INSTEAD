@@ -319,9 +319,9 @@ public class AnalysisServer {
    * {@link AnalyzeContextTask} to the end of the queue if it has not already been added.
    */
   protected void queueAnalyzeContext() {
-    queue.addLastTask(savedContextAnalysisTask);
-    // Give background thread a chance to run
-    Thread.yield();
+    if (!processor.addLastTaskAndWaitUntilRunning(savedContextAnalysisTask, 50)) {
+      DartCore.logError("Gave up waiting for " + getClass().getSimpleName() + " to start analysis");
+    }
   }
 
   EditorLibraryManager getLibraryManager() {
@@ -344,9 +344,9 @@ public class AnalysisServer {
    * performed... use {@link #queueSubTask(Task)} instead.
    */
   void queueNewTask(Task task) {
-    queue.addNewTask(task);
-    // Give background thread a chance to run
-    Thread.yield();
+    if (!processor.addNewTaskAndWaitUntilRunning(task, 50)) {
+      DartCore.logError("Gave up waiting for " + getClass().getSimpleName() + " to start analysis");
+    }
   }
 
   /**

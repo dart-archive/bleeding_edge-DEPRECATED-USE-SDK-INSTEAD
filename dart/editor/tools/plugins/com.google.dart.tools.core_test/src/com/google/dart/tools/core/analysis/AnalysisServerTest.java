@@ -268,8 +268,9 @@ public class AnalysisServerTest extends TestCase {
     assertQueuedTasks(server, "AnalyzeContextTask");
     synchronized (getServerTaskQueueLock()) {
       server.start();
-      server.stop();
+      getServerTaskQueue(server).setAnalyzing(false);
     }
+    assertTrue(server.waitForIdle(100));
     server.getSavedContext().resolve(new File(libraryFileName2).getAbsoluteFile(), null);
 
     StringWriter writer = new StringWriter(5000);

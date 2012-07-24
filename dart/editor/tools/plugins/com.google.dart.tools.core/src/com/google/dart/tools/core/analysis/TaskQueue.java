@@ -118,6 +118,12 @@ public class TaskQueue {
     }
   }
 
+  public boolean isEmpty() {
+    synchronized (queue) {
+      return queue.isEmpty();
+    }
+  }
+
   /**
    * Remove all background tasks
    */

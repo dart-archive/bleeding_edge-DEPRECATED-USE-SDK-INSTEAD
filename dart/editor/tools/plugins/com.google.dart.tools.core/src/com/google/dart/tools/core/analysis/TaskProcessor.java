@@ -79,6 +79,34 @@ public class TaskProcessor {
   }
 
   /**
+   * Add the specified task to the queue and wait for the receiver to be running before returning
+   * 
+   * @param task the task to be added (not <code>null</code>)
+   * @param milliseconds the number of milliseconds to wait
+   * @return <code>true</code> if the receiver is running, else <code>false</code>
+   */
+  public boolean addLastTaskAndWaitUntilRunning(Task task, long milliseconds) {
+    synchronized (lock) {
+      queue.addLastTask(task);
+      return waitUntilRunning(milliseconds);
+    }
+  }
+
+  /**
+   * Add the specified task to the queue and wait for the receiver to be running before returning
+   * 
+   * @param task the task to be added (not <code>null</code>)
+   * @param milliseconds the number of milliseconds to wait
+   * @return <code>true</code> if the receiver is running, else <code>false</code>
+   */
+  public boolean addNewTaskAndWaitUntilRunning(Task task, long milliseconds) {
+    synchronized (lock) {
+      queue.addNewTask(task);
+      return waitUntilRunning(milliseconds);
+    }
+  }
+
+  /**
    * Answer <code>true</code> if there are no tasks queued (or analyzing is false) and no tasks
    * being performed. The idle state may change the moment this method returns, so clients should
    * not depend upon this result.
@@ -204,9 +232,6 @@ public class TaskProcessor {
       if (isIdle == idle) {
         return;
       }
-      isIdle = idle;
-      // notify any threads waiting for state change notification
-      lock.notifyAll();
       listenersToNotify = idleListeners;
     }
     for (IdleListener listener : listenersToNotify) {
@@ -215,6 +240,41 @@ public class TaskProcessor {
       } catch (Throwable e) {
         DartCore.logError("Exception during idle notification", e);
       }
+    }
+    /*
+     * Set idle state and notify threads waiting for state change *after* notifying listeners
+     * so that #add[New/Last]TaskAndWaitUntilRunning will return after listeners have been notified
+     */
+    synchronized (lock) {
+      isIdle = idle;
+      lock.notifyAll();
+    }
+  }
+
+  /**
+   * Wait up to the specified number of milliseconds for the receiver to start (or finish)
+   * processing tasks or analysis to be turned off. If the specified number is less than or equal to
+   * zero, then this method returns immediately.
+   * 
+   * @param milliseconds the maximum number of milliseconds to wait
+   * @return <code>true</code> if the receiver is in the specified state, else <code>false</code>
+   */
+  private boolean waitUntilRunning(long milliseconds) {
+    synchronized (lock) {
+      long end = System.currentTimeMillis() + milliseconds;
+      // if receiver is idle, but queue is empty, then receiver has finished processing tasks
+      while (isIdle && !queue.isEmpty() && queue.isAnalyzing()) {
+        long delta = end - System.currentTimeMillis();
+        if (delta <= 0) {
+          return false;
+        }
+        try {
+          lock.wait(delta);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
+      }
+      return true;
     }
   }
 }
