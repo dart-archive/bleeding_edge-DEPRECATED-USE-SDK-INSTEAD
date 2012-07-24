@@ -286,7 +286,7 @@ public class Checks {
    * Checks if the given name is a valid Dart parameter.
    */
   public static RefactoringStatus checkParameter(String name) {
-    return checkName(name, DartConventions.validateParameter(name));
+    return checkName(name, DartConventions.validateParameterName(name));
   }
 
   /**
