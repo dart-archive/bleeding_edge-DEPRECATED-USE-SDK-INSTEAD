@@ -8,7 +8,7 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "123283",
+  "webkit_revision": "123346",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
@@ -57,12 +57,12 @@ vars = {
   "ffmpeg_hash": "23f177366e3bce3a628a7d3feedceed4e18dcc04",
 
   "sfntly_revision": "134",
-  "skia_revision": "4683",
+  "skia_revision": "4720",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
   "v8_revision": "12118",
-  "webrtc_revision": "2486",
+  "webrtc_revision": "2525",
   "jsoncpp_revision": "248",
   "nss_revision": "145873",
 }
@@ -125,7 +125,7 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@63",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@57",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@59",
 
   "src/tools/gyp":
     (Var("googlecode_url") % "gyp") + "/trunk@1431",
@@ -361,7 +361,7 @@ deps_os = {
       "/trunk/deps/third_party/gperf@147304",
 
     "src/third_party/perl":
-      "/trunk/deps/third_party/perl@147306",
+      "/trunk/deps/third_party/perl@147900",
 
     "src/third_party/lighttpd":
       "/trunk/deps/third_party/lighttpd@33727",
