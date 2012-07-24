@@ -13,6 +13,10 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_BINARY_EXPRESSION_LEFT_OPERAND;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_NAME;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
+
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
@@ -20,8 +24,12 @@ import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
+import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartReturnBlock;
+import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
@@ -45,10 +53,6 @@ import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
 import com.google.dart.tools.ui.text.dart.IQuickAssistProcessor;
-
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_BINARY_EXPRESSION_LEFT_OPERAND;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_NAME;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.graphics.Image;
@@ -189,6 +193,62 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     // add proposal
     addUnitCorrectionProposal(
         CorrectionMessages.QuickAssistProcessor_addTypeAnnotation,
+        DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    return true;
+  }
+
+  boolean addProposal_convertToBlockFunctionBody() throws Exception {
+    // prepare enclosing function
+    DartFunction function = getEnclosingFunctionOrMethodFunction();
+    if (function == null) {
+      return false;
+    }
+    // prepare return statement
+    if (!(function.getBody() instanceof DartReturnBlock)) {
+      return false;
+    }
+    DartReturnBlock returnBlock = (DartReturnBlock) function.getBody();
+    DartExpression returnValue = returnBlock.getValue();
+    // add change
+    String eol = utils.getEndOfLine();
+    String prefix = utils.getNodePrefix(function) + utils.getIndent(1);
+    String newBodySource = "{" + eol + prefix + "return " + getSource(returnValue) + ";" + eol
+        + "}";
+    textEdits.add(createReplaceEdit(SourceRangeFactory.create(returnBlock), newBodySource));
+    // add proposal
+    addUnitCorrectionProposal(
+        CorrectionMessages.QuickAssistProcessor_convertToBlockBody,
+        DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    return true;
+  }
+
+  boolean addProposal_convertToExpressionFunctionBody() throws Exception {
+    // prepare enclosing function
+    DartFunction function = getEnclosingFunctionOrMethodFunction();
+    if (function == null) {
+      return false;
+    }
+    // prepare return statement
+    DartBlock body = function.getBody();
+    List<DartStatement> statements = body.getStatements();
+    if (statements.size() != 1) {
+      return false;
+    }
+    if (!(statements.get(0) instanceof DartReturnStatement)) {
+      return false;
+    }
+    DartReturnStatement returnStatement = (DartReturnStatement) statements.get(0);
+    // prepare returned value
+    DartExpression returnValue = returnStatement.getValue();
+    if (returnValue == null) {
+      return false;
+    }
+    // add change
+    String newBodySource = "=> " + getSource(returnValue) + ";";
+    textEdits.add(createReplaceEdit(SourceRangeFactory.create(body), newBodySource));
+    // add proposal
+    addUnitCorrectionProposal(
+        CorrectionMessages.QuickAssistProcessor_convertToExpressionBody,
         DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
     return true;
   }
@@ -361,6 +421,29 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     if (!textEdits.isEmpty()) {
       proposals.add(new CUCorrectionProposal(label, unit, change, 1, image));
     }
+  }
+
+  /**
+   * @return the enclosing {@link DartFunction} for {@link #node}, or is part of enclosing
+   *         {@link DartMethodDefinition}. May be <code>null</code>.
+   */
+  private DartFunction getEnclosingFunctionOrMethodFunction() {
+    DartFunction function = ASTNodes.getAncestor(node, DartFunction.class);
+    if (function == null) {
+      DartMethodDefinition method = ASTNodes.getAncestor(node, DartMethodDefinition.class);
+      if (method != null) {
+        function = method.getFunction();
+      }
+    }
+    return function;
+  }
+
+  /**
+   * @return the part of {@link #unit} source.
+   */
+  private String getSource(HasSourceInfo hasSourceInfo) throws Exception {
+    SourceRange range = SourceRangeFactory.create(hasSourceInfo);
+    return getSource(range);
   }
 
   /**

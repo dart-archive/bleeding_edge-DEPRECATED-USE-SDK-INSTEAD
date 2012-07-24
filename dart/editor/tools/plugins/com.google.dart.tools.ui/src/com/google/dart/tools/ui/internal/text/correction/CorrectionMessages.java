@@ -30,6 +30,8 @@ public final class CorrectionMessages extends NLS {
   public static String QuickAssistProcessor_removeTypeAnnotation;
   public static String QuickAssistProcessor_splitVariableDeclaration;
   public static String QuickAssistProcessor_joinVariableDeclaration;
+  public static String QuickAssistProcessor_convertToExpressionBody;
+  public static String QuickAssistProcessor_convertToBlockBody;
 
   // TODO(scheglov) original strings
 

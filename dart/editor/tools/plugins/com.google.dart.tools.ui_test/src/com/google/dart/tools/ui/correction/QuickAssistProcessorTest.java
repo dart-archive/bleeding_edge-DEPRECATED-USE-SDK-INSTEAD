@@ -98,6 +98,117 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_addTypeAnnotation_topLevelField(source, "var ", source);
   }
 
+  public void test_convertToBlockBody_OK_onMethodName() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "fff() => 123;");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "fff() {",
+        "  return 123;",
+        "}");
+    assert_convertToBlockBody(initial, "fff() ", expected);
+  }
+
+  public void test_convertToBlockBody_OK_onValue() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() => 123;");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  return 123;",
+        "}");
+    assert_convertToBlockBody(initial, "23;", expected);
+  }
+
+  public void test_convertToBlockBody_wrong_noEnclosingFunction() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = 123;");
+    assert_convertToBlockBody_wrong(initial, "v = 123");
+  }
+
+  public void test_convertToBlockBody_wrong_notExpressionBlock() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  return 123;",
+        "}");
+    assert_convertToBlockBody_wrong(initial, "return 123;");
+  }
+
+  public void test_convertToExpressionBody_OK_onBlock() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() { // marker",
+        "  return 0;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() => 0;");
+    assert_convertToExpressionBody(initial, "{ // marker", expected);
+  }
+
+  public void test_convertToExpressionBody_OK_onMethodName() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "fff() {",
+        "  return 0;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "fff() => 0;");
+    assert_convertToExpressionBody(initial, "ff() {", expected);
+  }
+
+  public void test_convertToExpressionBody_OK_onReturnStatement() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  return 0;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() => 0;");
+    assert_convertToExpressionBody(initial, "return 0;", expected);
+  }
+
+  public void test_convertToExpressionBody_wrong_moreThanOneStatement() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v1 = 1;",
+        "  var v2 = 2;",
+        "}");
+    assert_convertToExpressionBody_wrong(initial, "v1 = 1");
+  }
+
+  public void test_convertToExpressionBody_wrong_noEnclosingFunction() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = 0;");
+    assert_convertToExpressionBody_wrong(initial, "v = 0");
+  }
+
+  public void test_convertToExpressionBody_wrong_noReturn() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v = 0;",
+        "}");
+    assert_convertToExpressionBody_wrong(initial, "v = 0");
+  }
+
+  public void test_convertToExpressionBody_wrong_noReturnValue() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  return;",
+        "}");
+    assert_convertToExpressionBody_wrong(initial, "return;");
+  }
+
   /**
    * We should go up only until we have same operator.
    */
@@ -369,6 +480,38 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_addTypeAnnotation(initialSource, offsetPattern, expectedSource);
   }
 
+  private void assert_convertToBlockBody(
+      String initialSource,
+      String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        CorrectionMessages.QuickAssistProcessor_convertToBlockBody,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_convertToBlockBody_wrong(String initialSource, String offsetPattern)
+      throws Exception {
+    assert_convertToBlockBody(initialSource, offsetPattern, initialSource);
+  }
+
+  private void assert_convertToExpressionBody(
+      String initialSource,
+      String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        CorrectionMessages.QuickAssistProcessor_convertToExpressionBody,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_convertToExpressionBody_wrong(String initialSource, String offsetPattern)
+      throws Exception {
+    assert_convertToExpressionBody(initialSource, offsetPattern, initialSource);
+  }
+
   private void assert_exchangeBinaryExpressionArguments_success(
       String initialExpression,
       String offsetPattern,
@@ -442,6 +585,10 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
       String initialSource,
       String offsetPattern,
       String expectedSource) throws Exception {
+    // XXX used to see coverage of only one quick assist
+//    if (!proposalName.equals(CorrectionMessages.QuickAssistProcessor_convertToBlockBody)) {
+//      return;
+//    }
     // set initial source
     setTestUnitContent(initialSource);
     // just to get coverage

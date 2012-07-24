@@ -297,6 +297,13 @@ public class ExtractUtils {
   }
 
   /**
+   * @return the default indentation with given level.
+   */
+  public String getIndent(int level) {
+    return StringUtils.repeat("  ", level);
+  }
+
+  /**
    * @return the line prefix consisting of spaces and tabs on the left from the given
    *         {@link DartNode}.
    */
