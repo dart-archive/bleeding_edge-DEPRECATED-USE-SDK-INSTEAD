@@ -90,7 +90,7 @@ public class IgnoreResourceAction extends SelectionListenerAction {
       } catch (CoreException e) {
         MessageDialog.openError(shell, "Error Deleting Markers", e.getMessage()); //$NON-NLS-1$
       } finally {
-        resource = null;
+        updateLabel();
       }
     }
   }
