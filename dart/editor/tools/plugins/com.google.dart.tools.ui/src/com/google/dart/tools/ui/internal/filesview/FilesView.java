@@ -169,6 +169,12 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   }
 
   @Override
+  public void addPartPropertyListener(IPropertyChangeListener listener) {
+    super.addPartPropertyListener(listener);
+    connectAppsView();
+  }
+
+  @Override
   public void createPartControl(Composite parent) {
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new ResourceContentProvider());
@@ -503,7 +509,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         treeViewer.refresh();
       }
     };
-    connectAppsView();
     treeViewer.addSelectionChangedListener(ignoreResourceAction);
 
     clipboard = new Clipboard(getShell().getDisplay());

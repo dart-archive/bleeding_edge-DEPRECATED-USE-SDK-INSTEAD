@@ -126,6 +126,12 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     }
   };
 
+  @Override
+  public void addPartPropertyListener(IPropertyChangeListener listener) {
+    super.addPartPropertyListener(listener);
+    connectToIgnoreAction();
+  }
+
   public void connectToIgnoreAction() {
     FilesView filesView = findFilesView();
     if (filesView != null) {
@@ -167,7 +173,6 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
       }
     });
 
-    connectToIgnoreAction();
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
     updateTreeFont();
 
