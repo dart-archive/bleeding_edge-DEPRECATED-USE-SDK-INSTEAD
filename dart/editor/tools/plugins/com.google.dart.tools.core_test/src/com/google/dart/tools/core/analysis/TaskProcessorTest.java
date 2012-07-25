@@ -117,7 +117,8 @@ public class TaskProcessorTest extends AbstractDartCoreTest {
     final BlockingTask task = new BlockingTask();
     final AddTaskThread thread = new AddTaskThread(task);
     thread.start();
-    assertTrue(blockingListener.waitUntilBlocked(10));
+    // Changed 10ms to 100ms in an attempt to prevent sporadic test failures during build
+    assertTrue(blockingListener.waitUntilBlocked(100));
     assertFalse(thread.waitForComplete(10));
     processor.removeIdleListener(blockingListener);
     blockingListener.unblock();

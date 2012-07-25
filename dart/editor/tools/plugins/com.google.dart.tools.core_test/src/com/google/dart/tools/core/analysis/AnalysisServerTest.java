@@ -270,7 +270,7 @@ public class AnalysisServerTest extends TestCase {
       server.start();
       getServerTaskQueue(server).setAnalyzing(false);
     }
-    assertTrue(server.waitForIdle(100));
+    assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
     server.getSavedContext().resolve(new File(libraryFileName2).getAbsoluteFile(), null);
 
     StringWriter writer = new StringWriter(5000);
