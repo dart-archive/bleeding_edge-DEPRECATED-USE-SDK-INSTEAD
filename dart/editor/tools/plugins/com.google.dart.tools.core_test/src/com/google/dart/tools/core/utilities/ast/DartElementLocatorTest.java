@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.core.utilities.ast;
 
-import static org.fest.assertions.Assertions.assertThat;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
@@ -35,6 +33,8 @@ import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IResource;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.List;
 
@@ -215,10 +215,10 @@ public class DartElementLocatorTest extends TestCase {
     TestProject testProject = new TestProject("Test");
     try {
       IResource libResourceA = testProject.setUnitContent(
-          "LibA.dart",
+          "LibB.dart",
           Joiner.on("\n").join(
               "// filler filler filler filler filler filler filler filler filler filler",
-              "#library('libA');",
+              "#library('libB');",
               "var field;",
               "")).getResource();
       IResource resourceTest = testProject.setUnitContent(
@@ -226,9 +226,9 @@ public class DartElementLocatorTest extends TestCase {
           Joiner.on("\n").join(
               "// filler filler filler filler filler filler filler filler filler filler",
               "#library('Test');",
-              "#import('LibA.dart', prefix: 'aaa');",
+              "#import('LibB.dart', prefix: 'bbb');",
               "f() {",
-              "  aaa.field = 0;",
+              "  bbb.field = 0;",
               "}",
               "")).getResource();
       TestProject.waitForAutoBuild();
@@ -238,12 +238,12 @@ public class DartElementLocatorTest extends TestCase {
       {
         DartImport imprt = assertLocation(
             libraryTest.getDefiningCompilationUnit(),
-            "aaa.field",
+            "bbb.field",
             DartImport.class,
-            "'aaa');",
+            "'bbb');",
             5);
         assertEquals(libraryA, imprt.getLibrary());
-        assertEquals("aaa", imprt.getPrefix());
+        assertEquals("bbb", imprt.getPrefix());
       }
     } finally {
       testProject.dispose();
@@ -257,10 +257,10 @@ public class DartElementLocatorTest extends TestCase {
     TestProject testProject = new TestProject("Test");
     try {
       IResource libResourceA = testProject.setUnitContent(
-          "LibA.dart",
+          "LibC.dart",
           Joiner.on("\n").join(
               "// filler filler filler filler filler filler filler filler filler filler",
-              "#library('libA');",
+              "#library('libC');",
               "f() {}",
               "")).getResource();
       IResource resourceTest = testProject.setUnitContent(
@@ -268,9 +268,9 @@ public class DartElementLocatorTest extends TestCase {
           Joiner.on("\n").join(
               "// filler filler filler filler filler filler filler filler filler filler",
               "#library('Test');",
-              "#import('LibA.dart', prefix: 'aaa');",
+              "#import('LibC.dart', prefix: 'ccc');",
               "f() {",
-              "  aaa.f();",
+              "  ccc.f();",
               "}",
               "")).getResource();
       TestProject.waitForAutoBuild();
@@ -280,12 +280,12 @@ public class DartElementLocatorTest extends TestCase {
       {
         DartImport imprt = assertLocation(
             libraryTest.getDefiningCompilationUnit(),
-            "aaa.f();",
+            "ccc.f();",
             DartImport.class,
-            "'aaa');",
+            "'ccc');",
             5);
         assertEquals(libraryA, imprt.getLibrary());
-        assertEquals("aaa", imprt.getPrefix());
+        assertEquals("ccc", imprt.getPrefix());
       }
     } finally {
       testProject.dispose();

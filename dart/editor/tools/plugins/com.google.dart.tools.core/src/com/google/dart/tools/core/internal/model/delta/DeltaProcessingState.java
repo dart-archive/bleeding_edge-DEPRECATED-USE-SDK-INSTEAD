@@ -22,6 +22,8 @@ import com.google.dart.tools.core.model.ElementChangedListener;
 
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.SafeRunner;
 
@@ -333,7 +335,15 @@ public class DeltaProcessingState implements IResourceChangeListener {
       }
     }
     try {
-      getDeltaProcessor().resourceChanged(event);
+      if (event.getDelta() != null) {
+        IResourceDelta[] children = event.getDelta().getAffectedChildren();
+        if (children.length > 0
+            && children[0].getResource().getProject().hasNature(DartCore.DART_PROJECT_NATURE)) {
+          getDeltaProcessor().resourceChanged(event);
+        }
+      }
+    } catch (CoreException e) {
+      //ignore
     } finally {
       // TODO (jerome) see 47631, may want to get rid of following so as to
       // reuse delta processor ?
