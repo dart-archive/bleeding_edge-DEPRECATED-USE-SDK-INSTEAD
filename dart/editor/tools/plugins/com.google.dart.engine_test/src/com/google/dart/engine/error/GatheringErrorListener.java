@@ -116,7 +116,7 @@ public class GatheringErrorListener implements AnalysisErrorListener {
       ErrorCode code = entry.getKey();
       int expectedCount = entry.getValue().intValue();
       int actualCount;
-      ArrayList<AnalysisError> list = errorsByCode.get(code);
+      ArrayList<AnalysisError> list = errorsByCode.remove(code);
       if (list == null) {
         actualCount = 0;
       } else {
@@ -134,6 +134,22 @@ public class GatheringErrorListener implements AnalysisErrorListener {
         builder.append(", found ");
         builder.append(actualCount);
       }
+    }
+    //
+    // Check that there are no more errors in the actual-errors map, otherwise, record message.
+    //
+    for (Map.Entry<ErrorCode, ArrayList<AnalysisError>> entry : errorsByCode.entrySet()) {
+      ErrorCode code = entry.getKey();
+      int actualCount = entry.getValue().size();
+      if (builder.length() == 0) {
+        builder.append("Expected ");
+      } else {
+        builder.append("; ");
+      }
+      builder.append("0 errors of type ");
+      builder.append(code);
+      builder.append(", found ");
+      builder.append(actualCount);
     }
     if (builder.length() > 0) {
       Assert.fail(builder.toString());
