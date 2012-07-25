@@ -44,7 +44,6 @@ public class DartPerspective implements IPerspectiveFactory {
 
   private static final String BR = "bottomRight"; //$NON-NLS-1$
   private static final String TL = "topLeft"; //$NON-NLS-1$
-  private static final String TR = "topRight"; //$NON-NLS-1$
   private static final String OUTLINE_FOLDER = "outlineFolder"; //$NON-NLS-1$
 
   private static final String WIZARD_NEW_PROJECT = "com.google.dart.eclipse.wizards.newProject"; //$NON-NLS-1$
