@@ -40,8 +40,126 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   private int problemOffset;
   private int problemLength;
 
-  // TODO(scheglov) uncomment when ClassElement will have optionally LibraryPrefixElement 
-  public void _test_useStaticAccess_method_importWithPrefix() throws Exception {
+  public void test_importLibrary_withType_fromSDK() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  TableElement t = null;",
+        "}",
+        "");
+    problemCode = TypeErrorCode.NO_SUCH_TYPE;
+    problemOffset = findOffset("TableElement");
+    problemLength = "TableElement".length();
+    assertQuickFix(
+        "#import('dart:html');",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  TableElement t = null;",
+        "}",
+        "");
+  }
+
+  public void test_importLibrary_withType_hasDirectiveImport() throws Exception {
+    setUnitContent("AAA.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('AAA');",
+        "class AAA {",
+        "}",
+        ""});
+    setUnitContent("App.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('App');",
+        "#import('dart:core');",
+        "#source('Test.dart');",
+        ""});
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  AAA a = null;",
+        "}",
+        "");
+    problemCode = TypeErrorCode.NO_SUCH_TYPE;
+    problemOffset = findOffset("AAA");
+    problemLength = "AAA".length();
+    // we have "fix", note that preview is for library
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('App');",
+        "#import('dart:core');",
+        "#import('AAA.dart');",
+        "#source('Test.dart');",
+        "");
+    // unit itself is not changed
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  AAA a = null;",
+        "}",
+        "");
+  }
+
+  public void test_importLibrary_withType_noDirectives() throws Exception {
+    setUnitContent("Lib.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {",
+        "}",
+        ""});
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Test t = null;",
+        "}",
+        "");
+    problemCode = TypeErrorCode.NO_SUCH_TYPE;
+    problemOffset = findOffset("Test");
+    problemLength = "Test".length();
+    assertQuickFix(
+        "#import('Lib.dart');",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Test t = null;",
+        "}",
+        "");
+  }
+
+  public void test_importLibrary_withType_privateName() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  _Test t = null;",
+        "}",
+        "");
+    problemCode = TypeErrorCode.NO_SUCH_TYPE;
+    problemOffset = findOffset("_Test");
+    problemLength = "_Test".length();
+    assertNoQuickFix();
+  }
+
+  public void test_useStaticAccess_method() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        " static foo() {}",
+        "}",
+        "main() {",
+        "  A aaaa = new A();",
+        "  aaaa.foo();",
+        "}");
+    problemCode = TypeErrorCode.IS_STATIC_METHOD_IN;
+    problemOffset = findOffset("foo();");
+    problemLength = "foo".length();
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        " static foo() {}",
+        "}",
+        "main() {",
+        "  A aaaa = new A();",
+        "  A.foo();",
+        "}");
+  }
+
+  public void test_useStaticAccess_method_importWithPrefix() throws Exception {
     setUnitContent("Lib.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
         "#library('Lib');",
@@ -70,30 +188,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "");
   }
 
-  public void test_useStaticAccess_method() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        " static foo() {}",
-        "}",
-        "main() {",
-        "  A aaaa = new A();",
-        "  aaaa.foo();",
-        "}");
-    problemCode = TypeErrorCode.IS_STATIC_METHOD_IN;
-    problemOffset = findOffset("foo();");
-    problemLength = "foo".length();
-    assertQuickFix(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        " static foo() {}",
-        "}",
-        "main() {",
-        "  A aaaa = new A();",
-        "  A.foo();",
-        "}");
-  }
-
   @Override
   protected void tearDown() throws Exception {
     waitEventLoop(0);
@@ -102,9 +196,29 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   /**
+   * Asserts that there are no quick fixes for {@link IProblemLocation} using "problem*" fields.
+   */
+  private void assertNoQuickFix() throws CoreException {
+    IDartCompletionProposal[] proposals = prepareQuickFixes();
+    assertThat(proposals).isEmpty();
+  }
+
+  /**
    * Runs single proposal created for {@link IProblemLocation} using "problem*" fields.
    */
   private void assertQuickFix(String... expectedLines) throws CoreException {
+    IDartCompletionProposal[] proposals = prepareQuickFixes();
+    assertThat(proposals).hasSize(1);
+    String result = ((CUCorrectionProposal) proposals[0]).getPreviewContent();
+    // assert result
+    String expectedSource = makeSource(expectedLines);
+    assertEquals(expectedSource, result);
+  }
+
+  /**
+   * @return proposals created for {@link IProblemLocation} using "problem*" fields.
+   */
+  private IDartCompletionProposal[] prepareQuickFixes() throws CoreException {
     IProblemLocation problemLocation = new ProblemLocation(
         problemOffset,
         problemLength,
@@ -121,10 +235,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
     assertTrue(PROCESSOR.hasCorrections(testUnit, problemCode));
     // run single proposal
     IDartCompletionProposal[] proposals = PROCESSOR.getCorrections(context, problemLocations);
-    assertThat(proposals).hasSize(1);
-    String result = ((CUCorrectionProposal) proposals[0]).getPreviewContent();
-    // assert result
-    String expectedSource = makeSource(expectedLines);
-    assertEquals(expectedSource, result);
+    return proposals;
   }
 }

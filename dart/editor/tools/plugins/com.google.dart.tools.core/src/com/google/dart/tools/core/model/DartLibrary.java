@@ -190,6 +190,14 @@ public interface DartLibrary extends OpenableElement, ParentElement {
   public DartResource[] getResources() throws DartModelException;
 
   /**
+   * Return the URI of the library file that defines this library, or <code>null</code> if there is
+   * no such file or if the URI for the file cannot be determined for some reason.
+   * 
+   * @return the URI of the library file that defines this library
+   */
+  public URI getUri();
+
+  /**
    * Return <code>true</code> if this library is defined in a workspace resource, or
    * <code>false</code> if it does not exist in the workspace. Libraries on disk, but not mapped
    * into the workspace and libraries bundled in a plugin are considered non-local.

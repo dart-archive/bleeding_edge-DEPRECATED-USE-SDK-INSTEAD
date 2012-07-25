@@ -180,7 +180,9 @@ public abstract class AbstractDartTest extends TestCase {
    * Sets content of <code>Test.dart</code> unit.
    */
   protected final CompilationUnit setTestUnitContent(String... lines) throws Exception {
-    testUnit = setUnitContent("Test.dart", lines);
+    do {
+      testUnit = setUnitContent("Test.dart", lines);
+    } while (testUnit == null);
     return testUnit;
   }
 

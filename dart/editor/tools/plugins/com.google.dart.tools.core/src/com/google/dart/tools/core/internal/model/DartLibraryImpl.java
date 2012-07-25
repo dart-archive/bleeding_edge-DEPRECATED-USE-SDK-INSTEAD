@@ -548,6 +548,20 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   /**
+   * Return the URI of the library file that defines this library, or <code>null</code> if there is
+   * no such file or if the URI for the file cannot be determined for some reason.
+   * 
+   * @return the URI of the library file that defines this library
+   */
+  @Override
+  public URI getUri() {
+    if (sourceFile != null) {
+      return sourceFile.getUri();
+    }
+    return libraryFile.getLocationURI();
+  }
+
+  /**
    * Override the superclass to generate a hash code based solely on the element name and ignoring
    * the parent
    */
@@ -1022,19 +1036,6 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       return absPath;
     }
     return uri.toString();
-  }
-
-  /**
-   * Return the URI of the library file that defines this library, or <code>null</code> if there is
-   * no such file or if the URI for the file cannot be determined for some reason.
-   * 
-   * @return the URI of the library file that defines this library
-   */
-  protected URI getUri() {
-    if (sourceFile != null) {
-      return sourceFile.getUri();
-    }
-    return libraryFile.getLocationURI();
   }
 
   /**

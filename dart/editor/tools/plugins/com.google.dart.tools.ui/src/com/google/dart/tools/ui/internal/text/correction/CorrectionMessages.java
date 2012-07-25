@@ -384,6 +384,7 @@ public final class CorrectionMessages extends NLS {
   public static String VarargsWarningsSubProcessor_remove_safevarargs_label;
 
   public static String QuickFixProcessor_useStaticAccess_method;
+  public static String QuickFixProcessor_importLibrary;
 
   private CorrectionMessages() {
     // Do not instantiate
