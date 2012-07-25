@@ -119,7 +119,7 @@ public class TaskProcessorTest extends AbstractDartCoreTest {
     thread.start();
     // Changed 10ms to 100ms in an attempt to prevent sporadic test failures during build
     assertTrue(blockingListener.waitUntilBlocked(100));
-    assertFalse(thread.waitForComplete(10));
+    assertFalse(thread.waitForComplete(100));
     processor.removeIdleListener(blockingListener);
     blockingListener.unblock();
 
