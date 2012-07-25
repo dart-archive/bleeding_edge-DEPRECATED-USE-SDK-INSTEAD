@@ -93,9 +93,13 @@ class CustomElementsManager {
     _insertionObserver.observe(document, childList: true, subtree: true);
   }
 
-  /** Locate all external component files and load each of them. */
+  /**
+   * Locate all external component files, load each of them, and expand 
+   * declarations.
+   */ 
   void _loadComponents() {
     queryAll('link[rel=components]').forEach((link) => _load(link.href));
+    _expandDeclarations();
   }
 
   /**
@@ -122,7 +126,6 @@ class CustomElementsManager {
               'Unable to load component: Status ${request.status}'
               ' - ${request.statusText}');
         }
-        _expandDeclarations();
       }
     });
     request.send();
@@ -130,10 +133,9 @@ class CustomElementsManager {
 
   /** Parse the given string of HTML to extract the custom declarations. */
   List<_CustomDeclaration>  _parse(String toParse) {
-    var tmpParent = new DivElement();
-    tmpParent.nodes.add(new Element.html(toParse));
+    var declarations = new DocumentFragment.html(toParse);
     var newDeclarations = [];
-    tmpParent.queryAll('element').forEach((element) {
+    declarations.queryAll('element').forEach((element) {
       newDeclarations.add(new _CustomDeclaration(element));
     });
     return newDeclarations;
@@ -156,10 +158,6 @@ class CustomElementsManager {
       });
     });
     return newCustomElements;
-  }
-
-  List refresh() {
-    return _expandDeclarations();
   }
 
   /**
