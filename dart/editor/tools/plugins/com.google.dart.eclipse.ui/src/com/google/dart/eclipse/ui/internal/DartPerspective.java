@@ -29,6 +29,7 @@ package com.google.dart.eclipse.ui.internal;
 
 import com.google.dart.tools.ui.DartUI;
 
+import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.search.ui.NewSearchUI;
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
@@ -85,6 +86,8 @@ public class DartPerspective implements IPerspectiveFactory {
     outlinefolder.addPlaceholder(IPageLayout.ID_OUTLINE);
 
     layout.addActionSet(IPageLayout.ID_NAVIGATE_ACTION_SET);
+
+    layout.addActionSet(IDebugUIConstants.LAUNCH_ACTION_SET);
 
     layout.addShowViewShortcut(NewSearchUI.SEARCH_VIEW_ID);
     layout.addShowViewShortcut(IConsoleConstants.ID_CONSOLE_VIEW);
