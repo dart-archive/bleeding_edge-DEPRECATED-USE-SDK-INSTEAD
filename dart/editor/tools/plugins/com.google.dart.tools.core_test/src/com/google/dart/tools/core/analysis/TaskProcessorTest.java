@@ -21,7 +21,7 @@ public class TaskProcessorTest extends AbstractDartCoreTest {
 
     @Override
     public void run() {
-      result = processor.addNewTaskAndWaitUntilRunning(task, 100);
+      result = processor.addNewTaskAndWaitUntilRunning(task, 200);
       synchronized (lock) {
         complete = true;
         lock.notifyAll();
@@ -119,7 +119,7 @@ public class TaskProcessorTest extends AbstractDartCoreTest {
     thread.start();
     // Changed 10ms to 100ms in an attempt to prevent sporadic test failures during build
     assertTrue(blockingListener.waitUntilBlocked(100));
-    assertFalse(thread.waitForComplete(100));
+    assertFalse(thread.waitForComplete(10));
     processor.removeIdleListener(blockingListener);
     blockingListener.unblock();
 
