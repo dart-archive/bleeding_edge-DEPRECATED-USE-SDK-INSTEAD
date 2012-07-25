@@ -264,7 +264,7 @@ public class TaskProcessorTest extends AbstractDartCoreTest {
   }
 
   private void waitAndAssertRuning(int expectedIdleCount) {
-    assertTrue(listener.waitForRun(10));
+    listener.waitForRun(50);
     assertRunning(expectedIdleCount);
   }
 }
