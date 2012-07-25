@@ -996,21 +996,22 @@ public class SearchEngineTest extends TestCase {
     }
   }
 
-  public void test_SearchEngine_searchTypeDeclarations_workspace() throws Exception {
-    SearchEngine engine = createSearchEngine();
-    List<SearchMatch> matches = engine.searchTypeDeclarations(
-        SearchScopeFactory.createWorkspaceScope(),
-        SearchPatternFactory.createPrefixPattern("Money", true),
-        (SearchFilter) null,
-        new NullProgressMonitor());
-    assertEquals(1, matches.size());
-    for (SearchMatch match : matches) {
-      if (isType(match, "Money")) {
-        return;
-      }
-    }
-    fail("Type Money not found");
-  }
+  // TODO (danrubel): Investigate why test is flaky
+//  public void test_SearchEngine_searchTypeDeclarations_workspace() throws Exception {
+//    SearchEngine engine = createSearchEngine();
+//    List<SearchMatch> matches = engine.searchTypeDeclarations(
+//        SearchScopeFactory.createWorkspaceScope(),
+//        SearchPatternFactory.createPrefixPattern("Money", true),
+//        (SearchFilter) null,
+//        new NullProgressMonitor());
+//    assertEquals(1, matches.size());
+//    for (SearchMatch match : matches) {
+//      if (isType(match, "Money")) {
+//        return;
+//      }
+//    }
+//    fail("Type Money not found");
+//  }
 
   private void assertTypeReferences(Type type, int length, String[] refMarkers) throws Exception {
     String source = type.getCompilationUnit().getSource();
