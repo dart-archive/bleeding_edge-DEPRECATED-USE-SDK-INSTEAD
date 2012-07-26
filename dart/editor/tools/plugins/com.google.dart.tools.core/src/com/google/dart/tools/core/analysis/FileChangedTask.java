@@ -42,14 +42,18 @@ class FileChangedTask extends Task {
 
   @Override
   public void perform() {
-    Library[] libraries = context.getLibrariesContaining(file);
-    for (Library library : libraries) {
+    for (Library library : context.getLibrariesContaining(file)) {
+
+      // If library is already up to date, then no need to discard and re-analyze
+      if (file.lastModified() == library.lastModified(file)) {
+        continue;
+      }
 
       // Discard the library and any downstream libraries
       context.discardLibraryAndReferencingLibraries(library);
-    }
 
-    // Append analysis task to the end of the queue so that any user requests take precedence
-    server.queueAnalyzeContext();
+      // Append analysis task to the end of the queue so that any user requests take precedence
+      server.queueAnalyzeContext();
+    }
   }
 }

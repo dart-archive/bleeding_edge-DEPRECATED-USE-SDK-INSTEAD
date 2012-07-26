@@ -75,21 +75,6 @@ public class AnalysisServerTest extends TestCase {
     return libFile;
   }
 
-  public void test_changed() throws Exception {
-    TestUtilities.runWithTempDirectory(new FileOperation() {
-      @Override
-      public void run(File tempDir) throws Exception {
-        File libFile = test_analyzeLibrary(tempDir);
-        listener.reset();
-        server.changed(libFile);
-        listener.waitForResolved(FIVE_MINUTES_MS, libFile);
-        listener.assertResolvedCount(1);
-        listener.assertNoDuplicates();
-        listener.assertNoDiscards();
-      }
-    });
-  }
-
   public void test_discardDirectory() throws Exception {
     TestUtilities.runWithTempDirectory(new FileOperation() {
       @Override

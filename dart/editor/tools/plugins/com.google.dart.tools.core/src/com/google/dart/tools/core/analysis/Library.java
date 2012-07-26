@@ -119,8 +119,8 @@ class Library {
   private final boolean hasDirectives;
   private final HashMap<String, File> imports;
   private final HashMap<String, File> sources;
-
   private final HashMap<File, DartUnit> resolvedUnits;
+  private final HashMap<File, Long> lastModified;
 
   /**
    * Flag indicating if listeners should be notified when the library is parsed and resolved. This
@@ -142,6 +142,12 @@ class Library {
     this.sources = sources;
     this.shouldNotify = shouldNotify;
     this.resolvedUnits = new HashMap<File, DartUnit>();
+
+    lastModified = new HashMap<File, Long>();
+    lastModified.put(libraryFile, libraryFile.lastModified());
+    for (File file : sources.values()) {
+      lastModified.put(file, file.lastModified());
+    }
   }
 
   void cacheLibraryUnit(AnalysisServer server, LibraryUnit libUnit) {
@@ -196,6 +202,16 @@ class Library {
 
   boolean hasDirectives() {
     return hasDirectives;
+  }
+
+  /**
+   * Answer the last modification timestamp for the specified file when the analysis was performed.
+   * Compare this with the actual file's last modification timestamp to determine whether the
+   * receier's information is out of date.
+   */
+  long lastModified(File file) {
+    Long timestamp = lastModified.get(file);
+    return timestamp != null ? timestamp : -1L;
   }
 
   /**
