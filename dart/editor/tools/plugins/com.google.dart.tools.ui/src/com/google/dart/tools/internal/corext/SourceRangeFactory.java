@@ -66,6 +66,14 @@ public class SourceRangeFactory {
     return new SourceRangeImpl(start, end - start);
   }
 
+  /**
+   * @return the {@link SourceRange} which start at start of "a" and has given length.
+   */
+  public static SourceRange forStartLength(HasSourceInfo a, int length) {
+    int start = a.getSourceInfo().getOffset();
+    return new SourceRangeImpl(start, length);
+  }
+
   public static SourceRange forStartLength(int start, int length) {
     return new SourceRangeImpl(start, length);
   }

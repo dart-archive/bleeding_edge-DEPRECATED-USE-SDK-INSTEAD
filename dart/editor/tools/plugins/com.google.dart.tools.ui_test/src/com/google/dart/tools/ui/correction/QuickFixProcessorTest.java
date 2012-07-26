@@ -40,6 +40,9 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   private int problemOffset;
   private int problemLength;
 
+  private int proposalsExpectedNumber = 1;
+  private int proposalsIndexToCheck = 0;
+
   public void test_importLibrary_withType_fromSDK() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -94,6 +97,34 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  AAA a = null;",
+        "}",
+        "");
+  }
+
+  public void test_importLibrary_withType_hasImportWithPrefix() throws Exception {
+    setUnitContent("Lib.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {",
+        "}",
+        ""});
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#import('Lib.dart', prefix: 'lib');",
+        "main() {",
+        "  Test t = null;",
+        "}",
+        "");
+    problemCode = TypeErrorCode.NO_SUCH_TYPE;
+    problemOffset = findOffset("Test");
+    problemLength = "Test".length();
+    // do check
+    proposalsExpectedNumber = 2;
+    proposalsIndexToCheck = 0;
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#import('Lib.dart', prefix: 'lib');",
+        "main() {",
+        "  lib.Test t = null;",
         "}",
         "");
   }
@@ -208,8 +239,8 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
    */
   private void assertQuickFix(String... expectedLines) throws CoreException {
     IDartCompletionProposal[] proposals = prepareQuickFixes();
-    assertThat(proposals).hasSize(1);
-    String result = ((CUCorrectionProposal) proposals[0]).getPreviewContent();
+    assertThat(proposals).hasSize(proposalsExpectedNumber);
+    String result = ((CUCorrectionProposal) proposals[proposalsIndexToCheck]).getPreviewContent();
     // assert result
     String expectedSource = makeSource(expectedLines);
     assertEquals(expectedSource, result);

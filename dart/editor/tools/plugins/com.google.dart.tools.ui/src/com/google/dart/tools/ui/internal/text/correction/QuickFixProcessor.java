@@ -68,6 +68,7 @@ import java.util.List;
  * @coverage dart.editor.ui.correction
  */
 public class QuickFixProcessor implements IQuickFixProcessor {
+  private static final int DEFAULT_RELEVANCE = 50;
 
   private static ReplaceEdit createReplaceEdit(SourceRange range, String text) {
     return new ReplaceEdit(range.getOffset(), range.getLength(), text);
@@ -80,6 +81,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
   private final List<ICommandAccess> proposals = Lists.newArrayList();
 
   private final List<TextEdit> textEdits = Lists.newArrayList();
+  private int proposalRelevance = DEFAULT_RELEVANCE;
 
   @Override
   public IDartCompletionProposal[] getCorrections(IInvocationContext context,
@@ -88,7 +90,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     unit = context.getCompilationUnit();
     utils = new ExtractUtils(unit, context.getASTRoot());
     for (final IProblemLocation location : locations) {
-      textEdits.clear();
+      resetProposalElements();
       node = location.getCoveringNode(utils.getUnitNode());
       if (node != null) {
         ExecutionUtils.runIgnore(new RunnableEx() {
@@ -122,10 +124,27 @@ public class QuickFixProcessor implements IQuickFixProcessor {
         return;
       }
       // prepare base URI
+      CompilationUnit libraryUnit = unit.getLibrary().getDefiningCompilationUnit();
       URI unitNormalizedUri;
       {
-        URI unitUri = unit.getUnderlyingResource().getLocationURI();
+        URI unitUri = libraryUnit.getUnderlyingResource().getLocationURI();
         unitNormalizedUri = unitUri.resolve(".").normalize();
+      }
+      // may be there is existing import, but it is with prefix and we don't use this prefix
+      for (DartImport imp : unit.getLibrary().getImports()) {
+        String prefix = imp.getPrefix();
+        if (!StringUtils.isEmpty(prefix) && imp.getLibrary().findType(typeName) != null) {
+          SourceRange range = SourceRangeFactory.forStartLength(node, 0);
+          textEdits.add(createReplaceEdit(range, prefix + "."));
+          // add proposal
+          proposalRelevance++;
+          addUnitCorrectionProposal(
+              libraryUnit,
+              Messages.format(
+                  CorrectionMessages.QuickFixProcessor_importLibrary_addPrefix,
+                  new Object[] {getSource(imp.getUriRange()), prefix}),
+              DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+        }
       }
       // prepare Dart model
       DartModel model = DartCore.create(ResourcesPlugin.getWorkspace().getRoot());
@@ -239,10 +258,10 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     }
     // add proposal
     if (!textEdits.isEmpty()) {
-      proposals.add(new CUCorrectionProposal(label, unit, change, 1, image));
+      proposals.add(new CUCorrectionProposal(label, unit, change, proposalRelevance, image));
     }
     // done
-    textEdits.clear();
+    resetProposalElements();
   }
 
   /**
@@ -250,5 +269,28 @@ public class QuickFixProcessor implements IQuickFixProcessor {
    */
   private void addUnitCorrectionProposal(String label, Image image) {
     addUnitCorrectionProposal(unit, label, image);
+  }
+
+  /**
+   * @return the part of {@link #unit} source.
+   */
+  private String getSource(int offset, int length) throws Exception {
+    return unit.getBuffer().getText(offset, length);
+  }
+
+  /**
+   * @return the part of {@link #unit} source.
+   */
+  private String getSource(SourceRange range) throws Exception {
+    return getSource(range.getOffset(), range.getLength());
+  }
+
+  /**
+   * Sets default values for fields used to create proposal in
+   * {@link #addUnitCorrectionProposal(String, Image)}.
+   */
+  private void resetProposalElements() {
+    textEdits.clear();
+    proposalRelevance = DEFAULT_RELEVANCE;
   }
 }
