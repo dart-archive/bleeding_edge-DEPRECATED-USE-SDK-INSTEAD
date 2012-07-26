@@ -419,7 +419,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
             false,
             Scribe.PRESERVE_EMPTY_LINES_IN_CLOSING_ARRAY_INITIALIZER
                 + (arrayInitializerIndentationLevel << 16));
-        if (array_initializer_brace_position.equals(DefaultCodeFormatterConstants.NEXT_LINE_SHIFTED)) {
+        if (array_initializer_brace_position.equals(
+            DefaultCodeFormatterConstants.NEXT_LINE_SHIFTED)) {
           scribe.unIndent();
         }
       } else {
@@ -451,7 +452,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
           scribe.printNextToken(
               Token.RBRACK,
               preferences.insert_space_between_empty_braces_in_array_initializer);
-          if (array_initializer_brace_position.equals(DefaultCodeFormatterConstants.NEXT_LINE_SHIFTED)) {
+          if (array_initializer_brace_position.equals(
+              DefaultCodeFormatterConstants.NEXT_LINE_SHIFTED)) {
             scribe.unIndent();
           }
         }
@@ -506,9 +508,13 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
               }
               if (preferences.wrap_before_binary_operator) {
                 scribe.alignFragment(binaryExpressionAlignment, i);
-                scribe.printNextToken(operators[i], preferences.insert_space_before_binary_operator);
+                scribe.printNextToken(
+                    operators[i],
+                    preferences.insert_space_before_binary_operator);
               } else {
-                scribe.printNextToken(operators[i], preferences.insert_space_before_binary_operator);
+                scribe.printNextToken(
+                    operators[i],
+                    preferences.insert_space_before_binary_operator);
                 scribe.alignFragment(binaryExpressionAlignment, i);
               }
               if (operators[i] == Token.SUB && isNextToken(Token.SUB)) {
@@ -592,7 +598,7 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
 
   @Override
   public DartNode visitCase(DartCase caseStatement) {
-    formatLabel(caseStatement.getLabel());
+    formatLabels(caseStatement.getLabels());
     scribe.printNextToken(Token.CASE);
     scribe.space();
     caseStatement.getExpr().accept(this);
@@ -810,7 +816,7 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
 
   @Override
   public DartNode visitDefault(DartDefault node) {
-    formatLabel(node.getLabel());
+    formatLabels(node.getLabels());
     scribe.printNextToken(Token.DEFAULT);
     scribe.printNextToken(Token.COLON, preferences.insert_space_before_colon_in_default);
     formatCaseStatements(node);
@@ -2030,10 +2036,10 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     // Set header end position
     final List<DartDirective> directives = compilationUnitDeclaration.getDirectives();
     final List<DartNode> types = compilationUnitDeclaration.getTopLevelNodes();
-    int headerEndPosition = types == null || types.isEmpty()
-        ? compilationUnitDeclaration.getSourceInfo().getOffset()
-            + compilationUnitDeclaration.getSourceInfo().getLength()
-        : types.get(0).getSourceInfo().getOffset();
+    int headerEndPosition = types == null || types.isEmpty() ?
+        compilationUnitDeclaration.getSourceInfo().getOffset()
+        + compilationUnitDeclaration.getSourceInfo().getLength() : types.get(0)
+        .getSourceInfo().getOffset();
     scribe.setHeaderComment(headerEndPosition);
     scribe.printComment();
 
@@ -2312,7 +2318,9 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       int length = typeParameters.size();
       for (int i = 0; i < length - 1; i++) {
         typeParameters.get(i).accept(this);
-        scribe.printNextToken(Token.COMMA, preferences.insert_space_before_comma_in_type_parameters);
+        scribe.printNextToken(
+            Token.COMMA,
+            preferences.insert_space_before_comma_in_type_parameters);
         if (preferences.insert_space_after_comma_in_type_parameters) {
           scribe.space();
         }
@@ -2536,7 +2544,9 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
             if (i == 0) {
               scribe.alignFragment(fieldAlignment, 1);
             }
-            scribe.printNextToken(Token.ASSIGN, preferences.insert_space_before_assignment_operator);
+            scribe.printNextToken(
+                Token.ASSIGN,
+                preferences.insert_space_before_assignment_operator);
             if (preferences.insert_space_after_assignment_operator) {
               scribe.space();
             }
@@ -2590,8 +2600,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     methodDeclaration.accept(this);
   }
 
-  private void formatBlock(DartBlock block, String block_brace_position,
-      boolean insertSpaceBeforeOpeningBrace) {
+  private void formatBlock(
+      DartBlock block, String block_brace_position, boolean insertSpaceBeforeOpeningBrace) {
     formatOpeningBrace(block_brace_position, insertSpaceBeforeOpeningBrace);
     final List<DartStatement> statements = block.getStatements();
     if (!statements.isEmpty()) {
@@ -2838,8 +2848,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     DartNode[] mergedNodes = nodes;// computeMergedMemberDeclarations(nodes);
     Alignment memberAlignment = scribe.createMemberAlignment(
         Alignment.TYPE_MEMBERS,
-        preferences.align_type_members_on_columns ? Alignment.M_MULTICOLUMN
-            : Alignment.M_NO_ALIGNMENT,
+        preferences.align_type_members_on_columns
+            ? Alignment.M_MULTICOLUMN : Alignment.M_NO_ALIGNMENT,
         4,
         scribe.scanner.currentPosition);
     scribe.enterMemberAlignment(memberAlignment);
@@ -2851,7 +2861,10 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
         for (int i = startIndex, max = mergedNodes.length; i < max; i++) {
           DartNode member = mergedNodes[i];
           if (member instanceof DartFieldDefinition) {
-            isChunkStart = memberAlignment.checkChunkStart(FIELD, i, scribe.scanner.currentPosition);
+            isChunkStart = memberAlignment.checkChunkStart(
+                FIELD,
+                i,
+                scribe.scanner.currentPosition);
             format((DartFieldDefinition) member, this, isChunkStart, i == 0);
           } else if (member instanceof DartMethodDefinition) {
             isChunkStart = memberAlignment.checkChunkStart(
@@ -3054,6 +3067,12 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     scribe.printNewLine();
   }
 
+  private void formatLabels(List<DartLabel> labels) {
+    for (DartLabel label : labels) {
+      formatLabel(label);
+    }
+  }
+
   private void formatLeftCurlyBrace(final int line, final String bracePosition) {
     // deal with (quite unexpected) comments right before LBRACE
     scribe.printComment(Scribe.PRESERVE_EMPTY_LINES_IN_FORMAT_LEFT_CURLY_BRACE);
@@ -3200,7 +3219,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     formatOpeningGroup(Token.LBRACK, bracePosition, insertSpaceBeforeBracket);
   }
 
-  private void formatOpeningGroup(Token token, String bracePosition, boolean insertSpaceBeforeBrace) {
+  private void formatOpeningGroup(
+      Token token, String bracePosition, boolean insertSpaceBeforeBrace) {
     if (DefaultCodeFormatterConstants.NEXT_LINE.equals(bracePosition)) {
       scribe.printNewLine();
     } else if (DefaultCodeFormatterConstants.NEXT_LINE_SHIFTED.equals(bracePosition)) {
@@ -3214,8 +3234,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.UNMODIFIABLE_TRAILING_COMMENT);
   }
 
-  private void formatStatements(final List<DartStatement> statements,
-      boolean insertNewLineAfterLastStatement) {
+  private void formatStatements(
+      final List<DartStatement> statements, boolean insertNewLineAfterLastStatement) {
     int statementsLength = statements.size();
     for (int i = 0; i < statementsLength; i++) {
       final DartStatement statement = statements.get(i);
@@ -3282,8 +3302,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
   private void formatTypeMembers(DartClass typeDeclaration) {
     Alignment memberAlignment = scribe.createMemberAlignment(
         Alignment.TYPE_MEMBERS,
-        preferences.align_type_members_on_columns ? Alignment.M_MULTICOLUMN
-            : Alignment.M_NO_ALIGNMENT,
+        preferences.align_type_members_on_columns
+            ? Alignment.M_MULTICOLUMN : Alignment.M_NO_ALIGNMENT,
         3,
         scribe.scanner.currentPosition);
     scribe.enterMemberAlignment(memberAlignment);
@@ -3342,10 +3362,10 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     scribe.exitMemberAlignment(memberAlignment);
   }
 
-  private void formatTypeOpeningBrace(String bracePosition, boolean insertSpaceBeforeBrace,
-      DartClass typeDeclaration) {
-    final int memberLength = typeDeclaration.getMembers() == null ? 0
-        : typeDeclaration.getMembers().size();
+  private void formatTypeOpeningBrace(
+      String bracePosition, boolean insertSpaceBeforeBrace, DartClass typeDeclaration) {
+    final int memberLength = typeDeclaration.getMembers() == null
+        ? 0 : typeDeclaration.getMembers().size();
 
     boolean insertNewLine = memberLength > 0;
 
@@ -3440,12 +3460,12 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
   }
 
   private boolean isGuardClause(DartBlock block) {
-    return !commentStartsBlock(block.getSourceInfo().getOffset(), block.getSourceInfo().getLength()
-        + block.getSourceInfo().getOffset())
-        && block.getStatements() != null
-        && block.getStatements().size() == 1
-        && (block.getStatements().get(0) instanceof DartReturnStatement || block.getStatements().get(
-            0) instanceof DartThrowStatement);
+    return !commentStartsBlock(
+        block.getSourceInfo().getOffset(),
+        block.getSourceInfo().getLength() + block.getSourceInfo().getOffset()) &&
+        block.getStatements() != null && block.getStatements().size() == 1 && (
+        block.getStatements().get(0) instanceof DartReturnStatement
+        || block.getStatements().get(0) instanceof DartThrowStatement);
   }
 
   private boolean isMultipleLocalDeclaration(DartVariableStatement localDeclaration) {

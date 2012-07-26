@@ -93,8 +93,8 @@ import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.tools.core.DartCore;
 
 /**
- * Instances of the class <code>PropertySetter</code> implement a visitor that sets the value of the
- * specified property for the node being visited.
+ * Instances of the class <code>PropertySetter</code> implement a visitor that sets the value of the specified
+ * property for the node being visited.
  */
 public class PropertySetter extends PropertyVisitor {
   /**
@@ -185,7 +185,7 @@ public class PropertySetter extends PropertyVisitor {
   public Object visitCase(DartCase node) {
     if (property == PropertyDescriptorHelper.DART_CASE_EXPRESSION) {
       // node.setExpr(propertyValue);
-    } else if (property == PropertyDescriptorHelper.DART_CASE_LABEL) {
+    } else if (property == PropertyDescriptorHelper.DART_CASE_LABELS) {
       // node.setLabel(propertyValue);
     } else if (property == PropertyDescriptorHelper.DART_CASE_STATEMENTS) {
       // node.setStatements(propertyValue);
@@ -812,7 +812,7 @@ public class PropertySetter extends PropertyVisitor {
 
   @Override
   public Object visitSwitchMember(DartSwitchMember node) {
-    if (property == PropertyDescriptorHelper.DART_SWITCH_MEMBER_LABEL) {
+    if (property == PropertyDescriptorHelper.DART_SWITCH_MEMBER_LABELS) {
       // node.setLabel(propertyValue);
     } else if (property == PropertyDescriptorHelper.DART_SWITCH_MEMBER_STATEMENTS) {
       // node.setStatements(propertyValue);
@@ -1018,8 +1018,9 @@ public class PropertySetter extends PropertyVisitor {
       propertyClass = ((SimplePropertyDescriptor) property).getValueType();
     }
     if (!propertyClass.isInstance(propertyValue)) {
-      throw new RuntimeException("Value of class " + propertyValue.getClass().getName()
-          + " cannot be assigned to a property of type " + propertyClass.getName());
+      throw new RuntimeException(
+          "Value of class " + propertyValue.getClass().getName()
+              + " cannot be assigned to a property of type " + propertyClass.getName());
     }
   }
 }

@@ -92,8 +92,8 @@ import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
 
 /**
- * Instances of the class <code>PropertyGetter</code> implement a visitor that captures the value of
- * the specified property for the node being visited.
+ * Instances of the class <code>PropertyGetter</code> implement a visitor that captures the value of the specified
+ * property for the node being visited.
  */
 public class PropertyGetter extends PropertyVisitor {
   /**
@@ -165,8 +165,8 @@ public class PropertyGetter extends PropertyVisitor {
   public Object visitCase(DartCase node) {
     if (property == PropertyDescriptorHelper.DART_CASE_EXPRESSION) {
       return node.getExpr();
-    } else if (property == PropertyDescriptorHelper.DART_CASE_LABEL) {
-      return node.getLabel();
+    } else if (property == PropertyDescriptorHelper.DART_CASE_LABELS) {
+      return node.getLabels();
     } else if (property == PropertyDescriptorHelper.DART_CASE_STATEMENTS) {
       return node.getStatements();
     } else {
@@ -697,8 +697,8 @@ public class PropertyGetter extends PropertyVisitor {
 
   @Override
   public Object visitSwitchMember(DartSwitchMember node) {
-    if (property == PropertyDescriptorHelper.DART_SWITCH_MEMBER_LABEL) {
-      return node.getLabel();
+    if (property == PropertyDescriptorHelper.DART_SWITCH_MEMBER_LABELS) {
+      return node.getLabels();
     } else if (property == PropertyDescriptorHelper.DART_SWITCH_MEMBER_STATEMENTS) {
       return node.getStatements();
     } else {

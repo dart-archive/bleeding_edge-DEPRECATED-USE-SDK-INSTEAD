@@ -95,8 +95,8 @@ import com.google.dart.tools.core.DartCore;
 import java.util.List;
 
 /**
- * Instances of the class <code>PropertyLocator</code> implement a visitor that returns a
- * description of the property whose value is (or contains) a given child node.
+ * Instances of the class <code>PropertyLocator</code> implement a visitor that returns a description of the
+ * property whose value is (or contains) a given child node.
  */
 public class PropertyLocator extends ASTVisitor<StructuralPropertyDescriptor> {
   /**
@@ -183,8 +183,8 @@ public class PropertyLocator extends ASTVisitor<StructuralPropertyDescriptor> {
   public StructuralPropertyDescriptor visitCase(DartCase node) {
     if (childNode == node.getExpr()) {
       return PropertyDescriptorHelper.DART_CASE_EXPRESSION;
-    } else if (childNode == node.getLabel()) {
-      return PropertyDescriptorHelper.DART_CASE_LABEL;
+    } else if (childContainedIn(node.getLabels())) {
+      return PropertyDescriptorHelper.DART_CASE_LABELS;
     } else if (childContainedIn(node.getStatements())) {
       return PropertyDescriptorHelper.DART_CASE_STATEMENTS;
     } else {
@@ -624,7 +624,8 @@ public class PropertyLocator extends ASTVisitor<StructuralPropertyDescriptor> {
   }
 
   @Override
-  public StructuralPropertyDescriptor visitParenthesizedExpression(DartParenthesizedExpression node) {
+  public StructuralPropertyDescriptor visitParenthesizedExpression(
+      DartParenthesizedExpression node) {
     if (childNode == node.getExpression()) {
       return PropertyDescriptorHelper.DART_PARENTHESIZED_EXPRESSION_EXPRESSION;
     } else {
@@ -722,8 +723,8 @@ public class PropertyLocator extends ASTVisitor<StructuralPropertyDescriptor> {
 
   @Override
   public StructuralPropertyDescriptor visitSwitchMember(DartSwitchMember node) {
-    if (childNode == node.getLabel()) {
-      return PropertyDescriptorHelper.DART_SWITCH_MEMBER_LABEL;
+    if (childContainedIn(node.getLabels())) {
+      return PropertyDescriptorHelper.DART_SWITCH_MEMBER_LABELS;
     } else if (childContainedIn(node.getStatements())) {
       return PropertyDescriptorHelper.DART_SWITCH_MEMBER_STATEMENTS;
     } else {
@@ -753,7 +754,8 @@ public class PropertyLocator extends ASTVisitor<StructuralPropertyDescriptor> {
   }
 
   @Override
-  public StructuralPropertyDescriptor visitSyntheticErrorStatement(DartSyntheticErrorStatement node) {
+  public StructuralPropertyDescriptor visitSyntheticErrorStatement(
+      DartSyntheticErrorStatement node) {
     // if (childNode == node.getTokenString()) {
     // return PropertyDescriptorHelper.DART_SYNTHETIC_ERROR_STATEMENT_TOKEN_STRING;
     // } else {

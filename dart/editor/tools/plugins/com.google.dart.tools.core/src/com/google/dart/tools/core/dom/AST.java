@@ -103,7 +103,7 @@ public class AST {
     } else if (nodeClass == DartBreakStatement.class) {
       return (N) new DartBreakStatement(null);
     } else if (nodeClass == DartCase.class) {
-      return (N) new DartCase(null, null, new ArrayList<DartStatement>());
+      return (N) new DartCase(null, new ArrayList<DartLabel>(), new ArrayList<DartStatement>());
     } else if (nodeClass == DartCatchBlock.class) {
       return (N) new DartCatchBlock(null, null, null);
     } else if (nodeClass == DartClass.class) {
@@ -124,7 +124,7 @@ public class AST {
     } else if (nodeClass == DartContinueStatement.class) {
       return (N) new DartContinueStatement(null);
     } else if (nodeClass == DartDefault.class) {
-      return (N) new DartDefault(null, new ArrayList<DartStatement>());
+      return (N) new DartDefault(new ArrayList<DartLabel>(), new ArrayList<DartStatement>());
     } else if (nodeClass == DartDoubleLiteral.class) {
       return (N) DartDoubleLiteral.get(0.0);
     } else if (nodeClass == DartDoWhileStatement.class) {
