@@ -14,6 +14,7 @@
 package com.google.dart.engine.parser;
 
 import com.google.dart.engine.ast.AdjacentStrings;
+import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.ArrayAccess;
 import com.google.dart.engine.ast.AssignmentExpression;
@@ -268,6 +269,60 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getOperator());
     assertEquals(TokenType.PLUS, expression.getOperator().getType());
     assertNotNull(expression.getRightOperand());
+  }
+
+  public void test_parseAnnotation_n() throws Exception {
+    Annotation annotation = parse("parseAnnotation", "@A");
+    assertNotNull(annotation.getAtSign());
+    assertNotNull(annotation.getName());
+    assertNull(annotation.getPeriod());
+    assertNull(annotation.getConstructorName());
+    assertNull(annotation.getArguments());
+  }
+
+  public void test_parseAnnotation_n_a() throws Exception {
+    Annotation annotation = parse("parseAnnotation", "@A(x,y)");
+    assertNotNull(annotation.getAtSign());
+    assertNotNull(annotation.getName());
+    assertNull(annotation.getPeriod());
+    assertNull(annotation.getConstructorName());
+    assertNotNull(annotation.getArguments());
+  }
+
+  public void test_parseAnnotation_n_c() throws Exception {
+    Annotation annotation = parse("parseAnnotation", "@A.B.C");
+    assertNotNull(annotation.getAtSign());
+    assertNotNull(annotation.getName());
+    assertNotNull(annotation.getPeriod());
+    assertNotNull(annotation.getConstructorName());
+    assertNull(annotation.getArguments());
+  }
+
+  public void test_parseAnnotation_n_c_a() throws Exception {
+    Annotation annotation = parse("parseAnnotation", "@A.B.C(x,y)");
+    assertNotNull(annotation.getAtSign());
+    assertNotNull(annotation.getName());
+    assertNotNull(annotation.getPeriod());
+    assertNotNull(annotation.getConstructorName());
+    assertNotNull(annotation.getArguments());
+  }
+
+  public void test_parseAnnotation_n2() throws Exception {
+    Annotation annotation = parse("parseAnnotation", "@A.B");
+    assertNotNull(annotation.getAtSign());
+    assertNotNull(annotation.getName());
+    assertNull(annotation.getPeriod());
+    assertNull(annotation.getConstructorName());
+    assertNull(annotation.getArguments());
+  }
+
+  public void test_parseAnnotation_n2_a() throws Exception {
+    Annotation annotation = parse("parseAnnotation", "@A.B(x,y)");
+    assertNotNull(annotation.getAtSign());
+    assertNotNull(annotation.getName());
+    assertNull(annotation.getPeriod());
+    assertNull(annotation.getConstructorName());
+    assertNotNull(annotation.getArguments());
   }
 
   public void test_parseArgument_named() throws Exception {

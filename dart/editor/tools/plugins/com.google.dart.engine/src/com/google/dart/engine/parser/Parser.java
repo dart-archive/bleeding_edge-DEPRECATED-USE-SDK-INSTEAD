@@ -489,6 +489,37 @@ public class Parser {
   }
 
   /**
+   * Parse an annotation.
+   * 
+   * <pre>
+   * metadata ::=
+   *     annotation*
+   * 
+   * annotation ::=
+   *     '@' {@link Identifier qualified} (‘.’ {@link SimpleIdentifier identifier})? {@link ArgumentList arguments}?
+   * </pre>
+   * 
+   * @return the annotation that was parsed
+   */
+  // TODO (jwren) have this method called by the parser and remove the SuppressWarnings annotation
+  @SuppressWarnings("unused")
+  private Annotation parseAnnotation() {
+    Token atSign = expect(TokenType.AT);
+    Identifier name = parsePrefixedIdentifier();
+    Token period = null;
+    SimpleIdentifier constructorName = null;
+    if (matches(TokenType.PERIOD)) {
+      period = getAndAdvance();
+      constructorName = parseSimpleIdentifier();
+    }
+    ArgumentList arguments = null;
+    if (matches(TokenType.OPEN_PAREN)) {
+      arguments = parseArgumentList();
+    }
+    return new Annotation(atSign, name, period, constructorName, arguments);
+  }
+
+  /**
    * Parse an argument.
    * 
    * <pre>
