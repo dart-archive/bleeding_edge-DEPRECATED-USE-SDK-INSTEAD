@@ -56,7 +56,7 @@ class CustomElementsManager {
   // TODO(samhop): evaluate possibility of using vsm's trick of storing
   // arbitrary Dart objects directly on DOM objects rather than this map.
   /** Maps DOM elements to the user-defiend corresponding dart objects. */
-  Map<Element, WebComponent> _customElements;
+  ListMap<Element, WebComponent> _customElements;
 
   RegistryLookupFunction _lookup;
 
@@ -64,7 +64,7 @@ class CustomElementsManager {
 
   CustomElementsManager._internal(this._lookup) {
     // TODO(samhop): check for ShadowDOM support
-    _customDeclarations = <String, _CustomDeclaration>{};
+    _customDeclarations = <_CustomDeclaration>{};
     // We use a ListMap because DOM objects aren't hashable right now.
     // TODO(samhop): DOM objects (and everything else) should be hashable
     _customElements = new ListMap<Element, WebComponent>();
@@ -94,9 +94,9 @@ class CustomElementsManager {
   }
 
   /**
-   * Locate all external component files, load each of them, and expand 
+   * Locate all external component files, load each of them, and expand
    * declarations.
-   */ 
+   */
   void _loadComponents() {
     queryAll('link[rel=components]').forEach((link) => _load(link.href));
     _expandDeclarations();
@@ -142,12 +142,12 @@ class CustomElementsManager {
   }
 
   /** Look for all custom elements uses and expand them appropriately. */
-  List _expandDeclarations([root=null]) {
+  List _expandDeclarations([root]) {
     var newCustomElements = [];
     _customDeclarations.getValues().forEach((declaration) {
-      var query = '${declaration.extendz}[is=${declaration.name}]';
+      var selector = '${declaration.extendz}[is=${declaration.name}]';
       var target = root == null ? document : root;
-      target.queryAll(query).forEach((Element e) {
+      target.queryAll(selector).forEach((Element e) {
         var newElement = declaration.morph(e);
         // must call the inserted callback here for elements in the initial
         // markup, since our mutation observers won't be able to see them
@@ -238,9 +238,10 @@ class _CustomDeclaration {
     var attributeObserver = new MutationObserver((mutations, observer) {
       for (var mutation in mutations) {
         if (mutation.type == 'attributes') {
-          var name = mutation.attributeName;
-          newCustomElement.attributeChanged(name,
-              mutation.oldValue, mutation.target.attributes[name]);
+          var attrName = mutation.attributeName;
+          Element element = mutation.target;
+          newCustomElement.attributeChanged(attrName,
+              mutation.oldValue, element.attributes[attrName]);
         }
       }
     });
