@@ -15,12 +15,15 @@ package com.google.dart.engine.parser;
 
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
+import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.scanner.TokenType;
+
+import java.util.List;
 
 /**
  * The class {@code ParserRecoveryTest} defines parser tests that test the parsing of invalid code
@@ -227,6 +230,24 @@ public class ParserRecoveryTest extends ParserTestCase {
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
+  public void test_conditionalExpression1() throws Exception {
+    ConditionalExpression expression = parse("parseConditionalExpression", "? y : z");
+    assertInstanceOf(SimpleIdentifier.class, expression.getCondition());
+    assertTrue(expression.getCondition().isSynthetic());
+  }
+
+  public void test_conditionalExpression2() throws Exception {
+    ConditionalExpression expression = parse("parseConditionalExpression", "x ? : z");
+    assertInstanceOf(SimpleIdentifier.class, expression.getThenExpression());
+    assertTrue(expression.getThenExpression().isSynthetic());
+  }
+
+  public void test_conditionalExpression3() throws Exception {
+    ConditionalExpression expression = parse("parseConditionalExpression", "x ? y :");
+    assertInstanceOf(SimpleIdentifier.class, expression.getElseExpression());
+    assertTrue(expression.getElseExpression().isSynthetic());
+  }
+
   public void test_equalityExpression_missing_LHS() throws Exception {
     BinaryExpression expression = parseExpression("== y");
     assertInstanceOf(SimpleIdentifier.class, expression.getLeftOperand());
@@ -266,6 +287,30 @@ public class ParserRecoveryTest extends ParserTestCase {
   public void test_equalityExpression_super() throws Exception {
     BinaryExpression expression = parseExpression("super ==  ==");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_expressionList_multiple_end() throws Exception {
+    List<Expression> result = parse("parseExpressionList", ", 2, 3, 4");
+    assertSize(4, result);
+    Expression syntheticExpression = result.get(0);
+    assertInstanceOf(SimpleIdentifier.class, syntheticExpression);
+    assertTrue(syntheticExpression.isSynthetic());
+  }
+
+  public void test_expressionList_multiple_middle() throws Exception {
+    List<Expression> result = parse("parseExpressionList", "1, 2, , 4");
+    assertSize(4, result);
+    Expression syntheticExpression = result.get(2);
+    assertInstanceOf(SimpleIdentifier.class, syntheticExpression);
+    assertTrue(syntheticExpression.isSynthetic());
+  }
+
+  public void test_expressionList_multiple_start() throws Exception {
+    List<Expression> result = parse("parseExpressionList", "1, 2, 3,");
+    assertSize(4, result);
+    Expression syntheticExpression = result.get(3);
+    assertInstanceOf(SimpleIdentifier.class, syntheticExpression);
+    assertTrue(syntheticExpression.isSynthetic());
   }
 
   public void test_logicalAndExpression_missing_LHS() throws Exception {
