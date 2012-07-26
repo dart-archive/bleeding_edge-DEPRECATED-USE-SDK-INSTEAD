@@ -26,10 +26,10 @@ import com.google.dart.engine.scanner.TokenType;
 import java.util.List;
 
 /**
- * The class {@code ParserRecoveryTest} defines parser tests that test the parsing of invalid code
+ * The class {@code RecoveryParserTest} defines parser tests that test the parsing of invalid code
  * sequences to ensure that the correct recovery steps are taken in the parser.
  */
-public class ParserRecoveryTest extends ParserTestCase {
+public class RecoveryParserTest extends ParserTestCase {
 
   public void test_additiveExpression_missing_LHS() throws Exception {
     BinaryExpression expression = parseExpression("+ y", ParserErrorCode.NO_UNARY_PLUS_OPERATOR);

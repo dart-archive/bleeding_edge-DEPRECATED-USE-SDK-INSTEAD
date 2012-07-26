@@ -23,7 +23,7 @@ public class TestAll {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(com.google.dart.engine.parser.ComplexParserTest.class);
     suite.addTestSuite(com.google.dart.engine.parser.ErrorParserTest.class);
-    suite.addTestSuite(com.google.dart.engine.parser.ParserRecoveryTest.class);
+    suite.addTestSuite(com.google.dart.engine.parser.RecoveryParserTest.class);
     suite.addTestSuite(com.google.dart.engine.parser.SimpleParserTest.class);
     return suite;
   }
