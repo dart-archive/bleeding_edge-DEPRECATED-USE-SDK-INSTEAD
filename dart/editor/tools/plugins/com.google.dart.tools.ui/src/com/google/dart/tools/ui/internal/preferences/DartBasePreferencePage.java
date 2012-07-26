@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.preferences;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
@@ -62,7 +61,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private Button printMarginCheck;
   private Text printMarginText;
 
-  private Button autoDownloadCheck;
   private Button removeTrailingWhitespaceCheck;
   private Text packageRootDir;
 
@@ -95,11 +93,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     }
 
     handleSave(editorPreferences);
-
-//TODO(pquitslund): re-enable/move to rcp-only contributed update preference page
-//    if (DartCoreDebug.ENABLE_UPDATE) {
-//      UpdateCore.enableAutoDownload(autoDownloadCheck.getSelection());
-//    }
 
     IPreferenceStore toolsPreferenceStore = PreferenceConstants.getPreferenceStore();
     toolsPreferenceStore.setValue(
@@ -203,21 +196,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
       }
     });
 
-    // Update preferences
-    if (DartCoreDebug.ENABLE_UPDATE) {
-      Group updateGroup = new Group(composite, SWT.NONE);
-      updateGroup.setText(PreferencesMessages.DartBasePreferencePage_update_group_label);
-      GridDataFactory.fillDefaults()
-          .grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(updateGroup);
-      GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(updateGroup);
-
-      autoDownloadCheck = createCheckBox(
-          updateGroup,
-          PreferencesMessages.DartBasePreferencePage_auto_download_label,
-          PreferencesMessages.DartBasePreferencePage_auto_download_tooltip);
-      GridDataFactory.fillDefaults().applyTo(autoDownloadCheck);
-    }
-
     initFromPrefs();
 
     return composite;
@@ -270,11 +248,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     removeTrailingWhitespaceCheck.setSelection(
         PreferenceConstants.getPreferenceStore()
             .getBoolean(PreferenceConstants.EDITOR_REMOVE_TRAILING_WS));
-
-//TODO(pquitslund): re-enable/move to rcp-only contributed update preference page
-//    if (DartCoreDebug.ENABLE_UPDATE) {
-//      autoDownloadCheck.setSelection(UpdateCore.isAutoDownloadEnabled());
-//    }
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {

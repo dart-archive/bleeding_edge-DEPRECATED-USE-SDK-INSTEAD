@@ -165,11 +165,15 @@ public class AboutDartDialog extends Shell implements DetailsProvider {
 
     if (DartCoreDebug.ENABLE_UPDATE) {
 
-      @SuppressWarnings("unused")
-      UpdateStatusControl updateStatus = new UpdateStatusControl(this);
+      Label separator = new Label(this, SWT.SEPARATOR | SWT.SHADOW_OUT | SWT.HORIZONTAL);
+      GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.FILL).applyTo(separator);
 
-      //spacer
-      newLabel(SWT.NONE);
+      @SuppressWarnings("unused")
+      UpdateStatusControl updateStatus = new UpdateStatusControl(
+          this,
+          Display.getDefault().getSystemColor(SWT.COLOR_WHITE),
+          new Point(24, 4),
+          false);
 
     }
 

@@ -21,6 +21,7 @@ import com.google.dart.tools.update.core.UpdateManager;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -28,7 +29,9 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -37,7 +40,7 @@ import org.eclipse.swt.widgets.Display;
  * Contributes an update status label and update action button to the {@link AboutDartDialog}.
  * TODO(pquitslund): this implementation and UX is provisional and under active development
  */
-class UpdateStatusControl extends UpdateAdapter implements DisposeListener {
+public class UpdateStatusControl extends UpdateAdapter implements DisposeListener {
 
   private CLabel updateStatusLabel;
   private Button updateStatusButton;
@@ -66,9 +69,19 @@ class UpdateStatusControl extends UpdateAdapter implements DisposeListener {
       UpdateCore.getUpdateManager().scheduleUpdateCheck();
     }
   };
+
   private Revision latestAvailableRevision;
 
-  UpdateStatusControl(Composite parent) {
+  private final Color backgroundColor;
+  private final Point margin;
+  private final boolean isCentered;
+
+  public UpdateStatusControl(Composite parent, Color backgroundColor, Point margin,
+      boolean isCentered) {
+
+    this.backgroundColor = backgroundColor;
+    this.margin = margin;
+    this.isCentered = isCentered;
 
     createControl(parent);
     cacheFonts();
@@ -92,7 +105,7 @@ class UpdateStatusControl extends UpdateAdapter implements DisposeListener {
 
   @Override
   public void checkComplete() {
-    System.out.println("UpdateStatusControl.checkComplete()");
+    UpdateCore.logInfo("UpdateStatusControl.checkComplete()");
     asyncExec(new Runnable() {
       @Override
       public void run() {
@@ -104,7 +117,7 @@ class UpdateStatusControl extends UpdateAdapter implements DisposeListener {
 
   @Override
   public void checkFailed(final String message) {
-    System.out.println("UpdateStatusControl.checkFailed()");
+    UpdateCore.logInfo("UpdateStatusControl.checkFailed()");
     asyncExec(new Runnable() {
       @Override
       public void run() {
@@ -161,11 +174,11 @@ class UpdateStatusControl extends UpdateAdapter implements DisposeListener {
   @Override
   public void updateAvailable(Revision revision) {
     this.latestAvailableRevision = revision;
-    System.out.println("UpdateStatusControl.updateAvailable() => " + latestAvailableRevision);
+    UpdateCore.logInfo("UpdateStatusControl.updateAvailable() => " + latestAvailableRevision);
     asyncExec(new Runnable() {
       @Override
       public void run() {
-        setStatus(bindRevision("A Dart Editor update {0} is available for download"), regularFont);
+        setStatus(bindRevision("An update {0} is available"), regularFont);
         setActionEnabled(downloadUpdateAction);
       }
     });
@@ -173,7 +186,7 @@ class UpdateStatusControl extends UpdateAdapter implements DisposeListener {
 
   @Override
   public void updateStaged() {
-    System.out.println("UpdateStatusControl.updateStaged()");
+    UpdateCore.logInfo("UpdateStatusControl.updateStaged()");
     asyncExec(new Runnable() {
       @Override
       public void run() {
@@ -202,11 +215,27 @@ class UpdateStatusControl extends UpdateAdapter implements DisposeListener {
   }
 
   private void createControl(Composite parent) {
-    updateStatusLabel = new CLabel(parent, SWT.NONE);
-    updateStatusLabel.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
-    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(updateStatusLabel);
 
-    updateStatusButton = new Button(parent, SWT.PUSH);
+    Composite comp = new Composite(parent, SWT.NONE);
+
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(comp);
+    GridLayoutFactory.fillDefaults().numColumns(isCentered ? 1 : 2).margins(margin.x, margin.y).applyTo(
+        comp);
+
+    updateStatusLabel = new CLabel(comp, SWT.NONE);
+    if (backgroundColor != null) {
+      comp.setBackground(backgroundColor);
+      updateStatusLabel.setBackground(backgroundColor);
+    }
+
+    GridDataFactory.fillDefaults().align(isCentered ? SWT.CENTER : SWT.FILL, SWT.CENTER).hint(
+        350,
+        SWT.DEFAULT).grab(true, false).applyTo(updateStatusLabel);
+
+//    GridDataFactory.fillDefaults().align(isCentered ? SWT.CENTER : SWT.FILL, SWT.CENTER).applyTo(
+//        updateStatusLabel);
+
+    updateStatusButton = new Button(comp, SWT.PUSH);
     updateStatusButton.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
     GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).indent(0, 3).applyTo(
         updateStatusButton);

@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.update;
 
 import com.google.dart.tools.deploy.Activator;
-import com.google.dart.tools.ui.dialogs.AboutDartDialog;
 import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateAdapter;
 import com.google.dart.tools.update.core.UpdateCore;
@@ -40,18 +39,16 @@ import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
 public class SettingsControlContribution extends UpdateAdapter implements DisposeListener {
 
   private static enum UpdateState {
-    UNKNOWN("icons/full/obj16/wrench.gif", "Customize and control Dart Editor") {
+    UNKNOWN("icons/full/obj16/wrench.gif", "Preferences") {
       @Override
       void performAction(IWorkbenchWindow window) {
         openPreferences(null);
       }
     },
-    AVAILABLE("icons/full/obj16/wrench-update.gif", "Dart Editor update available") {
+    AVAILABLE("icons/full/obj16/wrench-update.gif", "Update available") {
       @Override
       void performAction(IWorkbenchWindow window) {
-        //TODO (pquitslund): switch to update pref page when it lands
-        //openPreferences(UPDATE_PREF_PAGE_ID);
-        openAboutBox(window);
+        openPreferences(UpdatePreferencePage.PAGE_ID);
       }
     };
 
@@ -77,15 +74,6 @@ public class SettingsControlContribution extends UpdateAdapter implements Dispos
 
   private static void asyncExec(Runnable runnable) {
     Display.getDefault().asyncExec(runnable);
-  }
-
-  private static void openAboutBox(final IWorkbenchWindow window) {
-    asyncExec(new Runnable() {
-      @Override
-      public void run() {
-        new AboutDartDialog(window.getShell()).open();
-      }
-    });
   }
 
   private static void openPreferences(final String preferencePageId) {
