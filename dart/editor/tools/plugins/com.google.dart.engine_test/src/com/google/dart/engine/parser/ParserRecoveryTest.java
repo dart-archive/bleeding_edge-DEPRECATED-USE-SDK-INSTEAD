@@ -13,7 +13,9 @@
  */
 package com.google.dart.engine.parser;
 
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -25,20 +27,6 @@ import com.google.dart.engine.scanner.TokenType;
  * sequences to ensure that the correct recovery steps are taken in the parser.
  */
 public class ParserRecoveryTest extends ParserTestCase {
-
-  public void fail_relationalExpression_missing_LHS_RHS() throws Exception {
-    IsExpression expression = parseExpression("is", ParserErrorCode.EXPECTED_IDENTIFIER);
-    assertInstanceOf(SimpleIdentifier.class, expression.getExpression());
-    assertTrue(expression.getExpression().isSynthetic());
-    assertInstanceOf(TypeName.class, expression.getType());
-    assertTrue(expression.getType().isSynthetic());
-  }
-
-  public void fail_relationalExpression_missing_RHS() throws Exception {
-    IsExpression expression = parseExpression("x is", ParserErrorCode.EXPECTED_IDENTIFIER);
-    assertInstanceOf(TypeName.class, expression.getType());
-    assertTrue(expression.getType().isSynthetic());
-  }
 
   public void test_additiveExpression_missing_LHS() throws Exception {
     BinaryExpression expression = parseExpression("+ y", ParserErrorCode.NO_UNARY_PLUS_OPERATOR);
@@ -81,6 +69,39 @@ public class ParserRecoveryTest extends ParserTestCase {
         "super + +",
         ParserErrorCode.NO_UNARY_PLUS_OPERATOR);
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_assignmentExpression_missing_compound1() throws Exception {
+    AssignmentExpression expression = parseExpression("= y = 0");
+    Expression syntheticExpression = expression.getLeftHandSide();
+    assertInstanceOf(SimpleIdentifier.class, syntheticExpression);
+    assertTrue(syntheticExpression.isSynthetic());
+  }
+
+  public void test_assignmentExpression_missing_compound2() throws Exception {
+    AssignmentExpression expression = parseExpression("x = = 0");
+    Expression syntheticExpression = ((AssignmentExpression) expression.getRightHandSide()).getLeftHandSide();
+    assertInstanceOf(SimpleIdentifier.class, syntheticExpression);
+    assertTrue(syntheticExpression.isSynthetic());
+  }
+
+  public void test_assignmentExpression_missing_compound3() throws Exception {
+    AssignmentExpression expression = parseExpression("x = y =");
+    Expression syntheticExpression = ((AssignmentExpression) expression.getRightHandSide()).getRightHandSide();
+    assertInstanceOf(SimpleIdentifier.class, syntheticExpression);
+    assertTrue(syntheticExpression.isSynthetic());
+  }
+
+  public void test_assignmentExpression_missing_LHS() throws Exception {
+    AssignmentExpression expression = parseExpression("= 0");
+    assertInstanceOf(SimpleIdentifier.class, expression.getLeftHandSide());
+    assertTrue(expression.getLeftHandSide().isSynthetic());
+  }
+
+  public void test_assignmentExpression_missing_RHS() throws Exception {
+    AssignmentExpression expression = parseExpression("x =");
+    assertInstanceOf(SimpleIdentifier.class, expression.getLeftHandSide());
+    assertTrue(expression.getRightHandSide().isSynthetic());
   }
 
   public void test_bitwiseAndExpression_missing_LHS() throws Exception {
@@ -359,6 +380,20 @@ public class ParserRecoveryTest extends ParserTestCase {
     IsExpression expression = parseExpression("is y");
     assertInstanceOf(SimpleIdentifier.class, expression.getExpression());
     assertTrue(expression.getExpression().isSynthetic());
+  }
+
+  public void test_relationalExpression_missing_LHS_RHS() throws Exception {
+    IsExpression expression = parseExpression("is", ParserErrorCode.EXPECTED_IDENTIFIER);
+    assertInstanceOf(SimpleIdentifier.class, expression.getExpression());
+    assertTrue(expression.getExpression().isSynthetic());
+    assertInstanceOf(TypeName.class, expression.getType());
+    assertTrue(expression.getType().isSynthetic());
+  }
+
+  public void test_relationalExpression_missing_RHS() throws Exception {
+    IsExpression expression = parseExpression("x is", ParserErrorCode.EXPECTED_IDENTIFIER);
+    assertInstanceOf(TypeName.class, expression.getType());
+    assertTrue(expression.getType().isSynthetic());
   }
 
   public void test_relationalExpression_precedence_shift_right() throws Exception {

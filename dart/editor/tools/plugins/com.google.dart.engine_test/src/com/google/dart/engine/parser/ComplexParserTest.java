@@ -14,6 +14,7 @@
 package com.google.dart.engine.parser;
 
 import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
@@ -90,6 +91,12 @@ public class ComplexParserTest extends ParserTestCase {
     ArgumentList argumentList5 = invocation4.getArgumentList();
     assertNotNull(argumentList5);
     assertSize(1, argumentList5.getArguments());
+  }
+
+  public void test_assignmentExpression_compound() throws Exception {
+    AssignmentExpression expression = parseExpression("x = y = 0");
+    assertInstanceOf(SimpleIdentifier.class, expression.getLeftHandSide());
+    assertInstanceOf(AssignmentExpression.class, expression.getRightHandSide());
   }
 
   public void test_bitwiseAndExpression_normal() throws Exception {

@@ -90,6 +90,11 @@ public class TypeName extends ASTNode {
     return typeArguments;
   }
 
+  @Override
+  public boolean isSynthetic() {
+    return name.isSynthetic() && typeArguments == null;
+  }
+
   /**
    * Set the name of the type to the given identifier.
    * 

@@ -214,6 +214,26 @@ public class Parser {
   }
 
   /**
+   * Create and return a new synthetic SimpleIdentifier.
+   * 
+   * @return a new synthetic SimpleIdentifier
+   */
+  private SimpleIdentifier createSyntheticSimpleIdentifier() {
+    return new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, "", currentToken.getOffset()));
+  }
+
+  /**
+   * Create and return a new synthetic SimpleStringLiteral.
+   * 
+   * @return a new synthetic SimpleStringLiteral
+   */
+  private SimpleStringLiteral createSyntheticSimpleStringLiteral() {
+    return new SimpleStringLiteral(
+        new StringToken(TokenType.STRING, "", currentToken.getOffset()),
+        "");
+  }
+
+  /**
    * Check that the given expression is assignable and report an error if it isn't.
    * 
    * <pre>
@@ -2661,10 +2681,7 @@ public class Parser {
     } else {
       // TODO The function expression case is not tested for and never reached.
       //return parseFunctionExpression();
-      return new SimpleIdentifier(new StringToken(
-          TokenType.IDENTIFIER,
-          "",
-          currentToken.getOffset()));
+      return createSyntheticSimpleIdentifier();
     }
   }
 
@@ -2863,7 +2880,7 @@ public class Parser {
       return new SimpleIdentifier(getAndAdvance());
     }
     reportError(ParserErrorCode.EXPECTED_IDENTIFIER);
-    return new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, "", currentToken.getOffset()));
+    return createSyntheticSimpleIdentifier();
   }
 
   /**
@@ -2958,9 +2975,7 @@ public class Parser {
     }
     if (strings.size() < 1) {
       reportError(ParserErrorCode.EXPECTED_STRING_LITERAL);
-      return new SimpleStringLiteral(
-          new StringToken(TokenType.STRING, "", currentToken.getOffset()),
-          "");
+      return createSyntheticSimpleStringLiteral();
     } else if (strings.size() == 1) {
       return strings.get(0);
     } else {
