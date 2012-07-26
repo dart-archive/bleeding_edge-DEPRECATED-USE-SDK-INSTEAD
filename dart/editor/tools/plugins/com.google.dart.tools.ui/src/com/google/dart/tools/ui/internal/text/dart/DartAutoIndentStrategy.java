@@ -1281,6 +1281,71 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       case 'e':
         smartIndentUponE(document, command);
         break;
+      case ':':
+        smartIndentUponColon(document, command);
+    }
+  }
+
+  private void smartIndentUponColon(IDocument d, DocumentCommand c) {
+    if (c.offset < 1 || d.getLength() == 0) {
+      return;
+    }
+    DartHeuristicScanner scanner = new DartHeuristicScanner(d);
+    int p = c.offset == d.getLength() ? c.offset - 1 : c.offset;
+    try {
+      // get current line
+      int line = d.getLineOfOffset(p);
+      int lineOffset = d.getLineOffset(line);
+      // make sure we don't have any leading comments etc.
+      if (d.get(lineOffset, p - lineOffset).trim().length() != 0) {
+        return;
+      }
+      // previous of last code
+      int pos = scanner.findNonWhitespaceBackward(p, DartHeuristicScanner.UNBOUND);
+      if (pos == -1) {
+        return;
+      }
+      int tok = scanner.previousToken(p - 1, DartHeuristicScanner.UNBOUND);
+      if (tok != DartHeuristicScanner.TokenRPAREN) {
+        return;
+      }
+      int lparenLoc = scanner.findOpeningPeer(scanner.getPosition(), '(', ')');
+      // try to identify a constructor decl name just before lparenLoc
+      tok = scanner.previousToken(lparenLoc - 1, DartHeuristicScanner.UNBOUND);
+      if (tok != DartHeuristicScanner.TokenIDENT) {
+        return;
+      }
+      tok = scanner.previousToken(scanner.getPosition() - 1, DartHeuristicScanner.UNBOUND);
+      if (tok == DartHeuristicScanner.TokenOTHER) { // period is Other
+        tok = scanner.previousToken(lparenLoc, DartHeuristicScanner.UNBOUND);
+        if (tok != DartHeuristicScanner.TokenIDENT) {
+          return;
+        }
+      }
+      DartIndenter indenter = new DartIndenter(d, scanner, fProject);
+      int whiteend = findEndOfWhiteSpace(d, lineOffset, c.offset);
+      // shift only when line does not contain any text up to the closing bracket
+      if (whiteend == c.offset) {
+        // adjust position of colon being inserted to 4 spaces in relative to previous line
+        int reference = indenter.findReferencePosition(c.offset, false, true, false, false);
+        int indLine = d.getLineOfOffset(reference);
+        if (indLine != -1 && indLine != line) {
+          // take the indent of the found line
+          StringBuffer replaceText = new StringBuffer(getIndentOfLine(d, indLine));
+          int additionalIndentLevels = 3;
+          String indent = CodeFormatterUtil.createIndentString(additionalIndentLevels, fProject);
+          replaceText.append(indent);
+          // add the rest of the current line including the just added colon
+          replaceText.append(d.get(whiteend, c.offset - whiteend));
+          replaceText.append(c.text);
+          // modify document command
+          c.length += c.offset - lineOffset;
+          c.offset = lineOffset;
+          c.text = replaceText.toString();
+        }
+      }
+    } catch (BadLocationException e) {
+      DartToolsPlugin.log(e);
     }
   }
 

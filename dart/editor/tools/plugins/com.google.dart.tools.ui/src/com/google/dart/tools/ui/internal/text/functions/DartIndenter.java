@@ -1038,7 +1038,7 @@ public class DartIndenter {
         int pos = fPosition; // store
 
         // special: method declaration deep indentation
-        if (looksLikeMethodDecl()) {
+        if (looksLikeMethodDecl() || looksLikeConstructorDecl()) {
           if (fPrefs.prefMethodDeclDeepIndent) {
             return setFirstElementAlignment(pos, bound);
           } else {
@@ -1219,6 +1219,107 @@ public class DartIndenter {
       return true;
     }
     return false;
+  }
+
+  private boolean looksLikeConstructorDecl() {
+    nextToken();
+    if (fToken != Symbols.TokenIDENT) {
+      return false;
+    }
+    // check for dot and ident to make named constructor
+    int pos = fPreviousPos;
+    nextToken();
+    if (fToken == Symbols.TokenOTHER) { // dot
+      pos = fPreviousPos;
+      nextToken();
+      if (fToken == Symbols.TokenIDENT) {
+        pos = fPreviousPos;
+        nextToken();
+      }
+    }
+    // check for possible modifiers
+    if (fToken == Symbols.TokenCONST || fToken == Symbols.TokenFACTORY) {
+      pos = fPreviousPos;
+      nextToken();
+      if (fToken == Symbols.TokenCONST || fToken == Symbols.TokenFACTORY) {
+        pos = fPreviousPos;
+        nextToken();
+      }
+    }
+    fPosition = fPreviousPos; // backup one token
+    fPreviousPos = pos;
+    try {
+      fLine = fDocument.getLineOfOffset(fPosition);
+    } catch (BadLocationException e) {
+      fLine = -1;
+    }
+    return true;
+  }
+
+  private boolean looksLikeFormalParamList() {
+    // ignores embedded comments
+    // this may be too restrictive; might need to relax to skipToPreviousListItemOrListStart()
+    nextToken();
+    if (fToken != Symbols.TokenRPAREN) {
+      return false;
+    }
+    int angleBracketCount = 0, parenCount = 1, braceCount = 0, bracketCount = 0;
+    while (true) {
+      if (angleBracketCount < 0 || braceCount < 0 || bracketCount < 0) {
+        return false; // mismatched bracket
+      }
+      nextToken();
+      switch (fToken) {
+      // right-side (opening) group symbols
+        case Symbols.TokenRBRACE:
+          braceCount++;
+          continue;
+        case Symbols.TokenRBRACKET:
+          bracketCount++;
+          continue;
+        case Symbols.TokenGREATERTHAN:
+          angleBracketCount++;
+          continue;
+        case Symbols.TokenRPAREN:
+          parenCount++;
+          continue;
+
+        case Symbols.TokenIDENT:
+        case Symbols.TokenVAR: // illegal but common
+        case Symbols.TokenVOID: // illegal but not uncommon
+        case Symbols.TokenOTHER: // period
+        case Symbols.TokenCOMMA: // param separator
+        case Symbols.TokenEQUAL: // named params
+        case Symbols.TokenTHIS:
+        case Symbols.TokenTRUE:
+        case Symbols.TokenFALSE:
+        case Symbols.TokenNULL:
+        case Symbols.TokenAT: // not handling complex metadata args
+          continue;
+
+          // left-side (closing) group symbols
+        case Symbols.TokenLBRACE:
+          braceCount--;
+          continue;
+        case Symbols.TokenLBRACKET:
+          bracketCount--;
+          continue;
+        case Symbols.TokenLESSTHAN:
+          angleBracketCount--;
+          continue;
+        case Symbols.TokenLPAREN:
+          parenCount--;
+          if (parenCount == 0) {
+            return true; // exit on initial paren
+          } else {
+            continue;
+          }
+
+          // return false for anything not permitted in a formal parameter list
+        default:
+          return false;
+      }
+    }
   }
 
   /**
@@ -1614,7 +1715,16 @@ public class DartIndenter {
           case Symbols.TokenFINALLY:
           case Symbols.TokenFOR:
           case Symbols.TokenTRY:
-          case Symbols.TokenCOLON:
+            return fPosition;
+
+          case Symbols.TokenCOLON: // recognize constructor; else return pos
+            int pos = fPosition;
+            if (!looksLikeFormalParamList()) {
+              return pos;
+            }
+            if (!looksLikeConstructorDecl()) {
+              return pos;
+            }
             return fPosition;
 
           case Symbols.TokenSTATIC:

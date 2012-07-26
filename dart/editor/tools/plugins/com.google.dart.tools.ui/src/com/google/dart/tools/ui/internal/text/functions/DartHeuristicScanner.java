@@ -215,18 +215,13 @@ public final class DartHeuristicScanner implements Symbols {
   private static final char SEMICOLON = ';';
   private static final char COLON = ':';
   private static final char COMMA = ',';
-
   private static final char LBRACKET = '[';
-
   private static final char RBRACKET = ']';
-
   private static final char QUESTIONMARK = '?';
-
   private static final char EQUAL = '=';
-
   private static final char LANGLE = '<';
-
   private static final char RANGLE = '>';
+  private static final char AT = '@';
 
   /** The document being scanned. */
   private final IDocument fDocument;
@@ -648,6 +643,8 @@ public final class DartHeuristicScanner implements Symbols {
         return TokenLESSTHAN;
       case RANGLE:
         return TokenGREATERTHAN;
+      case AT:
+        return TokenAT;
     }
 
     // else
