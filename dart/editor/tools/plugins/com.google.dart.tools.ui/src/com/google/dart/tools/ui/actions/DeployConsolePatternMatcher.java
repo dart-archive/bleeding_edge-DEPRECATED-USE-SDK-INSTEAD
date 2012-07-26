@@ -124,6 +124,7 @@ public class DeployConsolePatternMatcher implements IPatternMatchListener {
   }
 
   void openLocation(Location location) {
+    @SuppressWarnings("deprecation")
     IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocation(
         new Path(location.file));
 
@@ -155,6 +156,7 @@ public class DeployConsolePatternMatcher implements IPatternMatchListener {
   }
 
   private boolean doesLocationExist(Location location) {
+    @SuppressWarnings("deprecation")
     IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocation(
         new Path(location.file));
 

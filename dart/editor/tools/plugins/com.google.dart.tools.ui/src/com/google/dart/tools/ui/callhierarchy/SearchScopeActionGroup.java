@@ -211,14 +211,14 @@ class SearchScopeActionGroup extends ActionGroup {
     }
   }
 
-  private void addAction(List<Action> actions, Action action) {
-    if (action == selectedAction) {
-      action.setChecked(true);
-    } else {
-      action.setChecked(false);
-    }
-    actions.add(action);
-  }
+//  private void addAction(List<Action> actions, Action action) {
+//    if (action == selectedAction) {
+//      action.setChecked(true);
+//    } else {
+//      action.setChecked(false);
+//    }
+//    actions.add(action);
+//  }
 
   private void createActions() {
     searchScopeWorkspaceAction = new SearchScopeWorkspaceAction(this);
@@ -308,13 +308,13 @@ class SearchScopeActionGroup extends ActionGroup {
     return 0;
   }
 
-  private String[] getWorkingSetNames(IWorkingSet[] sets) {
-    String[] result = new String[sets.length];
-    for (int i = 0; i < sets.length; i++) {
-      result[i] = sets[i].getName();
-    }
-    return result;
-  }
+//  private String[] getWorkingSetNames(IWorkingSet[] sets) {
+//    String[] result = new String[sets.length];
+//    for (int i = 0; i < sets.length; i++) {
+//      result[i] = sets[i].getName();
+//    }
+//    return result;
+//  }
 
   private IWorkingSet[] getWorkingSets(String[] workingSetNames) {
     if (workingSetNames == null) {

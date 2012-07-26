@@ -140,24 +140,24 @@ class SearchInDialog extends TrayDialog {
     return mask;
   }
 
-  /**
-   * Creates and returns the button.
-   * 
-   * @param parent the parent composite
-   * @param style the style of control to construct
-   * @param text the text for the button
-   * @param data the widget data
-   * @param isSelected the new selection state
-   * @return the button created
-   */
-  private Button createButton(Composite parent, int style, String text, int data, boolean isSelected) {
-    Button button = new Button(parent, style);
-    button.setText(text);
-    button.setData(new Integer(data));
-    button.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
-    button.setSelection(isSelected);
-    return button;
-  }
+//  /**
+//   * Creates and returns the button.
+//   * 
+//   * @param parent the parent composite
+//   * @param style the style of control to construct
+//   * @param text the text for the button
+//   * @param data the widget data
+//   * @param isSelected the new selection state
+//   * @return the button created
+//   */
+//  private Button createButton(Composite parent, int style, String text, int data, boolean isSelected) {
+//    Button button = new Button(parent, style);
+//    button.setText(text);
+//    button.setData(new Integer(data));
+//    button.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+//    button.setSelection(isSelected);
+//    return button;
+//  }
 
   /**
    * Creates the search in options.
@@ -192,37 +192,37 @@ class SearchInDialog extends TrayDialog {
     return result;
   }
 
-  /**
-   * Returns the integer value of the strings.
-   * 
-   * @param str the array of strings
-   * @return the integer value of the strings
-   */
-  private int getInt(String[] str) {
-    boolean value;
-    int mask = 0;
-    int val = 0;
-    for (int i = 0; i < str.length; i++) {
-      value = settings.getBoolean(str[i]);
-      if (value) {
-        switch (i) {
-//          case 0:
-//            val = JavaSearchScopeFactory.SOURCES;
-//            break;
-//          case 1:
-//            val = JavaSearchScopeFactory.PROJECTS;
-//            break;
-//          case 2:
-//            val = JavaSearchScopeFactory.JRE;
-//            break;
-//          case 3:
-//            val = JavaSearchScopeFactory.LIBS;
-        }
-        mask |= val;
-      }
-    }
-    return mask;
-  }
+//  /**
+//   * Returns the integer value of the strings.
+//   * 
+//   * @param str the array of strings
+//   * @return the integer value of the strings
+//   */
+//  private int getInt(String[] str) {
+//    boolean value;
+//    int mask = 0;
+//    int val = 0;
+//    for (int i = 0; i < str.length; i++) {
+//      value = settings.getBoolean(str[i]);
+//      if (value) {
+//        switch (i) {
+////          case 0:
+////            val = JavaSearchScopeFactory.SOURCES;
+////            break;
+////          case 1:
+////            val = JavaSearchScopeFactory.PROJECTS;
+////            break;
+////          case 2:
+////            val = JavaSearchScopeFactory.JRE;
+////            break;
+////          case 3:
+////            val = JavaSearchScopeFactory.LIBS;
+//        }
+//        mask |= val;
+//      }
+//    }
+//    return mask;
+//  }
 
   /**
    * Returns the value of the given button.
