@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -61,6 +61,7 @@ import javax.xml.transform.stream.StreamResult;
 /**
  * An LRU cache for code assist.
  */
+@SuppressWarnings({"rawtypes", "unchecked", "deprecation"})
 public final class ContentAssistHistory {
   /**
    * A ranking of the most recently selected types.

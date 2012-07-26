@@ -40,6 +40,7 @@ import java.util.List;
 /**
  * Describes a category extension to the "javaCompletionProposalComputer" extension point.
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public final class CompletionProposalCategory {
   /** The extension schema name of the icon attribute. */
   private static final String ICON = "icon"; //$NON-NLS-1$

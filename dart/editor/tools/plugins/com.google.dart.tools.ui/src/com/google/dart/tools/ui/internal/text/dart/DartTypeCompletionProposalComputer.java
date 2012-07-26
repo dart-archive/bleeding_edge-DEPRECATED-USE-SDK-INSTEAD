@@ -40,6 +40,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class DartTypeCompletionProposalComputer extends DartCompletionProposalComputer {
   /*
    * @see com.google.dart.tools.ui.internal.text.dart.DartCompletionProposalComputer#

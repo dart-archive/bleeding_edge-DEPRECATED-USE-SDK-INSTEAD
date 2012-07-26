@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -23,6 +23,7 @@ import java.util.Map;
 /**
  * Map of parameters for the specific content assist command.
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public final class ContentAssistComputerParameter implements IParameterValues {
   /*
    * @see org.eclipse.core.commands.IParameterValues#getParameterValues()

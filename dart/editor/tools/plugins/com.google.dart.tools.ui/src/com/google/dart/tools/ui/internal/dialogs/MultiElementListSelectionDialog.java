@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -38,6 +38,7 @@ import java.util.List;
 /**
  * A class to select elements out of a list of elements, organized on multiple pages.
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class MultiElementListSelectionDialog extends AbstractElementListSelectionDialog {
 
   private static class Page {

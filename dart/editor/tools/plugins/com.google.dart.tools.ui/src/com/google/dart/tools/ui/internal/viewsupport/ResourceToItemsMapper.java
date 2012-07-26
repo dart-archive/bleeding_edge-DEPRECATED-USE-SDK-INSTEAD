@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -30,6 +30,7 @@ import java.util.Stack;
  * mapped to their element's underlying resource. Method <code>resourceChanged</code> updates all
  * items that are affected from the changed elements.
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ResourceToItemsMapper {
 
   public static interface IContentViewerAccessor {

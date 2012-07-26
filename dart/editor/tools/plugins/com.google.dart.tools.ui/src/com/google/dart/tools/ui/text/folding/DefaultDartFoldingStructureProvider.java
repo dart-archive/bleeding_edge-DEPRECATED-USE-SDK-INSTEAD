@@ -73,6 +73,7 @@ import java.util.Set;
  * this early stage to solicit feedback from pioneering adopters on the understanding that any code
  * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class DefaultDartFoldingStructureProvider implements IDartFoldingStructureProvider,
     IDartFoldingStructureProviderExtension {
   /**
