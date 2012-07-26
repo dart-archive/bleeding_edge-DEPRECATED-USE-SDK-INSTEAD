@@ -58,7 +58,7 @@ public class AnalysisMonitor {
       synchronized (lock) {
         while (!server.isIdle()) {
           try {
-            lock.wait();
+            lock.wait(5000);
           } catch (InterruptedException e) {
             //$FALL-THROUGH$
           }
