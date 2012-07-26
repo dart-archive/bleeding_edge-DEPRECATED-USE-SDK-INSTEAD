@@ -2659,8 +2659,12 @@ public class Parser {
     } else if (matches(TokenType.LT)) {
       return parseListOrMapLiteral(null);
     } else {
-      // TODO This case is never reached due to the condition of matches(TokenType.OPEN_PAREN) above
-      return parseFunctionExpression();
+      // TODO The function expression case is not tested for and never reached.
+      //return parseFunctionExpression();
+      return new SimpleIdentifier(new StringToken(
+          TokenType.IDENTIFIER,
+          "",
+          currentToken.getOffset()));
     }
   }
 
@@ -3304,6 +3308,8 @@ public class Parser {
         }
       }
       return new PrefixExpression(operator, parseAssignableExpression());
+    } else if (matches(TokenType.PLUS)) {
+      reportError(ParserErrorCode.NO_UNARY_PLUS_OPERATOR);
     }
     return parsePostfixExpression();
   }

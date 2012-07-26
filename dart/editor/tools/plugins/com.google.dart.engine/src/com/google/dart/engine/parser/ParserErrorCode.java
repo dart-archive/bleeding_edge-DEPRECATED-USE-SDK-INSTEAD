@@ -85,7 +85,7 @@ public enum ParserErrorCode implements ErrorCode {
 //  NAMED_PARAMETER_NOT_ALLOWED("Named parameter is not allowed for operator or setter method"),
 //  NO_SPACE_AFTER_PLUS("Cannot have space between plus and numeric literal"),
 //  NO_SOUP_FOR_YOU("Too many errors"),
-//  NO_UNARY_PLUS_OPERATOR("No unary plus operator in Dart"),
+  NO_UNARY_PLUS_OPERATOR("No unary plus operator in Dart"),
   ONLY_ONE_LIBRARY_DIRECTIVE("Only one library directive may be declared in a file"),
   OPERATOR_CANNOT_BE_STATIC("Operators cannot be static"),
   OPERATOR_IS_NOT_USER_DEFINABLE("Operator is not user definable"),

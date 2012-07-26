@@ -204,19 +204,16 @@ public class ParserTestCase extends EngineTestCase {
    *           error, or if the result would have been {@code null}.
    */
   @SuppressWarnings("unchecked")
-  protected <E extends Expression> E parseExpression(String source) throws Exception {
-    AnalysisErrorListener listener = new AnalysisErrorListener() {
-      @Override
-      public void onError(AnalysisError event) {
-        fail("Unexpected compilation error: " + event.getMessage() + " (" + event.getOffset()
-            + ", " + event.getLength() + ")");
-      }
-    };
+  protected <E extends Expression> E parseExpression(String source, ErrorCode... errorCodes)
+      throws Exception {
+    GatheringErrorListener listener = new GatheringErrorListener();
     StringScanner scanner = new StringScanner(null, source, listener);
+    listener.setLineInfo(new TestSource(), scanner.getLineStarts());
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
     Expression expression = parser.parseExpression(token);
     assertNotNull(expression);
+    listener.assertErrors(errorCodes);
     return (E) expression;
   }
 

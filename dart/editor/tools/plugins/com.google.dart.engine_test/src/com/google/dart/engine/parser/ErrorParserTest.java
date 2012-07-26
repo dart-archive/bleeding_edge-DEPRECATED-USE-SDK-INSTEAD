@@ -102,6 +102,10 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE);
   }
 
+  public void test_parseUnaryExpression_noUnaryPlusOperator() throws Exception {
+    parse("parseUnaryExpression", "+x", ParserErrorCode.NO_UNARY_PLUS_OPERATOR);
+  }
+
   public void test_positionalAfterNamedArgument() throws Exception {
     parse("parseArgumentList", "(x: 1, 2)", ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
   }
