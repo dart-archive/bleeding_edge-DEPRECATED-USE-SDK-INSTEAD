@@ -77,6 +77,11 @@ public class UpdateCore extends Plugin {
   private static final String UPDATE_URL_PROP_KEY = "updateUrl";
 
   /**
+   * Environment variable key for user-specified update URLs.
+   */
+  private static final String UPDATE_URL_ENV_VAR = "com.dart.tools.update.core.url";
+
+  /**
    * The Update Core plugin id.
    */
   private static final String PLUGIN_ID = "com.google.dart.tools.update.core";
@@ -99,7 +104,7 @@ public class UpdateCore extends Plugin {
   /**
    * Delay for installation cleanup post startup,
    */
-  private static final long INSTALLATION_CLEANUP_INIT_DELAY = TimeUnit.MINUTES.toMillis(3);
+  //private static final long INSTALLATION_CLEANUP_INIT_DELAY = TimeUnit.MINUTES.toMillis(3);
 
   /**
    * Default update check interval.
@@ -196,11 +201,19 @@ public class UpdateCore extends Plugin {
   }
 
   /**
-   * Get the root URL for update checks.
+   * Get the root URL for update checks. Custom URLs can be set via the
+   * "com.dart.tools.update.core.url" environment variable. If the is no custom URL defined, lookup
+   * will default to a URL defined in plugin .options.
    * 
    * @return the URL (or <code>null</code> if unset).
    */
   public static String getUpdateUrl() {
+
+    String userSpecifiedURL = System.getProperty(UPDATE_URL_ENV_VAR);
+    if (userSpecifiedURL != null) {
+      return userSpecifiedURL;
+    }
+
     ResourceBundle resourceBundle = getResourceBundle();
     return (String) resourceBundle.getObject(UPDATE_URL_PROP_KEY);
   }

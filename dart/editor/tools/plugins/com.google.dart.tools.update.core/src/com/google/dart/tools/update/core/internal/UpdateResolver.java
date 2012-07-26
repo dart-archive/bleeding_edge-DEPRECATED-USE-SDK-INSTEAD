@@ -62,9 +62,9 @@ public abstract class UpdateResolver {
   }
 
   /**
-   * Create an update resolver for the continuous update channel.
+   * Create an update resolver for the integration update channel.
    * 
-   * @return an update resolver for the continuous update channel
+   * @return an update resolver for the integration update channel
    */
   public static UpdateResolver forIntegration() {
     //return new DirectoryListingResolver(UpdateCore.getUpdateUrl());
