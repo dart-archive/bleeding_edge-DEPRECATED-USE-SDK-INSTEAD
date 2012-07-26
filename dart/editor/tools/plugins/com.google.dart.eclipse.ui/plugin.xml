@@ -112,5 +112,44 @@
       </page>
       
    </extension>
+   
+   <extension
+         point="org.eclipse.ui.navigator.navigatorContent">
+      <navigatorContent
+            activeByDefault="true"
+            contentProvider="com.google.dart.eclipse.ui.internal.navigator.DartNavigatorContentProvider"
+            icon="icons/dart_16_16.gif"
+            id="com.google.dart.eclipse.ui.navigatorContent"
+            labelProvider="com.google.dart.eclipse.ui.internal.navigator.DartNavigatorLabelProvider"
+            name="Dart Elements"
+            priority="highest">
+         <commonWizard
+               menuGroupId="com.google.dart.eclipse.wizards.projects"
+               type="new"
+               wizardId="com.google.dart.eclipse.wizards.newProject">
+            <enablement></enablement>
+         </commonWizard>
+         <commonWizard
+               menuGroupId="com.google.dart.eclipse.wizards.projects"
+               type="new"
+               wizardId="com.google.dart.eclipse.wizards.newFile">
+            <enablement></enablement>
+         </commonWizard>
+         <triggerPoints>
+            <adapt type="org.eclipse.core.resources.IProject">
+               <test property="org.eclipse.core.resources.projectNature" value="com.google.dart.tools.core.dartNature"/>
+            </adapt>
+        </triggerPoints>
+      </navigatorContent>
+   </extension>
+   <extension
+        point="org.eclipse.ui.navigator.viewer">
+     <viewerContentBinding viewerId="org.eclipse.ui.navigator.ProjectExplorer">
+        <includes>
+           <contentExtension pattern="com.google.dart.eclipse.ui.navigatorContent"/>
+        </includes>
+     </viewerContentBinding>
+   </extension>
+
 
 </plugin>
