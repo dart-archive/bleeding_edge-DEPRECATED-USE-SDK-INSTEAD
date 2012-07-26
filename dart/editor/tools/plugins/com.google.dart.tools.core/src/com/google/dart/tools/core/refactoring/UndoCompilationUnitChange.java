@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.refactoring;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.util.Messages;
 import com.google.dart.tools.core.model.CompilationUnit;
 
@@ -63,6 +64,11 @@ import org.eclipse.text.edits.UndoEdit;
       return super.perform(new SubProgressMonitor(pm, 1));
     } finally {
       fCUnit.discardWorkingCopy();
+      if (fCUnit.isWorkingCopy()) {
+        ((CompilationUnitImpl) fCUnit).reconcile(true, pm);
+      } else {
+        fCUnit.makeConsistent(pm);
+      }
     }
   }
 
