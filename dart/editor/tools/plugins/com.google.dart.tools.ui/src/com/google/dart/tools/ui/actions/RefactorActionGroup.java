@@ -397,8 +397,6 @@ public class RefactorActionGroup extends ActionGroup {
    */
   public RefactorActionGroup(Page page) {
     this(page.getSite(), null);
-
-    installQuickAccessAction();
   }
 
   @Override
@@ -499,6 +497,13 @@ public class RefactorActionGroup extends ActionGroup {
     if (fEditor != null) {
       final DartElement element = getEditorInput();
       if (element != null && ActionUtil.isOnBuildPath(element)) {
+        ITextSelection textSelection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
+        ISelection selection = new DartTextSelection(
+            fEditor,
+            getEditorInput(),
+            getDocument(),
+            textSelection.getOffset(),
+            textSelection.getLength());
 //        refactorSubmenu.addMenuListener(new IMenuListener() {
 //          @Override
 //          public void menuAboutToShow(IMenuManager manager) {
@@ -507,13 +512,11 @@ public class RefactorActionGroup extends ActionGroup {
 //        });
 //        refactorSubmenu.add(fNoActionAvailable);
 //        menu.appendToGroup(fGroupName, refactorSubmenu);
-        refactorMenuShown(menu);
+        refactorMenuShown(menu, selection);
       }
     } else {
       ISelection selection = fSelectionProvider.getSelection();
-      for (Iterator<SelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
-        iter.next().update(selection);
-      }
+      refactorMenuShown(menu, selection);
 //      if (fillRefactorMenu(refactorSubmenu) > 0) {
 //        menu.appendToGroup(fGroupName, refactorSubmenu);
 //      }
@@ -670,7 +673,7 @@ public class RefactorActionGroup extends ActionGroup {
 //    }
 //  }
 
-  private void refactorMenuShown(IMenuManager refactorSubmenu) {
+  private void refactorMenuShown(IMenuManager refactorSubmenu, ISelection selection) {
     // TODO(scheglov) really add "Refactoring" sub-menu
     // we know that we have an MenuManager since we created it in addRefactorSubmenu()
 //    Menu menu = ((MenuManager) refactorSubmenu).getMenu();
@@ -680,17 +683,10 @@ public class RefactorActionGroup extends ActionGroup {
 //        refactorMenuHidden();
 //      }
 //    });
-    ITextSelection textSelection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
-    DartTextSelection dartSelection = new DartTextSelection(
-        fEditor,
-        getEditorInput(),
-        getDocument(),
-        textSelection.getOffset(),
-        textSelection.getLength());
 
     for (Iterator<SelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
       SelectionDispatchAction action = iter.next();
-      action.update(dartSelection);
+      action.update(selection);
     }
 //    refactorSubmenu.removeAll();
 //    if (fillRefactorMenu(refactorSubmenu) == 0) {

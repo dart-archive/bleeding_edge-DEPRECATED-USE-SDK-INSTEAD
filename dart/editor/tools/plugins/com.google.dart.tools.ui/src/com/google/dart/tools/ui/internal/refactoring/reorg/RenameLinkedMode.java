@@ -20,15 +20,8 @@ import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartConventions;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.core.model.DartFunctionTypeAlias;
-import com.google.dart.tools.core.model.DartImport;
-import com.google.dart.tools.core.model.DartTypeParameter;
-import com.google.dart.tools.core.model.DartVariableDeclaration;
-import com.google.dart.tools.core.model.Field;
-import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.dom.LinkedNodeFinder;
+import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedNamesAssistProposal.DeleteBlockingExitPolicy;
@@ -552,26 +545,7 @@ public class RenameLinkedMode {
       return null;
     }
 
-    switch (fDartElement.getElementType()) {
-      case DartElement.IMPORT:
-        return RenameSupport.create((DartImport) fDartElement, newName);
-      case DartElement.FUNCTION:
-        return RenameSupport.create((DartFunction) fDartElement, newName);
-      case DartElement.FUNCTION_TYPE_ALIAS:
-        return RenameSupport.create((DartFunctionTypeAlias) fDartElement, newName);
-      case DartElement.TYPE:
-        return RenameSupport.create((Type) fDartElement, newName);
-      case DartElement.TYPE_PARAMETER:
-        return RenameSupport.create((DartTypeParameter) fDartElement, newName);
-      case DartElement.FIELD:
-        return RenameSupport.create((Field) fDartElement, newName);
-      case DartElement.METHOD:
-        return RenameSupport.create((Method) fDartElement, newName);
-      case DartElement.VARIABLE:
-        return RenameSupport.create((DartVariableDeclaration) fDartElement, newName);
-      default:
-        return null;
-    }
+    return RefactoringExecutionStarter.createRenameSupport(fDartElement, newName, 0);
   }
 
 }
