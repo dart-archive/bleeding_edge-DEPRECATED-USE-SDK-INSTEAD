@@ -13,17 +13,16 @@
  */
 package com.google.dart.engine.internal.element;
 
-/**
- * The enumeration {@code Modifier} defines constants for all of the modifiers defined by the Dart
- * language.
- */
-public enum Modifier {
-  ABSTRACT,
-  CONST,
-  FACTORY,
-  FINAL,
-  GETTER,
-  SETTER,
-  STATIC,
-  SYNTHETIC;
+import com.google.dart.engine.ExtendedTestSuite;
+
+import junit.framework.Test;
+import junit.framework.TestSuite;
+
+public class TestAll {
+  public static Test suite() {
+    TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(ElementLocationImplTest.class);
+    suite.addTestSuite(LibraryElementImplTest.class);
+    return suite;
+  }
 }

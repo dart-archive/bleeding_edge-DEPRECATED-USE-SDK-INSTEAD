@@ -35,6 +35,15 @@ package com.google.dart.engine.element;
  */
 public interface Element {
   /**
+   * Return the element of the given class that most immediately encloses this element, or
+   * {@code null} if there is no enclosing element of the given class.
+   * 
+   * @param elementClass the class of the element to be returned
+   * @return the element that encloses this element
+   */
+  public <E extends Element> E getAncestor(Class<E> elementClass);
+
+  /**
    * Return the element that either physically or logically encloses this element. This will be
    * {@code null} if this element is a library because libraries are the top-level elements in the
    * model.
@@ -57,6 +66,14 @@ public interface Element {
    * @return the library that contains this element
    */
   public LibraryElement getLibrary();
+
+  /**
+   * Return an object representing the location of this element in the element model. The object can
+   * be used to locate this element at a later time.
+   * 
+   * @return the location of this element in the element model
+   */
+  public ElementLocation getLocation();
 
   /**
    * Return the name of this element.

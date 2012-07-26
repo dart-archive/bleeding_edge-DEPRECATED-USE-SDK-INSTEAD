@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.LibraryElement;
 
 import java.util.EnumSet;
@@ -46,6 +47,7 @@ public abstract class ElementImpl implements Element {
    */
   public ElementImpl(String name) {
     this.name = name;
+    this.modifiers = EnumSet.noneOf(Modifier.class);
   }
 
   @Override
@@ -54,10 +56,10 @@ public abstract class ElementImpl implements Element {
       return false;
     }
     ElementImpl other = (ElementImpl) object;
-    return name.equals(other.getName()) && enclosingElement.equals(other.getEnclosingElement());
+    return equals(name, other.getName()) && equals(enclosingElement, other.getEnclosingElement());
   }
 
-//  @Override
+  @Override
   @SuppressWarnings("unchecked")
   public <E extends Element> E getAncestor(Class<E> elementClass) {
     Element ancestor = enclosingElement;
@@ -75,6 +77,11 @@ public abstract class ElementImpl implements Element {
   @Override
   public LibraryElement getLibrary() {
     return getAncestor(LibraryElement.class);
+  }
+
+  @Override
+  public ElementLocation getLocation() {
+    return new ElementLocationImpl(this);
   }
 
   @Override
@@ -133,5 +140,21 @@ public abstract class ElementImpl implements Element {
     } else {
       modifiers.remove(modifier);
     }
+  }
+
+  /**
+   * Return {@code true} if the given objects are equal.
+   * 
+   * @param first the first object being compared
+   * @param second the second object being compared
+   * @return {@code true} if the given objects are equal
+   */
+  private boolean equals(Object first, Object second) {
+    if (first == null) {
+      return second == null;
+    } else if (second == null) {
+      return false;
+    }
+    return first.equals(second);
   }
 }

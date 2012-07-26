@@ -72,7 +72,6 @@ public class FieldElementImpl extends VariableElementImpl implements FieldElemen
    * @param getter the getter associated with this field
    */
   public void setGetter(PropertyAccessorElement getter) {
-    ((PropertyAccessorElementImpl) getter).setEnclosingElement(this);
     this.getter = getter;
   }
 
@@ -82,7 +81,6 @@ public class FieldElementImpl extends VariableElementImpl implements FieldElemen
    * @param setter the setter associated with this field
    */
   public void setSetter(PropertyAccessorElement setter) {
-    ((PropertyAccessorElementImpl) setter).setEnclosingElement(this);
     this.setter = setter;
   }
 

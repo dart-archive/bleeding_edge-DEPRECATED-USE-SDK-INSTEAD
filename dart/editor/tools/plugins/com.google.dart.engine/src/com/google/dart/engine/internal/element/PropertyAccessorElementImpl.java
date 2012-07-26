@@ -71,7 +71,6 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
    * @param field the field associated with this accessor
    */
   public void setField(FieldElement field) {
-    ((FieldElementImpl) field).setEnclosingElement(this);
     this.field = field;
   }
 

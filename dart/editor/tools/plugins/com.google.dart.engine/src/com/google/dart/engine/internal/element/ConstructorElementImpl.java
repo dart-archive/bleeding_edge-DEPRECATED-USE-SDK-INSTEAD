@@ -56,15 +56,9 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
     return ElementKind.CONSTRUCTOR;
   }
 
-  /**
-   * Return {@code true} if this constructor represents a factory method.
-   * 
-   * @return {@code true} if this constructor represents a factory method
-   */
   @Override
   public boolean isFactory() {
-    //TODO(brianwilkerson) Implement this
-    return false;
+    return hasModifier(Modifier.FACTORY);
   }
 
   /**
@@ -74,5 +68,14 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
    */
   public void setConstructedType(Type constructedType) {
     this.constructedType = constructedType;
+  }
+
+  /**
+   * Set whether this constructor represents a factory method to the given value.
+   * 
+   * @param isFactory {@code true} if this constructor represents a factory method
+   */
+  public void setFactory(boolean isFactory) {
+    setModifier(Modifier.FACTORY, isFactory);
   }
 }

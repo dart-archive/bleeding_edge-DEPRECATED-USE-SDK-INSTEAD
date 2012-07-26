@@ -11,19 +11,18 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.internal.element;
+package com.google.dart.engine.element;
 
 /**
- * The enumeration {@code Modifier} defines constants for all of the modifiers defined by the Dart
- * language.
+ * The interface {@code ElementLocation} defines the behavior of objects that represent the location
+ * of an element within the element model.
  */
-public enum Modifier {
-  ABSTRACT,
-  CONST,
-  FACTORY,
-  FINAL,
-  GETTER,
-  SETTER,
-  STATIC,
-  SYNTHETIC;
+public interface ElementLocation {
+  /**
+   * Return an encoded representation of this location that can be used to create a location that is
+   * equal to this location.
+   * 
+   * @return an encoded representation of this location
+   */
+  public String getEncoding();
 }
