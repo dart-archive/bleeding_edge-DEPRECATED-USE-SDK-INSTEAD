@@ -1441,11 +1441,7 @@ public class RefactoringAvailabilityTester {
   }
 
   public static boolean isRenameProhibited(Method method) throws CoreException {
-    if (method.getElementName().equals("toString") //$NON-NLS-1$
-        && method.getParameterNames().length == 0
-        && (method.getReturnTypeName().equals("Ljava.lang.String;") //$NON-NLS-1$
-            || method.getReturnTypeName().equals("QString;") //$NON-NLS-1$
-        || method.getReturnTypeName().equals("Qjava.lang.String;"))) {
+    if (method.getElementName().equals("toString")) {
       return true;
     } else {
       return false;
