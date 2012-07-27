@@ -13,9 +13,13 @@
  */
 package com.google.dart.tools.internal.corext.dom;
 
+import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.common.SourceInfo;
+
+import java.util.List;
 
 public class ASTNodes {
 
@@ -39,6 +43,28 @@ public class ASTNodes {
   public static int getInclusiveEnd(DartNode node) {
     SourceInfo sourceInfo = node.getSourceInfo();
     return sourceInfo.getOffset() + sourceInfo.getLength() - 1;
+  }
+
+  /**
+   * Returns the closest ancestor of <code>node</code> that is an instance of
+   * <code>parentClass</code>, or <code>null</code> if none.
+   * <p>
+   * <b>Warning:</b> This method does not stop at any boundaries like parentheses, statements, body
+   * declarations, etc. The resulting node may be in a totally different scope than the given node.
+   * Consider using one of the {@link ASTResolving}<code>.find(..)</code> methods instead.
+   * </p>
+   * 
+   * @param node the node
+   * @param parentClass the class of the sought ancestor node
+   * @return the closest ancestor of <code>node</code> that is an instance of
+   *         <code>parentClass</code>, or <code>null</code> if none
+   */
+  @SuppressWarnings("unchecked")
+  public static <E extends DartNode> E getParent(DartNode node, Class<E> parentClass) {
+    do {
+      node = node.getParent();
+    } while (node != null && !parentClass.isInstance(node));
+    return (E) node;
   }
 
 //  private static class ChildrenCollector extends ASTVisitor<Void> {
@@ -557,25 +583,18 @@ public class ASTNodes {
 //  }
 
   /**
-   * Returns the closest ancestor of <code>node</code> that is an instance of
-   * <code>parentClass</code>, or <code>null</code> if none.
-   * <p>
-   * <b>Warning:</b> This method does not stop at any boundaries like parentheses, statements, body
-   * declarations, etc. The resulting node may be in a totally different scope than the given node.
-   * Consider using one of the {@link ASTResolving}<code>.find(..)</code> methods instead.
-   * </p>
-   * 
-   * @param node the node
-   * @param parentClass the class of the sought ancestor node
-   * @return the closest ancestor of <code>node</code> that is an instance of
-   *         <code>parentClass</code>, or <code>null</code> if none
+   * @return given {@link DartStatement} if not {@link DartBlock}, first child {@link DartStatement}
+   *         if {@link DartBlock}, or <code>null</code> if more than one child.
    */
-  @SuppressWarnings("unchecked")
-  public static <E extends DartNode> E getParent(DartNode node, Class<E> parentClass) {
-    do {
-      node = node.getParent();
-    } while (node != null && !parentClass.isInstance(node));
-    return (E) node;
+  public static DartStatement getSingleStatement(DartStatement statement) {
+    if (statement instanceof DartBlock) {
+      List<DartStatement> blockStatements = ((DartBlock) statement).getStatements();
+      if (blockStatements.size() != 1) {
+        return null;
+      }
+      return blockStatements.get(0);
+    }
+    return statement;
   }
 
   /**

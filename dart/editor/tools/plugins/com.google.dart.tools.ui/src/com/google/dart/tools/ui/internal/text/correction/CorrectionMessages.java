@@ -32,6 +32,8 @@ public final class CorrectionMessages extends NLS {
   public static String QuickAssistProcessor_joinVariableDeclaration;
   public static String QuickAssistProcessor_convertToExpressionBody;
   public static String QuickAssistProcessor_convertToBlockBody;
+  public static String QuickAssistProcessor_replaceConditionalWithIfElse;
+  public static String QuickAssistProcessor_replaceIfElseWithConditional;
 
   // TODO(scheglov) original strings
 
@@ -315,8 +317,6 @@ public final class CorrectionMessages extends NLS {
   public static String AdvancedQuickAssistProcessor_exchangeInnerAndOuterIfConditions_description;
   public static String AdvancedQuickAssistProcessor_inverseConditions_description;
   public static String AdvancedQuickAssistProcessor_inverseConditionalExpression_description;
-  public static String AdvancedQuickAssistProcessor_replaceIfWithConditional;
-  public static String AdvancedQuickAssistProcessor_replaceConditionalWithIf;
   public static String AdvancedQuickAssistProcessor_joinWithOuter_description;
   public static String AdvancedQuickAssistProcessor_joinWithInner_description;
   public static String AdvancedQuickAssistProcessor_splitAndCondition_description;

@@ -385,6 +385,137 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_removeTypeAnnotation("int v = 1;", "int ", "var v = 1;");
   }
 
+  public void test_replaceConditionalWithIfElse_OK_assignment() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int vvv;",
+        "  vvv = true ? 111 : 222;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int vvv;",
+        "  if (true) {",
+        "    vvv = 111;",
+        "  } else {",
+        "    vvv = 222;",
+        "  }",
+        "}");
+    // on conditional
+    assert_replaceConditionalWithIfElse(initial, "11 :", expected);
+    // on variable
+    assert_replaceConditionalWithIfElse(initial, "vv =", expected);
+  }
+
+  public void test_replaceConditionalWithIfElse_OK_return() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  return true ? 111 : 222;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  if (true) {",
+        "    return 111;",
+        "  } else {",
+        "    return 222;",
+        "  }",
+        "}");
+    // on conditional
+    assert_replaceConditionalWithIfElse(initial, "11 :", expected);
+    // on statement
+    assert_replaceConditionalWithIfElse(initial, "return ", expected);
+  }
+
+  public void test_replaceConditionalWithIfElse_OK_variableDeclaration() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 1, vvv = true ? 111 : 222, b = 2;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 1, vvv, b = 2;",
+        "  if (true) {",
+        "    vvv = 111;",
+        "  } else {",
+        "    vvv = 222;",
+        "  }",
+        "}");
+    // on conditional
+    assert_replaceConditionalWithIfElse(initial, "11 :", expected);
+    // on variable
+    assert_replaceConditionalWithIfElse(initial, "vv =", expected);
+    // on statement
+    assert_replaceConditionalWithIfElse(initial, "int ", expected);
+  }
+
+  public void test_replaceIfElseWithConditional_OK_assignment() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int vvv;",
+        "  if (true) {",
+        "    vvv = 111;",
+        "  } else {",
+        "    vvv = 222;",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int vvv;",
+        "  vvv = true ? 111 : 222;",
+        "}");
+    assert_replaceIfElseWithConditional(initial, "if (true)", expected);
+  }
+
+  public void test_replaceIfElseWithConditional_OK_return() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  if (true) {",
+        "    return 111;",
+        "  } else {",
+        "    return 222;",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  return true ? 111 : 222;",
+        "}");
+    assert_replaceIfElseWithConditional(initial, "if (true)", expected);
+  }
+
+  public void test_replaceIfElseWithConditional_wrong_notIfStatement() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  print(0);",
+        "}");
+    assert_replaceIfElseWithConditional_wrong(initial, "print(0)");
+  }
+
+  public void test_replaceIfElseWithConditional_wrong_notSingleStatememt() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int vvv;",
+        "  if (true) {",
+        "    print(0);",
+        "    vvv = 111;",
+        "  } else {",
+        "    print(0);",
+        "    vvv = 222;",
+        "  }",
+        "}");
+    assert_replaceIfElseWithConditional_wrong(initial, "if (true)");
+  }
+
   public void test_splitVariableDeclaration_OK() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -577,6 +708,33 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_removeTypeAnnotation(initialSource, offsetPattern, expectedSource);
   }
 
+  private void assert_replaceConditionalWithIfElse(
+      String initialSource,
+      String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        CorrectionMessages.QuickAssistProcessor_replaceConditionalWithIfElse,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_replaceIfElseWithConditional(
+      String initialSource,
+      String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        CorrectionMessages.QuickAssistProcessor_replaceIfElseWithConditional,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_replaceIfElseWithConditional_wrong(String initialSource, String offsetPattern)
+      throws Exception {
+    assert_replaceIfElseWithConditional(initialSource, offsetPattern, initialSource);
+  }
+
   /**
    * Asserts that running proposal with given name produces expected source.
    */
@@ -586,7 +744,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
       String offsetPattern,
       String expectedSource) throws Exception {
     // XXX used to see coverage of only one quick assist
-//    if (!proposalName.equals(CorrectionMessages.QuickAssistProcessor_convertToBlockBody)) {
+//    if (!proposalName.equals(CorrectionMessages.QuickAssistProcessor_replaceIfElseWithConditional)) {
 //      return;
 //    }
     // set initial source

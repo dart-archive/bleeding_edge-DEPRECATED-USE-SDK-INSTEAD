@@ -14,18 +14,23 @@
 package com.google.dart.tools.ui.internal.text.correction;
 
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_BINARY_EXPRESSION_LEFT_OPERAND;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_BINARY_EXPRESSION_RIGHT_OPERAND;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_RETURN_STATEMENT_VALUE;
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_NAME;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
+import com.google.dart.compiler.ast.DartConditional;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartIfStatement;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartReturnBlock;
@@ -38,7 +43,9 @@ import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.dom.NodeFinder;
+import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
@@ -70,6 +77,9 @@ import java.util.List;
  * @coverage dart.editor.ui.correction
  */
 public class QuickAssistProcessor implements IQuickAssistProcessor {
+
+  private static final int DEFAULT_RELEVANCE = 30;
+
   private static ReplaceEdit createReplaceEdit(SourceRange range, String text) {
     return new ReplaceEdit(range.getOffset(), range.getLength(), text);
   }
@@ -118,6 +128,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
   private DartNode node;
   private final List<ICommandAccess> proposals = Lists.newArrayList();
   private final List<TextEdit> textEdits = Lists.newArrayList();
+  private int proposalRelevance = DEFAULT_RELEVANCE;
 
   @Override
   public synchronized IDartCompletionProposal[] getAssists(IInvocationContext context,
@@ -140,7 +151,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
                 method.invoke(QuickAssistProcessor.this);
               }
             });
-            textEdits.clear();
+            resetProposalElements();
           }
         }
       }
@@ -191,6 +202,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
           typeSource + " "));
     }
     // add proposal
+    proposalRelevance -= 1;
     addUnitCorrectionProposal(
         CorrectionMessages.QuickAssistProcessor_addTypeAnnotation,
         DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
@@ -367,8 +379,165 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
       textEdits.add(createReplaceEdit(typeRange, "var "));
     }
     // add proposal
+    proposalRelevance -= 1;
     addUnitCorrectionProposal(
         CorrectionMessages.QuickAssistProcessor_removeTypeAnnotation,
+        DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    return true;
+  }
+
+  boolean addProposal_replaceConditionalWithIfElse() throws Exception {
+    // try to find Conditional under cursor
+    DartConditional conditional = null;
+    {
+      DartNode currentNode = node;
+      while (currentNode instanceof DartExpression) {
+        if ((currentNode instanceof DartConditional)) {
+          conditional = (DartConditional) currentNode;
+          break;
+        }
+        currentNode = currentNode.getParent();
+      }
+    }
+    // if no Conditional, may be on Statement with Conditional
+    DartStatement statement = ASTNodes.getAncestor(node, DartStatement.class);
+    if (conditional == null) {
+      // variable declaration
+      if (statement instanceof DartVariableStatement) {
+        DartVariableStatement variableStatement = (DartVariableStatement) statement;
+        for (DartVariable variable : variableStatement.getVariables()) {
+          if (variable.getValue() instanceof DartConditional) {
+            conditional = (DartConditional) variable.getValue();
+            break;
+          }
+        }
+      }
+      // assignment
+      if (statement instanceof DartExprStmt) {
+        DartExprStmt exprStmt = (DartExprStmt) statement;
+        if (exprStmt.getExpression() instanceof DartBinaryExpression) {
+          DartBinaryExpression binaryExpression = (DartBinaryExpression) exprStmt.getExpression();
+          if (binaryExpression.getOperator() == Token.ASSIGN
+              && binaryExpression.getArg2() instanceof DartConditional) {
+            conditional = (DartConditional) binaryExpression.getArg2();
+          }
+        }
+      }
+      // return
+      if (statement instanceof DartReturnStatement) {
+        DartReturnStatement returnStatement = (DartReturnStatement) statement;
+        if (returnStatement.getValue() instanceof DartConditional) {
+          conditional = (DartConditional) returnStatement.getValue();
+        }
+      }
+    }
+    // prepare environment
+    StructuralPropertyDescriptor locationInParent = getLocationInParent(conditional);
+    String eol = utils.getEndOfLine();
+    String indent = utils.getIndent(1);
+    String prefix = utils.getNodePrefix(statement);
+    // Type v = Conditional;
+    if (locationInParent == DART_VARIABLE_VALUE) {
+      DartVariable variable = (DartVariable) conditional.getParent();
+      textEdits.add(createReplaceEdit(
+          SourceRangeFactory.forEndEnd(variable.getName(), conditional),
+          ""));
+      textEdits.add(createReplaceEdit(
+          SourceRangeFactory.forEndLength(statement, 0),
+          MessageFormat.format(
+              "{3}{4}if ({0}) '{'{3}{4}{5}{6} = {1};{3}{4}'} else {'{3}{4}{5}{6} = {2};{3}{4}'}'",
+              getSource(conditional.getCondition()),
+              getSource(conditional.getThenExpression()),
+              getSource(conditional.getElseExpression()),
+              eol,
+              prefix,
+              indent,
+              variable.getVariableName())));
+    }
+    // v = Conditional;
+    if (locationInParent == DART_BINARY_EXPRESSION_RIGHT_OPERAND
+        && conditional.getParent() instanceof DartBinaryExpression) {
+      DartBinaryExpression binaryExpression = (DartBinaryExpression) conditional.getParent();
+      if (binaryExpression.getOperator() == Token.ASSIGN) {
+        DartExpression leftSide = binaryExpression.getArg1();
+        textEdits.add(createReplaceEdit(SourceRangeFactory.create(statement), MessageFormat.format(
+            "if ({0}) '{'{3}{4}{5}{6} = {1};{3}{4}'} else {'{3}{4}{5}{6} = {2};{3}{4}'}'",
+            getSource(conditional.getCondition()),
+            getSource(conditional.getThenExpression()),
+            getSource(conditional.getElseExpression()),
+            eol,
+            prefix,
+            indent,
+            getSource(leftSide))));
+      }
+    }
+    // return Conditional;
+    if (locationInParent == DART_RETURN_STATEMENT_VALUE) {
+      textEdits.add(createReplaceEdit(SourceRangeFactory.create(statement), MessageFormat.format(
+          "if ({0}) '{'{3}{4}{5}return {1};{3}{4}'} else {'{3}{4}{5}return {2};{3}{4}'}'",
+          getSource(conditional.getCondition()),
+          getSource(conditional.getThenExpression()),
+          getSource(conditional.getElseExpression()),
+          eol,
+          prefix,
+          indent)));
+    }
+    // add proposal
+    addUnitCorrectionProposal(
+        CorrectionMessages.QuickAssistProcessor_replaceConditionalWithIfElse,
+        DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    return true;
+  }
+
+  boolean addProposal_replaceIfElseWithConditional() throws Exception {
+    // should be "if"
+    if (!(node instanceof DartIfStatement)) {
+      return false;
+    }
+    DartIfStatement ifStatement = (DartIfStatement) node;
+    // single then/else statements
+    DartStatement thenStatement = ASTNodes.getSingleStatement(ifStatement.getThenStatement());
+    DartStatement elseStatement = ASTNodes.getSingleStatement(ifStatement.getElseStatement());
+    if (thenStatement == null || elseStatement == null) {
+      return false;
+    }
+    // returns
+    if (thenStatement instanceof DartReturnStatement
+        || elseStatement instanceof DartReturnStatement) {
+      DartReturnStatement thenReturn = (DartReturnStatement) thenStatement;
+      DartReturnStatement elseReturn = (DartReturnStatement) elseStatement;
+      textEdits.add(createReplaceEdit(SourceRangeFactory.create(ifStatement), MessageFormat.format(
+          "return {0} ? {1} : {2};",
+          getSource(ifStatement.getCondition()),
+          getSource(thenReturn.getValue()),
+          getSource(elseReturn.getValue()))));
+    }
+    // assignments -> v = Conditional;
+    if (thenStatement instanceof DartExprStmt && elseStatement instanceof DartExprStmt) {
+      DartExpression thenExpression = ((DartExprStmt) thenStatement).getExpression();
+      DartExpression elseExpression = ((DartExprStmt) elseStatement).getExpression();
+      if (thenExpression instanceof DartBinaryExpression
+          && elseExpression instanceof DartBinaryExpression) {
+        DartBinaryExpression thenBinary = (DartBinaryExpression) thenExpression;
+        DartBinaryExpression elseBinary = (DartBinaryExpression) elseExpression;
+        String thenTarget = getSource(thenBinary.getArg1());
+        String elseTarget = getSource(elseBinary.getArg1());
+        if (thenBinary.getOperator() == Token.ASSIGN && elseBinary.getOperator() == Token.ASSIGN
+            && StringUtils.equals(thenTarget, elseTarget)) {
+          textEdits.add(createReplaceEdit(
+              SourceRangeFactory.create(ifStatement),
+              MessageFormat.format(
+                  "{0} = {1} ? {2} : {3};",
+                  thenTarget,
+                  getSource(ifStatement.getCondition()),
+                  getSource(thenBinary.getArg2()),
+                  getSource(elseBinary.getArg2()))));
+        }
+      }
+    }
+    // add proposal
+    addUnitCorrectionProposal(
+        CorrectionMessages.QuickAssistProcessor_replaceIfElseWithConditional,
         DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
     return true;
   }
@@ -419,8 +588,10 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     }
     // add proposal
     if (!textEdits.isEmpty()) {
-      proposals.add(new CUCorrectionProposal(label, unit, change, 1, image));
+      proposals.add(new CUCorrectionProposal(label, unit, change, proposalRelevance, image));
     }
+    // reset
+    resetProposalElements();
   }
 
   /**
@@ -458,6 +629,11 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
    */
   private String getSource(SourceRange range) throws Exception {
     return getSource(range.getOffset(), range.getLength());
+  }
+
+  private void resetProposalElements() {
+    textEdits.clear();
+    proposalRelevance = DEFAULT_RELEVANCE;
   }
 
 //  private static class RefactoringCorrectionProposal extends CUCorrectionProposal {
