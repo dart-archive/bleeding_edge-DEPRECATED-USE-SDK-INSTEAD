@@ -17,11 +17,17 @@ import string
 import subprocess
 import sys
 import tempfile
-import buildutil
 import gsutil
 import postprocess
 import ziputils
 
+from os.path import join
+
+BUILD_OS = None
+DART_PATH = None
+TOOLS_PATH = None
+GSU_PATH = None
+utils = None
 
 class AntWrapper(object):
   """Class to abstract the ant calls from the program."""
@@ -189,7 +195,12 @@ def GetUtils(toolspath):
 
 def main():
   """Main entry point for the build program."""
-
+  global BUILD_OS
+  global DART_PATH
+  global TOOLS_PATH
+  global GSU_PATH
+  global utils
+  
   if not sys.argv:
     print 'Script pathname not known, giving up.'
     return 1
@@ -209,6 +220,11 @@ def main():
                            'com.google.dart.tools.deploy.feature_releng')
   utils = GetUtils(toolspath)
   buildos = utils.GuessOS()
+
+  BUILD_OS = utils.GuessOS()
+  DART_PATH = dartpath
+  TOOLS_PATH = toolspath
+  
   # TODO(devoncarew): remove this hardcoded e:\ path
   buildroot_parent = {'linux': dartpath, 'macos': dartpath, 'win32': r'e:\tmp'}
   buildroot = os.path.join(buildroot_parent[buildos], 'build_root')
@@ -311,7 +327,6 @@ def main():
       return 6
     build_skip_tests = os.environ.get('DART_SKIP_RUNNING_TESTS')
     sdk_environment = os.environ
-    build_util = buildutil.BuildUtil(buildos, buildout, dartpath)
     if username.startswith('chrome'):
       to_bucket = 'gs://dart-editor-archive-continuous'
       staging_bucket = 'gs://dart-editor-build'
@@ -324,7 +339,9 @@ def main():
       running_on_buildbot = False
       sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
 
-    homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
+    GSU_PATH = '%s/%s' % (to_bucket, options.revision)
+
+    homegsutil = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
     gsu = gsutil.GsUtil(False, homegsutil,
                         running_on_buildbot=running_on_buildbot)
 
@@ -336,38 +353,8 @@ def main():
     if (run_sdk_build and builder_name != 'dart-editor'):
       _PrintSeparator('running the build of the Dart SDK')
       
-      sdkpath = build_util.SdkZipLocation()
-      sdk_zip = os.path.join(sdkpath, 'dart-sdk.zip')
-      sdk_dir = os.path.join(sdkpath, 'dart-sdk')
-      
-      #clean out the old zip file
-      if (os.path.exists(sdk_zip)):
-        os.remove(sdk_zip)
-      
-      dartbuildscript = os.path.join(toolspath, 'build.py')
-      # --arch=ia32,x64
-      cmds = [sys.executable, dartbuildscript, '--mode=release', '--arch=ia32', 'create_sdk']
-      cwd = os.getcwd()
-      try:
-        os.chdir(dartpath)
-        print ' '.join(cmds)
-        status = subprocess.call(cmds, env=sdk_environment)
-        print 'sdk build returned ' + str(status)
-        if status:
-          _PrintError('the build of the SDK failed')
-          return status
-      finally:
-        os.chdir(cwd)
-        
-      #create zip if it does not exist
-      if (not os.path.exists(sdk_zip)):
-        if (not os.path.exists(sdk_dir)):
-          raise Exception('could not find dart-sdk directory ({0})'.format(sdk_dir))
-        localzip = ziputils.ZipUtil(sdk_zip, buildos, create_new=True)
-        localzip.AddDirectoryTree(sdk_dir, write_path='dart-sdk', mode_in='w')
-      
-      sdk_zip = _CopySdk(buildos, revision, to_bucket, sdkpath,
-                         buildroot, gsu)
+      ensure_dir(buildout)
+      sdk_zip = CreateSDK(buildout)
 
     if builder_name == 'dart-editor':
       buildos = None
@@ -407,7 +394,7 @@ def main():
       return 0
 
     sys.stdout.flush()
-    #This is an override to for local testing
+    #This is an override for local testing
     force_run_install = os.environ.get('FORCE_RUN_INSTALL')
     if (force_run_install or (run_sdk_build and
                               builder_name != 'dart-editor')):
@@ -985,6 +972,129 @@ def _InstallArtifacts(buildout, buildos, extra_artifacts):
     dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
     dart_zip.AddDirectoryTree(extra_artifacts, 'dart')
 
+
+def ExecuteCommand(cmd, dir=None):
+  """Execute the given command."""
+  if dir is not None:
+    cwd = os.getcwd()
+    os.chdir(dir)
+  status = subprocess.call(cmd, env=os.environ)
+  if dir is not None:
+    os.chdir(cwd)
+  return status
+
+def CreateSDK(sdkpath):
+  """Create the dart-sdk's for the current OS"""
+
+  if BUILD_OS == 'linux':
+    return CreateLinuxSDK(sdkpath)
+  if BUILD_OS == 'macos':
+    return CreateMacosSDK(sdkpath)
+  if BUILD_OS == 'win32':
+    return CreateWin32SDK(sdkpath)
+
+def CreateLinuxSDK(sdkpath):
+  sdkdir32 = join(DART_PATH, utils.GetBuildRoot('linux', 'release', 'ia32'), 'dart-sdk')
+  sdkdir64 = join(DART_PATH, utils.GetBuildRoot('linux', 'release', 'x64'), 'dart-sdk')
+
+  # Build the SDK
+  # On Linux, building the 64 bit SDK runs into issues w/ trying to build V8 in 64 bit
+  # Sooo, we build the 32 bit SDK, build the 64 bit VM, and synthesize a 64 bit SDK from the two
+  CallBuildScript('release', 'ia32', 'create_sdk')
+  CallBuildScript('release', 'x64', 'runtime')
+  shutil.rmtree(sdkdir64, True)
+  shutil.copytree(sdkdir32, sdkdir64)
+  shutil.copy(join(DART_PATH, utils.GetBuildRoot('linux', 'release', 'x64'), 'dart'),
+              join(sdkdir64, 'bin'))
+  
+  sdk32_zip = join(sdkpath, 'dartsdk-linux-32.zip')
+  sdk32_tgz = join(sdkpath, 'dartsdk-linux-32.tar.gz')
+  sdk64_zip = join(sdkpath, 'dartsdk-linux-64.zip')
+  sdk64_tgz = join(sdkpath, 'dartsdk-linux-64.tar.gz')
+
+  zip(sdkdir32, sdk32_zip)
+  tgz(sdkdir32, sdk32_tgz)
+  zip(sdkdir64, sdk64_zip)
+  tgz(sdkdir64, sdk64_tgz)
+
+  upload(sdk32_zip)
+  upload(sdk32_tgz)
+  upload(sdk64_zip)
+  upload(sdk64_tgz)
+
+  return sdk32_zip
+
+def CreateMacosSDK(sdkpath):
+  # Build the SDK
+  CallBuildScript('release', 'ia32,x64', 'create_sdk')
+
+  sdk32_zip = join(sdkpath, 'dartsdk-macos-32.zip')
+  sdk64_zip = join(sdkpath, 'dartsdk-macos-64.zip')
+  sdk32_tgz = join(sdkpath, 'dartsdk-macos-32.tar.gz')
+  sdk64_tgz = join(sdkpath, 'dartsdk-macos-64.tar.gz')
+
+  zip(join(DART_PATH, utils.GetBuildRoot('macos', 'release', 'ia32'), 'dart-sdk'), sdk32_zip)
+  zip(join(DART_PATH, utils.GetBuildRoot('macos', 'release', 'x64'), 'dart-sdk'), sdk64_zip)
+  tgz(join(DART_PATH, utils.GetBuildRoot('macos', 'release', 'ia32'), 'dart-sdk'), sdk32_tgz)
+  tgz(join(DART_PATH, utils.GetBuildRoot('macos', 'release', 'x64'), 'dart-sdk'), sdk64_tgz)
+
+  upload(sdk32_zip)
+  upload(sdk64_zip)
+  upload(sdk32_tgz)
+  upload(sdk64_tgz)
+
+  return sdk32_zip;
+
+def CreateWin32SDK(sdkpath):
+  # Build the SDK
+  CallBuildScript('release', 'ia32,x64', 'create_sdk')
+
+  sdk32_zip = join(sdkpath, 'dartsdk-win32-32.zip')
+  sdk64_zip = join(sdkpath, 'dartsdk-win32-64.zip')
+
+  winzip(join(DART_PATH, utils.GetBuildRoot('win32', 'release', 'ia32'), 'dart-sdk'), sdk32_zip)
+  winzip(join(DART_PATH, utils.GetBuildRoot('win32', 'release', 'x64'), 'dart-sdk'), sdk64_zip)
+
+  upload(sdk32_zip)
+  upload(sdk64_zip)
+
+  return sdk32_zip;
+
+def CallBuildScript(mode, arch, target):
+  """ invoke tools/build.py """
+  buildScript = join(TOOLS_PATH, 'build.py')
+  cmd = [sys.executable, buildScript, '--mode=%s' % mode, '--arch=%s' % arch, target]
+  status = ExecuteCommand(cmd, DART_PATH)
+  if status:
+    _PrintError('SDK build failed: %s' % status)
+    raise Exception('SDK build failed')
+
+def zip(directory, file):
+  """zip the given directory into the file"""
+  ensure_dir(file)
+  ExecuteCommand(['zip', '-yrq', file, os.path.basename(directory)], os.path.dirname(directory))
+
+def winzip(directory, file):
+  """zip the given directory into the file - win32 specific"""
+  ensure_dir(file)
+  ExecuteCommand([join(DART_PATH, 'third_party', '7zip', '7za'), 'a', '-tzip',
+                  file, os.path.basename(directory)], os.path.dirname(directory))
+  
+def tgz(directory, file):
+  """tar gzip the given directory into the file"""
+  ensure_dir(file)
+  ExecuteCommand(['tar', 'czf', file, os.path.basename(directory)], os.path.dirname(directory))
+
+def upload(file):
+  """Upload the given file to google storage."""
+  gspath = "%s/%s" % (GSU_PATH, os.path.basename(file))
+  gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
+  ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', file, gspath])
+
+def ensure_dir(f):
+  d = os.path.dirname(f)
+  if not os.path.exists(d):
+    os.makedirs(d)
 
 def _PrintSeparator(text):
   """Print a separator for the build steps."""
