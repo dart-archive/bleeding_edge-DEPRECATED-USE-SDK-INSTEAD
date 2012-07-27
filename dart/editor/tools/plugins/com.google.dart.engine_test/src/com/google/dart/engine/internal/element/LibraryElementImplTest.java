@@ -52,8 +52,7 @@ public class LibraryElementImplTest extends EngineTestCase {
         createImport(createLibrary("l6"), prefixB),};
     library.setImports(imports);
     PrefixElement[] prefixes = library.getPrefixes();
-    assertNotNull(prefixes);
-    assertEquals(2, prefixes.length);
+    assertLength(2, prefixes);
     if (prefixA == prefixes[0]) {
       assertEquals(prefixB, prefixes[1]);
     } else {
@@ -65,11 +64,10 @@ public class LibraryElementImplTest extends EngineTestCase {
   public void test_setImports() {
     LibraryElementImpl library = new LibraryElementImpl("l1");
     ImportSpecificationImpl[] expectedImports = {
-        createImport(createLibrary("l2"), null), createImport(createLibrary("l3"), null),};
+        createImport(createLibrary("l2"), null), createImport(createLibrary("l3"), null)};
     library.setImports(expectedImports);
     ImportSpecification[] actualImports = library.getImports();
-    assertNotNull(actualImports);
-    assertEquals(expectedImports.length, actualImports.length);
+    assertLength(expectedImports.length, actualImports);
     for (int i = 0; i < actualImports.length; i++) {
       assertEquals(expectedImports[i], actualImports[i]);
     }

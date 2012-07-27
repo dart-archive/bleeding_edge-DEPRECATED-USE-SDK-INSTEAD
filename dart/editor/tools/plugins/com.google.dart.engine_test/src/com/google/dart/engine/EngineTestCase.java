@@ -17,6 +17,7 @@ import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The class {@code EngineTestCase} defines utility methods for making assertions.
@@ -41,7 +42,7 @@ public class EngineTestCase extends TestCase {
     for (Object actualValue : actualValues) {
       boolean wasExpected = false;
       for (int i = 0; i < expectedLength; i++) {
-        if (expectedValues[i].equals(actualValue) && !found[i]) {
+        if (!found[i] && expectedValues[i].equals(actualValue)) {
           found[i] = true;
           wasExpected = true;
           break;
@@ -100,6 +101,22 @@ public class EngineTestCase extends TestCase {
       fail("Expected list of size " + expectedSize + "; found null");
     } else if (list.size() != expectedSize) {
       fail("Expected list of size " + expectedSize + "; contained " + list.size() + " elements");
+    }
+  }
+
+  /**
+   * Assert that the given map is non-{@code null} and has the expected number of elements.
+   * 
+   * @param expectedSize the expected number of elements
+   * @param map the map being tested
+   * @throws AssertionFailedError if the map is {@code null} or does not have the expected number of
+   *           elements
+   */
+  public static void assertSize(int expectedSize, Map<?, ?> map) {
+    if (map == null) {
+      fail("Expected map of size " + expectedSize + "; found null");
+    } else if (map.size() != expectedSize) {
+      fail("Expected map of size " + expectedSize + "; contained " + map.size() + " elements");
     }
   }
 }
