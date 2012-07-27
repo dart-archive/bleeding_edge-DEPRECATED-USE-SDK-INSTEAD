@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeProcessor;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
@@ -36,7 +35,6 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
    * Uses {@link RenameSupport} to rename {@link Type}.
    */
   private static void renameType(Type type, String newName) throws Exception {
-    TestProject.waitForAutoBuild();
     RenameSupport renameSupport = RenameSupport.create(type, newName);
     // we rename type Test in unit Test.dart and usually don't want to rename unit
     {
@@ -187,7 +185,7 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   public void test_OK_interfaceFactory_hasImpl_renameFactory() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "interface I factory F {",
+        "interface I default F {",
         "  I();",
         "  I.named();",
         "}",
@@ -205,7 +203,7 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     renameType(type, "NewName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "interface I factory NewName {",
+        "interface I default NewName {",
         "  I();",
         "  I.named();",
         "}",
@@ -223,7 +221,7 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   public void test_OK_interfaceFactory_hasImpl_renameInterface() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "interface I factory F {",
+        "interface I default F {",
         "  I();",
         "  I.named();",
         "}",
@@ -236,12 +234,12 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "  new I.named();",
         "}",
         "");
-    Type type = findElement("I factory F {");
+    Type type = findElement("I default F {");
     // do rename
     renameType(type, "NewName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "interface NewName factory F {",
+        "interface NewName default F {",
         "  NewName();",
         "  NewName.named();",
         "}",
@@ -259,7 +257,7 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   public void test_OK_interfaceFactory_notImpl_renameFactory() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "interface I factory F {",
+        "interface I default F {",
         "  I();",
         "  I.named();",
         "}",
@@ -277,7 +275,7 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     renameType(type, "NewName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "interface I factory NewName {",
+        "interface I default NewName {",
         "  I();",
         "  I.named();",
         "}",
@@ -295,7 +293,7 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   public void test_OK_interfaceFactory_notImpl_renameInterface() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "interface I factory F {",
+        "interface I default F {",
         "  I();",
         "  I.named();",
         "}",
@@ -308,12 +306,12 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "  new I.named();",
         "}",
         "");
-    Type type = findElement("I factory F {");
+    Type type = findElement("I default F {");
     // do rename
     renameType(type, "NewName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "interface NewName factory F {",
+        "interface NewName default F {",
         "  NewName();",
         "  NewName.named();",
         "}",

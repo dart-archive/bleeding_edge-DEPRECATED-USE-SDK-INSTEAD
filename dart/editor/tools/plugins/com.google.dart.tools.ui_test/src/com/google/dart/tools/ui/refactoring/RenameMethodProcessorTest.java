@@ -34,7 +34,6 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
    * Uses {@link RenameSupport} to rename {@link Method}.
    */
   private static void renameMethod(Method method, String newName) throws Exception {
-    TestProject.waitForAutoBuild();
     RenameSupport renameSupport = RenameSupport.create(method, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);

@@ -34,7 +34,6 @@ public final class RenameGlobalVariableProcessorTest extends RefactoringTest {
    */
   private static void renameVariable(DartVariableDeclaration variable, String newName)
       throws Exception {
-    TestProject.waitForAutoBuild();
     RenameSupport renameSupport = RenameSupport.create(variable, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);

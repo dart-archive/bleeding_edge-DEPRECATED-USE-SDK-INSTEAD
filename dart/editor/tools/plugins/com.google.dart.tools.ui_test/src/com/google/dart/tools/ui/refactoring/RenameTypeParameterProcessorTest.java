@@ -38,7 +38,6 @@ public final class RenameTypeParameterProcessorTest extends RefactoringTest {
    */
   private static void renameTypeParameter(DartTypeParameter parameter, String newName)
       throws Exception {
-    TestProject.waitForAutoBuild();
     RenameSupport renameSupport = RenameSupport.create(parameter, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);

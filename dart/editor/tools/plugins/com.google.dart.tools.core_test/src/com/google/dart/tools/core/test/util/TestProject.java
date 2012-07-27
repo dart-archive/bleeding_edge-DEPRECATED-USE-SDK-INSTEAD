@@ -16,9 +16,11 @@ package com.google.dart.tools.core.test.util;
 
 import com.google.common.io.CharStreams;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.index.NotifyCallback;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
+import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 
@@ -30,12 +32,14 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -121,6 +125,15 @@ public class TestProject {
    * Disposes allocated resources and deletes project.
    */
   public void dispose() throws Exception {
+    // notify AnalysisServer
+    {
+      IPath location = project.getLocation();
+      if (location != null) {
+        AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+        server.discard(location.toFile());
+      }
+    }
+    // do dispose
     TestUtilities.deleteProject(project);
   }
 
@@ -132,10 +145,18 @@ public class TestProject {
   }
 
   /**
+   * @return the {@link CompilationUnit} on given path, not <code>null</code>, but may be not
+   *         existing.
+   */
+  public IFile getFile(String path) {
+    return project.getFile(new Path(path));
+  }
+
+  /**
    * @return the {@link String} content of the {@link IFile} with given path.
    */
   public String getFileString(String path) throws Exception {
-    IFile file = project.getFile(new Path(path));
+    IFile file = getFile(path);
     Reader reader = new InputStreamReader(file.getContents(), file.getCharset());
     try {
       return CharStreams.toString(reader);
@@ -152,19 +173,32 @@ public class TestProject {
   }
 
   /**
-   * @return the {@link CompilationUnit} on given path.
+   * @return the {@link CompilationUnit} on given path, may be <code>null</code>.
    */
   public CompilationUnit getUnit(String path) throws Exception {
-    IFile file = project.getFile(new Path(path));
+    IFile file = getFile(path);
     return (CompilationUnit) DartCore.create(file);
   }
 
   /**
    * Creates or updates {@link IFile} with content of the given {@link InputStream}.
    */
-  public IFile setFileContent(String path, InputStream inputStream) throws Exception {
-    final IFile file = setFileContentWithoutWaitingForAnalysis(path, inputStream);
-    AnalysisTestUtilities.waitForAnalysis();
+  public IFile setFileContent(String path, InputStream stream) throws Exception {
+    IFile file = getFile(path);
+    if (file.exists()) {
+      file.setContents(stream, true, false, null);
+    } else {
+      file.create(stream, true, null);
+    }
+    // notify AnalysisServer
+    {
+      AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+      File javaFile = file.getLocation().toFile();
+      // TODO(scheglov) remove after https://chromiumcodereview.appspot.com/10820040/
+      server.scan(javaFile, true);
+      server.changed(javaFile);
+    }
+    // done
     return file;
   }
 
@@ -174,29 +208,6 @@ public class TestProject {
   public IFile setFileContent(String path, String content) throws Exception {
     InputStream inputStream = new ByteArrayInputStream(content.getBytes());
     return setFileContent(path, inputStream);
-  }
-
-  public IFile setFileContentWithoutWaitingForAnalysis(String path, InputStream inputStream)
-      throws Exception {
-    final IFile file = project.getFile(new Path(path));
-    final InputStream stream = inputStream;
-    ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-      @Override
-      public void run(IProgressMonitor monitor) throws CoreException {
-        if (file.exists()) {
-          file.setContents(stream, true, false, null);
-        } else {
-          file.create(stream, true, null);
-        }
-      }
-    }, null);
-    return file;
-  }
-
-  public IFile setFileContentWithoutWaitingForAnalysis(String path, String content)
-      throws Exception {
-    InputStream inputStream = new ByteArrayInputStream(content.getBytes());
-    return setFileContentWithoutWaitingForAnalysis(path, inputStream);
   }
 
   /**

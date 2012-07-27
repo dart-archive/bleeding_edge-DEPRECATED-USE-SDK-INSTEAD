@@ -501,7 +501,6 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
 
   private void check_getReferences(String searchPattern, String referencePattern, int length)
       throws Exception {
-    TestProject.waitForAutoBuild();
     DartElement variable = findElement(searchPattern);
     // prepare single reference
     List<SearchMatch> references = RenameAnalyzeUtil.getReferences(variable, null);

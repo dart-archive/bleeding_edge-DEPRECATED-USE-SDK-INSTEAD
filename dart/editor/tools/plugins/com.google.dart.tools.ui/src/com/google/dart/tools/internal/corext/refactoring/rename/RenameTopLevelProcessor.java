@@ -42,6 +42,7 @@ import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -110,7 +111,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
             // analyze type parameters
             for (DartTypeParameter typeParameter : type.getTypeParameters()) {
               if (Objects.equal(typeParameter.getElementName(), newName)) {
-                IPath resourcePath = unitElement.getResource().getFullPath();
+                IPath resourcePath = getElementPath(unitElement);
                 // warning for shadowing top-level declaration
                 {
                   String message = Messages.format(
@@ -118,7 +119,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                       new Object[] {
                           elementTypeName, RenameAnalyzeUtil.getElementTypeName(typeParameter),
                           type.getElementName(), typeParameter.getElementName(),
-                          BasicElementLabels.getPathLabel(resourcePath, false),});
+                          getResourcePathLabel(resourcePath),});
                   result.addWarning(message, DartStatusContext.create(typeParameter));
                 }
                 // error for shadowing top-level usage
@@ -131,7 +132,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                         new Object[] {
                             elementTypeName, RenameAnalyzeUtil.getElementTypeName(typeParameter),
                             type.getElementName(), typeParameter.getElementName(),
-                            BasicElementLabels.getPathLabel(resourcePath, false),});
+                            getResourcePathLabel(resourcePath),});
                     result.addError(message, DartStatusContext.create(match));
                   }
                 }
@@ -144,13 +145,13 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
               if (Objects.equal(typeMember.getElementName(), newName)) {
                 // add warning if TypeMember shadows top-level declaration
                 {
-                  IPath resourcePath = unitElement.getResource().getFullPath();
+                  IPath resourcePath = getElementPath(unitElement);
                   String message = Messages.format(
                       RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_typeMember,
                       new Object[] {
                           elementTypeName, RenameAnalyzeUtil.getElementTypeName(typeMember),
                           type.getElementName(), typeMember.getElementName(),
-                          BasicElementLabels.getPathLabel(resourcePath, false),});
+                          getResourcePathLabel(resourcePath),});
                   result.addWarning(message, DartStatusContext.create(typeMember));
                 }
                 // add error for shadowing usage
@@ -162,27 +163,26 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                       Type enclosingRefType = enclosingRefElement.getAncestor(Type.class);
                       // TypeMember of this type shadows top-level element usage
                       if (Objects.equal(enclosingRefType, type)) {
-                        IPath resourcePath = unitElement.getResource().getFullPath();
+                        IPath resourcePath = getElementPath(unitElement);
                         String message = Messages.format(
                             RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_typeMember,
                             new Object[] {
                                 elementTypeName, RenameAnalyzeUtil.getElementTypeName(typeMember),
                                 type.getElementName(), typeMember.getElementName(),
-                                BasicElementLabels.getPathLabel(resourcePath, false),});
+                                getResourcePathLabel(resourcePath),});
                         result.addError(message, DartStatusContext.create(memberRef));
                       }
                       // top-level element shadows TypeMember usage in sub-class
                       // http://code.google.com/p/dart/issues/detail?id=1180
                       if (!memberRef.isQualified()) {
                         if (RenameAnalyzeUtil.isTypeHierarchy(enclosingRefType, type)) {
-                          IPath resourcePath = unitElement.getResource().getFullPath();
+                          IPath resourcePath = getElementPath(unitElement);
                           String message = Messages.format(
                               RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_element,
                               new Object[] {
                                   RenameAnalyzeUtil.getElementTypeName(typeMember),
                                   type.getElementName(), typeMember.getElementName(),
-                                  BasicElementLabels.getPathLabel(resourcePath, false),
-                                  elementTypeName});
+                                  getResourcePathLabel(resourcePath), elementTypeName});
                           result.addError(message, DartStatusContext.create(memberRef));
                         }
                       }
@@ -199,7 +199,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                 List<FunctionLocalElement> localVariables = RenameAnalyzeUtil.getFunctionLocalElements(method);
                 for (FunctionLocalElement variable : localVariables) {
                   if (Objects.equal(variable.getElementName(), newName)) {
-                    IPath resourcePath = unitElement.getResource().getFullPath();
+                    IPath resourcePath = getElementPath(unitElement);
                     CompilationUnitElement variableElement = variable.getElement();
                     // warning for shadowing declaration
                     {
@@ -209,7 +209,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                               elementTypeName,
                               RenameAnalyzeUtil.getElementTypeName(variableElement),
                               type.getElementName(), method.getElementName(),
-                              BasicElementLabels.getPathLabel(resourcePath, false),});
+                              getResourcePathLabel(resourcePath),});
                       result.addWarning(message, DartStatusContext.create(variableElement));
                     }
                     // error for shadowing usage
@@ -223,7 +223,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                                 elementTypeName,
                                 RenameAnalyzeUtil.getElementTypeName(variableElement),
                                 type.getElementName(), method.getElementName(),
-                                BasicElementLabels.getPathLabel(resourcePath, false),});
+                                getResourcePathLabel(resourcePath),});
                         result.addError(message, DartStatusContext.create(match));
                       }
                     }
@@ -239,7 +239,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
             List<FunctionLocalElement> localVariables = RenameAnalyzeUtil.getFunctionLocalElements(function);
             for (FunctionLocalElement variable : localVariables) {
               if (Objects.equal(variable.getElementName(), newName)) {
-                IPath resourcePath = unitElement.getResource().getFullPath();
+                IPath resourcePath = getElementPath(unitElement);
                 CompilationUnitElement variableElement = variable.getElement();
                 // warning for shadowing declaration
                 {
@@ -247,8 +247,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                       RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_variable_inFunction,
                       new Object[] {
                           elementTypeName, RenameAnalyzeUtil.getElementTypeName(variableElement),
-                          function.getElementName(),
-                          BasicElementLabels.getPathLabel(resourcePath, false),});
+                          function.getElementName(), getResourcePathLabel(resourcePath),});
                   result.addWarning(message, DartStatusContext.create(variableElement));
                 }
                 // error for shadowing usage
@@ -260,8 +259,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                         RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_variable_inFunction,
                         new Object[] {
                             elementTypeName, RenameAnalyzeUtil.getElementTypeName(variableElement),
-                            function.getElementName(),
-                            BasicElementLabels.getPathLabel(resourcePath, false),});
+                            function.getElementName(), getResourcePathLabel(resourcePath),});
                     result.addError(message, DartStatusContext.create(match));
                   }
                 }
@@ -274,6 +272,28 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
     return result;
   }
 
+  /**
+   * @return the actual {@link IPath} of underlying {@link IResource} or <code>null</code>.
+   */
+  private static IPath getElementPath(DartElement element) {
+    IResource resource = element.getResource();
+    if (resource != null) {
+      return resource.getFullPath();
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * @return the label of a path, "unknown" if <code>null</code> given.
+   */
+  private static String getResourcePathLabel(IPath resourcePath) {
+    if (resourcePath != null) {
+      return BasicElementLabels.getPathLabel(resourcePath, false);
+    }
+    return "<unknown>";
+  }
+
   private static void reportTopLevelAlreadyDeclared(RefactoringStatus result, String newName,
       DartLibrary library, CompilationUnitElement existingElement) {
     IPath libraryPath = library.getResource().getFullPath();
@@ -281,8 +301,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
     String message = Messages.format(
         RefactoringCoreMessages.RenameTopProcessor_shadow_topLevel,
         new Object[] {
-            BasicElementLabels.getPathLabel(resourcePath, false),
-            BasicElementLabels.getPathLabel(libraryPath, false),
+            getResourcePathLabel(resourcePath), getResourcePathLabel(libraryPath),
             RenameAnalyzeUtil.getElementTypeName(existingElement), newName});
     result.addError(message, DartStatusContext.create(existingElement));
   }

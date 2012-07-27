@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
-import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 
@@ -38,7 +37,6 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
    */
   private static void renameLocalVariable(DartVariableDeclaration variable, String newName)
       throws Exception {
-    TestProject.waitForAutoBuild();
     RenameSupport renameSupport = RenameSupport.create(variable, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);

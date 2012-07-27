@@ -292,7 +292,7 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   public void test_getType_newExpression_factoryConstructor() throws Exception {
     assertType("MyInterface", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
-        "interface MyInterface factory MyFactory {",
+        "interface MyInterface default MyFactory {",
         "}",
         "class MyFactory {",
         "}",

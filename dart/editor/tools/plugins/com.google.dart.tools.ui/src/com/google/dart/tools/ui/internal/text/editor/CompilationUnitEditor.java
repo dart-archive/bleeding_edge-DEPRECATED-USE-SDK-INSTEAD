@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
+import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -47,6 +48,7 @@ import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.ListenerList;
@@ -123,6 +125,7 @@ import org.eclipse.ui.texteditor.ResourceAction;
 import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -1800,6 +1803,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
         cp.setSavePolicy(null);
         checkEditableState();
       }
+      notifyAnalysisServerAboutFileChange();
     }
   }
 
@@ -1890,6 +1894,18 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       ISourceViewer sourceViewer = getSourceViewer();
       SourceViewerConfiguration configuration = getSourceViewerConfiguration();
       ((ToggleCommentAction) action).configure(sourceViewer, configuration);
+    }
+  }
+
+  private void notifyAnalysisServerAboutFileChange() {
+    IEditorInput input = getEditorInput();
+    if (input instanceof IFileEditorInput) {
+      IFile file = ((IFileEditorInput) input).getFile();
+      IPath fileLocation = file.getLocation();
+      if (fileLocation != null) {
+        File javaFile = fileLocation.toFile();
+        SystemLibraryManagerProvider.getDefaultAnalysisServer().changed(javaFile);
+      }
     }
   }
 }

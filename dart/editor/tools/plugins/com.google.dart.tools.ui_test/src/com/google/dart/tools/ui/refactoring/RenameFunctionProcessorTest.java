@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFunctionProcessor;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 
@@ -33,7 +32,6 @@ public final class RenameFunctionProcessorTest extends RefactoringTest {
    * Uses {@link RenameSupport} to rename {@link DartFunction}.
    */
   private static void renameFunction(DartFunction function, String newName) throws Exception {
-    TestProject.waitForAutoBuild();
     RenameSupport renameSupport = RenameSupport.create(function, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
@@ -554,7 +552,7 @@ public final class RenameFunctionProcessorTest extends RefactoringTest {
     DartFunction function = findElement("print(0)");
     // try to rename
     showStatusCancel = false;
-    renameFunction(function, "newName");
+    renameFunction(function, "newNameForTest");
     // warning should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
@@ -565,8 +563,8 @@ public final class RenameFunctionProcessorTest extends RefactoringTest {
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
-        "  newName(0);",
-        "  newName(1);",
+        "  newNameForTest(0);",
+        "  newNameForTest(1);",
         "}",
         "");
   }

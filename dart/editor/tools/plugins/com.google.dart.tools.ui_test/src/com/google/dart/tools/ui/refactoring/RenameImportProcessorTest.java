@@ -34,7 +34,6 @@ public final class RenameImportProcessorTest extends RefactoringTest {
    * Uses {@link RenameSupport} to rename {@link DartImport}.
    */
   private static void renameImport(DartImport imprt, String newName) throws Exception {
-    TestProject.waitForAutoBuild();
     RenameSupport renameSupport = RenameSupport.create(imprt, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);

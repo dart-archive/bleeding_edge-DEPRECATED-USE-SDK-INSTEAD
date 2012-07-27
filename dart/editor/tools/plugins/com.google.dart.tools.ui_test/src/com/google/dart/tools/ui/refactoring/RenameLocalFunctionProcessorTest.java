@@ -33,7 +33,6 @@ public final class RenameLocalFunctionProcessorTest extends RefactoringTest {
    * Uses {@link RenameSupport} to rename {@link DartFunction}.
    */
   private static void renameFunction(DartFunction function, String newName) throws Exception {
-    TestProject.waitForAutoBuild();
     RenameSupport renameSupport = RenameSupport.create(function, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);

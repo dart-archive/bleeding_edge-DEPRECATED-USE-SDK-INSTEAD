@@ -35,7 +35,6 @@ public final class RenameFunctionTypeAliasProcessorTest extends RefactoringTest 
    */
   private static void renameType(DartFunctionTypeAlias functionTypeAlias, String newName)
       throws Exception {
-    TestProject.waitForAutoBuild();
     RenameSupport renameSupport = RenameSupport.create(functionTypeAlias, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
