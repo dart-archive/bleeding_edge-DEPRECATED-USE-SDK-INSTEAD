@@ -22,20 +22,14 @@ import java.net.URI;
  */
 public class PackageUriResolver extends UriResolver {
   /**
-   * The "packages" directory within the root directory (the directory that contains the
-   * {@code .dart} file that defines the application).
+   * The package directories that {@code package} URI's are assumed to be relative to.
    */
-  private File packagesDirectory;
+  private File[] packagesDirectories;
 
   /**
    * The name of the {@code package} scheme.
    */
   private static final String PACKAGE_SCHEME = "package";
-
-  /**
-   * The name of the "packages" directory.
-   */
-  private static final String PACKAGES_DIRECTORY_NAME = "packages";
 
   /**
    * Return {@code true} if the given URI is a {@code package} URI.
@@ -48,13 +42,17 @@ public class PackageUriResolver extends UriResolver {
   }
 
   /**
-   * Initialize a newly created resolver to resolve {@code package} URI's relative to the given root
-   * directory.
+   * Initialize a newly created resolver to resolve {@code package} URI's relative to the given
+   * package directories.
    * 
-   * @param rootDirectory the directory that contains the root of the application
+   * @param packagesDirectories the package directories that {@code package} URI's are assumed to be
+   *          relative to
    */
-  public PackageUriResolver(File rootDirectory) {
-    this.packagesDirectory = new File(rootDirectory, PACKAGES_DIRECTORY_NAME);
+  public PackageUriResolver(File... packagesDirectories) {
+    if (packagesDirectories.length < 1) {
+      throw new IllegalArgumentException("At least one package directory must be provided");
+    }
+    this.packagesDirectories = packagesDirectories;
   }
 
   @Override
@@ -69,6 +67,12 @@ public class PackageUriResolver extends UriResolver {
         return null;
       }
     }
-    return new SourceImpl(factory, new File(packagesDirectory, path));
+    for (File packagesDirectory : packagesDirectories) {
+      File resolvedFile = new File(packagesDirectory, path);
+      if (resolvedFile.exists()) {
+        return new SourceImpl(factory, resolvedFile);
+      }
+    }
+    return new SourceImpl(factory, new File(packagesDirectories[0], path));
   }
 }

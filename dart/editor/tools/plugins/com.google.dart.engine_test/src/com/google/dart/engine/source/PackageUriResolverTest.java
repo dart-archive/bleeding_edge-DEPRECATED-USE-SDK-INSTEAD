@@ -20,13 +20,13 @@ import java.net.URI;
 
 public class PackageUriResolverTest extends TestCase {
   public void test_creation() {
-    File directory = new File("/does/not/exist");
+    File directory = new File("/does/not/exist/packages");
     assertNotNull(new PackageUriResolver(directory));
   }
 
   public void test_resolve_nonPackage() throws Exception {
     SourceFactory factory = new SourceFactory();
-    File directory = new File("/does/not/exist");
+    File directory = new File("/does/not/exist/packages");
     UriResolver resolver = new PackageUriResolver(directory);
     Source result = resolver.resolve(factory, null, new URI("dart:core"));
     assertNull(result);
@@ -34,7 +34,7 @@ public class PackageUriResolverTest extends TestCase {
 
   public void test_resolve_package() throws Exception {
     SourceFactory factory = new SourceFactory();
-    File directory = new File("/does/not/exist");
+    File directory = new File("/does/not/exist/packages");
     UriResolver resolver = new PackageUriResolver(directory);
     Source result = resolver.resolve(factory, null, new URI("package:third/party/library.dart"));
     assertNotNull(result);
