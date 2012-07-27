@@ -30,6 +30,7 @@ import java.util.List;
 /**
  * A scanner to syntax highlight dartdoc text.
  */
+@SuppressWarnings("deprecation")
 public class DartDocScanner extends DartCommentScanner {
 
   private static String[] fgTokenProperties = {

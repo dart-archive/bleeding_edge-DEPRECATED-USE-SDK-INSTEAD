@@ -17,9 +17,6 @@ import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartConventions;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.core.search.MatchQuality;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchException;
@@ -44,7 +41,6 @@ import com.google.dart.tools.ui.internal.util.TypeNameMatchLabelProvider;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredDartElementLabels;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredString;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredViewersManager;
-import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.internal.viewsupport.OwnerDrawSupport;
 
 import org.eclipse.core.resources.IContainer;
@@ -60,7 +56,6 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableContext;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.ISelection;
@@ -89,12 +84,9 @@ import org.eclipse.ui.dialogs.SearchPattern;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Shows a list of Java types to the user with a text entry field for a string pattern used to
@@ -288,21 +280,22 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 
   private static class TypeInfoUtil {
 
-    private final ITypeInfoImageProvider fProviderExtension;
+//    private final ITypeInfoImageProvider fProviderExtension;
 
-    private final SearchListener fAdapter = new SearchListener() {
-      private SearchMatch match;
-
-      @Override
-      public void matchFound(SearchMatch match) {
-        this.match = match;
-      }
-
-      @Override
-      public void searchComplete() {
-        // Ignored
-      }
-    };
+//    private final SearchListener fAdapter = new SearchListener() {
+//      @SuppressWarnings("unused")
+//      private SearchMatch match;
+//
+//      @Override
+//      public void matchFound(SearchMatch match) {
+//        this.match = match;
+//      }
+//
+//      @Override
+//      public void searchComplete() {
+//        // Ignored
+//      }
+//    };
 
 //    private final Map fLib2Name = new HashMap();
 
@@ -310,10 +303,10 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 //
 //    private final String[] fVMNames;
 
-    private boolean fFullyQualifyDuplicates;
+//    private boolean fFullyQualifyDuplicates;
 
     public TypeInfoUtil(ITypeInfoImageProvider extension) {
-      fProviderExtension = extension;
+//      fProviderExtension = extension;
 //      List locations = new ArrayList();
 //      List labels = new ArrayList();
 //      IVMInstallType[] installs = JavaRuntime.getVMInstallTypes();
@@ -338,29 +331,29 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
       return result.toString();
     }
 
-    public ImageDescriptor getImageDescriptor(Object object) {
-      DartElement element = (DartElement) object;
-      if (fProviderExtension != null) {
-        try {
-          fAdapter.matchFound(new SearchMatch(
-              MatchQuality.EXACT,
-              element,
-              ((SourceReference) element).getSourceRange()));
-        } catch (DartModelException e) {
-          DartToolsPlugin.log(e);
-        }
-//        ImageDescriptor descriptor = fProviderExtension.getImageDescriptor(fAdapter);
-
-        // TODO(brianwilkerson) This needs to return a different descriptor for function type aliases.
-        ImageDescriptor descriptor = DartElementImageProvider.getTypeImageDescriptor(false, false);
-
-        if (descriptor != null) {
-          return descriptor;
-        }
-      }
-      // TODO(brianwilkerson) This needs to return a different descriptor for function type aliases.
-      return DartElementImageProvider.getTypeImageDescriptor(false, false);
-    }
+//    public ImageDescriptor getImageDescriptor(Object object) {
+//      DartElement element = (DartElement) object;
+//      if (fProviderExtension != null) {
+//        try {
+//          fAdapter.matchFound(new SearchMatch(
+//              MatchQuality.EXACT,
+//              element,
+//              ((SourceReference) element).getSourceRange()));
+//        } catch (DartModelException e) {
+//          DartToolsPlugin.log(e);
+//        }
+////        ImageDescriptor descriptor = fProviderExtension.getImageDescriptor(fAdapter);
+//
+//        // TODO(brianwilkerson) This needs to return a different descriptor for function type aliases.
+//        ImageDescriptor descriptor = DartElementImageProvider.getTypeImageDescriptor(false, false);
+//
+//        if (descriptor != null) {
+//          return descriptor;
+//        }
+//      }
+//      // TODO(brianwilkerson) This needs to return a different descriptor for function type aliases.
+//      return DartElementImageProvider.getTypeImageDescriptor(false, false);
+//    }
 
     public String getQualificationText(CompilationUnitElement element) {
       StringBuffer result = new StringBuffer();
@@ -447,9 +440,9 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 //      return result.toString();
 //    }
 
-    public void setFullyQualifyDuplicates(boolean value) {
-      fFullyQualifyDuplicates = value;
-    }
+//    public void setFullyQualifyDuplicates(boolean value) {
+//      fFullyQualifyDuplicates = value;
+//    }
 
 //    private String getContainerName(TypeNameMatch type) {
 //      IPackageFragmentRoot root = type.getPackageFragmentRoot();
@@ -471,9 +464,9 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 //      return buf.toString();
 //    }
 
-    private String getFormattedLabel(String name) {
-      return Messages.format(DartUIMessages.FilteredTypesSelectionDialog_library_name_format, name);
-    }
+//    private String getFormattedLabel(String name) {
+//      return Messages.format(DartUIMessages.FilteredTypesSelectionDialog_library_name_format, name);
+//    }
 
 //    private String getTypeContainerName(TypeNameMatch info) {
 //      String result = info.getTypeContainerName();
@@ -622,9 +615,10 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
   /**
    * Compares TypeItems is used during sorting
    */
+  @SuppressWarnings("rawtypes")
   private static class TypeItemsComparator implements Comparator {
 
-    private final Map fLib2Name = new HashMap();
+//    private final Map fLib2Name = new HashMap();
 
 //    private final String[] fInstallLocations;
 //
@@ -731,11 +725,11 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 //      return 1;
 //    }
 
-    private String getFormattedLabel(String name) {
-      return MessageFormat.format(
-          DartUIMessages.FilteredTypesSelectionDialog_library_name_format,
-          new Object[] {name});
-    }
+//    private String getFormattedLabel(String name) {
+//      return MessageFormat.format(
+//          DartUIMessages.FilteredTypesSelectionDialog_library_name_format,
+//          new Object[] {name});
+//    }
 
 //    private void processLibraryLocation(LibraryLocation[] libLocations,
 //        String label) {
@@ -774,6 +768,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
   /**
    * Filters types using pattern, scope, element kind and filter extension.
    */
+  @SuppressWarnings("unused")
   private class TypeItemsFilter extends ItemsFilter {
 
     private final SearchScope fScope;
@@ -1030,6 +1025,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
    * . The attached content provider is filled on the basis of the collected entries (instances of
    * <code>TypeNameMatch</code> ).
    */
+  @SuppressWarnings("unused")
   private static class TypeSearchRequestor implements SearchListener {
     private volatile boolean fStop;
 
@@ -1114,6 +1110,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 
   private final TypeInfoUtil fTypeInfoUtil;
 
+  @SuppressWarnings("unused")
   private static boolean fgFirstTime = true;
 
   private final TypeItemsComparator fTypeItemsComparator;
@@ -1386,6 +1383,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
       engine.searchTypeDeclarations(
           typeSearchFilter.getSearchScope(),
           searchPattern,
+          null,
           requestor,
           progressMonitor);
     } catch (SearchException e) {

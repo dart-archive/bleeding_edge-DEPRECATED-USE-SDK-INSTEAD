@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -137,7 +137,7 @@ public class DartParameterListValidator implements IContextInformationValidator,
   private int[] computeCommaPositions(String code) {
     final int length = code.length();
     int pos = 0;
-    List positions = new ArrayList();
+    List<Integer> positions = new ArrayList<Integer>();
     positions.add(new Integer(-1));
     while (pos < length && pos != -1) {
       char ch = code.charAt(pos);
@@ -162,7 +162,7 @@ public class DartParameterListValidator implements IContextInformationValidator,
 
     int[] fields = new int[positions.size()];
     for (int i = 0; i < fields.length; i++) {
-      fields[i] = ((Integer) positions.get(i)).intValue();
+      fields[i] = positions.get(i).intValue();
     }
     return fields;
   }

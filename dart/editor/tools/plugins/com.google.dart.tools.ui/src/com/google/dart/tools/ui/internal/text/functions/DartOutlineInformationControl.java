@@ -21,7 +21,6 @@ import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartElementComparator;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.OverrideIndicatorLabelDecorator;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
@@ -34,7 +33,6 @@ import com.google.dart.tools.ui.internal.viewsupport.AppearanceAwareLabelProvide
 import com.google.dart.tools.ui.internal.viewsupport.ColoredViewersManager;
 import com.google.dart.tools.ui.internal.viewsupport.MemberFilter;
 
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -58,18 +56,14 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.IDecoratorManager;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.keys.KeySequence;
 import org.eclipse.ui.keys.SWTKeySupport;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Show outline in light-weight control.
  */
+@SuppressWarnings("deprecation")
 public class DartOutlineInformationControl extends AbstractInformationControl {
 
   private class LexicalSortingAction extends Action {
@@ -160,7 +154,7 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
       // fCategoryFilterActionGroup.dispose();
       // fCategoryFilterActionGroup= null;
       // }
-      fTypeHierarchies.clear();
+//      fTypeHierarchies.clear();
     }
 
     /**
@@ -200,29 +194,29 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
     @Override
     public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
       super.inputChanged(viewer, oldInput, newInput);
-      fTypeHierarchies.clear();
+//      fTypeHierarchies.clear();
     }
 
     public boolean isShowingInheritedMembers() {
       return fShowInheritedMembers;
     }
 
-    public void toggleShowInheritedMembers() {
-      Tree tree = getTreeViewer().getTree();
-
-      tree.setRedraw(false);
-      fShowInheritedMembers = !fShowInheritedMembers;
-      getTreeViewer().refresh();
-      getTreeViewer().expandToLevel(2);
-
-      // reveal selection
-      Object selectedElement = getSelectedElement();
-      if (selectedElement != null) {
-        getTreeViewer().reveal(selectedElement);
-      }
-
-      tree.setRedraw(true);
-    }
+//    public void toggleShowInheritedMembers() {
+//      Tree tree = getTreeViewer().getTree();
+//
+//      tree.setRedraw(false);
+//      fShowInheritedMembers = !fShowInheritedMembers;
+//      getTreeViewer().refresh();
+//      getTreeViewer().expandToLevel(2);
+//
+//      // reveal selection
+//      Object selectedElement = getSelectedElement();
+//      if (selectedElement != null) {
+//        getTreeViewer().reveal(selectedElement);
+//      }
+//
+//      tree.setRedraw(true);
+//    }
   }
 
   private class OutlineLabelProvider extends AppearanceAwareLabelProvider {
@@ -526,7 +520,7 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
 
 //  private ShowOnlyMainTypeAction fShowOnlyMainTypeAction;
 
-  private Map fTypeHierarchies = new HashMap();
+//  private Map fTypeHierarchies = new HashMap();
 
   /**
    * Category filter action group. DartX.todo()
@@ -713,39 +707,40 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
     // fCategoryFilterActionGroup.setInput(getInputForCategories());
   }
 
-  private DartElement[] getInputForCategories() {
-    if (fInput == null) {
-      return new DartElement[0];
-    }
-
-//    if (fOutlineContentProvider.isShowingInheritedMembers()) {
-//      DartElement p = fInput;
-//      if (p instanceof ITypeRoot) {
-//        p = ((ITypeRoot) p).findPrimaryType();
-//      }
-//      while (p != null && !(p instanceof Type)) {
-//        p = p.getParent();
-//      }
-//      if (!(p instanceof Type))
-//        return new DartElement[]{fInput};
-//
-//      TypeHierarchyImpl hierarchy = getSuperTypeHierarchy((Type) p);
-//      if (hierarchy == null)
-//        return new DartElement[]{fInput};
-//
-//      Type[] supertypes = hierarchy.getAllSuperclasses((Type) p);
-//      DartElement[] result = new DartElement[supertypes.length + 1];
-//      result[0] = fInput;
-//      System.arraycopy(supertypes, 0, result, 1, supertypes.length);
-//      return result;
-//    } else {
-    return new DartElement[] {fInput};
+//  private DartElement[] getInputForCategories() {
+//    if (fInput == null) {
+//      return new DartElement[0];
 //    }
-  }
+//
+////    if (fOutlineContentProvider.isShowingInheritedMembers()) {
+////      DartElement p = fInput;
+////      if (p instanceof ITypeRoot) {
+////        p = ((ITypeRoot) p).findPrimaryType();
+////      }
+////      while (p != null && !(p instanceof Type)) {
+////        p = p.getParent();
+////      }
+////      if (!(p instanceof Type))
+////        return new DartElement[]{fInput};
+////
+////      TypeHierarchyImpl hierarchy = getSuperTypeHierarchy((Type) p);
+////      if (hierarchy == null)
+////        return new DartElement[]{fInput};
+////
+////      Type[] supertypes = hierarchy.getAllSuperclasses((Type) p);
+////      DartElement[] result = new DartElement[supertypes.length + 1];
+////      result[0] = fInput;
+////      System.arraycopy(supertypes, 0, result, 1, supertypes.length);
+////      return result;
+////    } else {
+//    return new DartElement[] {fInput};
+////    }
+//  }
 
   private KeyAdapter getKeyAdapter() {
     if (fKeyAdapter == null) {
       fKeyAdapter = new KeyAdapter() {
+        @SuppressWarnings("deprecation")
         @Override
         public void keyPressed(KeyEvent e) {
           int accelerator = SWTKeySupport.convertEventToUnmodifiedAccelerator(e);
@@ -767,19 +762,19 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
     return fKeyAdapter;
   }
 
-  private IProgressMonitor getProgressMonitor() {
-    IWorkbenchPage wbPage = DartToolsPlugin.getActivePage();
-    if (wbPage == null) {
-      return null;
-    }
-
-    IEditorPart editor = wbPage.getActiveEditor();
-    if (editor == null) {
-      return null;
-    }
-
-    return editor.getEditorSite().getActionBars().getStatusLineManager().getProgressMonitor();
-  }
+//  private IProgressMonitor getProgressMonitor() {
+//    IWorkbenchPage wbPage = DartToolsPlugin.getActivePage();
+//    if (wbPage == null) {
+//      return null;
+//    }
+//
+//    IEditorPart editor = wbPage.getActiveEditor();
+//    if (editor == null) {
+//      return null;
+//    }
+//
+//    return editor.getEditorSite().getActionBars().getStatusLineManager().getProgressMonitor();
+//  }
 
 //  private TypeHierarchyImpl getSuperTypeHierarchy(Type type) {
 //    TypeHierarchyImpl th = (TypeHierarchyImpl) fTypeHierarchies.get(type);

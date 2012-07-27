@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+@SuppressWarnings("deprecation")
 public class DartCommentScanner extends AbstractDartScanner {
 
   private static class IdentifierDetector implements IWordDetector {

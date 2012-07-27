@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This scanner recognizes the JavaDoc comments and Java multi line comments.
+ * This scanner recognizes the Dartdoc comments and Dart multi line comments.
  */
 public class DartPartitionScanner extends RuleBasedPartitionScanner implements DartPartitions {
 
@@ -103,7 +103,7 @@ public class DartPartitionScanner extends RuleBasedPartitionScanner implements D
     IToken multiLineComment = new Token(DART_MULTI_LINE_COMMENT);
     IToken singleLineComment = new Token(DART_SINGLE_LINE_COMMENT);
 
-    List rules = new ArrayList();
+    List<IPredicateRule> rules = new ArrayList<IPredicateRule>();
 
     // Add rule for single line comments.
     rules.add(new EndOfLineRule("//", singleLineComment)); //$NON-NLS-1$

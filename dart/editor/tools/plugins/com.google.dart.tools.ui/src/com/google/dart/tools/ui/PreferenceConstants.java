@@ -1709,7 +1709,6 @@ public class PreferenceConstants {
    * @see org.eclipse.jface.resource.StringConverter
    * @see org.eclipse.jface.preference.PreferenceConverter
    */
-  @SuppressWarnings("deprecation")
   public final static String EDITOR_JAVADOC_KEYWORD_COLOR = IDartColorConstants.JAVADOC_KEYWORD;
 
   /**
@@ -1718,7 +1717,6 @@ public class PreferenceConstants {
    * Value is of type <code>Boolean</code>.
    * </p>
    */
-  @SuppressWarnings("deprecation")
   public final static String EDITOR_JAVADOC_KEYWORD_BOLD = IDartColorConstants.JAVADOC_KEYWORD
       + EDITOR_BOLD_SUFFIX;
 
@@ -1728,7 +1726,6 @@ public class PreferenceConstants {
    * Value is of type <code>Boolean</code>.
    * </p>
    */
-  @SuppressWarnings("deprecation")
   public final static String EDITOR_JAVADOC_KEYWORD_ITALIC = IDartColorConstants.JAVADOC_KEYWORD
       + EDITOR_ITALIC_SUFFIX;
 
@@ -1738,7 +1735,6 @@ public class PreferenceConstants {
    * Value is of type <code>Boolean</code>.
    * </p>
    */
-  @SuppressWarnings("deprecation")
   public final static String EDITOR_JAVADOC_KEYWORD_STRIKETHROUGH = IDartColorConstants.JAVADOC_KEYWORD
       + EDITOR_STRIKETHROUGH_SUFFIX;
 
@@ -1748,7 +1744,6 @@ public class PreferenceConstants {
    * Value is of type <code>Boolean</code>.
    * </p>
    */
-  @SuppressWarnings("deprecation")
   public final static String EDITOR_JAVADOC_KEYWORD_UNDERLINE = IDartColorConstants.JAVADOC_KEYWORD
       + EDITOR_UNDERLINE_SUFFIX;
 
@@ -1762,7 +1757,6 @@ public class PreferenceConstants {
    * @see org.eclipse.jface.resource.StringConverter
    * @see org.eclipse.jface.preference.PreferenceConverter
    */
-  @SuppressWarnings("deprecation")
   public final static String EDITOR_JAVADOC_TAG_COLOR = IDartColorConstants.JAVADOC_TAG;
 
   /**
@@ -1771,7 +1765,6 @@ public class PreferenceConstants {
    * Value is of type <code>Boolean</code>.
    * </p>
    */
-  @SuppressWarnings("deprecation")
   public final static String EDITOR_JAVADOC_TAG_BOLD = IDartColorConstants.JAVADOC_TAG
       + EDITOR_BOLD_SUFFIX;
 
@@ -1781,7 +1774,6 @@ public class PreferenceConstants {
    * Value is of type <code>Boolean</code>.
    * </p>
    */
-  @SuppressWarnings("deprecation")
   public final static String EDITOR_JAVADOC_TAG_ITALIC = IDartColorConstants.JAVADOC_TAG
       + EDITOR_ITALIC_SUFFIX;
 
@@ -1791,7 +1783,6 @@ public class PreferenceConstants {
    * Value is of type <code>Boolean</code>.
    * </p>
    */
-  @SuppressWarnings("deprecation")
   public final static String EDITOR_JAVADOC_TAG_STRIKETHROUGH = IDartColorConstants.JAVADOC_TAG
       + EDITOR_STRIKETHROUGH_SUFFIX;
 
@@ -1801,7 +1792,6 @@ public class PreferenceConstants {
    * Value is of type <code>Boolean</code>.
    * </p>
    */
-  @SuppressWarnings("deprecation")
   public final static String EDITOR_JAVADOC_TAG_UNDERLINE = IDartColorConstants.JAVADOC_TAG
       + EDITOR_UNDERLINE_SUFFIX;
 
@@ -1815,7 +1805,6 @@ public class PreferenceConstants {
    * @see org.eclipse.jface.resource.StringConverter
    * @see org.eclipse.jface.preference.PreferenceConverter
    */
-  @SuppressWarnings("deprecation")
   public final static String EDITOR_JAVADOC_LINKS_COLOR = IDartColorConstants.JAVADOC_LINK;
 
   /**
@@ -1824,7 +1813,6 @@ public class PreferenceConstants {
    * Value is of type <code>Boolean</code>.
    * </p>
    */
-  @SuppressWarnings("deprecation")
   public final static String EDITOR_JAVADOC_LINKS_BOLD = IDartColorConstants.JAVADOC_LINK
       + EDITOR_BOLD_SUFFIX;
 
@@ -1834,7 +1822,6 @@ public class PreferenceConstants {
    * Value is of type <code>Boolean</code>.
    * </p>
    */
-  @SuppressWarnings("deprecation")
   public final static String EDITOR_JAVADOC_LINKS_ITALIC = IDartColorConstants.JAVADOC_LINK
       + EDITOR_ITALIC_SUFFIX;
 
@@ -1844,7 +1831,6 @@ public class PreferenceConstants {
    * Value is of type <code>Boolean</code>.
    * </p>
    */
-  @SuppressWarnings("deprecation")
   public final static String EDITOR_JAVADOC_LINKS_STRIKETHROUGH = IDartColorConstants.JAVADOC_LINK
       + EDITOR_STRIKETHROUGH_SUFFIX;
 
@@ -1854,7 +1840,6 @@ public class PreferenceConstants {
    * Value is of type <code>Boolean</code>.
    * </p>
    */
-  @SuppressWarnings("deprecation")
   public final static String EDITOR_JAVADOC_LINKS_UNDERLINE = IDartColorConstants.JAVADOC_LINK
       + EDITOR_UNDERLINE_SUFFIX;
 
