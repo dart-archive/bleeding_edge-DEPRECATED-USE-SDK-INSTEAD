@@ -194,8 +194,6 @@ public class TestProject {
     {
       AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
       File javaFile = file.getLocation().toFile();
-      // TODO(scheglov) remove after https://chromiumcodereview.appspot.com/10820040/
-      server.scan(javaFile, true);
       server.changed(javaFile);
     }
     // done
