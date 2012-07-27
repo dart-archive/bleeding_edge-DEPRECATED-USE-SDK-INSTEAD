@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.BrowserFunction;
 import org.eclipse.swt.browser.LocationAdapter;
@@ -170,29 +171,33 @@ public class IntroEditor extends EditorPart {
         String welcomeTemplate = readTemplate("welcome-template.html"); //$NON-NLS-1$
         html = welcomeTemplate.replace("${samples}", sb.toString()); //$NON-NLS-1$
       }
-      // create Browser
-      Browser browser = new Browser(composite, SWT.NONE);
-      browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-      browser.setText(html);
-      // open links in external browser
-      browser.addLocationListener(new LocationAdapter() {
-        @Override
-        public void changing(LocationEvent event) {
-          event.doit = false;
-          Program.launch(event.location);
-        }
-      });
-      // register JavaScript function
-      new BrowserFunction(browser, "openSample") { //$NON-NLS-1$
-        @Override
-        public Object function(Object[] arguments) {
-          String indexString = (String) arguments[0];
-          int index = Integer.parseInt(indexString);
-          SampleDescription description = descriptions.get(index);
-          openSample(new File(description.directory, description.file));
-          return null;
-        }
-      };
+      try {
+        // create Browser
+        Browser browser = new Browser(composite, SWT.NONE);
+        browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+        browser.setText(html);
+        // open links in external browser
+        browser.addLocationListener(new LocationAdapter() {
+          @Override
+          public void changing(LocationEvent event) {
+            event.doit = false;
+            Program.launch(event.location);
+          }
+        });
+        // register JavaScript function
+        new BrowserFunction(browser, "openSample") { //$NON-NLS-1$
+          @Override
+          public Object function(Object[] arguments) {
+            String indexString = (String) arguments[0];
+            int index = Integer.parseInt(indexString);
+            SampleDescription description = descriptions.get(index);
+            openSample(new File(description.directory, description.file));
+            return null;
+          }
+        };
+      } catch (SWTError error) {
+        DartCore.logError("Unable to create browser control: " + error.toString());
+      }
     } catch (Throwable e) {
       DartCore.logError(e);
     }
