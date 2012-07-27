@@ -26,7 +26,8 @@ from os.path import join
 BUILD_OS = None
 DART_PATH = None
 TOOLS_PATH = None
-GSU_PATH = None
+GSU_PATH_REV = None
+GSU_PATH_LATEST = None
 utils = None
 
 class AntWrapper(object):
@@ -198,7 +199,8 @@ def main():
   global BUILD_OS
   global DART_PATH
   global TOOLS_PATH
-  global GSU_PATH
+  global GSU_PATH_REV
+  global GSU_PATH_LATEST
   global utils
   
   if not sys.argv:
@@ -339,7 +341,8 @@ def main():
       running_on_buildbot = False
       sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
 
-    GSU_PATH = '%s/%s' % (to_bucket, options.revision)
+    GSU_PATH_REV = '%s/%s' % (to_bucket, options.revision)
+    GSU_PATH_LATEST = '%s/%s' % (to_bucket, 'latest')
 
     homegsutil = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
     gsu = gsutil.GsUtil(False, homegsutil,
@@ -1087,9 +1090,13 @@ def tgz(directory, file):
 
 def upload(file):
   """Upload the given file to google storage."""
-  gspath = "%s/%s" % (GSU_PATH, os.path.basename(file))
   gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
-  ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', file, gspath])
+  
+  gspathRev = "%s/%s" % (GSU_PATH_REV, os.path.basename(file))
+  ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', file, gspathRev])
+  
+  gspathLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(file))
+  ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', gspathRev, gspathLatest])
 
 def ensure_dir(f):
   d = os.path.dirname(f)
