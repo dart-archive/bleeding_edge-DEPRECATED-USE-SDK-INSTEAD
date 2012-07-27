@@ -1093,7 +1093,7 @@ def upload(file):
   gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
   
   gspathRev = "%s/%s" % (GSU_PATH_REV, os.path.basename(file))
-  ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', file, gspathRev])
+  ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', r'file://' + file, gspathRev])
   
   gspathLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(file))
   ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', gspathRev, gspathLatest])

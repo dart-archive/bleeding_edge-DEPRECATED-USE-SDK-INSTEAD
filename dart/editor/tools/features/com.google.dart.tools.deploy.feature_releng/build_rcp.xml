@@ -124,7 +124,7 @@ build system.  The PDE build system has to run under Eclipse.
         -->
         <delete failonerror="false" includeemptydirs="true">
             <fileset dir="${build.tmp}" />
-            <fileset dir="${build.out}" />
+            <!-- fileset dir="${build.out}" / -->
         </delete>
         <!--
         create the build structure
