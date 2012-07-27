@@ -14,8 +14,6 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.tools.core.AbstractDartCoreTest;
-import com.google.dart.tools.core.internal.model.EditorLibraryManager;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
@@ -24,29 +22,6 @@ import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTr
 import java.io.File;
 
 public class LibraryScanTaskTest extends AbstractDartCoreTest {
-
-  private class AnalysisServerAdapter extends AnalysisServer {
-    private boolean analyzeContext = false;
-
-    public AnalysisServerAdapter(EditorLibraryManager libraryManager) {
-      super(libraryManager);
-    }
-
-    public void assertAnalyzeContext(boolean expectedState) {
-      if (analyzeContext != expectedState) {
-        fail("Expected background analysis " + expectedState + " but found " + analyzeContext);
-      }
-    }
-
-    public void resetAnalyzeContext() {
-      analyzeContext = false;
-    }
-
-    @Override
-    protected void queueAnalyzeContext() {
-      analyzeContext = true;
-    }
-  }
 
   private static final long FIVE_MINUTES_MS = 300000;
 
@@ -135,8 +110,7 @@ public class LibraryScanTaskTest extends AbstractDartCoreTest {
 
   @Override
   protected void setUp() throws Exception {
-    EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
-    server = new AnalysisServerAdapter(libraryManager);
+    server = new AnalysisServerAdapter();
     listener = new Listener(server);
   }
 

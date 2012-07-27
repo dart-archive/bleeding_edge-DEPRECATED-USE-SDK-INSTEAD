@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -132,10 +134,18 @@ class LibraryScanTask extends Task {
       server.analyze(lib.getFile());
     }
     for (File file : looseFiles) {
-      if (context.getLibrariesContaining(file).length == 0) {
+      if (context.getLibrariesSourcing(file).length == 0) {
         server.analyze(file);
       }
     }
+  }
+
+  void addFilesToScan(Collection<File> files) {
+    filesToScan.addAll(files);
+  }
+
+  void addFilesToScan(File... files) {
+    Collections.addAll(filesToScan, files);
   }
 
   /**

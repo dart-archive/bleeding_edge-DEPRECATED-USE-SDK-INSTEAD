@@ -42,17 +42,41 @@ class FileChangedTask extends Task {
 
   @Override
   public void perform() {
-    for (Library library : context.getLibrariesContaining(file)) {
+    LibraryScanTask task = null;
+    Library library = context.getCachedLibrary(file);
+    Library[] librariesSourcing = context.getLibrariesSourcing(file);
 
-      // If library is already up to date, then no need to discard and re-analyze
-      if (file.lastModified() == library.lastModified(file)) {
-        continue;
+    // If this file is a library, then scan the library and all its files for directive changes
+    if (library != null) {
+
+      // Discard and re-analyze only if this library is not already up to date
+      if (file.lastModified() != library.lastModified(file)) {
+        task = new LibraryScanTask(server, context, file, true);
+        task.addFilesToScan(library.getSourceFiles());
+
+        // Discard the library and any downstream libraries
+        context.discardLibraryAndReferencingLibraries(library);
       }
+    }
 
-      // Discard the library and any downstream libraries
-      context.discardLibraryAndReferencingLibraries(library);
+    // If this file is sourced by another library, then scan the file for directive changes
+    for (Library otherLibrary : librariesSourcing) {
 
-      // Append analysis task to the end of the queue so that any user requests take precedence
+      // Discard and re-analyze only if this library is not already up to date
+      if (file.lastModified() != otherLibrary.lastModified(file)) {
+
+        if (task == null) {
+          task = new LibraryScanTask(server, context, file, true);
+        }
+        task.addFilesToScan(otherLibrary.getFile());
+
+        // Discard the library and any downstream libraries
+        context.discardLibraryAndReferencingLibraries(otherLibrary);
+      }
+    }
+
+    if (task != null) {
+      server.queueSubTask(task);
       server.queueAnalyzeContext();
     }
   }

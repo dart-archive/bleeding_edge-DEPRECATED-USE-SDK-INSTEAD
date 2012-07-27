@@ -16,7 +16,10 @@ package com.google.dart.tools.core.analysis;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.test.util.FileUtilities;
+import com.google.dart.tools.core.test.util.PrintStringWriter;
 import com.google.dart.tools.core.test.util.TestUtilities;
+
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTrackedLibraryFiles;
 
 import java.io.File;
 
@@ -52,6 +55,9 @@ public class FileChangedTaskTest extends AbstractDartCoreTest {
   private AnalysisServerAdapter server;
   private Context savedContext;
 
+  /**
+   * Assert cache discarded only if file has changed on disk
+   */
   public void test_changed() {
     DartUnit dartUnit1 = savedContext.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
     assertNotNull(dartUnit1);
@@ -61,11 +67,86 @@ public class FileChangedTaskTest extends AbstractDartCoreTest {
     server.changed(libraryFile);
     dartUnit2 = savedContext.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
     assertSame(dartUnit1, dartUnit2);
+    server.assertAnalyzeContext(false);
 
     libraryFile.setLastModified(System.currentTimeMillis() + 1000);
     server.changed(libraryFile);
     dartUnit2 = savedContext.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
     assertNotSame(dartUnit1, dartUnit2);
+    server.assertAnalyzeContext(true);
+  }
+
+  /**
+   * Assert removing #source directive causes sourced file to become analyzed as library
+   */
+  public void test_changed_library() throws Exception {
+    final String directive = "#source(\"simple_money.dart\");";
+    final String oldContent = FileUtilities.getContents(libraryFile);
+    int index = oldContent.indexOf(directive);
+    assertTrue(index > 0);
+    final String newContent = oldContent.substring(0, index)
+        + oldContent.substring(index + directive.length());
+
+    server.scan(libraryFile, true);
+    assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
+    assertTrackedLibraryFiles(server, libraryFile);
+
+    server.resetAnalyzeContext();
+    long oldLastModified = libraryFile.lastModified();
+    FileUtilities.setContents(libraryFile, newContent);
+    // Ensure marked as modified... lastModified is only accurate to the second
+    libraryFile.setLastModified(oldLastModified + 1000);
+    try {
+      server.changed(libraryFile);
+      assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
+      assertTrackedLibraryFiles(server, libraryFile, dartFile);
+      server.assertAnalyzeContext(true);
+    } finally {
+      FileUtilities.setContents(libraryFile, oldContent);
+      libraryFile.setLastModified(oldLastModified);
+    }
+
+    server.resetAnalyzeContext();
+    server.changed(libraryFile);
+    assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
+    assertTrackedLibraryFiles(server, libraryFile);
+    server.assertAnalyzeContext(true);
+  }
+
+  /**
+   * Assert adding #library directive causes sourced file to become analyzed as library
+   */
+  public void test_changed_source() throws Exception {
+    final String oldContent = FileUtilities.getContents(dartFile);
+    PrintStringWriter writer = new PrintStringWriter();
+    writer.println("#library(\"foobar\");");
+    writer.append(oldContent);
+    final String newContent = writer.toString();
+
+    server.scan(libraryFile, true);
+    assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
+    assertTrackedLibraryFiles(server, libraryFile);
+
+    server.resetAnalyzeContext();
+    long oldLastModified = dartFile.lastModified();
+    FileUtilities.setContents(dartFile, newContent);
+    // Ensure marked as modified... lastModified is only accurate to the second
+    dartFile.setLastModified(oldLastModified + 1000);
+    try {
+      server.changed(dartFile);
+      assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
+      assertTrackedLibraryFiles(server, libraryFile, dartFile);
+      server.assertAnalyzeContext(true);
+    } finally {
+      FileUtilities.setContents(dartFile, oldContent);
+      dartFile.setLastModified(oldLastModified);
+    }
+
+    server.resetAnalyzeContext();
+    server.changed(dartFile);
+    assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
+    assertTrackedLibraryFiles(server, libraryFile);
+    server.assertAnalyzeContext(true);
   }
 
   @Override
