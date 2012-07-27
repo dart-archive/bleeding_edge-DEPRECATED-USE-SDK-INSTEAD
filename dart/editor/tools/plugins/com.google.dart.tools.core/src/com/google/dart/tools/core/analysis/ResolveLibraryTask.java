@@ -26,7 +26,6 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -63,27 +62,17 @@ class ResolveLibraryTask extends Task {
     if (rootLibrary.getLibraryUnit() != null) {
       return;
     }
-
-    // Collect resolved libraries and parsed units
-
-    HashMap<URI, DartUnit> parsedUnits = context.getUnresolvedUnits();
-    HashMap<URI, LibraryUnit> resolvedLibs = context.getResolvedLibraries();
     ErrorListener errorListener = new ErrorListener(server);
-
-    // Calling #resolve(...) modifies map of parsed units,
-    // thus we copy the map to know which units were already parsed before calling resolve
-
-    HashSet<URI> parsedUnitURIs = new HashSet<URI>(parsedUnits.keySet());
 
     // Resolve
 
+    SelectiveCacheAdapter selectiveCache = new SelectiveCacheAdapter(context);
     Map<URI, LibraryUnit> newlyResolved = resolve(
-        server.getLibraryManager(),
         rootLibrary.getFile(),
         rootLibrary.getLibrarySource(),
-        resolvedLibs,
-        parsedUnits,
+        selectiveCache,
         errorListener);
+    HashSet<URI> parsedUnitURIs = selectiveCache.getParsedUnitURIs();
 
     for (LibraryUnit libUnit : newlyResolved.values()) {
 
@@ -132,7 +121,7 @@ class ResolveLibraryTask extends Task {
         if (dartFile == null) {
           continue;
         }
-        if (!parsedUnitURIs.contains(dartFile.toURI())) {
+        if (parsedUnitURIs.contains(dartFile.toURI())) {
           if (parseEvent == null) {
             // Do not report errors during this notification because they will be reported
             // as part of the resolution notification

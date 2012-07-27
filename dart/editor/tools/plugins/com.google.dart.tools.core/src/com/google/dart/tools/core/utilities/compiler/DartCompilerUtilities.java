@@ -20,6 +20,7 @@ import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompiler;
+import com.google.dart.compiler.DartCompiler.SelectiveCache;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
@@ -765,19 +766,15 @@ public class DartCompilerUtilities {
    * A synchronized call to {@link DartCompiler#analyzeLibraries}
    */
   public static Map<URI, LibraryUnit> secureAnalyzeLibraries(LibrarySource librarySource,
-      Map<URI, LibraryUnit> resolvedLibs, Map<URI, DartUnit> parsedUnits,
-      CompilerConfiguration config, DartArtifactProvider provider,
-      SystemLibraryManager libraryManager, DartCompilerListener listener, boolean resolveAllNewLibs)
-      throws IOException {
+      SelectiveCache selectiveCache, CompilerConfiguration config, DartArtifactProvider provider,
+      DartCompilerListener listener, boolean resolveAllNewLibs) throws IOException {
     // All calls to DartC must be synchronized
     synchronized (compilerLock) {
       return DartCompiler.analyzeLibraries(
           librarySource,
-          resolvedLibs,
-          parsedUnits,
+          selectiveCache,
           config,
           provider,
-          libraryManager,
           listener,
           resolveAllNewLibs);
     }
@@ -787,10 +784,10 @@ public class DartCompilerUtilities {
    * A synchronized call to {@link DartCompiler#analyzeLibrary}
    */
   public static LibraryUnit secureAnalyzeLibrary(LibrarySource librarySource,
-      Map<URI, DartUnit> parsedUnits, final CompilerConfiguration config,
+      final Map<URI, DartUnit> parsedUnits, final CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
 
-    EditorLibraryManager manager = SystemLibraryManagerProvider.getSystemLibraryManager();
+    final EditorLibraryManager manager = SystemLibraryManagerProvider.getSystemLibraryManager();
     AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
 
     URI librarySourceUri = librarySource.getUri();
@@ -805,19 +802,39 @@ public class DartCompilerUtilities {
     }
 
     // Resolve the specified library against all currently cached libraries
-    Map<URI, LibraryUnit> resolvedLibs = server.getSavedContext().getResolvedLibraries(50);
+    final Map<URI, LibraryUnit> resolvedLibs = server.getSavedContext().getResolvedLibraries(50);
     resolvedLibs.remove(librarySourceUri);
+
+    // Construct the selective cache
+    SelectiveCache selectiveCache = new DartCompiler.SelectiveCache() {
+      @Override
+      public Map<URI, LibraryUnit> getResolvedLibraries() {
+        return resolvedLibs;
+      }
+
+      @Override
+      public DartUnit getUnresolvedDartUnit(DartSource dartSrc) {
+        if (parsedUnits == null) {
+          return null;
+        }
+        URI srcUri = dartSrc.getUri();
+        DartUnit parsedUnit = parsedUnits.remove(srcUri);
+        if (parsedUnit != null) {
+          return parsedUnit;
+        }
+        URI fileUri = manager.resolveDartUri(srcUri);
+        return parsedUnits.remove(fileUri);
+      }
+    };
 
     Map<URI, LibraryUnit> libMap;
     // All calls to DartC must be synchronized
     synchronized (compilerLock) {
       libMap = DartCompiler.analyzeLibraries(
           librarySource,
-          resolvedLibs,
-          parsedUnits,
+          selectiveCache,
           config,
           provider,
-          manager,
           listener,
           false);
     }

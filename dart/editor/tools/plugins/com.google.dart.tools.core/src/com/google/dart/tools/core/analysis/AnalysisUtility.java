@@ -16,6 +16,7 @@ package com.google.dart.tools.core.analysis;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.DartCompiler.SelectiveCache;
 import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
@@ -108,24 +109,21 @@ class AnalysisUtility {
   /**
    * Resolve the specified library and any imported libraries that have not already been resolved.
    * 
-   * @param parsedUnits A collection of unresolved ASTs that should be used instead of parsing the
-   *          associated source from storage. Units are removed from this map as they are used.
+   * @param selectiveCache Provides cached parse and resolution results during selective compilation
+   *          or <code>null</code> if no cache available
    * @return a map of newly resolved libraries
    */
-  static Map<URI, LibraryUnit> resolve(SystemLibraryManager libraryManager, File libraryFile,
-      LibrarySource librarySource, Map<URI, LibraryUnit> resolvedLibs,
-      Map<URI, DartUnit> parsedUnits, DartCompilerListener errorListener) {
+  static Map<URI, LibraryUnit> resolve(File libraryFile, LibrarySource librarySource,
+      SelectiveCache selectiveCache, DartCompilerListener errorListener) {
 
     provider.clearCachedArtifacts();
     Map<URI, LibraryUnit> newlyResolved = null;
     try {
       newlyResolved = DartCompilerUtilities.secureAnalyzeLibraries(
           librarySource,
-          resolvedLibs,
-          parsedUnits,
+          selectiveCache,
           config,
           provider,
-          libraryManager,
           errorListener,
           true);
     } catch (IOException e) {
