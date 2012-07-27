@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.DartTypeParameter;
-import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeParameterProcessor;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 

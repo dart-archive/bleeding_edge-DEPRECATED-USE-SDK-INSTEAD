@@ -740,7 +740,6 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
   private KeyAdapter getKeyAdapter() {
     if (fKeyAdapter == null) {
       fKeyAdapter = new KeyAdapter() {
-        @SuppressWarnings("deprecation")
         @Override
         public void keyPressed(KeyEvent e) {
           int accelerator = SWTKeySupport.convertEventToUnmodifiedAccelerator(e);

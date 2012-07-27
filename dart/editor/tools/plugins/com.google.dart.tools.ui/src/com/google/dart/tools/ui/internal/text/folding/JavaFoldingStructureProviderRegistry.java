@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -39,7 +39,7 @@ public class JavaFoldingStructureProviderRegistry {
   private static final String EXTENSION_POINT = "foldingStructureProviders"; //$NON-NLS-1$
 
   /** The map of descriptors, indexed by their identifiers. */
-  private Map fDescriptors;
+  private Map<String, JavaFoldingStructureProviderDescriptor> fDescriptors;
 
   /**
    * Creates a new instance.
@@ -95,7 +95,7 @@ public class JavaFoldingStructureProviderRegistry {
   public JavaFoldingStructureProviderDescriptor getFoldingProviderDescriptor(String id) {
     synchronized (this) {
       ensureRegistered();
-      return (JavaFoldingStructureProviderDescriptor) fDescriptors.get(id);
+      return fDescriptors.get(id);
     }
   }
 
@@ -108,7 +108,7 @@ public class JavaFoldingStructureProviderRegistry {
   public JavaFoldingStructureProviderDescriptor[] getFoldingProviderDescriptors() {
     synchronized (this) {
       ensureRegistered();
-      return (JavaFoldingStructureProviderDescriptor[]) fDescriptors.values().toArray(
+      return fDescriptors.values().toArray(
           new JavaFoldingStructureProviderDescriptor[fDescriptors.size()]);
     }
   }
@@ -121,7 +121,7 @@ public class JavaFoldingStructureProviderRegistry {
    */
   public void reloadExtensions() {
     IExtensionRegistry registry = Platform.getExtensionRegistry();
-    Map map = new HashMap();
+    Map<String, JavaFoldingStructureProviderDescriptor> map = new HashMap<String, JavaFoldingStructureProviderDescriptor>();
 
     IConfigurationElement[] elements = registry.getConfigurationElementsFor(
         DartToolsPlugin.getPluginId(),

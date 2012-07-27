@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -31,7 +31,7 @@ import java.util.Comparator;
  * this early stage to solicit feedback from pioneering adopters on the understanding that any code
  * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  */
-public final class CompletionProposalComparator implements Comparator {
+public final class CompletionProposalComparator implements Comparator<Object> {
 
   private boolean fOrderAlphabetically;
 

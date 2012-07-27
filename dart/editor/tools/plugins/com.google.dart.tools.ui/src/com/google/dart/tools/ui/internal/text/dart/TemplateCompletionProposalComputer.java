@@ -198,7 +198,7 @@ public final class TemplateCompletionProposalComputer implements IDartCompletion
     return Collections.emptyList();
   }
 
-  @SuppressWarnings("rawtypes")
+  @SuppressWarnings("unchecked")
   @Override
   public List<IContextInformation> computeContextInformation(
       ContentAssistInvocationContext context, IProgressMonitor monitor) {

@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
-import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameGlobalVariableProcessor;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 
@@ -539,11 +538,8 @@ public final class RenameGlobalVariableProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
-    assertEquals("File 'Test/"
-        + unitName
-        + "' in library 'Test' already declares top-level "
-        + shadowName
-        + " 'newName'", showStatusMessages.get(0));
+    assertEquals("File 'Test/" + unitName + "' in library 'Test' already declares top-level "
+        + shadowName + " 'newName'", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
   }

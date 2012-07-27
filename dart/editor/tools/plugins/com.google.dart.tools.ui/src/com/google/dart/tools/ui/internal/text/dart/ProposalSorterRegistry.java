@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -56,7 +56,7 @@ public final class ProposalSorterRegistry {
   private final IPreferenceStore fPreferenceStore;
   private final String fKey;
 
-  private Map fSorters = null;
+  private Map<String, ProposalSorterHandle> fSorters = null;
   private ProposalSorterHandle fDefaultSorter;
 
   private ProposalSorterRegistry(final IPreferenceStore preferenceStore, final String key) {
@@ -69,14 +69,14 @@ public final class ProposalSorterRegistry {
   public ProposalSorterHandle getCurrentSorter() {
     ensureSortersRead();
     String id = fPreferenceStore.getString(fKey);
-    ProposalSorterHandle sorter = (ProposalSorterHandle) fSorters.get(id);
+    ProposalSorterHandle sorter = fSorters.get(id);
     return sorter != null ? sorter : fDefaultSorter;
   }
 
   public ProposalSorterHandle[] getSorters() {
     ensureSortersRead();
-    Collection sorters = fSorters.values();
-    return (ProposalSorterHandle[]) sorters.toArray(new ProposalSorterHandle[sorters.size()]);
+    Collection<ProposalSorterHandle> sorters = fSorters.values();
+    return sorters.toArray(new ProposalSorterHandle[sorters.size()]);
   }
 
   public void select(ProposalSorterHandle handle) {
@@ -91,14 +91,14 @@ public final class ProposalSorterRegistry {
       return;
     }
 
-    Map sorters = new LinkedHashMap();
+    Map<String, ProposalSorterHandle> sorters = new LinkedHashMap<String, ProposalSorterHandle>();
     IExtensionRegistry registry = Platform.getExtensionRegistry();
-    List elements = new ArrayList(Arrays.asList(registry.getConfigurationElementsFor(
+    List<IConfigurationElement> elements = new ArrayList<IConfigurationElement>(Arrays.asList(registry.getConfigurationElementsFor(
         DartToolsPlugin.getPluginId(),
         EXTENSION_POINT)));
 
-    for (Iterator iter = elements.iterator(); iter.hasNext();) {
-      IConfigurationElement element = (IConfigurationElement) iter.next();
+    for (Iterator<IConfigurationElement> iter = elements.iterator(); iter.hasNext();) {
+      IConfigurationElement element = iter.next();
 
       try {
 

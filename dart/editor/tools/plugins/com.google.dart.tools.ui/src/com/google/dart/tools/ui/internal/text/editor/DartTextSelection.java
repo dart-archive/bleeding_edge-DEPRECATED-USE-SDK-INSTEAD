@@ -54,8 +54,8 @@ public class DartTextSelection extends TextSelection {
   private boolean fInMethodBodyRequested;
   private boolean fInMethodBody;
 
-  private boolean fInClassInitializerRequested;
-  private boolean fInClassInitializer;
+//  private boolean fInClassInitializerRequested;
+//  private boolean fInClassInitializer;
 
   private boolean fInVariableInitializerRequested;
   private boolean fInVariableInitializer;

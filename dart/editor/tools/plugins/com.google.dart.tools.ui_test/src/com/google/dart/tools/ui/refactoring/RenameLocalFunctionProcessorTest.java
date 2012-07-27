@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFunctionProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalFunctionProcessor;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;

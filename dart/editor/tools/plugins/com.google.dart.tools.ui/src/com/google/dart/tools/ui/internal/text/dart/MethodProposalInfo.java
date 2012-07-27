@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -21,7 +21,6 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.SignatureUtil;
-import com.google.dart.tools.ui.text.editor.tmp.Signature;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -88,24 +87,24 @@ public final class MethodProposalInfo extends MemberProposalInfo {
 
   /* adapted from DartModelUtil */
 
-  /**
-   * Returns the simple erased name for a given type signature, possibly replacing type variables.
-   * 
-   * @param signature the type signature
-   * @param typeVariables the Map&lt;SimpleName, VariableName>
-   * @return the simple erased name for signature
-   */
-  private String computeSimpleTypeName(String signature, Map<String, char[]> typeVariables) {
-    // method equality uses erased types
-    String erasure = signature;
-    erasure = erasure.replaceAll("/", "."); //$NON-NLS-1$//$NON-NLS-2$
-    String simpleName = Signature.getSimpleName(Signature.toString(erasure));
-    char[] typeVar = typeVariables.get(simpleName);
-    if (typeVar != null) {
-      simpleName = String.valueOf(Signature.getSignatureSimpleName(typeVar));
-    }
-    return simpleName;
-  }
+//  /**
+//   * Returns the simple erased name for a given type signature, possibly replacing type variables.
+//   * 
+//   * @param signature the type signature
+//   * @param typeVariables the Map&lt;SimpleName, VariableName>
+//   * @return the simple erased name for signature
+//   */
+//  private String computeSimpleTypeName(String signature, Map<String, char[]> typeVariables) {
+//    // method equality uses erased types
+//    String erasure = signature;
+//    erasure = erasure.replaceAll("/", "."); //$NON-NLS-1$//$NON-NLS-2$
+//    String simpleName = Signature.getSimpleName(Signature.toString(erasure));
+//    char[] typeVar = typeVariables.get(simpleName);
+//    if (typeVar != null) {
+//      simpleName = String.valueOf(Signature.getSignatureSimpleName(typeVar));
+//    }
+//    return simpleName;
+//  }
 
   /**
    * The type and method signatures received in <code>CompletionProposals</code> of type

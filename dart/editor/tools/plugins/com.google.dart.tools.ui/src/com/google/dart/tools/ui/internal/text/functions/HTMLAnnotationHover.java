@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -32,7 +32,7 @@ public class HTMLAnnotationHover extends DefaultAnnotationHover {
    * Formats several message as HTML text.
    */
   @Override
-  protected String formatMultipleMessages(List messages) {
+  protected String formatMultipleMessages(@SuppressWarnings("rawtypes") List messages) {
     StringBuffer buffer = new StringBuffer();
     HTMLPrinter.addPageProlog(buffer);
     HTMLPrinter.addParagraph(
@@ -40,7 +40,7 @@ public class HTMLAnnotationHover extends DefaultAnnotationHover {
         HTMLPrinter.convertToHTMLContent(DartUIMessages.JavaAnnotationHover_multipleMarkersAtThisLine));
 
     HTMLPrinter.startBulletList(buffer);
-    Iterator e = messages.iterator();
+    Iterator<?> e = messages.iterator();
     while (e.hasNext()) {
       HTMLPrinter.addBullet(buffer, HTMLPrinter.convertToHTMLContent((String) e.next()));
     }
