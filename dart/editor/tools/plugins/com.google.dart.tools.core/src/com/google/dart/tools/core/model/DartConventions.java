@@ -27,6 +27,7 @@ import org.eclipse.core.runtime.Status;
  * such as name syntax.
  */
 public final class DartConventions {
+  @SuppressWarnings("unused")
   private static class MessageHolder {
     public static MessageHolder forCompilationUnit() {
       return new MessageHolder().initForCompilationUnit();

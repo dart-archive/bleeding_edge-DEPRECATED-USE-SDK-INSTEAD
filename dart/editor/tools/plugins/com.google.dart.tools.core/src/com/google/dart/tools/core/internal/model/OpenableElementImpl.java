@@ -30,8 +30,6 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModelStatusConstants;
 import com.google.dart.tools.core.model.OpenableElement;
-import com.google.dart.tools.core.search.SearchScope;
-import com.google.dart.tools.core.search.SearchScopeFactory;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.resources.IContainer;
@@ -362,7 +360,7 @@ public abstract class OpenableElementImpl extends DartElementImpl implements Ope
           DartModelStatusConstants.INDEX_OUT_OF_BOUNDS));
     }
     DartProjectImpl project = (DartProjectImpl) getDartProject();
-    SearchScope scope = SearchScopeFactory.createWorkspaceScope();
+//    SearchScope scope = SearchScopeFactory.createWorkspaceScope();
     CompletionEnvironment environment = new CompletionEnvironment(project, owner, unitToSkip);
 //    SearchableEnvironment environment = project.newSearchableNameEnvironment(owner);
     // set unit to skip

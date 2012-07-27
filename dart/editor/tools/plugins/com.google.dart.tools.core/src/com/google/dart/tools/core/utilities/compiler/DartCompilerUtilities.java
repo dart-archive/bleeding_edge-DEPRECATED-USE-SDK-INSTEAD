@@ -377,7 +377,7 @@ public class DartCompilerUtilities {
   private static final class ParserRunnable extends CompilerRunner {
     private final DartSource sourceRef;
     private final String source;
-    private boolean preserveComments;
+//    private boolean preserveComments;
     private DartUnit result;
 
     public ParserRunnable(DartSource sourceRef, String source, boolean preserveComments,
@@ -385,7 +385,7 @@ public class DartCompilerUtilities {
       super(parseErrors);
       this.sourceRef = sourceRef;
       this.source = source;
-      this.preserveComments = preserveComments;
+//      this.preserveComments = preserveComments;
     }
 
     @Override
@@ -848,7 +848,6 @@ public class DartCompilerUtilities {
    */
   public static void secureCompileLib(LibrarySource libSource, CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
-    long start = System.currentTimeMillis();
     List<LibrarySource> embeddedLibraries = new ArrayList<LibrarySource>();
     // All calls to DartC must be synchronized
     synchronized (compilerLock) {

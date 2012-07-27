@@ -18,10 +18,10 @@ package com.google.dart.tools.core.analysis;
  */
 public class EditContext extends Context {
 
-  private final Context savedContext;
+//  private final Context savedContext;
 
   EditContext(AnalysisServer server, Context savedContext) {
     super(server);
-    this.savedContext = savedContext;
+//    this.savedContext = savedContext;
   }
 }

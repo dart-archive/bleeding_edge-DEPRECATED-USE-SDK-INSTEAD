@@ -22,7 +22,6 @@ import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.testutil.TestFileUtil;
 
@@ -230,16 +229,16 @@ public class FormatterTests extends TestCase {
         + compilationUnitName.substring(dotIndex);
   }
 
-  private DartLibrary getLibrary(String libraryName) throws Exception {
-    for (DartLibrary library : DartModelManager.getInstance().getDartModel().getBundledLibraries()) {
-      // library element names are absolute paths, so just match the last segment
-      if (((DartLibraryImpl) library).getLibrarySourceFile().getUri().getPath().endsWith(
-          libraryName)) {
-        return library;
-      }
-    }
-    return null;
-  }
+//  private DartLibrary getLibrary(String libraryName) throws Exception {
+//    for (DartLibrary library : DartModelManager.getInstance().getDartModel().getBundledLibraries()) {
+//      // library element names are absolute paths, so just match the last segment
+//      if (((DartLibraryImpl) library).getLibrarySourceFile().getUri().getPath().endsWith(
+//          libraryName)) {
+//        return library;
+//      }
+//    }
+//    return null;
+//  }
 
   private IFile getOrCreateFile(String fileName) throws CoreException, IOException {
     return getOrCreateFile(
@@ -311,42 +310,42 @@ public class FormatterTests extends TestCase {
     return result;
   }
 
-  private boolean runLibraryTest(String testName, CodeFormatter codeFormatter, String source,
-      int kind, int indentationLevel, int offset, int length, String lineSeparator) {
-    try {
-      assertNotNull(source);
-      String result;
-      if (length == -1) {
-        result = runFormatter(
-            codeFormatter,
-            source,
-            kind,
-            indentationLevel,
-            offset,
-            source.length(),
-            lineSeparator,
-            true);
-      } else {
-        result = runFormatter(
-            codeFormatter,
-            source,
-            kind,
-            indentationLevel,
-            offset,
-            length,
-            lineSeparator,
-            true);
-      }
-      if (result == null) {
-        System.err.println("Test Failed: " + testName);
-        return false;
-      }
-    } catch (Throwable t) {
-      System.err.println("Test failed: " + testName);
-      return false;
-    }
-    return true;
-  }
+//  private boolean runLibraryTest(String testName, CodeFormatter codeFormatter, String source,
+//      int kind, int indentationLevel, int offset, int length, String lineSeparator) {
+//    try {
+//      assertNotNull(source);
+//      String result;
+//      if (length == -1) {
+//        result = runFormatter(
+//            codeFormatter,
+//            source,
+//            kind,
+//            indentationLevel,
+//            offset,
+//            source.length(),
+//            lineSeparator,
+//            true);
+//      } else {
+//        result = runFormatter(
+//            codeFormatter,
+//            source,
+//            kind,
+//            indentationLevel,
+//            offset,
+//            length,
+//            lineSeparator,
+//            true);
+//      }
+//      if (result == null) {
+//        System.err.println("Test Failed: " + testName);
+//        return false;
+//      }
+//    } catch (Throwable t) {
+//      System.err.println("Test failed: " + testName);
+//      return false;
+//    }
+//    return true;
+//  }
 
   private void runTest(CodeFormatter codeFormatter, String testName, String compilationUnitName,
       int kind, int indentationLevel) {

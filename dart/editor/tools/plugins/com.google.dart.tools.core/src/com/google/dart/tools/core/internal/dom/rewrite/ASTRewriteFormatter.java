@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -52,12 +52,12 @@ public class ASTRewriteFormatter {
   }
 
   private class BlockFormattingPrefix implements BlockContext {
-    private String prefix;
-    private int start;
+//    private String prefix;
+//    private int start;
 
     public BlockFormattingPrefix(String prefix, int start) {
-      this.start = start;
-      this.prefix = prefix;
+//      this.start = start;
+//      this.prefix = prefix;
     }
 
     @Override
@@ -79,14 +79,14 @@ public class ASTRewriteFormatter {
   }
 
   private class BlockFormattingPrefixSuffix implements BlockContext {
-    private String prefix;
-    private String suffix;
-    private int start;
+//    private String prefix;
+//    private String suffix;
+//    private int start;
 
     public BlockFormattingPrefixSuffix(String prefix, String suffix, int start) {
-      this.start = start;
-      this.suffix = suffix;
-      this.prefix = prefix;
+//      this.start = start;
+//      this.suffix = suffix;
+//      this.prefix = prefix;
     }
 
     @Override

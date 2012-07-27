@@ -29,6 +29,7 @@ import org.eclipse.text.edits.TextEdit;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings("deprecation")
 public class DefaultCodeFormatter extends CodeFormatter {
   public static final String UTF_8 = "UTF-8"; //$NON-NLS-1$
   public static final String LINE_SEPARATOR = System.getProperty("line.separator"); //$NON-NLS-1$

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,7 +19,6 @@ import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
 import com.google.dart.tools.core.internal.dom.rewrite.ListRewriteEvent;
-import com.google.dart.tools.core.internal.dom.rewrite.NodeInfoStore;
 import com.google.dart.tools.core.internal.dom.rewrite.RewriteEvent;
 import com.google.dart.tools.core.internal.dom.rewrite.RewriteEventStore;
 
@@ -360,7 +359,7 @@ public final class ListRewrite {
       throw new IllegalArgumentException();
     }
 
-    NodeInfoStore nodeStore = rewriter.getNodeStore();
+//   NodeInfoStore nodeStore = rewriter.getNodeStore();
     DartCore.notYetImplemented();
     return null;
     // DartNode placeholder= nodeStore.newPlaceholderNode(first.getNodeType());

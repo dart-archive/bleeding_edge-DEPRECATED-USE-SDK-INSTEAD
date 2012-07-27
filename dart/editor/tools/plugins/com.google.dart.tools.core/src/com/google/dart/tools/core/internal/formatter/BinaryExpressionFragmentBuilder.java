@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,11 +13,11 @@
  */
 package com.google.dart.tools.core.internal.formatter;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartLiteral;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartStringInterpolation;
 import com.google.dart.compiler.ast.DartStringLiteral;
@@ -33,31 +33,31 @@ class BinaryExpressionFragmentBuilder extends ASTVisitor<DartNode> {
 
   @Override
   public DartNode visitBinaryExpression(DartBinaryExpression binaryExpression) {
-    final int numberOfParens = 0; // TODO preserve parens
-    if (numberOfParens > 0) {
-      addRealFragment(binaryExpression);
-    } else {
-      switch (binaryExpression.getOperator()) {
-        case MUL:
-        case ADD:
-        case DIV:
-        case TRUNC:
-        case MOD:
-        case BIT_XOR:
-        case SUB:
-        case OR:
-        case AND:
-        case BIT_AND:
-        case BIT_OR:
-          if (buildFragments(binaryExpression)) {
-            accum(binaryExpression);
-          }
-          break;
-        default:
-          addRealFragment(binaryExpression);
-          break;
-      }
+//    final int numberOfParens = 0; // TODO preserve parens
+//    if (numberOfParens > 0) {
+//      addRealFragment(binaryExpression);
+//    } else {
+    switch (binaryExpression.getOperator()) {
+      case MUL:
+      case ADD:
+      case DIV:
+      case TRUNC:
+      case MOD:
+      case BIT_XOR:
+      case SUB:
+      case OR:
+      case AND:
+      case BIT_AND:
+      case BIT_OR:
+        if (buildFragments(binaryExpression)) {
+          accum(binaryExpression);
+        }
+        break;
+      default:
+        addRealFragment(binaryExpression);
+        break;
     }
+//    }
     return null;
   }
 

@@ -13,11 +13,9 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
@@ -94,6 +92,7 @@ import java.util.Set;
  * The unique instance of the class <code>DartModelManager</code> is used to manage the elements in
  * the Dart element model.
  */
+@SuppressWarnings("deprecation")
 public class DartModelManager {
   /**
    * Update the classpath variable cache
@@ -1577,27 +1576,27 @@ public class DartModelManager {
     return files;
   }
 
-  private Set<File> getImportedLibraryFiles(File libraryFile, DartUnit libraryUnit) {
-    Set<File> files = new HashSet<File>();
-    URI libraryUri = libraryFile.getParentFile().toURI();
-    List<DartDirective> directives = libraryUnit.getDirectives();
-    if (directives != null) {
-      for (DartDirective directive : directives) {
-        try {
-          if (directive instanceof DartImportDirective) {
-            URI uri = new URI(((DartImportDirective) directive).getLibraryUri().getValue());
-            if (uri != null && !SystemLibraryManager.isDartUri(uri)) {
-              uri = URIUtil.makeAbsolute(uri, libraryUri);
-              files.add(new File(uri));
-            }
-          }
-        } catch (URISyntaxException exception) {
-          // If we cannot get the URI for the library, ignore it.
-        }
-      }
-    }
-    return files;
-  }
+//  private Set<File> getImportedLibraryFiles(File libraryFile, DartUnit libraryUnit) {
+//    Set<File> files = new HashSet<File>();
+//    URI libraryUri = libraryFile.getParentFile().toURI();
+//    List<DartDirective> directives = libraryUnit.getDirectives();
+//    if (directives != null) {
+//      for (DartDirective directive : directives) {
+//        try {
+//          if (directive instanceof DartImportDirective) {
+//            URI uri = new URI(((DartImportDirective) directive).getLibraryUri().getValue());
+//            if (uri != null && !SystemLibraryManager.isDartUri(uri)) {
+//              uri = URIUtil.makeAbsolute(uri, libraryUri);
+//              files.add(new File(uri));
+//            }
+//          }
+//        } catch (URISyntaxException exception) {
+//          // If we cannot get the URI for the library, ignore it.
+//        }
+//      }
+//    }
+//    return files;
+//  }
 
   private IScopeContext getInstanceScope() {
     return new InstanceScope();

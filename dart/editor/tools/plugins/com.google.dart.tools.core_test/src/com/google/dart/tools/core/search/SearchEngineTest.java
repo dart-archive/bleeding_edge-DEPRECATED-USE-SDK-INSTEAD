@@ -19,24 +19,19 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.index.util.ResourceFactory;
-import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.internal.search.SearchEngineImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
-
-import static com.google.dart.tools.core.test.util.MoneyProjectUtilities.getMoneyProject;
 
 import junit.framework.TestCase;
 
@@ -75,18 +70,18 @@ public class SearchEngineTest extends TestCase {
     }
   }
 
-  private DartLibraryImpl moneyLibrary;
+//  private DartLibraryImpl moneyLibrary;
 
   private InMemoryIndex index;
 
   @Override
   public void setUp() {
     try {
-      DartProject moneyProject = getMoneyProject();
-      DartLibrary[] libraries = moneyProject.getDartLibraries();
-      assertNotNull(libraries);
-      assertEquals(1, libraries.length);
-      moneyLibrary = (DartLibraryImpl) libraries[0];
+//      DartProject moneyProject = getMoneyProject();
+//      DartLibrary[] libraries = moneyProject.getDartLibraries();
+//      assertNotNull(libraries);
+//      assertEquals(1, libraries.length);
+//      moneyLibrary = (DartLibraryImpl) libraries[0];
 
       index = InMemoryIndex.getInstance();
       index.initializeIndex();
@@ -1073,10 +1068,10 @@ public class SearchEngineTest extends TestCase {
     }
   }
 
-  private boolean isType(SearchMatch match, String typeName) {
-    DartElement element = match.getElement();
-    return element instanceof Type && typeName.equals(element.getElementName());
-  }
+//  private boolean isType(SearchMatch match, String typeName) {
+//    DartElement element = match.getElement();
+//    return element instanceof Type && typeName.equals(element.getElementName());
+//  }
 
   private void prepare_searchReferences_import(TestProject testProject) throws Exception {
     testProject.setUnitContent(

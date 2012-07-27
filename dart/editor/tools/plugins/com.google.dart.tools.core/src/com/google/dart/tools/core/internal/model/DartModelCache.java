@@ -15,21 +15,9 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.cache.ElementCache;
-import com.google.dart.tools.core.internal.model.info.CompilationUnitInfo;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
-import com.google.dart.tools.core.internal.model.info.DartFieldInfo;
-import com.google.dart.tools.core.internal.model.info.DartFunctionInfo;
-import com.google.dart.tools.core.internal.model.info.DartFunctionTypeAliasInfo;
-import com.google.dart.tools.core.internal.model.info.DartImportInfo;
-import com.google.dart.tools.core.internal.model.info.DartLibraryFolderInfo;
 import com.google.dart.tools.core.internal.model.info.DartLibraryInfo;
-import com.google.dart.tools.core.internal.model.info.DartMethodInfo;
 import com.google.dart.tools.core.internal.model.info.DartModelInfo;
-import com.google.dart.tools.core.internal.model.info.DartProjectInfo;
-import com.google.dart.tools.core.internal.model.info.DartResourceInfo;
-import com.google.dart.tools.core.internal.model.info.DartTypeInfo;
-import com.google.dart.tools.core.internal.model.info.DartVariableInfo;
-import com.google.dart.tools.core.internal.model.info.HTMLFileInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.OpenableElement;
@@ -321,76 +309,76 @@ public class DartModelCache {
     }
   }
 
-  /**
-   * Write to the log if the type of info being associated with the given element is not consistent.
-   * 
-   * @param element the element with which the info is being associated
-   * @param info the info being associated with the element
-   */
-  private void assertConsistent(DartElement element, DartElementInfo info) {
-    if (element instanceof CompilationUnitImpl) {
-      if (info instanceof CompilationUnitInfo) {
-        return;
-      }
-    } else if (element instanceof DartFieldImpl) {
-      if (info instanceof DartFieldInfo) {
-        return;
-      }
-    } else if (element instanceof DartFunctionImpl) {
-      if (info instanceof DartFunctionInfo) {
-        return;
-      }
-    } else if (element instanceof DartFunctionTypeAliasImpl) {
-      if (info instanceof DartFunctionTypeAliasInfo) {
-        return;
-      }
-    } else if (element instanceof DartImportImpl) {
-      if (info instanceof DartImportInfo) {
-        return;
-      }
-    } else if (element instanceof DartLibraryFolderImpl) {
-      if (info instanceof DartLibraryFolderInfo) {
-        return;
-      }
-    } else if (element instanceof DartLibraryImpl) {
-      if (info instanceof DartLibraryInfo) {
-        return;
-      }
-    } else if (element instanceof DartMethodImpl) {
-      if (info instanceof DartMethodInfo) {
-        return;
-      }
-    } else if (element instanceof DartModelImpl) {
-      if (info instanceof DartModelInfo) {
-        return;
-      }
-    } else if (element instanceof DartProjectImpl) {
-      if (info instanceof DartProjectInfo) {
-        return;
-      }
-    } else if (element instanceof DartResourceImpl) {
-      if (info instanceof DartResourceInfo) {
-        return;
-      }
-    } else if (element instanceof DartTypeImpl) {
-      if (info instanceof DartTypeInfo) {
-        return;
-      }
-    } else if (element instanceof DartVariableImpl) {
-      if (info instanceof DartVariableInfo) {
-        return;
-      }
-    } else if (element instanceof HTMLFileImpl) {
-      if (info instanceof HTMLFileInfo) {
-        return;
-      }
-    } else {
-      // We are not yet explicitly checking this type.
-      return;
-    }
-    DartCore.logError("Invalid type of info (" + info.getClass().getName() + ") for element ("
-        + element.getClass().getName() + ")", new Exception());
-  }
+//  /**
+//   * Write to the log if the type of info being associated with the given element is not consistent.
+//   * 
+//   * @param element the element with which the info is being associated
+//   * @param info the info being associated with the element
+//   */
+//  private void assertConsistent(DartElement element, DartElementInfo info) {
+//    if (element instanceof CompilationUnitImpl) {
+//      if (info instanceof CompilationUnitInfo) {
+//        return;
+//      }
+//    } else if (element instanceof DartFieldImpl) {
+//      if (info instanceof DartFieldInfo) {
+//        return;
+//      }
+//    } else if (element instanceof DartFunctionImpl) {
+//      if (info instanceof DartFunctionInfo) {
+//        return;
+//      }
+//    } else if (element instanceof DartFunctionTypeAliasImpl) {
+//      if (info instanceof DartFunctionTypeAliasInfo) {
+//        return;
+//      }
+//    } else if (element instanceof DartImportImpl) {
+//      if (info instanceof DartImportInfo) {
+//        return;
+//      }
+//    } else if (element instanceof DartLibraryFolderImpl) {
+//      if (info instanceof DartLibraryFolderInfo) {
+//        return;
+//      }
+//    } else if (element instanceof DartLibraryImpl) {
+//      if (info instanceof DartLibraryInfo) {
+//        return;
+//      }
+//    } else if (element instanceof DartMethodImpl) {
+//      if (info instanceof DartMethodInfo) {
+//        return;
+//      }
+//    } else if (element instanceof DartModelImpl) {
+//      if (info instanceof DartModelInfo) {
+//        return;
+//      }
+//    } else if (element instanceof DartProjectImpl) {
+//      if (info instanceof DartProjectInfo) {
+//        return;
+//      }
+//    } else if (element instanceof DartResourceImpl) {
+//      if (info instanceof DartResourceInfo) {
+//        return;
+//      }
+//    } else if (element instanceof DartTypeImpl) {
+//      if (info instanceof DartTypeInfo) {
+//        return;
+//      }
+//    } else if (element instanceof DartVariableImpl) {
+//      if (info instanceof DartVariableInfo) {
+//        return;
+//      }
+//    } else if (element instanceof HTMLFileImpl) {
+//      if (info instanceof HTMLFileInfo) {
+//        return;
+//      }
+//    } else {
+//      // We are not yet explicitly checking this type.
+//      return;
+//    }
+//    DartCore.logError("Invalid type of info (" + info.getClass().getName() + ") for element ("
+//        + element.getClass().getName() + ")", new Exception());
+//  }
 
   // protected void resetJarTypeCache() {
   // jarTypeCache = new LRUCache(

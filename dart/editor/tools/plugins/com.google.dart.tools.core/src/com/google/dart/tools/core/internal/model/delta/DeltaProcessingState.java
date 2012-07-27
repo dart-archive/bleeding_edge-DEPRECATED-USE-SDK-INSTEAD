@@ -27,9 +27,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.SafeRunner;
 
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Instances of the class <code>DeltaProcessingState</code> keep the global states used during Dart
@@ -65,10 +63,10 @@ public class DeltaProcessingState implements IResourceChangeListener {
    */
   private ThreadLocal<DeltaProcessor> deltaProcessors = new ThreadLocal<DeltaProcessor>();
 
-  /**
-   * Threads that are currently running initializeRoots()
-   */
-  private Set<Thread> initializingThreads = Collections.synchronizedSet(new HashSet<Thread>());
+//  /**
+//   * Threads that are currently running initializeRoots()
+//   */
+//  private Set<Thread> initializingThreads = Collections.synchronizedSet(new HashSet<Thread>());
 
   /**
    * Workaround for bug 15168 circular errors not reported This is a cache of the projects before

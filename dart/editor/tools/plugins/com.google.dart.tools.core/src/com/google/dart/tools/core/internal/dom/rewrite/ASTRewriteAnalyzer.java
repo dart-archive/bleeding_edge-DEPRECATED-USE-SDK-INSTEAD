@@ -117,7 +117,6 @@ import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 import org.eclipse.text.edits.TextEditGroup;
 
-import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -132,6 +131,7 @@ import javax.swing.text.html.parser.TagElement;
  * AST for existing code - Describe changes - This visitor analyzes the changes or annotations and
  * generates text edits (text manipulation API) that describe the required code changes.
  */
+@SuppressWarnings("unused")
 public final class ASTRewriteAnalyzer {
   class ListRewriter {
     protected String contantSeparator;
@@ -1887,7 +1887,7 @@ public final class ASTRewriteAnalyzer {
 
   final void doTextInsert(int insertOffset, DartNode node, int initialIndentLevel,
       boolean removeLeadingIndent, TextEditGroup editGroup) {
-    ArrayList markers = new ArrayList();
+//    ArrayList markers = new ArrayList();
     DartCore.notYetImplemented();
     String formatted = ""; // formatter.getFormattedResult(node,
                            // initialIndentLevel, markers);
@@ -2173,20 +2173,21 @@ public final class ASTRewriteAnalyzer {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private final int doVisit(DartNode parent, StructuralPropertyDescriptor property, int offset) {
     Object node = getOriginalValue(parent, property);
     if (property.isChildProperty() && node != null) {
       return doVisit((DartNode) node);
     } else if (property.isChildListProperty()) {
-      return doVisitList((List) node, offset);
+      return doVisitList((List<DartNode>) node, offset);
     }
     return offset;
   }
 
-  private int doVisitList(List list, int offset) {
+  private int doVisitList(List<DartNode> list, int offset) {
     int endPos = offset;
-    for (Iterator iter = list.iterator(); iter.hasNext();) {
-      DartNode curr = (DartNode) iter.next();
+    for (Iterator<DartNode> iter = list.iterator(); iter.hasNext();) {
+      DartNode curr = iter.next();
       endPos = doVisit(curr);
     }
     return endPos;
@@ -2949,6 +2950,7 @@ public final class ASTRewriteAnalyzer {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private final void voidVisit(DartNode parent, StructuralPropertyDescriptor property) {
     Object node = getOriginalValue(parent, property);
     // TODO(scheglov)

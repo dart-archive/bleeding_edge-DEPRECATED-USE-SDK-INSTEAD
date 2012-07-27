@@ -19,6 +19,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
+@SuppressWarnings("deprecation")
 public class DartLibraryGeneratorTest extends DartFileGeneratorTest {
 
   public void test_DartLibraryGenerator_execute_lib() throws Exception {

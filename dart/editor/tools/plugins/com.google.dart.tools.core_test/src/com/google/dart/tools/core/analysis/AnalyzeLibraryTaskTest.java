@@ -47,7 +47,8 @@ public class AnalyzeLibraryTaskTest extends AbstractDartCoreTest {
   private static File tempDir;
   private static File libraryFile;
   private static File dartFile;
-  private static File doesNotExist;
+
+//  private static File doesNotExist;
 
   /**
    * Called once prior to executing the first test in this class
@@ -59,7 +60,7 @@ public class AnalyzeLibraryTaskTest extends AbstractDartCoreTest {
     assertTrue(libraryFile.exists());
     dartFile = new File(tempDir, "simple_money.dart");
     assertTrue(dartFile.exists());
-    doesNotExist = new File(tempDir, "doesNotExist.dart");
+//    doesNotExist = new File(tempDir, "doesNotExist.dart");
   }
 
   /**
