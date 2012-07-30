@@ -43,7 +43,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 
 /**
- * An action to create an optimized Javascript build of a Dart library.
+ * An action to create an optimized JavaScript build of a Dart library.
  */
 public class GenerateJavascriptAction extends AbstractInstrumentedAction implements
     IWorkbenchAction, ISelectionListener, IPartListener {
@@ -105,8 +105,6 @@ public class GenerateJavascriptAction extends AbstractInstrumentedAction impleme
     setDescription(ActionMessages.GenerateJavascriptAction_description);
     setToolTipText(ActionMessages.GenerateJavascriptAction_tooltip);
     //setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/dart16/library_opt.png"));
-    setEnabled(false);
-
     window.getPartService().addPartListener(this);
     window.getSelectionService().addSelectionListener(this);
   }
@@ -183,6 +181,17 @@ public class GenerateJavascriptAction extends AbstractInstrumentedAction impleme
     IResource resource = null;
     DartElement element = null;
 
+    if (selectedObject == null) {
+      IWorkbenchPage page = window.getActivePage();
+
+      if (page != null) {
+        IEditorPart part = page.getActiveEditor();
+
+        if (part != null) {
+          selectedObject = part.getEditorInput().getAdapter(IResource.class);
+        }
+      }
+    }
     if (selectedObject instanceof IResource) {
       resource = (IResource) selectedObject;
     }
@@ -220,12 +229,8 @@ public class GenerateJavascriptAction extends AbstractInstrumentedAction impleme
   private void handleSelectionChanged(IStructuredSelection selection) {
     if (selection != null && !selection.isEmpty()) {
       selectedObject = selection.getFirstElement();
-
-      setEnabled(true);
     } else {
       selectedObject = null;
-
-      setEnabled(false);
     }
   }
 
