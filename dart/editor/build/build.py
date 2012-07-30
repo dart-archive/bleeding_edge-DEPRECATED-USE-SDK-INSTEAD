@@ -359,6 +359,9 @@ def main():
       ensure_dir(buildout)
       sdk_zip = CreateSDK(buildout)
 
+    if (BUILD_OS == 'linux' and builder_name != 'dart-editor'):
+      return CreateApiDocs(buildout)
+
     if builder_name == 'dart-editor':
       buildos = None
 
@@ -443,12 +446,14 @@ def main():
       version_file = _FindVersionFile(buildout)
       if version_file:
         found_zips.append(version_file)
-      (status, gs_objects) = _DeployToContinuous(buildos,
-                                                 to_bucket,
-                                                 found_zips,
-                                                 revision, gsu)
+      #(status, gs_objects) = _DeployToContinuous(buildos,
+      #                                           to_bucket,
+      #                                           found_zips,
+      #                                           revision, gsu)
+      for zipfile in found_zips:
+        upload(zipfile)
       if _ShouldMoveToLatest(staging_bucket, revision, gsu):
-        _MoveContinuousToLatest(staging_bucket, to_bucket, revision, gsu)
+        #_MoveContinuousToLatest(staging_bucket, to_bucket, revision, gsu)
         _CleanupStaging(staging_bucket, revision, gsu)
     return junit_status
   finally:
@@ -986,6 +991,21 @@ def ExecuteCommand(cmd, dir=None):
     os.chdir(cwd)
   return status
 
+def CreateApiDocs(buildLocation):
+  """Seth, add your magic here"""
+  #TODO:
+  
+  CallBuildScript('release', 'ia32', 'api_docs')
+  
+  apidir = join(DART_PATH, utils.GetBuildRoot('linux', 'release', 'ia32'), 'api_docs')
+  
+  api_zip = join(buildLocation, 'api-docs.zip')
+  
+  zip(apidir, api_zip)
+
+  # upload to continuous/svn_rev and to continuous/latest
+  upload(api_zip)
+  
 def CreateSDK(sdkpath):
   """Create the dart-sdk's for the current OS"""
 
