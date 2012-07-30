@@ -19,6 +19,7 @@ import com.google.dart.engine.metrics.DartEventType;
 import com.google.dart.engine.metrics.JvmMetrics;
 import com.google.dart.engine.metrics.Tracer;
 import com.google.dart.engine.metrics.Tracer.TraceEvent;
+import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.CharBufferScanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
@@ -50,7 +51,7 @@ public class Analyzer {
    * @return the contents of the given source file represented as a character buffer
    * @throws IOException if the contents of the file cannot be read
    */
-  private static CharBuffer getBufferFromFile(File sourceFile) throws IOException {
+  public static CharBuffer getBufferFromFile(File sourceFile) throws IOException {
     RandomAccessFile file = new RandomAccessFile(sourceFile.getAbsolutePath(), "r");
     FileChannel channel = null;
     ByteBuffer byteBuffer = null;
@@ -75,6 +76,7 @@ public class Analyzer {
         }
       }
     }
+    byteBuffer.position(0);
     return utf8Charset.decode(byteBuffer);
   }
 
@@ -113,6 +115,8 @@ public class Analyzer {
       ((CommandLineErrorListener) listener).setLineInfo(
           source,
           new LineInfo(scanner.getLineStarts()));
+      Parser parser = new Parser(source, listener);
+      parser.parseCompilationUnit(token);
       System.err.println("Not Implemented");
     } finally {
       Tracer.end(logEvent);
