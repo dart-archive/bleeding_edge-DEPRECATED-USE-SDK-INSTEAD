@@ -109,7 +109,7 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     commandsList.add(vmExecPath);
     commandsList.addAll(Arrays.asList(launchConfig.getVmArgumentsAsArray()));
 
-    if (enableDebugging && (!DartCore.isWindows())) {
+    if (enableDebugging && !DartCore.isWindows()) {
       commandsList.add("--debug:" + connectionPort);
     }
 

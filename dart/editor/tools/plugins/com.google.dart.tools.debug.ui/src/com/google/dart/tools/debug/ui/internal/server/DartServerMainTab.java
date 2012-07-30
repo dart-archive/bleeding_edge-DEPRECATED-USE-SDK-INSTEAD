@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.ui.internal.server;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.util.AppSelectionDialog;
@@ -135,6 +136,13 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
         notifyPanelChanged();
       }
     });
+
+    if (DartCore.isWindows()) {
+      enableDebuggingButton.setEnabled(false);
+
+      String message = "not yet supported on win32";
+      enableDebuggingButton.setText(enableDebuggingButton.getText() + " (" + message + ")");
+    }
 
     label = new Label(group, SWT.NONE);
     label.setText("Heap (MB):");
