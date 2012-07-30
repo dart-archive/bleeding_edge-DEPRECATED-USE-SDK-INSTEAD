@@ -69,4 +69,5 @@ lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 
 [ $compiler == dart2dart ]
-chat/chat_server_test: Fail
+# Skip until we stabilize language tests.
+*: Skip
