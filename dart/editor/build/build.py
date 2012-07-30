@@ -360,7 +360,7 @@ def main():
       sdk_zip = CreateSDK(buildout)
 
     if (BUILD_OS == 'linux' and builder_name != 'dart-editor'):
-      return CreateApiDocs(buildout)
+      CreateApiDocs(buildout)
 
     if builder_name == 'dart-editor':
       buildos = None
