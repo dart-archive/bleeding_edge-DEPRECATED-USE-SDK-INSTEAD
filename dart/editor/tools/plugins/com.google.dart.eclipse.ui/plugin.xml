@@ -152,4 +152,37 @@
    </extension>
 
 
+  <extension point="org.eclipse.ui.menus">
+ 
+    <menuContribution
+          locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=group.generate">
+       <menu
+             label="Dart">
+          <visibleWhen>
+            <with variable="activeMenuSelection">
+               <iterate>
+                  <adapt
+                        type="org.eclipse.core.resources.IResource">
+                  </adapt>
+                  <test
+                        property="com.google.dart.tools.core.expressions.isAnalyzable">
+                  </test>
+               </iterate>
+           </with>
+        </visibleWhen>
+          <command
+                commandId="com.google.dart.tools.ui.commands.unIgnoreResource"
+                label="Analyze"
+                style="push">
+          </command>
+          <command
+                commandId="com.google.dart.tools.ui.commands.ignoreResource"
+                label="Don&apos;t Analyze"
+                style="push">
+          </command>
+       </menu>
+    </menuContribution>
+  </extension>
+
+
 </plugin>

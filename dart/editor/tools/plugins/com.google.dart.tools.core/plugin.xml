@@ -69,5 +69,15 @@
           value="false">
     </persistent>
  </extension>
+ <extension
+       point="org.eclipse.core.expressions.propertyTesters">
+    <propertyTester
+          class="com.google.dart.tools.core.expressions.DartResourcePropertyTester"
+          id="com.google.dart.tools.core.analyzableFilePropertTester"
+          namespace="com.google.dart.tools.core.expressions"
+          properties="isAnalyzed, isAnalyzable, isIgnored"
+          type="java.lang.Object">
+    </propertyTester>
+ </extension>
 
 </plugin>

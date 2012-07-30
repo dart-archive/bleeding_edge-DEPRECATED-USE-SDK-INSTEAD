@@ -7,3 +7,5 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: com.google.dart.eclipse.core;singleton:=true
 Bundle-Version: 0.1.0.qualifier
 Bundle-Vendor: %providerName
+Require-Bundle: org.eclipse.core.runtime,
+ com.google.dart.tools.core

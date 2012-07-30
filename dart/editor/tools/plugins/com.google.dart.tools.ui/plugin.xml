@@ -1984,6 +1984,16 @@
             categoryId="org.eclipse.ui.category.project"
             id="org.eclipse.wst.jsdt.ui.generate.javadoc">
       </command>
+      <command
+            description="Don&apos;t analyze this resource."
+            id="com.google.dart.tools.ui.commands.ignoreResource"
+            name="Don&apos;t Analyze">
+      </command>
+      <command
+            description="Analyze this resource."
+            id="com.google.dart.tools.ui.commands.unIgnoreResource"
+            name="Analyze">
+      </command>
       
    </extension>
       
@@ -3271,6 +3281,27 @@
       <quickAssistProcessor
             class="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor"
             id="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="com.google.dart.tools.ui.internal.handlers.IgnoreResourceHandler"
+            commandId="com.google.dart.tools.ui.commands.ignoreResource">
+         <enabledWhen>
+            <test
+                  property="com.google.dart.tools.core.expressions.isAnalyzed">
+            </test>
+         </enabledWhen>
+      </handler>
+      <handler
+            class="com.google.dart.tools.ui.internal.handlers.UnIgnoreResourceHandler"
+            commandId="com.google.dart.tools.ui.commands.unIgnoreResource">
+         <enabledWhen>
+            <test
+                  property="com.google.dart.tools.core.expressions.isIgnored">
+            </test>
+         </enabledWhen>
+      </handler>
    </extension>
 
 </plugin>
