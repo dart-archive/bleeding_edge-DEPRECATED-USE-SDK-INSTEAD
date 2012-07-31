@@ -20,8 +20,8 @@ import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypedLiteral;
 
 /**
- * The class {@code ErrorParserTest} defines parser tests that test the parsing of invalid code
- * sequences to ensure that errors are correctly reported.
+ * The class {@code ErrorParserTest} defines parser tests that test the parsing of code to ensure
+ * that errors are correctly reported, and in some cases, not reported.
  */
 public class ErrorParserTest extends ParserTestCase {
 
@@ -31,6 +31,30 @@ public class ErrorParserTest extends ParserTestCase {
         "1",
         ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL);
     assertTrue(literal.isSynthetic());
+  }
+
+  public void test_breakOutsideOfLoop_breakInDoStatement() throws Exception {
+    parse("parseDoStatement", "do {break;} while (x);");
+  }
+
+  public void test_breakOutsideOfLoop_breakInForStatement() throws Exception {
+    parse("parseForStatement", "for (; x;) {break;}");
+  }
+
+  public void test_breakOutsideOfLoop_breakInIfStatement() throws Exception {
+    parse("parseIfStatement", "if (x) {break;}", ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);
+  }
+
+  public void test_breakOutsideOfLoop_breakInWhileStatement() throws Exception {
+    parse("parseWhileStatement", "while (x) {break;}");
+  }
+
+  public void test_breakOutsideOfLoop_functionExpression_inALoop() throws Exception {
+    parse("parseStatement", "for(; x;) {() => {break;}}", ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);
+  }
+
+  public void test_breakOutsideOfLoop_functionExpression_withALoop() throws Exception {
+    parse("parseStatement", "() => {for (; x;) {break;}}");
   }
 
   public void test_directiveOutOfOrder_classBeforeDirective() throws Exception {

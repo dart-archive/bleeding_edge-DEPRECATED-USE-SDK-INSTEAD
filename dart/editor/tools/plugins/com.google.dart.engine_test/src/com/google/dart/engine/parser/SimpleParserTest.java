@@ -490,14 +490,20 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseBreakStatement_label() throws Exception {
-    BreakStatement statement = parse("parseBreakStatement", "break foo;");
+    BreakStatement statement = parse(
+        "parseBreakStatement",
+        "break foo;",
+        ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);
     assertNotNull(statement.getKeyword());
     assertNotNull(statement.getLabel());
     assertNotNull(statement.getSemicolon());
   }
 
   public void test_parseBreakStatement_noLabel() throws Exception {
-    BreakStatement statement = parse("parseBreakStatement", "break;");
+    BreakStatement statement = parse(
+        "parseBreakStatement",
+        "break;",
+        ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);
     assertNotNull(statement.getKeyword());
     assertNull(statement.getLabel());
     assertNotNull(statement.getSemicolon());
@@ -944,14 +950,18 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseContinueStatement_label() throws Exception {
-    ContinueStatement statement = parse("parseContinueStatement", "continue foo;");
+    ContinueStatement statement = parse(
+        "parseContinueStatement",
+        "continue foo;",
+        ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP);
     assertNotNull(statement.getKeyword());
     assertNotNull(statement.getLabel());
     assertNotNull(statement.getSemicolon());
   }
 
   public void test_parseContinueStatement_noLabel() throws Exception {
-    ContinueStatement statement = parse("parseContinueStatement", "continue;");
+    ContinueStatement statement = parse("parseContinueStatement", "continue;",
+        ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP);
     assertNotNull(statement.getKeyword());
     assertNull(statement.getLabel());
     assertNotNull(statement.getSemicolon());

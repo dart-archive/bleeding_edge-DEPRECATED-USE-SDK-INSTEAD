@@ -98,6 +98,20 @@ public class Parser {
    */
   private Token currentToken;
 
+  /**
+   * <code>true</code> if the parser is currently in a loop.
+   */
+  private boolean inLoop = false;
+
+  /**
+   * <code>true</code> if the parser is currently in a switch statement.
+   * <p>
+   * Note: this boolean could be combined with the inLoop boolean if they are only ever going to be
+   * used for the same purpose: {@link ParserErrorCode#BREAK_OUTSIDE_OF_LOOP} and
+   * {@link ParserErrorCode#CONTINUE_OUTSIDE_OF_LOOP}.
+   */
+  private boolean inSwitch = false;
+
   private static final String EXPORT = "export"; //$NON-NLS-1$
   private static final String HIDE = "hide"; //$NON-NLS-1$
   private static final String IMPORT = "import"; //$NON-NLS-1$
@@ -807,6 +821,9 @@ public class Parser {
     if (matches(TokenType.IDENTIFIER)) {
       label = parseSimpleIdentifier();
     }
+    if (!inLoop && !inSwitch && label == null) {
+      reportError(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, breakKeyword);
+    }
     Token semicolon = expect(TokenType.SEMICOLON);
     return new BreakStatement(breakKeyword, label, semicolon);
   }
@@ -1355,13 +1372,16 @@ public class Parser {
    * @return the continue statement that was parsed
    */
   private Statement parseContinueStatement() {
-    Token keyword = getAndAdvance();
+    Token continueKeyword = expect(Keyword.CONTINUE);
     SimpleIdentifier label = null;
     if (matches(TokenType.IDENTIFIER)) {
       label = parseSimpleIdentifier();
     }
+    if (!inLoop && !inSwitch && label == null) {
+      reportError(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, continueKeyword);
+    }
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new ContinueStatement(keyword, label, semicolon);
+    return new ContinueStatement(continueKeyword, label, semicolon);
   }
 
   /**
@@ -1442,21 +1462,27 @@ public class Parser {
    * @return the do statement that was parsed
    */
   private Statement parseDoStatement() {
-    Token doKeyword = expect(Keyword.DO);
-    Statement body = parseStatement();
-    Token whileKeyword = expect(Keyword.WHILE);
-    Token leftParenthesis = expect(TokenType.OPEN_PAREN);
-    Expression condition = parseExpression();
-    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
-    Token semicolon = expect(TokenType.SEMICOLON);
-    return new DoStatement(
-        doKeyword,
-        body,
-        whileKeyword,
-        leftParenthesis,
-        condition,
-        rightParenthesis,
-        semicolon);
+    boolean wasInLoop = inLoop;
+    inLoop = true;
+    try {
+      Token doKeyword = expect(Keyword.DO);
+      Statement body = parseStatement();
+      Token whileKeyword = expect(Keyword.WHILE);
+      Token leftParenthesis = expect(TokenType.OPEN_PAREN);
+      Expression condition = parseExpression();
+      Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
+      Token semicolon = expect(TokenType.SEMICOLON);
+      return new DoStatement(
+          doKeyword,
+          body,
+          whileKeyword,
+          leftParenthesis,
+          condition,
+          rightParenthesis,
+          semicolon);
+    } finally {
+      inLoop = wasInLoop;
+    }
   }
 
   /**
@@ -1772,78 +1798,84 @@ public class Parser {
    * @return the for statement that was parsed
    */
   private Statement parseForStatement() {
-    Token forKeyword = expect(Keyword.FOR);
-    Token leftParenthesis = expect(TokenType.OPEN_PAREN);
-    VariableDeclarationList variableList = null;
-    Expression initialization = null;
-    if (!matches(TokenType.SEMICOLON)) {
-      if (matches(TokenType.IDENTIFIER) && peekMatches(Keyword.IN)) {
-        List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
-        variables.add(new VariableDeclaration(null, parseSimpleIdentifier(), null, null));
-        variableList = new VariableDeclarationList(null, null, variables);
-      } else if (isInitializedVariableDeclaration()) {
-        variableList = parseVariableDeclarationList();
-      } else {
-        initialization = parseExpression();
-      }
-      if (matches(Keyword.IN)) {
-        SimpleFormalParameter loopParameter = null;
-        if (variableList == null) {
-          // We found: expression 'in'
-          // reportError(ParserErrorCode.?);
+    boolean wasInLoop = inLoop;
+    inLoop = true;
+    try {
+      Token forKeyword = expect(Keyword.FOR);
+      Token leftParenthesis = expect(TokenType.OPEN_PAREN);
+      VariableDeclarationList variableList = null;
+      Expression initialization = null;
+      if (!matches(TokenType.SEMICOLON)) {
+        if (matches(TokenType.IDENTIFIER) && peekMatches(Keyword.IN)) {
+          List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
+          variables.add(new VariableDeclaration(null, parseSimpleIdentifier(), null, null));
+          variableList = new VariableDeclarationList(null, null, variables);
+        } else if (isInitializedVariableDeclaration()) {
+          variableList = parseVariableDeclarationList();
         } else {
-          NodeList<VariableDeclaration> variables = variableList.getVariables();
-          if (variables.size() > 1) {
-            // reportError(ParserErrorCode.?);
-          }
-          VariableDeclaration variable = variables.get(0);
-          if (variable.getInitializer() != null) {
-            // reportError(ParserErrorCode.?);
-          }
-          loopParameter = new SimpleFormalParameter(
-              variableList.getKeyword(),
-              variableList.getType(),
-              variable.getName());
+          initialization = parseExpression();
         }
-        Token inKeyword = expect(Keyword.IN);
-        Expression iterator = parseExpression();
-        Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
-        Statement body = parseStatement();
-        return new ForEachStatement(
-            forKeyword,
-            leftParenthesis,
-            loopParameter,
-            inKeyword,
-            iterator,
-            rightParenthesis,
-            body);
+        if (matches(Keyword.IN)) {
+          SimpleFormalParameter loopParameter = null;
+          if (variableList == null) {
+            // We found: expression 'in'
+            // reportError(ParserErrorCode.?);
+          } else {
+            NodeList<VariableDeclaration> variables = variableList.getVariables();
+            if (variables.size() > 1) {
+              // reportError(ParserErrorCode.?);
+            }
+            VariableDeclaration variable = variables.get(0);
+            if (variable.getInitializer() != null) {
+              // reportError(ParserErrorCode.?);
+            }
+            loopParameter = new SimpleFormalParameter(
+                variableList.getKeyword(),
+                variableList.getType(),
+                variable.getName());
+          }
+          Token inKeyword = expect(Keyword.IN);
+          Expression iterator = parseExpression();
+          Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
+          Statement body = parseStatement();
+          return new ForEachStatement(
+              forKeyword,
+              leftParenthesis,
+              loopParameter,
+              inKeyword,
+              iterator,
+              rightParenthesis,
+              body);
+        }
+        // Ensure that the loop parameter is not final.
+        // reportError(ParserErrorCode.?);
       }
-      // Ensure that the loop parameter is not final.
-      // reportError(ParserErrorCode.?);
+      Token leftSeparator = expect(TokenType.SEMICOLON);
+      Expression condition = null;
+      if (!matches(TokenType.SEMICOLON)) {
+        condition = parseExpression();
+      }
+      Token rightSeparator = expect(TokenType.SEMICOLON);
+      List<Expression> updaters = null;
+      if (!matches(TokenType.CLOSE_PAREN)) {
+        updaters = parseExpressionList();
+      }
+      Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
+      Statement body = parseStatement();
+      return new ForStatement(
+          forKeyword,
+          leftParenthesis,
+          variableList,
+          initialization,
+          leftSeparator,
+          condition,
+          rightSeparator,
+          updaters,
+          rightParenthesis,
+          body);
+    } finally {
+      inLoop = wasInLoop;
     }
-    Token leftSeparator = expect(TokenType.SEMICOLON);
-    Expression condition = null;
-    if (!matches(TokenType.SEMICOLON)) {
-      condition = parseExpression();
-    }
-    Token rightSeparator = expect(TokenType.SEMICOLON);
-    List<Expression> updaters = null;
-    if (!matches(TokenType.CLOSE_PAREN)) {
-      updaters = parseExpressionList();
-    }
-    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
-    Statement body = parseStatement();
-    return new ForStatement(
-        forKeyword,
-        leftParenthesis,
-        variableList,
-        initialization,
-        leftSeparator,
-        condition,
-        rightSeparator,
-        updaters,
-        rightParenthesis,
-        body);
   }
 
   /**
@@ -1860,22 +1892,31 @@ public class Parser {
    * @return the function body that was parsed
    */
   private FunctionBody parseFunctionBody(boolean mayBeEmpty, boolean inExpression) {
-    if (mayBeEmpty && matches(TokenType.SEMICOLON)) {
-      return new EmptyFunctionBody(getAndAdvance());
-    } else if (matches(TokenType.FUNCTION)) {
-      Token functionDefinition = getAndAdvance();
-      Expression expression = parseExpression();
-      Token semicolon = null;
-      if (!inExpression) {
-        semicolon = expect(TokenType.SEMICOLON);
+    boolean wasInLoop = inLoop;
+    boolean wasInSwitch = inSwitch;
+    inLoop = false;
+    inSwitch = false;
+    try {
+      if (mayBeEmpty && matches(TokenType.SEMICOLON)) {
+        return new EmptyFunctionBody(getAndAdvance());
+      } else if (matches(TokenType.FUNCTION)) {
+        Token functionDefinition = getAndAdvance();
+        Expression expression = parseExpression();
+        Token semicolon = null;
+        if (!inExpression) {
+          semicolon = expect(TokenType.SEMICOLON);
+        }
+        return new ExpressionFunctionBody(functionDefinition, expression, semicolon);
+      } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
+        return new BlockFunctionBody(parseBlock());
+      } else {
+        // Invalid function body
+        // reportError(ParserErrorCode.?));
+        return null;
       }
-      return new ExpressionFunctionBody(functionDefinition, expression, semicolon);
-    } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
-      return new BlockFunctionBody(parseBlock());
-    } else {
-      // Invalid function body
-      // reportError(ParserErrorCode.?));
-      return null;
+    } finally {
+      inLoop = wasInLoop;
+      inSwitch = wasInSwitch;
     }
   }
 
@@ -3147,44 +3188,50 @@ public class Parser {
    * @return the switch statement that was parsed
    */
   private SwitchStatement parseSwitchStatement() {
-    Token keyword = expect(Keyword.SWITCH);
-    Token leftParenthesis = expect(TokenType.OPEN_PAREN);
-    Expression expression = parseExpression();
-    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
-    Token leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
-    ArrayList<SwitchMember> members = new ArrayList<SwitchMember>();
-    while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)) {
-      List<Label> labels = new ArrayList<Label>();
-      if (matches(TokenType.IDENTIFIER) && peekMatches(TokenType.COLON)) {
-        SimpleIdentifier identifier = parseSimpleIdentifier();
-        Token colon = expect(TokenType.COLON);
-        labels.add(new Label(identifier, colon));
+    boolean wasInSwitch = inSwitch;
+    inSwitch = true;
+    try {
+      Token keyword = expect(Keyword.SWITCH);
+      Token leftParenthesis = expect(TokenType.OPEN_PAREN);
+      Expression expression = parseExpression();
+      Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
+      Token leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
+      ArrayList<SwitchMember> members = new ArrayList<SwitchMember>();
+      while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)) {
+        List<Label> labels = new ArrayList<Label>();
+        if (matches(TokenType.IDENTIFIER) && peekMatches(TokenType.COLON)) {
+          SimpleIdentifier identifier = parseSimpleIdentifier();
+          Token colon = expect(TokenType.COLON);
+          labels.add(new Label(identifier, colon));
+        }
+        if (matches(Keyword.CASE)) {
+          Token caseKeyword = getAndAdvance();
+          Expression caseExpression = parseExpression();
+          Token colon = expect(TokenType.COLON);
+          members.add(new SwitchCase(labels, caseKeyword, caseExpression, colon, parseStatements()));
+        } else if (matches(Keyword.DEFAULT)) {
+          Token defaultKeyword = getAndAdvance();
+          Token colon = expect(TokenType.COLON);
+          members.add(new SwitchDefault(labels, defaultKeyword, colon, parseStatements()));
+        } else {
+          // We need to advance, otherwise we could end up in an infinite loop, but this could be a
+          // lot smarter about recovering from the error.
+          reportError(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT);
+          getAndAdvance();
+        }
       }
-      if (matches(Keyword.CASE)) {
-        Token caseKeyword = getAndAdvance();
-        Expression caseExpression = parseExpression();
-        Token colon = expect(TokenType.COLON);
-        members.add(new SwitchCase(labels, caseKeyword, caseExpression, colon, parseStatements()));
-      } else if (matches(Keyword.DEFAULT)) {
-        Token defaultKeyword = getAndAdvance();
-        Token colon = expect(TokenType.COLON);
-        members.add(new SwitchDefault(labels, defaultKeyword, colon, parseStatements()));
-      } else {
-        // We need to advance, otherwise we could end up in an infinite loop, but this could be a
-        // lot smarter about recovering from the error.
-        reportError(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT);
-        getAndAdvance();
-      }
+      Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
+      return new SwitchStatement(
+          keyword,
+          leftParenthesis,
+          expression,
+          rightParenthesis,
+          leftBracket,
+          members,
+          rightBracket);
+    } finally {
+      inSwitch = wasInSwitch;
     }
-    Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
-    return new SwitchStatement(
-        keyword,
-        leftParenthesis,
-        expression,
-        rightParenthesis,
-        leftBracket,
-        members,
-        rightBracket);
   }
 
   /**
@@ -3567,12 +3614,18 @@ public class Parser {
    * @return the while statement that was parsed
    */
   private Statement parseWhileStatement() {
-    Token keyword = expect(Keyword.WHILE);
-    Token leftParenthesis = expect(TokenType.OPEN_PAREN);
-    Expression condition = parseExpression();
-    Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
-    Statement body = parseStatement();
-    return new WhileStatement(keyword, leftParenthesis, condition, rightParenthesis, body);
+    boolean wasInLoop = inLoop;
+    inLoop = true;
+    try {
+      Token keyword = expect(Keyword.WHILE);
+      Token leftParenthesis = expect(TokenType.OPEN_PAREN);
+      Expression condition = parseExpression();
+      Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
+      Statement body = parseStatement();
+      return new WhileStatement(keyword, leftParenthesis, condition, rightParenthesis, body);
+    } finally {
+      inLoop = wasInLoop;
+    }
   }
 
   /**
