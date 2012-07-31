@@ -113,9 +113,8 @@ public class DartMarkerAnnotation extends MarkerAnnotation implements IJavaAnnot
     return MarkerUtilities.getMarkerType(getMarker());
   }
 
-  @SuppressWarnings("rawtypes")
   @Override
-  public Iterator getOverlaidIterator() {
+  public Iterator<IJavaAnnotation> getOverlaidIterator() {
     // not supported
     return null;
   }

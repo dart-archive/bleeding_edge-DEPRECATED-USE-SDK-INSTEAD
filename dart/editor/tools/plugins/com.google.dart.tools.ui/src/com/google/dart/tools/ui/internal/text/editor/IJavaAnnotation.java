@@ -66,7 +66,7 @@ public interface IJavaAnnotation {
    * 
    * @return an iterator over the overlaid annotations
    */
-  Iterator getOverlaidIterator();
+  Iterator<IJavaAnnotation> getOverlaidIterator();
 
   /**
    * Returns the overlay of this annotation.

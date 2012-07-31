@@ -3636,7 +3636,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   @Override
   protected void updateMarkerViews(Annotation annotation) {
     if (annotation instanceof IJavaAnnotation) {
-      Iterator<?> e = ((IJavaAnnotation) annotation).getOverlaidIterator();
+      Iterator<IJavaAnnotation> e = ((IJavaAnnotation) annotation).getOverlaidIterator();
       if (e != null) {
         while (e.hasNext()) {
           Object o = e.next();
