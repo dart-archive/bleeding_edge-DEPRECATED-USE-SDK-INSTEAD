@@ -1373,12 +1373,12 @@ public class Parser {
    */
   private Statement parseContinueStatement() {
     Token continueKeyword = expect(Keyword.CONTINUE);
+    if (!inLoop && !inSwitch) {
+      reportError(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, continueKeyword);
+    }
     SimpleIdentifier label = null;
     if (matches(TokenType.IDENTIFIER)) {
       label = parseSimpleIdentifier();
-    }
-    if (!inLoop && !inSwitch && label == null) {
-      reportError(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, continueKeyword);
     }
     Token semicolon = expect(TokenType.SEMICOLON);
     return new ContinueStatement(continueKeyword, label, semicolon);

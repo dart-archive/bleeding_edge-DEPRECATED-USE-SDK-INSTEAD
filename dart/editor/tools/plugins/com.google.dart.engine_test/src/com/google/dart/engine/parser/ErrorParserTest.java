@@ -50,11 +50,11 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_breakOutsideOfLoop_functionExpression_inALoop() throws Exception {
-    parse("parseStatement", "for(; x;) {() => {break;}}", ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);
+    parse("parseStatement", "for(; x;) {() {break;}}", ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);
   }
 
   public void test_breakOutsideOfLoop_functionExpression_withALoop() throws Exception {
-    parse("parseStatement", "() => {for (; x;) {break;}}");
+    parse("parseStatement", "() {for (; x;) {break;}}");
   }
 
   public void test_directiveOutOfOrder_classBeforeDirective() throws Exception {
