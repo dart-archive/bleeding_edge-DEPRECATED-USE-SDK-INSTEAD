@@ -29,6 +29,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -122,6 +123,13 @@ public class VmConnection {
           processVmEvents(in);
         } catch (EOFException e) {
 
+        } catch (SocketException se) {
+          // ignore java.net.SocketException: Connection reset
+          final String reset = "Connection reset";
+
+          if (!(se.getMessage() != null && se.getMessage().contains(reset))) {
+            DartDebugCorePlugin.logError(se);
+          }
         } catch (IOException e) {
           DartDebugCorePlugin.logError(e);
         } finally {
