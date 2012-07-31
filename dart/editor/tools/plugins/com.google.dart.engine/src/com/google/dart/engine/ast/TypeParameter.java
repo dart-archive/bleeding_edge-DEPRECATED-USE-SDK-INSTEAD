@@ -82,6 +82,9 @@ public class TypeParameter extends ASTNode {
 
   @Override
   public Token getEndToken() {
+    if (bound == null) {
+      return name.getEndToken();
+    }
     return bound.getEndToken();
   }
 

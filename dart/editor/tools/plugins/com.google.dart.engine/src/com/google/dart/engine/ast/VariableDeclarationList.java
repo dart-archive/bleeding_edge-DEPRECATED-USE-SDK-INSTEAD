@@ -83,10 +83,7 @@ public class VariableDeclarationList extends ASTNode {
 
   @Override
   public Token getEndToken() {
-    if (type != null) {
-      return type.getEndToken();
-    }
-    return keyword;
+    return variables.getEndToken();
   }
 
   /**

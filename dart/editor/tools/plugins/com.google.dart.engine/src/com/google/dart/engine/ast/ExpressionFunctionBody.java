@@ -72,7 +72,10 @@ public class ExpressionFunctionBody extends FunctionBody {
 
   @Override
   public Token getEndToken() {
-    return semicolon;
+    if (semicolon != null) {
+      return semicolon;
+    }
+    return expression.getEndToken();
   }
 
   /**

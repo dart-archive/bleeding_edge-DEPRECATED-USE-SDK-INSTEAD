@@ -3017,6 +3017,9 @@ public class Parser {
       labels.add(0, new Label(label, colon));
     }
     Statement statement = parseNonLabeledStatement();
+    if (labels.isEmpty()) {
+      return statement;
+    }
     return new LabeledStatement(labels, statement);
   }
 

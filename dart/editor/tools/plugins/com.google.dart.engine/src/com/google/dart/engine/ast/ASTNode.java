@@ -54,7 +54,7 @@ public abstract class ASTNode {
    */
   public int getLength() {
     Token endToken = getEndToken();
-    return endToken.getOffset() + endToken.getLength() - getBeginToken().getOffset() - 1;
+    return endToken.getOffset() + endToken.getLength() - getBeginToken().getOffset();
   }
 
   /**

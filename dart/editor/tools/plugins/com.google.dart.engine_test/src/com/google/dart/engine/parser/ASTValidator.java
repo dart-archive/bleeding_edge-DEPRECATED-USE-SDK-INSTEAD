@@ -14,6 +14,8 @@
 package com.google.dart.engine.parser;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.Comment;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 
 import junit.framework.Assert;
@@ -59,8 +61,14 @@ public class ASTValidator extends GeneralizingASTVisitor<Void> {
    */
   private void validate(ASTNode node) {
     ASTNode parent = node.getParent();
-    if (parent == null) {
-      errors.add("No parent for " + node.getClass().getName());
+    if (node instanceof CompilationUnit) {
+      if (parent != null) {
+        errors.add("Compilation units should not have a parent");
+      }
+    } else {
+      if (parent == null) {
+        errors.add("No parent for " + node.getClass().getName());
+      }
     }
 
     int nodeStart = node.getOffset();
@@ -69,11 +77,13 @@ public class ASTValidator extends GeneralizingASTVisitor<Void> {
       errors.add("No source info for " + node.getClass().getName());
     }
 
-    if (parent != null) {
+    if (parent != null && !(node instanceof Comment)) {
+      // TODO(brianwilkerson) Declarations do not currently include documentation comments in their
+      // source range. Should they?
       int nodeEnd = nodeStart + nodeLength;
       int parentStart = parent.getOffset();
       int parentEnd = parentStart + parent.getLength();
-      if (parentStart > nodeStart) {
+      if (nodeStart < parentStart) {
         errors.add("Invalid source start (" + nodeStart + ") for " + node.getClass().getName()
             + " inside " + parent.getClass().getName() + " (" + parentStart + ")");
       }

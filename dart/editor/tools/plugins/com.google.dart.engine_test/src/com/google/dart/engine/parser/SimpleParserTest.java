@@ -2314,9 +2314,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseStatement_noLabels() throws Exception {
-    LabeledStatement statement = parse("parseStatement", "return x;");
-    assertSize(0, statement.getLabels());
-    assertNotNull(statement.getStatement());
+    parse("parseStatement", "return x;");
   }
 
   public void test_parseStatement_singleLabel() throws Exception {
