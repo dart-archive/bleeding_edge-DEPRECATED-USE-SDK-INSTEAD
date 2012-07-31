@@ -8,7 +8,7 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "123970",
+  "webkit_revision": "124075",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
@@ -46,22 +46,22 @@ vars = {
   "nacl_toolchain_revision": "9170",
   "pnacl_toolchain_revision": "9213",
 
-  "libjingle_revision": "161",
+  "libjingle_revision": "163",
   "libphonenumber_revision": "456",
   "libvpx_revision": "147803",
   "lss_revision": "11",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "142289",
-  "ffmpeg_hash": "23f177366e3bce3a628a7d3feedceed4e18dcc04",
+  "ffmpeg_revision": "148611",
+  "ffmpeg_hash": "4287c0271f399b98eb6851e6e650098f26b8c3c2",
 
   "sfntly_revision": "134",
-  "skia_revision": "4780",
+  "skia_revision": "4834",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "12191",
+  "v8_revision": "12227",
   "webrtc_revision": "2529",
   "jsoncpp_revision": "248",
   "nss_revision": "145873",
@@ -90,7 +90,7 @@ deps = {
     (Var("googlecode_url") % "angleproject") + "/trunk@1243",
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@99",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@89",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -116,7 +116,7 @@ deps = {
 
   "src/third_party/cacheinvalidation/files/src/google":
     (Var("googlecode_url") % "google-cache-invalidation-api") +
-    "/trunk/src/google@218",
+    "/trunk/src/google@219",
 
   "src/third_party/leveldatabase/src":
     (Var("googlecode_url") % "leveldb") + "/trunk@67",
@@ -128,7 +128,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@63",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1440",
+    (Var("googlecode_url") % "gyp") + "/trunk@1441",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -466,7 +466,7 @@ deps_os = {
     # For Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@da5b4f13d8f80f70909d474f1b6814df1a97302d",
+      "@715c98d7d0ca9a1f0576fca77cb4a49498d303ae",
   },
   "android": {
     "src/third_party/freetype":
@@ -475,6 +475,10 @@ deps_os = {
 
     "src/third_party/aosp":
       "/trunk/deps/third_party/aosp@148330",
+
+    "src/third_party/android_tools":
+      Var("chromium_git") + "/android_tools.git" +
+      "@21f9993b4ce955f1af6a88e5dc1135ba645920a7",
   },
 }
 
