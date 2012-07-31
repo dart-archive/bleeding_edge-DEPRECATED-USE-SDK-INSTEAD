@@ -41,8 +41,9 @@ public class UnIgnoreResourceHandler extends AbstractHandler {
           IResource resource = AdapterUtilities.getAdapter(elem, IResource.class);
           if (resource != null) {
             DartModelManager.getInstance().removeFromIgnores(resource);
-            SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(
-                resource.getLocation().toFile());
+            SystemLibraryManagerProvider.getDefaultAnalysisServer().scan(
+                resource.getLocation().toFile(),
+                true);
           }
         }
       } catch (Throwable th) {

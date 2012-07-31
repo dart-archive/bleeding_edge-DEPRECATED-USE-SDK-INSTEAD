@@ -136,9 +136,9 @@
             <enablement></enablement>
          </commonWizard>
          <triggerPoints>
-            <adapt type="org.eclipse.core.resources.IProject">
-               <test property="org.eclipse.core.resources.projectNature" value="com.google.dart.tools.core.dartNature"/>
-            </adapt>
+            <test
+                  property="com.google.dart.tools.core.expressions.isAnalyzable">
+            </test>
         </triggerPoints>
       </navigatorContent>
    </extension>

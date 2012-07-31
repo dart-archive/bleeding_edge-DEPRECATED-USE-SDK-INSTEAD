@@ -40,13 +40,6 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
 
   private final WorkbenchLabelProvider workbenchLabelProvider = new WorkbenchLabelProvider();
 
-  /**
-   * Create a provider instance.
-   */
-  ResourceLabelProvider() {
-
-  }
-
   @Override
   public void addListener(ILabelProviderListener listener) {
     workbenchLabelProvider.addListener(listener);

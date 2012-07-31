@@ -53,5 +53,4 @@ public class IgnoreResourceHandler extends AbstractHandler {
 
     return null;
   }
-
 }

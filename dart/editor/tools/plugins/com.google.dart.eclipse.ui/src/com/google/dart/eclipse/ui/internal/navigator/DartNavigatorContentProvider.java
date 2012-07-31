@@ -13,20 +13,32 @@
  */
 package com.google.dart.eclipse.ui.internal.navigator;
 
+import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.model.DartIgnoreListener;
+
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.navigator.ICommonContentExtensionSite;
 import org.eclipse.ui.navigator.ICommonContentProvider;
+import org.eclipse.ui.navigator.INavigatorContentService;
 
 /**
  * CNF navigator content provider for dart elements.
  */
 public class DartNavigatorContentProvider implements ICommonContentProvider {
 
-  private static Object[] NONE = new Object[0];
+  private static final Object[] NONE = new Object[0];
+
+  /**
+   * Used to refresh navigator content when ignores are updated.
+   */
+  private DartIgnoreListener dartIgnoreListener;
 
   @Override
   public void dispose() {
+    if (dartIgnoreListener != null) {
+      DartModelManager.getInstance().removeIgnoreListener(dartIgnoreListener);
+    }
   }
 
   @Override
@@ -50,7 +62,17 @@ public class DartNavigatorContentProvider implements ICommonContentProvider {
   }
 
   @Override
-  public void init(ICommonContentExtensionSite aConfig) {
+  public void init(ICommonContentExtensionSite config) {
+
+    final INavigatorContentService contentService = config.getService();
+    dartIgnoreListener = new DartIgnoreListener() {
+      @Override
+      public void ignoresChanged() {
+        contentService.update();
+      }
+    };
+
+    DartModelManager.getInstance().addIgnoreListener(dartIgnoreListener);
   }
 
   @Override

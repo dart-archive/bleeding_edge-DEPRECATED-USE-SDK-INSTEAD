@@ -13,18 +13,34 @@
  */
 package com.google.dart.eclipse.ui.internal.navigator;
 
+import com.google.dart.tools.ui.internal.filesview.ResourceLabelProvider;
+
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
+import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IMemento;
-import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.navigator.ICommonContentExtensionSite;
 import org.eclipse.ui.navigator.ICommonLabelProvider;
 
 /**
  * CNF navigator label provider for dart elements.
  */
-public class DartNavigatorLabelProvider extends WorkbenchLabelProvider implements
-    ICommonLabelProvider, IStyledLabelProvider {
+public class DartNavigatorLabelProvider extends LabelProvider implements ICommonLabelProvider,
+    IStyledLabelProvider {
+
+  private final ResourceLabelProvider resourceLabelProvider = new ResourceLabelProvider();
+
+  @Override
+  public void addListener(ILabelProviderListener listener) {
+    resourceLabelProvider.addListener(listener);
+  }
+
+  @Override
+  public void dispose() {
+    resourceLabelProvider.dispose();
+  }
 
   @Override
   public String getDescription(Object elem) {
@@ -33,9 +49,18 @@ public class DartNavigatorLabelProvider extends WorkbenchLabelProvider implement
   }
 
   @Override
+  public final Image getImage(Object element) {
+    return resourceLabelProvider.getImage(element);
+  }
+
+  @Override
   public StyledString getStyledText(Object element) {
-    //TODO(pquitslund): add "ignored" resource styling
-    return super.getStyledText(element);
+    return resourceLabelProvider.getStyledText(element);
+  }
+
+  @Override
+  public String getText(Object element) {
+    return resourceLabelProvider.getText(element);
   }
 
   @Override
@@ -43,11 +68,21 @@ public class DartNavigatorLabelProvider extends WorkbenchLabelProvider implement
   }
 
   @Override
-  public void restoreState(IMemento aMemento) {
+  public boolean isLabelProperty(Object element, String property) {
+    return resourceLabelProvider.isLabelProperty(element, property);
   }
 
   @Override
-  public void saveState(IMemento aMemento) {
+  public void removeListener(ILabelProviderListener listener) {
+    resourceLabelProvider.removeListener(listener);
+  }
+
+  @Override
+  public void restoreState(IMemento memento) {
+  }
+
+  @Override
+  public void saveState(IMemento memento) {
   }
 
 }
