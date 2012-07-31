@@ -42,6 +42,11 @@ public class GatheringErrorListener implements AnalysisErrorListener {
   private HashMap<Source, LineInfo> lineInfoMap = new HashMap<Source, LineInfo>();
 
   /**
+   * An empty array of errors used when no errors are expected.
+   */
+  private static final AnalysisError[] NO_ERRORS = new AnalysisError[0];
+
+  /**
    * Initialize a newly created error listener to collect errors.
    */
   public GatheringErrorListener() {
@@ -197,7 +202,7 @@ public class GatheringErrorListener implements AnalysisErrorListener {
    * @throws AssertionFailedError if any errors have been gathered
    */
   public void assertNoErrors() {
-    Assert.assertEquals(0, errors.size());
+    assertErrors(NO_ERRORS);
   }
 
   /**
