@@ -2379,23 +2379,23 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseSwitchStatement_case() throws Exception {
     SwitchStatement statement = parse("parseSwitchStatement", "switch (a) {case 1: return '1';}");
-    assertNotNull(statement.getExpression());
     assertNotNull(statement.getKeyword());
-    assertNotNull(statement.getLeftBracket());
     assertNotNull(statement.getLeftParenthesis());
+    assertNotNull(statement.getExpression());
+    assertNotNull(statement.getRightParenthesis());
+    assertNotNull(statement.getLeftBracket());
     assertSize(1, statement.getMembers());
-    assertNotNull(statement.getRightBracket());
     assertNotNull(statement.getRightBracket());
   }
 
   public void test_parseSwitchStatement_empty() throws Exception {
     SwitchStatement statement = parse("parseSwitchStatement", "switch (a) {}");
-    assertNotNull(statement.getExpression());
     assertNotNull(statement.getKeyword());
-    assertNotNull(statement.getLeftBracket());
     assertNotNull(statement.getLeftParenthesis());
+    assertNotNull(statement.getExpression());
+    assertNotNull(statement.getRightParenthesis());
+    assertNotNull(statement.getLeftBracket());
     assertSize(0, statement.getMembers());
-    assertNotNull(statement.getRightBracket());
     assertNotNull(statement.getRightBracket());
   }
 
