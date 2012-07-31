@@ -158,6 +158,7 @@ public class RenameLocalFunctionProcessor extends DartRenameProcessor {
       references = RenameAnalyzeUtil.getReferences(function, new SubProgressMonitor(pm, 3));
       pm.setTaskName(RefactoringCoreMessages.RenameProcessor_checking);
       // check for possible conflicts
+      result.merge(RenameAnalyzeUtil.checkReferencesSource(references, oldName));
       result.merge(analyzePossibleConflicts(new SubProgressMonitor(pm, 10)));
       // OK, create changes
       createChanges(new SubProgressMonitor(pm, 5));

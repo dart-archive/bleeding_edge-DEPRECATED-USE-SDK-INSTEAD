@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.refactoring;
 
+import com.google.common.collect.ImmutableList;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
@@ -23,8 +24,10 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.core.search.MatchQuality;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.test.util.TestProject;
+import com.google.dart.tools.internal.corext.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.rename.FunctionLocalElement;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 
@@ -61,6 +64,34 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
       Type type = findElement("A {}");
       RefactoringStatus status = RenameAnalyzeUtil.checkLocalElement(type);
       assertTrue(status.isOK());
+    }
+  }
+
+  /**
+   * Test for {@link RenameAnalyzeUtil#checkReferencesSource(List, String)}.
+   */
+  public void test_checkReferencesSource() throws Exception {
+    CompilationUnit unit = setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {}",
+        "");
+    Type type = findElement("Test ");
+    // OK
+    {
+      RefactoringStatus status = RenameAnalyzeUtil.checkReferencesSource(
+          ImmutableList.of(new SearchMatch(MatchQuality.EXACT, unit, type.getNameRange())),
+          "Test");
+      assertTrue(status.isOK());
+    }
+    // bad range
+    {
+      RefactoringStatus status = RenameAnalyzeUtil.checkReferencesSource(
+          ImmutableList.of(new SearchMatch(
+              MatchQuality.EXACT,
+              unit,
+              SourceRangeFactory.forStartLength(0, 4))),
+          "Test");
+      assertTrue(status.hasFatalError());
     }
   }
 

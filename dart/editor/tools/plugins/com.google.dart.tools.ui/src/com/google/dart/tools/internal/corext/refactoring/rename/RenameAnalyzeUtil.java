@@ -25,6 +25,7 @@ import com.google.dart.compiler.resolver.TypeVariableElement;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
+import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
@@ -110,6 +111,35 @@ public class RenameAnalyzeUtil {
               RenameAnalyzeUtil.getElementTypeName(element), libraryName,
               BasicElementLabels.getPathLabel(elementPath, true)});
       return RefactoringStatus.createErrorStatus(message);
+    }
+    return new RefactoringStatus();
+  }
+
+  /**
+   * Checks that all references have expected source, or returns fatal {@link RefactoringStatus}.
+   */
+  public static RefactoringStatus checkReferencesSource(List<SearchMatch> references,
+      String expectedSource) throws DartModelException {
+    expectedSource = expectedSource == null ? "" : expectedSource;
+    for (SearchMatch reference : references) {
+      DartElement element = reference.getElement();
+      if (element != null) {
+        CompilationUnit unit = element.getAncestor(CompilationUnit.class);
+        if (unit != null) {
+          SourceRange range = reference.getSourceRange();
+          String referenceSource = StringUtils.substring(
+              unit.getSource(),
+              range.getOffset(),
+              SourceRangeUtils.getEnd(range));
+          if (!referenceSource.equals(expectedSource)) {
+            return RefactoringStatus.createFatalErrorStatus(
+                Messages.format(
+                    RefactoringCoreMessages.RenameProcessor_invalidReference,
+                    new Object[] {expectedSource, referenceSource}),
+                DartStatusContext.create(reference));
+          }
+        }
+      }
     }
     return new RefactoringStatus();
   }

@@ -194,6 +194,7 @@ public class TestProject {
     {
       AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
       File javaFile = file.getLocation().toFile();
+      server.analyze(javaFile);
       server.changed(javaFile);
     }
     // done

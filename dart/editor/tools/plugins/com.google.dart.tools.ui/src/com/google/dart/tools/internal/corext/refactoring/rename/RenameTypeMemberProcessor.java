@@ -393,6 +393,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
       prepareReferences(new SubProgressMonitor(pm, 3));
       pm.setTaskName(RefactoringCoreMessages.RenameProcessor_checking);
       // analyze affected units (such as warn about existing compilation errors)
+      result.merge(RenameAnalyzeUtil.checkReferencesSource(references, oldName));
       result.merge(analyzeAffectedCompilationUnits());
       // check for possible conflicts
       result.merge(analyzePossibleConflicts(new SubProgressMonitor(pm, 10)));
