@@ -16,6 +16,7 @@ package com.google.dart.engine.parser;
 import com.google.dart.engine.ast.*;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.scanner.BeginToken;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.StringScanner;
@@ -309,6 +310,34 @@ public class Parser {
     Token token = currentToken;
     advance();
     return token;
+  }
+
+  /**
+   * Return {@code true} if the current token appears to be the beginning of a function expression.
+   * 
+   * @return {@code true} if the current token appears to be the beginning of a function expression
+   */
+  private boolean isFunctionExpression() {
+    if (matches(Keyword.VOID)) {
+      return true;
+    }
+    Token lookAhead = currentToken;
+    if (lookAhead.getType() == TokenType.IDENTIFIER) {
+      // TODO(brianwilkerson) This handles the optional name, but doesn't handle the optional return type.
+      lookAhead = lookAhead.getNext();
+    }
+    if (lookAhead.getType() == TokenType.OPEN_PAREN) {
+      Token openParen = lookAhead;
+      if (openParen instanceof BeginToken) {
+        Token closeParen = ((BeginToken) openParen).getEndToken();
+        if (closeParen != null) {
+          Token next = closeParen.getNext();
+          return next.getType() == TokenType.OPEN_CURLY_BRACKET
+              || next.getType() == TokenType.FUNCTION;
+        }
+      }
+    }
+    return false;
   }
 
   /**
@@ -749,33 +778,17 @@ public class Parser {
   private Block parseBlock() {
     Token leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
     List<Statement> statements = new ArrayList<Statement>();
+    Token statementStart = currentToken;
     while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)) {
       statements.add(parseStatement());
+      if (currentToken == statementStart) {
+        reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
+        advance();
+      }
+      statementStart = currentToken;
     }
     Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
     return new Block(leftBracket, statements, rightBracket);
-  }
-
-  /**
-   * Parse a boolean literal.
-   * 
-   * <pre>
-   * booleanLiteral ::=
-   *    'false'
-   *  | 'true'
-   * </pre>
-   * 
-   * @return the boolean literal that was parsed
-   */
-  private BooleanLiteral parseBooleanLiteral() {
-    if (matches(Keyword.FALSE)) {
-      return new BooleanLiteral(getAndAdvance(), false);
-    } else if (matches(Keyword.TRUE)) {
-      return new BooleanLiteral(getAndAdvance(), true);
-    }
-    // Expected a boolean literal
-    // reportError(ParserErrorCode.?));
-    return null;
   }
 
   /**
@@ -828,7 +841,7 @@ public class Parser {
       Token rightBracket = expect(TokenType.CLOSE_SQUARE_BRACKET);
       expression = new ArrayAccess(expression, leftBracket, index, rightBracket);
     } else {
-      reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken.getLexeme());
+      reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
       return expression;
     }
     if (currentToken.getType() == TokenType.OPEN_PAREN) {
@@ -895,9 +908,15 @@ public class Parser {
     }
     Token leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
     List<ClassMember> members = new ArrayList<ClassMember>();
+    Token memberStart = currentToken;
     while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)
         && !matches(Keyword.CLASS)) {
       members.add(parseClassMember());
+      if (currentToken == memberStart) {
+        reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
+        advance();
+      }
+      memberStart = currentToken;
     }
     Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
     return new ClassDeclaration(
@@ -1106,6 +1125,7 @@ public class Parser {
     boolean errorGenerated = false;
     List<Directive> directives = new ArrayList<Directive>();
     List<CompilationUnitMember> declarations = new ArrayList<CompilationUnitMember>();
+    Token memberStart = currentToken;
     while (!matches(TokenType.EOF)) {
       if (matches(IMPORT) || matches(LIBRARY) || matches(PART) || matches(RESOURCE)) {
         if (declarationFound && !errorGenerated) {
@@ -1128,6 +1148,11 @@ public class Parser {
         declarations.add(parseCompilationUnitMember());
         declarationFound = true;
       }
+      if (currentToken == memberStart) {
+        reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
+        advance();
+      }
+      memberStart = currentToken;
     }
     // Check the order of the directives.
     // reportError(ParserErrorCode.?));
@@ -1762,18 +1787,24 @@ public class Parser {
         initialization = parseExpression();
       }
       if (matches(Keyword.IN)) {
-        NodeList<VariableDeclaration> variables = variableList.getVariables();
-        if (variables.size() > 1) {
+        SimpleFormalParameter loopParameter = null;
+        if (variableList == null) {
+          // We found: expression 'in'
           // reportError(ParserErrorCode.?);
+        } else {
+          NodeList<VariableDeclaration> variables = variableList.getVariables();
+          if (variables.size() > 1) {
+            // reportError(ParserErrorCode.?);
+          }
+          VariableDeclaration variable = variables.get(0);
+          if (variable.getInitializer() != null) {
+            // reportError(ParserErrorCode.?);
+          }
+          loopParameter = new SimpleFormalParameter(
+              variableList.getKeyword(),
+              variableList.getType(),
+              variable.getName());
         }
-        VariableDeclaration variable = variables.get(0);
-        if (variable.getInitializer() != null) {
-          // reportError(ParserErrorCode.?);
-        }
-        SimpleFormalParameter loopParameter = new SimpleFormalParameter(
-            variableList.getKeyword(),
-            variableList.getType(),
-            variable.getName());
         Token inKeyword = expect(Keyword.IN);
         Expression iterator = parseExpression();
         Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
@@ -1880,6 +1911,22 @@ public class Parser {
   }
 
   /**
+   * Parse a function declaration statement.
+   * 
+   * <pre>
+   * functionDeclarationStatement ::=
+   *     functionSignature functionBody
+   * </pre>
+   * 
+   * @return the function declaration statement that was parsed
+   */
+  private Statement parseFunctionDeclarationStatement() {
+    return new FunctionDeclarationStatement(parseFunctionDeclaration(
+        parseDocumentationComment(),
+        parseReturnType()));
+  }
+
+  /**
    * Parse a function expression.
    * 
    * <pre>
@@ -1928,6 +1975,11 @@ public class Parser {
   private MethodDeclaration parseGetter(Comment comment, Token staticKeyword, TypeName returnType) {
     Token propertyKeyword = expect(Keyword.GET);
     SimpleIdentifier name = parseSimpleIdentifier();
+    if (matches(TokenType.OPEN_PAREN) && peekMatches(TokenType.CLOSE_PAREN)) {
+      // reportError(ParserErrorCode.GETTER_WITH_PARAMETERS);
+      advance();
+      advance();
+    }
     FunctionBody body = parseFunctionBody(true, false);
     return new MethodDeclaration(
         comment,
@@ -2345,7 +2397,7 @@ public class Parser {
         // reportError(ParserErrorCode.?);
       }
       SimpleIdentifier realReturnType = null;
-      if (returnType.getName() instanceof SimpleIdentifier) {
+      if (returnType != null && returnType.getName() instanceof SimpleIdentifier) {
         realReturnType = (SimpleIdentifier) returnType.getName();
       } else {
         // reportError(ParserErrorCode.?);
@@ -2363,12 +2415,15 @@ public class Parser {
         // reportError(ParserErrorCode.?);
       }
       SimpleIdentifier realReturnType = null;
-      if (returnType.getName() instanceof SimpleIdentifier) {
+      if (returnType == null) {
+        realReturnType = name;
+        name = null;
+      } else if (returnType.getName() instanceof SimpleIdentifier) {
         realReturnType = (SimpleIdentifier) returnType.getName();
       } else {
         // reportError(ParserErrorCode.?);
       }
-      return parseConstructor(comment, null, realReturnType, null, null, parameters);
+      return parseConstructor(comment, null, realReturnType, null, name, parameters);
     }
     FunctionBody body = parseFunctionBody(staticKeyword == null, false);
     return new MethodDeclaration(
@@ -2447,6 +2502,12 @@ public class Parser {
    */
   private Statement parseNonLabeledStatement() {
     if (matches(TokenType.OPEN_CURLY_BRACKET)) {
+      if (peekMatches(TokenType.STRING)) {
+        Token afterString = skipStringLiteral(currentToken.getNext());
+        if (afterString != null && afterString.getType() == TokenType.COLON) {
+          return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
+        }
+      }
       return parseBlock();
     } else if (matches(TokenType.KEYWORD)) {
       Keyword keyword = ((KeywordToken) currentToken).getKeyword();
@@ -2472,6 +2533,10 @@ public class Parser {
         return parseWhileStatement();
       } else if (keyword == Keyword.VAR || keyword == Keyword.FINAL || keyword == Keyword.CONST) {
         return parseVariableDeclarationStatement();
+      } else if (keyword == Keyword.VOID) {
+        return parseFunctionDeclarationStatement();
+      } else if (keyword == Keyword.CONST || keyword == Keyword.NEW) {
+        return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
       } else {
         // Expected a statement
         // reportError(ParserErrorCode.?));
@@ -2481,6 +2546,8 @@ public class Parser {
       return parseEmptyStatement();
     } else if (isInitializedVariableDeclaration()) {
       return parseVariableDeclarationStatement();
+    } else if (isFunctionExpression()) {
+      return new ExpressionStatement(parseFunctionExpression(), expect(TokenType.SEMICOLON));
     } else {
       return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
     }
@@ -2683,13 +2750,31 @@ public class Parser {
       return new BooleanLiteral(getAndAdvance(), true);
     } else if (matches(TokenType.DOUBLE)) {
       Token token = getAndAdvance();
-      return new DoubleLiteral(token, Double.parseDouble(token.getLexeme()));
+      double value = 0.0d;
+      try {
+        value = Double.parseDouble(token.getLexeme());
+      } catch (NumberFormatException exception) {
+        // The invalid format should have been reported by the scanner.
+      }
+      return new DoubleLiteral(token, value);
     } else if (matches(TokenType.HEXADECIMAL)) {
       Token token = getAndAdvance();
-      return new IntegerLiteral(token, new BigInteger(token.getLexeme().substring(2), 16));
+      BigInteger value = null;
+      try {
+        value = new BigInteger(token.getLexeme().substring(2), 16);
+      } catch (NumberFormatException exception) {
+        // The invalid format should have been reported by the scanner.
+      }
+      return new IntegerLiteral(token, value);
     } else if (matches(TokenType.INT)) {
       Token token = getAndAdvance();
-      return new IntegerLiteral(token, new BigInteger(token.getLexeme()));
+      BigInteger value = null;
+      try {
+        value = new BigInteger(token.getLexeme());
+      } catch (NumberFormatException exception) {
+        // The invalid format should have been reported by the scanner.
+      }
+      return new IntegerLiteral(token, value);
     } else if (matches(TokenType.STRING)) {
       return parseStringLiteral();
     } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
@@ -2703,6 +2788,9 @@ public class Parser {
     } else if (matches(Keyword.CONST)) {
       return parseConstExpression();
     } else if (matches(TokenType.OPEN_PAREN)) {
+      if (isFunctionExpression()) {
+        return parseFunctionExpression();
+      }
       Token leftParenthesis = getAndAdvance();
       Expression expression = parseExpression();
       Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
@@ -2710,8 +2798,6 @@ public class Parser {
     } else if (matches(TokenType.LT)) {
       return parseListOrMapLiteral(null);
     } else {
-      // TODO The function expression case is not tested for and never reached.
-      //return parseFunctionExpression();
       return createSyntheticSimpleIdentifier();
     }
   }
@@ -2854,7 +2940,6 @@ public class Parser {
   private MethodDeclaration parseSetter(Comment comment, Token staticKeyword, TypeName returnType) {
     Token propertyKeyword = expect(Keyword.SET);
     SimpleIdentifier name = parseSimpleIdentifier();
-    expect(TokenType.EQ);
     FormalParameterList parameters = parseFormalParameterList();
     FunctionBody body = parseFunctionBody(true, false);
     return new MethodDeclaration(
@@ -2947,10 +3032,16 @@ public class Parser {
    */
   private ArrayList<Statement> parseStatements() {
     ArrayList<Statement> statements = new ArrayList<Statement>();
+    Token statementStart = currentToken;
     while (!matches(TokenType.EOF) && !matches(Keyword.CASE) && !matches(Keyword.DEFAULT)
         && !matches(TokenType.CLOSE_CURLY_BRACKET)
         && !(matches(TokenType.IDENTIFIER) && peekMatches(TokenType.COLON))) {
       statements.add(parseStatement());
+      if (currentToken == statementStart) {
+        reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
+        advance();
+      }
+      statementStart = currentToken;
     }
     return statements;
   }
@@ -3542,6 +3633,98 @@ public class Parser {
         token.getLength(),
         errorCode,
         arguments));
+  }
+
+  /**
+   * Parse a string literal that contains interpolations, starting at the given token, without
+   * actually creating a string literal or changing the current token. Return the token following
+   * the string literal that was parsed, or {@code null} if the given token is not the first token
+   * in a valid string literal.
+   * <p>
+   * This method must be kept in sync with {@link #parseStringInterpolation(Token)}.
+   * 
+   * @param startToken the token at which parsing is to begin
+   * @return the string literal that was parsed
+   */
+  private Token skipStringInterpolation(Token startToken) {
+    Token token = startToken;
+    TokenType type = token.getType();
+    while (type == TokenType.STRING_INTERPOLATION_EXPRESSION
+        || type == TokenType.STRING_INTERPOLATION_IDENTIFIER) {
+      if (type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
+        token = token.getNext();
+        type = token.getType();
+        //
+        // Rather than verify that the following tokens represent a valid expression, we simply skip
+        // tokens until we reach the end of the interpolation, being careful to handle nested string
+        // literals.
+        //
+        int bracketNestingLevel = 1;
+        while (bracketNestingLevel > 0) {
+          if (type == TokenType.EOF) {
+            return null;
+          } else if (type == TokenType.OPEN_CURLY_BRACKET) {
+            bracketNestingLevel++;
+          } else if (type == TokenType.CLOSE_CURLY_BRACKET) {
+            bracketNestingLevel--;
+          } else if (type == TokenType.STRING) {
+            token = skipStringLiteral(token);
+            if (token == null) {
+              return null;
+            }
+          } else {
+            token = token.getNext();
+          }
+          type = token.getType();
+        }
+        token = token.getNext();
+        type = token.getType();
+      } else {
+        token = token.getNext();
+        if (token.getType() != TokenType.IDENTIFIER) {
+          return null;
+        }
+        token = token.getNext();
+      }
+      type = token.getType();
+      if (type == TokenType.STRING) {
+        token = token.getNext();
+        type = token.getType();
+      }
+    }
+    return token;
+  }
+
+  /**
+   * Parse a string literal, starting at the given token, without actually creating a string literal
+   * or changing the current token. Return the token following the string literal that was parsed,
+   * or {@code null} if the given token is not the first token in a valid string literal.
+   * <p>
+   * This method must be kept in sync with {@link #parseStringLiteral()}.
+   * 
+   * <pre>
+   * stringLiteral ::=
+   *     MULTI_LINE_STRING+
+   *   | SINGLE_LINE_STRING+
+   * </pre>
+   * 
+   * @param startToken the token at which parsing is to begin
+   * @return the token following the string literal that was parsed
+   */
+  private Token skipStringLiteral(Token startToken) {
+    Token token = startToken;
+    while (token != null && token.getType() == TokenType.STRING) {
+      token = token.getNext();
+      TokenType type = token.getType();
+      if (type == TokenType.STRING_INTERPOLATION_EXPRESSION
+          || type == TokenType.STRING_INTERPOLATION_IDENTIFIER) {
+        token = skipStringInterpolation(token);
+      }
+    }
+    if (token == startToken) {
+      return null;
+    }
+    return token;
   }
 
   /**

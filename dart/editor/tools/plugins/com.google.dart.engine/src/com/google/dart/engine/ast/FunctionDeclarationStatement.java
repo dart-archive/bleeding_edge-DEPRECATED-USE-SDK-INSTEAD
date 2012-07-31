@@ -16,14 +16,14 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class {@code FunctionDeclarationStatement} wrap a {@link FunctionExpression
- * function expression} as a statement.
+ * Instances of the class {@code FunctionDeclarationStatement} wrap a {@link FunctionDeclaration
+ * function declaration} as a statement.
  */
 public class FunctionDeclarationStatement extends Statement {
   /**
-   * The function expression being wrapped.
+   * The function declaration being wrapped.
    */
-  private FunctionExpression functionExpression;
+  private FunctionDeclaration functionDeclaration;
 
   /**
    * Initialize a newly created function declaration statement.
@@ -34,10 +34,10 @@ public class FunctionDeclarationStatement extends Statement {
   /**
    * Initialize a newly created function declaration statement.
    * 
-   * @param functionExpression the the function expression being wrapped
+   * @param functionDeclaration the the function declaration being wrapped
    */
-  public FunctionDeclarationStatement(FunctionExpression functionExpression) {
-    this.functionExpression = becomeParentOf(functionExpression);
+  public FunctionDeclarationStatement(FunctionDeclaration functionDeclaration) {
+    this.functionDeclaration = becomeParentOf(functionDeclaration);
   }
 
   @Override
@@ -47,34 +47,34 @@ public class FunctionDeclarationStatement extends Statement {
 
   @Override
   public Token getBeginToken() {
-    return functionExpression.getBeginToken();
+    return functionDeclaration.getBeginToken();
   }
 
   @Override
   public Token getEndToken() {
-    return functionExpression.getEndToken();
+    return functionDeclaration.getEndToken();
   }
 
   /**
-   * Return the function expression being wrapped.
+   * Return the function declaration being wrapped.
    * 
-   * @return the function expression being wrapped
+   * @return the function declaration being wrapped
    */
-  public FunctionExpression getFunctionExpression() {
-    return functionExpression;
+  public FunctionDeclaration getFunctionDeclaration() {
+    return functionDeclaration;
   }
 
   /**
-   * Set the function expression being wrapped to the given function expression.
+   * Set the function declaration being wrapped to the given function declaration.
    * 
-   * @param functionExpression the function expression being wrapped
+   * @param functionDeclaration the function declaration being wrapped
    */
-  public void setFunctionExpression(FunctionExpression functionExpression) {
-    functionExpression = becomeParentOf(functionExpression);
+  public void setFunctionExpression(FunctionDeclaration functionDeclaration) {
+    this.functionDeclaration = becomeParentOf(functionDeclaration);
   }
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(functionExpression, visitor);
+    safelyVisitChild(functionDeclaration, visitor);
   }
 }

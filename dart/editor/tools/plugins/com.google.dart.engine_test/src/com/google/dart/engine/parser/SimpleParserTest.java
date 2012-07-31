@@ -31,6 +31,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
+import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.DoubleLiteral;
@@ -38,12 +39,14 @@ import com.google.dart.engine.ast.EmptyFunctionBody;
 import com.google.dart.engine.ast.EmptyStatement;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
+import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionDeclarationStatement;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.IfStatement;
@@ -102,9 +105,12 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
+import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+
+import junit.framework.AssertionFailedError;
 
 import java.lang.reflect.Method;
 import java.math.BigInteger;
@@ -129,20 +135,35 @@ public class SimpleParserTest extends ParserTestCase {
 //    ASTNode expression = parse("parseExpressionWithoutCascade", "");
 //  }
 
-  public void fail_parsePrimaryExpression_function_arguments() throws Exception {
-    FunctionExpression expression = parse("parsePrimaryExpression", "(int i) => i + 1");
-    assertNull(expression.getReturnType());
-    assertNull(expression.getName());
-    assertNotNull(expression.getParameters());
-    assertNotNull(expression.getBody());
-  }
-
-  public void fail_parsePrimaryExpression_function_noArguments() throws Exception {
-    FunctionExpression expression = parse("parsePrimaryExpression", "() => 42");
-    assertNull(expression.getReturnType());
-    assertNull(expression.getName());
-    assertNotNull(expression.getParameters());
-    assertNotNull(expression.getBody());
+  /**
+   * Invoke a "skip" method in {@link Parser}. The method is assumed to take a token as it's
+   * parameter and is given the first token in the scanned source.
+   * 
+   * @param methodName the name of the method that should be invoked
+   * @param source the source to be processed by the method
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   * @throws AssertionFailedError if the result is {@code null}
+   */
+  protected static Token skip(String methodName, String source) throws Exception {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    //
+    // Scan the source.
+    //
+    StringScanner scanner = new StringScanner(null, source, listener);
+    Token tokenStream = scanner.tokenize();
+    //
+    // Parse the source.
+    //
+    Parser parser = new Parser(null, listener);
+    Method skipMethod = Parser.class.getDeclaredMethod(methodName, new Class[] {Token.class});
+    skipMethod.setAccessible(true);
+    Object result = skipMethod.invoke(parser, new Object[] {tokenStream});
+    //
+    // Partially test the results.
+    //
+    assertNotNull(result);
+    return (Token) result;
   }
 
   public void test_computeStringValue_escape_b() throws Exception {
@@ -468,18 +489,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(block.getRightBracket());
   }
 
-  public void test_parseBooleanLiteral_false() throws Exception {
-    BooleanLiteral literal = parse("parseBooleanLiteral", "false");
-    assertNotNull(literal.getLiteral());
-    assertEquals(false, literal.getValue());
-  }
-
-  public void test_parseBooleanLiteral_true() throws Exception {
-    BooleanLiteral literal = parse("parseBooleanLiteral", "true");
-    assertNotNull(literal.getLiteral());
-    assertEquals(true, literal.getValue());
-  }
-
   public void test_parseBreakStatement_label() throws Exception {
     BreakStatement statement = parse("parseBreakStatement", "break foo;");
     assertNotNull(statement.getKeyword());
@@ -607,6 +616,22 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(declaration.getRightBracket());
     assertNotNull(declaration.getTypeParameters());
     assertSize(1, declaration.getTypeParameters().getTypeParameters());
+  }
+
+  public void test_parseClassMember() throws Exception {
+    ConstructorDeclaration constructor = parse(
+        "parseClassMember",
+        "A(_, _$, this.__) : _a = _ + _$ {}");
+    assertNotNull(constructor.getBody());
+    assertNotNull(constructor.getColon());
+    assertNull(constructor.getKeyword());
+    assertNull(constructor.getName());
+    assertNotNull(constructor.getParameters());
+    assertNull(constructor.getPeriod());
+    assertNotNull(constructor.getReturnType());
+    NodeList<ConstructorInitializer> initializers = constructor.getInitializers();
+    assertNotNull(initializers);
+    assertEquals(1, initializers.size());
   }
 
   public void test_parseCommentReference_prefixed() throws Exception {
@@ -1473,6 +1498,13 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(declaration.getPropertyKeyword());
   }
 
+  public void test_parseFunctionDeclarationStatement() throws Exception {
+    FunctionDeclarationStatement statement = parse(
+        "parseFunctionDeclarationStatement",
+        "void f(int p) => p * 2");
+    assertNotNull(statement.getFunctionDeclaration());
+  }
+
   public void test_parseFunctionExpression_body_inExpression() throws Exception {
     FunctionExpression expression = parse("parseFunctionExpression", "(int i) => i++");
     assertNotNull(expression.getBody());
@@ -1936,6 +1968,16 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getType());
   }
 
+  public void test_parseNonLabeledStatement_constructorInvocation() throws Exception {
+    ExpressionStatement statement = parse("parseNonLabeledStatement", "new C().m();");
+    assertNotNull(statement.getExpression());
+  }
+
+  public void test_parseNonLabeledStatement_functionInvocation() throws Exception {
+    ExpressionStatement statement = parse("parseNonLabeledStatement", "f();");
+    assertNotNull(statement.getExpression());
+  }
+
   public void test_parseOperator() throws Exception {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
@@ -2014,6 +2056,22 @@ public class SimpleParserTest extends ParserTestCase {
     BooleanLiteral literal = parse("parsePrimaryExpression", "false");
     assertNotNull(literal.getLiteral());
     assertFalse(literal.getValue());
+  }
+
+  public void test_parsePrimaryExpression_function_arguments() throws Exception {
+    FunctionExpression expression = parse("parsePrimaryExpression", "(int i) => i + 1");
+    assertNull(expression.getReturnType());
+    assertNull(expression.getName());
+    assertNotNull(expression.getParameters());
+    assertNotNull(expression.getBody());
+  }
+
+  public void test_parsePrimaryExpression_function_noArguments() throws Exception {
+    FunctionExpression expression = parse("parsePrimaryExpression", "() => 42");
+    assertNull(expression.getReturnType());
+    assertNull(expression.getName());
+    assertNotNull(expression.getParameters());
+    assertNotNull(expression.getBody());
   }
 
   public void test_parsePrimaryExpression_hex() throws Exception {
@@ -2198,7 +2256,7 @@ public class SimpleParserTest extends ParserTestCase {
         "parseSetter",
         new Class[] {Comment.class, Token.class, TypeName.class},
         new Object[] {comment, null, returnType},
-        "set a=(var x);");
+        "set a(var x);");
     assertNotNull(method.getBody());
     assertEquals(comment, method.getDocumentationComment());
     assertNull(method.getModifierKeyword());
@@ -2215,7 +2273,7 @@ public class SimpleParserTest extends ParserTestCase {
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = parse("parseSetter", new Class[] {
         Comment.class, Token.class, TypeName.class}, new Object[] {
-        comment, staticKeyword, returnType}, "set a=(var x);");
+        comment, staticKeyword, returnType}, "set a(var x);");
     assertNotNull(method.getBody());
     assertEquals(comment, method.getDocumentationComment());
     assertEquals(staticKeyword, method.getModifierKeyword());
@@ -2730,6 +2788,21 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getCondition());
     assertNotNull(statement.getRightParenthesis());
     assertNotNull(statement.getBody());
+  }
+
+  public void test_skipStringLiteral_adjacent() throws Exception {
+    Token following = skip("skipStringLiteral", "'a' 'b' +");
+    assertEquals(TokenType.PLUS, following.getType());
+  }
+
+  public void test_skipStringLiteral_interpolated() throws Exception {
+    Token following = skip("skipStringLiteral", "'a${b}c' +");
+    assertEquals(TokenType.PLUS, following.getType());
+  }
+
+  public void test_skipStringLiteral_single() throws Exception {
+    Token following = skip("skipStringLiteral", "'a' +");
+    assertEquals(TokenType.PLUS, following.getType());
   }
 
   /**
