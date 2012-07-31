@@ -14,10 +14,12 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.model.DartIgnoreListener;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ListenerList;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,11 +62,23 @@ public class DartIgnoreManager {
     return new DartIgnoreFile(patternFile).load();
   }
 
+  private final ListenerList listeners = new ListenerList();
+
   /**
    * A list of exclusion patterns that are to be applied to determine which files are not currently
    * being analyzed, or <code>null</code> if the patterns have not yet been read from disk.
    */
   private ArrayList<String> exclusionPatterns;
+
+  /**
+   * Add the given listener for dart ignore changes to the Dart Model. Has no effect if an identical
+   * listener is already registered.
+   * 
+   * @param listener the listener to add
+   */
+  public void addListener(DartIgnoreListener listener) {
+    listeners.add(listener);
+  }
 
   /**
    * Add the specified path to the list of ignores. Callers are responsible for deleting any
@@ -89,6 +103,8 @@ public class DartIgnoreManager {
     ignoreFile.add(absolutePath);
     cacheExclusions(ignoreFile);
     ignoreFile.store();
+
+    notifyListeners();
   }
 
   /**
@@ -144,6 +160,16 @@ public class DartIgnoreManager {
   }
 
   /**
+   * Remove the given listener for dart ignore changes from the Dart Model. Has no effect if an
+   * identical listener is not registered.
+   * 
+   * @param listener the non-<code>null</code> listener to remove
+   */
+  public void removeListener(DartIgnoreListener listener) {
+    listeners.remove(listener);
+  }
+
+  /**
    * Add the path for the given resource to the list of ignores.
    * 
    * @param resource the resource to ignore
@@ -168,6 +194,8 @@ public class DartIgnoreManager {
     ignoreFile.remove(path);
     cacheExclusions(ignoreFile);
     ignoreFile.store();
+
+    notifyListeners();
   }
 
   private void cacheExclusions(DartIgnoreFile ignoreFile) {
@@ -178,4 +206,11 @@ public class DartIgnoreManager {
     }
     exclusionPatterns.addAll(ignoreFile.getPatterns());
   }
+
+  private void notifyListeners() {
+    for (Object listener : listeners.getListeners()) {
+      ((DartIgnoreListener) listener).ignoresChanged();
+    }
+  }
+
 }
