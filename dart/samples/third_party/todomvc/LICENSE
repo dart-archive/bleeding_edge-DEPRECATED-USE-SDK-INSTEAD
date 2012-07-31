@@ -1,0 +1,10 @@
+LICENSE
+-------
+
+All html and css in this directory is public domain, forked from
+https://github.com/addyosmani/todomvc/tree/master/template.
+
+All Dart code is subject to the following:
+Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.

@@ -1,0 +1,5 @@
+TodoMVC
+-------
+
+This directory contains a port of the TodoMVC app (www.todomvc.com) to Dart
+using our webcomponents polyfill.

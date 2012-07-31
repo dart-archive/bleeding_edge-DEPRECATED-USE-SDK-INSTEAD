@@ -68,29 +68,7 @@ class CustomElementsManager {
     // We use a ListMap because DOM objects aren't hashable right now.
     // TODO(samhop): DOM objects (and everything else) should be hashable
     _customElements = new ListMap<Element, WebComponent>();
-
-    // Listen for all insertions and deletions on the DOM so that we can
-    // catch custom elements being inserted and call the appropriate callbacks.
-    _insertionObserver = new MutationObserver((mutations, observer) {
-      for (var mutation in mutations) {
-        // TODO(samhop): remove this test if it turns out that it always passes
-        if (mutation.type == 'childList') {
-          for (var node in mutation.addedNodes) {
-            var dartElement = _customElements[node];
-            if (dartElement != null) {
-              dartElement.inserted();
-            }
-          }
-          for (var node in mutation.removedNodes) {
-            var dartElement = _customElements[node];
-            if (dartElement != null) {
-              dartElement.removed();
-            }
-          }
-        }
-      }
-    });
-    _insertionObserver.observe(document, childList: true, subtree: true);
+    initializeInsertedRemovedCallbacks(document);
   }
 
   /**
@@ -167,7 +145,7 @@ class CustomElementsManager {
    * first one) and assumes corresponding custom element is already
    * registered.
    */
-  expandHtml(htmlString) {
+  WebComponent expandHtml(htmlString) {
     Element element = new Element.html(htmlString);
     var declaration = _customDeclarations[element.attributes['is']];
     if (declaration == null) throw 'No such custom element declaration';
@@ -175,6 +153,33 @@ class CustomElementsManager {
   }
 
   WebComponent operator [](Element element) => _customElements[element];
+
+  // Initializes management of inserted and removed
+  // callbacks for WebComponents below root in the DOM. We need one of these
+  // for every shadow subtree, since mutation observers can't see across
+  // shadow boundaries.
+  void initializeInsertedRemovedCallbacks(DocumentFragment root) {
+    _insertionObserver = new MutationObserver((mutations, observer) {
+      for (var mutation in mutations) {
+        // TODO(samhop): remove this test if it turns out that it always passes
+        if (mutation.type == 'childList') {
+          for (var node in mutation.addedNodes) {
+            var dartElement = _customElements[node];
+            if (dartElement != null) {
+              dartElement.inserted();
+            }
+          }
+          for (var node in mutation.removedNodes) {
+            var dartElement = _customElements[node];
+            if (dartElement != null) {
+              dartElement.removed();
+            }
+          }
+        }
+      }
+    });
+    _insertionObserver.observe(root, childList: true, subtree: true);
+  }
 }
 
 class _CustomDeclaration {
@@ -214,10 +219,13 @@ class _CustomDeclaration {
   }
 
   // TODO(samhop): better docs
-  /** Modify the DOM for e, return a new Dart object corresponding to it. */
-  morph(Element e) {
+  /** 
+   * Modify the DOM for e, return a new Dart object corresponding to it. 
+   * Returns null if this custom declaration has no template for
+   */
+  WebComponent morph(Element e) {
     if (this.template == null) {
-      return;
+      return null;
     }
 
     var shadowRoot = new ShadowRoot(e);
@@ -226,7 +234,7 @@ class _CustomDeclaration {
       shadowRoot.applyAuthorStyles = true;
     }
 
-    template.nodes.forEach((node) { shadowRoot.nodes.add(node.clone(true)); });
+    template.nodes.forEach((node) => shadowRoot.nodes.add(node.clone(true)));
     var newCustomElement = manager._lookup(this.name)(shadowRoot, e);
     manager._customElements[e] = newCustomElement;
     newCustomElement.created();
@@ -247,6 +255,9 @@ class _CustomDeclaration {
     });
     attributeObserver.observe(e, attributes: true, attributeOldValue: true);
 
+    // Listen for all insertions and deletions on the DOM so that we can
+    // catch custom elements being inserted and call the appropriate callbacks.
+    manager.initializeInsertedRemovedCallbacks(shadowRoot);
     return newCustomElement;
   }
 }
