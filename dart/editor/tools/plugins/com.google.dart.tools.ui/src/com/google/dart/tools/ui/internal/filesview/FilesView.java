@@ -14,6 +14,8 @@
 
 package com.google.dart.tools.ui.internal.filesview;
 
+import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.actions.CopyFilePathAction;
@@ -166,6 +168,11 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private ResourceLabelProvider resourceLabelProvider;
 
+  /**
+   * Used to refresh view content when ignores are updated.
+   */
+  private DartIgnoreListener dartIgnoreListener;
+
   public FilesView() {
   }
 
@@ -232,6 +239,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       clipboard.dispose();
     }
 
+    if (dartIgnoreListener != null) {
+      DartModelManager.getInstance().removeIgnoreListener(dartIgnoreListener);
+    }
+
     super.dispose();
   }
 
@@ -244,6 +255,15 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     super.init(site, memento);
 
     this.memento = memento;
+
+    dartIgnoreListener = new DartIgnoreListener() {
+      @Override
+      public void ignoresChanged() {
+        treeViewer.refresh();
+      }
+    };
+
+    DartModelManager.getInstance().addIgnoreListener(dartIgnoreListener);
   }
 
   @Override
@@ -508,13 +528,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     moveAction = new MoveResourceAction(getShell());
     treeViewer.addSelectionChangedListener(moveAction);
 
-    ignoreResourceAction = new IgnoreResourceAction(getShell()) {
-      @Override
-      public void run() {
-        super.run();
-        treeViewer.refresh();
-      }
-    };
+    ignoreResourceAction = new IgnoreResourceAction(getShell());
     treeViewer.addSelectionChangedListener(ignoreResourceAction);
 
     clipboard = new Clipboard(getShell().getDisplay());
