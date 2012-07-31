@@ -143,7 +143,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     private Type fFirstType;
     private boolean fHasHeaderComment;
     private LinkedHashMap fMap = new LinkedHashMap();
-    private DartScanner fScanner;
+//    private DartScanner fScanner;
     private String source;
 
     private FoldingStructureComputationContext(IDocument document, ProjectionAnnotationModel model,
@@ -153,7 +153,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       fDocument = document;
       fModel = model;
       fAllowCollapsing = allowCollapsing;
-      fScanner = scanner;
+//      fScanner = scanner;
     }
 
     /**
@@ -556,11 +556,11 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 //        if (shouldIgnoreDelta(e.getDelta().getCompilationUnitAST(), delta))
 //          return;
 
-        fUpdatingCount++;
+//        fUpdatingCount++;
         try {
           update(createContext(false));
         } finally {
-          fUpdatingCount--;
+//          fUpdatingCount--;
         }
       }
     }
@@ -630,6 +630,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 //        return false; // can't compute
 //      }
 
+      @SuppressWarnings("unused")
       int caretLine = 0;
       try {
         caretLine = document.getLineOfOffset(editor.getCachedSelectedRange().x) + 1;
@@ -761,7 +762,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 //  private DartScanner fSharedScanner = ToolFactory.createScanner(true, false,
 //      false, false);
 
-  private volatile int fUpdatingCount = 0;
+//  private volatile int fUpdatingCount = 0;
 
   /**
    * Creates a new folding provider. It must be {@link #install(ITextEditor, ProjectionViewer)
@@ -815,11 +816,11 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
    */
   @Override
   public final void initialize() {
-    fUpdatingCount++;
+//    fUpdatingCount++;
     try {
       update(createInitialContext());
     } finally {
-      fUpdatingCount--;
+//      fUpdatingCount--;
     }
   }
 
@@ -1199,7 +1200,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     if (range == null) {
       return null;
     }
-    int start = 0;
+//    int start = 0;
     int end = range.getOffset();
 
     /*

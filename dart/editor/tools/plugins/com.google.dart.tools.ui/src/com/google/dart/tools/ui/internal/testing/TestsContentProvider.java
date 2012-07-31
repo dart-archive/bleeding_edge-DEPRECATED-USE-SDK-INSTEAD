@@ -46,11 +46,11 @@ import java.util.Set;
 class TestsContentProvider implements ITreeContentProvider, IResourceChangeListener {
   private static final IResource[] NO_CHILDREN = new IResource[0];
 
-  private IProject project;
+//  private IProject project;
   private Viewer viewer;
 
   TestsContentProvider(IProject project) {
-    this.project = project;
+//    this.project = project;
 
     ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
   }

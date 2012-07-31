@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -36,7 +36,8 @@ public class NLSKeyHyperlink implements IHyperlink {
   private IRegion fRegion;
   private AccessorClassReference fAccessorClassReference;
   private IEditorPart fEditor;
-  private final String fKeyName;
+
+//  private final String fKeyName;
 
   /**
    * Creates a new NLS key hyperlink.
@@ -54,7 +55,7 @@ public class NLSKeyHyperlink implements IHyperlink {
     Assert.isNotNull(editor);
 
     fRegion = region;
-    fKeyName = keyName;
+//    fKeyName = keyName;
     fAccessorClassReference = ref;
     fEditor = editor;
   }
@@ -104,9 +105,8 @@ public class NLSKeyHyperlink implements IHyperlink {
       return;
     }
 
-    IEditorPart editor;
     try {
-      editor = EditorUtility.openInEditor(propertiesFile, true);
+      EditorUtility.openInEditor(propertiesFile, true);
     } catch (PartInitException e) {
       handleOpenPropertiesFileFailed(propertiesFile);
       return;

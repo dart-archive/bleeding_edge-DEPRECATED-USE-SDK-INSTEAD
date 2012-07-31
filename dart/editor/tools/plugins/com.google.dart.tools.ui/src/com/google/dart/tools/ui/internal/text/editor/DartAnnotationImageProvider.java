@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,9 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.PreferenceConstants;
+import com.google.dart.tools.ui.DartX;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
@@ -42,13 +41,13 @@ public class DartAnnotationImageProvider implements IAnnotationImageProvider {
   private static Image fgQuickFixErrorImage;
   private static ImageRegistry fgImageRegistry;
 
-  private boolean fShowQuickFixIcon;
+//  private boolean fShowQuickFixIcon;
   private int fCachedImageType;
   private Image fCachedImage;
 
   public DartAnnotationImageProvider() {
-    fShowQuickFixIcon = PreferenceConstants.getPreferenceStore().getBoolean(
-        PreferenceConstants.EDITOR_CORRECTION_INDICATION);
+//    fShowQuickFixIcon = PreferenceConstants.getPreferenceStore().getBoolean(
+//        PreferenceConstants.EDITOR_CORRECTION_INDICATION);
   }
 
   /*

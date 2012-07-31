@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -47,9 +47,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * This action opens a Dart editor on a Dart element or file.
@@ -183,7 +181,7 @@ public class OpenAction extends SelectionDispatchAction {
       getShell().getDisplay().beep();
       return;
     }
-    IRegion candidateRegion = locator.getCandidateRegion();
+//    IRegion candidateRegion = locator.getCandidateRegion();
     run(targetElement, locator.getCandidateRegion());
 //    try {
 //      DartElement[] elements = SelectionConverter.codeResolveForked(fEditor, false);
@@ -356,26 +354,26 @@ public class OpenAction extends SelectionDispatchAction {
    * @param elements the elements to filter
    * @return the openable elements
    */
-  private DartElement[] selectOpenableElements(DartElement[] elements) {
-    List<DartElement> result = new ArrayList<DartElement>(elements.length);
-    for (int i = 0; i < elements.length; i++) {
-      DartElement element = elements[i];
-      switch (element.getElementType()) {
-//        case IJavaElement.PACKAGE_DECLARATION:
-//        case IJavaElement.PACKAGE_FRAGMENT:
-//        case IJavaElement.PACKAGE_FRAGMENT_ROOT:
-//        case IJavaElement.JAVA_PROJECT:
-//        case IJavaElement.JAVA_MODEL:
-      //TODO (pquitslund): add more element types to filter
-        case DartElement.DART_MODEL:
-        case DartElement.DART_PROJECT:
-        case DartElement.LIBRARY:
-          break;
-        default:
-          result.add(element);
-          break;
-      }
-    }
-    return result.toArray(new DartElement[result.size()]);
-  }
+//  private DartElement[] selectOpenableElements(DartElement[] elements) {
+//    List<DartElement> result = new ArrayList<DartElement>(elements.length);
+//    for (int i = 0; i < elements.length; i++) {
+//      DartElement element = elements[i];
+//      switch (element.getElementType()) {
+////        case IJavaElement.PACKAGE_DECLARATION:
+////        case IJavaElement.PACKAGE_FRAGMENT:
+////        case IJavaElement.PACKAGE_FRAGMENT_ROOT:
+////        case IJavaElement.JAVA_PROJECT:
+////        case IJavaElement.JAVA_MODEL:
+//      //TODO (pquitslund): add more element types to filter
+//        case DartElement.DART_MODEL:
+//        case DartElement.DART_PROJECT:
+//        case DartElement.LIBRARY:
+//          break;
+//        default:
+//          result.add(element);
+//          break;
+//      }
+//    }
+//    return result.toArray(new DartElement[result.size()]);
+//  }
 }

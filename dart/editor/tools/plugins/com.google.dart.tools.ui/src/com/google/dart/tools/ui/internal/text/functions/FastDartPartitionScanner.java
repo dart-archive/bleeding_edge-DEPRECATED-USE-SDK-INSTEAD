@@ -215,23 +215,23 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
    * @param contentType the partition type being converted to a scanner state
    * @return the scanner state corresponding to the given partition type
    */
-  private static ScannerState getState(String contentType) {
-    if (contentType == null) {
-      return ScannerState.CODE;
-    } else if (contentType.equals(DART_SINGLE_LINE_COMMENT)) {
-      return ScannerState.SINGLE_LINE_COMMENT;
-    } else if (contentType.equals(DART_MULTI_LINE_COMMENT)) {
-      return ScannerState.MULTI_LINE_COMMENT;
-    } else if (contentType.equals(DART_DOC)) {
-      return ScannerState.DOC_COMMENT;
-    } else if (contentType.equals(DART_STRING)) {
-      return ScannerState.STRING;
-    } else if (contentType.equals(DART_MULTI_LINE_STRING)) {
-      return ScannerState.MULTI_LINE_STRING;
-    } else {
-      return ScannerState.CODE;
-    }
-  }
+//  private static ScannerState getState(String contentType) {
+//    if (contentType == null) {
+//      return ScannerState.CODE;
+//    } else if (contentType.equals(DART_SINGLE_LINE_COMMENT)) {
+//      return ScannerState.SINGLE_LINE_COMMENT;
+//    } else if (contentType.equals(DART_MULTI_LINE_COMMENT)) {
+//      return ScannerState.MULTI_LINE_COMMENT;
+//    } else if (contentType.equals(DART_DOC)) {
+//      return ScannerState.DOC_COMMENT;
+//    } else if (contentType.equals(DART_STRING)) {
+//      return ScannerState.STRING;
+//    } else if (contentType.equals(DART_MULTI_LINE_STRING)) {
+//      return ScannerState.MULTI_LINE_STRING;
+//    } else {
+//      return ScannerState.CODE;
+//    }
+//  }
 
   /**
    * The scanner used to read characters from the document.

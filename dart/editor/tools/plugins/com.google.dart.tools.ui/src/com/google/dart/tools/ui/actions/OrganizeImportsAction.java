@@ -73,23 +73,25 @@ public class OrganizeImportsAction extends SelectionDispatchAction {
   public OrganizeImportsAction(CompilationUnitEditor editor) {
     super(editor.getEditorSite());
     setText(ActionMessages.OrganizeImportsAction_label);
-    PlatformUI.getWorkbench()
-        .getHelpSystem().setHelp(this, DartHelpContextIds.ORGANIZE_IMPORTS_ACTION);
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
+        DartHelpContextIds.ORGANIZE_IMPORTS_ACTION);
     this.editor = editor;
   }
 
   public OrganizeImportsAction(IWorkbenchSite site) {
     super(site);
     setText(ActionMessages.OrganizeImportsAction_label);
-    PlatformUI.getWorkbench()
-        .getHelpSystem().setHelp(this, DartHelpContextIds.ORGANIZE_IMPORTS_ACTION);
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
+        DartHelpContextIds.ORGANIZE_IMPORTS_ACTION);
   }
 
   public void run(CompilationUnit cu) {
 
-    CompilationUnitEditor cuEditor = null;
+//    CompilationUnitEditor cuEditor = null;
     if (editor != null) {
-      cuEditor = editor;
+//      cuEditor = editor;
 
       //TODO(keertip): organize imports from within editor -> editor has focus
 //      if (!ElementValidator.check(cu, getShell(), ActionMessages.OrganizeImportsAction_error_title, true))
@@ -204,12 +206,12 @@ public class OrganizeImportsAction extends SelectionDispatchAction {
 
   private IEditingSupport createViewerHelper() {
     return new IEditingSupport() {
-        @Override
+      @Override
       public boolean isOriginator(DocumentEvent event, IRegion subjectRegion) {
         return true; // assume true, since we only register while we are active
       }
 
-        @Override
+      @Override
       public boolean ownsFocusShell() {
         return isQueryShowing;
       }

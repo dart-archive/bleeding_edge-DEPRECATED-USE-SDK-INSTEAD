@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -60,7 +60,7 @@ public class DartMoveLinesAction extends TextEditorAction {
     /**
      * Set to true before modifying the document, to false after.
      */
-    boolean fIsChanging = false;
+//    boolean fIsChanging = false;
 
     /** <code>true</code> if a compound move / copy is going on. */
     private boolean fEditInProgress = false;
@@ -282,7 +282,7 @@ public class DartMoveLinesAction extends TextEditorAction {
         fSharedState.endCompoundEdit();
       }
       fSharedState.beginCompoundEdit();
-      fSharedState.fIsChanging = true;
+//      fSharedState.fIsChanging = true;
 
       document.replace(offset, lenght, insertion);
 
@@ -316,7 +316,7 @@ public class DartMoveLinesAction extends TextEditorAction {
       // won't happen without concurrent modification - bail out
       return;
     } finally {
-      fSharedState.fIsChanging = false;
+//      fSharedState.fIsChanging = false;
       if (fCopy) {
         fSharedState.endCompoundEdit();
       }

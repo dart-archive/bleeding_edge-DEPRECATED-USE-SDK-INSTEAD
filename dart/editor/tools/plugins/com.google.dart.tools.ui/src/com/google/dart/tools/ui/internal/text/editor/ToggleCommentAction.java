@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -310,7 +310,7 @@ public final class ToggleCommentAction extends TextEditorAction {
           block.getLength(),
           false);
 
-      int lineCount = 0;
+//      int lineCount = 0;
       int[] lines = new int[regions.length * 2]; // [startline, endline,
 // startline, endline, ...]
       for (int i = 0, j = 0; i < regions.length; i++, j += 2) {
@@ -323,7 +323,7 @@ public final class ToggleCommentAction extends TextEditorAction {
           offset--;
         }
         lines[j + 1] = (lines[j] == -1 ? -1 : document.getLineOfOffset(offset));
-        lineCount += lines[j + 1] - lines[j] + 1;
+//        lineCount += lines[j + 1] - lines[j] + 1;
       }
 
       // Perform the check

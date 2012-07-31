@@ -47,6 +47,7 @@ public class ImportRewrite {
   private List<String> addedImports;
 
   private List<String> removedImports;
+  @SuppressWarnings("unused")
   private String[] createdImports;
 //  private String[] importOrder;
   private boolean useContextToFilterImplicitImports;
@@ -57,8 +58,7 @@ public class ImportRewrite {
     this(compUnit, null, restoreExistingImports);
   }
 
-  public ImportRewrite(
-      CompilationUnit compUnit, DartUnit dartUnit, boolean restoreExistingImports) {
+  public ImportRewrite(CompilationUnit compUnit, DartUnit dartUnit, boolean restoreExistingImports) {
 
     this.compUnit = compUnit;
     if (dartUnit == null) {
@@ -92,9 +92,9 @@ public class ImportRewrite {
   }
 
   public boolean hasRecordedChanges() {
-    return !this.restoreExistingImports || (this.addedImports != null
-        && !this.addedImports.isEmpty()) || (this.removedImports != null
-        && !this.removedImports.isEmpty());
+    return !this.restoreExistingImports
+        || (this.addedImports != null && !this.addedImports.isEmpty())
+        || (this.removedImports != null && !this.removedImports.isEmpty());
   }
 
   /**

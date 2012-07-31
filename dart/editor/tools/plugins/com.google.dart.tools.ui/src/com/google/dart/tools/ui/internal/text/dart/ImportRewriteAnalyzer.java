@@ -38,6 +38,8 @@ import java.util.List;
 /**
  * Arranges the imports and creates the text edit.
  */
+//TODO remove annotation once cleaned up
+@SuppressWarnings("unused")
 public class ImportRewriteAnalyzer {
 
   private static final class DirectiveDeclEntry {
@@ -47,8 +49,8 @@ public class ImportRewriteAnalyzer {
     private IRegion sourceRange;
     private int containerNameLength;
 
-    public DirectiveDeclEntry(
-        int containerNameLength, String elementName, String prefix, IRegion sourceRange) {
+    public DirectiveDeclEntry(int containerNameLength, String elementName, String prefix,
+        IRegion sourceRange) {
       this.elementName = elementName;
       this.prefix = prefix;
       this.sourceRange = sourceRange;
@@ -630,8 +632,8 @@ public class ImportRewriteAnalyzer {
       PackageEntry curr = this.packageEntries.get(i);
       if (!curr.isComment()) {
         if (groupId == null || groupId.equals(curr.getGroupID())) {
-          boolean preferrCurr = (bestMatch == null) || (curr.getNumberOfImports()
-              > bestMatch.getNumberOfImports());
+          boolean preferrCurr = (bestMatch == null)
+              || (curr.getNumberOfImports() > bestMatch.getNumberOfImports());
           if (matcher.isBetterMatch(curr.getName(), preferrCurr)) {
             bestMatch = curr;
           }
