@@ -29,6 +29,7 @@ import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.commands.operations.IUndoContext;
+import org.eclipse.core.filesystem.IFileInfo;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -400,7 +401,12 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
     } else if (element instanceof IFileStore) {
       try {
-        IDE.openEditorOnFileStore(getViewSite().getPage(), (IFileStore) element);
+
+        IFileInfo info = ((IFileStore) element).fetchInfo();
+        if (!info.isDirectory()) {
+          IDE.openEditorOnFileStore(getViewSite().getPage(), (IFileStore) element);
+        }
+
       } catch (PartInitException e) {
         DartToolsPlugin.log(e);
       }
