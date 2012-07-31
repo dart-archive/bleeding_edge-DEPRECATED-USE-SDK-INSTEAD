@@ -135,6 +135,7 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
    * 
    * @return the expected type if any, <code>null</code> otherwise
    */
+  @SuppressWarnings("deprecation")
   public Type getExpectedType() {
     if (fType == null && getCompilationUnit() != null) {
       CompletionContext context = getCoreContext();
@@ -258,7 +259,6 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
 
     CompletionProposalCollector collector = new CompletionProposalCollector(cu);
     collector.setIgnored(CompletionProposal.KEYWORD, false);
-    collector.setIgnored(CompletionProposal.ANONYMOUS_CLASS_DECLARATION, true);
     collector.setIgnored(CompletionProposal.FIELD_REF, true);
     collector.setIgnored(CompletionProposal.LABEL_REF, true);
     collector.setIgnored(CompletionProposal.LOCAL_VARIABLE_REF, true);
@@ -268,12 +268,12 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
     collector.setIgnored(CompletionProposal.LIBRARY_PREFIX, true);
     collector.setIgnored(CompletionProposal.POTENTIAL_METHOD_DECLARATION, true);
     collector.setIgnored(CompletionProposal.VARIABLE_DECLARATION, true);
-    collector.setIgnored(CompletionProposal.JAVADOC_BLOCK_TAG, true);
-    collector.setIgnored(CompletionProposal.JAVADOC_FIELD_REF, true);
-    collector.setIgnored(CompletionProposal.JAVADOC_INLINE_TAG, true);
-    collector.setIgnored(CompletionProposal.JAVADOC_METHOD_REF, true);
-    collector.setIgnored(CompletionProposal.JAVADOC_PARAM_REF, true);
-    collector.setIgnored(CompletionProposal.JAVADOC_TYPE_REF, true);
+//    collector.setIgnored(CompletionProposal.JAVADOC_BLOCK_TAG, true);
+//    collector.setIgnored(CompletionProposal.JAVADOC_FIELD_REF, true);
+//    collector.setIgnored(CompletionProposal.JAVADOC_INLINE_TAG, true);
+//    collector.setIgnored(CompletionProposal.JAVADOC_METHOD_REF, true);
+//    collector.setIgnored(CompletionProposal.JAVADOC_PARAM_REF, true);
+//    collector.setIgnored(CompletionProposal.JAVADOC_TYPE_REF, true);
     collector.setIgnored(CompletionProposal.TYPE_REF, true);
 
     try {

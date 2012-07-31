@@ -113,7 +113,6 @@ public class DartTypeCompletionProposalComputer extends DartCompletionProposalCo
   @Override
   protected CompletionProposalCollector createCollector(DartContentAssistInvocationContext context) {
     CompletionProposalCollector collector = super.createCollector(context);
-    collector.setIgnored(CompletionProposal.ANONYMOUS_CLASS_DECLARATION, true);
     collector.setIgnored(CompletionProposal.FIELD_REF, true);
     collector.setIgnored(CompletionProposal.KEYWORD, true);
     collector.setIgnored(CompletionProposal.LABEL_REF, true);
@@ -125,12 +124,12 @@ public class DartTypeCompletionProposalComputer extends DartCompletionProposalCo
     collector.setIgnored(CompletionProposal.POTENTIAL_METHOD_DECLARATION, true);
     collector.setIgnored(CompletionProposal.VARIABLE_DECLARATION, true);
 
-    collector.setIgnored(CompletionProposal.JAVADOC_BLOCK_TAG, true);
-    collector.setIgnored(CompletionProposal.JAVADOC_FIELD_REF, true);
-    collector.setIgnored(CompletionProposal.JAVADOC_INLINE_TAG, true);
-    collector.setIgnored(CompletionProposal.JAVADOC_METHOD_REF, true);
-    collector.setIgnored(CompletionProposal.JAVADOC_PARAM_REF, true);
-    collector.setIgnored(CompletionProposal.JAVADOC_TYPE_REF, true);
+//    collector.setIgnored(CompletionProposal.JAVADOC_BLOCK_TAG, true);
+//    collector.setIgnored(CompletionProposal.JAVADOC_FIELD_REF, true);
+//    collector.setIgnored(CompletionProposal.JAVADOC_INLINE_TAG, true);
+//    collector.setIgnored(CompletionProposal.JAVADOC_METHOD_REF, true);
+//    collector.setIgnored(CompletionProposal.JAVADOC_PARAM_REF, true);
+//    collector.setIgnored(CompletionProposal.JAVADOC_TYPE_REF, true);
 
     collector.setIgnored(CompletionProposal.TYPE_REF, false);
     return collector;
