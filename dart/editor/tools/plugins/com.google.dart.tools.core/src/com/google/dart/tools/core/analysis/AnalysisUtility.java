@@ -190,7 +190,7 @@ class AnalysisUtility {
   static URI toLibraryUri(AnalysisServer server, File libraryFile) {
     URI fileUri = libraryFile.toURI();
     URI shortUri = server.getLibraryManager().getRelativeUri(fileUri);
-    return shortUri != null ? shortUri : fileUri;
+    return shortUri != null && !SystemLibraryManager.isPackageUri(shortUri) ? shortUri : fileUri;
   }
 
   private static DartCompilationError newIoError(Source source, IOException e) {
