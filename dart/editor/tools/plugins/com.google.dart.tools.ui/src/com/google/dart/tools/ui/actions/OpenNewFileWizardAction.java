@@ -13,15 +13,10 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.tools.core.internal.model.DartModelImpl;
-import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.projects.CreateFileWizard;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -60,32 +55,17 @@ public class OpenNewFileWizardAction extends AbstractOpenWizardAction implements
 
   @Override
   public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-    updateEnablement();
+
   }
 
   @Override
   public void selectionChanged(SelectionChangedEvent event) {
-    updateEnablement();
 
   }
 
   @Override
-  protected final INewWizard createWizard() throws CoreException {
+  protected final INewWizard createWizard() {
     return new CreateFileWizard();
-  }
-
-  private void updateEnablement() {
-    DartModelImpl dartModel = DartModelManager.getInstance().getDartModel();
-    try {
-      if (dartModel.getDartLibraries().isEmpty()) {
-        setEnabled(false);
-        return;
-      }
-    } catch (DartModelException e) {
-      DartToolsPlugin.log(e);
-    }
-
-    setEnabled(true);
   }
 
 }
