@@ -834,6 +834,18 @@ public class DartCore extends Plugin {
   }
 
   /**
+   * Return the first package root preference
+   */
+  public String getFirstPackageRootPref() {
+    String pref = getPackageRootPref();
+
+    if (pref != null) {
+      return pref.split(";")[0];
+    }
+    return null;
+  }
+  
+  /**
    * Return the package root preference
    */
   public String getPackageRootPref() {

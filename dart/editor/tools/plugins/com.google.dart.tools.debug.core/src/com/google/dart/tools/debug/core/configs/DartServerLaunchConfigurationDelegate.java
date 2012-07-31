@@ -113,7 +113,7 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
       commandsList.add("--debug:" + connectionPort);
     }
 
-    String packageRoot = DartCore.getPlugin().getPackageRootPref();
+    String packageRoot = DartCore.getPlugin().getFirstPackageRootPref();
     if (packageRoot != null) {
       commandsList.add("--package-root=" + packageRoot);
     }
