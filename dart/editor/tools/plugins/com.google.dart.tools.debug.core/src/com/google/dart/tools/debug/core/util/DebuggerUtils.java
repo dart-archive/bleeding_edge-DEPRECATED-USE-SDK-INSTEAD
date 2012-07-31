@@ -30,8 +30,8 @@ public class DebuggerUtils {
   public static String demanglePrivateName(String name) {
     int atIndex = name.indexOf('@');
 
-    if (atIndex != -1) {
-      // check for _foo@76876.bar
+    while (atIndex != -1) {
+      // check for _foo@76876.bar (or _Process@14117cc4._reportError@14117cc4)
       int endIndex = name.indexOf('.', atIndex);
 
       if (endIndex == -1) {
@@ -39,6 +39,8 @@ public class DebuggerUtils {
       } else {
         name = name.substring(0, atIndex) + name.substring(endIndex);
       }
+
+      atIndex = name.indexOf('@');
     }
 
     // Also remove the trailing '.' for default constructors.
