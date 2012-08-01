@@ -26,25 +26,17 @@ import org.eclipse.ui.actions.SelectionListenerAction;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Action to add (or remove) resources from the dart ignore list.
  */
 public class IgnoreResourceAction extends SelectionListenerAction {
 
-  private static boolean allElementsAreResources(IStructuredSelection selection) {
-    for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
-      Object selectedElement = iterator.next();
-      if (!(selectedElement instanceof IResource)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private IResource resource;
   private final Shell shell;
+  private List<IResource> resources = Arrays.asList(new IResource[0]);
 
   protected IgnoreResourceAction(Shell shell) {
     super(FilesViewMessages.IgnoreResourcesAction_dont_analyze_label);
@@ -53,37 +45,39 @@ public class IgnoreResourceAction extends SelectionListenerAction {
 
   @Override
   public void run() {
-
-    if (resource != null) {
-      try {
-        if (DartCore.isAnalyzed(resource)) {
-          DartModelManager.getInstance().addToIgnores(resource);
-          SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(
-              resource.getLocation().toFile());
-        } else {
-          DartModelManager.getInstance().removeFromIgnores(resource);
-          File file = resource.getLocation().toFile();
-          SystemLibraryManagerProvider.getDefaultAnalysisServer().scan(file, true);
-        }
-      } catch (IOException e) {
-        MessageDialog.openError(shell, "Error Ignoring Resource", e.getMessage());
-        DartCore.logInformation("Could not access ignore file", e);
-      } catch (CoreException e) {
-        MessageDialog.openError(shell, "Error Deleting Markers", e.getMessage()); //$NON-NLS-1$
-      } finally {
-        updateLabel();
+    try {
+      for (IResource r : resources) {
+        toggleIgnoreState(r);
       }
+    } catch (IOException e) {
+      MessageDialog.openError(shell, "Error Ignoring Resource", e.getMessage());
+      DartCore.logInformation("Could not access ignore file", e);
+    } catch (CoreException e) {
+      MessageDialog.openError(shell, "Error Deleting Markers", e.getMessage()); //$NON-NLS-1$
+    } finally {
+      updateLabel();
     }
   }
 
   @Override
+  protected List<IResource> getSelectedResources() {
+    @SuppressWarnings("unchecked")
+    List<Object> res = super.getSelectedResources();
+    ArrayList<IResource> resources = new ArrayList<IResource>();
+    for (Object r : res) {
+      resources.add((IResource) r);
+    }
+    return resources;
+  }
+
+  @Override
   protected boolean updateSelection(IStructuredSelection selection) {
-    if (selection.size() != 1 || !allElementsAreResources(selection)) {
-      resource = null;
+
+    resources = getSelectedResources();
+
+    if (resources.isEmpty() || !sameAnalysisState(resources)) {
       return false;
     }
-
-    resource = (IResource) selection.getFirstElement();
 
     updateLabel();
 
@@ -91,10 +85,41 @@ public class IgnoreResourceAction extends SelectionListenerAction {
   }
 
   void updateLabel() {
-    if (DartCore.isAnalyzed(resource)) {
+    if (DartCore.isAnalyzed(resources.get(0))) {
       setText(FilesViewMessages.IgnoreResourcesAction_dont_analyze_label);
     } else {
       setText(FilesViewMessages.IgnoreResourcesAction_do_analyze_label);
+    }
+  }
+
+  /**
+   * Ensures that all selected resources are in the same state of analysis.
+   */
+  private boolean sameAnalysisState(List<IResource> resources) {
+    if (resources.isEmpty()) {
+      return true;
+    }
+
+    boolean isAnalyzed = DartCore.isAnalyzed(resources.get(0));
+
+    for (IResource resource : resources.subList(0, resources.size())) {
+      if (DartCore.isAnalyzed(resource) != isAnalyzed) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private void toggleIgnoreState(IResource resource) throws IOException, CoreException {
+    if (DartCore.isAnalyzed(resource)) {
+      DartModelManager.getInstance().addToIgnores(resource);
+      SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(
+          resource.getLocation().toFile());
+    } else {
+      DartModelManager.getInstance().removeFromIgnores(resource);
+      File file = resource.getLocation().toFile();
+      SystemLibraryManagerProvider.getDefaultAnalysisServer().scan(file, true);
     }
   }
 
