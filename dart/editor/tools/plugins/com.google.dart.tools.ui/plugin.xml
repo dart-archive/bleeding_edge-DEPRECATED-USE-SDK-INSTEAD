@@ -2639,10 +2639,10 @@
             commandId="org.eclipse.ui.edit.findReplace"
             sequence="M1+F"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
-       <key
+       <!--key
             commandId="com.google.dart.tools.ui.edit.text.organize.imports"
             sequence="M1+M2+O"
-            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />     
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" /-->     
       <key
             commandId="org.eclipse.ui.navigate.next"
             sequence="M1+."

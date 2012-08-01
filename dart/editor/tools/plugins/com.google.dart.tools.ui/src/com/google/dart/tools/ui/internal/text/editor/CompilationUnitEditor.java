@@ -32,7 +32,6 @@ import com.google.dart.tools.ui.IWorkingCopyManager;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.GenerateActionGroup;
-import com.google.dart.tools.ui.actions.OrganizeImportsAction;
 import com.google.dart.tools.ui.actions.RefactorActionGroup;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.DartStatusConstants;
@@ -1397,9 +1396,9 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     markAsSelectionDependentAction("Format", true); //$NON-NLS-1$
     PlatformUI.getWorkbench().getHelpSystem().setHelp(action, DartHelpContextIds.FORMAT_ACTION);
 
-    action = new OrganizeImportsAction(this);
-    action.setActionDefinitionId(DartEditorActionDefinitionIds.ORGANIZE_IMPORTS);
-    setAction("OrganizeImports", action);
+//    action = new OrganizeImportsAction(this);
+//    action.setActionDefinitionId(DartEditorActionDefinitionIds.ORGANIZE_IMPORTS);
+//    setAction("OrganizeImports", action);
 
     //     action = new AddBlockCommentAction(
     //     DartEditorMessages.getBundleForConstructedKeys(),
