@@ -1301,6 +1301,7 @@ public class Parser {
   private ConstructorDeclaration parseConstructor(Comment comment, Token keyword,
       SimpleIdentifier returnType, Token period, SimpleIdentifier name,
       FormalParameterList parameters) {
+    boolean bodyAllowed = true;
     Token colon = null;
     List<ConstructorInitializer> initializers = new ArrayList<ConstructorInitializer>();
     if (matches(TokenType.COLON)) {
@@ -1308,8 +1309,10 @@ public class Parser {
       do {
         if (matches(Keyword.THIS)) {
           if (peekMatches(TokenType.OPEN_PAREN)) {
+            bodyAllowed = false;
             initializers.add(parseRedirectingConstructorInvocation());
           } else if (peekMatches(TokenType.PERIOD) && peekMatches(3, TokenType.OPEN_PAREN)) {
+            bodyAllowed = false;
             initializers.add(parseRedirectingConstructorInvocation());
           } else {
             initializers.add(parseConstructorFieldInitializer());
@@ -1321,7 +1324,10 @@ public class Parser {
         }
       } while (optional(TokenType.COMMA));
     }
-    FunctionBody body = new EmptyFunctionBody(expect(TokenType.SEMICOLON));
+    FunctionBody body = parseFunctionBody(true, false);
+    if (!bodyAllowed && !(body instanceof EmptyFunctionBody)) {
+      // reportError();
+    }
     return new ConstructorDeclaration(
         comment,
         keyword,
@@ -1896,7 +1902,10 @@ public class Parser {
     inLoop = false;
     inSwitch = false;
     try {
-      if (mayBeEmpty && matches(TokenType.SEMICOLON)) {
+      if (matches(TokenType.SEMICOLON)) {
+        if (!mayBeEmpty) {
+          // reportError(ParserErrorCode.?);
+        }
         return new EmptyFunctionBody(getAndAdvance());
       } else if (matches(TokenType.FUNCTION)) {
         Token functionDefinition = getAndAdvance();
@@ -1910,7 +1919,7 @@ public class Parser {
         return new BlockFunctionBody(parseBlock());
       } else {
         // Invalid function body
-        // reportError(ParserErrorCode.?));
+        // reportError(ParserErrorCode.?);
         return null;
       }
     } finally {
@@ -2571,15 +2580,26 @@ public class Parser {
         return parseTryStatement();
       } else if (keyword == Keyword.WHILE) {
         return parseWhileStatement();
-      } else if (keyword == Keyword.VAR || keyword == Keyword.FINAL || keyword == Keyword.CONST) {
+      } else if (keyword == Keyword.VAR || keyword == Keyword.FINAL) {
         return parseVariableDeclarationStatement();
       } else if (keyword == Keyword.VOID) {
         return parseFunctionDeclarationStatement();
-      } else if (keyword == Keyword.CONST || keyword == Keyword.NEW) {
+      } else if (keyword == Keyword.CONST) {
+        if (peekMatches(TokenType.LT) || peekMatches(TokenType.OPEN_CURLY_BRACKET)
+            || peekMatches(TokenType.OPEN_SQUARE_BRACKET)) {
+          return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
+        } else if (peekMatches(1, TokenType.IDENTIFIER)
+            && (peekMatches(2, TokenType.OPEN_PAREN) || (peekMatches(2, TokenType.PERIOD)
+                && peekMatches(3, TokenType.IDENTIFIER) && peekMatches(4, TokenType.OPEN_PAREN)))) {
+          return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
+        }
+        return parseVariableDeclarationStatement();
+      } else if (keyword == Keyword.NEW || keyword == Keyword.TRUE || keyword == Keyword.FALSE
+          || keyword == Keyword.NULL) {
         return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
       } else {
         // Expected a statement
-        // reportError(ParserErrorCode.?));
+        // reportError(ParserErrorCode.?);
         return null;
       }
     } else if (matches(TokenType.SEMICOLON)) {
@@ -3329,9 +3349,9 @@ public class Parser {
    * Parse a type alias.
    * 
    * <pre>
- * typeAlias ::=
- *     'typedef' returnType? name typeParameterList? formalParameterList ';'
- * </pre>
+   * typeAlias ::=
+   *     'typedef' returnType? name typeParameterList? formalParameterList ';'
+   * </pre>
    * 
    * @return the type alias that was parsed
    */
@@ -3340,7 +3360,7 @@ public class Parser {
     Token keyword = expect(Keyword.TYPEDEF);
     TypeName returnType = null;
     if (!peekMatches(TokenType.OPEN_PAREN) && !peekMatches(TokenType.LT)) {
-      returnType = parseTypeName();
+      returnType = parseReturnType();
     }
     SimpleIdentifier name = parseSimpleIdentifier();
     TypeParameterList typeParameters = null;

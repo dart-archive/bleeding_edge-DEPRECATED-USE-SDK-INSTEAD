@@ -1977,13 +1977,38 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getType());
   }
 
+  public void test_parseNonLabeledStatement_const_map() throws Exception {
+    ExpressionStatement statement = parse("parseNonLabeledStatement", "const {'a' : 1};");
+    assertNotNull(statement.getExpression());
+  }
+
+  public void test_parseNonLabeledStatement_const_object() throws Exception {
+    ExpressionStatement statement = parse("parseNonLabeledStatement", "const A();");
+    assertNotNull(statement.getExpression());
+  }
+
   public void test_parseNonLabeledStatement_constructorInvocation() throws Exception {
     ExpressionStatement statement = parse("parseNonLabeledStatement", "new C().m();");
     assertNotNull(statement.getExpression());
   }
 
+  public void test_parseNonLabeledStatement_false() throws Exception {
+    ExpressionStatement statement = parse("parseNonLabeledStatement", "false;");
+    assertNotNull(statement.getExpression());
+  }
+
   public void test_parseNonLabeledStatement_functionInvocation() throws Exception {
     ExpressionStatement statement = parse("parseNonLabeledStatement", "f();");
+    assertNotNull(statement.getExpression());
+  }
+
+  public void test_parseNonLabeledStatement_null() throws Exception {
+    ExpressionStatement statement = parse("parseNonLabeledStatement", "null;");
+    assertNotNull(statement.getExpression());
+  }
+
+  public void test_parseNonLabeledStatement_true() throws Exception {
+    ExpressionStatement statement = parse("parseNonLabeledStatement", "true;");
     assertNotNull(statement.getExpression());
   }
 
@@ -2546,6 +2571,16 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseTypeAlias_parameters() throws Exception {
     TypeAlias typeAlias = parse("parseTypeAlias", "typedef bool F(Object value);");
+    assertNotNull(typeAlias.getKeyword());
+    assertNotNull(typeAlias.getName());
+    assertNotNull(typeAlias.getParameters());
+    assertNotNull(typeAlias.getReturnType());
+    assertNotNull(typeAlias.getSemicolon());
+    assertNull(typeAlias.getTypeParameters());
+  }
+
+  public void test_parseTypeAlias_voidReturnType() throws Exception {
+    TypeAlias typeAlias = parse("parseTypeAlias", "typedef void F();");
     assertNotNull(typeAlias.getKeyword());
     assertNotNull(typeAlias.getName());
     assertNotNull(typeAlias.getParameters());
