@@ -21,7 +21,7 @@ public class TaskProcessorTest extends AbstractDartCoreTest {
 
     @Override
     public void run() {
-      result = processor.addNewTaskAndWaitUntilRunning(task, 200);
+      result = processor.addNewTaskAndWaitUntilRunning(task, FIVE_MINUTES_MS);
       synchronized (lock) {
         complete = true;
         lock.notifyAll();
@@ -55,6 +55,7 @@ public class TaskProcessorTest extends AbstractDartCoreTest {
     public void idle(boolean idle) {
       synchronized (lock) {
         blocked = true;
+        lock.notifyAll();
         while (blocked) {
           try {
             lock.wait();
@@ -91,6 +92,8 @@ public class TaskProcessorTest extends AbstractDartCoreTest {
     }
   }
 
+  private static final long FIVE_MINUTES_MS = 300000;
+
   private TaskQueue queue;
   private TaskProcessor processor;
   private WaitForIdle listener;
@@ -100,9 +103,9 @@ public class TaskProcessorTest extends AbstractDartCoreTest {
    */
   public void test_addTaskWhenStopped() throws Exception {
     queue.setAnalyzing(false);
-    assertTrue(processor.waitForIdle(10));
+    assertTrue(processor.waitForIdle(FIVE_MINUTES_MS));
     BlockingTask task = new BlockingTask();
-    assertTrue(processor.addNewTaskAndWaitUntilRunning(task, 10));
+    assertTrue(processor.addNewTaskAndWaitUntilRunning(task, FIVE_MINUTES_MS));
   }
 
   /**
@@ -117,13 +120,12 @@ public class TaskProcessorTest extends AbstractDartCoreTest {
     final BlockingTask task = new BlockingTask();
     final AddTaskThread thread = new AddTaskThread(task);
     thread.start();
-    // Changed 10ms to 100ms in an attempt to prevent sporadic test failures during build
-    assertTrue(blockingListener.waitUntilBlocked(100));
+    assertTrue(blockingListener.waitUntilBlocked(FIVE_MINUTES_MS));
     assertFalse(thread.waitForComplete(10));
     processor.removeIdleListener(blockingListener);
     blockingListener.unblock();
 
-    assertTrue(thread.waitForComplete(10));
+    assertTrue(thread.waitForComplete(FIVE_MINUTES_MS));
     thread.assertResult(true);
   }
 
