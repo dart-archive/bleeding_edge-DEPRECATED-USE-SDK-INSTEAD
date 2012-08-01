@@ -96,7 +96,7 @@ void randomArrayServicePort(Dart_NativeArguments arguments) {
   Dart_SetReturnValue(arguments, Dart_Null());
   Dart_Port service_port =
       Dart_NewNativePort("RandomArrayService", wrappedRandomArray, true);
-  if (service_port != kIllegalPort) {
+  if (service_port != ILLEGAL_PORT) {
     Dart_Handle send_port = HandleError(Dart_NewSendPort(service_port));
     Dart_SetReturnValue(arguments, send_port);
   }
