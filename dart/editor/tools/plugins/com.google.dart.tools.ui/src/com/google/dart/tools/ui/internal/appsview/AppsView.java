@@ -13,16 +13,16 @@
  */
 package com.google.dart.tools.ui.internal.appsview;
 
+import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.DeleteAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
-import com.google.dart.tools.ui.internal.filesview.FilesView;
 import com.google.dart.tools.ui.internal.filesview.FilesViewDragAdapter;
 import com.google.dart.tools.ui.internal.filesview.FilesViewDropAdapter;
-import com.google.dart.tools.ui.internal.filesview.IgnoreResourceAction.IgnoreListener;
 import com.google.dart.tools.ui.internal.filesview.LinkWithEditorAction;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
@@ -60,11 +60,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewSite;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
@@ -119,25 +115,13 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
   private OpenNewApplicationWizardAction createApplicationAction;
   private DeleteAction deleteAction;
   private UndoRedoActionGroup undoRedoActionGroup;
-  private IgnoreListener ignoreListener = new IgnoreListener() {
+
+  private DartIgnoreListener ignoreListener = new DartIgnoreListener() {
     @Override
-    public void update() {
+    public void ignoresChanged() {
       treeViewer.refresh();
     }
   };
-
-  @Override
-  public void addPartPropertyListener(IPropertyChangeListener listener) {
-    super.addPartPropertyListener(listener);
-    connectToIgnoreAction();
-  }
-
-  public void connectToIgnoreAction() {
-    FilesView filesView = findFilesView();
-    if (filesView != null) {
-      filesView.getIgnoreResourceAction().addListener(ignoreListener);
-    }
-  }
 
   @Override
   public void createPartControl(Composite parent) {
@@ -181,16 +165,17 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
 
   @Override
   public void dispose() {
-    FilesView filesView = findFilesView();
-    if (filesView != null) {
-      filesView.getIgnoreResourceAction().removeListener(ignoreListener);
-    }
+
     if (linkWithEditorAction != null) {
       linkWithEditorAction.dispose();
     }
 
     if (clipboard != null) {
       clipboard.dispose();
+    }
+
+    if (ignoreListener != null) {
+      DartModelManager.getInstance().removeIgnoreListener(ignoreListener);
     }
 
     super.dispose();
@@ -200,6 +185,7 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
   public void init(IViewSite site, IMemento memento) throws PartInitException {
     super.init(site, memento);
     this.memento = memento;
+    DartModelManager.getInstance().addIgnoreListener(ignoreListener);
   }
 
   @Override
@@ -382,19 +368,6 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
         IUndoContext.class);
     undoRedoActionGroup = new UndoRedoActionGroup(getViewSite(), workspaceContext, true);
     undoRedoActionGroup.fillActionBars(actionBars);
-  }
-
-  private FilesView findFilesView() {
-    IWorkbench wb = PlatformUI.getWorkbench();
-    IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
-    IWorkbenchPage page = win.getActivePage();
-    if (page != null) {
-      IViewPart viewPart = page.findView(FilesView.VIEW_ID);
-      if (viewPart != null) {
-        return (FilesView) viewPart;
-      }
-    }
-    return null;
   }
 
   private void initDragAndDrop() {
