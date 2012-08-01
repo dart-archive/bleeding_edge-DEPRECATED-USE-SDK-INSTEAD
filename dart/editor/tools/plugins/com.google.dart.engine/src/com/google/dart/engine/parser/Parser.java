@@ -105,10 +105,6 @@ public class Parser {
 
   /**
    * <code>true</code> if the parser is currently in a switch statement.
-   * <p>
-   * Note: this boolean could be combined with the inLoop boolean if they are only ever going to be
-   * used for the same purpose: {@link ParserErrorCode#BREAK_OUTSIDE_OF_LOOP} and
-   * {@link ParserErrorCode#CONTINUE_OUTSIDE_OF_LOOP}.
    */
   private boolean inSwitch = false;
 
@@ -1379,6 +1375,9 @@ public class Parser {
     SimpleIdentifier label = null;
     if (matches(TokenType.IDENTIFIER)) {
       label = parseSimpleIdentifier();
+    }
+    if (inSwitch && !inLoop && label == null) {
+      reportError(ParserErrorCode.CONTINUE_IN_CASE_MUST_HAVE_LABEL, continueKeyword);
     }
     Token semicolon = expect(TokenType.SEMICOLON);
     return new ContinueStatement(continueKeyword, label, semicolon);

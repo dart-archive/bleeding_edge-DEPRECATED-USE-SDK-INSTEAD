@@ -17,7 +17,6 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.scanner.StringScanner;
@@ -226,19 +225,16 @@ public class ParserTestCase extends EngineTestCase {
    *           error, or if the result would have been {@code null}.
    */
   @SuppressWarnings("unchecked")
-  protected <E extends Statement> E parseStatement(String source) throws Exception {
-    AnalysisErrorListener listener = new AnalysisErrorListener() {
-      @Override
-      public void onError(AnalysisError event) {
-        fail("Unexpected compilation error: " + event.getMessage() + " (" + event.getOffset()
-            + ", " + event.getLength() + ")");
-      }
-    };
+  protected <E extends Statement> E parseStatement(String source, ErrorCode... errorCodes)
+      throws Exception {
+    GatheringErrorListener listener = new GatheringErrorListener();
     StringScanner scanner = new StringScanner(null, source, listener);
+    listener.setLineInfo(new TestSource(), scanner.getLineStarts());
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
     Statement statement = parser.parseStatement(token);
     assertNotNull(statement);
+    listener.assertErrors(errorCodes);
     return (E) statement;
   }
 }

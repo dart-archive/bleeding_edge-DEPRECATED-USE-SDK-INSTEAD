@@ -61,6 +61,21 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseStatement", "() {for (; x;) {break;}}");
   }
 
+  public void test_continueInCaseMustHaveLabel_error() throws Exception {
+    parse(
+        "parseSwitchStatement",
+        "switch (x) {case 1: continue;}",
+        ParserErrorCode.CONTINUE_IN_CASE_MUST_HAVE_LABEL);
+  }
+
+  public void test_continueInCaseMustHaveLabel_noError() throws Exception {
+    parse("parseSwitchStatement", "switch (x) {case 1: continue a;}");
+  }
+
+  public void test_continueInCaseMustHaveLabel_noError_switchInLoop() throws Exception {
+    parse("parseWhileStatement", "while (a) { switch (b) {default: continue;}}");
+  }
+
   public void test_continueOutsideOfLoop_continueInDoStatement() throws Exception {
     parse("parseDoStatement", "do {continue;} while (x);");
   }
