@@ -1263,9 +1263,15 @@ public class IndexContributor extends ASTVisitor<Void> {
     if (uriLiteral != null) {
       try {
         String uriString = uriLiteral.getValue();
+        Path uriPath = new Path(uriString);
+        if (uriPath.isAbsolute()) {
+          // If the resource isn't in the workspace, then we can't record the reference.
+          DartCore.logError("Could not record resource reference \"" + uriLiteral + "\"");
+          return;
+        }
         IFile libraryFile = (IFile) compilationUnit.getLibrary().getCorrespondingResource();
         if (libraryFile != null) {
-          IFile resourceFile = libraryFile.getParent().getFile(new Path(uriString));
+          IFile resourceFile = libraryFile.getParent().getFile(uriPath);
           if (resourceFile != null && resourceFile.exists()) {
             Element element = new Element(ResourceFactory.getResource(resourceFile), "");
             Location location = createLocation(uriLiteral);
@@ -1273,7 +1279,8 @@ public class IndexContributor extends ASTVisitor<Void> {
           }
         }
       } catch (Throwable e) {
-        DartCore.logError("Could not record resource reference " + uriLiteral, e);
+        // If the resource isn't in the workspace, then we can't record the reference.
+        DartCore.logError("Could not record resource reference \"" + uriLiteral + "\"", e);
       }
     }
   }
