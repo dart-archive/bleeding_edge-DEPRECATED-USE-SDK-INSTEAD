@@ -2,6 +2,7 @@
 <?eclipse version="3.2"?>
 <plugin>
    <extension-point id="workingCopyOwner" name="Working Copy Owner" schema="schema/workingCopyOwner.exsd"/>
+   <extension-point id="buildParticipant" name="Build Participant" schema="schema/buildParticipant.exsd"/>
    
 	<extension
 			point="org.eclipse.core.resources.natures"
