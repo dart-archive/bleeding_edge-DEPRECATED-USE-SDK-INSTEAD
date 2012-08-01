@@ -73,6 +73,10 @@ class DartiumProcess extends PlatformObject implements IProcess {
 
   @Override
   public String getAttribute(String key) {
+    if (DebugPlugin.ATTR_CONSOLE_ENCODING.equals(key)) {
+      return "UTF-8";
+    }
+
     return null;
   }
 

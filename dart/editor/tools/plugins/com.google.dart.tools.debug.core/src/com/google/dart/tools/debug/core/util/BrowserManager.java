@@ -225,6 +225,7 @@ public class BrowserManager {
 
       monitor.worked(1);
 
+      launch.setAttribute(DebugPlugin.ATTR_CONSOLE_ENCODING, "UTF-8");
       launch.addDebugTarget(debugTarget);
       launch.addProcess(debugTarget.getProcess());
 
@@ -572,6 +573,9 @@ public class BrowserManager {
         DartDebugCorePlugin.logError(e);
       }
     }
+
+    // This flag allows us to retrieve the dart: core sources from Dartium.
+    env.put("DART_DEBUG_LIBS", "true");
 
     devToolsPortNumber = DEVTOOLS_PORT_NUMBER;
 
