@@ -164,7 +164,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
    * @throws DebugException
    */
   public void connect() throws DebugException {
-    long timeout = 2000;
+    long timeout = 10000;
 
     connection = new VmConnection(connectionPort);
     connection.addListener(this);

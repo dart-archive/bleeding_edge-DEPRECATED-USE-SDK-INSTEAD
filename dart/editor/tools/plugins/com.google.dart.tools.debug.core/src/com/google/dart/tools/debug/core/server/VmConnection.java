@@ -104,9 +104,8 @@ public class VmConnection {
   }
 
   /**
-   * Connect to the VM debug server; wait a max of timeoutMs for a good debug connection.
+   * Connect to the VM debug server.
    * 
-   * @param timeoutMs
    * @throws IOException
    */
   public void connect() throws IOException {
