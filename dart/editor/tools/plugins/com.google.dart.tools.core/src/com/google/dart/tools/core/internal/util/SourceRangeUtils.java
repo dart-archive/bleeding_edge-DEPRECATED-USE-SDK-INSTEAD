@@ -57,4 +57,17 @@ public class SourceRangeUtils {
         || contains(b, a.getOffset());
   }
 
+  /**
+   * Helper method that answers whether a valid source range is available in the given
+   * {@link SourceRange}. When an element has no associated source code, Dart Model APIs may return
+   * either <code>null</code> or a range of [-1, 0] to indicate an invalid range. This utility
+   * method can be used to detect that case.
+   * 
+   * @param range a source range, can be <code>null</code>
+   * @return <code>true</code> iff range is not null and range.getOffset() is not -1
+   */
+  public static boolean isAvailable(SourceRange range) {
+    return range != null && range.getOffset() != -1;
+  }
+
 }

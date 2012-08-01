@@ -19,13 +19,16 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartImport;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring;
+import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring;
 import com.google.dart.tools.ui.internal.refactoring.InlineLocalWizard;
+import com.google.dart.tools.ui.internal.refactoring.InlineMethodWizard;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
@@ -218,15 +221,27 @@ public final class RefactoringExecutionStarter {
 //  	}
 //  	return false;
 //  }
-//
-//  public static boolean startInlineMethodRefactoring(final ITypeRoot typeRoot, final CompilationUnit node, final int offset, final int length, final Shell shell) {
-//  	final InlineMethodRefactoring refactoring= InlineMethodRefactoring.create(typeRoot, node, offset, length);
-//  	if (refactoring != null) {
-//  		new RefactoringStarter().activate(new InlineMethodWizard(refactoring), shell, RefactoringMessages.InlineMethodAction_dialog_title, RefactoringSaveHelper.SAVE_REFACTORING);
-//  		return true;
-//  	}
-//  	return false;
-//  }
+
+  public static boolean startInlineMethodRefactoring(CompilationUnit unit, int offset, int length,
+      Shell shell) {
+    try {
+      DartElement[] elements = unit.codeSelect(offset, length);
+      if (elements.length == 1 && elements[0] instanceof Method) {
+        Method method = (Method) elements[0];
+        InlineMethodRefactoring refactoring = new InlineMethodRefactoring(method, unit, offset);
+        if (refactoring != null) {
+          new RefactoringStarter().activate(
+              new InlineMethodWizard(refactoring),
+              shell,
+              RefactoringMessages.InlineMethodAction_dialog_title,
+              RefactoringSaveHelper.SAVE_ALL);
+          return true;
+        }
+      }
+    } catch (DartModelException e) {
+    }
+    return false;
+  }
 
   public static boolean startInlineTempRefactoring(final CompilationUnit unit, DartUnit node,
       final ITextSelection selection, final Shell shell) {

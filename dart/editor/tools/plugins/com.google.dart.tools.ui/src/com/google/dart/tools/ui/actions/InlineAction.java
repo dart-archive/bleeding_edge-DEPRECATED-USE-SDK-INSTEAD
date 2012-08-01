@@ -22,8 +22,8 @@ public class InlineAction extends SelectionDispatchAction {
 
   private DartEditor fEditor;
   private final InlineLocalAction fInlineTemp;
+  private final InlineMethodAction fInlineMethod;
 
-//  private final InlineMethodAction fInlineMethod;
 //  private final InlineConstantAction fInlineConstant;
 
   public InlineAction(DartEditor editor) {
@@ -32,8 +32,8 @@ public class InlineAction extends SelectionDispatchAction {
     setText(RefactoringMessages.InlineAction_Inline);
     fEditor = editor;
     fInlineTemp = new InlineLocalAction(editor);
+    fInlineMethod = new InlineMethodAction(editor);
 //    fInlineConstant = new InlineConstantAction(editor);
-//    fInlineMethod = new InlineMethodAction(editor);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.INLINE_ACTION);
     setEnabled(SelectionConverter.getInputAsCompilationUnit(fEditor) != null);
   }
@@ -42,8 +42,8 @@ public class InlineAction extends SelectionDispatchAction {
     super(site);
     setText(RefactoringMessages.InlineAction_Inline);
     fInlineTemp = new InlineLocalAction(site);
+    fInlineMethod = new InlineMethodAction(site);
 //    fInlineConstant = new InlineConstantAction(site);
-//    fInlineMethod = new InlineMethodAction(site);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.INLINE_ACTION);
   }
 
@@ -51,10 +51,10 @@ public class InlineAction extends SelectionDispatchAction {
   public void run(IStructuredSelection selection) {
 //    if (fInlineConstant.isEnabled()) {
 //      fInlineConstant.run(selection);
-//    } else if (fInlineMethod.isEnabled()) {
-//      fInlineMethod.run(selection);
 //    } else
-    {
+    if (fInlineMethod.isEnabled()) {
+      fInlineMethod.run(selection);
+    } else {
       //inline temp will never be enabled on IStructuredSelection
       //don't bother running it
       Assert.isTrue(!fInlineTemp.isEnabled());
@@ -91,7 +91,11 @@ public class InlineAction extends SelectionDispatchAction {
 //        return;
 //      }
 //    }
-//    //InlineMethod is last (also tries enclosing element):
+
+    //InlineMethod is last (also tries enclosing element):
+    if (fInlineMethod.isEnabled() && fInlineMethod.tryInlineMethod(cu, selection, getShell())) {
+      return;
+    }
 //    if (fInlineMethod.isEnabled()
 //        && fInlineMethod.tryInlineMethod(typeRoot, node, selection, getShell())) {
 //      return;
@@ -105,9 +109,9 @@ public class InlineAction extends SelectionDispatchAction {
 
   @Override
   public void selectionChanged(ISelection selection) {
-//    fInlineConstant.update(selection);
-//    fInlineMethod.update(selection);
     fInlineTemp.update(selection);
-    setEnabled(fInlineTemp.isEnabled() /*|| fInlineConstant.isEnabled() || fInlineMethod.isEnabled()*/);
+    fInlineMethod.update(selection);
+//    fInlineConstant.update(selection);
+    setEnabled(fInlineTemp.isEnabled() || fInlineMethod.isEnabled() /*|| fInlineConstant.isEnabled()*/);
   }
 }

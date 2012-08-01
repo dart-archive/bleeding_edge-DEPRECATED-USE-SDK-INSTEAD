@@ -867,58 +867,33 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String InlineConstantRefactoring_syntax_errors;
 
+  public static String InlineMethodRefactoring_cannotFindMethodDeclaration;
   public static String InlineMethodRefactoring_checking_implements_error;
-
   public static String InlineMethodRefactoring_checking_overridden;
-
   public static String InlineMethodRefactoring_checking_overridden_error;
-
   public static String InlineMethodRefactoring_checking_overrides_error;
-
   public static String InlineMethodRefactoring_descriptor_description;
-
   public static String InlineMethodRefactoring_descriptor_description_short;
-
   public static String InlineMethodRefactoring_edit_delete;
-
   public static String InlineMethodRefactoring_edit_import;
-
   public static String InlineMethodRefactoring_edit_inline;
-
   public static String InlineMethodRefactoring_edit_inlineCall;
-
   public static String InlineMethodRefactoring_error_classFile;
-
   public static String InlineMethodRefactoring_error_noMethodDeclaration;
-
   public static String InlineMethodRefactoring_name;
-
   public static String InlineMethodRefactoring_nestedInvocation;
-
   public static String InlineMethodRefactoring_original_pattern;
-
   public static String InlineMethodRefactoring_processing;
-
   public static String InlineMethodRefactoring_remove_method;
-
   public static String InlineMethodRefactoring_replace_references;
-
   public static String InlineMethodRefactoring_searching;
-
   public static String InlineMethodRefactoring_SourceAnalyzer_abstract_methods;
-
   public static String InlineMethodRefactoring_SourceAnalyzer_declaration_has_errors;
-
   public static String InlineMethodRefactoring_SourceAnalyzer_methoddeclaration_has_errors;
-
   public static String InlineMethodRefactoring_SourceAnalyzer_native_methods;
-
   public static String InlineMethodRefactoring_SourceAnalyzer_qualified_this_expressions;
-
   public static String InlineMethodRefactoring_SourceAnalyzer_recursive_call;
-
   public static String InlineMethodRefactoring_SourceAnalyzer_syntax_errors;
-
   public static String InlineMethodRefactoring_SourceAnalyzer_typedeclaration_has_errors;
 
   public static String InlineTempRefactoring_descriptor_description;

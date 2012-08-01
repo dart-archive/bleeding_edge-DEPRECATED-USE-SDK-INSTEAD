@@ -90,7 +90,8 @@ public class NodeFinder extends ASTVisitor<Void> {
       return null;
     }
     int nodeStart = result.getSourceInfo().getOffset();
-    if (start <= nodeStart && nodeStart + result.getSourceInfo().getLength() <= start + length) {
+    int nodeEnd = result.getSourceInfo().getEnd();
+    if (start <= nodeStart && nodeEnd <= start + length) {
       Buffer buffer = source.getBuffer();
       if (buffer != null) {
         String src = buffer.getText(start, length);

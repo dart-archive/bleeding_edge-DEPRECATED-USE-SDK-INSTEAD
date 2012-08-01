@@ -14,8 +14,14 @@
 package com.google.dart.tools.internal.corext.refactoring;
 
 import com.google.dart.compiler.ast.DartExprStmt;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStatement;
+import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.tools.core.dom.NodeFinder;
+import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
+import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
+import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
@@ -33,6 +39,7 @@ import com.google.dart.tools.ui.internal.util.DartModelUtil;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.viewers.IStructuredSelection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -369,6 +376,20 @@ public class RefactoringAvailabilityTester {
 //    return isExtractInterfaceAvailable(RefactoringActions.getEnclosingOrPrimaryType(selection));
 //  }
 
+  public static DartNode getInlineableMethodNode(CompilationUnit unit, DartUnit unitNode,
+      int offset, int length) {
+    DartNode node = null;
+    try {
+      node = getInlineableMethodNode(NodeFinder.perform(unitNode, offset, length, unit), unit);
+    } catch (DartModelException e) {
+      // Do nothing
+    }
+    if (node != null) {
+      return node;
+    }
+    return getInlineableMethodNode(NodeFinder.perform(unitNode, offset, length), unit);
+  }
+
   public static boolean isExtractLocalAvailable(DartTextSelection selection) {
     DartNode[] nodes = selection.resolveSelectedNodes();
     return (selection.resolveInMethodBody() || selection.resolveInClassInitializer())
@@ -378,22 +399,6 @@ public class RefactoringAvailabilityTester {
 //        && !selection.resolveInAnnotation()
 //        && (Checks.isExtractableExpression(nodes, selection.resolveCoveringNode()) || nodes != null
 //        && nodes.length == 1 && nodes[0] instanceof DartExprStmt);
-  }
-
-  public static boolean isExtractMethodAvailable(DartNode[] nodes) {
-    if (nodes != null && nodes.length != 0) {
-      if (nodes.length == 1) {
-        return nodes[0] instanceof DartStatement || Checks.isExtractableExpression(nodes[0]);
-      } else {
-        for (int index = 0; index < nodes.length; index++) {
-          if (!(nodes[index] instanceof DartStatement)) {
-            return false;
-          }
-        }
-        return true;
-      }
-    }
-    return false;
   }
 
 //  public static boolean isExtractSupertypeAvailable(TypeMember member) throws DartModelException {
@@ -487,9 +492,20 @@ public class RefactoringAvailabilityTester {
 //    return isExtractSupertypeAvailable(new TypeMember[]{(TypeMember) element});
 //  }
 
-  public static boolean isExtractMethodAvailable(DartTextSelection selection) {
-    return (selection.resolveInMethodBody() || selection.resolveInClassInitializer() || selection.resolveInVariableInitializer())
-        && isExtractMethodAvailable(selection.resolveSelectedNodes());
+  public static boolean isExtractMethodAvailable(DartNode[] nodes) {
+    if (nodes != null && nodes.length != 0) {
+      if (nodes.length == 1) {
+        return nodes[0] instanceof DartStatement || Checks.isExtractableExpression(nodes[0]);
+      } else {
+        for (int index = 0; index < nodes.length; index++) {
+          if (!(nodes[index] instanceof DartStatement)) {
+            return false;
+          }
+        }
+        return true;
+      }
+    }
+    return false;
   }
 
 //  public static boolean isGeneralizeTypeAvailable(DartElement element)
@@ -646,53 +662,32 @@ public class RefactoringAvailabilityTester {
 //    }
 //    return elements[0] instanceof Field && isInlineConstantAvailable((Field) elements[0]);
 //  }
-//
-//  public static boolean isInlineMethodAvailable(Method method) throws DartModelException {
-//    if (method == null) {
-//      return false;
-//    }
-//    if (!method.exists()) {
-//      return false;
-//    }
-//    if (!method.isStructureKnown()) {
-//      return false;
-//    }
-//    if (!method.isBinary()) {
-//      return true;
-//    }
-//    if (method.isConstructor()) {
-//      return false;
-//    }
-//    return SourceRange.isAvailable(method.getNameRange());
-//  }
-//
-//  public static boolean isInlineMethodAvailable(IStructuredSelection selection)
-//      throws DartModelException {
-//    if (selection.isEmpty() || selection.size() != 1) {
-//      return false;
-//    }
-//    Object first = selection.getFirstElement();
-//    return first instanceof Method && isInlineMethodAvailable((Method) first);
-//  }
-//
-//  public static boolean isInlineMethodAvailable(DartTextSelection selection)
-//      throws DartModelException {
+
+  public static boolean isExtractMethodAvailable(DartTextSelection selection) {
+    return (selection.resolveInMethodBody() || selection.resolveInClassInitializer() || selection.resolveInVariableInitializer())
+        && isExtractMethodAvailable(selection.resolveSelectedNodes());
+  }
+
+  public static boolean isInlineMethodAvailable(DartTextSelection selection)
+      throws DartModelException {
+    DartElement[] elements = selection.resolveElementAtOffset();
+    if (elements.length != 1) {
+      return false;
+    }
+    return elements[0] instanceof Method && isInlineMethodAvailable((Method) elements[0]);
+    // TODO(scheglov)
 //    DartElement[] elements = selection.resolveElementAtOffset();
 //    if (elements.length != 1) {
 //      DartElement enclosingElement = selection.resolveEnclosingElement();
 //      if (!(enclosingElement instanceof TypeMember)) {
 //        return false;
 //      }
-//      ITypeRoot typeRoot = ((TypeMember) enclosingElement).getTypeRoot();
-//      CompilationUnit compilationUnit = selection.resolvePartialAstAtOffset();
-//      if (compilationUnit == null) {
+//      CompilationUnit unit = enclosingElement.getAncestor(CompilationUnit.class);
+//      DartUnit unitNode = selection.resolvePartialAstAtOffset();
+//      if (unitNode == null) {
 //        return false;
 //      }
-//      return getInlineableMethodNode(
-//          typeRoot,
-//          compilationUnit,
-//          selection.getOffset(),
-//          selection.getLength()) != null;
+//      return getInlineableMethodNode(unit, unitNode, selection.getOffset(), selection.getLength()) != null;
 //    }
 //    DartElement element = elements[0];
 //    if (!(element instanceof Method)) {
@@ -719,51 +714,35 @@ public class RefactoringAvailabilityTester {
 //    int nameLength = enclosingMethod.getNameRange().getLength();
 //    return nameOffset <= selection.getOffset()
 //        && selection.getOffset() + selection.getLength() <= nameOffset + nameLength;
-//  }
-//
-//  public static ASTNode getInlineableMethodNode(ITypeRoot typeRoot,
-//      CompilationUnit root,
-//      int offset,
-//      int length) {
-//    ASTNode node = null;
-//    try {
-//      node = getInlineableMethodNode(NodeFinder.perform(root, offset, length, typeRoot), typeRoot);
-//    } catch (DartModelException e) {
-//      // Do nothing
+  }
+
+  public static boolean isInlineMethodAvailable(IStructuredSelection selection)
+      throws DartModelException {
+    if (selection.isEmpty() || selection.size() != 1) {
+      return false;
+    }
+    Object first = selection.getFirstElement();
+    return first instanceof Method && isInlineMethodAvailable((Method) first);
+  }
+
+  public static boolean isInlineMethodAvailable(Method method) throws DartModelException {
+    if (method == null) {
+      return false;
+    }
+    if (!method.exists()) {
+      return false;
+    }
+    if (!method.isStructureKnown()) {
+      return false;
+    }
+//    if (!method.isBinary()) {
+//      return true;
 //    }
-//    if (node != null) {
-//      return node;
-//    }
-//    return getInlineableMethodNode(NodeFinder.perform(root, offset, length), typeRoot);
-//  }
-//
-//  private static ASTNode getInlineableMethodNode(ASTNode node, DartElement unit) {
-//    if (node == null) {
-//      return null;
-//    }
-//    switch (node.getNodeType()) {
-//      case ASTNode.SIMPLE_NAME:
-//        StructuralPropertyDescriptor locationInParent = node.getLocationInParent();
-//        if (locationInParent == MethodDeclaration.NAME_PROPERTY) {
-//          return node.getParent();
-//        } else if (locationInParent == MethodInvocation.NAME_PROPERTY
-//            || locationInParent == SuperMethodInvocation.NAME_PROPERTY) {
-//          return unit instanceof CompilationUnit ? node.getParent() : null; // don't start on invocations in binary
-//        }
-//        return null;
-//      case ASTNode.EXPRESSION_STATEMENT:
-//        node = ((ExpressionStatement) node).getExpression();
-//    }
-//    switch (node.getNodeType()) {
-//      case ASTNode.METHOD_DECLARATION:
-//        return node;
-//      case ASTNode.METHOD_INVOCATION:
-//      case ASTNode.SUPER_METHOD_INVOCATION:
-//      case ASTNode.CONSTRUCTOR_INVOCATION:
-//        return unit instanceof CompilationUnit ? node : null; // don't start on invocations in binary
-//    }
-//    return null;
-//  }
+    if (method.isConstructor()) {
+      return false;
+    }
+    return SourceRangeUtils.isAvailable(method.getNameRange());
+  }
 
   public static boolean isInlineTempAvailable(DartTextSelection selection)
       throws DartModelException {
@@ -778,6 +757,22 @@ public class RefactoringAvailabilityTester {
   public static boolean isInlineTempAvailable(DartVariableDeclaration variable)
       throws DartModelException {
     return Checks.isAvailable(variable);
+  }
+
+  public static boolean isRenameAvailable(CompilationUnit unit) {
+    if (unit == null) {
+      return false;
+    }
+    if (!unit.exists()) {
+      return false;
+    }
+    if (!DartModelUtil.isPrimary(unit)) {
+      return false;
+    }
+    if (unit.isReadOnly()) {
+      return false;
+    }
+    return true;
   }
 
 //  public static boolean isIntroduceFactoryAvailable(Method method) throws DartModelException {
@@ -1242,22 +1237,6 @@ public class RefactoringAvailabilityTester {
 //    return isPullUpAvailable(new TypeMember[]{(TypeMember) element});
 //  }
 
-  public static boolean isRenameAvailable(CompilationUnit unit) {
-    if (unit == null) {
-      return false;
-    }
-    if (!unit.exists()) {
-      return false;
-    }
-    if (!DartModelUtil.isPrimary(unit)) {
-      return false;
-    }
-    if (unit.isReadOnly()) {
-      return false;
-    }
-    return true;
-  }
-
   public static boolean isRenameAvailable(DartFunction function) throws DartModelException {
     if (function == null) {
       return false;
@@ -1289,6 +1268,19 @@ public class RefactoringAvailabilityTester {
       return false;
     }
     if (!Checks.isAvailable(imprt)) {
+      return false;
+    }
+    return true;
+  }
+
+  public static boolean isRenameAvailable(DartProject project) throws DartModelException {
+    if (project == null) {
+      return false;
+    }
+    if (!Checks.isAvailable(project)) {
+      return false;
+    }
+    if (!project.isConsistent()) {
       return false;
     }
     return true;
@@ -1330,19 +1322,6 @@ public class RefactoringAvailabilityTester {
 //    }
 //    return true;
 //  }
-
-  public static boolean isRenameAvailable(DartProject project) throws DartModelException {
-    if (project == null) {
-      return false;
-    }
-    if (!Checks.isAvailable(project)) {
-      return false;
-    }
-    if (!project.isConsistent()) {
-      return false;
-    }
-    return true;
-  }
 
   public static boolean isRenameAvailable(DartTypeParameter parameter) throws DartModelException {
     return Checks.isAvailable(parameter);
@@ -1457,6 +1436,38 @@ public class RefactoringAvailabilityTester {
     // TODO(scheglov) virtual?
     return isRenameAvailable(method);
     //return isRenameAvailable(method) && MethodChecks.isVirtual(method);
+  }
+
+  // TODO(scheglov)
+  private static DartNode getInlineableMethodNode(DartNode node, DartElement unit) {
+    if (node == null) {
+      return null;
+    }
+    if (node instanceof DartIdentifier) {
+      StructuralPropertyDescriptor locationInParent = PropertyDescriptorHelper.getLocationInParent(node);
+      System.out.println("locationInParent: " + locationInParent);
+//      if (locationInParent == MethodDeclaration.NAME_PROPERTY) {
+//        return node.getParent();
+//      } else if (locationInParent == MethodInvocation.NAME_PROPERTY
+//          || locationInParent == SuperMethodInvocation.NAME_PROPERTY) {
+//        return unit instanceof CompilationUnit ? node.getParent() : null; // don't start on invocations in binary
+//      }
+      return null;
+    }
+//    switch (node.getNodeType()) {
+//      case DartNode.SIMPLE_NAME:
+//      case DartNode.EXPRESSION_STATEMENT:
+//        node = ((ExpressionStatement) node).getExpression();
+//    }
+//    switch (node.getNodeType()) {
+//      case DartNode.METHOD_DECLARATION:
+//        return node;
+//      case DartNode.METHOD_INVOCATION:
+//      case DartNode.SUPER_METHOD_INVOCATION:
+//      case DartNode.CONSTRUCTOR_INVOCATION:
+//        return unit instanceof CompilationUnit ? node : null; // don't start on invocations in binary
+//    }
+    return null;
   }
 
 //  public static boolean isReplaceInvocationsAvailable(Method method) throws DartModelException {

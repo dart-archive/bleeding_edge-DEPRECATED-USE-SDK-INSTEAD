@@ -288,7 +288,7 @@ public class TestUtilities {
    * file handles to those resources.
    * 
    * @param project the project to delete
-   * @throws CoreException if an exception occured while deleting the project
+   * @throws CoreException if an exception occurred while deleting the project
    */
   public static void deleteProject(IProject project) throws CoreException {
     final int MAX_FAILURES = 10;

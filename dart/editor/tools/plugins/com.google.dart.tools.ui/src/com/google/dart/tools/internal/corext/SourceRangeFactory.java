@@ -104,4 +104,13 @@ public class SourceRangeFactory {
     return forStartEnd(start, end);
   }
 
+  /**
+   * @return the {@link SourceRange} of "a" with offset from given "base".
+   */
+  public static SourceRange fromBase(HasSourceInfo a, int base) {
+    int start = a.getSourceInfo().getOffset() - base;
+    int length = a.getSourceInfo().getLength();
+    return forStartLength(start, length);
+  }
+
 }

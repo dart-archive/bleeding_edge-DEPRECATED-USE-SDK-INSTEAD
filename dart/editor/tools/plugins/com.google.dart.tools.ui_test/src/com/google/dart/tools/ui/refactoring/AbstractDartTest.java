@@ -87,16 +87,24 @@ public abstract class AbstractDartTest extends TestCase {
   }
 
   /**
-   * Attempts to find {@link DartElement} at the position of the <code>search</code> string. If
-   * position not found, fails the test.
+   * Attempts to find {@link DartElement} at the <code>offset</code> position.
    */
   @SuppressWarnings("unchecked")
-  protected static <T extends DartElement> T findElement(CompilationUnit unit, String search)
+  protected static <T extends DartElement> T findElement(CompilationUnit unit, int offset)
       throws Exception {
-    int offset = findOffset(unit, search);
     DartElement[] elements = unit.codeSelect(offset, 0);
     assertThat(elements).hasSize(1);
     return (T) elements[0];
+  }
+
+  /**
+   * Attempts to find {@link DartElement} at the position of the <code>search</code> string. If
+   * position not found, fails the test.
+   */
+  protected static <T extends DartElement> T findElement(CompilationUnit unit, String search)
+      throws Exception {
+    int offset = findOffset(unit, search);
+    return findElement(unit, offset);
   }
 
   /**
@@ -151,6 +159,13 @@ public abstract class AbstractDartTest extends TestCase {
    */
   protected final void assertTestUnitContent(String... lines) throws Exception {
     assertUnitContent(testUnit, lines);
+  }
+
+  /**
+   * Attempts to find {@link DartElement} at the <code>offset</code> position.
+   */
+  protected final <T extends DartElement> T findElement(int offset) throws Exception {
+    return findElement(testUnit, offset);
   }
 
   /**

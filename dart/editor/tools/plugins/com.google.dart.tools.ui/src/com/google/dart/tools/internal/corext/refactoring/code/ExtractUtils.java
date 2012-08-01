@@ -304,6 +304,47 @@ public class ExtractUtils {
   }
 
   /**
+   * @return the index of the first not space or tab on the right from the given one, if form
+   *         statement or method end, then this is in most cases start of the next line.
+   */
+  public int getLineNextIndex(int index) {
+    int length = buffer.getLength();
+    // skip whitespace characters
+    while (index < length) {
+      char c = buffer.getChar(index);
+      if (!Character.isWhitespace(c) || c == '\r' || c == '\n') {
+        break;
+      }
+      index++;
+    }
+    // skip single \r
+    if (index < length && buffer.getChar(index) == '\r') {
+      index++;
+    }
+    // skip single \n
+    if (index < length && buffer.getChar(index) == '\n') {
+      index++;
+    }
+    // done
+    return index;
+  }
+
+  /**
+   * @return the index of the last space or tab on the left from the given one, if form statement or
+   *         method start, then this is in most cases start of the line.
+   */
+  public int getLineThisIndex(int index) {
+    while (index > 0) {
+      char c = buffer.getChar(index - 1);
+      if (c != ' ' && c != '\t') {
+        break;
+      }
+      index--;
+    }
+    return index;
+  }
+
+  /**
    * @return the line prefix consisting of spaces and tabs on the left from the given
    *         {@link DartNode}.
    */
@@ -316,7 +357,7 @@ public class ExtractUtils {
    * @return the line prefix consisting of spaces and tabs on the left from the given offset.
    */
   public String getPrefix(int endIndex) {
-    int startIndex = getNodePrefixStartIndex(endIndex);
+    int startIndex = getLineThisIndex(endIndex);
     return buffer.getText(startIndex, endIndex - startIndex);
   }
 
@@ -387,21 +428,6 @@ public class ExtractUtils {
     }
     // OK
     return true;
-  }
-
-  /**
-   * @return the index of the last space or tab on the left from the given {@link DartNode}.
-   */
-  private int getNodePrefixStartIndex(int endIndex) {
-    int startIndex = endIndex;
-    while (true) {
-      char c = buffer.getChar(startIndex - 1);
-      if (c != ' ' && c != '\t') {
-        break;
-      }
-      startIndex--;
-    }
-    return startIndex;
   }
 
   /**

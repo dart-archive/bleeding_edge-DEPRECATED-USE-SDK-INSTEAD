@@ -15,9 +15,13 @@ package com.google.dart.tools.internal.corext.dom;
 
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartDeclaration;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.compiler.resolver.ElementKind;
+import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.VariableElement;
 
 import java.util.List;
 
@@ -43,6 +47,29 @@ public class ASTNodes {
   public static int getInclusiveEnd(DartNode node) {
     SourceInfo sourceInfo = node.getSourceInfo();
     return sourceInfo.getOffset() + sourceInfo.getLength() - 1;
+  }
+
+  /**
+   * @return the {@link VariableElement} if the given {@link DartIdentifier} is the parameter
+   *         reference, or <code>null</code> in the other case.
+   */
+  public static VariableElement getParameterElement(DartIdentifier node) {
+    if (ElementKind.of(node.getElement()) == ElementKind.PARAMETER) {
+      return (VariableElement) node.getElement();
+    }
+    return null;
+  }
+
+  /**
+   * @return the index of given {@link VariableElement} in parameters, or <code>-1</code> if not
+   *         parameter.
+   */
+  public static int getParameterIndex(VariableElement variableElement) {
+    if (variableElement.getEnclosingElement() instanceof MethodElement) {
+      MethodElement methodElement = (MethodElement) variableElement.getEnclosingElement();
+      return methodElement.getParameters().indexOf(variableElement);
+    }
+    return -1;
   }
 
   /**
@@ -595,6 +622,17 @@ public class ASTNodes {
       return blockStatements.get(0);
     }
     return statement;
+  }
+
+  /**
+   * @return the {@link VariableElement} if the given {@link DartIdentifier} is the local variable
+   *         reference, or <code>null</code> in the other case.
+   */
+  public static VariableElement getVariableElement(DartIdentifier node) {
+    if (ElementKind.of(node.getElement()) == ElementKind.VARIABLE) {
+      return (VariableElement) node.getElement();
+    }
+    return null;
   }
 
   /**
