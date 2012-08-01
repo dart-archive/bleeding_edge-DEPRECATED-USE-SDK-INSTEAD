@@ -43,6 +43,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
+    return visitExpression(node);
+  }
+
+  @Override
   public R visitArgumentList(ArgumentList node) {
     return visitNode(node);
   }

@@ -22,6 +22,8 @@ public interface ASTVisitor<R> {
 
   public R visitAnnotation(Annotation node);
 
+  public R visitArgumentDefinitionTest(ArgumentDefinitionTest node);
+
   public R visitArgumentList(ArgumentList node);
 
   public R visitArrayAccess(ArrayAccess node);
