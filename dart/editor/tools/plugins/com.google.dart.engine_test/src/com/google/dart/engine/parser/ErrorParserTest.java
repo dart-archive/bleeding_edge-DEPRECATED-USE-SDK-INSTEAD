@@ -45,6 +45,10 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseIfStatement", "if (x) {break;}", ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);
   }
 
+  public void test_breakOutsideOfLoop_breakInSwitchStatement() throws Exception {
+    parse("parseSwitchStatement", "switch (x) {case 1: break;}");
+  }
+
   public void test_breakOutsideOfLoop_breakInWhileStatement() throws Exception {
     parse("parseWhileStatement", "while (x) {break;}");
   }
@@ -55,6 +59,34 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_breakOutsideOfLoop_functionExpression_withALoop() throws Exception {
     parse("parseStatement", "() {for (; x;) {break;}}");
+  }
+
+  public void test_continueOutsideOfLoop_continueInDoStatement() throws Exception {
+    parse("parseDoStatement", "do {continue;} while (x);");
+  }
+
+  public void test_continueOutsideOfLoop_continueInForStatement() throws Exception {
+    parse("parseForStatement", "for (; x;) {continue;}");
+  }
+
+  public void test_continueOutsideOfLoop_continueInIfStatement() throws Exception {
+    parse("parseIfStatement", "if (x) {continue;}", ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP);
+  }
+
+  public void test_continueOutsideOfLoop_continueInSwitchStatement() throws Exception {
+    parse("parseSwitchStatement", "switch (x) {case 1: continue a;}");
+  }
+
+  public void test_continueOutsideOfLoop_continueInWhileStatement() throws Exception {
+    parse("parseWhileStatement", "while (x) {continue;}");
+  }
+
+  public void test_continueOutsideOfLoop_functionExpression_inALoop() throws Exception {
+    parse("parseStatement", "for(; x;) {() {continue;}}", ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP);
+  }
+
+  public void test_continueOutsideOfLoop_functionExpression_withALoop() throws Exception {
+    parse("parseStatement", "() {for (; x;) {continue;}}");
   }
 
   public void test_directiveOutOfOrder_classBeforeDirective() throws Exception {
