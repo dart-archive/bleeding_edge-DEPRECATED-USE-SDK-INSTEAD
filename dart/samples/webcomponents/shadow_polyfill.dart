@@ -158,18 +158,20 @@ class CustomElementsManager {
   // callbacks for WebComponents below root in the DOM. We need one of these
   // for every shadow subtree, since mutation observers can't see across
   // shadow boundaries.
-  void initializeInsertedRemovedCallbacks(DocumentFragment root) {
+  void initializeInsertedRemovedCallbacks(Element root) {
     _insertionObserver = new MutationObserver((mutations, observer) {
       for (var mutation in mutations) {
         // TODO(samhop): remove this test if it turns out that it always passes
         if (mutation.type == 'childList') {
           for (var node in mutation.addedNodes) {
+            if (node is! Element) continue;
             var dartElement = _customElements[node];
             if (dartElement != null) {
               dartElement.inserted();
             }
           }
           for (var node in mutation.removedNodes) {
+            if (node is! Element) continue;
             var dartElement = _customElements[node];
             if (dartElement != null) {
               dartElement.removed();
@@ -180,6 +182,33 @@ class CustomElementsManager {
     });
     _insertionObserver.observe(root, childList: true, subtree: true);
   }
+}
+
+bool _hasShadowRoot;
+
+/**
+ * True if the browser supports the [ShadowRoot] element and it is enabled.
+ * See the [Shadow DOM spec](http://www.w3.org/TR/shadow-dom/) for more
+ * information about the ShadowRoot.
+ */
+bool get hasShadowRoot() {
+  if (_hasShadowRoot == null) {
+    try {
+      // TODO(jmesserly): it'd be nice if we could check this without causing
+      // an exception to be thrown.
+      new ShadowRoot(new DivElement());
+      _hasShadowRoot = true;
+    } catch (var e) {
+      _hasShadowRoot = false;
+      // Hide <template> elements.
+      // TODO(jmesserly): This is a workaround because we don't distribute
+      // children correctly. It's not actually the right fix.
+      var style = new Element.html(
+          @'<style type="text/css">template { display: none; }</style>');
+      document.head.nodes.add(style);
+    }
+  }
+  return _hasShadowRoot;
 }
 
 class _CustomDeclaration {
@@ -219,19 +248,31 @@ class _CustomDeclaration {
   }
 
   // TODO(samhop): better docs
-  /** 
-   * Modify the DOM for e, return a new Dart object corresponding to it. 
-   * Returns null if this custom declaration has no template for
+  /**
+   * Modify the DOM for e, return a new Dart object corresponding to it.
+   * Returns null if this custom declaration has no template element.
    */
   WebComponent morph(Element e) {
-    if (this.template == null) {
+    if (template == null) {
       return null;
     }
 
-    var shadowRoot = new ShadowRoot(e);
-    shadowRoot.resetStyleInheritance = false;
-    if (applyAuthorStyles) {
-      shadowRoot.applyAuthorStyles = true;
+    var shadowRoot;
+    if (hasShadowRoot) {
+      shadowRoot = new ShadowRoot(e);
+      shadowRoot.resetStyleInheritance = false;
+      if (applyAuthorStyles) {
+        shadowRoot.applyAuthorStyles = true;
+      }
+    } else {
+      // Remove the old ShadowRoot, if any
+      // TODO(jmesserly): can we avoid morphing the same node twice?
+      shadowRoot = e.query('.shadowroot');
+      if (shadowRoot != null && shadowRoot.parent == e) shadowRoot.remove();
+
+      // TODO(jmesserly): distribute children to insertion points.
+      shadowRoot = new Element.html('<div class="shadowroot"></div>');
+      e.nodes.add(shadowRoot);
     }
 
     template.nodes.forEach((node) => shadowRoot.nodes.add(node.clone(true)));
