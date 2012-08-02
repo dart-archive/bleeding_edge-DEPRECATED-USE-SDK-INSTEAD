@@ -136,10 +136,27 @@
             <enablement></enablement>
          </commonWizard>
          <triggerPoints>
-            <test
-                  property="com.google.dart.tools.core.expressions.isAnalyzable">
-            </test>
-        </triggerPoints>
+            <adapt type="org.eclipse.core.resources.IProject">
+               <test property="org.eclipse.core.resources.projectNature" value="com.google.dart.tools.core.dartNature"/>
+            </adapt>
+         </triggerPoints>
+         <possibleChildren>
+            <or>
+               <instanceof value="org.eclipse.core.resources.IResource"/>
+               <instanceof value="org.eclipse.core.filesystem.IFileStore"/>
+            </or>
+        </possibleChildren> 
+         <commonSorter
+               class="com.google.dart.eclipse.ui.internal.navigator.DartNavigatorViewerSorter"
+               id="com.google.dart.eclipse.ui.navigatorSorter">
+            <parentExpression>
+               <or>
+                  <instanceof value="org.eclipse.core.resources.IResource"/>
+                  <instanceof value="org.eclipse.core.filesystem.IFileStore"/>
+               </or>
+            </parentExpression>
+         </commonSorter>        
+        
       </navigatorContent>
    </extension>
    <extension
