@@ -90,8 +90,8 @@ public class DartCoreTestLog implements ILog {
         pw.println("    " + status);
         eclipseLog.log(status);
       }
+      content.clear();
     }
-    content.clear();
     fail(sw.toString().trim());
   }
 
@@ -118,9 +118,16 @@ public class DartCoreTestLog implements ILog {
   }
 
   /**
-   * Remove the log listener and assert no log entries
+   * Remove the log listener and dump any entries to the log
    */
   public void tearDown() {
+    if (content.size() > 0) {
+      ILog eclipseLog = DartCore.getPlugin().getLog();
+      for (IStatus status : content) {
+        eclipseLog.log(status);
+      }
+      content.clear();
+    }
     DartCore.setPluginLog(null);
   }
 
