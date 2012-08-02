@@ -34,10 +34,10 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
 
   public static final String JAVA_BASE_PREF_PAGE_ID = "com.google.dart.tools.ui.preferences.DartAnalysisPreferencePage"; //$NON-NLS-1$
 
-  private static boolean applyCheck(String key, Button check) {
+  private static boolean applyCheck(String key, Button check, boolean def) {
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
-      boolean root = prefs.getBoolean(key, false);
+      boolean root = prefs.getBoolean(key, def);
       boolean newSuppress = check.getSelection();
       if (newSuppress != root) {
         prefs.putBoolean(key, newSuppress);
@@ -70,7 +70,8 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
     boolean hasChanges = false;
     hasChanges |= applyCheck(
         DartCore.SUPPRESS_NO_MEMBER_FOR_INFERRED_TYPES,
-        suppressNoMemberWarningForInferredTypes_check);
+        suppressNoMemberWarningForInferredTypes_check,
+        true);
     if (hasChanges) {
       Job job = new CleanLibrariesJob();
       job.schedule();
@@ -96,7 +97,7 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     suppressNoMemberWarningForInferredTypes_check.setSelection(prefs.getBoolean(
         DartCore.SUPPRESS_NO_MEMBER_FOR_INFERRED_TYPES,
-        false));
+        true));
   }
 
 }

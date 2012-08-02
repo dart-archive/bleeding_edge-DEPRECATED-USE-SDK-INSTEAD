@@ -52,7 +52,7 @@ class AnalysisUtility {
         public boolean suppressNoMemberWarningForInferredTypes() {
           return DartCore.getPlugin().getPrefs().getBoolean(
               DartCore.SUPPRESS_NO_MEMBER_FOR_INFERRED_TYPES,
-              false);
+              true);
         }
       },
       SystemLibraryManagerProvider.getSystemLibraryManager()) {
