@@ -1032,7 +1032,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
       fileName = dartFile.getName();
       return DartCompilerUtilities.parseSource(
           fileName,
-          FileUtilities.getContents(dartFile.getLocation().toFile()),
+          FileUtilities.getDartContents(dartFile.getLocation().toFile()),
           null);
     } catch (Exception exception) {
       DartCore.logInformation("Could not read and parse the file " + fileName, exception);

@@ -225,7 +225,7 @@ public class DartKeyBindingPersistence {
    * @param file The File of key bindings
    * @throws CoreException if there is a problem reading or parsing the file
    */
-  public void readFile(File file) throws CoreException {
+  public void readFile(File file, String encoding) throws CoreException {
     Reader reader = null;
     try {
       reader = new FileReader(file);
@@ -242,7 +242,7 @@ public class DartKeyBindingPersistence {
       }
     }
     try {
-      String bindString = FileUtilities.getContents(file);
+      String bindString = FileUtilities.getContents(file, encoding);
       IPreferenceStore prefs = DartToolsPlugin.getDefault().getPreferenceStore();
       prefs.setValue(CUSTOM_KEY_BINDING_STRING, bindString);
     } catch (IOException ex) {

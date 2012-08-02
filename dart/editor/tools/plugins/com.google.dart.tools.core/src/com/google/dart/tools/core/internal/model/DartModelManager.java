@@ -1580,7 +1580,9 @@ public class DartModelManager {
         for (File htmlFile : htmlFiles) {
           List<String> libraryNames;
           try {
-            libraryNames = LibraryReferenceFinder.findInHTML(FileUtilities.getContents(htmlFile));
+            libraryNames = LibraryReferenceFinder.findInHTML(FileUtilities.getContents(
+                htmlFile,
+                "UTF-8"));
             for (String name : libraryNames) {
               if (name.equalsIgnoreCase(libraryName)) {
                 files.add(htmlFile);
@@ -1677,7 +1679,7 @@ public class DartModelManager {
 
       DartUnit unit = DartCompilerUtilities.parseSource(
           file.getName(),
-          FileUtilities.getContents(file),
+          FileUtilities.getDartContents(file),
           null);
       List<DartDirective> directives = unit.getDirectives();
       if (directives != null && directives.size() > 0) {

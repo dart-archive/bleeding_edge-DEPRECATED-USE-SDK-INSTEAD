@@ -133,6 +133,14 @@ public class TestProject {
         server.discard(location.toFile());
       }
     }
+    // we need to close, because in the other case DelteProcessor for some reason closes it,
+    // but at the time when we create (!!!) new project
+    try {
+      if (project.exists()) {
+        project.close(null);
+      }
+    } catch (Throwable e) {
+    }
     // do dispose
     TestUtilities.deleteProject(project);
   }
@@ -189,6 +197,7 @@ public class TestProject {
       file.setContents(stream, true, false, null);
     } else {
       file.create(stream, true, null);
+      file.setCharset("UTF-8", null);
     }
     // notify AnalysisServer
     {
@@ -205,8 +214,9 @@ public class TestProject {
    * Creates or updates with {@link String} content of the {@link IFile}.
    */
   public IFile setFileContent(String path, String content) throws Exception {
-    InputStream inputStream = new ByteArrayInputStream(content.getBytes());
-    return setFileContent(path, inputStream);
+    byte[] bytes = content.getBytes("UTF-8");
+    InputStream stream = new ByteArrayInputStream(bytes);
+    return setFileContent(path, stream);
   }
 
   /**

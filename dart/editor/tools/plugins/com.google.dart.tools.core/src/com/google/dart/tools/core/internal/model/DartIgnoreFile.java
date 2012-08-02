@@ -101,7 +101,8 @@ public class DartIgnoreFile {
   public DartIgnoreFile load() throws IOException {
 
     if (file.exists()) {
-      BufferedReader reader = new BufferedReader(new StringReader(FileUtilities.getContents(file)));
+      BufferedReader reader = new BufferedReader(new StringReader(
+          FileUtilities.getDartContents(file)));
       String nextLine = reader.readLine();
       while (nextLine != null) {
         add(nextLine);

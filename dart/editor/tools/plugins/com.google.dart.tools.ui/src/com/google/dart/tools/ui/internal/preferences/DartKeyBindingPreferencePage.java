@@ -213,7 +213,7 @@ public class DartKeyBindingPreferencePage extends PreferencePage implements
     try {
       DartKeyBindingPersistence persist;
       persist = new DartKeyBindingPersistence(activityManager, bindingService, commandService);
-      persist.readFile(file);
+      persist.readFile(file, getEncoding());
     } catch (Exception ex) {
       MessageDialog.openError(
           getShell(),

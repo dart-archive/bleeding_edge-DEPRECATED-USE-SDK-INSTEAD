@@ -58,7 +58,7 @@ public class DartKeyBindingPersistenceTest extends TestCase {
       }
       persist = getBindingPersist();
       try {
-        persist.readFile(file);
+        persist.readFile(file, "UTF-8");
       } catch (CoreException ex) {
         fail(ex.getMessage());
       }
@@ -99,7 +99,9 @@ public class DartKeyBindingPersistenceTest extends TestCase {
     return persist;
   }
 
-  private boolean hasKeyBinding(DartKeyBindingPersistence persist, String commandName,
+  private boolean hasKeyBinding(
+      DartKeyBindingPersistence persist,
+      String commandName,
       String keySequence) {
     try {
       Binding bind = persist.findBinding(commandName, null);

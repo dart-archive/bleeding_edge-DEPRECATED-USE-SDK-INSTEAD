@@ -366,7 +366,7 @@ public class ExtractUtils {
    */
   public String getText(HasSourceInfo hasSourceInfo) {
     SourceInfo sourceInfo = hasSourceInfo.getSourceInfo();
-    return buffer.getText(sourceInfo.getOffset(), sourceInfo.getLength());
+    return getText(sourceInfo.getOffset(), sourceInfo.getLength());
   }
 
   /**

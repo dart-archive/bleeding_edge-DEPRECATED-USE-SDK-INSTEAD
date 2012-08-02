@@ -20,10 +20,10 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.net.URL;
@@ -241,9 +241,9 @@ public class FileUtilities {
    * @return the contents of the given file, interpreted as a string
    * @throws IOException if the file contents could not be read
    */
-  public static String getContents(File file) throws IOException {
-    Reader fileReader = new FileReader(file);
-    BufferedReader reader = new BufferedReader(fileReader);
+  public static String getContents(File file, String charsetName) throws IOException {
+    Reader streamReader = new InputStreamReader(new FileInputStream(file), charsetName);
+    BufferedReader reader = new BufferedReader(streamReader);
     return getContents(reader);
   }
 
@@ -261,6 +261,13 @@ public class FileUtilities {
     } finally {
       reader.close();
     }
+  }
+
+  /**
+   * @return the contents of the given Dart file with UTF-8 encoding.
+   */
+  public static String getDartContents(File file) throws IOException {
+    return getContents(file, "UTF-8");
   }
 
   /**

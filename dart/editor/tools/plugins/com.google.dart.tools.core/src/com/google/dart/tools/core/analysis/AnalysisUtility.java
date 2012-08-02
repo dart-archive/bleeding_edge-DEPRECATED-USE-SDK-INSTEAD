@@ -83,7 +83,7 @@ class AnalysisUtility {
       DartCompilerListener listener) {
     String sourceCode = null;
     try {
-      sourceCode = FileUtilities.getContents(sourceFile);
+      sourceCode = FileUtilities.getDartContents(sourceFile);
     } catch (IOException e) {
       listener.onError(newIoError(source, e));
     }
