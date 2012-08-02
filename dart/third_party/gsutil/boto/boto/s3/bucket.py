@@ -142,7 +142,7 @@ class Bucket(object):
         """
         return self.get_key(key_name, headers=headers)
         
-    def get_key(self, key_name, headers=None, version_id=None):
+    def get_key(self, key_name, headers=None, version_id=None, response_headers=None):
         """
         Check to see if a particular key exists within the bucket.  This
         method uses a HEAD request to check for the existance of the key.
@@ -150,27 +150,41 @@ class Bucket(object):
         
         :type key_name: string
         :param key_name: The name of the key to retrieve
+
+        :type response_headers: dict
+        :param response_headers: A dictionary containing HTTP headers/values
+                                 that will override any headers associated with
+                                 the stored object in the response.
+                                 See http://goo.gl/EWOPb for details.
         
         :rtype: :class:`boto.s3.key.Key`
         :returns: A Key object from this bucket.
         """
+        query_args = []
         if version_id:
-            query_args = 'versionId=%s' % version_id
+            query_args.append('versionId=%s' % version_id)
+        if response_headers:
+            for rk, rv in response_headers.iteritems():
+                query_args.append('%s=%s' % (rk, urllib.quote(rv)))
+        if query_args:
+            query_args = '&'.join(query_args)
         else:
             query_args = None
         response = self.connection.make_request('HEAD', self.name, key_name,
                                                 headers=headers,
                                                 query_args=query_args)
+        response.read()
         # Allow any success status (2xx) - for example this lets us
         # support Range gets, which return status 206:
         if response.status/100 == 2:
-            response.read()
             k = self.key_class(self)
             provider = self.connection.provider
             k.metadata = boto.utils.get_aws_metadata(response.msg, provider)
             k.etag = response.getheader('etag')
             k.content_type = response.getheader('content-type')
             k.content_encoding = response.getheader('content-encoding')
+            k.content_disposition = response.getheader('content-disposition')
+            k.content_language = response.getheader('content-language')
             k.last_modified = response.getheader('last-modified')
             # the following machinations are a workaround to the fact that
             # apache/fastcgi omits the content-length header on HEAD
@@ -188,7 +202,6 @@ class Bucket(object):
             return k
         else:
             if response.status == 404:
-                response.read()
                 return None
             else:
                 raise self.connection.provider.storage_response_error(
@@ -736,7 +749,7 @@ class Bucket(object):
         if version_id:
             query_args += '&versionId=%s' % version_id
         response = self.connection.make_request('PUT', self.name, key_name,
-                                                data=acl_str.encode('ISO-8859-1'),
+                                                data=acl_str.encode('UTF-8'),
                                                 query_args=query_args,
                                                 headers=headers)
         body = response.read()
@@ -1249,18 +1262,38 @@ class Bucket(object):
 
               * Key : name of object to serve when an error occurs
         """
+        return self.get_website_configuration_xml(self, headers)[0]
+
+    def get_website_configuration_with_xml(self, headers=None):
+        """
+        Returns the current status of website configuration on the bucket as
+        unparsed XML.
+
+        :rtype: 2-Tuple
+        :returns: 2-tuple containing:
+        1) A dictionary containing a Python representation
+                  of the XML response from GCS. The overall structure is:
+          * WebsiteConfiguration
+            * IndexDocument
+              * Suffix : suffix that is appended to request that
+                is for a "directory" on the website endpoint
+              * ErrorDocument
+                * Key : name of object to serve when an error occurs
+        2) unparsed XML describing the bucket's website configuration.
+        """
         response = self.connection.make_request('GET', self.name,
                 query_args='website', headers=headers)
         body = response.read()
         boto.log.debug(body)
-        if response.status == 200:
-            e = boto.jsonresponse.Element()
-            h = boto.jsonresponse.XmlHandler(e, None)
-            h.parse(body)
-            return e
-        else:
+
+        if response.status != 200:
             raise self.connection.provider.storage_response_error(
                 response.status, response.reason, body)
+
+        e = boto.jsonresponse.Element()
+        h = boto.jsonresponse.XmlHandler(e, None)
+        h.parse(body)
+        return e, body
 
     def delete_website_configuration(self, headers=None):
         """
@@ -1334,7 +1367,8 @@ class Bucket(object):
 
     def initiate_multipart_upload(self, key_name, headers=None,
                                   reduced_redundancy=False,
-                                  metadata=None, encrypt_key=False):
+                                  metadata=None, encrypt_key=False,
+                                  policy=None):
         """
         Start a multipart upload operation.
 
@@ -1365,11 +1399,16 @@ class Bucket(object):
                             be encrypted on the server-side by S3 and
                             will be stored in an encrypted form while
                             at rest in S3.
+
+        :type policy: :class:`boto.s3.acl.CannedACLStrings`
+        :param policy: A canned ACL policy that will be applied to the
+                       new key (once completed) in S3.
         """
         query_args = 'uploads'
         provider = self.connection.provider
-        if headers is None:
-            headers = {}
+        headers = headers or {}
+        if policy:
+            headers[provider.acl_header] = policy
         if reduced_redundancy:
             storage_class_header = provider.storage_class_header
             if storage_class_header:
@@ -1421,6 +1460,14 @@ class Bucket(object):
             resp = CompleteMultiPartUpload(self)
             h = handler.XmlHandler(resp, self)
             xml.sax.parseString(body, h)
+            # Use a dummy key to parse various response headers
+            # for versioning, encryption info and then explicitly
+            # set the completed MPU object values from key.
+            k = self.key_class(self)
+            k.handle_version_headers(response)
+            k.handle_encryption_headers(response)
+            resp.version_id = k.version_id
+            resp.encrypted = k.encrypted
             return resp
         else:
             raise self.connection.provider.storage_response_error(

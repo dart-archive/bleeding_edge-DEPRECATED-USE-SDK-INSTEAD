@@ -64,7 +64,8 @@ import boto.handler
 import boto.cacerts
 
 from boto import config, UserAgent
-from boto.exception import AWSConnectionError, BotoClientError, BotoServerError
+from boto.exception import AWSConnectionError, BotoClientError
+from boto.exception import BotoServerError
 from boto.provider import Provider
 from boto.resultset import ResultSet
 
@@ -127,7 +128,7 @@ class HostConnectionPool(object):
         ready to be returned by get().
         """
         return len(self.queue)
-    
+
     def put(self, conn):
         """
         Adds a connection to the pool, along with the time it was
@@ -209,7 +210,7 @@ class ConnectionPool(object):
     #
     # The amout of time between calls to clean.
     #
-    
+
     CLEAN_INTERVAL = 5.0
 
     #
@@ -232,6 +233,9 @@ class ConnectionPool(object):
         # The last time the pool was cleaned.
         self.last_clean_time = 0.0
         self.mutex = threading.Lock()
+        ConnectionPool.STALE_DURATION = \
+            config.getfloat('Boto', 'connection_stale_duration',
+                            ConnectionPool.STALE_DURATION)
 
     def size(self):
         """
@@ -270,7 +274,7 @@ class ConnectionPool(object):
         get rid of empty pools.  Pools clean themselves every time a
         connection is fetched; this cleaning takes care of pools that
         aren't being used any more, so nothing is being gotten from
-        them. 
+        them.
         """
         with self.mutex:
             now = time.time()
@@ -358,10 +362,40 @@ class HTTPRequest(object):
         self.headers['User-Agent'] = UserAgent
         # I'm not sure if this is still needed, now that add_auth is
         # setting the content-length for POST requests.
-        if not self.headers.has_key('Content-Length'):
-            if not self.headers.has_key('Transfer-Encoding') or \
+        if 'Content-Length' not in self.headers:
+            if 'Transfer-Encoding' not in self.headers or \
                     self.headers['Transfer-Encoding'] != 'chunked':
                 self.headers['Content-Length'] = str(len(self.body))
+
+
+class HTTPResponse(httplib.HTTPResponse):
+
+    def __init__(self, *args, **kwargs):
+        httplib.HTTPResponse.__init__(self, *args, **kwargs)
+        self._cached_response = ''
+
+    def read(self, amt=None):
+        """Read the response.
+
+        This method does not have the same behavior as
+        httplib.HTTPResponse.read.  Instead, if this method is called with
+        no ``amt`` arg, then the response body will be cached.  Subsequent
+        calls to ``read()`` with no args **will return the cached response**.
+
+        """
+        if amt is None:
+            # The reason for doing this is that many places in boto call
+            # response.read() and except to get the response body that they
+            # can then process.  To make sure this always works as they expect
+            # we're caching the response so that multiple calls to read()
+            # will return the full body.  Note that this behavior only
+            # happens if the amt arg is not specified.
+            if not self._cached_response:
+                self._cached_response = httplib.HTTPResponse.read(self)
+            return self._cached_response
+        else:
+            return httplib.HTTPResponse.read(self, amt)
+
 
 class AWSAuthConnection(object):
     def __init__(self, host, aws_access_key_id=None, aws_secret_access_key=None,
@@ -450,10 +484,10 @@ class AWSAuthConnection(object):
             self.protocol = 'http'
         self.host = host
         self.path = path
-        if isinstance(debug, (int, long)):
-            self.debug = debug
-        else:
-            self.debug = config.getint('Boto', 'debug', 0)
+        # if the value passed in for debug
+        if not isinstance(debug, (int, long)):
+            debug = 0
+        self.debug = config.getint('Boto', 'debug', debug)
         if port:
             self.port = port
         else:
@@ -470,10 +504,15 @@ class AWSAuthConnection(object):
                 timeout = config.getint('Boto', 'http_socket_timeout')
                 self.http_connection_kwargs['timeout'] = timeout
 
-        self.provider = Provider(provider,
-                                 aws_access_key_id,
-                                 aws_secret_access_key,
-                                 security_token)
+        if isinstance(provider, Provider):
+            # Allow overriding Provider
+            self.provider = provider
+        else:
+            self._provider_type = provider
+            self.provider = Provider(self._provider_type,
+                                     aws_access_key_id,
+                                     aws_secret_access_key,
+                                     security_token)
 
         # allow config file to override default host
         if self.provider.host:
@@ -559,7 +598,7 @@ class AWSAuthConnection(object):
         self.proxy_port = proxy_port
         self.proxy_user = proxy_user
         self.proxy_pass = proxy_pass
-        if os.environ.has_key('http_proxy') and not self.proxy:
+        if 'http_proxy' in os.environ and not self.proxy:
             pattern = re.compile(
                 '(?:http://)?' \
                 '(?:(?P<user>\w+):(?P<pass>.*)@)?' \
@@ -618,7 +657,13 @@ class AWSAuthConnection(object):
         else:
             boto.log.debug('establishing HTTP connection: kwargs=%s' %
                     self.http_connection_kwargs)
-            connection = httplib.HTTPConnection(host,
+            if self.https_connection_factory:
+                # even though the factory says https, this is too handy
+                # to not be able to allow overriding for http also.
+                connection = self.https_connection_factory(host,
+                    **self.http_connection_kwargs)
+            else:
+                connection = httplib.HTTPConnection(host,
                     **self.http_connection_kwargs)
         if self.debug > 1:
             connection.set_debuglevel(self.debug)
@@ -627,6 +672,9 @@ class AWSAuthConnection(object):
         # set a private variable which will enable that
         if host.split(':')[0] == self.host and is_secure == self.is_secure:
             self._connection = (host, is_secure)
+        # Set the response class of the http connection to use our custom
+        # class.
+        connection.response_class = HTTPResponse
         return connection
 
     def put_http_connection(self, host, is_secure, connection):
@@ -645,7 +693,12 @@ class AWSAuthConnection(object):
         if self.proxy_user and self.proxy_pass:
             for k, v in self.get_proxy_auth_header().items():
                 sock.sendall("%s: %s\r\n" % (k, v))
-        sock.sendall("\r\n")
+            # See discussion about this config option at
+            # https://groups.google.com/forum/?fromgroups#!topic/boto-dev/teenFvOq2Cc
+            if config.getbool('Boto', 'send_crlf_after_proxy_auth_headers', False):
+                sock.sendall("\r\n")
+        else:
+            sock.sendall("\r\n")
         resp = httplib.HTTPResponse(sock, strict=True, debuglevel=self.debug)
         resp.begin()
 
@@ -721,6 +774,10 @@ class AWSAuthConnection(object):
             num_retries = override_num_retries
         i = 0
         connection = self.get_http_connection(request.host, self.is_secure)
+        # The original headers/params are stored so that we can restore them
+        # if credentials are refreshed.
+        original_headers = request.headers.copy()
+        original_params = request.params.copy()
         while i <= num_retries:
             # Use binary exponential backoff to desynchronize client requests
             next_sleep = random.random() * (2 ** i)
@@ -755,6 +812,13 @@ class AWSAuthConnection(object):
                     msg += 'Retrying in %3.1f seconds' % next_sleep
                     boto.log.debug(msg)
                     body = response.read()
+                elif self._credentials_expired(response):
+                    # The same request object is used so the security token and
+                    # access key params are cleared because they are no longer
+                    # valid.
+                    request.params = original_params.copy()
+                    request.headers = original_headers.copy()
+                    self._renew_credentials()
                 elif response.status < 300 or response.status >= 400 or \
                         not location:
                     self.put_http_connection(request.host, self.is_secure,
@@ -770,6 +834,7 @@ class AWSAuthConnection(object):
                     boto.log.debug(msg)
                     connection = self.get_http_connection(request.host,
                                                           scheme == 'https')
+                    response = None
                     continue
             except self.http_exceptions, e:
                 for unretryable in self.http_unretryable_exceptions:
@@ -795,6 +860,25 @@ class AWSAuthConnection(object):
         else:
             msg = 'Please report this exception as a Boto Issue!'
             raise BotoClientError(msg)
+
+    def _credentials_expired(self, response):
+        # It is possible that we could be using temporary credentials that are
+        # now expired.  We want to detect when this happens so that we can
+        # refresh the credentials.  Subclasses can override this method and
+        # determine whether or not the response indicates that the credentials
+        # are invalid.  If this method returns True, the credentials will be
+        # renewed.
+        if response.status != 403:
+            return False
+        error = BotoServerError('', '', body=response.read())
+        return error.error_code == 'ExpiredToken'
+
+    def _renew_credentials(self):
+        # By resetting the provider with a new provider, this will trigger the
+        # lookup process for finding the new set of credentials.
+        boto.log.debug("Refreshing credentials.")
+        self.provider = Provider(self._provider_type)
+        self._auth_handler.update_provider(self.provider)
 
     def build_base_http_request(self, method, path, auth_path,
                                 params=None, headers=None, data='', host=None):

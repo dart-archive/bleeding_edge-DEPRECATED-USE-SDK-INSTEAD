@@ -23,16 +23,19 @@ from gslib.command import MIN_ARGS
 from gslib.command import PROVIDER_URIS_OK
 from gslib.command import SUPPORTED_SUB_ARGS
 from gslib.command import URIS_START_ARG
+from gslib.exception import CommandException
 from gslib.help_provider import HELP_NAME
 from gslib.help_provider import HELP_NAME_ALIASES
 from gslib.help_provider import HELP_ONE_LINE_SUMMARY
 from gslib.help_provider import HELP_TEXT
 from gslib.help_provider import HelpType
 from gslib.help_provider import HELP_TYPE
+from gslib.plurality_checkable_iterator import PluralityCheckableIterator
 from gslib.util import ListingStyle
 from gslib.util import MakeHumanReadable
 from gslib.util import NO_MAX
 from gslib.wildcard_iterator import ContainsWildcard
+import boto
 
 _detailed_help_text = ("""
 <B>SYNOPSIS</B>
@@ -230,7 +233,7 @@ class LsCommand(Command):
     if listing_style == ListingStyle.SHORT:
       print bucket_uri
     else:
-      for obj in self.exp_handler.WildcardIterator(
+      for obj in self.WildcardIterator(
           bucket_uri.clone_replace_name('**')).IterKeys():
         bucket_objs += 1
         bucket_bytes += obj.size
@@ -284,7 +287,7 @@ class LsCommand(Command):
     obj = bucket_listing_ref.GetKey()
     if listing_style == ListingStyle.SHORT:
       print self._UriStrForObj(uri, obj).encode('utf-8')
-      return (0, 0)
+      return (1, 0)
     elif listing_style == ListingStyle.LONG:
       # Exclude timestamp fractional secs (example: 2010-08-23T12:46:54.187Z).
       timestamp = obj.last_modified[:19].decode('utf8').encode('ascii')
@@ -292,61 +295,42 @@ class LsCommand(Command):
                               self._UriStrForObj(uri, obj).encode('utf-8'))
       return (1, obj.size)
     elif listing_style == ListingStyle.LONG_LONG:
-      uri_str = self._UriStrForObj(uri, obj)
-      print '%s:' % uri_str.encode('utf-8')
-      obj = self.suri_builder.StorageUri(uri_str).get_key(False)
-      print '\tObject size:\t%s' % obj.size
-      print '\tLast mod:\t%s' % obj.last_modified
-      if obj.cache_control:
-        print '\tCache control:\t%s' % obj.cache_control
-      print '\tMIME type:\t%s' % obj.content_type
-      if obj.content_disposition:
-        print '\tContent-Disposition:\t%s' % obj.content_disposition
-      if obj.content_encoding:
-        print '\tContent-Encoding:\t%s' % obj.content_encoding
-      if obj.metadata:
-        for name in obj.metadata:
-          print '\tMetadata:\t%s = %s' % (name, obj.metadata[name])
-      print '\tEtag:\t%s' % obj.etag.strip('"\'')
-      print '\tACL:\t%s' % (
-          self.suri_builder.StorageUri(uri_str).get_acl(False, self.headers))
-      return (1, obj.size)
+      # Run in a try/except clause so we can continue listings past
+      # access-denied errors (which can happen because user may have READ
+      # permission on object and thus see the bucket listing data, but lack
+      # FULL_CONTROL over individual objects and thus not be able to read
+      # their ACLs).
+      try:
+        uri_str = self._UriStrForObj(uri, obj)
+        print '%s:' % uri_str.encode('utf-8')
+        obj = self.suri_builder.StorageUri(uri_str).get_key(False)
+        print '\tObject size:\t%s' % obj.size
+        print '\tLast mod:\t%s' % obj.last_modified
+        if obj.cache_control:
+          print '\tCache control:\t%s' % obj.cache_control
+        print '\tMIME type:\t%s' % obj.content_type
+        if obj.content_disposition:
+          print '\tContent-Disposition:\t%s' % obj.content_disposition
+        if obj.content_encoding:
+          print '\tContent-Encoding:\t%s' % obj.content_encoding
+        if obj.content_language:
+          print '\tContent-Language:\t%s' % obj.content_language
+        if obj.metadata:
+          for name in obj.metadata:
+            print '\tMetadata:\t%s = %s' % (name, obj.metadata[name])
+        print '\tEtag:\t\t%s' % obj.etag.strip('"\'')
+        print '\tACL:\t\t%s' % (
+            self.suri_builder.StorageUri(uri_str).get_acl(False, self.headers))
+        return (1, obj.size)
+      except boto.exception.GSResponseError as e:
+        if e.status == 403:
+          print ('\tACL:\t\tACCESS DENIED. Note: you need FULL_CONTROL '
+                 'permission\n\t\t\ton the object to read its ACL.')
+          return (1, obj.size)
+        else:
+          raise e
     else:
       raise Exception('Unexpected ListingStyle(%s)' % listing_style)
-
-  def _BuildBlrExpansionForUriOnlyBlr(self, blr):
-    """
-    Builds BucketListingRef expansion from BucketListingRef that contains only a
-    URI (i.e., didn't come from a bucket listing). This case happens for BLR's
-    instantiated from a user-provided URI.
-
-    Args:
-      blr: BucketListingRef to expand
-
-    Returns:
-      List of BucketListingRef to which it expands.
-    """
-    # Do a delimited wildcard expansion so we get any matches along with
-    # whether they are keys or prefixes. That way if bucket contains a key
-    # 'abcd' and another key 'abce/x.txt' the expansion will return two BLRs,
-    # the first with HasKey()=True and the second with HasPrefix()=True.
-    rstripped_blr = blr.GetRStrippedUriString()
-    if ContainsWildcard(rstripped_blr):
-      return list(self.exp_handler.WildcardIterator(rstripped_blr))
-    # Build a wildcard to expand so CloudWildcardIterator will not just treat it
-    # as a key and yield the result without doing a bucket listing.
-    blr_expansion = list(
-        self.exp_handler.WildcardIterator(rstripped_blr + '*'))
-    # Find the originally specified blr in the expanded list (if present). Don't
-    # just use the expanded list, since it would also include objects whose name
-    # prefix matches the blr name (because of the wildcard match we did above).
-    # Note that there can be multiple matches, for the case where there's
-    # both an object and a subdirectory with the same name.
-    exp_result = []
-    for cur_blr in blr_expansion:
-      if cur_blr.GetRStrippedUriString() == rstripped_blr:
-        exp_result.append(cur_blr)
-    return exp_result
 
   def _ExpandUriAndPrintInfo(self, uri, listing_style, should_recurse=False):
     """
@@ -376,7 +360,7 @@ class LsCommand(Command):
         print
       blr = blrs_to_expand.pop(0)
       if blr.HasKey():
-        blr_expansion = [blr]
+        blr_iterator = iter([blr])
       elif blr.HasPrefix():
         # Bucket subdir from a previous iteration. Print "header" line only if
         # we're listing more than one subdir (or if it's a recursive listing),
@@ -384,17 +368,19 @@ class LsCommand(Command):
         if num_expanded_blrs > 1 or should_recurse:
           print '%s:' % blr.GetUriString().encode('utf-8')
           printed_one = True
-        blr_expansion = list(self.exp_handler.WildcardIterator(
-            '%s/*' % blr.GetRStrippedUriString()))
+        blr_iterator = self.WildcardIterator(
+            '%s/*' % blr.GetRStrippedUriString())
       elif blr.NamesBucket():
-        blr_expansion = list(self.exp_handler.WildcardIterator(
-            '%s*' % blr.GetUriString()))
+        blr_iterator = self.WildcardIterator('%s*' % blr.GetUriString())
       else:
         # This BLR didn't come from a bucket listing. This case happens for
         # BLR's instantiated from a user-provided URI.
-        blr_expansion = self._BuildBlrExpansionForUriOnlyBlr(blr)
-        num_expanded_blrs += len(blr_expansion)
-      for cur_blr in blr_expansion:
+        blr_iterator = PluralityCheckableIterator(
+            _UriOnlyBlrExpansionIterator(self, blr))
+        if blr_iterator.is_empty() and not ContainsWildcard(uri):
+          raise CommandException('No such object %s' % uri)
+      for cur_blr in blr_iterator:
+        num_expanded_blrs = num_expanded_blrs + 1
         if cur_blr.HasKey():
           # Object listing.
           (no, nb) = self._PrintInfoAboutBucketListingRef(
@@ -428,6 +414,7 @@ class LsCommand(Command):
 
   # Command entry point.
   def RunCommand(self):
+    got_nomatch_errors = False
     listing_style = ListingStyle.SHORT
     get_bucket_info = False
     self.recursion_requested = False
@@ -456,8 +443,7 @@ class LsCommand(Command):
 
       if uri.names_provider():
         # Provider URI: use bucket wildcard to list buckets.
-        for uri in self.exp_handler.WildcardIterator(
-            '%s://*' % uri.scheme).IterUris():
+        for uri in self.WildcardIterator('%s://*' % uri.scheme).IterUris():
           (bucket_objs, bucket_bytes) = self._PrintBucketInfo(uri,
                                                               listing_style)
           total_bytes += bucket_bytes
@@ -466,7 +452,7 @@ class LsCommand(Command):
         # Bucket URI -> list the object(s) in that bucket.
         if get_bucket_info:
           # ls -b bucket listing request: List info about bucket(s).
-          for uri in self.exp_handler.WildcardIterator(uri).IterUris():
+          for uri in self.WildcardIterator(uri).IterUris():
             (bucket_objs, bucket_bytes) = self._PrintBucketInfo(uri,
                                                                 listing_style)
             total_bytes += bucket_bytes
@@ -475,6 +461,8 @@ class LsCommand(Command):
           # Not -b request: List objects in the bucket(s).
           (no, nb) = self._ExpandUriAndPrintInfo(uri, listing_style,
               should_recurse=self.recursion_requested)
+          if no == 0 and ContainsWildcard(uri):
+            got_nomatch_errors = True
           total_objs += no
           total_bytes += nb
       else:
@@ -482,12 +470,16 @@ class LsCommand(Command):
         # subdirs.
         (exp_objs, exp_bytes) = self._ExpandUriAndPrintInfo(uri, listing_style,
             should_recurse=self.recursion_requested)
+        if exp_objs == 0 and ContainsWildcard(uri):
+          got_nomatch_errors = True
         total_bytes += exp_bytes
         total_objs += exp_objs
 
     if total_objs and listing_style != ListingStyle.SHORT:
       print ('TOTAL: %d objects, %d bytes (%s)' %
              (total_objs, total_bytes, MakeHumanReadable(float(total_bytes))))
+    if got_nomatch_errors:
+      raise CommandException('One or more URIs matched no objects.')
 
   # test specification, see definition of test_steps in base class for
   # details on how to populate these fields
@@ -502,3 +494,49 @@ class LsCommand(Command):
     ('list bucket contents', 'gsutil ls gs://$B1 >$F7', 0, ('$F7', '$F8')),
     ('list object', 'gsutil ls gs://$B1/$O0 >$F7', 0, ('$F7', '$F8')),
   ]
+
+
+class _UriOnlyBlrExpansionIterator:
+  """
+  Iterator that expands a BucketListingRef that contains only a URI (i.e.,
+  didn't come from a bucket listing), yielding BucketListingRefs to which it
+  expands.  This case happens for BLR's instantiated from a user-provided URI.
+  
+  Note that we can't use NameExpansionIterator here because it produces an
+  iteration over the full object names (e.g., expanding "gs://bucket" to
+  "gs://bucket/dir/o1" and "gs://bucket/dir/o2"), while for the ls command
+  we need also to see the intermediate directories (like "gs://bucket/dir").
+  """
+  def __init__(self, command_instance, blr):
+    self.command_instance = command_instance
+    self.blr = blr
+
+  def __iter__(self):
+    """
+    Args:
+      command_instance: calling instance of Command class.
+      blr: BucketListingRef to expand.
+
+    Yields:
+      List of BucketListingRef to which it expands.
+    """
+    # Do a delimited wildcard expansion so we get any matches along with
+    # whether they are keys or prefixes. That way if bucket contains a key
+    # 'abcd' and another key 'abce/x.txt' the expansion will return two BLRs,
+    # the first with HasKey()=True and the second with HasPrefix()=True.
+    rstripped_uri_str = self.blr.GetRStrippedUriString()
+    if ContainsWildcard(rstripped_uri_str):
+      for blr in self.command_instance.WildcardIterator(rstripped_uri_str):
+        yield blr
+      return
+    # Build a wildcard to expand so CloudWildcardIterator will not just treat it
+    # as a key and yield the result without doing a bucket listing.
+    for blr in self.command_instance.WildcardIterator(rstripped_uri_str + '*'):
+      # Find the originally specified BucketListingRef in the expanded list (if
+      # present). Don't just use the expanded list, because it would also
+      # include objects whose name prefix matches the blr name (because of the
+      # wildcard match we did above).  Note that there can be multiple matches,
+      # for the case where there's both an object and a subdirectory with the
+      # same name.
+      if blr.GetRStrippedUriString() == rstripped_uri_str:
+        yield blr

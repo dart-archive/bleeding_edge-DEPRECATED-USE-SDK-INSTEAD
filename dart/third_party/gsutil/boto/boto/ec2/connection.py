@@ -28,6 +28,7 @@ import base64
 import warnings
 from datetime import datetime
 from datetime import timedelta
+
 import boto
 from boto.connection import AWSQueryConnection
 from boto.resultset import ResultSet
@@ -60,7 +61,7 @@ from boto.exception import EC2ResponseError
 
 class EC2Connection(AWSQueryConnection):
 
-    APIVersion = boto.config.get('Boto', 'ec2_version', '2012-03-01')
+    APIVersion = boto.config.get('Boto', 'ec2_version', '2012-06-15')
     DefaultRegionName = boto.config.get('Boto', 'ec2_region_name', 'us-east-1')
     DefaultRegionEndpoint = boto.config.get('Boto', 'ec2_region_endpoint',
                                             'ec2.us-east-1.amazonaws.com')
@@ -92,6 +93,16 @@ class EC2Connection(AWSQueryConnection):
     def _required_auth_capability(self):
         return ['ec2']
 
+    def _credentials_expired(self, response):
+        if response.status != 400:
+            return False
+        error = EC2ResponseError('', '', body=response.read())
+        if error.errors is not None:
+            for code, message in error.errors:
+                if code == 'RequestExpired':
+                    return True
+        return False
+
     def get_params(self):
         """
         Returns a dictionary containing the value of of all of the keyword
@@ -118,7 +129,7 @@ class EC2Connection(AWSQueryConnection):
                 value = [value]
             j = 1
             for v in value:
-                params['Filter.%d.Value.%d' % (i,j)] = v
+                params['Filter.%d.Value.%d' % (i, j)] = v
                 j += 1
             i += 1
 
@@ -519,7 +530,9 @@ class EC2Connection(AWSQueryConnection):
                       instance_initiated_shutdown_behavior=None,
                       private_ip_address=None,
                       placement_group=None, client_token=None,
-                      security_group_ids=None):
+                      security_group_ids=None,
+                      additional_info=None, instance_profile_name=None,
+                      instance_profile_arn=None, tenancy=None):
         """
         Runs an image on EC2.
 
@@ -545,7 +558,9 @@ class EC2Connection(AWSQueryConnection):
         :type instance_type: string
         :param instance_type: The type of instance to run:
 
+                              * t1.micro
                               * m1.small
+                              * m1.medium
                               * m1.large
                               * m1.xlarge
                               * c1.medium
@@ -554,7 +569,8 @@ class EC2Connection(AWSQueryConnection):
                               * m2.2xlarge
                               * m2.4xlarge
                               * cc1.4xlarge
-                              * t1.micro
+                              * cg1.4xlarge
+                              * cc2.8xlarge
 
         :type placement: string
         :param placement: The availability zone in which to launch the instances
@@ -610,13 +626,25 @@ class EC2Connection(AWSQueryConnection):
                              to ensure idempotency of the request.
                              Maximum 64 ASCII characters
 
-        :rtype: Reservation
-        :return: The :class:`boto.ec2.instance.Reservation` associated with
-                 the request for machines
-
         :type security_group_ids: list of strings
         :param security_group_ids: The ID of the VPC security groups with
                                    which to associate instances
+
+        :type additional_info: string
+        :param additional_info: Specifies additional information to make
+                                available to the instance(s)
+
+        :type tenancy: string
+        :param tenancy: The tenancy of the instance you want to launch. An
+                        instance with a tenancy of 'dedicated' runs on
+                        single-tenant hardware and can only be launched into a
+                        VPC. Valid values are: "default" or "dedicated".
+                        NOTE: To use dedicated tenancy you MUST specify a VPC
+                        subnet-ID as well.
+
+        :rtype: Reservation
+        :return: The :class:`boto.ec2.instance.Reservation` associated with
+                 the request for machines
         """
         params = {'ImageId':image_id,
                   'MinCount':min_count,
@@ -649,6 +677,8 @@ class EC2Connection(AWSQueryConnection):
             params['Placement.AvailabilityZone'] = placement
         if placement_group:
             params['Placement.GroupName'] = placement_group
+        if tenancy:
+            params['Placement.Tenancy'] = tenancy
         if kernel_id:
             params['KernelId'] = kernel_id
         if ramdisk_id:
@@ -668,6 +698,12 @@ class EC2Connection(AWSQueryConnection):
             params['InstanceInitiatedShutdownBehavior'] = val
         if client_token:
             params['ClientToken'] = client_token
+        if additional_info:
+            params['AdditionalInfo'] = additional_info
+        if instance_profile_name:
+            params['IamInstanceProfile.Name'] = instance_profile_name
+        if instance_profile_arn:
+            params['IamInstanceProfile.Arn'] = instance_profile_arn
         return self.get_object('RunInstances', params, Reservation, verb='POST')
 
     def terminate_instances(self, instance_ids=None):
@@ -774,6 +810,7 @@ class EC2Connection(AWSQueryConnection):
                           * disableApiTermination|
                           * instanceInitiatedShutdownBehavior|
                           * rootDeviceName|blockDeviceMapping
+                          * sourceDestCheck|groupSet
 
         :rtype: :class:`boto.ec2.image.InstanceAttribute`
         :return: An InstanceAttribute object representing the value of the
@@ -796,13 +833,15 @@ class EC2Connection(AWSQueryConnection):
         :param attribute: The attribute you wish to change.
 
                           * AttributeName - Expected value (default)
-                          * instanceType - A valid instance type (m1.small)
-                          * kernel - Kernel ID (None)
-                          * ramdisk - Ramdisk ID (None)
-                          * userData - Base64 encoded String (None)
-                          * disableApiTermination - Boolean (true)
-                          * instanceInitiatedShutdownBehavior - stop|terminate
-                          * rootDeviceName - device name (None)
+                          * InstanceType - A valid instance type (m1.small)
+                          * Kernel - Kernel ID (None)
+                          * Ramdisk - Ramdisk ID (None)
+                          * UserData - Base64 encoded String (None)
+                          * DisableApiTermination - Boolean (true)
+                          * InstanceInitiatedShutdownBehavior - stop|terminate
+                          * RootDeviceName - device name (None)
+                          * SourceDestCheck - Boolean (true)
+                          * GroupSet - Set of Security Groups or IDs
 
         :type value: string
         :param value: The new value for the attribute
@@ -811,15 +850,26 @@ class EC2Connection(AWSQueryConnection):
         :return: Whether the operation succeeded or not
         """
         # Allow a bool to be passed in for value of disableApiTermination
-        if attribute == 'disableApiTermination':
+        if attribute.lower() == 'disableapitermination':
             if isinstance(value, bool):
                 if value:
                     value = 'true'
                 else:
                     value = 'false'
-        params = {'InstanceId' : instance_id,
-                  'Attribute' : attribute,
-                  'Value' : value}
+
+        params = {'InstanceId' : instance_id}
+
+        # groupSet is handled differently from other arguments
+        if attribute.lower() == 'groupset':
+            for idx, sg in enumerate(value):
+                if isinstance(sg, SecurityGroup):
+                    sg = sg.id
+                params['GroupId.%s' % (idx + 1)] = sg
+        else:
+            # for backwards compatibility handle lowercase first letter
+            attribute = attribute[0].upper() + attribute[1:]
+            params['%s.Value' % attribute] = value
+
         return self.get_status('ModifyInstanceAttribute', params, verb='POST')
 
     def reset_instance_attribute(self, instance_id, attribute):
@@ -1212,7 +1262,55 @@ class EC2Connection(AWSQueryConnection):
 
         return self.get_object('AllocateAddress', params, Address, verb='POST')
 
-    def associate_address(self, instance_id, public_ip=None, allocation_id=None):
+    def assign_private_ip_addresses(self, network_interface_id=None,
+                                    private_ip_addresses=None,
+                                    secondary_private_ip_address_count=None,
+                                    allow_reassignment=False):
+        """
+        Assigns one or more secondary private IP addresses to a network
+        interface in Amazon VPC.
+
+        :type network_interface_id: string
+        :param network_interface_id: The network interface to which the IP
+            address will be assigned.
+
+        :type private_ip_addresses: list
+        :param private_ip_addresses: Assigns the specified IP addresses as
+            secondary IP addresses to the network interface.
+
+        :type secondary_private_ip_address_count: int
+        :param secondary_private_ip_address_count: The number of secondary IP
+            addresses to assign to the network interface. You cannot specify
+            this parameter when also specifying private_ip_addresses.
+
+        :type allow_reassignment: bool
+        :param allow_reassignment: Specifies whether to allow an IP address
+            that is already assigned to another network interface or instance
+            to be reassigned to the specified network interface.
+
+        :rtype: bool
+        :return: True if successful
+        """
+        params = {}
+
+        if network_interface_id is not None:
+            params['NetworkInterfaceId'] = network_interface_id
+
+        if private_ip_addresses is not None:
+            self.build_list_params(params, private_ip_addresses,
+                                   'PrivateIpAddress')
+        elif secondary_private_ip_address_count is not None:
+            params['SecondaryPrivateIpAddressCount'] = \
+                secondary_private_ip_address_count
+
+        if allow_reassignment:
+            params['AllowReassignment'] = 'true'
+
+        return self.get_status('AssignPrivateIpAddresses', params, verb='POST')
+
+    def associate_address(self, instance_id=None, public_ip=None,
+                          allocation_id=None, network_interface_id=None,
+                          private_ip_address=None, allow_reassociation=False):
         """
         Associate an Elastic IP address with a currently running instance.
         This requires one of ``public_ip`` or ``allocation_id`` depending
@@ -1227,15 +1325,39 @@ class EC2Connection(AWSQueryConnection):
         :type allocation_id: string
         :param allocation_id: The allocation ID for a VPC-based elastic IP.
 
+        :type network_interface_id: string
+        :param network_interface_id: The network interface ID to which
+            elastic IP is to be assigned to
+
+        :type private_ip_address: string
+        :param private_ip_address: The primary or secondary private IP address
+            to associate with the Elastic IP address.
+
+        :type allow_reassociation: bool
+        :param allow_reassociation: Specify this option to allow an Elastic IP
+            address that is already associated with another network interface
+            or instance to be re-associated with the specified instance or
+            interface.
+
         :rtype: bool
         :return: True if successful
         """
-        params = { 'InstanceId' : instance_id }
+        params = {}
+        if instance_id is not None:
+                params['InstanceId'] = instance_id
+        elif network_interface_id is not None:
+                params['NetworkInterfaceId'] = network_interface_id
 
         if public_ip is not None:
             params['PublicIp'] = public_ip
         elif allocation_id is not None:
             params['AllocationId'] = allocation_id
+
+        if private_ip_address is not None:
+            params['PrivateIpAddress'] = private_ip_address
+
+        if allow_reassociation:
+            params['AllowReassociation'] = 'true'
 
         return self.get_status('AssociateAddress', params, verb='POST')
 
@@ -1282,6 +1404,35 @@ class EC2Connection(AWSQueryConnection):
             params['AllocationId'] = allocation_id
 
         return self.get_status('ReleaseAddress', params, verb='POST')
+
+    def unassign_private_ip_addresses(self, network_interface_id=None,
+                                      private_ip_addresses=None):
+        """
+        Unassigns one or more secondary private IP addresses from a network
+        interface in Amazon VPC.
+
+        :type network_interface_id: string
+        :param network_interface_id: The network interface from which the
+            secondary private IP address will be unassigned.
+
+        :type private_ip_addresses: list
+        :param private_ip_addresses: Specifies the secondary private IP
+            addresses that you want to unassign from the network interface.
+
+        :rtype: bool
+        :return: True if successful
+        """
+        params = {}
+
+        if network_interface_id is not None:
+            params['NetworkInterfaceId'] = network_interface_id
+
+        if private_ip_addresses is not None:
+            self.build_list_params(params, private_ip_addresses,
+                                   'PrivateIpAddress')
+
+        return self.get_status('UnassignPrivateIpAddresses', params,
+                               verb='POST')
 
     # Volume methods
 
@@ -1667,10 +1818,9 @@ class EC2Connection(AWSQueryConnection):
             if temp.__contains__(t) == False:
                 temp.append(t)
 
-        target_backup_times = temp
-        # make the oldeest dates first, and make sure the month start
+        # sort to make the oldest dates first, and make sure the month start
         # and last four week's start are in the proper order
-        target_backup_times.sort()
+        target_backup_times = sorted(temp)
 
         # get all the snapshots, sort them by date and time, and
         # organize them into one array for each volume:
@@ -1993,6 +2143,8 @@ class EC2Connection(AWSQueryConnection):
                                 SecurityGroup, verb='POST')
         group.name = name
         group.description = description
+        if vpc_id is not None:
+            group.vpc_id = vpc_id
         return group
 
     def delete_security_group(self, name=None, group_id=None):
@@ -2031,15 +2183,15 @@ class EC2Connection(AWSQueryConnection):
 
         :type group_name: string
         :param group_name: The name of the security group you are adding
-                           the rule to.
+            the rule to.
 
         :type src_security_group_name: string
         :param src_security_group_name: The name of the security group you are
-                                        granting access to.
+            granting access to.
 
         :type src_security_group_owner_id: string
         :param src_security_group_owner_id: The ID of the owner of the security
-                                            group you are granting access to.
+            group you are granting access to.
 
         :type ip_protocol: string
         :param ip_protocol: Either tcp | udp | icmp
@@ -2052,7 +2204,7 @@ class EC2Connection(AWSQueryConnection):
 
         :type to_port: string
         :param to_port: The CIDR block you are providing access to.
-                        See http://goo.gl/Yj5QC
+            See http://goo.gl/Yj5QC
 
         :rtype: bool
         :return: True if successful.
@@ -2087,15 +2239,15 @@ class EC2Connection(AWSQueryConnection):
 
         :type group_name: string
         :param group_name: The name of the security group you are adding
-                           the rule to.
+            the rule to.
 
         :type src_security_group_name: string
         :param src_security_group_name: The name of the security group you are
-                                        granting access to.
+            granting access to.
 
         :type src_security_group_owner_id: string
         :param src_security_group_owner_id: The ID of the owner of the security
-                                            group you are granting access to.
+            group you are granting access to.
 
         :type ip_protocol: string
         :param ip_protocol: Either tcp | udp | icmp
@@ -2108,19 +2260,17 @@ class EC2Connection(AWSQueryConnection):
 
         :type cidr_ip: string or list of strings
         :param cidr_ip: The CIDR block you are providing access to.
-                        See http://goo.gl/Yj5QC
+            See http://goo.gl/Yj5QC
 
         :type group_id: string
-        :param group_id: ID of the EC2 or VPC security group to modify.
-                         This is required for VPC security groups and
-                         can be used instead of group_name for EC2
-                         security groups.
+        :param group_id: ID of the EC2 or VPC security group to
+            modify.  This is required for VPC security groups and can
+            be used instead of group_name for EC2 security groups.
 
-        :type group_id: string
-        :param group_id: ID of the EC2 or VPC source security group.
-                         This is required for VPC security groups and
-                         can be used instead of group_name for EC2
-                         security groups.
+        :type src_security_group_group_id: string
+        :param src_security_group_group_id: The ID of the security
+            group you are granting access to.  Can be used instead of
+            src_security_group_name
 
         :rtype: bool
         :return: True if successful.
@@ -2153,7 +2303,7 @@ class EC2Connection(AWSQueryConnection):
         if to_port is not None:
             params['IpPermissions.1.ToPort'] = to_port
         if cidr_ip:
-            if type(cidr_ip) != list:
+            if not isinstance(cidr_ip, list):
                 cidr_ip = [cidr_ip]
             for i, single_cidr_ip in enumerate(cidr_ip):
                 params['IpPermissions.1.IpRanges.%d.CidrIp' % (i+1)] = \
@@ -2235,18 +2385,6 @@ class EC2Connection(AWSQueryConnection):
         :param to_port: The CIDR block you are revoking access to.
                         http://goo.gl/Yj5QC
 
-        :type group_id: string
-        :param group_id: ID of the EC2 or VPC security group to modify.
-                         This is required for VPC security groups and
-                         can be used instead of group_name for EC2
-                         security groups.
-
-        :type group_id: string
-        :param group_id: ID of the EC2 or VPC source security group.
-                         This is required for VPC security groups and
-                         can be used instead of group_name for EC2
-                         security groups.
-
         :rtype: bool
         :return: True if successful.
         """
@@ -2301,6 +2439,17 @@ class EC2Connection(AWSQueryConnection):
         :type cidr_ip: string
         :param cidr_ip: The CIDR block you are revoking access to.
                         See http://goo.gl/Yj5QC
+
+        :type group_id: string
+        :param group_id: ID of the EC2 or VPC security group to modify.
+                         This is required for VPC security groups and
+                         can be used instead of group_name for EC2
+                         security groups.
+
+        :type src_security_group_group_id: string
+        :param src_security_group_group_id: The ID of the security group
+                                            for which you are revoking access.
+                                            Can be used instead of src_security_group_name
 
         :rtype: bool
         :return: True if successful.
@@ -2757,8 +2906,7 @@ class EC2Connection(AWSQueryConnection):
     # Tag methods
 
     def build_tag_param_list(self, params, tags):
-        keys = tags.keys()
-        keys.sort()
+        keys = sorted(tags.keys())
         i = 1
         for key in keys:
             value = tags[key]
@@ -2918,7 +3066,7 @@ class EC2Connection(AWSQueryConnection):
         """
         params = {'NetworkInterfaceId' : network_interface_id,
                   'InstanceId' : instance_id,
-                  'Deviceindex' : device_index}
+                  'DeviceIndex' : device_index}
         return self.get_status('AttachNetworkInterface', params, verb='POST')
 
     def detach_network_interface(self, network_interface_id, force=False):

@@ -133,6 +133,7 @@ _detailed_help_text = ("""
     proxy_pass
     is_secure
     https_validate_certificates
+    send_crlf_after_proxy_auth_headers
     debug
     num_retries
 
@@ -261,6 +262,16 @@ CONFIG_BOTO_SECTION_CONTENT = """
 # files.
 https_validate_certificates = True
 
+# Set 'send_crlf_after_proxy_auth_headers' to True if you encounter problems
+# tunneling HTTPS through a proxy. Users who don't have a proxy in the path
+# to Google Cloud Storage don't need to touch this. Users who use a proxy will
+# probably find that the default behavior (flag value False) works. If
+# you encounter an error like "EOF occurred in violation of protocol" while
+# trying to use gsutil through your proxy, try setting this flag to True. We
+# (gs-team@google.com) would be interested to hear from you if you need to set
+# this, including the make and version of the proxy server you are using.
+#send_crlf_after_proxy_auth_headers = False
+
 # 'debug' controls the level of debug messages printed: 0 for none, 1
 # for basic boto debug, 2 for all boto debug plus HTTP requests/responses.
 # Note: 'gsutil -d' sets debug to 2 for that one command run.
@@ -304,6 +315,12 @@ CONFIG_INPUTLESS_GSUTIL_SECTION_CONTENT = """
 # robust because it analyzes file contents in addition to extensions.
 #use_magicfile = False
 
+# 'content_language' specifies the ISO 639-1 language code of the content, to be
+# passed in the Content-Language header. By default no Content-Language is sent.
+# See the ISO 631-1 column of
+# http://www.loc.gov/standards/iso639-2/php/code_list.php for a list of
+# language codes.
+content_language = en
 """ % {'resumable_threshold': ONE_MB,
        'parallel_process_count': DEFAULT_PARALLEL_PROCESS_COUNT,
        'parallel_thread_count': DEFAULT_PARALLEL_THREAD_COUNT}
@@ -605,9 +622,16 @@ class ConfigCommand(Command):
       scopes.append(SCOPE_FULL_CONTROL)
 
     if output_file_name is None:
-      # Use the default config file name, if it doesn't exist or can be moved
-      # out of the way without clobbering an existing backup file.
-      default_config_path = os.path.expanduser(os.path.join('~', '.boto'))
+      # Check to see if a default config file name is requested via
+      # environment variable. If so, use it, otherwise use the hard-coded
+      # default file. Then use the default config file name, if it doesn't 
+      # exist or can be moved out of the way without clobbering an existing 
+      # backup file.
+      boto_config_from_env = os.environ.get('BOTO_CONFIG', None)
+      if boto_config_from_env:
+        default_config_path = boto_config_from_env
+      else:
+        default_config_path = os.path.expanduser(os.path.join('~', '.boto'))
       if not os.path.exists(default_config_path):
         output_file_name = default_config_path
       else:

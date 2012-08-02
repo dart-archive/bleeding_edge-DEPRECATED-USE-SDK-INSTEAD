@@ -35,6 +35,7 @@ _detailed_help_text = ("""
 <B>SYNOPSIS</B>
   gsutil enablelogging -b logging_bucket [-o log_object_prefix] uri...
 
+
 <B>DESCRIPTION</B>
   Google Cloud Storage offers access logs and storage data in the form of
   CSV files that you can download and view. Access logs provide information
@@ -133,7 +134,7 @@ class EnableLoggingCommand(Command):
 
     did_some_work = False
     for uri_str in self.args:
-      for uri in self.exp_handler.WildcardIterator(uri_str).IterUris():
+      for uri in self.WildcardIterator(uri_str).IterUris():
         if uri.names_object():
           raise CommandException('enablelogging cannot be applied to objects')
         did_some_work = True

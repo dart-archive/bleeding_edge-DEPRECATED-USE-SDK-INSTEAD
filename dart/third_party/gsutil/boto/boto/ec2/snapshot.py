@@ -37,6 +37,7 @@ class Snapshot(TaggedEC2Object):
         self.progress = None
         self.start_time = None
         self.owner_id = None
+        self.owner_alias = None
         self.volume_size = None
         self.description = None
 
@@ -54,6 +55,8 @@ class Snapshot(TaggedEC2Object):
             self.start_time = value
         elif name == 'ownerId':
             self.owner_id = value
+        elif name == 'ownerAlias':
+            self.owner_alias = value
         elif name == 'volumeSize':
             try:
                 self.volume_size = int(value)
@@ -124,12 +127,12 @@ class SnapshotAttribute:
         if name == 'createVolumePermission':
             self.name = 'create_volume_permission'
         elif name == 'group':
-            if self.attrs.has_key('groups'):
+            if 'groups' in self.attrs:
                 self.attrs['groups'].append(value)
             else:
                 self.attrs['groups'] = [value]
         elif name == 'userId':
-            if self.attrs.has_key('user_ids'):
+            if 'user_ids' in self.attrs:
                 self.attrs['user_ids'].append(value)
             else:
                 self.attrs['user_ids'] = [value]

@@ -27,7 +27,10 @@ BUILD_OS = None
 DART_PATH = None
 TOOLS_PATH = None
 GSU_PATH_REV = None
+GDU_API_DOCS_PATH = None
+GSU_API_DOCS_BUCKET = 'gs://dartlang-api-docs'
 GSU_PATH_LATEST = None
+REVISION = None
 utils = None
 
 class AntWrapper(object):
@@ -200,7 +203,9 @@ def main():
   global DART_PATH
   global TOOLS_PATH
   global GSU_PATH_REV
+  global GSU_API_DOCS_PATH
   global GSU_PATH_LATEST
+  global REVISION
   global utils
   
   if not sys.argv:
@@ -341,8 +346,10 @@ def main():
       running_on_buildbot = False
       sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
 
+    REVISION = options.revision
     GSU_PATH_REV = '%s/%s' % (to_bucket, options.revision)
     GSU_PATH_LATEST = '%s/%s' % (to_bucket, 'latest')
+    GSU_API_DOCS_PATH = '%s/%s' % (GSU_API_DOCS_BUCKET, options.revision)
 
     homegsutil = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
     gsu = gsutil.GsUtil(False, homegsutil,
@@ -992,14 +999,15 @@ def ExecuteCommand(cmd, dir=None):
   return status
 
 def CreateApiDocs(buildLocation):
-  """Seth, add your magic here"""
-  #TODO:
+  """Zip up api_docs, upload it, and upload the raw tree of docs"""
   
   CallBuildScript('release', 'ia32', 'api_docs')
   
   apidir = join(DART_PATH, utils.GetBuildRoot('linux', 'release', 'ia32'), 'api_docs')
+
+  upload_api_docs(apidir)
   
-  api_zip = join(buildLocation, 'api-docs.zip')
+  api_zip = join(buildLocation, 'dart-api-docs.zip')
   
   zip(apidir, api_zip)
 
@@ -1117,6 +1125,30 @@ def upload(file):
   
   gspathLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(file))
   ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', gspathRev, gspathLatest])
+
+def upload_api_docs(dirName):
+  gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
+
+  # create file in dartlang-api-docs/REVISION/index.html
+  # this lets us do the recursive copy in the next step
+
+  localIndexFile = join(dirName, 'index.html')
+  destIndexFile = GSU_API_DOCS_PATH + '/index.html'
+  
+  ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', localIndexFile, destIndexFile])
+
+  # copy -R api_docs into dartlang-api-docs/REVISION
+  filesToUpload = glob.glob(join(dirName, '*'))
+  result = ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', '-r'] + filesToUpload + [GSU_API_DOCS_PATH])
+
+  if result == 0:
+    destLatestRevFile = GSU_API_DOCS_BUCKET + '/latest.txt'
+    localLatestRevFilename = join(dirName, 'latest.txt')
+    with open(localLatestRevFilename, 'w+') as f:
+      f.write(REVISION)
+
+    # overwrite dartlang-api-docs/latest.txt to contain REVISION
+    ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', localLatestRevFilename, destLatestRevFile])
 
 def ensure_dir(f):
   d = os.path.dirname(f)

@@ -92,12 +92,12 @@ _detailed_help_text = ("""
       gs://bucket/[a-m]??.j*g
 
 
-<B>EFFICIENCY CONSIDERATIONS WHEN USING WILDCARDS OVER MANY OBJECTS</B>
+<B>EFFICIENCY CONSIDERATION: USING WILDCARDS OVER MANY OBJECTS</B>
   It is more efficient, faster, and less network traffic-intensive
   to use wildcards that have a non-wildcard object-name prefix, like:
 
     gs://bucket/abc*.txt
-  
+
   than it is to use wildcards as the first part of the object name, like:
 
     gs://bucket/*abc.txt
@@ -113,6 +113,43 @@ _detailed_help_text = ("""
   wildcard matching patterns, to take advantage of the efficiency of doing
   server-side prefix requests. See, for example "gsutil help prod" for a
   concrete use case example.
+
+
+<B>EFFICIENCY CONSIDERATION: USING MID-PATH WILDCARDS</B>
+  Suppose you have a bucket with these objects:
+    gs://bucket/obj1
+    gs://bucket/obj2
+    gs://bucket/obj3
+    gs://bucket/obj4
+    gs://bucket/dir1/obj5
+    gs://bucket/dir2/obj6
+
+  If you run the command:
+    gsutil ls gs://bucket/*/obj5
+  gsutil will perform a /-delimited top-level bucket listing and then one bucket
+  listing for each subdirectory, for a total of 3 bucket listings:
+    GET /bucket/?delimiter=/
+    GET /bucket/?prefix=dir1/obj5&delimiter=/
+    GET /bucket/?prefix=dir2/obj5&delimiter=/
+
+  The more bucket listings your wildcard requires, the slower and more expensive
+  it will be. The number of bucket listings required grows as:
+    - the number of wildcard components (e.g., "gs://bucket/a??b/c*/*/d"
+      has 3 wildcard components);
+    - the number of subdirectories that match each component; and
+    - the number of results (pagination is implemented using one GET
+      request per 1000 results, specifying markers for each).
+
+  If you want to use a mid-path wildcard, you might try instead using a
+  recursive wildcard, for example:
+
+    gsutil ls gs://bucket/**/obj5
+
+  This will match more objects than gs://bucket/*/obj5 (since it spans
+  directories), but is implemented using a delimiter-less bucket listing
+  request (which means fewer bucket requests, though it will list the entire
+  bucket and filter locally, so that could require a non-trivial amount of
+  network traffic).
 """)
 
 

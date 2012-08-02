@@ -11,6 +11,7 @@ class Stack:
         self.notification_arns = []
         self.outputs = []
         self.parameters = []
+        self.capabilities = []
         self.stack_id = None
         self.stack_status = None
         self.stack_name = None
@@ -24,6 +25,9 @@ class Stack:
         elif name == "Outputs":
             self.outputs = ResultSet([('member', Output)])
             return self.outputs
+        elif name == "Capabilities":
+            self.capabilities = ResultSet([('member', Capability)])
+            return self.capabilities
         else:
             return None
 
@@ -165,6 +169,20 @@ class Output:
     def __repr__(self):
         return "Output:\"%s\"=\"%s\"" % (self.key, self.value)
 
+class Capability:
+    def __init__(self, connection=None):
+        self.connection = None
+        self.value = None
+
+    def startElement(self, name, attrs, connection):
+        return None
+
+    def endElement(self, name, value, connection):
+        self.value = value
+
+    def __repr__(self):
+        return "Capability:\"%s\"" % (self.value)
+
 class StackResource:
     def __init__(self, connection=None):
         self.connection = connection
@@ -222,7 +240,7 @@ class StackResourceSummary:
 
     def endElement(self, name, value, connection):
         if name == "LastUpdatedTimestamp":
-            self.last_updated_timestampe = datetime.strptime(value,
+            self.last_updated_timestamp = datetime.strptime(value,
                 '%Y-%m-%dT%H:%M:%SZ')
         elif name == "LogicalResourceId":
             self.logical_resource_id = value

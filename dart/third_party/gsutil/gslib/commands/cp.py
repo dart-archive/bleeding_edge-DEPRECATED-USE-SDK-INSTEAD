@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import boto
-import ctypes
 import errno
 import gzip
 import hashlib
@@ -29,8 +28,8 @@ import threading
 import time
 
 from boto.gs.resumable_upload_handler import ResumableUploadHandler
+from boto import config
 from boto.s3.resumable_download_handler import ResumableDownloadHandler
-from gslib.bucket_listing_ref import BucketListingRef
 from gslib.command import Command
 from gslib.command import COMMAND_NAME
 from gslib.command import COMMAND_NAME_ALIASES
@@ -48,6 +47,7 @@ from gslib.help_provider import HELP_ONE_LINE_SUMMARY
 from gslib.help_provider import HELP_TEXT
 from gslib.help_provider import HelpType
 from gslib.help_provider import HELP_TYPE
+from gslib.name_expansion import NameExpansionIterator
 from gslib.util import MakeHumanReadable
 from gslib.util import NO_MAX
 from gslib.util import ONE_MB
@@ -85,10 +85,10 @@ _detailed_help_text = ("""
 
 <B>HOW NAMES ARE CONSTRUCTED</B>
   The gsutil cp command strives to name objects in a way consistent with how
-  UNIX cp works, which causes names to be constructed varying ways depending on
-  whether you're performing a recursive directory copy or copying individually
-  named objects; and whether you're copying to an existing or non-existent
-  directory.
+  UNIX cp works, which causes names to be constructed in varying ways depending
+  on whether you're performing a recursive directory copy or copying
+  individually named objects; and whether you're copying to an existing or
+  non-existent directory.
 
   When performing recursive directory copies, object names are constructed
   that mirror the source directory structure starting at the point of
@@ -107,12 +107,12 @@ _detailed_help_text = ("""
   will create objects named like gs://my_bucket/c.
 
   The same rules apply for downloads: recursive copies of buckets and
-  bucket subdirectories produce mirrored filename structure, while copying
+  bucket subdirectories produce a mirrored filename structure, while copying
   individually (or wildcard) named objects produce flatly named files.
 
   Note that in the above example the '**' wildcard matches all names
-  anywhere under dir. The wildcard '*' will match just one level deep
-  names. For more details see 'gsutil help wildcards'.
+  anywhere under dir. The wildcard '*' will match names just one level deep. For
+  more details see 'gsutil help wildcards'.
 
   There's an additional wrinkle when working with subdirectories: the resulting
   names depend on whether the destination subdirectory exists. For example,
@@ -137,8 +137,8 @@ _detailed_help_text = ("""
 
     gsutil cp -R gs://my_bucket/data dir
 
-  This will cause everything nested under gs://my_bucket/data dir to be
-  downloaded to files, resulting in files with names like dir/data/a/b/c.
+  This will cause everything nested under gs://my_bucket/data to be downloaded
+  into dir, resulting in files with names like dir/data/a/b/c.
 
   Copying subdirectories is useful if you want to add data to an existing
   bucket directory structure over time. It's also useful if you want
@@ -192,10 +192,10 @@ _detailed_help_text = ("""
   standard Range GET operations) whenever you use the cp command to download an
   object larger than 1 MB.
 
-  Resumable uploads and downloads store some state information in a file named
-  by the file being uploaded (or object being downloaded) in ~/.gsutil. If you
-  attempt to resume a transfer from a machine with a different directory, the
-  transfer will start over from scratch.
+  Resumable uploads and downloads store some state information in a file
+  in ~/.gsutil named by the destination object or file. If you attempt to
+  resume a transfer from a machine with a different directory, the transfer
+  will start over from scratch.
 
   See also "gsutil help prod" for details on using resumable transfers
   in production.
@@ -270,7 +270,25 @@ _detailed_help_text = ("""
 
 
 class CpCommand(Command):
-  """Implementation of gsutil cp command."""
+  """
+  Implementation of gsutil cp command.
+
+  Note that CpCommand is run for both gsutil cp and gsutil mv. The latter
+  happens by MvCommand calling CpCommand and passing the hidden (undocumented)
+  -M option. This allows the copy and remove needed for each mv to run
+  together (rather than first running all the cp's and then all the rm's, as
+  we originally had implemented), which in turn avoids the following problem
+  with removing the wrong objects: starting with a bucket containing only
+  the object gs://bucket/obj, say the user does:
+    gsutil mv gs://bucket/* gs://bucket/d.txt
+  If we ran all the cp's and then all the rm's and we didn't expand the wildcard
+  first, the cp command would first copy gs://bucket/obj to gs://bucket/d.txt,
+  and the rm command would then remove that object. In the implementation
+  prior to gsutil release 3.12 we avoided this by building a list of objects
+  to process and then running the copies and then the removes; but building
+  the list up front limits scalability (compared with the current approach
+  of processing the bucket listing iterator on the fly).
+  """
 
   # Set default Content-Type type.
   DEFAULT_CONTENT_TYPE = 'application/octet-stream'
@@ -314,18 +332,23 @@ class CpCommand(Command):
   def _CheckFinalMd5(self, key, file_name):
     """
     Checks that etag from server agrees with md5 computed after the
-    download completes. This is important, since the download could
-    have spanned a number of hours and multiple processes (e.g.,
-    gsutil runs), and the user could change some of the file and not
-    realize they have inconsistent data.
+    download completes.
     """
-    # Open file in binary mode to avoid surprises in Windows.
-    fp = open(file_name, 'rb')
-    try:
-      file_md5 = key.compute_md5(fp)[0]
-    finally:
-      fp.close()
     obj_md5 = key.etag.strip('"\'')
+    file_md5 = None
+
+    if hasattr(key, 'md5') and key.md5:
+      file_md5 = key.md5
+    else:
+      print 'Computing MD5 from scratch for resumed download'
+
+      # Open file in binary mode to avoid surprises in Windows.
+      fp = open(file_name, 'rb')
+      try:
+        file_md5 = key.compute_md5(fp)[0]
+      finally:
+        fp.close()
+
     if self.debug:
       print 'Checking file md5 against etag. (%s/%s)' % (file_md5, obj_md5)
     if file_md5 != obj_md5:
@@ -383,7 +406,7 @@ class CpCommand(Command):
     Args:
       exp_dst_uri: Wildcard-expanding dst_uri.
       have_existing_dst_container: bool indicator of whether exp_dst_uri
-        names a container (directory, bucket, or bucket subdir).
+        names a container (directory, bucket, or existing bucket subdir).
       command_name: Name of command making call. May not be the same as
           self.command_name in the case of commands implemented atop other
           commands (like mv command).
@@ -394,14 +417,13 @@ class CpCommand(Command):
     if exp_dst_uri.is_file_uri():
       ok = exp_dst_uri.names_directory()
     else:
-        if have_existing_dst_container:
-          ok = True
-        else:
-          # It's ok to specify a non-existing bucket subdir if this is a
-          # recursive copy, such as:
-          #  gsutil cp -R dir gs://bucket/abc
-          # where there is no existing subdir gs://bucket/abc.
-          ok = self.recursion_requested and exp_dst_uri.names_object()
+      if have_existing_dst_container:
+        ok = True
+      else:
+        # It's ok to specify a non-existing bucket subdir, for example:
+        #   gsutil cp -R dir gs://bucket/abc
+        # where gs://bucket/abc isn't an existing subdir.
+        ok = exp_dst_uri.names_object()
     if not ok:
       raise CommandException('Destination URI must name a directory, bucket, '
                              'or bucket\nsubdirectory for the multiple '
@@ -436,44 +458,49 @@ class CpCommand(Command):
       if total_size and total_bytes_transferred == total_size:
         sys.stderr.write('\n')
 
-  def _GetTransferHandlers(self, uri, key, file_size, upload):
+  def _GetTransferHandlers(self, dst_uri, size, upload):
     """
     Selects upload/download and callback handlers.
 
     We use a callback handler that shows a simple textual progress indicator
-    if file_size is above the configurable threshold.
+    if size is above the configurable threshold.
 
-    We use a resumable transfer handler if file_size is >= the configurable
+    We use a resumable transfer handler if size is >= the configurable
     threshold and resumable transfers are supported by the given provider.
     boto supports resumable downloads for all providers, but resumable
     uploads are currently only supported by GS.
+
+    Args:
+      dst_uri: the destination URI.
+      size: size of file (object) being uploaded (downloaded).
+      upload: bool indication of whether transfer is an upload.
     """
     config = boto.config
     resumable_threshold = config.getint('GSUtil', 'resumable_threshold', ONE_MB)
-    if file_size >= resumable_threshold:
+    if size >= resumable_threshold:
       cb = self._FileCopyCallbackHandler(upload).call
-      num_cb = int(file_size / ONE_MB)
+      num_cb = int(size / ONE_MB)
       resumable_tracker_dir = config.get(
           'GSUtil', 'resumable_tracker_dir',
           os.path.expanduser('~' + os.sep + '.gsutil'))
       if not os.path.exists(resumable_tracker_dir):
         os.makedirs(resumable_tracker_dir)
       if upload:
-        # Encode the src bucket and key into the tracker file name.
+        # Encode the dest bucket and object name into the tracker file name.
         res_tracker_file_name = (
             re.sub('[/\\\\]', '_', 'resumable_upload__%s__%s.url' %
-                   (key.bucket.name, key.name)))
+                   (dst_uri.bucket_name, dst_uri.object_name)))
       else:
-        # Encode the fully-qualified src file name into the tracker file name.
+        # Encode the fully-qualified dest file name into the tracker file name.
         res_tracker_file_name = (
             re.sub('[/\\\\]', '_', 'resumable_download__%s.etag' %
-                   (os.path.realpath(uri.object_name))))
+                   (os.path.realpath(dst_uri.object_name))))
 
       res_tracker_file_name = _hash_filename(res_tracker_file_name)
       tracker_file = '%s%s%s' % (resumable_tracker_dir, os.sep,
                                  res_tracker_file_name)
       if upload:
-        if uri.scheme == 'gs':
+        if dst_uri.scheme == 'gs':
           transfer_handler = ResumableUploadHandler(tracker_file)
         else:
           transfer_handler = None
@@ -514,11 +541,31 @@ class CpCommand(Command):
   def _CheckFreeSpace(self, path):
     """Return path/drive free space (in bytes)."""
     if platform.system() == 'Windows':
-      free_bytes = ctypes.c_ulonglong(0)
-      ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(path), None,
-                                                 None,
-                                                 ctypes.pointer(free_bytes))
-      return free_bytes.value
+      from ctypes import c_int, c_uint64, c_wchar_p, windll, POINTER, WINFUNCTYPE, WinError
+      try:
+        GetDiskFreeSpaceEx = WINFUNCTYPE(c_int, c_wchar_p, POINTER(c_uint64),
+                                         POINTER(c_uint64), POINTER(c_uint64))
+        GetDiskFreeSpaceEx = GetDiskFreeSpaceEx(('GetDiskFreeSpaceExW', windll.kernel32), (
+            (1, 'lpszPathName'),
+            (2, 'lpFreeUserSpace'),
+            (2, 'lpTotalSpace'),
+            (2, 'lpFreeSpace'),))
+      except AttributeError:
+        GetDiskFreeSpaceEx = WINFUNCTYPE(c_int, c_char_p, POINTER(c_uint64),
+                                         POINTER(c_uint64), POINTER(c_uint64))
+        GetDiskFreeSpaceEx = GetDiskFreeSpaceEx(('GetDiskFreeSpaceExA', windll.kernel32), (
+            (1, 'lpszPathName'),
+            (2, 'lpFreeUserSpace'),
+            (2, 'lpTotalSpace'),
+            (2, 'lpFreeSpace'),))
+
+      def GetDiskFreeSpaceEx_errcheck(result, func, args):
+        if not result:
+            raise WinError()
+        return args[1].value
+      GetDiskFreeSpaceEx.errcheck = GetDiskFreeSpaceEx_errcheck
+
+      return GetDiskFreeSpaceEx(os.getenv('SystemDrive'))
     else:
       (_, f_frsize, _, _, f_bavail, _, _, _, _, _) = os.statvfs(path)
       return f_frsize * f_bavail
@@ -534,7 +581,7 @@ class CpCommand(Command):
     file_size = os.path.getsize(fp.name)
     dst_key = dst_uri.new_key(False, headers)
     (cb, num_cb, res_upload_handler) = self._GetTransferHandlers(
-        dst_uri, dst_key, file_size, True)
+        dst_uri, file_size, True)
     if dst_uri.scheme == 'gs':
       # Resumable upload protocol is Google Cloud Storage-specific.
       dst_key.set_contents_from_file(fp, headers, policy=canned_acl,
@@ -648,6 +695,11 @@ class CpCommand(Command):
       else:
         print '\t[Unknown content type -> using %s]' % self.DEFAULT_CONTENT_TYPE
 
+    if 'Content-Language' not in headers:
+       content_language = config.get_value('GSUtil', 'content_language')
+       if content_language:
+         headers['Content-Language'] = content_language
+
     fname_parts = src_uri.object_name.split('.')
     if len(fname_parts) > 1 and fname_parts[-1] in gzip_exts:
       if self.debug:
@@ -673,7 +725,12 @@ class CpCommand(Command):
                                                   canned_acl, headers))
       finally:
         gzip_fp.close()
-      os.unlink(gzip_path)
+      try:
+	os.unlink(gzip_path)
+      # Windows sometimes complains the temp file is locked when you try to
+      # delete it.
+      except Exception, e:
+        pass
     elif (src_key.is_stream()
           and dst_uri.get_provider().supports_chunked_transfer()):
       (elapsed_time, bytes_transferred) = self._PerformStreamUpload(
@@ -703,7 +760,7 @@ class CpCommand(Command):
 
   def _DownloadObjectToFile(self, src_key, src_uri, dst_uri, headers):
     (cb, num_cb, res_download_handler) = self._GetTransferHandlers(
-        src_uri, src_key, src_key.size, False)
+        dst_uri, src_key.size, False)
     file_name = dst_uri.object_name
     dir_name = os.path.dirname(file_name)
     if dir_name and not os.path.exists(dir_name):
@@ -746,6 +803,10 @@ class CpCommand(Command):
       if fp:
         fp.close()
 
+    # Discard the md5 if we are resuming a partial download.
+    if res_download_handler and res_download_handler.download_start_point:
+      src_key.md5 = None
+
     # Verify downloaded file checksum matched source object's checksum.
     self._CheckFinalMd5(src_key, download_file_name)
 
@@ -770,7 +831,7 @@ class CpCommand(Command):
 
   def _PerformDownloadToStream(self, src_key, src_uri, str_fp, headers):
     (cb, num_cb, res_download_handler) = self._GetTransferHandlers(
-                                src_uri, src_key, src_key.size, False)
+                                src_uri, src_key.size, False)
     start_time = time.time()
     src_key.get_contents_to_file(str_fp, headers, cb=cb, num_cb=num_cb)
     end_time = time.time()
@@ -882,12 +943,11 @@ class CpCommand(Command):
     else:
       raise CommandException('Unexpected src/dest case')
 
-  def _ExpandDstUri(self, src_uri_expansion, dst_uri_str):
+  def _ExpandDstUri(self, dst_uri_str):
     """
     Expands wildcard if present in dst_uri_str.
 
     Args:
-      src_uri_expansion: gslib.name_expansion.NameExpansionResult.
       dst_uri_str: String representation of requested dst_uri.
 
     Returns:
@@ -902,7 +962,7 @@ class CpCommand(Command):
 
     # Handle wildcarded dst_uri case.
     if ContainsWildcard(dst_uri):
-      blr_expansion = list(self.exp_handler.WildcardIterator(dst_uri))
+      blr_expansion = list(self.WildcardIterator(dst_uri))
       if len(blr_expansion) != 1:
         raise CommandException('Destination (%s) must match exactly 1 URI' %
                                dst_uri_str)
@@ -920,7 +980,7 @@ class CpCommand(Command):
       return (dst_uri, True)
     # For object URIs we need to do a wildcard expansion with
     # dst_uri + "*" and then find if there's a Prefix matching dst_uri.
-    blr_expansion = list(self.exp_handler.WildcardIterator(
+    blr_expansion = list(self.WildcardIterator(
         '%s*' % dst_uri_str.rstrip(dst_uri.delim)))
     for blr in blr_expansion:
       if (blr.GetRStrippedUriString() == dst_uri_str.rstrip(dst_uri.delim)):
@@ -993,7 +1053,7 @@ class CpCommand(Command):
       )
 
     # There are 3 cases for copying multiple sources to a dir/bucket/bucket
-    # subdir needed to match the naming semantics of the UNIX cp command:
+    # subdir needed to match the naming behavior of the UNIX cp command:
     # 1. For the "mv -R" command, people expect renaming to occur at the
     #    level of the src subdir, vs appending that subdir beneath
     #    the dst subdir like is done for copying. For example:
@@ -1025,12 +1085,12 @@ class CpCommand(Command):
     #    should create the objects gs://bucket/f1.txt and gs://bucket/f2.txt,
     #    assuming dir1 contains f1.txt and f2.txt.
 
-    if (self.mv_naming_semantics and self.recursion_requested
+    if (self.perform_mv and self.recursion_requested
         and src_uri_expands_to_multi):
-      # Case 1. Handle naming semantics for recursive bucket subdir mv.
-      # Here we want to line up the src_uri against its expansion, to find
-      # the base to build the new name. For example, starting with:
-      #   gsutil mv -R gs://bucket/abcd gs://bucket/xyz
+      # Case 1. Handle naming rules for bucket subdir mv. Here we want to
+      # line up the src_uri against its expansion, to find the base to build
+      # the new name. For example, starting with:
+      #   gsutil mv gs://bucket/abcd gs://bucket/xyz
       # and exp_src_uri being gs://bucket/abcd/123
       # we want exp_src_uri_tail to be /123
       # Note: mv.py code disallows wildcard specification of source URI.
@@ -1067,19 +1127,24 @@ class CpCommand(Command):
 
     if (exp_dst_uri.is_file_uri()
         or self._ShouldTreatDstUriAsBucketSubDir(
-            have_multiple_srcs, exp_dst_uri)):
-      dst_key_name = '%s%s' % (exp_dst_uri.object_name, dst_key_name)
+            have_multiple_srcs, exp_dst_uri, have_existing_dest_subdir)):
+      if exp_dst_uri.object_name.endswith(exp_dst_uri.delim):
+        dst_key_name = '%s%s%s' % (
+            exp_dst_uri.object_name.rstrip(exp_dst_uri.delim),
+            exp_dst_uri.delim, dst_key_name)
+      else:
+        dst_key_name = '%s%s' % (exp_dst_uri.object_name, dst_key_name)
 
     return exp_dst_uri.clone_replace_name(dst_key_name)
 
   def _FixWindowsNaming(self, src_uri, dst_uri):
     """
     Rewrites the destination URI built by _ConstructDstUri() to translate
-    Windows pathnames to cloud pathnames if neeeded.
+    Windows pathnames to cloud pathnames if needed.
 
     Args:
-      src_uri: src_uri to be copied.
-      dst_uri: the destination URI built by _ConstructDstUri().
+      src_uri: Source URI to be copied.
+      dst_uri: The destination URI built by _ConstructDstUri().
 
     Returns:
       StorageUri to use for copy.
@@ -1099,10 +1164,65 @@ class CpCommand(Command):
       self.THREADED_LOGGER.error(str(e))
       self.copy_failure_count += 1
 
-    def _CopyFunc(src_uri, exp_src_uri, src_uri_names_container,
-                  src_uri_expands_to_multi, have_multiple_srcs,
-                  have_existing_dest_subdir):
-      """Worker function for performing the actual copy."""
+    def _CopyFunc(name_expansion_result):
+      """Worker function for performing the actual copy (and rm, for mv)."""
+      if self.perform_mv:
+        cmd_name = 'mv'
+      else:
+        cmd_name = self.command_name
+      src_uri = self.suri_builder.StorageUri(
+          name_expansion_result.GetSrcUriStr())
+      exp_src_uri = self.suri_builder.StorageUri(
+          name_expansion_result.GetExpandedUriStr())
+      src_uri_names_container = name_expansion_result.NamesContainer()
+      src_uri_expands_to_multi = name_expansion_result.NamesContainer()
+      have_multiple_srcs = name_expansion_result.IsMultiSrcRequest()
+      have_existing_dest_subdir = (
+          name_expansion_result.HaveExistingDstContainer())
+
+      if src_uri.names_provider():
+        raise CommandException(
+            'The %s command does not allow provider-only source URIs (%s)' %
+            (cmd_name, src_uri))
+      if have_multiple_srcs:
+        self._InsistDstUriNamesContainer(exp_dst_uri,
+                                         have_existing_dst_container,
+                                         cmd_name)
+
+      if self.perform_mv:
+        # Disallow files as source arguments to protect users from deleting
+        # data off the local disk. Note that we can't simply set FILE_URIS_OK
+        # to False in command_spec because we *do* allow a file URI for the dest
+        # URI. (We allow users to move data out of the cloud to the local disk,
+        # but we disallow commands that would delete data off the local disk,
+        # and instead require the user to delete data separately, using local
+        # commands/tools.)
+        if src_uri.is_file_uri():
+          raise CommandException('The mv command disallows files as source '
+                                 'arguments.\nDid you mean to use a gs:// URI? '
+                                 'If you meant to use a file as a source, you\n'
+                                 'might consider using the "cp" command '
+                                 'instead.')
+        if name_expansion_result.NamesContainer():
+          # Use recursion_requested when performing name expansion for the
+          # directory mv case so we can determine if any of the source URIs are
+          # directories (and then use cp -R and rm -R to perform the move, to
+          # match the behavior of UNIX mv (which when moving a directory moves
+          # all the contained files).
+          self.recursion_requested = True
+          # Disallow wildcard src URIs when moving directories, as supporting it
+          # would make the name transformation too complex and would also be
+          # dangerous (e.g., someone could accidentally move many objects to the
+          # wrong name, or accidentally overwrite many objects).
+          if ContainsWildcard(src_uri):
+            raise CommandException('The mv command disallows naming source '
+                                   'directories using wildcards')
+
+      if (exp_dst_uri.is_file_uri()
+          and not os.path.exists(exp_dst_uri.object_name)
+          and have_multiple_srcs):
+        os.makedirs(exp_dst_uri.object_name)
+
       if exp_src_uri.is_file_uri() and exp_src_uri.is_stream():
         sys.stderr.write("Copying from <STDIN>...\n")
       else:
@@ -1116,11 +1236,14 @@ class CpCommand(Command):
 
       self._CheckForDirFileConflict(exp_src_uri, dst_uri)
       if self._SrcDstSame(exp_src_uri, dst_uri):
-        raise CommandException('cp: "%s" and "%s" are the same file - '
-                               'abort.' % (exp_src_uri, dst_uri))
+        raise CommandException('%s: "%s" and "%s" are the same file - '
+                               'abort.' % (cmd_name, exp_src_uri, dst_uri))
 
       (elapsed_time, bytes_transferred) = self._PerformCopy(exp_src_uri,
                                                             dst_uri)
+      if self.perform_mv:
+        self.THREADED_LOGGER.info('Removing %s...', exp_src_uri)
+        exp_src_uri.delete_key(validate=False, headers=self.headers)
       stats_lock.acquire()
       self.total_elapsed_time += elapsed_time
       self.total_bytes_transferred += bytes_transferred
@@ -1134,13 +1257,13 @@ class CpCommand(Command):
       self._HandleStreamingDownload()
       return
 
-    src_uri_expansion = self.exp_handler.ExpandWildcardsAndContainers(
-        self.args[0:len(self.args)-1], self.recursion_requested)
     (exp_dst_uri, have_existing_dst_container) = self._ExpandDstUri(
-        src_uri_expansion, self.args[-1])
-
-    self._SanityCheckRequest(src_uri_expansion, exp_dst_uri,
-                             have_existing_dst_container)
+         self.args[-1])
+    name_expansion_iterator = NameExpansionIterator(
+        self.command_name, self.proj_id_handler, self.headers, self.debug,
+        self.bucket_storage_uri_class, self.args[0:len(self.args)-1],
+        self.recursion_requested or self.perform_mv,
+        have_existing_dst_container)
 
     # Use a lock to ensure accurate statistics in the face of
     # multi-threading/multi-processing.
@@ -1159,8 +1282,8 @@ class CpCommand(Command):
     # Perform copy requests in parallel (-m) mode, if requested, using
     # configured number of parallel processes and threads. Otherwise,
     # perform requests with sequential function calls in current process.
-    self.Apply(_CopyFunc, src_uri_expansion, _CopyExceptionHandler,
-               have_existing_dst_container, shared_attrs)
+    self.Apply(_CopyFunc, name_expansion_iterator, _CopyExceptionHandler,
+               shared_attrs)
     if self.debug:
       print 'total_bytes_transferred:' + str(self.total_bytes_transferred)
 
@@ -1192,7 +1315,7 @@ class CpCommand(Command):
     ('download', 'gsutil cp gs://$B1/$O1 $F9', 0, ('$F9', '$F1')),
     ('stream upload', 'cat $F1 | gsutil cp - gs://$B1/$O1', 0, None),
     ('check stream upload', 'gsutil cp gs://$B1/$O1 $F9', 0, ('$F9', '$F1')),
-    # Clean up if we got interupted.
+    # Clean up if we got interrupted.
     ('remove test files',
      'rm -f test.mp3 test_mp3.mime test.gif test_gif.mime test.foo',
       0, None),
@@ -1245,7 +1368,7 @@ class CpCommand(Command):
   ]
 
   def _ParseArgs(self):
-    self.mv_naming_semantics = False
+    self.perform_mv = False
     self.exclude_symlinks = False
     # self.recursion_requested initialized in command.py (so can be checked
     # in parent class for all commands).
@@ -1254,27 +1377,13 @@ class CpCommand(Command):
         if o == '-e':
           self.exclude_symlinks = True
         if o == '-M':
-          # Note that we signal to the cp command to use the alternate naming
-          # semantics by passing the undocumented (for internal use) -m option
-          # when running the cp command from mv.py. These semantics only apply
-          # for mv -R applied to bucket subdirs.
-          self.mv_naming_semantics = True
+          # Note that we signal to the cp command to perform a move (copy
+          # followed by remove) and use directory-move naming rules by passing
+          # the undocumented (for internal use) -M option when running the cp
+          # command from mv.py.
+          self.perform_mv = True
         elif o == '-r' or o == '-R':
           self.recursion_requested = True
-
-  def _SanityCheckRequest(self, src_uri_expansion, exp_dst_uri,
-                          have_existing_dst_container):
-    if src_uri_expansion.IsEmpty():
-      raise CommandException('No URIs matched')
-    for src_uri in src_uri_expansion.GetSrcUris():
-      if src_uri.names_provider():
-        raise CommandException('Provider-only src_uri (%s)')
-    if src_uri_expansion.IsMultiSrcRequest():
-      self._InsistDstUriNamesContainer(exp_dst_uri, have_existing_dst_container,
-                                       self.command_name)
-      if (exp_dst_uri.is_file_uri()
-          and not os.path.exists(exp_dst_uri.object_name)):
-        os.makedirs(exp_dst_uri.object_name)
 
   def _HandleStreamingDownload(self):
     # Destination is <STDOUT>. Manipulate sys.stdout so as to redirect all
@@ -1283,7 +1392,7 @@ class CpCommand(Command):
     sys.stdout = sys.stderr
     did_some_work = False
     for uri_str in self.args[0:len(self.args)-1]:
-      for uri in self.exp_handler.WildcardIterator(uri_str).IterUris():
+      for uri in self.WildcardIterator(uri_str).IterUris():
         if not uri.names_object():
           raise CommandException('Destination Stream requires that '
                                  'source URI %s should represent an object!')
@@ -1335,16 +1444,22 @@ class CpCommand(Command):
       #   gsutil mv -R gs://bucket/abc/* gs://bucket/abc
       return src_uri.uri == dst_uri.uri
 
-  def _ShouldTreatDstUriAsBucketSubDir(self, have_multiple_srcs, dst_uri):
+  def _ShouldTreatDstUriAsBucketSubDir(self, have_multiple_srcs, dst_uri,
+                                       have_existing_dest_subdir):
     """
     Checks whether dst_uri should be treated as a bucket "sub-directory". The
     decision about whether something constitutes a bucket "sub-directory"
-    depends on whether there are multiple sources in this request. For
-    example, when running the command:
+    depends on whether there are multiple sources in this request and whether
+    there is an existing bucket subdirectory. For example, when running the
+    command:
       gsutil cp file gs://bucket/abc
-    gs://bucket/abc names an object; in contrast, when running the command:
+    if there's no existing gs://bucket/abc bucket subdirectory we should copy
+    file to the object gs://bucket/abc. In contrast, if
+    there's an existing gs://bucket/abc bucket subdirectory we should copy
+    file to gs://bucket/abc/file. And regardless of whether gs://bucket/abc
+    exists, when running the command:
       gsutil cp file1 file2 gs://bucket/abc
-    gs://bucket/abc names a bucket "sub-directory".
+    we should copy file1 to gs://bucket/abc/file1 (and similarly for file2).
 
     Note that we don't disallow naming a bucket "sub-directory" where there's
     already an object at that URI. For example it's legitimate (albeit
@@ -1358,14 +1473,16 @@ class CpCommand(Command):
       have_multiple_srcs: Bool indicator of whether this is a multi-source
           operation.
       dst_uri: StorageUri to check.
+      have_existing_dest_subdir: bool indicator whether dest is an existing
+        subdirectory.
 
     Returns:
       bool indicator.
     """
-    return (self.recursion_requested and have_multiple_srcs
-            and dst_uri.is_cloud_uri())
+    return ((have_multiple_srcs and dst_uri.is_cloud_uri())
+            or (have_existing_dest_subdir))
 
-  def _ShouldTreatDstUriAsSingleton(self, have_multiple_srcs, 
+  def _ShouldTreatDstUriAsSingleton(self, have_multiple_srcs,
                                     have_existing_dest_subdir, dst_uri):
     """
     Checks that dst_uri names a singleton (file or object) after
@@ -1404,7 +1521,11 @@ def _GetPathBeforeFinalDir(uri):
   sep = uri.delim
   assert not uri.names_file()
   if uri.names_directory():
-    return uri.uri.rstrip(sep).rpartition(sep)[0]
+    past_scheme = uri.uri[len('file://'):]
+    if past_scheme.find(sep) == -1:
+      return uri.uri
+    else:
+      return 'file://%s' % past_scheme.rstrip(sep).rpartition(sep)[0]
   if uri.names_bucket():
     return '%s://' % uri.scheme
   # Else it names a bucket subdir.
@@ -1412,18 +1533,15 @@ def _GetPathBeforeFinalDir(uri):
 
 def _hash_filename(filename):
   """
-  Apply a hash function (SHA1) to shorten the passed file name. In order 
-  to minimize the risk of collisions, we include the epoch time (with 
-  microsecond graularity). The complete spec for the hashed file name is
-  as follows:
+  Apply a hash function (SHA1) to shorten the passed file name. The spec
+  for the hashed file name is as follows:
 
-      TRACKER_<hash>_<timestamp>_<trailing>
+      TRACKER_<hash>_<trailing>
 
-  where hash is a SHA1 hash on the original file name, timestamp is a
-  microsecond granularity current time stamp and trailing is the last 
-  16 chars from the original file name. Max file name lengths vary by
-  operating system so the goal of this function is to ensure the hashed
-  version takes less than 100 characters.
+  where hash is a SHA1 hash on the original file name and trailing is
+  the last 16 chars from the original file name. Max file name lengths
+  vary by operating system so the goal of this function is to ensure
+  the hashed version takes fewer than 100 characters.
 
   Args:
     filename: file name to be hashed.
@@ -1431,7 +1549,6 @@ def _hash_filename(filename):
   Returns:
     shorter, hashed version of passed file name
   """
-  m = hashlib.sha1(filename)
-  hashed_name = ("TRACKER_" + m.hexdigest() + ('.%.6f' % time.time()) + 
-                 '.' + filename[-16:])
+  m = hashlib.sha1(filename.encode('utf-8'))
+  hashed_name = ("TRACKER_" + m.hexdigest() + '.' + filename[-16:])
   return hashed_name

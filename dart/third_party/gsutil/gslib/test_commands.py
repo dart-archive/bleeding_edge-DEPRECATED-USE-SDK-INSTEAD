@@ -49,7 +49,7 @@ from gslib.command_runner import CommandRunner
 from gslib.commands import cp
 from gslib.exception import CommandException
 from gslib import test_util
-from tests.s3.mock_storage_service import MockBucketStorageUri
+from tests.integration.s3.mock_storage_service import MockBucketStorageUri
 
 
 class GsutilCommandTests(unittest.TestCase):
@@ -594,9 +594,11 @@ class GsutilCommandTests(unittest.TestCase):
     """Test ls of non-existent obj that matches prefix of existing objs"""
     # Use an object name that matches a prefix of other names at that level, to
     # ensure the ls subdir handling logic doesn't pick up anything extra.
-    output = self.RunCommand('ls', ['%sobj' % self.src_bucket_uri.uri],
-                             return_stdout=True)
-    self.assertEqual('', output)
+    try:
+      output = self.RunCommand('ls', ['%sobj' % self.src_bucket_uri.uri],
+                               return_stdout=True)
+    except CommandException, e:
+      self.assertNotEqual(e.reason.find('No such object'), -1)
 
   def TestLsBucketNonRecursive(self):
     """Test that ls of a bucket returns expected results"""
@@ -751,7 +753,7 @@ class GsutilCommandTests(unittest.TestCase):
     except:
       self.fail('Unexpected exception raised')
 
-  def TestDownloadWithObjectSizeShange(self):
+  def TestDownloadWithObjectSizeChange(self):
     """
     Test resumable download on an object that changes size before the
     downloaded file's checksum is validated.
@@ -977,6 +979,81 @@ class GsutilCommandTests(unittest.TestCase):
       self.TearDownClass()
       self.SetUpClass()
 
+  def TestCopyingWildcardedFilesToBucketSubDir(self):
+    """Tests copying wildcarded files to a bucket subdir"""
+    # Test with and without final slash on dest subdir.
+    for (final_dst_char) in ('', '/'):
+      # Set up existing bucket subdir by creating an object in the subdir.
+      self.RunCommand(
+          'cp', ['%sf0' % self.src_dir_root,
+                 '%sdst_subdir/existing_obj' % self.dst_bucket_uri.uri])
+      self.RunCommand(
+          'cp', ['%sf?' % self.src_dir_root,
+                 '%s%s' % (self.dst_bucket_subdir_uri.uri, final_dst_char)])
+      actual = set(str(u) for u in test_util.test_wildcard_iterator(
+          '%s**' % self.dst_bucket_subdir_uri.uri).IterUris())
+      expected = set([
+        '%sdst_subdir/existing_obj' % self.dst_bucket_uri.uri,
+        '%sdst_subdir/f0' % self.dst_bucket_uri.uri,
+        '%sdst_subdir/f1' % self.dst_bucket_uri.uri])
+      self.assertEqual(expected, actual)
+      # Clean up/re-set up for next variant iteration.
+      self.TearDownClass()
+      self.SetUpClass()
+
+  def TestCopyingOneNestedFileToBucketSubDir(self):
+    """Tests copying one nested file to a bucket subdir"""
+    # Test with and without final slash on dest subdir.
+    for (final_dst_char) in ('', '/'):
+      # Set up existing bucket subdir by creating an object in the subdir.
+      self.RunCommand(
+          'cp', ['%sf0' % self.src_dir_root,
+                 '%sdst_subdir/existing_obj' % self.dst_bucket_uri.uri])
+      self.RunCommand(
+          'cp', ['-r', '%sdir0' % self.src_dir_root,
+                 '%s%s' % (self.dst_bucket_subdir_uri.uri, final_dst_char)])
+      actual = set(str(u) for u in test_util.test_wildcard_iterator(
+          '%s**' % self.dst_bucket_subdir_uri.uri).IterUris())
+      expected = set([
+        '%sdst_subdir/existing_obj' % self.dst_bucket_uri.uri,
+        '%sdst_subdir/dir0/dir1/nested' % self.dst_bucket_uri.uri])
+      self.assertEqual(expected, actual)
+      # Clean up/re-set up for next variant iteration.
+      self.TearDownClass()
+      self.SetUpClass()
+
+  def TestMovingWildcardedFilesToNonExistentBucketSubDir(self):
+    """Tests moving files to a non-existent bucket subdir"""
+    # This tests for how we allow users to do something like:
+    #   gsutil cp *.txt gs://bucket/dir
+    # where *.txt matches more than 1 file and gs://bucket/dir
+    # doesn't exist as a subdir.
+    #
+    # Test with and without final slash on dest subdir.
+    for (final_dst_char) in ('', '/'):
+      # Set up existing bucket subdir by creating an object in the subdir.
+      self.RunCommand(
+          'cp', ['%sf0' % self.src_dir_root,
+                 '%sdst_subdir/existing_obj' % self.dst_bucket_uri.uri])
+      # Copy some files into place in dst bucket.
+      self.RunCommand(
+          'cp', ['%sf?' % self.src_dir_root,
+                 '%s%s' % (self.dst_bucket_subdir_uri.uri, final_dst_char)])
+      # Now do the move test.
+      self.RunCommand(
+          'mv', ['%s/*' % self.dst_bucket_subdir_uri.uri,
+                 '%s/nonexistent/%s' % (self.dst_bucket_subdir_uri.uri, final_dst_char)])
+      actual = set(str(u) for u in test_util.test_wildcard_iterator(
+          '%s**' % self.dst_bucket_subdir_uri.uri).IterUris())
+      expected = set([
+        '%sdst_subdir/nonexistent/existing_obj' % self.dst_bucket_uri.uri,
+        '%sdst_subdir/nonexistent/f0' % self.dst_bucket_uri.uri,
+        '%sdst_subdir/nonexistent/f1' % self.dst_bucket_uri.uri])
+      self.assertEqual(expected, actual)
+      # Clean up/re-set up for next variant iteration.
+      self.TearDownClass()
+      self.SetUpClass()
+
   def TestMovingObjectToBucketSubDir(self):
     """Tests moving an object to a bucket subdir"""
     # Test with and without final slash on dest subdir.
@@ -1006,7 +1083,7 @@ class GsutilCommandTests(unittest.TestCase):
                  '%s' % self.dst_bucket_subdir_uri.uri])
       self.fail('Did not get expected CommandException')
     except CommandException, e:
-      self.assertNotEqual(e.reason.find('mv command disallows'), -1)
+      self.assertNotEqual(e.reason.find('mv command disallows naming'), -1)
 
   def TestMovingBucketNestedSubDirToBucketNestedSubDir(self):
     """Tests moving a bucket nested subdir to another bucket nested subdir"""

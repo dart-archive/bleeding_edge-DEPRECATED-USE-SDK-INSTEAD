@@ -35,28 +35,24 @@ class Item(dict):
     :ivar range_key_name: The name of the RangeKey associated with this item.
     :ivar table: The Table this item belongs to.
     """
-
+    
     def __init__(self, table, hash_key=None, range_key=None, attrs=None):
         self.table = table
         self._updates = None
         self._hash_key_name = self.table.schema.hash_key_name
         self._range_key_name = self.table.schema.range_key_name
-        if hash_key is None:
-            if attrs.get(self._hash_key_name) is None:
-                raise DynamoDBItemError('You must supply a hash_key')
-            hash_key = attrs[self._hash_key_name]
-        if self._range_key_name:
-            if range_key is None:
-                if attrs.get(self._range_key_name) is None:
-                    raise DynamoDBItemError('You must supply a range_key')
-                range_key = attrs[self._range_key_name]
+        if attrs == None:
+            attrs = {}
+        if hash_key == None:
+            hash_key = attrs.get(self._hash_key_name, None)
         self[self._hash_key_name] = hash_key
         if self._range_key_name:
+            if range_key == None:
+                range_key = attrs.get(self._range_key_name, None)
             self[self._range_key_name] = range_key
-        if attrs:
-            for key, value in attrs.items():
-                if key != self._hash_key_name and key != self._range_key_name:
-                    self[key] = value
+        for key, value in attrs.items():
+            if key != self._hash_key_name and key != self._range_key_name:
+                self[key] = value
         self.consumed_units = 0
         self._updates = {}
 

@@ -35,6 +35,7 @@ _detailed_help_text = ("""
 <B>SYNOPSIS</B>
   gsutil disablelogging uri...
 
+
 <B>DESCRIPTION</B>
   This command will disable access logging of the buckets named by the
   specified uris. All URIs must name buckets (e.g., gs://bucket).
@@ -46,7 +47,7 @@ _detailed_help_text = ("""
 
 
 class DisableLoggingCommand(Command):
-  """Implementation of disablelogging config command."""
+  """Implementation of disablelogging command."""
 
   # Command specification (processed by parent class).
   command_spec = {
@@ -86,7 +87,7 @@ class DisableLoggingCommand(Command):
   def RunCommand(self):
     did_some_work = False
     for uri_str in self.args:
-      for uri in self.exp_handler.WildcardIterator(uri_str).IterUris():
+      for uri in self.WildcardIterator(uri_str).IterUris():
         if uri.names_object():
           raise CommandException('disablelogging cannot be applied to objects')
         did_some_work = True

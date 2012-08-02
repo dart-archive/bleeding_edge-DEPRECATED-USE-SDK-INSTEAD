@@ -1,3 +1,139 @@
+Release 3.13 (release-date: 2012-07-19)
+
+Bug Fixes
+---------
+
+  - Included the fix to make 'gsutil config' honor BOTO_CONFIG environment variable (which was intended to be included in Release 3.12)
+
+
+================================================================================
+
+
+Release 3.11 (release-date: 2012-06-28)
+
+New Features
+------------
+
+  - Added support for configuring website buckets.
+
+
+Bug Fixes
+---------
+
+  - Fixed bug that caused simultaneous resumable downloads of the same source
+    object to use the same tracker file.
+
+  - Changed language code spec pointer from Wikipedia to loc.gov (for
+    Content-Language header).
+
+
+================================================================================
+
+
+Release 3.10 (release-date: 2012-06-19)
+
+New Features
+------------
+
+  - Added support for setting and listing Content-Language header.
+
+
+Bug Fixes
+---------
+
+  - Fixed bug that caused getacl/setacl commands to get a character encoding
+    exception when ACL content contained content not representable in ISO-8859-1
+    character set.
+
+  - Fixed gsutil update not to fail under Windows exclusive file locking.
+
+  - Fixed gsutil ls -L to continue past 403 errors.
+
+  - Updated gsutil tests and also help dev with instructions on how to run
+    boto tests, based on recent test refactoring done to in boto library.
+
+  - Cleaned up parts of cp help text.
+
+
+================================================================================
+
+
+Release 3.9 (release-date: 2012-05-24)
+
+Bug Fixes
+---------
+
+  - Fixed bug that caused extra "file:/" to be included in pathnames with
+    doing gsutil cp -R on Windows.
+
+
+================================================================================
+
+
+Release 3.8 (release-date: 2012-05-20)
+
+Bug Fixes
+---------
+
+  - Fixed problem with non-ASCII filename characters not setting encoding before
+    attempting to hash for generating resumable transfer filename.
+
+
+================================================================================
+
+
+Release 3.7 (release-date: 2012-05-11)
+
+Bug Fixes
+---------
+
+  - Fixed handling of HTTPS tunneling through a proxy.
+
+
+================================================================================
+
+
+Release 3.6 (release-date: 2012-05-09)
+
+Bug Fixes
+---------
+
+  - Fixed bug that caused wildcards spanning directories not to work.
+  - Fixed bug that gsutil cp -z not to find available tmp space correctly
+    under Windows.
+
+
+================================================================================
+
+
+Release 3.5 (release-date: 2012-04-30)
+
+Performance Improvement
+-----------------------
+
+  - Change by Evan Worley to calculate MD5s incrementally during uploads and
+    downloads. This reduces overall transfer time substantially for large
+    objects.
+
+Bug Fixes
+---------
+
+  - Fixed bug where uploading and moving multiple files to a bucket subdirectory
+    didn't work as intended.
+    (http://code.google.com/p/gsutil/issues/detail?id=93).
+  - Fixed bug where gsutil cp -r sourcedir didn't copy to specified subdir
+    if there is only one file in sourcedir.
+  - Fixed bug where tracker file included a timestamp that caused it not to
+    be recognized across sessions.
+  - Fixed bug where gs://bucket/*/dir wildcard matches too many objects.
+  - Fixed documentation errors in help associated with ACLs and projects.
+  - Changed GCS ACL parsing to be case-insensitive.
+  - Changed ls to print error and exit with non-0 status when wildcard matches
+    nothing, to be more consistent with UNIX shell behavior.
+
+
+================================================================================
+
 
 Release 3.4 (release-date: 2012-04-06)
 
@@ -15,7 +151,9 @@ Bug Fixes
   - Fixed minor bug in output from 'gsutil help dev' which advised executing
     an inconsequential test script (test_util.py).
 
+
 ================================================================================
+
 
 Release 3.3 (release-date: 2012-04-03)
 
@@ -212,3 +350,4 @@ New Features
   - Note: v2.0 is the first numbered gsutil release. Previous releases
     were given timestamps for versions. Numbered releases enable downstream
     package builds (like RPMs) to define dependencies more easily.
+    This is also the first version where we began including release notes.

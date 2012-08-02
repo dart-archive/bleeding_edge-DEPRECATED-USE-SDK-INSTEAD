@@ -1,8 +1,11 @@
 ####
 boto
 ####
-boto 2.3.0
-18-Mar-2012
+boto 2.5.2
+21-Jun-2012
+
+.. image:: https://secure.travis-ci.org/boto/boto.png?branch=develop
+        :target: https://secure.travis-ci.org/boto/boto
 
 ************
 Introduction
@@ -32,6 +35,8 @@ At the moment, boto supports:
 * CloudFormation
 * Amazon DynamoDB
 * Amazon SimpleWorkflow
+* CloudSearch
+* Marketplace Web Services
 
 The goal of boto is to support the full breadth and depth of Amazon
 Web Services.  In addition, boto provides support for other public
@@ -43,6 +48,13 @@ and Ubuntu Maverick.  It is known to work on other Linux distributions
 and on Windows.  Boto requires no additional libraries or packages
 other than those that are distributed with Python.  Efforts are made
 to keep boto compatible with Python 2.5.x but no guarantees are made.
+
+**********
+ChangeLogs
+**********
+
+To see what has changed over time in boto, you can check out the
+`release notes`_ in the wiki.
 
 *********************************
 Special Note for Python 3.x Users
@@ -90,6 +102,7 @@ Copyright (c) 2010-2011, Eucalyptus Systems, Inc.
 Copyright (c) 2012 Amazon.com, Inc. or its affiliates.
 All rights reserved.
 
+.. _release notes: https://github.com/boto/boto/wiki
 .. _github.com: http://github.com/boto/boto
 .. _Online documentation: http://docs.pythonboto.org
 .. _Python Cheese Shop: http://pypi.python.org/pypi/boto
