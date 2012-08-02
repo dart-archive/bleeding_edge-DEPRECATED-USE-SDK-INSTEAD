@@ -187,6 +187,7 @@ public class ElementBuilderTest extends EngineTestCase {
     String className = "A";
     ConstructorDeclaration constructorDeclaration = new ConstructorDeclaration(
         null,
+        null,
         new KeywordToken(Keyword.FACTORY, 0),
         createIdentifier(className),
         null,
@@ -216,6 +217,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ConstructorDeclaration constructorDeclaration = new ConstructorDeclaration(
         null,
         null,
+        null,
         createIdentifier(className),
         null,
         null,
@@ -243,6 +245,7 @@ public class ElementBuilderTest extends EngineTestCase {
     String className = "A";
     String constructorName = "c";
     ConstructorDeclaration constructorDeclaration = new ConstructorDeclaration(
+        null,
         null,
         null,
         createIdentifier(className),
@@ -407,6 +410,7 @@ public class ElementBuilderTest extends EngineTestCase {
     String methodName = "m";
     MethodDeclaration methodDeclaration = new MethodDeclaration(
         null,
+        null,
         new KeywordToken(Keyword.ABSTRACT, 0),
         null,
         null,
@@ -435,6 +439,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
     MethodDeclaration methodDeclaration = new MethodDeclaration(
+        null,
         null,
         null,
         null,
@@ -474,6 +479,7 @@ public class ElementBuilderTest extends EngineTestCase {
         null,
         null,
         null,
+        null,
         createIdentifier(methodName),
         createFormalParameterList(),
         createEmptyFunctionBody());
@@ -498,6 +504,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "+";
     MethodDeclaration methodDeclaration = new MethodDeclaration(
+        null,
         null,
         null,
         null,
@@ -527,6 +534,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
     MethodDeclaration methodDeclaration = new MethodDeclaration(
+        null,
         null,
         null,
         null,
@@ -561,6 +569,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
     MethodDeclaration methodDeclaration = new MethodDeclaration(
+        null,
         null,
         new KeywordToken(Keyword.STATIC, 0),
         null,

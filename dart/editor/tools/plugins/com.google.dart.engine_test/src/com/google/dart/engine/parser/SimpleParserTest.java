@@ -621,12 +621,13 @@ public class SimpleParserTest extends ParserTestCase {
     assertSize(1, declaration.getTypeParameters().getTypeParameters());
   }
 
-  public void test_parseClassMember() throws Exception {
+  public void test_parseClassMember_constructor_withInitializers() throws Exception {
     ConstructorDeclaration constructor = parse(
         "parseClassMember",
         "A(_, _$, this.__) : _a = _ + _$ {}");
     assertNotNull(constructor.getBody());
     assertNotNull(constructor.getColon());
+    assertNull(constructor.getExternalKeyword());
     assertNull(constructor.getKeyword());
     assertNull(constructor.getName());
     assertNotNull(constructor.getParameters());
@@ -635,6 +636,19 @@ public class SimpleParserTest extends ParserTestCase {
     NodeList<ConstructorInitializer> initializers = constructor.getInitializers();
     assertNotNull(initializers);
     assertEquals(1, initializers.size());
+  }
+
+  public void test_parseClassMember_method_external() throws Exception {
+    MethodDeclaration method = parse("parseClassMember", "external m();");
+    assertNotNull(method.getBody());
+    assertNull(method.getDocumentationComment());
+    assertNotNull(method.getExternalKeyword());
+    assertNull(method.getModifierKeyword());
+    assertNotNull(method.getName());
+    assertNull(method.getOperatorKeyword());
+    assertNotNull(method.getParameters());
+    assertNull(method.getPropertyKeyword());
+    assertNull(method.getReturnType());
   }
 
   public void test_parseCommentReference_prefixed() throws Exception {
@@ -834,14 +848,12 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseConstantConstructor_initializers() throws Exception {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
-    ConstructorDeclaration constructor = parse(
-        "parseConstantConstructor",
-        new Class[] {Comment.class},
-        new Object[] {comment},
-        "const A(var b) : this.a = b;");
+    ConstructorDeclaration constructor = parse("parseConstantConstructor", new Class[] {
+        Comment.class, Token.class}, new Object[] {comment, null}, "const A(var b) : this.a = b;");
     assertInstanceOf(EmptyFunctionBody.class, constructor.getBody());
     assertNotNull(constructor.getColon());
     assertEquals(comment, constructor.getDocumentationComment());
+    assertNull(constructor.getExternalKeyword());
     assertSize(1, constructor.getInitializers());
     assertNotNull(constructor.getKeyword());
     assertNull(constructor.getName());
@@ -852,14 +864,12 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseConstantConstructor_noInitializers() throws Exception {
     Comment comment = null;
-    ConstructorDeclaration constructor = parse(
-        "parseConstantConstructor",
-        new Class[] {Comment.class},
-        new Object[] {comment},
-        "const A();");
+    ConstructorDeclaration constructor = parse("parseConstantConstructor", new Class[] {
+        Comment.class, Token.class}, new Object[] {comment, null}, "const A();");
     assertInstanceOf(EmptyFunctionBody.class, constructor.getBody());
     assertNull(constructor.getColon());
     assertEquals(comment, constructor.getDocumentationComment());
+    assertNull(constructor.getExternalKeyword());
     assertSize(0, constructor.getInitializers());
     assertNotNull(constructor.getKeyword());
     assertNull(constructor.getName());
@@ -872,12 +882,13 @@ public class SimpleParserTest extends ParserTestCase {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     ConstructorDeclaration constructor = parse(
         "parseConstantConstructor",
-        new Class[] {Comment.class},
-        new Object[] {comment},
+        new Class[] {Comment.class, Token.class},
+        new Object[] {comment, null},
         "const A.b() : this.a(), super();");
     assertInstanceOf(EmptyFunctionBody.class, constructor.getBody());
     assertNotNull(constructor.getColon());
     assertEquals(comment, constructor.getDocumentationComment());
+    assertNull(constructor.getExternalKeyword());
     assertSize(2, constructor.getInitializers());
     assertNotNull(constructor.getKeyword());
     assertNotNull(constructor.getName());
@@ -1039,13 +1050,11 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseFactoryConstructor_nameAndQualifier() throws Exception {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
-    ConstructorDeclaration constructor = parse(
-        "parseFactoryConstructor",
-        new Class[] {Comment.class},
-        new Object[] {comment},
-        "factory A.B.c()");
+    ConstructorDeclaration constructor = parse("parseFactoryConstructor", new Class[] {
+        Comment.class, Token.class}, new Object[] {comment, null}, "factory A.B.c()");
     assertNull(constructor.getColon());
     assertEquals(comment, constructor.getDocumentationComment());
+    assertNull(constructor.getExternalKeyword());
     assertSize(0, constructor.getInitializers());
     assertNotNull(constructor.getKeyword());
     assertNotNull(constructor.getName());
@@ -1056,13 +1065,11 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseFactoryConstructor_noName_noQualifier() throws Exception {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
-    ConstructorDeclaration constructor = parse(
-        "parseFactoryConstructor",
-        new Class[] {Comment.class},
-        new Object[] {comment},
-        "factory A()");
+    ConstructorDeclaration constructor = parse("parseFactoryConstructor", new Class[] {
+        Comment.class, Token.class}, new Object[] {comment, null}, "factory A()");
     assertNull(constructor.getColon());
     assertEquals(comment, constructor.getDocumentationComment());
+    assertNull(constructor.getExternalKeyword());
     assertSize(0, constructor.getInitializers());
     assertNotNull(constructor.getKeyword());
     assertNull(constructor.getName());
@@ -1558,13 +1565,12 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseGetter_nonStatic() throws Exception {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
-    MethodDeclaration method = parse(
-        "parseGetter",
-        new Class[] {Comment.class, Token.class, TypeName.class},
-        new Object[] {comment, null, returnType},
-        "get a;");
+    MethodDeclaration method = parse("parseGetter", new Class[] {
+        Comment.class, Token.class, Token.class, TypeName.class}, new Object[] {
+        comment, null, null, returnType}, "get a;");
     assertNotNull(method.getBody());
     assertEquals(comment, method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
     assertNull(method.getModifierKeyword());
     assertNotNull(method.getName());
     assertNull(method.getOperatorKeyword());
@@ -1578,10 +1584,11 @@ public class SimpleParserTest extends ParserTestCase {
     Token staticKeyword = new KeywordToken(Keyword.STATIC, 0);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = parse("parseGetter", new Class[] {
-        Comment.class, Token.class, TypeName.class}, new Object[] {
-        comment, staticKeyword, returnType}, "get a;");
+        Comment.class, Token.class, Token.class, TypeName.class}, new Object[] {
+        comment, null, staticKeyword, returnType}, "get a;");
     assertNotNull(method.getBody());
     assertEquals(comment, method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
     assertEquals(staticKeyword, method.getModifierKeyword());
     assertNotNull(method.getName());
     assertNull(method.getOperatorKeyword());
@@ -1909,9 +1916,10 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseMethodDeclaration_notStatic_returnType() throws Exception {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     MethodDeclaration method = parse("parseMethodDeclaration", new Class[] {
-        Comment.class, Token.class}, new Object[] {comment, null}, "int m() {}");
+        Comment.class, Token.class, Token.class}, new Object[] {comment, null, null}, "int m() {}");
     assertNotNull(method.getBody());
     assertEquals(comment, method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
     assertNull(method.getModifierKeyword());
     assertNotNull(method.getName());
     assertNull(method.getOperatorKeyword());
@@ -1923,10 +1931,14 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseMethodDeclaration_static_noReturnType() throws Exception {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     Token staticKeyword = new KeywordToken(Keyword.STATIC, 0);
-    MethodDeclaration method = parse("parseMethodDeclaration", new Class[] {
-        Comment.class, Token.class}, new Object[] {comment, staticKeyword}, "m() {}");
+    MethodDeclaration method = parse(
+        "parseMethodDeclaration",
+        new Class[] {Comment.class, Token.class, Token.class},
+        new Object[] {comment, null, staticKeyword},
+        "m() {}");
     assertNotNull(method.getBody());
     assertEquals(comment, method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
     assertEquals(staticKeyword, method.getModifierKeyword());
     assertNotNull(method.getName());
     assertNull(method.getOperatorKeyword());
@@ -1941,10 +1953,11 @@ public class SimpleParserTest extends ParserTestCase {
     Token staticKeyword = new KeywordToken(Keyword.STATIC, 0);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = parse("parseMethodOrConstructor", new Class[] {
-        Comment.class, Token.class, TypeName.class}, new Object[] {
-        comment, staticKeyword, returnType}, "m() {}");
+        Comment.class, Token.class, Token.class, TypeName.class}, new Object[] {
+        comment, null, staticKeyword, returnType}, "m() {}");
     assertNotNull(method.getBody());
     assertEquals(comment, method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
     assertEquals(staticKeyword, method.getModifierKeyword());
     assertNotNull(method.getName());
     assertNull(method.getOperatorKeyword());
@@ -2017,11 +2030,12 @@ public class SimpleParserTest extends ParserTestCase {
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = parse(
         "parseOperator",
-        new Class[] {Comment.class, TypeName.class},
-        new Object[] {comment, returnType},
+        new Class[] {Comment.class, Token.class, TypeName.class},
+        new Object[] {comment, null, returnType},
         "operator +(A a);");
     assertNotNull(method.getBody());
     assertEquals(comment, method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
     assertNull(method.getModifierKeyword());
     assertNotNull(method.getName());
     assertNotNull(method.getOperatorKeyword());
@@ -2286,13 +2300,12 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseSetter_nonStatic() throws Exception {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
-    MethodDeclaration method = parse(
-        "parseSetter",
-        new Class[] {Comment.class, Token.class, TypeName.class},
-        new Object[] {comment, null, returnType},
-        "set a(var x);");
+    MethodDeclaration method = parse("parseSetter", new Class[] {
+        Comment.class, Token.class, Token.class, TypeName.class}, new Object[] {
+        comment, null, null, returnType}, "set a(var x);");
     assertNotNull(method.getBody());
     assertEquals(comment, method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
     assertNull(method.getModifierKeyword());
     assertNotNull(method.getName());
     assertNull(method.getOperatorKeyword());
@@ -2306,10 +2319,11 @@ public class SimpleParserTest extends ParserTestCase {
     Token staticKeyword = new KeywordToken(Keyword.STATIC, 0);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = parse("parseSetter", new Class[] {
-        Comment.class, Token.class, TypeName.class}, new Object[] {
-        comment, staticKeyword, returnType}, "set a(var x);");
+        Comment.class, Token.class, Token.class, TypeName.class}, new Object[] {
+        comment, null, staticKeyword, returnType}, "set a(var x);");
     assertNotNull(method.getBody());
     assertEquals(comment, method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
     assertEquals(staticKeyword, method.getModifierKeyword());
     assertNotNull(method.getName());
     assertNull(method.getOperatorKeyword());

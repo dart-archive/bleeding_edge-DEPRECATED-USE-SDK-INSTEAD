@@ -26,9 +26,9 @@ import java.util.List;
  *   | constructorName formalParameterList ':' 'this' ('.' {@link SimpleIdentifier name})? arguments
  *
  * constructorSignature ::=
- *     constructorName formalParameterList initializerList?
- *   | 'factory' factoryName formalParameterList initializerList?
- *   | 'const'  constructorName formalParameterList initializerList?
+ *     'external'? constructorName formalParameterList initializerList?
+ *   | 'external'? 'factory' factoryName formalParameterList initializerList?
+ *   | 'external'? 'const'  constructorName formalParameterList initializerList?
  *
  * constructorName ::=
  *     {@link SimpleIdentifier returnType} ('.' {@link SimpleIdentifier name})?
@@ -41,6 +41,11 @@ import java.util.List;
  * </pre>
  */
 public class ConstructorDeclaration extends ClassMember {
+  /**
+   * The token for the 'external' keyword, or {@code null} if the constructor is not external.
+   */
+  private Token externalKeyword;
+
   /**
    * The token for the 'factory' or 'const' keyword.
    */
@@ -92,6 +97,7 @@ public class ConstructorDeclaration extends ClassMember {
   /**
    * Initialize a newly created constructor declaration.
    * 
+   * @param externalKeyword the token for the 'external' keyword
    * @param comment the documentation comment associated with this constructor
    * @param keyword the token for the 'factory' or 'const' keyword
    * @param returnType the return type of the constructor
@@ -102,10 +108,11 @@ public class ConstructorDeclaration extends ClassMember {
    * @param initializers the initializers associated with the constructor
    * @param body the body of the constructor
    */
-  public ConstructorDeclaration(Comment comment, Token keyword, Identifier returnType,
-      Token period, SimpleIdentifier name, FormalParameterList parameters, Token colon,
-      List<ConstructorInitializer> initializers, FunctionBody body) {
+  public ConstructorDeclaration(Comment comment, Token externalKeyword, Token keyword,
+      Identifier returnType, Token period, SimpleIdentifier name, FormalParameterList parameters,
+      Token colon, List<ConstructorInitializer> initializers, FunctionBody body) {
     super(comment);
+    this.externalKeyword = externalKeyword;
     this.keyword = keyword;
     this.returnType = becomeParentOf(returnType);
     this.period = period;
@@ -156,6 +163,16 @@ public class ConstructorDeclaration extends ClassMember {
       return initializers.getEndToken();
     }
     return parameters.getEndToken();
+  }
+
+  /**
+   * Return the token for the 'external' keyword, or {@code null} if the constructor is not
+   * external.
+   * 
+   * @return the token for the 'external' keyword
+   */
+  public Token getExternalKeyword() {
+    return externalKeyword;
   }
 
   /**
@@ -232,6 +249,15 @@ public class ConstructorDeclaration extends ClassMember {
    */
   public void setColon(Token colon) {
     this.colon = colon;
+  }
+
+  /**
+   * Set the token for the 'external' keyword to the given token.
+   * 
+   * @param externalKeyword the token for the 'external' keyword
+   */
+  public void setExternalKeyword(Token externalKeyword) {
+    this.externalKeyword = externalKeyword;
   }
 
   /**

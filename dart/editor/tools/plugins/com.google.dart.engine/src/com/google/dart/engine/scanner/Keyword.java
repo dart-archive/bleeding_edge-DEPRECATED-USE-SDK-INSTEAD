@@ -55,6 +55,7 @@ public enum Keyword {
   AS("as", true),
   ASSERT("assert", true),
   //DYNAMIC("Dynamic", true),
+  EXTERNAL("external", true),
   FACTORY("factory", true),
   GET("get", true),
   IMPLEMENTS("implements", true),

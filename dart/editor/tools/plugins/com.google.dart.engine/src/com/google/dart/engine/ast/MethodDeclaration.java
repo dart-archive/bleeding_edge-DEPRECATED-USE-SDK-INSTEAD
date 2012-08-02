@@ -23,7 +23,7 @@ import com.google.dart.engine.scanner.Token;
  *     methodSignature {@link FunctionBody body}
  *
  * methodSignature ::=
- *     ('abstract' | 'static')? {@link Type returnType}? ('get' | 'set')? methodName
+ *     'external'? ('abstract' | 'static')? {@link Type returnType}? ('get' | 'set')? methodName
  *     {@link FormalParameterList formalParameterList}
  *
  * methodName ::=
@@ -32,6 +32,11 @@ import com.google.dart.engine.scanner.Token;
  * </pre>
  */
 public class MethodDeclaration extends ClassMember {
+  /**
+   * The token for the 'external' keyword, or {@code null} if the constructor is not external.
+   */
+  private Token externalKeyword;
+
   /**
    * The token representing the 'abstract' or 'static' keyword, or {@code null} if neither modifier
    * was specified.
@@ -79,6 +84,7 @@ public class MethodDeclaration extends ClassMember {
   /**
    * Initialize a newly created method declaration.
    * 
+   * @param externalKeyword the token for the 'external' keyword
    * @param comment the documentation comment associated with this method
    * @param modifierKeyword the token representing the 'abstract' or 'static' keyword
    * @param returnType the return type of the method
@@ -88,10 +94,11 @@ public class MethodDeclaration extends ClassMember {
    * @param parameters the parameters associated with the method
    * @param body the body of the method
    */
-  public MethodDeclaration(Comment comment, Token modifierKeyword, TypeName returnType,
-      Token propertyKeyword, Token operatorKeyword, Identifier name,
+  public MethodDeclaration(Comment comment, Token externalKeyword, Token modifierKeyword,
+      TypeName returnType, Token propertyKeyword, Token operatorKeyword, Identifier name,
       FormalParameterList parameters, FunctionBody body) {
     super(comment);
+    this.externalKeyword = externalKeyword;
     this.modifierKeyword = modifierKeyword;
     this.returnType = becomeParentOf(returnType);
     this.propertyKeyword = propertyKeyword;
@@ -135,6 +142,16 @@ public class MethodDeclaration extends ClassMember {
   @Override
   public Token getEndToken() {
     return body.getEndToken();
+  }
+
+  /**
+   * Return the token for the 'external' keyword, or {@code null} if the constructor is not
+   * external.
+   * 
+   * @return the token for the 'external' keyword
+   */
+  public Token getExternalKeyword() {
+    return externalKeyword;
   }
 
   /**
@@ -201,6 +218,15 @@ public class MethodDeclaration extends ClassMember {
    */
   public void setBody(FunctionBody functionBody) {
     body = becomeParentOf(functionBody);
+  }
+
+  /**
+   * Set the token for the 'external' keyword to the given token.
+   * 
+   * @param externalKeyword the token for the 'external' keyword
+   */
+  public void setExternalKeyword(Token externalKeyword) {
+    this.externalKeyword = externalKeyword;
   }
 
   /**

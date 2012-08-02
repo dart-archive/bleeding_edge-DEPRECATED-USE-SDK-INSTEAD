@@ -230,22 +230,16 @@ public class RecoveryParserTest extends ParserTestCase {
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
-  public void test_conditionalExpression1() throws Exception {
-    ConditionalExpression expression = parse("parseConditionalExpression", "? y : z");
-    assertInstanceOf(SimpleIdentifier.class, expression.getCondition());
-    assertTrue(expression.getCondition().isSynthetic());
-  }
-
-  public void test_conditionalExpression2() throws Exception {
-    ConditionalExpression expression = parse("parseConditionalExpression", "x ? : z");
-    assertInstanceOf(SimpleIdentifier.class, expression.getThenExpression());
-    assertTrue(expression.getThenExpression().isSynthetic());
-  }
-
-  public void test_conditionalExpression3() throws Exception {
+  public void test_conditionalExpression_missingElse() throws Exception {
     ConditionalExpression expression = parse("parseConditionalExpression", "x ? y :");
     assertInstanceOf(SimpleIdentifier.class, expression.getElseExpression());
     assertTrue(expression.getElseExpression().isSynthetic());
+  }
+
+  public void test_conditionalExpression_missingThen() throws Exception {
+    ConditionalExpression expression = parse("parseConditionalExpression", "x ? : z");
+    assertInstanceOf(SimpleIdentifier.class, expression.getThenExpression());
+    assertTrue(expression.getThenExpression().isSynthetic());
   }
 
   public void test_equalityExpression_missing_LHS() throws Exception {

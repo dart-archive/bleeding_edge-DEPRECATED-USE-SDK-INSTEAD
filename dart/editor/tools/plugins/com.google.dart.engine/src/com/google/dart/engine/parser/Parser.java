@@ -275,7 +275,7 @@ public class Parser {
   private Token expect(Keyword keyword) {
     if (!matches(keyword)) {
       // Pass in the error code to use to report the error?
-      // reportError(ParserErrorCode.?));
+      // reportError(ParserErrorCode.?);
     }
     return getAndAdvance();
   }
@@ -290,7 +290,7 @@ public class Parser {
   private Token expect(String identifier) {
     if (!matches(identifier)) {
       // Pass in the error code to use to report the error?
-      // reportError(ParserErrorCode.?));
+      // reportError(ParserErrorCode.?);
     }
     return getAndAdvance();
   }
@@ -306,7 +306,7 @@ public class Parser {
     Token token = currentToken;
     if (!optional(type)) {
       // Pass in the error code to use to report the error?
-      // reportError(ParserErrorCode.?));
+      // reportError(ParserErrorCode.?);
     }
     return token;
   }
@@ -584,6 +584,22 @@ public class Parser {
     } else {
       return parseExpression();
     }
+  }
+
+  /**
+   * Parse an argument definition test.
+   * 
+   * <pre>
+   * argumentDefinitionTest ::=
+   *     '?' identifier
+   * </pre>
+   * 
+   * @return the argument definition test that was parsed
+   */
+  private ArgumentDefinitionTest parseArgumentDefinitionTest() {
+    Token question = expect(TokenType.QUESTION);
+    SimpleIdentifier identifier = parseSimpleIdentifier();
+    return new ArgumentDefinitionTest(question, identifier);
   }
 
   /**
@@ -958,13 +974,20 @@ public class Parser {
    */
   private ClassMember parseClassMember() {
     Comment comment = parseDocumentationComment();
+    Token externalKeyword = null;
+    if (matches(Keyword.EXTERNAL)) {
+      externalKeyword = getAndAdvance();
+    }
     if (matches(Keyword.CONST)) {
       if (peekMatches(TokenType.IDENTIFIER)) {
         if (peekMatches(2, TokenType.OPEN_PAREN)) {
-          return parseConstantConstructor(comment);
+          return parseConstantConstructor(comment, externalKeyword);
         } else if (peekMatches(2, TokenType.PERIOD) && peekMatches(4, TokenType.OPEN_PAREN)) {
-          return parseConstantConstructor(comment);
+          return parseConstantConstructor(comment, externalKeyword);
         }
+      }
+      if (externalKeyword != null) {
+        // reportError(ParserErrorCode.?);
       }
       return new FieldDeclaration(
           comment,
@@ -972,8 +995,11 @@ public class Parser {
           parseVariableDeclarationList(),
           expect(TokenType.SEMICOLON));
     } else if (matches(Keyword.FACTORY)) {
-      return parseFactoryConstructor(comment);
+      return parseFactoryConstructor(comment, externalKeyword);
     } else if (matches(Keyword.FINAL)) {
+      if (externalKeyword != null) {
+        // reportError(ParserErrorCode.?);
+      }
       return new FieldDeclaration(
           comment,
           null,
@@ -983,6 +1009,9 @@ public class Parser {
     Token staticKeyword = null;
     if (matches(Keyword.STATIC)) {
       if (peekMatches(Keyword.FINAL) || peekMatches(Keyword.CONST)) {
+        if (externalKeyword != null) {
+          // reportError(ParserErrorCode.?);
+        }
         return new FieldDeclaration(
             comment,
             getAndAdvance(),
@@ -994,12 +1023,13 @@ public class Parser {
     if (matches(TokenType.IDENTIFIER)) {
       if (peekMatches(TokenType.OPEN_PAREN)) {
         if (staticKeyword != null) {
-          return parseMethodDeclaration(comment, staticKeyword);
+          return parseMethodDeclaration(comment, externalKeyword, staticKeyword);
         }
-        return parseMethodOrConstructor(comment, staticKeyword, null);
+        return parseMethodOrConstructor(comment, externalKeyword, staticKeyword, null);
       } else if (peekMatches(TokenType.PERIOD) && peekMatches(3, TokenType.OPEN_PAREN)) {
         return parseConstructor(
             comment,
+            externalKeyword,
             staticKeyword,
             parseSimpleIdentifier(),
             getAndAdvance(),
@@ -1007,30 +1037,36 @@ public class Parser {
             parseFormalParameterList());
       }
     } else if (matches(Keyword.VAR)) {
+      if (externalKeyword != null) {
+        // reportError(ParserErrorCode.?);
+      }
       return parseInitializedIdentifierList(comment, staticKeyword, getAndAdvance(), null);
     } else if (matches(Keyword.GET)) {
-      return parseGetter(comment, staticKeyword, null);
+      return parseGetter(comment, externalKeyword, staticKeyword, null);
     } else if (matches(Keyword.SET)) {
-      return parseSetter(comment, staticKeyword, null);
+      return parseSetter(comment, externalKeyword, staticKeyword, null);
     } else if (matches(Keyword.OPERATOR)) {
       if (staticKeyword != null) {
         reportError(ParserErrorCode.OPERATOR_CANNOT_BE_STATIC, staticKeyword);
       }
-      return parseOperator(comment, null);
+      return parseOperator(comment, externalKeyword, null);
     }
     TypeName returnType = parseReturnType();
     if (matches(Keyword.GET)) {
-      return parseGetter(comment, staticKeyword, returnType);
+      return parseGetter(comment, externalKeyword, staticKeyword, returnType);
     } else if (matches(Keyword.SET)) {
-      return parseSetter(comment, staticKeyword, returnType);
+      return parseSetter(comment, externalKeyword, staticKeyword, returnType);
     } else if (matches(Keyword.OPERATOR)) {
       if (staticKeyword != null) {
         reportError(ParserErrorCode.OPERATOR_CANNOT_BE_STATIC, staticKeyword);
       }
-      return parseOperator(comment, returnType);
+      return parseOperator(comment, externalKeyword, returnType);
     }
     if (peekMatches(TokenType.PERIOD) || peekMatches(TokenType.OPEN_PAREN)) {
-      return parseMethodOrConstructor(comment, staticKeyword, returnType);
+      return parseMethodOrConstructor(comment, externalKeyword, staticKeyword, returnType);
+    }
+    if (externalKeyword != null) {
+      // reportError(ParserErrorCode.?);
     }
     return parseInitializedIdentifierList(comment, staticKeyword, null, returnType);
   }
@@ -1142,7 +1178,7 @@ public class Parser {
     while (!matches(TokenType.EOF)) {
       if (matches(IMPORT) || matches(LIBRARY) || matches(PART) || matches(RESOURCE)) {
         if (declarationFound && !errorGenerated) {
-          // reportError(ParserErrorCode.?));
+          // reportError(ParserErrorCode.?);
           errorGenerated = true;
         }
         Directive directive = parseDirective();
@@ -1168,7 +1204,7 @@ public class Parser {
       memberStart = currentToken;
     }
     // Check the order of the directives.
-    // reportError(ParserErrorCode.?));
+    // reportError(ParserErrorCode.?);
     return new CompilationUnit(scriptTag, directives, declarations);
   }
 
@@ -1246,7 +1282,7 @@ public class Parser {
    *     constantConstructorSignature (redirection | initializers)? ';'
    * 
    * constantConstructorSignature ::=
-   *     'const' qualified formalParameterList
+   *     'external'? 'const' qualified formalParameterList
    * 
    * initializers ::=
    *     ':' superCallOrFieldInitializer (',' superCallOrFieldInitializer)*
@@ -1260,9 +1296,10 @@ public class Parser {
    * </pre>
    * 
    * @param comment the documentation comment to be associated with the declaration
+   * @param externalKeyword the 'external' token
    * @return the constant constructor that was parsed
    */
-  private ConstructorDeclaration parseConstantConstructor(Comment comment) {
+  private ConstructorDeclaration parseConstantConstructor(Comment comment, Token externalKeyword) {
     Token keyword = expect(Keyword.CONST);
     SimpleIdentifier returnType = parseSimpleIdentifier();
     Token period = null;
@@ -1271,7 +1308,14 @@ public class Parser {
       period = getAndAdvance();
       name = parseSimpleIdentifier();
     }
-    return parseConstructor(comment, keyword, returnType, period, name, parseFormalParameterList());
+    return parseConstructor(
+        comment,
+        externalKeyword,
+        keyword,
+        returnType,
+        period,
+        name,
+        parseFormalParameterList());
   }
 
   /**
@@ -1298,10 +1342,10 @@ public class Parser {
     return parseInstanceCreationExpression(keyword);
   }
 
-  private ConstructorDeclaration parseConstructor(Comment comment, Token keyword,
-      SimpleIdentifier returnType, Token period, SimpleIdentifier name,
+  private ConstructorDeclaration parseConstructor(Comment comment, Token externalKeyword,
+      Token keyword, SimpleIdentifier returnType, Token period, SimpleIdentifier name,
       FormalParameterList parameters) {
-    boolean bodyAllowed = true;
+    boolean bodyAllowed = externalKeyword == null;
     Token colon = null;
     List<ConstructorInitializer> initializers = new ArrayList<ConstructorInitializer>();
     if (matches(TokenType.COLON)) {
@@ -1326,10 +1370,11 @@ public class Parser {
     }
     FunctionBody body = parseFunctionBody(true, false);
     if (!bodyAllowed && !(body instanceof EmptyFunctionBody)) {
-      // reportError();
+      // reportError(ParserErrorCode.?);
     }
     return new ConstructorDeclaration(
         comment,
+        externalKeyword,
         keyword,
         returnType,
         period,
@@ -1631,13 +1676,14 @@ public class Parser {
    *     factoryConstructorSignature functionBody
    * 
    * factoryConstructorSignature ::=
-   *     'factory' qualified  ('.' identifier)? formalParameterList
+   *     'external'? 'factory' qualified  ('.' identifier)? formalParameterList
    * </pre>
    * 
    * @param comment the documentation comment to be associated with the declaration
+   * @param externalKeyword the 'external' token
    * @return the factory constructor that was parsed
    */
-  private ConstructorDeclaration parseFactoryConstructor(Comment comment) {
+  private ConstructorDeclaration parseFactoryConstructor(Comment comment, Token externalKeyword) {
     Token keyword = expect(Keyword.FACTORY);
     Identifier returnType = parseSimpleIdentifier();
     Token period = null;
@@ -1655,8 +1701,12 @@ public class Parser {
     Token colon = null;
     List<ConstructorInitializer> initializers = new ArrayList<ConstructorInitializer>();
     FunctionBody body = parseFunctionBody(true, false);
+    if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
+      // reportError(ParserErrorCode.?);
+    }
     return new ConstructorDeclaration(
         comment,
+        externalKeyword,
         keyword,
         returnType,
         period,
@@ -1717,7 +1767,7 @@ public class Parser {
     NormalFormalParameter parameter = parseNormalFormalParameter();
     if (matches(TokenType.EQ)) {
       // Validate that these are only used for optional parameters.
-      // reportError(ParserErrorCode.?));
+      // reportError(ParserErrorCode.?);
       Token equals = getAndAdvance();
       Expression defaultValue = parseExpression();
       return new NamedFormalParameter(parameter, equals, defaultValue);
@@ -1757,18 +1807,18 @@ public class Parser {
     do {
       if (matches(TokenType.OPEN_SQUARE_BRACKET)) {
         if (leftBracket != null) {
-          // reportError(ParserErrorCode.?));
+          // reportError(ParserErrorCode.?);
         }
         leftBracket = getAndAdvance();
       }
       FormalParameter parameter = parseFormalParameter();
       if (leftBracket == null) {
         if (parameter instanceof NamedFormalParameter) {
-          // reportError(ParserErrorCode.?));
+          // reportError(ParserErrorCode.?);
         }
       } else {
         if (!(parameter instanceof NamedFormalParameter)) {
-          // reportError(ParserErrorCode.?));
+          // reportError(ParserErrorCode.?);
         }
       }
       parameters.add(parameter);
@@ -2012,16 +2062,18 @@ public class Parser {
    *     getterSignature functionBody?
    *
    * getterSignature ::=
-   *     'static'? returnType? 'get' identifier
+   *     'external'? 'static'? returnType? 'get' identifier
    * </pre>
    * 
    * @param comment the documentation comment to be associated with the declaration
+   * @param externalKeyword the 'external' token
    * @param staticKeyword the static keyword, or {@code null} if the getter is not static
    * @param the return type that has already been parsed, or {@code null} if there was no return
    *          type
    * @return the getter that was parsed
    */
-  private MethodDeclaration parseGetter(Comment comment, Token staticKeyword, TypeName returnType) {
+  private MethodDeclaration parseGetter(Comment comment, Token externalKeyword,
+      Token staticKeyword, TypeName returnType) {
     Token propertyKeyword = expect(Keyword.GET);
     SimpleIdentifier name = parseSimpleIdentifier();
     if (matches(TokenType.OPEN_PAREN) && peekMatches(TokenType.CLOSE_PAREN)) {
@@ -2030,8 +2082,12 @@ public class Parser {
       advance();
     }
     FunctionBody body = parseFunctionBody(true, false);
+    if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
+      // reportError(ParserErrorCode.?);
+    }
     return new MethodDeclaration(
         comment,
+        externalKeyword,
         staticKeyword,
         returnType,
         propertyKeyword,
@@ -2394,15 +2450,17 @@ public class Parser {
    * 
    * <pre>
    * functionDeclaration ::=
-   *     'static'? functionSignature functionBody
-   *   | functionSignature ';'
+   *     'external'? 'static'? functionSignature functionBody
+   *   | 'external'? functionSignature ';'
    * </pre>
    * 
    * @param comment the documentation comment to be associated with the declaration
+   * @param externalKeyword the 'external' token
    * @param staticKeyword the static keyword, or {@code null} if the getter is not static
    * @return the method declaration that was parsed
    */
-  private MethodDeclaration parseMethodDeclaration(Comment comment, Token staticKeyword) {
+  private MethodDeclaration parseMethodDeclaration(Comment comment, Token externalKeyword,
+      Token staticKeyword) {
     TypeName returnType = null;
     if (!peekMatches(TokenType.OPEN_PAREN)) {
       returnType = parseReturnType();
@@ -2410,8 +2468,12 @@ public class Parser {
     SimpleIdentifier name = parseSimpleIdentifier();
     FormalParameterList parameters = parseFormalParameterList();
     FunctionBody body = parseFunctionBody(staticKeyword == null, false);
+    if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
+      // reportError(ParserErrorCode.?);
+    }
     return new MethodDeclaration(
         comment,
+        externalKeyword,
         staticKeyword,
         returnType,
         null,
@@ -2433,13 +2495,14 @@ public class Parser {
    * </pre>
    * 
    * @param comment the documentation comment to be associated with the declaration
+   * @param externalKeyword the 'external' token
    * @param staticKeyword the static keyword, or {@code null} if the getter is not static
    * @param returnType the return type that was declared, or {@code null} if no return type was
    *          declared
    * @return the method or constructor declaration that was parsed
    */
-  private ClassMember parseMethodOrConstructor(Comment comment, Token staticKeyword,
-      TypeName returnType) {
+  private ClassMember parseMethodOrConstructor(Comment comment, Token externalKeyword,
+      Token staticKeyword, TypeName returnType) {
     if (matches(TokenType.PERIOD)) {
       if (staticKeyword != null) {
         // Constructors cannot be static
@@ -2454,7 +2517,14 @@ public class Parser {
       Token period = getAndAdvance();
       SimpleIdentifier name = parseSimpleIdentifier();
       FormalParameterList parameters = parseFormalParameterList();
-      return parseConstructor(comment, null, realReturnType, period, name, parameters);
+      return parseConstructor(
+          comment,
+          externalKeyword,
+          null,
+          realReturnType,
+          period,
+          name,
+          parameters);
     }
     SimpleIdentifier name = parseSimpleIdentifier();
     FormalParameterList parameters = parseFormalParameterList();
@@ -2472,11 +2542,22 @@ public class Parser {
       } else {
         // reportError(ParserErrorCode.?);
       }
-      return parseConstructor(comment, null, realReturnType, null, name, parameters);
+      return parseConstructor(
+          comment,
+          externalKeyword,
+          null,
+          realReturnType,
+          null,
+          name,
+          parameters);
     }
     FunctionBody body = parseFunctionBody(staticKeyword == null, false);
+    if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
+      // reportError(ParserErrorCode.?);
+    }
     return new MethodDeclaration(
         comment,
+        externalKeyword,
         staticKeyword,
         returnType,
         null,
@@ -2637,7 +2718,7 @@ public class Parser {
     Token period = null;
     if (matches(Keyword.THIS)) {
       // Validate that field initializers are only used in constructors.
-      // reportError(ParserErrorCode.?));
+      // reportError(ParserErrorCode.?);
       thisKeyword = getAndAdvance();
       period = expect(TokenType.PERIOD);
     }
@@ -2655,7 +2736,7 @@ public class Parser {
           parameters);
     }
     // Validate that the type is not void because this is not a function signature.
-    // reportError(ParserErrorCode.?));
+    // reportError(ParserErrorCode.?);
     if (thisKeyword != null) {
       return new FieldFormalParameter(
           holder.getKeyword(),
@@ -2675,15 +2756,17 @@ public class Parser {
    *     operatorSignature (';' | functionBody)
    *
    * operatorSignature ::=
-   *     returnType? 'operator' operator formalParameterList
+   *     'external'? returnType? 'operator' operator formalParameterList
    * </pre>
    * 
    * @param comment the documentation comment to be associated with the declaration
+   * @param externalKeyword the 'external' token
    * @param the return type that has already been parsed, or {@code null} if there was no return
    *          type
    * @return the operator declaration that was parsed
    */
-  private MethodDeclaration parseOperator(Comment comment, TypeName returnType) {
+  private MethodDeclaration parseOperator(Comment comment, Token externalKeyword,
+      TypeName returnType) {
     Token operatorKeyword = expect(Keyword.OPERATOR);
     if (!currentToken.isUserDefinableOperator()) {
       reportError(ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE);
@@ -2691,8 +2774,12 @@ public class Parser {
     SimpleIdentifier name = new SimpleIdentifier(getAndAdvance());
     FormalParameterList parameters = parseFormalParameterList();
     FunctionBody body = parseFunctionBody(true, false);
+    if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
+      // reportError(ParserErrorCode.?);
+    }
     return new MethodDeclaration(
         comment,
+        externalKeyword,
         null,
         returnType,
         null,
@@ -2857,6 +2944,8 @@ public class Parser {
       return new ParenthesizedExpression(leftParenthesis, expression, rightParenthesis);
     } else if (matches(TokenType.LT)) {
       return parseListOrMapLiteral(null);
+    } else if (matches(TokenType.QUESTION)) {
+      return parseArgumentDefinitionTest();
     } else {
       return createSyntheticSimpleIdentifier();
     }
@@ -2988,22 +3077,28 @@ public class Parser {
    *     setterSignature functionBody?
    *
    * setterSignature ::=
-   *     'static'? returnType? 'set' identifier '=' formalParameterList
+   *     'external'? 'static'? returnType? 'set' identifier '=' formalParameterList
    * </pre>
    * 
    * @param comment the documentation comment to be associated with the declaration
+   * @param externalKeyword the 'external' token
    * @param staticKeyword the static keyword, or {@code null} if the setter is not static
    * @param the return type that has already been parsed, or {@code null} if there was no return
    *          type
    * @return the setter that was parsed
    */
-  private MethodDeclaration parseSetter(Comment comment, Token staticKeyword, TypeName returnType) {
+  private MethodDeclaration parseSetter(Comment comment, Token externalKeyword,
+      Token staticKeyword, TypeName returnType) {
     Token propertyKeyword = expect(Keyword.SET);
     SimpleIdentifier name = parseSimpleIdentifier();
     FormalParameterList parameters = parseFormalParameterList();
     FunctionBody body = parseFunctionBody(true, false);
+    if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
+      // reportError(ParserErrorCode.?);
+    }
     return new MethodDeclaration(
         comment,
+        externalKeyword,
         staticKeyword,
         returnType,
         propertyKeyword,
@@ -3509,7 +3604,7 @@ public class Parser {
               new SuperExpression(getAndAdvance())));
         } else {
           // Invalid operator before 'super'
-          // reportError(ParserErrorCode.?));
+          // reportError(ParserErrorCode.?);
           return new PrefixExpression(operator, new SuperExpression(getAndAdvance()));
         }
       }
@@ -3825,7 +3920,7 @@ public class Parser {
     int currentIndex = index + 1;
     if (currentIndex >= length) {
       // Illegal escape sequence: no char after escape
-      // reportError(ParserErrorCode.?));
+      // reportError(ParserErrorCode.?);
       return length;
     }
     currentChar = lexeme.charAt(currentIndex);
@@ -3844,14 +3939,14 @@ public class Parser {
     } else if (currentChar == 'x') {
       if (currentIndex + 2 >= length) {
         // Illegal escape sequence: not enough hex digits
-        // reportError(ParserErrorCode.?));
+        // reportError(ParserErrorCode.?);
         return length;
       }
       char firstDigit = lexeme.charAt(currentIndex + 1);
       char secondDigit = lexeme.charAt(currentIndex + 2);
       if (!isHexDigit(firstDigit) || !isHexDigit(secondDigit)) {
         // Illegal escape sequence: invalid hex digit
-        // reportError(ParserErrorCode.?));
+        // reportError(ParserErrorCode.?);
       } else {
         builder.append((char) ((Character.digit(firstDigit, 16) << 4) + Character.digit(
             secondDigit,
@@ -3862,7 +3957,7 @@ public class Parser {
       currentIndex++;
       if (currentIndex >= length) {
         // Illegal escape sequence: not enough hex digits
-        // reportError(ParserErrorCode.?));
+        // reportError(ParserErrorCode.?);
         return length;
       }
       currentChar = lexeme.charAt(currentIndex);
@@ -3870,7 +3965,7 @@ public class Parser {
         currentIndex++;
         if (currentIndex >= length) {
           // Illegal escape sequence: incomplete escape
-          // reportError(ParserErrorCode.?));
+          // reportError(ParserErrorCode.?);
           return length;
         }
         currentChar = lexeme.charAt(currentIndex);
@@ -3879,7 +3974,7 @@ public class Parser {
         while (currentChar != '}') {
           if (!isHexDigit(currentChar)) {
             // Illegal escape sequence: invalid hex digit
-            // reportError(ParserErrorCode.?));
+            // reportError(ParserErrorCode.?);
             currentIndex++;
             while (currentIndex < length && lexeme.charAt(currentIndex) != '}') {
               currentIndex++;
@@ -3891,21 +3986,21 @@ public class Parser {
           currentIndex++;
           if (currentIndex >= length) {
             // Illegal escape sequence: incomplete escape
-            // reportError(ParserErrorCode.?));
+            // reportError(ParserErrorCode.?);
             return length;
           }
           currentChar = lexeme.charAt(currentIndex);
         }
         if (digitCount < 1 || digitCount > 6) {
           // Illegal escape sequence: not enough or too many hex digits
-          // reportError(ParserErrorCode.?));
+          // reportError(ParserErrorCode.?);
         }
         appendScalarValue(builder, value, index, currentIndex);
         return currentIndex + 1;
       } else {
         if (currentIndex + 3 >= length) {
           // Illegal escape sequence: not enough hex digits
-          // reportError(ParserErrorCode.?));
+          // reportError(ParserErrorCode.?);
           return length;
         }
         char firstDigit = currentChar;
@@ -3915,7 +4010,7 @@ public class Parser {
         if (!isHexDigit(firstDigit) || !isHexDigit(secondDigit) || !isHexDigit(thirdDigit)
             || !isHexDigit(fourthDigit)) {
           // Illegal escape sequence: invalid hex digits
-          // reportError(ParserErrorCode.?));
+          // reportError(ParserErrorCode.?);
         } else {
           appendScalarValue(
               builder,
