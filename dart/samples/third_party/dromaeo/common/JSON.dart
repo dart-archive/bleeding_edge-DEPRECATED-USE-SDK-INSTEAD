@@ -475,16 +475,9 @@ class JsonStringifier {
   static String _numberToString(num x) {
     // TODO: need some more investigation what to do with precision
     // of double values.
-    switch (true) {
-      case x is int:
-        return x.toString();
-
-      case x is double:
-        return x.toString();
-
-      default:
-        return x.toDouble().toString();
-    }
+    if (x is int) return x.toString();
+    if (x is double) return x.toString();
+    return x.toDouble().toString();
   }
 
   // TODO: add others.
@@ -521,31 +514,25 @@ class JsonStringifier {
   }
 
   void _stringify(final object) {
-    switch (true) {
-      case object is num:
-        // TODO: use writeOn.
-        _sb.add(_numberToString(object));
-        return;
-
-      case object === true:
+    if (object is num) {
+      // TODO: use writeOn.
+      _sb.add(_numberToString(object));
+      return;
+    } else if (object === true) {
         _sb.add('true');
         return;
-
-      case object === false:
+    } else if (object === false) {
         _sb.add('false');
         return;
-
-      case object === null:
+    } else if (object === null) {
         _sb.add('null');
         return;
-
-      case object is String:
+    } else if (object is String) {
         _sb.add('"');
         _escape(_sb, object);
         _sb.add('"');
         return;
-
-      case object is List:
+    } else if (object is List) {
         _checkCycle(object);
         List a = object;
         _sb.add('[');
@@ -559,8 +546,7 @@ class JsonStringifier {
         }
         _sb.add(']');
         return;
-
-      case object is Map:
+    } else if (object is Map) {
         _checkCycle(object);
         Map<String, Object> m = object;
         _sb.add('{');
@@ -576,8 +562,7 @@ class JsonStringifier {
         });
         _sb.add('}');
         return;
-
-      default:
+    } else {
         throw const JsonUnsupportedObjectType();
     }
   }
