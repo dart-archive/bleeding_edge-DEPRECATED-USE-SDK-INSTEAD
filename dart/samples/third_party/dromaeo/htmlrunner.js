@@ -128,7 +128,7 @@ function _reportTestResults(name, times) {
   _postMessage('result', {
       'testName': name,
       'mean': results.mean,
-      'error': (results.error / results.mean),
+      'error': results.error,
       'percent': (100.0 * _nRanTests / _nTests)
           });
 }

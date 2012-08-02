@@ -107,7 +107,7 @@ class Suite {
     _postMessage('result', {
         'testName': name,
         'mean': result.mean,
-        'error': result.error / result.mean,
+        'error': result.error,
         'percent': (100.0 * _nRanTests / _nTests)
     });
   }
