@@ -8,19 +8,19 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "124188",
+  "webkit_revision": "124344",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "9336",
+  "nacl_revision": "9341",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
-  "nacl_tools_revision": "9286",  # native_client/DEPS: tools_rev
+  "nacl_tools_revision": "9330",  # native_client/DEPS: tools_rev
   "gtm_revision": "534",
 
   "libjingle_revision": "163",
   "libphonenumber_revision": "456",
-  "libvpx_revision": "149032",
+  "libvpx_revision": "149334",
   "lss_revision": "11",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
@@ -29,11 +29,11 @@ vars = {
   "ffmpeg_hash": "4287c0271f399b98eb6851e6e650098f26b8c3c2",
 
   "sfntly_revision": "134",
-  "skia_revision": "4834",
+  "skia_revision": "4889",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "12227",
+  "v8_revision": "12247",
   "webrtc_revision": "2538",
   "jsoncpp_revision": "248",
   "nss_revision": "145873",
@@ -72,16 +72,16 @@ deps = {
     "/trunk/deps/third_party/WebKit@76115",
 
   "src/third_party/icu":
-    "/trunk/deps/third_party/icu46@146527",
+    "/trunk/deps/third_party/icu46@149334",
 
   "src/third_party/libexif/sources":
     "/trunk/deps/third_party/libexif/sources@146817",
 
   "src/third_party/hunspell":
-   "/trunk/deps/third_party/hunspell@132738",
+   "/trunk/deps/third_party/hunspell@149334",
 
   "src/third_party/hunspell_dictionaries":
-    "/trunk/deps/third_party/hunspell_dictionaries@138928",
+    "/trunk/deps/third_party/hunspell_dictionaries@149334",
 
   "src/third_party/safe_browsing/testing":
     (Var("googlecode_url") % "google-safe-browsing") + "/trunk/testing@110",
@@ -100,7 +100,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@63",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1441",
+    (Var("googlecode_url") % "gyp") + "/trunk@1446",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -247,16 +247,16 @@ deps = {
     "/trunk/deps/third_party/libsrtp@123853",
 
   "src/third_party/speex":
-    "/trunk/deps/third_party/speex@111570",
+    "/trunk/deps/third_party/speex@149334",
 
   "src/third_party/yasm/source/patched-yasm":
     "/trunk/deps/third_party/yasm/patched-yasm@134927",
 
   "src/third_party/libjpeg_turbo":
-    "/trunk/deps/third_party/libjpeg_turbo@147428",
+    "/trunk/deps/third_party/libjpeg_turbo@149334",
 
   "src/third_party/flac":
-    "/trunk/deps/third_party/flac@120197",
+    "/trunk/deps/third_party/flac@149334",
 
   "src/third_party/pyftpdlib/src":
     (Var("googlecode_url") % "pyftpdlib") + "/trunk@977",
@@ -486,7 +486,7 @@ deps_os = {
       "/trunk/deps/reference_builds/chrome_linux@137712",
 
     "src/third_party/xdg-utils":
-      "/trunk/deps/third_party/xdg-utils@93299",
+      "/trunk/deps/third_party/xdg-utils@149334",
 
     "src/third_party/swig/linux":
       "/trunk/deps/third_party/swig/linux@" + Var("swig_revision"),
@@ -503,6 +503,9 @@ deps_os = {
 
     "src/third_party/gold":
       "/trunk/deps/third_party/gold@124239",
+
+    "src/third_party/libmtp":
+      "/trunk/deps/third_party/libmtp@149471",
 
     # For Chromium OS.
     "src/third_party/cros_system_api":
