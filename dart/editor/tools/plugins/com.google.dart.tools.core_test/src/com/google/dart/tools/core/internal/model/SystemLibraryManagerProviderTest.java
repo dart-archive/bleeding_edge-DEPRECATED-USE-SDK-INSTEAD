@@ -63,8 +63,7 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     assertTrue(specs.contains("dart:uri"));
   }
 
-  public void test_SystemLibraryManagerProvider_getAllLibrarySpecs_no_duplicates()
-      throws Exception {
+  public void test_SystemLibraryManagerProvider_getAllLibrarySpecs_no_duplicates() throws Exception {
     EditorLibraryManager libraryManager = getLibraryManager();
     Collection<String> specs = libraryManager.getAllLibrarySpecs();
     Collection<String> visited = new HashSet<String>();
@@ -85,22 +84,10 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     assertNull(getLibraryManager().getRelativeUri(new File("doesNotExist.dart").toURI()));
   }
 
-  public void test_SystemLibraryManagerProvider_translateDoesNotExist() throws Exception {
-    URI fullUri = new URI("dart://doesnotexist/some/file.dart");
-    try {
-      URI translatedURI = getLibraryManager().resolveDartUri(fullUri);
-      fail("Expected translate " + fullUri + " to fail, but returned " + translatedURI);
-    } catch (RuntimeException e) {
-      String message = e.getMessage();
-      assertTrue(message.startsWith("No system library"));
-      assertTrue(message.contains(fullUri.toString()));
-    }
-  }
-
   protected abstract EditorLibraryManager getLibraryManager();
 
-  protected void testLibrary(String shortLibName, String libFileName)
-      throws URISyntaxException, AssertionError {
+  protected void testLibrary(String shortLibName, String libFileName) throws URISyntaxException,
+      AssertionError {
     final URI shortUri = new URI("dart:" + shortLibName);
 
     final URI fullUri1 = getLibraryManager().expandRelativeDartUri(shortUri);
@@ -134,16 +121,16 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     assertEquals(fullUri1.resolve("somedir/somefile.dart"), fullUri5);
   }
 
-  protected void testPackage(String libFileName, String uriString)
-      throws AssertionError, URISyntaxException {
+  protected void testPackage(String libFileName, String uriString) throws AssertionError,
+      URISyntaxException {
     List<File> packageRoots = new ArrayList<File>();
     packageRoots.addAll(SystemLibraryManagerProvider.getAnyLibraryManager().getPackageRoots());
     List<File> roots = new ArrayList<File>();
     roots.add(new File(System.getProperty("user.home")));
     SystemLibraryManagerProvider.getAnyLibraryManager().setPackageRoots(roots);
 
-    final URI fullUri1 = getLibraryManager()
-        .expandRelativeDartUri(new URI("package", null, "/" + libFileName, null));
+    final URI fullUri1 = getLibraryManager().expandRelativeDartUri(
+        new URI("package", null, "/" + libFileName, null));
     assertNotNull(fullUri1);
     assertEquals("package", fullUri1.getScheme());
     assertTrue(fullUri1.getPath(), (fullUri1.getHost() + fullUri1.getPath()).endsWith(libFileName));
