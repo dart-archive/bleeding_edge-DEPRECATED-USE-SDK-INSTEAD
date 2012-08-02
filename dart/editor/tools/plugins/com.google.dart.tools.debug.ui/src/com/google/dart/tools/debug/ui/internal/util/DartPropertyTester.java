@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.ui.internal.util;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
 
 import org.eclipse.core.expressions.PropertyTester;
+import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -64,7 +65,7 @@ public class DartPropertyTester extends PropertyTester {
 
       if (res == null) {
         // look for files
-        IFile[] files = root.findFilesForLocation(path);
+        IFile[] files = root.findFilesForLocationURI(URIUtil.toURI(path.makeAbsolute()));
         // Check for accessibility since for directories, the above will return
         // a non-accessible IFile
         if (files.length > 0 && files[0].isAccessible()) {
@@ -74,7 +75,7 @@ public class DartPropertyTester extends PropertyTester {
 
       if (res == null) {
         // look for folders
-        IContainer[] containers = root.findContainersForLocation(path);
+        IContainer[] containers = root.findContainersForLocationURI(URIUtil.toURI(path.makeAbsolute()));
         if (containers.length > 0) {
           res = containers[0];
         }
