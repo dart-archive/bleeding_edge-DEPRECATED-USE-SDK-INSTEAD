@@ -200,6 +200,14 @@
        </menu>
     </menuContribution>
   </extension>
+  <extension
+        point="org.eclipse.ui.ide.projectNatureImages">
+     <image
+           icon="icons/dart_ovr.gif"
+           id="com.google.dart.eclipse.ui.projectNatureImage"
+           natureId="com.google.dart.tools.core.dartNature">
+     </image>
+  </extension>
 
 
 </plugin>
