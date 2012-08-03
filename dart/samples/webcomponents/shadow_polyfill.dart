@@ -36,12 +36,22 @@ void initializeComponents(RegistryLookupFunction lookup) {
   manager._loadComponents();
 }
 
+/** A Dart wrapper for a web component. */
 abstract class WebComponent {
+  /** The web component element wrapped by this class. */
   abstract Element get element();
+
+  /** Invoked when this component gets created. */
   abstract void created();
+
+  /** Invoked when this component gets inserted in the DOM tree. */
   abstract void inserted();
+
+  /** Invoked when any attribute of the component is modified. */
   abstract void attributeChanged(
       String name, String oldValue, String newValue);
+
+  /** Invoked when this component is removed from the DOM tree. */
   abstract void removed();
 }
 
@@ -119,24 +129,60 @@ class CustomElementsManager {
     return newDeclarations;
   }
 
+  /**
+   * Look for all custom elements under [root] and expand them appropriately.
+   * This calls the [created] event on a webcomponent, but it will not insert
+   * the component in the DOM tree (and hence it won't call [inserted].
+   */
+  List expandDeclarations(Element root) =>
+      _expandDeclarations(root, insert: false);
+
   /** Look for all custom elements uses and expand them appropriately. */
-  List _expandDeclarations([root]) {
+  List _expandDeclarations([Element root, bool insert = true]) {
     var newCustomElements = [];
-    _customDeclarations.getValues().forEach((declaration) {
+    var target;
+    var rootUnderTemplate = false;
+    if (root == null) {
+      target = document;
+    } else {
+      target = root;
+      rootUnderTemplate = root.matchesSelector('template *');
+    }
+    for (var declaration in _customDeclarations.getValues()) {
       var selector = '${declaration.extendz}[is=${declaration.name}]';
-      var target = root == null ? document : root;
-      target.queryAll(selector).forEach((Element e) {
-        var newElement = declaration.morph(e);
-        // must call the inserted callback here for elements in the initial
-        // markup, since our mutation observers won't be able to see them
-        // get expanded.
-        // TODO(samhop): ensure that this never results in the callback
-        // being called twice
-        newElement.inserted();
-        newCustomElements.add(newElement);
-      });
-    });
+      var all = target.queryAll(selector);
+      // templates are innert and should not be expanded.
+      var activeElements = all.filter(
+          (e) => !e.matchesSelector('template *'));
+      if (root != null && root.matchesSelector(selector)
+         && !rootUnderTemplate) {
+        activeElements.add(root);
+      }
+      for (var e in activeElements) {
+        var component = _customElements[e];
+        if (component == null) {
+          component = declaration.morph(e);
+          newCustomElements.add(component);
+        }
+        if (insert) {
+          component.inserted();
+        }
+      }
+    }
     return newCustomElements;
+  }
+
+
+  /** Fire the [removed] event on all web components under [root]. */
+  void _removeComponents(Element root) {
+    for (var decl in _customDeclarations.getValues()) {
+      for (var e in root.queryAll('${decl.extendz}[is=${decl.name}]')) {
+        if (_customElements[e] != null) _customElements[e].removed();
+      }
+      if (root.matchesSelector('${decl.extendz}[is=${decl.name}]')) {
+        if (_customElements[root] != null) _customElements[root].removed();
+      }
+    }
   }
 
   /**
@@ -145,8 +191,12 @@ class CustomElementsManager {
    * first one) and assumes corresponding custom element is already
    * registered.
    */
-  WebComponent expandHtml(htmlString) {
-    Element element = new Element.html(htmlString);
+  WebComponent expandHtml(String htmlString) {
+    return expandElement(new Element.html(htmlString));
+  }
+
+  /** Expand [element], assuming it is a webcomponent. */
+  WebComponent expandElement(Element element) {
     var declaration = _customDeclarations[element.attributes['is']];
     if (declaration == null) throw 'No such custom element declaration';
     return declaration.morph(element);
@@ -164,18 +214,10 @@ class CustomElementsManager {
         // TODO(samhop): remove this test if it turns out that it always passes
         if (mutation.type == 'childList') {
           for (var node in mutation.addedNodes) {
-            if (node is! Element) continue;
-            var dartElement = _customElements[node];
-            if (dartElement != null) {
-              dartElement.inserted();
-            }
+            if (node is Element) _expandDeclarations(node);
           }
           for (var node in mutation.removedNodes) {
-            if (node is! Element) continue;
-            var dartElement = _customElements[node];
-            if (dartElement != null) {
-              dartElement.removed();
-            }
+            if (node is Element) _removeComponents(node);
           }
         }
       }
@@ -278,8 +320,9 @@ class _CustomDeclaration {
     template.nodes.forEach((node) => shadowRoot.nodes.add(node.clone(true)));
     var newCustomElement = manager._lookup(this.name)(shadowRoot, e);
     manager._customElements[e] = newCustomElement;
+    manager._expandDeclarations(shadowRoot, insert: false);
     newCustomElement.created();
-    manager._expandDeclarations(shadowRoot);
+    manager._expandDeclarations(shadowRoot, insert: true);
 
     // TODO(samhop): investigate refactoring/redesigning the API so that
     // components which don't need their attributes observed don't have an
