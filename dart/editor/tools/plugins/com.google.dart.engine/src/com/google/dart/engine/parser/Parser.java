@@ -502,6 +502,7 @@ public class Parser {
    * 
    * @return {@code true} if the current token is a valid identifier
    */
+  @SuppressWarnings("unused")
   private boolean matchesIdentifier() {
     // TODO(brianwilkerson) Use this in most of the places where matches(TokenType.IDENTIFIER) is
     // currently being used.
