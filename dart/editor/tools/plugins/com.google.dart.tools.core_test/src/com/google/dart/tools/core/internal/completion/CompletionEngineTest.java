@@ -436,6 +436,10 @@ public class CompletionEngineTest extends TestCase {
         "4+n");
   }
 
+  public void testCommentSnippets062() throws Exception {
+    test("var PHI;main(){PHI=5.3;PHI.abs().!1 Object x;}", "1+abs");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test

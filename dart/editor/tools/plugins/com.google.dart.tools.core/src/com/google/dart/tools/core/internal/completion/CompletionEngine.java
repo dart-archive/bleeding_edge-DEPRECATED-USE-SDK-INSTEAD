@@ -987,11 +987,13 @@ public class CompletionEngine {
           // if dynamic use ScopedNameFinder to look for a declaration
           // { List list; list.! Map map; }
           DartNode qualifier = completionNode.getQualifier();
-          DartIdentifier name;
+          DartIdentifier name = null;
           if (qualifier instanceof DartIdentifier) {
             name = (DartIdentifier) qualifier;
-          } else {
+          } else if (qualifier instanceof DartPropertyAccess) {
             name = ((DartPropertyAccess) qualifier).getName();
+          } else if (qualifier instanceof DartMethodInvocation) {
+            name = ((DartMethodInvocation) qualifier).getFunctionName();
           }
           Element element = name.getElement();
           ScopedNameFinder vars = new ScopedNameFinder(actualCompletionPosition);
