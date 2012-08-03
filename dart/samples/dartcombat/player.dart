@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -33,26 +33,30 @@ interface Enemy default EnemyImpl {
  * contains the actual player state.
  */
 class PlayerImpl implements Player {
-  final Future<SendPort> portToPlayer;
+  final SendPort portToPlayer;
 
-  PlayerImpl() : portToPlayer = new PlayerState().spawn();
+  // TODO(ager): This will break with dart2js once spawnFunction runs
+  // isolates in web workers. The player isolates need access to the
+  // DOM and should be spawned with something like spawnFunctionInDOM
+  // that will run on the renderer thread.
+  PlayerImpl() : portToPlayer = spawnFunction(spawnPlayer);
 
   void setup(Window window, int player) {
-    portToPlayer.then((SendPort port) => port.call(
+    portToPlayer.call(
         { "action" : MessageIds.SETUP,
-          "args" : [player] }));
+          "args" : [player] });
   }
 
   void set enemy(SendPort portToEnemy) {
-    portToPlayer.then((port) => port.call(
+    portToPlayer.call(
         { "action" : MessageIds.SET_ENEMY,
-          "args" : [portToEnemy]}));
+          "args" : [portToEnemy]});
   }
 
   void set _portForTest(SendPort testPort) {
-    portToPlayer.then((port) => port.call(
+    portToPlayer.call(
         { "action" : MessageIds.SET_PORT_FOR_TEST,
-          "args" : [testPort]}));
+          "args" : [testPort]});
   }
 }
 

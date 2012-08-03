@@ -1,6 +1,11 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+void spawnPlayer() {
+  PlayerState state = new PlayerState();
+  port.receive(state.dispatch);
+}
 
 /**
  * Stores the actual data on a player's boat grid, the UI representation for its
@@ -9,7 +14,7 @@
  * events.
  */
 // TODO(sigmund): move UI setup out of here, e.g. into a controller class.
-class PlayerState extends Isolate {
+class PlayerState {
 
   /** internal id for this player. */
   int _id;
@@ -46,15 +51,6 @@ class PlayerState extends Isolate {
 
   /** Port used for testing purposes. */
   SendPort _portForTest;
-
-  // This can take no arguments for now (wait for isolate redesign).
-  PlayerState() : super.light() {}
-
-  void main() {
-    this.port.receive((message, SendPort replyTo) {
-      dispatch(message, replyTo);
-    });
-  }
 
   /** dispatches all messages that are expected in this isolate. */
   void dispatch(var message, SendPort replyTo) {

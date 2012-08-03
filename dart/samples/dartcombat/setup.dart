@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -40,13 +40,9 @@ void createPlayers() {
   Player player2 = new Player();
   player2.setup(window, 2);
 
-  player2.portToPlayer.then((SendPort port) {
-    player1.enemy = new FlakyProxy(port).sendPort;
-  });
+  player1.enemy = new FlakyProxy(player2.portToPlayer).sendPort;
 
-  player1.portToPlayer.then((SendPort port) {
-    player2.enemy = new FlakyProxy(port).sendPort;
-  });
+  player2.enemy = new FlakyProxy(player1.portToPlayer).sendPort;
 }
 
 /**
@@ -63,8 +59,8 @@ void createPlayersForTest(SendPort testPort) {
   player1.setup(window, 1);
   player2.setup(window, 2);
 
-  player2.portToPlayer.then((SendPort port) { player1.enemy = port; });
-  player1.portToPlayer.then((SendPort port) { player2.enemy = port; });
+  player1.enemy = player2.portToPlayer;
+  player2.enemy = player1.portToPlayer;
 }
 
 /**

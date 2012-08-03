@@ -7,23 +7,26 @@
 #import("dart:isolate");
 #import("dart:json");
 
+void startChatServer() {
+  var server = new ChatServer();
+  server.init();
+  port.receive(server.dispatch);
+}
+
 class ChatServer extends IsolatedServer {
 }
 
 class ServerMain {
-  ServerMain.start(IsolatedServer server,
+  ServerMain.start(SendPort serverPort,
                    String hostAddress,
                    int tcpPort,
                    [int listenBacklog = 5])
       : _statusPort = new ReceivePort(),
-        _serverPort = null {
-    server.spawn().then((SendPort port) {
-      _serverPort = port;
-      _start(hostAddress, tcpPort, listenBacklog);
-    });
+        _serverPort = serverPort {
     // We can only guess this is the right URL. At least it gives a
     // hint to the user.
     print('Server starting http://${hostAddress}:${tcpPort}/');
+    _start(hostAddress, tcpPort, listenBacklog);
   }
 
     void _start(String hostAddress, int tcpPort, int listenBacklog) {
@@ -287,7 +290,7 @@ class ChatServerStatus {
 }
 
 
-class IsolatedServer extends Isolate {
+class IsolatedServer {
   static final String redirectPageHtml = """
 <html>
 <head><title>Welcome to the dart server</title></head>
@@ -520,7 +523,7 @@ class IsolatedServer extends Isolate {
     };
   }
 
-  void main() {
+  void init() {
     _logRequests = false;
     _topic = new Topic();
     _serverStart = new Date.now();
@@ -530,76 +533,76 @@ class IsolatedServer extends Isolate {
     // Start a timer for cleanup events.
     _cleanupTimer =
         new Timer.repeating(10000, (timer) => _topic._handleTimer(timer));
+  }
 
-    // Start timer for periodic logging.
-    void _handleLogging(Timer timer) {
-      if (_logging) {
-        print("${_messageRate.rate} messages/s "
-              "(total $_messageCount messages)");
-      }
+  // Start timer for periodic logging.
+  void _handleLogging(Timer timer) {
+    if (_logging) {
+      print("${_messageRate.rate} messages/s "
+            "(total $_messageCount messages)");
     }
+  }
 
-    this.port.receive((var message, SendPort replyTo) {
-      if (message.isStart) {
-        _host = message.host;
-        _port = message.port;
-        _logging = message.logging;
-        replyTo.send(new ChatServerStatus.starting(), null);
-        _server = new HttpServer();
-        _server.defaultRequestHandler = _notFoundHandler;
-        _server.addRequestHandler(
-            (request) => request.path == "/",
-            (HttpRequest request, HttpResponse response) =>
-                redirectPageHandler(
-                    request, response, "dart_client/index.html"));
-        _server.addRequestHandler(
-            (request) => request.path == "/js_client/index.html",
-            (HttpRequest request, HttpResponse response) =>
-                fileHandler(request, response));
-        _server.addRequestHandler(
-            (request) => request.path == "/js_client/code.js",
-            (HttpRequest request, HttpResponse response) =>
-                fileHandler(request, response));
-        _server.addRequestHandler(
-            (request) => request.path == "/dart_client/index.html",
-            (HttpRequest request, HttpResponse response) =>
-                fileHandler(request, response));
-        _server.addRequestHandler(
-            (request) => request.path == "/out.js",
-            (HttpRequest request, HttpResponse response) =>
-                fileHandler(request, response));
-        _server.addRequestHandler(
-            (request) => request.path == "/favicon.ico",
-            (HttpRequest request, HttpResponse response) =>
-                fileHandler(request, response, "static/favicon.ico"));
+  void dispatch(message, replyTo) {
+    if (message.isStart) {
+      _host = message.host;
+      _port = message.port;
+      _logging = message.logging;
+      replyTo.send(new ChatServerStatus.starting(), null);
+      _server = new HttpServer();
+      _server.defaultRequestHandler = _notFoundHandler;
+      _server.addRequestHandler(
+          (request) => request.path == "/",
+          (HttpRequest request, HttpResponse response) =>
+              redirectPageHandler(
+                  request, response, "dart_client/index.html"));
+      _server.addRequestHandler(
+          (request) => request.path == "/js_client/index.html",
+          (HttpRequest request, HttpResponse response) =>
+              fileHandler(request, response));
+      _server.addRequestHandler(
+          (request) => request.path == "/js_client/code.js",
+          (HttpRequest request, HttpResponse response) =>
+              fileHandler(request, response));
+      _server.addRequestHandler(
+          (request) => request.path == "/dart_client/index.html",
+          (HttpRequest request, HttpResponse response) =>
+              fileHandler(request, response));
+      _server.addRequestHandler(
+          (request) => request.path == "/out.js",
+          (HttpRequest request, HttpResponse response) =>
+              fileHandler(request, response));
+      _server.addRequestHandler(
+          (request) => request.path == "/favicon.ico",
+          (HttpRequest request, HttpResponse response) =>
+              fileHandler(request, response, "static/favicon.ico"));
 
-        _server.addRequestHandler(
-            (request) => request.path == "/join", _joinHandler);
-        _server.addRequestHandler(
-            (request) => request.path == "/leave", _leaveHandler);
-        _server.addRequestHandler(
-            (request) => request.path == "/message", _messageHandler);
-        _server.addRequestHandler(
-            (request) => request.path == "/receive", _receiveHandler);
-        try {
-          _server.listen(_host, _port, backlog: message.backlog);
-          replyTo.send(new ChatServerStatus.started(_server.port), null);
-          _loggingTimer = new Timer.repeating(1000, _handleLogging);
-        } catch (var e) {
-          replyTo.send(new ChatServerStatus.error(e.toString()), null);
-        }
-      } else if (message.isStop) {
-        replyTo.send(new ChatServerStatus.stopping(), null);
-        stop();
-        replyTo.send(new ChatServerStatus.stopped(), null);
+      _server.addRequestHandler(
+          (request) => request.path == "/join", _joinHandler);
+      _server.addRequestHandler(
+          (request) => request.path == "/leave", _leaveHandler);
+      _server.addRequestHandler(
+          (request) => request.path == "/message", _messageHandler);
+      _server.addRequestHandler(
+          (request) => request.path == "/receive", _receiveHandler);
+      try {
+        _server.listen(_host, _port, backlog: message.backlog);
+        replyTo.send(new ChatServerStatus.started(_server.port), null);
+        _loggingTimer = new Timer.repeating(1000, _handleLogging);
+      } catch (var e) {
+        replyTo.send(new ChatServerStatus.error(e.toString()), null);
       }
-    });
+    } else if (message.isStop) {
+      replyTo.send(new ChatServerStatus.stopping(), null);
+      stop();
+      replyTo.send(new ChatServerStatus.stopped(), null);
+    }
   }
 
   stop() {
     _server.close();
     _cleanupTimer.cancel();
-    this.port.close();
+    port.close();
   }
 
   String _host;
