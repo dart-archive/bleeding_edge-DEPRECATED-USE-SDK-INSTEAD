@@ -43,7 +43,10 @@ import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.TypeKind;
 import com.google.dart.compiler.util.apache.StringUtils;
+import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -52,6 +55,7 @@ import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.dom.ASTNodes;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
+import com.google.dart.tools.internal.corext.refactoring.code.TokenUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartPluginImages;
@@ -166,8 +170,8 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
 
   boolean addProposal_addTypeAnnotation() throws Exception {
     Type type = null;
-    HasSourceInfo typeStart = null;
-    HasSourceInfo typeEnd = null;
+    HasSourceInfo declartionStart = null;
+    HasSourceInfo nameStart = null;
     // try local variable
     {
       DartVariableStatement statement = ASTNodes.getAncestor(node, DartVariableStatement.class);
@@ -176,33 +180,55 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
         if (variables.size() == 1) {
           DartVariable variable = variables.get(0);
           type = variable.getElement().getType();
-          typeStart = statement;
-          typeEnd = variable;
+          declartionStart = statement;
+          nameStart = variable;
+          // language style guide recommends to use "var" for locals, so deprioritize
+          proposalRelevance -= 1;
         }
       }
     }
-    // try top-level field
+    // try field
     {
       DartFieldDefinition fieldDefinition = ASTNodes.getAncestor(node, DartFieldDefinition.class);
       if (fieldDefinition != null && fieldDefinition.getTypeNode() == null) {
         List<DartField> fields = fieldDefinition.getFields();
         if (fields.size() == 1) {
           DartField field = fields.get(0);
-          type = field.getElement().getType();
-          typeStart = fieldDefinition;
-          typeEnd = field;
+          DartExpression value = field.getValue();
+          if (value != null) {
+            type = value.getType();
+            declartionStart = fieldDefinition;
+            nameStart = field;
+          }
         }
       }
     }
+    // check type
+    if (type == null || TypeKind.of(type) == TypeKind.DYNAMIC) {
+      return false;
+    }
     // add edit
-    if (type != null && type.isInferred() && typeStart != null && typeEnd != null) {
+    if (declartionStart != null && nameStart != null) {
       String typeSource = ExtractUtils.getTypeSource(type);
-      textEdits.add(createReplaceEdit(
-          SourceRangeFactory.forStartStart(typeStart, typeEnd),
-          typeSource + " "));
+      // find "var" token
+      KeywordToken varToken;
+      {
+        SourceRange modifiersRange = SourceRangeFactory.forStartEnd(declartionStart, nameStart);
+        String modifiersSource = utils.getText(modifiersRange);
+        List<com.google.dart.engine.scanner.Token> tokens = TokenUtils.getTokens(modifiersSource);
+        varToken = TokenUtils.findKeywordToken(tokens, Keyword.VAR);
+      }
+      // replace "var", or insert type before name
+      if (varToken != null) {
+        SourceRange range = SourceRangeFactory.forToken(varToken);
+        range = SourceRangeFactory.withBase(declartionStart, range);
+        textEdits.add(createReplaceEdit(range, typeSource));
+      } else {
+        SourceRange range = SourceRangeFactory.forStartLength(nameStart, 0);
+        textEdits.add(createReplaceEdit(range, typeSource + " "));
+      }
     }
     // add proposal
-    proposalRelevance -= 1;
     addUnitCorrectionProposal(
         CorrectionMessages.QuickAssistProcessor_addTypeAnnotation,
         DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));

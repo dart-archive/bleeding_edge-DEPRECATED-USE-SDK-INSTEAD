@@ -303,7 +303,7 @@ public class ExtractLocalRefactoring extends Refactoring {
     List<SourceRange> occurrences = Lists.newArrayList();
     // prepare selection
     String selectionSource = utils.getText(selectionStart, selectionLength);
-    List<com.google.dart.engine.scanner.Token> selectionTokens = ExtractUtils.tokenizeSource(selectionSource);
+    List<com.google.dart.engine.scanner.Token> selectionTokens = TokenUtils.getTokens(selectionSource);
     selectionSource = StringUtils.join(selectionTokens, TOKEN_SEPARATOR);
     // prepare enclosing function
     com.google.dart.compiler.ast.DartFunction function;
@@ -319,7 +319,7 @@ public class ExtractLocalRefactoring extends Refactoring {
       int functionOffset = functionSourceInfo.getOffset();
       String functionSource = utils.getText(functionOffset, functionSourceInfo.getLength());
       // prepare function tokens
-      List<com.google.dart.engine.scanner.Token> functionTokens = ExtractUtils.tokenizeSource(functionSource);
+      List<com.google.dart.engine.scanner.Token> functionTokens = TokenUtils.getTokens(functionSource);
       functionSource = StringUtils.join(functionTokens, TOKEN_SEPARATOR);
       // find "selection" in "function" tokens
       int lastIndex = 0;

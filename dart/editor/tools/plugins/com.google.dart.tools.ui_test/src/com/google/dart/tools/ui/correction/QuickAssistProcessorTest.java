@@ -43,6 +43,10 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
   private IProblemLocation problemLocations[] = NO_PROBLEMS;
   private int selectionLength = 0;
 
+  public void test_addTypeAnnotation_classField_OK_final() throws Exception {
+    assert_addTypeAnnotation_classField("final v = 1;", " = 1", "final int v = 1;");
+  }
+
   public void test_addTypeAnnotation_classField_OK_int() throws Exception {
     assert_addTypeAnnotation_classField("var v = 1;", " = 1", "int v = 1;");
   }
@@ -95,6 +99,11 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
 
   public void test_addTypeAnnotation_topLevelField_wrong_multiple() throws Exception {
     String source = "var a = 1, b = '';";
+    assert_addTypeAnnotation_topLevelField(source, "var ", source);
+  }
+
+  public void test_addTypeAnnotation_topLevelField_wrong_noValue() throws Exception {
+    String source = "var v;";
     assert_addTypeAnnotation_topLevelField(source, "var ", source);
   }
 

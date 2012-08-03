@@ -15,6 +15,7 @@ package com.google.dart.tools.internal.corext;
 
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.common.HasSourceInfo;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.SourceRange;
 
@@ -104,12 +105,32 @@ public class SourceRangeFactory {
     return forStartEnd(start, end);
   }
 
+  public static SourceRange forToken(Token token) {
+    return forStartLength(token.getOffset(), token.getLength());
+  }
+
   /**
    * @return the {@link SourceRange} of "a" with offset from given "base".
    */
   public static SourceRange fromBase(HasSourceInfo a, int base) {
     int start = a.getSourceInfo().getOffset() - base;
     int length = a.getSourceInfo().getLength();
+    return forStartLength(start, length);
+  }
+
+  /**
+   * Given {@link SourceRange} created relative to "base", return absolute {@link SourceRange}.
+   */
+  public static SourceRange withBase(HasSourceInfo base, SourceRange r) {
+    return withBase(base.getSourceInfo().getOffset(), r);
+  }
+
+  /**
+   * Given {@link SourceRange} created relative to "base", return absolute {@link SourceRange}.
+   */
+  public static SourceRange withBase(int base, SourceRange r) {
+    int start = base + r.getOffset();
+    int length = r.getLength();
     return forStartLength(start, length);
   }
 

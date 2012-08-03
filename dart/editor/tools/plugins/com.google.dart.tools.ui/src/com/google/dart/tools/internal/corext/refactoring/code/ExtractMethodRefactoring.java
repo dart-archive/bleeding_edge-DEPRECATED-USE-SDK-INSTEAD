@@ -125,7 +125,7 @@ public class ExtractMethodRefactoring extends Refactoring {
    *         all comments and spaces.
    */
   private static String getNormalizedSource(String s) {
-    List<Token> selectionTokens = ExtractUtils.tokenizeSource(s);
+    List<Token> selectionTokens = TokenUtils.getTokens(s);
     return StringUtils.join(selectionTokens, TOKEN_SEPARATOR);
   }
 
