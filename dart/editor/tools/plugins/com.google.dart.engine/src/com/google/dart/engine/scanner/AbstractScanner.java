@@ -301,6 +301,10 @@ public abstract class AbstractScanner {
     }
 
     if (next == '+') {
+      int peek = peek();
+      if (('0' <= peek && peek <= '9') || peek == '.') {
+        return tokenizeNumber(next);
+      }
       return tokenizePlus(next);
     }
 
