@@ -8,7 +8,7 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "124344",
+  "webkit_revision": "124492",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
@@ -25,16 +25,16 @@ vars = {
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "148611",
-  "ffmpeg_hash": "4287c0271f399b98eb6851e6e650098f26b8c3c2",
+  "ffmpeg_revision": "149654",
+  "ffmpeg_hash": "f5a6dc3ba5038dca504545164bff477bb75a9a0e",
 
   "sfntly_revision": "134",
-  "skia_revision": "4889",
+  "skia_revision": "4919",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "12247",
-  "webrtc_revision": "2538",
+  "v8_revision": "12243",
+  "webrtc_revision": "2549",
   "jsoncpp_revision": "248",
   "nss_revision": "145873",
 }
@@ -505,7 +505,7 @@ deps_os = {
       "/trunk/deps/third_party/gold@124239",
 
     "src/third_party/libmtp":
-      "/trunk/deps/third_party/libmtp@149471",
+      "/trunk/deps/third_party/libmtp@149713",
 
     # For Chromium OS.
     "src/third_party/cros_system_api":
