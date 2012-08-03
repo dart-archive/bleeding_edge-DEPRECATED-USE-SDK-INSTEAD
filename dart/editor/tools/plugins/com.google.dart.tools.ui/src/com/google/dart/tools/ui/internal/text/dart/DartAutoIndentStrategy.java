@@ -1497,7 +1497,6 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       // compute the relative indentation difference from the second line
       // (as the first might be partially selected) and use the value to
       // indent all other lines.
-      boolean isIndentDetected = false;
       StringBuffer addition = new StringBuffer();
       int insertLength = 0;
       int firstLineInsertLength = 0;
@@ -1516,44 +1515,40 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
           continue;
         }
 
-        if (!isIndentDetected) {
+        // indent the first pasted line
+        String current = getCurrentIndent(temp, l);
+        // unless it is a line comment
+        if (current.startsWith(LINE_COMMENT)) {
+          continue;
+        }
+        StringBuffer correct = indenter.computeIndentation(lineOffset);
+        if (correct == null) {
+          return; // bail out
+        }
 
-          // indent the first pasted line
-          String current = getCurrentIndent(temp, l);
-          // unless it is a line comment
-          if (current.startsWith(LINE_COMMENT)) {
-            continue;
+        insertLength = subtractIndent(correct, current, addition, tabLength);
+        if (l == first) {
+          firstLineInsertLength = insertLength;
+          firstLineIndent = current.length();
+        }
+        if (l != first && temp.get(lineOffset, lineLength).trim().length() != 0) {
+          if (firstLineIndent >= current.length()) {
+            insertLength = firstLineInsertLength;
           }
-          StringBuffer correct = indenter.computeIndentation(lineOffset);
-          if (correct == null) {
-            return; // bail out
-          }
-
-          insertLength = subtractIndent(correct, current, addition, tabLength);
-          if (l == first) {
-            firstLineInsertLength = insertLength;
-            firstLineIndent = current.length();
-          }
-          if (l != first && temp.get(lineOffset, lineLength).trim().length() != 0) {
-            isIndentDetected = true;
-            if (firstLineIndent >= current.length()) {
-              insertLength = firstLineInsertLength;
-            }
-            if (insertLength == 0) {
-              // no adjustment needed, bail out
-              if (firstLine == 0) {
-                // but we still need to adjust the first line
-                command.offset = newOffset;
-                command.length = newLength;
-                if (changed) {
-                  break; // still need to get the leading indent of the first line
-                }
+          if (insertLength == 0) {
+            // no adjustment needed, bail out
+            if (firstLine == 0) {
+              // but we still need to adjust the first line
+              command.offset = newOffset;
+              command.length = newLength;
+              if (changed) {
+                break; // still need to get the leading indent of the first line
               }
-              return;
             }
-          } else {
-            changed = insertLength != 0;
+            return;
           }
+        } else {
+          changed = insertLength != 0;
         }
 
         // relatively indent all pasted lines
