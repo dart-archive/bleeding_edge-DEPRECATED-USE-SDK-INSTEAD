@@ -13,6 +13,11 @@
  */
 package com.google.dart.engine;
 
+import com.google.dart.engine.scanner.KeywordToken;
+import com.google.dart.engine.scanner.StringToken;
+import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.scanner.TokenType;
+
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
@@ -23,6 +28,25 @@ import java.util.Map;
  * The class {@code EngineTestCase} defines utility methods for making assertions.
  */
 public class EngineTestCase extends TestCase {
+  /**
+   * Assert that the tokens in the actual stream of tokens have the same types and lexemes as the
+   * tokens in the expected stream of tokens. Note that this does not assert anything about the
+   * offsets of the tokens (although the lengths will be equal).
+   * 
+   * @param expectedStream the head of the stream of tokens that were expected
+   * @param actualStream the head of the stream of tokens that were actually found
+   * @throws AssertionFailedError if the two streams of tokens are not the same
+   */
+  public static void assertAllMatch(Token expectedStream, Token actualStream) {
+    Token left = expectedStream;
+    Token right = actualStream;
+    while (left.getType() != TokenType.EOF && right.getType() != TokenType.EOF) {
+      assertMatches(left, right);
+      left = left.getNext();
+      right = right.getNext();
+    }
+  }
+
   /**
    * Assert that the array of actual values contain exactly the same values as those in the array of
    * expected value, with the exception that the order of the elements is not required to be the
@@ -85,6 +109,29 @@ public class EngineTestCase extends TestCase {
     } else if (array.length != expectedLength) {
       fail("Expected array of length " + expectedLength + "; contained " + array.length
           + " elements");
+    }
+  }
+
+  /**
+   * Assert that the actual token has the same type and lexeme as the expected token. Note that this
+   * does not assert anything about the offsets of the tokens (although the lengths will be equal).
+   * 
+   * @param expectedToken the token that was expected
+   * @param actualToken the token that was found
+   * @throws AssertionFailedError if the two tokens are not the same
+   */
+  public static void assertMatches(Token expectedToken, Token actualToken) {
+    assertEquals(expectedToken.getType(), actualToken.getType());
+    if (expectedToken instanceof KeywordToken) {
+      assertInstanceOf(KeywordToken.class, actualToken);
+      assertEquals(
+          ((KeywordToken) expectedToken).getKeyword(),
+          ((KeywordToken) actualToken).getKeyword());
+    } else if (expectedToken instanceof StringToken) {
+      assertInstanceOf(StringToken.class, actualToken);
+      assertEquals(
+          ((StringToken) expectedToken).getLexeme(),
+          ((StringToken) actualToken).getLexeme());
     }
   }
 

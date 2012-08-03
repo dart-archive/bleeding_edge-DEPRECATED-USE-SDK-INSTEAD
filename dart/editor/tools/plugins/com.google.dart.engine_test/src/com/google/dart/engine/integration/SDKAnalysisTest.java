@@ -31,6 +31,11 @@ import java.io.IOException;
 import java.nio.CharBuffer;
 
 public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
+  /**
+   * Build a JUnit test suite that will analyze all of the files in the SDK.
+   * 
+   * @return the test suite that was built
+   */
   public static Test suite() {
     File directory = DartSdk.getDefaultSdkDirectory();
     return new SDKAnalysisTest().buildSuite(directory, "Analyze SDK files");
@@ -38,14 +43,27 @@ public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
 
   @Override
   protected void testSingleFile(File sourceFile) throws IOException {
+    //
+    // Scan the file.
+    //
     CharBuffer buffer = Analyzer.getBufferFromFile(sourceFile);
     Source source = new SourceFactory().forFile(sourceFile);
     GatheringErrorListener listener = new GatheringErrorListener();
     CharBufferScanner scanner = new CharBufferScanner(source, buffer, listener);
     Token token = scanner.tokenize();
+    //
+    // Parse the file.
+    //
     Parser parser = new Parser(source, listener);
     CompilationUnit unit = parser.parseCompilationUnit(token);
+    // Uncomment the lines below to stop reporting failures for files containing directives.
+//    if (listener.hasError(ParserErrorCode.UNEXPECTED_TOKEN)) {
+//      return;
+//    }
     listener.assertNoErrors();
+    //
+    // Validate that the AST structure was built correctly.
+    //
     ASTValidator validator = new ASTValidator();
     unit.accept(validator);
     validator.assertValid();

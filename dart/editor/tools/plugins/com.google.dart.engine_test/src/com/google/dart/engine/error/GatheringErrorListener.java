@@ -214,6 +214,21 @@ public class GatheringErrorListener implements AnalysisErrorListener {
     return errors;
   }
 
+  /**
+   * Return {@code true} if an error with the given error code has been gathered.
+   * 
+   * @param errorCode the error code being searched for
+   * @return {@code true} if an error with the given error code has been gathered
+   */
+  public boolean hasError(ErrorCode errorCode) {
+    for (AnalysisError error : errors) {
+      if (error.getErrorCode() == errorCode) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Override
   public void onError(AnalysisError error) {
     errors.add(error);

@@ -13,7 +13,9 @@
  */
 package com.google.dart.engine.integration;
 
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.error.GatheringErrorListener;
+import com.google.dart.engine.parser.ASTValidator;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
@@ -29,21 +31,36 @@ import java.io.File;
 import java.io.IOException;
 
 public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
+  /**
+   * Build a JUnit test suite that will analyze all of the tests in the co19 test suite.
+   * 
+   * @return the test suite that was built
+   */
   public static Test suite() {
     String directoryName = System.getProperty("co19Directory");
     if (directoryName != null) {
       File directory = new File(directoryName);
-      return new SDKAnalysisTest().buildSuite(directory, "Analyze co19 files");
+      return new Co19AnalysisTest().buildSuite(directory, "Analyze co19 files");
     }
-    return new TestSuite("Analyze co19 files");
+    return new TestSuite("Analyze co19 files (no tests: directory not found)");
   }
 
   @Override
   protected void testSingleFile(File sourceFile) throws IOException {
+    //
+    // Determine whether the test is expected to pass or fail.
+    //
     String contents = FileUtilities.getContents(sourceFile);
     boolean errorExpected = contents.indexOf("@compile-error") > 0
         || contents.indexOf("@static-warning") > 0;
-
+    // Uncomment the lines below to stop reporting failures for files that are expected to contain
+    // errors.
+//    if (errorExpected) {
+//      return;
+//    }
+    //
+    // Scan the file, stopping if there were errors when expected.
+    //
     Source source = new SourceFactory().forFile(sourceFile);
     GatheringErrorListener listener = new GatheringErrorListener();
     StringScanner scanner = new StringScanner(source, contents, listener);
@@ -55,12 +72,27 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
         listener.assertNoErrors();
       }
     }
+    //
+    // Parse the file, stopping if there were errors when expected.
+    //
     Parser parser = new Parser(source, listener);
-    parser.parseCompilationUnit(token);
+    CompilationUnit unit = parser.parseCompilationUnit(token);
     if (errorExpected) {
       Assert.assertTrue("Expected errors", listener.getErrors().size() > 0);
     } else {
+      // Uncomment the lines below to stop reporting failures for files containing directives or
+      // declarations of the operators 'equals' and 'negate'.
+//      if (listener.hasError(ParserErrorCode.UNEXPECTED_TOKEN)
+//          || listener.hasError(ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE)) {
+//        return;
+//      }
       listener.assertNoErrors();
     }
+    //
+    // Validate that the AST structure was built correctly.
+    //
+    ASTValidator validator = new ASTValidator();
+    unit.accept(validator);
+    validator.assertValid();
   }
 }
