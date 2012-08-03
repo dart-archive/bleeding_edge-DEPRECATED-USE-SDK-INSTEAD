@@ -33,32 +33,53 @@ public class DartIdentifierUtil {
    * @param str
    * @return
    */
-  public static String createValidIdentifier(String str) {
+  public static String createClassName(String str) {
     if (str.length() == 0) {
       return str;
     }
 
     StringBuilder builder = new StringBuilder();
-    boolean nextIsCaps = false;
 
-    if (Character.isJavaIdentifierStart(str.charAt(0))) {
-      builder.append(str.charAt(0));
-    }
-
-    str = str.substring(1);
+    boolean nextIsCaps = true;
 
     for (char c : str.toCharArray()) {
-      if (Character.isJavaIdentifierPart(c)) {
+      if (c == '-' || c == '_') {
+        nextIsCaps = true;
+      } else if (Character.isJavaIdentifierPart(c)) {
         if (nextIsCaps) {
           builder.append(Character.toUpperCase(c));
         } else {
           builder.append(c);
         }
         nextIsCaps = false;
-      } else if (c == '-' || c == '_') {
-        nextIsCaps = true;
       } else {
         nextIsCaps = false;
+      }
+    }
+
+    return builder.toString();
+  }
+
+  /**
+   * Given a string, return an equivalent string that is a valid Dart identifier.
+   * 
+   * @param str
+   * @return
+   */
+  public static String createValidIdentifier(String str) {
+    if (str.length() == 0) {
+      return str;
+    }
+
+    StringBuilder builder = new StringBuilder();
+
+    for (char c : str.toCharArray()) {
+      if (c == '-') {
+        c = '_';
+      }
+
+      if (Character.isJavaIdentifierPart(c)) {
+        builder.append(c);
       }
     }
 
