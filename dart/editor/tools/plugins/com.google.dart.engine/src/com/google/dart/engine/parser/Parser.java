@@ -267,48 +267,53 @@ public class Parser {
 
   /**
    * If the current token is a keyword matching the given string, return it after advancing to the
-   * next token. Otherwise throw an exception.
+   * next token. Otherwise report an error and return the current token without advancing.
    * 
    * @param keyword the keyword that is expected
    * @return the token that matched the given type
    */
   private Token expect(Keyword keyword) {
-    if (!matches(keyword)) {
-      // Pass in the error code to use to report the error?
-      // reportError(ParserErrorCode.?);
+    if (matches(keyword)) {
+      return getAndAdvance();
     }
-    return getAndAdvance();
+    // Remove uses of this method in favor of matches?
+    // Pass in the error code to use to report the error?
+    // reportError(ParserErrorCode.?);
+    return currentToken;
   }
 
   /**
    * If the current token is an identifier matching the given identifier, return it after advancing
-   * to the next token. Otherwise throw an exception.
+   * to the next token. Otherwise report an error and return the current token without advancing.
    * 
    * @param identifier the identifier that is expected
    * @return the token that matched the given type
    */
   private Token expect(String identifier) {
-    if (!matches(identifier)) {
-      // Pass in the error code to use to report the error?
-      // reportError(ParserErrorCode.?);
+    if (matches(identifier)) {
+      return getAndAdvance();
     }
-    return getAndAdvance();
+    // Remove uses of this method in favor of matches?
+    // Pass in the error code to use to report the error?
+    // reportError(ParserErrorCode.?);
+    return currentToken;
   }
 
   /**
    * If the current token has the expected type, return it after advancing to the next token.
-   * Otherwise throw an exception.
+   * Otherwise report an error and return the current token without advancing.
    * 
    * @param type the type of token that is expected
    * @return the token that matched the given type
    */
   private Token expect(TokenType type) {
-    Token token = currentToken;
-    if (!optional(type)) {
-      // Pass in the error code to use to report the error?
-      // reportError(ParserErrorCode.?);
+    if (matches(type)) {
+      return getAndAdvance();
     }
-    return token;
+    // Remove uses of this method in favor of matches?
+    // Pass in the error code to use to report the error?
+    // reportError(ParserErrorCode.?);
+    return currentToken;
   }
 
   /**
@@ -419,6 +424,20 @@ public class Parser {
   }
 
   /**
+   * Return {@code true} if the current token appears to be the beginning of a switch member.
+   * 
+   * @return {@code true} if the current token appears to be the beginning of a switch member
+   */
+  private boolean isSwitchMember() {
+    Token token = currentToken;
+    while (token.getType() == TokenType.IDENTIFIER && token.getNext().getType() == TokenType.COLON) {
+      token = token.getNext().getNext();
+    }
+    return (token.getType() == TokenType.KEYWORD && ((KeywordToken) token).getKeyword() == Keyword.CASE)
+        || (token.getType() == TokenType.KEYWORD && ((KeywordToken) token).getKeyword() == Keyword.DEFAULT);
+  }
+
+  /**
    * Return {@code true} if the current token matches the given keyword.
    * 
    * @param keyword the keyword that can optionally appear in the current location
@@ -447,7 +466,34 @@ public class Parser {
    * @return {@code true} if the current token has the given type
    */
   private boolean matches(TokenType type) {
-    return currentToken.getType() == type;
+    TokenType currentType = currentToken.getType();
+    if (currentType != type) {
+      if (type == TokenType.GT) {
+        if (currentType == TokenType.GT_GT) {
+          int offset = currentToken.getOffset();
+          Token first = new Token(TokenType.GT, offset);
+          Token second = new Token(TokenType.GT, offset + 1);
+          second.setNext(currentToken.getNext());
+          first.setNext(second);
+          currentToken.getPrevious().setNext(first);
+          currentToken = first;
+          return true;
+        } else if (currentType == TokenType.GT_GT_GT) {
+          int offset = currentToken.getOffset();
+          Token first = new Token(TokenType.GT, offset);
+          Token second = new Token(TokenType.GT, offset + 1);
+          Token third = new Token(TokenType.GT, offset + 2);
+          third.setNext(currentToken.getNext());
+          second.setNext(third);
+          first.setNext(second);
+          currentToken.getPrevious().setNext(first);
+          currentToken = first;
+          return true;
+        }
+      }
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -471,35 +517,11 @@ public class Parser {
    * @return {@code true} if the current token has the given type
    */
   private boolean optional(TokenType type) {
-    TokenType currentType = currentToken.getType();
-    if (currentType != type) {
-      if (type == TokenType.GT) {
-        if (currentType == TokenType.GT_GT) {
-          int offset = currentToken.getOffset();
-          Token first = new Token(TokenType.GT, offset);
-          Token second = new Token(TokenType.GT, offset + 1);
-          second.setNext(currentToken.getNext());
-          first.setNext(second);
-          currentToken.getPrevious().setNext(first);
-          currentToken = second;
-          return true;
-        } else if (currentType == TokenType.GT_GT_GT) {
-          int offset = currentToken.getOffset();
-          Token first = new Token(TokenType.GT, offset);
-          Token second = new Token(TokenType.GT, offset + 1);
-          Token third = new Token(TokenType.GT, offset + 2);
-          third.setNext(currentToken.getNext());
-          second.setNext(third);
-          first.setNext(second);
-          currentToken.getPrevious().setNext(first);
-          currentToken = second;
-          return true;
-        }
-      }
-      return false;
+    if (matches(type)) {
+      advance();
+      return true;
     }
-    advance();
-    return true;
+    return false;
   }
 
   /**
@@ -806,7 +828,10 @@ public class Parser {
     List<Statement> statements = new ArrayList<Statement>();
     Token statementStart = currentToken;
     while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)) {
-      statements.add(parseStatement());
+      Statement statement = parseStatement();
+      if (statement != null) {
+        statements.add(statement);
+      }
       if (currentToken == statementStart) {
         reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
         advance();
@@ -974,6 +999,12 @@ public class Parser {
    */
   private ClassMember parseClassMember() {
     Comment comment = parseDocumentationComment();
+    // TODO(brianwilkerson) The following condition exists for backward compatibility and might want
+    // to be removed before shipping.
+    if (matches(Keyword.ABSTRACT)) {
+      // reportError(ParserErrorCode.?);
+      advance();
+    }
     Token externalKeyword = null;
     if (matches(Keyword.EXTERNAL)) {
       externalKeyword = getAndAdvance();
@@ -3169,7 +3200,7 @@ public class Parser {
     while (matches(TokenType.IDENTIFIER) && peekMatches(TokenType.COLON)) {
       SimpleIdentifier label = parseSimpleIdentifier();
       Token colon = expect(TokenType.COLON);
-      labels.add(0, new Label(label, colon));
+      labels.add(new Label(label, colon));
     }
     Statement statement = parseNonLabeledStatement();
     if (labels.isEmpty()) {
@@ -3191,9 +3222,7 @@ public class Parser {
   private ArrayList<Statement> parseStatements() {
     ArrayList<Statement> statements = new ArrayList<Statement>();
     Token statementStart = currentToken;
-    while (!matches(TokenType.EOF) && !matches(Keyword.CASE) && !matches(Keyword.DEFAULT)
-        && !matches(TokenType.CLOSE_CURLY_BRACKET)
-        && !(matches(TokenType.IDENTIFIER) && peekMatches(TokenType.COLON))) {
+    while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET) && !isSwitchMember()) {
       statements.add(parseStatement());
       if (currentToken == statementStart) {
         reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
@@ -3313,7 +3342,7 @@ public class Parser {
       ArrayList<SwitchMember> members = new ArrayList<SwitchMember>();
       while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)) {
         List<Label> labels = new ArrayList<Label>();
-        if (matches(TokenType.IDENTIFIER) && peekMatches(TokenType.COLON)) {
+        while (matches(TokenType.IDENTIFIER) && peekMatches(TokenType.COLON)) {
           SimpleIdentifier identifier = parseSimpleIdentifier();
           Token colon = expect(TokenType.COLON);
           labels.add(new Label(identifier, colon));

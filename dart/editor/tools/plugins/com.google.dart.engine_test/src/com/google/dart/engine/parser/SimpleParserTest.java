@@ -2437,6 +2437,32 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getRightBracket());
   }
 
+  public void test_parseSwitchStatement_labeledCase() throws Exception {
+    SwitchStatement statement = parse("parseSwitchStatement", "switch (a) {l1: l2: l3: case(1):}");
+    assertNotNull(statement.getKeyword());
+    assertNotNull(statement.getLeftParenthesis());
+    assertNotNull(statement.getExpression());
+    assertNotNull(statement.getRightParenthesis());
+    assertNotNull(statement.getLeftBracket());
+    assertSize(1, statement.getMembers());
+    assertSize(3, statement.getMembers().get(0).getLabels());
+    assertNotNull(statement.getRightBracket());
+  }
+
+  public void test_parseSwitchStatement_labeledStatementInCase() throws Exception {
+    SwitchStatement statement = parse(
+        "parseSwitchStatement",
+        "switch (a) {case 0: f(); l1: g(); break;}");
+    assertNotNull(statement.getKeyword());
+    assertNotNull(statement.getLeftParenthesis());
+    assertNotNull(statement.getExpression());
+    assertNotNull(statement.getRightParenthesis());
+    assertNotNull(statement.getLeftBracket());
+    assertSize(1, statement.getMembers());
+    assertSize(3, statement.getMembers().get(0).getStatements());
+    assertNotNull(statement.getRightBracket());
+  }
+
   public void test_parseThrowStatement_expression() throws Exception {
     ThrowStatement statement = parse("parseThrowStatement", "throw x;");
     assertNotNull(statement.getKeyword());

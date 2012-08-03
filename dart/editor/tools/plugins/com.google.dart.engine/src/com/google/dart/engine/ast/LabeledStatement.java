@@ -61,7 +61,10 @@ public class LabeledStatement extends Statement {
 
   @Override
   public Token getBeginToken() {
-    return labels.getBeginToken();
+    if (!labels.isEmpty()) {
+      return labels.getBeginToken();
+    }
+    return statement.getBeginToken();
   }
 
   @Override
