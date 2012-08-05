@@ -181,6 +181,9 @@ public class DartModelCache {
    * @return an array of library elements (not <code>null</code>, contains no <code>null</code>s)
    */
   public DartLibraryImpl[] getLibrariesWithPrefix(URI prefixUri) {
+    if (prefixUri == null) {
+      return DartLibraryImpl.EMPTY_ARRAY;
+    }
     String prefix = prefixUri.toString();
     Iterator<OpenableElement> iter = libraryCache.keySet().iterator();
     Collection<DartLibraryImpl> result = null;
