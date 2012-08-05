@@ -108,7 +108,7 @@ class LibraryScanTask extends Task {
       File libFile = iter.next();
       Library lib = context.getCachedLibrary(libFile);
       if (lib == null) {
-        server.queueSubTask(new ParseLibraryFileTask(server, context, libFile, null));
+        server.queueSubTask(new ParseTask(server, context, libFile, null));
         continue;
       }
       librariesToAnalyze.add(lib);
@@ -135,6 +135,7 @@ class LibraryScanTask extends Task {
     }
     for (File file : looseFiles) {
       if (context.getLibrariesSourcing(file).length == 0) {
+        server.queueSubTask(new ParseTask(server, context, file, null));
         server.analyze(file);
       }
     }

@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.analysis;
 
 import java.io.File;
+import java.util.Collection;
 
 /**
  * Update the model given that that specified file has changed
@@ -52,7 +53,16 @@ class FileChangedTask extends Task {
       // Discard and re-analyze only if this library is not already up to date
       if (file.lastModified() != library.lastModified(file)) {
         task = new LibraryScanTask(server, context, file, true);
-        task.addFilesToScan(library.getSourceFiles());
+
+        // Discard and scan any libraries that were incorrectly sourced
+        Collection<File> sourceFiles = library.getSourceFiles();
+        task.addFilesToScan(sourceFiles);
+        for (File sourceFile : sourceFiles) {
+          Library sourcedLibrary = context.getCachedLibrary(sourceFile);
+          if (sourcedLibrary != null) {
+            context.discardLibrary(sourcedLibrary);
+          }
+        }
 
         // Discard the library and any downstream libraries
         context.discardLibraryAndReferencingLibraries(library);

@@ -108,6 +108,12 @@ public class AnalysisTestUtilities {
     fail(msg);
   }
 
+  static Object getCachedLibrary(Context context, File libraryFile) throws Exception {
+    Method method = Context.class.getDeclaredMethod("getCachedLibrary", File.class);
+    method.setAccessible(true);
+    return method.invoke(context, libraryFile);
+  }
+
   static TaskQueue getServerTaskQueue(AnalysisServer server) throws Exception {
     Field field = AnalysisServer.class.getDeclaredField("queue");
     field.setAccessible(true);

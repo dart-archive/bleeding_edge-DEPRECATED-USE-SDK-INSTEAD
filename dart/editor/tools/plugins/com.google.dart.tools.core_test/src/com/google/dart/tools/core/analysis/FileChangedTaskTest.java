@@ -20,6 +20,7 @@ import com.google.dart.tools.core.test.util.PrintStringWriter;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTrackedLibraryFiles;
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.getCachedLibrary;
 
 import java.io.File;
 
@@ -90,6 +91,9 @@ public class FileChangedTaskTest extends AbstractDartCoreTest {
     server.scan(libraryFile, true);
     assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
     assertTrackedLibraryFiles(server, libraryFile);
+    Object lib1 = getCachedLibrary(savedContext, libraryFile);
+    assertNotNull(lib1);
+    assertNull(getCachedLibrary(savedContext, dartFile));
 
     server.resetAnalyzeContext();
     long oldLastModified = libraryFile.lastModified();
@@ -101,6 +105,11 @@ public class FileChangedTaskTest extends AbstractDartCoreTest {
       assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
       assertTrackedLibraryFiles(server, libraryFile, dartFile);
       server.assertAnalyzeContext(true);
+      Object lib2 = getCachedLibrary(savedContext, libraryFile);
+      assertNotNull(lib2);
+      assertNotSame(lib1, lib2);
+      lib1 = lib2;
+      assertNotNull(getCachedLibrary(savedContext, dartFile));
     } finally {
       FileUtilities.setContents(libraryFile, oldContent);
       libraryFile.setLastModified(oldLastModified);
@@ -111,6 +120,10 @@ public class FileChangedTaskTest extends AbstractDartCoreTest {
     assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
     assertTrackedLibraryFiles(server, libraryFile);
     server.assertAnalyzeContext(true);
+    Object lib2 = getCachedLibrary(savedContext, libraryFile);
+    assertNotNull(lib2);
+    assertNotSame(lib1, lib2);
+    assertNull(getCachedLibrary(savedContext, dartFile));
   }
 
   /**
@@ -126,6 +139,9 @@ public class FileChangedTaskTest extends AbstractDartCoreTest {
     server.scan(libraryFile, true);
     assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
     assertTrackedLibraryFiles(server, libraryFile);
+    Object lib1 = getCachedLibrary(savedContext, libraryFile);
+    assertNotNull(lib1);
+    assertNull(getCachedLibrary(savedContext, dartFile));
 
     server.resetAnalyzeContext();
     long oldLastModified = dartFile.lastModified();
@@ -137,6 +153,11 @@ public class FileChangedTaskTest extends AbstractDartCoreTest {
       assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
       assertTrackedLibraryFiles(server, libraryFile, dartFile);
       server.assertAnalyzeContext(true);
+      Object lib2 = getCachedLibrary(savedContext, libraryFile);
+      assertNotNull(lib2);
+      assertNotSame(lib1, lib2);
+      lib1 = lib2;
+      assertNotNull(getCachedLibrary(savedContext, dartFile));
     } finally {
       FileUtilities.setContents(dartFile, oldContent);
       dartFile.setLastModified(oldLastModified);
@@ -147,6 +168,10 @@ public class FileChangedTaskTest extends AbstractDartCoreTest {
     assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
     assertTrackedLibraryFiles(server, libraryFile);
     server.assertAnalyzeContext(true);
+    Object lib2 = getCachedLibrary(savedContext, libraryFile);
+    assertNotNull(lib2);
+    assertNotSame(lib1, lib2);
+    assertNull(getCachedLibrary(savedContext, dartFile));
   }
 
   @Override
