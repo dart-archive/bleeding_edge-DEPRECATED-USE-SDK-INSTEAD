@@ -31,7 +31,10 @@ GDU_API_DOCS_PATH = None
 GSU_API_DOCS_BUCKET = 'gs://dartlang-api-docs'
 GSU_PATH_LATEST = None
 REVISION = None
+
 utils = None
+
+# TODO: unused: _PostProcessZips, _ShouldMoveToLatest, _MoveContinuousToLatest, _CleanupStaging
 
 class AntWrapper(object):
   """Class to abstract the ant calls from the program."""
@@ -316,7 +319,13 @@ def main():
     buildout = os.path.abspath(options.out)
     print 'buildout       = {0}'.format(buildout)
 
-    sys.stdout.flush()
+    if not os.path.exists(buildout):
+      os.makedirs(buildout)
+    
+    # clean out old build artifacts
+    for f in os.listdir(buildout):
+      if ('dartsdk-' in f) or ('darteditor-' in f) or ('dart-editor-' in f):
+        os.remove(join(buildout, f))
 
     #get user name if it does not start with chrome then deploy
     # to the test bucket otherwise deploy to the continuous bucket
@@ -328,10 +337,9 @@ def main():
       username = os.environ.get('USERNAME')
 
     if username is None:
-      _PrintError('could not find the user name'
-                  ' tried environment variables'
-                  ' USER and USERNAME')
+      _PrintError('Could not find the username; tried environment variables USER and USERNAME')
       return 6
+    
     build_skip_tests = os.environ.get('DART_SKIP_RUNNING_TESTS')
     sdk_environment = os.environ
     if username.startswith('chrome'):
@@ -352,8 +360,7 @@ def main():
     GSU_API_DOCS_PATH = '%s/%s' % (GSU_API_DOCS_BUCKET, options.revision)
 
     homegsutil = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
-    gsu = gsutil.GsUtil(False, homegsutil,
-                        running_on_buildbot=running_on_buildbot)
+    gsu = gsutil.GsUtil(False, homegsutil, running_on_buildbot=running_on_buildbot)
 
     print '@@@BUILD_STEP dart-ide dart clients: %s@@@' % options.name
     if sdk_environment.has_key('JAVA_HOME'):
@@ -392,8 +399,7 @@ def main():
     properties = _ReadPropertyFile(buildos, ant_property_file.name)
 
     if not properties:
-      raise Exception('no data was found in file {0}'.
-                      format(ant_property_file.name))
+      raise Exception('no data was found in file {0}'.format(ant_property_file.name))
     if status:
       if properties['build.runtime']:
         _PrintErrorLog(properties['build.runtime'])
@@ -407,11 +413,12 @@ def main():
       return 0
 
     sys.stdout.flush()
+    
     #This is an override for local testing
     force_run_install = os.environ.get('FORCE_RUN_INSTALL')
-    if (force_run_install or (run_sdk_build and
-                              builder_name != 'dart-editor')):
-      _InstallSdk(buildroot, buildout, buildos, sdk_zip)
+
+    if (force_run_install or (run_sdk_build and builder_name != 'dart-editor')):
+      _InstallSdk(buildroot, buildout, buildos, buildout)
       _InstallDartium(buildroot, buildout, buildos, gsu)
 
     if status:
@@ -421,8 +428,7 @@ def main():
     if buildos:
       found_zips = _FindRcpZipFiles(buildout)
       if not found_zips:
-        _PrintError('could not find any zipped up RCP files.'
-                    '  The Ant build must have failed')
+        _PrintError('could not find any zipped up RCP files. The Ant build must have failed')
         return 7
 
       _WriteTagFile(buildos, staging_bucket, revision, gsu)
@@ -448,20 +454,19 @@ def main():
       junit_status = 0
 
     if buildos:
-      found_zips = _FindRcpZipFiles(buildout)
+      # dart-editor-linux.gtk.x86.zip --> darteditor-linux-32.zip
+      RenameRcpZipFiles(buildout);
+    
       _InstallArtifacts(buildout, buildos, extra_artifacts)
+      
       version_file = _FindVersionFile(buildout)
       if version_file:
-        found_zips.append(version_file)
-      #(status, gs_objects) = _DeployToContinuous(buildos,
-      #                                           to_bucket,
-      #                                           found_zips,
-      #                                           revision, gsu)
+        upload(version_file)
+
+      found_zips = _FindRcpZipFiles(buildout)
       for zipfile in found_zips:
         upload(zipfile)
-      if _ShouldMoveToLatest(staging_bucket, revision, gsu):
-        #_MoveContinuousToLatest(staging_bucket, to_bucket, revision, gsu)
-        _CleanupStaging(staging_bucket, revision, gsu)
+        
     return junit_status
   finally:
     if ant_property_file is not None:
@@ -791,8 +796,7 @@ def _CopySdk(buildos, revision, bucket_to, from_dir, buildroot, gsu):
   gseditorzip = '{0}/{1}/{2}'.format(bucket_to, revision, sdkshortzip)
   gseditorlatestzip = '{0}/{1}/{2}'.format(bucket_to, 'latest', sdkshortzip)
 
-  sdk_zip = os.path.join(buildroot, 'downloads',
-                         'dart-{0}.zip'.format(buildos))
+  sdk_zip = os.path.join(buildroot, 'downloads', 'dart-{0}.zip'.format(buildos))
   if not os.path.exists(os.path.dirname(sdk_zip)):
     os.makedirs(os.path.dirname(sdk_zip))
 
@@ -826,7 +830,8 @@ def _FindRcpZipFiles(out_dir):
   rcp_out_dir = os.listdir(out_dir)
   found_zips = []
   for element in rcp_out_dir:
-    if element.startswith('dart-editor') and element.endswith('.zip'):
+    if (element.startswith('dart-editor')
+         or element.startswith('darteditor-')) and element.endswith('.zip'):
       found_zips.append(os.path.join(out_dir, element))
   return found_zips
 
@@ -845,38 +850,45 @@ def _FindVersionFile(out_dir):
   version_file = os.path.join(out_dir, 'VERSION');
   return version_file if os.path.exists(version_file) else None
 
-def _InstallSdk(buildroot, buildout, buildos, sdk):
-  """Install the SDk into the RCP zip files(s).
+def _InstallSdk(buildroot, buildout, buildos, sdk_dir):
+  """Install the SDK into the RCP zip files.
 
   Args:
     buildroot: the boot of the build output
     buildout: the location of the ant build output
     buildos: the OS the build is running under
-    sdk: the name of the zipped up sdk
+    sdk_dir: the directory containing the built SDKs
   """
-  print '_InstallSdk({0}, {1}, {2}, {3})'.format(buildroot, buildout,
-                                                 buildos, sdk)
+  print '_InstallSdk(%s, %s, %s, %s)' % (buildroot, buildout, buildos, sdk_dir)
+  
   tmp_dir = os.path.join(buildroot, 'tmp')
-  unzip_dir = os.path.join(tmp_dir, 'unzip_sdk')
-  if not os.path.exists(unzip_dir):
-    os.makedirs(unzip_dir)
-  sdk_zip = ziputils.ZipUtil(sdk, buildos)
-  sdk_zip.UnZip(unzip_dir)
+  
+  unzip_dir_32 = os.path.join(tmp_dir, 'unzip_sdk_32')
+  if not os.path.exists(unzip_dir_32):
+    os.makedirs(unzip_dir_32)
+
+  unzip_dir_64 = os.path.join(tmp_dir, 'unzip_sdk_64')
+  if not os.path.exists(unzip_dir_64):
+    os.makedirs(unzip_dir_64)
+  
+  sdk_zip = ziputils.ZipUtil(join(sdk_dir, "dartsdk-%s-32.zip" % buildos), buildos)
+  sdk_zip.UnZip(unzip_dir_32)
+  sdk_zip = ziputils.ZipUtil(join(sdk_dir, "dartsdk-%s-64.zip" % buildos), buildos)
+  sdk_zip.UnZip(unzip_dir_64)
+  
   files = _FindRcpZipFiles(buildout)
   for f in files:
     dart_zip_path = os.path.join(buildout, f)
-    print ('_installSdk: before '
-           '{0} is {1}'.format(dart_zip_path,
-                               os.path.getsize(dart_zip_path)))
     dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
-    dart_zip.AddDirectoryTree(unzip_dir, 'dart')
-    print ('_installSdk: after  '
-           '{0} is {1}'.format(dart_zip_path,
-                               os.path.getsize(dart_zip_path)))
-
+    # dart-editor-macosx.cocoa.x86_64.zip
+    if '_64.zip' in f:
+      dart_zip.AddDirectoryTree(unzip_dir_64, 'dart')
+    else:  
+      dart_zip.AddDirectoryTree(unzip_dir_32, 'dart')
+      
 
 def _InstallDartium(buildroot, buildout, buildos, gsu):
-  """Install the SDK into the RCP zip files(s).
+  """Install Dartium into the RCP zip files.
 
   Args:
     buildroot: the boot of the build output
@@ -970,22 +982,38 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
         
   shutil.rmtree(tmp_dir, True)
 
+
 def _InstallArtifacts(buildout, buildos, extra_artifacts):
-  """Install the SDK into the RCP zip files(s).
+  """Install extra build artifacts into the RCP zip files.
 
   Args:
     buildout: the location of the ant build output
     buildos: the OS the build is running under
     extra_artifacts: the directory containing the extra artifacts
   """
-  print '_InstallArtifacts({0}, {1}, {2})'.format(buildout,
-                                                  buildos,
-                                                  extra_artifacts)
+  print '_InstallArtifacts({0}, {1}, {2})'.format(buildout, buildos, extra_artifacts)
   files = _FindRcpZipFiles(buildout)
   for f in files:
     dart_zip_path = os.path.join(buildout, f)
     dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
     dart_zip.AddDirectoryTree(extra_artifacts, 'dart')
+
+
+def RenameRcpZipFiles(out_dir):
+  """Rename the RCP output files to be more consistent with our Dart build and SDK names"""
+  renameMap = {
+    "dart-editor-linux.gtk.x86.zip"       : "darteditor-linux-32.zip",
+    "dart-editor-linux.gtk.x86_64.zip"    : "darteditor-linux-64.zip",
+    "dart-editor-macosx.cocoa.x86.zip"    : "darteditor-macos-32.zip",
+    "dart-editor-macosx.cocoa.x86_64.zip" : "darteditor-macos-64.zip",
+    "dart-editor-win32.win32.x86.zip"     : "darteditor-win32-32.zip",
+    "dart-editor-win32.win32.x86_64.zip"  : "darteditor-win32-64.zip",
+  }
+  
+  for zipFile in _FindRcpZipFiles(out_dir):
+    basename = os.path.basename(zipFile)
+    if renameMap[basename] != None:
+      os.rename(zipFile, join(os.path.dirname(zipFile), renameMap[basename]))
 
 
 def ExecuteCommand(cmd, dir=None):
@@ -1182,24 +1210,17 @@ def _PrintError(text):
   sys.stdout.flush()
   sys.stderr.flush()
 
-# delete the given file - do not re-throw any exceptions that occur
+
 def _FileDelete(file):
+  """delete the given file - do not re-throw any exceptions that occur"""
   if os.path.exists(file):
     try:
       os.remove(file)
     except:
       print 'error deleting %s' % file
 
+
 if __name__ == '__main__':
   exit_code = main()
   print 'exit code = {0}'.format(exit_code)
   sys.exit(exit_code)
-  
-#  scriptdir = os.path.dirname(sys.argv[0])
-#  editorpath = os.path.abspath(os.path.join(scriptdir, '..'))
-#  homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
-#  global aclfile
-#  aclfile = os.path.join(scriptdir, 'acl.xml')
-#  gsu = gsutil.GsUtil(False, homegsutil, running_on_buildbot=False)
-#  _UploadTestHtml(os.path.join(editorpath, 'build_root', 'out'),
-#                  'gs://dart-editor-archive-testing', '123', 'linux', gsu)
