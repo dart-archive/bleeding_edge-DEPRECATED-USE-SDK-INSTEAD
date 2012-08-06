@@ -526,6 +526,22 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       }
     }
 
+    @Override
+    public void sort(final Viewer viewer, Object[] elements) {
+      try {
+        super.sort(viewer, elements);
+      } catch (IllegalArgumentException iae) {
+        // We can get exceptions because the markers are changing out from under us. See
+        // https://code.google.com/p/dart/issues/detail?id=3937. This is fairly infrequent
+        //behavior. If we encounter an exception, we try a re-sort.
+        try {
+          super.sort(viewer, elements);
+        } catch (IllegalArgumentException ex) {
+
+        }
+      }
+    }
+
     private int compareLineNumber(IMarker marker1, IMarker marker2) {
       int line1 = marker1.getAttribute(IMarker.LINE_NUMBER, 0);
       int line2 = marker2.getAttribute(IMarker.LINE_NUMBER, 0);
