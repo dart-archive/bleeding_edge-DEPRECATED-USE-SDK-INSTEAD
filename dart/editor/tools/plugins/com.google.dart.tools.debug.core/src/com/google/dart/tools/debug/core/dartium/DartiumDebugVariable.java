@@ -103,7 +103,9 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
   }
 
   public boolean isLibraryObject() {
-    return isSpecialObject && (getName().equals("library") || getName().equals("globals"));
+    return isSpecialObject
+        && (getName().equals(DebuggerUtils.LIBRARY_NAME) || getName().equals(
+            DebuggerUtils.TOP_LEVEL_NAME));
   }
 
   public boolean isListValue() {

@@ -19,6 +19,10 @@ package com.google.dart.tools.debug.core.util;
  */
 public class DebuggerUtils {
 
+  public static final String LIBRARY_NAME = "library";
+
+  public static final String TOP_LEVEL_NAME = "top-level";
+
   /**
    * The names of private fields are mangled by the VM.
    * <p>

@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.webkit.WebkitCallback;
 import com.google.dart.tools.debug.core.webkit.WebkitPropertyDescriptor;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
@@ -242,7 +243,7 @@ class VariableCollector {
   private void createLibraryVariable(WebkitRemoteObject libraryObject) {
     variables.add(new DartiumDebugVariable(target, WebkitPropertyDescriptor.createObjectDescriptor(
         libraryObject,
-        "globals"), true));
+        DebuggerUtils.TOP_LEVEL_NAME), true));
   }
 
   private void createThisVariable(WebkitRemoteObject thisObject) {

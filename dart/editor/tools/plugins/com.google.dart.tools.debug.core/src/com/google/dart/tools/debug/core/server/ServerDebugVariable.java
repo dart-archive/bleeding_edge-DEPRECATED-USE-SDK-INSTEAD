@@ -38,7 +38,7 @@ public class ServerDebugVariable extends ServerDebugElement implements IVariable
 
   public static ServerDebugVariable createLibraryVariable(final ServerDebugTarget target,
       final int libraryId) {
-    return new ServerDebugVariable(target, "globals", new IValueRetriever() {
+    return new ServerDebugVariable(target, DebuggerUtils.TOP_LEVEL_NAME, new IValueRetriever() {
       @Override
       public String getDisplayName() {
         return "";
@@ -137,7 +137,8 @@ public class ServerDebugVariable extends ServerDebugElement implements IVariable
   }
 
   public boolean isLibraryObject() {
-    return value.isValueRetriever() && ("library".equals(getName()) || "globals".equals(getName()));
+    return value.isValueRetriever()
+        && (DebuggerUtils.LIBRARY_NAME.equals(getName()) || DebuggerUtils.TOP_LEVEL_NAME.equals(getName()));
   }
 
   public boolean isListValue() {
