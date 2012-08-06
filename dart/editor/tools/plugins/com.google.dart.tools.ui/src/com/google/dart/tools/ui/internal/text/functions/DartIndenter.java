@@ -91,7 +91,7 @@ public class DartIndenter {
         prefMethodDeclDeepIndent = true;
         prefMethodDeclIndent = 1;
         prefMethodCallDeepIndent = false;
-        prefMethodCallIndent = 1;
+        prefMethodCallIndent = 2;
         prefParenthesisDeepIndent = false;
         prefParenthesisIndent = prefContinuationIndent;
         prefMethodBodyIndent = 1;
@@ -1222,6 +1222,7 @@ public class DartIndenter {
   }
 
   private boolean looksLikeConstructorDecl() {
+    int p = fPreviousPos;
     nextToken();
     if (fToken != Symbols.TokenIDENT) {
       return false;
@@ -1253,7 +1254,24 @@ public class DartIndenter {
     } catch (BadLocationException e) {
       fLine = -1;
     }
-    return true;
+    pos = fPosition;
+    int prevPos = fPreviousPos;
+    int line = fLine;
+    // scan forward from p to verify formal param list; p is just to the right of the open paren
+    int end = fScanner.findClosingPeer(p, '(', ')');
+    if (end == DartHeuristicScanner.NOT_FOUND) {
+      return false;
+    }
+    try {
+      fPosition = end;
+      fPreviousPos = end;
+      boolean looksLikeParams = looksLikeFormalParamList();
+      return looksLikeParams;
+    } finally {
+      fPosition = pos;
+      fPreviousPos = prevPos;
+      fLine = line;
+    }
   }
 
   private boolean looksLikeFormalParamList() {

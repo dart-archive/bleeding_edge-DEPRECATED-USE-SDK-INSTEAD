@@ -1544,7 +1544,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       newText = temp.get(prefix.length(), temp.getLength() - prefix.length());
 
       // if a tab causes indentation to the current level, allow it to add another level
-      if (!(newText.isEmpty() && isRepresentingTab(command.text))) {
+      if (!(newText.trim().isEmpty() && isRepresentingTab(command.text))) {
         command.offset = newOffset;
         command.length = newLength;
         command.text = newText;
