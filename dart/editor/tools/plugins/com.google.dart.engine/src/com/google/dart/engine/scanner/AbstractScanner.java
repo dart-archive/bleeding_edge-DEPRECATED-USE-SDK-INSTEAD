@@ -18,7 +18,6 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.collection.IntList;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -121,9 +120,8 @@ public abstract class AbstractScanner {
    * Scan the source code to produce a list of tokens representing the source.
    * 
    * @return the first token in the list of tokens that were produced
-   * @throws IOException if the source code cannot be read
    */
-  public Token tokenize() throws IOException {
+  public Token tokenize() {
     int next = advance();
     while (next != -1) {
       next = bigSwitch(next);
@@ -251,7 +249,7 @@ public abstract class AbstractScanner {
     tokenStart = getOffset();
   }
 
-  private int bigSwitch(int next) throws IOException {
+  private int bigSwitch(int next) {
     beginToken();
 
     if (next == '\r') {
@@ -473,7 +471,7 @@ public abstract class AbstractScanner {
     errorListener.onError(new AnalysisError(getSource(), getOffset(), 1, errorCode, arguments));
   }
 
-  private int select(char choice, TokenType yesType, TokenType noType) throws IOException {
+  private int select(char choice, TokenType yesType, TokenType noType) {
     int next = advance();
     if (next == choice) {
       appendToken(yesType);
@@ -484,7 +482,7 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeAmpersand(int next) throws IOException {
+  private int tokenizeAmpersand(int next) {
     // && &= &
     next = advance();
     if (next == '&') {
@@ -499,7 +497,7 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeBar(int next) throws IOException {
+  private int tokenizeBar(int next) {
     // | || |=
     next = advance();
     if (next == '|') {
@@ -514,12 +512,12 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeCaret(int next) throws IOException {
+  private int tokenizeCaret(int next) {
     // ^ ^=
     return select('=', TokenType.CARET_EQ, TokenType.CARET);
   }
 
-  private int tokenizeDotOrNumber(int next) throws IOException {
+  private int tokenizeDotOrNumber(int next) {
     int start = getOffset();
     next = advance();
     if (('0' <= next && next <= '9')) {
@@ -532,7 +530,7 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeEquals(int next) throws IOException {
+  private int tokenizeEquals(int next) {
     // = == === =>
     next = advance();
     if (next == '=') {
@@ -545,7 +543,7 @@ public abstract class AbstractScanner {
     return next;
   }
 
-  private int tokenizeExclamation(int next) throws IOException {
+  private int tokenizeExclamation(int next) {
     // ! != !===
     next = advance();
     if (next == '=') {
@@ -555,7 +553,7 @@ public abstract class AbstractScanner {
     return next;
   }
 
-  private int tokenizeExponent(int next) throws IOException {
+  private int tokenizeExponent(int next) {
     if (next == '+' || next == '-') {
       next = advance();
     }
@@ -573,7 +571,7 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeFractionPart(int next, int start) throws IOException {
+  private int tokenizeFractionPart(int next, int start) {
     boolean done = false;
     boolean hasDigit = false;
     LOOP : while (!done) {
@@ -602,7 +600,7 @@ public abstract class AbstractScanner {
     return next;
   }
 
-  private int tokenizeGreaterThan(int next) throws IOException {
+  private int tokenizeGreaterThan(int next) {
     // > >= >> >>= >>> >>>=
     next = advance();
     if ('=' == next) {
@@ -632,7 +630,7 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeHex(int next) throws IOException {
+  private int tokenizeHex(int next) {
     int start = getOffset() - 1;
     boolean hasDigits = false;
     while (true) {
@@ -650,7 +648,7 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeHexOrNumber(int next) throws IOException {
+  private int tokenizeHexOrNumber(int next) {
     int x = peek();
     if (x == 'x' || x == 'X') {
       advance();
@@ -669,7 +667,7 @@ public abstract class AbstractScanner {
     return next;
   }
 
-  private int tokenizeInterpolatedExpression(int next, int start) throws IOException {
+  private int tokenizeInterpolatedExpression(int next, int start) {
     appendStringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "${", 0);
     next = advance();
     while (next != -1) {
@@ -719,7 +717,7 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeLessThan(int next) throws IOException {
+  private int tokenizeLessThan(int next) {
     // < <= << <<=
     next = advance();
     if ('=' == next) {
@@ -733,7 +731,7 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeMinus(int next) throws IOException {
+  private int tokenizeMinus(int next) {
     // - -- -=
     next = advance();
     if (next == '-') {
@@ -748,7 +746,7 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeMultiLineComment(int next) throws IOException {
+  private int tokenizeMultiLineComment(int next) {
     int nesting = 1;
     next = advance();
     while (true) {
@@ -802,7 +800,7 @@ public abstract class AbstractScanner {
     return advance();
   }
 
-  private int tokenizeMultiLineString(int quoteChar, int start, boolean raw) throws IOException {
+  private int tokenizeMultiLineString(int quoteChar, int start, boolean raw) {
     if (raw) {
       return tokenizeMultiLineRawString(quoteChar, start);
     }
@@ -839,12 +837,12 @@ public abstract class AbstractScanner {
     return advance();
   }
 
-  private int tokenizeMultiply(int next) throws IOException {
+  private int tokenizeMultiply(int next) {
     // * *=
     return select('=', TokenType.STAR_EQ, TokenType.STAR);
   }
 
-  private int tokenizeNumber(int next) throws IOException {
+  private int tokenizeNumber(int next) {
     int start = getOffset();
     while (true) {
       next = advance();
@@ -864,7 +862,7 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeOpenSquareBracket(int next) throws IOException {
+  private int tokenizeOpenSquareBracket(int next) {
     // [ []  []=
     next = advance();
     if (next == ']') {
@@ -875,12 +873,12 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizePercent(int next) throws IOException {
+  private int tokenizePercent(int next) {
     // % %=
     return select('=', TokenType.PERCENT_EQ, TokenType.PERCENT);
   }
 
-  private int tokenizePlus(int next) throws IOException {
+  private int tokenizePlus(int next) {
     // + ++ +=
     next = advance();
     if ('+' == next) {
@@ -895,7 +893,7 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeSingleLineComment(int next) throws IOException {
+  private int tokenizeSingleLineComment(int next) {
     while (true) {
       next = advance();
       if ('\n' == next || '\r' == next || -1 == next) {
@@ -905,7 +903,7 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeSingleLineRawString(int next, int quoteChar, int start) throws IOException {
+  private int tokenizeSingleLineRawString(int next, int quoteChar, int start) {
     next = advance();
     while (next != -1) {
       if (next == quoteChar) {
@@ -923,7 +921,7 @@ public abstract class AbstractScanner {
     return advance();
   }
 
-  private int tokenizeSingleLineString(int next, int quoteChar, int start) throws IOException {
+  private int tokenizeSingleLineString(int next, int quoteChar, int start) {
     while (next != quoteChar) {
       if (next == '\\') {
         next = advance();
@@ -945,7 +943,7 @@ public abstract class AbstractScanner {
     return advance();
   }
 
-  private int tokenizeSlashOrComment(int next) throws IOException {
+  private int tokenizeSlashOrComment(int next) {
     next = advance();
     if ('*' == next) {
       return tokenizeMultiLineComment(next);
@@ -960,7 +958,7 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeString(int next, int start, boolean raw) throws IOException {
+  private int tokenizeString(int next, int start, boolean raw) {
     int quoteChar = next;
     next = advance();
     if (quoteChar == next) {
@@ -981,7 +979,7 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeStringInterpolation(int start) throws IOException {
+  private int tokenizeStringInterpolation(int start) {
     beginToken();
     int next = advance();
     if (next == '{') {
@@ -991,7 +989,7 @@ public abstract class AbstractScanner {
     }
   }
 
-  private int tokenizeTag(int next) throws IOException {
+  private int tokenizeTag(int next) {
     // # or #!.*[\n\r]
     if (getOffset() == 0) {
       if (peek() == '!') {
@@ -1006,7 +1004,7 @@ public abstract class AbstractScanner {
     return advance();
   }
 
-  private int tokenizeTilde(int next) throws IOException {
+  private int tokenizeTilde(int next) {
     // ~ ~/ ~/=
     next = advance();
     if (next == '/') {

@@ -16,19 +16,12 @@ package com.google.dart.engine.scanner;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.source.TestSource;
 
-import java.io.IOException;
-
 public class StringScannerTest extends AbstractScannerTest {
   @Override
   protected Token scan(String source, GatheringErrorListener listener) {
-    try {
-      StringScanner scanner = new StringScanner(null, source, listener);
-      Token result = scanner.tokenize();
-      listener.setLineInfo(new TestSource(), scanner.getLineStarts());
-      return result;
-    } catch (IOException exception) {
-      fail("Unexpected exception: " + exception.getMessage());
-      return null;
-    }
+    StringScanner scanner = new StringScanner(null, source, listener);
+    Token result = scanner.tokenize();
+    listener.setLineInfo(new TestSource(), scanner.getLineStarts());
+    return result;
   }
 }
