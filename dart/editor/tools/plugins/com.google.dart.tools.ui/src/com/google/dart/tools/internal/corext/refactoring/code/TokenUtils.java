@@ -31,7 +31,8 @@ import java.util.List;
  */
 public class TokenUtils {
   /**
-   * @return the {@link Token} with given {@link Keyword}, may be <code>null</code> if not found.
+   * @return the first {@link KeywordToken} with given {@link Keyword}, may be <code>null</code> if
+   *         not found.
    */
   public static KeywordToken findKeywordToken(List<Token> tokens, Keyword keyword) {
     for (int i = 0; i < tokens.size(); i++) {
@@ -47,7 +48,22 @@ public class TokenUtils {
   }
 
   /**
-   * @return {@link Token}s of the given Dart source.
+   * @return the first {@link Token} with given {@link TokenType}, may be <code>null</code> if not
+   *         found.
+   */
+  public static Token findToken(List<Token> tokens, TokenType type) {
+    for (int i = 0; i < tokens.size(); i++) {
+      Token token = tokens.get(i);
+      if (token.getType() == type) {
+        return token;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @return {@link Token}s of the given Dart source, not <code>null</code>, may be empty if no
+   *         tokens or some exception happens.
    */
   public static List<Token> getTokens(final String s) {
     final List<Token> tokens = Lists.newArrayList();
@@ -55,7 +71,7 @@ public class TokenUtils {
       @Override
       public void run() throws Exception {
         StringScanner scanner = new StringScanner(null, s, null);
-        com.google.dart.engine.scanner.Token token = scanner.tokenize();
+        Token token = scanner.tokenize();
         while (token.getType() != TokenType.EOF) {
           tokens.add(token);
           token = token.getNext();

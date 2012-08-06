@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.internal.corext.dom;
 
+import com.google.common.collect.ImmutableList;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartIdentifier;
@@ -622,6 +623,17 @@ public class ASTNodes {
       return blockStatements.get(0);
     }
     return statement;
+  }
+
+  /**
+   * @return given {@link DartStatement} if not {@link DartBlock}, all children
+   *         {@link DartStatement}s if {@link DartBlock}.
+   */
+  public static List<DartStatement> getStatements(DartStatement statement) {
+    if (statement instanceof DartBlock) {
+      return ((DartBlock) statement).getStatements();
+    }
+    return ImmutableList.of(statement);
   }
 
   /**

@@ -525,6 +525,163 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_replaceIfElseWithConditional_wrong(initial, "if (true)");
   }
 
+  public void test_splitAndCondition_OK_innerAndExpression() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && 2 == 2 && 3 == 3) {",
+        "    print(0);",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    if (2 == 2 && 3 == 3) {",
+        "      print(0);",
+        "    }",
+        "  }",
+        "}");
+    assert_splitAndCondition(initial, "&& 2 == 2", expected);
+  }
+
+  public void test_splitAndCondition_OK_thenBlock() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true && false) {",
+        "    print(0);",
+        "    if (3 == 3) {",
+        "      print(1);",
+        "    }",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true) {",
+        "    if (false) {",
+        "      print(0);",
+        "      if (3 == 3) {",
+        "        print(1);",
+        "      }",
+        "    }",
+        "  }",
+        "}");
+    assert_splitAndCondition(initial, "&& false)", expected);
+  }
+
+  public void test_splitAndCondition_OK_thenBlock_elseBlock() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true && false) {",
+        "    print(0);",
+        "  } else {",
+        "    print(1);",
+        "    if (2 == 2) {",
+        "      print(2);",
+        "    }",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true) {",
+        "    if (false) {",
+        "      print(0);",
+        "    } else {",
+        "      print(1);",
+        "      if (2 == 2) {",
+        "        print(2);",
+        "      }",
+        "    }",
+        "  }",
+        "}");
+    assert_splitAndCondition(initial, "&& false)", expected);
+  }
+
+  public void test_splitAndCondition_OK_thenStatement() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true && false)",
+        "    print(0);",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true)",
+        "    if (false)",
+        "      print(0);",
+        "}");
+    assert_splitAndCondition(initial, "&& false)", expected);
+  }
+
+  public void test_splitAndCondition_OK_thenStatement_elseStatement() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true && false)",
+        "    print(0);",
+        "  else",
+        "    print(1);",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true)",
+        "    if (false)",
+        "      print(0);",
+        "    else",
+        "      print(1);",
+        "}");
+    assert_splitAndCondition(initial, "&& false)", expected);
+  }
+
+  public void test_splitAndCondition_wrong() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && 2 == 2) {",
+        "    print(0);",
+        "  }",
+        "  print(3 == 3 && 4 == 4);",
+        "}");
+    // not binary expression
+    assert_splitAndCondition_wrong(initial, "main() {");
+    // selection is not empty and includes more than just operator
+    {
+      selectionLength = 5;
+      assert_splitAndCondition_wrong(initial, "&& 2 == 2");
+      selectionLength = 0;
+    }
+  }
+
+  public void test_splitAndCondition_wrong_notPartOfIf() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print(1 == 1 && 2 == 2);",
+        "}");
+    assert_splitAndCondition_wrong(initial, "&& 2");
+  }
+
+  public void test_splitAndCondition_wrong_notTopLevelAnd() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true || (1 == 1 && 2 == 2)) {",
+        "    print(0);",
+        "  }",
+        "  if (true && (3 == 3 && 4 == 4)) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_splitAndCondition_wrong(initial, "&& 2");
+    assert_splitAndCondition_wrong(initial, "&& 4");
+  }
+
   public void test_splitVariableDeclaration_OK() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -753,7 +910,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
       String offsetPattern,
       String expectedSource) throws Exception {
     // XXX used to see coverage of only one quick assist
-//    if (!proposalName.equals(CorrectionMessages.QuickAssistProcessor_replaceIfElseWithConditional)) {
+//    if (!proposalName.equals(CorrectionMessages.QuickAssistProcessor_splitAndCondition)) {
 //      return;
 //    }
     // set initial source
@@ -773,6 +930,22 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     }
     // assert result
     assertEquals(expectedSource, result);
+  }
+
+  private void assert_splitAndCondition(
+      String initialSource,
+      String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        CorrectionMessages.QuickAssistProcessor_splitAndCondition,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_splitAndCondition_wrong(String initialSource, String offsetPattern)
+      throws Exception {
+    assert_splitAndCondition(initialSource, offsetPattern, initialSource);
   }
 
   private void assert_splitVariableDeclaration(

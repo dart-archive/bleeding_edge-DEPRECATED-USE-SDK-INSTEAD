@@ -26,14 +26,17 @@ public class IfCompleter extends DartIfStatement implements CompletionNode {
   public static IfCompleter from(DartIfStatement ifStmt) {
     return CompletionUtil.init(new IfCompleter(
         ifStmt.getCondition(),
+        ifStmt.getCloseParenOffset(),
         ifStmt.getThenStatement(),
+        ifStmt.getElseTokenOffset(),
         ifStmt.getElseStatement()), ifStmt);
   }
 
   private Stack<Mark> stack;
 
-  public IfCompleter(DartExpression condition, DartStatement thenStmt, DartStatement elseStmt) {
-    super(condition, thenStmt, elseStmt);
+  public IfCompleter(DartExpression condition, int closeParentOffset, DartStatement thenStmt,
+      int elseTokenOffset, DartStatement elseStmt) {
+    super(condition, closeParentOffset, thenStmt, elseTokenOffset, elseStmt);
   }
 
   @Override

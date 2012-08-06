@@ -19,6 +19,8 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.SourceRange;
 
+import java.util.List;
+
 public class SourceRangeFactory {
 
   public static SourceRange create(DartCompilationError error) {
@@ -27,6 +29,19 @@ public class SourceRangeFactory {
 
   public static SourceRange create(HasSourceInfo hasSourceInfo) {
     return new SourceRangeImpl(hasSourceInfo);
+  }
+
+  /**
+   * @return the {@link SourceRange} which starts at the start of first "first" and ends at the end
+   *         of "last" element.
+   */
+  public static SourceRange create(List<? extends HasSourceInfo> elements) {
+    if (elements.isEmpty()) {
+      return forStartLength(0, 0);
+    }
+    HasSourceInfo first = elements.get(0);
+    HasSourceInfo last = elements.get(elements.size() - 1);
+    return forStartEnd(first, last);
   }
 
   /**
@@ -70,6 +85,14 @@ public class SourceRangeFactory {
     int start = a.getSourceInfo().getOffset();
     int end = b.getSourceInfo().getEnd();
     return forStartEnd(start, end);
+  }
+
+  /**
+   * @return the {@link SourceRange} which start at "start" and ends at end of "b".
+   */
+  public static SourceRange forStartEnd(int start, HasSourceInfo b) {
+    int end = b.getSourceInfo().getEnd();
+    return new SourceRangeImpl(start, end - start);
   }
 
   public static SourceRange forStartEnd(int start, int end) {

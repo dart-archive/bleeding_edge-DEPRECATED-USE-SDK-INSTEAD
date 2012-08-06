@@ -50,6 +50,17 @@ public class Token {
   }
 
   /**
+   * Return the offset from the beginning of the file to the character after last character of the
+   * token.
+   * 
+   * @return the offset from the beginning of the file to the first character after last character
+   *         of the token
+   */
+  public int getEnd() {
+    return offset + getLength();
+  }
+
+  /**
    * Return the number of characters in the node's source range.
    * 
    * @return the number of characters in the node's source range

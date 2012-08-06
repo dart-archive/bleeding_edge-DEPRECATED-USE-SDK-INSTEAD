@@ -19,6 +19,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.internal.text.correction.proposals.ChangeCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.MarkerResolutionProposal;
 import com.google.dart.tools.ui.internal.text.editor.IJavaAnnotation;
 import com.google.dart.tools.ui.text.dart.CompletionProposalComparator;
@@ -44,6 +45,7 @@ import org.eclipse.jface.text.quickassist.IQuickAssistInvocationContext;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.ltk.core.refactoring.NullChange;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IMarkerHelpRegistry;
 import org.eclipse.ui.IMarkerResolution;
@@ -259,7 +261,6 @@ public class DartCorrectionProcessor implements
       Collection<IDartCompletionProposal> proposals) {
     List<ProblemLocation> problems = Lists.newArrayList();
 
-    // TODO(scheglov) restore later
     // collect problem locations and corrections from marker annotations
     for (int i = 0; i < annotations.length; i++) {
       Annotation curr = annotations[i];
@@ -537,15 +538,9 @@ public class DartCorrectionProcessor implements
 
   @Override
   public boolean canFix(Annotation annotation) {
-    // TODO(scheglov) restore later
-    return false;
-//    return hasCorrections(annotation);
+    return hasCorrections(annotation);
   }
 
-  /*
-   * @see IContentAssistProcessor#computeCompletionProposals(ITextViewer, int)
-   */
-  @SuppressWarnings("unchecked")
   @Override
   public ICompletionProposal[] computeQuickAssistProposals(
       IQuickAssistInvocationContext quickAssistContext) {
@@ -584,11 +579,11 @@ public class DartCorrectionProcessor implements
       }
     }
 
-    // TODO(scheglov) restore later
-//    if (res == null || res.length == 0) {
-//      return new ICompletionProposal[] {new ChangeCorrectionProposal(
-//          CorrectionMessages.NoCorrectionProposal_description, new NullChange(""), 0, null)}; //$NON-NLS-1$
-//    }
+    if (res == null || res.length == 0) {
+      return new ICompletionProposal[] {new ChangeCorrectionProposal(
+          CorrectionMessages.NoCorrectionProposal_description,
+          new NullChange(""), 0, null)}; //$NON-NLS-1$
+    }
     if (res.length > 1) {
       Arrays.sort(res, new CompletionProposalComparator());
     }

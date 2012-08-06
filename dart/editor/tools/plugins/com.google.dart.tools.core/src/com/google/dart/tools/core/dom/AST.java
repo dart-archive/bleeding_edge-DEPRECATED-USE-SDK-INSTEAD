@@ -154,7 +154,7 @@ public class AST {
     } else if (nodeClass == DartIdentifier.class) {
       return (N) new DartIdentifier("");
     } else if (nodeClass == DartIfStatement.class) {
-      return (N) new DartIfStatement(null, null, null);
+      return (N) new DartIfStatement(null, 0, null, 0, null);
     } else if (nodeClass == DartInitializer.class) {
       return (N) new DartInitializer(null, null);
     } else if (nodeClass == DartLabel.class) {
@@ -174,12 +174,7 @@ public class AST {
     } else if (nodeClass == DartNullLiteral.class) {
       return (N) DartNullLiteral.get();
     } else if (nodeClass == DartParameter.class) {
-      return (N) new DartParameter(
-          null,
-          null,
-          new ArrayList<DartParameter>(),
-          null,
-          Modifiers.NONE);
+      return (N) new DartParameter(null, null, new ArrayList<DartParameter>(), null, Modifiers.NONE);
     } else if (nodeClass == DartParenthesizedExpression.class) {
       return (N) new DartParenthesizedExpression(null);
     } else if (nodeClass == DartPropertyAccess.class) {

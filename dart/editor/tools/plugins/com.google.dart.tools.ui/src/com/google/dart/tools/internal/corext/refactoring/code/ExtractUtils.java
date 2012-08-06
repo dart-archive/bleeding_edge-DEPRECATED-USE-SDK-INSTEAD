@@ -18,6 +18,7 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
@@ -250,6 +251,15 @@ public class ExtractUtils {
   }
 
   /**
+   * @return the source of the given {@link SourceRange} with indentation changed from "oldIndent"
+   *         to "newIndent", keeping indentation of the lines relative to each other.
+   */
+  public ReplaceEdit createIndentEdit(SourceRange range, String oldIndent, String newIndent) {
+    String newSource = getIndentSource(range, oldIndent, newIndent);
+    return new ReplaceEdit(range.getOffset(), range.getLength(), newSource);
+  }
+
+  /**
    * @return the EOL to use for this {@link CompilationUnit}.
    */
   public String getEndOfLine() {
@@ -282,6 +292,38 @@ public class ExtractUtils {
   }
 
   /**
+   * @return the source of the given {@link SourceRange} with indentation changed from "oldIndent"
+   *         to "newIndent", keeping indentation of the lines relative to each other.
+   */
+  public String getIndentSource(SourceRange range, String oldIndent, String newIndent) {
+    String oldSource = getText(range);
+    return getIndentSource(oldSource, oldIndent, newIndent);
+  }
+
+  /**
+   * @return the source with indentation changed from "oldIndent" to "newIndent", keeping
+   *         indentation of the lines relative to each other.
+   */
+  public String getIndentSource(String source, String oldIndent, String newIndent) {
+    StringBuilder sb = new StringBuilder();
+    String eol = getEndOfLine();
+    String[] lines = StringUtils.splitPreserveAllTokens(source, eol);
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i];
+      // last line, stop if empty
+      if (i == lines.length - 1 && StringUtils.isEmpty(line)) {
+        break;
+      }
+      // line should have new indent
+      line = newIndent + StringUtils.removeStart(line, oldIndent);
+      // append line
+      sb.append(line);
+      sb.append(eol);
+    }
+    return sb.toString();
+  }
+
+  /**
    * @return the index of the first not space or tab on the right from the given one, if form
    *         statement or method end, then this is in most cases start of the next line.
    */
@@ -305,6 +347,30 @@ public class ExtractUtils {
     }
     // done
     return index;
+  }
+
+  /**
+   * @return the {@link #getLinesRange(SourceRange)} for given {@link DartStatement}s.
+   */
+  public SourceRange getLinesRange(List<DartStatement> statements) {
+    SourceRange range = SourceRangeFactory.create(statements);
+    return getLinesRange(range);
+  }
+
+  /**
+   * @return the {@link SourceRange} which starts at the start of the line of "offset" and ends at
+   *         the start of the next line after "end" of the given {@link SourceRange}, i.e. basically
+   *         complete lines of the source for given {@link SourceRange}.
+   */
+  public SourceRange getLinesRange(SourceRange range) {
+    // start
+    int startOffset = range.getOffset();
+    int startLineOffset = getLineThisIndex(startOffset);
+    // end
+    int endOffset = SourceRangeUtils.getEnd(range);
+    int afterEndLineOffset = getLineNextIndex(endOffset);
+    // range
+    return SourceRangeFactory.forStartEnd(startLineOffset, afterEndLineOffset);
   }
 
   /**

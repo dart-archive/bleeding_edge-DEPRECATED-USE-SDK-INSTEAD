@@ -53,8 +53,13 @@ public class SourceRangeUtils {
    * @return <code>true</code> if two given {@link SourceRange}s are intersecting.
    */
   public static boolean intersects(SourceRange a, SourceRange b) {
-    return contains(a, b.getOffset()) || contains(a, b.getOffset() + b.getLength() - 1)
-        || contains(b, a.getOffset());
+    if (getEnd(a) <= b.getOffset()) {
+      return false;
+    }
+    if (a.getOffset() >= getEnd(b)) {
+      return false;
+    }
+    return true;
   }
 
   /**
