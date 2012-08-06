@@ -30,7 +30,6 @@ public class ContextTest extends AbstractDartCoreTest {
   private static File tempDir;
   private static File libraryFile;
   private static File dartFile;
-  private static File doesNotExist;
 
   /**
    * Called once prior to executing the first test in this class
@@ -42,7 +41,6 @@ public class ContextTest extends AbstractDartCoreTest {
     assertTrue(libraryFile.exists());
     dartFile = new File(tempDir, "simple_money.dart");
     assertTrue(dartFile.exists());
-    doesNotExist = new File(tempDir, "doesNotExist.dart");
   }
 
   /**
@@ -68,7 +66,19 @@ public class ContextTest extends AbstractDartCoreTest {
     assertParsed(0, 0);
   }
 
+  public void test_parse_libraryAndSourceDoNotExist() throws Exception {
+    File doesNotExist = new File(tempDir, "doesNotExist.dart");
+    assertFalse(doesNotExist.exists());
+    File doesNotExist2 = new File(tempDir, "doesNotExist2.dart");
+    assertFalse(doesNotExist2.exists());
+    DartUnit dartUnit = context.parse(doesNotExist, doesNotExist2, FIVE_MINUTES_MS);
+    assertEquals(0, dartUnit.getTopDeclarationNames().size());
+    assertParsed(2, 2);
+  }
+
   public void test_parse_libraryDoesNotExist() throws Exception {
+    File doesNotExist = new File(tempDir, "doesNotExist.dart");
+    assertFalse(doesNotExist.exists());
     DartUnit dartUnit = context.parse(doesNotExist, doesNotExist, FIVE_MINUTES_MS);
     assertEquals(0, dartUnit.getTopDeclarationNames().size());
     assertParsed(1, 1);
@@ -83,9 +93,16 @@ public class ContextTest extends AbstractDartCoreTest {
     dartUnit = context.parse(libraryFile, dartFile, FIVE_MINUTES_MS);
     assertEquals("SimpleMoney", dartUnit.getTopDeclarationNames().iterator().next());
     assertParsed(0, 0);
+
+    listener.reset();
+    dartUnit = context.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
+    assertEquals("Money", dartUnit.getTopDeclarationNames().iterator().next());
+    assertParsed(0, 0);
   }
 
   public void test_parse_sourceDoesNotExist() throws Exception {
+    File doesNotExist = new File(tempDir, "doesNotExist.dart");
+    assertFalse(doesNotExist.exists());
     DartUnit dartUnit = context.parse(libraryFile, doesNotExist, FIVE_MINUTES_MS);
     assertEquals(0, dartUnit.getTopDeclarationNames().size());
     assertParsed(2, 1);
@@ -111,6 +128,8 @@ public class ContextTest extends AbstractDartCoreTest {
   }
 
   public void test_resolve_doesNotExist() throws Exception {
+    File doesNotExist = new File(tempDir, "doesNotExist.dart");
+    assertFalse(doesNotExist.exists());
     LibraryUnit libraryUnit = context.resolve(doesNotExist, FIVE_MINUTES_MS);
     assertNotNull(libraryUnit);
     listener.assertParsed(doesNotExist, doesNotExist);

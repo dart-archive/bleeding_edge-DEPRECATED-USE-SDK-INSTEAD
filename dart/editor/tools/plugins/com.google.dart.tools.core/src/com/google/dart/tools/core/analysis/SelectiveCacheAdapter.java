@@ -2,22 +2,28 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.DartCompiler.SelectiveCache;
 import com.google.dart.compiler.DartSource;
-import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.DartCore;
 
+import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
+
+import java.io.File;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
 final class SelectiveCacheAdapter extends SelectiveCache {
-  private final Context context;
-  private final HashSet<URI> parsedUnitURIs;
 
-  SelectiveCacheAdapter(Context context) {
+  private final AnalysisServer server;
+  private final Context context;
+  private final HashMap<File, HashSet<File>> parsedFiles;
+
+  SelectiveCacheAdapter(AnalysisServer server, Context context) {
+    this.server = server;
     this.context = context;
-    this.parsedUnitURIs = new HashSet<URI>();
+    this.parsedFiles = new HashMap<File, HashSet<File>>();
   }
 
   @Override
@@ -27,38 +33,44 @@ final class SelectiveCacheAdapter extends SelectiveCache {
 
   @Override
   public DartUnit getUnresolvedDartUnit(DartSource dartSrc) {
-
-    // Remove the parsed unit from the map if present
-    // so that it will not be consumed a 2nd time if it is sourced by multiple libraries
-
-    URI srcUri = dartSrc.getUri();
-    DartUnit dartUnit = context.getUnresolvedUnits().remove(srcUri);
-    if (dartUnit != null) {
-      return dartUnit;
+    File libraryFile = toFile(server, dartSrc.getLibrary().getUri());
+    File dartFile = toFile(server, dartSrc.getUri());
+    if (libraryFile == null || dartFile == null) {
+      return null;
     }
-    SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
-    URI fileUri = libraryManager.resolveDartUri(srcUri);
-    dartUnit = context.getUnresolvedUnits().remove(fileUri);
-    if (dartUnit != null) {
-      return dartUnit;
+    Library library = context.getCachedLibrary(libraryFile);
+    if (library != null) {
+
+      // Sanity check... should not be requesting unresolved units for resolved libraries
+      if (library.getLibraryUnit() != null) {
+        DartCore.logError("Requesting unresolved dart unit: " + dartFile
+            + "\n  but library is already resolved: " + libraryFile);
+        return null;
+      }
+
+      DartUnit dartUnit = library.getDartUnit(dartFile);
+      if (dartUnit != null) {
+        return dartUnit;
+      }
     }
 
     // If the desired unit is not cached, record the fact that it was requested
-    // so that later we can notify others that it was parsed as part of this process
+    // so that later we can notify others that it was parsed as part of the resolution process
 
-    parsedUnitURIs.add(srcUri);
-    if (fileUri != null) {
-      parsedUnitURIs.add(fileUri);
+    HashSet<File> files = parsedFiles.get(libraryFile);
+    if (files == null) {
+      files = new HashSet<File>();
+      parsedFiles.put(libraryFile, files);
     }
+    files.add(dartFile);
     return null;
   }
 
   /**
-   * Answer the URIs for the files that were parsed during the resolution process
-   * 
-   * @return a collection of URIs (not <code>null</code>, contains no <code>null</code>s)
+   * Answer the files in the specified files that were parsed during the process of resolution or
+   * <code>null</code> if none
    */
-  HashSet<URI> getParsedUnitURIs() {
-    return parsedUnitURIs;
+  HashSet<File> getFilesParsedInLibrary(File libraryFile) {
+    return parsedFiles.get(libraryFile);
   }
 }

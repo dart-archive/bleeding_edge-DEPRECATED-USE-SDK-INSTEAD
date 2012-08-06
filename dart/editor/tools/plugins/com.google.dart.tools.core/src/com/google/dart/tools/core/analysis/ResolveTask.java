@@ -34,14 +34,13 @@ import java.util.Map;
 /**
  * Resolve types and references in the specified library
  */
-class ResolveLibraryTask extends Task {
+class ResolveTask extends Task {
 
   private final AnalysisServer server;
   private final Context context;
-
   private final Library rootLibrary;
 
-  ResolveLibraryTask(AnalysisServer server, Context context, Library library) {
+  ResolveTask(AnalysisServer server, Context context, Library library) {
     this.server = server;
     this.context = context;
     this.rootLibrary = library;
@@ -66,13 +65,12 @@ class ResolveLibraryTask extends Task {
 
     // Resolve
 
-    SelectiveCacheAdapter selectiveCache = new SelectiveCacheAdapter(context);
+    SelectiveCacheAdapter selectiveCache = new SelectiveCacheAdapter(server, context);
     Map<URI, LibraryUnit> newlyResolved = resolve(
         rootLibrary.getFile(),
         rootLibrary.getLibrarySource(),
         selectiveCache,
         errorListener);
-    HashSet<URI> parsedUnitURIs = selectiveCache.getParsedUnitURIs();
 
     for (LibraryUnit libUnit : newlyResolved.values()) {
 
@@ -110,9 +108,28 @@ class ResolveLibraryTask extends Task {
       }
 
       // Notify listeners about units that were parsed, if any, during the resolution process
-      // and notify listeners that the library was resolved
 
-      AnalysisEvent parseEvent = null;
+      HashSet<File> parsedFiles = selectiveCache.getFilesParsedInLibrary(libraryFile);
+      if (parsedFiles != null && parsedFiles.size() > 0) {
+        // Do not report errors during this notification because they will be reported
+        // as part of the resolution notification
+        AnalysisEvent parseEvent = new AnalysisEvent(libraryFile);
+        Iterator<DartUnit> iter = libUnit.getUnits().iterator();
+        while (iter.hasNext()) {
+          DartUnit dartUnit = iter.next();
+          File dartFile = toFile(server, dartUnit.getSourceInfo().getSource().getUri());
+          if (dartFile == null) {
+            continue;
+          }
+          if (parsedFiles.contains(dartFile)) {
+            parseEvent.addFileAndDartUnit(dartFile, dartUnit);
+          }
+        }
+        parseEvent.notifyParsed(context);
+      }
+
+      // Notify listeners that the library was resolved
+
       AnalysisEvent resolutionEvent = new AnalysisEvent(libraryFile, newErrors);
       Iterator<DartUnit> iter = libUnit.getUnits().iterator();
       while (iter.hasNext()) {
@@ -121,18 +138,7 @@ class ResolveLibraryTask extends Task {
         if (dartFile == null) {
           continue;
         }
-        if (parsedUnitURIs.contains(dartFile.toURI())) {
-          if (parseEvent == null) {
-            // Do not report errors during this notification because they will be reported
-            // as part of the resolution notification
-            parseEvent = new AnalysisEvent(libraryFile);
-          }
-          parseEvent.addFileAndDartUnit(dartFile, dartUnit);
-        }
         resolutionEvent.addFileAndDartUnit(dartFile, dartUnit);
-      }
-      if (parseEvent != null) {
-        parseEvent.notifyParsed(context);
       }
       resolutionEvent.notifyResolved(context);
     }

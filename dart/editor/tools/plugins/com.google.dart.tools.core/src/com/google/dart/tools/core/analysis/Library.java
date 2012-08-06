@@ -119,8 +119,10 @@ class Library {
   private final boolean hasDirectives;
   private final HashMap<String, File> imports;
   private final HashMap<String, File> sources;
-  private final HashMap<File, DartUnit> resolvedUnits;
   private final HashMap<File, Long> lastModified;
+
+  private LibraryUnit libraryUnit;
+  private final HashMap<File, DartUnit> dartUnits;
 
   /**
    * Flag indicating if listeners should be notified when the library is parsed and resolved. This
@@ -128,8 +130,6 @@ class Library {
    * be notified because they were already notified when the library was first parsed and resolved.
    */
   public final boolean shouldNotify;
-
-  private LibraryUnit libraryUnit;
 
   private Library(File libraryFile, LibrarySource librarySource, Set<String> prefixes,
       boolean hasDirectives, HashMap<String, File> imports, HashMap<String, File> sources,
@@ -141,7 +141,7 @@ class Library {
     this.imports = imports;
     this.sources = sources;
     this.shouldNotify = shouldNotify;
-    this.resolvedUnits = new HashMap<File, DartUnit>();
+    this.dartUnits = new HashMap<File, DartUnit>();
 
     lastModified = new HashMap<File, Long>();
     lastModified.put(libraryFile, libraryFile.lastModified());
@@ -150,14 +150,22 @@ class Library {
     }
   }
 
+  void cacheDartUnit(File file, DartUnit unit) {
+    dartUnits.put(file, unit);
+  }
+
   void cacheLibraryUnit(AnalysisServer server, LibraryUnit libUnit) {
     this.libraryUnit = libUnit;
     for (DartUnit dartUnit : libUnit.getUnits()) {
       File file = toFile(server, dartUnit.getSourceInfo().getSource().getUri());
       if (file != null) {
-        resolvedUnits.put(file, dartUnit);
+        dartUnits.put(file, dartUnit);
       }
     }
+  }
+
+  DartUnit getDartUnit(File file) {
+    return dartUnits.get(file);
   }
 
   File getFile() {
@@ -182,14 +190,6 @@ class Library {
 
   Set<Entry<String, File>> getRelativeSourcePathsAndFiles() {
     return sources.entrySet();
-  }
-
-  DartUnit getResolvedUnit(File file) {
-    return resolvedUnits.get(file);
-  }
-
-  HashMap<File, DartUnit> getResolvedUnits() {
-    return resolvedUnits;
   }
 
   Collection<File> getSourceFiles() {

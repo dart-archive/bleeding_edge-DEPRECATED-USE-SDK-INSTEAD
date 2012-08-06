@@ -15,7 +15,6 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.tools.core.DartCore;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +34,7 @@ public class Context {
 
   private static final Library[] NO_LIBRARIES = new Library[] {};
 
-  private AnalysisServer server;
+  protected final AnalysisServer server;
 
   private AnalysisListener[] analysisListeners = new AnalysisListener[0];
 
@@ -45,18 +44,9 @@ public class Context {
    */
   private final HashMap<File, Library> libraryCache;
 
-  /**
-   * A map of URI (as needed by DartC) to parsed but unresolved unit. Units are added to this
-   * collection by {@link ParseFileTask} and {@link ParseLibraryFileTask}, and removed from this
-   * collection by {@link ResolveLibraryTask} when it calls
-   * {@link AnalysisUtility#resolve(AnalysisServer, Library, java.util.Map, java.util.Map)}
-   */
-  private final HashMap<URI, DartUnit> unresolvedUnits;
-
   Context(AnalysisServer server) {
     this.server = server;
     this.libraryCache = new HashMap<File, Library>();
-    this.unresolvedUnits = new HashMap<URI, DartUnit>();
   }
 
   public void addAnalysisListener(AnalysisListener listener) {
@@ -161,7 +151,7 @@ public class Context {
       throw new IllegalArgumentException("Cannot parse a directory: " + libraryFile);
     }
     String relPath = libraryFile.toURI().relativize(dartFile.toURI()).getPath();
-    server.queueNewTask(new ParseFileTask(server, this, libraryFile, relPath, dartFile, callback));
+    server.queueNewTask(new ParseTask(server, this, libraryFile, relPath, dartFile, callback));
   }
 
   /**
@@ -205,22 +195,12 @@ public class Context {
     libraryCache.put(library.getFile(), library);
   }
 
-  void cacheUnresolvedUnit(File file, DartUnit unit) {
-    unresolvedUnits.put(file.toURI(), unit);
-  }
-
   void discardLibraries() {
     libraryCache.clear();
-    unresolvedUnits.clear();
   }
 
   void discardLibrary(Library library) {
-    File libraryFile = library.getFile();
-    libraryCache.remove(libraryFile);
-    unresolvedUnits.remove(libraryFile.toURI());
-    for (File sourcedFile : library.getSourceFiles()) {
-      unresolvedUnits.remove(sourcedFile.toURI());
-    }
+    libraryCache.remove(library.getFile());
   }
 
   void discardLibraryAndReferencingLibraries(Library library) {
@@ -241,57 +221,8 @@ public class Context {
   /**
    * Answer the cached library or <code>null</code> if not cached
    */
-  Library getCachedLibrary(File file) {
-    return libraryCache.get(file);
-  }
-
-  /**
-   * Answer a resolved or unresolved unit, or <code>null</code> if none
-   */
-  DartUnit getCachedUnit(Library library, File dartFile) {
-    if (library != null) {
-      DartUnit unit = library.getResolvedUnit(dartFile);
-      if (unit != null) {
-        return unit;
-      }
-    }
-    return unresolvedUnits.get(dartFile.toURI());
-  }
-
-  /**
-   * Answer the libraries containing the specified file or contain files in the specified directory
-   * tree
-   * 
-   * @return an array of libraries (not <code>null</code>, contains no <code>null</code>s)
-   */
-  Library[] getLibrariesContaining(File file) {
-
-    // Quick check if the file is a library
-
-    Library library = libraryCache.get(file);
-    if (library != null) {
-      return new Library[] {library};
-    }
-
-    // If this is a file, then return the libraries that source the file
-
-    if (file.isFile() || (!file.exists() && DartCore.isDartLikeFileName(file.getName()))) {
-      return getLibrariesSourcing(file);
-    }
-
-    // Otherwise return the libraries containing files in the specified directory tree
-
-    Library[] result = NO_LIBRARIES;
-    String prefix = file.getAbsolutePath() + File.separator;
-    for (Library cachedLibrary : libraryCache.values()) {
-      for (File sourceFile : cachedLibrary.getSourceFiles()) {
-        if (sourceFile.getPath().startsWith(prefix)) {
-          result = append(result, cachedLibrary);
-          break;
-        }
-      }
-    }
-    return result;
+  Library getCachedLibrary(File libraryFile) {
+    return libraryCache.get(libraryFile);
   }
 
   /**
@@ -334,13 +265,6 @@ public class Context {
       }
     }
     return resolvedLibs;
-  }
-
-  /**
-   * Answer units that have been parsed but not resolved.
-   */
-  HashMap<URI, DartUnit> getUnresolvedUnits() {
-    return unresolvedUnits;
   }
 
   /**

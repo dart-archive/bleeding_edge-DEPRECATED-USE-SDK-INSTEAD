@@ -133,7 +133,7 @@ public class AnalyzeLibraryTask extends Task {
     parsed.add(libraryFile);
     Library library = context.getCachedLibrary(libraryFile);
     if (library == null) {
-      server.queueSubTask(new ParseLibraryFileTask(server, context, libraryFile, null));
+      server.queueSubTask(new ParseTask(server, context, libraryFile, null));
       return true;
     }
     boolean subTasksQueued = false;
@@ -159,9 +159,9 @@ public class AnalyzeLibraryTask extends Task {
     for (Entry<String, File> entry : library.getRelativeSourcePathsAndFiles()) {
       String relPath = entry.getKey();
       File file = entry.getValue();
-      server.queueSubTask(new ParseFileTask(server, context, library.getFile(), relPath, file, null));
+      server.queueSubTask(new ParseTask(server, context, library.getFile(), relPath, file, null));
     }
-    server.queueSubTask(new ResolveLibraryTask(server, context, library));
+    server.queueSubTask(new ResolveTask(server, context, library));
     return true;
   }
 
