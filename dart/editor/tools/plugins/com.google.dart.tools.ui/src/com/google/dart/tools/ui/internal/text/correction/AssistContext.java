@@ -17,9 +17,6 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.ASTProvider;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
 
@@ -38,7 +35,7 @@ public class AssistContext extends TextInvocationContext implements IInvocationC
 
   private DartUnit fASTRoot;
 //  private final SharedASTProvider.WAIT_FLAG fWaitFlag;
-//  private final ASTProvider.WAIT_FLAG fWaitFlag;
+  private final ASTProvider.WAIT_FLAG fWaitFlag;
   /**
    * The cached node finder, can be null.
    */
@@ -72,21 +69,13 @@ public class AssistContext extends TextInvocationContext implements IInvocationC
     Assert.isLegal(waitFlag != null);
     fCompilationUnit = cu;
     fEditor = editor;
-//    fWaitFlag = waitFlag;
+    fWaitFlag = waitFlag;
   }
 
   @Override
   public DartUnit getASTRoot() {
     if (fASTRoot == null) {
-//      fASTRoot = SharedASTProvider.getAST(fCompilationUnit, fWaitFlag, null);
-      try {
-        // TODO(scheglov) remove SAVE when compilation of WORKING-COPY will be fixed
-        fCompilationUnit.getBuffer().save(null, true);
-        fASTRoot = DartCompilerUtilities.resolveUnit(fCompilationUnit);
-      } catch (DartModelException e) {
-        DartToolsPlugin.log(e);
-        return null;
-      }
+      fASTRoot = ASTProvider.getASTProvider().getAST(fCompilationUnit, fWaitFlag, null);
       // TODO(scheglov) don't know if needed
 //      if (fASTRoot == null) {
 //        // see bug 63554

@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
-import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
@@ -400,15 +399,23 @@ public class CUCorrectionProposal extends ChangeCorrectionProposal {
         int from = Math.max(start, startOffset);
         int to = Math.min(end, endOffset);
         String content = text.get(from, to - from);
-        if (surroundLinesOnly && from == start && StringUtils.isBlank(content)) {
-          continue; // ignore empty lines except when range started in the middle of a line
-        }
+        // NOTE(scheglov) now we show tabs/spaces, so don't skip blank content,
+        // it may be prefix before some change.
+//        if (surroundLinesOnly && from == start && StringUtils.isBlank(content)) {
+//          continue; // ignore empty lines except when range started in the middle of a line
+//        }
         for (int k = 0; k < content.length(); k++) {
           char ch = content.charAt(k);
           if (ch == '<') {
             buf.append("&lt;"); //$NON-NLS-1$
           } else if (ch == '>') {
             buf.append("&gt;"); //$NON-NLS-1$
+          } else if (ch == ' ') {
+            // DefaultInformationControl, i.e. HTML2TextReader handles this correctly,
+            // even if this is not quite correct in normal HTML (where we would use &nbsp;).
+            buf.append("<pre> </pre>"); //$NON-NLS-1$
+          } else if (ch == '\t') {
+            buf.append("<pre>  </pre>"); //$NON-NLS-1$
           } else {
             buf.append(ch);
           }

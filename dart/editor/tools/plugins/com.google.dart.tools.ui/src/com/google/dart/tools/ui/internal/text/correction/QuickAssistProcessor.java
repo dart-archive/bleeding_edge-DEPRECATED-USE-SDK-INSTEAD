@@ -66,6 +66,7 @@ import com.google.dart.tools.ui.text.dart.IProblemLocation;
 import com.google.dart.tools.ui.text.dart.IQuickAssistProcessor;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
@@ -607,6 +608,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
   private void addUnitCorrectionProposal(String label, Image image) {
     // prepare change
     CompilationUnitChange change = new CompilationUnitChange(label, unit);
+    change.setSaveMode(TextFileChange.LEAVE_DIRTY);
     change.setEdit(new MultiTextEdit());
     // add edits
     for (TextEdit textEdit : textEdits) {

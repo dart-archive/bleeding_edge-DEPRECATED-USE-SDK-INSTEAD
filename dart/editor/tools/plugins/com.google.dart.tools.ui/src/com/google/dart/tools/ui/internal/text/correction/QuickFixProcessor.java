@@ -54,6 +54,7 @@ import com.google.dart.tools.ui.text.dart.IQuickFixProcessor;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
@@ -140,6 +141,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
           proposalRelevance++;
           addUnitCorrectionProposal(
               libraryUnit,
+              TextFileChange.FORCE_SAVE,
               Messages.format(
                   CorrectionMessages.QuickFixProcessor_importLibrary_addPrefix,
                   new Object[] {getSource(imp.getUriRange()), prefix}),
@@ -206,6 +208,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     // add proposal
     addUnitCorrectionProposal(
         libraryUnit,
+        TextFileChange.FORCE_SAVE,
         Messages.format(CorrectionMessages.QuickFixProcessor_importLibrary, importPath),
         DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
   }
@@ -248,9 +251,11 @@ public class QuickFixProcessor implements IQuickFixProcessor {
   /**
    * Adds new {@link CUCorrectionProposal} using given "unit" and {@link #textEdits}.
    */
-  private void addUnitCorrectionProposal(CompilationUnit unit, String label, Image image) {
+  private void addUnitCorrectionProposal(CompilationUnit unit, int saveMode, String label,
+      Image image) {
     // prepare change
     CompilationUnitChange change = new CompilationUnitChange(label, unit);
+    change.setSaveMode(saveMode);
     change.setEdit(new MultiTextEdit());
     // add edits
     for (TextEdit textEdit : textEdits) {
@@ -268,7 +273,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
    * Adds new {@link CUCorrectionProposal} using {@link #unit} and {@link #textEdits}.
    */
   private void addUnitCorrectionProposal(String label, Image image) {
-    addUnitCorrectionProposal(unit, label, image);
+    addUnitCorrectionProposal(unit, TextFileChange.LEAVE_DIRTY, label, image);
   }
 
   /**
