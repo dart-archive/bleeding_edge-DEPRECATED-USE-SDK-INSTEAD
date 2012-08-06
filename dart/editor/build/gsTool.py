@@ -36,7 +36,7 @@ def _BuildOptions():
     search your path for gsutil
 
     Examples:
-      cleanup Google Storage saving the last 100 (default value) revision
+      cleanup Google Storage saving the last 1000 (default value) revision
         python gsTool.py cleanup
 
       cleanup saving the last 150 revisions
@@ -50,7 +50,7 @@ def _BuildOptions():
 
   result = optparse.OptionParser(usage=usage)
   result.set_default('gsbucketuri', 'gs://dart-editor-archive-continuous')
-  result.set_default('keepcount', 100)
+  result.set_default('keepcount', 1000)
   result.set_default('dryrun', False)
   result.set_default('continuous', False)
   result.set_default('integration', False)
