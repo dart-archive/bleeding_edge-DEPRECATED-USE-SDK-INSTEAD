@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -27,6 +27,7 @@ import org.eclipse.core.resources.ResourceAttributes;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 
@@ -144,7 +145,15 @@ public class MockResource implements IResource {
 
   @Override
   public IPath getFullPath() {
-    return null;
+
+    IPath path = null;
+    if (name != null) {
+      path = new Path(name);
+    }
+    if (parent != null && parent.getFullPath() != null) {
+      path = parent.getFullPath().append(path);
+    }
+    return path;
   }
 
   @Override

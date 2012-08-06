@@ -973,6 +973,9 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
               this,
               libraryFile.getProject().getFile(new Path(path)),
               owner);
+          if (!unit.exists()) {
+            unit = new ExternalCompilationUnitImpl(this, path);
+          }
         } else {
           unit = new ExternalCompilationUnitImpl(this, path);
         }

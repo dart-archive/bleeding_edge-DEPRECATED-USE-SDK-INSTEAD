@@ -1098,7 +1098,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     if (!(obj instanceof CompilationUnitImpl)) {
       return false;
     }
-    return super.equals(obj);
+
+    return super.equals(obj) && getPath().equals(((CompilationUnitImpl) obj).getPath());
+
   }
 
   /**
@@ -1333,6 +1335,12 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       return null;
     }
     return super.getUnderlyingResource();
+  }
+
+  @Override
+  public int hashCode() {
+    return Util.combineHashCodes(getPath().hashCode(), super.hashCode());
+
   }
 
   @Override

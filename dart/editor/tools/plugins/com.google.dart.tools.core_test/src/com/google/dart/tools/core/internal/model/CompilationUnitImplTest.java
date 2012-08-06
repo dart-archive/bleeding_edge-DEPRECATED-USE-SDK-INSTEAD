@@ -26,7 +26,7 @@ public class CompilationUnitImplTest extends TestCase {
   }
 
   public void test_CompilationUnitImpl_getChildren_nonExistant() {
-    MockFile file = new MockFile(new MockProject());
+    MockFile file = new MockFile(new MockProject(), "test.dart");
     CompilationUnitImpl cu = new CompilationUnitImpl(
         (DartLibraryImpl) null,
         file,
@@ -79,7 +79,7 @@ public class CompilationUnitImplTest extends TestCase {
   }
 
   public void test_CompilationUnitImpl_getTypes_nonExistant() {
-    MockFile file = new MockFile(new MockProject());
+    MockFile file = new MockFile(new MockProject(), "test.dart");
     CompilationUnitImpl cu = new CompilationUnitImpl(
         (DartLibraryImpl) null,
         file,
