@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 vars = {
-  "gyp_rev": "@937",
+  "gyp_rev": "@1451",
   "co19_rev": "@290",
   "co19_repo": "http://co19.googlecode.com/svn/trunk/co19/",
   "chromium_url": "http://src.chromium.org/svn",
@@ -51,8 +51,8 @@ hooks = [
     "action": ["python", "dart/tools/generate_projects.py", "language"],
   },
   {
+    # A change to a .gyp, .gypi, or to GYP itself should run the generator.
     "pattern": ".",
-    "action": ["python", "dart/third_party/gyp/gyp", "--depth=dart",
-               "-Idart/tools/gyp/all.gypi", "dart/dart.gyp"],
-  },
+    "action": ["python", "dart/tools/gyp_dart.py"],
+  }
 ]
