@@ -1281,6 +1281,9 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       case 'e':
         smartIndentUponE(document, command);
         break;
+      case 't':
+        smartIndentUponT(document, command);
+        break;
       case ':':
         smartIndentUponColon(document, command);
     }
@@ -1297,7 +1300,8 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       int line = d.getLineOfOffset(p);
       int lineOffset = d.getLineOffset(line);
       // make sure we don't have any leading comments etc.
-      if (d.get(lineOffset, p - lineOffset).trim().length() != 0) {
+      String initialContent = d.get(lineOffset, p - lineOffset).trim();
+      if (initialContent.length() != 0) {
         return;
       }
       // previous of last code
@@ -1398,50 +1402,25 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       }
 
       if (content.equals("cas")) { //$NON-NLS-1$
-        DartHeuristicScanner scanner = new DartHeuristicScanner(d);
-        int p = c.offset - 3;
+        smartReindentSwitchCase(d, c, "case", 3);
+        return;
+      }
 
-        // current line
-        int line = d.getLineOfOffset(p);
-        int lineOffset = d.getLineOffset(line);
+    } catch (BadLocationException e) {
+      DartToolsPlugin.log(e);
+    }
+  }
 
-        // make sure we don't have any leading comments etc.
-        if (d.get(lineOffset, p - lineOffset).trim().length() != 0) {
-          return;
-        }
+  private void smartIndentUponT(IDocument d, DocumentCommand c) {
+    if (c.offset < 4 || d.getLength() == 0) {
+      return;
+    }
 
-        // line of last code
-        int pos = scanner.findNonWhitespaceBackward(p - 1, DartHeuristicScanner.UNBOUND);
-        if (pos == -1) {
-          return;
-        }
-        int lastLine = d.getLineOfOffset(pos);
+    try {
+      String content = d.get(c.offset - 6, 6);
 
-        // only shift if the last line is further up and is a brace-less block candidate
-        if (lastLine < line) {
-
-          DartIndenter indenter = new DartIndenter(d, scanner, fProject);
-          int ref = indenter.findReferencePosition(p, false, false, false, true);
-          if (ref == DartHeuristicScanner.NOT_FOUND) {
-            return;
-          }
-          int refLine = d.getLineOfOffset(ref);
-          int nextToken = scanner.nextToken(ref, DartHeuristicScanner.UNBOUND);
-          String indent;
-          if (nextToken == Symbols.TokenCASE || nextToken == Symbols.TokenDEFAULT) {
-            indent = getIndentOfLine(d, refLine);
-          } else {
-            // at the brace of the switch
-            indent = indenter.computeIndentation(p).toString();
-          }
-
-          if (indent != null) {
-            c.text = indent.toString() + "case"; //$NON-NLS-1$
-            c.length += c.offset - lineOffset;
-            c.offset = lineOffset;
-          }
-        }
-
+      if (content.equals("defaul")) { //$NON-NLS-1$
+        smartReindentSwitchCase(d, c, "default", 6); //$NON-NLS-1$
         return;
       }
 
@@ -1575,6 +1554,55 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       DartToolsPlugin.log(e);
     }
 
+  }
+
+  private void smartReindentSwitchCase(IDocument d, DocumentCommand c, String keyword, int delta)
+      throws BadLocationException {
+    DartHeuristicScanner scanner = new DartHeuristicScanner(d);
+    int p = c.offset - delta;
+
+    // current line
+    int line = d.getLineOfOffset(p);
+    int lineOffset = d.getLineOffset(line);
+
+    // make sure we don't have any leading comments etc.
+    if (d.get(lineOffset, p - lineOffset).trim().length() != 0) {
+      return;
+    }
+
+    // line of last code
+    int pos = scanner.findNonWhitespaceBackward(p - 1, DartHeuristicScanner.UNBOUND);
+    if (pos == -1) {
+      return;
+    }
+    int lastLine = d.getLineOfOffset(pos);
+
+    // only shift if the last line is further up and is a brace-less block candidate
+    if (lastLine < line) {
+
+      DartIndenter indenter = new DartIndenter(d, scanner, fProject);
+      int ref = indenter.findReferencePosition(p, false, false, false, true);
+      if (ref == DartHeuristicScanner.NOT_FOUND) {
+        return;
+      }
+      int refLine = d.getLineOfOffset(ref);
+      int nextToken = scanner.nextToken(ref, DartHeuristicScanner.UNBOUND);
+      String indent;
+      if (nextToken == Symbols.TokenCASE || nextToken == Symbols.TokenDEFAULT) {
+        indent = getIndentOfLine(d, refLine);
+      } else {
+        // at the brace of the switch
+        indent = indenter.computeIndentation(p).toString();
+      }
+
+      if (indent != null) {
+        c.text = indent.toString() + keyword; //$NON-NLS-1$
+        c.length += c.offset - lineOffset;
+        c.offset = lineOffset;
+      }
+    }
+
+    return;
   }
 
   /**
