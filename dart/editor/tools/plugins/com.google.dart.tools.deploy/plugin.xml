@@ -265,6 +265,10 @@
             content-type="org.eclipse.core.runtime.text"
             file-extensions="js">
       </file-association>
+       <file-association
+            content-type="org.eclipse.core.runtime.text"
+            file-extensions="py">
+      </file-association>
    </extension>
    
    <extension
