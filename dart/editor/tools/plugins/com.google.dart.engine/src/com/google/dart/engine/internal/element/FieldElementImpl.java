@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -42,8 +43,18 @@ public class FieldElementImpl extends VariableElementImpl implements FieldElemen
    * 
    * @param name the name of this element
    */
-  public FieldElementImpl(String name) {
+  public FieldElementImpl(Identifier name) {
     super(name);
+  }
+
+  /**
+   * Initialize a newly created synthetic field element to have the given name.
+   * 
+   * @param name the name of this element
+   */
+  public FieldElementImpl(String name) {
+    super(name, -1);
+    setSynthetic(true);
   }
 
   @Override

@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -34,11 +35,23 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
   public static final PropertyAccessorElement[] EMPTY_ARRAY = new PropertyAccessorElement[0];
 
   /**
+   * Initialize a newly created synthetic property accessor element to be associated with the given
+   * field.
+   * 
+   * @param name the name of this element
+   */
+  public PropertyAccessorElementImpl(FieldElementImpl field) {
+    super(field.getName(), -1);
+    this.field = field;
+    setSynthetic(true);
+  }
+
+  /**
    * Initialize a newly created property accessor element to have the given name.
    * 
    * @param name the name of this element
    */
-  public PropertyAccessorElementImpl(String name) {
+  public PropertyAccessorElementImpl(Identifier name) {
     super(name);
   }
 

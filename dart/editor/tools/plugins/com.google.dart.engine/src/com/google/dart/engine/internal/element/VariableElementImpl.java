@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.VariableElement;
@@ -37,8 +38,19 @@ public class VariableElementImpl extends ElementImpl implements VariableElement 
    * 
    * @param name the name of this element
    */
-  public VariableElementImpl(String name) {
+  public VariableElementImpl(Identifier name) {
     super(name);
+  }
+
+  /**
+   * Initialize a newly created variable element to have the given name.
+   * 
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  public VariableElementImpl(String name, int nameOffset) {
+    super(name, nameOffset);
   }
 
   @Override

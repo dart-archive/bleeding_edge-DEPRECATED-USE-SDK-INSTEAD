@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.ImportShowCombinator;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportCombinator;
@@ -65,7 +66,7 @@ public class LibraryElementBuilder {
     CompilationUnit definingCompilationUnit = getCompilationUnit(librarySource);
     CompilationUnitElementImpl definingCompilationUnitElement = builder.buildCompilationUnit(librarySource);
     NodeList<Directive> directives = definingCompilationUnit.getDirectives();
-    String libraryName = null;
+    Identifier libraryNameNode = null;
     FunctionElement entryPoint = findEntryPoint(definingCompilationUnitElement);
     ArrayList<ImportSpecification> imports = new ArrayList<ImportSpecification>();
     HashMap<String, PrefixElementImpl> nameToPrefixMap = new HashMap<String, PrefixElementImpl>();
@@ -73,8 +74,8 @@ public class LibraryElementBuilder {
     ArrayList<CompilationUnitElementImpl> sourcedCompilationUnits = new ArrayList<CompilationUnitElementImpl>();
     for (Directive directive : directives) {
       if (directive instanceof LibraryDirective) {
-        if (libraryName == null) {
-          libraryName = ((LibraryDirective) directive).getName().getName();
+        if (libraryNameNode == null) {
+          libraryNameNode = ((LibraryDirective) directive).getName();
         }
       } else if (directive instanceof ImportDirective) {
         ImportDirective importDirective = (ImportDirective) directive;
@@ -96,10 +97,11 @@ public class LibraryElementBuilder {
         specification.setExported(importDirective.getExportToken() != null);
         specification.setImportedLibrary(buildLibrary(source));
         if (importDirective.getPrefix() != null) {
-          String prefixName = importDirective.getPrefix().getName();
+          SimpleIdentifier prefixNode = importDirective.getPrefix();
+          String prefixName = prefixNode.getName();
           PrefixElementImpl prefix = nameToPrefixMap.get(prefixName);
           if (prefix == null) {
-            prefix = new PrefixElementImpl(prefixName);
+            prefix = new PrefixElementImpl(prefixNode);
             nameToPrefixMap.put(prefixName, prefix);
           }
           ArrayList<ImportSpecification> prefixedImports = prefixToImportMap.get(prefix);
@@ -121,7 +123,7 @@ public class LibraryElementBuilder {
       }
     }
 
-    LibraryElementImpl libraryElement = new LibraryElementImpl(libraryName);
+    LibraryElementImpl libraryElement = new LibraryElementImpl(libraryNameNode);
     libraryElement.setDefiningCompilationUnit(definingCompilationUnitElement);
     libraryElement.setEntryPoint(entryPoint);
     libraryElement.setImports(imports.toArray(new ImportSpecification[imports.size()]));

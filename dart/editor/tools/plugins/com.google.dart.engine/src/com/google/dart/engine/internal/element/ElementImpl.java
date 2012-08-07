@@ -13,9 +13,11 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.util.EnumSet;
 
@@ -36,6 +38,12 @@ public abstract class ElementImpl implements Element {
   private String name;
 
   /**
+   * The offset of the name of this element in the file that contains the declaration of this
+   * element.
+   */
+  private int nameOffset;
+
+  /**
    * A bit-encoded form of the modifiers associated with this element.
    */
   private EnumSet<Modifier> modifiers;
@@ -45,8 +53,20 @@ public abstract class ElementImpl implements Element {
    * 
    * @param name the name of this element
    */
-  public ElementImpl(String name) {
+  public ElementImpl(Identifier name) {
+    this(name == null ? "" : name.getName(), name == null ? -1 : name.getOffset());
+  }
+
+  /**
+   * Initialize a newly created element to have the given name.
+   * 
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  public ElementImpl(String name, int nameOffset) {
     this.name = name;
+    this.nameOffset = nameOffset;
     this.modifiers = EnumSet.noneOf(Modifier.class);
   }
 
@@ -56,7 +76,8 @@ public abstract class ElementImpl implements Element {
       return false;
     }
     ElementImpl other = (ElementImpl) object;
-    return equals(name, other.getName()) && equals(enclosingElement, other.getEnclosingElement());
+    return equals(name, other.getName()) && nameOffset == other.getNameOffset()
+        && equals(enclosingElement, other.getEnclosingElement());
   }
 
   @Override
@@ -90,8 +111,13 @@ public abstract class ElementImpl implements Element {
   }
 
   @Override
+  public int getNameOffset() {
+    return nameOffset;
+  }
+
+  @Override
   public int hashCode() {
-    return name.hashCode();
+    return ObjectUtilities.combineHashCodes(name.hashCode(), Math.max(0, nameOffset));
   }
 
   @Override

@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.TypeElement;
@@ -31,7 +32,7 @@ public class MethodElementImpl extends ExecutableElementImpl implements MethodEl
    * 
    * @param name the name of this element
    */
-  public MethodElementImpl(String name) {
+  public MethodElementImpl(Identifier name) {
     super(name);
   }
 

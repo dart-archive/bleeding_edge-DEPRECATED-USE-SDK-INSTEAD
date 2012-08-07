@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FunctionElement;
@@ -56,7 +57,7 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * 
    * @param name the name of this element
    */
-  public LibraryElementImpl(String name) {
+  public LibraryElementImpl(Identifier name) {
     super(name);
   }
 

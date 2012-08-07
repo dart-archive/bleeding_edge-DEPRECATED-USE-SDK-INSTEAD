@@ -83,6 +83,14 @@ public interface Element {
   public String getName();
 
   /**
+   * Return the offset of the name of this element in the file that contains the declaration of this
+   * element, or {@code -1} if this element is synthetic or otherwise does not have an offset.
+   * 
+   * @return the offset of the name of this element
+   */
+  public int getNameOffset();
+
+  /**
    * Return {@code true} if this element is synthetic. A synthetic element is an element that is not
    * represented in the source code explicitly, but is implied by the source code, such as the
    * default constructor for a class that does not explicitly define any constructors.

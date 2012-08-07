@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FunctionElement;
 
@@ -26,11 +27,19 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
   public static final FunctionElement[] EMPTY_ARRAY = new FunctionElement[0];
 
   /**
+   * Initialize a newly created synthetic function element.
+   */
+  public FunctionElementImpl() {
+    super("", -1);
+    setSynthetic(true);
+  }
+
+  /**
    * Initialize a newly created function element to have the given name.
    * 
    * @param name the name of this element
    */
-  public FunctionElementImpl(String name) {
+  public FunctionElementImpl(Identifier name) {
     super(name);
   }
 

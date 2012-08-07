@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.VariableElement;
@@ -58,8 +59,19 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
    * 
    * @param name the name of this element
    */
-  public ExecutableElementImpl(String name) {
+  public ExecutableElementImpl(Identifier name) {
     super(name);
+  }
+
+  /**
+   * Initialize a newly created executable element to have the given name.
+   * 
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  public ExecutableElementImpl(String name, int nameOffset) {
+    super(name, nameOffset);
   }
 
   @Override

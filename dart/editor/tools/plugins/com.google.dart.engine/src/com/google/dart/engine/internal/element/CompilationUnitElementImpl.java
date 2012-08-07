@@ -70,7 +70,8 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
    * @param name the name of this element
    */
   public CompilationUnitElementImpl(String name) {
-    super(name);
+    // Compilation units do not contain their own declaration.
+    super(name, -1);
   }
 
   @Override

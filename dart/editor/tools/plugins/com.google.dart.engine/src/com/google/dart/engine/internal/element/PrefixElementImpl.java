@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
@@ -36,7 +37,7 @@ public class PrefixElementImpl extends ElementImpl implements PrefixElement {
    * 
    * @param name the name of this element
    */
-  public PrefixElementImpl(String name) {
+  public PrefixElementImpl(Identifier name) {
     super(name);
   }
 

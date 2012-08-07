@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LabelElement;
@@ -31,7 +32,7 @@ public class LabelElementImpl extends ElementImpl implements LabelElement {
    * 
    * @param name the name of this element
    */
-  public LabelElementImpl(String name) {
+  public LabelElementImpl(Identifier name) {
     super(name);
   }
 
