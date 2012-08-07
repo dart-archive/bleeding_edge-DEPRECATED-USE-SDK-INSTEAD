@@ -336,13 +336,18 @@ public class Parser {
     if (matches(Keyword.VOID)) {
       return true;
     }
-    Token lookAhead = currentToken;
-    if (lookAhead.getType() == TokenType.IDENTIFIER) {
-      // TODO(brianwilkerson) This handles the optional name, but doesn't handle the optional return type.
-      lookAhead = lookAhead.getNext();
+    Token afterReturnType = skipReturnType(currentToken);
+    if (afterReturnType == null) {
+      // There was no return type, but it is optional, so go back to where we started.
+      afterReturnType = currentToken;
     }
-    if (lookAhead.getType() == TokenType.OPEN_PAREN) {
-      Token openParen = lookAhead;
+    Token afterIdentifier = skipSimpleIdentifier(afterReturnType);
+    if (afterIdentifier == null) {
+      // There was no name, so go back to the end of the return type
+      afterIdentifier = afterReturnType;
+    }
+    if (afterIdentifier.getType() == TokenType.OPEN_PAREN) {
+      Token openParen = afterIdentifier;
       if (openParen instanceof BeginToken) {
         Token closeParen = ((BeginToken) openParen).getEndToken();
         if (closeParen != null) {
@@ -398,29 +403,17 @@ public class Parser {
       // An expression cannot start with a keyword.
       return true;
     }
-    if (!matches(TokenType.IDENTIFIER)) {
+    if (!matchesIdentifier()) {
       // A variable declaration must start with either a keyword (handled above) or an identifier.
       return false;
     }
     // We know that we have an identifier, and need to see whether it might be a type name.
-    int index = 1;
-    if (peekMatches(index, TokenType.PERIOD)) {
-      index++;
-      if (peekMatches(index, TokenType.IDENTIFIER)) {
-        index++;
-      } else {
-        // This isn't a qualified name, so it can't be a type name.
-        return false;
-      }
-    }
-    if (peekMatches(index, TokenType.LT)) {
-      // TODO(brianwilkerson) Fix this.
-      // We're guessing that this is a type argument. It could be a less-than operator, but there is
-      // little or no utility in an expression with no side-effect, so rather than spend the time to
-      // parse type arguments we're risking a false positive.
+    Token token = skipTypeName(currentToken);
+    if (token == null) {
+      // There was no type name, so we just have an identifier.
       return true;
     }
-    return peekMatches(index, TokenType.IDENTIFIER);
+    return skipSimpleIdentifier(token) != null;
   }
 
   /**
@@ -433,8 +426,11 @@ public class Parser {
     while (token.getType() == TokenType.IDENTIFIER && token.getNext().getType() == TokenType.COLON) {
       token = token.getNext().getNext();
     }
-    return (token.getType() == TokenType.KEYWORD && ((KeywordToken) token).getKeyword() == Keyword.CASE)
-        || (token.getType() == TokenType.KEYWORD && ((KeywordToken) token).getKeyword() == Keyword.DEFAULT);
+    if (token.getType() == TokenType.KEYWORD) {
+      Keyword keyword = ((KeywordToken) token).getKeyword();
+      return keyword == Keyword.CASE || keyword == Keyword.DEFAULT;
+    }
+    return false;
   }
 
   /**
@@ -502,10 +498,7 @@ public class Parser {
    * 
    * @return {@code true} if the current token is a valid identifier
    */
-  @SuppressWarnings("unused")
   private boolean matchesIdentifier() {
-    // TODO(brianwilkerson) Use this in most of the places where matches(TokenType.IDENTIFIER) is
-    // currently being used.
     return matches(TokenType.IDENTIFIER)
         || (matches(TokenType.KEYWORD) && ((KeywordToken) currentToken).getKeyword().isPseudoKeyword());
   }
@@ -600,7 +593,7 @@ public class Parser {
     // Both namedArgument and expression can start with an identifier, but only namedArgument can
     // have an identifier followed by a colon.
     //
-    if (matches(TokenType.IDENTIFIER) && peekMatches(TokenType.COLON)) {
+    if (matchesIdentifier() && peekMatches(TokenType.COLON)) {
       SimpleIdentifier label = new SimpleIdentifier(getAndAdvance());
       Label name = new Label(label, getAndAdvance());
       return new NamedExpression(name, parseExpression());
@@ -856,7 +849,7 @@ public class Parser {
   private Statement parseBreakStatement() {
     Token breakKeyword = expect(Keyword.BREAK);
     SimpleIdentifier label = null;
-    if (matches(TokenType.IDENTIFIER)) {
+    if (matchesIdentifier()) {
       label = parseSimpleIdentifier();
     }
     if (!inLoop && !inSwitch && label == null) {
@@ -949,6 +942,7 @@ public class Parser {
     }
     Token keyword = expect(Keyword.CLASS);
     SimpleIdentifier name = parseSimpleIdentifier();
+    validateName(name, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
     TypeParameterList typeParameters = null;
     if (matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
@@ -1011,7 +1005,7 @@ public class Parser {
       externalKeyword = getAndAdvance();
     }
     if (matches(Keyword.CONST)) {
-      if (peekMatches(TokenType.IDENTIFIER)) {
+      if (peekMatchesIdentifier()) {
         if (peekMatches(2, TokenType.OPEN_PAREN)) {
           return parseConstantConstructor(comment, externalKeyword);
         } else if (peekMatches(2, TokenType.PERIOD) && peekMatches(4, TokenType.OPEN_PAREN)) {
@@ -1052,23 +1046,7 @@ public class Parser {
       }
       staticKeyword = getAndAdvance();
     }
-    if (matches(TokenType.IDENTIFIER)) {
-      if (peekMatches(TokenType.OPEN_PAREN)) {
-        if (staticKeyword != null) {
-          return parseMethodDeclaration(comment, externalKeyword, staticKeyword);
-        }
-        return parseMethodOrConstructor(comment, externalKeyword, staticKeyword, null);
-      } else if (peekMatches(TokenType.PERIOD) && peekMatches(3, TokenType.OPEN_PAREN)) {
-        return parseConstructor(
-            comment,
-            externalKeyword,
-            staticKeyword,
-            parseSimpleIdentifier(),
-            getAndAdvance(),
-            parseSimpleIdentifier(),
-            parseFormalParameterList());
-      }
-    } else if (matches(Keyword.VAR)) {
+    if (matches(Keyword.VAR)) {
       if (externalKeyword != null) {
         // reportError(ParserErrorCode.?);
       }
@@ -1082,6 +1060,26 @@ public class Parser {
         reportError(ParserErrorCode.OPERATOR_CANNOT_BE_STATIC, staticKeyword);
       }
       return parseOperator(comment, externalKeyword, null);
+    } else if (matchesIdentifier()) {
+      if (peekMatches(TokenType.OPEN_PAREN)) {
+        if (staticKeyword != null) {
+          return parseMethodDeclaration(comment, externalKeyword, staticKeyword);
+        }
+        return parseMethodOrConstructor(comment, externalKeyword, staticKeyword, null);
+      } else if (peekMatches(TokenType.PERIOD) && peekMatches(3, TokenType.OPEN_PAREN)) {
+        SimpleIdentifier returnType = parseSimpleIdentifier();
+        Token period = getAndAdvance();
+        SimpleIdentifier name = parseSimpleIdentifier();
+        validateName(name, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
+        return parseConstructor(
+            comment,
+            externalKeyword,
+            staticKeyword,
+            returnType,
+            period,
+            name,
+            parseFormalParameterList());
+      }
     }
     TypeName returnType = parseReturnType();
     if (matches(Keyword.GET)) {
@@ -1269,13 +1267,13 @@ public class Parser {
           expect(TokenType.SEMICOLON));
     } else if (matches(Keyword.GET) || matches(Keyword.SET)) {
       return parseFunctionDeclaration(comment, null);
-    } else if (matches(TokenType.IDENTIFIER) && peekMatches(TokenType.OPEN_PAREN)) {
+    } else if (matchesIdentifier() && peekMatches(TokenType.OPEN_PAREN)) {
       return parseFunctionDeclaration(comment, null);
     }
     TypeName returnType = parseReturnType();
     if (matches(Keyword.GET) || matches(Keyword.SET)) {
       return parseFunctionDeclaration(comment, returnType);
-    } else if (matches(TokenType.IDENTIFIER) && peekMatches(TokenType.OPEN_PAREN)) {
+    } else if (matchesIdentifier() && peekMatches(TokenType.OPEN_PAREN)) {
       return parseFunctionDeclaration(comment, returnType);
     }
     return new TopLevelVariableDeclaration(
@@ -1334,11 +1332,14 @@ public class Parser {
   private ConstructorDeclaration parseConstantConstructor(Comment comment, Token externalKeyword) {
     Token keyword = expect(Keyword.CONST);
     SimpleIdentifier returnType = parseSimpleIdentifier();
+    // TODO(brianwilkerson) Validate that the return type is the same name as the class in which
+    // the constructor is being declared.
     Token period = null;
     SimpleIdentifier name = null;
     if (matches(TokenType.PERIOD)) {
       period = getAndAdvance();
       name = parseSimpleIdentifier();
+      validateName(name, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
     }
     return parseConstructor(
         comment,
@@ -1456,7 +1457,7 @@ public class Parser {
       reportError(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, continueKeyword);
     }
     SimpleIdentifier label = null;
-    if (matches(TokenType.IDENTIFIER)) {
+    if (matchesIdentifier()) {
       label = parseSimpleIdentifier();
     }
     if (inSwitch && !inLoop && label == null) {
@@ -1768,15 +1769,13 @@ public class Parser {
     TypeName type = null;
     if (matches(Keyword.FINAL) || matches(Keyword.CONST)) {
       keyword = getAndAdvance();
-      if (peekMatches(TokenType.IDENTIFIER) || peekMatches(TokenType.LT)
-          || peekMatches(Keyword.THIS)) {
+      if (peekMatchesIdentifier() || peekMatches(TokenType.LT) || peekMatches(Keyword.THIS)) {
         type = parseTypeName();
       }
     } else if (matches(Keyword.VAR)) {
       keyword = getAndAdvance();
     } else {
-      if (peekMatches(TokenType.IDENTIFIER) || peekMatches(TokenType.LT)
-          || peekMatches(Keyword.THIS)) {
+      if (peekMatchesIdentifier() || peekMatches(TokenType.LT) || peekMatches(Keyword.THIS)) {
         type = parseReturnType();
       } else if (!optional) {
         // reportError(ParserErrorCode.?);
@@ -1893,9 +1892,11 @@ public class Parser {
       VariableDeclarationList variableList = null;
       Expression initialization = null;
       if (!matches(TokenType.SEMICOLON)) {
-        if (matches(TokenType.IDENTIFIER) && peekMatches(Keyword.IN)) {
+        if (matchesIdentifier() && peekMatches(Keyword.IN)) {
           List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
-          variables.add(new VariableDeclaration(null, parseSimpleIdentifier(), null, null));
+          SimpleIdentifier variableName = parseSimpleIdentifier();
+          validateName(variableName, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_VARIABLE_NAME);
+          variables.add(new VariableDeclaration(null, variableName, null, null));
           variableList = new VariableDeclarationList(null, null, variables);
         } else if (isInitializedVariableDeclaration()) {
           variableList = parseVariableDeclarationList();
@@ -2029,9 +2030,7 @@ public class Parser {
       keyword = getAndAdvance();
     }
     SimpleIdentifier name = parseSimpleIdentifier();
-    if (keyword != null && ((KeywordToken) keyword).getKeyword() == Keyword.SET) {
-      expect(TokenType.EQ);
-    }
+    validateName(name, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
     FormalParameterList parameters = parseFormalParameterList();
     FunctionBody body = parseFunctionBody(false, false);
     return new FunctionDeclaration(comment, keyword, new FunctionExpression(
@@ -2074,12 +2073,13 @@ public class Parser {
   private FunctionExpression parseFunctionExpression() {
     TypeName returnType = null;
     if (matches(Keyword.VOID)
-        || (matches(TokenType.IDENTIFIER) && (peekMatches(TokenType.IDENTIFIER) || peekMatches(TokenType.LT)))) {
+        || (matchesIdentifier() && (peekMatchesIdentifier() || peekMatches(TokenType.LT)))) {
       returnType = parseReturnType();
     }
     SimpleIdentifier name = null;
-    if (matches(TokenType.IDENTIFIER)) {
+    if (matchesIdentifier()) {
       name = parseSimpleIdentifier();
+      validateName(name, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
     }
     FormalParameterList parameters = parseFormalParameterList();
     FunctionBody body = parseFunctionBody(false, true);
@@ -2108,6 +2108,7 @@ public class Parser {
       Token staticKeyword, TypeName returnType) {
     Token propertyKeyword = expect(Keyword.GET);
     SimpleIdentifier name = parseSimpleIdentifier();
+    validateName(name, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
     if (matches(TokenType.OPEN_PAREN) && peekMatches(TokenType.CLOSE_PAREN)) {
       // reportError(ParserErrorCode.GETTER_WITH_PARAMETERS);
       advance();
@@ -2384,7 +2385,10 @@ public class Parser {
    * @return the list or map literal that was parsed
    */
   private TypedLiteral parseListOrMapLiteral(Token modifier) {
-    TypeArgumentList typeArguments = parseTypeArgumentList();
+    TypeArgumentList typeArguments = null;
+    if (matches(TokenType.LT)) {
+      typeArguments = parseTypeArgumentList();
+    }
     if (matches(TokenType.OPEN_CURLY_BRACKET)) {
       return parseMapLiteral(modifier, typeArguments);
     } else if (matches(TokenType.OPEN_SQUARE_BRACKET) || matches(TokenType.INDEX)) {
@@ -2441,6 +2445,10 @@ public class Parser {
    *     'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
    * </pre>
    * 
+   * @param modifier the 'const' modifier appearing before the literal, or {@code null} if there is
+   *          no modifier
+   * @param typeArguments the type arguments that were declared, or {@code null} if there are no
+   *          type arguments
    * @return the map literal that was parsed
    */
   private MapLiteral parseMapLiteral(Token modifier, TypeArgumentList typeArguments) {
@@ -2498,6 +2506,7 @@ public class Parser {
       returnType = parseReturnType();
     }
     SimpleIdentifier name = parseSimpleIdentifier();
+    validateName(name, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
     FormalParameterList parameters = parseFormalParameterList();
     FunctionBody body = parseFunctionBody(staticKeyword == null, false);
     if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
@@ -2548,6 +2557,7 @@ public class Parser {
       }
       Token period = getAndAdvance();
       SimpleIdentifier name = parseSimpleIdentifier();
+      validateName(name, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
       FormalParameterList parameters = parseFormalParameterList();
       return parseConstructor(
           comment,
@@ -2559,6 +2569,7 @@ public class Parser {
           parameters);
     }
     SimpleIdentifier name = parseSimpleIdentifier();
+    validateName(name, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
     FormalParameterList parameters = parseFormalParameterList();
     if (matches(TokenType.COLON)) {
       if (staticKeyword != null) {
@@ -2960,7 +2971,7 @@ public class Parser {
       return parseMapLiteral(null, null);
     } else if (matches(TokenType.OPEN_SQUARE_BRACKET) || matches(TokenType.INDEX)) {
       return parseListLiteral(null, null);
-    } else if (matches(TokenType.IDENTIFIER)) {
+    } else if (matchesIdentifier()) {
       return parsePrefixedIdentifier();
     } else if (matches(Keyword.NEW)) {
       return parseNewExpression();
@@ -3123,6 +3134,7 @@ public class Parser {
       Token staticKeyword, TypeName returnType) {
     Token propertyKeyword = expect(Keyword.SET);
     SimpleIdentifier name = parseSimpleIdentifier();
+    validateName(name, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
     FormalParameterList parameters = parseFormalParameterList();
     FunctionBody body = parseFunctionBody(true, false);
     if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
@@ -3176,10 +3188,7 @@ public class Parser {
    * @return the simple identifier that was parsed
    */
   private SimpleIdentifier parseSimpleIdentifier() {
-    if (matches(TokenType.IDENTIFIER)) {
-      return new SimpleIdentifier(getAndAdvance());
-    } else if (matches(TokenType.KEYWORD)
-        && ((KeywordToken) currentToken).getKeyword().isPseudoKeyword()) {
+    if (matchesIdentifier()) {
       return new SimpleIdentifier(getAndAdvance());
     }
     reportError(ParserErrorCode.EXPECTED_IDENTIFIER);
@@ -3198,8 +3207,9 @@ public class Parser {
    */
   private Statement parseStatement() {
     List<Label> labels = new ArrayList<Label>();
-    while (matches(TokenType.IDENTIFIER) && peekMatches(TokenType.COLON)) {
+    while (matchesIdentifier() && peekMatches(TokenType.COLON)) {
       SimpleIdentifier label = parseSimpleIdentifier();
+      validateName(label, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_LABEL);
       Token colon = expect(TokenType.COLON);
       labels.add(new Label(label, colon));
     }
@@ -3343,8 +3353,9 @@ public class Parser {
       ArrayList<SwitchMember> members = new ArrayList<SwitchMember>();
       while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)) {
         List<Label> labels = new ArrayList<Label>();
-        while (matches(TokenType.IDENTIFIER) && peekMatches(TokenType.COLON)) {
+        while (matchesIdentifier() && peekMatches(TokenType.COLON)) {
           SimpleIdentifier identifier = parseSimpleIdentifier();
+          validateName(identifier, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_LABEL);
           Token colon = expect(TokenType.COLON);
           labels.add(new Label(identifier, colon));
         }
@@ -3508,7 +3519,7 @@ public class Parser {
    *     type (',' type)*
    * </pre>
    * 
-   * @return the type name that was parsed
+   * @return the type argument list that was parsed
    */
   private TypeArgumentList parseTypeArgumentList() {
     Token leftBracket = expect(TokenType.LT);
@@ -3658,6 +3669,7 @@ public class Parser {
   private VariableDeclaration parseVariableDeclaration() {
     Comment localComment = parseDocumentationComment();
     SimpleIdentifier name = parseSimpleIdentifier();
+    validateName(name, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_VARIABLE_NAME);
     Token equals = null;
     Expression initializer = null;
     if (matches(TokenType.EQ)) {
@@ -3810,6 +3822,17 @@ public class Parser {
   }
 
   /**
+   * Return {@code true} if the token after the current token is a valid identifier. Valid
+   * identifiers include built-in identifiers (pseudo-keywords).
+   * 
+   * @return {@code true} if the token after the current token is a valid identifier
+   */
+  private boolean peekMatchesIdentifier() {
+    return peekMatches(TokenType.IDENTIFIER)
+        || (peekMatches(TokenType.KEYWORD) && ((KeywordToken) currentToken.getNext()).getKeyword().isPseudoKeyword());
+  }
+
+  /**
    * Report an error with the given error code and arguments.
    * 
    * @param errorCode the error code of the error to be reported
@@ -3833,6 +3856,81 @@ public class Parser {
         token.getLength(),
         errorCode,
         arguments));
+  }
+
+  /**
+   * Parse a prefixed identifier, starting at the given token, without actually creating a prefixed
+   * identifier or changing the current token. Return the token following the prefixed identifier
+   * that was parsed, or {@code null} if the given token is not the first token in a valid prefixed
+   * identifier.
+   * <p>
+   * This method must be kept in sync with {@link #parsePrefixedIdentifier()}.
+   * 
+   * <pre>
+   * prefixedIdentifier ::=
+   *     identifier ('.' identifier)?
+   * </pre>
+   * 
+   * @param startToken the token at which parsing is to begin
+   * @return the token following the prefixed identifier that was parsed
+   */
+  private Token skipPrefixedIdentifier(Token startToken) {
+    Token token = skipSimpleIdentifier(startToken);
+    if (token == null) {
+      return null;
+    } else if (token.getType() != TokenType.PERIOD) {
+      return token;
+    }
+    return skipSimpleIdentifier(token.getNext());
+  }
+
+  /**
+   * Parse a return type, starting at the given token, without actually creating a return type or
+   * changing the current token. Return the token following the return type that was parsed, or
+   * {@code null} if the given token is not the first token in a valid return type.
+   * <p>
+   * This method must be kept in sync with {@link #parseReturnType()}.
+   * 
+   * <pre>
+   * returnType ::=
+   *     'void'
+   *   | type
+   * </pre>
+   * 
+   * @param startToken the token at which parsing is to begin
+   * @return the token following the return type that was parsed
+   */
+  private Token skipReturnType(Token startToken) {
+    if (startToken.getType() == TokenType.KEYWORD
+        && ((KeywordToken) startToken).getKeyword() == Keyword.VOID) {
+      return startToken.getNext();
+    } else {
+      return skipTypeName(startToken);
+    }
+  }
+
+  /**
+   * Parse a simple identifier, starting at the given token, without actually creating a simple
+   * identifier or changing the current token. Return the token following the simple identifier that
+   * was parsed, or {@code null} if the given token is not the first token in a valid simple
+   * identifier.
+   * <p>
+   * This method must be kept in sync with {@link #parseSimpleIdentifier()}.
+   * 
+   * <pre>
+   * identifier ::=
+   *     IDENTIFIER
+   * </pre>
+   * 
+   * @param startToken the token at which parsing is to begin
+   * @return the token following the simple identifier that was parsed
+   */
+  private Token skipSimpleIdentifier(Token startToken) {
+    if (startToken.getType() == TokenType.IDENTIFIER || (startToken.getType() == TokenType.KEYWORD)
+        && ((KeywordToken) startToken).getKeyword().isPseudoKeyword()) {
+      return startToken.getNext();
+    }
+    return null;
   }
 
   /**
@@ -3923,6 +4021,81 @@ public class Parser {
     }
     if (token == startToken) {
       return null;
+    }
+    return token;
+  }
+
+  /**
+   * Parse a list of type arguments, starting at the given token, without actually creating a type argument list
+   * or changing the current token. Return the token following the type argument list that was parsed,
+   * or {@code null} if the given token is not the first token in a valid type argument list.
+   * <p>
+   * This method must be kept in sync with {@link #parseTypeArgumentList()}.
+   * 
+   * <pre>
+   * typeArguments ::=
+   *     '<' typeList '>'
+   * 
+   * typeList ::=
+   *     type (',' type)*
+   * </pre>
+   * 
+   * @param startToken the token at which parsing is to begin
+   * @return the token following the type argument list that was parsed
+   */
+  private Token skipTypeArgumentList(Token startToken) {
+    Token token = startToken;
+    if (token.getType() != TokenType.LT) {
+      return null;
+    }
+    token = skipTypeName(token.getNext());
+    if (token == null) {
+      return null;
+    }
+    while (token.getType() == TokenType.COMMA) {
+      token = skipTypeName(token.getNext());
+      if (token == null) {
+        return null;
+      }
+    }
+    if (token.getType() == TokenType.GT) {
+      return token.getNext();
+    } else if (token.getType() == TokenType.GT_GT) {
+      Token second = new Token(TokenType.GT, token.getOffset() + 1);
+      second.setNextWithoutSettingPrevious(token.getNext());
+      return second;
+    } else if (token.getType() == TokenType.GT_GT_GT) {
+      Token second = new Token(TokenType.GT, token.getOffset() + 1);
+      Token third = new Token(TokenType.GT, token.getOffset() + 2);
+      third.setNextWithoutSettingPrevious(token.getNext());
+      second.setNextWithoutSettingPrevious(third);
+      return second;
+    }
+    return null;
+  }
+
+  /**
+   * Parse a type name, starting at the given token, without actually creating a type name or
+   * changing the current token. Return the token following the type name that was parsed, or
+   * {@code null} if the given token is not the first token in a valid type name.
+   * <p>
+   * This method must be kept in sync with {@link #parseTypeName()}.
+   * 
+   * <pre>
+   * type ::=
+   *     qualified typeArguments?
+   * </pre>
+   * 
+   * @param startToken the token at which parsing is to begin
+   * @return the token following the type name that was parsed
+   */
+  private Token skipTypeName(Token startToken) {
+    Token token = skipPrefixedIdentifier(startToken);
+    if (token == null) {
+      return null;
+    }
+    if (token.getType() == TokenType.LT) {
+      token = skipTypeArgumentList(token);
     }
     return token;
   }
@@ -4056,5 +4229,23 @@ public class Parser {
       builder.append(currentChar);
     }
     return currentIndex + 1;
+  }
+
+  /**
+   * Validate that the given name is a valid name. It is sometimes and error and sometimes a warning
+   * if a built-in identifier is used in place of an identifier. Generate the appropriate error if
+   * the name is a built-in identifier.
+   * 
+   * @param name the name being tested
+   * @param dynamicAllowed {@code true} if the built-in identifier "Dynamic" is allowed
+   * @param errorCode the error code to use if the name is a built-in identifier.
+   */
+  private void validateName(SimpleIdentifier name, boolean dynamicAllowed, ParserErrorCode errorCode) {
+    Token token = name.getToken();
+    if (token.getType() == TokenType.KEYWORD) {
+      reportError(errorCode, token);
+    } else if (!dynamicAllowed && token.getLexeme().equals("Dynamic")) {
+      reportError(errorCode, token);
+    }
   }
 }

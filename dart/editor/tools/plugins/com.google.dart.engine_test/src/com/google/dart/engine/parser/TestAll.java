@@ -21,10 +21,10 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(com.google.dart.engine.parser.ComplexParserTest.class);
-    suite.addTestSuite(com.google.dart.engine.parser.ErrorParserTest.class);
-    suite.addTestSuite(com.google.dart.engine.parser.RecoveryParserTest.class);
-    suite.addTestSuite(com.google.dart.engine.parser.SimpleParserTest.class);
+    suite.addTestSuite(ComplexParserTest.class);
+    suite.addTestSuite(ErrorParserTest.class);
+    suite.addTestSuite(RecoveryParserTest.class);
+    suite.addTestSuite(SimpleParserTest.class);
     return suite;
   }
 }

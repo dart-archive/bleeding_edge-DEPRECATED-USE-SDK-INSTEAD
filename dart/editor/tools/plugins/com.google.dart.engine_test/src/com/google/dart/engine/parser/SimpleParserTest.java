@@ -158,12 +158,7 @@ public class SimpleParserTest extends ParserTestCase {
     Parser parser = new Parser(null, listener);
     Method skipMethod = Parser.class.getDeclaredMethod(methodName, new Class[] {Token.class});
     skipMethod.setAccessible(true);
-    Object result = skipMethod.invoke(parser, new Object[] {tokenStream});
-    //
-    // Partially test the results.
-    //
-    assertNotNull(result);
-    return (Token) result;
+    return (Token) skipMethod.invoke(parser, new Object[] {tokenStream});
   }
 
   public void test_computeStringValue_escape_b() throws Exception {
@@ -226,6 +221,42 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals("two\\nlines", computeStringValue("@'two\\nlines'"));
   }
 
+  public void test_isFunctionExpression_false() throws Exception {
+    assertFalse(isFunctionExpression("f();"));
+  }
+
+  public void test_isFunctionExpression_nameButNoReturn_block() throws Exception {
+    assertTrue(isFunctionExpression("f() {}"));
+  }
+
+  public void test_isFunctionExpression_nameButNoReturn_expression() throws Exception {
+    assertTrue(isFunctionExpression("f() => e"));
+  }
+
+  public void test_isFunctionExpression_noName_block() throws Exception {
+    assertTrue(isFunctionExpression("() {}"));
+  }
+
+  public void test_isFunctionExpression_noName_expression() throws Exception {
+    assertTrue(isFunctionExpression("() => e"));
+  }
+
+  public void test_isFunctionExpression_normalReturn_block() throws Exception {
+    assertTrue(isFunctionExpression("C f() {}"));
+  }
+
+  public void test_isFunctionExpression_normalReturn_expression() throws Exception {
+    assertTrue(isFunctionExpression("C f() => e"));
+  }
+
+  public void test_isFunctionExpression_voidReturn_block() throws Exception {
+    assertTrue(isFunctionExpression("void f() {}"));
+  }
+
+  public void test_isFunctionExpression_voidReturn_expression() throws Exception {
+    assertTrue(isFunctionExpression("void f() => e"));
+  }
+
   public void test_isInitializedVariableDeclaration_assignment() throws Exception {
     assertFalse(isInitializedVariableDeclaration("a = null;"));
   }
@@ -274,6 +305,26 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_isInitializedVariableDeclaration_simpleType_uninitialized() throws Exception {
     assertTrue(isInitializedVariableDeclaration("int a;"));
+  }
+
+  public void test_isSwitchMember_case_labeled() throws Exception {
+    assertTrue(isSwitchMember("l1: l2: case"));
+  }
+
+  public void test_isSwitchMember_case_unlabeled() throws Exception {
+    assertTrue(isSwitchMember("case"));
+  }
+
+  public void test_isSwitchMember_default_labeled() throws Exception {
+    assertTrue(isSwitchMember("l1: l2: default"));
+  }
+
+  public void test_isSwitchMember_default_unlabeled() throws Exception {
+    assertTrue(isSwitchMember("default"));
+  }
+
+  public void test_isSwitchMember_false() throws Exception {
+    assertFalse(isSwitchMember("break;"));
   }
 
   public void test_parseAdditiveExpression_normal() throws Exception {
@@ -814,13 +865,13 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseCompilationUnitMember_setter_noType() throws Exception {
-    FunctionDeclaration declaration = parse("parseCompilationUnitMember", "set p=(v) {}");
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember", "set p(v) {}");
     assertNotNull(declaration.getFunctionExpression());
     assertNotNull(declaration.getPropertyKeyword());
   }
 
   public void test_parseCompilationUnitMember_setter_type() throws Exception {
-    FunctionDeclaration declaration = parse("parseCompilationUnitMember", "void set p=(int v) {}");
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember", "void set p(int v) {}");
     assertNotNull(declaration.getFunctionExpression());
     assertNotNull(declaration.getPropertyKeyword());
   }
@@ -1503,7 +1554,7 @@ public class SimpleParserTest extends ParserTestCase {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     FunctionDeclaration declaration = parse("parseFunctionDeclaration", new Class[] {
-        Comment.class, TypeName.class}, new Object[] {comment, returnType}, "set p=(v) {}");
+        Comment.class, TypeName.class}, new Object[] {comment, returnType}, "set p(v) {}");
     assertEquals(comment, declaration.getDocumentationComment());
     FunctionExpression expression = declaration.getFunctionExpression();
     assertNotNull(expression);
@@ -2348,7 +2399,14 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getRightOperand());
   }
 
-  public void test_parseSimpleIdentifier() throws Exception {
+  public void test_parseSimpleIdentifier_builtInIdentifier() throws Exception {
+    String lexeme = "as";
+    SimpleIdentifier identifier = parse("parseSimpleIdentifier", lexeme);
+    assertNotNull(identifier.getToken());
+    assertEquals(lexeme, identifier.getName());
+  }
+
+  public void test_parseSimpleIdentifier_normalIdentifier() throws Exception {
     String lexeme = "foo";
     SimpleIdentifier identifier = parse("parseSimpleIdentifier", lexeme);
     assertNotNull(identifier.getToken());
@@ -2872,18 +2930,111 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getBody());
   }
 
+  public void test_skipPrefixedIdentifier_invalid() throws Exception {
+    Token following = skip("skipPrefixedIdentifier", "+");
+    assertNull(following);
+  }
+
+  public void test_skipPrefixedIdentifier_notPrefixed() throws Exception {
+    Token following = skip("skipPrefixedIdentifier", "a +");
+    assertNotNull(following);
+    assertEquals(TokenType.PLUS, following.getType());
+  }
+
+  public void test_skipPrefixedIdentifier_prefixed() throws Exception {
+    Token following = skip("skipPrefixedIdentifier", "a.b +");
+    assertNotNull(following);
+    assertEquals(TokenType.PLUS, following.getType());
+  }
+
+  public void test_skipReturnType_invalid() throws Exception {
+    Token following = skip("skipReturnType", "+");
+    assertNull(following);
+  }
+
+  public void test_skipReturnType_type() throws Exception {
+    Token following = skip("skipReturnType", "C +");
+    assertNotNull(following);
+    assertEquals(TokenType.PLUS, following.getType());
+  }
+
+  public void test_skipReturnType_void() throws Exception {
+    Token following = skip("skipReturnType", "void +");
+    assertNotNull(following);
+    assertEquals(TokenType.PLUS, following.getType());
+  }
+
+  public void test_skipSimpleIdentifier_identifier() throws Exception {
+    Token following = skip("skipSimpleIdentifier", "i +");
+    assertNotNull(following);
+    assertEquals(TokenType.PLUS, following.getType());
+  }
+
+  public void test_skipSimpleIdentifier_invalid() throws Exception {
+    Token following = skip("skipSimpleIdentifier", "9 +");
+    assertNull(following);
+  }
+
+  public void test_skipSimpleIdentifier_pseudoKeyword() throws Exception {
+    Token following = skip("skipSimpleIdentifier", "as +");
+    assertNotNull(following);
+    assertEquals(TokenType.PLUS, following.getType());
+  }
+
   public void test_skipStringLiteral_adjacent() throws Exception {
     Token following = skip("skipStringLiteral", "'a' 'b' +");
+    assertNotNull(following);
     assertEquals(TokenType.PLUS, following.getType());
   }
 
   public void test_skipStringLiteral_interpolated() throws Exception {
     Token following = skip("skipStringLiteral", "'a${b}c' +");
+    assertNotNull(following);
     assertEquals(TokenType.PLUS, following.getType());
+  }
+
+  public void test_skipStringLiteral_invalid() throws Exception {
+    Token following = skip("skipStringLiteral", "a");
+    assertNull(following);
   }
 
   public void test_skipStringLiteral_single() throws Exception {
     Token following = skip("skipStringLiteral", "'a' +");
+    assertNotNull(following);
+    assertEquals(TokenType.PLUS, following.getType());
+  }
+
+  public void test_skipTypeArgumentList_invalid() throws Exception {
+    Token following = skip("skipTypeArgumentList", "+");
+    assertNull(following);
+  }
+
+  public void test_skipTypeArgumentList_multiple() throws Exception {
+    Token following = skip("skipTypeArgumentList", "<E, F, G> +");
+    assertNotNull(following);
+    assertEquals(TokenType.PLUS, following.getType());
+  }
+
+  public void test_skipTypeArgumentList_single() throws Exception {
+    Token following = skip("skipTypeArgumentList", "<E> +");
+    assertNotNull(following);
+    assertEquals(TokenType.PLUS, following.getType());
+  }
+
+  public void test_skipTypeName_invalid() throws Exception {
+    Token following = skip("skipTypeName", "+");
+    assertNull(following);
+  }
+
+  public void test_skipTypeName_parameterized() throws Exception {
+    Token following = skip("skipTypeName", "C<E<F<G>>> +");
+    assertNotNull(following);
+    assertEquals(TokenType.PLUS, following.getType());
+  }
+
+  public void test_skipTypeName_simple() throws Exception {
+    Token following = skip("skipTypeName", "C +");
+    assertNotNull(following);
     assertEquals(TokenType.PLUS, following.getType());
   }
 
@@ -2909,6 +3060,19 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   /**
+   * Invoke the method {@link Parser#isFunctionExpression()} with the parser set to the token stream
+   * produced by scanning the given source.
+   * 
+   * @param source the source to be scanned to produce the token stream being tested
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   */
+  private boolean isFunctionExpression(String source) throws Exception {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    return invokeParserMethod("isFunctionExpression", source, listener);
+  }
+
+  /**
    * Invoke the method {@link Parser#isInitializedVariableDeclaration()} with the parser set to the
    * token stream produced by scanning the given source.
    * 
@@ -2919,5 +3083,18 @@ public class SimpleParserTest extends ParserTestCase {
   private boolean isInitializedVariableDeclaration(String source) throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
     return invokeParserMethod("isInitializedVariableDeclaration", source, listener);
+  }
+
+  /**
+   * Invoke the method {@link Parser#isSwitchMember()} with the parser set to the token stream
+   * produced by scanning the given source.
+   * 
+   * @param source the source to be scanned to produce the token stream being tested
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   */
+  private boolean isSwitchMember(String source) throws Exception {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    return invokeParserMethod("isSwitchMember", source, listener);
   }
 }

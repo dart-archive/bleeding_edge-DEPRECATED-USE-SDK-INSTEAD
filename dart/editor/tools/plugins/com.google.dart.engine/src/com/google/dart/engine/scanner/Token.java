@@ -146,7 +146,8 @@ public class Token {
   }
 
   /**
-   * Set the next token in the token stream to the given token.
+   * Set the next token in the token stream to the given token. This has the side-effect of setting
+   * this token to be the previous token for the given token.
    * 
    * @param token the next token in the token stream
    * @return the token that was passed in
@@ -154,6 +155,18 @@ public class Token {
   public Token setNext(Token token) {
     next = token;
     token.setPrevious(this);
+    return token;
+  }
+
+  /**
+   * Set the next token in the token stream to the given token without changing which token is the
+   * previous token for the given token.
+   * 
+   * @param token the next token in the token stream
+   * @return the token that was passed in
+   */
+  public Token setNextWithoutSettingPrevious(Token token) {
+    next = token;
     return token;
   }
 
