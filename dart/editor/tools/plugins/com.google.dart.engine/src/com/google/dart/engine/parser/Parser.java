@@ -3372,7 +3372,10 @@ public class Parser {
           // We need to advance, otherwise we could end up in an infinite loop, but this could be a
           // lot smarter about recovering from the error.
           reportError(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT);
-          getAndAdvance();
+          while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)
+              && !matches(Keyword.CASE) && !matches(Keyword.DEFAULT)) {
+            getAndAdvance();
+          }
         }
       }
       Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
@@ -3499,6 +3502,7 @@ public class Parser {
       returnType = parseReturnType();
     }
     SimpleIdentifier name = parseSimpleIdentifier();
+    validateName(name, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     TypeParameterList typeParameters = null;
     if (matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
@@ -3563,6 +3567,7 @@ public class Parser {
    */
   private TypeParameter parseTypeParameter() {
     SimpleIdentifier name = parseSimpleIdentifier();
+    validateName(name, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
     if (matches(Keyword.EXTENDS)) {
       Token keyword = getAndAdvance();
       TypeName bound = parseTypeName();

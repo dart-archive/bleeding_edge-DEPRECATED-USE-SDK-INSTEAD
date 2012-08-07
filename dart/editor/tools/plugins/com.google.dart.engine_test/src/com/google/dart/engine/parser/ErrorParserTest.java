@@ -25,7 +25,6 @@ import com.google.dart.engine.scanner.Token;
  * that errors are correctly reported, and in some cases, not reported.
  */
 public class ErrorParserTest extends ParserTestCase {
-
   public void fail_expectedListOrMapLiteral() throws Exception {
     TypedLiteral literal = parse(
         "parseListOrMapLiteral",
@@ -105,8 +104,16 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.BUILT_IN_IDENTIFIER_AS_LABEL);
   }
 
+  public void test_builtInIdentifierAsTypeDefName() throws Exception {
+    parse("parseTypeAlias", "typedef as();", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+  }
+
   public void test_builtInIdentifierAsTypeName() throws Exception {
     parse("parseClassDeclaration", "class as {}", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+  }
+
+  public void test_builtInIdentifierAsTypeVariableName() throws Exception {
+    parse("parseTypeParameter", "as", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
   }
 
   public void test_builtInIdentifierAsVariableName_for() throws Exception {
@@ -118,6 +125,14 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_builtInIdentifierAsVariableName_variable() throws Exception {
     parse("parseVariableDeclaration", "as", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_VARIABLE_NAME);
+  }
+
+  public void test_catchOrFinallyExpected() throws Exception {
+    TryStatement statement = parse(
+        "parseTryStatement",
+        "try {}",
+        ParserErrorCode.CATCH_OR_FINALLY_EXPECTED);
+    assertNotNull(statement);
   }
 
   public void test_continueInCaseMustHaveLabel_error() throws Exception {
@@ -179,12 +194,8 @@ public class ErrorParserTest extends ParserTestCase {
     assertNotNull(unit);
   }
 
-  public void test_expectedCatchOrFinallyExpected() throws Exception {
-    TryStatement statement = parse(
-        "parseTryStatement",
-        "try {}",
-        ParserErrorCode.CATCH_OR_FINALLY_EXPECTED);
-    assertNotNull(statement);
+  public void test_expectedCaseOrDefault() throws Exception {
+    parse("parseSwitchStatement", "switch (e) {break;}", ParserErrorCode.EXPECTED_CASE_OR_DEFAULT);
   }
 
   public void test_expectedIdentifier_number() throws Exception {
@@ -201,6 +212,10 @@ public class ErrorParserTest extends ParserTestCase {
         "1",
         ParserErrorCode.EXPECTED_STRING_LITERAL);
     assertTrue(expression.isSynthetic());
+  }
+
+  public void test_noUnaryPlusOperator() throws Exception {
+    parse("parseUnaryExpression", "+x", ParserErrorCode.NO_UNARY_PLUS_OPERATOR);
   }
 
   public void test_onlyOneLibraryDirective() throws Exception {
@@ -232,12 +247,7 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE);
   }
 
-  public void test_parseUnaryExpression_noUnaryPlusOperator() throws Exception {
-    parse("parseUnaryExpression", "+x", ParserErrorCode.NO_UNARY_PLUS_OPERATOR);
-  }
-
   public void test_positionalAfterNamedArgument() throws Exception {
     parse("parseArgumentList", "(x: 1, 2)", ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
   }
-
 }
