@@ -22,7 +22,7 @@ class Tape {
     if (number != "." && number != "-" && number != "-.") {
       try {
         numberAsValue = Math.parseDouble(number.length == 0 ? "0" : number);
-      } catch (final BadNumberFormatException e) {
+      } catch (final FormatException e) {
         displayError(e.toString());
         return;
       }
@@ -213,10 +213,10 @@ class Tape {
 
   void clearTotal() {
     final element = new Element.tag('div');
-  
+
     element.innerHTML = tapeUI.clearCalculation();
     tapeUI.tape.elements.add(element.elements[0]);
-  
+
     scrollToTapeBottom();
   }
 
