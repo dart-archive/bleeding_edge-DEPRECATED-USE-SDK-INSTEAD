@@ -235,7 +235,11 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
 
   @Override
   public void selectReveal(ISelection selection) {
-    treeViewer.setSelection(selection, true);
+    try {
+      treeViewer.setSelection(selection, true);
+    } catch (NullPointerException ex) {
+      // ignore resource creation -- those files are not in apps view
+    }
   }
 
   @Override
