@@ -70,7 +70,7 @@ public class SimpleStringLiteral extends StringLiteral {
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
-    return visitor.visitSingleStringLiteral(this);
+    return visitor.visitSimpleStringLiteral(this);
   }
 
   @Override

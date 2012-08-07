@@ -543,7 +543,7 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitSingleStringLiteral(SimpleStringLiteral node) {
+  public R visitSimpleStringLiteral(SimpleStringLiteral node) {
     node.visitChildren(this);
     return null;
   }
@@ -615,7 +615,7 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitTypeArguments(TypeArgumentList node) {
+  public R visitTypeArgumentList(TypeArgumentList node) {
     node.visitChildren(this);
     return null;
   }

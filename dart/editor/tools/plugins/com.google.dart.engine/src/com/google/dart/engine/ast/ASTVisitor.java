@@ -160,7 +160,7 @@ public interface ASTVisitor<R> {
 
   public R visitSimpleIdentifier(SimpleIdentifier node);
 
-  public R visitSingleStringLiteral(SimpleStringLiteral node);
+  public R visitSimpleStringLiteral(SimpleStringLiteral node);
 
   public R visitStringInterpolation(StringInterpolation node);
 
@@ -184,8 +184,7 @@ public interface ASTVisitor<R> {
 
   public R visitTypeAlias(TypeAlias node);
 
-  // TODO(brianwilkerson) Rename this
-  public R visitTypeArguments(TypeArgumentList node);
+  public R visitTypeArgumentList(TypeArgumentList node);
 
   public R visitTypeName(TypeName node);
 

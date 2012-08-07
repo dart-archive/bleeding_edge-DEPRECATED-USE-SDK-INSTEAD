@@ -445,7 +445,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitSingleStringLiteral(SimpleStringLiteral node) {
+  public R visitSimpleStringLiteral(SimpleStringLiteral node) {
     return visitStringLiteral(node);
   }
 
@@ -517,7 +517,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitTypeArguments(TypeArgumentList node) {
+  public R visitTypeArgumentList(TypeArgumentList node) {
     return visitNode(node);
   }
 

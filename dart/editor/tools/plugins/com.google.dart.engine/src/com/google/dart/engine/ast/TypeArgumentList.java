@@ -56,7 +56,7 @@ public class TypeArgumentList extends ASTNode {
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
-    return visitor.visitTypeArguments(this);
+    return visitor.visitTypeArgumentList(this);
   }
 
   /**
