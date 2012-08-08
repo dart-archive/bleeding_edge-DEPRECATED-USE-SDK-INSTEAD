@@ -13,14 +13,21 @@
  */
 package com.google.dart.eclipse;
 
+import com.google.dart.eclipse.ui.internal.jobs.ValidateSDKJob;
+
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.ui.PlatformUI;
+import org.osgi.framework.BundleContext;
 
 /**
  * The plugin activator for the com.google.dart.eclipse.ui plugin.
  */
 public class DartEclipseUI extends Plugin {
+
+  private static final int SDK_VALIDATION_JOB_INIT_DELAY = 1500;
 
   //The activated plugin
   private static DartEclipseUI PLUGIN;
@@ -85,6 +92,46 @@ public class DartEclipseUI extends Plugin {
     if (PLUGIN != null) {
       PLUGIN.getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, message, exception));
     }
+  }
+
+  private Job validateSDKJob;
+
+  @Override
+  public void start(BundleContext context) throws Exception {
+    super.start(context);
+
+    validateSDKJob = new ValidateSDKJob() {
+      @Override
+      protected IStatus run(org.eclipse.core.runtime.IProgressMonitor monitor) {
+        //make doubly sure that the workbench is up and running 
+        if (PlatformUI.isWorkbenchRunning()) {
+          try {
+            super.run(monitor);
+          } finally {
+            validateSDKJob = null;
+          }
+        } else {
+          schedule(500);
+        }
+
+        return Status.OK_STATUS;
+      }
+    };
+
+    validateSDKJob.schedule(SDK_VALIDATION_JOB_INIT_DELAY);
+
+  }
+
+  @Override
+  public void stop(BundleContext context) throws Exception {
+
+    if (validateSDKJob != null) {
+      validateSDKJob.cancel();
+    }
+
+    super.stop(context);
+
+    PLUGIN = null;
   }
 
 }
