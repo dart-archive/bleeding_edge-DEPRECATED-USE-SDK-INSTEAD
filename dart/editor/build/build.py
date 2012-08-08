@@ -1,12 +1,8 @@
 #!/usr/bin/python
-
-"""Copyright (c) 2012 The Chromium Authors. All rights reserved.
-
-Use of this source code is governed by a BSD-style license that can be
-found in the LICENSE file.
-
-Eclipse Dart Editor buildbot steps.
-"""
+#
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
 
 import glob
 import optparse
@@ -34,7 +30,7 @@ REVISION = None
 
 utils = None
 
-# TODO: unused: _PostProcessZips, _ShouldMoveToLatest, _MoveContinuousToLatest, _CleanupStaging
+# TODO: unused: _PostProcessZips, _ShouldMoveToLatest, _MoveContinuousToLatest, _CleanupStaging, _WriteTagFile
 
 class AntWrapper(object):
   """Class to abstract the ant calls from the program."""
@@ -344,13 +340,9 @@ def main():
     sdk_environment = os.environ
     if username.startswith('chrome'):
       to_bucket = 'gs://dart-editor-archive-continuous'
-      staging_bucket = 'gs://dart-editor-build'
-      run_sdk_build = True
       running_on_buildbot = True
     else:
       to_bucket = 'gs://dart-editor-archive-testing'
-      staging_bucket = 'gs://dart-editor-archive-testing-staging'
-      run_sdk_build = True
       running_on_buildbot = False
       sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
 
@@ -367,7 +359,7 @@ def main():
       print 'JAVA_HOME = {0}'.format(str(sdk_environment['JAVA_HOME']))
     builder_name = str(options.name)
 
-    if (run_sdk_build and builder_name != 'dart-editor'):
+    if (builder_name != 'dart-editor'):
       _PrintSeparator('running the build of the Dart SDK')
       
       ensure_dir(buildout)
@@ -377,7 +369,9 @@ def main():
       CreateApiDocs(buildout)
 
     if builder_name == 'dart-editor':
-      buildos = None
+      BuildUpdateSite(ant, revision, options.name, buildroot, buildout,
+              editorpath, buildos)
+      return 0
 
   #  else:
   #    _PrintSeparator('new builder running on {0} is'
@@ -417,7 +411,7 @@ def main():
     #This is an override for local testing
     force_run_install = os.environ.get('FORCE_RUN_INSTALL')
 
-    if (force_run_install or (run_sdk_build and builder_name != 'dart-editor')):
+    if (force_run_install or (builder_name != 'dart-editor')):
       _InstallSdk(buildroot, buildout, buildos, buildout)
       _InstallDartium(buildroot, buildout, buildos, gsu)
 
@@ -431,7 +425,7 @@ def main():
         _PrintError('could not find any zipped up RCP files. The Ant build must have failed')
         return 7
 
-      _WriteTagFile(buildos, staging_bucket, revision, gsu)
+      #_WriteTagFile(buildos, staging_bucket, revision, gsu)
 
     sys.stdout.flush()
 
@@ -1026,6 +1020,22 @@ def ExecuteCommand(cmd, dir=None):
     os.chdir(cwd)
   return status
 
+
+def BuildUpdateSite(ant, revision, name, buildroot, buildout,
+              editorpath, buildos):
+  ant.RunAnt('../com.google.dart.eclipse.feature_releng',
+             'build.xml', revision, name, buildroot, buildout,
+              editorpath, buildos, [])
+
+  UploadSite(buildout, "%s/%s" % (GSU_PATH_LATEST, 'eclipse-update'))
+  UploadSite(buildout, "%s/%s" % (GSU_PATH_REV, 'eclipse-update'))
+  
+def UploadSite(buildout, gsPath) :
+  # create eclipse-update/index.html first to ensure eclipse-update prefix exists (needed for recursive copy to follow)
+  Gsutil(['cp', '-a', 'public-read', r'file://' + join(buildout,'buildRepo', 'index.html'), join(gsPath,'index.html')])
+  # recursively copy update site contents
+  upload_dir(glob.glob(join(buildout, 'buildRepo', '*')), gsPath)
+
 def CreateApiDocs(buildLocation):
   """Zip up api_docs, upload it, and upload the raw tree of docs"""
   
@@ -1154,6 +1164,9 @@ def upload(file):
   gspathLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(file))
   ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', gspathRev, gspathLatest])
 
+def upload_dir(filesToUpload, gs_dir):
+  Gsutil(['cp', '-a', 'public-read', '-r'] + filesToUpload + [gs_dir])
+
 def upload_api_docs(dirName):
   gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
 
@@ -1177,6 +1190,11 @@ def upload_api_docs(dirName):
 
     # overwrite dartlang-api-docs/latest.txt to contain REVISION
     ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', localLatestRevFilename, destLatestRevFile])
+
+#TODO(pquitslund): update all calls to gstutils to use this helper
+def Gsutil(cmd):
+  gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
+  ExecuteCommand([sys.executable, gsutilTool] + cmd)
 
 def ensure_dir(f):
   d = os.path.dirname(f)

@@ -109,16 +109,19 @@
     <!-- setup -->
     <target name="setup">
         <echo message="build dir is ${build.dir}"/>
-    	
-        <get src="http://commondatastorage.googleapis.com/dart-editor-build/eclipses/eclipse-SDK-3.7-linux-gtk-x86_64.tar.gz"
-            dest="${build.dir}" 
-            verbose="true"
-            usetimestamp="true"/>
+        
+        <property name="eclipse.zip" 
+                  value="eclipse-SDK-3.7-linux-gtk-x86_64.tar.gz" />
+        
+        <get src="http://commondatastorage.googleapis.com/dart-editor-build/eclipses/${eclipse.zip}"
+             dest="${build.dir}/${eclipse.zip}" 
+             verbose="true"
+             usetimestamp="true"/>
     
         <property name="eclipse.dir" location="${build.dir}/eclipse_37/eclipse"/>
         
           	
-        <untar src="${build.dir}/eclipse-SDK-3.7-linux-gtk-x86_64.tar.gz" dest="${eclipse.dir}/.." compression="gzip"/>
+        <untar src="${build.dir}/${eclipse.zip}" dest="${eclipse.dir}/.." compression="gzip"/>
     	
     	  <!-- clean repo -->
         <delete dir="${build.dir}/buildRepo"/>
@@ -130,7 +133,7 @@
         
     	  <xmlproperty file="${build.dir}/features/com.google.dart.eclipse.feature/feature.xml" collapseAttributes="true"/>
     	
-        <echo message="Dart Tools version ${feature.version}"/>
+        <echo message="Dart Editor for Eclipse version ${feature.version}"/>
         <echo message="Building for Eclipse 3.7+"/>
     </target>
     
@@ -199,6 +202,10 @@
             </java>
         </sequential>
 	      
+	      <!-- copy index.html -->
+	      <copy todir="${build.dir}/buildRepo" file="${build.dir}/features/com.google.dart.eclipse.feature_releng/index.html"/>
+	      
+	      <!-- cleanup build artifacts-->
         <delete>
             <fileset dir="${build.dir}">
                 <include name="assemble.com.google.dart.eclipse.*.xml"/>
@@ -207,7 +214,7 @@
             </fileset>
         </delete>
 	  	  
-	  	  <zip destfile="${build.dir}/updatesite-${feature.version}.zip" basedir="${build.dir}/buildRepo"/>
+	  	  <!--zip destfile="${build.dir}/updatesite-${feature.version}.zip" basedir="${build.dir}/buildRepo"/-->
 	  </target>
 	
 </project>
