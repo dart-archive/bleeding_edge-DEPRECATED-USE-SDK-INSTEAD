@@ -25,26 +25,21 @@ public final class SampleDescription implements Comparable<SampleDescription> {
   public final String description;
 
   public final File logo;
+  public final String logoPath;
 
-  private final String keywords;
-
-  public SampleDescription(File directory, String file, String name, String description,
-      String keywords, File logo) {
+  public SampleDescription(File directory, String file, String name, String description, File logo,
+      String logoPath) {
     this.directory = directory;
     this.file = file;
     this.name = name;
     this.description = description;
-    this.keywords = keywords;
     this.logo = logo;
+    this.logoPath = logoPath;
   }
 
   @Override
   public int compareTo(SampleDescription o) {
     return name.compareToIgnoreCase(o.name);
-  }
-
-  public String getKeywords() {
-    return (keywords == null ? "" : keywords);
   }
 
 }

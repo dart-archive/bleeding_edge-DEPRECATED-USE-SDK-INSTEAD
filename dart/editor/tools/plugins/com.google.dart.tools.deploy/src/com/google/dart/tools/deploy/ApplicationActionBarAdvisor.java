@@ -834,13 +834,10 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(new GroupMarker(IWorkbenchActionConstants.FILE_START));
 
     Action newApplicationAction = new OpenNewApplicationWizardAction();
-    newApplicationAction.setText("New Application...");
     OpenNewFileWizardAction newFileAction = new OpenNewFileWizardAction(getWindow());
-    newFileAction.setText("New File...");
     menu.add(newApplicationAction);
     menu.add(newFileAction);
     OpenNewFolderWizardAction newFolderAction = new OpenNewFolderWizardAction(getWindow());
-    newFolderAction.setText("New Folder...");
     menu.add(newFolderAction);
 
     menu.add(new Separator());

@@ -13,49 +13,57 @@
  */
 package com.google.dart.tools.ui.internal.intro;
 
-import com.google.common.io.CharStreams;
-import com.google.common.io.Closeables;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
+import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
+import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTError;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.BrowserFunction;
-import org.eclipse.swt.browser.LocationAdapter;
-import org.eclipse.swt.browser.LocationEvent;
-import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IPersistableElement;
+import org.eclipse.ui.forms.events.HyperlinkAdapter;
+import org.eclipse.ui.forms.events.HyperlinkEvent;
+import org.eclipse.ui.forms.events.IHyperlinkListener;
+import org.eclipse.ui.forms.widgets.FormText;
 import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.eclipse.ui.forms.widgets.ScrolledForm;
+import org.eclipse.ui.forms.widgets.Section;
+import org.eclipse.ui.forms.widgets.TableWrapData;
+import org.eclipse.ui.forms.widgets.TableWrapLayout;
 import org.eclipse.ui.part.EditorPart;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.List;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A "fake" editor for showing intro content to first time users.
  */
-public class IntroEditor extends EditorPart {
+public class IntroEditor extends EditorPart implements IHyperlinkListener {
   public static final String ID = "com.google.dart.tools.ui.intro.editor"; //$NON-NLS-1$
 
   public static final IEditorInput INPUT = new IEditorInput() {
-
     @Override
     public boolean exists() {
       return false;
@@ -87,40 +95,149 @@ public class IntroEditor extends EditorPart {
     }
   };
 
-  /**
-   * Reads the existing text file with give name in the package of {@link IntroEditor}.
-   */
-  private static String readTemplate(String name) throws IOException {
-    InputStream welcomeStream = IntroEditor.class.getResourceAsStream(name);
-    try {
-      return CharStreams.toString(new InputStreamReader(welcomeStream));
-    } finally {
-      Closeables.closeQuietly(welcomeStream);
-    }
-  }
+  private ScrolledForm form;
 
-  private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
+  private FormToolkit toolkit;
+
+  private Map<Font, Font> fontMap = new HashMap<Font, Font>();
 
   public IntroEditor() {
+
   }
 
   @Override
   public void createPartControl(Composite parent) {
-    createIntroContent(parent);
+    toolkit = new FormToolkit(parent.getDisplay()) {
+      @Override
+      public void adapt(Control control, boolean trackFocus, boolean trackKeyboard) {
+        super.adapt(control, trackFocus, trackKeyboard);
+
+        emBiggen(control);
+      }
+
+      @Override
+      public Section createSection(Composite parent, int sectionStyle) {
+        Section section = super.createSection(parent, sectionStyle);
+
+        emBiggen(section);
+
+        return section;
+      }
+    };
+
+    // Create the form and header.
+    form = toolkit.createScrolledForm(parent);
+    form.setText("Welcome to Dart Editor!");
+    form.setImage(DartToolsPlugin.getImage("icons/dart_16_16.gif"));
+    toolkit.decorateFormHeading(form.getForm());
+    form.getToolBarManager().update(true);
+
+    TableWrapLayout layout = new TableWrapLayout();
+    layout.numColumns = 2;
+    layout.verticalSpacing = 10;
+    layout.topMargin = 12;
+    form.getBody().setLayout(layout);
+
+    // Create the info area.
+    Section section = toolkit.createSection(form.getBody(), Section.TITLE_BAR);
+    section.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.TOP, 1, 1));
+    section.setText("About Dart");
+    Composite client = toolkit.createComposite(section);
+    client.setLayout(new TableWrapLayout());
+    StringBuffer buf = new StringBuffer();
+    buf.append("<form><p>Dart is a new class-based programming language for creating structured web"
+        + " applications. Developed with the goals of simplicity, efficiency, and scalability, the"
+        + " Dart language combines powerful new language features with familiar constructs"
+        + " into a clear, readable syntax.</p>");
+    buf.append("<li style=\"image\" value=\"image\"><a href=\"http://www.dartlang.org\">Visit dartlang.org</a></li>");
+    buf.append("<li style=\"image\" value=\"image\"><a href=\"http://www.dartlang.org/editor\">View Editor documentation</a></li>");
+    buf.append("</form>");
+    FormText formText = toolkit.createFormText(client, true);
+    formText.setWhitespaceNormalized(true);
+    formText.setImage("image", DartToolsPlugin.getImage("icons/full/dart16/globe_dark.png"));
+    formText.setText(buf.toString(), true, false);
+    formText.addHyperlinkListener(this);
+    section.setClient(client);
+
+    // Create the actions area.
+    section = toolkit.createSection(form.getBody(), Section.TITLE_BAR);
+    section.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.TOP, 1, 1));
+    section.setText("Get Started");
+    client = toolkit.createComposite(section);
+    client.setLayout(new GridLayout());
+    buf = new StringBuffer();
+    buf.append("<form><p>Get started using the editor!</p>");
+    buf.append("<li style=\"image\" value=\"image1\"><a href=\"dart:create\">Create a new application</a></li>");
+    buf.append("<li style=\"image\" value=\"image2\"><a href=\"dart:open\">Open an existing application</a></li>");
+    buf.append("</form>");
+    formText = toolkit.createFormText(client, true);
+    formText.setWhitespaceNormalized(true);
+    formText.setImage("image1", DartToolsPlugin.getImage("icons/full/dart16/library_new.png"));
+    formText.setImage("image2", DartToolsPlugin.getImage("icons/full/obj16/fldr_obj.gif"));
+    formText.setText(buf.toString(), true, false);
+    formText.addHyperlinkListener(this);
+    section.setClient(client);
+
+    // Create the samples area.
+    section = toolkit.createSection(form.getBody(), /*Section.DESCRIPTION |*/Section.TITLE_BAR);
+    section.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.FILL_GRAB, 1, 2));
+    section.setText("Sample Applications");
+    //section.setDescription("Open and run several Dart sample applications.");
+    client = toolkit.createComposite(section);
+    TableWrapLayout l = new TableWrapLayout();
+    l.numColumns = 4;
+    l.verticalSpacing = 10;
+    client.setLayout(l);
+
+    for (final SampleDescription description : SampleDescriptionHelper.getDescriptions()) {
+      Label label = toolkit.createLabel(client, "", SWT.BORDER);
+      label.setImage(DartToolsPlugin.getImage(description.logoPath));
+      label.setCursor(getSite().getShell().getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+      label.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseUp(MouseEvent e) {
+          openSample(description);
+        }
+      });
+
+      formText = toolkit.createFormText(client, true);
+      formText.setText("<form><p><a href=\"open:woot\">" + description.name + "</a><br></br>"
+          + description.description + "</p></form>", true, false);
+      formText.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.TOP, 1, 1));
+      formText.addHyperlinkListener(new HyperlinkAdapter() {
+        @Override
+        public void linkActivated(HyperlinkEvent e) {
+          openSample(description);
+        }
+      });
+    }
+
+    section.setClient(client);
+
+    form.reflow(true);
   }
 
   @Override
   public void dispose() {
     toolkit.dispose();
+
     super.dispose();
+
+    for (Font font : fontMap.values()) {
+      font.dispose();
+    }
+
+    fontMap.clear();
   }
 
   @Override
   public void doSave(IProgressMonitor monitor) {
+
   }
 
   @Override
   public void doSaveAs() {
+
   }
 
   @Override
@@ -141,68 +258,85 @@ public class IntroEditor extends EditorPart {
   }
 
   @Override
-  public void setFocus() {
-  }
+  public void linkActivated(HyperlinkEvent event) {
+    if (event.getHref() instanceof String) {
+      String link = (String) event.getHref();
 
-  private Composite createIntroContent(Composite parent) {
-    Composite composite = new Composite(parent, SWT.NONE);
-    composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-    composite.setLayout(new GridLayout());
-    toolkit.adapt(composite);
-    // use Browser
-    try {
-      final List<SampleDescription> descriptions = SampleDescriptionHelper.getDescriptions();
-      // prepare HTML
-      String html;
-      {
-        String sampleTemplate = readTemplate("sample-template.html"); //$NON-NLS-1$
-        // prepare samples
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < descriptions.size(); i++) {
-          SampleDescription description = descriptions.get(i);
-          String sampleHtml = sampleTemplate.replace("${id}", Integer.toString(i)); //$NON-NLS-1$
-          sampleHtml = sampleHtml.replace("${name}", description.name); //$NON-NLS-1$
-          sampleHtml = sampleHtml.replace("${logo}", description.logo.toURI().toString()); //$NON-NLS-1$
-          sampleHtml = sampleHtml.replace("${description}", description.description); //$NON-NLS-1$
-          sampleHtml = sampleHtml.replace("${keywords}", description.getKeywords()); //$NON-NLS-1$
-          sb.append(sampleHtml);
-        }
-        // apply "samples" into template
-        String welcomeTemplate = readTemplate("welcome-template.html"); //$NON-NLS-1$
-        html = welcomeTemplate.replace("${samples}", sb.toString()); //$NON-NLS-1$
-      }
-      try {
-        // create Browser
-        Browser browser = new Browser(composite, SWT.NONE);
-        browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-        browser.setText(html);
-        // open links in external browser
-        browser.addLocationListener(new LocationAdapter() {
+      if (link.equals("dart:create")) {
+        OpenNewApplicationWizardAction action = new OpenNewApplicationWizardAction();
+
+        action.run();
+      } else if (link.equals("dart:open")) {
+        Display.getDefault().asyncExec(new Runnable() {
           @Override
-          public void changing(LocationEvent event) {
-            event.doit = false;
-            Program.launch(event.location);
+          public void run() {
+            IAction action = OpenFolderHandler.createCommandAction(getSite().getWorkbenchWindow());
+
+            action.run();
           }
         });
-        // register JavaScript function
-        new BrowserFunction(browser, "openSample") { //$NON-NLS-1$
-          @Override
-          public Object function(Object[] arguments) {
-            String indexString = (String) arguments[0];
-            int index = Integer.parseInt(indexString);
-            SampleDescription description = descriptions.get(index);
-            openSample(new File(description.directory, description.file));
-            return null;
-          }
-        };
-      } catch (SWTError error) {
-        DartCore.logError("Unable to create browser control: " + error.toString());
+      } else {
+        Program.launch(link);
       }
-    } catch (Throwable e) {
-      DartCore.logError(e);
     }
-    // done
-    return composite;
+  }
+
+  @Override
+  public void linkEntered(HyperlinkEvent e) {
+
+  }
+
+  @Override
+  public void linkExited(HyperlinkEvent e) {
+
+  }
+
+  @Override
+  public void setFocus() {
+
+  }
+
+  protected void openSample(final SampleDescription description) {
+    try {
+      getSite().getWorkbenchWindow().run(true, false, new IRunnableWithProgress() {
+        @Override
+        public void run(IProgressMonitor monitor) throws InvocationTargetException,
+            InterruptedException {
+          openSample(new File(description.directory, description.file), monitor);
+        }
+      });
+    } catch (InvocationTargetException e) {
+      DartToolsPlugin.log(e);
+    } catch (InterruptedException e) {
+      DartToolsPlugin.log(e);
+    }
+  }
+
+  private void emBiggen(Control control) {
+    Font font = emBiggen(control.getFont());
+
+    if (font != null) {
+      control.setFont(font);
+    }
+  }
+
+  private Font emBiggen(Font font) {
+    if (font == null) {
+      return null;
+    }
+
+    if (!fontMap.containsKey(font)) {
+      FontData data = font.getFontData()[0];
+
+      Font newFont = new Font(font.getDevice(), new FontData(
+          data.getName(),
+          (int) Math.round(data.getHeight() * 1.2),
+          data.getStyle()));
+
+      fontMap.put(font, newFont);
+    }
+
+    return fontMap.get(font);
   }
 
   private File getDirectory(File file) {
@@ -220,8 +354,8 @@ public class IntroEditor extends EditorPart {
   }
 
   private void openInEditor(final File file) {
-    //performed async to ensure that resource change events have been processed before the editor
-    //opens (needed for proper linking w/editor)
+    // Performed async to ensure that resource change events have been processed before the editor
+    // opens (needed for proper linking w/editor).
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
@@ -234,14 +368,14 @@ public class IntroEditor extends EditorPart {
     });
   }
 
-  private void openSample(File file) {
+  private void openSample(File file, IProgressMonitor monitor) {
     try {
-      File dir = getDirectory(file);
-      // TODO(keertip): pass in a real progress monitor
-      IProjectUtilities.createOrOpenProject(dir, new NullProgressMonitor());
+      IProjectUtilities.createOrOpenProject(getDirectory(file), monitor);
+
       openInEditor(file);
     } catch (Throwable e) {
       DartCore.logError(e);
     }
   }
+
 }

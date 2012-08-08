@@ -41,7 +41,7 @@ public final class SampleDescriptionHelper {
   /**
    * @return all {@link SampleDescription} from the "samples" directory.
    */
-  public static List<SampleDescription> getDescriptions() throws Exception {
+  public static List<SampleDescription> getDescriptions() {
     List<SampleDescription> descriptions = Lists.newArrayList();
     File samplesDirectory = getSamplesDirectory();
     scanSamples(descriptions, samplesDirectory);
@@ -52,8 +52,7 @@ public final class SampleDescriptionHelper {
   /**
    * Scans "samples" directory and attempts to find descriptions for each "sample" child.
    */
-  static void scanSamples(List<SampleDescription> descriptions, File samplesDirectory)
-      throws Exception {
+  static void scanSamples(List<SampleDescription> descriptions, File samplesDirectory) {
     // ignore not directory
     if (!samplesDirectory.exists() || !samplesDirectory.isDirectory()) {
       return;
@@ -72,7 +71,7 @@ public final class SampleDescriptionHelper {
    */
   private static void addDescription(final List<SampleDescription> descriptions,
       final File directory) {
-    String sampleName = directory.getName();
+    final String sampleName = directory.getName();
 
     if (doesSampleResourceExist(sampleName + ".xml")) {
       try {
@@ -84,7 +83,6 @@ public final class SampleDescriptionHelper {
           private StringBuilder sb = new StringBuilder();
           private String name;
           private String filePath;
-          private String keywordText;
           private String descriptionText;
 
           @Override
@@ -104,8 +102,8 @@ public final class SampleDescriptionHelper {
                   filePath,
                   name,
                   descriptionText,
-                  keywordText,
-                  logoFile));
+                  logoFile,
+                  "samples/" + sampleName + ".png"));
             }
           }
 
@@ -116,7 +114,6 @@ public final class SampleDescriptionHelper {
             if (qName.equals("sample")) {
               name = attributes.getValue("name");
               filePath = attributes.getValue("file");
-              keywordText = attributes.getValue("keywords");
             }
           }
         };
@@ -157,7 +154,7 @@ public final class SampleDescriptionHelper {
   /**
    * @return the {@link File} of the "samples" directory.
    */
-  private static File getSamplesDirectory() throws Exception {
+  private static File getSamplesDirectory() {
     File installDir = new File(Platform.getInstallLocation().getURL().getFile());
     return new File(installDir, "samples");
   }

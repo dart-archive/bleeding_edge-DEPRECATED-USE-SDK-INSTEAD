@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<sample name="Time server" file="time_server.dart" keywords="dart:io">
-    <description>An HTTP sever which responds with current time</description>
+<sample name="Time server" file="time_server.dart">
+    <description>An HTTP sever which responds with current time. This sample shows off the use of the dart:io library.</description>
 </sample>
