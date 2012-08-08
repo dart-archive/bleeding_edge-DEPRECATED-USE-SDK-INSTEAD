@@ -487,7 +487,7 @@ public class CompletionProposalLabelProvider {
    * @return the display string of the parameter list defined by the passed arguments
    */
   private final StringBuffer appendParameterSignature(StringBuffer buffer, char[][] parameterTypes,
-      char[][] parameterNames) {
+      char[][] parameterNames, int positionalCount) {
     if (parameterTypes == null) {
       if (parameterNames != null && parameterNames.length > 0) {
         for (int i = 0; i < parameterNames.length - 1; i++) {
@@ -503,6 +503,9 @@ public class CompletionProposalLabelProvider {
           buffer.append(',');
           buffer.append(' ');
         }
+        if (i == positionalCount) {
+          buffer.append('[');
+        }
         if (!Arrays.equals(Signature.ANY, parameterTypes[i])) {
           buffer.append(parameterTypes[i]);
           buffer.append(' ');
@@ -511,6 +514,9 @@ public class CompletionProposalLabelProvider {
         if (parameterNames != null && parameterNames[i] != null) {
           buffer.append(parameterNames[i]);
         }
+      }
+      if (positionalCount > 0 && positionalCount < parameterTypes.length) {
+        buffer.append(']');
       }
     }
     return buffer;
@@ -530,6 +536,7 @@ public class CompletionProposalLabelProvider {
 //    char[] signature = methodProposal.getSignature();
     char[][] parameterNames = methodProposal.findParameterNames(null);
     char[][] parameterTypes = methodProposal.getParameterTypeNames();
+    int positionalCount = methodProposal.getPositionalParameterCount();
 
 //    for (int i = 0; i < parameterTypes.length; i++) {
 //      parameterTypes[i] = createTypeDisplayName(parameterTypes[i]);
@@ -539,7 +546,7 @@ public class CompletionProposalLabelProvider {
 //      int index = parameterTypes.length - 1;
 //      parameterTypes[index] = convertToVararg(parameterTypes[index]);
 //    }
-    return appendParameterSignature(buffer, parameterTypes, parameterNames);
+    return appendParameterSignature(buffer, parameterTypes, parameterNames, positionalCount);
   }
 
 //  /**

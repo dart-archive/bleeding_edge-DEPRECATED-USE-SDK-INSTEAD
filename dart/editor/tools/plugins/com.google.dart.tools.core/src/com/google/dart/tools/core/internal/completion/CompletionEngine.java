@@ -878,7 +878,8 @@ public class CompletionEngine {
           }
           // { foo.! doFoo(); }
           DartExpression expr = completionNode.getTarget();
-          if (expr.getElement().getKind() == ElementKind.LIBRARY_PREFIX
+          if (expr.getElement() != null
+              && expr.getElement().getKind() == ElementKind.LIBRARY_PREFIX
               && expr instanceof DartIdentifier) {
             DartIdentifier ident = (DartIdentifier) expr;
             for (LibraryElement lib : ((LibraryPrefixElement) expr.getElement()).getLibraries()) {
@@ -1193,7 +1194,8 @@ public class CompletionEngine {
     return names;
   }
 
-  static private int countPositionalParameters(List<VariableElement> params) {
+  static private int countPositionalParameters(MethodElement method) {
+    List<VariableElement> params = method.getParameters();
     int posParamCount = 0;
     for (VariableElement elem : params) {
       if (elem.getModifiers().isNamed()) {
@@ -1298,7 +1300,7 @@ public class CompletionEngine {
 
   static private char[][] getParameterNames(MethodElement method) {
     List<VariableElement> params = method.getParameters();
-    int posParamCount = countPositionalParameters(params);
+    int posParamCount = params.size();
     char[][] names = new char[posParamCount][];
     for (int i = 0; i < posParamCount; i++) {
       names[i] = params.get(i).getName().toCharArray();
@@ -1341,7 +1343,7 @@ public class CompletionEngine {
 
   static private char[][] getParameterTypeNames(MethodElement method) {
     List<VariableElement> params = method.getParameters();
-    int posParamCount = countPositionalParameters(params);
+    int posParamCount = params.size();
     char[][] names = new char[posParamCount][];
     for (int i = 0; i < posParamCount; i++) {
       Type ptype = params.get(i).getType();
@@ -1689,6 +1691,7 @@ public class CompletionEngine {
       proposal.setIsSetter(false);
       proposal.setParameterNames(getParameterNames(method));
       proposal.setParameterTypeNames(getParameterTypeNames(method));
+      proposal.setPositionalParameterCount(countPositionalParameters(method));
       String returnTypeName = itype.getElement().getName();
       proposal.setTypeName(returnTypeName.toCharArray());
       proposal.setDeclarationTypeName(returnTypeName.toCharArray());
@@ -1770,6 +1773,7 @@ public class CompletionEngine {
       char[][] parameterNames = null;
       char[][] parameterTypeNames = null;
       char[] returnTypeName = null;
+      int positionalCount = 0;
       boolean isInterface = false;
       int kind;
       switch (ElementKind.of(element)) {
@@ -1789,6 +1793,7 @@ public class CompletionEngine {
           MethodElement method = (MethodElement) element;
           parameterNames = getParameterNames(method);
           parameterTypeNames = getParameterTypeNames(method);
+          positionalCount = countPositionalParameters((MethodElement) element);
           returnTypeName = method.getReturnType().getElement().getName().toCharArray();
           break;
         case FIELD:
@@ -1809,6 +1814,7 @@ public class CompletionEngine {
       proposal.setIsInterface(isInterface);
       proposal.setParameterNames(parameterNames);
       proposal.setParameterTypeNames(parameterTypeNames);
+      proposal.setPositionalParameterCount(positionalCount);
       proposal.setTypeName(returnTypeName);
       setSourceLoc(proposal, identifier, prefix);
       proposal.setRelevance(1);
@@ -1851,6 +1857,7 @@ public class CompletionEngine {
       if (isMethod) {
         proposal.setParameterNames(getParameterNames((MethodElement) element));
         proposal.setParameterTypeNames(getParameterTypeNames((MethodElement) element));
+        proposal.setPositionalParameterCount(countPositionalParameters((MethodElement) element));
       }
       setSourceLoc(proposal, node, prefix);
       proposal.setRelevance(1);
@@ -1935,6 +1942,7 @@ public class CompletionEngine {
       proposal.setIsSetter(isSetter);
       proposal.setParameterNames(getParameterNames(method));
       proposal.setParameterTypeNames(paramTypeNames);
+      proposal.setPositionalParameterCount(countPositionalParameters(method));
       String returnTypeName = method.getReturnType().getElement().getName();
       proposal.setTypeName(returnTypeName.toCharArray());
       if (includeDeclaration) {

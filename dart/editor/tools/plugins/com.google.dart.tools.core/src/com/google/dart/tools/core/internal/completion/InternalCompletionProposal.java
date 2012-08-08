@@ -138,6 +138,7 @@ public class InternalCompletionProposal extends CompletionProposal {
   private char[] receiverSignature;
   private boolean isSetter;
   private boolean isGetter;
+  private int positionalParameterCount;
 
   /**
    * Creates a basic completion proposal. All instance field have plausible default values unless
@@ -479,6 +480,11 @@ public class InternalCompletionProposal extends CompletionProposal {
     return this.parameterTypeNames;
   }
 
+  @Override
+  public int getPositionalParameterCount() {
+    return positionalParameterCount;
+  }
+
   /**
    * Returns the character index of the end (exclusive) of the subrange in the source file buffer
    * containing the relevant receiver of the member being completed. *
@@ -492,7 +498,6 @@ public class InternalCompletionProposal extends CompletionProposal {
    * </p>
    * 
    * @return character index of receiver end position (exclusive)
-   * @since 3.4
    */
   @Override
   public int getReceiverEnd() {
@@ -836,6 +841,11 @@ public class InternalCompletionProposal extends CompletionProposal {
   public void setParameterNames(char[][] parameterNames) {
     this.parameterNames = parameterNames;
     this.parameterNamesComputed = true;
+  }
+
+  @Override
+  public void setPositionalParameterCount(int c) {
+    positionalParameterCount = c;
   }
 
   /**

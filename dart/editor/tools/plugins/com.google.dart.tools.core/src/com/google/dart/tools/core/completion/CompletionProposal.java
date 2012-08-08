@@ -898,6 +898,10 @@ public class CompletionProposal {
     return null;
   }
 
+  public int getPositionalParameterCount() {
+    return 0;
+  }
+
   /**
    * Return the character index of the end (exclusive) of the subrange in the source file buffer
    * containing the relevant receiver of the member being completed.
@@ -1283,6 +1287,10 @@ public class CompletionProposal {
    * @param parameterNames the parameter names, or <code>null</code> if none
    */
   public void setParameterNames(char[][] parameterNames) {
+    // default overridden by concrete implementation
+  }
+
+  public void setPositionalParameterCount(int c) {
     // default overridden by concrete implementation
   }
 
