@@ -235,7 +235,6 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
       } else {
         cmd.addAll(Arrays.asList(launchConfig.getArgumentsAsArray()));
       }
-
     }
 
     try {
@@ -246,12 +245,22 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
       runner.await(new NullProgressMonitor(), 500);
 
       if (runner.getExitCode() != 0) {
+        if (DartCore.isWindows()) {
+          if (browserName.toLowerCase().indexOf("firefox") != -1) {
+            if (runner.getExitCode() == 1) {
+              // In this case, the application was opened in a new tab successfully.
+              // Don't throw an exception.
+
+              return;
+            }
+          }
+        }
+
         throw new CoreException(new Status(
             IStatus.ERROR,
             DartDebugUIPlugin.PLUGIN_ID,
             "Could not launch browser \"" + browserName + "\" : \n\n" + runner.getStdErr()));
       }
-
     } catch (IOException e) {
       throw new CoreException(new Status(
           IStatus.ERROR,
