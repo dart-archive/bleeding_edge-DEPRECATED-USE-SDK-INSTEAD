@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.core.test.util.PrintStringWriter;
@@ -60,20 +59,20 @@ public class FileChangedTaskTest extends AbstractDartCoreTest {
    * Assert cache discarded only if file has changed on disk
    */
   public void test_changed() {
-    DartUnit dartUnit1 = savedContext.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
-    assertNotNull(dartUnit1);
-    DartUnit dartUnit2 = savedContext.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
-    assertSame(dartUnit1, dartUnit2);
+    ParseResult result1 = savedContext.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
+    assertNotNull(result1.getDartUnit());
+    ParseResult result2 = savedContext.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
+    assertSame(result1.getDartUnit(), result2.getDartUnit());
 
     server.changed(libraryFile);
-    dartUnit2 = savedContext.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
-    assertSame(dartUnit1, dartUnit2);
+    ParseResult result3 = savedContext.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
+    assertSame(result1.getDartUnit(), result3.getDartUnit());
     server.assertAnalyzeContext(false);
 
     libraryFile.setLastModified(System.currentTimeMillis() + 1000);
     server.changed(libraryFile);
-    dartUnit2 = savedContext.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
-    assertNotSame(dartUnit1, dartUnit2);
+    ParseResult result4 = savedContext.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
+    assertNotSame(result1.getDartUnit(), result4.getDartUnit());
     server.assertAnalyzeContext(true);
   }
 

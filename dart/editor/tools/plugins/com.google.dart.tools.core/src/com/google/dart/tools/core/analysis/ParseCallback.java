@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.compiler.ast.DartUnit;
-
 import java.io.File;
 
 /**
@@ -29,12 +27,12 @@ public interface ParseCallback {
    */
   public static class Sync implements ParseCallback {
     private final Object lock = new Object();
-    private DartUnit result;
+    private ParseResult result;
 
     @Override
-    public void parsed(DartUnit unit) {
+    public void parsed(ParseResult result) {
       synchronized (lock) {
-        this.result = unit;
+        this.result = result;
         lock.notifyAll();
       }
     }
@@ -43,10 +41,10 @@ public interface ParseCallback {
      * Wait the specified number of milliseconds for the file to be parsed.
      * 
      * @param milliseconds the maximum number of milliseconds to wait.
-     * @return the parsed dart source file or <code>null</code> if the file was not parsed in the
-     *         specified amount of time.
+     * @return the parse result or <code>null</code> if the file was not parsed in the specified
+     *         amount of time.
      */
-    public DartUnit waitForParse(long milliseconds) {
+    public ParseResult waitForParse(long milliseconds) {
       synchronized (lock) {
         long end = System.currentTimeMillis() + milliseconds;
         while (result == null) {
@@ -68,7 +66,7 @@ public interface ParseCallback {
   /**
    * Called when the file has been parsed. This unit may or may not be resolved.
    * 
-   * @param unit the parsed unit (not <code>null</code>)
+   * @param result the parsed result (not <code>null</code>)
    */
-  void parsed(DartUnit unit);
+  void parsed(ParseResult result);
 }

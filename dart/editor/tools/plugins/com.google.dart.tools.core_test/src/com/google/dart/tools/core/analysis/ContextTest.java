@@ -56,13 +56,15 @@ public class ContextTest extends AbstractDartCoreTest {
   private Listener listener;
 
   public void test_parse_library() throws Exception {
-    DartUnit dartUnit = context.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
+    ParseResult result1 = context.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
+    DartUnit dartUnit = result1.getDartUnit();
     assertEquals("Money", dartUnit.getTopDeclarationNames().iterator().next());
+    assertEquals(0, result1.getParseErrors().length);
     assertParsed(1, 0);
 
     listener.reset();
-    dartUnit = context.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
-    assertEquals("Money", dartUnit.getTopDeclarationNames().iterator().next());
+    ParseResult result2 = context.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
+    assertSame(dartUnit, result2.getDartUnit());
     assertParsed(0, 0);
   }
 
@@ -71,39 +73,46 @@ public class ContextTest extends AbstractDartCoreTest {
     assertFalse(doesNotExist.exists());
     File doesNotExist2 = new File(tempDir, "doesNotExist2.dart");
     assertFalse(doesNotExist2.exists());
-    DartUnit dartUnit = context.parse(doesNotExist, doesNotExist2, FIVE_MINUTES_MS);
-    assertEquals(0, dartUnit.getTopDeclarationNames().size());
+    ParseResult result = context.parse(doesNotExist, doesNotExist2, FIVE_MINUTES_MS);
+    assertEquals(0, result.getDartUnit().getTopDeclarationNames().size());
+    assertEquals(1, result.getParseErrors().length);
     assertParsed(2, 2);
   }
 
   public void test_parse_libraryDoesNotExist() throws Exception {
     File doesNotExist = new File(tempDir, "doesNotExist.dart");
     assertFalse(doesNotExist.exists());
-    DartUnit dartUnit = context.parse(doesNotExist, doesNotExist, FIVE_MINUTES_MS);
-    assertEquals(0, dartUnit.getTopDeclarationNames().size());
+    ParseResult result = context.parse(doesNotExist, doesNotExist, FIVE_MINUTES_MS);
+    assertEquals(0, result.getDartUnit().getTopDeclarationNames().size());
+    assertEquals(1, result.getParseErrors().length);
     assertParsed(1, 1);
   }
 
   public void test_parse_source() throws Exception {
-    DartUnit dartUnit = context.parse(libraryFile, dartFile, FIVE_MINUTES_MS);
+    ParseResult result1 = context.parse(libraryFile, dartFile, FIVE_MINUTES_MS);
+    DartUnit dartUnit = result1.getDartUnit();
     assertEquals("SimpleMoney", dartUnit.getTopDeclarationNames().iterator().next());
     assertParsed(2, 0);
 
     listener.reset();
-    dartUnit = context.parse(libraryFile, dartFile, FIVE_MINUTES_MS);
-    assertEquals("SimpleMoney", dartUnit.getTopDeclarationNames().iterator().next());
+    ParseResult result2 = context.parse(libraryFile, dartFile, FIVE_MINUTES_MS);
+    assertSame(dartUnit, result2.getDartUnit());
+    assertEquals(0, result2.getParseErrors().length);
     assertParsed(0, 0);
 
     listener.reset();
-    dartUnit = context.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
+    ParseResult result3 = context.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
+    dartUnit = result3.getDartUnit();
     assertEquals("Money", dartUnit.getTopDeclarationNames().iterator().next());
+    assertEquals(0, result3.getParseErrors().length);
     assertParsed(0, 0);
   }
 
   public void test_parse_sourceDoesNotExist() throws Exception {
     File doesNotExist = new File(tempDir, "doesNotExist.dart");
     assertFalse(doesNotExist.exists());
-    DartUnit dartUnit = context.parse(libraryFile, doesNotExist, FIVE_MINUTES_MS);
+    ParseResult result = context.parse(libraryFile, doesNotExist, FIVE_MINUTES_MS);
+    DartUnit dartUnit = result.getDartUnit();
     assertEquals(0, dartUnit.getTopDeclarationNames().size());
     assertParsed(2, 1);
   }

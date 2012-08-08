@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 
 import java.io.File;
@@ -120,14 +119,13 @@ public class Context {
    * @param dartFile the dart file to be parsed (not <code>null</code>). This may be the same as the
    *          libraryFile.
    * @param milliseconds the number of milliseconds to wait for the file to be parsed.
-   * @return the parsed dart unit or <code>null</code> if the file was not parsed within the
-   *         specified amount of time. This unit may or may not be resolved.
+   * @return the parse result (not <code>null</code>).
    * @throws RuntimeException if the parse takes longer than the specified time
    */
-  public DartUnit parse(File libraryFile, File dartFile, long milliseconds) {
+  public ParseResult parse(File libraryFile, File dartFile, long milliseconds) {
     ParseCallback.Sync callback = new ParseCallback.Sync();
     parse(libraryFile, dartFile, callback);
-    DartUnit result = callback.waitForParse(milliseconds);
+    ParseResult result = callback.waitForParse(milliseconds);
     if (result == null) {
       throw new RuntimeException("Timed out waiting for parse: " + dartFile + " in " + libraryFile);
     }

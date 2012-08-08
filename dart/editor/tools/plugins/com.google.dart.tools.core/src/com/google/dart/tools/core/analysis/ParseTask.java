@@ -83,7 +83,7 @@ public class ParseTask extends Task {
 
       List<DartDirective> directives = unit.getDirectives();
       library = Library.fromDartUnit(server, libraryFile, librarySource, directives);
-      library.cacheDartUnit(libraryFile, unit);
+      library.cacheDartUnit(libraryFile, unit, errorListener.getErrors());
       context.cacheLibrary(library);
     }
 
@@ -97,7 +97,7 @@ public class ParseTask extends Task {
 
       unit = AnalysisUtility.parse(dartFile, source, prefixes, errorListener);
 
-      library.cacheDartUnit(dartFile, unit);
+      library.cacheDartUnit(dartFile, unit, errorListener.getErrors());
       if (library.shouldNotify) {
         AnalysisEvent event = new AnalysisEvent(libraryFile, errorListener.getErrors());
         event.addFileAndDartUnit(dartFile, unit);
@@ -109,7 +109,7 @@ public class ParseTask extends Task {
 
     if (callback != null) {
       try {
-        callback.parsed(unit);
+        callback.parsed(new ParseResult(unit, library.getParseErrors(dartFile)));
       } catch (Throwable e) {
         DartCore.logError("Exception during parse notification", e);
       }

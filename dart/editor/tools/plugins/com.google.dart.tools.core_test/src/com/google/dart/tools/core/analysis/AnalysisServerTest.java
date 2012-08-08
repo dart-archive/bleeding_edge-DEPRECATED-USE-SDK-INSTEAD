@@ -19,6 +19,7 @@ import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.test.util.FileOperation;
 import com.google.dart.tools.core.test.util.FileUtilities;
+import com.google.dart.tools.core.test.util.PrintStringWriter;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertQueuedTasks;
@@ -44,7 +45,6 @@ import java.util.Set;
 public class AnalysisServerTest extends TestCase {
 
   private static final String EMPTY_CACHE_CONTENT = "v3\n</end-libraries>\n</end-cache>\n</end-queue>\n";
-  private static final String LINE_SEPARATOR = System.getProperty("line.separator");
   private static final String TEST_CLASS_SIMPLE_NAME = AnalysisServerTest.class.getSimpleName();
   private static final long FIVE_MINUTES_MS = 300000;
 
@@ -131,8 +131,10 @@ public class AnalysisServerTest extends TestCase {
       @Override
       public void run(File tempDir) throws Exception {
         File aFile = new File(tempDir, "a.dart");
-        FileUtilities.setContents(aFile, "#source('b.dart');" + LINE_SEPARATOR
-            + "class A extends C { foo() { x } }");
+        PrintStringWriter writer = new PrintStringWriter();
+        writer.println("#source('b.dart');");
+        writer.println("class A extends C { foo() { x } }");
+        FileUtilities.setContents(aFile, writer.toString());
         File bFile = new File(tempDir, "b.dart");
         FileUtilities.setContents(bFile, "class B { D f1; E f2; F f3; G f4; }");
         setupServer();
@@ -143,8 +145,9 @@ public class AnalysisServerTest extends TestCase {
         listener.assertErrorCount(7);
 
         listener.reset();
-        DartUnit unit = savedContext.parse(aFile, aFile, FIVE_MINUTES_MS);
-        assertTopDeclarationExists(unit, "A");
+        ParseResult result = savedContext.parse(aFile, aFile, FIVE_MINUTES_MS);
+        assertTopDeclarationExists(result.getDartUnit(), "A");
+        assertEquals(1, result.getParseErrors().length);
         listener.assertParsedCount(0);
         listener.assertResolvedCount(0);
         listener.assertNoErrors();
@@ -152,8 +155,9 @@ public class AnalysisServerTest extends TestCase {
         listener.assertNoDiscards();
 
         listener.reset();
-        unit = savedContext.parse(aFile, bFile, FIVE_MINUTES_MS);
-        assertTopDeclarationExists(unit, "B");
+        result = savedContext.parse(aFile, bFile, FIVE_MINUTES_MS);
+        assertTopDeclarationExists(result.getDartUnit(), "B");
+        assertEquals(0, result.getParseErrors().length);
         listener.assertParsedCount(0);
         listener.assertResolvedCount(0);
         listener.assertNoErrors();

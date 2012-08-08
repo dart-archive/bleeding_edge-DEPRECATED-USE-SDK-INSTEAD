@@ -20,6 +20,7 @@ import com.google.dart.compiler.DefaultLibrarySource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
+import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -29,8 +30,6 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.test.util.TestUtilities;
-
-import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -56,7 +55,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-public class DartLibraryImplTest extends TestCase {
+public class DartLibraryImplTest extends AbstractDartCoreTest {
   private static File tempDir = null;
 
   private static void createTempFile(File file, final String content) throws IOException {

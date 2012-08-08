@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartImportDirective;
@@ -123,6 +124,7 @@ class Library {
 
   private LibraryUnit libraryUnit;
   private final HashMap<File, DartUnit> dartUnits;
+  private HashMap<File, DartCompilationError[]> parseErrors;
 
   /**
    * Flag indicating if listeners should be notified when the library is parsed and resolved. This
@@ -150,8 +152,19 @@ class Library {
     }
   }
 
-  void cacheDartUnit(File file, DartUnit unit) {
+  void cacheDartUnit(File file, DartUnit unit, Collection<AnalysisError> analysisErrors) {
     dartUnits.put(file, unit);
+    if (analysisErrors.size() > 0) {
+      DartCompilationError[] parseErrorArray = new DartCompilationError[analysisErrors.size()];
+      int index = 0;
+      for (AnalysisError error : analysisErrors) {
+        parseErrorArray[index++] = error.getCompilationError();
+      }
+      if (parseErrors == null) {
+        parseErrors = new HashMap<File, DartCompilationError[]>();
+      }
+      parseErrors.put(file, parseErrorArray);
+    }
   }
 
   void cacheLibraryUnit(AnalysisServer server, LibraryUnit libUnit) {
@@ -182,6 +195,13 @@ class Library {
 
   LibraryUnit getLibraryUnit() {
     return libraryUnit;
+  }
+
+  DartCompilationError[] getParseErrors(File file) {
+    if (parseErrors == null) {
+      return null;
+    }
+    return parseErrors.get(file);
   }
 
   Set<String> getPrefixes() {
