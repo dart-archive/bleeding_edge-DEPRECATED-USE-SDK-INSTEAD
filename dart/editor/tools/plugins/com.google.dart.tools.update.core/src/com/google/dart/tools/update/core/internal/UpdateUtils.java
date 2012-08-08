@@ -55,8 +55,8 @@ import java.util.zip.ZipInputStream;
 public class UpdateUtils {
 
   private static enum Arch {
-    x32("x86"),
-    x64("x86_64"),
+    x32("32"),
+    x64("64"),
     UNKNOWN(null);
 
     private final String qualifier;
@@ -67,9 +67,9 @@ public class UpdateUtils {
   }
 
   private static enum OS {
-    WIN("win32.win32"),
-    OSX("macosx.cocoa"),
-    LINUX("linux.gtk"),
+    WIN("win32"),
+    OSX("macos"),
+    LINUX("linux"),
     UNKNOWN(null);
 
     private final String qualifier;
@@ -442,7 +442,7 @@ public class UpdateUtils {
   }
 
   private static String getBinaryName() {
-    return "dart-editor-" + OS.qualifier + "." + ARCH.qualifier + ".zip";
+    return "darteditor-" + OS.qualifier + "-" + ARCH.qualifier + ".zip";
   }
 
   @SuppressWarnings("static-access")
