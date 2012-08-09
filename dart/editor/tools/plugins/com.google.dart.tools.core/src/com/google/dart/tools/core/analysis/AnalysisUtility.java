@@ -49,10 +49,10 @@ class AnalysisUtility {
   private static final CompilerConfiguration config = new DefaultCompilerConfiguration(
       new CompilerOptions() {
         @Override
-        public boolean suppressNoMemberWarningForInferredTypes() {
+        public boolean memberWarningForInferredTypes() {
           return DartCore.getPlugin().getPrefs().getBoolean(
-              DartCore.SUPPRESS_NO_MEMBER_FOR_INFERRED_TYPES,
-              true);
+              DartCore.MEMBER_WARNING_FOR_INFERRED_TYPES,
+              false);
         }
       },
       SystemLibraryManagerProvider.getSystemLibraryManager()) {

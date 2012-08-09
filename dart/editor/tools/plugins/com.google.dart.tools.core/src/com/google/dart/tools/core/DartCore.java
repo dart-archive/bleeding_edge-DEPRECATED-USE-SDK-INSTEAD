@@ -123,7 +123,7 @@ public class DartCore extends Plugin {
   /**
    * Preference to control if "not a member" warnings should be suppressed for inferred types.
    */
-  public static final String SUPPRESS_NO_MEMBER_FOR_INFERRED_TYPES = "suppressNoMemberWarningForInferredTypes";
+  public static final String MEMBER_WARNING_FOR_INFERRED_TYPES = "suppressNoMemberWarningForInferredTypes";
 
   /**
    * Cached extensions for CSS files.
