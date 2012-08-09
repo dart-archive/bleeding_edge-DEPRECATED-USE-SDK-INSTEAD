@@ -25,15 +25,18 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -138,42 +141,55 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
     layout.topMargin = 12;
     form.getBody().setLayout(layout);
 
-    // Create the info area.
+    // Create the actions area.
     Section section = toolkit.createSection(form.getBody(), Section.TITLE_BAR);
     section.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.TOP, 1, 1));
-    section.setText("About Dart");
+    section.setText("Getting Started");
     Composite client = toolkit.createComposite(section);
+    GridLayoutFactory.swtDefaults().spacing(0, 0).applyTo(client);
+    toolkit.createLabel(client, "Get started using the editor!");
+    toolkit.createLabel(client, "");
+
+    Button createButton = new Button(client, SWT.PUSH);
+    createButton.setText("Create a new application...");
+    createButton.setImage(DartToolsPlugin.getImage("icons/full/dart16/library_new.png"));
+    createButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        OpenNewApplicationWizardAction action = new OpenNewApplicationWizardAction();
+
+        action.run();
+      }
+    });
+
+    Button openButton = new Button(client, SWT.PUSH);
+    openButton.setText("Open an existing application...");
+    openButton.setImage(DartToolsPlugin.getImage("icons/full/obj16/fldr_obj.gif"));
+    openButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        IAction action = OpenFolderHandler.createCommandAction(getSite().getWorkbenchWindow());
+
+        action.run();
+      }
+    });
+
+    section.setClient(client);
+
+    // Create the info area.
+    section = toolkit.createSection(form.getBody(), Section.TITLE_BAR);
+    section.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.TOP, 1, 1));
+    section.setText("About Dart");
+    client = toolkit.createComposite(section);
     client.setLayout(new TableWrapLayout());
     StringBuffer buf = new StringBuffer();
-    buf.append("<form><p>Dart is a new class-based programming language for creating structured web"
-        + " applications. Developed with the goals of simplicity, efficiency, and scalability, the"
-        + " Dart language combines powerful new language features with familiar constructs"
-        + " into a clear, readable syntax.</p>");
+    buf.append("<form><p>Build HTML5 apps for the modern web! Dart brings structure to web app engineering with a new language, libraries, and tools.</p>");
     buf.append("<li style=\"image\" value=\"image\"><a href=\"http://www.dartlang.org\">Visit dartlang.org</a></li>");
     buf.append("<li style=\"image\" value=\"image\"><a href=\"http://www.dartlang.org/editor\">View Editor documentation</a></li>");
     buf.append("</form>");
     FormText formText = toolkit.createFormText(client, true);
     formText.setWhitespaceNormalized(true);
     formText.setImage("image", DartToolsPlugin.getImage("icons/full/dart16/globe_dark.png"));
-    formText.setText(buf.toString(), true, false);
-    formText.addHyperlinkListener(this);
-    section.setClient(client);
-
-    // Create the actions area.
-    section = toolkit.createSection(form.getBody(), Section.TITLE_BAR);
-    section.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.TOP, 1, 1));
-    section.setText("Get Started");
-    client = toolkit.createComposite(section);
-    client.setLayout(new GridLayout());
-    buf = new StringBuffer();
-    buf.append("<form><p>Get started using the editor!</p>");
-    buf.append("<li style=\"image\" value=\"image1\"><a href=\"dart:create\">Create a new application</a></li>");
-    buf.append("<li style=\"image\" value=\"image2\"><a href=\"dart:open\">Open an existing application</a></li>");
-    buf.append("</form>");
-    formText = toolkit.createFormText(client, true);
-    formText.setWhitespaceNormalized(true);
-    formText.setImage("image1", DartToolsPlugin.getImage("icons/full/dart16/library_new.png"));
-    formText.setImage("image2", DartToolsPlugin.getImage("icons/full/obj16/fldr_obj.gif"));
     formText.setText(buf.toString(), true, false);
     formText.addHyperlinkListener(this);
     section.setClient(client);
@@ -262,22 +278,7 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
     if (event.getHref() instanceof String) {
       String link = (String) event.getHref();
 
-      if (link.equals("dart:create")) {
-        OpenNewApplicationWizardAction action = new OpenNewApplicationWizardAction();
-
-        action.run();
-      } else if (link.equals("dart:open")) {
-        Display.getDefault().asyncExec(new Runnable() {
-          @Override
-          public void run() {
-            IAction action = OpenFolderHandler.createCommandAction(getSite().getWorkbenchWindow());
-
-            action.run();
-          }
-        });
-      } else {
-        Program.launch(link);
-      }
+      Program.launch(link);
     }
   }
 
