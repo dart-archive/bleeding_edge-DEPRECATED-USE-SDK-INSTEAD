@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -52,7 +52,7 @@ class View implements Positionable {
 
   // TODO(rnystrom): Get rid of this when all views are refactored to not use
   // it.
- Element get node() {
+  Element get node() {
     // Lazy render.
     if (_node === null) {
       _render();
@@ -137,7 +137,7 @@ class View implements Positionable {
    * Override this to generate the DOM structure for the view.
    */
   // TODO(rnystrom): make this method abstract, see b/5015671
- Element render() { throw 'abstract'; }
+  Element render() { throw 'abstract'; }
 
   /**
    * Override this to perform initialization behavior that requires access to
