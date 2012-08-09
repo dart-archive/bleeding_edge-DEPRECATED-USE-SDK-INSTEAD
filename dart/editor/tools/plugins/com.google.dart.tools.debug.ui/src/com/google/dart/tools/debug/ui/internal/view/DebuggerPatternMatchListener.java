@@ -38,15 +38,14 @@ import java.net.URISyntaxException;
 //
 // Unhandled exception:
 // foo
-// 0. Function: '::main' url: '/Users/foo/dart/serverapp/serverapp.dart' line:8 col:3
+// #1      main (file:///Users/devoncarew/projects/dart/dart/editor/util/debuggertest/cmd_test.dart:30:11)
 
 // Dartium exceptions look like:
 //
 // Exception: foo
-// Stack Trace: 0. Function: '::handleClick' url: 'http://0.0.0.0:3030/webapp/webapp.dart' line:32
-// col:3
-// 1. Function: 'webapp.function' url: 'http://0.0.0.0:3030/webapp/webapp.dart' line:22 col:18
-// 2. Function: 'EventListenerListImplementation.function' url: 'dart:html' line:23126 col:35
+// Stack Trace: #0      List.add (bootstrap_impl:787:7)
+// #1      testAnimals (http://127.0.0.1:3030/Users/devoncarew/projects/dart/dart/editor/util/debuggertest/web_test.dart:55:11)
+// #2      rotateText.rotateText (http://127.0.0.1:3030/Users/devoncarew/projects/dart/dart/editor/util/debuggertest/web_test.dart:33:14)
 
 /**
  * A console pattern match listener that creates hyperlinks in the console for VM and Dartium
@@ -117,11 +116,9 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
 
   @Override
   public String getPattern() {
-    // ['http://0.0.0.0:3030/webapp/webapp.dart' line:32]
+    // (http://127.0.0.1:3030/Users/util/debuggertest/web_test.dart:33:14)
 
-    // quote non-ws+ ".dart' line:" number+
-
-    return "'\\S+\\.dart' line:\\d+";
+    return "\\(\\S+\\.dart:\\d+:\\d+\\)";
   }
 
   @Override
@@ -154,24 +151,32 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
   }
 
   private Location parseMatch(String match) {
-    // ['http://0.0.0.0:3030/webapp/webapp.dart' line:32]
+    // (http://127.0.0.1:3030/Users/util/debuggertest/web_test.dart:33:14)
 
-    match = match.trim();
-
-    int startQuote = match.indexOf('\'');
-    int endQuote = match.lastIndexOf('\'');
-
-    if (startQuote == -1 || endQuote == -1) {
+    if (!(match.startsWith("(") && match.endsWith(")"))) {
       return null;
     }
 
-    String url = match.substring(startQuote + 1, endQuote);
+    // remove the parans
+    match = match.substring(1, match.length() - 1);
 
-    if (match.lastIndexOf(':') == -1) {
+    int index = match.indexOf(".dart:");
+
+    if (index == -1) {
       return null;
     }
 
-    String lineStr = match.substring(match.lastIndexOf(':') + 1);
+    index += ".dart".length();
+
+    String url = match.substring(0, index);
+
+    int lineIndex = match.indexOf(':', index + 1);
+
+    if (lineIndex == -1) {
+      return null;
+    }
+
+    String lineStr = match.substring(index + 1, lineIndex);
 
     try {
       String filePath;
@@ -180,7 +185,7 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
       // /Users/foo/dart/serverapp/serverapp.dart
       // file:///Users/foo/dart/webapp2/webapp2.dart
       // http://0.0.0.0:3030/webapp/webapp.dart
-      // package:ihavea/ihavea.dart
+      // package:abc/abc.dart
 
       // resolve package: urls to file: urls
       if (SystemLibraryManager.isPackageSpec(url)
