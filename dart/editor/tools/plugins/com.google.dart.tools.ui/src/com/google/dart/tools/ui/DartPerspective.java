@@ -24,9 +24,8 @@ import org.eclipse.ui.progress.IProgressConstants;
  * The Dart Tooling for Eclipse perspective.
  */
 public class DartPerspective implements IPerspectiveFactory {
-
   private static final String DEBUGGER_VIEW_ID = "com.google.dart.tools.debug.debuggerView"; //$NON-NLS-1$
-  private static final String METRICS_VIEW_ID = "com.google.dart.tools.ui.internal.metricsView"; //$NON-NLS-1$
+  private static final String BREAKPOINTS_VIEW_ID = "com.google.dart.tools.debug.breakpointsView"; //$NON-NLS-1$
 
   private static final String BR = "bottomRight"; //$NON-NLS-1$
   private static final String TL = "topLeft"; //$NON-NLS-1$
@@ -78,6 +77,7 @@ public class DartPerspective implements IPerspectiveFactory {
         0.70f,
         editorArea);
     debuggerFolder.addPlaceholder(DEBUGGER_VIEW_ID);
+    debuggerFolder.addPlaceholder(BREAKPOINTS_VIEW_ID);
 
     layout.addActionSet(IPageLayout.ID_NAVIGATE_ACTION_SET);
 
@@ -87,7 +87,6 @@ public class DartPerspective implements IPerspectiveFactory {
     layout.addShowViewShortcut(IPageLayout.ID_PROBLEM_VIEW);
     layout.addShowViewShortcut(IPageLayout.ID_TASK_LIST);
     layout.addShowViewShortcut(IPageLayout.ID_PROJECT_EXPLORER);
-    layout.addShowViewShortcut(METRICS_VIEW_ID);
 
     // new actions - wizards
     layout.addNewWizardShortcut(WIZARD_NEW_MODULE);

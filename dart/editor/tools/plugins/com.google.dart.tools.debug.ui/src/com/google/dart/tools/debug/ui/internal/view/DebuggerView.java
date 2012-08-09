@@ -61,7 +61,7 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
   private static Image CONNECTED_IMAGE;
   private static Image NOT_CONNECTED_IMAGE;
 
-  private RemoveAllBreakpointsAction removeAllBreakpointsAction;
+  private ShowBreakpointsAction showBreakpointsAction;
 
   /**
    * Create a new DebuggerView instance.
@@ -125,10 +125,6 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
 
   @Override
   public void dispose() {
-    if (removeAllBreakpointsAction != null) {
-      removeAllBreakpointsAction.dispose();
-    }
-
     DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
 
     variablesView.dispose();
@@ -182,7 +178,7 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
   protected void configureViewToolBar(IToolBarManager manager) {
     manager.removeAll();
 
-    manager.add(removeAllBreakpointsAction);
+    manager.add(showBreakpointsAction);
     manager.update(true);
   }
 
@@ -196,8 +192,8 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
 //    RemoveLaunchAction removeLaunchAction = new RemoveLaunchAction(contextService);
 //    setAction("remove", removeLaunchAction);
 
-    removeAllBreakpointsAction = new RemoveAllBreakpointsAction();
-    setAction("removeAllBreakpoints", removeAllBreakpointsAction);
+    showBreakpointsAction = new ShowBreakpointsAction();
+    setAction("showBreakpointsAction", showBreakpointsAction);
   }
 
   /**

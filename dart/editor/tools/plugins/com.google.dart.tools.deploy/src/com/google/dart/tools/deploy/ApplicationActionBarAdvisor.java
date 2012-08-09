@@ -14,6 +14,7 @@
 package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.debug.ui.internal.view.BreakpointsView;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
 import com.google.dart.tools.debug.ui.launch.DartRunAction;
 import com.google.dart.tools.ui.DartUI;
@@ -748,6 +749,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     IViewDescriptor viewDesc;
 
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_APPS_VIEW);
+    menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+
+    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(BreakpointsView.VIEW_ID);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_CALL_HIERARCHY);

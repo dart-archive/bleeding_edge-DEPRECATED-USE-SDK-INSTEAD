@@ -12,18 +12,6 @@
       </application>
    </extension>
 
-   <!-- debugger view -->
-   <extension point="org.eclipse.ui.views">
-      <view
-            class="com.google.dart.tools.debug.ui.internal.view.DebuggerView"
-            id="com.google.dart.tools.debug.debuggerView"
-            name="Debugger"
-            restorable="true"
-            category="com.google.dart.tools.ui.dart"
-            icon="icons/full/obj16/debug_exc.gif">
-      </view>
-   </extension>
-   
    <extension
          point="org.eclipse.ui.menus">
       <menuContribution
@@ -315,6 +303,22 @@
             icon="icons/full/eview16/problems_view.gif"
             id="com.google.dart.tools.ui.ProblemsView">
       </view>    
+      <view
+            class="com.google.dart.tools.debug.ui.internal.view.DebuggerView"
+            id="com.google.dart.tools.debug.debuggerView"
+            name="Debugger"
+            restorable="true"
+            category="com.google.dart.tools.ui.dart"
+            icon="icons/full/obj16/debug_exc.gif">
+      </view>
+      <view
+            class="com.google.dart.tools.debug.ui.internal.view.BreakpointsView"
+            id="com.google.dart.tools.debug.breakpointsView"
+            name="Breakpoints"
+            restorable="true"
+            category="com.google.dart.tools.ui.dart"
+            icon="icons/full/obj16/breakpoint_view.gif">
+      </view>
    </extension>
 
    <extension
