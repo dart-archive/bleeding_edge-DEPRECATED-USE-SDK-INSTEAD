@@ -369,7 +369,7 @@ def main():
       CreateApiDocs(buildout)
 
     if builder_name == 'dart-editor':
-      BuildUpdateSite(ant, revision, options.name, buildroot, buildout,
+      BuildUpdateSite(gsu, ant, revision, options.name, buildroot, buildout,
               editorpath, buildos)
       return 0
 
@@ -1021,16 +1021,18 @@ def ExecuteCommand(cmd, dir=None):
   return status
 
 
-def BuildUpdateSite(ant, revision, name, buildroot, buildout,
+def BuildUpdateSite(gsu, ant, revision, name, buildroot, buildout,
               editorpath, buildos):
   ant.RunAnt('../com.google.dart.eclipse.feature_releng',
              'build.xml', revision, name, buildroot, buildout,
               editorpath, buildos, ['-Dbuild.dir=%s' % buildout])
-
-  UploadSite(buildout, "%s/%s" % (GSU_PATH_LATEST, 'eclipse-update'))
-  UploadSite(buildout, "%s/%s" % (GSU_PATH_REV, 'eclipse-update'))
+  #TODO(pquitslund): migrate to a bucket copy (rather than serial uploads)
+  UploadSite(gsu, buildout, join(GSU_PATH_REV,'eclipse-update'))
+  UploadSite(gsu, buildout, join(GSU_PATH_LATEST,'eclipse-update'))
   
-def UploadSite(buildout, gsPath) :
+def UploadSite(gsu, buildout, gsPath) :
+  # remove any old artifacts
+  Gsutil(['rm', '-R', join(gsPath, '*')])
   # create eclipse-update/index.html first to ensure eclipse-update prefix exists (needed for recursive copy to follow)
   Gsutil(['cp', '-a', 'public-read', r'file://' + join(buildout,'buildRepo', 'index.html'), join(gsPath,'index.html')])
   # recursively copy update site contents
