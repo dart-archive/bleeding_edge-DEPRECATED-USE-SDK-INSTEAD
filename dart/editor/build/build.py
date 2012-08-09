@@ -1025,7 +1025,7 @@ def BuildUpdateSite(ant, revision, name, buildroot, buildout,
               editorpath, buildos):
   ant.RunAnt('../com.google.dart.eclipse.feature_releng',
              'build.xml', revision, name, buildroot, buildout,
-              editorpath, buildos, [])
+              editorpath, buildos, ['-Dbuild.dir=%s' % buildout])
 
   UploadSite(buildout, "%s/%s" % (GSU_PATH_LATEST, 'eclipse-update'))
   UploadSite(buildout, "%s/%s" % (GSU_PATH_REV, 'eclipse-update'))
