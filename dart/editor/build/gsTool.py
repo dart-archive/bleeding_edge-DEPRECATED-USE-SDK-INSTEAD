@@ -1,12 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# 
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
 
-"""Copyright 2011 the Dart project authors. All rights reserved.
-
-Use of this source code is governed by a BSD-style license that can be
-found in the LICENSE file.
-
-Cleanup the Google Storage dart-editor-archive-continuous bucket.
-"""
+# Cleanup the Google Storage dart-editor-archive-continuous bucket.
 
 import optparse
 import sys
