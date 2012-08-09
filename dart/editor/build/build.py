@@ -1158,19 +1158,17 @@ def tgz(directory, file):
 
 def upload(file):
   """Upload the given file to google storage."""
-  gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
   
   gspathRev = "%s/%s" % (GSU_PATH_REV, os.path.basename(file))
-  ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', r'file://' + file, gspathRev])
-  
+  Gsutil(['cp', '-a', 'public-read', r'file://' + file, gspathRev])
+
   gspathLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(file))
-  ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', gspathRev, gspathLatest])
+  Gsutil(['cp', '-a', 'public-read', gspathRev, gspathLatest])
 
 def upload_dir(filesToUpload, gs_dir):
   Gsutil(['cp', '-a', 'public-read', '-r'] + filesToUpload + [gs_dir])
 
 def upload_api_docs(dirName):
-  gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
 
   # create file in dartlang-api-docs/REVISION/index.html
   # this lets us do the recursive copy in the next step
@@ -1178,11 +1176,11 @@ def upload_api_docs(dirName):
   localIndexFile = join(dirName, 'index.html')
   destIndexFile = GSU_API_DOCS_PATH + '/index.html'
   
-  ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', localIndexFile, destIndexFile])
+  Gsutil(['cp', '-a', 'public-read', localIndexFile, destIndexFile])
 
   # copy -R api_docs into dartlang-api-docs/REVISION
   filesToUpload = glob.glob(join(dirName, '*'))
-  result = ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', '-r'] + filesToUpload + [GSU_API_DOCS_PATH])
+  result = Gsutil(['cp', '-a', 'public-read', '-r'] + filesToUpload + [GSU_API_DOCS_PATH])
 
   if result == 0:
     destLatestRevFile = GSU_API_DOCS_BUCKET + '/latest.txt'
@@ -1191,12 +1189,11 @@ def upload_api_docs(dirName):
       f.write(REVISION)
 
     # overwrite dartlang-api-docs/latest.txt to contain REVISION
-    ExecuteCommand([sys.executable, gsutilTool, 'cp', '-a', 'public-read', localLatestRevFilename, destLatestRevFile])
+    Gsutil(['cp', '-a', 'public-read', localLatestRevFilename, destLatestRevFile])
 
-#TODO(pquitslund): update all calls to gstutils to use this helper
 def Gsutil(cmd):
   gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
-  ExecuteCommand([sys.executable, gsutilTool] + cmd)
+  return ExecuteCommand([sys.executable, gsutilTool] + cmd)
 
 def ensure_dir(f):
   d = os.path.dirname(f)
