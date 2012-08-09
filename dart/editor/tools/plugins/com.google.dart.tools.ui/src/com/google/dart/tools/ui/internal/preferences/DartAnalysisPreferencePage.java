@@ -28,19 +28,18 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 /**
- * Page for setting general Dart plug-in preferences (the root of all Dart preferences).
+ * Page for setting Dart analysis preferences.
  */
 public class DartAnalysisPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
   public static final String JAVA_BASE_PREF_PAGE_ID = "com.google.dart.tools.ui.preferences.DartAnalysisPreferencePage"; //$NON-NLS-1$
 
-  private static boolean applyCheck(String key, Button check, boolean def) {
+  private static boolean applyCheck(String key, boolean currentValue, boolean def) {
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
       boolean root = prefs.getBoolean(key, def);
-      boolean newSuppress = check.getSelection();
-      if (newSuppress != root) {
-        prefs.putBoolean(key, newSuppress);
+      if (currentValue != root) {
+        prefs.putBoolean(key, currentValue);
         return true;
       }
     }
@@ -54,7 +53,7 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
     return checkBox;
   }
 
-  private Button suppressNoMemberWarningForInferredTypes_check;
+  private Button warningForInferredTypes_check;
 
   public DartAnalysisPreferencePage() {
     setPreferenceStore(null);
@@ -70,7 +69,7 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
     boolean hasChanges = false;
     hasChanges |= applyCheck(
         DartCore.SUPPRESS_NO_MEMBER_FOR_INFERRED_TYPES,
-        suppressNoMemberWarningForInferredTypes_check,
+        !warningForInferredTypes_check.getSelection(),
         true);
     if (hasChanges) {
       Job job = new CleanLibrariesJob();
@@ -84,7 +83,7 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
     Composite composite = new Composite(parent, SWT.NONE);
     GridLayoutFactory.fillDefaults().spacing(0, 8).margins(0, 10).applyTo(composite);
     // create UI
-    suppressNoMemberWarningForInferredTypes_check = createCheckBox(
+    warningForInferredTypes_check = createCheckBox(
         composite,
         PreferencesMessages.DartAnalysisPreferencePage_suppressNoMemberWarningForInferredTypes,
         null);
@@ -95,7 +94,7 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
 
   private void initFromPrefs() {
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
-    suppressNoMemberWarningForInferredTypes_check.setSelection(prefs.getBoolean(
+    warningForInferredTypes_check.setSelection(!prefs.getBoolean(
         DartCore.SUPPRESS_NO_MEMBER_FOR_INFERRED_TYPES,
         true));
   }
