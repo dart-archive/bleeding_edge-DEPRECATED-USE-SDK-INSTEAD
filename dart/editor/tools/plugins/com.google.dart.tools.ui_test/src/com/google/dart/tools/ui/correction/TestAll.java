@@ -19,6 +19,7 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(StubUtilityTest.class);
     suite.addTestSuite(QuickAssistProcessorTest.class);
     suite.addTestSuite(QuickFixProcessorTest.class);
     return suite;

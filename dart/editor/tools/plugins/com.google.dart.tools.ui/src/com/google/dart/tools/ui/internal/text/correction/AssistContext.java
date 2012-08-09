@@ -32,10 +32,9 @@ public class AssistContext extends TextInvocationContext implements IInvocationC
 
   private final CompilationUnit fCompilationUnit;
   private final IEditorPart fEditor;
+  private final ASTProvider.WAIT_FLAG fWaitFlag;
 
   private DartUnit fASTRoot;
-//  private final SharedASTProvider.WAIT_FLAG fWaitFlag;
-  private final ASTProvider.WAIT_FLAG fWaitFlag;
   /**
    * The cached node finder, can be null.
    */
@@ -76,11 +75,6 @@ public class AssistContext extends TextInvocationContext implements IInvocationC
   public DartUnit getASTRoot() {
     if (fASTRoot == null) {
       fASTRoot = ASTProvider.getASTProvider().getAST(fCompilationUnit, fWaitFlag, null);
-      // TODO(scheglov) don't know if needed
-//      if (fASTRoot == null) {
-//        // see bug 63554
-//        fASTRoot = ASTResolving.createQuickFixAST(fCompilationUnit, null);
-//      }
     }
     return fASTRoot;
   }

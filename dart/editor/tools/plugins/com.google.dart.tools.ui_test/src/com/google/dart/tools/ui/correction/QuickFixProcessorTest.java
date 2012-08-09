@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.correction;
 
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 import com.google.dart.compiler.util.apache.ArrayUtils;
 import com.google.dart.tools.core.DartCore;
@@ -42,6 +43,111 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
 
   private int proposalsExpectedNumber = 1;
   private int proposalsIndexToCheck = 0;
+
+  public void test_createFunction_hasParameters() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  foo(1, 2.0, '');",
+        "}",
+        "");
+    problemCode = ResolverErrorCode.CANNOT_RESOLVE_METHOD;
+    problemOffset = findOffset("foo(");
+    problemLength = "foo".length();
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  foo(1, 2.0, '');",
+        "}",
+        "",
+        "foo(int i, double d, String string) {",
+        "}",
+        "");
+  }
+
+  public void test_createFunction_hasParameters_Dynamic() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  foo(null);",
+        "}",
+        "");
+    problemCode = ResolverErrorCode.CANNOT_RESOLVE_METHOD;
+    problemOffset = findOffset("foo(");
+    problemLength = "foo".length();
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  foo(null);",
+        "}",
+        "",
+        "foo(arg0) {",
+        "}",
+        "");
+  }
+
+  public void test_createFunction_noParameters_hasReturnType_Dynamic() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = foo();",
+        "}",
+        "");
+    problemCode = ResolverErrorCode.CANNOT_RESOLVE_METHOD;
+    problemOffset = findOffset("foo();");
+    problemLength = "foo".length();
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = foo();",
+        "}",
+        "",
+        "foo() {",
+        "}",
+        "");
+  }
+
+  public void test_createFunction_noParameters_hasReturnType_fromVariable() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v = foo();",
+        "}",
+        "");
+    problemCode = ResolverErrorCode.CANNOT_RESOLVE_METHOD;
+    problemOffset = findOffset("foo();");
+    problemLength = "foo".length();
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v = foo();",
+        "}",
+        "",
+        "int foo() {",
+        "}",
+        "");
+  }
+
+  public void test_createFunction_noParameters_noReturnType() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  foo();",
+        "}",
+        "");
+    problemCode = ResolverErrorCode.CANNOT_RESOLVE_METHOD;
+    problemOffset = findOffset("foo();");
+    problemLength = "foo".length();
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  foo();",
+        "}",
+        "",
+        "foo() {",
+        "}",
+        "");
+  }
 
   public void test_importLibrary_withType_fromSDK() throws Exception {
     setTestUnitContent(

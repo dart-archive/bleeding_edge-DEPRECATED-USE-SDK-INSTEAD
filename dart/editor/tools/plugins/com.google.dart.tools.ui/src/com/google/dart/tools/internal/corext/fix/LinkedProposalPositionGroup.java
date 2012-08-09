@@ -29,7 +29,7 @@ import java.util.List;
 public class LinkedProposalPositionGroup {
 
   /**
-   * {@link LinkedProposalPositionGroup.PositionInformation} describes a position insinde a position
+   * {@link LinkedProposalPositionGroup.PositionInformation} describes a position inside a position
    * group. The information provided must be accurate after the document change to the proposal has
    * been performed, but doesn't need to reflect the changed done by the linking mode.
    */

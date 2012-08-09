@@ -591,7 +591,7 @@ public final class ASTProvider {
       // parser.setBindingsRecovery(SHARED_BINDING_RECOVERY);
 
       Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
-      DartUnit dartUnit = DartCompilerUtilities.parseUnit((CompilationUnit) je, parseErrors);
+      DartUnit dartUnit = DartCompilerUtilities.resolveUnit((CompilationUnit) je, parseErrors);
 
       // TODO Return null if there is a parse error?
       // Or return a partially formed DartUnit?

@@ -211,6 +211,7 @@ public abstract class AbstractDartTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     testProject = new TestProject();
+    System.setProperty("dartEditorTesting.forceResolveUnit", "true");
   }
 
   @Override

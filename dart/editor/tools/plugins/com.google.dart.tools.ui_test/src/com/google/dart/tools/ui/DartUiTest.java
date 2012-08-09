@@ -25,6 +25,7 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceFileElement;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.problem.ProblemRequestor;
+import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 import com.google.dart.tools.ui.internal.text.functions.DartHeuristicScanner;
 import com.google.dart.tools.ui.text.DartPartitions;
@@ -98,7 +99,7 @@ public class DartUiTest extends TestCase {
 
   public void testNodeFinder() throws DartModelException {
     CompilationUnit cu = getExampleCompUnit();
-    DartNode node = DartToolsPlugin.getDefault().getASTProvider().getAST(cu, null, null);
+    DartNode node = DartCompilerUtilities.parseUnit(cu);
     // TODO stop decrementing length when parser starts including final brace
     DartNode block = NodeFinder.perform(node, BLOCK_START, BLOCK_LENGTH - 1);
     assertTrue(block instanceof DartBlock);

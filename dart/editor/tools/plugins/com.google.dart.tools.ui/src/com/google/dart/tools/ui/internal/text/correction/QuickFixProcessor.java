@@ -13,23 +13,38 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
+
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartDirective;
+import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartImportDirective;
+import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartLibraryDirective;
+import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
+import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
+import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.TypeKind;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
+import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
+import com.google.dart.tools.core.dom.rewrite.TrackedNodePosition;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -41,12 +56,17 @@ import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.internal.corext.SourceRangeFactory;
+import com.google.dart.tools.internal.corext.codemanipulation.StubUtility;
+import com.google.dart.tools.internal.corext.dom.ASTNodes;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.SourceBuilder;
+import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedPositions;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
@@ -62,6 +82,9 @@ import org.eclipse.text.edits.TextEdit;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Standard {@link IQuickFixProcessor} for Dart.
@@ -71,8 +94,28 @@ import java.util.List;
 public class QuickFixProcessor implements IQuickFixProcessor {
   private static final int DEFAULT_RELEVANCE = 50;
 
+//  private static ReplaceEdit createInsertEdit(int offset, String text) {
+//    return new ReplaceEdit(offset, 0, text);
+//  }
+//
+//  private static ReplaceEdit createRemoveEdit(SourceRange range) {
+//    return createReplaceEdit(range, "");
+//  }
+
   private static ReplaceEdit createReplaceEdit(SourceRange range, String text) {
     return new ReplaceEdit(range.getOffset(), range.getLength(), text);
+  }
+
+  /**
+   * @return the suggestions for given {@link Type} and {@link DartExpression}, not empty.
+   */
+  private static String[] getArgumentNameSuggestions(Set<String> excluded, Type type,
+      DartExpression expression, int index) {
+    String[] suggestions = StubUtility.getVariableNameSuggestions(type, expression, excluded);
+    if (suggestions.length != 0) {
+      return suggestions;
+    }
+    return new String[] {"arg" + index};
   }
 
   private CompilationUnit unit;
@@ -80,9 +123,11 @@ public class QuickFixProcessor implements IQuickFixProcessor {
   private DartNode node;
 
   private final List<ICommandAccess> proposals = Lists.newArrayList();
-
-  private final List<TextEdit> textEdits = Lists.newArrayList();
   private int proposalRelevance = DEFAULT_RELEVANCE;
+  private final List<TextEdit> textEdits = Lists.newArrayList();
+  private final Map<String, List<TrackedNodePosition>> linkedPositions = Maps.newHashMap();
+
+  private LinkedCorrectionProposal proposal;
 
   @Override
   public IDartCompletionProposal[] getCorrections(IInvocationContext context,
@@ -98,6 +143,9 @@ public class QuickFixProcessor implements IQuickFixProcessor {
           @Override
           public void run() throws Exception {
             ErrorCode errorCode = location.getProblemId();
+            if (errorCode == ResolverErrorCode.CANNOT_RESOLVE_METHOD) {
+              addFix_createUnresolvedMethod(location);
+            }
             if (errorCode == TypeErrorCode.IS_STATIC_METHOD_IN) {
               addFix_useStaticAccess_method(location);
             }
@@ -105,6 +153,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
               addFix_importLibrary_withType(location);
             }
           }
+
         });
       }
     }
@@ -113,8 +162,104 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 
   @Override
   public boolean hasCorrections(CompilationUnit unit, ErrorCode errorCode) {
-    return errorCode == TypeErrorCode.IS_STATIC_METHOD_IN
+    return errorCode == ResolverErrorCode.CANNOT_RESOLVE_METHOD
+        || errorCode == TypeErrorCode.IS_STATIC_METHOD_IN
         || errorCode == TypeErrorCode.NO_SUCH_TYPE;
+  }
+
+  private void addFix_createUnresolvedMethod(IProblemLocation location) {
+    if (node instanceof DartIdentifier && node.getParent() instanceof DartUnqualifiedInvocation) {
+      String name = ((DartIdentifier) node).getName();
+      DartUnqualifiedInvocation invocation = (DartUnqualifiedInvocation) node.getParent();
+      DartMethodDefinition enclosingMethod = ASTNodes.getAncestor(node, DartMethodDefinition.class);
+      // prepare environment
+      String eol = utils.getEndOfLine();
+      String prefix = utils.getNodePrefix(enclosingMethod);
+      //
+      SourceRange range = SourceRangeFactory.forEndLength(enclosingMethod, 0);
+      SourceBuilder sb = new SourceBuilder(range);
+      {
+        sb.append(eol + eol + prefix);
+        // may be return type
+        {
+          Type type = addFix_createUnresolvedMethod_getReturnType(invocation);
+          if (type != null) {
+            sb.startPosition("RETURN_TYPE");
+            sb.append(ExtractUtils.getTypeSource(type));
+            sb.endPosition();
+            sb.append(" ");
+          }
+        }
+        // append name
+        {
+          sb.startPosition("NAME");
+          sb.append(name);
+          sb.endPosition();
+        }
+        // append parameters
+        sb.append("(");
+        Set<String> excluded = Sets.newHashSet();
+        List<DartExpression> arguments = invocation.getArguments();
+        for (int i = 0; i < arguments.size(); i++) {
+          DartExpression argument = arguments.get(i);
+          // append separator
+          if (i != 0) {
+            sb.append(", ");
+          }
+          // append type name
+          Type type = argument.getType();
+          if (type != null) {
+            String typeSource = ExtractUtils.getTypeSource(type);
+            {
+              sb.startPosition("TYPE" + i);
+              sb.append(typeSource);
+              sb.endPosition();
+            }
+            sb.append(" ");
+          }
+          // append parameter name
+          {
+            sb.startPosition("ARG" + i);
+            String[] suggestions = getArgumentNameSuggestions(excluded, type, argument, i);
+            sb.append(suggestions[0]);
+            sb.endPosition();
+          }
+        }
+        sb.append(") {" + eol + prefix + "}");
+      }
+      // insert source
+      addReplaceEdit(range, sb.toString());
+      addLinkedPosition("NAME", TrackedPositions.forNode(node));
+      addLinkedPositions(sb);
+      // add proposal
+      addUnitCorrectionProposal(
+          unit,
+          TextFileChange.FORCE_SAVE,
+          Messages.format(CorrectionMessages.QuickFixProcessor_addMethod_topLevel, name),
+          DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    }
+    // TODO
+//    foo(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28);
+//    foo(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8);
+//    foo("0", "1");
+//    foo(true, false);
+  }
+
+  /**
+   * @return the possible return {@link Type}, may be <code>null</code> if can not be identified.
+   *         {@link TypeKind#DYNAMIC} also returned as <code>null</code>.
+   */
+  private Type addFix_createUnresolvedMethod_getReturnType(DartInvocation invocation) {
+    Type type = null;
+    StructuralPropertyDescriptor invocationLocation = getLocationInParent(invocation);
+    if (invocationLocation == DART_VARIABLE_VALUE) {
+      DartVariable variable = (DartVariable) invocation.getParent();
+      type = variable.getElement().getType();
+    }
+    if (TypeKind.of(type) == TypeKind.DYNAMIC) {
+      type = null;
+    }
+    return type;
   }
 
   private void addFix_importLibrary_withType(IProblemLocation location) throws Exception {
@@ -136,7 +281,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
         String prefix = imp.getPrefix();
         if (!StringUtils.isEmpty(prefix) && imp.getLibrary().findType(typeName) != null) {
           SourceRange range = SourceRangeFactory.forStartLength(node, 0);
-          textEdits.add(createReplaceEdit(range, prefix + "."));
+          addReplaceEdit(range, prefix + ".");
           // add proposal
           proposalRelevance++;
           addUnitCorrectionProposal(
@@ -204,7 +349,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     }
     // insert new #import
     String importSource = prefix + "#import('" + importPath + "');" + suffix;
-    textEdits.add(createReplaceEdit(range, importSource));
+    addReplaceEdit(range, importSource);
     // add proposal
     addUnitCorrectionProposal(
         libraryUnit,
@@ -241,11 +386,57 @@ public class QuickFixProcessor implements IQuickFixProcessor {
       String className) {
     // replace "target" with class name
     SourceRange range = SourceRangeFactory.create(invocation.getTarget());
-    textEdits.add(createReplaceEdit(range, className));
+    addReplaceEdit(range, className);
     // add proposal
     addUnitCorrectionProposal(
         Messages.format(CorrectionMessages.QuickFixProcessor_useStaticAccess_method, className),
         DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+  }
+
+//  private void addInsertEdit(int offset, String text) {
+//    textEdits.add(createInsertEdit(offset, text));
+//  }
+
+  private void addLinkedPosition(String group, TrackedNodePosition position) {
+    List<TrackedNodePosition> positions = linkedPositions.get(group);
+    if (positions == null) {
+      positions = Lists.newArrayList();
+      linkedPositions.put(group, positions);
+    }
+    positions.add(position);
+  }
+
+  /**
+   * Adds positions from the given {@link SourceBuilder} to the {@link #linkedPositions}.
+   */
+  private void addLinkedPositions(SourceBuilder builder) {
+    Map<String, List<TrackedNodePosition>> builderPositions = builder.getTrackedPositions();
+    for (Entry<String, List<TrackedNodePosition>> entry : builderPositions.entrySet()) {
+      String groupId = entry.getKey();
+      for (TrackedNodePosition position : entry.getValue()) {
+        addLinkedPosition(groupId, position);
+      }
+    }
+  }
+
+  /**
+   * Adds {@link #linkedPositions} to the current {@link #proposal}.
+   */
+  private void addLinkedPositionsToProposal() {
+    for (Entry<String, List<TrackedNodePosition>> entry : linkedPositions.entrySet()) {
+      String groupId = entry.getKey();
+      for (TrackedNodePosition position : entry.getValue()) {
+        proposal.addLinkedPosition(position, false, groupId);
+      }
+    }
+  }
+
+//  private void addRemoveEdit(SourceRange range) {
+//    textEdits.add(createRemoveEdit(range));
+//  }
+
+  private void addReplaceEdit(SourceRange range, String text) {
+    textEdits.add(createReplaceEdit(range, text));
   }
 
   /**
@@ -263,7 +454,9 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     }
     // add proposal
     if (!textEdits.isEmpty()) {
-      proposals.add(new CUCorrectionProposal(label, unit, change, proposalRelevance, image));
+      proposal = new LinkedCorrectionProposal(label, unit, change, proposalRelevance, image);
+      addLinkedPositionsToProposal();
+      proposals.add(proposal);
     }
     // done
     resetProposalElements();
@@ -296,6 +489,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
    */
   private void resetProposalElements() {
     textEdits.clear();
+    linkedPositions.clear();
     proposalRelevance = DEFAULT_RELEVANCE;
   }
 }
