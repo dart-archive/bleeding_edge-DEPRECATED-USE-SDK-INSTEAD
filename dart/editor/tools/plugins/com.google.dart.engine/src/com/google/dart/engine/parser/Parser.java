@@ -403,15 +403,11 @@ public class Parser {
       // An expression cannot start with a keyword.
       return true;
     }
-    if (!matchesIdentifier()) {
-      // A variable declaration must start with either a keyword (handled above) or an identifier.
-      return false;
-    }
     // We know that we have an identifier, and need to see whether it might be a type name.
     Token token = skipTypeName(currentToken);
     if (token == null) {
-      // There was no type name, so we just have an identifier.
-      return true;
+      // There was no type name, so this can't be a declaration.
+      return false;
     }
     return skipSimpleIdentifier(token) != null;
   }
@@ -1224,8 +1220,11 @@ public class Parser {
         }
         directives.add(directive);
       } else {
-        declarations.add(parseCompilationUnitMember());
-        declarationFound = true;
+        CompilationUnitMember member = parseCompilationUnitMember();
+        if (member != null) {
+          declarations.add(member);
+          declarationFound = true;
+        }
       }
       if (currentToken == memberStart) {
         reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
@@ -1254,6 +1253,10 @@ public class Parser {
    * @return the compilation unit member that was parsed
    */
   private CompilationUnitMember parseCompilationUnitMember() {
+    if (matches(Keyword.STATIC)) {
+      reportError(ParserErrorCode.TOP_LEVEL_CANNOT_BE_STATIC);
+      advance();
+    }
     if (matches(Keyword.ABSTRACT) || matches(Keyword.CLASS)) {
       return parseClassDeclaration();
     } else if (matches(Keyword.TYPEDEF)) {

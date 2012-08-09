@@ -109,7 +109,7 @@ public enum ParserErrorCode implements ErrorCode {
 //  SUPER_IS_NOT_VALID_AS_A_BOOLEAN_OPERAND("'super' is not valid as a boolean operand"),
 //  SUPER_IS_NOT_VALID_ALONE_OR_AS_A_BOOLEAN_OPERAND(
 //      "'super' is not valid alone or as a boolean operand"),
-//  TOP_LEVEL_CANNOT_BE_STATIC("Top-level field or method can not be static"),
+  TOP_LEVEL_CANNOT_BE_STATIC("Top-level field or method cannot be static"),
 //  UNREACHABLE_CODE_IN_CASE(ErrorSeverity.WARNING, "Unreachable code in case statement"),
   UNEXPECTED_TOKEN("Unexpected token '%s'");
 //  UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION("Unexpected token in string interpolation: %s"),

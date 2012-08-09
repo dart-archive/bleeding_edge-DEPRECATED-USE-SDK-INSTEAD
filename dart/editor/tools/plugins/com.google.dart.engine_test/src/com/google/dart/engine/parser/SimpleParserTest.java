@@ -261,6 +261,10 @@ public class SimpleParserTest extends ParserTestCase {
     assertFalse(isInitializedVariableDeclaration("a = null;"));
   }
 
+  public void test_isInitializedVariableDeclaration_comparison() throws Exception {
+    assertFalse(isInitializedVariableDeclaration("a < 0;"));
+  }
+
   public void test_isInitializedVariableDeclaration_conditional() throws Exception {
     assertFalse(isInitializedVariableDeclaration("a == null ? init() : update();"));
   }

@@ -250,4 +250,8 @@ public class ErrorParserTest extends ParserTestCase {
   public void test_positionalAfterNamedArgument() throws Exception {
     parse("parseArgumentList", "(x: 1, 2)", ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
   }
+
+  public void test_topLevelCannotBeStatic() throws Exception {
+    parse("parseCompilationUnitMember", "static var x;", ParserErrorCode.TOP_LEVEL_CANNOT_BE_STATIC);
+  }
 }
