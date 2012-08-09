@@ -536,7 +536,6 @@ def _DeployToContinuous(build_os, to_bucket, zip_files, svnid, gsu):
     if status:
       PrintError('failed to copy {0} to {1}'.format(element, svnid_object))
       return status
-    _SetAcl(svnid_object, gsu)
 
   return (status, gs_objects)
 
@@ -589,7 +588,6 @@ def _MoveContinuousToLatest(bucket_stage, bucket_continuous, svnid, gsu):
       data['file'] = file_name
       element_to = bucket_to_template.substitute(data)
       gsu.Copy(element, element_to)
-      _SetAcl(element_to, gsu)
 
 
 def _CleanupStaging(bucket_stage, svnid, gsu):
@@ -660,33 +658,10 @@ def UploadTestHtml(buildout, bucket, svnid, buildos, gsu):
       gs_elements = gsu.ReadBucket('{0}/{1}/{2}/*'.format(gs_dir,
                                                           gs_test_dir_name,
                                                           buildos))
-      for gs_element in gs_elements:
-        _SetAcl(gs_element, gsu)
   finally:
     os.chdir(cwd)
     if tmp_dir is not None and os.path.exists(tmp_dir):
       shutil.rmtree(tmp_dir, ignore_errors=True)
-
-
-def _SetAcl(element, gsu):
-  """Set the ACL on a GoogleStorage object.
-
-  Args:
-    element: the object to set the ACL on
-    gsu: the gsutil object
-  """
-  print 'setting ACL on {0}'.format(element)
-  #These lines are being commented out because the windows build is having
-  # an issue parsing the XML that comes back from the gsu.GetAcl() command.
-  # The workaround is to use a static ACL from the acl.xml file to set the
-  # to set the ACL's for the given object.
-#  gsu.SetCannedAcl(element, 'project-private')
-#  acl = gsu.GetAcl(element)
-#  print 'acl = {0}'.format(acl)
-#  acl = gsu.AddPublicAcl(acl)
-  scriptdir = os.path.abspath(os.path.dirname(sys.argv[0]))
-  aclfile = os.path.join(scriptdir, 'acl.xml')
-  gsu.SetAclFromFile(element, aclfile)
 
 
 def _FindRcpZipFiles(out_dir):
