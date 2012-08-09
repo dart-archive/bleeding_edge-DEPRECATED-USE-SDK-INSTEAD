@@ -26,11 +26,13 @@ import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import com.google.dart.tools.core.utilities.resource.IResourceUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
+import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +100,7 @@ public class HTMLFileImpl extends OpenableElementImpl implements HTMLFile {
       for (DartLibrary library : libraries) {
         if (library.getDartProject().getProject().equals(file.getProject())) {
           String elementName = library.getElementName();
+          elementName = URIUtil.toDecodedString(new URI(elementName)).toString();
           for (String libraryPath : libraryPaths) {
             if (elementName.equals(libraryPath) || elementName.contains(libraryPath)) {
               referencedLibraries.add(library);

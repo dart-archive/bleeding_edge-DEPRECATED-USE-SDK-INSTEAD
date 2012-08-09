@@ -95,11 +95,12 @@ public class DartiumLaunchShortcut extends AbstractLaunchShortcut implements ILa
 
       // Create and launch a new configuration
       ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
-      ILaunchConfigurationType type = manager.getLaunchConfigurationType(
-          DartDebugCorePlugin.DARTIUM_LAUNCH_CONFIG_ID);
+      ILaunchConfigurationType type = manager.getLaunchConfigurationType(DartDebugCorePlugin.DARTIUM_LAUNCH_CONFIG_ID);
       ILaunchConfigurationWorkingCopy launchConfig = null;
       try {
-        launchConfig = type.newInstance(null, resource.getName());
+        launchConfig = type.newInstance(
+            null,
+            manager.generateLaunchConfigurationName(resource.getName()));
       } catch (CoreException ce) {
         DartUtil.logError(ce);
         return;

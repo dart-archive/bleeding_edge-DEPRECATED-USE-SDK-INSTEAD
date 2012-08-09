@@ -33,6 +33,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import java.io.File;
 import java.net.URI;
+import java.text.MessageFormat;
 
 /**
  * Creates projects in the workspace.
@@ -76,10 +77,17 @@ public class CreateAndRevealProjectAction extends Action {
     Path path = new Path(directoryPath);
     String name = path.lastSegment();
 
-    IProject projectHandle = ResourcesPlugin.getWorkspace().getRoot().getProject(name);
+    IProject projectHandle = getProjectHandle(name);
     if (projectHandle.exists()) {
-      ProjectUtils.selectAndReveal(projectHandle);
-    } else if (!isNestedByAnExistingProject(path) && !nestsAnExistingProject(path)) {
+      if (projectHandle.getLocation().equals(path)) {
+        ProjectUtils.selectAndReveal(projectHandle);
+        return;
+      } else {
+        name = generateUniqueNameFrom(name);
+        projectHandle = getProjectHandle(name);
+      }
+    }
+    if (!isNestedByAnExistingProject(path) && !nestsAnExistingProject(path)) {
       URI location = new File(directoryPath).toURI();
 
       IProject project = ProjectUtils.createNewProject(
@@ -96,6 +104,33 @@ public class CreateAndRevealProjectAction extends Action {
     }
   }
 
+  private String generateUniqueNameFrom(String baseName) {
+    int index = 1;
+    int copyIndex = baseName.lastIndexOf("-"); //$NON-NLS-1$
+    if (copyIndex > -1) {
+      String trailer = baseName.substring(copyIndex + 1);
+      if (isNumber(trailer)) {
+        try {
+          index = Integer.parseInt(trailer);
+          baseName = baseName.substring(0, copyIndex);
+        } catch (NumberFormatException nfe) {
+        }
+      }
+    }
+    String newName = baseName;
+    while (getProjectHandle(newName).exists()) {
+      newName = MessageFormat.format(
+          ProjectMessages.CreateAndRevealProjectAction_projectName,
+          new Object[] {baseName, Integer.toString(index)});
+      index++;
+    }
+    return newName;
+  }
+
+  private IProject getProjectHandle(String name) {
+    return ResourcesPlugin.getWorkspace().getRoot().getProject(name);
+  }
+
   private Shell getShell() {
     return window.getShell();
   }
@@ -110,6 +145,19 @@ public class CreateAndRevealProjectAction extends Action {
       }
     }
     return false;
+  }
+
+  private boolean isNumber(String string) {
+    int numChars = string.length();
+    if (numChars == 0) {
+      return false;
+    }
+    for (int i = 0; i < numChars; i++) {
+      if (!Character.isDigit(string.charAt(i))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private boolean nestsAnExistingProject(IPath path) {

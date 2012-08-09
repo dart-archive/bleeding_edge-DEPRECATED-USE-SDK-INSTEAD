@@ -105,7 +105,9 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILa
     ILaunchConfigurationType type = manager.getLaunchConfigurationType(DartDebugCorePlugin.BROWSER_LAUNCH_CONFIG_ID);
     ILaunchConfigurationWorkingCopy launchConfig = null;
     try {
-      launchConfig = type.newInstance(null, resource.getName());
+      launchConfig = type.newInstance(
+          null,
+          manager.generateLaunchConfigurationName(resource.getName()));
     } catch (CoreException ce) {
       DartUtil.logError(ce);
       return;

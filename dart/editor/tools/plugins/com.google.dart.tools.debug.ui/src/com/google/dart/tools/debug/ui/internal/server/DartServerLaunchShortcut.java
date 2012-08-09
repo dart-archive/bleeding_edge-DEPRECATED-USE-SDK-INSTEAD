@@ -182,7 +182,9 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
     ILaunchConfigurationType type = manager.getLaunchConfigurationType(DartDebugCorePlugin.SERVER_LAUNCH_CONFIG_ID);
     ILaunchConfigurationWorkingCopy launchConfig = null;
     try {
-      launchConfig = type.newInstance(null, resource.getName());
+      launchConfig = type.newInstance(
+          null,
+          manager.generateLaunchConfigurationName(resource.getName()));
     } catch (CoreException ce) {
       DartUtil.logError(ce);
       return;
