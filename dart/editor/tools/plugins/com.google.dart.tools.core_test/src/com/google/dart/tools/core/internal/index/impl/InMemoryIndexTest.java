@@ -69,9 +69,9 @@ public class InMemoryIndexTest extends TestCase {
     Resource resource = new Resource("resource");
     Element element = new Element(resource, "element");
     Relationship relationship = Relationship.getRelationship("relationship");
-    Location location1 = new Location(element, 23, 14);
-    Location location2 = new Location(element, 45, 14);
-    Location location3 = new Location(element, 67, 14);
+    Location location1 = new Location(element, 23, 14, null);
+    Location location2 = new Location(element, 45, 14, null);
+    Location location3 = new Location(element, 67, 14, null);
 
     synchronized (store) {
       store.clear();
@@ -117,7 +117,7 @@ public class InMemoryIndexTest extends TestCase {
     Resource resource = new Resource("resource");
     Element element = new Element(resource, "element");
     Relationship relationship = Relationship.getRelationship("relationship");
-    Location location = new Location(element, 23, 14);
+    Location location = new Location(element, 23, 14, null);
 
     synchronized (store) {
       store.clear();
@@ -136,8 +136,8 @@ public class InMemoryIndexTest extends TestCase {
     Element element1 = new Element(resource1, "element1");
     Element element2 = new Element(resource2, "element2");
     Relationship relationship = Relationship.getRelationship("relationship");
-    Location location1 = new Location(element1, 100, 6);
-    Location location2 = new Location(element2, 100, 6);
+    Location location1 = new Location(element1, 100, 6, null);
+    Location location2 = new Location(element2, 100, 6, null);
 
     synchronized (store) {
       store.clear();
@@ -157,7 +157,7 @@ public class InMemoryIndexTest extends TestCase {
     Resource resource = new Resource("resource");
     Element element = new Element(resource, "element");
     Relationship relationship = Relationship.getRelationship("relationship");
-    Location firstLocation = new Location(element, 100, 6);
+    Location firstLocation = new Location(element, 100, 6, null);
     Attribute attribute = Attribute.getAttribute("attribute");
     String value = "value";
 

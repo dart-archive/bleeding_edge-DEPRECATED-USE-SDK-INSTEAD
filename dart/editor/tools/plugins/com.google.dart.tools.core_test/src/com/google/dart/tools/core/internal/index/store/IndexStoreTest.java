@@ -64,14 +64,14 @@ public class IndexStoreTest extends TestCase {
     Resource resource = new Resource("resource");
     Element element = new Element(resource, "element");
     Relationship relationship = Relationship.getRelationship("relationship");
-    Location firstLocation = new Location(element, 100, 6);
+    Location firstLocation = new Location(element, 100, 6, null);
     index.recordRelationship(resource, element, relationship, firstLocation);
     Location[] locations = index.getRelationships(element, relationship);
     assertNotNull(locations);
     assertEquals(1, locations.length);
     assertEquals(firstLocation, locations[0]);
 
-    Location secondLocation = new Location(element, 120, 6);
+    Location secondLocation = new Location(element, 120, 6, null);
     index.recordRelationship(resource, element, relationship, secondLocation);
     locations = index.getRelationships(element, relationship);
     assertNotNull(locations);
@@ -87,8 +87,8 @@ public class IndexStoreTest extends TestCase {
     Element element1 = new Element(resource1, "element1");
     Element element2 = new Element(resource2, "element2");
     Relationship relationship = Relationship.getRelationship("relationship");
-    Location location1 = new Location(element1, 100, 6);
-    Location location2 = new Location(element2, 100, 6);
+    Location location1 = new Location(element1, 100, 6, null);
+    Location location2 = new Location(element2, 100, 6, null);
     index.recordRelationship(resource1, element1, relationship, location1);
     index.recordRelationship(resource1, element1, relationship, location2);
 
@@ -105,7 +105,7 @@ public class IndexStoreTest extends TestCase {
     Resource resource = new Resource("resource");
     Element element = new Element(resource, "element");
     Relationship relationship = Relationship.getRelationship("relationship");
-    Location firstLocation = new Location(element, 100, 6);
+    Location firstLocation = new Location(element, 100, 6, null);
     index.recordRelationship(resource, element, relationship, firstLocation);
     Attribute attribute = Attribute.getAttribute("attribute");
     String value = "value";

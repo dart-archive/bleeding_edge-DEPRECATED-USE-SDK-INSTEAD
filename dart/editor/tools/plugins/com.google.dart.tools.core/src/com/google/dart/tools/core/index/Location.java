@@ -19,25 +19,32 @@ package com.google.dart.tools.core.index;
  * containing the element rather than the start of the element within that resource.
  */
 public final class Location {
-  /**
-   * The element containing this location.
-   */
-  private Element element;
-
-  /**
-   * The offset of this location within the resource containing the element.
-   */
-  private int offset;
-
-  /**
-   * The length of this location.
-   */
-  private int length;
 
   /**
    * An empty array of locations.
    */
   public static final Location[] EMPTY_ARRAY = new Location[0];
+
+  /**
+   * The element containing this location.
+   */
+  private final Element element;
+
+  /**
+   * The offset of this location within the resource containing the element.
+   */
+  private final int offset;
+
+  /**
+   * The length of this location.
+   */
+  private final int length;
+
+  /**
+   * The name of the import prefix used at this location, or {@code null} if the location does not
+   * involve the use of a prefix.
+   */
+  private final String importPrefix;
 
   /**
    * Initialize a newly create location to be relative to the given element at the given offset with
@@ -47,13 +54,14 @@ public final class Location {
    * @param offset the offset of this location within the resource containing the element
    * @param length the length of this location
    */
-  public Location(Element element, int offset, int length) {
+  public Location(Element element, int offset, int length, String importPrefix) {
     if (element == null) {
       throw new IllegalArgumentException("element cannot be null");
     }
     this.element = element;
     this.offset = offset;
     this.length = length;
+    this.importPrefix = importPrefix;
   }
 
   /**
@@ -63,6 +71,13 @@ public final class Location {
    */
   public Element getElement() {
     return element;
+  }
+
+  /**
+   * @return the name of the import prefix, may be <code>null</code>.
+   */
+  public String getImportPrefix() {
+    return importPrefix;
   }
 
   /**
@@ -85,6 +100,10 @@ public final class Location {
 
   @Override
   public String toString() {
-    return "[" + offset + " - " + (offset + length - 1) + "] in " + element;
+    String result = "[" + offset + " - " + (offset + length - 1) + "] in " + element;
+    if (importPrefix != null) {
+      result += " with prefix '" + importPrefix + "'";
+    }
+    return result;
   }
 }

@@ -90,9 +90,9 @@ public class IndexReaderTest extends TestCase {
 
     index.recordAttribute(element1, Attribute.getAttribute(ATTRIBUTE_ID_1), ATTRIBUTE_VALUE_1);
 
-    index.recordRelationship(resource1, element1, relationship1, new Location(element2, 12, 5));
-    index.recordRelationship(resource1, element1, relationship2, new Location(element2, 32, 9));
-    index.recordRelationship(resource2, element2, relationship1, new Location(element3, 12, 5));
+    index.recordRelationship(resource1, element1, relationship1, new Location(element2, 12, 5, null));
+    index.recordRelationship(resource1, element1, relationship2, new Location(element2, 32, 9, null));
+    index.recordRelationship(resource2, element2, relationship1, new Location(element3, 12, 5, null));
     return index;
   }
 

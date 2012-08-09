@@ -61,6 +61,7 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameImportProcessor_duplicateTopLevels_samePrefix;
   // Rename top-level
   public static String RenameTopProcessor_shadow_topLevel;
+  public static String RenameTopProcessor_shadow_topLevel2;
   // Rename top-level function type alias
   public static String RenameFunctionTypeAliasProcessor_name;
   // Rename top-level function

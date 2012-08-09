@@ -146,6 +146,7 @@ public class SearchEngineImpl implements SearchEngine {
           match.setQualified(relationship == IndexConstants.IS_ACCESSED_BY_QUALIFIED
               || relationship == IndexConstants.IS_MODIFIED_BY_QUALIFIED
               || relationship == IndexConstants.IS_INVOKED_BY_QUALIFIED);
+          match.setImportPrefix(location.getImportPrefix());
           listener.matchFound(match);
         }
       }
@@ -576,7 +577,15 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    SearchListener filteredListener = new CountingSearchListener(2, applyFilter(filter, listener));
+    SearchListener filteredListener = new CountingSearchListener(4, applyFilter(filter, listener));
+    index.getRelationships(
+        createElement(variable),
+        IndexConstants.IS_ACCESSED_BY_QUALIFIED,
+        new RelationshipCallbackImpl(MatchKind.FIELD_READ, filteredListener));
+    index.getRelationships(
+        createElement(variable),
+        IndexConstants.IS_MODIFIED_BY_QUALIFIED,
+        new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, filteredListener));
     index.getRelationships(
         createElement(variable),
         IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,

@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeProcessor;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
@@ -915,15 +916,11 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     }
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(2);
+    assertThat(showStatusMessages).hasSize(1);
     assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
     assertEquals(
         "File 'Test/Test.dart' in library 'Test' already declares top-level import prefix 'NewName'",
         showStatusMessages.get(0));
-    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
-    assertEquals(
-        "File 'Test/Test.dart' in library 'Test' already declares top-level import prefix 'NewName'",
-        showStatusMessages.get(1));
     // no source changes
     assertEquals(source, testUnit.getSource());
   }
@@ -952,6 +949,100 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "}",
         "");
     check_postCondition_topLevel("variable");
+  }
+
+  // XXX
+  public void test_postCondition_topLevel_withPrefixes_hasConflict() throws Exception {
+    setUnitContent("LibA.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('LibA');",
+        "class Test {",
+        "}"});
+    setUnitContent("LibB.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('LibB');",
+        "class NewName {",
+        "}"});
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('test');",
+        "#import('LibA.dart', prefix: 'a');",
+        "#import('LibB.dart', prefix: 'a');",
+        "main() {",
+        "  a.Test test = null;",
+        "}",
+        "");
+    TestProject.waitForAutoBuild();
+    // get units, because they have not library
+    CompilationUnit unitA = testProject.getUnit("LibA.dart");
+    // find Type to rename
+    Type type = findElement(unitA, "Test {");
+    // try to rename
+    try {
+      renameType(type, "NewName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(1);
+      // error for reference
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Reference to the renamed type will conflict with element from library 'Test/LibB.dart'",
+          showStatusMessages.get(0));
+    }
+  }
+
+  // XXX
+  public void test_postCondition_topLevel_withPrefixes_noConflict() throws Exception {
+    setUnitContent("LibA.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('LibA');",
+        "class Test {",
+        "}"});
+    setUnitContent("LibB.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('LibB');",
+        "class NewName {",
+        "}"});
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('test');",
+        "#import('LibA.dart', prefix: 'a');",
+        "#import('LibB.dart', prefix: 'b');",
+        "main() {",
+        "  a.Test test = null;",
+        "}",
+        "");
+    TestProject.waitForAutoBuild();
+    // get units, because they have not library
+    CompilationUnit unitA = testProject.getUnit("LibA.dart");
+    CompilationUnit unitB = testProject.getUnit("LibB.dart");
+    // find Type to rename
+    Type type = findElement(unitA, "Test {");
+    // do rename
+    renameType(type, "NewName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('test');",
+        "#import('LibA.dart', prefix: 'a');",
+        "#import('LibB.dart', prefix: 'b');",
+        "main() {",
+        "  a.NewName test = null;",
+        "}",
+        "");
+    assertUnitContent(unitA, new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('LibA');",
+        "class NewName {",
+        "}"});
+    assertUnitContent(unitB, new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('LibB');",
+        "class NewName {",
+        "}"});
   }
 
   public void test_postCondition_typeParameter_shadows_topLevel() throws Exception {

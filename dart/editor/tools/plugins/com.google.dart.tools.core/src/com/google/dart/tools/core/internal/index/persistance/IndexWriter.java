@@ -142,6 +142,7 @@ public class IndexWriter {
    */
   private void addLocationToStringTable(Location location) {
     addElementToStringTable(location.getElement());
+    addStringToStringTable(location.getImportPrefix());
   }
 
   /**
@@ -183,6 +184,11 @@ public class IndexWriter {
    * @param string the string to be added
    */
   private void addStringToStringTable(String string) {
+    // "null" is handled as -1
+    if (string == null) {
+      return;
+    }
+    // generate String index
     Integer index = stringMap.get(string);
     if (index == null) {
       int currentLength = stringTable.length;
@@ -280,6 +286,7 @@ public class IndexWriter {
     writeElement(output, location.getElement());
     output.writeInt(location.getOffset());
     output.writeInt(location.getLength());
+    writeString(output, location.getImportPrefix());
   }
 
   /**
@@ -344,12 +351,16 @@ public class IndexWriter {
    * @throws IOException if the string could not be written
    */
   private void writeString(ObjectOutputStream output, String string) throws IOException {
-    Integer index = stringMap.get(string);
-    if (index == null) {
-      throw new IllegalStateException(
-          "Attempting to write a string that was not in the string table: \"" + string + "\"");
+    if (string == null) {
+      output.writeInt(-1);
+    } else {
+      Integer index = stringMap.get(string);
+      if (index == null) {
+        throw new IllegalStateException(
+            "Attempting to write a string that was not in the string table: \"" + string + "\"");
+      }
+      output.writeInt(index.intValue());
     }
-    output.writeInt(index.intValue());
   }
 
   /**

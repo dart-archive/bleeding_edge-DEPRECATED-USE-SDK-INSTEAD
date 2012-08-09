@@ -49,6 +49,11 @@ public class SearchMatch {
   private boolean qualified;
 
   /**
+   * Is not <code>null</code> if matched element was imported with this prefix.
+   */
+  private String importPrefix;
+
+  /**
    * A comparator that can be used to sort the matches based on the names of the matched elements.
    */
   public static final Comparator<SearchMatch> SORT_BY_ELEMENT_NAME = new Comparator<SearchMatch>() {
@@ -97,6 +102,13 @@ public class SearchMatch {
   }
 
   /**
+   * @return the import prefix used to import this match of element, may be <code>null</code>.
+   */
+  public String getImportPrefix() {
+    return importPrefix;
+  }
+
+  /**
    * Return the kind of the match. The kind is only used with reference matches and is an indication
    * of the kind of reference that was found.
    * 
@@ -142,6 +154,13 @@ public class SearchMatch {
    */
   public boolean isQualified() {
     return qualified;
+  }
+
+  /**
+   * @see #getImportPrefix()
+   */
+  public void setImportPrefix(String importPrefix) {
+    this.importPrefix = importPrefix;
   }
 
   /**

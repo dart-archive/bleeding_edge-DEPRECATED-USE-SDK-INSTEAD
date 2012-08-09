@@ -158,7 +158,7 @@ public class IndexReader {
    * @throws IOException if the location could not be read
    */
   private Location readLocation(ObjectInputStream input) throws IOException {
-    return new Location(readElement(input), input.readInt(), input.readInt());
+    return new Location(readElement(input), input.readInt(), input.readInt(), readString(input));
   }
 
   /**
@@ -221,6 +221,9 @@ public class IndexReader {
    */
   private String readString(ObjectInputStream input) throws IOException {
     int index = input.readInt();
+    if (index == -1) {
+      return null;
+    }
     return stringTable[index];
   }
 

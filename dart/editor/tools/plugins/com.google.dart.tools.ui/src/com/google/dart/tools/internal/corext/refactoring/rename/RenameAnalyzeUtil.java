@@ -211,6 +211,15 @@ public class RenameAnalyzeUtil {
   }
 
   /**
+   * @return the names of all top-level elements imported by the given {@link DartImport}.
+   */
+  public static Set<String> getImportedTopLevelNames(DartImport imprt) throws CoreException {
+    // TODO(scheglov) in soon we will need to support "show" and "hide" combinators
+    DartLibrary library = imprt.getLibrary();
+    return getExportedTopLevelNames(library);
+  }
+
+  /**
    * @return the references to the given {@link DartElement}, may be empty {@link List}, but not
    *         <code>null</code>.
    */

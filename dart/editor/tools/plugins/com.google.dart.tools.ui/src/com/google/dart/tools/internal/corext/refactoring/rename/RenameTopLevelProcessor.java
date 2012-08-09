@@ -82,29 +82,45 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
       DartLibrary library = reference.getElement().getAncestor(DartLibrary.class);
       libraries.add(library);
     }
-    // visit libraries with references
-    for (DartLibrary library : libraries) {
-      // analyze imports
-      if (!elementIsImport) {
-        for (DartImport dartImport : library.getImports()) {
-          if (Objects.equal(dartImport.getPrefix(), newName)) {
-            reportTopLevelAlreadyDeclared(result, newName, library, dartImport);
+    // may be declaring library has top-level element with same name
+    {
+      CompilationUnitElement unitElement = RenameAnalyzeUtil.getTopLevelElementNamed(
+          elementParentLibrary,
+          newName);
+      if (unitElement != null) {
+        boolean ignorePrefixConflict = elementIsImport && unitElement instanceof DartImport;
+        if (!ignorePrefixConflict) {
+          reportTopLevelAlreadyDeclared(result, newName, elementParentLibrary, unitElement);
+        }
+      }
+    }
+    // may be conflict with existing top-level element, imported using same prefix
+    for (SearchMatch reference : references) {
+      String referencePrefix = reference.getImportPrefix();
+      DartLibrary referenceLibrary = reference.getElement().getAncestor(DartLibrary.class);
+      for (DartImport imprt : referenceLibrary.getImports()) {
+        if (StringUtils.equals(referencePrefix, imprt.getPrefix())) {
+          Set<String> importNames = RenameAnalyzeUtil.getImportedTopLevelNames(imprt);
+          if (importNames.contains(newName)) {
+            DartLibrary importLibrary = imprt.getLibrary();
+            CompilationUnit importLibraryUnit = importLibrary.getDefiningCompilationUnit();
+            IPath importLibraryPath = importLibraryUnit.getResource().getFullPath();
+            String message = Messages.format(
+                RefactoringCoreMessages.RenameTopProcessor_shadow_topLevel2,
+                new Object[] {
+                    RenameAnalyzeUtil.getElementTypeName(elementType),
+                    getResourcePathLabel(importLibraryPath)});
+            result.addError(message, DartStatusContext.create(reference));
           }
         }
       }
+    }
+    // visit libraries with references
+    for (DartLibrary library : libraries) {
       // visit units of library
       for (CompilationUnit unit : library.getCompilationUnitsInScope()) {
         // visit top-level children of unit
         for (DartElement unitElement : unit.getChildren()) {
-          // may be conflict with existing top-level element
-          if (unitElement instanceof CompilationUnitElement
-              && Objects.equal(unitElement.getElementName(), newName)) {
-            reportTopLevelAlreadyDeclared(
-                result,
-                newName,
-                library,
-                (CompilationUnitElement) unitElement);
-          }
           // analyze Type
           if (unitElement instanceof Type) {
             Type type = (Type) unitElement;
