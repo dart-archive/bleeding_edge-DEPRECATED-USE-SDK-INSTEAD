@@ -59,8 +59,77 @@
             commandId="com.google.dart.tools.ui.edit.text.dart.show.outline"
             contextId="com.google.dart.tools.ui.dartEditorScope"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+O">
-      </key>
+            sequence="M1+O"/>
+      <key
+            commandId="com.google.dart.tools.ui.generateJavascript"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+G"/>
+      <key
+            commandId="com.google.dart.tools.debug.ui.run.selection"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+R"/>
+      <key
+            sequence="M1+/"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.toggle.comment"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+       <key
+            sequence="M1+M2+P"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.goto.matching.bracket"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+            sequence="F3"
+            contextId="com.google.dart.tools.ui.dartViewScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.open.editor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+           sequence="M2+M3+R"
+           contextId="com.google.dart.tools.ui.dartEditorScope"
+           commandId="com.google.dart.tools.ui.edit.text.dart.rename.element"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+           platform="carbon"
+           sequence="COMMAND+ALT+R"
+           commandId="com.google.dart.tools.ui.edit.text.dart.rename.element"
+           contextId="com.google.dart.tools.ui.dartEditorScope"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+           sequence="M2+M3+L"
+           commandId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
+           contextId="com.google.dart.tools.ui.dartEditorScope"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+           sequence="M2+M3+M"
+           commandId="com.google.dart.tools.ui.edit.text.dart.extract.method"
+           contextId="com.google.dart.tools.ui.dartEditorScope"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+           sequence="M2+M3+I"
+           commandId="com.google.dart.tools.ui.edit.text.dart.inline"
+           contextId="com.google.dart.tools.ui.dartEditorScope"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+           platform="carbon"
+           sequence="COMMAND+ALT+L"
+           commandId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
+           contextId="com.google.dart.tools.ui.dartEditorScope"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+           platform="carbon"
+           sequence="COMMAND+ALT+M"
+           commandId="com.google.dart.tools.ui.edit.text.dart.extract.method"
+           contextId="com.google.dart.tools.ui.dartEditorScope"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+           platform="carbon"
+           sequence="COMMAND+ALT+I"
+           commandId="com.google.dart.tools.ui.edit.text.dart.inline"
+           contextId="com.google.dart.tools.ui.dartEditorScope"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+                
    </extension>
    <extension
          point="org.eclipse.ui.perspectives">
