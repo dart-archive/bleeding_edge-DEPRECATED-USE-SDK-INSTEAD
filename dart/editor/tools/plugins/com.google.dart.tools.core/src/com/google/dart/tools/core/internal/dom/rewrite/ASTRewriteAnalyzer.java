@@ -61,7 +61,6 @@ import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
-import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringInterpolation;
@@ -139,8 +138,8 @@ public final class ASTRewriteAnalyzer {
 
     protected RewriteEvent[] list;
 
-    public final int rewriteList(DartNode parent, StructuralPropertyDescriptor property,
-        int offset, String keyword) {
+    public final int rewriteList(
+        DartNode parent, StructuralPropertyDescriptor property, int offset, String keyword) {
       startPos = offset;
       list = getEvent(parent, property).getChildren();
 
@@ -348,8 +347,8 @@ public final class ASTRewriteAnalyzer {
       return currPos;
     }
 
-    public final int rewriteList(DartNode parent, StructuralPropertyDescriptor property,
-        int offset, String keyword, String separator) {
+    public final int rewriteList(DartNode parent, StructuralPropertyDescriptor property, int offset,
+        String keyword, String separator) {
       contantSeparator = separator;
       return rewriteList(parent, property, offset, keyword);
     }
@@ -403,8 +402,8 @@ public final class ASTRewriteAnalyzer {
       return true;
     }
 
-    protected void updateIndent(int prevMark, int originalOffset, int nodeIndex,
-        TextEditGroup editGroup) {
+    protected void updateIndent(
+        int prevMark, int originalOffset, int nodeIndex, TextEditGroup editGroup) {
       // Do nothing.
     }
 
@@ -584,7 +583,9 @@ public final class ASTRewriteAnalyzer {
 
     public SwitchListRewriter(int initialIndent) {
       super(initialIndent, 0);
-      indentSwitchStatementsCompareToCases = DefaultCodeFormatterConstants.TRUE.equals(ASTRewriteAnalyzer.this.options.get(DefaultCodeFormatterConstants.FORMATTER_INDENT_SWITCHSTATEMENTS_COMPARE_TO_CASES));
+      indentSwitchStatementsCompareToCases = DefaultCodeFormatterConstants.TRUE.equals(
+          ASTRewriteAnalyzer.this.options.get(
+              DefaultCodeFormatterConstants.FORMATTER_INDENT_SWITCHSTATEMENTS_COMPARE_TO_CASES));
     }
 
     @Override
@@ -624,8 +625,8 @@ public final class ASTRewriteAnalyzer {
     }
 
     @Override
-    protected void updateIndent(int prevMark, int originalOffset, int nodeIndex,
-        TextEditGroup editGroup) {
+    protected void updateIndent(
+        int prevMark, int originalOffset, int nodeIndex, TextEditGroup editGroup) {
       if (prevMark != RewriteEvent.UNCHANGED && prevMark != RewriteEvent.REPLACED) {
         return;
       }
@@ -1111,7 +1112,9 @@ public final class ASTRewriteAnalyzer {
       String newString = (String) getNewValue(
           node,
           PropertyDescriptorHelper.DART_IDENTIFIER_TARGET_NAME);
-      TextEditGroup group = getEditGroup(node, PropertyDescriptorHelper.DART_IDENTIFIER_TARGET_NAME);
+      TextEditGroup group = getEditGroup(
+          node,
+          PropertyDescriptorHelper.DART_IDENTIFIER_TARGET_NAME);
       doTextReplace(
           node.getSourceInfo().getOffset(),
           node.getSourceInfo().getLength(),
@@ -1297,7 +1300,9 @@ public final class ASTRewriteAnalyzer {
           node,
           PropertyDescriptorHelper.DART_METHOD_INVOCATION_TARGET,
           node.getSourceInfo().getOffset());
-      pos = rewriteRequiredNode(node, PropertyDescriptorHelper.DART_METHOD_INVOCATION_FUNCTION_NAME);
+      pos = rewriteRequiredNode(
+          node,
+          PropertyDescriptorHelper.DART_METHOD_INVOCATION_FUNCTION_NAME);
 
       if (isChanged(node, PropertyDescriptorHelper.DART_INVOCATION_ARGS)) {
         // eval position after opening parent
@@ -1408,15 +1413,6 @@ public final class ASTRewriteAnalyzer {
     }
 
     @Override
-    public Object visitResourceDirective(DartResourceDirective node) {
-      if (!hasChildrenChanges(node)) {
-        return doVisitUnchangedChildren(node);
-      }
-      rewriteRequiredNode(node, PropertyDescriptorHelper.DART_RESOURCE_DIRECTIVE_URI);
-      return null;
-    }
-
-    @Override
     public Object visitReturnStatement(DartReturnStatement node) {
       // try {
       DartCore.notYetImplemented();
@@ -1510,7 +1506,9 @@ public final class ASTRewriteAnalyzer {
       if (!hasChildrenChanges(node)) {
         return doVisitUnchangedChildren(node);
       }
-      int pos = rewriteRequiredNode(node, PropertyDescriptorHelper.DART_SWITCH_STATEMENT_EXPRESSION);
+      int pos = rewriteRequiredNode(
+          node,
+          PropertyDescriptorHelper.DART_SWITCH_STATEMENT_EXPRESSION);
 
       StructuralPropertyDescriptor property = PropertyDescriptorHelper.DART_SWITCH_STATEMENT_MEMBERS;
       if (getChangeKind(node, property) != RewriteEvent.UNCHANGED) {
@@ -1519,7 +1517,9 @@ public final class ASTRewriteAnalyzer {
         pos = 0; // getScanner().getTokenEndOffset(TerminalTokens.TokenNameLBRACE,
                  // pos);
         int insertIndent = getIndent(node.getSourceInfo().getOffset());
-        if (DefaultCodeFormatterConstants.TRUE.equals(options.get(DefaultCodeFormatterConstants.FORMATTER_INDENT_SWITCHSTATEMENTS_COMPARE_TO_SWITCH))) {
+        if (DefaultCodeFormatterConstants.TRUE.equals(
+            options.get(
+                DefaultCodeFormatterConstants.FORMATTER_INDENT_SWITCHSTATEMENTS_COMPARE_TO_SWITCH))) {
           insertIndent++;
         }
 
@@ -1774,8 +1774,8 @@ public final class ASTRewriteAnalyzer {
    * @param eventStore the event store containing the description of changes
    * @param nodeInfos annotations to nodes, such as if a node is a string placeholder or a copy
    *          target
-   * @param comments list of comments of the compilation unit to rewrite (elements of type
-   *          <code>Comment</code>) or <code>null</code>.
+   * @param comments list of comments of the compilation unit to rewrite (elements of type <code>Comment
+   *          </code>) or <code>null</code>.
    * @param options the current jdt.core options (formatting/compliance)
    * @param extendedSourceRangeComputer the source range computer to use
    * @param recoveryScannerData internal data used by {@link RecoveryScanner}
@@ -1783,7 +1783,8 @@ public final class ASTRewriteAnalyzer {
   public ASTRewriteAnalyzer(char[] content, LineInformation lineInfo, String lineDelim,
       TextEdit rootEdit, RewriteEventStore eventStore, NodeInfoStore nodeInfos,
       List<DartComment> comments, Map<String, String> options,
-      TargetSourceRangeComputer extendedSourceRangeComputer, RecoveryScannerData recoveryScannerData) {
+      TargetSourceRangeComputer extendedSourceRangeComputer,
+      RecoveryScannerData recoveryScannerData) {
     this.eventStore = eventStore;
     this.content = content;
     this.lineInfo = lineInfo;
@@ -1894,7 +1895,8 @@ public final class ASTRewriteAnalyzer {
 
     int currPos = 0;
     if (removeLeadingIndent) {
-      while (currPos < formatted.length() && ScannerHelper.isWhitespace(formatted.charAt(currPos))) {
+      while (currPos < formatted.length()
+          && ScannerHelper.isWhitespace(formatted.charAt(currPos))) {
         currPos++;
       }
     }
@@ -2163,7 +2165,8 @@ public final class ASTRewriteAnalyzer {
 
   }
 
-  private final void doTextReplace(int offset, int len, String insertString, TextEditGroup editGroup) {
+  private final void doTextReplace(
+      int offset, int len, String insertString, TextEditGroup editGroup) {
     if (len > 0 || insertString.length() > 0) {
       TextEdit edit = new ReplaceEdit(offset, len, insertString);
       addEdit(edit);
@@ -2194,7 +2197,8 @@ public final class ASTRewriteAnalyzer {
   }
 
   private final boolean doVisitUnchangedChildren(DartNode parent) {
-    List<StructuralPropertyDescriptor> properties = PropertyDescriptorHelper.getStructuralPropertiesForType(parent);
+    List<StructuralPropertyDescriptor> properties = PropertyDescriptorHelper
+      .getStructuralPropertiesForType(parent);
     for (int i = 0; i < properties.size(); i++) {
       voidVisit(parent, properties.get(i));
     }
@@ -2335,7 +2339,8 @@ public final class ASTRewriteAnalyzer {
         && !IndentManipulation.isLineDelimiterChar(formatted.charAt(offset));
   }
 
-  private void replaceOperation(int posBeforeOperation, String newOperation, TextEditGroup editGroup) {
+  private void replaceOperation(
+      int posBeforeOperation, String newOperation, TextEditGroup editGroup) {
     try {
       getScanner().readNext(posBeforeOperation, true);
       doTextReplace(
@@ -2357,75 +2362,75 @@ public final class ASTRewriteAnalyzer {
     if (event != null) {
       switch (event.getChangeKind()) {
         case RewriteEvent.INSERTED: {
-          DartNode node = (DartNode) event.getNewValue();
-          TextEditGroup editGroup = getEditGroup(event);
+        DartNode node = (DartNode) event.getNewValue();
+        TextEditGroup editGroup = getEditGroup(event);
 
-          String[] strings = context.getPrefixAndSuffix(indent, node, eventStore);
+        String[] strings = context.getPrefixAndSuffix(indent, node, eventStore);
 
-          doTextInsert(offset, strings[0], editGroup);
-          doTextInsert(offset, node, indent, true, editGroup);
-          doTextInsert(offset, strings[1], editGroup);
-          return offset;
-        }
+        doTextInsert(offset, strings[0], editGroup);
+        doTextInsert(offset, node, indent, true, editGroup);
+        doTextInsert(offset, strings[1], editGroup);
+        return offset;
+      }
         case RewriteEvent.REMOVED: {
-          DartNode node = (DartNode) event.getOriginalValue();
-          if (endPos == -1) {
-            endPos = getExtendedEnd(node);
-          }
-
-          TextEditGroup editGroup = getEditGroup(event);
-          // if there is a prefix, remove the prefix as well
-          int len = endPos - offset;
-          doTextRemoveAndVisit(offset, len, node, editGroup);
-          return endPos;
+        DartNode node = (DartNode) event.getOriginalValue();
+        if (endPos == -1) {
+          endPos = getExtendedEnd(node);
         }
+
+        TextEditGroup editGroup = getEditGroup(event);
+        // if there is a prefix, remove the prefix as well
+        int len = endPos - offset;
+        doTextRemoveAndVisit(offset, len, node, editGroup);
+        return endPos;
+      }
         case RewriteEvent.REPLACED: {
-          DartNode node = (DartNode) event.getOriginalValue();
-          boolean insertNewLine = false;
-          if (endPos == -1) {
-            int previousEnd = node.getSourceInfo().getOffset() + node.getSourceInfo().getLength();
-            endPos = getExtendedEnd(node);
-            if (endPos != previousEnd) {
-              // check if the end is a comment
-              Token token = Token.EOS;
-              try {
-                token = getScanner().readNext(previousEnd, false);
-              } catch (CoreException e) {
-                // ignore
-              }
-              if (token == Token.COMMENT) {
-                insertNewLine = true;
-              }
+        DartNode node = (DartNode) event.getOriginalValue();
+        boolean insertNewLine = false;
+        if (endPos == -1) {
+          int previousEnd = node.getSourceInfo().getOffset() + node.getSourceInfo().getLength();
+          endPos = getExtendedEnd(node);
+          if (endPos != previousEnd) {
+            // check if the end is a comment
+            Token token = Token.EOS;
+            try {
+              token = getScanner().readNext(previousEnd, false);
+            } catch (CoreException e) {
+              // ignore
+            }
+            if (token == Token.COMMENT) {
+              insertNewLine = true;
             }
           }
-          TextEditGroup editGroup = getEditGroup(event);
-          int nodeLen = endPos - offset;
-
-          DartNode replacingNode = (DartNode) event.getNewValue();
-          String[] strings = context.getPrefixAndSuffix(indent, replacingNode, eventStore);
-          doTextRemoveAndVisit(offset, nodeLen, node, editGroup);
-
-          String prefix = strings[0];
-          String insertedPrefix = prefix;
-          if (insertNewLine) {
-            DartCore.notYetImplemented();
-            insertedPrefix = getLineDelimiter() + "" /*
-                                                      * formatter.createIndentString (indent)
-                                                      */
-                + insertedPrefix.trim() + ' ';
-          }
-          doTextInsert(offset, insertedPrefix, editGroup);
-          String lineInPrefix = getCurrentLine(prefix, prefix.length());
-          if (prefix.length() != lineInPrefix.length()) {
-            // prefix contains a new line: update the indent to the one used in
-            // the prefix
-            DartCore.notYetImplemented();
-            indent = 0 /* formatter.computeIndentUnits(lineInPrefix) */;
-          }
-          doTextInsert(offset, replacingNode, indent, true, editGroup);
-          doTextInsert(offset, strings[1], editGroup);
-          return endPos;
         }
+        TextEditGroup editGroup = getEditGroup(event);
+        int nodeLen = endPos - offset;
+
+        DartNode replacingNode = (DartNode) event.getNewValue();
+        String[] strings = context.getPrefixAndSuffix(indent, replacingNode, eventStore);
+        doTextRemoveAndVisit(offset, nodeLen, node, editGroup);
+
+        String prefix = strings[0];
+        String insertedPrefix = prefix;
+        if (insertNewLine) {
+          DartCore.notYetImplemented();
+          insertedPrefix = getLineDelimiter() + "" /*
+                                                    * formatter.createIndentString (indent)
+                                                    */
+          + insertedPrefix.trim() + ' ';
+        }
+        doTextInsert(offset, insertedPrefix, editGroup);
+        String lineInPrefix = getCurrentLine(prefix, prefix.length());
+        if (prefix.length() != lineInPrefix.length()) {
+          // prefix contains a new line: update the indent to the one used in
+          // the prefix
+          DartCore.notYetImplemented();
+          indent = 0 /* formatter.computeIndentUnits(lineInPrefix) */;
+        }
+        doTextInsert(offset, replacingNode, indent, true, editGroup);
+        doTextInsert(offset, strings[1], editGroup);
+        return endPos;
+      }
       }
     }
     int pos = doVisit(parent, property, offset);
@@ -2435,7 +2440,8 @@ public final class ASTRewriteAnalyzer {
     return pos;
   }
 
-  private int rewriteExtraDimensions(DartNode parent, StructuralPropertyDescriptor property, int pos) {
+  private int rewriteExtraDimensions(
+      DartNode parent, StructuralPropertyDescriptor property, int pos) {
     RewriteEvent event = getEvent(parent, property);
     if (event == null || event.getChangeKind() == RewriteEvent.UNCHANGED) {
       return ((Integer) getOriginalValue(parent, property)).intValue();
@@ -2501,46 +2507,47 @@ public final class ASTRewriteAnalyzer {
     if (event != null) {
       switch (event.getChangeKind()) {
         case RewriteEvent.INSERTED: {
-          int endPos = parent.getSourceInfo().getOffset() + parent.getSourceInfo().getLength();
-          TextEditGroup editGroup = getEditGroup(event);
-          DartNode body = (DartNode) event.getNewValue();
-          doTextRemove(startPos, endPos - startPos, editGroup);
-          int indent = getIndent(parent.getSourceInfo().getOffset());
-          String prefix = formatter.METHOD_BODY.getPrefix(indent);
-          doTextInsert(startPos, prefix, editGroup);
-          doTextInsert(startPos, body, indent, true, editGroup);
-          return;
-        }
+        int endPos = parent.getSourceInfo().getOffset() + parent.getSourceInfo().getLength();
+        TextEditGroup editGroup = getEditGroup(event);
+        DartNode body = (DartNode) event.getNewValue();
+        doTextRemove(startPos, endPos - startPos, editGroup);
+        int indent = getIndent(parent.getSourceInfo().getOffset());
+        String prefix = formatter.METHOD_BODY.getPrefix(indent);
+        doTextInsert(startPos, prefix, editGroup);
+        doTextInsert(startPos, body, indent, true, editGroup);
+        return;
+      }
         case RewriteEvent.REMOVED: {
-          TextEditGroup editGroup = getEditGroup(event);
-          DartNode body = (DartNode) event.getOriginalValue();
-          int endPos = parent.getSourceInfo().getOffset() + parent.getSourceInfo().getLength();
-          doTextRemoveAndVisit(startPos, endPos - startPos, body, editGroup);
-          doTextInsert(startPos, ";", editGroup); //$NON-NLS-1$
-          return;
-        }
+        TextEditGroup editGroup = getEditGroup(event);
+        DartNode body = (DartNode) event.getOriginalValue();
+        int endPos = parent.getSourceInfo().getOffset() + parent.getSourceInfo().getLength();
+        doTextRemoveAndVisit(startPos, endPos - startPos, body, editGroup);
+        doTextInsert(startPos, ";", editGroup); //$NON-NLS-1$
+        return;
+      }
         case RewriteEvent.REPLACED: {
-          TextEditGroup editGroup = getEditGroup(event);
-          DartNode body = (DartNode) event.getOriginalValue();
-          doTextRemoveAndVisit(
-              body.getSourceInfo().getOffset(),
-              body.getSourceInfo().getLength(),
-              body,
-              editGroup);
-          doTextInsert(
-              body.getSourceInfo().getOffset(),
-              (DartNode) event.getNewValue(),
-              getIndent(body.getSourceInfo().getOffset()),
-              true,
-              editGroup);
-          return;
-        }
+        TextEditGroup editGroup = getEditGroup(event);
+        DartNode body = (DartNode) event.getOriginalValue();
+        doTextRemoveAndVisit(
+            body.getSourceInfo().getOffset(),
+            body.getSourceInfo().getLength(),
+            body,
+            editGroup);
+        doTextInsert(
+            body.getSourceInfo().getOffset(),
+            (DartNode) event.getNewValue(),
+            getIndent(body.getSourceInfo().getOffset()),
+            true,
+            editGroup);
+        return;
+      }
       }
     }
     voidVisit(parent, PropertyDescriptorHelper.DART_FUNCTION_BODY);
   }
 
-  private void rewriteModifiers(DartNode parent, StructuralPropertyDescriptor property, int offset) {
+  private void rewriteModifiers(
+      DartNode parent, StructuralPropertyDescriptor property, int offset) {
     DartCore.notYetImplemented();
     // RewriteEvent event = getEvent(parent, property);
     // if (event == null || event.getChangeKind() != RewriteEvent.REPLACED) {
@@ -2682,53 +2689,53 @@ public final class ASTRewriteAnalyzer {
     // return endPos;
   }
 
-  private int rewriteNode(DartNode parent, StructuralPropertyDescriptor property, int offset,
-      Prefix prefix) {
+  private int rewriteNode(
+      DartNode parent, StructuralPropertyDescriptor property, int offset, Prefix prefix) {
     RewriteEvent event = getEvent(parent, property);
     if (event != null) {
       switch (event.getChangeKind()) {
         case RewriteEvent.INSERTED: {
-          DartNode node = (DartNode) event.getNewValue();
-          TextEditGroup editGroup = getEditGroup(event);
-          int indent = getIndent(offset);
-          doTextInsert(offset, prefix.getPrefix(indent), editGroup);
-          doTextInsert(offset, node, indent, true, editGroup);
-          return offset;
-        }
+        DartNode node = (DartNode) event.getNewValue();
+        TextEditGroup editGroup = getEditGroup(event);
+        int indent = getIndent(offset);
+        doTextInsert(offset, prefix.getPrefix(indent), editGroup);
+        doTextInsert(offset, node, indent, true, editGroup);
+        return offset;
+      }
         case RewriteEvent.REMOVED: {
-          DartNode node = (DartNode) event.getOriginalValue();
-          TextEditGroup editGroup = getEditGroup(event);
+        DartNode node = (DartNode) event.getOriginalValue();
+        TextEditGroup editGroup = getEditGroup(event);
 
-          // if there is a prefix, remove the prefix as well
-          int nodeEnd;
-          int len;
-          if (offset == 0) {
-            SourceRange range = getExtendedRange(node);
-            offset = range.getStartPosition();
-            len = range.getLength();
-            nodeEnd = offset + len;
-          } else {
-            nodeEnd = getExtendedEnd(node);
-            len = nodeEnd - offset;
-          }
-          doTextRemoveAndVisit(offset, len, node, editGroup);
-          return nodeEnd;
-        }
-        case RewriteEvent.REPLACED: {
-          DartNode node = (DartNode) event.getOriginalValue();
-          TextEditGroup editGroup = getEditGroup(event);
+        // if there is a prefix, remove the prefix as well
+        int nodeEnd;
+        int len;
+        if (offset == 0) {
           SourceRange range = getExtendedRange(node);
-          int nodeOffset = range.getStartPosition();
-          int nodeLen = range.getLength();
-          doTextRemoveAndVisit(nodeOffset, nodeLen, node, editGroup);
-          doTextInsert(
-              nodeOffset,
-              (DartNode) event.getNewValue(),
-              getIndent(offset),
-              true,
-              editGroup);
-          return nodeOffset + nodeLen;
+          offset = range.getStartPosition();
+          len = range.getLength();
+          nodeEnd = offset + len;
+        } else {
+          nodeEnd = getExtendedEnd(node);
+          len = nodeEnd - offset;
         }
+        doTextRemoveAndVisit(offset, len, node, editGroup);
+        return nodeEnd;
+      }
+        case RewriteEvent.REPLACED: {
+        DartNode node = (DartNode) event.getOriginalValue();
+        TextEditGroup editGroup = getEditGroup(event);
+        SourceRange range = getExtendedRange(node);
+        int nodeOffset = range.getStartPosition();
+        int nodeLen = range.getLength();
+        doTextRemoveAndVisit(nodeOffset, nodeLen, node, editGroup);
+        doTextInsert(
+            nodeOffset,
+            (DartNode) event.getNewValue(),
+            getIndent(offset),
+            true,
+            editGroup);
+        return nodeOffset + nodeLen;
+      }
       }
     }
     return doVisit(parent, property, offset);
@@ -2743,8 +2750,8 @@ public final class ASTRewriteAnalyzer {
     return doVisit(parent, property, pos);
   }
 
-  private void rewriteOperation(DartNode parent, StructuralPropertyDescriptor property,
-      int posBeforeOperation) {
+  private void rewriteOperation(
+      DartNode parent, StructuralPropertyDescriptor property, int posBeforeOperation) {
     RewriteEvent event = getEvent(parent, property);
     if (event != null && event.getChangeKind() != RewriteEvent.UNCHANGED) {
       try {
@@ -2762,51 +2769,51 @@ public final class ASTRewriteAnalyzer {
     }
   }
 
-  private int rewriteOptionalQualifier(DartNode parent, StructuralPropertyDescriptor property,
-      int startPos) {
+  private int rewriteOptionalQualifier(
+      DartNode parent, StructuralPropertyDescriptor property, int startPos) {
     RewriteEvent event = getEvent(parent, property);
     if (event != null) {
       switch (event.getChangeKind()) {
         case RewriteEvent.INSERTED: {
-          DartNode node = (DartNode) event.getNewValue();
-          TextEditGroup editGroup = getEditGroup(event);
-          doTextInsert(startPos, node, getIndent(startPos), true, editGroup);
-          doTextInsert(startPos, ".", editGroup); //$NON-NLS-1$
-          return startPos;
-        }
+        DartNode node = (DartNode) event.getNewValue();
+        TextEditGroup editGroup = getEditGroup(event);
+        doTextInsert(startPos, node, getIndent(startPos), true, editGroup);
+        doTextInsert(startPos, ".", editGroup); //$NON-NLS-1$
+        return startPos;
+      }
         case RewriteEvent.REMOVED: {
-          // try {
-          DartNode node = (DartNode) event.getOriginalValue();
-          TextEditGroup editGroup = getEditGroup(event);
-          DartCore.notYetImplemented();
-          int dotEnd = 0; // getScanner().getTokenEndOffset(TerminalTokens.TokenNameDOT,
-                          // node.getSourceInfo().getSourceStart() + node.getSourceInfo().getSourceLength());
-          doTextRemoveAndVisit(startPos, dotEnd - startPos, node, editGroup);
-          return dotEnd;
-          // } catch (CoreException e) {
-          // handleException(e);
-          // }
-          // break;
-        }
+        // try {
+        DartNode node = (DartNode) event.getOriginalValue();
+        TextEditGroup editGroup = getEditGroup(event);
+        DartCore.notYetImplemented();
+        int dotEnd = 0; // getScanner().getTokenEndOffset(TerminalTokens.TokenNameDOT,
+                        // node.getSourceInfo().getSourceStart() + node.getSourceInfo().getSourceLength());
+        doTextRemoveAndVisit(startPos, dotEnd - startPos, node, editGroup);
+        return dotEnd;
+        // } catch (CoreException e) {
+        // handleException(e);
+        // }
+        // break;
+      }
         case RewriteEvent.REPLACED: {
-          DartNode node = (DartNode) event.getOriginalValue();
-          TextEditGroup editGroup = getEditGroup(event);
-          SourceRange range = getExtendedRange(node);
-          int offset = range.getStartPosition();
-          int length = range.getLength();
+        DartNode node = (DartNode) event.getOriginalValue();
+        TextEditGroup editGroup = getEditGroup(event);
+        SourceRange range = getExtendedRange(node);
+        int offset = range.getStartPosition();
+        int length = range.getLength();
 
-          doTextRemoveAndVisit(offset, length, node, editGroup);
-          doTextInsert(offset, (DartNode) event.getNewValue(), getIndent(startPos), true, editGroup);
-          DartCore.notYetImplemented();
-          // try {
-          // return getScanner().getTokenEndOffset(TerminalTokens.TokenNameDOT,
-          // offset + length);
-          // } catch (CoreException e) {
-          // handleException(e);
-          // }
-          // break;
-          return 0;
-        }
+        doTextRemoveAndVisit(offset, length, node, editGroup);
+        doTextInsert(offset, (DartNode) event.getNewValue(), getIndent(startPos), true, editGroup);
+        DartCore.notYetImplemented();
+        // try {
+        // return getScanner().getTokenEndOffset(TerminalTokens.TokenNameDOT,
+        // offset + length);
+        // } catch (CoreException e) {
+        // handleException(e);
+        // }
+        // break;
+        return 0;
+      }
       }
     }
     Object node = getOriginalValue(parent, property);
@@ -2853,7 +2860,11 @@ public final class ASTRewriteAnalyzer {
                           // pos); // set pos to '>'
           endPos = getScanner().getNextStartOffset(endPos, false);
           String replacement = needsSpaceOnRemoveAll ? String.valueOf(' ') : Util.EMPTY_STRING;
-          doTextReplace(pos, endPos - pos, replacement, getEditGroup(children[children.length - 1]));
+          doTextReplace(
+              pos,
+              endPos - pos,
+              replacement,
+              getEditGroup(children[children.length - 1]));
           return endPos;
         } else if (isAllInserted) {
           doTextInsert(
@@ -2915,8 +2926,8 @@ public final class ASTRewriteAnalyzer {
     return doVisit(parent, property, 0);
   }
 
-  private void rewriteReturnType(DartMethodDefinition node, boolean isConstructor,
-      boolean isConstructorChange) {
+  private void rewriteReturnType(
+      DartMethodDefinition node, boolean isConstructor, boolean isConstructorChange) {
     DartCore.notYetImplemented();
     ChildPropertyDescriptor property = (ChildPropertyDescriptor) PropertyDescriptorHelper.DART_FUNCTION_RETURN_TYPE; // DartMethodDefinition.RETURN_TYPE_PROPERTY;
 

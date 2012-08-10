@@ -37,7 +37,6 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
-import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartStringLiteral;
@@ -83,8 +82,8 @@ import java.util.ArrayList;
 import javax.lang.model.element.TypeElement;
 
 /**
- * Instances of the class <code>IndexContributor</code> visit an AST structure to compute the data
- * and relationships to be contributed to an index.
+ * Instances of the class <code>IndexContributor</code> visit an AST structure to compute the data and relationships
+ * to be contributed to an index.
  */
 public class IndexContributor extends ASTVisitor<Void> {
   /*
@@ -339,8 +338,10 @@ public class IndexContributor extends ASTVisitor<Void> {
     if (element instanceof MethodElement) {
       processMethodInvocation(getIdentifier(node.getTarget()), (MethodElement) element);
     } else {
-      notFound("function invocation: [" + (element == null ? "null" : element.toString()) + "] "
-          + node.toString(), node);
+      notFound(
+          "function invocation: [" + (element == null ? "null" : element.toString()) + "] "
+              + node.toString(),
+          node);
     }
     return super.visitFunctionObjectInvocation(node);
   }
@@ -504,12 +505,6 @@ public class IndexContributor extends ASTVisitor<Void> {
   }
 
   @Override
-  public Void visitResourceDirective(DartResourceDirective node) {
-    recordResourceReference(node.getResourceUri());
-    return super.visitResourceDirective(node);
-  }
-
-  @Override
   public Void visitSourceDirective(DartSourceDirective node) {
     recordResourceReference(node.getSourceUri());
     return super.visitSourceDirective(node);
@@ -550,8 +545,9 @@ public class IndexContributor extends ASTVisitor<Void> {
     } finally {
       unnamedFunctionCount.pop();
       if (!unnamedFunctionCount.isEmpty()) {
-        DartCore.logError(unnamedFunctionCount.size()
-            + " scopes entered but not exited while visiting " + compilationUnit.getElementName());
+        DartCore.logError(
+            unnamedFunctionCount.size() + " scopes entered but not exited while visiting "
+                + compilationUnit.getElementName());
         unnamedFunctionCount.clear();
       }
     }
@@ -703,8 +699,8 @@ public class IndexContributor extends ASTVisitor<Void> {
   }
 
   /**
-   * Return the method that the given method overrides, or <code>null</code> if the given method
-   * does not override another method.
+   * Return the method that the given method overrides, or <code>null</code> if the given method does
+   * not override another method.
    * 
    * @param method the method that might override another method
    * @return the method that the given method overrides
@@ -749,9 +745,8 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return an element representing the given type
    */
   private Element getElement(DartClass node) {
-    return new Element(
-        compilationUnitResource,
-        ElementFactory.composeElementId(node.getClassName()));
+    return new Element(compilationUnitResource, ElementFactory.composeElementId(
+        node.getClassName()));
   }
 
   /**
@@ -761,9 +756,9 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return an element representing the given field
    */
   private Element getElement(DartField node) {
-    return new Element(compilationUnitResource, ElementFactory.composeElementId(
-        peekElement(),
-        node.getName().getName()));
+    return new Element(
+        compilationUnitResource,
+        ElementFactory.composeElementId(peekElement(), node.getName().getName()));
   }
 
   /**
@@ -782,9 +777,9 @@ public class IndexContributor extends ASTVisitor<Void> {
       functionName = Integer.toString(unnamedFunctionCount.peek());
       unnamedFunctionCount.increment(1);
     }
-    return new Element(compilationUnitResource, ElementFactory.composeElementId(
-        peekElement(),
-        functionName));
+    return new Element(
+        compilationUnitResource,
+        ElementFactory.composeElementId(peekElement(), functionName));
   }
 
   /**
@@ -806,9 +801,9 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return an element representing the given method
    */
   private Element getElement(DartMethodDefinition node) {
-    return new Element(compilationUnitResource, ElementFactory.composeElementId(
-        peekElement(),
-        toString(node.getName())));
+    return new Element(
+        compilationUnitResource,
+        ElementFactory.composeElementId(peekElement(), toString(node.getName())));
   }
 
   /**
@@ -884,16 +879,18 @@ public class IndexContributor extends ASTVisitor<Void> {
       try {
         return ResourceFactory.getResource(compilationUnit);
       } catch (DartModelException exception) {
-        DartCore.logError("Could not get underlying resource for compilation unit "
-            + compilationUnit.getElementName(), exception);
+        DartCore.logError(
+            "Could not get underlying resource for compilation unit "
+                + compilationUnit.getElementName(),
+            exception);
       }
     }
     return libraryResource;
   }
 
   /**
-   * Return the superclass of the given class, or <code>null</code> if the given class does not have
-   * a superclass or if the superclass cannot be determined.
+   * Return the superclass of the given class, or <code>null</code> if the given class does not have a
+   * superclass or if the superclass cannot be determined.
    * 
    * @param classElement the class being accessed
    * @return the superclass of the given class
@@ -931,17 +928,22 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   private boolean isExplicitInvocation(DartIdentifier identifier) {
     DartNode parent = identifier.getParent();
-    return (parent instanceof DartFunctionObjectInvocation && ((DartFunctionObjectInvocation) parent).getTarget() == identifier)
-        || (parent instanceof DartMethodInvocation && ((DartMethodInvocation) parent).getFunctionName() == identifier)
-        || (parent instanceof DartNewExpression && ((DartNewExpression) parent).getConstructor() == identifier)
-        || (parent instanceof DartRedirectConstructorInvocation && ((DartRedirectConstructorInvocation) parent).getName() == identifier)
-        || (parent instanceof DartSuperConstructorInvocation && ((DartSuperConstructorInvocation) parent).getName() == identifier)
-        || (parent instanceof DartUnqualifiedInvocation && ((DartUnqualifiedInvocation) parent).getTarget() == identifier);
+    return (parent instanceof DartFunctionObjectInvocation
+        && ((DartFunctionObjectInvocation) parent).getTarget() == identifier) || (
+        parent instanceof DartMethodInvocation
+        && ((DartMethodInvocation) parent).getFunctionName() == identifier) || (
+        parent instanceof DartNewExpression
+        && ((DartNewExpression) parent).getConstructor() == identifier) || (
+        parent instanceof DartRedirectConstructorInvocation
+        && ((DartRedirectConstructorInvocation) parent).getName() == identifier) || (
+        parent instanceof DartSuperConstructorInvocation
+        && ((DartSuperConstructorInvocation) parent).getName() == identifier) || (
+        parent instanceof DartUnqualifiedInvocation
+        && ((DartUnqualifiedInvocation) parent).getTarget() == identifier);
   }
 
   /**
-   * Return <code>true</code> if the given identifier represents the name in a declaration of that
-   * name.
+   * Return <code>true</code> if the given identifier represents the name in a declaration of that name.
    * 
    * @param node the identifier being tested
    * @return <code>true</code> if the given identifier is the name in a declaration
@@ -1026,8 +1028,8 @@ public class IndexContributor extends ASTVisitor<Void> {
   }
 
   /**
-   * Return the element representing the inner-most enclosing scope, or <code>null</code> if we are
-   * at the top-level of the compilation unit.
+   * Return the element representing the inner-most enclosing scope, or <code>null</code> if we are at
+   * the top-level of the compilation unit.
    * 
    * @return the element representing the inner-most enclosing scope
    */
@@ -1055,7 +1057,10 @@ public class IndexContributor extends ASTVisitor<Void> {
           IndexConstants.UNIVERSE,
           IndexConstants.DEFINES_INTERFACE,
           createNameLocation(node));
-      recordRelationship(libraryElement, IndexConstants.DEFINES_INTERFACE, createNameLocation(node));
+      recordRelationship(
+          libraryElement,
+          IndexConstants.DEFINES_INTERFACE,
+          createNameLocation(node));
     } else {
       recordRelationship(
           IndexConstants.UNIVERSE,
@@ -1165,8 +1170,8 @@ public class IndexContributor extends ASTVisitor<Void> {
       notFound("method invocation", methodName);
       return;
     }
-    Relationship relationship = isQualified(methodName) ? IndexConstants.IS_INVOKED_BY_QUALIFIED
-        : IndexConstants.IS_INVOKED_BY_UNQUALIFIED;
+    Relationship relationship = isQualified(methodName)
+        ? IndexConstants.IS_INVOKED_BY_QUALIFIED : IndexConstants.IS_INVOKED_BY_UNQUALIFIED;
     recordRelationship(getElement(binding), relationship, createLocation(methodName));
   }
 
@@ -1177,7 +1182,8 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @param length the length of the name of the method being invoked
    * @param binding the element representing the method being invoked
    */
-  private void processMethodInvocation(int offset, int length, String prefix, MethodElement binding) {
+  private void processMethodInvocation(
+      int offset, int length, String prefix, MethodElement binding) {
     if (binding == null) {
       notFound("method invocation", offset, length);
       return;
@@ -1230,14 +1236,16 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @param prefix the prefix of the import, may be <code>null</code>
    * @param offset the offset of the prefix
    */
-  private void recordImportReference(LibraryElement importLibraryElement, String prefix, int offset) {
+  private void recordImportReference(
+      LibraryElement importLibraryElement, String prefix, int offset) {
     try {
       DartLibrary importLibraryModel = BindingUtils.getDartElement(importLibraryElement);
       for (DartImport imprt : libraryImports) {
-        if (Objects.equal(imprt.getLibrary(), importLibraryModel)
-            && Objects.equal(imprt.getPrefix(), prefix)) {
-          String imprtId = ElementFactory.composeElementId(imprt.getPrefix() + ":"
-              + imprt.getLibrary().getElementName());
+        if (Objects.equal(imprt.getLibrary(), importLibraryModel) && Objects.equal(
+            imprt.getPrefix(),
+            prefix)) {
+          String imprtId = ElementFactory.composeElementId(
+              imprt.getPrefix() + ":" + imprt.getLibrary().getElementName());
           Element imprtElement = new Element(libraryResource, imprtId);
           int length = StringUtils.length(prefix);
           Location location = createLocation(offset, length, null);
@@ -1256,9 +1264,9 @@ public class IndexContributor extends ASTVisitor<Void> {
    */
   private void recordImportReference_noPrefix(DartIdentifier node) {
     com.google.dart.compiler.resolver.Element element = node.getElement();
-    if (element != null
-        && element.getEnclosingElement() instanceof LibraryElement
-        && PropertyDescriptorHelper.getLocationInParent(node) != PropertyDescriptorHelper.DART_PROPERTY_ACCESS_NAME) {
+    if (element != null && element.getEnclosingElement() instanceof LibraryElement &&
+        PropertyDescriptorHelper.getLocationInParent(node)
+        != PropertyDescriptorHelper.DART_PROPERTY_ACCESS_NAME) {
       LibraryElement importLibraryElement = (LibraryElement) element.getEnclosingElement();
       recordImportReference(importLibraryElement, null, node.getSourceInfo().getOffset());
     }

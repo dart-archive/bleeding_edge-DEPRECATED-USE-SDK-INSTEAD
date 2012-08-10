@@ -19,7 +19,6 @@ import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
@@ -91,16 +90,16 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The unique instance of the class <code>DartModelManager</code> is used to manage the elements in
- * the Dart element model.
+ * The unique instance of the class <code>DartModelManager</code> is used to manage the elements in the Dart element
+ * model.
  */
 @SuppressWarnings("deprecation")
 public class DartModelManager {
   /**
    * Update the classpath variable cache
    */
-  public static class EclipsePreferencesListener implements
-      IEclipsePreferences.IPreferenceChangeListener {
+  public static class EclipsePreferencesListener
+      implements IEclipsePreferences.IPreferenceChangeListener {
     @Override
     public void preferenceChange(IEclipsePreferences.PreferenceChangeEvent event) {
       DartCore.notYetImplemented();
@@ -201,9 +200,9 @@ public class DartModelManager {
   }
 
   /**
-   * Instances of the class <code>LibrarySearchResult</code> encapsulate both a library file and the
-   * result of parsing that library file. The class exists so that we can return multiple values
-   * from a method in order to improve performance.
+   * Instances of the class <code>LibrarySearchResult</code> encapsulate both a library file and the result of parsing
+   * that library file. The class exists so that we can return multiple values from a method in
+   * order to improve performance.
    */
   private static class LibrarySearchResult {
     /**
@@ -255,13 +254,14 @@ public class DartModelManager {
   /**
    * Temporary cache of newly opened elements.
    */
-  private ThreadLocal<HashMap<DartElement, DartElementInfo>> temporaryCache = new ThreadLocal<HashMap<DartElement, DartElementInfo>>();
+  private ThreadLocal<HashMap<DartElement, DartElementInfo>>
+      temporaryCache = new ThreadLocal<HashMap<DartElement, DartElementInfo>>();
 
   /**
    * Set of elements which are out of sync with their buffers.
    */
-  private HashSet<OpenableElementImpl> elementsOutOfSynchWithBuffers = new HashSet<OpenableElementImpl>(
-      11);
+  private HashSet<OpenableElementImpl>
+      elementsOutOfSynchWithBuffers = new HashSet<OpenableElementImpl>(11);
 
   /**
    * Table from IProject to PerProjectInfo. NOTE: this object itself is used as a lock to
@@ -274,8 +274,9 @@ public class DartModelManager {
    * PerWorkingCopyInfo. NOTE: this object itself is used as a lock to synchronize creation/removal
    * of per working copy infos.
    */
-  private Map<WorkingCopyOwner, Map<CompilationUnit, PerWorkingCopyInfo>> perWorkingCopyInfos = new HashMap<WorkingCopyOwner, Map<CompilationUnit, PerWorkingCopyInfo>>(
-      5);
+  private Map<WorkingCopyOwner, Map<CompilationUnit, PerWorkingCopyInfo>>
+      perWorkingCopyInfos = new HashMap<WorkingCopyOwner, Map<CompilationUnit, PerWorkingCopyInfo>>(
+          5);
 
   /**
    * Holds the state used for delta processing.
@@ -302,33 +303,36 @@ public class DartModelManager {
   /**
    * Listener on eclipse preferences default/instance node changes.
    */
-  private IEclipsePreferences.INodeChangeListener instanceNodeListener = new IEclipsePreferences.INodeChangeListener() {
+  private IEclipsePreferences.INodeChangeListener instanceNodeListener =
+    new IEclipsePreferences.INodeChangeListener() {
     @Override
     public void added(IEclipsePreferences.NodeChangeEvent event) {
-      // do nothing
-    }
+    // do nothing
+  }
 
     @Override
     public void removed(IEclipsePreferences.NodeChangeEvent event) {
       if (event.getChild() == DartModelManager.this.preferencesLookup[PREF_INSTANCE]) {
-        DartModelManager.this.preferencesLookup[PREF_INSTANCE] = getInstanceScope().getNode(
-            DartCore.PLUGIN_ID);
-        DartModelManager.this.preferencesLookup[PREF_INSTANCE].addPreferenceChangeListener(new EclipsePreferencesListener());
+        DartModelManager.this.preferencesLookup[PREF_INSTANCE] = getInstanceScope()
+            .getNode(DartCore.PLUGIN_ID);
+        DartModelManager.this.preferencesLookup[PREF_INSTANCE].addPreferenceChangeListener(
+            new EclipsePreferencesListener());
       }
     }
   };
 
-  private IEclipsePreferences.INodeChangeListener defaultNodeListener = new IEclipsePreferences.INodeChangeListener() {
+  private IEclipsePreferences.INodeChangeListener defaultNodeListener =
+    new IEclipsePreferences.INodeChangeListener() {
     @Override
     public void added(IEclipsePreferences.NodeChangeEvent event) {
-      // do nothing
-    }
+    // do nothing
+  }
 
     @Override
     public void removed(IEclipsePreferences.NodeChangeEvent event) {
       if (event.getChild() == DartModelManager.this.preferencesLookup[PREF_DEFAULT]) {
-        DartModelManager.this.preferencesLookup[PREF_DEFAULT] = getDefaultScope().getNode(
-            DartCore.PLUGIN_ID);
+        DartModelManager.this.preferencesLookup[PREF_DEFAULT] = getDefaultScope()
+            .getNode(DartCore.PLUGIN_ID);
       }
     }
   };
@@ -377,11 +381,11 @@ public class DartModelManager {
    * model. The listener continues to receive notifications until it is replaced or removed.
    * </p>
    * <p>
-   * Listeners can listen for several types of event as defined in <code>ElementChangeEvent</code>.
-   * Clients are free to register for any number of event types, however if they register for more
-   * than one, it is their responsibility to ensure they correctly handle the case where the same
-   * Dart element change shows up in multiple notifications. Clients are guaranteed to receive only
-   * the events for which they are registered.
+   * Listeners can listen for several types of event as defined in <code>ElementChangeEvent</code>. Clients are free
+   * to register for any number of event types, however if they register for more than one, it is
+   * their responsibility to ensure they correctly handle the case where the same Dart element
+   * change shows up in multiple notifications. Clients are guaranteed to receive only the events
+   * for which they are registered.
    * </p>
    * 
    * @param listener the listener being added
@@ -425,8 +429,8 @@ public class DartModelManager {
   }
 
   /**
-   * Return the Dart model element associated with the given file, or <code>null</code> if the file
-   * does not have a corresponding element in the model.
+   * Return the Dart model element associated with the given file, or <code>null</code> if the file does
+   * not have a corresponding element in the model.
    * 
    * @param file the file corresponding to the element to be returned
    * @return the Dart model element associated with the given file
@@ -467,8 +471,8 @@ public class DartModelManager {
   }
 
   /**
-   * Return the Dart model element associated with the given folder, or <code>null</code> if the
-   * folder does not have a corresponding element in the model.
+   * Return the Dart model element associated with the given folder, or <code>null</code> if the folder
+   * does not have a corresponding element in the model.
    * 
    * @param folder the folder corresponding to the element to be returned
    * @return the Dart model element associated with the given folder
@@ -608,7 +612,8 @@ public class DartModelManager {
           IResource[] children = ResourceUtil.getResources(child);
           if (children.length > 0) {
             DartElement element = DartCore.create(children[0]);
-            if (element instanceof CompilationUnit && ((CompilationUnit) element).definesLibrary()) {
+            if (element instanceof CompilationUnit
+                && ((CompilationUnit) element).definesLibrary()) {
               return ((CompilationUnit) element).getLibrary();
             }
           }
@@ -685,9 +690,8 @@ public class DartModelManager {
   }
 
   /**
-   * Utility method for returning one option value only. Equivalent to
-   * <code>DartModelManager.getOptions().get(optionName)</code> Note that it may answer
-   * <code>null</code> if this option does not exist.
+   * Utility method for returning one option value only. Equivalent to <code>DartModelManager.getOptions().get(optionName)</code> Note that it
+   * may answer <code>null</code> if this option does not exist.
    * <p>
    * Helper constants have been defined on DartPreferenceConstants for each of the option IDs
    * (categorized in Code assist option ID, Compiler option ID and Core option ID) and some of their
@@ -731,8 +735,8 @@ public class DartModelManager {
    * Returns a default set of options even if the platform is not running.
    * </p>
    * 
-   * @return table of current settings of all options (key type: <code>String</code>; value type:
-   *         <code>String</code>)
+   * @return table of current settings of all options (key type: <code>String</code>; value type: <code>String
+   *         </code>)
    */
   public HashMap<String, String> getOptions() {
     // return cached options if already computed
@@ -810,7 +814,8 @@ public class DartModelManager {
    * 
    * @throws DartModelException if the project doesn't exist
    */
-  public PerProjectInfo getPerProjectInfoCheckExistence(IProject project) throws DartModelException {
+  public PerProjectInfo getPerProjectInfoCheckExistence(IProject project)
+      throws DartModelException {
     PerProjectInfo info = getPerProjectInfo(project, false);
     if (info == null) {
       if (!DartProjectNature.hasDartNature(project)) {
@@ -823,9 +828,9 @@ public class DartModelManager {
 
   /**
    * Return the per-working copy info for the given working copy at the given path. If it doesn't
-   * exist and <code>create</code> is <code>true</code>, add a new per-working copy info with the
-   * given problem requester. If recordUsage, increment the per-working copy info's use count.
-   * Return <code>null</code> if it doesn't exist and is not created.
+   * exist and <code>create</code> is <code>true</code>, add a new per-working copy info with the given
+   * problem requester. If recordUsage, increment the per-working copy info's use count. Return
+   * <code>null</code> if it doesn't exist and is not created.
    */
   public PerWorkingCopyInfo getPerWorkingCopyInfo(CompilationUnitImpl workingCopy, boolean create,
       boolean recordUsage, ProblemRequestor problemRequestor) {
@@ -837,8 +842,8 @@ public class DartModelManager {
         workingCopyToInfos = new HashMap<CompilationUnit, PerWorkingCopyInfo>();
         perWorkingCopyInfos.put(owner, workingCopyToInfos);
       }
-      PerWorkingCopyInfo info = workingCopyToInfos == null ? null
-          : (PerWorkingCopyInfo) workingCopyToInfos.get(workingCopy);
+      PerWorkingCopyInfo info = workingCopyToInfos == null
+          ? null : (PerWorkingCopyInfo) workingCopyToInfos.get(workingCopy);
       if (info == null && create) {
         info = new PerWorkingCopyInfo(workingCopy, problemRequestor);
         workingCopyToInfos.put(workingCopy, info);
@@ -867,9 +872,9 @@ public class DartModelManager {
 
   /**
    * Return all of the working copies which have the given owner. If the given owner is not the
-   * primary owner and the given flag is <code>true</code>, then the working copies of the primary
-   * owner will also be added. Return <code>null</code> if there are no working copies that match
-   * the specification.
+   * primary owner and the given flag is <code>true</code>, then the working copies of the primary owner
+   * will also be added. Return <code>null</code> if there are no working copies that match the
+   * specification.
    * 
    * @return all of the working copies which have the given owner
    */
@@ -937,14 +942,17 @@ public class DartModelManager {
       @Override
       public void removed(IEclipsePreferences.NodeChangeEvent event) {
         if (event.getChild() == DartModelManager.this.preferencesLookup[PREF_INSTANCE]) {
-          DartModelManager.this.preferencesLookup[PREF_INSTANCE] = getInstanceScope().getNode(
-              DartCore.PLUGIN_ID);
-          DartModelManager.this.preferencesLookup[PREF_INSTANCE].addPreferenceChangeListener(new EclipsePreferencesListener());
+          DartModelManager.this.preferencesLookup[PREF_INSTANCE] = getInstanceScope()
+              .getNode(DartCore.PLUGIN_ID);
+          DartModelManager.this.preferencesLookup[PREF_INSTANCE].addPreferenceChangeListener(
+              new EclipsePreferencesListener());
         }
       }
     };
-    ((IEclipsePreferences) preferencesLookup[PREF_INSTANCE].parent()).addNodeChangeListener(instanceNodeListener);
-    preferencesLookup[PREF_INSTANCE].addPreferenceChangeListener(instancePreferencesListener = new EclipsePreferencesListener());
+    ((IEclipsePreferences) preferencesLookup[PREF_INSTANCE].parent()).addNodeChangeListener(
+        instanceNodeListener);
+    preferencesLookup[PREF_INSTANCE].addPreferenceChangeListener(
+        instancePreferencesListener = new EclipsePreferencesListener());
 
     // Listen to default preferences node removal from parent in order to
     // refresh stored one
@@ -957,17 +965,18 @@ public class DartModelManager {
       @Override
       public void removed(IEclipsePreferences.NodeChangeEvent event) {
         if (event.getChild() == DartModelManager.this.preferencesLookup[PREF_DEFAULT]) {
-          DartModelManager.this.preferencesLookup[PREF_DEFAULT] = getDefaultScope().getNode(
-              DartCore.PLUGIN_ID);
+          DartModelManager.this.preferencesLookup[PREF_DEFAULT] = getDefaultScope()
+              .getNode(DartCore.PLUGIN_ID);
         }
       }
     };
-    ((IEclipsePreferences) preferencesLookup[PREF_DEFAULT].parent()).addNodeChangeListener(defaultNodeListener);
+    ((IEclipsePreferences) preferencesLookup[PREF_DEFAULT].parent()).addNodeChangeListener(
+        defaultNodeListener);
   }
 
   /**
-   * Return <code>true</code> if the given resource should be analyzed. All resources are to be
-   * analyzed unless they have been excluded.
+   * Return <code>true</code> if the given resource should be analyzed. All resources are to be analyzed
+   * unless they have been excluded.
    * 
    * @param resource the resource being tested
    * @return <code>true</code> if the given resource should be analyzed
@@ -990,8 +999,8 @@ public class DartModelManager {
    * and return it. Otherwise return <code>null</code>.
    * 
    * @param libraryFile the file defining the library to be opened
-   * @param monitor the progress monitor used to provide feedback to the user, or <code>null</code>
-   *          if no feedback is desired
+   * @param monitor the progress monitor used to provide feedback to the user, or <code>null</code> if
+   *          no feedback is desired
    * @return the library defined by the given file
    * @throws DartModelException if the library exists but could not be opened for some reason
    */
@@ -1203,8 +1212,8 @@ public class DartModelManager {
    * Puts the infos in the given map (keys are DartElements and values are DartElementInfos) in the
    * Dart model cache in an atomic way.
    */
-  protected synchronized void putInfos(DartElement openedElement,
-      Map<DartElement, DartElementInfo> newElements) {
+  protected synchronized void putInfos(
+      DartElement openedElement, Map<DartElement, DartElementInfo> newElements) {
     synchronized (infoCache) {
       // Remove existing children; they are replaced with the new children contained in newElements.
       DartElementInfo existingInfo = infoCache.peekAtInfo(openedElement);
@@ -1219,7 +1228,8 @@ public class DartModelManager {
         try {
           if (lib.getDefiningCompilationUnit() == cu) {
             // redefining library
-            DartCompilerUtilities.removeCachedLibrary(((DartLibraryImpl) lib).getLibrarySourceFile());
+            DartCompilerUtilities.removeCachedLibrary(
+                ((DartLibraryImpl) lib).getLibrarySourceFile());
           }
         } catch (DartModelException ex) {
           // ignore it
@@ -1243,8 +1253,8 @@ public class DartModelManager {
   }
 
   /**
-   * Return <code>true</code> if the given library unit contains either a source or a resource
-   * directive that references the target URI.
+   * Return <code>true</code> if the given library unit contains either a source or a resource directive
+   * that references the target URI.
    * 
    * @param libraryUnit the library unit containing the directives to be searched
    * @param sourceUri the URI of the file containing the library unit
@@ -1262,11 +1272,6 @@ public class DartModelManager {
         if (isReference(source.getSourceUri().getValue(), sourceUri, targetUri)) {
           return true;
         }
-      } else if (directive instanceof DartResourceDirective) {
-        DartResourceDirective resource = (DartResourceDirective) directive;
-        if (isReference(resource.getResourceUri().getValue(), sourceUri, targetUri)) {
-          return true;
-        }
       }
     }
     return false;
@@ -1279,13 +1284,13 @@ public class DartModelManager {
    * 
    * @param libraryFile the file defining the library whose project is to be created
    * @param libraryUnit the result of parsing the library file
-   * @param monitor the progress monitor used to provide feedback to the user, or <code>null</code>
-   *          if no feedback is desired
+   * @param monitor the progress monitor used to provide feedback to the user, or <code>null</code> if
+   *          no feedback is desired
    * @return the library defined by the file
    * @throws DartModelException if the project could not be created or populated
    */
-  private DartLibrary createLibraryProject(File libraryFile, DartUnit libraryUnit,
-      IProgressMonitor monitor) throws DartModelException {
+  private DartLibrary createLibraryProject(
+      File libraryFile, DartUnit libraryUnit, IProgressMonitor monitor) throws DartModelException {
     try {
       //
       // Otherwise, the file defines a library that is not yet represented, so start by creating a
@@ -1307,9 +1312,10 @@ public class DartModelManager {
       List<String> paths = new ArrayList<String>(1);
       IResource[] resources = ResourceUtil.getResources(libraryFile);
       if (resources == null || resources.length != 1) {
-        throw new DartModelException(new DartModelStatusImpl(
-            IStatus.OK,
-            "Too many files representing the library file " + libraryFile.getAbsolutePath()));
+        throw new DartModelException(
+            new DartModelStatusImpl(
+                IStatus.OK,
+                "Too many files representing the library file " + libraryFile.getAbsolutePath()));
       }
       paths.add(resources[0].getProjectRelativePath().toPortableString());
       DartProjectImpl newDartProject = create(newProject);
@@ -1327,10 +1333,11 @@ public class DartModelManager {
       removeInfoAndChildren(newDartProject);
       DartLibrary[] libraries = newDartProject.getDartLibraries();
       if (libraries == null || libraries.length <= 0) {
-        throw new CoreException(new Status(
-            IStatus.ERROR,
-            DartCore.PLUGIN_ID,
-            "No libraries found while opening a new project: " + newProject.getLocation()));
+        throw new CoreException(
+            new Status(
+                IStatus.ERROR,
+                DartCore.PLUGIN_ID,
+                "No libraries found while opening a new project: " + newProject.getLocation()));
       }
       //
       // Now that the library's project fully exists, make sure that all of the imported
@@ -1557,11 +1564,6 @@ public class DartModelManager {
             if (literal != null) {
               uri = new URI(literal.getValue());
             }
-          } else if (directive instanceof DartResourceDirective) {
-            DartStringLiteral literal = ((DartResourceDirective) directive).getResourceUri();
-            if (literal != null) {
-              uri = new URI(literal.getValue());
-            }
           }
           if (uri != null) {
             uri = URIUtil.makeAbsolute(uri, libraryUri);
@@ -1586,9 +1588,8 @@ public class DartModelManager {
         for (File htmlFile : htmlFiles) {
           List<String> libraryNames;
           try {
-            libraryNames = LibraryReferenceFinder.findInHTML(FileUtilities.getContents(
-                htmlFile,
-                "UTF-8"));
+            libraryNames = LibraryReferenceFinder.findInHTML(
+                FileUtilities.getContents(htmlFile, "UTF-8"));
             for (String name : libraryNames) {
               if (name.equalsIgnoreCase(libraryName)) {
                 files.add(htmlFile);
@@ -1596,8 +1597,10 @@ public class DartModelManager {
               }
             }
           } catch (IOException exception) {
-            DartCore.logInformation("Could not read \"" + htmlFile.getAbsolutePath()
-                + "\" to find references to \"" + libraryFile.getAbsolutePath() + "\"", exception);
+            DartCore.logInformation(
+                "Could not read \"" + htmlFile.getAbsolutePath() + "\" to find references to \""
+                    + libraryFile.getAbsolutePath() + "\"",
+                exception);
           }
         }
       }
@@ -1731,14 +1734,16 @@ public class DartModelManager {
 
     // Stop listening to preferences changes
     preferences.removePreferenceChangeListener(propertyListener);
-    ((IEclipsePreferences) preferencesLookup[PREF_DEFAULT].parent()).removeNodeChangeListener(defaultNodeListener);
+    ((IEclipsePreferences) preferencesLookup[PREF_DEFAULT].parent()).removeNodeChangeListener(
+        defaultNodeListener);
     preferencesLookup[PREF_DEFAULT] = null;
-    ((IEclipsePreferences) preferencesLookup[PREF_INSTANCE].parent()).removeNodeChangeListener(instanceNodeListener);
+    ((IEclipsePreferences) preferencesLookup[PREF_INSTANCE].parent()).removeNodeChangeListener(
+        instanceNodeListener);
     preferencesLookup[PREF_INSTANCE].removePreferenceChangeListener(instancePreferencesListener);
     preferencesLookup[PREF_INSTANCE] = null;
     String resourcesPluginId = ResourcesPlugin.getPlugin().getBundle().getSymbolicName();
-    getInstanceScope().getNode(resourcesPluginId).removePreferenceChangeListener(
-        resourcesPropertyListener);
+    getInstanceScope()
+        .getNode(resourcesPluginId).removePreferenceChangeListener(resourcesPropertyListener);
 
     // wait for the initialization job to finish
     try {
@@ -1785,8 +1790,8 @@ public class DartModelManager {
         }
       };
       String resourcesPluginId = ResourcesPlugin.getPlugin().getBundle().getSymbolicName();
-      getInstanceScope().getNode(resourcesPluginId).addPreferenceChangeListener(
-          resourcesPropertyListener);
+      getInstanceScope()
+          .getNode(resourcesPluginId).addPreferenceChangeListener(resourcesPropertyListener);
 
       // // Listen to content-type changes
       // Platform.getContentTypeManager().addContentTypeChangeListener(this);
@@ -1811,7 +1816,7 @@ public class DartModelManager {
 //       | IResourceChangeEvent.POST_BUILD
 //       |
           IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_DELETE
-              | IResourceChangeEvent.PRE_CLOSE
+          | IResourceChangeEvent.PRE_CLOSE
 //       | IResourceChangeEvent.PRE_REFRESH
       );
 

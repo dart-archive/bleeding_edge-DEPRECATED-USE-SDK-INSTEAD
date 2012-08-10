@@ -60,7 +60,6 @@ import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
-import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringInterpolation;
@@ -86,8 +85,8 @@ import com.google.dart.compiler.ast.DartWhileStatement;
 import java.util.List;
 
 /**
- * Instances of the class <code>WrappedDartVisitorAdaptor</code> adapt a {@link WrappedDartVisitor}
- * to be a plain visitor, causing the {@link WrappedDartVisitor#preVisit(DartNode)} and
+ * Instances of the class <code>WrappedDartVisitorAdaptor</code> adapt a {@link WrappedDartVisitor} to be a plain visitor,
+ * causing the {@link WrappedDartVisitor#preVisit(DartNode)} and
  * {@link WrappedDartVisitor#postVisit(DartNode)} methods to be invoked.
  */
 public class WrappedDartVisitorAdaptor<R> extends ASTVisitor<R> {
@@ -470,14 +469,6 @@ public class WrappedDartVisitorAdaptor<R> extends ASTVisitor<R> {
   public R visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
     baseVisitor.preVisit(node);
     R result = baseVisitor.visitRedirectConstructorInvocation(node);
-    baseVisitor.postVisit(node);
-    return result;
-  }
-
-  @Override
-  public R visitResourceDirective(DartResourceDirective node) {
-    baseVisitor.preVisit(node);
-    R result = baseVisitor.visitResourceDirective(node);
     baseVisitor.postVisit(node);
     return result;
   }

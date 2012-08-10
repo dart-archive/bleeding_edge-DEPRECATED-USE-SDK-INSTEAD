@@ -67,7 +67,6 @@ import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
-import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStatement;
@@ -1753,12 +1752,6 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
 
   @Override
   public DartNode visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
-
-    return null;
-  }
-
-  @Override
-  public DartNode visitResourceDirective(DartResourceDirective node) {
 
     return null;
   }

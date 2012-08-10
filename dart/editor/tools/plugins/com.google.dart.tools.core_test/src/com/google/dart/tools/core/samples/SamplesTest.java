@@ -24,7 +24,6 @@ import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.util.DartSourceString;
@@ -212,8 +211,6 @@ public class SamplesTest extends TestCase {
         if (KNOWN_DART_LIBS.contains(relPath)) {
           continue;
         }
-      } else if (directive instanceof DartResourceDirective) {
-        relPath = ((DartResourceDirective) directive).getResourceUri().getValue();
       } else if (directive instanceof DartSourceDirective) {
         relPath = ((DartSourceDirective) directive).getSourceUri().getValue();
       } else if (directive instanceof DartLibraryDirective) {

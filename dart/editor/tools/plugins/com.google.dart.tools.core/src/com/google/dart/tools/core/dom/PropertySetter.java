@@ -66,7 +66,6 @@ import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
-import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStatement;
@@ -725,17 +724,6 @@ public class PropertySetter extends PropertyVisitor {
       // node.setName((DartIdentifier) propertyValue);
     } else {
       visitInvocation(node);
-    }
-    DartCore.notYetImplemented();
-    return null;
-  }
-
-  @Override
-  public Object visitResourceDirective(DartResourceDirective node) {
-    if (property == PropertyDescriptorHelper.DART_RESOURCE_DIRECTIVE_URI) {
-      // node.setResourceUri(propertyValue);
-    } else {
-      visitDirective(node);
     }
     DartCore.notYetImplemented();
     return null;
