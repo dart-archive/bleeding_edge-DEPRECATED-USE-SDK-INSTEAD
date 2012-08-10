@@ -8,7 +8,7 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "125079",
+  "webkit_revision": "125244",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
@@ -18,9 +18,9 @@ vars = {
   "nacl_tools_revision": "9330",  # native_client/DEPS: tools_rev
   "gtm_revision": "534",
 
-  "libjingle_revision": "165",
+  "libjingle_revision": "168",
   "libphonenumber_revision": "456",
-  "libvpx_revision": "149334",
+  "libvpx_revision": "150392",
   "lss_revision": "11",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
@@ -29,7 +29,7 @@ vars = {
   "ffmpeg_hash": "2079ffae30f8da6c6eed985cce00e04c31b40888",
 
   "sfntly_revision": "134",
-  "skia_revision": "5003",
+  "skia_revision": "5029",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -159,7 +159,7 @@ deps = {
     (Var("googlecode_url") % "bidichecker") + "/trunk/lib@4",
 
   "src/third_party/v8-i18n":
-    (Var("googlecode_url") % "v8-i18n") + "/trunk@105",
+    (Var("googlecode_url") % "v8-i18n") + "/trunk@117",
 
   # When roll to another webgl conformance tests revision, please goto
   # chrome/test/gpu and run generate_webgl_conformance_test_list.py.
@@ -277,7 +277,7 @@ deps = {
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
 
   "src/third_party/libyuv":
-    (Var("googlecode_url") % "libyuv") + "/trunk@311",
+    (Var("googlecode_url") % "libyuv") + "/trunk@319",
 
   "src/third_party/mozc/session":
     (Var("googlecode_url") % "mozc") + "/trunk/src/session@83",
@@ -510,7 +510,7 @@ deps_os = {
     # For Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@1b0778c7d5785ea35515cc3f5a683b29b875b520",
+      "@da46e4a834820ed16cba29428ced3c14badfb351",
   },
   "android": {
     "src/third_party/freetype":
@@ -522,7 +522,7 @@ deps_os = {
 
     "src/third_party/android_tools":
       Var("chromium_git") + "/android_tools.git" +
-      "@c02185bf0f9ce4638896ad707e588183f4fd2dde",
+      "@e55ecc54323647741d921b03a03b848bc853d39c",
   },
 }
 
