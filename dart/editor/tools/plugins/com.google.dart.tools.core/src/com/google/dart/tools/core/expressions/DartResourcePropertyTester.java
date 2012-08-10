@@ -52,7 +52,7 @@ public class DartResourcePropertyTester extends PropertyTester {
       return false;
     }
 
-    return DartCore.isAnalyzed((IResource) elem);
+    return DartCore.isAnalyzed(resource);
   }
 
   private boolean isIgnoredDartResource(Object elem) {
@@ -67,7 +67,7 @@ public class DartResourcePropertyTester extends PropertyTester {
       return false;
     }
 
-    return !DartCore.isAnalyzed((IResource) elem);
+    return !DartCore.isAnalyzed(resource);
   }
 
   private boolean testIsAnalyzable(Object receiver) {
