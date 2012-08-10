@@ -45,6 +45,20 @@ public class DartSdk {
   private static DartSdk defaultSdk;
 
   /**
+   * A special Dart SDK instance signifying that no SDK is installed.
+   * <p>
+   * NOTE: to check if an SDK is installed, clients should always prefer
+   * {@link DartSdk#isInstalled()} over direct access to this member.
+   * </p>
+   */
+  public static DartSdk NONE = new DartSdk(null) {
+    @Override
+    public File getDirectory() {
+      return null;
+    }
+  };
+
+  /**
    * @return the location where the Dart SDK is installed
    */
   public static File getInstallDirectory() {
@@ -52,7 +66,7 @@ public class DartSdk {
   }
 
   /**
-   * Answer the default SDK that ships with Dart Editor or <code>null</code> if the SDK is not
+   * Answer the default SDK that ships with Dart Editor or {@link DartSdk#NONE} if the SDK is not
    * installed
    */
   public static DartSdk getInstance() {
@@ -69,6 +83,10 @@ public class DartSdk {
             // fall through
           }
         }
+        //if none was resolved, set default to NONE
+        if (defaultSdk == null) {
+          defaultSdk = NONE;
+        }
       }
     }
     return defaultSdk;
@@ -78,7 +96,7 @@ public class DartSdk {
    * @return whether the Dart SDK is installed
    */
   public static boolean isInstalled() {
-    return getInstance() != null;
+    return getInstance() != NONE;
   }
 
   private final IPath sdkPath;

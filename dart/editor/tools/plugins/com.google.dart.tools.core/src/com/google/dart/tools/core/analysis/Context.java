@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.tools.core.model.DartSdk;
 
 import java.io.File;
 import java.io.IOException;
@@ -180,6 +181,11 @@ public class Context {
    *          <code>null</code> if none
    */
   public void resolve(File libraryFile, ResolveCallback callback) {
+
+    if (!DartSdk.isInstalled()) {
+      return;
+    }
+
     if (!libraryFile.isAbsolute()) {
       throw new IllegalArgumentException("File path must be absolute: " + libraryFile);
     }

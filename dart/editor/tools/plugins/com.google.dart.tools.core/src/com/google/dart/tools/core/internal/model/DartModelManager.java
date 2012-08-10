@@ -44,6 +44,7 @@ import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.ElementChangedListener;
 import com.google.dart.tools.core.problem.ProblemRequestor;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
@@ -505,6 +506,11 @@ public class DartModelManager {
    * @return the Dart model element associated with the given resource
    */
   public DartElementImpl create(IResource resource) {
+
+    if (!DartSdk.isInstalled()) {
+      return null;
+    }
+
     if (resource instanceof IWorkspaceRoot) {
       return model;
     } else if (resource instanceof IProject) {

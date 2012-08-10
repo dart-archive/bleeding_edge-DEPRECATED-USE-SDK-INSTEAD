@@ -16,6 +16,7 @@ package com.google.dart.tools.core.analysis;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
+import com.google.dart.tools.core.model.DartSdk;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -122,6 +123,11 @@ public class AnalysisServer {
    * @param libraryFile the library file (not <code>null</code>)
    */
   public void analyze(File libraryFile) {
+
+    if (!DartSdk.isInstalled()) {
+      return;
+    }
+
     if (!libraryFile.isAbsolute()) {
       throw new IllegalArgumentException("File path must be absolute: " + libraryFile);
     }

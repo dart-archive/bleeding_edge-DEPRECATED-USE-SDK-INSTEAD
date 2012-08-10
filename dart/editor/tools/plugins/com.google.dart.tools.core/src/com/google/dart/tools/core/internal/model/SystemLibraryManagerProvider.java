@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.compiler.SystemLibrary;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
@@ -20,15 +21,38 @@ import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.model.DartSdk;
 
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The class <code>SystemLibraryManagerProvider</code> manages the {@link SystemLibraryManager system library managers} used by
- * the tools.
+ * The class <code>SystemLibraryManagerProvider</code> manages the {@link SystemLibraryManager
+ * system library managers} used by the tools.
  */
 public class SystemLibraryManagerProvider {
+
+  private static final class MissingSdkLibaryManager extends EditorLibraryManager {
+
+    private static final SystemLibrary[] NO_LIBRARIES = new SystemLibrary[0];
+
+    public MissingSdkLibaryManager(File sdkPath, String platformName) {
+      super(sdkPath, platformName);
+    }
+
+    @Override
+    public URI getShortUri(URI uri) {
+      return uri;
+    }
+
+    @Override
+    protected SystemLibrary[] getDefaultLibraries() {
+      return NO_LIBRARIES;
+    }
+
+  }
+
   private static final Object lock = new Object();
+
   private static EditorLibraryManager ANY_LIBRARY_MANAGER;
 
   /**
@@ -39,9 +63,10 @@ public class SystemLibraryManagerProvider {
       if (ANY_LIBRARY_MANAGER == null) {
 
         DartSdk sdk = DartSdk.getInstance();
-        if (sdk == null) {
+        if (!DartSdk.isInstalled()) {
           DartCore.logError("Missing SDK");
-          return null;
+          ANY_LIBRARY_MANAGER = new MissingSdkLibaryManager(null, "any");
+          return ANY_LIBRARY_MANAGER;
         }
 
         File sdkDir = sdk.getDirectory();
@@ -53,8 +78,9 @@ public class SystemLibraryManagerProvider {
         DartCore.logInformation("Reading bundled libraries from " + sdkDir);
 
         ANY_LIBRARY_MANAGER = new EditorLibraryManager(sdkDir, "any");
-        String packageRoot = DartCore.getPlugin()
-            .getPrefs().get(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, "");
+        String packageRoot = DartCore.getPlugin().getPrefs().get(
+            DartCore.PACKAGE_ROOT_DIR_PREFERENCE,
+            "");
         if (packageRoot != null && !packageRoot.isEmpty()) {
           String[] roots = packageRoot.split(";");
           List<File> packageRoots = new ArrayList<File>();

@@ -22,6 +22,7 @@ import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.filesystem.EFS;
@@ -237,8 +238,10 @@ public class DartNavigatorContentProvider implements ICommonContentProvider,
 
     if (DartProjectNature.hasDartNature(project)) {
       DartProject dartProject = DartCore.create(project);
-      for (DartLibrary library : getSystemLibraries(dartProject.getDartLibraries())) {
-        children.add(library);
+      if (DartSdk.isInstalled()) {
+        for (DartLibrary library : getSystemLibraries(dartProject.getDartLibraries())) {
+          children.add(library);
+        }
       }
     }
 

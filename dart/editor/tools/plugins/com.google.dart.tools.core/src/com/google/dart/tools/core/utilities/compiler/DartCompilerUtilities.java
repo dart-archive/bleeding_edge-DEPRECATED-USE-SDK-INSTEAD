@@ -45,6 +45,7 @@ import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 
 import org.eclipse.core.filesystem.URIUtil;
@@ -787,6 +788,10 @@ public class DartCompilerUtilities {
       final Map<URI, DartUnit> parsedUnits, final CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
 
+    if (!DartSdk.isInstalled()) {
+      return null;
+    }
+
     final EditorLibraryManager manager = SystemLibraryManagerProvider.getSystemLibraryManager();
     AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
 
@@ -848,6 +853,11 @@ public class DartCompilerUtilities {
    */
   public static void secureCompileLib(LibrarySource libSource, CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
+
+    if (!DartSdk.isInstalled()) {
+      return;
+    }
+
     List<LibrarySource> embeddedLibraries = new ArrayList<LibrarySource>();
     // All calls to DartC must be synchronized
     synchronized (compilerLock) {

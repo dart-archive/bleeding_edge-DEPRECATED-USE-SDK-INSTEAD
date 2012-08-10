@@ -94,7 +94,7 @@ public class IndexReader {
    */
   public boolean readIndexVersion2(ObjectInputStream input) throws IOException {
     String sdkVersion = input.readUTF();
-    if (!sdkVersion.equals(DartSdk.getInstance().getSdkVersion())) {
+    if (!DartSdk.isInstalled() || !sdkVersion.equals(DartSdk.getInstance().getSdkVersion())) {
       return false;
     }
     readStringTable(input);
