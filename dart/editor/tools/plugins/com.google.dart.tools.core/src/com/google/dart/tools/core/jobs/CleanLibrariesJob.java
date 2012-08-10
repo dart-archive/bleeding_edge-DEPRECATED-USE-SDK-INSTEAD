@@ -11,10 +11,11 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.internal.util;
+package com.google.dart.tools.core.jobs;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
+import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
 import org.eclipse.core.resources.IResource;
@@ -32,9 +33,16 @@ import org.eclipse.core.runtime.jobs.Job;
  * Clean all workspace projects and rebuild the index.
  */
 public class CleanLibrariesJob extends Job {
+  private boolean resetModel;
 
   public CleanLibrariesJob() {
-    super(Messages.CleanLibrariesJob_Title);
+    this(false);
+  }
+
+  public CleanLibrariesJob(boolean resetModel) {
+    super("Re-analyzing...");
+
+    this.resetModel = resetModel;
 
     setRule(ResourcesPlugin.getWorkspace().getRoot());
   }
@@ -42,7 +50,11 @@ public class CleanLibrariesJob extends Job {
   @Override
   protected IStatus run(IProgressMonitor monitor) {
     try {
-      SubMonitor subMonitor = SubMonitor.convert(monitor, Messages.CleanLibrariesJob_Title, 100);
+      if (resetModel) {
+        DartModelManager.getInstance().resetModel();
+      }
+
+      SubMonitor subMonitor = SubMonitor.convert(monitor, "Re-analyzing...", 100);
 
       IWorkspace workspace = ResourcesPlugin.getWorkspace();
       IWorkspaceRoot root = workspace.getRoot();

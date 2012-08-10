@@ -78,20 +78,17 @@
 
    <extension
          point="org.eclipse.ui.preferencePages">
-         
       <page
             name="%dartPrefName"
             class="com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage"
             id="com.google.dart.tools.ui.preferences.DartBasePreferencePage">
       </page>
-         
       <page
             category="com.google.dart.tools.ui.preferences.DartBasePreferencePage"
             class="com.google.dart.tools.ui.internal.preferences.DartAnalysisPreferencePage"
             id="com.google.dart.tools.ui.preferences.DartAnalysisPreferencePage"
             name="%analysisPrefName">
       </page>
-
       <page
             category="com.google.dart.tools.ui.preferences.DartBasePreferencePage"
             class="com.google.dart.tools.ui.internal.preferences.FontPreferencePage"
@@ -110,7 +107,12 @@
             id="com.google.dart.tools.debug.debugPreferencePage"
             name="%debugPrefPageName">
       </page>
-      
+      <page
+            category="com.google.dart.tools.ui.preferences.DartBasePreferencePage"
+            class="com.google.dart.eclipse.preferences.SdkPreferencePage"
+            id="com.google.dart.eclipse.preferences.sdkPreferencePage"
+            name="%sdkPrefPageName">
+      </page>
    </extension>
    
    <extension
@@ -207,6 +209,12 @@
            id="com.google.dart.eclipse.ui.projectNatureImage"
            natureId="com.google.dart.tools.core.dartNature">
      </image>
+  </extension>
+  <extension
+        point="org.eclipse.ui.startup">
+     <startup
+           class="com.google.dart.eclipse.DartEarlyStartup">
+     </startup>
   </extension>
 
 

@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.build;
 
-import com.google.dart.tools.ui.internal.util.CleanLibrariesJob;
+import com.google.dart.tools.core.jobs.CleanLibrariesJob;
 
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;

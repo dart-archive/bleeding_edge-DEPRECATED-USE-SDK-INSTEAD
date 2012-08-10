@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.dialogs;
 
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.CopyDetailsToClipboardAction;
@@ -83,8 +83,8 @@ public class AboutDartDialog extends Shell implements DetailsProvider {
 
     builder.append(NEW_LINE);
 
-    if (DartSdk.isInstalled()) {
-      builder.append("Dart SDK version " + DartSdk.getInstance().getSdkVersion());
+    if (DartSdkManager.getManager().hasSdk()) {
+      builder.append("Dart SDK version " + DartSdkManager.getManager().getSdk().getSdkVersion());
     } else {
       builder.append("Dart SDK is not installed");
     }

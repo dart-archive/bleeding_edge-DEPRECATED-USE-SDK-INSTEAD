@@ -25,12 +25,15 @@ import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
+import com.google.dart.tools.core.jobs.CleanLibrariesJob;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkListener;
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.ElementChangedListener;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
@@ -53,6 +56,7 @@ import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.osgi.framework.BundleContext;
@@ -73,7 +77,7 @@ import java.util.Map;
  * The class <code>DartCore</code> is used to access the elements modeling projects that have a Dart
  * nature.
  */
-public class DartCore extends Plugin {
+public class DartCore extends Plugin implements DartSdkListener {
   /**
    * The unique instance of this class.
    */
@@ -844,7 +848,7 @@ public class DartCore extends Plugin {
     }
     return null;
   }
-  
+
   /**
    * Return the package root preference
    */
@@ -867,12 +871,23 @@ public class DartCore extends Plugin {
   }
 
   @Override
+  public void sdkUpdated(DartSdk sdk) {
+    Job job = new CleanLibrariesJob(true);
+
+    job.schedule();
+  }
+
+  @Override
   public void start(BundleContext context) throws Exception {
     super.start(context);
+
+    DartSdkManager.getManager().addSdkListener(this);
   }
 
   @Override
   public void stop(BundleContext context) throws Exception {
+    DartSdkManager.getManager().removeSdkListener(this);
+
     try {
       AnalysisIndexManager.stopServerAndIndexing();
       DartModelManager.shutdown();

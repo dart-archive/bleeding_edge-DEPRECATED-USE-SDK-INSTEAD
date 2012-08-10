@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.feedback;
 
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.util.PrintStringWriter;
 
 /**
@@ -73,10 +73,11 @@ public class FeedbackReport {
   public String getOptionsText() {
     StringBuilder msg = new StringBuilder();
 
-    msg.append("SDK installed: " + DartSdk.isInstalled() + "\n");
+    msg.append("SDK installed: " + DartSdkManager.getManager().hasSdk() + "\n");
 
-    if (DartSdk.isInstalled()) {
-      msg.append("Dartium installed: " + DartSdk.getInstance().isDartiumInstalled() + "\n");
+    if (DartSdkManager.getManager().hasSdk()) {
+      msg.append("Dartium installed: " + DartSdkManager.getManager().getSdk().isDartiumInstalled()
+          + "\n");
     }
 
     return msg.toString().trim();

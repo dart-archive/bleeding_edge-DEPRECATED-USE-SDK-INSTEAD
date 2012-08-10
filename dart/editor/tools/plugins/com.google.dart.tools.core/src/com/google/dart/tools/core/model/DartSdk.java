@@ -15,8 +15,6 @@ package com.google.dart.tools.core.model;
 
 import com.google.dart.tools.core.DartCore;
 
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 
 import java.io.BufferedReader;
@@ -41,22 +39,6 @@ import java.io.IOException;
  *          ... Dart utilities ...
  */
 public class DartSdk {
-  private static Object lock = new Object();
-  private static DartSdk defaultSdk;
-
-  /**
-   * A special Dart SDK instance signifying that no SDK is installed.
-   * <p>
-   * NOTE: to check if an SDK is installed, clients should always prefer
-   * {@link DartSdk#isInstalled()} over direct access to this member.
-   * </p>
-   */
-  public static DartSdk NONE = new DartSdk(null) {
-    @Override
-    public File getDirectory() {
-      return null;
-    }
-  };
 
   /**
    * @return the location where the Dart SDK is installed
@@ -65,61 +47,35 @@ public class DartSdk {
     return new File(Platform.getInstallLocation().getURL().getFile());
   }
 
-  /**
-   * Answer the default SDK that ships with Dart Editor or {@link DartSdk#NONE} if the SDK is not
-   * installed
-   */
   public static DartSdk getInstance() {
-    synchronized (lock) {
-      if (defaultSdk == null) {
-        File eclipseInstallDir = getInstallDirectory();
-        File dir = new File(eclipseInstallDir, "dart-sdk");
-        if (dir.exists()) {
-          try {
-            defaultSdk = new DartSdk(new Path(dir.getCanonicalPath()));
-            defaultSdk.initializeSdk();
-          } catch (IOException e) {
-            DartCore.logError("Failed to resolve SDK path", e);
-            // fall through
-          }
-        }
-        //if none was resolved, set default to NONE
-        if (defaultSdk == null) {
-          defaultSdk = NONE;
-        }
-      }
-    }
-    return defaultSdk;
+    return DartSdkManager.getManager().getSdk();
   }
 
-  /**
-   * @return whether the Dart SDK is installed
-   */
   public static boolean isInstalled() {
-    return getInstance() != NONE;
+    return DartSdkManager.getManager().hasSdk();
   }
 
-  private final IPath sdkPath;
-
-  private File vm;
+  private final File sdkPath;
 
   private File dartium;
 
-  private DartSdk(IPath path) {
+  protected DartSdk(File path) {
     sdkPath = path;
+
+    if (sdkPath != null) {
+      initializeSdk();
+    }
   }
 
   /**
    * Answer the VM executable or <code>null</code> if it does not exist
    */
   public File getDartiumExecutable() {
-    synchronized (lock) {
-      if (dartium == null) {
-        File file = getDartiumBinary(getDartiumWorkingDirectory());
+    if (dartium == null) {
+      File file = getDartiumBinary(getDartiumWorkingDirectory());
 
-        if (file.exists()) {
-          dartium = file;
-        }
+      if (file.exists()) {
+        dartium = file;
       }
     }
 
@@ -137,7 +93,7 @@ public class DartSdk {
    * Answer the SDK directory
    */
   public File getDirectory() {
-    return sdkPath.toFile();
+    return sdkPath;
   }
 
   /**
@@ -202,15 +158,7 @@ public class DartSdk {
    * Answer the VM executable or <code>null</code> if it does not exist
    */
   public File getVmExecutable() {
-    synchronized (lock) {
-      if (vm == null) {
-        File file = sdkPath.append("bin").append(getBinaryName()).toFile();
-        if (file.exists()) {
-          vm = file;
-        }
-      }
-    }
-    return vm;
+    return new File(new File(sdkPath, "bin"), getBinaryName());
   }
 
   /**
@@ -231,6 +179,10 @@ public class DartSdk {
     return false;
   }
 
+  protected void dispose() {
+
+  }
+
   protected void initializeSdk() {
     if (!DartCore.isWindows()) {
       ensureVmIsExecutable();
@@ -244,7 +196,7 @@ public class DartSdk {
   private void ensureVmIsExecutable() {
     File dartVm = getVmExecutable();
 
-    if (dartVm != null) {
+    if (dartVm != null && dartVm.exists()) {
       if (!dartVm.canExecute()) {
         makeExecutable(dartVm);
 
