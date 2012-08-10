@@ -21,8 +21,7 @@ import java.util.List;
 
 /**
  * The interface <code>DartLibrary</code> defines the behavior of objects representing a Dart
- * library. A Dart library is an artificial container for a single {@link LibraryConfigurationFile}
- * and all of the compilation units that are contained in it.
+ * library.
  */
 public interface DartLibrary extends OpenableElement, ParentElement {
   /**

@@ -67,13 +67,6 @@ public interface DartElement extends IAdaptable {
   public static int DART_LIBRARY_FOLDER = 16;
 
   /**
-   * A constant representing a Dart library configuration file. A Dart element with this type can be
-   * safely cast to {@link LibraryConfigurationFile}.
-   */
-  @Deprecated
-  public static int LIBRARY_CONFIG_FILE = 5;
-
-  /**
    * A constant representing a Dart compilation unit. A Dart element with this type can be safely
    * cast to {@link CompilationUnit}.
    */
