@@ -27,6 +27,7 @@ import com.google.dart.engine.source.Source;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -3348,6 +3349,7 @@ public class Parser {
     boolean wasInSwitch = inSwitch;
     inSwitch = true;
     try {
+      HashSet<String> definedLabels = new HashSet<String>();
       Token keyword = expect(Keyword.SWITCH);
       Token leftParenthesis = expect(TokenType.OPEN_PAREN);
       Expression expression = parseExpression();
@@ -3359,6 +3361,12 @@ public class Parser {
         while (matchesIdentifier() && peekMatches(TokenType.COLON)) {
           SimpleIdentifier identifier = parseSimpleIdentifier();
           validateName(identifier, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_LABEL);
+          String label = identifier.getToken().getLexeme();
+          if (definedLabels.contains(label)) {
+            reportError(ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, identifier.getToken());
+          } else {
+            definedLabels.add(label);
+          }
           Token colon = expect(TokenType.COLON);
           labels.add(new Label(identifier, colon));
         }

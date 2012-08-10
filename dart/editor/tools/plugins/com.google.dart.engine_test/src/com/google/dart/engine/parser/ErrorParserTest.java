@@ -194,6 +194,13 @@ public class ErrorParserTest extends ParserTestCase {
     assertNotNull(unit);
   }
 
+  public void test_duplicateLabelInSwitchStatement() throws Exception {
+    parse(
+        "parseSwitchStatement",
+        "switch (e) {l1: case 0: break; l1: case 1: break;}",
+        ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT);
+  }
+
   public void test_expectedCaseOrDefault() throws Exception {
     parse("parseSwitchStatement", "switch (e) {break;}", ParserErrorCode.EXPECTED_CASE_OR_DEFAULT);
   }

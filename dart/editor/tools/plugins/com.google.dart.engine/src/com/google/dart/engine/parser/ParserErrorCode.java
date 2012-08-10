@@ -49,6 +49,7 @@ public enum ParserErrorCode implements ErrorCode {
 //  DISALLOWED_ABSTRACT_KEYWORD("Abstract keyword not allowed here"),
 //  DISALLOWED_FACTORY_KEYWORD("Factory keyword not allowed here"),
 //  DISALLOWED_STATIC_KEYWORD("Static keyword not allowed here"),
+  DUPLICATE_LABEL_IN_SWITCH_STATEMENT("Duplicate label in switch statement"),
 //  EXPECTED_ARRAY_OR_MAP_LITERAL("Expected array or map literal"),
   EXPECTED_CASE_OR_DEFAULT("Expected 'case' or 'default'"),
 //  EXPECTED_CLASS_DECLARATION_LBRACE("Expected '{' in class declaration"),

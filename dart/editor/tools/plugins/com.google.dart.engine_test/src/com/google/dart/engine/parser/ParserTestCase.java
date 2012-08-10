@@ -14,6 +14,7 @@
 package com.google.dart.engine.parser;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.error.AnalysisError;
@@ -129,6 +130,74 @@ public class ParserTestCase extends EngineTestCase {
   }
 
   /**
+   * Parse the given source as a compilation unit.
+   * 
+   * @param source the source to be parsed
+   * @param errorCodes the error codes of the errors that are expected to be found
+   * @return the compilation unit that was parsed
+   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
+   *           not match those that are expected, or if the result would have been {@code null}
+   */
+  public static CompilationUnit parseCompilationUnit(String source, ErrorCode... errorCodes)
+      throws Exception {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    StringScanner scanner = new StringScanner(null, source, listener);
+    listener.setLineInfo(new TestSource(), scanner.getLineStarts());
+    Token token = scanner.tokenize();
+    Parser parser = new Parser(null, listener);
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    assertNotNull(unit);
+    listener.assertErrors(errorCodes);
+    return unit;
+  }
+
+  /**
+   * Parse the given source as an expression.
+   * 
+   * @param source the source to be parsed
+   * @param errorCodes the error codes of the errors that are expected to be found
+   * @return the expression that was parsed
+   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
+   *           not match those that are expected, or if the result would have been {@code null}
+   */
+  @SuppressWarnings("unchecked")
+  public static <E extends Expression> E parseExpression(String source, ErrorCode... errorCodes)
+      throws Exception {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    StringScanner scanner = new StringScanner(null, source, listener);
+    listener.setLineInfo(new TestSource(), scanner.getLineStarts());
+    Token token = scanner.tokenize();
+    Parser parser = new Parser(null, listener);
+    Expression expression = parser.parseExpression(token);
+    assertNotNull(expression);
+    listener.assertErrors(errorCodes);
+    return (E) expression;
+  }
+
+  /**
+   * Parse the given source as a statement.
+   * 
+   * @param source the source to be parsed
+   * @param errorCodes the error codes of the errors that are expected to be found
+   * @return the statement that was parsed
+   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
+   *           not match those that are expected, or if the result would have been {@code null}
+   */
+  @SuppressWarnings("unchecked")
+  public static <E extends Statement> E parseStatement(String source, ErrorCode... errorCodes)
+      throws Exception {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    StringScanner scanner = new StringScanner(null, source, listener);
+    listener.setLineInfo(new TestSource(), scanner.getLineStarts());
+    Token token = scanner.tokenize();
+    Parser parser = new Parser(null, listener);
+    Statement statement = parser.parseStatement(token);
+    assertNotNull(statement);
+    listener.assertErrors(errorCodes);
+    return (E) statement;
+  }
+
+  /**
    * Invoke a method in {@link Parser}. The method is assumed to have the given number and type of
    * parameters and will be invoked with the given arguments.
    * <p>
@@ -192,49 +261,5 @@ public class ParserTestCase extends EngineTestCase {
   protected static <E> E invokeParserMethod(String methodName, String source,
       GatheringErrorListener listener) throws Exception {
     return invokeParserMethod(methodName, EMPTY_PARAMETERS, EMPTY_ARGUMENTS, source, listener);
-  }
-
-  /**
-   * Parse the given source as an expression.
-   * 
-   * @param source the source to be parsed
-   * @return the expression that was parsed
-   * @throws Exception if the source could not be parsed, if the source contains a compilation
-   *           error, or if the result would have been {@code null}.
-   */
-  @SuppressWarnings("unchecked")
-  protected <E extends Expression> E parseExpression(String source, ErrorCode... errorCodes)
-      throws Exception {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(null, source, listener);
-    listener.setLineInfo(new TestSource(), scanner.getLineStarts());
-    Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
-    Expression expression = parser.parseExpression(token);
-    assertNotNull(expression);
-    listener.assertErrors(errorCodes);
-    return (E) expression;
-  }
-
-  /**
-   * Parse the given source as a statement.
-   * 
-   * @param source the source to be parsed
-   * @return the statement that was parsed
-   * @throws Exception if the source could not be parsed, if the source contains a compilation
-   *           error, or if the result would have been {@code null}.
-   */
-  @SuppressWarnings("unchecked")
-  protected <E extends Statement> E parseStatement(String source, ErrorCode... errorCodes)
-      throws Exception {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(null, source, listener);
-    listener.setLineInfo(new TestSource(), scanner.getLineStarts());
-    Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
-    Statement statement = parser.parseStatement(token);
-    assertNotNull(statement);
-    listener.assertErrors(errorCodes);
-    return (E) statement;
   }
 }
