@@ -4,7 +4,7 @@
       label="%featureName"
       version="0.1.0.qualifier"
       provider-name="%providerName"
-      plugin="com.google.dart.tools.ui">
+      plugin="com.google.dart.eclipse.ui">
 
    <description>
       %description
