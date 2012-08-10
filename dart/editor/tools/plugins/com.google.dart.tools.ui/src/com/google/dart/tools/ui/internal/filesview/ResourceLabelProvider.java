@@ -36,6 +36,8 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
   private static final String IGNORE_FILE_ICON = "icons/full/dart16/dart_excl.png";
   private static final String IGNORE_FOLDER_ICON = "icons/full/dart16/flder_obj_excl.png";
 
+  private static final String PACKAGES_FOLDER_ICON = "icons/full/dart16/fldr_obj_pkg.png";
+
   private static final String LIBRARY_ICON = "icons/full/dart16/dart_library.png";
 
   private final WorkbenchLabelProvider workbenchLabelProvider = new WorkbenchLabelProvider();
@@ -71,6 +73,16 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
       if (dartElement instanceof CompilationUnit) {
         if (((CompilationUnit) dartElement).definesLibrary()) {
           return DartToolsPlugin.getImage(LIBRARY_ICON);
+        }
+      }
+
+      if (element instanceof IFolder) {
+        IFolder folder = (IFolder) element;
+
+        String name = folder.getProjectRelativePath().toPortableString();
+
+        if (name.equals("packages")) {
+          return DartToolsPlugin.getImage(PACKAGES_FOLDER_ICON);
         }
       }
     }
