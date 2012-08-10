@@ -887,8 +887,8 @@ def BuildUpdateSite(gsu, ant, revision, name, buildroot, buildout,
              'build.xml', revision, name, buildroot, buildout,
               editorpath, buildos, ['-Dbuild.dir=%s' % buildout])
   #TODO(pquitslund): migrate to a bucket copy (rather than serial uploads)
-  UploadSite(gsu, buildout, join(GSU_PATH_REV,'eclipse-update'))
-  UploadSite(gsu, buildout, join(GSU_PATH_LATEST,'eclipse-update'))
+  UploadSite(gsu, buildout, "%s/%s" % (GSU_PATH_REV,'eclipse-update'))
+  UploadSite(gsu, buildout, "%s/%s" % (GSU_PATH_LATEST,'eclipse-update'))
   
   
 def UploadSite(gsu, buildout, gsPath) :
