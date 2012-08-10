@@ -32,11 +32,6 @@ dartcombat_test: Skip
 [ $runtime == safari ]
 promise_based_test: Skip
 
-[ $runtime == opera ]
-# TODO(kasperl): These need to be triaged.
-lib/touch/touch_test: Fail
-swarm/swarm_test: Fail
-
 [ $runtime == vm ]
 dartcombat/dartcombat_test: Skip
 dartcombat_test: Skip
@@ -63,6 +58,9 @@ lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9
 [ $compiler == dart2js && $runtime == ff ]
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 swarm/swarm_test: Skip # Issue 3152: Timeout $.window().get$location().get$protocol is not a function
+
+[ $runtime == opera ]
+*: Skip
 
 [ $compiler == dart2js && $runtime == ie ]
 swarm/swarm_test: Fail # BUG(3304)
