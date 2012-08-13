@@ -429,13 +429,15 @@ def main():
           #if there is a build.runtime and the status is not
           #zero see if there are any *.log entries
           PrintErrorLog(properties['build.runtime'])
-        
-        PrintSeparator('JUnit test failures')
-        print('https://gsdview.appspot.com/dart-editor-archive-continuous/%s/tests/%s/index.html'
-              % (revision, buildos))
-        
-        # TODO: find a good solution to this issue
-        junit_status = 0;
+
+        #
+        # Uncomment this section to prevent tests from failing the build
+        #        
+        # PrintSeparator('JUnit test failures')
+        # print('https://gsdview.appspot.com/dart-editor-archive-continuous/%s/tests/%s/index.html'
+        #       % (revision, buildos))
+        # 
+        # junit_status = 0;
     else:
       junit_status = 0
 
