@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.analysis.ScanCallback;
 import com.google.dart.tools.core.builder.DartBuildParticipant;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.Extensions;
@@ -113,7 +114,9 @@ public class DartBuilder extends IncrementalProjectBuilder {
     if (delta == null) {
       IPath location = getProject().getLocation();
       if (location != null) {
-        server.scan(location.toFile(), false);
+        ScanCallbackProvider provider = ScanCallbackProvider.getProvider();
+        ScanCallback callback = provider != null ? provider.newCallback() : null;
+        server.scan(location.toFile(), callback);
       }
       return null;
     }
