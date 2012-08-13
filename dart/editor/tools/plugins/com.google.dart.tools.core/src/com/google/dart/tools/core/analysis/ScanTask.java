@@ -32,38 +32,42 @@ import java.util.Iterator;
  * Scan the specified folder and all subfolders for Dart libraries. Add any libraries and loose dart
  * files found to the {@link AnalysisServer}.
  */
-class LibraryScanTask extends Task {
-
-  private static final long SCAN_BYTE_THRESHOLD = 10 * 1000 * 1024; // 10 MB
-  private static final long SCAN_TIME_THRESHOLD = 10 * 1000; // ten seconds
+class ScanTask extends Task implements TaskListener {
 
   private final AnalysisServer server;
   private final Context context;
   private final File rootFile;
-  private final boolean fullScan;
+  private final ScanCallback callback;
   private final ArrayList<File> filesToScan = new ArrayList<File>(200);
   private final HashSet<File> libraryFiles = new HashSet<File>(50);
   private final HashSet<File> looseFiles = new HashSet<File>(200);
   private final ArrayList<Library> librariesToAnalyze = new ArrayList<Library>(20);
   private final byte[] buffer = new byte[1024];
-
   private final DartIgnoreManager ignoreManager;
 
-  private long bytesOfCode = 0;
-  private long scanEndThreshold = 0;
+  private int count = 1;
+  private float progress = 0;
 
-  LibraryScanTask(AnalysisServer server, Context context, File rootFile, boolean fullScan) {
+  ScanTask(AnalysisServer server, Context context, File rootFile, ScanCallback callback) {
     this.server = server;
     this.context = context;
     this.rootFile = rootFile;
-    this.fullScan = fullScan;
+    this.callback = callback;
     this.filesToScan.add(rootFile);
     this.ignoreManager = DartIgnoreManager.getInstance();
   }
 
+  /**
+   * Called by the analysis server when all tasks have been performed
+   */
+  @Override
+  public void idle(boolean idle) {
+    server.removeIdleListener(this);
+  }
+
   @Override
   public boolean isBackgroundAnalysis() {
-    return false;
+    return callback == null || callback.isCanceled();
   }
 
   @Override
@@ -73,9 +77,6 @@ class LibraryScanTask extends Task {
 
   @Override
   public void perform() {
-    if (scanEndThreshold == 0) {
-      scanEndThreshold = System.currentTimeMillis() + SCAN_TIME_THRESHOLD;
-    }
 
     // Scan for files defining libraries
 
@@ -86,31 +87,45 @@ class LibraryScanTask extends Task {
       }
       scanFile(filesToScan.remove(size - 1));
 
-      // If over the scan threshold, then mark the root to be ignored and abort the scan
-
-      if (!fullScan) {
-        if (bytesOfCode > SCAN_BYTE_THRESHOLD || System.currentTimeMillis() > scanEndThreshold) {
-          try {
-            ignoreManager.addToIgnores(rootFile);
-          } catch (IOException e) {
-            DartCore.logError("Failed to ignore " + rootFile, e);
-          }
-          server.discard(rootFile);
+      // Report progress and if canceled then mark the root to be ignored and abort the scan
+      if (callback != null) {
+        count++;
+        progress = (float) (Math.log(count) / 100.0);
+        callback.progress(progress);
+        if (callback.isCanceled()) {
+          discardScanResults();
           return;
         }
       }
     }
 
-    // Parse libraries to determine sourced files
+    // Hook up a listener to report analysis progress back to the caller
+
+    if (callback != null) {
+      server.addIdleListener(this);
+    }
 
     Iterator<File> iter = libraryFiles.iterator();
     while (iter.hasNext()) {
+
+      // If canceled, then mark the root to be ignored and abort the scan
+
+      if (callback != null && callback.isCanceled()) {
+        discardScanResults();
+        return;
+      }
+
+      // Parse libraries that have not been parsed
+
       File libFile = iter.next();
       Library lib = context.getCachedLibrary(libFile);
       if (lib == null) {
         server.queueSubTask(new ParseTask(server, context, libFile, null));
         continue;
       }
+
+      // Exclude source files
+
       librariesToAnalyze.add(lib);
       looseFiles.removeAll(lib.getSourceFiles());
       for (File sourcedFile : lib.getSourceFiles()) {
@@ -139,6 +154,39 @@ class LibraryScanTask extends Task {
         server.analyze(file);
       }
     }
+
+    // If canceled, then mark the root to be ignored and abort the scan
+
+    if (callback != null && callback.isCanceled()) {
+      discardScanResults();
+      return;
+    }
+  }
+
+  /**
+   * Called by the analysis server, and used by the receiver to report progress to the receiver's
+   * callback.
+   */
+  @Override
+  public void processing(int toBeProcessed) {
+
+    // If canceled, then mark the root to be ignored and abort the scan
+
+    if (callback != null && callback.isCanceled()) {
+      discardScanResults();
+      return;
+    }
+
+    // Report progress via the callback
+
+    if (count > 1) {
+      count--;
+    }
+    progress += (0.98 - progress) / (toBeProcessed + count);
+    callback.progress(progress);
+    if (toBeProcessed == 0) {
+      callback.scanComplete();
+    }
   }
 
   void addFilesToScan(Collection<File> files) {
@@ -147,6 +195,15 @@ class LibraryScanTask extends Task {
 
   void addFilesToScan(File... files) {
     Collections.addAll(filesToScan, files);
+  }
+
+  private void discardScanResults() {
+    server.removeIdleListener(this);
+    if (callback != null) {
+      callback.scanCanceled(rootFile);
+    }
+    server.discard(rootFile);
+    return;
   }
 
   /**
@@ -263,8 +320,6 @@ class LibraryScanTask extends Task {
     if (!DartCore.isDartLikeFileName(file.getName())) {
       return;
     }
-
-    bytesOfCode += file.length();
 
     // Check if the file contains directives
 

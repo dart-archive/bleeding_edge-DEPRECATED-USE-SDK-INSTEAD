@@ -43,7 +43,7 @@ class FileChangedTask extends Task {
 
   @Override
   public void perform() {
-    LibraryScanTask task = null;
+    ScanTask task = null;
     Library library = context.getCachedLibrary(file);
     Library[] librariesSourcing = context.getLibrariesSourcing(file);
 
@@ -52,7 +52,7 @@ class FileChangedTask extends Task {
 
       // Discard and re-analyze only if this library is not already up to date
       if (file.lastModified() != library.lastModified(file)) {
-        task = new LibraryScanTask(server, context, file, true);
+        task = new ScanTask(server, context, file, null);
 
         // Discard and scan any libraries that were incorrectly sourced
         Collection<File> sourceFiles = library.getSourceFiles();
@@ -76,7 +76,7 @@ class FileChangedTask extends Task {
       if (file.lastModified() != otherLibrary.lastModified(file)) {
 
         if (task == null) {
-          task = new LibraryScanTask(server, context, file, true);
+          task = new ScanTask(server, context, file, null);
         }
         task.addFilesToScan(otherLibrary.getFile());
 

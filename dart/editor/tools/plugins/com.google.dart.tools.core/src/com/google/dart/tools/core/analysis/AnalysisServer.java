@@ -123,11 +123,9 @@ public class AnalysisServer {
    * @param libraryFile the library file (not <code>null</code>)
    */
   public void analyze(File libraryFile) {
-
     if (!DartSdk.isInstalled()) {
       return;
     }
-
     if (!libraryFile.isAbsolute()) {
       throw new IllegalArgumentException("File path must be absolute: " + libraryFile);
     }
@@ -250,17 +248,24 @@ public class AnalysisServer {
 
   /**
    * Scan the specified file or recursively scan the specified directory for libraries to analyze.
-   * If the fullScan parameter is <code>false</code> and the scan takes too long or includes too
-   * many bytes of Dart source code, then the scan will stop and the specified folder marked so that
-   * it will not be analyzed.
+   * This has been replaced by {@link #scan(File, ScanCallback)}.
    * 
    * @param file the file or directory of files to scan (not <code>null</code>)
-   * @param fullScan <code>true</code> if the scan should recurse infinitely deep and for however
-   *          long the scan takes or <code>false</code> if the scan should stop once the time or
-   *          size threshold has been reached.
+   * @param fullScan ignored
    */
   public void scan(File file, boolean fullScan) {
-    queueNewTask(new LibraryScanTask(this, savedContext, file, fullScan));
+    scan(file, null);
+  }
+
+  /**
+   * Scan the specified file or recursively scan the specified directory for libraries to analyze.
+   * The callback is used to report progress and check if the operation has been canceled.
+   * 
+   * @param file the file or directory of files to scan (not <code>null</code>)
+   * @param callback for reporting progress and canceling the operation.
+   */
+  public void scan(File file, ScanCallback callback) {
+    queueNewTask(new ScanTask(this, savedContext, file, callback));
   }
 
   /**
