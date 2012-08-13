@@ -79,9 +79,7 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
       if (element instanceof IFolder) {
         IFolder folder = (IFolder) element;
 
-        String name = folder.getProjectRelativePath().toPortableString();
-
-        if (name.equals("packages")) {
+        if (DartCore.isPackagesDirectory(folder)) {
           return DartToolsPlugin.getImage(PACKAGES_FOLDER_ICON);
         }
       }

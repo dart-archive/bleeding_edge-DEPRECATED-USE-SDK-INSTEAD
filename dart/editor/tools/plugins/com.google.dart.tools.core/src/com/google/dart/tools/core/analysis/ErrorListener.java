@@ -18,6 +18,7 @@ import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.tools.core.DartCore;
 
 import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
 
@@ -48,7 +49,14 @@ class ErrorListener implements DartCompilerListener {
 
     // TODO (danrubel): Where to report errors that do not map to a file
     File dartFile = toFile(server, source.getUri());
+
     if (dartFile == null) {
+      return;
+    }
+
+    // if file is in the "packages" directory, do not report errors
+    if (DartCore.isContainedInPackages(dartFile)) {
+      System.out.println(dartFile.getAbsolutePath());
       return;
     }
 

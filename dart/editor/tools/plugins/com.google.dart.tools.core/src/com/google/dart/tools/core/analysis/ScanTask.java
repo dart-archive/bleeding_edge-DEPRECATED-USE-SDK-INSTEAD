@@ -313,7 +313,7 @@ class ScanTask extends Task implements TaskListener {
     if (ignoreManager.isIgnored(file) || file.getName().startsWith(".")) {
       return;
     }
-    if (file.isDirectory()) {
+    if (file.isDirectory() && !DartCore.isPackagesDirectory(file)) {
       filesToScan.addAll(Arrays.asList(file.listFiles()));
       return;
     }
