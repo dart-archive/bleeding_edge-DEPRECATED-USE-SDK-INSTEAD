@@ -436,6 +436,16 @@ public class CompletionEngineTest extends TestCase {
     test("var PHI;main(){PHI=5.3;PHI.abs().!1 Object x;}", "1+abs");
   }
 
+  public void testCommentSnippets063() throws Exception {
+    String source = Joiner.on("\n").join(
+        "void r(var v) {",
+        "  v.!1toUpperCase;",
+        "  assert(v is String);",
+        "  v.!2toUpperCase;",
+        "}");
+    test(source, "1-toUpperCase", "2+toUpperCase");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test

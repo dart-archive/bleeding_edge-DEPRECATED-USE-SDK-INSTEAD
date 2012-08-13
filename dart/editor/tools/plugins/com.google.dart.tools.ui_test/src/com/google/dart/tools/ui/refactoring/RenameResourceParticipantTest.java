@@ -95,24 +95,6 @@ public final class RenameResourceParticipantTest extends RefactoringTest {
     assertFileWasRenamed(targetFile, "newName.dart");
   }
 
-  public void test_OK_inResource() throws Exception {
-    IFile targetFile = testProject.setFileContent("target.txt", "");
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('Test');",
-        "#resource('target.txt');",
-        "");
-    assertTrue(targetFile.exists());
-    // do rename
-    renameFile(targetFile, "newName.txt");
-    assertTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('Test');",
-        "#resource('newName.txt');",
-        "");
-    assertFileWasRenamed(targetFile, "newName.txt");
-  }
-
   public void test_OK_inSource() throws Exception {
     IFile targetFile = (IFile) testProject.setUnitContent("target.dart", "").getResource();
     setTestUnitContent(

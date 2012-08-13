@@ -96,23 +96,6 @@ public final class DeleteResourceParticipantTest extends RefactoringTest {
     assertFileWasDeleted(targetFile);
   }
 
-  public void test_OK_inResource() throws Exception {
-    IFile targetFile = testProject.setFileContent("target.txt", "");
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('Test');",
-        "#resource('target.txt');",
-        "");
-    assertTrue(targetFile.exists());
-    // do rename
-    deleteFile(targetFile);
-    assertTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('Test');",
-        "");
-    assertFileWasDeleted(targetFile);
-  }
-
   public void test_OK_inSource() throws Exception {
     IFile targetFile = (IFile) testProject.setUnitContent("target.dart", "").getResource();
     setTestUnitContent(
