@@ -130,6 +130,7 @@ public class TaskProcessor {
           IdleListener[] newListeners = new IdleListener[oldLen - 1];
           System.arraycopy(idleListeners, 0, newListeners, 0, i);
           System.arraycopy(idleListeners, i + 1, newListeners, i, oldLen - 1 - i);
+          idleListeners = newListeners;
           return;
         }
       }
@@ -157,6 +158,7 @@ public class TaskProcessor {
 
               // Running :: Execute tasks from the queue
               while (true) {
+                notifyProgress();
                 Task task = queue.removeNextTask();
                 // if no longer analyzing or queue is empty, then switch to idle state
                 if (task == null) {
@@ -248,6 +250,25 @@ public class TaskProcessor {
     synchronized (lock) {
       isIdle = idle;
       lock.notifyAll();
+    }
+  }
+
+  /**
+   * Notify any listeners about the number of tasks remaining.
+   */
+  private void notifyProgress() {
+    IdleListener[] listenersToNotify;
+    synchronized (lock) {
+      listenersToNotify = idleListeners;
+    }
+    for (IdleListener listener : listenersToNotify) {
+      if (listener instanceof TaskListener) {
+        try {
+          ((TaskListener) listener).processing(queue.size());
+        } catch (Throwable e) {
+          DartCore.logError("Exception during processing notification", e);
+        }
+      }
     }
   }
 

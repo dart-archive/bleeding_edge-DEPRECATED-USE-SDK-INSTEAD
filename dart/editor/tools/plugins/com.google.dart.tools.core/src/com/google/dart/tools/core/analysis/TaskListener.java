@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,16 +14,14 @@
 package com.google.dart.tools.core.analysis;
 
 /**
- * Notified when the idle state of analysis server changes. This class will eventually be replaced
- * by {@link TaskListener}.
- * 
- * @see AnalysisServer#addIdleListener(IdleListener)
- * @see AnalysisServer#removeIdleListener(IdleListener)
+ * This class will eventually replace {@link IdleListener} to report progress and idle events.
  */
-public interface IdleListener {
+public interface TaskListener extends IdleListener {
 
   /**
-   * Called when the server's background thread transitions from busy to idle or idle to busy
+   * Called when the {@link TaskProcessor} is about to remove and perform a task from the queue .
+   * 
+   * @param toBeProcessed the number of tasks in the queue.
    */
-  void idle(boolean idle);
+  void processing(int toBeProcessed);
 }

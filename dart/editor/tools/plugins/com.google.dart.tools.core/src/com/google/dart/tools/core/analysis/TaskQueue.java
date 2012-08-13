@@ -176,6 +176,12 @@ public class TaskQueue {
     }
   }
 
+  public int size() {
+    synchronized (queue) {
+      return queue.size();
+    }
+  }
+
   /**
    * Wait for a task to be added to the queue
    * 
