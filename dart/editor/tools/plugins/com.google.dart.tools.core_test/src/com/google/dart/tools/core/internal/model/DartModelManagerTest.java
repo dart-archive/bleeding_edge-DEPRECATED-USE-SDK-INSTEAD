@@ -24,7 +24,6 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.test.util.FileOperation;
 import com.google.dart.tools.core.test.util.MoneyProjectUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
@@ -88,10 +87,9 @@ public class DartModelManagerTest extends TestCase {
     DartUnit libraryUnit = parseLibraryFile(libraryFile);
     Set<File> fileSet = getFilesForLibrary(libraryFile, libraryUnit);
     assertNotNull(fileSet);
-    assertEquals(3, fileSet.size());
+    assertEquals(2, fileSet.size());
     assertContainsFile(libraryFile, fileSet);
     assertContainsFile(new File(libraryFile.getParentFile(), "point.dart"), fileSet);
-    assertContainsFile(new File(libraryFile.getParentFile(), "license.txt"), fileSet);
   }
 
   public void test_DartModelManager_getFilesForLibrary_duplicate() throws Exception {
@@ -147,7 +145,7 @@ public class DartModelManagerTest extends TestCase {
         new Path("test_data/Geometry/geometry.dart")).toFile();
     final File nonLibraryFile = TestUtilities.getPluginRelativePath(
         "com.google.dart.tools.core_test",
-        new Path("test_data/Geometry/license.txt")).toFile();
+        new Path("test_data/Geometry/point.dart")).toFile();
     final DartLibrary[] libraryHolder = new DartLibrary[1];
     ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
       @Override
@@ -196,7 +194,7 @@ public class DartModelManagerTest extends TestCase {
   public void test_DartModelManager_openLibrary_nonLibrary() throws Exception {
     final File nonLibraryFile = TestUtilities.getPluginRelativePath(
         "com.google.dart.tools.core_test",
-        new Path("test_data/Geometry/license.txt")).toFile();
+        new Path("test_data/Geometry/point.dart")).toFile();
     final DartLibrary[] libraryHolder = new DartLibrary[1];
     ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
       @Override
@@ -268,9 +266,6 @@ public class DartModelManagerTest extends TestCase {
     CompilationUnit[] units = library.getCompilationUnits();
     assertNotNull(units);
     assertEquals(2, units.length);
-    DartResource[] resources = library.getResources();
-    assertNotNull(resources);
-    assertEquals(1, resources.length);
   }
 
   /**
