@@ -90,7 +90,7 @@ public class DartSdkManager {
    */
   private static String getPlatformCode() {
     if (DartCore.isWindows()) {
-      return "window";
+      return "win32";
     } else if (DartCore.isMac()) {
       return "macos";
     } else if (DartCore.isLinux()) {
