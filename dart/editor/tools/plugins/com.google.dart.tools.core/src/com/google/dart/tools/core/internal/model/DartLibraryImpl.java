@@ -19,6 +19,7 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
@@ -747,6 +748,7 @@ public class DartLibraryImpl extends OpenableElementImpl
     }
     final DartModelManager modelManager = DartModelManager.getInstance();
     unit.accept(new SafeDartNodeTraverser<Void>() {
+      @SuppressWarnings("deprecation")
       @Override
       public Void visitImportDirective(DartImportDirective node) {
         // prepare "path"
@@ -768,8 +770,16 @@ public class DartLibraryImpl extends OpenableElementImpl
         // prepare "prefix"
         String prefix = null;
         SourceRange nameRange = null;
+        DartIdentifier prefixNode = node.getPrefix();
+        if (prefixNode != null) {
+          prefix = prefixNode.getName();
+          SourceInfo prefixSourceInfo = prefixNode.getSourceInfo();
+          nameRange = new SourceRangeImpl(
+              prefixSourceInfo.getOffset(),
+              prefixSourceInfo.getLength());
+        }
         {
-          DartStringLiteral prefixLiteral = node.getPrefix();
+          DartStringLiteral prefixLiteral = node.getOldPrefix();
           if (prefixLiteral != null) {
             prefix = prefixLiteral.getValue();
             SourceInfo prefixSourceInfo = prefixLiteral.getSourceInfo();
@@ -862,11 +872,7 @@ public class DartLibraryImpl extends OpenableElementImpl
 
       @Override
       public Void visitLibraryDirective(DartLibraryDirective node) {
-        DartStringLiteral literal = node.getName();
-        if (literal == null) {
-          return null;
-        }
-        libraryInfo.setName(literal.getValue());
+        libraryInfo.setName(node.getLibraryName());
         return null;
       }
 

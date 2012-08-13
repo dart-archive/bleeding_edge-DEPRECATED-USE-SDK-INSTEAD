@@ -635,7 +635,7 @@ public class DartModelManager {
   /**
    * Return a table of all known configurable options with their default values. These options allow
    * to configure the behavior of the underlying components. The client may safely use the result as
-   * a template that they can modify and then pass to {@link #setOptions()}</code>.
+   * a template that they can modify and then pass to {@link #setOptions(Hashtable)}</code>.
    * <p>
    * Helper constants have been defined on DartPreferenceConstants for each of the option IDs
    * (categorized in Code assist option ID, Compiler option ID and Core option ID) and some of their
@@ -1448,9 +1448,9 @@ public class DartModelManager {
     if (directives != null) {
       for (DartDirective directive : directives) {
         if (directive instanceof DartLibraryDirective) {
-          DartStringLiteral nameLiteral = ((DartLibraryDirective) directive).getName();
-          if (nameLiteral != null) {
-            String derivedName = FileUtilities.deriveFileName(nameLiteral.getValue());
+          String libraryName = ((DartLibraryDirective) directive).getLibraryName();
+          if (libraryName != null) {
+            String derivedName = FileUtilities.deriveFileName(libraryName);
             if (derivedName != null && derivedName.length() > 0) {
               return derivedName;
             }

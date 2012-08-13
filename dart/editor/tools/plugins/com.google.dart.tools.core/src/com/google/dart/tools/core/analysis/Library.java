@@ -16,6 +16,7 @@ package com.google.dart.tools.core.analysis;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.ast.DartDirective;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
@@ -46,6 +47,7 @@ class Library {
   /**
    * Construct a new library from the unresolved dart unit that defines the library
    */
+  @SuppressWarnings("deprecation")
   static Library fromDartUnit(AnalysisServer server, File libFile, LibrarySource libSource,
       Collection<DartDirective> directives) {
     HashMap<String, File> imports = new HashMap<String, File>();
@@ -59,11 +61,18 @@ class Library {
       String relPath;
       if (directive instanceof DartImportDirective) {
         DartImportDirective importDirective = (DartImportDirective) directive;
-        DartStringLiteral prefixLiteral = importDirective.getPrefix();
+        DartIdentifier prefix = importDirective.getPrefix();
+        if (prefix != null) {
+          String prefixName = prefix.getName();
+          if (prefixName != null) {
+            prefixes.add(prefixName);
+          }
+        }
+        DartStringLiteral prefixLiteral = importDirective.getOldPrefix();
         if (prefixLiteral != null) {
-          String prefix = prefixLiteral.getValue();
-          if (prefix != null) {
-            prefixes.add(prefix);
+          String prefixName = prefixLiteral.getValue();
+          if (prefixName != null) {
+            prefixes.add(prefixName);
           }
         }
         relPath = importDirective.getLibraryUri().getValue();
@@ -128,8 +137,8 @@ class Library {
 
   /**
    * Flag indicating if listeners should be notified when the library is parsed and resolved. This
-   * is <code>false</code> when a library is reloaded from a cache file so that listeners will not
-   * be notified because they were already notified when the library was first parsed and resolved.
+   * is <code>false</code> when a library is reloaded from a cache file so that listeners will not be
+   * notified because they were already notified when the library was first parsed and resolved.
    */
   public final boolean shouldNotify;
 

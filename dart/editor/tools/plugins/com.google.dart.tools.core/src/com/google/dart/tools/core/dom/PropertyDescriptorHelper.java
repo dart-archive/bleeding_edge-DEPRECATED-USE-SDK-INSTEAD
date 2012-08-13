@@ -695,7 +695,7 @@ public class PropertyDescriptorHelper {
       DART_IMPORT_DIRECTIVE_PREFIX = new ChildPropertyDescriptor(
           DartImportDirective.class,
           "prefix",
-          DartStringLiteral.class,
+          DartIdentifier.class,
           StructuralPropertyDescriptor.MANDATORY,
           StructuralPropertyDescriptor.NO_CYCLE_RISK);
 
@@ -781,7 +781,7 @@ public class PropertyDescriptorHelper {
       DART_LIBRARY_DIRECTIVE_NAME = new ChildPropertyDescriptor(
           DartLibraryDirective.class,
           "name",
-          DartStringLiteral.class,
+          DartExpression.class,
           StructuralPropertyDescriptor.MANDATORY,
           StructuralPropertyDescriptor.NO_CYCLE_RISK);
 
