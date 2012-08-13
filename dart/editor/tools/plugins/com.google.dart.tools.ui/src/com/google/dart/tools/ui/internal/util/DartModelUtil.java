@@ -510,7 +510,7 @@ public final class DartModelUtil {
    * @param refTypeSig the type name in signature notation (for example 'QVector') this can also be
    *          an array type, but dimensions will be ignored.
    * @param declaringType the context for resolving (type where the reference was made in)
-   * @return returns the fully qualified type name or build-in-type name. if a unresolved type
+   * @return returns the fully qualified type name or built-in-type name. if a unresolved type
    *         couldn't be resolved null is returned
    */
   public static String getResolvedTypeName(String refTypeSig, Type declaringType)
