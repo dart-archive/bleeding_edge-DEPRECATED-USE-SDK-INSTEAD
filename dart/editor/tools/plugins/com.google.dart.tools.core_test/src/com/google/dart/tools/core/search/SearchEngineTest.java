@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.core.search;
 
-import static org.fest.assertions.Assertions.assertThat;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.dart.compiler.DartCompilationError;
@@ -42,6 +40,8 @@ import junit.framework.TestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.NullProgressMonitor;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -212,33 +212,6 @@ public class SearchEngineTest extends TestCase {
           references,
           "'Target.dart'".length(),
           new String[] {"'Target.dart');"});
-    } finally {
-      testProject.dispose();
-    }
-  }
-
-  public void test_searchReferences_file_inResource() throws Exception {
-    TestProject testProject = new TestProject();
-    try {
-      IFile targetFile = testProject.setFileContent("myResource.txt", "some text");
-      IResource testResource = testProject.setUnitContent(
-          "Test.dart",
-          buildSource(
-              "// filler filler filler filler filler filler filler filler filler filler",
-              "#library('Test');",
-              "#resource('myResource.txt');",
-              "")).getResource();
-      DartLibrary testLibrary = testProject.getDartProject().getDartLibrary(testResource);
-      // index unit
-      CompilationUnit testUnit = testLibrary.getDefiningCompilationUnit();
-      indexUnits(testUnit);
-      // find references
-      List<SearchMatch> references = getFileReferences(targetFile);
-      assertReferences(
-          testUnit.getSource(),
-          references,
-          "'myResource.txt'".length(),
-          new String[] {"'myResource.txt');"});
     } finally {
       testProject.dispose();
     }
