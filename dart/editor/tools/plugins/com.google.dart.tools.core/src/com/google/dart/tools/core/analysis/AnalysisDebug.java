@@ -13,15 +13,16 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.tools.core.utilities.io.PrintStringWriter;
+
 import java.io.File;
 
 /**
  * Appends information about analysis to the console
  */
 public class AnalysisDebug implements AnalysisListener, IdleListener {
-  private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
-  private final StringBuilder message = new StringBuilder(20000);
+  private final PrintStringWriter message = new PrintStringWriter();
   private final String prefix;
   private boolean debug;
   private long lastIdleTime;
@@ -34,11 +35,10 @@ public class AnalysisDebug implements AnalysisListener, IdleListener {
   @Override
   public void discarded(AnalysisEvent event) {
     synchronized (message) {
-      message.append(prefix);
-      message.append("discarded ");
+      message.print(prefix);
+      message.print("discarded ");
       File file = event.getLibraryFile();
-      message.append(file != null ? file.getName() : "null");
-      message.append(LINE_SEPARATOR);
+      message.println(file != null ? file.getName() : "null");
       message.notifyAll();
     }
   }
@@ -54,10 +54,9 @@ public class AnalysisDebug implements AnalysisListener, IdleListener {
       msg = "false";
     }
     synchronized (message) {
-      message.append(prefix);
-      message.append("idle ");
-      message.append(msg);
-      message.append(LINE_SEPARATOR);
+      message.print(prefix);
+      message.print("idle ");
+      message.println(msg);
       message.notifyAll();
     }
   }
@@ -68,15 +67,15 @@ public class AnalysisDebug implements AnalysisListener, IdleListener {
       File libFile = event.getLibraryFile();
       String libFileName = libFile != null ? libFile.getName() : "null";
       for (File file : event.getFiles()) {
-        message.append(prefix);
-        message.append("parsed ");
-        message.append(libFileName);
+        message.print(prefix);
+        message.print("parsed ");
+        message.print(libFileName);
         String fileName = file != null ? file.getName() : "null";
         if (!fileName.equals(libFileName)) {
-          message.append(" @ ");
-          message.append(fileName);
+          message.print(" @ ");
+          message.print(fileName);
         }
-        message.append(LINE_SEPARATOR);
+        message.println();
       }
       message.notifyAll();
     }
@@ -85,11 +84,10 @@ public class AnalysisDebug implements AnalysisListener, IdleListener {
   @Override
   public void resolved(AnalysisEvent event) {
     synchronized (message) {
-      message.append(prefix);
-      message.append("resolved ");
+      message.print(prefix);
+      message.print("resolved ");
       File file = event.getLibraryFile();
-      message.append(file != null ? file.getName() : "null");
-      message.append(LINE_SEPARATOR);
+      message.println(file != null ? file.getName() : "null");
       message.notifyAll();
     }
   }
@@ -113,7 +111,7 @@ public class AnalysisDebug implements AnalysisListener, IdleListener {
         while (debug) {
           String lines;
           synchronized (message) {
-            if (message.length() == 0) {
+            if (message.getLength() == 0) {
               try {
                 message.wait();
               } catch (InterruptedException e) {

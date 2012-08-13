@@ -145,6 +145,15 @@ public class PrintStringWriter extends PrintWriter {
   }
 
   /**
+   * Sets the length of the character sequence.
+   * 
+   * @see AbstractStringBuilder#setLength(int)
+   */
+  public void setLength(int newLength) {
+    ((StringWriter) out).getBuffer().setLength(newLength);
+  }
+
+  /**
    * Return the text that has been written to this writer.
    * 
    * @return the text that has been written to this writer
