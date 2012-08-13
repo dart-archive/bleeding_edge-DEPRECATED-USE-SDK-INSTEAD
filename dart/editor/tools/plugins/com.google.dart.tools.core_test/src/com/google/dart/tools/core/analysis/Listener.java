@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.tools.core.test.util.PrintStringWriter;
 
 import static org.junit.Assert.assertEquals;
@@ -106,9 +107,24 @@ class Listener implements AnalysisListener, IdleListener {
   }
 
   void assertErrorCount(int expectedErrorCount) {
+    PrintStringWriter writer;
     synchronized (lock) {
-      assertEquals(expectedErrorCount, errors.size());
+      if (expectedErrorCount == errors.size()) {
+        return;
+      }
+      writer = new PrintStringWriter();
+      writer.print("Expected " + expectedErrorCount + " errors, but found " + errors.size());
+      for (AnalysisError error : errors) {
+        writer.println();
+        DartCompilationError compError = error.getCompilationError();
+        writer.println(compError != null ? compError.getMessage() : "unknown error");
+        writer.print("  in ");
+        writer.println(error.getDartFile());
+        writer.print("  library ");
+        writer.print(error.getLibraryFile());
+      }
     }
+    fail(writer.toString());
   }
 
   void assertNoDiscards() {
