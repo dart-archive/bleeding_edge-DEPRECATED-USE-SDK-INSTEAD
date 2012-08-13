@@ -697,7 +697,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
     //
     // Trim the tail of the list to cover only the requested length.
     //
-    int totalLength = nextToken.tokenLength;
+    int totalLength = nextToken.tokenLength - (offset - nextToken.tokenOffset);
     while (nextToken != nextToken.next && totalLength < length) {
       nextToken = nextToken.next;
       totalLength += nextToken.tokenLength;
