@@ -28,9 +28,10 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.test.util.DartCoreTestLog;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.test.util.TestUtilities;
+
+import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -39,7 +40,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
@@ -57,7 +57,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-public class DartLibraryImplTest extends AbstractDartCoreTest {
+public class DartLibraryImplTest extends TestCase {
   private static File tempDir = null;
 
   private static void createTempFile(File file, final String content) throws IOException {
@@ -700,7 +700,7 @@ public class DartLibraryImplTest extends AbstractDartCoreTest {
   public void test_DartLibraryImpl_hasMain_lib3() throws Exception {
     DartLibraryImpl lib = getDartLib3();
     assertEquals(false, lib.hasMain());
-    DartCoreTestLog.getLog().assertEntries(IStatus.ERROR);
+//    DartCoreTestLog.getLog().assertEntries(IStatus.ERROR);
   }
 
   public void test_DartLibraryImpl_hasMain_libEmpty() throws Exception {
@@ -741,7 +741,7 @@ public class DartLibraryImplTest extends AbstractDartCoreTest {
   public void test_DartLibraryImpl_isBrowserApplication_lib3() throws Exception {
     DartLibraryImpl lib = getDartLib3();
     assertEquals(false, lib.isBrowserApplication());
-    DartCoreTestLog.getLog().assertEntries(IStatus.ERROR);
+//    DartCoreTestLog.getLog().assertEntries(IStatus.ERROR);
   }
 
   public void test_DartLibraryImpl_isBrowserApplication_lib4() throws Exception {

@@ -254,6 +254,7 @@ public class DartImportImplTest extends TestCase {
       DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
       CompilationUnit unitTest = libraryTest.getDefiningCompilationUnit();
       String sourceTest = unitTest.getSource();
+      assertNotNull("TestC.dart source should not be null", sourceTest);
       //
       DartImport[] imports = libraryTest.getImports();
       assertThat(imports).hasSize(2);
