@@ -27,6 +27,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -89,7 +90,14 @@ class ResolveTask extends Task {
       }
       Library library = context.getCachedLibrary(libraryFile);
       if (library == null) {
-        List<DartDirective> directives = libUnit.getSelfDartUnit().getDirectives();
+        List<DartDirective> directives;
+
+        if (libUnit.getSelfDartUnit() == null) {
+          directives = Collections.emptyList();
+        } else {
+          directives = libUnit.getSelfDartUnit().getDirectives();
+        }
+
         library = Library.fromDartUnit(server, libraryFile, librarySource, directives);
         context.cacheLibrary(library);
       }

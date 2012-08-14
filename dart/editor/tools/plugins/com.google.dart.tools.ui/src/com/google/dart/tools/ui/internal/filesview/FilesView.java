@@ -219,7 +219,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     if (undoRedoActionGroup != null) {
       undoRedoActionGroup.dispose();
     }
-    treeViewer.removeSelectionChangedListener(copyFilePathAction);
+    if (copyFilePathAction != null) {
+      treeViewer.removeSelectionChangedListener(copyFilePathAction);
+    }
 
     if (clipboard != null) {
       clipboard.dispose();
