@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class SystemLibraryManagerProvider {
 
-  private static final class MissingSdkLibaryManager extends EditorLibraryManager {
+  private static final class MissingSdkLibaryManager extends SystemLibraryManager {
 
     private static final SystemLibrary[] NO_LIBRARIES = new SystemLibrary[0];
 
@@ -53,12 +53,12 @@ public class SystemLibraryManagerProvider {
 
   private static final Object lock = new Object();
 
-  private static EditorLibraryManager ANY_LIBRARY_MANAGER;
+  private static SystemLibraryManager ANY_LIBRARY_MANAGER;
 
   /**
    * Return the manager for VM libraries
    */
-  public static EditorLibraryManager getAnyLibraryManager() {
+  public static SystemLibraryManager getAnyLibraryManager() {
     synchronized (lock) {
       if (ANY_LIBRARY_MANAGER == null) {
 
@@ -77,7 +77,7 @@ public class SystemLibraryManagerProvider {
 
         DartCore.logInformation("Reading bundled libraries from " + sdkDir);
 
-        ANY_LIBRARY_MANAGER = new EditorLibraryManager(sdkDir, "any");
+        ANY_LIBRARY_MANAGER = new SystemLibraryManager(sdkDir, "any");
         String packageRoot = DartCore.getPlugin().getPrefs().get(
             DartCore.PACKAGE_ROOT_DIR_PREFERENCE,
             "");
@@ -105,7 +105,7 @@ public class SystemLibraryManagerProvider {
   /**
    * Return the default library manager.
    */
-  public static EditorLibraryManager getSystemLibraryManager() {
+  public static SystemLibraryManager getSystemLibraryManager() {
     return getAnyLibraryManager();
   }
 }

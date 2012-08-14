@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.compiler.SystemLibraryManager;
+
 public class SystemLibraryManagerProviderDartCTest extends SystemLibraryManagerProviderTest {
 
   public void test_SystemLibraryManagerProvider_expandCore() throws Exception {
@@ -32,7 +34,7 @@ public class SystemLibraryManagerProviderDartCTest extends SystemLibraryManagerP
   }
 
   @Override
-  protected EditorLibraryManager getLibraryManager() {
+  protected SystemLibraryManager getLibraryManager() {
     return SystemLibraryManagerProvider.getAnyLibraryManager();
   }
 }

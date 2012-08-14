@@ -13,10 +13,10 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.tools.core.AbstractDartCoreTest;
-import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
@@ -150,7 +150,7 @@ public class ContextTest extends AbstractDartCoreTest {
 
   @Override
   protected void setUp() throws Exception {
-    EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
+    SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
     server = new AnalysisServer(libraryManager);
     context = server.getSavedContext();
     listener = new Listener(server);

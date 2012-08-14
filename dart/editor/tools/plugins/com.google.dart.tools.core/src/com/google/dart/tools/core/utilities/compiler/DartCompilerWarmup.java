@@ -31,7 +31,6 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.builder.CachingArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.compiler.LoggingDartCompilerListener;
-import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
 import java.io.ByteArrayOutputStream;
@@ -195,7 +194,7 @@ public class DartCompilerWarmup {
    */
   public static void warmUpCompiler(CachingArtifactProvider rootProvider,
       DartCompilerListener listener) {
-    EditorLibraryManager sysLibMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
+    SystemLibraryManager sysLibMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
 
     String warmupSrcCode = "main() {print('success');}";
     DartSource dartSrc = new DartSourceString(WARMUP_DART, warmupSrcCode);

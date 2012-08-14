@@ -14,8 +14,8 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.common.base.Joiner;
+import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.test.util.FileOperation;
 import com.google.dart.tools.core.test.util.FileUtilities;
@@ -227,7 +227,7 @@ public class AnalysisServerTest extends TestCase {
   }
 
   public void test_read_version_invalid() throws Exception {
-    EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
+    SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
     server = new AnalysisServer(libraryManager);
     try {
       readCache(new StringReader("vOther"));
@@ -238,7 +238,7 @@ public class AnalysisServerTest extends TestCase {
   }
 
   public void test_read_version_missing() throws Exception {
-    EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
+    SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
     server = new AnalysisServer(libraryManager);
     try {
       readCache(new StringReader(""));
@@ -413,7 +413,7 @@ public class AnalysisServerTest extends TestCase {
   }
 
   private void initServer(Reader reader) throws Exception {
-    EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
+    SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
     server = new AnalysisServer(libraryManager);
     if (reader != null) {
       readCache(reader);

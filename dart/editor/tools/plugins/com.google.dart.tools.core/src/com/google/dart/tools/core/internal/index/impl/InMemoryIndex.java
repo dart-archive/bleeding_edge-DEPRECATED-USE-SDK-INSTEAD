@@ -43,7 +43,6 @@ import com.google.dart.tools.core.internal.index.store.IndexStore;
 import com.google.dart.tools.core.internal.index.util.ResourceFactory;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
@@ -488,7 +487,7 @@ public class InMemoryIndex implements Index {
   private boolean indexBundledLibraries() {
     boolean librariesIndexed = true;
     long startTime = System.currentTimeMillis();
-    EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
+    SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
     ArrayList<String> librarySpecs = new ArrayList<String>(libraryManager.getAllLibrarySpecs());
     if (librarySpecs.remove("dart:html")) {
       librarySpecs.add("dart:html");

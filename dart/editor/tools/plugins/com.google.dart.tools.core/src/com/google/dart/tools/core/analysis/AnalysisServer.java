@@ -15,7 +15,6 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.model.DartSdk;
 
 import java.io.BufferedReader;
@@ -57,7 +56,7 @@ public class AnalysisServer {
    * The target (VM, Dartium, JS) against which user libraries are resolved. Targets are immutable
    * and can be accessed on any thread.
    */
-  private final EditorLibraryManager libraryManager;
+  private final SystemLibraryManager libraryManager;
 
   /**
    * The library files being analyzed by the receiver. Synchronize against this object before
@@ -99,7 +98,7 @@ public class AnalysisServer {
    * 
    * @param libraryManager the target (VM, Dartium, JS) against which user libraries are resolved
    */
-  public AnalysisServer(EditorLibraryManager libraryManager) {
+  public AnalysisServer(SystemLibraryManager libraryManager) {
     if (libraryManager == null) {
       throw new IllegalArgumentException();
     }
@@ -335,7 +334,7 @@ public class AnalysisServer {
     }
   }
 
-  EditorLibraryManager getLibraryManager() {
+  SystemLibraryManager getLibraryManager() {
     return libraryManager;
   }
 

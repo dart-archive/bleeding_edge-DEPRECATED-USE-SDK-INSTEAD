@@ -13,13 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
@@ -45,7 +43,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
 import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
 import com.google.dart.tools.core.dom.rewrite.TrackedNodePosition;
-import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartImport;
@@ -71,6 +68,9 @@ import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
 import com.google.dart.tools.ui.text.dart.IQuickFixProcessor;
+
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -309,7 +309,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
         }
       }
       // check SDK libraries
-      EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
+      SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
       for (DartLibrary library : model.getBundledLibraries()) {
         if (library.findType(typeName) != null) {
           URI libraryUri = library.getUri();

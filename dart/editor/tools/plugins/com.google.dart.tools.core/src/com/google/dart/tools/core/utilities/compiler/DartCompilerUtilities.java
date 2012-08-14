@@ -40,7 +40,6 @@ import com.google.dart.tools.core.internal.builder.LocalArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -792,7 +791,7 @@ public class DartCompilerUtilities {
       return null;
     }
 
-    final EditorLibraryManager manager = SystemLibraryManagerProvider.getSystemLibraryManager();
+    final SystemLibraryManager manager = SystemLibraryManagerProvider.getSystemLibraryManager();
     AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
 
     URI librarySourceUri = librarySource.getUri();

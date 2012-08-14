@@ -1,6 +1,6 @@
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.tools.core.internal.model.EditorLibraryManager;
+import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
 /**
@@ -13,7 +13,7 @@ class AnalysisServerAdapter extends AnalysisServer {
     this(SystemLibraryManagerProvider.getAnyLibraryManager());
   }
 
-  public AnalysisServerAdapter(EditorLibraryManager libraryManager) {
+  public AnalysisServerAdapter(SystemLibraryManager libraryManager) {
     super(libraryManager);
   }
 

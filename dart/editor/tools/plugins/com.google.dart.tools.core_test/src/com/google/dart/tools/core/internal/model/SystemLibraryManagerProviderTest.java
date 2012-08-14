@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.compiler.SystemLibraryManager;
+
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -32,7 +34,7 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
   }
 
   public void test_SystemLibraryManagerProvider_getAllLibrarySpecs() throws Exception {
-    EditorLibraryManager libraryManager = getLibraryManager();
+    SystemLibraryManager libraryManager = getLibraryManager();
     Collection<String> specs = libraryManager.getAllLibrarySpecs();
 //    System.out.println(getClass().getName());
 //    System.out.println("  " + specs.size() + " system libraries");
@@ -64,7 +66,7 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
   }
 
   public void test_SystemLibraryManagerProvider_getAllLibrarySpecs_no_duplicates() throws Exception {
-    EditorLibraryManager libraryManager = getLibraryManager();
+    SystemLibraryManager libraryManager = getLibraryManager();
     Collection<String> specs = libraryManager.getAllLibrarySpecs();
     Collection<String> visited = new HashSet<String>();
     String actual = "";
@@ -84,7 +86,7 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     assertNull(getLibraryManager().getRelativeUri(new File("doesNotExist.dart").toURI()));
   }
 
-  protected abstract EditorLibraryManager getLibraryManager();
+  protected abstract SystemLibraryManager getLibraryManager();
 
   protected void testLibrary(String shortLibName, String libFileName) throws URISyntaxException,
       AssertionError {
