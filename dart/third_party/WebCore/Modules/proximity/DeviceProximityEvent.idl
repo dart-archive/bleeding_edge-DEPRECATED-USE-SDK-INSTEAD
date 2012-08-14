@@ -17,14 +17,15 @@
  *  Boston, MA 02110-1301, USA.
  */
 
-module window {
+module core {
 
     interface [
-        Conditional=VIBRATION,
-        Supplemental=Navigator
-    ] NavigatorVibration {
-        void vibrate(in sequence<unsigned long> pattern) raises(DOMException);
-        void vibrate(in unsigned long time) raises(DOMException);
+        Conditional=PROXIMITY_EVENTS,
+        ConstructorTemplate=Event
+    ] DeviceProximityEvent : Event {
+        readonly attribute [InitializedByEventConstructor] double value;
+        readonly attribute [InitializedByEventConstructor] double min;
+        readonly attribute [InitializedByEventConstructor] double max;
     };
 
 }

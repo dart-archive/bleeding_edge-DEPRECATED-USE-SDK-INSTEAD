@@ -96,6 +96,9 @@ module core {
         // HTML 5
         NodeList getElementsByClassName(in [Optional=DefaultIsUndefined] DOMString name);
 
+        attribute [Reflect=class] DOMString className;
+        readonly attribute DOMTokenList classList;
+
 #if defined(LANGUAGE_JAVASCRIPT) && LANGUAGE_JAVASCRIPT
         readonly attribute DOMStringMap dataset;
 #endif
@@ -140,7 +143,7 @@ module core {
         [Conditional=POINTER_LOCK, V8EnabledAtRuntime=pointerLock] void webkitRequestPointerLock();
 
         // CSS Regions API
-        readonly attribute DOMString webkitRegionOverflow;
+        readonly attribute DOMString webkitRegionOverset;
 
 #if defined(LANGUAGE_JAVASCRIPT) && LANGUAGE_JAVASCRIPT
         readonly attribute [Conditional=UNDO_MANAGER] UndoManager undoManager;
