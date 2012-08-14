@@ -28,11 +28,14 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 
+import java.util.concurrent.Semaphore;
+
 /**
  * The launch configuration delegate for the com.google.dart.tools.debug.core.dartiumLaunchConfig
  * launch config.
  */
 public class DartiumLaunchConfigurationDelegate extends LaunchConfigurationDelegate {
+  private static Semaphore launchSemaphore = new Semaphore(1);
 
   /**
    * Create a new DartChromiumLaunchConfigurationDelegate.
@@ -57,6 +60,18 @@ public class DartiumLaunchConfigurationDelegate extends LaunchConfigurationDeleg
 
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
 
+    // If we're in the process of launching Dartium, don't allow a second launch to occur.
+    if (launchSemaphore.tryAcquire()) {
+      try {
+        launchImpl(launchConfig, mode, launch, monitor);
+      } finally {
+        launchSemaphore.release();
+      }
+    }
+  }
+
+  private void launchImpl(DartLaunchConfigWrapper launchConfig, String mode, ILaunch launch,
+      IProgressMonitor monitor) throws CoreException {
     launchConfig.markAsLaunched();
 
     boolean enableDebugging = ILaunchManager.DEBUG_MODE.equals(mode)
