@@ -917,20 +917,23 @@ public class DartLibraryImpl extends OpenableElementImpl
     // find html files for library
     if (getDartProject().exists()) { // will not look into ExternalDartProject
 
-      HashMap<String, List<String>> mapping;
       try {
-        mapping = getDartProject().getHtmlMapping();
-
+        HashMap<String, List<String>> mapping = getDartProject().getHtmlMapping();
         final String elementName = getElementName();
-        final String libraryName = getCorrespondingResource().getLocation().toPortableString();
-
-        Set<String> keys = mapping.keySet();
-        for (String key : keys) {
-          List<String> libraries = mapping.get(key);
-          if (libraries.contains(libraryName) || libraries.contains(elementName)) {
-            IResource htmlFile = ResourceUtil.getResource(new File(key));
-            if (htmlFile != null && htmlFile.exists()) {
-              children.add(new HTMLFileImpl(DartLibraryImpl.this, (IFile) htmlFile));
+        IResource resource = getCorrespondingResource();
+        if (resource != null) {
+          IPath location = resource.getLocation();
+          if (location != null) {
+            final String libraryName = location.toPortableString();
+            Set<String> keys = mapping.keySet();
+            for (String key : keys) {
+              List<String> libraries = mapping.get(key);
+              if (libraries.contains(libraryName) || libraries.contains(elementName)) {
+                IResource htmlFile = ResourceUtil.getResource(new File(key));
+                if (htmlFile != null && htmlFile.exists()) {
+                  children.add(new HTMLFileImpl(DartLibraryImpl.this, (IFile) htmlFile));
+                }
+              }
             }
           }
         }
