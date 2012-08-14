@@ -21,6 +21,7 @@ import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.action.IAction;
@@ -79,15 +80,21 @@ public class DartRunAction extends DartAbstractAction implements IViewActionDele
       } else {
         launchResource(resource);
       }
+    } catch (CoreException ce) {
+      DartUtil.logError(ce);
+
+      DebugErrorHandler.errorDialog(
+          window.getShell(),
+          "Error Launching Application",
+          ce.getStatus().getMessage(),
+          ce.getStatus());
     } catch (Throwable exception) {
-      // We need to defensively show all errors coming out of here - the user needs feedback as
-      // to why their launch didn't work.
       DartUtil.logError(exception);
 
       DebugErrorHandler.errorDialog(
           window.getShell(),
-          "Error During Launch",
-          "Internal error during launch - please report this using the feedback mechanism!",
+          "Error Launching Application",
+          exception.getMessage(),
           exception);
     }
   }
