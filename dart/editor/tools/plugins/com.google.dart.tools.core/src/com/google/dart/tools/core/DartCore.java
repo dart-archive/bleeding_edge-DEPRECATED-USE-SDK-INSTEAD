@@ -631,6 +631,13 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * @return whether we're running in the context of the eclipse plugins build
+   */
+  public static boolean isPluginsBuild() {
+    return Platform.getBundle("com.google.dart.eclipse.core") != null;
+  }
+
+  /**
    * Return <code>true</code> if the given file name's extension is an HTML-like extension.
    * 
    * @param fileName the file name being tested

@@ -78,8 +78,8 @@ public class AboutDartDialog extends Shell implements DetailsProvider {
   public String getDetails() {
     StringBuilder builder = new StringBuilder();
 
-    builder.append(DialogsMessages.AboutDartDialog_version_string_prefix + getVersion() + ", "
-        + "Build " + DartToolsPlugin.getBuildId());
+    builder.append(DialogsMessages.AboutDartDialog_version_string_prefix + getVersion()
+        + ", build " + DartToolsPlugin.getBuildId());
 
     builder.append(NEW_LINE);
 

@@ -58,14 +58,21 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 
   private Button lineNumbersCheck;
   private Button printMarginCheck;
-  private Text printMarginText;
 
+  private Text printMarginText;
   private Button removeTrailingWhitespaceCheck;
+
   private Text packageRootDir;
 
   public DartBasePreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
+
     noDefaultAndApplyButton();
+
+    if (DartCore.isPluginsBuild()) {
+      setDescription("Dart Editor version " + DartToolsPlugin.getVersionString() + ", build "
+          + DartToolsPlugin.getBuildId());
+    }
   }
 
   @Override
