@@ -1,5 +1,5 @@
 /*
- * Copyright 2011, the Dart project authors.
+ * Copyright 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -57,12 +57,43 @@ public final class URIUtilities {
       if (resolvedUri != null) {
         return resolvedUri;
       }
-      // TODO(devoncarew): we need to track down why the URI is invalid
-      // ex.: dart://core/corelib_impl.dart/corelib_impl.dart
     } catch (RuntimeException exception) {
       // Fall through to returned the URI that was provided.
     }
     return uri;
+  }
+
+  /**
+   * Convert from a non-uri encoded string to a uri encoded one.
+   * 
+   * @param str
+   * @return the uri encoded input string
+   */
+  public static String uriEncode(String str) {
+    StringBuilder builder = new StringBuilder(str.length() * 2);
+
+    for (char c : str.toCharArray()) {
+      switch (c) {
+        case '%':
+        case '?':
+        case ';':
+        case '#':
+        case '"':
+        case '\'':
+        case '<':
+        case '>':
+        case ' ':
+          // ' ' ==> "%20"
+          builder.append('%');
+          builder.append(Integer.toHexString(c));
+          break;
+        default:
+          builder.append(c);
+          break;
+      }
+    }
+
+    return builder.toString();
   }
 
   /**

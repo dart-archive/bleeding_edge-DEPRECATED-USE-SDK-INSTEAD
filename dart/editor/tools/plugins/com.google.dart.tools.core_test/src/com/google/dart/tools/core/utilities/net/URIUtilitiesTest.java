@@ -1,5 +1,5 @@
 /*
- * Copyright 2011, the Dart project authors.
+ * Copyright 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -76,4 +76,17 @@ public class URIUtilitiesTest extends TestCase {
     assertNotNull(result);
     assertTrue(result.toString(), result.toString().endsWith(path));
   }
+
+  public void test_URIUtilities_uriEncode_encodeSpace() throws Exception {
+    String result = URIUtilities.uriEncode("foo bar");
+    assertNotNull(result);
+    assertEquals("foo%20bar", result);
+  }
+
+  public void test_URIUtilities_uriEncode_noEncode() throws Exception {
+    String result = URIUtilities.uriEncode("fooBar");
+    assertNotNull(result);
+    assertEquals("fooBar", result);
+  }
+
 }

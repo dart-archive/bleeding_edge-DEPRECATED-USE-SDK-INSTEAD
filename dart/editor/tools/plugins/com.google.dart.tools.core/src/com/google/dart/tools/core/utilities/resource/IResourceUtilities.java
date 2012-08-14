@@ -15,6 +15,7 @@ package com.google.dart.tools.core.utilities.resource;
 
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.utilities.net.URIUtilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -40,7 +41,8 @@ public final class IResourceUtilities {
       throws DartModelException {
     List<String> filePaths = new ArrayList<String>();
     for (String name : fileNames) {
-      IFile file = ResourceUtil.getFile(resource.getLocationURI().resolve(name));
+      String encodedName = URIUtilities.uriEncode(name);
+      IFile file = ResourceUtil.getFile(resource.getLocationURI().resolve(encodedName));
       if (file != null) {
         filePaths.add(file.getLocation().toPortableString());
       }
