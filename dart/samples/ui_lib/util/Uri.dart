@@ -73,5 +73,5 @@ class Uri extends uri.Uri {
                     .replaceAll('%20', ' ');
   }
 
-  Uri.fromString(String uri) : super.fromString(uri);
+  Uri.fromString(String uriString) : super.fromString(uriString);
 }
