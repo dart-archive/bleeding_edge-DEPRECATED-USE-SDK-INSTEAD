@@ -9,8 +9,8 @@
 #import('../../../../ui_lib/layout/layout.dart');
 #import('../../../../ui_lib/view/view.dart');
 #import('../../../../ui_lib/util/utilslib.dart');
-#import('../../../../../lib/unittest/unittest.dart');
-#import('../../../../../lib/unittest/html_config.dart');
+#import('../../../../../pkg/unittest/unittest.dart');
+#import('../../../../../pkg/unittest/html_config.dart');
 
 #source('grid_layout_demo.dart');
 #source('grid_examples.dart');

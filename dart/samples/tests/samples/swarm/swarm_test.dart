@@ -9,8 +9,8 @@
 #import('../../../ui_lib/base/base.dart');
 #import('../../../ui_lib/view/view.dart');
 #import('../../../ui_lib/util/utilslib.dart');
-#import('../../../../lib/unittest/unittest.dart');
-#import('../../../../lib/unittest/html_config.dart');
+#import('../../../../pkg/unittest/unittest.dart');
+#import('../../../../pkg/unittest/html_config.dart');
 
 // TODO(jmesserly): these would probably be easier to debug if they were written
 // in the WebKit layout test style, so we could easy compare that the DOM is

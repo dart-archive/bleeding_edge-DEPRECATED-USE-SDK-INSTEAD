@@ -7,8 +7,8 @@
 #import('dart:html');
 #import('../../../../ui_lib/base/base.dart');
 #import('../../../../ui_lib/view/view.dart');
-#import('../../../../../lib/unittest/unittest.dart');
-#import('../../../../../lib/unittest/html_config.dart');
+#import('../../../../../pkg/unittest/unittest.dart');
+#import('../../../../../pkg/unittest/html_config.dart');
 
 void main() {
   useHtmlConfiguration();
