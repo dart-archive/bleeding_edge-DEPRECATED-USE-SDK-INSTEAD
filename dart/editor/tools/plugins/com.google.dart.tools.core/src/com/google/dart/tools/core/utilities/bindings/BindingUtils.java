@@ -1143,7 +1143,7 @@ public class BindingUtils {
         }
       }
     } catch (DartModelException exception) {
-      DartCore.logError("Could not get children of project " + project.getElementName()
+      DartCore.logInformation("Could not get children of project " + project.getElementName()
           + " while trying to find library with URI " + targetUri, exception);
     }
     return null;
