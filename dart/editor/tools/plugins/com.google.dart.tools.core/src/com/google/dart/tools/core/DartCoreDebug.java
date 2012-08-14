@@ -51,6 +51,11 @@ public class DartCoreDebug {
   public static final boolean ENABLE_UPDATE = isOptionTrue("experimental/update");
   public static final boolean ENABLE_ALT_KEY_BINDINGS = isOptionTrue("experimental/altKeyBindings");
   public static final boolean ENABLE_TESTS_VIEW = isOptionTrue("experimental/testsView");
+  public static final boolean ENABLE_FORMATTER = isOptionTrue("experimental/formatter");
+
+  // Persistent developer settings
+
+  public static final boolean DISABLE_MARK_OCCURRENCES = isOptionTrue("dev/disableMarkOccurrences");
 
   /**
    * @return <code>true</code> if option has value "true".
