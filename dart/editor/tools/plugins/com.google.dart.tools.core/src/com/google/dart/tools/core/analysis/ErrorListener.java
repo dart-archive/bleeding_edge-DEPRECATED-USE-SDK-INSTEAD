@@ -56,7 +56,6 @@ class ErrorListener implements DartCompilerListener {
 
     // if file is in the "packages" directory, do not report errors
     if (DartCore.isContainedInPackages(dartFile)) {
-      System.out.println(dartFile.getAbsolutePath());
       return;
     }
 
