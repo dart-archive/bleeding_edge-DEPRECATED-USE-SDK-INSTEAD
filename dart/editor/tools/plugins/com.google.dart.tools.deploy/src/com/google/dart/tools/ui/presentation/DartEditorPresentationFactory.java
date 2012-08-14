@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.internal.presentation;
+package com.google.dart.tools.ui.presentation;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
@@ -32,6 +32,10 @@ import org.eclipse.ui.presentations.StackPresentation;
  */
 @SuppressWarnings("restriction")
 public class DartEditorPresentationFactory extends AbstractPresentationFactory {
+
+  public DartEditorPresentationFactory() {
+
+  }
 
   @Override
   public StackPresentation createEditorPresentation(Composite parent, IStackPresentationSite site) {
@@ -58,10 +62,10 @@ public class DartEditorPresentationFactory extends AbstractPresentationFactory {
   @Override
   public StackPresentation createStandaloneViewPresentation(Composite parent,
       IStackPresentationSite site, boolean showTitle) {
-
     if (showTitle) {
       return createViewPresentation(parent, site);
     }
+
     EmptyTabFolder folder = new EmptyTabFolder(parent, true);
     TabbedStackPresentation presentation = new TabbedStackPresentation(
         site,
@@ -74,7 +78,6 @@ public class DartEditorPresentationFactory extends AbstractPresentationFactory {
 
   @Override
   public StackPresentation createViewPresentation(Composite parent, IStackPresentationSite site) {
-
     DefaultTabFolder folder = new DefaultTabFolder(
         parent,
         SWT.TOP | SWT.BORDER,
@@ -83,6 +86,7 @@ public class DartEditorPresentationFactory extends AbstractPresentationFactory {
 
     final IPreferenceStore store = PlatformUI.getPreferenceStore();
     final int minimumCharacters = store.getInt(IWorkbenchPreferenceConstants.VIEW_MINIMUM_CHARACTERS);
+
     if (minimumCharacters >= 0) {
       folder.setMinimumCharacters(minimumCharacters);
     }
@@ -102,4 +106,5 @@ public class DartEditorPresentationFactory extends AbstractPresentationFactory {
 
     return result;
   }
+
 }

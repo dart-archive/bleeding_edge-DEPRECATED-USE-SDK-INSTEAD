@@ -3206,15 +3206,6 @@
          class="com.google.dart.tools.ui.internal.search.DartSearchResultPage">
       </viewPage>
    </extension>
-   <extension
-         point="org.eclipse.ui.presentationFactories">
-      <factory
-            class="com.google.dart.tools.ui.internal.presentation.DartEditorPresentationFactory"
-            id="com.google.dart.tools.ui.presentation"
-            name="Dart Editor Presentation">
-      </factory>
-   </extension>
-
 
    <extension
          point="org.eclipse.ltk.core.refactoring.renameParticipants">
@@ -3282,6 +3273,7 @@
             class="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor"
             id="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor"/>
    </extension>
+   
    <extension
          point="org.eclipse.ui.handlers">
       <handler

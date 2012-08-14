@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.internal.presentation;
+package com.google.dart.tools.ui.presentation;
 
 import org.eclipse.jface.action.Separator;
 import org.eclipse.swt.graphics.Point;
@@ -28,7 +28,6 @@ import org.eclipse.ui.presentations.IStackPresentationSite;
  */
 @SuppressWarnings("restriction")
 public class EditorSystemMenu extends ViewSystemMenu {
-
   private SystemMenuCloseOthers closeOthers;
   private SystemMenuCloseAll closeAll;
   private ActionFactory.IWorkbenchAction duplicate;
@@ -45,6 +44,7 @@ public class EditorSystemMenu extends ViewSystemMenu {
   @Override
   public void dispose() {
     duplicate.dispose();
+
     super.dispose();
   }
 
@@ -52,12 +52,14 @@ public class EditorSystemMenu extends ViewSystemMenu {
   public void show(Control parent, Point displayCoordinates, IPresentablePart currentSelection) {
     closeOthers.setTarget(currentSelection);
     closeAll.update();
+
     super.show(parent, displayCoordinates, currentSelection);
   }
 
   @Override
   protected void initialize(IStackPresentationSite site) {
     super.initialize(site);
+
     closeOthers = new SystemMenuCloseOthers(site);
     closeAll = new SystemMenuCloseAll(site);
     duplicate = ActionFactory.NEW_EDITOR.create(PlatformUI.getWorkbench().getActiveWorkbenchWindow());

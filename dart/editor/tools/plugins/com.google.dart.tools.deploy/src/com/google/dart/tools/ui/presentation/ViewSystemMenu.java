@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.internal.presentation;
+package com.google.dart.tools.ui.presentation;
 
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.GroupMarker;
@@ -38,7 +38,6 @@ import org.eclipse.ui.presentations.IStackPresentationSite;
  */
 @SuppressWarnings("restriction")
 public class ViewSystemMenu implements ISystemMenu {
-
   protected MenuManager menuManager = new MenuManager();
   private SystemMenuRestore restore;
   private SystemMenuMinimize minimize;
@@ -68,7 +67,9 @@ public class ViewSystemMenu implements ISystemMenu {
   @Override
   public void show(Control parent, Point displayCoordinates, IPresentablePart currentSelection) {
     updateActions(currentSelection);
+
     filterMenu();
+
     showMenu(parent, displayCoordinates);
   }
 
@@ -94,12 +95,15 @@ public class ViewSystemMenu implements ISystemMenu {
     if (item instanceof SystemMenuSize) {
       return true;
     }
+
     if (item instanceof ActionContributionItem) {
       IAction action = ((ActionContributionItem) item).getAction();
+
       if (action instanceof SystemMenuDetach) {
         return true;
       }
     }
+
     return false;
   }
 

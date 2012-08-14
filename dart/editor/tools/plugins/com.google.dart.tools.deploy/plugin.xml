@@ -366,5 +366,13 @@
       </page-->
    </extension>
 
+   <extension
+         point="org.eclipse.ui.presentationFactories">
+      <factory
+            class="com.google.dart.tools.ui.presentation.DartEditorPresentationFactory"
+            id="com.google.dart.tools.ui.presentation"
+            name="Dart Editor Presentation">
+      </factory>
+   </extension>
 
 </plugin>
