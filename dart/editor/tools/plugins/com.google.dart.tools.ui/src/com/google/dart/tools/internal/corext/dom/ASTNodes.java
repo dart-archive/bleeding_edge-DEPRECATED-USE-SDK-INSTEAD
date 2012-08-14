@@ -22,6 +22,7 @@ import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.VariableElement;
 
 import java.util.List;
@@ -637,12 +638,26 @@ public class ASTNodes {
   }
 
   /**
-   * @return the {@link VariableElement} if the given {@link DartIdentifier} is the local variable
-   *         reference, or <code>null</code> in the other case.
+   * @return the {@link VariableElement} with {@link ElementKind#VARIABLE} if the given
+   *         {@link DartIdentifier} is the local variable reference, or <code>null</code> in the
+   *         other case.
    */
   public static VariableElement getVariableElement(DartIdentifier node) {
     if (ElementKind.of(node.getElement()) == ElementKind.VARIABLE) {
       return (VariableElement) node.getElement();
+    }
+    return null;
+  }
+
+  /**
+   * @return the {@link VariableElement} with {@link ElementKind#VARIABLE} or
+   *         {@link ElementKind#PARAMETER} if the given {@link DartIdentifier} is the reference to
+   *         local variable or parameter, or <code>null</code> in the other case.
+   */
+  public static VariableElement getVariableOrParameterElement(DartIdentifier node) {
+    NodeElement element = node.getElement();
+    if (element instanceof VariableElement) {
+      return (VariableElement) element;
     }
     return null;
   }

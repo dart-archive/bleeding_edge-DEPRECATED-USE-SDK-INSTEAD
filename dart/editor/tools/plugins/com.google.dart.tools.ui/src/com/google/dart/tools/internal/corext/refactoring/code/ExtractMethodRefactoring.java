@@ -29,7 +29,6 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.resolver.ClassElement;
-import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.util.apache.StringUtils;
@@ -166,17 +165,6 @@ public class ExtractMethodRefactoring extends Refactoring {
   private boolean replaceAllOccurrences = true;
 
   private static final String EMPTY = ""; //$NON-NLS-1$
-
-  /**
-   * @return the {@link VariableElement} if the given {@link DartIdentifier} is the local variable
-   *         reference, or <code>null</code> in the other case.
-   */
-  private static VariableElement getVariableElement(DartIdentifier node) {
-    if (ElementKind.of(node.getElement()) == ElementKind.VARIABLE) {
-      return (VariableElement) node.getElement();
-    }
-    return null;
-  }
 
   public ExtractMethodRefactoring(CompilationUnit unit, int selectionStart, int selectionLength) {
     this.unit = unit;
@@ -597,7 +585,7 @@ public class ExtractMethodRefactoring extends Refactoring {
       public Void visitIdentifier(DartIdentifier node) {
         SourceRange nodeRange = SourceRangeFactory.create(node);
         if (SourceRangeUtils.covers(partRange, nodeRange)) {
-          VariableElement variableElement = getVariableElement(node);
+          VariableElement variableElement = ASTNodes.getVariableOrParameterElement(node);
           if (variableElement != null) {
             String originalName = variableElement.getName();
             String patternName = pattern.originalToPatternNames.get(originalName);
@@ -735,7 +723,7 @@ public class ExtractMethodRefactoring extends Refactoring {
         SourceRange nodeRange = SourceRangeFactory.create(node);
         if (SourceRangeUtils.covers(selectionRange, nodeRange)) {
           // analyze local variable
-          VariableElement variableElement = getVariableElement(node);
+          VariableElement variableElement = ASTNodes.getVariableOrParameterElement(node);
           if (variableElement != null) {
             // if declared outside, add parameter
             if (!isDeclaredInSelection(variableElement)) {
@@ -806,7 +794,7 @@ public class ExtractMethodRefactoring extends Refactoring {
     parentMember.accept(new ASTVisitor<Void>() {
       @Override
       public Void visitIdentifier(DartIdentifier node) {
-        VariableElement nodeElement = getVariableElement(node);
+        VariableElement nodeElement = ASTNodes.getVariableElement(node);
         if (nodeElement == element) {
           int nodeOffset = node.getSourceInfo().getOffset();
           if (nodeOffset > selectionStart + selectionLength) {

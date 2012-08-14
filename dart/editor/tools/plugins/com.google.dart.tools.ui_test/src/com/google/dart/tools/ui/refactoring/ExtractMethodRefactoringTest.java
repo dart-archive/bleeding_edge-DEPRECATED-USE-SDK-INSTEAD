@@ -1442,6 +1442,35 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "");
   }
 
+  public void test_singleExpression_usesParameter() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "fooA(int a1) {",
+        "  int a2 = 2;",
+        "  int a = a1 + a2; // marker",
+        "}",
+        "fooB(int b1) {",
+        "  int b2 = 2;",
+        "  int b = b1 + b2;",
+        "}",
+        "");
+    selectionStart = findOffset("a1 +");
+    selectionEnd = findOffset("; // marker");
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "fooA(int a1) {",
+        "  int a2 = 2;",
+        "  int a = res(a1, a2); // marker",
+        "}",
+        "int res(int a1, int a2) => a1 + a2;",
+        "fooB(int b1) {",
+        "  int b2 = 2;",
+        "  int b = res(b1, b2);",
+        "}",
+        "");
+  }
+
   public void test_singleExpression_withVariables() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
