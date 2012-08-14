@@ -380,12 +380,6 @@ build system.  The PDE build system has to run under Eclipse.
             <replacefilter token="@BUILDCONFIGS@" value="${build.configs}" />
         </replace>
         
-        <replace dir="${build.stage.plugins}/com.google.dart.eclipse.ui" >
-            <include name="about.ini" />
-            <replacefilter token="@REVISION@" value="${build.revision}" />
-            <replacefilter token="@BUILDDATE@" value="${build.date}" />
-        </replace>
-        
         <replace dir="${build.stage.plugins}/com.google.dart.tools.core" >
             <include name="**/DartCore.java" />
             <replacefilter token="@REVISION@" value="${build.revision}" />

@@ -42,6 +42,8 @@
     	
       <!-- plugin and feature source -->
       	
+      <property name="build.dir.plugins" location="${build.dir}/plugins" />
+                	
     	<copy todir="${build.dir}/plugins/">
           <fileset dir="${source.dir}/plugins">
               <exclude name="*_test/**" />
@@ -97,7 +99,17 @@
               <include name="json/**" />
           </fileset>
       </copy>
-    	 
+
+      <!-- replace version constants in source files -->
+      <replace dir="${build.dir.plugins}/com.google.dart.tools.core" >
+          <include name="**/DartCore.java" />
+          <replacefilter token="@REVISION@" value="${build.revision}" />
+      </replace>
+      <replace dir="${build.dir.plugins}/com.google.dart.eclipse.ui" >
+          <include name="about.ini" />
+          <replacefilter token="@REVISION@" value="${build.revision}" />
+          <replacefilter token="@BUILDDATE@" value="${build.date}" />
+      </replace>
     </target>
     
     <!-- build -->
