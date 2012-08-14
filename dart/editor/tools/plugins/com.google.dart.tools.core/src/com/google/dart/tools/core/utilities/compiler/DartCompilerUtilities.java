@@ -259,7 +259,7 @@ public class DartCompilerUtilities {
         }
       };
       final CompilerConfiguration config = new DefaultCompilerConfiguration(
-          new CompilerOptions(),
+          DartCompilerUtilities.COMPILER_OPTIONS,
           libraryManager) {
 
         @Override
@@ -439,9 +439,8 @@ public class DartCompilerUtilities {
     public void run() throws Exception {
       final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
       final CompilerConfiguration config = new DefaultCompilerConfiguration(
-          new CompilerOptions(),
+          DartCompilerUtilities.COMPILER_OPTIONS,
           libraryManager) {
-
         @Override
         public boolean incremental() {
           return true;
@@ -478,6 +477,15 @@ public class DartCompilerUtilities {
       }
     }
   }
+
+  public static final CompilerOptions COMPILER_OPTIONS = new CompilerOptions() {
+    @Override
+    public boolean memberWarningForInferredTypes() {
+      return DartCore.getPlugin().getPrefs().getBoolean(
+          DartCore.MEMBER_WARNING_FOR_INFERRED_TYPES,
+          false);
+    }
+  };
 
   /**
    * Synchronize against this field when calling the compiler and passing an artifact provider

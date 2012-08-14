@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompiler.SelectiveCache;
@@ -47,14 +46,7 @@ import java.util.Set;
  */
 class AnalysisUtility {
   private static final CompilerConfiguration config = new DefaultCompilerConfiguration(
-      new CompilerOptions() {
-        @Override
-        public boolean memberWarningForInferredTypes() {
-          return DartCore.getPlugin().getPrefs().getBoolean(
-              DartCore.MEMBER_WARNING_FOR_INFERRED_TYPES,
-              false);
-        }
-      },
+      DartCompilerUtilities.COMPILER_OPTIONS,
       SystemLibraryManagerProvider.getSystemLibraryManager()) {
     @Override
     public boolean incremental() {
