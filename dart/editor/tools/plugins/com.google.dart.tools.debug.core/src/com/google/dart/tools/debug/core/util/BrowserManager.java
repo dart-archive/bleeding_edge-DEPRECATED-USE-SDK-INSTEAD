@@ -235,11 +235,22 @@ public class BrowserManager {
     } catch (IOException e) {
       DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
 
-      throw new CoreException(new Status(
-          IStatus.ERROR,
-          DartDebugCorePlugin.PLUGIN_ID,
-          e.toString(),
-          e));
+      IStatus status;
+
+      // Clean up the error message on certain connection failures to Dartium.
+      // http://code.google.com/p/dart/issues/detail?id=4435
+      if (e.toString().indexOf("connection failed: unknown status code 500") != -1) {
+        DartDebugCorePlugin.logError(e);
+
+        status = new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
+            "Unable to connect to Dartium");
+      } else {
+        status = new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID, e.toString(), e);
+      }
+
+      throw new CoreException(status);
     }
 
     if (firstLaunch) {
