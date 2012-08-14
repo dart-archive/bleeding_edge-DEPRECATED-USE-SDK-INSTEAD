@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.generator;
 
-import com.google.dart.compiler.DefaultLibrarySource;
+import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.util.Paths;
 import com.google.dart.tools.core.DartCore;
@@ -38,6 +38,8 @@ import org.eclipse.core.runtime.Status;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +53,55 @@ public class DartLibraryGenerator extends DartFileGenerator {
     DartCore.notYetImplemented();
     // replace the following constants once Dart compiler constants are
     // available
+  }
+
+  /**
+   * Generate source declaring a library. If an entryPoint is provided a main() method will be
+   * synthesized which wraps a call to the provided entryPoint method.
+   * 
+   * @param name the name of the application or library
+   * @param baseFile the application or library file that will contain this source or any file in
+   *          that same directory (not <code>null</code>, but does not need to exist)
+   * @param importFiles a collection of library files imported by this application or library
+   * @param sourceFiles a collection of dart source files included in this application or library
+   * @param entryPoint The name of the static method to call to invoke the library. A synthetic
+   *          main() method will be generated which wraps a call to this method. Pass
+   *          <code>null</code> to use the default main() method lookup.
+   * @return the source (not <code>null</code>)
+   */
+  public static String generateSource(String name, File baseFile, List<File> importFiles,
+      List<File> sourceFiles, String entryPoint) {
+    // Copied from DefaultLibrarySource
+    StringWriter sw = new StringWriter(200);
+    PrintWriter pw = new PrintWriter(sw);
+    pw.println("#library(\"" + name + "\");");
+    if (importFiles != null) {
+      for (File file : importFiles) {
+        String relPath = file.getPath();
+        if (!relPath.startsWith("dart:")) {
+          relPath = Paths.relativePathFor(baseFile, file);
+        }
+        if (relPath != null) {
+          pw.println("#import(\"" + relPath + "\");");
+        }
+      }
+    }
+    if (sourceFiles != null) {
+      for (File file : sourceFiles) {
+        String relPath = Paths.relativePathFor(baseFile, file);
+        if (relPath != null) {
+          pw.println("#source(\"" + relPath + "\");");
+        }
+      }
+    }
+    if (entryPoint != null) {
+      // synthesize a main method, which wraps the entryPoint method call
+      pw.println();
+      pw.println(DartCompiler.MAIN_ENTRY_POINT_NAME + "() {");
+      pw.println("  " + entryPoint + "();");
+      pw.println("}");
+    }
+    return sw.toString();
   }
 
   /**
@@ -125,7 +176,7 @@ public class DartLibraryGenerator extends DartFileGenerator {
           }
         }
 
-        String source = DefaultLibrarySource.generateSource(
+        String source = generateSource( // was DefaultLibrarySource.generateSource(
             getSimpleLibraryName(),
             libFile,
             importedLibs,
@@ -138,8 +189,7 @@ public class DartLibraryGenerator extends DartFileGenerator {
         }
         monitor.done();
       }
-    },
-        monitor);
+    }, monitor);
   }
 
   /**
