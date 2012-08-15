@@ -119,12 +119,7 @@ public class DartSearchEditorOpener {
   }
 
   private IEditorPart showWithReuse(Object element, IWorkbenchPage wbPage) throws PartInitException {
-    IEditorInput input = null;
-    try {
-      input = EditorUtility.getEditorInput(element);
-    } catch (DartModelException e) {
-      DartToolsPlugin.log(e);
-    }
+    IEditorInput input = EditorUtility.getEditorInput(element);
     if (input == null) {
       return null;
     }

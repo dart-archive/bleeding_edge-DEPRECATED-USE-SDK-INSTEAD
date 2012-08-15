@@ -20,9 +20,6 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 public class DartSelectRulerAction extends AbstractRulerActionDelegate {
 
-  /*
-   * @see AbstractRulerActionDelegate#createAction(ITextEditor, IVerticalRulerInfo)
-   */
   @Override
   protected IAction createAction(ITextEditor editor, IVerticalRulerInfo rulerInfo) {
     return new JavaSelectAnnotationRulerAction(

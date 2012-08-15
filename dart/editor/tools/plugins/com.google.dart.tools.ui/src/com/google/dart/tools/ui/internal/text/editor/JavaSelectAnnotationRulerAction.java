@@ -17,6 +17,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
+import com.google.dart.tools.ui.internal.text.correction.DartCorrectionProcessor;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.IDocument;
@@ -112,9 +113,10 @@ public class JavaSelectAnnotationRulerAction extends SelectMarkerRulerAction {
     }
     if (fHasCorrection) {
       DartX.todo();
-      if (false /* fAnnotation instanceof AssistAnnotation */) {
-        initialize(fBundle, "JavaSelectAnnotationRulerAction.QuickAssist."); //$NON-NLS-1$
-      } else {
+//      if (false /* fAnnotation instanceof AssistAnnotation */) {
+//        initialize(fBundle, "JavaSelectAnnotationRulerAction.QuickAssist."); //$NON-NLS-1$
+//      } else
+      {
         initialize(fBundle, "JavaSelectAnnotationRulerAction.QuickFix."); //$NON-NLS-1$
       }
       return;
@@ -137,7 +139,7 @@ public class JavaSelectAnnotationRulerAction extends SelectMarkerRulerAction {
       return;
     }
 
-    boolean hasAssistLightbulb = fStore.getBoolean(PreferenceConstants.EDITOR_QUICKASSIST_LIGHTBULB);
+//    boolean hasAssistLightbulb = fStore.getBoolean(PreferenceConstants.EDITOR_QUICKASSIST_LIGHTBULB);
 
     Iterator<?> iter = model.getAnnotationIterator();
     int layer = Integer.MIN_VALUE;
@@ -164,9 +166,9 @@ public class JavaSelectAnnotationRulerAction extends SelectMarkerRulerAction {
       boolean isReadOnly = fTextEditor instanceof ITextEditorExtension
           && ((ITextEditorExtension) fTextEditor).isEditorInputReadOnly();
       DartX.todo();
-      if (!isReadOnly && (((hasAssistLightbulb)))) { // && annotation instanceof
-        // AssistAnnotation) ||
-        // JavaCorrectionProcessor.hasCorrections(annotation)))) {
+      if (!isReadOnly && ((
+//                (hasAssistLightbulb && annotation instanceof AssistAnnotation) ||
+          DartCorrectionProcessor.hasCorrections(annotation)))) {
         fPosition = position;
         fAnnotation = annotation;
         fHasCorrection = true;

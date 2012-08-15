@@ -1252,23 +1252,22 @@
          </part>
       </actionSetPartAssociation>
    </extension>
-   <!-- DartX.todo()
+
    <extension
          point="org.eclipse.ui.popupMenus">
       <viewerContribution
             targetID="#DartRulerContext"
-            id="org.eclipse.wst.jsdt.internal.ui.javaeditor.QuickFixRulerMenuAction">
+            id="com.google.dart.tools.ui.internal.text.editor.QuickFixRulerMenuAction">
          <action
                label="%action.label.0"
                helpContextId="org.eclipse.wst.jsdt.ui.quick_fix_action"
-               class="org.eclipse.wst.jsdt.internal.ui.javaeditor.JavaSelectRulerAction"
+               class="com.google.dart.tools.ui.internal.text.editor.DartSelectRulerAction"
                menubarPath="additions"
-               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.correction.assist.proposals"
-               id="org.eclipse.wst.jsdt.internal.ui.javaeditor.JavaSelectRulerMenuAction">
+               definitionId="org.eclipse.jdt.ui.edit.text.java.correction.assist.proposals"
+               id="com.google.dart.tools.ui.internal.text.editor.DartSelectRulerAction">
          </action>
       </viewerContribution>
    </extension>
-   -->
 
 <!-- =========================================================================== -->
 <!-- JDT/UI command definitions                                                  -->
@@ -3272,6 +3271,12 @@
       <quickAssistProcessor
             class="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor"
             id="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor"/>
+   </extension>
+    
+   <extension point="org.eclipse.ui.ide.markerResolution">
+      <markerResolutionGenerator
+         markerType="com.google.dart.tools.core.problem"
+         class="com.google.dart.tools.ui.internal.text.correction.CorrectionMarkerResolutionGenerator"/>
    </extension>
    
    <extension

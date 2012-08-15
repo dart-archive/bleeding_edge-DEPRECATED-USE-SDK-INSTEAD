@@ -83,7 +83,7 @@ public class DartMarkerAnnotation extends MarkerAnnotation implements IJavaAnnot
     }
 
     if (isProblem()) {
-      final String qualifiedName = marker.getAttribute("errorCode", (String) null);
+      String qualifiedName = marker.getAttribute("errorCode", (String) null);
       if (qualifiedName != null) {
         return ErrorCode.Helper.forQualifiedName(qualifiedName);
       }

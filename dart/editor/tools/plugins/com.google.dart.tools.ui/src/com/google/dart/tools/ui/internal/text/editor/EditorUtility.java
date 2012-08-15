@@ -227,7 +227,7 @@ public class EditorUtility {
     return editorDescriptor.getId();
   }
 
-  public static IEditorInput getEditorInput(Object input) throws DartModelException {
+  public static IEditorInput getEditorInput(Object input) {
     if (input instanceof DartElement) {
       return getEditorInput((DartElement) input);
     }
@@ -298,13 +298,7 @@ public class EditorUtility {
    * @return the IEditorPart if shown, null if element is not open in an editor
    */
   public static IEditorPart isOpenInEditor(Object inputElement) {
-    IEditorInput input = null;
-
-    try {
-      input = getEditorInput(inputElement);
-    } catch (DartModelException x) {
-      DartToolsPlugin.log(x.getStatus());
-    }
+    IEditorInput input = getEditorInput(inputElement);
 
     if (input != null) {
       IWorkbenchPage p = DartToolsPlugin.getActivePage();
@@ -538,7 +532,7 @@ public class EditorUtility {
         modifierString, newModifierString});
   }
 
-  private static IEditorInput getEditorInput(DartElement element) throws DartModelException {
+  private static IEditorInput getEditorInput(DartElement element) {
     while (element != null) {
       if (element instanceof CompilationUnit) {
         CompilationUnit unit = ((CompilationUnit) element).getPrimary();
