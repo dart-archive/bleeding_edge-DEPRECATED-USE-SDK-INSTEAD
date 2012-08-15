@@ -455,6 +455,7 @@
             class="com.google.dart.tools.ui.internal.text.editor.SimpleTextEditor"
             symbolicFontName="com.google.dart.tools.ui.editors.textfont"
             id="com.google.dart.tools.ui.text.editor.TextEditor">
+            <contentTypeBinding contentTypeId="org.eclipse.core.runtime.text" />
       </editor>
       
       <editor
