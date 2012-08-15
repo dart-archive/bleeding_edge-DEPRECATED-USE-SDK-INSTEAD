@@ -20,24 +20,32 @@ import com.google.dart.tools.core.internal.perf.Performance;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
+import org.eclipse.jface.util.Util;
+import org.eclipse.osgi.service.datalocation.Location;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 
 /**
  * This class controls all aspects of the application's execution.
  */
 public class DartIDEApplication implements IApplication {
+
   @Override
   public Object start(IApplicationContext context) throws Exception {
     Display display = PlatformUI.createDisplay();
-    // processor must be created before we start event loop
-    DelayedEventsProcessor processor = new DelayedEventsProcessor(display);
 
     try {
+      setWorkspaceLocation();
+
+      // processor must be created before we start event loop
+      DelayedEventsProcessor processor = new DelayedEventsProcessor(display);
+
       parseApplicationArgs();
 
       // Now that the start time of the Editor has been recorded from the command line, we can
@@ -57,7 +65,6 @@ public class DartIDEApplication implements IApplication {
     } finally {
       display.dispose();
     }
-
   }
 
   @Override
@@ -153,4 +160,33 @@ public class DartIDEApplication implements IApplication {
     }
     DartEditorCommandLineManager.setFileSet(fileSet);
   }
+
+  private void setWorkspaceLocation() {
+    Location workspaceLocation = Platform.getInstanceLocation();
+
+    File userHomeDir = new File(System.getProperty("user.home"));
+    URL workspaceUrl;
+
+    try {
+      if (Util.isMac()) {
+        workspaceUrl = new URL("file", null, System.getProperty("user.home")
+            + "/Library/Application Support/DartEditor");
+      } else if (Util.isWindows()) {
+        File workspaceDir = new File(userHomeDir, "DartEditor");
+        workspaceUrl = workspaceDir.toURI().toURL();
+      } else {
+        File workspaceDir = new File(userHomeDir, ".dartEditor");
+        workspaceUrl = workspaceDir.toURI().toURL();
+      }
+
+      workspaceLocation.set(workspaceUrl, true);
+    } catch (IllegalStateException e) {
+      // This generally happens in a runtime workbench, when the application has not been launched
+      // with -data @noDefault. workspaceLocation.set() cannot be called twice.
+      //Activator.logError(e);
+    } catch (IOException e) {
+      Activator.logError(e);
+    }
+  }
+
 }
