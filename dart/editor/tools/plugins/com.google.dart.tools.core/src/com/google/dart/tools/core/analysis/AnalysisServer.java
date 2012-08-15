@@ -53,12 +53,6 @@ public class AnalysisServer {
   }
 
   /**
-   * The target (VM, Dartium, JS) against which user libraries are resolved. Targets are immutable
-   * and can be accessed on any thread.
-   */
-  private final SystemLibraryManager libraryManager;
-
-  /**
    * The library files being analyzed by the receiver. Synchronize against this object before
    * accessing it.
    */
@@ -78,20 +72,18 @@ public class AnalysisServer {
    * A context representing what is "saved on disk". Contents of this object should only be accessed
    * on the background thread.
    */
-  private final SavedContext savedContext = new SavedContext(this);
+  private final SavedContext savedContext;
 
   /**
    * A singleton for background analysis of the savedContext
    */
-  private final AnalyzeContextTask savedContextAnalysisTask = new AnalyzeContextTask(
-      this,
-      savedContext);
+  private final AnalyzeContextTask savedContextAnalysisTask;
 
   /**
    * A context representing what is "currently being edited". Contents of this object should only be
    * accessed on the background thread.
    */
-  private final EditContext editContext = new EditContext(this, savedContext);
+  private final EditContext editContext;
 
   /**
    * Create a new instance that processes analysis tasks on a background thread
@@ -99,10 +91,14 @@ public class AnalysisServer {
    * @param libraryManager the target (VM, Dartium, JS) against which user libraries are resolved
    */
   public AnalysisServer(SystemLibraryManager libraryManager) {
+
     if (libraryManager == null) {
       throw new IllegalArgumentException();
     }
-    this.libraryManager = libraryManager;
+    savedContext = new SavedContext(this, libraryManager);
+    editContext = new EditContext(this, savedContext, libraryManager);
+    savedContextAnalysisTask = new AnalyzeContextTask(this, savedContext);
+
   }
 
   /**
@@ -335,7 +331,7 @@ public class AnalysisServer {
   }
 
   SystemLibraryManager getLibraryManager() {
-    return libraryManager;
+    return getSavedContext().getLibraryManager();
   }
 
   /**
@@ -393,7 +389,7 @@ public class AnalysisServer {
         DartCore.logError("Failed to create URI: " + relPath, e);
         return null;
       }
-      URI resolveUri = libraryManager.resolveDartUri(relativeUri);
+      URI resolveUri = getLibraryManager().resolveDartUri(relativeUri);
       if (resolveUri == null) {
         return null;
       }

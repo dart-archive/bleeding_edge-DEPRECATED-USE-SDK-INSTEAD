@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.tools.core.model.DartSdk;
 
@@ -39,14 +40,21 @@ public class Context {
   private AnalysisListener[] analysisListeners = new AnalysisListener[0];
 
   /**
+   * The target (VM, Dartium, JS) against which user libraries are resolved. Targets are immutable
+   * and can be accessed on any thread.
+   */
+  private final SystemLibraryManager libraryManager;
+
+  /**
    * The libraries in this context, including imported libraries. This should only be accessed on
    * the background thread.
    */
   private final HashMap<File, Library> libraryCache;
 
-  Context(AnalysisServer server) {
+  Context(AnalysisServer server, SystemLibraryManager libraryManager) {
     this.server = server;
     this.libraryCache = new HashMap<File, Library>();
+    this.libraryManager = libraryManager;
   }
 
   public void addAnalysisListener(AnalysisListener listener) {
@@ -255,6 +263,10 @@ public class Context {
       }
     }
     return result;
+  }
+
+  SystemLibraryManager getLibraryManager() {
+    return libraryManager;
   }
 
   /**

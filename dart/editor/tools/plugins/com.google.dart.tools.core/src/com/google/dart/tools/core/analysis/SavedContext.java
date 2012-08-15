@@ -13,12 +13,14 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.compiler.SystemLibraryManager;
+
 /**
  * Analysis of Dart source saved on disk
  */
 public class SavedContext extends Context {
 
-  SavedContext(AnalysisServer server) {
-    super(server);
+  SavedContext(AnalysisServer server, SystemLibraryManager libraryManager) {
+    super(server, libraryManager);
   }
 }
