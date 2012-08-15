@@ -41,6 +41,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.internal.editors.text.EditorsPlugin;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
+import org.osgi.framework.Version;
 import org.osgi.service.prefs.BackingStoreException;
 
 import java.io.File;
@@ -56,10 +57,17 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 
   public static final String JAVA_BASE_PREF_PAGE_ID = "com.google.dart.tools.ui.preferences.DartBasePreferencePage"; //$NON-NLS-1$
 
-  private Button lineNumbersCheck;
-  private Button printMarginCheck;
+  private static String getVersionText() {
+    Version version = DartCore.getPlugin().getBundle().getVersion();
 
+    return version.getMajor() + "." + version.getMinor() + "." + version.getMicro();
+  }
+
+  private Button lineNumbersCheck;
+
+  private Button printMarginCheck;
   private Text printMarginText;
+
   private Button removeTrailingWhitespaceCheck;
 
   private Text packageRootDir;
@@ -70,7 +78,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     noDefaultAndApplyButton();
 
     if (DartCore.isPluginsBuild()) {
-      setDescription("Dart Editor version " + DartToolsPlugin.getVersionString() + ", build "
+      setDescription("Dart Editor version " + getVersionText() + ", build "
           + DartToolsPlugin.getBuildId());
     }
   }

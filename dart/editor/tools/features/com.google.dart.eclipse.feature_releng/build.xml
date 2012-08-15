@@ -11,7 +11,14 @@
         </fail>
         
         <property file="build-settings/${user.name}.properties" />
-		
+
+        <tstamp>
+            <format property="build.date" pattern="yyyyMMddHHmm" />
+        </tstamp>
+        <tstamp>
+            <format property="build.year" pattern="yyyy" />
+        </tstamp>
+
         <fail unless="build.dir" message="build.dir property is required"/>
         <mkdir dir="${build.dir}"/>
         
@@ -41,7 +48,7 @@
     <target name="copysources" depends="init">
     	
       <!-- plugin and feature source -->
-      	
+
       <property name="build.dir.plugins" location="${build.dir}/plugins" />
                 	
     	<copy todir="${build.dir}/plugins/">
