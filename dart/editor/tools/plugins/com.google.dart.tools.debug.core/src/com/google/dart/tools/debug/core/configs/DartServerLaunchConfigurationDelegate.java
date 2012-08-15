@@ -72,6 +72,8 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     boolean enableDebugging = launchConfig.getEnableDebugging()
         && ILaunchManager.DEBUG_MODE.equals(mode);
 
+    terminateSameLaunches(launch);
+
     launchVM(launch, launchConfig, enableDebugging, monitor);
   }
 
@@ -225,6 +227,36 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
       return true;
     } catch (IllegalThreadStateException ex) {
       return false;
+    }
+  }
+
+  private void sleep(int millis) {
+    try {
+      Thread.sleep(millis);
+    } catch (InterruptedException e) {
+
+    }
+  }
+
+  private void terminateSameLaunches(ILaunch currentLaunch) {
+    ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
+
+    boolean launchTerminated = false;
+
+    for (ILaunch launch : manager.getLaunches()) {
+      if (launch.getLaunchConfiguration().equals(currentLaunch.getLaunchConfiguration())) {
+        try {
+          launchTerminated = true;
+          launch.terminate();
+        } catch (DebugException e) {
+          DartDebugCorePlugin.logError(e);
+        }
+      }
+    }
+
+    if (launchTerminated) {
+      // Wait a while for processes to shutdown.
+      sleep(100);
     }
   }
 
