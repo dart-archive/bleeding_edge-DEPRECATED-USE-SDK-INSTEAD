@@ -23,6 +23,9 @@ deps = {
   "lib":
     Var("dart_branch") + "/dart/lib",
 
+  "pkg":
+    Var("dart_branch") + "/dart/pkg",
+
   "tests":
     Var("dart_branch") + "/dart/tests",
 
