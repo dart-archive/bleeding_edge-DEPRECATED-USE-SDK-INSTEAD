@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.projects;
 
 import com.google.dart.tools.core.internal.util.StatusUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.util.DirectoryVerification;
 
 import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IProject;
@@ -304,17 +305,27 @@ public class NewApplicationCreationPage extends WizardPage {
 
   private IStatus validateLocation() {
     String location = projectLocationField.getText();
+
     if (!new Path(location).isValidPath(getProjectName())) {
       return new Status(
           IStatus.ERROR,
           DartToolsPlugin.PLUGIN_ID,
           ProjectMessages.NewProjectCreationPage_invalid_loc);
     }
+
     if (doesProjectExist()) {
       return new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, NLS.bind(
           ProjectMessages.NewApplicationWizardPage_error_existing,
           getProjectName()));
     }
+
+    IStatus status = DirectoryVerification.getOpenDirectoryLocationStatus(new File(location));
+
+    if (!status.isOK()) {
+      return status;
+    }
+
     return Status.OK_STATUS;
   }
+
 }

@@ -13,9 +13,14 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.ui.internal.util.DirectoryVerification;
+
+import org.eclipse.jface.action.IAction;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
+
+import java.io.File;
 
 /**
  * Opens the "Open..." dialog.
@@ -24,27 +29,38 @@ public class OpenExternalFolderDialogAction extends AbstractInstrumentedAction i
     IWorkbenchAction {
 
   private static final String ACTION_ID = "com.google.dart.tools.ui.folder.open";
+
   private final IWorkbenchWindow window;
 
   public OpenExternalFolderDialogAction(IWorkbenchWindow window) {
+    this.window = window;
+
     setText(ActionMessages.OpenExistingFolderWizardAction_text);
     setDescription(ActionMessages.OpenExistingFolderWizardAction_description);
     setToolTipText(ActionMessages.OpenExistingFolderWizardAction_tooltip);
     setId(ACTION_ID);
-    this.window = window;
   }
 
   @Override
   public void dispose() {
+
   }
 
   @Override
   public void run() {
     String directory = new DirectoryDialog(window.getShell()).open();
+
     if (directory == null) {
       return;
     }
 
-    new CreateAndRevealProjectAction(window, directory).run();
+    File directoryFile = new File(directory);
+
+    if (DirectoryVerification.validateOpenDirectoryLocation(window.getShell(), directoryFile)) {
+      IAction createAction = new CreateAndRevealProjectAction(window, directory);
+
+      createAction.run();
+    }
   }
+
 }
