@@ -39,7 +39,7 @@ class Conversation {
     String path = request.path;
     if (path == '/') return redirect('/$landingPage');
     if (path == '/favicon.ico') {
-      path = '/lib/dartdoc/static/favicon.ico';
+      path = '/pkg/dartdoc/static/favicon.ico';
     }
     if (path.contains('..') || path.contains('%')) return notFound();
     var f = new File("./$path");
