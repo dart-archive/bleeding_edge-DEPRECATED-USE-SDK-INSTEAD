@@ -70,7 +70,7 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
     hasChanges |= applyCheck(
         DartCore.MEMBER_WARNING_FOR_INFERRED_TYPES,
         memberWarningForInferredTypes_check.getSelection(),
-        false);
+        true);
     if (hasChanges) {
       Job job = new CleanLibrariesJob();
       job.schedule();
@@ -96,7 +96,7 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     memberWarningForInferredTypes_check.setSelection(prefs.getBoolean(
         DartCore.MEMBER_WARNING_FOR_INFERRED_TYPES,
-        false));
+        true));
   }
 
 }

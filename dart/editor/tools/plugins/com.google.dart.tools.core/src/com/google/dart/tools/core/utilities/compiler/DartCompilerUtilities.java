@@ -483,7 +483,7 @@ public class DartCompilerUtilities {
     public boolean memberWarningForInferredTypes() {
       return DartCore.getPlugin().getPrefs().getBoolean(
           DartCore.MEMBER_WARNING_FOR_INFERRED_TYPES,
-          false);
+          true);
     }
   };
 
