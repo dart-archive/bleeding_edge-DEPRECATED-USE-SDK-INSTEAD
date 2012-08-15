@@ -492,6 +492,18 @@ public class VmConnection {
     listeners.remove(listener);
   }
 
+  /**
+   * Remove the single, special system breakpoint at the first line of source in main().
+   * 
+   * @throws IOException
+   */
+  public void removeSystemBreakpoint() throws IOException {
+    // TODO(devoncarew): This code will need to be updated if the VM no longer uses a user
+    // breakpoint to stop on the first line of main().
+
+    removeBreakpoint(new VmBreakpoint("", -1, 1));
+  }
+
   public void resume() throws IOException {
     sendSimpleCommand("resume", resumeOnSuccess());
   }
@@ -605,6 +617,22 @@ public class VmConnection {
     sendSimpleCommand(command, null);
   }
 
+//  void resolveSuperClass(final VmClass vmClass, final VmCallback<VmClass> callback)
+//      throws IOException {
+//    getClassProperties(object.getClassId(), new VmCallback<VmClass>() {
+//      @Override
+//      public void handleResult(VmResult<VmClass> result) {
+//        if (!result.isError()) {
+//          object.setClassObject(result.getResult());
+//        }
+//
+//        if (callback != null) {
+//          callback.handleResult(result);
+//        }
+//      }
+//    });
+//  }
+
   protected void sendSimpleCommand(String command, Callback callback) throws IOException {
     try {
       sendRequest(new JSONObject().put("command", command), callback);
@@ -642,22 +670,6 @@ public class VmConnection {
       throw ex;
     }
   }
-
-//  void resolveSuperClass(final VmClass vmClass, final VmCallback<VmClass> callback)
-//      throws IOException {
-//    getClassProperties(object.getClassId(), new VmCallback<VmClass>() {
-//      @Override
-//      public void handleResult(VmResult<VmClass> result) {
-//        if (!result.isError()) {
-//          object.setClassObject(result.getResult());
-//        }
-//
-//        if (callback != null) {
-//          callback.handleResult(result);
-//        }
-//      }
-//    });
-//  }
 
   private VmResult<VmClass> convertGetClassPropertiesResult(int classId, JSONObject object)
       throws JSONException {
@@ -784,9 +796,9 @@ public class VmConnection {
     }
 
     if (breakpoint == null) {
-      VmBreakpoint bp = new VmBreakpoint(url, line, breakpointId);
+      breakpoint = new VmBreakpoint(url, line, breakpointId);
 
-      breakpoints.add(bp);
+      breakpoints.add(breakpoint);
     } else {
       breakpoint.updateInfo(url, line);
 
