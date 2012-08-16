@@ -48,11 +48,6 @@ hooks = [
   },
   {
     "pattern": ".",
-    "action": ["python", "dart/tools/generate_projects.py", "language"],
-  },
-  {
-    # A change to a .gyp, .gypi, or to GYP itself should run the generator.
-    "pattern": ".",
     "action": ["python", "dart/tools/gyp_dart.py"],
   }
 ]
