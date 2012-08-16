@@ -13,9 +13,17 @@
  */
 package com.google.dart.eclipse;
 
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.MessageConsole.MessageStream;
+import com.google.dart.tools.ui.actions.DeployConsolePatternMatcher;
+
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.ui.console.ConsolePlugin;
+import org.eclipse.ui.console.IConsole;
+import org.eclipse.ui.console.MessageConsole;
+import org.eclipse.ui.console.MessageConsoleStream;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -92,6 +100,8 @@ public class DartEclipseUI extends Plugin {
     PLUGIN = this;
 
     super.start(context);
+
+    initConsole();
   }
 
   @Override
@@ -99,6 +109,37 @@ public class DartEclipseUI extends Plugin {
     super.stop(context);
 
     PLUGIN = null;
+  }
+
+  private void initConsole() {
+    final MessageConsole console = new MessageConsole("Dart Console", null);
+    console.addPatternMatchListener(new DeployConsolePatternMatcher());
+    ConsolePlugin.getDefault().getConsoleManager().addConsoles(new IConsole[] {console});
+
+    final MessageConsoleStream stream = console.newMessageStream();
+    stream.setActivateOnWrite(true);
+
+    DartCore.getConsole().addStream(new MessageStream() {
+      @Override
+      public void clear() {
+        console.clearConsole();
+      }
+
+      @Override
+      public void print(String s) {
+        stream.print(s);
+      }
+
+      @Override
+      public void println() {
+        stream.println();
+      }
+
+      @Override
+      public void println(String s) {
+        stream.println(s);
+      }
+    });
   }
 
 }

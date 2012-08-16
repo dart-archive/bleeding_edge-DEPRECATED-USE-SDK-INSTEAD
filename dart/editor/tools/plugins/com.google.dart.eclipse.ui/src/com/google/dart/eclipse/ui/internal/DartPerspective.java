@@ -13,20 +13,6 @@
  */
 package com.google.dart.eclipse.ui.internal;
 
-/*
- * Copyright (c) 2012, the Dart project authors.
- * 
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
- * 
- * http://www.eclipse.org/legal/epl-v10.html
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
- */
-
 import com.google.dart.tools.ui.DartUI;
 
 import org.eclipse.debug.ui.IDebugUIConstants;
@@ -42,16 +28,17 @@ import org.eclipse.ui.progress.IProgressConstants;
  * The Dart Tooling for Eclipse perspective.
  */
 public class DartPerspective implements IPerspectiveFactory {
-
+  private static final String BL = "bottomLeft"; //$NON-NLS-1$
   private static final String BR = "bottomRight"; //$NON-NLS-1$
   private static final String TL = "topLeft"; //$NON-NLS-1$
-  private static final String OUTLINE_FOLDER = "outlineFolder"; //$NON-NLS-1$
+  private static final String TR = "topRight"; //$NON-NLS-1$
 
   private static final String WIZARD_NEW_PROJECT = "com.google.dart.eclipse.wizards.newProject"; //$NON-NLS-1$
   private static final String WIZARD_NEW_FILE = "com.google.dart.eclipse.wizards.newFile"; //$NON-NLS-1$
   private static final String WIZARD_NEW_FOLDER = "org.eclipse.ui.wizards.new.folder"; //$NON-NLS-1$
 
   public DartPerspective() {
+
   }
 
   @Override
@@ -59,34 +46,30 @@ public class DartPerspective implements IPerspectiveFactory {
     String editorArea = layout.getEditorArea();
 
     // Top left: Project Explorer view
-    IFolderLayout topLeft = layout.createFolder(TL, IPageLayout.LEFT, 0.25f, editorArea);
+    IFolderLayout topLeft = layout.createFolder(TL, IPageLayout.LEFT, 0.22f, editorArea);
 
     topLeft.addView(IPageLayout.ID_PROJECT_EXPLORER);
     topLeft.addPlaceholder(DartUI.ID_APPS_VIEW);
 
-    // Bottom left: Outline view and Property Sheet view
-    IPlaceholderFolderLayout outlinefolder = layout.createPlaceholderFolder(
-        OUTLINE_FOLDER,
-        IPageLayout.BOTTOM,
-        0.50f,
-        TL);
-    outlinefolder.addPlaceholder(IPageLayout.ID_PROP_SHEET);
-    outlinefolder.addPlaceholder(DartUI.ID_DARTUNIT_VIEW);
+    // Bottom left: Property Sheet view
+    IPlaceholderFolderLayout propertiesfolder = layout.createPlaceholderFolder(BL,
+        IPageLayout.BOTTOM, 0.50f, TL);
+    propertiesfolder.addPlaceholder(IPageLayout.ID_PROP_SHEET);
+    propertiesfolder.addPlaceholder(DartUI.ID_DARTUNIT_VIEW);
 
     // Bottom right: info views
     IFolderLayout outputfolder = layout.createFolder(BR, IPageLayout.BOTTOM, 0.75f, editorArea);
     outputfolder.addView(IPageLayout.ID_PROBLEM_VIEW);
     outputfolder.addPlaceholder(NewSearchUI.SEARCH_VIEW_ID);
     outputfolder.addPlaceholder(IConsoleConstants.ID_CONSOLE_VIEW);
-    //TODO (pquitslund): move console to shared UI
-    //outputfolder.addPlaceholder(DartUI.ID_CONSOLE_VIEW);
     outputfolder.addPlaceholder(IPageLayout.ID_TASK_LIST);
     outputfolder.addPlaceholder(IProgressConstants.PROGRESS_VIEW_ID);
 
-    outlinefolder.addPlaceholder(IPageLayout.ID_OUTLINE);
+    // Top right: outline view
+    IFolderLayout outlinefolder = layout.createFolder(TR, IPageLayout.RIGHT, 0.74f, editorArea);
+    outlinefolder.addView(IPageLayout.ID_OUTLINE);
 
     layout.addActionSet(IPageLayout.ID_NAVIGATE_ACTION_SET);
-
     layout.addActionSet(IDebugUIConstants.LAUNCH_ACTION_SET);
 
     layout.addShowViewShortcut(NewSearchUI.SEARCH_VIEW_ID);
@@ -101,4 +84,5 @@ public class DartPerspective implements IPerspectiveFactory {
     layout.addNewWizardShortcut(WIZARD_NEW_FOLDER);
     layout.addNewWizardShortcut(WIZARD_NEW_FILE);
   }
+
 }

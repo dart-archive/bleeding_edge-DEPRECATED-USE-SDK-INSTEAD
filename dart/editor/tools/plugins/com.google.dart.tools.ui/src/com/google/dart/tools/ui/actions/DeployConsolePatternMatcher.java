@@ -102,7 +102,7 @@ public class DeployConsolePatternMatcher implements IPatternMatchListener {
 
   @Override
   public String getPattern() {
-    return " .*\\.dart:\\d*,";
+    return " .*\\.dart:\\d*";
   }
 
   @Override
@@ -164,12 +164,25 @@ public class DeployConsolePatternMatcher implements IPatternMatchListener {
   }
 
   private Location parseMatch(String match) {
-    // " foo.dart:123,"
+    // " foo.dart:123"
 
     match = match.trim();
 
-    if (match.endsWith(",")) {
-      match = match.substring(0, match.length() - 1);
+    // it could look something like this:
+    // #2      main (file:///Users/devoncarew/temp/pub-test/build.dart:23
+
+    int index = match.lastIndexOf('(');
+
+    if (index != -1) {
+      match = match.substring(index + 1);
+    }
+
+    if (match.startsWith("file://")) {
+      match = match.substring("file://".length());
+    }
+
+    if (match.startsWith("file:")) {
+      match = match.substring("file:".length());
     }
 
     String[] strs = match.split(":");

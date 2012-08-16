@@ -13,10 +13,7 @@
         <property file="build-settings/${user.name}.properties" />
 
         <tstamp>
-            <format property="build.date" pattern="yyyyMMddHHmm" />
-        </tstamp>
-        <tstamp>
-            <format property="build.year" pattern="yyyy" />
+            <format property="build.date" pattern="yyyy-MM-dd" />
         </tstamp>
 
         <fail unless="build.dir" message="build.dir property is required"/>
