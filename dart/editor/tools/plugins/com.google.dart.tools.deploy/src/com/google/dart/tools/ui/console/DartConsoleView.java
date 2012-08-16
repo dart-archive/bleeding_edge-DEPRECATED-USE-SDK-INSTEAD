@@ -244,10 +244,6 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       DebugPlugin.getDefault().getLaunchManager().removeLaunch(process.getLaunch());
     }
 
-    if (terminateAction.isEnabled()) {
-      terminateAction.run();
-    }
-
     terminateAction.dispose();
     clearAction.dispose();
 
