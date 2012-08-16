@@ -88,7 +88,7 @@ public class DartProjectImplTest extends TestCase {
     TestUtilities.runWithTempDirectory(new FileOperation() {
       @Override
       public void run(final File file) throws Exception {
-        IProject project = new MockProject() {
+        IProject project = new MockProject("testProject") {
           @Override
           public IPath getLocation() {
             return new Path(file.getAbsolutePath());
