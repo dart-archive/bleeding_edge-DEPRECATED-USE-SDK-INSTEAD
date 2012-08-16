@@ -886,6 +886,10 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     }
     FileWriter fileWriter = null;
     try {
+      File parentDirectory = file.getParentFile();
+      if (!parentDirectory.exists()) {
+        parentDirectory.mkdir();
+      }
       fileWriter = new FileWriter(file);
       PrintWriter writer = new PrintWriter(new BufferedWriter(fileWriter));
       for (String path : paths) {
@@ -997,16 +1001,17 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
    * @return the file that contains the paths to the project's children
    */
   private File getChildrenFile() {
-    // new File(DartCore.getPlugin().getStateLocation().append(getProject().getName()).append(CHILDREN_FILE_NAME).toOSString());
-    IProject project = getProject();
-    if (project == null) {
-      return null;
-    }
-    IPath location = project.getLocation();
-    if (location == null) {
-      return null;
-    }
-    return new File(location.append(CHILDREN_FILE_NAME).toOSString());
+    return new File(DartCore.getPlugin().getStateLocation().append(getProject().getName()).append(
+        CHILDREN_FILE_NAME).toOSString());
+//    IProject project = getProject();
+//    if (project == null) {
+//      return null;
+//    }
+//    IPath location = project.getLocation();
+//    if (location == null) {
+//      return null;
+//    }
+//    return new File(location.append(CHILDREN_FILE_NAME).toOSString());
   }
 
   private String getRelativePath(DartStringLiteral literal) {
