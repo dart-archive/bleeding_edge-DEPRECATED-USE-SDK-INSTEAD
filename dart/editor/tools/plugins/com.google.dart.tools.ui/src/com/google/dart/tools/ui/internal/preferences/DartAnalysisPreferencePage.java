@@ -53,7 +53,7 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
     return checkBox;
   }
 
-  private Button memberWarningForInferredTypes_check;
+  private Button typeChecksForInferredTypes_check;
 
   public DartAnalysisPreferencePage() {
     setPreferenceStore(null);
@@ -68,8 +68,8 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
   public boolean performOk() {
     boolean hasChanges = false;
     hasChanges |= applyCheck(
-        DartCore.MEMBER_WARNING_FOR_INFERRED_TYPES,
-        memberWarningForInferredTypes_check.getSelection(),
+        DartCore.TYPE_CHECKS_FOR_INFERRED_TYPES,
+        typeChecksForInferredTypes_check.getSelection(),
         true);
     if (hasChanges) {
       Job job = new CleanLibrariesJob();
@@ -83,9 +83,9 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
     Composite composite = new Composite(parent, SWT.NONE);
     GridLayoutFactory.fillDefaults().spacing(0, 8).margins(0, 10).applyTo(composite);
     // create UI
-    memberWarningForInferredTypes_check = createCheckBox(
+    typeChecksForInferredTypes_check = createCheckBox(
         composite,
-        PreferencesMessages.DartAnalysisPreferencePage_memberWarningForInferredTypes,
+        PreferencesMessages.DartAnalysisPreferencePage_typeChecksForInferredTypes,
         null);
     // done
     initFromPrefs();
@@ -94,8 +94,8 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
 
   private void initFromPrefs() {
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
-    memberWarningForInferredTypes_check.setSelection(prefs.getBoolean(
-        DartCore.MEMBER_WARNING_FOR_INFERRED_TYPES,
+    typeChecksForInferredTypes_check.setSelection(prefs.getBoolean(
+        DartCore.TYPE_CHECKS_FOR_INFERRED_TYPES,
         true));
   }
 

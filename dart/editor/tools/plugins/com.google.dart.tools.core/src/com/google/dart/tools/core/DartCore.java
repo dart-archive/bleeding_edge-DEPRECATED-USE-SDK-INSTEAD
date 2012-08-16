@@ -127,7 +127,7 @@ public class DartCore extends Plugin implements DartSdkListener {
   /**
    * Preference to control if "not a member" warnings should be suppressed for inferred types.
    */
-  public static final String MEMBER_WARNING_FOR_INFERRED_TYPES = "suppressNoMemberWarningForInferredTypes";
+  public static final String TYPE_CHECKS_FOR_INFERRED_TYPES = "typeChecksForInferredTypes";
 
   /**
    * Cached extensions for CSS files.

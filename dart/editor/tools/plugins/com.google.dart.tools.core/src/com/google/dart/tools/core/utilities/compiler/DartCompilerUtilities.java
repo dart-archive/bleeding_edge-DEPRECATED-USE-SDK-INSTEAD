@@ -480,9 +480,9 @@ public class DartCompilerUtilities {
 
   public static final CompilerOptions COMPILER_OPTIONS = new CompilerOptions() {
     @Override
-    public boolean memberWarningForInferredTypes() {
+    public boolean typeChecksForInferredTypes() {
       return DartCore.getPlugin().getPrefs().getBoolean(
-          DartCore.MEMBER_WARNING_FOR_INFERRED_TYPES,
+          DartCore.TYPE_CHECKS_FOR_INFERRED_TYPES,
           true);
     }
   };
