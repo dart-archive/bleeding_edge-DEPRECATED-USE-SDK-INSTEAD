@@ -74,7 +74,7 @@ class CustomElementsManager {
 
   CustomElementsManager._internal(this._lookup) {
     // TODO(samhop): check for ShadowDOM support
-    _customDeclarations = <_CustomDeclaration>{};
+    _customDeclarations = <String, _CustomDeclaration>{};
     // We use a ListMap because DOM objects aren't hashable right now.
     // TODO(samhop): DOM objects (and everything else) should be hashable
     _customElements = new ListMap<Element, WebComponent>();
