@@ -9,6 +9,64 @@ import java.io.File;
 public interface ScanCallback {
 
   /**
+   * Utility class for synchronously waiting for a scan to complete.
+   * 
+   * @see AnalysisServer#scan(File, ScanCallback)
+   */
+  public static class Sync implements ScanCallback {
+    private final Object lock = new Object();
+    private boolean complete = false;
+
+    @Override
+    public boolean isCanceled() {
+      return false;
+    }
+
+    @Override
+    public void progress(float progress) {
+      // ignored
+    }
+
+    @Override
+    public void scanCanceled(File rootFile) {
+      // ignored
+    }
+
+    @Override
+    public void scanComplete() {
+      synchronized (lock) {
+        complete = true;
+        lock.notifyAll();
+      }
+    }
+
+    /**
+     * Wait the specified number of milliseconds for the scan to complete.
+     * 
+     * @param milliseconds the maximum number of milliseconds to wait.
+     * @return <code>true</code> if the scan completed or <code>false</code> if the scan did not
+     *         complete within the specified amount of time.
+     */
+    public boolean waitForScan(long milliseconds) {
+      synchronized (lock) {
+        long end = System.currentTimeMillis() + milliseconds;
+        while (!complete) {
+          long delta = end - System.currentTimeMillis();
+          if (delta <= 0) {
+            break;
+          }
+          try {
+            lock.wait(delta);
+          } catch (InterruptedException e) {
+            //$FALL-THROUGH$
+          }
+        }
+        return complete;
+      }
+    }
+  }
+
+  /**
    * Answer <code>true</code> if the scanning process should stop.
    */
   boolean isCanceled();

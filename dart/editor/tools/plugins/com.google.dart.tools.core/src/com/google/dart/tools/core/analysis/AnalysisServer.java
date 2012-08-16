@@ -254,6 +254,19 @@ public class AnalysisServer {
 
   /**
    * Scan the specified file or recursively scan the specified directory for libraries to analyze.
+   * 
+   * @param file the file or directory of files to scan (not <code>null</code>).
+   * @param milliseconds the number of milliseconds to wait for the scan to complete.
+   * @return <code>true</code> if the scan completed in the specified amount of time.
+   */
+  public boolean scan(File file, long milliseconds) {
+    ScanCallback.Sync callback = new ScanCallback.Sync();
+    scan(file, callback);
+    return callback.waitForScan(milliseconds);
+  }
+
+  /**
+   * Scan the specified file or recursively scan the specified directory for libraries to analyze.
    * The callback is used to report progress and check if the operation has been canceled.
    * 
    * @param file the file or directory of files to scan (not <code>null</code>)
