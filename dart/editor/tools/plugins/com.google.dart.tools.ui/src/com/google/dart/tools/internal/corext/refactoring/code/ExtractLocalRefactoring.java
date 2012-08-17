@@ -23,6 +23,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.compiler.util.apache.ArrayUtils;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
@@ -33,6 +34,7 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.SourceRangeFactory;
+import com.google.dart.tools.internal.corext.codemanipulation.StubUtility;
 import com.google.dart.tools.internal.corext.dom.ASTNodes;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
@@ -78,6 +80,7 @@ public class ExtractLocalRefactoring extends Refactoring {
   private DartUnit unitNode;
   private SelectionAnalyzer selectionAnalyzer;
   private DartExpression rootExpression;
+  private DartExpression singleExpression;
   private String localName;
 
   private String[] guessedNames;
@@ -208,8 +211,14 @@ public class ExtractLocalRefactoring extends Refactoring {
    */
   public String[] guessNames() {
     if (guessedNames == null) {
-      // TODO(scheglov)
-      guessedNames = new String[0];
+      if (singleExpression != null) {
+        guessedNames = StubUtility.getVariableNameSuggestions(
+            singleExpression.getType(),
+            singleExpression,
+            getExcludedVariableNames());
+      } else {
+        guessedNames = ArrayUtils.EMPTY_STRING_ARRAY;
+      }
     }
     return guessedNames;
   }
@@ -247,6 +256,7 @@ public class ExtractLocalRefactoring extends Refactoring {
       DartNode selectedNode = selectionAnalyzer.getFirstSelectedNode();
       if (selectedNode instanceof DartExpression) {
         rootExpression = (DartExpression) selectedNode;
+        singleExpression = rootExpression;
         return new RefactoringStatus();
       }
     }
@@ -257,6 +267,7 @@ public class ExtractLocalRefactoring extends Refactoring {
         DartBinaryExpression binaryExpression = (DartBinaryExpression) coveringNode;
         if (utils.validateBinaryExpressionRange(binaryExpression, selectionRange)) {
           rootExpression = binaryExpression;
+          singleExpression = null;
           return new RefactoringStatus();
         }
       }

@@ -1,7 +1,9 @@
 package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractLocalRefactoring;
+import com.google.dart.tools.ui.internal.refactoring.contentassist.VariableNamesProcessor;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
+import com.google.dart.tools.ui.internal.util.ControlContentAssistHelper;
 import com.google.dart.tools.ui.internal.util.RowLayouter;
 
 import org.eclipse.core.runtime.Assert;
@@ -37,14 +39,14 @@ public class ExtractLocalWizard extends RefactoringWizard {
 
     private final boolean initialValid;
     private static final String DESCRIPTION = RefactoringMessages.ExtractLocalInputPage_enter_name;
-//    private final String[] nameProposals;
+    private final String[] nameProposals;
 
     private IDialogSettings fSettings;
 
     public ExtractLocalInputPage(String[] nameProposals) {
       super(DESCRIPTION, true, nameProposals.length == 0 ? "" : nameProposals[0]); //$NON-NLS-1$
       Assert.isNotNull(nameProposals);
-//      this.nameProposals = nameProposals;
+      this.nameProposals = nameProposals;
       initialValid = nameProposals.length > 0;
     }
 
@@ -65,9 +67,8 @@ public class ExtractLocalWizard extends RefactoringWizard {
       Text text = createTextInputField(result);
       text.selectAll();
       text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-      // TODO(scheglov)
-//      ControlContentAssistHelper.createTextContentAssistant(text, new VariableNamesProcessor(
-//          nameProposals));
+      ControlContentAssistHelper.createTextContentAssistant(text, new VariableNamesProcessor(
+          nameProposals));
 
       layouter.perform(label, text, 1);
 

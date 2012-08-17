@@ -212,6 +212,40 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
         "}");
   }
 
+  public void test_guessNames_fragmentExpression() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class TreeItem {}",
+        "TreeItem getSelectedItem() => null;",
+        "process(arg) {}",
+        "main() {",
+        "  process(111 + 222 + 333 + 444); // marker",
+        "}");
+    selectionStart = findOffset("222 +");
+    selectionEnd = findOffset(" + 444");
+    createRefactoring("res");
+    // no guesses
+    String[] names = refactoring.guessNames();
+    assertThat(names).isEmpty();
+  }
+
+  public void test_guessNames_singleExpression() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class TreeItem {}",
+        "TreeItem getSelectedItem() => null;",
+        "process(arg) {}",
+        "main() {",
+        "  process(getSelectedItem()); // marker",
+        "}");
+    selectionStart = findOffset("getSelectedItem()); // marker");
+    selectionEnd = findOffset("); // marker");
+    createRefactoring("res");
+    // check guesses
+    String[] names = refactoring.guessNames();
+    assertThat(names).contains("selectedItem", "item", "arg", "treeItem");
+  }
+
   public void test_occurences_disableOccurences() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
