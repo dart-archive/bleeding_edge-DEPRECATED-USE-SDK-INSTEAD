@@ -16,11 +16,16 @@ package com.google.dart.tools.internal.corext.dom;
 import com.google.common.collect.ImmutableList;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartDeclaration;
+import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartStatement;
+import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
+import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.VariableElement;
@@ -46,9 +51,35 @@ public class ASTNodes {
     return sourceInfo.getOffset() + sourceInfo.getLength();
   }
 
+  /**
+   * @return the {@link FieldElement} with {@link ElementKind#VARIABLE} if the given
+   *         {@link DartIdentifier} is the field reference, or <code>null</code> in the other case.
+   */
+  public static FieldElement getFieldElement(DartIdentifier node) {
+    NodeElement element = node.getElement();
+    if (ElementKind.of(element) == ElementKind.FIELD) {
+      return (FieldElement) element;
+    }
+    return null;
+  }
+
   public static int getInclusiveEnd(DartNode node) {
     SourceInfo sourceInfo = node.getSourceInfo();
     return sourceInfo.getOffset() + sourceInfo.getLength() - 1;
+  }
+
+  /**
+   * @return the {@link DartExpression} qualified if given node is name part of
+   *         {@link DartPropertyAccess}. May be <code>null</code>.
+   */
+  public static DartNode getNodeQualifier(DartIdentifier node) {
+    if (node.getParent() instanceof DartPropertyAccess) {
+      DartPropertyAccess propertyAccess = (DartPropertyAccess) node.getParent();
+      if (propertyAccess.getName() == node) {
+        return propertyAccess.getQualifier();
+      }
+    }
+    return null;
   }
 
   /**
@@ -56,8 +87,9 @@ public class ASTNodes {
    *         reference, or <code>null</code> in the other case.
    */
   public static VariableElement getParameterElement(DartIdentifier node) {
-    if (ElementKind.of(node.getElement()) == ElementKind.PARAMETER) {
-      return (VariableElement) node.getElement();
+    Element element = node.getElement();
+    if (ElementKind.of(element) == ElementKind.PARAMETER) {
+      return (VariableElement) element;
     }
     return null;
   }
@@ -67,33 +99,12 @@ public class ASTNodes {
    *         parameter.
    */
   public static int getParameterIndex(VariableElement variableElement) {
-    if (variableElement.getEnclosingElement() instanceof MethodElement) {
-      MethodElement methodElement = (MethodElement) variableElement.getEnclosingElement();
+    Element enclosingElement = variableElement.getEnclosingElement();
+    if (enclosingElement instanceof MethodElement) {
+      MethodElement methodElement = (MethodElement) enclosingElement;
       return methodElement.getParameters().indexOf(variableElement);
     }
     return -1;
-  }
-
-  /**
-   * Returns the closest ancestor of <code>node</code> that is an instance of
-   * <code>parentClass</code>, or <code>null</code> if none.
-   * <p>
-   * <b>Warning:</b> This method does not stop at any boundaries like parentheses, statements, body
-   * declarations, etc. The resulting node may be in a totally different scope than the given node.
-   * Consider using one of the {@link ASTResolving}<code>.find(..)</code> methods instead.
-   * </p>
-   * 
-   * @param node the node
-   * @param parentClass the class of the sought ancestor node
-   * @return the closest ancestor of <code>node</code> that is an instance of
-   *         <code>parentClass</code>, or <code>null</code> if none
-   */
-  @SuppressWarnings("unchecked")
-  public static <E extends DartNode> E getParent(DartNode node, Class<E> parentClass) {
-    do {
-      node = node.getParent();
-    } while (node != null && !parentClass.isInstance(node));
-    return (E) node;
   }
 
 //  private static class ChildrenCollector extends ASTVisitor<Void> {
@@ -612,6 +623,28 @@ public class ASTNodes {
 //  }
 
   /**
+   * Returns the closest ancestor of <code>node</code> that is an instance of
+   * <code>parentClass</code>, or <code>null</code> if none.
+   * <p>
+   * <b>Warning:</b> This method does not stop at any boundaries like parentheses, statements, body
+   * declarations, etc. The resulting node may be in a totally different scope than the given node.
+   * Consider using one of the {@link ASTResolving}<code>.find(..)</code> methods instead.
+   * </p>
+   * 
+   * @param node the node
+   * @param parentClass the class of the sought ancestor node
+   * @return the closest ancestor of <code>node</code> that is an instance of
+   *         <code>parentClass</code>, or <code>null</code> if none
+   */
+  @SuppressWarnings("unchecked")
+  public static <E extends DartNode> E getParent(DartNode node, Class<E> parentClass) {
+    do {
+      node = node.getParent();
+    } while (node != null && !parentClass.isInstance(node));
+    return (E) node;
+  }
+
+  /**
    * @return given {@link DartStatement} if not {@link DartBlock}, first child {@link DartStatement}
    *         if {@link DartBlock}, or <code>null</code> if more than one child.
    */
@@ -638,13 +671,29 @@ public class ASTNodes {
   }
 
   /**
+   * @return the {@link DartThisExpression} if given node is name of {@link DartPropertyAccess} with
+   *         {@link DartThisExpression} qualifier. May be <code>null</code>.
+   */
+  public static DartThisExpression getThisQualifier(DartIdentifier node) {
+    if (node.getParent() instanceof DartPropertyAccess) {
+      DartPropertyAccess propertyAccess = (DartPropertyAccess) node.getParent();
+      if (propertyAccess.getName() == node
+          && propertyAccess.getQualifier() instanceof DartThisExpression) {
+        return (DartThisExpression) propertyAccess.getQualifier();
+      }
+    }
+    return null;
+  }
+
+  /**
    * @return the {@link VariableElement} with {@link ElementKind#VARIABLE} if the given
    *         {@link DartIdentifier} is the local variable reference, or <code>null</code> in the
    *         other case.
    */
   public static VariableElement getVariableElement(DartIdentifier node) {
-    if (ElementKind.of(node.getElement()) == ElementKind.VARIABLE) {
-      return (VariableElement) node.getElement();
+    NodeElement element = node.getElement();
+    if (ElementKind.of(element) == ElementKind.VARIABLE) {
+      return (VariableElement) element;
     }
     return null;
   }

@@ -226,8 +226,8 @@ public final class RefactoringExecutionStarter {
       Shell shell) {
     try {
       DartElement[] elements = unit.codeSelect(offset, length);
-      if (elements.length == 1 && elements[0] instanceof Method) {
-        Method method = (Method) elements[0];
+      if (elements.length == 1 && elements[0] instanceof DartFunction) {
+        DartFunction method = (DartFunction) elements[0];
         InlineMethodRefactoring refactoring = new InlineMethodRefactoring(method, unit, offset);
         if (refactoring != null) {
           new RefactoringStarter().activate(

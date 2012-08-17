@@ -16,8 +16,10 @@ package com.google.dart.tools.internal.corext.refactoring.code;
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_CLASS_MEMBER_NAME;
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
@@ -28,23 +30,33 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartStatement;
+import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.Elements;
+import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.VariableElement;
+import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.internal.corext.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.dom.ASTNodes;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
+import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
+import com.google.dart.tools.internal.corext.refactoring.rename.FunctionLocalElement;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
+import com.google.dart.tools.ui.internal.util.DartModelUtil;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -59,6 +71,7 @@ import org.eclipse.text.edits.ReplaceEdit;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Inlines a method in a compilation unit based on a text selection range.
@@ -71,30 +84,75 @@ public class InlineMethodRefactoring extends Refactoring {
     INLINE_SINGLE;
   }
 
-//  private static class AAA {
-//    int zzz = 5;
-//
-//    void bar() {
-//      AAA aaa = new AAA();
-//      int c = foo(1, 2);
-//    }
-//
-//    int foo(int a, int b) {
-//      return zzz + a + b;
-//    }
-//  }
-
   private static class ParameterOccurrence {
-    final int parentOperatorPrecedence;
+    final int parentPrecedence;
     final SourceRange range;
 
-    public ParameterOccurrence(int parentOperatorPrecedence, SourceRange range) {
-      this.parentOperatorPrecedence = parentOperatorPrecedence;
+    public ParameterOccurrence(int parentPrecedence, SourceRange range) {
+      this.parentPrecedence = parentPrecedence;
       this.range = range;
     }
   }
 
-  private static final String EMPTY = ""; //$NON-NLS-1$
+  /**
+   * Information about part of the source in {@link #methodUnit}.
+   */
+  private static class SourcePart {
+    private final SourceRange baseRange;
+    final String source;
+    final String prefix;
+    final Map<Integer, List<ParameterOccurrence>> parameters = Maps.newHashMap();
+    final Map<VariableElement, List<SourceRange>> variables = Maps.newHashMap();
+    final List<SourceRange> instanceFieldQualifiers = Lists.newArrayList();
+    final Map<String, List<SourceRange>> staticFieldQualifiers = Maps.newHashMap();
+
+    public SourcePart(SourceRange baseRange, String source, String prefix) {
+      this.baseRange = baseRange;
+      this.source = source;
+      this.prefix = prefix;
+    }
+
+    public void addInstanceFieldQualifier(SourceRange range) {
+      range = SourceRangeFactory.fromBase(range, baseRange);
+      instanceFieldQualifiers.add(range);
+    }
+
+    public void addParameterOccurrence(int index, SourceRange range, int precedence) {
+      if (index != -1) {
+        List<ParameterOccurrence> occurrences = parameters.get(index);
+        if (occurrences == null) {
+          occurrences = Lists.newArrayList();
+          parameters.put(index, occurrences);
+        }
+        range = SourceRangeFactory.fromBase(range, baseRange);
+        occurrences.add(new ParameterOccurrence(precedence, range));
+      }
+    }
+
+    public void addStaticFieldQualifier(String className, SourceRange range) {
+      List<SourceRange> ranges = staticFieldQualifiers.get(className);
+      if (ranges == null) {
+        ranges = Lists.newArrayList();
+        staticFieldQualifiers.put(className, ranges);
+      }
+      range = SourceRangeFactory.fromBase(range, baseRange);
+      ranges.add(range);
+    }
+
+    public void addVariable(VariableElement element, SourceRange range) {
+      List<SourceRange> ranges = variables.get(element);
+      if (ranges == null) {
+        ranges = Lists.newArrayList();
+        variables.put(element, ranges);
+      }
+      range = SourceRangeFactory.fromBase(range, baseRange);
+      ranges.add(range);
+    }
+  }
+
+  private static ReplaceEdit createReplaceEdit(SourceRange range, String text) {
+    return new ReplaceEdit(range.getOffset(), range.getLength(), text);
+  }
 
   /**
    * @return {@link #getExpressionPrecedence(DartNode)} for parent node.
@@ -122,14 +180,13 @@ public class InlineMethodRefactoring extends Refactoring {
 
   private final TextChangeManager changeManager = new TextChangeManager(true);
   private boolean deleteSource;
-  private Mode fInitialMode;
-  private Mode fCurrentMode;
+  private Mode initialMode;
+  private Mode currentMode;
   private ExtractUtils methodUtils;
   private DartMethodDefinition methodNode;
-  private Map<Integer, List<ParameterOccurrence>> methodParameterRanges = Maps.newHashMap();
-  private DartExpression methodExpression;
-
-  private String methodExpressionSource;
+  private ClassElement methodClassElement;
+  private SourcePart methodExpressionPart;
+  private SourcePart methodStatementsPart;
 
   public InlineMethodRefactoring(DartFunction method, CompilationUnit selectionUnit,
       int selectionOffset) {
@@ -145,73 +202,71 @@ public class InlineMethodRefactoring extends Refactoring {
 
   @Override
   public RefactoringStatus checkFinalConditions(IProgressMonitor pm) throws CoreException {
-    pm.beginTask(RefactoringCoreMessages.InlineMethodRefactoring_processing, 3);
-    pm.subTask(EMPTY);
-
     RefactoringStatus result = new RefactoringStatus();
-
+    // begin task
+    pm.beginTask(RefactoringCoreMessages.InlineMethodRefactoring_processing, 3);
+    pm.subTask(StringUtils.EMPTY);
+    // find references
+    List<SearchMatch> references;
+    {
+      SubProgressMonitor pm2 = new SubProgressMonitor(pm, 1);
+      references = RenameAnalyzeUtil.getReferences(method, pm2);
+    }
     // replace all references
-    List<SearchMatch> references = RenameAnalyzeUtil.getReferences(method, new SubProgressMonitor(
-        pm,
-        1));
     for (SearchMatch reference : references) {
       CompilationUnit refUnit = reference.getElement().getAncestor(CompilationUnit.class);
+      TextChange refChange = changeManager.get(refUnit);
       ExtractUtils utils = new ExtractUtils(refUnit);
       // prepare invocation
       DartNode coveringNode = NodeFinder.find(
           utils.getUnitNode(),
           reference.getSourceRange().getOffset(),
           0).getCoveringNode();
-      DartInvocation invocationNode = ASTNodes.getAncestor(coveringNode, DartInvocation.class);
+      DartInvocation invocation = ASTNodes.getAncestor(coveringNode, DartInvocation.class);
       // we need invocation
-      if (invocationNode != null) {
+      if (invocation != null) {
+        DartStatement invocationStatement = ASTNodes.getAncestor(invocation, DartStatement.class);
+        SourceRange invocationLineRange = utils.getLinesRange(ImmutableList.of(invocationStatement));
+        String refPrefix = utils.getNodePrefix(invocationStatement);
         // may be only single place should be inlined
-        SourceRange invocationRange = SourceRangeFactory.create(invocationNode);
-        if (fCurrentMode == Mode.INLINE_SINGLE) {
+        SourceRange invocationRange = SourceRangeFactory.create(invocation);
+        if (currentMode == Mode.INLINE_SINGLE) {
           if (!SourceRangeUtils.contains(invocationRange, selectionOffset)) {
             continue;
           }
         }
-        // prepare arguments
-        List<DartExpression> arguments = invocationNode.getArguments();
-        // replace invocation with inlined expression XXX
-        List<ReplaceEdit> edits = Lists.newArrayList();
-        for (Entry<Integer, List<ParameterOccurrence>> entry : methodParameterRanges.entrySet()) {
-          int parameterIndex = entry.getKey();
-          // prepare argument
-          DartExpression argument = arguments.get(parameterIndex);
-          int argumentPrecedence = getExpressionPrecedence(argument);
-          String argumentSource = utils.getText(argument);
-          // replace all occurrences of this argument
-          for (ParameterOccurrence occurrence : entry.getValue()) {
-            SourceRange range = occurrence.range;
-            // prepare argument source to apply at this occurrence
-            String occurrenceArgumentSource;
-            if (argumentPrecedence > occurrence.parentOperatorPrecedence) {
-              occurrenceArgumentSource = argumentSource;
-            } else {
-              occurrenceArgumentSource = "(" + argumentSource + ")";
-            }
-            // do replace
-            edits.add(new ReplaceEdit(
-                range.getOffset(),
-                range.getLength(),
-                occurrenceArgumentSource));
-          }
+        // insert non-return statements
+        if (methodStatementsPart != null) {
+          // prepare statements source for invocation
+          String source = getMethodSourceForInvocation(methodStatementsPart, utils, invocation);
+          source = utils.getIndentSource(source, methodStatementsPart.prefix, refPrefix);
+          // do insert
+          SourceRange range = SourceRangeFactory.forStartLength(invocationLineRange, 0);
+          TextChangeCompatibility.addTextEdit(
+              refChange,
+              RefactoringCoreMessages.InlineMethodRefactoring_replace_references,
+              new ReplaceEdit(range.getOffset(), range.getLength(), source));
         }
-        // prepare source with applied arguments
-        String source = ExtractUtils.applyReplaceEdits(methodExpressionSource, edits);
-        // replace this reference
-        TextChange change = changeManager.get(refUnit);
-        SourceRange sourceRange = invocationRange;
-        TextChangeCompatibility.addTextEdit(
-            change,
-            RefactoringCoreMessages.InlineMethodRefactoring_replace_references,
-            new ReplaceEdit(sourceRange.getOffset(), sourceRange.getLength(), source));
+        // replace invocation with return expression
+        if (methodExpressionPart != null) {
+          // prepare expression source for invocation
+          String source = getMethodSourceForInvocation(methodExpressionPart, utils, invocation);
+          // do replace
+          SourceRange sourceRange = invocationRange;
+          TextChangeCompatibility.addTextEdit(
+              refChange,
+              RefactoringCoreMessages.InlineMethodRefactoring_replace_references,
+              new ReplaceEdit(sourceRange.getOffset(), sourceRange.getLength(), source));
+        } else {
+          TextChangeCompatibility.addTextEdit(
+              refChange,
+              RefactoringCoreMessages.InlineMethodRefactoring_replace_references,
+              new ReplaceEdit(invocationLineRange.getOffset(), invocationLineRange.getLength(), ""));
+        }
       }
     }
-    // delete source
-    if (deleteSource) {
+    // delete method
+    if (deleteSource && currentMode == Mode.INLINE_ALL) {
       SourceInfo methodSI = methodNode.getSourceInfo();
       int lineThisIndex = methodUtils.getLineThisIndex(methodSI.getOffset());
       int lineNextIndex = methodUtils.getLineNextIndex(methodSI.getEnd());
@@ -222,15 +277,6 @@ public class InlineMethodRefactoring extends Refactoring {
           new ReplaceEdit(lineThisIndex, lineNextIndex - lineThisIndex, ""));
     }
 
-    // XXX
-//    RefactoringStatus result = checkMethodName();
-//    pm.worked(1);
-//
-//    result.merge(checkParameterNames());
-//    pm.worked(1);
-//
-//    result.merge(checkPossibleConflicts(new SubProgressMonitor(pm, 1)));
-
     pm.done();
     return result;
   }
@@ -239,15 +285,15 @@ public class InlineMethodRefactoring extends Refactoring {
   public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException {
     try {
       pm.beginTask("", 4); //$NON-NLS-1$
-      RefactoringStatus result = new RefactoringStatus();
+      final RefactoringStatus result = new RefactoringStatus();
       // prepare mode
       {
         DartUnit selectionUnitNode = DartCompilerUtilities.resolveUnit(selectionUnit);
         DartNode node = NodeFinder.perform(selectionUnitNode, selectionOffset, 0);
         boolean methodNameSelected = getLocationInParent(node) == DART_CLASS_MEMBER_NAME;
-        fInitialMode = fCurrentMode = methodNameSelected ? Mode.INLINE_ALL : Mode.INLINE_SINGLE;
+        initialMode = currentMode = methodNameSelected ? Mode.INLINE_ALL : Mode.INLINE_SINGLE;
       }
-      // XXX
+      // prepare "methodX" information
       {
         methodUtils = new ExtractUtils(methodUnit);
         DartNode methodNameNode = NodeFinder.find(
@@ -255,43 +301,43 @@ public class InlineMethodRefactoring extends Refactoring {
             method.getNameRange().getOffset(),
             0).getCoveringNode();
         methodNode = ASTNodes.getAncestor(methodNameNode, DartMethodDefinition.class);
-        if (methodNode == null) {
-          return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.InlineMethodRefactoring_cannotFindMethodDeclaration);
+        if (methodNode.getElement().getEnclosingElement() instanceof ClassElement) {
+          methodClassElement = (ClassElement) methodNode.getElement().getEnclosingElement();
         }
-        // TODO(scheglov) only "return expression;" support right now
-        {
-          DartBlock body = methodNode.getFunction().getBody();
-          List<DartStatement> statements = body.getStatements();
-          if (statements.size() != 1 || !(statements.get(0) instanceof DartReturnStatement)) {
-            return RefactoringStatus.createFatalErrorStatus("Only methods with single 'return' are supported right now.");
+        // analyze method body
+        DartBlock body = methodNode.getFunction().getBody();
+        List<DartStatement> statements = body.getStatements();
+        if (statements.size() >= 1) {
+          DartStatement lastStatement = statements.get(statements.size() - 1);
+          // "return" statement requires special handling
+          if (lastStatement instanceof DartReturnStatement) {
+            DartExpression methodExpression = ((DartReturnStatement) lastStatement).getValue();
+            SourceRange methodExpressionRange = SourceRangeFactory.create(methodExpression);
+            methodExpressionPart = createSourcePart(methodExpressionRange);
+            // exclude "return" statement from statements
+            statements = ImmutableList.copyOf(statements).subList(0, statements.size() - 1);
           }
-          methodExpression = ((DartReturnStatement) statements.get(0)).getValue();
-          methodExpressionSource = methodUnit.getSource().substring(
-              methodExpression.getSourceInfo().getOffset(),
-              methodExpression.getSourceInfo().getEnd());
-          methodExpression.accept(new ASTVisitor<Void>() {
-            @Override
-            public Void visitIdentifier(DartIdentifier node) {
-              VariableElement parameterElement = ASTNodes.getParameterElement(node);
-              if (parameterElement != null) {
-                int parameterIndex = ASTNodes.getParameterIndex(parameterElement);
-                if (parameterIndex != -1) {
-                  List<ParameterOccurrence> occurrences = methodParameterRanges.get(parameterIndex);
-                  if (occurrences == null) {
-                    occurrences = Lists.newArrayList();
-                    methodParameterRanges.put(parameterIndex, occurrences);
-                  }
-                  int methodExpressionOffset = methodExpression.getSourceInfo().getOffset();
-                  SourceRange nodeRange = SourceRangeFactory.fromBase(node, methodExpressionOffset);
-                  occurrences.add(new ParameterOccurrence(
-                      getExpressionParentPrecedence(node),
-                      nodeRange));
-                }
-              }
-              return null;
-            }
-          });
+          // if there are statements, process them
+          if (statements.size() > 1) {
+            SourceRange statementsRange = methodUtils.getLinesRange(statements);
+            methodStatementsPart = createSourcePart(statementsRange);
+          }
         }
+        // check if we support such body
+        body.accept(new ASTVisitor<Void>() {
+          private int numReturns = 0;
+
+          @Override
+          public Void visitReturnStatement(DartReturnStatement node) {
+            numReturns++;
+            if (numReturns == 2) {
+              result.addError(
+                  RefactoringCoreMessages.InlineMethodRefactoring_multipleReturns,
+                  DartStatusContext.create(methodUnit, node));
+            }
+            return super.visitReturnStatement(node);
+          }
+        });
       }
       // done
       return result;
@@ -311,7 +357,7 @@ public class InlineMethodRefactoring extends Refactoring {
   }
 
   public Mode getInitialMode() {
-    return fInitialMode;
+    return initialMode;
   }
 
   public DartFunction getMethod() {
@@ -324,30 +370,214 @@ public class InlineMethodRefactoring extends Refactoring {
   }
 
   public RefactoringStatus setCurrentMode(Mode mode) throws DartModelException {
-    if (fCurrentMode == mode) {
-      return new RefactoringStatus();
-    }
-    // TODO(scheglov)
-//    Assert.isTrue(getInitialMode() == Mode.INLINE_SINGLE);
-    fCurrentMode = mode;
-//    if (mode == Mode.INLINE_SINGLE) {
-//      if (fInitialNode instanceof MethodInvocation)
-//        fTargetProvider= TargetProvider.create((ICompilationUnit) fInitialTypeRoot, (MethodInvocation)fInitialNode);
-//      else if (fInitialNode instanceof SuperMethodInvocation)
-//        fTargetProvider= TargetProvider.create((ICompilationUnit) fInitialTypeRoot, (SuperMethodInvocation)fInitialNode);
-//      else if (fInitialNode instanceof ConstructorInvocation)
-//        fTargetProvider= TargetProvider.create((ICompilationUnit) fInitialTypeRoot, (ConstructorInvocation)fInitialNode);
-//      else
-//        throw new IllegalStateException(String.valueOf(fInitialNode));
-//    } else {
-//      fTargetProvider= TargetProvider.create(fSourceProvider.getDeclaration());
-//    }
-//    return fTargetProvider.checkActivation();
+    currentMode = mode;
     return new RefactoringStatus();
   }
 
   public void setDeleteSource(boolean delete) {
     this.deleteSource = delete;
+  }
+
+  private SourcePart createSourcePart(final SourceRange sourceRange) throws DartModelException {
+    final SourcePart result;
+    {
+      String source = getMethodUnitSource(sourceRange);
+      String prefix = ExtractUtils.getLinesPrefix(source);
+      result = new SourcePart(sourceRange, source, prefix);
+    }
+    // remember parameters and variables occurrences
+    methodUtils.getUnitNode().accept(new ASTVisitor<Void>() {
+      @Override
+      public Void visitIdentifier(DartIdentifier node) {
+        addInstanceFieldQualifier(node);
+        addParameter(node);
+        addVariable(node);
+        return null;
+      }
+
+      @Override
+      public Void visitNode(DartNode node) {
+        SourceRange nodeRange = SourceRangeFactory.create(node);
+        if (!SourceRangeUtils.intersects(sourceRange, nodeRange)) {
+          return null;
+        }
+        return super.visitNode(node);
+      }
+
+      private void addInstanceFieldQualifier(DartIdentifier node) {
+        FieldElement fieldElement = ASTNodes.getFieldElement(node);
+        if (isMethodClassField(fieldElement)) {
+          if (Elements.isStaticField(fieldElement)) {
+            String className = fieldElement.getEnclosingElement().getName();
+            if (ASTNodes.getNodeQualifier(node) == null) {
+              SourceRange qualifierRange = SourceRangeFactory.forStartLength(node, 0);
+              result.addStaticFieldQualifier(className, qualifierRange);
+            }
+          } else {
+            SourceRange qualifierRange;
+            DartThisExpression qualifier = ASTNodes.getThisQualifier(node);
+            if (qualifier != null) {
+              qualifierRange = SourceRangeFactory.forStartStart(qualifier, node);
+            } else {
+              qualifierRange = SourceRangeFactory.forStartLength(node, 0);
+            }
+            result.addInstanceFieldQualifier(qualifierRange);
+          }
+        }
+      }
+
+      private void addParameter(DartIdentifier node) {
+        VariableElement parameterElement = ASTNodes.getParameterElement(node);
+        if (parameterElement != null) {
+          int parameterIndex = ASTNodes.getParameterIndex(parameterElement);
+          if (parameterIndex != -1) {
+            SourceRange nodeRange = SourceRangeFactory.create(node);
+            int parentPrecedence = getExpressionParentPrecedence(node);
+            result.addParameterOccurrence(parameterIndex, nodeRange, parentPrecedence);
+          }
+        }
+      }
+
+      private void addVariable(DartIdentifier node) {
+        VariableElement variableElement = ASTNodes.getVariableElement(node);
+        if (variableElement != null) {
+          SourceRange nodeRange = SourceRangeFactory.create(node);
+          result.addVariable(variableElement, nodeRange);
+        }
+      }
+    });
+    // done
+    return result;
+  }
+
+  /**
+   * @return the source which should replace given {@link DartInvocation}.
+   */
+  private String getMethodSourceForInvocation(SourcePart part, ExtractUtils utils,
+      DartInvocation invocation) throws DartModelException {
+    // prepare arguments
+    List<DartExpression> arguments = invocation.getArguments();
+    // prepare edits to replace parameters with arguments
+    List<ReplaceEdit> edits = Lists.newArrayList();
+    for (Entry<Integer, List<ParameterOccurrence>> entry : part.parameters.entrySet()) {
+      int parameterIndex = entry.getKey();
+      // prepare argument
+      DartExpression argument = arguments.get(parameterIndex);
+      int argumentPrecedence = getExpressionPrecedence(argument);
+      String argumentSource = utils.getText(argument);
+      // replace all occurrences of this parameter
+      for (ParameterOccurrence occurrence : entry.getValue()) {
+        SourceRange range = occurrence.range;
+        // prepare argument source to apply at this occurrence
+        String occurrenceArgumentSource;
+        if (argumentPrecedence < occurrence.parentPrecedence) {
+          occurrenceArgumentSource = "(" + argumentSource + ")";
+        } else {
+          occurrenceArgumentSource = argumentSource;
+        }
+        // do replace
+        edits.add(createReplaceEdit(range, occurrenceArgumentSource));
+      }
+    }
+    // replace static field "qualifier" with invocation target
+    for (Entry<String, List<SourceRange>> entry : part.staticFieldQualifiers.entrySet()) {
+      String className = entry.getKey();
+      for (SourceRange range : entry.getValue()) {
+        edits.add(createReplaceEdit(range, className + "."));
+      }
+    }
+    // replace instance field "qualifier" with invocation target
+    {
+      DartExpression targetExpression = invocation.getTarget();
+      String targetSource = utils.getText(targetExpression) + ".";
+      for (SourceRange qualifierRange : part.instanceFieldQualifiers) {
+        edits.add(createReplaceEdit(qualifierRange, targetSource));
+      }
+    }
+    // prepare edits to replace conflicting variables
+    Set<String> conflictingNames = getNamesConflictingWithLocal(utils.getUnit(), invocation);
+    for (Entry<VariableElement, List<SourceRange>> entry : part.variables.entrySet()) {
+      String originalName = entry.getKey().getName();
+      // prepare unique name
+      String uniqueName;
+      {
+        uniqueName = originalName;
+        int uniqueIndex = 2;
+        while (conflictingNames.contains(uniqueName)) {
+          uniqueName = originalName + uniqueIndex;
+          uniqueIndex++;
+        }
+      }
+      // update references, if name was change
+      if (!StringUtils.equals(uniqueName, originalName)) {
+        for (SourceRange range : entry.getValue()) {
+          edits.add(createReplaceEdit(range, uniqueName));
+        }
+      }
+    }
+    // prepare source with applied arguments
+    return ExtractUtils.applyReplaceEdits(part.source, edits);
+  }
+
+  /**
+   * @return the part of source from {@link #methodUnit}.
+   */
+  private String getMethodUnitSource(SourceRange range) throws DartModelException {
+    int start = range.getOffset();
+    int end = start + range.getLength();
+    return methodUnit.getSource().substring(start, end);
+  }
+
+  /**
+   * @return the names which will shadow or will be shadowed by any declaration at "node".
+   */
+  private Set<String> getNamesConflictingWithLocal(CompilationUnit unit, DartNode node)
+      throws DartModelException {
+    Set<String> result = Sets.newHashSet();
+    // prepare offsets
+    int offset = node.getSourceInfo().getOffset();
+    SourceRange offsetRange;
+    {
+      DartBlock block = ASTNodes.getAncestor(node, DartBlock.class);
+      int endOffset = block.getSourceInfo().getEnd();
+      offsetRange = SourceRangeFactory.forStartEnd(offset, endOffset);
+    }
+    // local variables and functions
+    {
+      DartFunction function = DartModelUtil.getElementContaining(unit, DartFunction.class, offset);
+      if (function != null) {
+        for (FunctionLocalElement element : RenameAnalyzeUtil.getFunctionLocalElements(function)) {
+          SourceRange variableRange = element.getVisibleRange();
+          if (SourceRangeUtils.intersects(variableRange, offsetRange)) {
+            result.add(element.getElementName());
+          }
+        }
+      }
+    }
+    // fields
+    {
+      Type enclosingType = DartModelUtil.getElementContaining(unit, Type.class, offset);
+      if (enclosingType != null) {
+        Set<Type> superTypes = RenameAnalyzeUtil.getSuperTypes(enclosingType);
+        Set<Type> types = Sets.newHashSet(superTypes);
+        types.add(enclosingType);
+        for (Type type : types) {
+          for (DartElement typeChild : type.getChildren()) {
+            result.add(typeChild.getElementName());
+          }
+        }
+      }
+    }
+    // done
+    return result;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link FieldElement} is a field of
+   *         {@link #methodClassElement} or one of its super-classes.
+   */
+  private boolean isMethodClassField(FieldElement field) {
+    return field != null && Elements.hasClassMember(methodClassElement, field.getName());
   }
 
 }

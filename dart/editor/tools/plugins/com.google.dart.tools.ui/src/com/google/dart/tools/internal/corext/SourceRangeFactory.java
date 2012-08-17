@@ -111,6 +111,10 @@ public class SourceRangeFactory {
     return new SourceRangeImpl(start, length);
   }
 
+  public static SourceRange forStartLength(SourceRange a, int length) {
+    return forStartLength(a.getOffset(), length);
+  }
+
   /**
    * @return the {@link SourceRange} which start at start of "a" and ends at start of "b".
    */
@@ -138,6 +142,22 @@ public class SourceRangeFactory {
   public static SourceRange fromBase(HasSourceInfo a, int base) {
     int start = a.getSourceInfo().getOffset() - base;
     int length = a.getSourceInfo().getLength();
+    return forStartLength(start, length);
+  }
+
+  /**
+   * @return the {@link SourceRange} of "a" with offset from given "base".
+   */
+  public static SourceRange fromBase(HasSourceInfo a, SourceRange base) {
+    return fromBase(a, base.getOffset());
+  }
+
+  /**
+   * @return the {@link SourceRange} "a" with offset from given "base".
+   */
+  public static SourceRange fromBase(SourceRange a, SourceRange base) {
+    int start = a.getOffset() - base.getOffset();
+    int length = a.getLength();
     return forStartLength(start, length);
   }
 

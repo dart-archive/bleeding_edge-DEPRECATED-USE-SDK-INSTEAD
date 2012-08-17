@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.code;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBinaryExpression;
@@ -83,6 +84,18 @@ public class ExtractUtils {
    */
   public static boolean covers(SourceRange r, DartNode node) {
     return SourceRangeUtils.covers(r, new SourceRangeImpl(node));
+  }
+
+  /**
+   * @return the line prefix from the given source, i.e. basically just whitespace prefix of the
+   *         given {@link String}.
+   */
+  public static String getLinesPrefix(String linesSource) {
+    int index = CharMatcher.WHITESPACE.negate().indexIn(linesSource);
+    if (index == -1) {
+      return linesSource;
+    }
+    return linesSource.substring(0, index);
   }
 
   /**
@@ -425,6 +438,10 @@ public class ExtractUtils {
    */
   public String getText(SourceRange range) {
     return getText(range.getOffset(), range.getLength());
+  }
+
+  public CompilationUnit getUnit() {
+    return unit;
   }
 
   /**

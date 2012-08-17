@@ -19,6 +19,7 @@ import com.google.dart.core.util.MethodOverrideTester;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.util.CharOperation;
+import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -26,6 +27,7 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
+import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeHierarchy;
 import com.google.dart.tools.core.model.TypeMember;
@@ -368,6 +370,17 @@ public final class DartModelUtil {
     return superTypes;
   }
 
+  public static Method[] getConstructorsOfType(Type type) throws DartModelException {
+    Method[] methods = type.getMethods();
+    List<Method> constList = new ArrayList<Method>();
+    for (Method method : methods) {
+      if (method.isConstructor()) {
+        constList.add(method);
+      }
+    }
+    return constList.toArray(new Method[constList.size()]);
+  }
+
 //  /**
 //   * Helper method that tests if an classpath entry can be found in a container.
 //   * <code>null</code> is returned if the entry can not be found or if the
@@ -453,15 +466,28 @@ public final class DartModelUtil {
 //    return null;
 //  }
 
-  public static Method[] getConstructorsOfType(Type type) throws DartModelException {
-    Method[] methods = type.getMethods();
-    List<Method> constList = new ArrayList<Method>();
-    for (Method method : methods) {
-      if (method.isConstructor()) {
-        constList.add(method);
+  /**
+   * @return the {@link DartElement} which contains given offset.
+   */
+  @SuppressWarnings("unchecked")
+  public static <T extends DartElement & SourceReference> T getElementContaining(
+      DartElement element, Class<T> elementClass, int offset) throws DartModelException {
+    // may be already Function
+    if (elementClass.isInstance(element)) {
+      T result = (T) element;
+      if (SourceRangeUtils.contains(result.getSourceRange(), offset)) {
+        return result;
       }
     }
-    return constList.toArray(new Method[constList.size()]);
+    // check children
+    for (DartElement child : element.getChildren()) {
+      T result = getElementContaining(child, elementClass, offset);
+      if (result != null) {
+        return result;
+      }
+    }
+    // not found
+    return null;
   }
 
   /**

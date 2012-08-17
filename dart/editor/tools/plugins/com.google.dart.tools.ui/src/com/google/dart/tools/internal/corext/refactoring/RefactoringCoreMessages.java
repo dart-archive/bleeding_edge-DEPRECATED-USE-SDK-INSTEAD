@@ -103,6 +103,15 @@ public final class RefactoringCoreMessages extends NLS {
   public static String InlineLocalRefactoring_select_temp;
   public static String InlineLocalRefactoring_declaration_inStatement;
 
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // Inline method refactoring
+  ///////////////////////////////////////////////////////////////////////////////////////
+  public static String InlineMethodRefactoring_processing;
+  public static String InlineMethodRefactoring_replace_references;
+  public static String InlineMethodRefactoring_remove_method;
+  public static String InlineMethodRefactoring_name;
+  public static String InlineMethodRefactoring_multipleReturns;
+
   // XXX
   // These constants were used, but later we decided to don't use them.
   //
@@ -881,12 +890,8 @@ public final class RefactoringCoreMessages extends NLS {
   public static String InlineMethodRefactoring_edit_inlineCall;
   public static String InlineMethodRefactoring_error_classFile;
   public static String InlineMethodRefactoring_error_noMethodDeclaration;
-  public static String InlineMethodRefactoring_name;
   public static String InlineMethodRefactoring_nestedInvocation;
   public static String InlineMethodRefactoring_original_pattern;
-  public static String InlineMethodRefactoring_processing;
-  public static String InlineMethodRefactoring_remove_method;
-  public static String InlineMethodRefactoring_replace_references;
   public static String InlineMethodRefactoring_searching;
   public static String InlineMethodRefactoring_SourceAnalyzer_abstract_methods;
   public static String InlineMethodRefactoring_SourceAnalyzer_declaration_has_errors;

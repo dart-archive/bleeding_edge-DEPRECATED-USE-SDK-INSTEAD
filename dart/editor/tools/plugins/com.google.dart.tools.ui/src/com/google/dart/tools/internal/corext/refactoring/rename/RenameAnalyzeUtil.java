@@ -319,7 +319,7 @@ public class RenameAnalyzeUtil {
   /**
    * @return all direct and indirect supertypes of the given {@link Type}.
    */
-  public static Set<Type> getSuperTypes(Type type) throws CoreException {
+  public static Set<Type> getSuperTypes(Type type) throws DartModelException {
     Set<Type> superTypes = Sets.newHashSet();
     DartLibrary library = type.getLibrary();
     if (library != null) {

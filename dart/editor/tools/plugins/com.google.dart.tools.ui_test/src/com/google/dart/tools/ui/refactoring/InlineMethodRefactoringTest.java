@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring;
 
 import org.eclipse.core.resources.IWorkspaceRunnable;
@@ -58,6 +57,24 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
       assertNotNull(method);
       assertEquals("test", method.getElementName());
     }
+  }
+
+  public void test_bad_severalReturns() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test() {",
+        "  if (true) {",
+        "    return 1;",
+        "  }",
+        "  return 2;",
+        "}",
+        "main() {",
+        "  var res = test(1, 2);",
+        "}");
+    selection = findOffset("test() {");
+    createRefactoring();
+    // error
+    assertTrue(refactoringStatus.hasError());
   }
 
   /**
@@ -104,6 +121,202 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
     assertEquals(true, refactoring.canEnableDeleteSource());
   }
 
+  public void test_function_hasReturn_noVars_oneUsage() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a, b) {",
+        "  print(a);",
+        "  print(b);",
+        "  return a + b;",
+        "}",
+        "main() {",
+        "  var v = test(1, 2);",
+        "}");
+    selection = findOffset("test(a, b)");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print(1);",
+        "  print(2);",
+        "  var v = 1 + 2;",
+        "}");
+  }
+
+  public void test_function_noReturn_hasVars_hasConflict_fieldSuperClass() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var c;",
+        "}",
+        "class B extends A {",
+        "  foo() {",
+        "    test(1, 2);",
+        "  }",
+        "}",
+        "test(a, b) {",
+        "  var c = a + b;",
+        "  print(c);",
+        "}");
+    selection = findOffset("test(a, b)");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var c;",
+        "}",
+        "class B extends A {",
+        "  foo() {",
+        "    var c2 = 1 + 2;",
+        "    print(c2);",
+        "  }",
+        "}",
+        "");
+  }
+
+  public void test_function_noReturn_hasVars_hasConflict_fieldThisClass() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var c;",
+        "  foo() {",
+        "    test(1, 2);",
+        "  }",
+        "}",
+        "test(a, b) {",
+        "  var c = a + b;",
+        "  print(c);",
+        "}");
+    selection = findOffset("test(a, b)");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var c;",
+        "  foo() {",
+        "    var c2 = 1 + 2;",
+        "    print(c2);",
+        "  }",
+        "}",
+        "");
+  }
+
+  public void test_function_noReturn_hasVars_hasConflict_localAfter() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a, b) {",
+        "  var c = a + b;",
+        "  print(c);",
+        "}",
+        "main() {",
+        "  test(1, 2);",
+        "  var c = 0;",
+        "}");
+    selection = findOffset("test(a, b)");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var c2 = 1 + 2;",
+        "  print(c2);",
+        "  var c = 0;",
+        "}");
+  }
+
+  public void test_function_noReturn_hasVars_hasConflict_localBefore() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a, b) {",
+        "  var c = a + b;",
+        "  print(c);",
+        "}",
+        "main() {",
+        "  var c = 0;",
+        "  test(1, 2);",
+        "}");
+    selection = findOffset("test(a, b)");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var c = 0;",
+        "  var c2 = 1 + 2;",
+        "  print(c2);",
+        "}");
+  }
+
+  public void test_function_noReturn_hasVars_noConflict() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a, b) {",
+        "  var c = a + b;",
+        "  print(c);",
+        "}",
+        "main() {",
+        "  test(1, 2);",
+        "}");
+    selection = findOffset("test(a, b)");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var c = 1 + 2;",
+        "  print(c);",
+        "}");
+  }
+
+  public void test_function_noReturn_noVars_oneUsage() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a, b) {",
+        "  print(a);",
+        "  print(b);",
+        "}",
+        "main() {",
+        "  test(1, 2);",
+        "}");
+    selection = findOffset("test(a, b)");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print(1);",
+        "  print(2);",
+        "}");
+  }
+
+  public void test_function_noReturn_noVars_useIndentation() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a, b) {",
+        "  print(a);",
+        "  print(b);",
+        "}",
+        "main() {",
+        "  {",
+        "    test(1, 2);",
+        "  }",
+        "}");
+    selection = findOffset("test(a, b)");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  {",
+        "    print(1);",
+        "    print(2);",
+        "  }",
+        "}");
+  }
+
   /**
    * Test for {@link InlineMethodRefactoring#getInitialMode()}
    */
@@ -136,6 +349,113 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
     selection = findOffset("test(1, 2)");
     createRefactoring();
     assertSame(InlineMethodRefactoring.Mode.INLINE_SINGLE, refactoring.getInitialMode());
+  }
+
+  public void test_method_qualifiedUnvocation_instanceField() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var fA;",
+        "}",
+        "class B extends A {",
+        "  var fB;",
+        "  test() {",
+        "    print(fA);",
+        "    print(fB);",
+        "    print(this.fA);",
+        "    print(this.fB);",
+        "  }",
+        "}",
+        "main() {",
+        "  B b = new B();",
+        "  b.test();",
+        "}",
+        "");
+    selection = findOffset("test() {");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var fA;",
+        "}",
+        "class B extends A {",
+        "  var fB;",
+        "}",
+        "main() {",
+        "  B b = new B();",
+        "  print(b.fA);",
+        "  print(b.fB);",
+        "  print(b.fA);",
+        "  print(b.fB);",
+        "}",
+        "");
+  }
+
+  public void test_method_qualifiedUnvocation_staticField() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  const FA = 1;",
+        "}",
+        "class B extends A {",
+        "  const FB = 2;",
+        "  test() {",
+        "    print(FA);",
+        "    print(FB);",
+        "  }",
+        "}",
+        "main() {",
+        "  B b = new B();",
+        "  b.test();",
+        "}",
+        "");
+    selection = findOffset("test() {");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  const FA = 1;",
+        "}",
+        "class B extends A {",
+        "  const FB = 2;",
+        "}",
+        "main() {",
+        "  B b = new B();",
+        "  print(A.FA);",
+        "  print(B.FB);",
+        "}",
+        "");
+  }
+
+  public void test_method_unqualifiedUnvocation() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test(a, b) {",
+        "    print(a);",
+        "    print(b);",
+        "    return a + b;",
+        "  }",
+        "  foo() {",
+        "    var v = test(1, 2);",
+        "  }",
+        "}",
+        "");
+    selection = findOffset("test(a, b)");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {",
+        "    print(1);",
+        "    print(2);",
+        "    var v = 1 + 2;",
+        "  }",
+        "}",
+        "");
   }
 
   public void test_singleExpression_oneUsage() throws Exception {
@@ -212,8 +532,9 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
         "  var res2 = test(10, 20);",
         "}");
     selection = findOffset("test(1, 2)");
-    deleteSource = false;
     mode = InlineMethodRefactoring.Mode.INLINE_SINGLE;
+    // this flag should be ignored
+    deleteSource = true;
     // do refactoring
     doSuccessfullRefactoring();
     assertTestUnitContent(
@@ -246,162 +567,6 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
         "}");
   }
 
-//  public void test_bad_selectionEmpty() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "}");
-//    selection = Integer.MAX_VALUE;
-//    createRefactoring();
-//    // check conditions
-//    assert_fatalError_selection();
-//  }
-//
-//  public void test_bad_selectionMethod() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "}");
-//    selection = findOffset("main() {");
-//    createRefactoring();
-//    // check conditions
-//    assert_fatalError_selection();
-//  }
-//
-//  public void test_bad_selectionVariable_hasAssignments_1() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "  int test = 0;",
-//        "  test = 1;",
-//        "}");
-//    selection = findOffset("test = 0;");
-//    createRefactoring();
-//    // check conditions
-//    assert_fatalError(MessageFormat.format(
-//        RefactoringCoreMessages.InlineLocalRefactoring_assigned_more_once,
-//        "test"));
-//  }
-//
-//  public void test_bad_selectionVariable_hasAssignments_2() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "  int test = 0;",
-//        "  test += 1;",
-//        "}");
-//    selection = findOffset("test = 0;");
-//    createRefactoring();
-//    // check conditions
-//    assert_fatalError(MessageFormat.format(
-//        RefactoringCoreMessages.InlineLocalRefactoring_assigned_more_once,
-//        "test"));
-//  }
-//
-//  public void test_bad_selectionVariable_notInBlock() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "  if (true)",
-//        "    int test = 0;",
-//        "}");
-//    selection = findOffset("test =");
-//    createRefactoring();
-//    // check conditions
-//    assert_fatalError(RefactoringCoreMessages.InlineLocalRefactoring_declaration_inStatement);
-//  }
-//
-//  public void test_bad_selectionVariable_notInitialized() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "  int test;",
-//        "}");
-//    selection = findOffset("test;");
-//    createRefactoring();
-//    // check conditions
-//    assert_fatalError(MessageFormat.format(
-//        RefactoringCoreMessages.InlineLocalRefactoring_not_initialized,
-//        "test"));
-//  }
-//
-//  public void test_bad_selectionVariable_parameter() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "f(var test) {",
-//        "}");
-//    selection = findOffset("test) {");
-//    createRefactoring();
-//    // check conditions
-//    assert_fatalError_selection();
-//  }
-//
-//  public void test_OK_noUsages_1() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "  int test = 1 + 2;",
-//        "  print(0);",
-//        "}");
-//    selection = findOffset("test = ");
-//    // do refactoring
-//    doSuccessfullRefactoring();
-//    assertTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "  print(0);",
-//        "}");
-//  }
-//
-//  public void test_OK_noUsages_2() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "  int test = 1 + 2;",
-//        "}");
-//    selection = findOffset("test = ");
-//    // do refactoring
-//    doSuccessfullRefactoring();
-//    assertTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "}");
-//  }
-//
-//  public void test_OK_twoUsages() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "  int test = 1 + 2;",
-//        "  print(test);",
-//        "  print(test);",
-//        "}");
-//    selection = findOffset("test = ");
-//    // do refactoring
-//    doSuccessfullRefactoring();
-//    assertTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "  print(1 + 2);",
-//        "  print(1 + 2);",
-//        "}");
-//  }
-//
-//  /**
-//   * Asserts that {@link refactoringStatus} has fatal error with given message.
-//   */
-//  private void assert_fatalError(String msg) {
-//    assertTrue(refactoringStatus.hasFatalError());
-//    assertEquals(msg, refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL));
-//  }
-//
-//  /**
-//   * Asserts that {@link refactoringStatus} has fatal error caused by wrong selection.
-//   */
-//  private void assert_fatalError_selection() {
-//    assert_fatalError(RefactoringCoreMessages.InlineLocalRefactoring_select_temp);
-//  }
-
   /**
    * Creates refactoring and checks all conditions.
    */
@@ -425,7 +590,6 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
   }
 
   private void performRefactoringChange() throws Exception {
-    TestProject.waitForAutoBuild();
     ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
       @Override
       public void run(IProgressMonitor monitor) throws CoreException {
@@ -434,6 +598,5 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
         new PerformChangeOperation(change).run(pm);
       }
     }, null);
-    TestProject.waitForAutoBuild();
   }
 }
