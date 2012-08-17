@@ -59,6 +59,9 @@ lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 swarm/swarm_test: Skip # Issue 3152: Timeout $.window().get$location().get$protocol is not a function
 
+[ $compiler == dart2js && $runtime == drt && $system == windows ]
+swarm/swarm_test: Fail # Issue 4517
+
 [ $runtime == opera ]
 *: Skip
 
