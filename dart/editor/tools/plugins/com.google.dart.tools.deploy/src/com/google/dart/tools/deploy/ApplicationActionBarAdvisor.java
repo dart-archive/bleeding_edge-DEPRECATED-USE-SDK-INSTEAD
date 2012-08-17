@@ -25,6 +25,7 @@ import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
+import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
@@ -172,6 +173,10 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   private DartRunAction dartRunAction;
 
   private GenerateJavascriptAction deployOptimizedAction;
+
+  private RunPubAction pubInstallAction;
+
+  private RunPubAction pubUpdateAction;
 
   private IWorkbenchAction importResourcesAction;
 
@@ -449,6 +454,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menuBar.add(createNavigateMenu());
     //menuBar.add(createBuildMenu());
     menuBar.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
+    menuBar.add(createViewMenu());
     menuBar.add(createToolsMenu());
     menuBar.add(createHelpMenu());
   }
@@ -472,6 +478,10 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     dartRunAction = new DartRunAction(window);
 
     deployOptimizedAction = new GenerateJavascriptAction(window);
+
+    pubInstallAction = new RunPubAction(window, RunPubAction.INSTALL_COMMAND);
+
+    pubUpdateAction = new RunPubAction(window, RunPubAction.UPDATE_COMMAND);
 
     newApplicationWizardAction = new OpenNewApplicationWizardAction();
 //TODO (pquitslund): deprecated libaries view support        
@@ -999,9 +1009,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     //menu.add(newEditorAction);
 
     //menu.add(new Separator());
-    addViewActions(menu);
-
-    menu.add(new Separator());
 
     menu.add(new OpenIntroEditorAction());
 
@@ -1017,6 +1024,11 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     menu.add(deployOptimizedAction);
 
+    // TODO(keertip): uncomment for pub support
+//    menu.add(new Separator());
+//    menu.add(pubInstallAction);
+//    menu.add(pubUpdateAction);
+
     Separator sep = new Separator(IWorkbenchActionConstants.MB_ADDITIONS);
     sep.setVisible(!Util.isMac());
     menu.add(sep);
@@ -1031,6 +1043,17 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     }
 
     //menu.add(ContributionItemFactory.OPEN_WINDOWS.create(getWindow()));
+    return menu;
+  }
+
+  /**
+   * Creates and returns the Window menu.
+   */
+  private MenuManager createViewMenu() {
+    MenuManager menu = new MenuManager("View", IWorkbenchActionConstants.M_WINDOW);
+
+    addViewActions(menu);
+
     return menu;
   }
 

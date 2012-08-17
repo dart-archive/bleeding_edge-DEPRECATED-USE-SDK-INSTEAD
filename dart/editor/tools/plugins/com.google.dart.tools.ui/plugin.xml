@@ -1994,6 +1994,12 @@
             id="com.google.dart.tools.ui.commands.unIgnoreResource"
             name="Analyze">
       </command>
+      <command
+            defaultHandler="com.google.dart.tools.ui.internal.handlers.PubInstallHandler"
+            description="Runs pub install "
+            id="com.google.dart.tools.ui.commands.pubInstall"
+            name="Pub Install">
+      </command>
       
    </extension>
       
@@ -3300,6 +3306,39 @@
             </test>
          </enabledWhen>
       </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <!--menuContribution
+            allPopups="false"
+            locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
+         <command
+               commandId="com.google.dart.tools.ui.commands.pubInstall"
+               label="Pub install"
+               style="push"
+               tooltip="Run pub install">
+                 <visibleWhen
+                  checkEnabled="false">
+                  <with
+                     variable="selection">
+                      <and>
+                          <count
+                                value="1">
+                          </count>
+                       <iterate>
+                        <adapt
+                             type="org.eclipse.core.resources.IResource">
+                          <test
+                                property="org.eclipse.core.resources.name"
+                                value="pubspec.yaml">
+                          </test>
+                       </adapt>
+                     </iterate>     
+                 </and>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution-->
    </extension>
 
 </plugin>

@@ -360,6 +360,9 @@ public final class ActionMessages extends NLS {
   public static String RemoveFromClasspathAction_Removing;
   public static String RemoveFromClasspathAction_exception_dialog_title;
   public static String RemoveFromClasspathAction_Problems_occurred;
+  public static String RunPubAction_cancel;
+  public static String RunPubAction_fileNotFound;
+  public static String RunPubAction_fail;
   public static String AddDelegateMethodsAction_error_title;
   public static String AddDelegateMethodsAction_error_actionfailed;
   public static String AddDelegateMethodsAction_label;
@@ -468,6 +471,11 @@ public final class ActionMessages extends NLS {
   public static String OpenExistingFolderWizardAction_tooltip;
   public static String OpenExistingFolderWizardAction_description;
   public static String OpenExistingFolderWizardAction_text;
+
+  public static String RunPubAction_commandDesc;
+  public static String RunPubAction_jobText;
+  public static String RunPubAction_jobFail;
+  public static String RunPubAction_commandText;
 
   public static ResourceBundle getBundle() {
     return bundle;

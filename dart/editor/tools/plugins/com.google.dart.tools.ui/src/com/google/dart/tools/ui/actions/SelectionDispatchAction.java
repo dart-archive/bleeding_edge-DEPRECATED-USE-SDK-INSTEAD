@@ -24,6 +24,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.ui.IWorkbenchWindow;
 
 /**
  * Action that dispatches the <code>IAction#run()</code> and the
@@ -48,8 +49,9 @@ import org.eclipse.ui.IWorkbenchSite;
 public abstract class SelectionDispatchAction extends AbstractInstrumentedAction implements
     ISelectionChangedListener {
 
-  private final IWorkbenchSite fSite;
+  private IWorkbenchSite fSite;
   private ISelectionProvider fSpecialSelectionProvider;
+  private IWorkbenchWindow window;
 
   /**
    * Creates a new action with no text and no image.
@@ -62,6 +64,11 @@ public abstract class SelectionDispatchAction extends AbstractInstrumentedAction
   protected SelectionDispatchAction(IWorkbenchSite site) {
     Assert.isNotNull(site);
     fSite = site;
+  }
+
+  protected SelectionDispatchAction(IWorkbenchWindow window) {
+    Assert.isNotNull(window);
+    this.window = window;
   }
 
   /**
@@ -88,7 +95,7 @@ public abstract class SelectionDispatchAction extends AbstractInstrumentedAction
     if (fSpecialSelectionProvider != null) {
       return fSpecialSelectionProvider;
     }
-    return fSite.getSelectionProvider();
+    return getSite().getSelectionProvider();
   }
 
   /**
@@ -97,7 +104,7 @@ public abstract class SelectionDispatchAction extends AbstractInstrumentedAction
    * @return the site's shell
    */
   public Shell getShell() {
-    return fSite.getShell();
+    return getSite().getShell();
   }
 
   /**
@@ -106,6 +113,9 @@ public abstract class SelectionDispatchAction extends AbstractInstrumentedAction
    * @return the site owning this action
    */
   public IWorkbenchSite getSite() {
+    if (fSite == null) {
+      fSite = window.getActivePage().getActivePart().getSite();
+    }
     return fSite;
   }
 
