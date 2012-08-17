@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,7 +19,6 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.model.SourceRange;
@@ -331,21 +330,6 @@ public class EditorUtility {
   public static IEditorPart openInEditor(Object inputElement, boolean activate)
       throws DartModelException, PartInitException {
 
-    if (inputElement instanceof DartResource) {
-      DartResource resource = (DartResource) inputElement;
-      if (resource.getUnderlyingResource() != null) {
-        inputElement = resource.getUnderlyingResource();
-      } else {
-        URI uri = ((DartResource) inputElement).getUri();
-        if (uri.getScheme().equals("file")) {
-          IFileStore fileStore = EFS.getLocalFileSystem().getStore(uri);
-          if (fileStore != null) {
-            inputElement = fileStore;
-          }
-        }
-
-      }
-    }
     if (inputElement instanceof IFile) {
       return openInEditor((IFile) inputElement, activate);
     }

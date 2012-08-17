@@ -46,7 +46,6 @@ import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.SourceRange;
@@ -72,7 +71,6 @@ import org.eclipse.core.runtime.QualifiedName;
 
 import java.io.File;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -81,10 +79,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Instances of the class <code>DartLibraryImpl</code> implement an object that represents a Dart library.
+ * Instances of the class <code>DartLibraryImpl</code> implement an object that represents a Dart
+ * library.
  */
-public class DartLibraryImpl extends OpenableElementImpl
-    implements DartLibrary, CompilationUnitContainer {
+public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
+    CompilationUnitContainer {
   public static final DartLibraryImpl[] EMPTY_LIBRARY_ARRAY = new DartLibraryImpl[0];
 
   /**
@@ -97,9 +96,8 @@ public class DartLibraryImpl extends OpenableElementImpl
    * @throws DartModelException if the transitive compilation units cannot be determined for some
    *           reason
    */
-  private static void addCompilationUnitsTransitively(
-      DartLibrary library, Set<CompilationUnit> units, Set<DartLibrary> libraries)
-      throws DartModelException {
+  private static void addCompilationUnitsTransitively(DartLibrary library,
+      Set<CompilationUnit> units, Set<DartLibrary> libraries) throws DartModelException {
     if (!libraries.contains(library)) {
       libraries.add(library);
 
@@ -190,8 +188,8 @@ public class DartLibraryImpl extends OpenableElementImpl
    * Initialize a newly created library to be contained in the given project.
    * 
    * @param project the project containing this library (not <code>null</code>)
-   * @param libraryFile the file containing the children of this library or <code>null</code> if this is
-   *          not part of the workspace
+   * @param libraryFile the file containing the children of this library or <code>null</code> if
+   *          this is not part of the workspace
    * @param sourceFile the library source file
    */
   public DartLibraryImpl(DartProjectImpl project, IFile libraryFile, LibrarySource sourceFile) {
@@ -219,34 +217,6 @@ public class DartLibraryImpl extends OpenableElementImpl
    */
   public DartLibraryImpl(LibrarySource source) {
     this(DartModelManager.getInstance().getDartModel().getExternalProject(), null, source);
-  }
-
-  @Override
-  public DartResource addResource(File file, IProgressMonitor monitor) throws DartModelException {
-    //
-    // Create a link to the file.
-    //
-    IFile resourceFile;
-    try {
-      resourceFile = IProjectUtilities.addLinkToProject(
-          getDartProject().getProject(),
-          file,
-          monitor);
-    } catch (CoreException exception) {
-      throw new DartModelException(exception);
-    }
-    DartResourceImpl resource = new DartResourceImpl(this, resourceFile);
-    //
-    // Add the text of the directive to this library's defining file.
-    //
-    if (addDirective(SourceUtilities.RESOURCE_DIRECTIVE, file, monitor)) {
-      //
-      // Add the resource to the list of resources associated with the library.
-      //
-      DartLibraryInfo info = (DartLibraryInfo) getElementInfo();
-      info.addChild(resource);
-    }
-    return resource;
   }
 
   @Override
@@ -303,8 +273,8 @@ public class DartLibraryImpl extends OpenableElementImpl
     if (this == o) {
       return true;
     }
-    return o instanceof DartLibraryImpl && getElementName().equals(
-        ((DartLibraryImpl) o).getElementName());
+    return o instanceof DartLibraryImpl
+        && getElementName().equals(((DartLibraryImpl) o).getElementName());
   }
 
   @Override
@@ -532,24 +502,13 @@ public class DartLibraryImpl extends OpenableElementImpl
   }
 
   @Override
-  public DartResource getResource(URI uri) {
-    return new DartResourceImpl(this, uri);
-  }
-
-  @Override
-  public DartResource[] getResources() throws DartModelException {
-    List<DartResource> resources = getChildrenOfType(DartResource.class);
-    return resources.toArray(new DartResource[resources.size()]);
-  }
-
-  @Override
   public IResource getUnderlyingResource() throws DartModelException {
     return null;
   }
 
   /**
-   * Return the URI of the library file that defines this library, or <code>null</code> if there is no
-   * such file or if the URI for the file cannot be determined for some reason.
+   * Return the URI of the library file that defines this library, or <code>null</code> if there is
+   * no such file or if the URI for the file cannot be determined for some reason.
    * 
    * @return the URI of the library file that defines this library
    */
@@ -578,9 +537,8 @@ public class DartLibraryImpl extends OpenableElementImpl
     try {
       children = getChildren();
     } catch (DartModelException e) {
-      DartCore.logError(
-          "Could not determine whether " + getDisplayName() + " contains a main() method",
-          e);
+      DartCore.logError("Could not determine whether " + getDisplayName()
+          + " contains a main() method", e);
       return false;
     }
     for (DartElement child : children) {
@@ -590,10 +548,8 @@ public class DartLibraryImpl extends OpenableElementImpl
         try {
           functions = unit.getChildrenOfType(DartFunction.class);
         } catch (DartModelException e) {
-          DartCore.logError(
-              "Could not determine whether " + unit.getElementName() + " in " + getDisplayName()
-                  + " contains a main() method",
-              e);
+          DartCore.logError("Could not determine whether " + unit.getElementName() + " in "
+              + getDisplayName() + " contains a main() method", e);
           continue;
         }
         for (DartFunction funct : functions) {
@@ -630,8 +586,8 @@ public class DartLibraryImpl extends OpenableElementImpl
   }
 
   /**
-   * Answer <code>true</code> if the receiver directly or indirectly imports the dart:dom_deprecated or
-   * dart:html libraries
+   * Answer <code>true</code> if the receiver directly or indirectly imports the dart:dom_deprecated
+   * or dart:html libraries
    */
   public boolean isOrImportsBrowserLibrary() {
     List<DartLibrary> visited = new ArrayList<DartLibrary>(10);
@@ -701,8 +657,9 @@ public class DartLibraryImpl extends OpenableElementImpl
             topLevel ? "true" : null);
         DartElementDeltaImpl delta = new DartElementDeltaImpl(this);
         delta.changed(DartElementDelta.F_TOP_LEVEL);
-        DartModelManager.getInstance()
-            .getDeltaProcessor().fire(delta, ElementChangedEvent.POST_CHANGE);
+        DartModelManager.getInstance().getDeltaProcessor().fire(
+            delta,
+            ElementChangedEvent.POST_CHANGE);
       } catch (CoreException exception) {
         // Ignore
       }
@@ -793,8 +750,9 @@ public class DartLibraryImpl extends OpenableElementImpl
         try {
           librarySource = sourceFile.getImportFor(relativePath);
         } catch (Exception exception) {
-          DartCore.logError("Failed to resolve import " + relativePath + " in "
-              + sourceFile.getUri(), exception);
+          DartCore.logError(
+              "Failed to resolve import " + relativePath + " in " + sourceFile.getUri(),
+              exception);
           return null;
         }
         if (librarySource == null) {
@@ -954,8 +912,8 @@ public class DartLibraryImpl extends OpenableElementImpl
   }
 
   @Override
-  protected DartElement getHandleFromMemento(
-      String token, MementoTokenizer tokenizer, WorkingCopyOwner owner) {
+  protected DartElement getHandleFromMemento(String token, MementoTokenizer tokenizer,
+      WorkingCopyOwner owner) {
     switch (token.charAt(0)) {
       case MEMENTO_DELIMITER_COMPILATION_UNIT:
         if (!tokenizer.hasMoreTokens()) {
@@ -988,23 +946,17 @@ public class DartLibraryImpl extends OpenableElementImpl
           return this;
         }
         String htmlPath = tokenizer.nextToken();
-        HTMLFileImpl file = new HTMLFileImpl(this, libraryFile.getProject().getFile(new Path(
-            htmlPath)));
+        HTMLFileImpl file = new HTMLFileImpl(this, libraryFile.getProject().getFile(
+            new Path(htmlPath)));
         return file.getHandleFromMemento(tokenizer, owner);
       case MEMENTO_DELIMITER_RESOURCE:
         if (!tokenizer.hasMoreTokens()) {
           return this;
         }
-        String resourceUri = tokenizer.nextToken();
-        try {
-          DartResourceImpl resource = new DartResourceImpl(this, new URI(resourceUri));
-          return resource.getHandleFromMemento(tokenizer, owner);
-        } catch (URISyntaxException exception) {
-          DartCore.logError(
-              "Illegal URI found in memento for a resource: \"" + resourceUri + "\"",
-              exception);
-          return null;
-        }
+        // Resource directives are no longer part of the spec
+        // Consume the next token which is the resource URI
+        tokenizer.nextToken();
+        return null;
     }
     return null;
   }
@@ -1041,9 +993,8 @@ public class DartLibraryImpl extends OpenableElementImpl
    * prevent superclass method from trying to open the parent of an external library.
    */
   @Override
-  protected void openAncestors(
-      HashMap<DartElement, DartElementInfo> newElements, IProgressMonitor monitor)
-      throws DartModelException {
+  protected void openAncestors(HashMap<DartElement, DartElementInfo> newElements,
+      IProgressMonitor monitor) throws DartModelException {
     if (getParent().exists()) {
       super.openAncestors(newElements, monitor);
     }
@@ -1061,8 +1012,8 @@ public class DartLibraryImpl extends OpenableElementImpl
    * 
    * @param directiveName the name of the directive (with the leading pound sign)
    * @param file the file to reference in the directive
-   * @param monitor the progress monitor used to provide feedback to the user, or <code>null</code> if
-   *          no feedback is desired
+   * @param monitor the progress monitor used to provide feedback to the user, or <code>null</code>
+   *          if no feedback is desired
    * @return <code>true</code> if the change was saved to disk, requiring the model to be updated
    * @throws DartModelException if the directive cannot be added
    */
@@ -1074,17 +1025,15 @@ public class DartLibraryImpl extends OpenableElementImpl
         monitor);
     boolean hadUnsavedChanges = workingCopy.hasUnsavedChanges();
     Buffer buffer = workingCopy.getBuffer();
-    String relativePath = libraryFile.getLocation()
-        .removeLastSegments(1).toFile().toURI().relativize(file.toURI()).getPath();
+    String relativePath = libraryFile.getLocation().removeLastSegments(1).toFile().toURI().relativize(
+        file.toURI()).getPath();
     int insertionPoint = SourceUtilities.findInsertionPointForSource(
         buffer.getContents(),
         directiveName,
         relativePath);
     // TODO(brianwilkerson) This won't add a blank line if this is the first directive of its kind.
-    buffer.replace(
-        insertionPoint,
-        0,
-        directiveName + "('" + relativePath + "');" + SourceUtilities.LINE_SEPARATOR);
+    buffer.replace(insertionPoint, 0, directiveName + "('" + relativePath + "');"
+        + SourceUtilities.LINE_SEPARATOR);
     workingCopy.makeConsistent(monitor);
 
     if (!hadUnsavedChanges) {
@@ -1129,9 +1078,8 @@ public class DartLibraryImpl extends OpenableElementImpl
     try {
       children = getChildren();
     } catch (DartModelException e) {
-      DartCore.logError(
-          "Could not determine if " + getDisplayName() + " has an HTML file referencing it",
-          e);
+      DartCore.logError("Could not determine if " + getDisplayName()
+          + " has an HTML file referencing it", e);
       return false;
     }
     for (DartElement child : children) {
@@ -1141,10 +1089,8 @@ public class DartLibraryImpl extends OpenableElementImpl
         try {
           referencedLibraries = htmlFile.getReferencedLibraries();
         } catch (DartModelException e) {
-          DartCore.logError(
-              "Could not determine if " + htmlFile.getElementName() + " references "
-                  + getDisplayName(),
-              e);
+          DartCore.logError("Could not determine if " + htmlFile.getElementName() + " references "
+              + getDisplayName(), e);
           continue;
         }
         for (DartLibrary lib : referencedLibraries) {
@@ -1168,8 +1114,10 @@ public class DartLibraryImpl extends OpenableElementImpl
     try {
       if (sourceFile != null) {
         fileName = sourceFile.getName();
-        return DartCompilerUtilities.parseSource(fileName, FileUtilities.getContents(
-            sourceFile.getSourceReader()), null);
+        return DartCompilerUtilities.parseSource(
+            fileName,
+            FileUtilities.getContents(sourceFile.getSourceReader()),
+            null);
       }
       if (libraryFile != null && libraryFile.exists()) {
         fileName = libraryFile.getName();

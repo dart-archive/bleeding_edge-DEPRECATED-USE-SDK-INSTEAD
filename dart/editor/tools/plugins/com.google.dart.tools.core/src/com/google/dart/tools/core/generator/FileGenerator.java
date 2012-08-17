@@ -190,10 +190,7 @@ public class FileGenerator extends AbstractGenerator {
       if (isSrc) {
         library.addSource(systemFile, monitor);
       } else {
-        // else, add the #resource for all non-html resource files
-        if (!DartCore.isHTMLLikeFileName(fileName)) {
-          library.addResource(systemFile, monitor);
-        } else {
+        if (DartCore.isHTMLLikeFileName(fileName)) {
           // Even though we aren't having the #resource(..) added for new HTML files, we do need the
           // new file linked into the project so that the resource change listener will be able to
           // trigger the DeltaProcessor.

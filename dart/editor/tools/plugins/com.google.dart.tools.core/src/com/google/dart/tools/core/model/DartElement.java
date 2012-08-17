@@ -127,12 +127,6 @@ public interface DartElement extends IAdaptable {
   public static int TYPE_PARAMETER = 19;
 
   /**
-   * A constant representing a resource within a library. A Dart element with this type can be
-   * safely cast to {@link DartResource}.
-   */
-  public static int DART_RESOURCE = 18;
-
-  /**
    * An empty array of elements.
    */
   public static final DartElement[] EMPTY_ARRAY = new DartElement[0];

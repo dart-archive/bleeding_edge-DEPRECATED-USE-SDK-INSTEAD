@@ -30,18 +30,6 @@ public interface DartLibrary extends OpenableElement, ParentElement {
   public static final DartLibrary[] EMPTY_LIBRARY_ARRAY = new DartLibrary[0];
 
   /**
-   * Add a #resource directive that will cause the given file to be included in this library. Return
-   * the file representing the resource that was added.
-   * 
-   * @param file the file to be added to the library
-   * @param monitor the progress monitor used to provide feedback to the user, or <code>null</code>
-   *          if no feedback is desired
-   * @return the file representing the resource that was added
-   * @throws DartModelException if the directive cannot be added
-   */
-  public DartResource addResource(File file, IProgressMonitor monitor) throws DartModelException;
-
-  /**
    * Add a #source directive that will cause the given file to be included in this library. This
    * method does not verify that it is valid for the file to be included using a #source directive
    * (does not itself contain any directives). Return the compilation unit representing the source
@@ -170,23 +158,6 @@ public interface DartLibrary extends OpenableElement, ParentElement {
    * @throws DartModelException if the list of libraries could not be determined
    */
   public List<DartLibrary> getReferencingLibraries() throws DartModelException;
-
-  /**
-   * Return a resource corresponding to the given URI. This is a handle-only method. The resource
-   * may or may not be present.
-   * 
-   * @param uri the URI corresponding to the resource to be returned
-   * @return a resource corresponding to the given URI
-   */
-  public DartResource getResource(URI uri);
-
-  /**
-   * Return an array containing all of the resources that are included in this library.
-   * 
-   * @return an array containing all of the resources that are included in this library
-   * @throws DartModelException if the list of resources could not be determined for some reason
-   */
-  public DartResource[] getResources() throws DartModelException;
 
   /**
    * Return the URI of the library file that defines this library, or <code>null</code> if there is

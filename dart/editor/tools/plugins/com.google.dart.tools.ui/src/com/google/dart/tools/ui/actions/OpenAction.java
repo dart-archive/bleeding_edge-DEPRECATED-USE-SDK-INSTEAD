@@ -17,7 +17,6 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.utilities.ast.DartElementLocator;
@@ -324,9 +323,6 @@ public class OpenAction extends SelectionDispatchAction {
         continue;
       }
       if (element instanceof HTMLFile) {
-        continue;
-      }
-      if (element instanceof DartResource) {
         continue;
       }
       return false;

@@ -251,8 +251,6 @@ public class DartElementImageProvider {
         //TODO (pquitslund): top-level vars should have their own descriptors
         return getFieldImageDescriptor(false, var.isPrivate());
       }
-      case DartElement.DART_RESOURCE:
-        return DartPluginImages.DESC_OBJS_FILE;
       default:
         // ignore. Must be a new, yet unknown element
         // give an advanced IWorkbenchAdapter the chance

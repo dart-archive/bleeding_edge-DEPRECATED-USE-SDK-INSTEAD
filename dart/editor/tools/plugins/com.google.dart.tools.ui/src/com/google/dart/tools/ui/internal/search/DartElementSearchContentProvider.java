@@ -27,7 +27,6 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.ParentElement;
 import com.google.dart.tools.ui.ImportedDartLibrary;
@@ -260,8 +259,7 @@ public class DartElementSearchContentProvider implements ITreeContentProvider {
       }
     } else {
       // don't allow to drill down into a compilation unit
-      if (element instanceof CompilationUnit || element instanceof IFile
-          || element instanceof DartResource) {
+      if (element instanceof CompilationUnit || element instanceof IFile) {
         return false;
       }
     }
