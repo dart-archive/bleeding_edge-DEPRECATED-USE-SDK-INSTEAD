@@ -9,7 +9,7 @@
  *  Issue wraps JSON structure that describes a bug.
  */
 class Issue {
-  Dynamic json;
+  final json;
   String id, state, title, content;
   Issue(this.json) {
     id = json[@"issues$id"][@"$t"];
@@ -17,26 +17,22 @@ class Issue {
     title = json[@"title"][@"$t"];
     content = json[@"content"][@"$t"];
   }
-  String toString() => "<h2>$title (id=$id $state)</h2><pre>$content</pre>";
+  String toHTML() => "<h2>$title (id=$id $state)</h2><pre>$content</pre>";
 }
 
 /**
  * Decodes JSON into a list of Issues.
  */
-List<Issue> getIssues(Dynamic json) {
-  List<Issue> result = new List<Issue>();
-  for (Dynamic entry in json["feed"]["entry"]) result.add(new Issue(entry));
-  return result;
+List<Issue> getIssues(json) {
+  return json["feed"]["entry"].map((data) => new Issue(data));
 }
 
 /**
  * Iterates over the recieved issues and construct HTML for them.
  */
-void processJson(Dynamic data) {
-  StringBuffer buffer = new StringBuffer("");
-  for (Issue issue in getIssues(data)) {
-    buffer.add(issue.toString());
-  }
+void processJson(json) {
+  StringBuffer buffer = new StringBuffer();
+  getIssues(json).forEach((Issue issue) => buffer.add(issue.toHTML()));
   query("#container").innerHTML = buffer.toString();
 }
 
