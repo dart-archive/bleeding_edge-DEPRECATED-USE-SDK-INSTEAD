@@ -22,7 +22,7 @@ public class TestAll {
     suite.addTestSuite(AnalyzeLibraryTaskTest.class);
     suite.addTestSuite(AnalysisServerTest.class);
     suite.addTestSuite(CacheTest.class);
-    suite.addTestSuite(ApplicationContextTest.class);
+    //suite.addTestSuite(ApplicationContextTest.class);
     suite.addTestSuite(ContextTest.class);
     //suite.addTestSuite(EditContextTest.class);
     suite.addTestSuite(FileChangedTaskTest.class);
