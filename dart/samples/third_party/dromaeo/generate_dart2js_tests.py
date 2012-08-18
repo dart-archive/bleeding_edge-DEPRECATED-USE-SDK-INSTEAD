@@ -70,8 +70,8 @@ def HtmlConvert(infile, compiler):
   if head == 'tests':
     os.chdir('..')
 
-# Compile individual dom and html tests.
-tests = glob.glob('tests/dom-*-*.html')
+# Compile individual html tests.
+tests = glob.glob('tests/dom-*-html.html')
 
 for test in tests:
   HtmlConvert(test, 'dart2js')
