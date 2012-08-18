@@ -32,7 +32,159 @@ import java.util.Iterator;
  * Scan the specified folder and all subfolders for Dart libraries. Add any libraries and loose dart
  * files found to the {@link AnalysisServer}.
  */
-class ScanTask extends Task implements TaskListener {
+public class ScanTask extends Task implements TaskListener {
+
+  public enum DartFileType {
+    Library,
+    PartOf,
+    Unknown
+  };
+
+  /**
+   * Scan the input stream for a directive indicating that the Dart file is a library
+   */
+  public static DartFileType scanContent(InputStream in, byte[] buffer) throws IOException {
+    int state = 0;
+    int nestedCommentLevel = 0;
+    while (true) {
+
+      int count = in.read(buffer);
+      if (count == -1) {
+        return DartFileType.Unknown;
+      }
+
+      int index = 0;
+      while (index < count) {
+        byte ch = buffer[index++];
+        switch (state) {
+
+          case 0: // scan for '#' indicating a directive
+            if (ch == '#') {
+              return DartFileType.Library;
+            }
+            if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n') {
+              state = 0;
+              break;
+            }
+            if (ch == '/') { // comment start
+              state = 1;
+              break;
+            }
+            if (ch == 'l' && matchIdentifier(buffer, index - 1, "library")) {
+              return DartFileType.Library;
+            }
+            if (ch == 'i' && matchIdentifier(buffer, index - 1, "import")) {
+              return DartFileType.Library;
+            }
+            if (ch == 'p' && matchIdentifier(buffer, index - 1, "part")) {
+              index += 3;
+              state = 6;
+              break;
+            }
+            return DartFileType.Unknown;
+
+          case 1: // scan single line or multi line comment
+            if (ch == '/') { // single line comment start
+              state = 2;
+              break;
+            }
+            if (ch == '*') { // multi line comment start
+              state = 3;
+              break;
+            }
+            return DartFileType.Unknown;
+
+          case 2: // scan single line comment
+            if (ch == '\r' || ch == '\n') {
+              state = 0;
+              break;
+            }
+            break;
+
+          case 3: // scan for multi line comment which may be nested
+            if (ch == '/') { // could be nested multi line comment
+              state = 4;
+              break;
+            }
+            if (ch == '*') { // could be end of this comment
+              state = 5;
+              break;
+            }
+            break;
+
+          case 4: // possible nested comment
+            if (ch == '*') { // nested multi line comment
+              nestedCommentLevel++;
+              state = 3;
+              break;
+            }
+            if (ch == '/') { // could be a nested multi line comment
+              state = 4;
+              break;
+            }
+            state = 3;
+            break;
+
+          case 5: // possible end of multi line comment
+            if (ch == '/') { // end of multi line comment
+              if (nestedCommentLevel == 0) {
+                state = 0;
+                break;
+              }
+              nestedCommentLevel--;
+              state = 3;
+              break;
+            }
+            if (ch == '*') { // could be end of this comment
+              state = 5;
+              break;
+            }
+            state = 3;
+            break;
+
+          case 6: // skipping white space after "part" looking for "part of"
+            if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n') {
+              break;
+            }
+            if (matchIdentifier(buffer, index - 1, "of")) {
+              return DartFileType.PartOf;
+            }
+            if (ch == '\'' || ch == '"') {
+              return DartFileType.Library;
+            }
+            return DartFileType.Unknown;
+
+          default:
+            throw new IllegalStateException("invalid state: " + state);
+        }
+      }
+    }
+  }
+
+  /**
+   * Answer <code>true</code> if the buffer contains the specified identifier starting at the
+   * specified index
+   */
+  private static boolean matchIdentifier(byte[] buffer, int start, String identifier) {
+    int index = start;
+
+    // Match identifer
+
+    for (byte ch : identifier.getBytes()) {
+      if (index >= buffer.length || ch != buffer[index]) {
+        return false;
+      }
+      index++;
+    }
+
+    // Ensure followed by non identifier character
+
+    if (index >= buffer.length) {
+      return false;
+    }
+    byte ch = buffer[index++];
+    return !(('A' <= ch && ch <= 'Z') || ('a' <= ch && ch <= 'z') || ('0' <= ch && ch <= '9'));
+  }
 
   private final AnalysisServer server;
   private final Context context;
@@ -43,9 +195,10 @@ class ScanTask extends Task implements TaskListener {
   private final HashSet<File> looseFiles = new HashSet<File>(200);
   private final ArrayList<Library> librariesToAnalyze = new ArrayList<Library>(20);
   private final byte[] buffer = new byte[1024];
-  private final DartIgnoreManager ignoreManager;
 
+  private final DartIgnoreManager ignoreManager;
   private int count = 1;
+
   private float progress = 0;
 
   ScanTask(AnalysisServer server, Context context, File rootFile, ScanCallback callback) {
@@ -207,104 +360,6 @@ class ScanTask extends Task implements TaskListener {
   }
 
   /**
-   * Scan the input stream for a directive indicating that the Dart file is a library
-   */
-  private boolean hasDirective(InputStream in) throws IOException {
-    int state = 0;
-    int nestedCommentLevel = 0;
-    while (true) {
-
-      int count = in.read(buffer);
-      if (count == -1) {
-        return false;
-      }
-
-      int index = 0;
-      while (index < count) {
-        byte ch = buffer[index++];
-        switch (state) {
-
-          case 0: // scan for '#' indicating a directive
-            if (ch == '#') {
-              return true;
-            }
-            if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n') {
-              state = 0;
-              break;
-            }
-            if (ch == '/') { // comment start
-              state = 1;
-              break;
-            }
-            return false;
-
-          case 1: // scan single line or multi line comment
-            if (ch == '/') { // single line comment start
-              state = 2;
-              break;
-            }
-            if (ch == '*') { // multi line comment start
-              state = 3;
-              break;
-            }
-            return false;
-
-          case 2: // scan single line comment
-            if (ch == '\r' || ch == '\n') {
-              state = 0;
-              break;
-            }
-            break;
-
-          case 3: // scan for multi line comment which may be nested
-            if (ch == '/') { // could be nested multi line comment
-              state = 4;
-              break;
-            }
-            if (ch == '*') { // could be end of this comment
-              state = 5;
-              break;
-            }
-            break;
-
-          case 4: // possible nested comment
-            if (ch == '*') { // nested multi line comment
-              nestedCommentLevel++;
-              state = 3;
-              break;
-            }
-            if (ch == '/') { // could be a nested multi line comment
-              state = 4;
-              break;
-            }
-            state = 3;
-            break;
-
-          case 5: // possible end of multi line comment
-            if (ch == '/') { // end of multi line comment
-              if (nestedCommentLevel == 0) {
-                state = 0;
-                break;
-              }
-              nestedCommentLevel--;
-              state = 3;
-              break;
-            }
-            if (ch == '*') { // could be end of this comment
-              state = 5;
-              break;
-            }
-            state = 3;
-            break;
-
-          default:
-            throw new IllegalStateException("invalid state: " + state);
-        }
-      }
-    }
-  }
-
-  /**
    * Scan the specified file to see if it is a library. If the total number of bytes of source code
    * scanned exceeds the threshold, then abort the scan, mark the root folder as ignored, and
    * discard any cached information.
@@ -313,8 +368,13 @@ class ScanTask extends Task implements TaskListener {
     if (ignoreManager.isIgnored(file) || file.getName().startsWith(".")) {
       return;
     }
-    if (file.isDirectory() && !DartCore.isPackagesDirectory(file)) {
-      filesToScan.addAll(Arrays.asList(file.listFiles()));
+    if (file.isDirectory()) {
+      if (AnalysisUtility.isApplicationDirectory(file)) {
+        // TODO (danrubel): create application context
+      }
+      if (!DartCore.isPackagesDirectory(file)) {
+        filesToScan.addAll(Arrays.asList(file.listFiles()));
+      }
       return;
     }
     if (!DartCore.isDartLikeFileName(file.getName())) {
@@ -331,10 +391,19 @@ class ScanTask extends Task implements TaskListener {
       return;
     }
     try {
-      if (hasDirective(in)) {
-        libraryFiles.add(file);
-      } else {
-        looseFiles.add(file);
+      switch (scanContent(in, buffer)) {
+        case Library:
+          libraryFiles.add(file);
+          break;
+        case PartOf:
+          // Will be analyzed as part of analyzing the library containing it
+          break;
+        case Unknown:
+          looseFiles.add(file);
+          break;
+        default:
+          looseFiles.add(file);
+          break;
       }
     } catch (IOException e) {
       DartCore.logInformation("Exception while scanning file: " + file);

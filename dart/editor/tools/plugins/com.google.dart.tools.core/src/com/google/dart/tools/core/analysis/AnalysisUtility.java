@@ -63,6 +63,14 @@ class AnalysisUtility {
   };
 
   /**
+   * Answer <code>true</code> if the specified directory contains a "packages" subdirectory and the
+   * pubspec declaration file.
+   */
+  static boolean isApplicationDirectory(File dir) {
+    return DartCore.isPackagesDirectory(new File(dir, DartCore.PACKAGES_DIRECTORY_NAME));
+  }
+
+  /**
    * Parse a single file.
    * 
    * @param relPath the path to the file to be parsed relative to the library containing that file.

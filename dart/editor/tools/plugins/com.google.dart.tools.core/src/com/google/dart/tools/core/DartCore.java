@@ -50,6 +50,7 @@ import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
@@ -163,7 +164,7 @@ public class DartCore extends Plugin implements DartSdkListener {
   /**
    * Name of directory for packages installed by pub
    */
-  private static final String PACKAGES_DIRECTORY_NAME = "packages";
+  public static final String PACKAGES_DIRECTORY_NAME = "packages";
 
   /**
    * Name of pubspec file
@@ -627,7 +628,8 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @return <code>true</code> if folder name matches and is sibling of pubspec.yaml
    */
   public static boolean isPackagesDirectory(IFolder folder) {
-    return isPackagesDirectory(folder.getLocation().toFile());
+    IPath location = folder.getLocation();
+    return location != null && isPackagesDirectory(location.toFile());
   }
 
   /**
