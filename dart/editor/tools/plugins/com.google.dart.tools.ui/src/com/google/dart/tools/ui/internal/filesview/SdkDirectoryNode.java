@@ -80,7 +80,13 @@ class SdkDirectoryNode {
       for (File child : file.listFiles()) {
         if (child.isDirectory()) {
           // Skip the config directory - it is not a Dart library.
+          // TODO(devoncarew): will config be going away?
           if (child.getName().equals("config")) {
+            continue;
+          }
+
+          // Skip the _internal directory (and any other similar private libraries).
+          if (child.getName().startsWith("_")) {
             continue;
           }
 
