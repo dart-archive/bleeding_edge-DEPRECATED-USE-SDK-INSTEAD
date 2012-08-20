@@ -36,6 +36,16 @@
             name="Dart HTML Editor"
             default="true">
       </editor>
+      <editor
+            class="com.google.dart.tools.ui.web.yaml.YamlEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="yaml"
+            icon="icons/pubspec.png"
+            id="com.google.dart.tools.ui.web.yaml.YamlEditor"
+            symbolicFontName="com.google.dart.tools.ui.editors.textfont"
+            name="Dart Yaml Editor"
+            default="true">
+      </editor>
    </extension>
    
 </plugin>
