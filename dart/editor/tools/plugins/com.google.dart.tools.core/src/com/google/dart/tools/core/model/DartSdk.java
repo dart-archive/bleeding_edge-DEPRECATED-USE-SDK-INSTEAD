@@ -26,10 +26,10 @@ import java.io.IOException;
  * Represents the Dart SDK...
  * 
  * <pre>
- *    Chromium/    <-- Dartium
  *    dart-sdk/
  *       bin/
  *          dart[.exe]  <-- VM   
+ *          Chromium/   <-- Dartium
  *       lib/
  *          core/
  *             core_runtime.dart
@@ -76,6 +76,13 @@ public class DartSdk {
 
       if (file.exists()) {
         dartium = file;
+      } else {
+        // As a fall-back, look in the directory where we used to install Dartium.
+        file = getDartiumBinary(getDartiumWorkingDirectory_old());
+
+        if (file.exists()) {
+          dartium = file;
+        }
       }
     }
 
@@ -86,6 +93,13 @@ public class DartSdk {
    * Returns the directory where Dartium can be found.
    */
   public File getDartiumWorkingDirectory() {
+    return new File(sdkPath, "bin");
+  }
+
+  /**
+   * Returns the old location for Dartium.
+   */
+  public File getDartiumWorkingDirectory_old() {
     return getInstallDirectory();
   }
 
