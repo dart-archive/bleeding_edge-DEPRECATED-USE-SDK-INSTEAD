@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -66,7 +68,7 @@ public class MethodDeclaration extends ClassMember {
   private Identifier name;
 
   /**
-   * The parameters associated with the method.
+   * The parameters associated with the method, or {@code null} if this method declares a getter.
    */
   private FormalParameterList parameters;
 
@@ -91,7 +93,8 @@ public class MethodDeclaration extends ClassMember {
    * @param propertyKeyword the token representing the 'get' or 'set' keyword
    * @param operatorKeyword the token representing the 'operator' keyword
    * @param name the name of the method
-   * @param parameters the parameters associated with the method
+   * @param parameters the parameters associated with the method, or {@code null} if this method
+   *          declares a getter
    * @param body the body of the method
    */
   public MethodDeclaration(Comment comment, Token externalKeyword, Token modifierKeyword,
@@ -184,7 +187,8 @@ public class MethodDeclaration extends ClassMember {
   }
 
   /**
-   * Return the parameters associated with the method.
+   * Return the parameters associated with the method, or {@code null} if this method declares a
+   * getter.
    * 
    * @return the parameters associated with the method
    */
@@ -209,6 +213,33 @@ public class MethodDeclaration extends ClassMember {
    */
   public TypeName getReturnType() {
     return returnType;
+  }
+
+  /**
+   * Return {@code true} if this method declares a getter.
+   * 
+   * @return {@code true} if this method declares a getter
+   */
+  public boolean isGetter() {
+    return propertyKeyword != null && ((KeywordToken) propertyKeyword).getKeyword() == Keyword.GET;
+  }
+
+  /**
+   * Return {@code true} if this method declares an operator.
+   * 
+   * @return {@code true} if this method declares an operator
+   */
+  public boolean isOperator() {
+    return operatorKeyword != null;
+  }
+
+  /**
+   * Return {@code true} if this method declares a setter.
+   * 
+   * @return {@code true} if this method declares a setter
+   */
+  public boolean isSetter() {
+    return propertyKeyword != null && ((KeywordToken) propertyKeyword).getKeyword() == Keyword.SET;
   }
 
   /**

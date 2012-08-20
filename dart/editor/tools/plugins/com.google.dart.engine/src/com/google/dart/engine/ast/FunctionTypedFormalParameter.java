@@ -49,8 +49,8 @@ public class FunctionTypedFormalParameter extends NormalFormalParameter {
    * @param identifier the name of the function-typed parameter
    * @param parameters the parameters of the function-typed parameter
    */
-  public FunctionTypedFormalParameter(Token keyword, TypeName returnType,
-      SimpleIdentifier identifier, FormalParameterList parameters) {
+  public FunctionTypedFormalParameter(TypeName returnType, SimpleIdentifier identifier,
+      FormalParameterList parameters) {
     super(identifier);
     this.returnType = becomeParentOf(returnType);
     this.parameters = becomeParentOf(parameters);

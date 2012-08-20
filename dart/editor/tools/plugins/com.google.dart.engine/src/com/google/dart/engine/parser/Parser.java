@@ -2776,11 +2776,7 @@ public class Parser {
         // reportError(ParserErrorCode.?);
       }
       FormalParameterList parameters = parseFormalParameterList();
-      return new FunctionTypedFormalParameter(
-          holder.getKeyword(),
-          holder.getType(),
-          identifier,
-          parameters);
+      return new FunctionTypedFormalParameter(holder.getType(), identifier, parameters);
     }
     // Validate that the type is not void because this is not a function signature.
     // reportError(ParserErrorCode.?);
