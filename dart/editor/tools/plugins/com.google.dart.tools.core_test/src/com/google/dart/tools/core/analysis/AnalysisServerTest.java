@@ -16,10 +16,10 @@ package com.google.dart.tools.core.analysis;
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.test.util.FileOperation;
 import com.google.dart.tools.core.test.util.FileUtilities;
-import com.google.dart.tools.core.test.util.PrintStringWriter;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertQueuedTasks;

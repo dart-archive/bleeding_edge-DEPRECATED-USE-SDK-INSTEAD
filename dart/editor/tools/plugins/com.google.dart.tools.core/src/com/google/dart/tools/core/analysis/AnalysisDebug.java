@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.tools.core.utilities.io.PrintStringWriter;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import java.io.File;
 

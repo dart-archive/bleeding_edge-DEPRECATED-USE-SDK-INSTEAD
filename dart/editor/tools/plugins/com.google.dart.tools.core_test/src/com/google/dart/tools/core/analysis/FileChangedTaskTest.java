@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.test.util.FileUtilities;
-import com.google.dart.tools.core.test.util.PrintStringWriter;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTrackedLibraryFiles;

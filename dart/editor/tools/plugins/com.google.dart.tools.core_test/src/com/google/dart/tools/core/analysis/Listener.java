@@ -14,7 +14,7 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.tools.core.test.util.PrintStringWriter;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;

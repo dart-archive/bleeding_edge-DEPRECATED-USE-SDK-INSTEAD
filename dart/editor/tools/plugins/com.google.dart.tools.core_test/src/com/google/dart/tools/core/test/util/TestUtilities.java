@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.test.util;
 
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.model.DartProject;

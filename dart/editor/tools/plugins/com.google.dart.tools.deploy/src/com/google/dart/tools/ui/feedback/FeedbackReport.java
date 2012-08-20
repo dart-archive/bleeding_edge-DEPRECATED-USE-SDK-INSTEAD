@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.feedback;
 
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.model.DartSdkManager;
-import com.google.dart.tools.ui.util.PrintStringWriter;
 
 /**
  * An object representing a user feedback report.
