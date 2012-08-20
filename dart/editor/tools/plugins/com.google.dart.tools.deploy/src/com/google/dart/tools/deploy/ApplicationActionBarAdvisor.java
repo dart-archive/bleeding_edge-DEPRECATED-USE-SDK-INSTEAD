@@ -454,7 +454,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menuBar.add(createNavigateMenu());
     //menuBar.add(createBuildMenu());
     menuBar.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
-    menuBar.add(createViewMenu());
+    //menuBar.add(createViewMenu());
     menuBar.add(createToolsMenu());
     menuBar.add(createHelpMenu());
   }
@@ -1008,11 +1008,11 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     //menu.add(newWindowAction);
     //menu.add(newEditorAction);
 
-    //menu.add(new Separator());
-
-    menu.add(new OpenIntroEditorAction());
+    addViewActions(menu);
 
     menu.add(new Separator());
+
+    menu.add(new OpenIntroEditorAction());
 
     menu.add(new Separator());
 
