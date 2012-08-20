@@ -19,8 +19,11 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 
 import java.io.File;
 
@@ -28,6 +31,7 @@ import java.io.File;
  * Static builder utility methods shared by multiple classes
  */
 class BuilderUtil {
+
   /**
    * Clear all error markers from the specified file
    * 
@@ -98,6 +102,25 @@ class BuilderUtil {
   static void createWarningMarker(IResource res, int offset, int length, int lineNumber,
       String warnMsg) {
     createMarker(res, IMarker.SEVERITY_WARNING, offset, length, lineNumber, warnMsg);
+  }
+
+  /**
+   * Perform a delayed refresh of the given resource.
+   * 
+   * @param resource
+   */
+  static void delayedRefresh(final IResource resource) {
+    WorkspaceJob job = new WorkspaceJob("Refresh " + resource.getName()) {
+      @Override
+      public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
+        resource.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+
+        return Status.OK_STATUS;
+      }
+    };
+
+    job.setRule(resource);
+    job.schedule();
   }
 
   /**

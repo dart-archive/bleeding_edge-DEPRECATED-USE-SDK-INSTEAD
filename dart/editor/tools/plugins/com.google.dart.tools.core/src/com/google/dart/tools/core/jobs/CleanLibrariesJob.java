@@ -18,9 +18,11 @@ import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -61,6 +63,12 @@ public class CleanLibrariesJob extends Job {
 
       // Refresh the workspace.
       root.refreshLocal(IResource.DEPTH_INFINITE, subMonitor.newChild(50));
+
+      for (IProject project : root.getProjects()) {
+        if (project.isOpen()) {
+          project.build(IncrementalProjectBuilder.CLEAN_BUILD, subMonitor.newChild(1));
+        }
+      }
 
       // Clear the index before triggering reanalyze so that updates from re-analysis
       // will be included in the rebuilt index

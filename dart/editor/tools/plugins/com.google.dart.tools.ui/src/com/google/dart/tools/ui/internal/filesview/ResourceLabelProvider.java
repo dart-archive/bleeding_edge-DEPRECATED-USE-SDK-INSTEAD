@@ -21,6 +21,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
@@ -39,6 +40,9 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
   private static final String PACKAGES_FOLDER_ICON = "icons/full/dart16/fldr_obj_pkg.png";
 
   private static final String LIBRARY_ICON = "icons/full/dart16/dart_library.png";
+
+  private static final String BUILD_FILE_NAME = "build.dart";
+  private static final String BUILD_FILE_ICON = "icons/full/dart16/build_dart.png";
 
   private final WorkbenchLabelProvider workbenchLabelProvider = new WorkbenchLabelProvider();
 
@@ -65,6 +69,11 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
         if (resource instanceof IFolder) {
           return DartToolsPlugin.getImage(IGNORE_FOLDER_ICON);
         }
+      }
+
+      if (resource instanceof IFile && resource.getParent() instanceof IProject
+          && resource.getName().equals(BUILD_FILE_NAME)) {
+        return DartToolsPlugin.getImage(BUILD_FILE_ICON);
       }
 
       DartElement dartElement = DartCore.create(resource);

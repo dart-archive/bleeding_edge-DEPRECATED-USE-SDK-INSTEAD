@@ -33,8 +33,11 @@ import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ISafeRunnable;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.RegistryFactory;
 import org.eclipse.core.runtime.SafeRunner;
+import org.eclipse.core.runtime.SubMonitor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -58,6 +61,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
     if (PARTICIPANTS == null) {
       loadParticipantExtensions();
     }
+
     return PARTICIPANTS;
   }
 
@@ -87,15 +91,20 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
   @Override
   protected IProject[] build(final int kind, final Map<String, String> args,
-      final IProgressMonitor monitor) throws CoreException {
+      final IProgressMonitor _monitor) throws CoreException {
+
+    int totalProgress = (getBuildParticipants().length + 1) * 10;
+    final SubMonitor subMon = SubMonitor.convert(_monitor, totalProgress);
 
     final IResourceDelta delta = getDelta(getProject());
 
-    //notify participants
+    // notify participants
     for (final DartBuildParticipant participant : getBuildParticipants()) {
+      if (_monitor.isCanceled()) {
+        throw new OperationCanceledException();
+      }
 
       SafeRunner.run(new ISafeRunnable() {
-
         @Override
         public void handleException(Throwable exception) {
           DartCore.logError("Error notifying build participant", exception);
@@ -103,11 +112,16 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
         @Override
         public void run() throws Exception {
-          participant.build(kind, args, delta, monitor);
+          participant.build(kind, args, delta, subMon.newChild(10));
         }
       });
-
     }
+
+    if (_monitor.isCanceled()) {
+      throw new OperationCanceledException();
+    }
+
+    DartBasedBuilder.getBuilder().build(getProject(), kind, delta, subMon.newChild(10));
 
     // If delta is null, then building a new project
 
@@ -118,71 +132,63 @@ public class DartBuilder extends IncrementalProjectBuilder {
         ScanCallback callback = provider != null ? provider.newCallback() : null;
         server.scan(location.toFile(), callback);
       }
-      return null;
+    } else {
+      // Recursively process the resource delta
+      delta.accept(new IResourceDeltaVisitor() {
+        @Override
+        public boolean visit(IResourceDelta delta) {
+          IResource resource = delta.getResource();
+          IPath location = resource.getLocation();
+          if (location == null) {
+            return false;
+          }
+          File file = location.toFile();
+
+          // Process folder
+          if (resource.getType() != IResource.FILE) {
+            switch (delta.getKind()) {
+              case IResourceDelta.ADDED:
+                server.scan(file, false);
+                return false;
+              case IResourceDelta.REMOVED:
+                server.discard(file);
+                return false;
+              case IResourceDelta.CHANGED:
+                // recurse child deltas
+                return true;
+            }
+            return false;
+          }
+
+          // Process file
+          if (resource.getName().endsWith(Extensions.DOT_DART)) {
+            switch (delta.getKind()) {
+              case IResourceDelta.ADDED:
+                server.scan(file, false);
+                return false;
+              case IResourceDelta.REMOVED:
+                server.discard(file);
+                return false;
+              case IResourceDelta.CHANGED:
+                server.changed(file);
+                return false;
+            }
+            return false;
+          }
+
+          return false;
+        }
+      });
     }
-
-    // Recursively process the resource delta
-
-    delta.accept(new IResourceDeltaVisitor() {
-      @Override
-      public boolean visit(IResourceDelta delta) {
-
-        IResource resource = delta.getResource();
-        IPath location = resource.getLocation();
-        if (location == null) {
-          return false;
-        }
-        File file = location.toFile();
-
-        // Process folder
-
-        if (resource.getType() != IResource.FILE) {
-          switch (delta.getKind()) {
-            case IResourceDelta.ADDED:
-              server.scan(file, false);
-              return false;
-            case IResourceDelta.REMOVED:
-              server.discard(file);
-              return false;
-            case IResourceDelta.CHANGED:
-              // recurse child deltas
-              return true;
-          }
-          return false;
-        }
-
-        // Process file
-
-        if (resource.getName().endsWith(Extensions.DOT_DART)) {
-          switch (delta.getKind()) {
-            case IResourceDelta.ADDED:
-              server.scan(file, false);
-              return false;
-            case IResourceDelta.REMOVED:
-              server.discard(file);
-              return false;
-            case IResourceDelta.CHANGED:
-              server.changed(file);
-              return false;
-          }
-          return false;
-        }
-
-        return false;
-      }
-    });
 
     return null;
   }
 
   @Override
-  protected void clean(final IProgressMonitor monitor) throws CoreException {
-
+  protected void clean(IProgressMonitor monitor) throws CoreException {
     //notify participants
     for (final DartBuildParticipant participant : getBuildParticipants()) {
-
       SafeRunner.run(new ISafeRunnable() {
-
         @Override
         public void handleException(Throwable exception) {
           DartCore.logError("Error notifying build participant", exception);
@@ -190,13 +196,15 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
         @Override
         public void run() throws Exception {
-          participant.clean(getProject(), monitor);
+          participant.clean(getProject(), new NullProgressMonitor());
         }
       });
-
     }
+
+    DartBasedBuilder.getBuilder().handleClean(getProject(), new NullProgressMonitor());
 
     AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
     server.reanalyze();
   }
+
 }
