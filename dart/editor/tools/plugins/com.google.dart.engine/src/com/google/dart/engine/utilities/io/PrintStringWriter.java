@@ -21,7 +21,6 @@ import java.io.StringWriter;
  * text written to it in such a way that it can be returned as a {@link String}.
  */
 public class PrintStringWriter extends PrintWriter {
-
   /**
    * The constant used to indicate that data should be left aligned.
    */
@@ -142,6 +141,15 @@ public class PrintStringWriter extends PrintWriter {
       }
       println();
     }
+  }
+
+  /**
+   * Set the length of the character sequence to the given length.
+   * 
+   * @see AbstractStringBuilder#setLength(int)
+   */
+  public void setLength(int newLength) {
+    ((StringWriter) out).getBuffer().setLength(newLength);
   }
 
   /**
