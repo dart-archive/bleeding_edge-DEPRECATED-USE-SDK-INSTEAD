@@ -486,7 +486,7 @@ public class CompletionProposalLabelProvider {
    * @param parameterNames the parameter names
    * @return the display string of the parameter list defined by the passed arguments
    */
-  private final StringBuffer appendParameterSignature(StringBuffer buffer, char[][] parameterTypes,
+  private StringBuffer appendParameterSignature(StringBuffer buffer, char[][] parameterTypes,
       char[][] parameterNames, int positionalCount) {
     if (parameterTypes == null) {
       if (parameterNames != null && parameterNames.length > 0) {

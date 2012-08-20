@@ -103,6 +103,7 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.search.MatchKind;
 import com.google.dart.tools.core.search.MatchQuality;
@@ -1195,6 +1196,21 @@ public class CompletionEngine {
     return names;
   }
 
+  static private int countPositionalParameters(Method method) throws DartModelException {
+    List<DartVariableDeclaration> params = method.getChildrenOfType(DartVariableDeclaration.class);
+    int posParamCount = 0;
+    for (DartVariableDeclaration param : params) {
+      if (!param.isParameter()) {
+        continue;
+      }
+//      if (param.isNamed()) {
+//        break;
+//      }
+      posParamCount++;
+    }
+    return posParamCount;
+  }
+
   static private int countPositionalParameters(MethodElement method) {
     List<VariableElement> params = method.getParameters();
     int posParamCount = 0;
@@ -2110,6 +2126,7 @@ public class CompletionEngine {
           proposal.setIsSetter(false);
           proposal.setParameterNames(getParameterNames(method));
           proposal.setParameterTypeNames(getParameterTypeNames(method));
+          proposal.setPositionalParameterCount(countPositionalParameters(method));
           proposal.setTypeName(CharOperation.toCharArray(method.getReturnTypeName()));
           proposal.setDeclarationTypeName(declaringTypeName);
           setSourceLoc(proposal, node, prefix);
