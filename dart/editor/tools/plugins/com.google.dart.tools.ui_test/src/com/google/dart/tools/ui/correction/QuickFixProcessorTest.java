@@ -149,6 +149,116 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "");
   }
 
+  public void test_createMethod_qualified() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {",
+        "  }",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.test();",
+        "}",
+        "");
+    problemCode = TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED;
+    problemOffset = findOffset("test(");
+    problemLength = "foo".length();
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {",
+        "  }",
+        "",
+        "  test() {",
+        "  }",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.test();",
+        "}",
+        "");
+  }
+
+  public void test_createMethod_qualified_static() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {",
+        "  }",
+        "}",
+        "main() {",
+        "  A.test();",
+        "}",
+        "");
+    problemCode = ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_CLASS;
+    problemOffset = findOffset("test(");
+    problemLength = "foo".length();
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {",
+        "  }",
+        "",
+        "  static test() {",
+        "  }",
+        "}",
+        "main() {",
+        "  A.test();",
+        "}",
+        "");
+  }
+
+  public void test_createMethod_unqualified() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {",
+        "    test();",
+        "  }",
+        "}",
+        "");
+    problemCode = TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED;
+    problemOffset = findOffset("test(");
+    problemLength = "test".length();
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {",
+        "    test();",
+        "  }",
+        "",
+        "  test() {",
+        "  }",
+        "}",
+        "");
+  }
+
+  public void test_createMethod_unqualified_static() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo() {",
+        "    test();",
+        "  }",
+        "}",
+        "");
+    problemCode = ResolverErrorCode.CANNOT_RESOLVE_METHOD;
+    problemOffset = findOffset("test(");
+    problemLength = "test".length();
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo() {",
+        "    test();",
+        "  }",
+        "",
+        "  static test() {",
+        "  }",
+        "}",
+        "");
+  }
+
   public void test_importLibrary_withType_fromSDK() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

@@ -19,6 +19,7 @@ import com.google.dart.tools.core.dom.rewrite.TrackedNodePosition;
 import com.google.dart.tools.core.model.SourceRange;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.swt.graphics.Image;
 
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ public class SourceBuilder {
   private final int base;
   private final StringBuilder buffer = new StringBuilder();
   private final Map<String, List<TrackedNodePosition>> trackedPositions = Maps.newHashMap();
+  private final Map<String, List<TrackedNodeProposal>> trackedProposals = Maps.newHashMap();
   private String currentPositionGroupId;
   private int currentPositionStart;
 
@@ -39,6 +41,15 @@ public class SourceBuilder {
 
   public SourceBuilder(SourceRange base) {
     this(base.getOffset());
+  }
+
+  public void addProposal(Image icon, String text) {
+    List<TrackedNodeProposal> proposals = trackedProposals.get(currentPositionGroupId);
+    if (proposals == null) {
+      proposals = Lists.newArrayList();
+      trackedProposals.put(currentPositionGroupId, proposals);
+    }
+    proposals.add(new TrackedNodeProposal(icon, text));
   }
 
   public SourceBuilder append(CharSequence s) {
@@ -54,6 +65,18 @@ public class SourceBuilder {
 
   public Map<String, List<TrackedNodePosition>> getTrackedPositions() {
     return trackedPositions;
+  }
+
+  public Map<String, List<TrackedNodeProposal>> getTrackedProposals() {
+    return trackedProposals;
+  }
+
+  public void setProposals(String[] proposals) {
+    List<TrackedNodeProposal> proposalList = Lists.newArrayList();
+    for (String proposalText : proposals) {
+      proposalList.add(new TrackedNodeProposal(null, proposalText));
+    }
+    trackedProposals.put(currentPositionGroupId, proposalList);
   }
 
   public void startPosition(String groupId) {
