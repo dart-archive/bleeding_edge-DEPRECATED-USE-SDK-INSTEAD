@@ -373,7 +373,6 @@ public class ElementBuilderTest extends EngineTestCase {
     String parameterName = "p";
     FunctionTypedFormalParameter formalParameter = new FunctionTypedFormalParameter(
         null,
-        null,
         createIdentifier(parameterName),
         createFormalParameterList());
     formalParameter.accept(builder);
