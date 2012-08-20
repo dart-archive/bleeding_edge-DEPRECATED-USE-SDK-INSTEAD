@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Google Inc. All rights reserved.
+ * Copyright (C) 2012 SoftAtHome. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,20 +23,12 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-module storage {
-
+module window {
     interface [
-        Conditional=INDEXED_DATABASE
-    ] IDBFactory {
-        [CallWith=ScriptExecutionContext, ImplementedAs=getDatabaseNames] IDBRequest webkitGetDatabaseNames();
-
-        [CallWith=ScriptExecutionContext] IDBOpenDBRequest open(in DOMString name, in [Optional] unsigned long long version)
-            raises (IDBDatabaseException);
-        [CallWith=ScriptExecutionContext] IDBVersionChangeRequest deleteDatabase(in DOMString name)
-            raises (IDBDatabaseException);
-
-        short cmp(in IDBKey first, in IDBKey second)
-            raises (IDBDatabaseException);
+        OmitConstructor
+    ] MallocStatistics {
+        readonly attribute unsigned long reservedVMBytes;
+        readonly attribute unsigned long committedVMBytes;
+        readonly attribute unsigned long freeListBytes;
     };
-
 }
