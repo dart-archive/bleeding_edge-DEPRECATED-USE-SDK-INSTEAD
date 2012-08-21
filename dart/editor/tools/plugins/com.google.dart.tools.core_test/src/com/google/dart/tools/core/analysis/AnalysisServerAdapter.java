@@ -1,7 +1,7 @@
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.compiler.SystemLibraryManager;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 
 /**
  * {@link AnalysisServer} subclass that intercepts requests to analyze context
@@ -10,10 +10,10 @@ class AnalysisServerAdapter extends AnalysisServer {
   private boolean analyzeContext = false;
 
   public AnalysisServerAdapter() {
-    this(SystemLibraryManagerProvider.getAnyLibraryManager());
+    this(PackageLibraryManagerProvider.getAnyLibraryManager());
   }
 
-  public AnalysisServerAdapter(SystemLibraryManager libraryManager) {
+  public AnalysisServerAdapter(PackageLibraryManager libraryManager) {
     super(libraryManager);
   }
 

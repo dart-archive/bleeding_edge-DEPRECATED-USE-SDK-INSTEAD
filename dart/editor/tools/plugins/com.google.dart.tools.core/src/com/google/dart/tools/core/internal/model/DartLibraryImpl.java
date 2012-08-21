@@ -17,7 +17,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartImportDirective;
@@ -124,7 +124,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 
     URI uri = libraryFile.toURI().normalize();
 
-    SystemLibraryManager libMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
+    PackageLibraryManager libMgr = PackageLibraryManagerProvider.getSystemLibraryManager();
 
     return new UrlLibrarySource(uri, libMgr);
   }
@@ -252,7 +252,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     if (libraryFile != null) {
       IPath location = libraryFile.getLocation();
       if (location != null) {
-        SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(location.toFile());
+        PackageLibraryManagerProvider.getDefaultAnalysisServer().discard(location.toFile());
       }
     }
     DartProject project = getDartProject();
@@ -396,7 +396,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   public String getDisplayName() {
     // If this is a bundled library, then show "dart:<libname>" to the user
     if (sourceFile != null) {
-      SystemLibraryManager libMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
+      PackageLibraryManager libMgr = PackageLibraryManagerProvider.getSystemLibraryManager();
       URI uri = libMgr.getShortUri(sourceFile.getUri());
       if (uri != null) {
         return uri.toString();
@@ -759,7 +759,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
           DartCore.logError("Failed to resolve import " + relativePath + " in "
               + sourceFile.getUri());
           return null;
-        } else if (SystemLibraryManager.isDartUri(librarySource.getUri())) {
+        } else if (PackageLibraryManager.isDartUri(librarySource.getUri())) {
           // It is a bundled library.
           try {
             if (librarySource.exists()) {
@@ -969,7 +969,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   @Override
   protected String getHandleMementoName() {
     URI uri = getUri();
-    URI shortUri = SystemLibraryManagerProvider.getSystemLibraryManager().getShortUri(uri);
+    URI shortUri = PackageLibraryManagerProvider.getSystemLibraryManager().getShortUri(uri);
     if (shortUri != null) {
       return shortUri.toString();
     }
@@ -1063,7 +1063,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 
   private String getElementName0() {
     if (sourceFile != null) {
-      SystemLibraryManager libMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
+      PackageLibraryManager libMgr = PackageLibraryManagerProvider.getSystemLibraryManager();
       URI shortUri = libMgr.getShortUri(sourceFile.getUri());
       if (shortUri != null) {
         return shortUri.toString();

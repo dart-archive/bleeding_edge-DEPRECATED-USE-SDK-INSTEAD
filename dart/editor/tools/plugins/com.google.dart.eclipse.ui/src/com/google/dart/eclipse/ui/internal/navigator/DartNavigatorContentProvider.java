@@ -13,12 +13,12 @@
  */
 package com.google.dart.eclipse.ui.internal.navigator;
 
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartProject;
@@ -214,8 +214,8 @@ public class DartNavigatorContentProvider implements ICommonContentProvider,
   private IFileStore getLibraryFileStore(DartLibraryImpl library) throws CoreException {
     URI uri = library.getLibrarySourceFile().getUri();
 
-    if (SystemLibraryManager.isDartUri(uri)) {
-      SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
+    if (PackageLibraryManager.isDartUri(uri)) {
+      PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getSystemLibraryManager();
 
       uri = libraryManager.translateDartUri(uri);
     }

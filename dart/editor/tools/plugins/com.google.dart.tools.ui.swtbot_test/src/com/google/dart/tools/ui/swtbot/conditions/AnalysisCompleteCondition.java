@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.swtbot.conditions;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.IdleListener;
 import com.google.dart.tools.core.analysis.PerformanceListener;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
@@ -36,7 +36,7 @@ public class AnalysisCompleteCondition implements ICondition {
    * Start gathering performance information from {@link AnalysisServer}
    */
   public static void startListening() {
-    AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+    AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
     AnalysisServer.setPerformanceListener(new PerformanceListener() {
 
       @Override

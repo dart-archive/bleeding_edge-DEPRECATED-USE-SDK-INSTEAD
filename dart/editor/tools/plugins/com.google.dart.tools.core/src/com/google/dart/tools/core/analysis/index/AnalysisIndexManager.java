@@ -18,7 +18,7 @@ import com.google.dart.tools.core.analysis.AnalysisDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.SavedContext;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -44,7 +44,7 @@ public class AnalysisIndexManager {
   public static AnalysisServer getServer() {
     synchronized (lock) {
       if (server == null) {
-        server = new AnalysisServer(SystemLibraryManagerProvider.getAnyLibraryManager());
+        server = new AnalysisServer(PackageLibraryManagerProvider.getAnyLibraryManager());
         initServerListeners();
         initServerDebug();
         initServerContent();

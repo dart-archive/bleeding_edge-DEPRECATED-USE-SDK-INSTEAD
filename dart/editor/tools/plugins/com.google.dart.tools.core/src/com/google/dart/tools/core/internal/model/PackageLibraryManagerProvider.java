@@ -14,7 +14,7 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.SystemLibrary;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
@@ -26,12 +26,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The class <code>SystemLibraryManagerProvider</code> manages the {@link SystemLibraryManager
+ * The class <code>SystemLibraryManagerProvider</code> manages the {@link PackageLibraryManager
  * system library managers} used by the tools.
  */
-public class SystemLibraryManagerProvider {
+public class PackageLibraryManagerProvider {
 
-  private static final class MissingSdkLibaryManager extends SystemLibraryManager {
+  private static final class MissingSdkLibaryManager extends PackageLibraryManager {
 
     private static final SystemLibrary[] NO_LIBRARIES = new SystemLibrary[0];
 
@@ -53,12 +53,12 @@ public class SystemLibraryManagerProvider {
 
   private static final Object lock = new Object();
 
-  private static SystemLibraryManager ANY_LIBRARY_MANAGER;
+  private static PackageLibraryManager ANY_LIBRARY_MANAGER;
 
   /**
    * Return the manager for VM libraries
    */
-  public static SystemLibraryManager getAnyLibraryManager() {
+  public static PackageLibraryManager getAnyLibraryManager() {
     synchronized (lock) {
       if (ANY_LIBRARY_MANAGER == null) {
 
@@ -77,7 +77,7 @@ public class SystemLibraryManagerProvider {
 
         DartCore.logInformation("Reading bundled libraries from " + sdkDir);
 
-        ANY_LIBRARY_MANAGER = new SystemLibraryManager(sdkDir, "any");
+        ANY_LIBRARY_MANAGER = new PackageLibraryManager(sdkDir, "any");
         String packageRoot = DartCore.getPlugin().getPrefs().get(
             DartCore.PACKAGE_ROOT_DIR_PREFERENCE,
             "");
@@ -105,7 +105,7 @@ public class SystemLibraryManagerProvider {
   /**
    * Return the default library manager.
    */
-  public static SystemLibraryManager getSystemLibraryManager() {
+  public static PackageLibraryManager getSystemLibraryManager() {
     return getAnyLibraryManager();
   }
 }

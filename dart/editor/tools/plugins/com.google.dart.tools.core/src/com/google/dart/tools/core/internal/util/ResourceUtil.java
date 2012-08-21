@@ -14,7 +14,7 @@
 package com.google.dart.tools.core.internal.util;
 
 import com.google.dart.compiler.Source;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 
@@ -189,7 +189,7 @@ public class ResourceUtil {
   public static IResource[] getResources(URI uri) {
     if (uri == null) {
       return null;
-    } else if (SystemLibraryManager.isDartUri(uri)) {
+    } else if (PackageLibraryManager.isDartUri(uri)) {
       return null;
     } else if (!uri.isAbsolute()) {
       DartCore.logError(

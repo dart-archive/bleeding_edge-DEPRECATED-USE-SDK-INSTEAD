@@ -16,7 +16,7 @@ package com.google.dart.tools.core.jobs;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -76,7 +76,7 @@ public class CleanLibrariesJob extends Job {
 
       // Reanalyze the workspace sources.
       root.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_INFINITE);
-      SystemLibraryManagerProvider.getDefaultAnalysisServer().reanalyze();
+      PackageLibraryManagerProvider.getDefaultAnalysisServer().reanalyze();
 
       subMonitor.done();
     } catch (CoreException ex) {

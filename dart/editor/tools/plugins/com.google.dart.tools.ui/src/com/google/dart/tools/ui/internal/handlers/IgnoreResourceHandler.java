@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.internal.handlers;
 
 import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.utilities.general.AdapterUtilities;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -41,7 +41,7 @@ public class IgnoreResourceHandler extends AbstractHandler {
           IResource resource = AdapterUtilities.getAdapter(elem, IResource.class);
           if (resource != null) {
             DartModelManager.getInstance().addToIgnores(resource);
-            SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(
+            PackageLibraryManagerProvider.getDefaultAnalysisServer().discard(
                 resource.getLocation().toFile());
           }
         }

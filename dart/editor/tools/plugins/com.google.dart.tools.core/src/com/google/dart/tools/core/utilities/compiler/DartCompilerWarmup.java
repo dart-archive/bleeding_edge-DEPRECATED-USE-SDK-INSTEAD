@@ -21,7 +21,7 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.UrlSource;
 import com.google.dart.compiler.metrics.CompilerMetrics;
@@ -31,7 +31,7 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.builder.CachingArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.compiler.LoggingDartCompilerListener;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -115,7 +115,7 @@ public class DartCompilerWarmup {
   private static class LibraryDartSource extends UrlSource implements LibrarySource {
     private DartSource dartSrc;
 
-    public LibraryDartSource(DartSource dartSrc, SystemLibraryManager sysLibMgr) {
+    public LibraryDartSource(DartSource dartSrc, PackageLibraryManager sysLibMgr) {
       super(dartSrc.getUri(), sysLibMgr);
       this.dartSrc = dartSrc;
     }
@@ -194,7 +194,7 @@ public class DartCompilerWarmup {
    */
   public static void warmUpCompiler(CachingArtifactProvider rootProvider,
       DartCompilerListener listener) {
-    SystemLibraryManager sysLibMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
+    PackageLibraryManager sysLibMgr = PackageLibraryManagerProvider.getSystemLibraryManager();
 
     String warmupSrcCode = "main() {print('success');}";
     DartSource dartSrc = new DartSourceString(WARMUP_DART, warmupSrcCode);

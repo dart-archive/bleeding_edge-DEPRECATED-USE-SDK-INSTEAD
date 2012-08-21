@@ -13,11 +13,11 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 
 import java.io.File;
 
-public class SystemLibraryManagerProviderAnyTest extends SystemLibraryManagerProviderTest {
+public class PackageLibraryManagerProviderAnyTest extends PackageLibraryManagerProviderTest {
 
   public void test_SystemLibraryManagerProvider_builtin() throws Exception {
     testLibrary("builtin", "builtin_runtime.dart");
@@ -40,7 +40,7 @@ public class SystemLibraryManagerProviderAnyTest extends SystemLibraryManagerPro
   }
 
   public void test_SystemLibraryManagerProvider_isolate() throws Exception {
-    testLibrary("isolate", "isolate.dart");
+    testLibrary("isolate", "isolate_compiler.dart");
   }
 
   public void test_SystemLibraryManagerProvider_json() throws Exception {
@@ -61,7 +61,7 @@ public class SystemLibraryManagerProviderAnyTest extends SystemLibraryManagerPro
   }
 
   @Override
-  protected SystemLibraryManager getLibraryManager() {
-    return SystemLibraryManagerProvider.getAnyLibraryManager();
+  protected PackageLibraryManager getLibraryManager() {
+    return PackageLibraryManagerProvider.getAnyLibraryManager();
   }
 }

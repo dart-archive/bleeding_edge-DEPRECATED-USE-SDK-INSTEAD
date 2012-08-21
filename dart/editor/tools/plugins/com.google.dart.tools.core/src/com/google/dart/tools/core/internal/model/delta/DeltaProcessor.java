@@ -21,7 +21,7 @@ import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
 import com.google.dart.tools.core.internal.model.ModelUpdater;
 import com.google.dart.tools.core.internal.model.OpenableElementImpl;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
 import com.google.dart.tools.core.internal.util.LibraryReferenceFinder;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -265,7 +265,7 @@ public class DeltaProcessor {
             IProject project = (IProject) resource;
             if (project.hasNature(DartCore.DART_PROJECT_NATURE)) {
               File projDir = project.getLocation().toFile();
-              SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(projDir);
+              PackageLibraryManagerProvider.getDefaultAnalysisServer().discard(projDir);
               DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(project);
               dartProject.clearLibraryInfo();
             }
@@ -283,7 +283,7 @@ public class DeltaProcessor {
           if (resource.getType() == IResource.PROJECT) {
             IProject project = (IProject) resource;
             File projDir = project.getLocation().toFile();
-            SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(projDir);
+            PackageLibraryManagerProvider.getDefaultAnalysisServer().discard(projDir);
             if (project.hasNature(DartCore.DART_PROJECT_NATURE)) {
               DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(project);
               dartProject.close();

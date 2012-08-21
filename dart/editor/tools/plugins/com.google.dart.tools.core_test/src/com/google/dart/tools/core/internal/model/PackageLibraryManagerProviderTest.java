@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 
 import junit.framework.TestCase;
 
@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-public abstract class SystemLibraryManagerProviderTest extends TestCase {
+public abstract class PackageLibraryManagerProviderTest extends TestCase {
 
   public void test_SystemLibraryManagerProvider_expandDoesNotExist() throws Exception {
     URI shortUri = new URI("dart:doesnotexist.lib");
@@ -34,7 +34,7 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
   }
 
   public void test_SystemLibraryManagerProvider_getAllLibrarySpecs() throws Exception {
-    SystemLibraryManager libraryManager = getLibraryManager();
+    PackageLibraryManager libraryManager = getLibraryManager();
     Collection<String> specs = libraryManager.getAllLibrarySpecs();
 //    System.out.println(getClass().getName());
 //    System.out.println("  " + specs.size() + " system libraries");
@@ -66,7 +66,7 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
   }
 
   public void test_SystemLibraryManagerProvider_getAllLibrarySpecs_no_duplicates() throws Exception {
-    SystemLibraryManager libraryManager = getLibraryManager();
+    PackageLibraryManager libraryManager = getLibraryManager();
     Collection<String> specs = libraryManager.getAllLibrarySpecs();
     Collection<String> visited = new HashSet<String>();
     String actual = "";
@@ -86,7 +86,7 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     assertNull(getLibraryManager().getRelativeUri(new File("doesNotExist.dart").toURI()));
   }
 
-  protected abstract SystemLibraryManager getLibraryManager();
+  protected abstract PackageLibraryManager getLibraryManager();
 
   protected void testLibrary(String shortLibName, String libFileName) throws URISyntaxException,
       AssertionError {
@@ -126,10 +126,10 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
   protected void testPackage(String libFileName, String uriString) throws AssertionError,
       URISyntaxException {
     List<File> packageRoots = new ArrayList<File>();
-    packageRoots.addAll(SystemLibraryManagerProvider.getAnyLibraryManager().getPackageRoots());
+    packageRoots.addAll(PackageLibraryManagerProvider.getAnyLibraryManager().getPackageRoots());
     List<File> roots = new ArrayList<File>();
     roots.add(new File(System.getProperty("user.home")));
-    SystemLibraryManagerProvider.getAnyLibraryManager().setPackageRoots(roots);
+    PackageLibraryManagerProvider.getAnyLibraryManager().setPackageRoots(roots);
 
     final URI fullUri1 = getLibraryManager().expandRelativeDartUri(
         new URI("package", null, "/" + libFileName, null));
@@ -146,7 +146,7 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     URI shortUri3 = getLibraryManager().getShortUri(translatedUri);
     assertEquals(new URI(uriString), shortUri3);
 
-    SystemLibraryManagerProvider.getAnyLibraryManager().setPackageRoots(packageRoots);
+    PackageLibraryManagerProvider.getAnyLibraryManager().setPackageRoots(packageRoots);
 
   }
 }

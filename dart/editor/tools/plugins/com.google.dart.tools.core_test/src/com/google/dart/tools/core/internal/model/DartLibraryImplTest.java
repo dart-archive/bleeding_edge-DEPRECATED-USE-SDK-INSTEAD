@@ -18,7 +18,7 @@ import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
 import com.google.dart.compiler.DefaultLibrarySource;
 import com.google.dart.compiler.LibrarySource;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.DartCore;
@@ -985,7 +985,7 @@ public class DartLibraryImplTest extends TestCase {
   }
 
   private DartLibraryImpl getBundledLib(String bundledLibName) throws Exception {
-    SystemLibraryManager libMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
+    PackageLibraryManager libMgr = PackageLibraryManagerProvider.getSystemLibraryManager();
     URI libUri = new URI(bundledLibName);
     return new DartLibraryImpl(new UrlLibrarySource(libUri, libMgr));
   }

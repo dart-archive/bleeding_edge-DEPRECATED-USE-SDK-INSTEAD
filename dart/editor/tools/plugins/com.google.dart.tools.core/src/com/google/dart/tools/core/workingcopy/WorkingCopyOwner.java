@@ -21,7 +21,7 @@ import com.google.dart.tools.core.internal.buffer.BufferManager;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.ExternalDartProject;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElementDelta;
 import com.google.dart.tools.core.model.DartModelException;
@@ -132,7 +132,7 @@ public abstract class WorkingCopyOwner {
     IFile libraryFile = project.getProject().getFile(name);
     LibrarySource sourceFile = new UrlLibrarySource(
         new File(name).toURI(),
-        SystemLibraryManagerProvider.getSystemLibraryManager());
+        PackageLibraryManagerProvider.getSystemLibraryManager());
     DartLibraryImpl parent = new DartLibraryImpl(project, libraryFile, sourceFile);
     CompilationUnitImpl result = new CompilationUnitImpl(parent, libraryFile, this);
     result.becomeWorkingCopy(getProblemRequestor(result), monitor);

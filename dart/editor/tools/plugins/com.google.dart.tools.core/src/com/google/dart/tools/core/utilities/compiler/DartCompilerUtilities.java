@@ -27,7 +27,7 @@ import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SourceDelta;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -41,7 +41,7 @@ import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartSdk;
@@ -220,7 +220,7 @@ public class DartCompilerUtilities {
 
     @Override
     public void run() throws Exception {
-      final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
+      final PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getSystemLibraryManager();
       final LibraryElement enclosingLibrary = cachedLibraries.get(librarySource.wrappedSource).getElement();
 
       // Try to find the core library in the enclosing set of libraries, otherwise the typeAnalyzer
@@ -303,7 +303,7 @@ public class DartCompilerUtilities {
    */
   private static class LibraryWithSuppliedSources implements LibrarySource {
     private final LibrarySource wrappedSource;
-    private final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
+    private final PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getSystemLibraryManager();
     private final Map<URI, String> suppliedSources;
 
     private LibraryWithSuppliedSources(LibrarySource wrappedSource, Map<URI, String> suppliedSources) {
@@ -437,7 +437,7 @@ public class DartCompilerUtilities {
 
     @Override
     public void run() throws Exception {
-      final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
+      final PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getSystemLibraryManager();
       final CompilerConfiguration config = new DefaultCompilerConfiguration(
           DartCompilerUtilities.COMPILER_OPTIONS,
           libraryManager) {
@@ -799,8 +799,8 @@ public class DartCompilerUtilities {
       return null;
     }
 
-    final SystemLibraryManager manager = SystemLibraryManagerProvider.getSystemLibraryManager();
-    AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+    final PackageLibraryManager manager = PackageLibraryManagerProvider.getSystemLibraryManager();
+    AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
 
     URI librarySourceUri = librarySource.getUri();
 
@@ -895,7 +895,7 @@ public class DartCompilerUtilities {
     return parsedUnits;
   }
 
-  private static boolean equalUris(SystemLibraryManager manager, URI firstUri, URI secondUri) {
+  private static boolean equalUris(PackageLibraryManager manager, URI firstUri, URI secondUri) {
     if (firstUri == null) {
       return secondUri == null;
     } else if (secondUri == null) {
@@ -935,8 +935,8 @@ public class DartCompilerUtilities {
       return false;
     } else if (secondScheme == null || !firstScheme.equals(secondScheme)) {
       return false;
-    } else if (SystemLibraryManager.isDartUri(firstUri)
-        || SystemLibraryManager.isDartUri(secondUri)) {
+    } else if (PackageLibraryManager.isDartUri(firstUri)
+        || PackageLibraryManager.isDartUri(secondUri)) {
       return URIUtilities.safelyResolveDartUri(firstUri).equals(
           URIUtilities.safelyResolveDartUri(secondUri));
     }

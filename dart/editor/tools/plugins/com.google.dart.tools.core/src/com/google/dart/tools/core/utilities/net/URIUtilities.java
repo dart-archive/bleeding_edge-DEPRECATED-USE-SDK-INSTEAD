@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.utilities.net;
 
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 
 import java.io.File;
 import java.net.URI;
@@ -53,7 +53,7 @@ public final class URIUtilities {
    */
   public static URI safelyResolveDartUri(URI uri) {
     try {
-      URI resolvedUri = SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(uri);
+      URI resolvedUri = PackageLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(uri);
       if (resolvedUri != null) {
         return resolvedUri;
       }

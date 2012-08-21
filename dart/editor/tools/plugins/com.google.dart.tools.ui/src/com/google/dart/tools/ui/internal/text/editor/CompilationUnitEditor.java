@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -1903,7 +1903,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       IPath fileLocation = file.getLocation();
       if (fileLocation != null) {
         File javaFile = fileLocation.toFile();
-        SystemLibraryManagerProvider.getDefaultAnalysisServer().changed(javaFile);
+        PackageLibraryManagerProvider.getDefaultAnalysisServer().changed(javaFile);
       }
     }
   }

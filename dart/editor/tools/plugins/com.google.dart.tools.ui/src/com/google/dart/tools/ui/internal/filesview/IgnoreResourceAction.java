@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -114,12 +114,12 @@ public class IgnoreResourceAction extends SelectionListenerAction {
   private void toggleIgnoreState(IResource resource) throws IOException, CoreException {
     if (DartCore.isAnalyzed(resource)) {
       DartModelManager.getInstance().addToIgnores(resource);
-      SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(
+      PackageLibraryManagerProvider.getDefaultAnalysisServer().discard(
           resource.getLocation().toFile());
     } else {
       DartModelManager.getInstance().removeFromIgnores(resource);
       File file = resource.getLocation().toFile();
-      SystemLibraryManagerProvider.getDefaultAnalysisServer().scan(file, true);
+      PackageLibraryManagerProvider.getDefaultAnalysisServer().scan(file, true);
     }
   }
 

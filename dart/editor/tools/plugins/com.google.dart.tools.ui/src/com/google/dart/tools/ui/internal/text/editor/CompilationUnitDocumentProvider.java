@@ -22,7 +22,7 @@ import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.ExternalDartProject;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.problem.CategorizedProblem;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -1642,7 +1642,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
     IFile libraryFile = project.getProject().getFile(fileName);
     LibrarySource sourceFile = new UrlLibrarySource(
         uri,
-        SystemLibraryManagerProvider.getSystemLibraryManager());
+        PackageLibraryManagerProvider.getSystemLibraryManager());
     DartLibraryImpl parent = new DartLibraryImpl(project, libraryFile, sourceFile);
     final CompilationUnitImpl cu = new CompilationUnitImpl(parent, libraryFile, owner);
     cu.becomeWorkingCopy(owner.getProblemRequestor(cu), getProgressMonitor());

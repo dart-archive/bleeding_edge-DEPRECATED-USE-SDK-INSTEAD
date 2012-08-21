@@ -15,7 +15,7 @@ package com.google.dart.tools.core.internal.index.impl;
 
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -44,7 +44,7 @@ import com.google.dart.tools.core.internal.index.util.ResourceFactory;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -248,11 +248,11 @@ public class InMemoryIndex implements Index {
 
     URI unitUri = unitSource.getUri();
     Resource indexerResource;
-    if (SystemLibraryManager.isDartUri(unitUri)) {
+    if (PackageLibraryManager.isDartUri(unitUri)) {
       indexerResource = new Resource(ResourceFactory.composeResourceId(
           librarySource.getUri().toString(),
           unitUri.toString()));
-    } else if (SystemLibraryManager.isPackageUri(unitUri)) {
+    } else if (PackageLibraryManager.isPackageUri(unitUri)) {
       indexerResource = new Resource(ResourceFactory.composeResourceId(
           libraryFile.toURI().toString(),
           sourceFile.toURI().toString()));
@@ -502,12 +502,12 @@ public class InMemoryIndex implements Index {
   private boolean indexBundledLibraries() {
     boolean librariesIndexed = true;
     long startTime = System.currentTimeMillis();
-    SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
+    PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getSystemLibraryManager();
     ArrayList<String> librarySpecs = new ArrayList<String>(libraryManager.getAllLibrarySpecs());
     if (librarySpecs.remove("dart:html")) {
       librarySpecs.add("dart:html");
     }
-    AnalysisServer analysisServer = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+    AnalysisServer analysisServer = PackageLibraryManagerProvider.getDefaultAnalysisServer();
     SavedContext savedContext = analysisServer.getSavedContext();
     for (String urlSpec : librarySpecs) {
       try {
@@ -537,7 +537,7 @@ public class InMemoryIndex implements Index {
   private boolean indexUserLibraries() {
     boolean librariesIndexed = true;
     try {
-      AnalysisServer analysisServer = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+      AnalysisServer analysisServer = PackageLibraryManagerProvider.getDefaultAnalysisServer();
       SavedContext savedContext = analysisServer.getSavedContext();
       DartModel model = DartCore.create(ResourcesPlugin.getWorkspace().getRoot());
       for (DartProject project : model.getDartProjects()) {

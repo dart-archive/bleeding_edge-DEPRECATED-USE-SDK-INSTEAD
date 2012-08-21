@@ -15,7 +15,7 @@ package com.google.dart.tools.core.utilities.bindings;
 
 import com.google.common.collect.MapMaker;
 import com.google.dart.compiler.LibrarySource;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFunction;
@@ -39,7 +39,7 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
@@ -1187,11 +1187,11 @@ public class BindingUtils {
     }
     LibrarySource librarySource = libraryUnit.getSource();
     URI uri = librarySource.getUri();
-    if (SystemLibraryManager.isDartUri(uri)) {
+    if (PackageLibraryManager.isDartUri(uri)) {
       return new DartLibraryImpl(librarySource);
     }
-    if (SystemLibraryManager.isPackageUri(uri)) {
-      uri = SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(uri);
+    if (PackageLibraryManager.isPackageUri(uri)) {
+      uri = PackageLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(uri);
     }
     String targetUri = uri.toString();
     IResource file = com.google.dart.tools.core.internal.util.ResourceUtil.getResource(uri);

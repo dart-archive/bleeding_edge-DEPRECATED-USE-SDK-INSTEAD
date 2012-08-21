@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.debug.core.chromejs;
 
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
@@ -51,7 +51,7 @@ public class DartSourcePathComputerDelegate implements ISourcePathComputerDelega
 
     List<ISourceContainer> containers = new ArrayList<ISourceContainer>();
 
-    SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
+    PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getSystemLibraryManager();
 
     URI domUri = libraryManager.resolveDartUri(URI.create("dart://dom/dart_dom.lib"));
     IPath path = new Path(domUri.getPath()).removeLastSegments(1);

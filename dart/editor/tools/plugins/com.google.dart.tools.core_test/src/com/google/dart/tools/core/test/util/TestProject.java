@@ -20,7 +20,7 @@ import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.index.NotifyCallback;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 
@@ -129,7 +129,7 @@ public class TestProject {
     {
       IPath location = project.getLocation();
       if (location != null) {
-        AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+        AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
         server.discard(location.toFile());
       }
     }
@@ -201,7 +201,7 @@ public class TestProject {
     }
     // notify AnalysisServer
     {
-      AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+      AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
       File javaFile = file.getLocation().toFile();
 //      server.analyze(javaFile);
       server.scan(javaFile, 5000);

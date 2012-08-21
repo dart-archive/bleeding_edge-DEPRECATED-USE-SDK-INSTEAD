@@ -36,7 +36,7 @@ public class TestAll {
     suite.addTestSuite(DartFunctionImplTest.class);
     suite.addTestSuite(HTMLFileImplTest.class);
     suite.addTestSuite(DartIgnoreFileTest.class);
-    suite.addTestSuite(SystemLibraryManagerProviderAnyTest.class);
+    suite.addTestSuite(PackageLibraryManagerProviderAnyTest.class);
 
     suite.addTest(com.google.dart.tools.core.internal.model.info.TestAll.suite());
     return suite;

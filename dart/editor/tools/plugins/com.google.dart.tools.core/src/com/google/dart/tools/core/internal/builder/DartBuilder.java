@@ -17,7 +17,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.ScanCallback;
 import com.google.dart.tools.core.builder.DartBuildParticipant;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.Extensions;
 
 import org.eclipse.core.resources.IProject;
@@ -53,7 +53,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
   private static final String PARTICIPANT_CONTRIBUTION = "buildParticipant"; //$NON-NLS-1$
   private static final String PARTICIPANT_CLASS_ATTR = "class"; //$NON-NLS-1$
 
-  private final AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+  private final AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
 
   private static DartBuildParticipant[] PARTICIPANTS;
 
@@ -203,7 +203,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
     DartBasedBuilder.getBuilder().handleClean(getProject(), new NullProgressMonitor());
 
-    AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+    AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
     server.reanalyze();
   }
 

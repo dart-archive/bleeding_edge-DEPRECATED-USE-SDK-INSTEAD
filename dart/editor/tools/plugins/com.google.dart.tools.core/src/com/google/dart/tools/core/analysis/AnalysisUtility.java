@@ -22,7 +22,7 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -30,7 +30,7 @@ import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartPrefixParser;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.builder.CachingArtifactProvider;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 
@@ -47,7 +47,7 @@ import java.util.Set;
 class AnalysisUtility {
   private static final CompilerConfiguration config = new DefaultCompilerConfiguration(
       DartCompilerUtilities.COMPILER_OPTIONS,
-      SystemLibraryManagerProvider.getSystemLibraryManager()) {
+      PackageLibraryManagerProvider.getSystemLibraryManager()) {
     @Override
     public boolean incremental() {
       return false;
@@ -160,7 +160,7 @@ class AnalysisUtility {
       DartCore.logError("Non absolute path: " + file);
       return null;
     }
-    if (SystemLibraryManager.isDartUri(uri) || SystemLibraryManager.isPackageUri(uri)) {
+    if (PackageLibraryManager.isDartUri(uri) || PackageLibraryManager.isPackageUri(uri)) {
       URI resolveUri = server.getLibraryManager().resolveDartUri(uri);
       if (resolveUri == null) {
         DartCore.logError("Failed to resolve: " + uri);
@@ -190,7 +190,7 @@ class AnalysisUtility {
   static URI toLibraryUri(AnalysisServer server, File libraryFile) {
     URI fileUri = libraryFile.toURI();
     URI shortUri = server.getLibraryManager().getRelativeUri(fileUri);
-    return shortUri != null && !SystemLibraryManager.isPackageUri(shortUri) ? shortUri : fileUri;
+    return shortUri != null && !PackageLibraryManager.isPackageUri(shortUri) ? shortUri : fileUri;
   }
 
   private static DartCompilationError newIoError(Source source, IOException e) {

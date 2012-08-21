@@ -16,7 +16,7 @@ package com.google.dart.tools.core.internal.completion;
 import com.google.common.base.Joiner;
 import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.DartModelException;
 
 import junit.framework.TestCase;
@@ -572,7 +572,7 @@ public class CompletionEngineTest extends TestCase {
         !completionTests.isEmpty());
     if (!analysisCleared) {
       analysisCleared = true;
-      SystemLibraryManagerProvider.getDefaultAnalysisServer().reanalyze();
+      PackageLibraryManagerProvider.getDefaultAnalysisServer().reanalyze();
     }
     InMemoryIndex.getInstance().initializeIndex();
     AnalysisTestUtilities.waitForIdle(60000);

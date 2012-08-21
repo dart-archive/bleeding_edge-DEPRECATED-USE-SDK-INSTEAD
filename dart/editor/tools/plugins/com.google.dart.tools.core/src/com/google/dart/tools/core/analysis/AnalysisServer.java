@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdk;
 
@@ -90,7 +90,7 @@ public class AnalysisServer {
    * 
    * @param libraryManager the target (VM, Dartium, JS) against which user libraries are resolved
    */
-  public AnalysisServer(SystemLibraryManager libraryManager) {
+  public AnalysisServer(PackageLibraryManager libraryManager) {
 
     if (libraryManager == null) {
       throw new IllegalArgumentException();
@@ -343,7 +343,7 @@ public class AnalysisServer {
     }
   }
 
-  SystemLibraryManager getLibraryManager() {
+  PackageLibraryManager getLibraryManager() {
     return getSavedContext().getLibraryManager();
   }
 
@@ -394,7 +394,7 @@ public class AnalysisServer {
     if (relPath == null) {
       return null;
     }
-    if (SystemLibraryManager.isDartSpec(relPath) || SystemLibraryManager.isPackageSpec(relPath)) {
+    if (PackageLibraryManager.isDartSpec(relPath) || PackageLibraryManager.isPackageSpec(relPath)) {
       URI relativeUri;
       try {
         relativeUri = new URI(relPath);

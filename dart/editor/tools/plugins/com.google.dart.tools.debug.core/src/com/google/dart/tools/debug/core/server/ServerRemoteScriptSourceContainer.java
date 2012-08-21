@@ -14,7 +14,7 @@
 
 package com.google.dart.tools.debug.core.server;
 
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
 import org.eclipse.core.runtime.CoreException;
@@ -77,7 +77,7 @@ public class ServerRemoteScriptSourceContainer extends AbstractSourceContainer {
         }
       }
 
-      if (SystemLibraryManager.isDartSpec(name)) {
+      if (PackageLibraryManager.isDartSpec(name)) {
         ServerDebugTarget target = ServerDebugTarget.getActiveTarget();
 
         if (target != null) {

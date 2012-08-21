@@ -13,11 +13,11 @@
  */
 package com.google.dart.tools.core.internal.model.info;
 
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.DartLibrary;
 
 import org.eclipse.core.resources.IProject;
@@ -84,7 +84,7 @@ public class DartModelInfo extends OpenableElementInfo {
     return nonDartProjects;
   }
 
-  private DartLibraryImpl createBundledLibrary(SystemLibraryManager libraryManager, String urlSpec)
+  private DartLibraryImpl createBundledLibrary(PackageLibraryManager libraryManager, String urlSpec)
       throws URISyntaxException {
     URI libUri = new URI(urlSpec);
     return new DartLibraryImpl(new UrlLibrarySource(libUri, libraryManager));
@@ -93,7 +93,7 @@ public class DartModelInfo extends OpenableElementInfo {
   private void initializeBundledLibraries() {
     ArrayList<DartLibrary> libraries = new ArrayList<DartLibrary>();
     try {
-      SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
+      PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getSystemLibraryManager();
       coreLibrary = createBundledLibrary(libraryManager, "dart:core");
       for (String spec : libraryManager.getAllLibrarySpecs()) {
         libraries.add(createBundledLibrary(libraryManager, spec));

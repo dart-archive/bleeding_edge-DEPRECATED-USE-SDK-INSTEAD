@@ -24,7 +24,7 @@ import com.google.dart.compiler.Source;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 
 import java.io.IOException;
@@ -40,7 +40,7 @@ class ErrorRecordingContext implements DartCompilerContext {
   {
     configuration = new DefaultCompilerConfiguration(
         new CompilerOptions(),
-        SystemLibraryManagerProvider.getSystemLibraryManager());
+        PackageLibraryManagerProvider.getSystemLibraryManager());
   }
 
   private List<DartCompilationError> errors = new ArrayList<DartCompilationError>();

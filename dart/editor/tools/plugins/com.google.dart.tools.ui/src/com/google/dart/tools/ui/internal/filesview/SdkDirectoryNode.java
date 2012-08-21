@@ -14,7 +14,7 @@
 
 package com.google.dart.tools.ui.internal.filesview;
 
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.filesystem.EFS;
@@ -75,7 +75,7 @@ class SdkDirectoryNode {
     if (libraries == null) {
       List<SdkLibraryNode> libs = new ArrayList<SdkLibraryNode>();
 
-      File file = SystemLibraryManagerProvider.getSystemLibraryManager().getSdkLibPath();
+      File file = PackageLibraryManagerProvider.getSystemLibraryManager().getSdkLibPath();
 
       for (File child : file.listFiles()) {
         if (child.isDirectory()) {

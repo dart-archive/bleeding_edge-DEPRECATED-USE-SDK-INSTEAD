@@ -14,9 +14,9 @@
 
 package com.google.dart.tools.debug.core.server;
 
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.debug.core.source.ISourceLookup;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
@@ -134,14 +134,14 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     URI uri = URI.create(vmFrame.getLocation().getUrl());
 
     // Resolve a package: reference.
-    if (SystemLibraryManager.isPackageUri(uri) && DartCore.getPlugin().getPackageRootPref() != null) {
-      uri = SystemLibraryManagerProvider.getSystemLibraryManager().resolvePackageUri(
+    if (PackageLibraryManager.isPackageUri(uri) && DartCore.getPlugin().getPackageRootPref() != null) {
+      uri = PackageLibraryManagerProvider.getSystemLibraryManager().resolvePackageUri(
           vmFrame.getLocation().getUrl());
     }
 
     if ("file".equals(uri.getScheme())) {
       return uri.getPath();
-    } else if (SystemLibraryManager.isDartUri(uri)) {
+    } else if (PackageLibraryManager.isDartUri(uri)) {
       return uri.toString();
     } else {
       return "builtin:" + vmFrame.getLibraryId() + ":" + vmFrame.getLocation().getUrl();

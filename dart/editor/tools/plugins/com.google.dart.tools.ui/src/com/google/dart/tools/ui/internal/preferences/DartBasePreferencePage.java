@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.internal.preferences;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.jobs.CleanLibrariesJob;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
@@ -130,7 +130,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         for (String path : roots) {
           packageRoots.add(new File(path));
         }
-        SystemLibraryManagerProvider.getAnyLibraryManager().setPackageRoots(packageRoots);
+        PackageLibraryManagerProvider.getAnyLibraryManager().setPackageRoots(packageRoots);
         Job job = new CleanLibrariesJob();
         job.schedule();
       }

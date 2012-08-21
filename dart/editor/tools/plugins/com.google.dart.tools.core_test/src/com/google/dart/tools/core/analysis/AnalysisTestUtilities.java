@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 
 import static junit.framework.Assert.fail;
 
@@ -53,7 +53,7 @@ public class AnalysisTestUtilities {
    * @return <code>true</code> if the server is idle
    */
   public static void waitForIdle(long milliseconds) {
-    waitForIdle(SystemLibraryManagerProvider.getDefaultAnalysisServer(), milliseconds);
+    waitForIdle(PackageLibraryManagerProvider.getDefaultAnalysisServer(), milliseconds);
   }
 
   static void assertQueuedTasks(AnalysisServer server, String... expectedTaskNames)

@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 
 /**
  * Analysis of Dart source currently being edited
@@ -22,7 +22,7 @@ public class EditContext extends Context {
 
 //  private final Context savedContext;
 
-  EditContext(AnalysisServer server, Context savedContext, SystemLibraryManager libraryManager) {
+  EditContext(AnalysisServer server, Context savedContext, PackageLibraryManager libraryManager) {
     super(server, libraryManager);
 //    this.savedContext = savedContext;
   }

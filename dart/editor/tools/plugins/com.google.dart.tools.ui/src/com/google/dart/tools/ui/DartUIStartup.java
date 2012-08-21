@@ -19,7 +19,7 @@ import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.index.NotifyCallback;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.perf.DartEditorCommandLineManager;
 import com.google.dart.tools.core.internal.perf.Performance;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
@@ -208,7 +208,7 @@ public class DartUIStartup implements IStartup {
      * Wait for any background analysis to be complete
      */
     private void waitForAnalysis() {
-      AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+      AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
       // Wait up to 2 minutes for the server to be idle
       if (!server.waitForIdle(120000)) {
         System.err.println("Stopped waiting for the analysis server.");

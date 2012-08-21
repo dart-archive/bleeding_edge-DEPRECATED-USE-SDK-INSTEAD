@@ -14,9 +14,9 @@
 
 package com.google.dart.tools.debug.ui.internal.view;
 
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.ui.DartUI;
 
@@ -188,9 +188,9 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
       // package:abc/abc.dart
 
       // resolve package: urls to file: urls
-      if (SystemLibraryManager.isPackageSpec(url)
+      if (PackageLibraryManager.isPackageSpec(url)
           && DartCore.getPlugin().getPackageRootPref() != null) {
-        url = SystemLibraryManagerProvider.getSystemLibraryManager().resolvePackageUri(url).toString();
+        url = PackageLibraryManagerProvider.getSystemLibraryManager().resolvePackageUri(url).toString();
       }
 
       // Handle both fully absolute path names and http: urls.

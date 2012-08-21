@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.tools.core.model.DartSdk;
 
@@ -43,7 +43,7 @@ public class Context {
    * The target (VM, Dartium, JS) against which user libraries are resolved. Targets are immutable
    * and can be accessed on any thread.
    */
-  private final SystemLibraryManager libraryManager;
+  private final PackageLibraryManager libraryManager;
 
   /**
    * The libraries in this context, including imported libraries. This should only be accessed on
@@ -51,7 +51,7 @@ public class Context {
    */
   private final HashMap<File, Library> libraryCache;
 
-  Context(AnalysisServer server, SystemLibraryManager libraryManager) {
+  Context(AnalysisServer server, PackageLibraryManager libraryManager) {
     this.server = server;
     this.libraryCache = new HashMap<File, Library>();
     this.libraryManager = libraryManager;
@@ -265,7 +265,7 @@ public class Context {
     return result;
   }
 
-  SystemLibraryManager getLibraryManager() {
+  PackageLibraryManager getLibraryManager() {
     return libraryManager;
   }
 
