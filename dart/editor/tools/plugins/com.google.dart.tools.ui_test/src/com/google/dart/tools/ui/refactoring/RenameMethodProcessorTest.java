@@ -535,6 +535,37 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "");
   }
 
+  /**
+   * We should be able to rename not only method invocations, but also method references.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4572
+   */
+  public void test_OK_staticReference() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static test() {}",
+        "}",
+        "process(p) {}",
+        "main() {",
+        "  process(A.test);",
+        "}",
+        "");
+    Method method = findElement("test() {");
+    // do rename
+    renameMethod(method, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static newName() {}",
+        "}",
+        "process(p) {}",
+        "main() {",
+        "  process(A.newName);",
+        "}",
+        "");
+  }
+
   public void test_postCondition_element_shadowedBy_localVariable() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.search;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.dart.compiler.DartCompilationError;
@@ -40,8 +42,6 @@ import junit.framework.TestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.NullProgressMonitor;
-
-import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -599,6 +599,35 @@ public class SearchEngineTest extends TestCase {
     }
   }
 
+  public void test_searchReferences_method_qualifiedReference() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = buildSource(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {",
+          "  static test() {}",
+          "}",
+          "main() {",
+          "  process(A.test);",
+          "}",
+          "process(x) {}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnits(unit);
+      // find references
+      Method method = ((Type) unit.getChildren()[0]).getMethod("test", null);
+      List<SearchMatch> matches = getMethodReferences(method);
+      assertThat(matches).hasSize(1);
+      // assert references
+      SearchMatch match = matches.get(0);
+      int matchOffset = match.getSourceRange().getOffset();
+      assertEquals(source.indexOf("test);"), matchOffset);
+      assertTrue(match.isQualified());
+    } finally {
+      testProject.dispose();
+    }
+  }
+
   public void test_searchReferences_method_setter() throws Exception {
     TestProject testProject = new TestProject();
     try {
@@ -689,6 +718,35 @@ public class SearchEngineTest extends TestCase {
       int matchOffset = match.getSourceRange().getOffset();
       assertEquals(source.indexOf("test(1);"), matchOffset);
       assertTrue(match.isQualified());
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_searchReferences_method_unqualifiedReference() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = buildSource(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {",
+          "  static test() {}",
+          "  f() {",
+          "    process(test);",
+          "  }",
+          "}",
+          "process(x) {}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnits(unit);
+      // find references
+      Method method = ((Type) unit.getChildren()[0]).getMethod("test", null);
+      List<SearchMatch> matches = getMethodReferences(method);
+      assertThat(matches).hasSize(1);
+      // assert references
+      SearchMatch match = matches.get(0);
+      int matchOffset = match.getSourceRange().getOffset();
+      assertEquals(source.indexOf("test);"), matchOffset);
+      assertFalse(match.isQualified());
     } finally {
       testProject.dispose();
     }

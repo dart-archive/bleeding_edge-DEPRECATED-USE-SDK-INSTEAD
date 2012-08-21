@@ -203,7 +203,8 @@ public class TestProject {
     {
       AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
       File javaFile = file.getLocation().toFile();
-      server.analyze(javaFile);
+//      server.analyze(javaFile);
+      server.scan(javaFile, 5000);
       server.changed(javaFile);
     }
     // done

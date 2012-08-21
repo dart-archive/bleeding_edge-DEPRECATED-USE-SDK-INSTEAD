@@ -432,7 +432,9 @@ public class IndexContributor extends ASTVisitor<Void> {
       } else if (!isExplicitInvocation(node)) {
         Element indexElement = getElement(methodElement);
         Location location = createLocation(node);
-        recordRelationship(indexElement, IndexConstants.IS_REFERENCED_BY, location);
+        Relationship relationship = isQualified(node) ? IndexConstants.IS_ACCESSED_BY_QUALIFIED
+            : IndexConstants.IS_ACCESSED_BY_UNQUALIFIED;
+        recordRelationship(indexElement, relationship, location);
       }
     } else if (element instanceof LibraryElement) {
       LibraryElement importLibraryElement = (LibraryElement) element;

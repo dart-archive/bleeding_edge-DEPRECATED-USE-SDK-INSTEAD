@@ -67,6 +67,11 @@ public enum MatchKind {
   METHOD_INVOCATION,
 
   /**
+   * A reference to a method in which the method is being referenced.
+   */
+  METHOD_REFERENCE,
+
+  /**
    * A reference to a type.
    */
   TYPE_REFERENCE;
