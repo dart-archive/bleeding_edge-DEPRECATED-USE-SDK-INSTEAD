@@ -13,7 +13,9 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.ast.visitor.ToSourceVisitor;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 /**
  * The abstract class {@code ASTNode} defines the behavior common to all nodes in the AST structure
@@ -105,6 +107,23 @@ public abstract class ASTNode {
    */
   public boolean isSynthetic() {
     return false;
+  }
+
+  /**
+   * Return a textual description of this node in a form approximating valid source. The returned
+   * string will not be valid source primarily in the case where the node itself is not well-formed.
+   * 
+   * @return the source code equivalent of this node
+   */
+  public String toSource() {
+    PrintStringWriter writer = new PrintStringWriter();
+    accept(new ToSourceVisitor(writer));
+    return writer.toString();
+  }
+
+  @Override
+  public String toString() {
+    return toSource();
   }
 
   /**

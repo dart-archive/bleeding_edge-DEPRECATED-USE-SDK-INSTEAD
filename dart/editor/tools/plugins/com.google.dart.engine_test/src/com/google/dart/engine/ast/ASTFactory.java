@@ -145,6 +145,10 @@ public final class ASTFactory {
         token(TokenType.CLOSE_CURLY_BRACKET));
   }
 
+  public static CompilationUnit compilationUnit() {
+    return compilationUnit(null, null, null);
+  }
+
   public static CompilationUnit compilationUnit(CompilationUnitMember... declarations) {
     return compilationUnit(null, null, list(declarations));
   }
