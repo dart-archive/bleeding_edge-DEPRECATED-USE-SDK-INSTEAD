@@ -40,7 +40,7 @@ public class SystemLibraryManagerProviderAnyTest extends SystemLibraryManagerPro
   }
 
   public void test_SystemLibraryManagerProvider_isolate() throws Exception {
-    testLibrary("isolate", "isolate_compiler.dart");
+    testLibrary("isolate", "isolate.dart");
   }
 
   public void test_SystemLibraryManagerProvider_json() throws Exception {
