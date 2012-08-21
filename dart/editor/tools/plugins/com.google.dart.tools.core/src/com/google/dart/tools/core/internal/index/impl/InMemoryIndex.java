@@ -298,11 +298,20 @@ public class InMemoryIndex implements Index {
       hasBeenInitialized = true;
       indexStore.clear();
       if (!initializeIndexFrom(getIndexFile())) {
+        if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+          logIndexStats("Clearing index after failing to read from file");
+        }
         indexStore.clear();
         if (!initializeBundledLibraries()) {
+          if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+            logIndexStats("Failed to initialize bundled libraries");
+          }
           return;
         }
         if (!indexUserLibraries()) {
+          if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+            logIndexStats("Clearing index after failing to index user libraries");
+          }
           indexStore.clear();
           initializeBundledLibraries();
         }
@@ -416,17 +425,23 @@ public class InMemoryIndex implements Index {
   public void shutdown() {
     synchronized (indexStore) {
       if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
-        logIndexStats("Before writing the index");
+        logIndexStats("In shutdown, before writing the index");
       }
       if (hasBeenInitialized) {
         if (hasPendingClear()) {
           try {
+            if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+              DartCore.logInformation("In shutdown, deleting the index file");
+            }
             getIndexFile().delete();
           } catch (Exception exception) {
             DartCore.logError("Could not delete the index file", exception);
           }
         } else {
           writeIndexTo(getIndexFile());
+          if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+            logIndexStats("In shutdown, after writing the index");
+          }
         }
       }
     }
@@ -583,11 +598,17 @@ public class InMemoryIndex implements Index {
     if (indexFile.exists()) {
       try {
         readIndexFrom(indexFile);
+        if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+          logIndexStats("After initializing the index from file");
+        }
         return true;
       } catch (IOException exception) {
         DartCore.logError(
             "Could not read index file: \"" + indexFile.getAbsolutePath() + "\"",
             exception);
+      }
+      if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+        logIndexStats("Deleting corrupted index file");
       }
       try {
         indexFile.delete();
