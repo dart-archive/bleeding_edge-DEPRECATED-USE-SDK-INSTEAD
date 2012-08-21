@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.integration;
 
-import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
@@ -44,7 +43,7 @@ public abstract class DirectoryBasedSuiteBuilder {
     }
   }
 
-  public Test buildSuite(File directory, String suiteName) {
+  public TestSuite buildSuite(File directory, String suiteName) {
     TestSuite suite = new TestSuite(suiteName);
     if (directory.exists()) {
       addTestsForFilesIn(suite, directory);
