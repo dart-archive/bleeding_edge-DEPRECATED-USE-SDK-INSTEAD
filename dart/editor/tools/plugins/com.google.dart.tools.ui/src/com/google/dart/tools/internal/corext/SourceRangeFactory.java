@@ -99,6 +99,12 @@ public class SourceRangeFactory {
     return new SourceRangeImpl(start, end - start);
   }
 
+  public static SourceRange forStartEnd(Token a, Token b) {
+    int start = a.getOffset();
+    int end = b.getEnd();
+    return forStartEnd(start, end);
+  }
+
   /**
    * @return the {@link SourceRange} which start at start of "a" and has given length.
    */
@@ -175,6 +181,13 @@ public class SourceRangeFactory {
     int start = base + r.getOffset();
     int length = r.getLength();
     return forStartLength(start, length);
+  }
+
+  /**
+   * Given {@link SourceRange} created relative to "base", return absolute {@link SourceRange}.
+   */
+  public static SourceRange withBase(SourceRange base, SourceRange r) {
+    return withBase(base.getOffset(), r);
   }
 
 }

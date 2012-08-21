@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,20 +13,19 @@
  */
 package com.google.dart.tools.ui.cleanup;
 
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
 
 import org.eclipse.core.runtime.Assert;
 
 /**
  * The context that contains all information required by a clean up to create a fix.
- * 
- * @since 3.5
  */
 public class CleanUpContext {
 
-  private final CompilationUnit fUnit;
+  private final CompilationUnit unit;
 
-  private final CompilationUnit fAst;
+  private final DartUnit ast;
 
   /**
    * Creates a new clean up context.
@@ -37,10 +36,10 @@ public class CleanUpContext {
    *          clean ups only if {@link CleanUpRequirements#requiresFreshAST()} returns
    *          <code>true</code>.
    */
-  public CleanUpContext(CompilationUnit unit, CompilationUnit ast) {
+  public CleanUpContext(CompilationUnit unit, DartUnit ast) {
     Assert.isLegal(unit != null);
-    fUnit = unit;
-    fAst = ast;
+    this.unit = unit;
+    this.ast = ast;
   }
 
   /**
@@ -56,8 +55,8 @@ public class CleanUpContext {
    * 
    * @return an AST or <code>null</code> if none required
    */
-  public CompilationUnit getAST() {
-    return fAst;
+  public DartUnit getAST() {
+    return ast;
   }
 
   /**
@@ -66,6 +65,6 @@ public class CleanUpContext {
    * @return the compilation unit to clean up
    */
   public CompilationUnit getCompilationUnit() {
-    return fUnit;
+    return unit;
   }
 }

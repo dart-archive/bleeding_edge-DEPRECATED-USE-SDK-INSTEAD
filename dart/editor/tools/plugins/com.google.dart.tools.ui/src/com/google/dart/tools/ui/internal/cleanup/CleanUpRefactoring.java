@@ -13,21 +13,28 @@
  */
 package com.google.dart.tools.ui.internal.cleanup;
 
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.internal.refactoring.util.MultiStateCompilationUnitChange;
 import com.google.dart.tools.core.internal.refactoring.util.TextEditUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
+import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
+import com.google.dart.tools.internal.corext.refactoring.Checks;
+import com.google.dart.tools.internal.corext.refactoring.changes.DynamicValidationStateChange;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.cleanup.CleanUpContext;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
 import com.google.dart.tools.ui.cleanup.ICleanUpFix;
+import com.google.dart.tools.ui.internal.cleanup.IMultiFix.MultiFixContext;
+import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -45,6 +52,7 @@ import org.eclipse.ltk.core.refactoring.CompositeChange;
 import org.eclipse.ltk.core.refactoring.ContentStamp;
 import org.eclipse.ltk.core.refactoring.GroupCategory;
 import org.eclipse.ltk.core.refactoring.GroupCategorySet;
+import org.eclipse.ltk.core.refactoring.NullChange;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.RefactoringTickProvider;
@@ -148,90 +156,86 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
     }
   }
 
-//  private static class CleanUpASTRequestor extends ASTRequestor {
-//
-//    private final List<ParseListElement> fUndoneElements;
-//    private final Hashtable<CompilationUnit, List<CleanUpChange>> fSolutions;
-//    private final Hashtable<CompilationUnit, ParseListElement> fCompilationUnitParseElementMap;
-//    private final CleanUpRefactoringProgressMonitor fMonitor;
-//
-//    public CleanUpASTRequestor(List<ParseListElement> parseList,
-//        Hashtable<CompilationUnit, List<CleanUpChange>> solutions,
-//        CleanUpRefactoringProgressMonitor monitor) {
-//      fSolutions = solutions;
-//      fMonitor = monitor;
-//      fUndoneElements = new ArrayList<ParseListElement>();
-//      fCompilationUnitParseElementMap = new Hashtable<CompilationUnit, ParseListElement>(
-//          parseList.size());
-//      for (Iterator<ParseListElement> iter = parseList.iterator(); iter.hasNext();) {
-//        ParseListElement element = iter.next();
-//        fCompilationUnitParseElementMap.put(element.getTarget().getCompilationUnit(), element);
-//      }
-//    }
-//
-//    /**
-//     * {@inheritDoc}
-//     */
-//    @Override
-//    public void acceptAST(CompilationUnit source, CompilationUnit ast) {
-//
-//      fMonitor.subTask(fMonitor.getSubTaskMessage(source));
-//
-//      CompilationUnit primary = (CompilationUnit) source.getPrimaryElement();
-//      ParseListElement element = fCompilationUnitParseElementMap.get(primary);
-//      CleanUpTarget target = element.getTarget();
-//
-//      CleanUpContext context;
-//      if (target instanceof MultiFixTarget) {
-//        context = new MultiFixContext(source, ast, ((MultiFixTarget) target).getProblems());
-//      } else {
-//        context = new CleanUpContext(source, ast);
-//      }
-//      ICleanUp[] rejectedCleanUps = calculateSolutions(context, element.getCleanUps());
-//
-//      if (rejectedCleanUps.length > 0) {
-//        fUndoneElements.add(new ParseListElement(target, rejectedCleanUps));
-//        fMonitor.reset();
-//      } else {
-//        fMonitor.flush();
-//      }
-//    }
-//
-//    public void acceptSource(CompilationUnit source) {
-//      acceptAST(source, null);
-//    }
-//
-//    public List<ParseListElement> getUndoneElements() {
-//      return fUndoneElements;
-//    }
-//
-//    private ICleanUp[] calculateSolutions(CleanUpContext context, ICleanUp[] cleanUps) {
-//      List<ICleanUp> result = new ArrayList<ICleanUp>();
-//      CleanUpChange solution;
-//      try {
-//        solution = calculateChange(context, cleanUps, result, null);
-//      } catch (CoreException e) {
-//        throw new FixCalculationException(e);
-//      }
-//
-//      if (solution != null) {
-//        integrateSolution(solution, context.getCompilationUnit());
-//      }
-//
-//      return result.toArray(new ICleanUp[result.size()]);
-//    }
-//
-//    private void integrateSolution(CleanUpChange solution, CompilationUnit source) {
-//      CompilationUnit primary = source.getPrimary();
-//
-//      List<CleanUpChange> changes = fSolutions.get(primary);
-//      if (changes == null) {
-//        changes = new ArrayList<CleanUpChange>();
-//        fSolutions.put(primary, changes);
-//      }
-//      changes.add(solution);
-//    }
-//  }
+  private static class CleanUpASTRequestor /*extends ASTRequestor*/{
+
+    private final List<ParseListElement> fUndoneElements;
+    private final Hashtable<CompilationUnit, List<CleanUpChange>> fSolutions;
+    private final Hashtable<CompilationUnit, ParseListElement> fCompilationUnitParseElementMap;
+    private final CleanUpRefactoringProgressMonitor fMonitor;
+
+    public CleanUpASTRequestor(List<ParseListElement> parseList,
+        Hashtable<CompilationUnit, List<CleanUpChange>> solutions,
+        CleanUpRefactoringProgressMonitor monitor) {
+      fSolutions = solutions;
+      fMonitor = monitor;
+      fUndoneElements = new ArrayList<ParseListElement>();
+      fCompilationUnitParseElementMap = new Hashtable<CompilationUnit, ParseListElement>(
+          parseList.size());
+      for (Iterator<ParseListElement> iter = parseList.iterator(); iter.hasNext();) {
+        ParseListElement element = iter.next();
+        fCompilationUnitParseElementMap.put(element.getTarget().getCompilationUnit(), element);
+      }
+    }
+
+    public void acceptAST(CompilationUnit source, DartUnit ast) {
+
+      fMonitor.subTask(fMonitor.getSubTaskMessage(source));
+
+      CompilationUnit primary = (CompilationUnit) source.getPrimaryElement();
+      ParseListElement element = fCompilationUnitParseElementMap.get(primary);
+      CleanUpTarget target = element.getTarget();
+
+      CleanUpContext context;
+      if (target instanceof MultiFixTarget) {
+        context = new MultiFixContext(source, ast, ((MultiFixTarget) target).getProblems());
+      } else {
+        context = new CleanUpContext(source, ast);
+      }
+      ICleanUp[] rejectedCleanUps = calculateSolutions(context, element.getCleanUps());
+
+      if (rejectedCleanUps.length > 0) {
+        fUndoneElements.add(new ParseListElement(target, rejectedCleanUps));
+        fMonitor.reset();
+      } else {
+        fMonitor.flush();
+      }
+    }
+
+    public void acceptSource(CompilationUnit source) {
+      acceptAST(source, null);
+    }
+
+    public List<ParseListElement> getUndoneElements() {
+      return fUndoneElements;
+    }
+
+    private ICleanUp[] calculateSolutions(CleanUpContext context, ICleanUp[] cleanUps) {
+      List<ICleanUp> result = new ArrayList<ICleanUp>();
+      CleanUpChange solution;
+      try {
+        solution = calculateChange(context, cleanUps, result, null);
+      } catch (CoreException e) {
+        throw new FixCalculationException(e);
+      }
+
+      if (solution != null) {
+        integrateSolution(solution, context.getCompilationUnit());
+      }
+
+      return result.toArray(new ICleanUp[result.size()]);
+    }
+
+    private void integrateSolution(CleanUpChange solution, CompilationUnit source) {
+      CompilationUnit primary = source.getPrimary();
+
+      List<CleanUpChange> changes = fSolutions.get(primary);
+      if (changes == null) {
+        changes = new ArrayList<CleanUpChange>();
+        fSolutions.put(primary, changes);
+      }
+      changes.add(solution);
+    }
+  }
 
   private class CleanUpFixpointIterator {
 
@@ -350,8 +354,13 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
             parseList.size() + sourceList.size(),
             fSize,
             fIndex);
-//        CleanUpASTRequestor requestor = new CleanUpASTRequestor(fParseList, fSolutions, cuMonitor);
+        CleanUpASTRequestor requestor = new CleanUpASTRequestor(fParseList, fSolutions, cuMonitor);
         if (parseList.size() > 0) {
+          // TODO(scheglov) batch parsing?
+          for (CompilationUnit cu : parseList) {
+            DartUnit unitNode = DartCompilerUtilities.resolveUnit(cu);
+            requestor.acceptAST(cu, unitNode);
+          }
 //          ASTBatchParser parser = new ASTBatchParser() {
 //            @Override
 //            protected ASTParser createParser(DartProject project) {
@@ -364,12 +373,12 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
 //              return result;
 //            }
 //          };
-          try {
-            CompilationUnit[] units = parseList.toArray(new CompilationUnit[parseList.size()]);
-//            parser.createASTs(units, new String[0], requestor, cuMonitor);
-          } catch (FixCalculationException e) {
-            throw e.getException();
-          }
+//          try {
+//            CompilationUnit[] units = parseList.toArray(new CompilationUnit[parseList.size()]);
+////            parser.createASTs(units, new String[0], requestor, cuMonitor);
+//          } catch (FixCalculationException e) {
+//            throw e.getException();
+//          }
         }
 
         for (Iterator<CompilationUnit> iterator = sourceList.iterator(); iterator.hasNext();) {
@@ -377,14 +386,14 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
 
           monitor.worked(1);
 
-//          requestor.acceptSource(cu);
+          requestor.acceptSource(cu);
 
           if (monitor.isCanceled()) {
             throw new OperationCanceledException();
           }
         }
 
-//        fParseList = requestor.getUndoneElements();
+        fParseList = requestor.getUndoneElements();
         fIndex = cuMonitor.getIndex();
       } finally {
       }
@@ -662,96 +671,78 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
     addCleanUpTarget(new CleanUpTarget(unit));
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see
-   * org.eclipse.ltk.core.refactoring.Refactoring#checkFinalConditions(org.eclipse.core.runtime.
-   * IProgressMonitor)
-   */
-//  @Override
-//  public RefactoringStatus checkFinalConditions(IProgressMonitor pm) throws CoreException,
-//      OperationCanceledException {
-//
-//    if (pm == null) {
-//      pm = new NullProgressMonitor();
-//    }
-//
-//    if (fProjects.size() == 0 || fCleanUps.size() == 0) {
-//      pm.beginTask("", 1); //$NON-NLS-1$
-//      pm.worked(1);
-//      pm.done();
-//      fChange = new NullChange();
-//
-//      return new RefactoringStatus();
-//    }
-//
-//    int cuCount = getCleanUpTargetsSize();
-//
-//    RefactoringStatus result = new RefactoringStatus();
-//
-//    ICleanUp[] cleanUps = getCleanUps();
-//    pm.beginTask("", cuCount * 2 * fCleanUps.size() + 4 * cleanUps.length); //$NON-NLS-1$
-//    try {
-//      DynamicValidationStateChange change = new DynamicValidationStateChange(getName());
-//      change.setSchedulingRule(getSchedulingRule());
-//      for (Iterator<Entry<DartProject, List<CleanUpTarget>>> projectIter = fProjects.entrySet().iterator(); projectIter.hasNext();) {
-//        Entry<DartProject, List<CleanUpTarget>> entry = projectIter.next();
-//        DartProject project = entry.getKey();
-//        List<CleanUpTarget> targetsList = entry.getValue();
-//        CleanUpTarget[] targets = targetsList.toArray(new CleanUpTarget[targetsList.size()]);
-//
+  @Override
+  public RefactoringStatus checkFinalConditions(IProgressMonitor pm) throws CoreException,
+      OperationCanceledException {
+
+    if (pm == null) {
+      pm = new NullProgressMonitor();
+    }
+
+    if (fProjects.size() == 0 || fCleanUps.size() == 0) {
+      pm.beginTask("", 1); //$NON-NLS-1$
+      pm.worked(1);
+      pm.done();
+      fChange = new NullChange();
+
+      return new RefactoringStatus();
+    }
+
+    int cuCount = getCleanUpTargetsSize();
+
+    RefactoringStatus result = new RefactoringStatus();
+
+    ICleanUp[] cleanUps = getCleanUps();
+    pm.beginTask("", cuCount * 2 * fCleanUps.size() + 4 * cleanUps.length); //$NON-NLS-1$
+    try {
+      DynamicValidationStateChange change = new DynamicValidationStateChange(getName());
+      change.setSchedulingRule(getSchedulingRule());
+      for (Iterator<Entry<DartProject, List<CleanUpTarget>>> projectIter = fProjects.entrySet().iterator(); projectIter.hasNext();) {
+        Entry<DartProject, List<CleanUpTarget>> entry = projectIter.next();
+        DartProject project = entry.getKey();
+        List<CleanUpTarget> targetsList = entry.getValue();
+        CleanUpTarget[] targets = targetsList.toArray(new CleanUpTarget[targetsList.size()]);
+
+        // TODO(scheglov)
 //        if (fUseOptionsFromProfile) {
 //          result.merge(setOptionsFromProfile(project, cleanUps));
 //          if (result.hasFatalError()) {
 //            return result;
 //          }
 //        }
-//
-//        result.merge(checkPreConditions(project, targets, new SubProgressMonitor(pm,
-//            3 * cleanUps.length)));
-//        if (result.hasFatalError()) {
-//          return result;
-//        }
-//
-//        Change[] changes = cleanUpProject(project, targets, cleanUps, pm);
-//
-//        result.merge(checkPostConditions(new SubProgressMonitor(pm, cleanUps.length)));
-//        if (result.hasFatalError()) {
-//          return result;
-//        }
-//
-//        for (int i = 0; i < changes.length; i++) {
-//          change.add(changes[i]);
-//        }
-//      }
-//      fChange = change;
-//
-//      List<IResource> files = new ArrayList<IResource>();
-//      findFilesToBeModified(change, files);
-//      result.merge(Checks.validateModifiesFiles(files.toArray(new IFile[files.size()]),
-//          getValidationContext()));
-//    } finally {
-//      pm.done();
-//    }
-//
-//    return result;
-//  }
 
-  @Override
-  public RefactoringStatus checkFinalConditions(IProgressMonitor pm) throws CoreException,
-      OperationCanceledException {
-    // TODO Auto-generated method stub
-    return null;
+        result.merge(checkPreConditions(project, targets, new SubProgressMonitor(
+            pm,
+            3 * cleanUps.length)));
+        if (result.hasFatalError()) {
+          return result;
+        }
+
+        Change[] changes = cleanUpProject(project, targets, cleanUps, pm);
+
+        result.merge(checkPostConditions(new SubProgressMonitor(pm, cleanUps.length)));
+        if (result.hasFatalError()) {
+          return result;
+        }
+
+        for (int i = 0; i < changes.length; i++) {
+          change.add(changes[i]);
+        }
+      }
+      fChange = change;
+
+      List<IResource> files = new ArrayList<IResource>();
+      findFilesToBeModified(change, files);
+      result.merge(Checks.validateModifiesFiles(
+          files.toArray(new IFile[files.size()]),
+          getValidationContext()));
+    } finally {
+      pm.done();
+    }
+
+    return result;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see
-   * org.eclipse.ltk.core.refactoring.Refactoring#checkInitialConditions(org.eclipse.core.runtime
-   * .IProgressMonitor)
-   */
   @Override
   public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException,
       OperationCanceledException {
@@ -767,13 +758,6 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
     fCleanUps.clear();
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see
-   * org.eclipse.ltk.core.refactoring.Refactoring#createChange(org.eclipse.core.runtime.IProgressMonitor
-   * )
-   */
   @Override
   public Change createChange(IProgressMonitor pm) throws CoreException, OperationCanceledException {
     if (pm != null) {
@@ -806,11 +790,6 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
     return result;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ltk.core.refactoring.Refactoring#getName()
-   */
   @Override
   public String getName() {
     return fName;
@@ -820,9 +799,6 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
     return fProjects.keySet().toArray(new DartProject[fProjects.keySet().size()]);
   }
 
-  /**
-   * {@inheritDoc}
-   */
   public ISchedulingRule getSchedulingRule() {
     return ResourcesPlugin.getWorkspace().getRoot();
   }
@@ -839,64 +815,10 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
     fUseOptionsFromProfile = enabled;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ltk.core.refactoring.Refactoring#getRefactoringTickProvider()
-   */
   @Override
   protected RefactoringTickProvider doGetRefactoringTickProvider() {
     return CLEAN_UP_REFACTORING_TICK_PROVIDER;
   }
-
-//  private RefactoringStatus checkPreConditions(DartProject javaProject, CleanUpTarget[] targets,
-//      IProgressMonitor monitor) throws CoreException {
-//    RefactoringStatus result = new RefactoringStatus();
-//
-//    CompilationUnit[] compilationUnits = new CompilationUnit[targets.length];
-//    for (int i = 0; i < targets.length; i++) {
-//      compilationUnits[i] = targets[i].getCompilationUnit();
-//    }
-//
-//    ICleanUp[] cleanUps = getCleanUps();
-//    monitor.beginTask("", compilationUnits.length * cleanUps.length); //$NON-NLS-1$
-//    monitor.subTask(Messages.format(FixMessages.CleanUpRefactoring_Initialize_message,
-//        DartElementLabels.get(javaProject.getProject())));
-//    try {
-//      for (int j = 0; j < cleanUps.length; j++) {
-//        result.merge(cleanUps[j].checkPreConditions(javaProject, compilationUnits,
-//            new SubProgressMonitor(monitor, compilationUnits.length)));
-//        if (result.hasFatalError()) {
-//          return result;
-//        }
-//      }
-//    } finally {
-//      monitor.done();
-//    }
-//
-//    return result;
-//  }
-//
-//  private Change[] cleanUpProject(DartProject project, CleanUpTarget[] targets,
-//      ICleanUp[] cleanUps, IProgressMonitor monitor) throws CoreException {
-//    CleanUpFixpointIterator iter = new CleanUpFixpointIterator(targets, cleanUps);
-//
-//    SubProgressMonitor subMonitor = new SubProgressMonitor(monitor, 2 * targets.length
-//        * cleanUps.length);
-//    subMonitor.beginTask("", targets.length); //$NON-NLS-1$
-//    subMonitor.subTask(Messages.format(FixMessages.CleanUpRefactoring_Parser_Startup_message,
-//        BasicElementLabels.getResourceName(project.getProject())));
-//    try {
-//      while (iter.hasNext()) {
-//        iter.next(subMonitor);
-//      }
-//
-//      return iter.getResult();
-//    } finally {
-//      iter.dispose();
-//      subMonitor.done();
-//    }
-//  }
 
   private RefactoringStatus checkPostConditions(SubProgressMonitor monitor) throws CoreException {
     RefactoringStatus result = new RefactoringStatus();
@@ -912,6 +834,59 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
       monitor.done();
     }
     return result;
+  }
+
+  private RefactoringStatus checkPreConditions(DartProject dartProject, CleanUpTarget[] targets,
+      IProgressMonitor monitor) throws CoreException {
+    RefactoringStatus result = new RefactoringStatus();
+
+    CompilationUnit[] compilationUnits = new CompilationUnit[targets.length];
+    for (int i = 0; i < targets.length; i++) {
+      compilationUnits[i] = targets[i].getCompilationUnit();
+    }
+
+    ICleanUp[] cleanUps = getCleanUps();
+    monitor.beginTask("", compilationUnits.length * cleanUps.length); //$NON-NLS-1$
+    monitor.subTask(Messages.format(
+        FixMessages.CleanUpRefactoring_Initialize_message,
+        BasicElementLabels.getResourceName(dartProject.getProject())));
+    try {
+      for (int j = 0; j < cleanUps.length; j++) {
+        result.merge(cleanUps[j].checkPreConditions(
+            dartProject,
+            compilationUnits,
+            new SubProgressMonitor(monitor, compilationUnits.length)));
+        if (result.hasFatalError()) {
+          return result;
+        }
+      }
+    } finally {
+      monitor.done();
+    }
+
+    return result;
+  }
+
+  private Change[] cleanUpProject(DartProject project, CleanUpTarget[] targets,
+      ICleanUp[] cleanUps, IProgressMonitor monitor) throws CoreException {
+    CleanUpFixpointIterator iter = new CleanUpFixpointIterator(targets, cleanUps);
+
+    SubProgressMonitor subMonitor = new SubProgressMonitor(monitor, 2 * targets.length
+        * cleanUps.length);
+    subMonitor.beginTask("", targets.length); //$NON-NLS-1$
+    subMonitor.subTask(Messages.format(
+        FixMessages.CleanUpRefactoring_Parser_Startup_message,
+        BasicElementLabels.getResourceName(project.getProject())));
+    try {
+      while (iter.hasNext()) {
+        iter.next(subMonitor);
+      }
+
+      return iter.getResult();
+    } finally {
+      iter.dispose();
+      subMonitor.done();
+    }
   }
 
   private void findFilesToBeModified(CompositeChange change, List<IResource> result)

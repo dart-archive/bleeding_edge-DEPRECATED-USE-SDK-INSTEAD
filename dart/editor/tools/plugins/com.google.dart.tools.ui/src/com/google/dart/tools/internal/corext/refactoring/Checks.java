@@ -26,8 +26,10 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
+import com.google.dart.tools.ui.internal.util.Resources;
 import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -747,21 +749,22 @@ public class Checks {
 
   //-------- validateEdit checks ----
 
-//  public static RefactoringStatus validateModifiesFiles(IFile[] filesToModify, Object context) {
-//  	RefactoringStatus result= new RefactoringStatus();
-//  	IStatus status= Resources.checkInSync(filesToModify);
-//  	if (!status.isOK())
-//  		result.merge(RefactoringStatus.create(status));
-//  	status= Resources.makeCommittable(filesToModify, context);
-//  	if (!status.isOK()) {
-//  		result.merge(RefactoringStatus.create(status));
-//  		if (!result.hasFatalError()) {
-//  			result.addFatalError(RefactoringCoreMessages.Checks_validateEdit);
-//  		}
-//  	}
-//  	return result;
-//  }
-//
+  public static RefactoringStatus validateModifiesFiles(IFile[] filesToModify, Object context) {
+    RefactoringStatus result = new RefactoringStatus();
+    IStatus status = Resources.checkInSync(filesToModify);
+    if (!status.isOK()) {
+      result.merge(RefactoringStatus.create(status));
+    }
+    status = Resources.makeCommittable(filesToModify, context);
+    if (!status.isOK()) {
+      result.merge(RefactoringStatus.create(status));
+      if (!result.hasFatalError()) {
+        result.addFatalError(RefactoringCoreMessages.Checks_validateEdit);
+      }
+    }
+    return result;
+  }
+
 //  public static void addModifiedFilesToChecker(IFile[] filesToModify, CheckConditionsContext context) {
 //  	ResourceChangeChecker checker= (ResourceChangeChecker) context.getChecker(ResourceChangeChecker.class);
 //  	IResourceChangeDescriptionFactory deltaFactory= checker.getDeltaFactory();

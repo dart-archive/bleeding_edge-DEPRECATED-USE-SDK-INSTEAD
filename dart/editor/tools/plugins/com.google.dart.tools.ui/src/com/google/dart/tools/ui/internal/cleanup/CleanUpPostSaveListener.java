@@ -13,8 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.cleanup;
 
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.Messages;
@@ -504,10 +507,10 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
             }
           }
 
-          CompilationUnit ast = null;
-//          if (requiresAST(cleanUps)) {
-//            ast = createAst(unit, options, new SubProgressMonitor(monitor, 10));
-//          }
+          DartUnit ast = null;
+          if (requiresAST(cleanUps)) {
+            ast = createAst(unit, options, new SubProgressMonitor(monitor, 10));
+          }
 
           CleanUpContext context;
           if (changedRegions == null) {
@@ -604,8 +607,9 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
     return true;
   }
 
-//  private CompilationUnit createAst(CompilationUnit unit, Map<String, String> cleanUpOptions,
-//      IProgressMonitor monitor) {
+  private DartUnit createAst(CompilationUnit unit, Map<String, String> cleanUpOptions,
+      IProgressMonitor monitor) throws DartModelException {
+    return DartCompilerUtilities.resolveUnit(unit);
 //    DartProject project = unit.getDartProject();
 //    if (compatibleOptions(project, cleanUpOptions)) {
 //      CompilationUnit ast = SharedASTProvider.getAST(unit, SharedASTProvider.WAIT_NO, monitor);
@@ -622,17 +626,7 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
 //    parser.setCompilerOptions(compilerOptions);
 //
 //    return (CompilationUnit) parser.createAST(monitor);
-//  }
-//
-//  private boolean requiresAST(ICleanUp[] cleanUps) {
-//    for (int i = 0; i < cleanUps.length; i++) {
-//      if (cleanUps[i].getRequirements().requiresAST()) {
-//        return true;
-//      }
-//    }
-//
-//    return false;
-//  }
+  }
 
   private long getDocumentStamp(IFile file, IProgressMonitor monitor) throws CoreException {
     final ITextFileBufferManager manager = FileBuffers.getTextFileBufferManager();
@@ -719,6 +713,16 @@ public class CleanUpPostSaveListener implements IPostSaveListener {
       }
       monitor.done();
     }
+  }
+
+  private boolean requiresAST(ICleanUp[] cleanUps) {
+    for (int i = 0; i < cleanUps.length; i++) {
+      if (cleanUps[i].getRequirements().requiresAST()) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private boolean requiresChangedRegions(ICleanUp[] cleanUps) {

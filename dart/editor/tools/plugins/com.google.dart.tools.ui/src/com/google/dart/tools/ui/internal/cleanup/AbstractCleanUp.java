@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -39,35 +39,17 @@ public abstract class AbstractCleanUp implements ICleanUp {
     setOptions(new MapCleanUpOptions(settings));
   }
 
-  /*
-   * @see
-   * org.eclipse.jdt.ui.cleanup.ICleanUp#checkPostConditions(org.eclipse.core.runtime.IProgressMonitor
-   * )
-   * 
-   * @since 3.5
-   */
   @Override
   public RefactoringStatus checkPostConditions(IProgressMonitor monitor) throws CoreException {
     return new RefactoringStatus();
   }
 
-  /*
-   * @see org.eclipse.jdt.ui.cleanup.ICleanUp#checkPreConditions(org.eclipse.jdt.core.IJavaProject,
-   * org.eclipse.jdt.core.ICompilationUnit[], org.eclipse.core.runtime.IProgressMonitor)
-   * 
-   * @since 3.5
-   */
   @Override
   public RefactoringStatus checkPreConditions(DartProject project,
       CompilationUnit[] compilationUnits, IProgressMonitor monitor) throws CoreException {
     return new RefactoringStatus();
   }
 
-  /*
-   * @see org.eclipse.jdt.ui.cleanup.ICleanUp#createFix(org.eclipse.jdt.ui.cleanup.CleanUpContext)
-   * 
-   * @since 3.5
-   */
   @Override
   public ICleanUpFix createFix(CleanUpContext context) throws CoreException {
     return null;
@@ -80,31 +62,16 @@ public abstract class AbstractCleanUp implements ICleanUp {
     return ""; //$NON-NLS-1$
   }
 
-  /*
-   * @see org.eclipse.jdt.ui.cleanup.ICleanUp#getRequirements()
-   * 
-   * @since 3.5
-   */
   @Override
   public CleanUpRequirements getRequirements() {
     return new CleanUpRequirements(false, false, false, null);
   }
 
-  /*
-   * @see org.eclipse.jdt.ui.cleanup.ICleanUp#getStepDescriptions()
-   * 
-   * @since 3.5
-   */
   @Override
   public String[] getStepDescriptions() {
     return new String[0];
   }
 
-  /*
-   * @see org.eclipse.jdt.ui.cleanup.ICleanUp#setOptions(org.eclipse.jdt.ui.cleanup.CleanUpOptions)
-   * 
-   * @since 3.5
-   */
   @Override
   public void setOptions(CleanUpOptions options) {
     Assert.isLegal(options != null);

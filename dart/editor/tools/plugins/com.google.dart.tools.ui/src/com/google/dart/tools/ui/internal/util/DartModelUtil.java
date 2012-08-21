@@ -381,6 +381,30 @@ public final class DartModelUtil {
     return constList.toArray(new Method[constList.size()]);
   }
 
+  /**
+   * @return the {@link DartElement} which contains given offset.
+   */
+  @SuppressWarnings("unchecked")
+  public static <T extends DartElement & SourceReference> T getElementContaining(
+      DartElement element, Class<T> elementClass, int offset) throws DartModelException {
+    // may be already Function
+    if (elementClass.isInstance(element)) {
+      T result = (T) element;
+      if (SourceRangeUtils.contains(result.getSourceRange(), offset)) {
+        return result;
+      }
+    }
+    // check children
+    for (DartElement child : element.getChildren()) {
+      T result = getElementContaining(child, elementClass, offset);
+      if (result != null) {
+        return result;
+      }
+    }
+    // not found
+    return null;
+  }
+
 //  /**
 //   * Helper method that tests if an classpath entry can be found in a container.
 //   * <code>null</code> is returned if the entry can not be found or if the
@@ -467,30 +491,6 @@ public final class DartModelUtil {
 //  }
 
   /**
-   * @return the {@link DartElement} which contains given offset.
-   */
-  @SuppressWarnings("unchecked")
-  public static <T extends DartElement & SourceReference> T getElementContaining(
-      DartElement element, Class<T> elementClass, int offset) throws DartModelException {
-    // may be already Function
-    if (elementClass.isInstance(element)) {
-      T result = (T) element;
-      if (SourceRangeUtils.contains(result.getSourceRange(), offset)) {
-        return result;
-      }
-    }
-    // check children
-    for (DartElement child : element.getChildren()) {
-      T result = getElementContaining(child, elementClass, offset);
-      if (result != null) {
-        return result;
-      }
-    }
-    // not found
-    return null;
-  }
-
-  /**
    * Returns the fully qualified name of the given type using '.' as separators. This is a replace
    * for Type.getFullyQualifiedTypeName which uses '$' as separators. As '$' is also a valid
    * character in an id this is ambiguous. JavaScriptCore PR: 1GCFUNT
@@ -516,19 +516,6 @@ public final class DartModelUtil {
       return newMainName;
     }
   }
-
-//  /**
-//   * Returns the fully qualified name of a type's container. (package name or
-//   * enclosing type name)
-//   */
-//  public static String getTypeContainerName(Type type) {
-//    Type outerType = type.getDeclaringType();
-//    if (outerType != null) {
-//      return getFullyQualifiedName(outerType);
-//    } else {
-//      return type.getPackageFragment().getElementName();
-//    }
-//  }
 
   /**
    * Resolves a type name in the context of the declaring type.
@@ -564,6 +551,29 @@ public final class DartModelUtil {
 //    }
   }
 
+//  /**
+//   * Returns the fully qualified name of a type's container. (package name or
+//   * enclosing type name)
+//   */
+//  public static String getTypeContainerName(Type type) {
+//    Type outerType = type.getDeclaringType();
+//    if (outerType != null) {
+//      return getFullyQualifiedName(outerType);
+//    } else {
+//      return type.getPackageFragment().getElementName();
+//    }
+//  }
+
+  /**
+   * Returns the qualified type name of the given type using '.' as separators. This is a replace
+   * for Type.getTypeQualifiedName() which uses '$' as separators. As '$' is also a valid character
+   * in an id this is ambiguous. JavaScriptCore PR: 1GCFUNT
+   */
+  @SuppressWarnings("deprecation")
+  public static String getTypeQualifiedName(Type type) {
+    return type.getTypeQualifiedName('.');
+  }
+
 //  public static boolean is50OrHigher(DartProject project) {
 //    return is50OrHigher(project.getOption(JavaScriptCore.COMPILER_COMPLIANCE,
 //        true));
@@ -585,16 +595,6 @@ public final class DartModelUtil {
 //    return compliance.startsWith(JavaScriptCore.VERSION_1_5)
 //        || compliance.startsWith(JavaScriptCore.VERSION_1_6);
 //  }
-
-  /**
-   * Returns the qualified type name of the given type using '.' as separators. This is a replace
-   * for Type.getTypeQualifiedName() which uses '$' as separators. As '$' is also a valid character
-   * in an id this is ambiguous. JavaScriptCore PR: 1GCFUNT
-   */
-  @SuppressWarnings("deprecation")
-  public static String getTypeQualifiedName(Type type) {
-    return type.getTypeQualifiedName('.');
-  }
 
   /**
    * Checks if the field is boolean.
@@ -673,6 +673,13 @@ public final class DartModelUtil {
       }
     }
     return false;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link CompilationUnit} is external.
+   */
+  public static boolean isExternal(CompilationUnit unit) {
+    return unit.getResource() == null;
   }
 
   public static boolean isImplicitImport(String qualifier, CompilationUnit cu) {

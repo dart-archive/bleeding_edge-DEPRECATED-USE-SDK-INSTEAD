@@ -27,8 +27,12 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring;
+import com.google.dart.tools.ui.cleanup.ICleanUp;
+import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoring;
+import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoringWizard;
 import com.google.dart.tools.ui.internal.refactoring.InlineLocalWizard;
 import com.google.dart.tools.ui.internal.refactoring.InlineMethodWizard;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringExecutionHelper;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
@@ -36,9 +40,16 @@ import com.google.dart.tools.ui.internal.refactoring.actions.RefactoringStarter;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 import org.eclipse.ltk.ui.refactoring.resource.RenameResourceWizard;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Helper class to run refactorings from action code.
@@ -118,38 +129,47 @@ public final class RefactoringExecutionStarter {
 //  	final ChangeTypeRefactoring refactoring= new ChangeTypeRefactoring(unit, offset, length);
 //  	new RefactoringStarter().activate(new ChangeTypeWizard(refactoring), shell, RefactoringMessages.ChangeTypeAction_dialog_title, RefactoringSaveHelper.SAVE_REFACTORING);
 //  }
-//
-//  public static void startCleanupRefactoring(ICompilationUnit[] cus, ICleanUp[] cleanUps, boolean useOptionsFromProfile, Shell shell, boolean showWizard, String actionName) throws InvocationTargetException {
-//  	final CleanUpRefactoring refactoring= new CleanUpRefactoring(actionName);
-//  	for (int i= 0; i < cus.length; i++) {
-//  		refactoring.addCompilationUnit(cus[i]);
-//  	}
-//
-//  	if (!showWizard) {
-//  		refactoring.setUseOptionsFromProfile(useOptionsFromProfile);
-//  		for (int i= 0; i < cleanUps.length; i++) {
-//  			refactoring.addCleanUp(cleanUps[i]);
-//  		}
-//
-//  		IRunnableContext context;
-//  		if (refactoring.getCleanUpTargetsSize() > 1) {
-//  			context= new ProgressMonitorDialog(shell);
-//  		} else {
-//  			context= PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-//  		}
-//
-//  		RefactoringExecutionHelper helper= new RefactoringExecutionHelper(refactoring, IStatus.INFO, RefactoringSaveHelper.SAVE_REFACTORING, shell, context);
-//  		try {
-//  			helper.perform(true, true, true);
-//  		} catch (InterruptedException e) {
-//  		}
-//  	} else {
-//  		CleanUpRefactoringWizard refactoringWizard= new CleanUpRefactoringWizard(refactoring, RefactoringWizard.WIZARD_BASED_USER_INTERFACE);
-//  		RefactoringStarter starter= new RefactoringStarter();
-//  		starter.activate(refactoringWizard, shell, actionName, RefactoringSaveHelper.SAVE_REFACTORING);
-//  	}
-//  }
-//
+
+  public static void startCleanupRefactoring(CompilationUnit[] cus, ICleanUp[] cleanUps,
+      boolean useOptionsFromProfile, Shell shell, boolean showWizard, String actionName)
+      throws InvocationTargetException {
+    final CleanUpRefactoring refactoring = new CleanUpRefactoring(actionName);
+    for (int i = 0; i < cus.length; i++) {
+      refactoring.addCompilationUnit(cus[i]);
+    }
+
+    if (!showWizard) {
+      refactoring.setUseOptionsFromProfile(useOptionsFromProfile);
+      for (int i = 0; i < cleanUps.length; i++) {
+        refactoring.addCleanUp(cleanUps[i]);
+      }
+
+      IRunnableContext context;
+      if (refactoring.getCleanUpTargetsSize() > 1) {
+        context = new ProgressMonitorDialog(shell);
+      } else {
+        context = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+      }
+
+      RefactoringExecutionHelper helper = new RefactoringExecutionHelper(
+          refactoring,
+          IStatus.INFO,
+          RefactoringSaveHelper.SAVE_ALL,
+          shell,
+          context);
+      try {
+        helper.perform(true, true, true);
+      } catch (InterruptedException e) {
+      }
+    } else {
+      CleanUpRefactoringWizard refactoringWizard = new CleanUpRefactoringWizard(
+          refactoring,
+          RefactoringWizard.WIZARD_BASED_USER_INTERFACE);
+      RefactoringStarter starter = new RefactoringStarter();
+      starter.activate(refactoringWizard, shell, actionName, RefactoringSaveHelper.SAVE_ALL);
+    }
+  }
+
 //  public static void startConvertAnonymousRefactoring(final ICompilationUnit unit, final int offset, final int length, final Shell shell) {
 //  	final ConvertAnonymousToNestedRefactoring refactoring= new ConvertAnonymousToNestedRefactoring(unit, offset, length);
 //  	new RefactoringStarter().activate(new ConvertAnonymousToNestedWizard(refactoring), shell, RefactoringMessages.ConvertAnonymousToNestedAction_dialog_title,

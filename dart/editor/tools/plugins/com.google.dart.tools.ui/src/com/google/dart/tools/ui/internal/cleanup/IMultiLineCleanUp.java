@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.cleanup;
 
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.cleanup.CleanUpContext;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
@@ -30,7 +31,7 @@ public interface IMultiLineCleanUp extends ICleanUp {
 
     private final IRegion[] fRegions;
 
-    public MultiLineCleanUpContext(CompilationUnit unit, CompilationUnit ast, IRegion[] regions) {
+    public MultiLineCleanUpContext(CompilationUnit unit, DartUnit ast, IRegion[] regions) {
       super(unit, ast);
       fRegions = regions;
     }
