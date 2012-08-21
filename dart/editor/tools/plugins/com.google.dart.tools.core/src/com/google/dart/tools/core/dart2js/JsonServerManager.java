@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.core.frog;
+package com.google.dart.tools.core.dart2js;
 
 import com.google.dart.tools.core.model.DartSdk;
 
@@ -20,32 +20,32 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 
 /**
- * Manages instances of {@link FrogServer}
+ * Manages instances of {@link JsonServer}
  */
-public class FrogManager {
+public class JsonServerManager {
   public static final String LOCALHOST_ADDRESS = "127.0.0.1";
   public static final int AUTO_BIND_PORT = 0;
   public static final int DEFAULT_PORT = 1236;
 
   private static final Object lock = new Object();
 
-  private static FrogProcess frogProcess;
-  private static FrogServer server;
+  private static JsonServerProcess jsonProcess;
+  private static JsonServer server;
 
   /**
    * Answer the current server, instantiating a new one if necessary.
    * 
    * @return the server (not <code>null</code>)
    */
-  public static FrogServer getServer() throws UnknownHostException, IOException {
+  public static JsonServer getServer() throws UnknownHostException, IOException {
     synchronized (lock) {
-      if (frogProcess == null) {
-        frogProcess = new FrogProcess();
-        frogProcess.startProcess();
+      if (jsonProcess == null) {
+        jsonProcess = new JsonServerProcess();
+        jsonProcess.startProcess();
       }
 
       if (server == null) {
-        server = new FrogServer(LOCALHOST_ADDRESS, frogProcess.getPort());
+        server = new JsonServer(LOCALHOST_ADDRESS, jsonProcess.getPort());
       }
     }
     return server;
@@ -61,15 +61,15 @@ public class FrogManager {
           server.shutdown();
         } catch (IOException ioe) {
           // We were not able to send the shutdown message - kill the process.
-          if (frogProcess != null) {
-            frogProcess.killProcess();
+          if (jsonProcess != null) {
+            jsonProcess.killProcess();
           }
         }
 
         server = null;
       }
 
-      frogProcess = null;
+      jsonProcess = null;
     }
   }
 

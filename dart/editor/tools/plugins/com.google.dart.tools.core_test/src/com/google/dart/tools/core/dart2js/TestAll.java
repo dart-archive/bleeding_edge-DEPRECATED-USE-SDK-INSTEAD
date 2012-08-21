@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,24 +11,15 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+package com.google.dart.tools.core.dart2js;
 
-package com.google.dart.tools.core.frog;
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-/**
- * A Frog server response indicating that the compile completed.
- */
-public class ResponseDone {
-  private boolean success;
-
-  ResponseDone(JSONObject object) throws JSONException {
-    this.success = object.getBoolean("result");
+public class TestAll {
+  public static Test suite() {
+    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(JsonServerTest.class);
+    return suite;
   }
-
-  public boolean isSuccess() {
-    return success;
-  }
-
 }

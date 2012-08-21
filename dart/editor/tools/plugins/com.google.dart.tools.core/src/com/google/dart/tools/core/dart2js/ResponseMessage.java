@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -12,14 +12,14 @@
  * the License.
  */
 
-package com.google.dart.tools.core.frog;
+package com.google.dart.tools.core.dart2js;
 
 import org.eclipse.core.resources.IMarker;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * A Frog server response representing a compiler error or warning.
+ * A JSON server response representing a compiler error or warning.
  */
 public class ResponseMessage {
   public static class Location {
@@ -72,7 +72,7 @@ public class ResponseMessage {
       location.line = span.getInt("line");
       location.column = span.getInt("column");
 
-      // Frog has 0-based lines; we use 1-based lines.
+      // The json server has 0-based lines; we use 1-based lines.
       if (location.line != -1) {
         location.line++;
       }

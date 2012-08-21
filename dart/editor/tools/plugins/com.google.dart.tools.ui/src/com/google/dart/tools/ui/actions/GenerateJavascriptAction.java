@@ -15,7 +15,7 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.frog.Dart2JSCompiler;
+import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
@@ -65,7 +65,7 @@ public class GenerateJavascriptAction extends AbstractInstrumentedAction impleme
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
-      if (DartCore.getPlugin().getCompileWithFrog()) {
+      if (DartCore.getPlugin().getCompileWithDart2JS()) {
         try {
           monitor.beginTask(
               ActionMessages.GenerateJavascriptAction_Compiling + library.getElementName(),

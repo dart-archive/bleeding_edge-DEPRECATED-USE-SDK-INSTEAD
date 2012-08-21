@@ -15,7 +15,7 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.frog.ProcessRunner;
+import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdk;
 
 import org.eclipse.core.resources.IFile;

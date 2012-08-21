@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Dart project authors.
+ * Copyright 2012 Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.core.frog;
+package com.google.dart.tools.core.dart2js;
 
 import junit.framework.TestCase;
 
@@ -22,15 +22,15 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class FrogServerTest extends TestCase {
+public class JsonServerTest extends TestCase {
   private CountDownLatch doneLatch;
   private List<String> messages;
 
-  public void test_FrogServer_compile() throws Exception {
+  public void test_JsonServer_compile() throws Exception {
     doneLatch = new CountDownLatch(1);
     messages = new ArrayList<String>();
     String path = "path/to/non/existant/dart/app/file.dart";
-    FrogManager.getServer().compile(new Path(path), null, new ResponseHandler() {
+    JsonServerManager.getServer().compile(new Path(path), null, new ResponseHandler() {
 
       @Override
       public void processDone(ResponseDone done) {
@@ -52,6 +52,6 @@ public class FrogServerTest extends TestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    FrogManager.shutdown();
+    JsonServerManager.shutdown();
   }
 }

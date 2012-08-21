@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.frog.ProcessRunner;
+import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.ui.DartToolsPlugin;
 

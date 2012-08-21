@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.tools.core.frog;
+package com.google.dart.tools.core.dart2js;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;

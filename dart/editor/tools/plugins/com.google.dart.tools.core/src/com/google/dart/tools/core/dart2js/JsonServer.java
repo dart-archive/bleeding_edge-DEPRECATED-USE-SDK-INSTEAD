@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.core.frog;
+package com.google.dart.tools.core.dart2js;
 
 import com.google.dart.tools.core.DartCore;
 
@@ -33,7 +33,7 @@ import java.util.Map;
  * Object managing interaction with a Dart compilation and analysis service running in a separate
  * process.
  */
-public class FrogServer {
+public class JsonServer {
   private final Object lock = new Object();
   private final Charset utf8Charset;
   private final Socket requestSocket;
@@ -42,7 +42,7 @@ public class FrogServer {
   private final Map<Integer, ResponseHandler> responseHandlers;
   private int nextRequestId = 0;
 
-  public FrogServer(String host, int port) throws UnknownHostException, IOException {
+  public JsonServer(String host, int port) throws UnknownHostException, IOException {
     utf8Charset = Charset.forName("UTF-8");
     requestSocket = new Socket(host, port);
     requestStream = requestSocket.getOutputStream();
@@ -57,14 +57,14 @@ public class FrogServer {
         } catch (SocketException exception) {
           // java.net.SocketException: Socket closed
           if (!exception.toString().contains(" closed")) {
-//            if (DartCoreDebug.LOGGING_FROG) {
-//              DartCore.logError("Exception from frog server", exception);
+//            if (DartCoreDebug.VERBOSE) {
+//              DartCore.logError("Exception from JSON server", exception);
 //            }
           }
         } catch (IOException exception) {
           // java.io.IOException: ...stream is closed
           if (!exception.toString().contains(" closed")) {
-            DartCore.logError("Exception from frog server", exception);
+            DartCore.logError("Exception from JSON server", exception);
           }
         }
       };
@@ -104,7 +104,7 @@ public class FrogServer {
   }
 
   /**
-   * Process responses from the frog server on a background thread.
+   * Process responses from the JSON server on a background thread.
    */
   private void processResponses() throws IOException {
     final byte[] buf = new byte[4];
@@ -157,7 +157,7 @@ public class FrogServer {
   }
 
   /**
-   * Send a request to the frog server.
+   * Send a request to the JSON server.
    * 
    * @param message the message (not <code>null</code>)
    */
@@ -182,7 +182,7 @@ public class FrogServer {
   }
 
   /**
-   * Send a request to the frog server after adding a unique "id" to the request
+   * Send a request to the JSON server after adding a unique "id" to the request
    * 
    * @param request the request (not <code>null</code>)
    * @param handler the response handler

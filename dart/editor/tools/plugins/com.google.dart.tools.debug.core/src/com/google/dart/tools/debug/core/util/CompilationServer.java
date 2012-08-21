@@ -15,8 +15,8 @@
 package com.google.dart.tools.debug.core.util;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.frog.Dart2JSCompiler;
-import com.google.dart.tools.core.frog.Dart2JSCompiler.CompilationResult;
+import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
+import com.google.dart.tools.core.dart2js.Dart2JSCompiler.CompilationResult;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;

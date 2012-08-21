@@ -14,9 +14,9 @@
 package com.google.dart.tools.debug.ui.internal.browser;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.frog.Dart2JSCompiler;
-import com.google.dart.tools.core.frog.Dart2JSCompiler.CompilationResult;
-import com.google.dart.tools.core.frog.ProcessRunner;
+import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
+import com.google.dart.tools.core.dart2js.ProcessRunner;
+import com.google.dart.tools.core.dart2js.Dart2JSCompiler.CompilationResult;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.HTMLFile;

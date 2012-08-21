@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.tools.core.frog;
+package com.google.dart.tools.core.dart2js;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdk;
@@ -27,13 +27,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Start and manage the frog compiler process.
+ * Start and manage the JSON server process.
  */
-public class FrogProcess {
-  private static final String FROG_STARTUP_TOKEN = "frog: accepting connections";
+public class JsonServerProcess {
+  private static final String STARTUP_TOKEN = "accepting connections";
 
-  /** @return the path to the the frog server script, relative to the SDK directory */
-  private static final String FROG_SERVER_PATH = "frog/server/frog_server.dart";
+  // TODO:
+  /** @return the path to the the JSON server script, relative to the SDK directory */
+  private static final String SERVER_PATH = "server/server.dart";
 
   // 20 seconds
   private static final int MAX_STARTUP_WAIT = 20000;
@@ -42,13 +43,13 @@ public class FrogProcess {
 
   private Process process;
 
-  private boolean frogRunning;
+  private boolean serverRunning;
 
-  public FrogProcess() {
-    this(FrogManager.AUTO_BIND_PORT);
+  public JsonServerProcess() {
+    this(JsonServerManager.AUTO_BIND_PORT);
   }
 
-  public FrogProcess(int port) {
+  public JsonServerProcess(int port) {
     if (port == -1) {
       throw new IllegalArgumentException("port cannot == -1");
     }
@@ -60,8 +61,8 @@ public class FrogProcess {
     return port;
   }
 
-  public boolean isFrogRunning() {
-    return frogRunning;
+  public boolean isServerRunning() {
+    return serverRunning;
   }
 
   public void killProcess() {
@@ -76,17 +77,17 @@ public class FrogProcess {
 
   public void startProcess() throws IOException {
     if (DartSdk.getInstance() == null) {
-      throw new IOException("Unable to start Frog - no dart-sdk found");
+      throw new IOException("Unable to start json server - no dart-sdk found");
     }
 
     ProcessBuilder builder = new ProcessBuilder();
 
     // Set the heap size to 128MB.
     builder.command(
-        FrogManager.getDartVmExecutablePath(),
+        JsonServerManager.getDartVmExecutablePath(),
         "--new_gen_heap_size=128",
-        FROG_SERVER_PATH,
-        FrogManager.LOCALHOST_ADDRESS,
+        SERVER_PATH,
+        JsonServerManager.LOCALHOST_ADDRESS,
         Integer.toString(getPort()));
     builder.directory(DartSdk.getInstance().getLibraryDirectory());
     builder.redirectErrorStream(true);
@@ -107,21 +108,21 @@ public class FrogProcess {
           String line = reader.readLine();
 
           while (line != null) {
-//            if (DartCoreDebug.LOGGING_FROG) {
-//              DartCore.logInformation("frog: [" + line.trim() + "]");
+//            if (DartCoreDebug.VERBOSE) {
+//              DartCore.logInformation("json: [" + line.trim() + "]");
 //            }
 
-            if (line.contains(FROG_STARTUP_TOKEN)) {
-              frogRunning = true;
+            if (line.contains(STARTUP_TOKEN)) {
+              serverRunning = true;
               port = parseServerPort(line);
               latch.countDown();
             }
 
-            // Log any internal frog server problems
+            // Log any internal json server problems
             if (line.equals("Unhandled exception:") || line.contains("Error: line")) {
               StringWriter message = new StringWriter(1000);
               PrintWriter writer = new PrintWriter(message);
-              writer.println("Internal frog server exception:");
+              writer.println("Internal json server exception:");
               while (true) {
                 writer.println(line);
                 if (message.getBuffer().length() > 2000) {
@@ -131,8 +132,8 @@ public class FrogProcess {
                 if (line == null || line.trim().length() == 0) {
                   break;
                 }
-//                if (DartCoreDebug.LOGGING_FROG) {
-//                  DartCore.logInformation("frog: [" + line.trim() + "]");
+//                if (DartCoreDebug.VERBOSE) {
+//                  DartCore.logInformation("json: [" + line.trim() + "]");
 //                }
               }
               DartCore.logError(message.toString());
@@ -159,8 +160,8 @@ public class FrogProcess {
 
     }
 
-    if (!frogRunning) {
-      throw new IOException("unable to start frog server");
+    if (!serverRunning) {
+      throw new IOException("unable to start json server");
     }
 
     if (port == -1) {
@@ -188,7 +189,7 @@ public class FrogProcess {
   }
 
   protected int parseServerPort(String line) {
-    // "FROG_STARTUP_TOKEN on host:port"
+    // "STARTUP_TOKEN on host:port"
 
     final String START_TOKEN = " on ";
 

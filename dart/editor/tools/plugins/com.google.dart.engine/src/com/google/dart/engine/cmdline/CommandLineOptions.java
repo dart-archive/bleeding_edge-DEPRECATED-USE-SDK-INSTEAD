@@ -74,7 +74,7 @@ public class CommandLineOptions {
     private boolean warningsAreFatal = false;
 
     @Option(name = "--platform", //
-    usage = "Platform libraries to analyze (e.g. dartium, vm, dart2js, frog, any)")
+    usage = "Platform libraries to analyze (e.g. dartium, vm, dart2js, any)")
     private String platformName = "Not Implemented";
 
     @Option(name = "--dart_sdk", aliases = {"--dart-sdk"}, //

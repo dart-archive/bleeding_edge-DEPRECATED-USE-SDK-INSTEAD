@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.core.frog;
+package com.google.dart.tools.core.dart2js;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A JSON object that represents a response from the frog server
+ * A JSON object that represents a response from the JSON server.
  */
 public class Response {
   public enum Kind {
