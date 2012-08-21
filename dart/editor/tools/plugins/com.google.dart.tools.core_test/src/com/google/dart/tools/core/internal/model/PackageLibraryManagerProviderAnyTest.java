@@ -19,44 +19,44 @@ import java.io.File;
 
 public class PackageLibraryManagerProviderAnyTest extends PackageLibraryManagerProviderTest {
 
-  public void test_SystemLibraryManagerProvider_builtin() throws Exception {
+  public void test_PackageLibraryManagerProvider_builtin() throws Exception {
     testLibrary("builtin", "builtin_runtime.dart");
   }
 
-  public void test_SystemLibraryManagerProvider_core() throws Exception {
+  public void test_PackageLibraryManagerProvider_core() throws Exception {
     testLibrary("core", "core_runtime.dart");
   }
 
-  public void test_SystemLibraryManagerProvider_coreImpl() throws Exception {
+  public void test_PackageLibraryManagerProvider_coreImpl() throws Exception {
     testLibrary("coreimpl", "coreimpl_runtime.dart");
   }
 
-  public void test_SystemLibraryManagerProvider_html() throws Exception {
+  public void test_PackageLibraryManagerProvider_html() throws Exception {
     testLibrary("html", "html_dartium.dart");
   }
 
-  public void test_SystemLibraryManagerProvider_io() throws Exception {
+  public void test_PackageLibraryManagerProvider_io() throws Exception {
     testLibrary("io", "io_runtime.dart");
   }
 
-  public void test_SystemLibraryManagerProvider_isolate() throws Exception {
-    testLibrary("isolate", "isolate_compiler.dart");
+  public void test_PackageLibraryManagerProvider_isolate() throws Exception {
+    testLibrary("isolate", "isolate.dart");
   }
 
-  public void test_SystemLibraryManagerProvider_json() throws Exception {
+  public void test_PackageLibraryManagerProvider_json() throws Exception {
     testLibrary("json", "json.dart");
   }
 
-  public void test_SystemLibraryManagerProvider_package() throws Exception {
+  public void test_PackageLibraryManagerProvider_package() throws Exception {
     String fileName = "ui" + File.separator + "lib.dart";
     testPackage(fileName, "package:" + fileName);
   }
 
-  public void test_SystemLibraryManagerProvider_uri() throws Exception {
+  public void test_PackageLibraryManagerProvider_uri() throws Exception {
     testLibrary("uri", "uri.dart");
   }
 
-  public void test_SystemLibraryManagerProvider_utf() throws Exception {
+  public void test_PackageLibraryManagerProvider_utf() throws Exception {
     testLibrary("utf", "utf.dart");
   }
 

@@ -215,7 +215,7 @@ public class DartNavigatorContentProvider implements ICommonContentProvider,
     URI uri = library.getLibrarySourceFile().getUri();
 
     if (PackageLibraryManager.isDartUri(uri)) {
-      PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getSystemLibraryManager();
+      PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getPackageLibraryManager();
 
       uri = libraryManager.translateDartUri(uri);
     }

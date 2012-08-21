@@ -132,7 +132,7 @@ public abstract class WorkingCopyOwner {
     IFile libraryFile = project.getProject().getFile(name);
     LibrarySource sourceFile = new UrlLibrarySource(
         new File(name).toURI(),
-        PackageLibraryManagerProvider.getSystemLibraryManager());
+        PackageLibraryManagerProvider.getPackageLibraryManager());
     DartLibraryImpl parent = new DartLibraryImpl(project, libraryFile, sourceFile);
     CompilationUnitImpl result = new CompilationUnitImpl(parent, libraryFile, this);
     result.becomeWorkingCopy(getProblemRequestor(result), monitor);

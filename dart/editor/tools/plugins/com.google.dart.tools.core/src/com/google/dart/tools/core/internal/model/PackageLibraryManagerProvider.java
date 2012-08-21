@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-import com.google.dart.compiler.SystemLibrary;
 import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.compiler.SystemLibrary;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
@@ -26,8 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The class <code>SystemLibraryManagerProvider</code> manages the {@link PackageLibraryManager
- * system library managers} used by the tools.
+ * The class <code>PackageLibraryManagerProvider</code> manages the {@link PackageLibraryManager system library managers} used by
+ * the tools.
  */
 public class PackageLibraryManagerProvider {
 
@@ -78,9 +78,8 @@ public class PackageLibraryManagerProvider {
         DartCore.logInformation("Reading bundled libraries from " + sdkDir);
 
         ANY_LIBRARY_MANAGER = new PackageLibraryManager(sdkDir, "any");
-        String packageRoot = DartCore.getPlugin().getPrefs().get(
-            DartCore.PACKAGE_ROOT_DIR_PREFERENCE,
-            "");
+        String packageRoot = DartCore.getPlugin()
+            .getPrefs().get(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, "");
         if (packageRoot != null && !packageRoot.isEmpty()) {
           String[] roots = packageRoot.split(";");
           List<File> packageRoots = new ArrayList<File>();
@@ -105,7 +104,7 @@ public class PackageLibraryManagerProvider {
   /**
    * Return the default library manager.
    */
-  public static PackageLibraryManager getSystemLibraryManager() {
+  public static PackageLibraryManager getPackageLibraryManager() {
     return getAnyLibraryManager();
   }
 }

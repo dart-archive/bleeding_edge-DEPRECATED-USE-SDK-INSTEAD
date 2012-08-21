@@ -502,7 +502,7 @@ public class InMemoryIndex implements Index {
   private boolean indexBundledLibraries() {
     boolean librariesIndexed = true;
     long startTime = System.currentTimeMillis();
-    PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getSystemLibraryManager();
+    PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getPackageLibraryManager();
     ArrayList<String> librarySpecs = new ArrayList<String>(libraryManager.getAllLibrarySpecs());
     if (librarySpecs.remove("dart:html")) {
       librarySpecs.add("dart:html");

@@ -27,13 +27,13 @@ import java.util.List;
 
 public abstract class PackageLibraryManagerProviderTest extends TestCase {
 
-  public void test_SystemLibraryManagerProvider_expandDoesNotExist() throws Exception {
+  public void test_PackageLibraryManagerProvider_expandDoesNotExist() throws Exception {
     URI shortUri = new URI("dart:doesnotexist.lib");
     URI fullUri = getLibraryManager().expandRelativeDartUri(shortUri);
     assertNull(fullUri);
   }
 
-  public void test_SystemLibraryManagerProvider_getAllLibrarySpecs() throws Exception {
+  public void test_PackageLibraryManagerProvider_getAllLibrarySpecs() throws Exception {
     PackageLibraryManager libraryManager = getLibraryManager();
     Collection<String> specs = libraryManager.getAllLibrarySpecs();
 //    System.out.println(getClass().getName());
@@ -65,7 +65,8 @@ public abstract class PackageLibraryManagerProviderTest extends TestCase {
     assertTrue(specs.contains("dart:uri"));
   }
 
-  public void test_SystemLibraryManagerProvider_getAllLibrarySpecs_no_duplicates() throws Exception {
+  public void test_PackageLibraryManagerProvider_getAllLibrarySpecs_no_duplicates()
+      throws Exception {
     PackageLibraryManager libraryManager = getLibraryManager();
     Collection<String> specs = libraryManager.getAllLibrarySpecs();
     Collection<String> visited = new HashSet<String>();
@@ -80,7 +81,7 @@ public abstract class PackageLibraryManagerProviderTest extends TestCase {
     assertEquals("", actual);
   }
 
-  public void test_SystemLibraryManagerProvider_revertFileUri() throws Exception {
+  public void test_PackageLibraryManagerProvider_revertFileUri() throws Exception {
     assertNull(getLibraryManager().getRelativeUri(null));
     assertNull(getLibraryManager().getRelativeUri(new URI("boo://does/not/exist.dart")));
     assertNull(getLibraryManager().getRelativeUri(new File("doesNotExist.dart").toURI()));
@@ -88,8 +89,8 @@ public abstract class PackageLibraryManagerProviderTest extends TestCase {
 
   protected abstract PackageLibraryManager getLibraryManager();
 
-  protected void testLibrary(String shortLibName, String libFileName) throws URISyntaxException,
-      AssertionError {
+  protected void testLibrary(String shortLibName, String libFileName)
+      throws URISyntaxException, AssertionError {
     final URI shortUri = new URI("dart:" + shortLibName);
 
     final URI fullUri1 = getLibraryManager().expandRelativeDartUri(shortUri);
@@ -123,16 +124,16 @@ public abstract class PackageLibraryManagerProviderTest extends TestCase {
     assertEquals(fullUri1.resolve("somedir/somefile.dart"), fullUri5);
   }
 
-  protected void testPackage(String libFileName, String uriString) throws AssertionError,
-      URISyntaxException {
+  protected void testPackage(String libFileName, String uriString)
+      throws AssertionError, URISyntaxException {
     List<File> packageRoots = new ArrayList<File>();
     packageRoots.addAll(PackageLibraryManagerProvider.getAnyLibraryManager().getPackageRoots());
     List<File> roots = new ArrayList<File>();
     roots.add(new File(System.getProperty("user.home")));
     PackageLibraryManagerProvider.getAnyLibraryManager().setPackageRoots(roots);
 
-    final URI fullUri1 = getLibraryManager().expandRelativeDartUri(
-        new URI("package", null, "/" + libFileName, null));
+    final URI fullUri1 = getLibraryManager()
+        .expandRelativeDartUri(new URI("package", null, "/" + libFileName, null));
     assertNotNull(fullUri1);
     assertEquals("package", fullUri1.getScheme());
     assertTrue(fullUri1.getPath(), (fullUri1.getHost() + fullUri1.getPath()).endsWith(libFileName));

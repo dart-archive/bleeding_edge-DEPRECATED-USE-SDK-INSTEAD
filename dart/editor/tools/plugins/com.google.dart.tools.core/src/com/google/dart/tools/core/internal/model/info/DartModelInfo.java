@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -28,8 +28,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 /**
- * Instances of the class <code>DartModelInfo</code> maintain the cached data shared by all model
- * objects.
+ * Instances of the class <code>DartModelInfo</code> maintain the cached data shared by all model objects.
  */
 public class DartModelInfo extends OpenableElementInfo {
   /**
@@ -93,7 +92,8 @@ public class DartModelInfo extends OpenableElementInfo {
   private void initializeBundledLibraries() {
     ArrayList<DartLibrary> libraries = new ArrayList<DartLibrary>();
     try {
-      PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getSystemLibraryManager();
+      PackageLibraryManager libraryManager = PackageLibraryManagerProvider
+        .getPackageLibraryManager();
       coreLibrary = createBundledLibrary(libraryManager, "dart:core");
       for (String spec : libraryManager.getAllLibrarySpecs()) {
         libraries.add(createBundledLibrary(libraryManager, spec));

@@ -384,7 +384,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
         }
       }
       // check SDK libraries
-      PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getSystemLibraryManager();
+      PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getPackageLibraryManager();
       for (DartLibrary library : model.getBundledLibraries()) {
         if (library.findType(typeName) != null) {
           URI libraryUri = library.getUri();

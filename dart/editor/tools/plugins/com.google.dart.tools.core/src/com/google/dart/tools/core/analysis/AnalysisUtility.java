@@ -47,7 +47,7 @@ import java.util.Set;
 class AnalysisUtility {
   private static final CompilerConfiguration config = new DefaultCompilerConfiguration(
       DartCompilerUtilities.COMPILER_OPTIONS,
-      PackageLibraryManagerProvider.getSystemLibraryManager()) {
+      PackageLibraryManagerProvider.getPackageLibraryManager()) {
     @Override
     public boolean incremental() {
       return false;

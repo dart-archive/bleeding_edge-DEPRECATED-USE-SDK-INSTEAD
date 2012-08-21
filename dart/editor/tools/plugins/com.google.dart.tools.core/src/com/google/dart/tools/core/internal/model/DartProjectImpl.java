@@ -853,7 +853,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     }
     IFile file = findFileForUri(uri);
 
-    PackageLibraryManager libMgr = PackageLibraryManagerProvider.getSystemLibraryManager();
+    PackageLibraryManager libMgr = PackageLibraryManagerProvider.getPackageLibraryManager();
     LibrarySource librarySource = new UrlLibrarySource(uri, libMgr);
     DartLibraryImpl library;
     if (file != null) {

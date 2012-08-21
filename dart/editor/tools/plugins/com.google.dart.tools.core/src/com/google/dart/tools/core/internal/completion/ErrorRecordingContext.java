@@ -40,7 +40,7 @@ class ErrorRecordingContext implements DartCompilerContext {
   {
     configuration = new DefaultCompilerConfiguration(
         new CompilerOptions(),
-        PackageLibraryManagerProvider.getSystemLibraryManager());
+        PackageLibraryManagerProvider.getPackageLibraryManager());
   }
 
   private List<DartCompilationError> errors = new ArrayList<DartCompilationError>();

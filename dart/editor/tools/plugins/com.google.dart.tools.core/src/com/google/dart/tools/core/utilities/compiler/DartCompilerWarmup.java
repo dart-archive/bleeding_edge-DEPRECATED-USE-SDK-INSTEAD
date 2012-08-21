@@ -130,7 +130,7 @@ public class DartCompilerWarmup {
       if (relPath == null || relPath.isEmpty()) {
         return null;
       }
-      return new UrlLibrarySource(getUri().resolve(relPath).normalize(), systemLibraryManager);
+      return new UrlLibrarySource(getUri().resolve(relPath).normalize(), packageLibraryManager);
     }
 
     @Override
@@ -194,7 +194,7 @@ public class DartCompilerWarmup {
    */
   public static void warmUpCompiler(CachingArtifactProvider rootProvider,
       DartCompilerListener listener) {
-    PackageLibraryManager sysLibMgr = PackageLibraryManagerProvider.getSystemLibraryManager();
+    PackageLibraryManager sysLibMgr = PackageLibraryManagerProvider.getPackageLibraryManager();
 
     String warmupSrcCode = "main() {print('success');}";
     DartSource dartSrc = new DartSourceString(WARMUP_DART, warmupSrcCode);

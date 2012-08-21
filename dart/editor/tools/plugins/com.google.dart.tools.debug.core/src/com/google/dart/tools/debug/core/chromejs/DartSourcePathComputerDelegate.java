@@ -51,7 +51,7 @@ public class DartSourcePathComputerDelegate implements ISourcePathComputerDelega
 
     List<ISourceContainer> containers = new ArrayList<ISourceContainer>();
 
-    PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getSystemLibraryManager();
+    PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getPackageLibraryManager();
 
     URI domUri = libraryManager.resolveDartUri(URI.create("dart://dom/dart_dom.lib"));
     IPath path = new Path(domUri.getPath()).removeLastSegments(1);

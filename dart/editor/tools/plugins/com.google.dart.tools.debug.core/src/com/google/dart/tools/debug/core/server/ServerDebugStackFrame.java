@@ -135,7 +135,7 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 
     // Resolve a package: reference.
     if (PackageLibraryManager.isPackageUri(uri) && DartCore.getPlugin().getPackageRootPref() != null) {
-      uri = PackageLibraryManagerProvider.getSystemLibraryManager().resolvePackageUri(
+      uri = PackageLibraryManagerProvider.getPackageLibraryManager().resolvePackageUri(
           vmFrame.getLocation().getUrl());
     }
 

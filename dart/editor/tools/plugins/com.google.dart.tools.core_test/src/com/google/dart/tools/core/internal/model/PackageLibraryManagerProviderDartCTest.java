@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Dart project authors.
+ * Copyright 2012 Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -17,19 +17,19 @@ import com.google.dart.compiler.PackageLibraryManager;
 
 public class PackageLibraryManagerProviderDartCTest extends PackageLibraryManagerProviderTest {
 
-  public void test_SystemLibraryManagerProvider_expandCore() throws Exception {
+  public void test_PackageLibraryManagerProvider_expandCore() throws Exception {
     testLibrary("core", "corelib.dart");
   }
 
-  public void test_SystemLibraryManagerProvider_expandCoreImpl() throws Exception {
+  public void test_PackageLibraryManagerProvider_expandCoreImpl() throws Exception {
     testLibrary("coreimpl", "corelib_impl.dart");
   }
 
-  public void test_SystemLibraryManagerProvider_expandDom() throws Exception {
+  public void test_PackageLibraryManagerProvider_expandDom() throws Exception {
     testLibrary("dom", "dom.dart");
   }
 
-  public void test_SystemLibraryManagerProvider_expandHtml() throws Exception {
+  public void test_PackageLibraryManagerProvider_expandHtml() throws Exception {
     testLibrary("html", "html.dart");
   }
 

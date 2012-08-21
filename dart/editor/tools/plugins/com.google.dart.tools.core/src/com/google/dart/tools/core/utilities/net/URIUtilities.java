@@ -53,7 +53,7 @@ public final class URIUtilities {
    */
   public static URI safelyResolveDartUri(URI uri) {
     try {
-      URI resolvedUri = PackageLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(uri);
+      URI resolvedUri = PackageLibraryManagerProvider.getPackageLibraryManager().resolveDartUri(uri);
       if (resolvedUri != null) {
         return resolvedUri;
       }

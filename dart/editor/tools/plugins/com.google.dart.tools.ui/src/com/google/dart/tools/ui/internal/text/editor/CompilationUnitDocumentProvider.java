@@ -1642,7 +1642,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
     IFile libraryFile = project.getProject().getFile(fileName);
     LibrarySource sourceFile = new UrlLibrarySource(
         uri,
-        PackageLibraryManagerProvider.getSystemLibraryManager());
+        PackageLibraryManagerProvider.getPackageLibraryManager());
     DartLibraryImpl parent = new DartLibraryImpl(project, libraryFile, sourceFile);
     final CompilationUnitImpl cu = new CompilationUnitImpl(parent, libraryFile, owner);
     cu.becomeWorkingCopy(owner.getProblemRequestor(cu), getProgressMonitor());

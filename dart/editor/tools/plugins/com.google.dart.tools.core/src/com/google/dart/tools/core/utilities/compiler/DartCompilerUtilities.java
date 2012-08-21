@@ -220,7 +220,7 @@ public class DartCompilerUtilities {
 
     @Override
     public void run() throws Exception {
-      final PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getSystemLibraryManager();
+      final PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getPackageLibraryManager();
       final LibraryElement enclosingLibrary = cachedLibraries.get(librarySource.wrappedSource).getElement();
 
       // Try to find the core library in the enclosing set of libraries, otherwise the typeAnalyzer
@@ -303,7 +303,7 @@ public class DartCompilerUtilities {
    */
   private static class LibraryWithSuppliedSources implements LibrarySource {
     private final LibrarySource wrappedSource;
-    private final PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getSystemLibraryManager();
+    private final PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getPackageLibraryManager();
     private final Map<URI, String> suppliedSources;
 
     private LibraryWithSuppliedSources(LibrarySource wrappedSource, Map<URI, String> suppliedSources) {
@@ -437,7 +437,7 @@ public class DartCompilerUtilities {
 
     @Override
     public void run() throws Exception {
-      final PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getSystemLibraryManager();
+      final PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getPackageLibraryManager();
       final CompilerConfiguration config = new DefaultCompilerConfiguration(
           DartCompilerUtilities.COMPILER_OPTIONS,
           libraryManager) {
@@ -799,7 +799,7 @@ public class DartCompilerUtilities {
       return null;
     }
 
-    final PackageLibraryManager manager = PackageLibraryManagerProvider.getSystemLibraryManager();
+    final PackageLibraryManager manager = PackageLibraryManagerProvider.getPackageLibraryManager();
     AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
 
     URI librarySourceUri = librarySource.getUri();

@@ -1191,7 +1191,7 @@ public class BindingUtils {
       return new DartLibraryImpl(librarySource);
     }
     if (PackageLibraryManager.isPackageUri(uri)) {
-      uri = PackageLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(uri);
+      uri = PackageLibraryManagerProvider.getPackageLibraryManager().resolveDartUri(uri);
     }
     String targetUri = uri.toString();
     IResource file = com.google.dart.tools.core.internal.util.ResourceUtil.getResource(uri);

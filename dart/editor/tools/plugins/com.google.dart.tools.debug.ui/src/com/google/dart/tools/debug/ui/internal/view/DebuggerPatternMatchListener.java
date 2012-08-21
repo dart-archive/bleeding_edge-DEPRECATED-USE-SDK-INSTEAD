@@ -190,7 +190,7 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
       // resolve package: urls to file: urls
       if (PackageLibraryManager.isPackageSpec(url)
           && DartCore.getPlugin().getPackageRootPref() != null) {
-        url = PackageLibraryManagerProvider.getSystemLibraryManager().resolvePackageUri(url).toString();
+        url = PackageLibraryManagerProvider.getPackageLibraryManager().resolvePackageUri(url).toString();
       }
 
       // Handle both fully absolute path names and http: urls.

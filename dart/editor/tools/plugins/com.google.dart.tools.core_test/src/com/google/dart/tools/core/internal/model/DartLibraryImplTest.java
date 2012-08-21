@@ -984,7 +984,7 @@ public class DartLibraryImplTest extends TestCase {
   }
 
   private DartLibraryImpl getBundledLib(String bundledLibName) throws Exception {
-    PackageLibraryManager libMgr = PackageLibraryManagerProvider.getSystemLibraryManager();
+    PackageLibraryManager libMgr = PackageLibraryManagerProvider.getPackageLibraryManager();
     URI libUri = new URI(bundledLibName);
     return new DartLibraryImpl(new UrlLibrarySource(libUri, libMgr));
   }
