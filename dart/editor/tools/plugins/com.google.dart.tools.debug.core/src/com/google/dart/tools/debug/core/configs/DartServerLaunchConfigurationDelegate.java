@@ -119,7 +119,7 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
     String packageRoot = DartCore.getPlugin().getFirstPackageRootPref();
     if (packageRoot != null) {
-      packageRoot = new Path(packageRoot).makeAbsolute().toPortableString();
+      packageRoot = new Path(packageRoot).makeAbsolute().toOSString();
       String fileSeparator = System.getProperty("file.separator");
       if (!packageRoot.endsWith(fileSeparator)) {
         packageRoot += fileSeparator;
