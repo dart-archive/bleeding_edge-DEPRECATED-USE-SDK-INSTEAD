@@ -45,7 +45,7 @@ import java.util.List;
  * @see DartBuilder
  */
 public class DartBasedBuilder {
-  private static final boolean VERBOSE = true;
+  private static final boolean VERBOSE = false;
 
   // The generic unix/max/bsd CLI limit is 262144.
   private static final int GENERAL_CLI_LIMIT = 262000;
