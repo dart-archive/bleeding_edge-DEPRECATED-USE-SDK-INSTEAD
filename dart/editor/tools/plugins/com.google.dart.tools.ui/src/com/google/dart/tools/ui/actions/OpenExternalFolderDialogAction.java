@@ -13,9 +13,12 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.internal.util.DirectoryVerification;
 
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
@@ -29,6 +32,9 @@ public class OpenExternalFolderDialogAction extends AbstractInstrumentedAction i
     IWorkbenchAction {
 
   private static final String ACTION_ID = "com.google.dart.tools.ui.folder.open";
+
+  private static final String DIALOGSTORE_LAST_DIR = DartUI.class.getPackage().getName()
+      + ".last.dir"; //$NON-NLS-1$
 
   private final IWorkbenchWindow window;
 
@@ -48,11 +54,21 @@ public class OpenExternalFolderDialogAction extends AbstractInstrumentedAction i
 
   @Override
   public void run() {
-    String directory = new DirectoryDialog(window.getShell()).open();
+
+    DirectoryDialog directoryDialog = new DirectoryDialog(window.getShell());
+
+    IDialogSettings dialogSettings = DartToolsPlugin.getDefault().getDialogSettings();
+
+    String lastDir = dialogSettings.get(DIALOGSTORE_LAST_DIR);
+    directoryDialog.setFilterPath(lastDir);
+
+    String directory = directoryDialog.open();
 
     if (directory == null) {
       return;
     }
+
+    dialogSettings.put(DIALOGSTORE_LAST_DIR, directory);
 
     File directoryFile = new File(directory);
 
