@@ -16,7 +16,7 @@ package com.google.dart.tools.update.core;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 
-import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -30,6 +30,8 @@ import org.eclipse.ui.PlatformUI;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
 
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
@@ -189,8 +191,14 @@ public class UpdateCore extends Plugin {
    * Get the directory location for locally staging updates.
    */
   public static IPath getUpdateDirPath() {
-    IPath location = ResourcesPlugin.getWorkspace().getRoot().getLocation();
-    return location.removeLastSegments(1).append(UPDATES_DIR_NAME);
+    URL installLocation = Platform.getInstallLocation().getURL();
+    try {
+      return URIUtil.toPath(org.eclipse.core.runtime.URIUtil.toURI(installLocation)).append(
+          UPDATES_DIR_NAME);
+    } catch (URISyntaxException e) {
+      //not possible because we know the above URL is valid
+      return null;
+    }
   }
 
   /**
