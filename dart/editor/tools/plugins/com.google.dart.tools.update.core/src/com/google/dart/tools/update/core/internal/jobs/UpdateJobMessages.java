@@ -33,6 +33,7 @@ public class UpdateJobMessages extends NLS {
   public static String InstallUpdateAction_errorTitle;
   public static String InstallUpdateAction_extract_task;
   public static String InstallUpdateAction_install_task;
+  public static String InstallUpdateAction_preparing_task;
   public static String InstallUpdateAction_progress_mon_title;
   static {
     // initialize resource bundle

@@ -183,8 +183,7 @@ public class CleanupInstallationJob extends Job {
         if (monitor.isCanceled()) {
           return Status.CANCEL_STATUS;
         }
-        UpdateUtils.delete(file);
-        monitor.worked(1);
+        UpdateUtils.delete(file, monitor);
       }
       monitor.done();
 

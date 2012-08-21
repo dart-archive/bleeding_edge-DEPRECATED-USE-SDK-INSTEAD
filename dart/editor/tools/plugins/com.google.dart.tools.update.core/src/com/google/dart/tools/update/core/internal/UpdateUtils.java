@@ -131,9 +131,6 @@ public class UpdateUtils {
 
     while (count != -1) {
       out.write(data, 0, count);
-
-      monitor.worked(count);
-
       count = in.read(data);
     }
 
@@ -142,40 +139,69 @@ public class UpdateUtils {
 
     toFile.setLastModified(fromFile.lastModified());
 
-    monitor.done();
+    monitor.worked(1);
+
+  }
+
+  /**
+   * Count the number of files in the given directory (for use in displaying progress).
+   * 
+   * @param file the file/dir of interest
+   * @return the number of files
+   */
+  public static int countFiles(File file) {
+
+    if (!file.isDirectory()) {
+      return 1;
+    }
+
+    int count = 0;
+    File[] files = file.listFiles();
+    if (files != null) {
+      for (File f : files) {
+        count += countFiles(f);
+      }
+    }
+    return count;
   }
 
   /**
    * Delete the given file. If the file is a directory, recurse and delete contents.
    * 
    * @param file the file to delete
+   * @param monitor the progress monitor
    */
-  public static void delete(File file) {
+  public static void delete(File file, IProgressMonitor monitor) {
     if (file.isFile()) {
       file.delete();
+      monitor.worked(1);
     } else {
-      deleteDirectory(file);
+      deleteDirectory(file, monitor);
     }
   }
 
   /**
-   * Recurse and delete the given directory contents.
+   * Recurse and delete the given directory contents, providing progress along the way.
    * 
    * @param dir the directory to delete
+   * @param monitor the progress monitor
    */
-  public static void deleteDirectory(File dir) {
+  public static void deleteDirectory(File dir, IProgressMonitor monitor) {
     if (dir == null || !dir.exists()) {
       return;
     }
     for (File file : dir.listFiles()) {
       if (file.isDirectory()) {
-        deleteDirectory(file);
+        deleteDirectory(file, monitor);
       } else {
         file.delete();
+        monitor.worked(1);
       }
     }
 
     dir.delete();
+    monitor.worked(1);
+
   }
 
   /**

@@ -172,8 +172,7 @@ public class InstallUpdateAction extends Action {
     File[] files = tmpDir.listFiles();
     monitor.beginTask(UpdateJobMessages.InstallUpdateAction_cleanup_task, files.length);
     for (File file : files) {
-      UpdateUtils.delete(file);
-      monitor.worked(1);
+      UpdateUtils.delete(file, monitor);
     }
     monitor.done();
   }
@@ -182,19 +181,17 @@ public class InstallUpdateAction extends Action {
 
     File tmpDir = UpdateUtils.getUpdateTempDir();
 
-    SubMonitor mon = SubMonitor.convert(
-        monitor,
-        UpdateJobMessages.InstallUpdateAction_install_task,
-        100);
+    SubMonitor mon = SubMonitor.convert(monitor, null, 100);
 
     cleanupTempDir(tmpDir, mon.newChild(3));
 
     IPath updatePath = updateManager.getLatestStagedUpdate().getLocalPath();
+    monitor.setTaskName(UpdateJobMessages.InstallUpdateAction_extract_task);
     UpdateUtils.unzip(
         updatePath.toFile(),
         tmpDir,
         UpdateJobMessages.InstallUpdateAction_extract_task,
-        mon.newChild(70));
+        mon.newChild(20));
 
     File installTarget = UpdateUtils.getUpdateInstallDir();
     //TODO (pquitslund): only necessary for testing
@@ -202,12 +199,16 @@ public class InstallUpdateAction extends Action {
       installTarget.mkdir();
     }
 
-    //TODO (pquitslund): add progress?
-    UpdateUtils.deleteDirectory(new File(installTarget, "dart-sdk")); //$NON-NLS-1$
-    UpdateUtils.deleteDirectory(new File(installTarget, "samples")); //$NON-NLS-1$
+    monitor.setTaskName(UpdateJobMessages.InstallUpdateAction_preparing_task);
+    UpdateUtils.deleteDirectory(new File(installTarget, "dart-sdk"), mon.newChild(5)); //$NON-NLS-1$
+    UpdateUtils.deleteDirectory(new File(installTarget, "samples"), mon.newChild(5)); //$NON-NLS-1$
 
-    UpdateUtils.copyDirectory(new File(tmpDir, "dart"), installTarget, UPDATE_OVERRIDE_FILTER, //$NON-NLS-1$
-        mon.newChild(27));
+    monitor.setTaskName(UpdateJobMessages.InstallUpdateAction_install_task);
+    File installDir = new File(tmpDir, "dart");
+    int fileCount = UpdateUtils.countFiles(installDir);
+    UpdateUtils.copyDirectory(installDir, installTarget, UPDATE_OVERRIDE_FILTER, //$NON-NLS-1$
+        mon.newChild(67).setWorkRemaining(fileCount));
+
   }
 
   private Shell getShell() {
