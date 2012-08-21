@@ -854,7 +854,7 @@ def PostProcessEditorBuilds(out_dir):
     print('  processing %s' % basename)
     
     # post-process the info.plist file
-    if (basename.startssith('darteditor-macos-')):
+    if (basename.startswith('darteditor-macos-')):
       infofile = join('dart', 'DartEditor.app', 'Contents', 'Info.plist')
       subprocess.call(['unzip', zipFile, infofile], env=os.environ)
       ReplaceInFiles([infofile],
