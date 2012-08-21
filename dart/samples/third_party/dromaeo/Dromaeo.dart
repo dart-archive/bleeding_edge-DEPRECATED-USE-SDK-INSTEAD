@@ -215,7 +215,7 @@ class Dromaeo {
     return document.query('#$id');
   }
 
-  int get _suitesTotal() {
+  int get _suitesTotal {
     return _suiteControllers.length;
   }
 }

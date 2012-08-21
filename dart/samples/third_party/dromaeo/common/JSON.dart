@@ -45,12 +45,12 @@ class JsonToken {
   final String _s;
   final num _n;
 
-  String get str() {
+  String get str {
     assert(kind == STRING);
     return _s;
   }
 
-  num get number() {
+  num get number {
     assert(kind == NUMBER);
     return _n;
   }
@@ -470,7 +470,7 @@ class JsonStringifier {
       : _sb = new StringBuffer(), _seen = new List<Object>() {}
   StringBuffer _sb;
   List<Object> _seen;  // TODO: that should be identity set.
-  String get _result() { return _sb.toString(); }
+  String get _result { return _sb.toString(); }
 
   static String _numberToString(num x) {
     // TODO: need some more investigation what to do with precision

@@ -92,7 +92,7 @@ class Suites {
 
   static var _SUITE_DESCRIPTIONS;
 
-  static List<SuiteDescription> get SUITE_DESCRIPTIONS() {
+  static List<SuiteDescription> get SUITE_DESCRIPTIONS {
     if (null !== _SUITE_DESCRIPTIONS) {
       return _SUITE_DESCRIPTIONS;
     }
