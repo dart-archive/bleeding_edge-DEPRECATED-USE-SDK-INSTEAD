@@ -7,7 +7,7 @@
       <editor
             class="com.google.dart.tools.ui.web.css.CssEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="css"
+            extensions="css,scss"
             icon="icons/cssfile.png"
             id="com.google.dart.tools.ui.web.css.CSSEditor"
             symbolicFontName="com.google.dart.tools.ui.editors.textfont"
@@ -36,6 +36,7 @@
             name="Dart HTML Editor"
             default="true">
       </editor>
+
       <editor
             class="com.google.dart.tools.ui.web.yaml.YamlEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
