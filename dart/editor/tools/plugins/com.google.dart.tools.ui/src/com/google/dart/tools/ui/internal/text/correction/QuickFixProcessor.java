@@ -97,6 +97,10 @@ import java.util.Set;
 
 /**
  * Standard {@link IQuickFixProcessor} for Dart.
+ * <p>
+ * Method {@link #getCorrections()} calls corresponding "addFix_" methods for each supported
+ * {@link ErrorCode}. These methods may throw any {@link Exception}, we don't try to recover from
+ * them, instead we just silently ignore them. No dialog for user.
  * 
  * @coverage dart.editor.ui.correction
  */
