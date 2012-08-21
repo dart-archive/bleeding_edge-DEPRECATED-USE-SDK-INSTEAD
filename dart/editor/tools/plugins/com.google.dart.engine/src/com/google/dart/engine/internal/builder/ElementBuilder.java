@@ -24,10 +24,14 @@ import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.Label;
+import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NamedFormalParameter;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SwitchCase;
+import com.google.dart.engine.ast.SwitchDefault;
+import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.TypeAlias;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
@@ -178,9 +182,12 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   }
 
   @Override
-  public Void visitLabel(Label node) {
-    LabelElementImpl element = new LabelElementImpl(node.getLabel());
-    currentHolder.addLabel(element);
+  public Void visitLabeledStatement(LabeledStatement node) {
+    boolean onSwitchStatement = node.getStatement() instanceof SwitchStatement;
+    for (Label label : node.getLabels()) {
+      LabelElementImpl element = new LabelElementImpl(label.getLabel(), onSwitchStatement, false);
+      currentHolder.addLabel(element);
+    }
     return null;
   }
 
@@ -251,6 +258,24 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
     VariableElementImpl parameter = new VariableElementImpl(node.getIdentifier());
     currentHolder.addVariable(parameter);
+    return null;
+  }
+
+  @Override
+  public Void visitSwitchCase(SwitchCase node) {
+    for (Label label : node.getLabels()) {
+      LabelElementImpl element = new LabelElementImpl(label.getLabel(), false, true);
+      currentHolder.addLabel(element);
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitSwitchDefault(SwitchDefault node) {
+    for (Label label : node.getLabels()) {
+      LabelElementImpl element = new LabelElementImpl(label.getLabel(), false, true);
+      currentHolder.addLabel(element);
+    }
     return null;
   }
 

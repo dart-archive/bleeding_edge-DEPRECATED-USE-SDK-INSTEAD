@@ -14,30 +14,22 @@
 package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.Block;
-import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
-import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
-import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
-import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.Label;
+import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NamedFormalParameter;
 import com.google.dart.engine.ast.SimpleFormalParameter;
-import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TypeAlias;
 import com.google.dart.engine.ast.TypeParameter;
-import com.google.dart.engine.ast.TypeParameterList;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
@@ -49,12 +41,28 @@ import com.google.dart.engine.element.TypeElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.scanner.Keyword;
-import com.google.dart.engine.scanner.KeywordToken;
-import com.google.dart.engine.scanner.StringToken;
-import com.google.dart.engine.scanner.Token;
-import com.google.dart.engine.scanner.TokenType;
 
-import java.util.ArrayList;
+import static com.google.dart.engine.ast.ASTFactory.blockFunctionBody;
+import static com.google.dart.engine.ast.ASTFactory.breakStatement;
+import static com.google.dart.engine.ast.ASTFactory.catchClause;
+import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
+import static com.google.dart.engine.ast.ASTFactory.constructorDeclaration;
+import static com.google.dart.engine.ast.ASTFactory.fieldDeclaration;
+import static com.google.dart.engine.ast.ASTFactory.fieldFormalParameter;
+import static com.google.dart.engine.ast.ASTFactory.formalParameterList;
+import static com.google.dart.engine.ast.ASTFactory.functionExpression;
+import static com.google.dart.engine.ast.ASTFactory.functionTypedFormalParameter;
+import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.ASTFactory.labeledStatement;
+import static com.google.dart.engine.ast.ASTFactory.list;
+import static com.google.dart.engine.ast.ASTFactory.methodDeclaration;
+import static com.google.dart.engine.ast.ASTFactory.namedFormalParameter;
+import static com.google.dart.engine.ast.ASTFactory.simpleFormalParameter;
+import static com.google.dart.engine.ast.ASTFactory.typeAlias;
+import static com.google.dart.engine.ast.ASTFactory.typeParameter;
+import static com.google.dart.engine.ast.ASTFactory.typeParameterList;
+import static com.google.dart.engine.ast.ASTFactory.variableDeclaration;
+import static com.google.dart.engine.ast.ASTFactory.variableDeclarationList;
 
 public class ElementBuilderTest extends EngineTestCase {
   public void test_visitCatchClause() {
@@ -62,16 +70,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String exceptionParameterName = "e";
     String stackParameterName = "s";
-    CatchClause clause = new CatchClause(
-        null,
-        null,
-        null,
-        null,
-        createIdentifier(exceptionParameterName),
-        null,
-        createIdentifier(stackParameterName),
-        null,
-        createEmptyBlock());
+    CatchClause clause = catchClause(exceptionParameterName, stackParameterName);
     clause.accept(builder);
     VariableElement[] variables = holder.getVariables();
     assertLength(2, variables);
@@ -97,16 +96,11 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String className = "C";
-    ClassDeclaration classDeclaration = new ClassDeclaration(
-        null,
-        new KeywordToken(Keyword.ABSTRACT, 0),
-        null,
-        createIdentifier(className),
+    ClassDeclaration classDeclaration = classDeclaration(
+        Keyword.ABSTRACT,
+        className,
         null,
         null,
-        null,
-        null,
-        new ArrayList<ClassMember>(),
         null);
     classDeclaration.accept(builder);
     TypeElement[] types = holder.getTypes();
@@ -125,17 +119,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String className = "C";
-    ClassDeclaration classDeclaration = new ClassDeclaration(
-        null,
-        null,
-        null,
-        createIdentifier(className),
-        null,
-        null,
-        null,
-        null,
-        new ArrayList<ClassMember>(),
-        null);
+    ClassDeclaration classDeclaration = classDeclaration(null, className, null, null, null);
     classDeclaration.accept(builder);
     TypeElement[] types = holder.getTypes();
     assertLength(1, types);
@@ -155,16 +139,11 @@ public class ElementBuilderTest extends EngineTestCase {
     String className = "C";
     String firstVariableName = "E";
     String secondVariableName = "F";
-    ClassDeclaration classDeclaration = new ClassDeclaration(
+    ClassDeclaration classDeclaration = classDeclaration(
         null,
+        className,
+        typeParameterList(firstVariableName, secondVariableName),
         null,
-        null,
-        createIdentifier(className),
-        createTypeParameterList(firstVariableName, secondVariableName),
-        null,
-        null,
-        null,
-        new ArrayList<ClassMember>(),
         null);
     classDeclaration.accept(builder);
     TypeElement[] types = holder.getTypes();
@@ -185,17 +164,13 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String className = "A";
-    ConstructorDeclaration constructorDeclaration = new ConstructorDeclaration(
+    ConstructorDeclaration constructorDeclaration = constructorDeclaration(
+        Keyword.FACTORY,
+        identifier(className),
         null,
+        formalParameterList(),
         null,
-        new KeywordToken(Keyword.FACTORY, 0),
-        createIdentifier(className),
-        null,
-        null,
-        createFormalParameterList(),
-        null,
-        createConstructorInitializerList(),
-        createEmptyFunctionBody());
+        blockFunctionBody());
     constructorDeclaration.accept(builder);
     ConstructorElement[] constructors = holder.getConstructors();
     assertLength(1, constructors);
@@ -214,17 +189,13 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String className = "A";
-    ConstructorDeclaration constructorDeclaration = new ConstructorDeclaration(
+    ConstructorDeclaration constructorDeclaration = constructorDeclaration(
         null,
+        identifier(className),
         null,
+        formalParameterList(),
         null,
-        createIdentifier(className),
-        null,
-        null,
-        createFormalParameterList(),
-        null,
-        createConstructorInitializerList(),
-        createEmptyFunctionBody());
+        blockFunctionBody());
     constructorDeclaration.accept(builder);
     ConstructorElement[] constructors = holder.getConstructors();
     assertLength(1, constructors);
@@ -244,17 +215,13 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String className = "A";
     String constructorName = "c";
-    ConstructorDeclaration constructorDeclaration = new ConstructorDeclaration(
+    ConstructorDeclaration constructorDeclaration = constructorDeclaration(
         null,
+        identifier(className),
+        constructorName,
+        formalParameterList(),
         null,
-        null,
-        createIdentifier(className),
-        null,
-        createIdentifier(constructorName),
-        createFormalParameterList(),
-        null,
-        createConstructorInitializerList(),
-        createEmptyFunctionBody());
+        blockFunctionBody());
     constructorDeclaration.accept(builder);
     ConstructorElement[] constructors = holder.getConstructors();
     assertLength(1, constructors);
@@ -274,15 +241,11 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String firstFieldName = "x";
     String secondFieldName = "y";
-    FieldDeclaration fieldDeclaration = new FieldDeclaration(
+    FieldDeclaration fieldDeclaration = fieldDeclaration(false, null, new VariableDeclaration(
         null,
+        identifier(firstFieldName),
         null,
-        createVariableDeclarationList(null, new VariableDeclaration(
-            null,
-            createIdentifier(firstFieldName),
-            null,
-            null), new VariableDeclaration(null, createIdentifier(secondFieldName), null, null)),
-        null);
+        null), new VariableDeclaration(null, identifier(secondFieldName), null, null));
     fieldDeclaration.accept(builder);
     FieldElement[] fields = holder.getFields();
     assertLength(2, fields);
@@ -308,12 +271,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String parameterName = "p";
-    FieldFormalParameter formalParameter = new FieldFormalParameter(
-        null,
-        null,
-        null,
-        null,
-        createIdentifier(parameterName));
+    FieldFormalParameter formalParameter = fieldFormalParameter(null, null, parameterName);
     formalParameter.accept(builder);
     VariableElement[] parameters = holder.getVariables();
     assertLength(1, parameters);
@@ -332,13 +290,9 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String firstParameterName = "a";
     String secondParameterName = "b";
-    FormalParameterList parameterList = createFormalParameterList(new SimpleFormalParameter(
-        null,
-        null,
-        createIdentifier(firstParameterName)), new SimpleFormalParameter(
-        null,
-        null,
-        createIdentifier(secondParameterName)));
+    FormalParameterList parameterList = formalParameterList(
+        simpleFormalParameter(firstParameterName),
+        simpleFormalParameter(secondParameterName));
     parameterList.accept(builder);
     VariableElement[] parameters = holder.getParameters();
     assertLength(2, parameters);
@@ -352,11 +306,11 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String functionName = "f";
-    FunctionExpression expression = new FunctionExpression(
+    FunctionExpression expression = functionExpression(
         null,
-        createIdentifier(functionName),
-        createFormalParameterList(),
-        createEmptyFunctionBody());
+        functionName,
+        formalParameterList(),
+        blockFunctionBody());
     expression.accept(builder);
     FunctionElement[] functions = holder.getFunctions();
     assertLength(1, functions);
@@ -371,10 +325,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String parameterName = "p";
-    FunctionTypedFormalParameter formalParameter = new FunctionTypedFormalParameter(
-        null,
-        createIdentifier(parameterName),
-        createFormalParameterList());
+    FunctionTypedFormalParameter formalParameter = functionTypedFormalParameter(null, parameterName);
     formalParameter.accept(builder);
     VariableElement[] parameters = holder.getVariables();
     assertLength(1, parameters);
@@ -388,12 +339,14 @@ public class ElementBuilderTest extends EngineTestCase {
     assertFalse(parameter.isSynthetic());
   }
 
-  public void test_visitLabel() {
+  public void test_visitLabeledStatement() {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String labelName = "l";
-    Label labelDeclaration = new Label(createIdentifier(labelName), null);
-    labelDeclaration.accept(builder);
+    LabeledStatement statement = labeledStatement(
+        list(new Label(identifier(labelName), null)),
+        breakStatement());
+    statement.accept(builder);
     LabelElement[] labels = holder.getLabels();
     assertLength(1, labels);
 
@@ -407,16 +360,14 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
-    MethodDeclaration methodDeclaration = new MethodDeclaration(
-        null,
-        null,
-        new KeywordToken(Keyword.ABSTRACT, 0),
+    MethodDeclaration methodDeclaration = methodDeclaration(
+        Keyword.ABSTRACT,
         null,
         null,
         null,
-        createIdentifier(methodName),
-        createFormalParameterList(),
-        createEmptyFunctionBody());
+        identifier(methodName),
+        formalParameterList(),
+        blockFunctionBody());
     methodDeclaration.accept(builder);
     MethodElement[] methods = holder.getMethods();
     assertLength(1, methods);
@@ -437,16 +388,14 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
-    MethodDeclaration methodDeclaration = new MethodDeclaration(
+    MethodDeclaration methodDeclaration = methodDeclaration(
         null,
         null,
+        Keyword.GET,
         null,
-        null,
-        new KeywordToken(Keyword.GET, 0),
-        null,
-        createIdentifier(methodName),
-        createFormalParameterList(),
-        createEmptyFunctionBody());
+        identifier(methodName),
+        formalParameterList(),
+        blockFunctionBody());
     methodDeclaration.accept(builder);
     FieldElement[] fields = holder.getFields();
     assertLength(1, fields);
@@ -472,16 +421,14 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
-    MethodDeclaration methodDeclaration = new MethodDeclaration(
+    MethodDeclaration methodDeclaration = methodDeclaration(
         null,
         null,
         null,
         null,
-        null,
-        null,
-        createIdentifier(methodName),
-        createFormalParameterList(),
-        createEmptyFunctionBody());
+        identifier(methodName),
+        formalParameterList(),
+        blockFunctionBody());
     methodDeclaration.accept(builder);
     MethodElement[] methods = holder.getMethods();
     assertLength(1, methods);
@@ -502,16 +449,14 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "+";
-    MethodDeclaration methodDeclaration = new MethodDeclaration(
+    MethodDeclaration methodDeclaration = methodDeclaration(
         null,
         null,
         null,
-        null,
-        null,
-        new KeywordToken(Keyword.OPERATOR, 0),
-        createIdentifier(methodName),
-        createFormalParameterList(),
-        createEmptyFunctionBody());
+        Keyword.OPERATOR,
+        identifier(methodName),
+        formalParameterList(),
+        blockFunctionBody());
     methodDeclaration.accept(builder);
     MethodElement[] methods = holder.getMethods();
     assertLength(1, methods);
@@ -532,16 +477,14 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
-    MethodDeclaration methodDeclaration = new MethodDeclaration(
+    MethodDeclaration methodDeclaration = methodDeclaration(
         null,
         null,
+        Keyword.SET,
         null,
-        null,
-        new KeywordToken(Keyword.SET, 0),
-        null,
-        createIdentifier(methodName),
-        createFormalParameterList(),
-        createEmptyFunctionBody());
+        identifier(methodName),
+        formalParameterList(),
+        blockFunctionBody());
     methodDeclaration.accept(builder);
     FieldElement[] fields = holder.getFields();
     assertLength(1, fields);
@@ -567,16 +510,14 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
-    MethodDeclaration methodDeclaration = new MethodDeclaration(
-        null,
-        null,
-        new KeywordToken(Keyword.STATIC, 0),
+    MethodDeclaration methodDeclaration = methodDeclaration(
+        Keyword.STATIC,
         null,
         null,
         null,
-        createIdentifier(methodName),
-        createFormalParameterList(),
-        createEmptyFunctionBody());
+        identifier(methodName),
+        formalParameterList(),
+        blockFunctionBody());
     methodDeclaration.accept(builder);
     MethodElement[] methods = holder.getMethods();
     assertLength(1, methods);
@@ -597,10 +538,9 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String parameterName = "p";
-    NamedFormalParameter formalParameter = new NamedFormalParameter(new SimpleFormalParameter(
-        null,
-        null,
-        createIdentifier(parameterName)), null, createIdentifier("b"));
+    NamedFormalParameter formalParameter = namedFormalParameter(
+        simpleFormalParameter(parameterName),
+        identifier("b"));
     formalParameter.accept(builder);
     VariableElement[] parameters = holder.getVariables();
     assertLength(1, parameters);
@@ -620,10 +560,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String parameterName = "p";
-    SimpleFormalParameter formalParameter = new SimpleFormalParameter(
-        null,
-        null,
-        createIdentifier(parameterName));
+    SimpleFormalParameter formalParameter = simpleFormalParameter(parameterName);
     formalParameter.accept(builder);
     VariableElement[] parameters = holder.getVariables();
     assertLength(1, parameters);
@@ -641,14 +578,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String aliasName = "F";
-    TypeAlias typeAlias = new TypeAlias(
-        null,
-        null,
-        null,
-        createIdentifier(aliasName),
-        null,
-        null,
-        null);
+    TypeAlias typeAlias = typeAlias(null, aliasName, null, null);
     typeAlias.accept(builder);
     TypeAliasElement[] aliases = holder.getTypeAliases();
     assertLength(1, aliases);
@@ -665,15 +595,13 @@ public class ElementBuilderTest extends EngineTestCase {
     String aliasName = "F";
     String firstParameterName = "x";
     String secondParameterName = "y";
-    TypeAlias typeAlias = new TypeAlias(
+    TypeAlias typeAlias = typeAlias(
         null,
-        null,
-        null,
-        createIdentifier(aliasName),
-        createTypeParameterList(),
-        createFormalParameterList(
-            createParameter(firstParameterName),
-            createParameter(secondParameterName)), null);
+        aliasName,
+        typeParameterList(),
+        formalParameterList(
+            simpleFormalParameter(firstParameterName),
+            simpleFormalParameter(secondParameterName)));
     typeAlias.accept(builder);
     TypeAliasElement[] aliases = holder.getTypeAliases();
     assertLength(1, aliases);
@@ -697,14 +625,11 @@ public class ElementBuilderTest extends EngineTestCase {
     String aliasName = "F";
     String firstTypeParameterName = "A";
     String secondTypeParameterName = "B";
-    TypeAlias typeAlias = new TypeAlias(
+    TypeAlias typeAlias = typeAlias(
         null,
-        null,
-        null,
-        createIdentifier(aliasName),
-        createTypeParameterList(firstTypeParameterName, secondTypeParameterName),
-        createFormalParameterList(),
-        null);
+        aliasName,
+        typeParameterList(firstTypeParameterName, secondTypeParameterName),
+        formalParameterList());
     typeAlias.accept(builder);
     TypeAliasElement[] aliases = holder.getTypeAliases();
     assertLength(1, aliases);
@@ -726,7 +651,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String parameterName = "E";
-    TypeParameter typeParameter = new TypeParameter(createIdentifier(parameterName), null, null);
+    TypeParameter typeParameter = typeParameter(parameterName);
     typeParameter.accept(builder);
     TypeVariableElement[] typeVariables = holder.getTypeVariables();
     assertLength(1, typeVariables);
@@ -741,12 +666,8 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String variableName = "v";
-    VariableDeclaration variableDeclaration = new VariableDeclaration(
-        null,
-        createIdentifier(variableName),
-        null,
-        null);
-    createVariableDeclarationList(null, variableDeclaration);
+    VariableDeclaration variableDeclaration = variableDeclaration(variableName, null);
+    variableDeclarationList(null, variableDeclaration);
     variableDeclaration.accept(builder);
     VariableElement[] variables = holder.getVariables();
     assertLength(1, variables);
@@ -758,55 +679,5 @@ public class ElementBuilderTest extends EngineTestCase {
     assertFalse(variable.isConst());
     assertFalse(variable.isFinal());
     assertFalse(variable.isSynthetic());
-  }
-
-  private ArrayList<ConstructorInitializer> createConstructorInitializerList(
-      ConstructorInitializer... initializers) {
-    ArrayList<ConstructorInitializer> initializerList = new ArrayList<ConstructorInitializer>();
-    for (ConstructorInitializer initializer : initializers) {
-      initializerList.add(initializer);
-    }
-    return initializerList;
-  }
-
-  private Block createEmptyBlock() {
-    return new Block(null, new ArrayList<Statement>(), null);
-  }
-
-  private BlockFunctionBody createEmptyFunctionBody() {
-    return new BlockFunctionBody(createEmptyBlock());
-  }
-
-  private FormalParameterList createFormalParameterList(FormalParameter... parameters) {
-    ArrayList<FormalParameter> parameterList = new ArrayList<FormalParameter>();
-    for (FormalParameter parameter : parameters) {
-      parameterList.add(parameter);
-    }
-    return new FormalParameterList(null, parameterList, null, null, null);
-  }
-
-  private SimpleIdentifier createIdentifier(String name) {
-    return new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0));
-  }
-
-  private FormalParameter createParameter(String parameterName) {
-    return new SimpleFormalParameter(null, null, createIdentifier(parameterName));
-  }
-
-  private TypeParameterList createTypeParameterList(String... typeNames) {
-    ArrayList<TypeParameter> typeParameters = new ArrayList<TypeParameter>();
-    for (String typeName : typeNames) {
-      typeParameters.add(new TypeParameter(createIdentifier(typeName), null, null));
-    }
-    return new TypeParameterList(null, typeParameters, null);
-  }
-
-  private VariableDeclarationList createVariableDeclarationList(Token keyword,
-      VariableDeclaration... variables) {
-    ArrayList<VariableDeclaration> variableList = new ArrayList<VariableDeclaration>();
-    for (VariableDeclaration variable : variables) {
-      variableList.add(variable);
-    }
-    return new VariableDeclarationList(keyword, null, variableList);
   }
 }

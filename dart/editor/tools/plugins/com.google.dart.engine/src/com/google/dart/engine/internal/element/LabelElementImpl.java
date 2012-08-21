@@ -23,6 +23,17 @@ import com.google.dart.engine.element.LabelElement;
  */
 public class LabelElementImpl extends ElementImpl implements LabelElement {
   /**
+   * A flag indicating whether this label is associated with a {@code switch} statement.
+   */
+  private boolean onSwitchStatement;
+
+  /**
+   * A flag indicating whether this label is associated with a {@code switch} member ({@code case}
+   * or {@code default}).
+   */
+  private boolean onSwitchMember;
+
+  /**
    * An empty array of label elements.
    */
   public static final LabelElement[] EMPTY_ARRAY = new LabelElement[0];
@@ -31,9 +42,14 @@ public class LabelElementImpl extends ElementImpl implements LabelElement {
    * Initialize a newly created label element to have the given name.
    * 
    * @param name the name of this element
+   * @param onSwitchStatement {@code true} if this label is associated with a {@code switch}
+   *          statement
+   * @param onSwitchMember {@code true} if this label is associated with a {@code switch} member
    */
-  public LabelElementImpl(Identifier name) {
+  public LabelElementImpl(Identifier name, boolean onSwitchStatement, boolean onSwitchMember) {
     super(name);
+    this.onSwitchStatement = onSwitchStatement;
+    this.onSwitchMember = onSwitchMember;
   }
 
   @Override
@@ -44,5 +60,24 @@ public class LabelElementImpl extends ElementImpl implements LabelElement {
   @Override
   public ElementKind getKind() {
     return ElementKind.LABEL;
+  }
+
+  /**
+   * Return {@code true} if this label is associated with a {@code switch} member ({@code case} or
+   * {@code default}).
+   * 
+   * @return {@code true} if this label is associated with a {@code switch} member
+   */
+  public boolean isOnSwitchMember() {
+    return onSwitchMember;
+  }
+
+  /**
+   * Return {@code true} if this label is associated with a {@code switch} statement.
+   * 
+   * @return {@code true} if this label is associated with a {@code switch} statement
+   */
+  public boolean isOnSwitchStatement() {
+    return onSwitchStatement;
   }
 }

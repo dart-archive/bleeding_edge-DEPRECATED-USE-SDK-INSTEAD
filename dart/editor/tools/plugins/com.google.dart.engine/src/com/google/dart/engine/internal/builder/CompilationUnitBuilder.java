@@ -58,7 +58,7 @@ public class CompilationUnitBuilder {
    * @param source the source describing the compilation unit
    * @return the AST structure for the compilation unit with the given source
    */
-  private CompilationUnit getCompilationUnit(Source source) {
+  protected CompilationUnit getCompilationUnit(Source source) {
     // TODO(brianwilkerson) Implement this.
     return null;
   }
