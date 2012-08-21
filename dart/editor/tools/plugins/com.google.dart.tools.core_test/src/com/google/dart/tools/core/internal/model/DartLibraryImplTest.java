@@ -20,7 +20,6 @@ import com.google.dart.compiler.DefaultLibrarySource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
-import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;

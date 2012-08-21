@@ -20,7 +20,6 @@ import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
 import com.google.dart.engine.parser.ASTValidator;
 import com.google.dart.engine.parser.Parser;
-import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.scanner.CharBufferScanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.sdk.DartSdk;
