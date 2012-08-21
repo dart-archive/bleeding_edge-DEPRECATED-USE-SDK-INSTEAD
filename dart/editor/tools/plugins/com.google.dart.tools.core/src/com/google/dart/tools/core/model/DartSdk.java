@@ -15,8 +15,6 @@ package com.google.dart.tools.core.model;
 
 import com.google.dart.tools.core.DartCore;
 
-import org.eclipse.core.runtime.Platform;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -41,16 +39,19 @@ import java.io.IOException;
 public class DartSdk {
 
   /**
-   * @return the location where the Dart SDK is installed
+   * @return
+   * @deprecated use DartSdkManager.getManager().getSdk()
    */
-  public static File getInstallDirectory() {
-    return new File(Platform.getInstallLocation().getURL().getFile());
-  }
-
+  @Deprecated
   public static DartSdk getInstance() {
     return DartSdkManager.getManager().getSdk();
   }
 
+  /**
+   * @return
+   * @deprecated use DartSdkManager.getManager().hasSdk()
+   */
+  @Deprecated
   public static boolean isInstalled() {
     return DartSdkManager.getManager().hasSdk();
   }
@@ -99,8 +100,9 @@ public class DartSdk {
   /**
    * Returns the old location for Dartium.
    */
+  @Deprecated
   public File getDartiumWorkingDirectory_old() {
-    return getInstallDirectory();
+    return DartSdkManager.getEclipseInstallationDirectory();
   }
 
   /**

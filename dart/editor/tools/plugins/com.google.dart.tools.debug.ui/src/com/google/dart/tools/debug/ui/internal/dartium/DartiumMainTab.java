@@ -17,6 +17,7 @@ import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
@@ -429,7 +430,8 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   protected String performSdkCheck() {
     if (!DartSdk.isInstalled()) {
-      return "Dart SDK not installed (" + DartSdk.getInstallDirectory() + ")";
+      return "Dartium is not installed ("
+          + DartSdkManager.getManager().getSdk().getDartiumWorkingDirectory() + ")";
     } else {
       return null;
     }

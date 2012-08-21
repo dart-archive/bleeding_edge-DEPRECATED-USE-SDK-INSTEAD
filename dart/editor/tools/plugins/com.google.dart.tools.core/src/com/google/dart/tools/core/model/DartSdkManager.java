@@ -66,12 +66,28 @@ public class DartSdkManager {
     return manager;
   }
 
-  private static File getDartSdkDirectory() {
-    return new File(getInstallationDirectory(), "dart-sdk");
+  static File getEclipseInstallationDirectory() {
+    return new File(Platform.getInstallLocation().getURL().getFile());
   }
 
-  private static File getInstallationDirectory() {
-    return new File(Platform.getInstallLocation().getURL().getFile());
+  /**
+   * The Editor looks for "dart-sdk" as a sibling to the installation directory.
+   * 
+   * @return
+   */
+  private static File getDefaultEditorSdkDirectory() {
+    File parent = getEclipseInstallationDirectory().getParentFile();
+
+    return new File(parent, "dart-sdk");
+  }
+
+  /**
+   * The plugins build looks in the installation directory for "dart-sdk".
+   * 
+   * @return
+   */
+  private static File getDefaultPluginsSdkDirectory() {
+    return new File(getEclipseInstallationDirectory(), "dart-sdk");
   }
 
   /**
@@ -173,7 +189,7 @@ public class DartSdkManager {
   }
 
   private File copyNewSdk(IProgressMonitor monitor, File newSDK) throws IOException {
-    File currentSDK = new File(getInstallationDirectory(), "dart-sdk.zip");
+    File currentSDK = new File(getEclipseInstallationDirectory(), "dart-sdk.zip");
 
     copyFile(newSDK, currentSDK, monitor);
 
@@ -239,8 +255,10 @@ public class DartSdkManager {
   }
 
   private void initSdk() {
-    if (getDartSdkDirectory().exists()) {
-      sdk = new DartSdk(getDartSdkDirectory());
+    if (getDefaultEditorSdkDirectory().exists()) {
+      sdk = new DartSdk(getDefaultEditorSdkDirectory());
+    } else if (getDefaultPluginsSdkDirectory().exists()) {
+      sdk = new DartSdk(getDefaultPluginsSdkDirectory());
     } else {
       sdk = NONE;
     }
@@ -288,13 +306,13 @@ public class DartSdkManager {
   }
 
   private void unzipNewSDK(File newSDK, IProgressMonitor monitor) throws IOException {
-    File sdkDirectory = getDartSdkDirectory();
+    File sdkDirectory = getDefaultPluginsSdkDirectory();
 
     if (sdkDirectory.exists()) {
       deleteDirectory(sdkDirectory);
     }
 
-    unzip(newSDK, getInstallationDirectory(), monitor);
+    unzip(newSDK, getDefaultPluginsSdkDirectory().getParentFile(), monitor);
   }
 
   private void upgradeImpl(IProgressMonitor monitor) throws IOException {
