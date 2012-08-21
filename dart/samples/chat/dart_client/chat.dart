@@ -158,8 +158,8 @@ class Chat {
     uiJoin();
   }
 
-  XMLHttpRequest sendRequest(String url, Map json, var onSuccess, var onError) {
-    XMLHttpRequest request = new XMLHttpRequest();
+  HttpRequest sendRequest(String url, Map json, var onSuccess, var onError) {
+    HttpRequest request = new HttpRequest();
     request.on.readyStateChange.add((Event event) {
       if (request.readyState != 4) return;
       if (request.status == 200) {
@@ -310,6 +310,6 @@ class Chat {
 
   String _session = null;
   int _nextMessage = 0;
-  XMLHttpRequest _pollRequest = null;
+  HttpRequest _pollRequest = null;
 
 }

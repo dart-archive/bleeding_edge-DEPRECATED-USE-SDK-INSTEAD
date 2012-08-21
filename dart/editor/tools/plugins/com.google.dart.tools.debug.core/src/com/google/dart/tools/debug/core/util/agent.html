@@ -12,7 +12,7 @@
   <body>
     <script>
       window.addEventListener('message', function (event) {
-        var xhr = new XMLHttpRequest();
+        var xhr = new HttpRequest();
 
         xhr.open('POST', '/log', true);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');

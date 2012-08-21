@@ -37,4 +37,4 @@ class Env {
   }
 }
 
-typedef void XMLHttpRequestCompleted(XMLHttpRequest req);
+typedef void XMLHttpRequestCompleted(HttpRequest req);

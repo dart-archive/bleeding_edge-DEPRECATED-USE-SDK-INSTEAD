@@ -16,7 +16,7 @@ class HttpRequestCache {
     String response = storage[filename];
 
     if (response == null) {
-      XMLHttpRequest xr = new XMLHttpRequest();
+      HttpRequest xr = new HttpRequest();
       xr.open("GET", filename, false);
       xr.send();
       response = xr.responseText;

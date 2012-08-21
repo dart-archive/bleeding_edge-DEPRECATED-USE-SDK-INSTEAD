@@ -11,7 +11,7 @@
  * CustomElementsManager.
  *
  * This script only works at present in dart2js, but it should work in dartium
- * soon (pending MutationObservers). The script does an XMLHTTP request, so
+ * soon (pending MutationObservers). The script does an HTTP request, so
  * to test using locally defined custom elements you must run chrome with the
  * flag -allow-file-access-from-files.
  */
@@ -95,7 +95,7 @@ class CustomElementsManager {
    * custom element declarations.
    */
   void _load(String url) {
-    var request = new XMLHttpRequest();
+    var request = new HttpRequest();
     // We use a blocking request here because no Dart is allowed to run
     // until DOM content is loaded.
     // TODO(samhop): give a decent timeout message if custom elements fail to

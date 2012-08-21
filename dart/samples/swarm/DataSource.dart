@@ -59,7 +59,7 @@ class Sections implements Collection<Section> {
       initializeFromData(CannedData.data['user.data'], callback);
     } else {
       // TODO(jmesserly): display an error if we fail here! Silent failure bad.
-      new XMLHttpRequest.get('data/user.data',
+      new HttpRequest.get('data/user.data',
           EventBatch.wrap((request) {
         // TODO(jimhug): Nice response if get error back from server.
         // TODO(jimhug): Might be more efficient to parse request in sections.
@@ -225,7 +225,7 @@ class Article {
       _htmlBody = CannedData.data[name];
     } else {
       // TODO(jimhug): Remove this truly evil synchronoush xhr.
-      final req = new XMLHttpRequest();
+      final req = new HttpRequest();
       req.open('GET', 'data/$name', false);
       req.send();
       _htmlBody = req.responseText;

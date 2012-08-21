@@ -37,16 +37,16 @@ void processJson(json) {
 }
 
 /**
- * Sends a XMLHTTPRequest and returns a future fo the date.
+ * Sends a HTTPRequest and returns a future fo the date.
  */
 Future<Dynamic> requestJson(String url) {
   Completer c = new Completer<Dynamic>();
-  void callback(XMLHttpRequest xhr) {
-    if (xhr.readyState == XMLHttpRequest.DONE) {
+  void callback(HttpRequest xhr) {
+    if (xhr.readyState == HttpRequest.DONE) {
       c.complete(JSON.parse(xhr.response));
     }
   };
-  new XMLHttpRequest.get(url, callback);
+  new HttpRequest.get(url, callback);
   return c.future;
 }
 
