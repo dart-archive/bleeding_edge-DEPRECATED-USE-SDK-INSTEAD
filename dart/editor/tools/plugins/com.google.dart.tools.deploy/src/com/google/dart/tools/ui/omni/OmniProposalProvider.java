@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -12,6 +12,8 @@
  * the License.
  */
 package com.google.dart.tools.ui.omni;
+
+import com.google.dart.tools.ui.omni.elements.TypeProvider.SearchInProgressPlaceHolder;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -51,6 +53,10 @@ public abstract class OmniProposalProvider {
       Arrays.sort(sortedElements, new Comparator<OmniElement>() {
         @Override
         public int compare(OmniElement e1, OmniElement e2) {
+          //ensure search progress status sorts last
+          if (e1 instanceof SearchInProgressPlaceHolder) {
+            return 1;
+          }
           return e1.getLabel().compareTo(e2.getLabel());
         }
       });

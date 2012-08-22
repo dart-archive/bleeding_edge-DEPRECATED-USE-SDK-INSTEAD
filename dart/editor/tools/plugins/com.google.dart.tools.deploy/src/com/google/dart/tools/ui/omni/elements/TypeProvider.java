@@ -43,6 +43,31 @@ import java.util.ArrayList;
 public class TypeProvider extends OmniProposalProvider {
 
   /**
+   * Place holder to indicate that a search is still in progress.
+   */
+  public final class SearchInProgressPlaceHolder extends HeaderElement {
+
+    private SearchInProgressPlaceHolder(OmniProposalProvider provider) {
+      super(provider);
+    }
+
+    @Override
+    public void execute(String text) {
+      //no-op
+    }
+
+    @Override
+    public String getId() {
+      return "";
+    }
+
+    @Override
+    public String getLabel() {
+      return "  searching...";
+    }
+  }
+
+  /**
    * Filters out resources that have been marked as ignored.
    */
   private static class DartIgnoreFilter implements SearchFilter {
@@ -66,6 +91,8 @@ public class TypeProvider extends OmniProposalProvider {
   protected boolean searchComplete;
 
   private boolean searchStarted;
+
+  private OmniElement searchPlaceHolderElement;
 
   public TypeProvider(IProgressMonitor progressMonitor) {
     this.progressMonitor = progressMonitor;
@@ -132,6 +159,11 @@ public class TypeProvider extends OmniProposalProvider {
 
     if (!searchStarted) {
       searchStarted = true;
+
+      searchPlaceHolderElement = new SearchInProgressPlaceHolder(this);
+
+      results.add(searchPlaceHolderElement);
+
       SearchEngine engine = SearchEngineFactory.createSearchEngine((WorkingCopyOwner) null);
       engine.searchTypeDeclarations(
           getSearchScope(),
@@ -150,6 +182,7 @@ public class TypeProvider extends OmniProposalProvider {
             @Override
             public void searchComplete() {
               searchComplete = true;
+              results.remove(searchPlaceHolderElement);
             }
           },
           progressMonitor);

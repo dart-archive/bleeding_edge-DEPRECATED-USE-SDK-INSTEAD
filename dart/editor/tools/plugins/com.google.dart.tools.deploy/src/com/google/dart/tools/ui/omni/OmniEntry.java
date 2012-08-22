@@ -15,6 +15,8 @@ package com.google.dart.tools.ui.omni;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.omni.elements.HeaderElement;
+import com.google.dart.tools.ui.omni.elements.TypeProvider.SearchInProgressPlaceHolder;
+import com.google.dart.tools.ui.themes.Fonts;
 
 import org.eclipse.jface.resource.DeviceResourceException;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -91,7 +93,13 @@ public class OmniEntry {
   public void paint(Event event, TextLayout textLayout, ResourceManager resourceManager,
       TextStyle boldStyle, TextStyle grayStyle) {
     final Table table = ((TableItem) event.item).getParent();
-    textLayout.setFont(table.getFont());
+
+    if (element instanceof SearchInProgressPlaceHolder) {
+      textLayout.setFont(Fonts.getItalicFont(table.getFont()));
+    } else {
+      textLayout.setFont(table.getFont());
+    }
+
     switch (event.index) {
       case 0:
         break;
