@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<introContent>
+   <extensionContent id="dart-introExtension" style="intro.css" name="Dart development" path="overview/@">
+      <group style-id="content-group" id="dart-introLink-group">
+         <link
+            label="Dart development"
+            url="http://org.eclipse.ui.intro/runAction?class=com.google.dart.eclipse.ui.internal.actions.OpenNewProjectWizardAction&amp;amp;pluginId=com.google.dart.eclipse.ui"
+            id="dart-introLink" style-id="content-link">
+               <text>Get started by creating a new Dart project</text>
+         </link>
+      </group>
+   </extensionContent>
+</introContent>

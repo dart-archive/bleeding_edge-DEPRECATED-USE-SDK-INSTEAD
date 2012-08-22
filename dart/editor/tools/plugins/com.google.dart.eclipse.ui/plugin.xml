@@ -274,5 +274,13 @@
      </startup>
   </extension>
 
+   <extension
+         point="org.eclipse.ui.intro.configExtension">
+      <configExtension
+            configId="org.eclipse.ui.intro.universalConfig"
+            content="welcome/intro.xml">
+      </configExtension>
+   </extension>
+
 
 </plugin>
