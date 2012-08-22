@@ -116,6 +116,24 @@ public class CompilationUnit extends ASTNode {
     return declarations.getEndToken();
   }
 
+  @Override
+  public int getLength() {
+    Token endToken = getEndToken();
+    if (endToken == null) {
+      return 0;
+    }
+    return endToken.getOffset() + endToken.getLength() - getBeginToken().getOffset();
+  }
+
+  @Override
+  public int getOffset() {
+    Token beginToken = getBeginToken();
+    if (beginToken == null) {
+      return 0;
+    }
+    return beginToken.getOffset();
+  }
+
   /**
    * Return the script tag at the beginning of the compilation unit, or {@code null} if there is no
    * script tag in this compilation unit.

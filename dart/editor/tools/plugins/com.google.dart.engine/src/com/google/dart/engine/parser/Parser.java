@@ -114,6 +114,7 @@ public class Parser {
   private static final String IMPORT = "import"; //$NON-NLS-1$
   private static final String LIBRARY = "library"; //$NON-NLS-1$
   private static final String OF = "of"; //$NON-NLS-1$
+  private static final String ON = "on"; //$NON-NLS-1$
   private static final String PART = "part"; //$NON-NLS-1$
   private static final String RESOURCE = "resource"; //$NON-NLS-1$
   private static final String SHOW = "show"; //$NON-NLS-1$
@@ -3447,10 +3448,10 @@ public class Parser {
     Block body = parseBlock();
     ArrayList<CatchClause> catchClauses = new ArrayList<CatchClause>();
     Block finallyClause = null;
-    while (matches(Keyword.ON) || matches(Keyword.CATCH)) {
+    while (matches(ON) || matches(Keyword.CATCH)) {
       Token onKeyword = null;
       TypeName exceptionType = null;
-      if (matches(Keyword.ON)) {
+      if (matches(ON)) {
         onKeyword = getAndAdvance();
         exceptionType = new TypeName(parsePrefixedIdentifier(), null);
       }

@@ -347,10 +347,6 @@ public abstract class AbstractScannerTest extends TestCase {
     assertKeywordToken("in");
   }
 
-  public void test_keyword_interface() throws Exception {
-    assertKeywordToken("interface");
-  }
-
   public void test_keyword_is() throws Exception {
     assertKeywordToken("is");
   }
@@ -361,10 +357,6 @@ public abstract class AbstractScannerTest extends TestCase {
 
   public void test_keyword_null() throws Exception {
     assertKeywordToken("null");
-  }
-
-  public void test_keyword_on() throws Exception {
-    assertKeywordToken("on");
   }
 
   public void test_keyword_operator() throws Exception {

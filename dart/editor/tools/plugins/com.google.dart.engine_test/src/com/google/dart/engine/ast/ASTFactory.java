@@ -81,8 +81,8 @@ public final class ASTFactory {
         token(TokenType.CLOSE_CURLY_BRACKET));
   }
 
-  public static BlockFunctionBody blockFunctionBody() {
-    return new BlockFunctionBody(block());
+  public static BlockFunctionBody blockFunctionBody(Statement... statements) {
+    return new BlockFunctionBody(block(statements));
   }
 
   public static BooleanLiteral booleanLiteral(boolean value) {
@@ -118,7 +118,7 @@ public final class ASTFactory {
   public static CatchClause catchClause(TypeName exceptionType, String exceptionParameter,
       String stackTraceParameter, Statement... statements) {
     return new CatchClause(
-        exceptionType == null ? null : token(Keyword.ON),
+        exceptionType == null ? null : token(TokenType.IDENTIFIER, "on"),
         exceptionType,
         exceptionParameter == null ? null : token(Keyword.CATCH),
         exceptionParameter == null ? null : token(TokenType.OPEN_PAREN),

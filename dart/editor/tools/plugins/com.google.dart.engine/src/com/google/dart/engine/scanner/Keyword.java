@@ -59,8 +59,6 @@ public enum Keyword {
   FACTORY("factory", true),
   GET("get", true),
   IMPLEMENTS("implements", true),
-  INTERFACE("interface", true),
-  ON("on", true),
   OPERATOR("operator", true),
   SET("set", true),
   STATIC("static", true),
