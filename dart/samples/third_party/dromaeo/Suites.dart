@@ -132,6 +132,9 @@ class Suites {
   }
 
   static List<SuiteDescription> getSuites(String tags) {
+    // Allow AND and OR in place of '&' and '|' for browsers where
+    // those symbols are escaped.
+    tags = tags.replaceAll('OR', '|').replaceAll('AND', '&');
     // A disjunction of conjunctions (e.g.,
     // 'js&modify|dart&dom&modify').
     final taglist = tags.split('|').map((tag) => tag.split('&'));
