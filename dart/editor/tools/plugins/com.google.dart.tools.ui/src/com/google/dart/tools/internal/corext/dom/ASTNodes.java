@@ -14,6 +14,7 @@
 package com.google.dart.tools.internal.corext.dom;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExpression;
@@ -22,6 +23,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
@@ -30,9 +32,18 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.VariableElement;
 
+import java.util.Collections;
 import java.util.List;
 
 public class ASTNodes {
+
+  public static List<DartNode> findDeepestCommonPath(List<DartNode> nodes) {
+    List<List<DartNode>> parents = Lists.newArrayList();
+    for (DartNode node : nodes) {
+      parents.add(getParents(node));
+    }
+    return getLongestListPrefix(parents);
+  }
 
   /**
    * @return the {@link DartNode} of given {@link Class} which is given {@link DartNode} itself, or
@@ -80,31 +91,6 @@ public class ASTNodes {
       }
     }
     return null;
-  }
-
-  /**
-   * @return the {@link VariableElement} if the given {@link DartIdentifier} is the parameter
-   *         reference, or <code>null</code> in the other case.
-   */
-  public static VariableElement getParameterElement(DartIdentifier node) {
-    Element element = node.getElement();
-    if (ElementKind.of(element) == ElementKind.PARAMETER) {
-      return (VariableElement) element;
-    }
-    return null;
-  }
-
-  /**
-   * @return the index of given {@link VariableElement} in parameters, or <code>-1</code> if not
-   *         parameter.
-   */
-  public static int getParameterIndex(VariableElement variableElement) {
-    Element enclosingElement = variableElement.getEnclosingElement();
-    if (enclosingElement instanceof MethodElement) {
-      MethodElement methodElement = (MethodElement) enclosingElement;
-      return methodElement.getParameters().indexOf(variableElement);
-    }
-    return -1;
   }
 
 //  private static class ChildrenCollector extends ASTVisitor<Void> {
@@ -623,6 +609,31 @@ public class ASTNodes {
 //  }
 
   /**
+   * @return the {@link VariableElement} if the given {@link DartIdentifier} is the parameter
+   *         reference, or <code>null</code> in the other case.
+   */
+  public static VariableElement getParameterElement(DartIdentifier node) {
+    Element element = node.getElement();
+    if (ElementKind.of(element) == ElementKind.PARAMETER) {
+      return (VariableElement) element;
+    }
+    return null;
+  }
+
+  /**
+   * @return the index of given {@link VariableElement} in parameters, or <code>-1</code> if not
+   *         parameter.
+   */
+  public static int getParameterIndex(VariableElement variableElement) {
+    Element enclosingElement = variableElement.getEnclosingElement();
+    if (enclosingElement instanceof MethodElement) {
+      MethodElement methodElement = (MethodElement) enclosingElement;
+      return methodElement.getParameters().indexOf(variableElement);
+    }
+    return -1;
+  }
+
+  /**
    * Returns the closest ancestor of <code>node</code> that is an instance of
    * <code>parentClass</code>, or <code>null</code> if none.
    * <p>
@@ -642,6 +653,20 @@ public class ASTNodes {
       node = node.getParent();
     } while (node != null && !parentClass.isInstance(node));
     return (E) node;
+  }
+
+  /**
+   * @return parent {@link DartNode}s from {@link DartUnit} (at index "0") to the given one.
+   */
+  public static List<DartNode> getParents(DartNode node) {
+    List<DartNode> parents = Lists.newArrayList();
+    DartNode current = node;
+    do {
+      parents.add(current.getParent());
+      current = current.getParent();
+    } while (current.getParent() != null);
+    Collections.reverse(parents);
+    return parents;
   }
 
   /**
@@ -718,6 +743,40 @@ public class ASTNodes {
   public static boolean isNameOfDeclaration(DartNode node) {
     return node.getParent() instanceof DartDeclaration<?>
         && ((DartDeclaration<?>) node.getParent()).getName() == node;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link List}s are equals at given position.
+   */
+  private static <T> boolean allListsEqual(List<List<T>> lists, int position) {
+    T element = lists.get(0).get(position);
+    for (List<T> list : lists) {
+      if (list.get(position) != element) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static <T> List<T> getLongestListPrefix(List<List<T>> lists) {
+    if (lists.isEmpty()) {
+      return ImmutableList.of();
+    }
+    // prepare minimal length of all arrays
+    int minLength = lists.get(0).size();
+    for (List<T> list : lists) {
+      minLength = Math.min(minLength, list.size());
+    }
+    // find length of the common prefix
+    int length = -1;
+    for (int i = 0; i < minLength; i++) {
+      if (!allListsEqual(lists, i)) {
+        break;
+      }
+      length++;
+    }
+    // done
+    return lists.get(0).subList(0, length + 1);
   }
 
 //  /**

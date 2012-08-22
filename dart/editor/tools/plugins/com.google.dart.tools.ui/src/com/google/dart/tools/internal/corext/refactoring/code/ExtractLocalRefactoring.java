@@ -171,13 +171,12 @@ public class ExtractLocalRefactoring extends Refactoring {
         String initializerSource = utils.getText(selectionStart, selectionLength);
         String declarationSource = typeSource + " " + localName + " = " + initializerSource + ";";
         // prepare location for declaration
-        DartNode firstOccuNode = NodeFinder.perform(unitNode, occurences.get(0).getOffset(), 0);
-        DartStatement parentStatement = ASTNodes.getParent(firstOccuNode, DartStatement.class);
-        String prefix = utils.getNodePrefix(parentStatement);
+        DartStatement targetStatement = findTargetStatement(occurences);
+        String prefix = utils.getNodePrefix(targetStatement);
         // insert variable declaration
         String eol = utils.getEndOfLine();
         TextEdit edit = new ReplaceEdit(
-            parentStatement.getSourceInfo().getOffset(),
+            targetStatement.getSourceInfo().getOffset(),
             0,
             declarationSource + eol + prefix);
         change.addEdit(edit);
@@ -274,6 +273,30 @@ public class ExtractLocalRefactoring extends Refactoring {
     }
     // invalid selection
     return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.ExtractLocalRefactoring_select_expression);
+  }
+
+  /**
+   * @return the {@link DartNode}s at given {@link SourceRange}s.
+   */
+  private List<DartNode> findNodes(List<SourceRange> ranges) {
+    List<DartNode> nodes = Lists.newArrayList();
+    for (SourceRange range : ranges) {
+      DartNode node = NodeFinder.perform(unitNode, range.getOffset(), 0);
+      nodes.add(node);
+    }
+    return nodes;
+  }
+
+  private DartStatement findTargetStatement(List<SourceRange> occurences) {
+    List<DartNode> nodes = findNodes(occurences);
+    List<DartNode> firstParents = ASTNodes.getParents(nodes.get(0));
+    List<DartNode> commonPath = ASTNodes.findDeepestCommonPath(nodes);
+    DartNode commonParent = firstParents.get(commonPath.size() - 1);
+    if (commonParent instanceof DartBlock) {
+      return (DartStatement) firstParents.get(commonPath.size());
+    } else {
+      return ASTNodes.getAncestor(commonParent, DartStatement.class);
+    }
   }
 
   private Set<String> getExcludedVariableNames() {

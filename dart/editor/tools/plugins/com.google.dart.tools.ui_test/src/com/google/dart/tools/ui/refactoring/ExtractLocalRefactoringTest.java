@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.compiler.ast.DartBinaryExpression;
-import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractLocalRefactoring;
 
 import org.eclipse.core.resources.IWorkspaceRunnable;
@@ -310,6 +309,31 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
         "}");
   }
 
+  public void test_occurences_useDominator() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true) {",
+        "    print(42);",
+        "  } else {",
+        "    print(42);",
+        "  }",
+        "}");
+    selectionStart = findOffset("42");
+    selectionEnd = findOffset("42);") + "42".length();
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int res = 42;",
+        "  if (true) {",
+        "    print(res);",
+        "  } else {",
+        "    print(res);",
+        "  }",
+        "}");
+  }
+
   public void test_occurences_whenComment() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -552,7 +576,6 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
   }
 
   private void performRefactoringChange() throws Exception {
-    TestProject.waitForAutoBuild();
     ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
       @Override
       public void run(IProgressMonitor monitor) throws CoreException {
@@ -561,6 +584,5 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
         new PerformChangeOperation(change).run(pm);
       }
     }, null);
-    TestProject.waitForAutoBuild();
   }
 }

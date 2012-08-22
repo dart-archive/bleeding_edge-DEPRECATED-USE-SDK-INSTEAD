@@ -242,11 +242,8 @@ public class ExtractUtils {
         || operator == Token.AND;
   }
 
-  @SuppressWarnings("unused")
   private final CompilationUnit unit;
-
   private final Buffer buffer;
-
   private final DartUnit unitNode;
 
   private String endOfLine;
