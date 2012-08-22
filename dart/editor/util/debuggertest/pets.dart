@@ -1,6 +1,8 @@
 
 #library("pets");
 
+#import('dart:math');
+
 final num MAX_CATS = 10;
 
 final SPARKY = const Cat("Sparky");
@@ -52,7 +54,8 @@ class Dog extends FloppyEars implements Animal {
   Date bornOn;
 
   Dog(this.name) {
-    fleaCount = (Math.random() * 10.0).round().toInt();
+    var rand = new Random();
+    fleaCount = rand.nextInt(10);
     bornOn = new Date.now();
   }
 

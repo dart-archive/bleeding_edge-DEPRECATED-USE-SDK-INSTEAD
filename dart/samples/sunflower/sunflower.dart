@@ -5,6 +5,7 @@
 #library('sunflower');
 
 #import('dart:html');
+#import('dart:math', prefix: 'Math');
 
 final SEED_RADIUS = 2;
 final SCALE_FACTOR = 4;

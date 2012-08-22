@@ -1,6 +1,7 @@
 #library("dom_query_html");
 #import("dart:html");
 #import('../common/common.dart');
+#import("dart:math", prefix: "Math");
 #source("Common.dart");
 #source("RunnerSuite.dart");
 

@@ -4,6 +4,8 @@
 
 #library('utilslib');
 
+#import('dart:math', prefix: 'Math');
+
 #import('../observable/observable.dart');
 #import('../../../lib/uri/uri.dart', prefix: 'uri');
 

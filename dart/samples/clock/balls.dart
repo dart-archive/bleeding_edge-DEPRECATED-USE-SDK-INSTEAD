@@ -118,7 +118,7 @@ class Ball {
   static final double RADIUS = 14.0;
 
   static double randomVelocity() {
-    return (Math.random() - 0.5) * INIT_VELOCITY;
+    return (new Math.Random().nextDouble() - 0.5) * INIT_VELOCITY;
   }
 
   Element root;

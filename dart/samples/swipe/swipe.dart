@@ -5,6 +5,7 @@
 #library("swipe");
 
 #import('dart:html');
+#import('dart:math', prefix: 'Math');
 
 Element target;
 

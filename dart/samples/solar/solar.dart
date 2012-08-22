@@ -9,6 +9,7 @@
 #library("solar");
 
 #import("dart:html");
+#import("dart:math", prefix: "Math");
 
 /**
  * The entry point to the application.

@@ -5,6 +5,7 @@
 #library('spirodraw');
 
 #import('dart:html');
+#import('dart:math', prefix: 'Math');
 
 #source("ColorPicker.dart");
 
@@ -206,10 +207,11 @@ class Spirodraw {
    * things too much.
    */
   void lucky() {
-    wheelRadiusSlider.valueAsNumber = Math.random() * 9;
-    penRadiusSlider.valueAsNumber = Math.random() * 9;
-    penWidthSlider.valueAsNumber = 1 + Math.random() * 9;
-    colorPicker.selectedColor = colorPicker.getHexString(Math.random() * 215);
+    var rand = new Math.Random();
+    wheelRadiusSlider.valueAsNumber = rand.nextDouble() * 9;
+    penRadiusSlider.valueAsNumber = rand.nextDouble() * 9;
+    penWidthSlider.valueAsNumber = 1 + rand.nextDouble() * 9;
+    colorPicker.selectedColor = colorPicker.getHexString(rand.nextDouble() * 215);
     start();
   }
 

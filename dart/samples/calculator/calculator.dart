@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import('dart:html');
+#import('dart:math', prefix: 'Math');
 #source('tape.dart');
 #source('settings.dart');
 #source('calcui.dart');

@@ -5,6 +5,8 @@
 #library("view");
 
 #import('dart:html');
+#import('dart:math', prefix: 'Math');
+
 #import('../base/base.dart');
 #import('../observable/observable.dart');
 #import('../touch/touch.dart');

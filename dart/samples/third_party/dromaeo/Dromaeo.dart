@@ -1,5 +1,6 @@
 #import('dart:html');
 #import('dart:json');
+#import('dart:math', prefix: 'Math');
 #import('Suites.dart');
 
 main() {

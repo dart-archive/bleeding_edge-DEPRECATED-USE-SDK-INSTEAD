@@ -1,6 +1,7 @@
 #library("dom_traverse");
 #import("dart:dom_deprecated");
 #import('../common/common.dart');
+#import("dart:math", prefix: "Math");
 #source("Common.dart");
 #source("RunnerSuite.dart");
 

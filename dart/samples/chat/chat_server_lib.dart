@@ -6,6 +6,7 @@
 #import("dart:io");
 #import("dart:isolate");
 #import("dart:json");
+#import("dart:math");
 
 void startChatServer() {
   var server = new ChatServer();
@@ -57,7 +58,8 @@ class ServerMain {
 class User {
   User(this._handle) {
     // TODO(sgjesse) Generate more secure and unique session id's.
-    _sessionId = "a${(Math.random() * 1000000).toInt()}";
+    var rand = new Random();
+    _sessionId = "a${rand.nextInt(1000000)}";
     markActivity();
   }
 

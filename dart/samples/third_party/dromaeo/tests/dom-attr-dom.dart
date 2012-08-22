@@ -1,6 +1,7 @@
 #library("dom_attr");
 #import("dart:dom_deprecated");
 #import("dart:json");
+#import("dart:math", prefix: "Math");
 #source("Common.dart");
 #source("RunnerSuite.dart");
 
