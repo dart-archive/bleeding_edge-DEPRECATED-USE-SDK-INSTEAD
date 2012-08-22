@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.utilities.ast;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
@@ -33,8 +35,6 @@ import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IResource;
-
-import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.List;
 
@@ -402,6 +402,40 @@ public class DartElementLocatorTest extends TestCase {
         DartFunction.class,
         "test() {",
         4);
+  }
+
+  public void test_LibraryUnit_onPartOf() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResourceA = testProject.setUnitContent(
+          "Lib.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "library my.lib;",
+              "part 'Test.dart';",
+              "")).getResource();
+      testProject.setUnitContent(
+          "Test.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "part of my.lib;",
+              ""));
+      TestProject.waitForAutoBuild();
+      DartLibrary library = testProject.getDartProject().getDartLibrary(libResourceA);
+      CompilationUnit testUnit = library.getCompilationUnit("Test.dart");
+      // usage of "aaa" = "libraryA"
+      {
+        DartElement element = assertLocation(
+            testUnit,
+            "my.lib",
+            CompilationUnit.class,
+            "library my.lib);",
+            0);
+        assertSame(library.getDefiningCompilationUnit(), element);
+      }
+    } finally {
+      testProject.dispose();
+    }
   }
 
   public void test_Method_call() throws Exception {

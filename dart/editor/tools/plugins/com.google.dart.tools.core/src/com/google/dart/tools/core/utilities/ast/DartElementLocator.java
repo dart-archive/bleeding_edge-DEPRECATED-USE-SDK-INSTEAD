@@ -21,6 +21,7 @@ import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartPartOfDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnaryExpression;
@@ -45,13 +46,13 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
 /**
- * Instances of the class <code>DartElementLocator</code> locate the {@link DartElement Dart element(s)} associated
- * with a source range, given the AST structure built from the source.
+ * Instances of the class <code>DartElementLocator</code> locate the {@link DartElement Dart
+ * element(s)} associated with a source range, given the AST structure built from the source.
  */
 public class DartElementLocator extends ASTVisitor<Void> {
   /**
-   * Instances of the class <code>DartElementFoundException</code> are used to cancel visiting after an element has been
-   * found.
+   * Instances of the class <code>DartElementFoundException</code> are used to cancel visiting after
+   * an element has been found.
    */
   private class DartElementFoundException extends RuntimeException {
     private static final long serialVersionUID = 1L;
@@ -91,8 +92,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
   private IRegion wordRegion;
 
   /**
-   * The region within the element's compilation unit that needs to be highlighted, or <code>null</code>
-   * if there is no element.
+   * The region within the element's compilation unit that needs to be highlighted, or
+   * <code>null</code> if there is no element.
    */
   private IRegion candidateRegion;
 
@@ -130,8 +131,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
    * 
    * @param input the compilation unit containing the element to be found
    * @param offset the offset used to identify the element
-   * @param includeDeclarations <code>true</code> if elements should be returned for declaration sites
-   *          as well as for reference sites
+   * @param includeDeclarations <code>true</code> if elements should be returned for declaration
+   *          sites as well as for reference sites
    */
   public DartElementLocator(CompilationUnit input, int offset, boolean includeDeclarations) {
     this(input, offset, offset, includeDeclarations);
@@ -158,11 +159,10 @@ public class DartElementLocator extends ASTVisitor<Void> {
    * @param input the compilation unit containing the element to be found
    * @param start the start offset of the range used to identify the element
    * @param end the end offset of the range used to identify the element
-   * @param includeDeclarations <code>true</code> if elements should be returned for declaration sites
-   *          as well as for reference sites
+   * @param includeDeclarations <code>true</code> if elements should be returned for declaration
+   *          sites as well as for reference sites
    */
-  public DartElementLocator(
-      CompilationUnit input, int start, int end, boolean includeDeclarations) {
+  public DartElementLocator(CompilationUnit input, int start, int end, boolean includeDeclarations) {
     this.compilationUnit = input;
     this.startOffset = start;
     this.endOffset = end;
@@ -170,7 +170,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
   }
 
   /**
-   * Return the region within the element's compilation unit that needs to be highlighted, or <code>null
+   * Return the region within the element's compilation unit that needs to be highlighted, or
+   * <code>null
    * </code> if either there is no element or if the element can be used to determine the region.
    * 
    * @return the region within the element's compilation unit that needs to be highlighted
@@ -180,8 +181,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
   }
 
   /**
-   * Return the element that was found that corresponds to the given source range, or <code>null</code>
-   * if there is no such element.
+   * Return the element that was found that corresponds to the given source range, or
+   * <code>null</code> if there is no such element.
    * 
    * @return the element that was found
    */
@@ -190,7 +191,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
   }
 
   /**
-   * Return the resolved element that was found that corresponds to the given source range, or 
+   * Return the resolved element that was found that corresponds to the given source range, or
    * <code>null</code> if there is no such element.
    * 
    * @return the element that was found
@@ -212,8 +213,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
 
   /**
    * Search within the given AST node for an identifier representing a {@link DartElement Dart
-   * element} in the specified source range. Return the element that was found, or <code>null</code> if
-   * no element was found.
+   * element} in the specified source range. Return the element that was found, or <code>null</code>
+   * if no element was found.
    * 
    * @param node the AST node within which to search
    * @return the element that was found
@@ -224,10 +225,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
     } catch (DartElementFoundException exception) {
       // A node with the right source position was found.
     } catch (Exception exception) {
-      DartCore.logInformation(
-          "Unable to locate element at offset (" + startOffset + " - " + endOffset + ") in "
-              + compilationUnit.getElementName(),
-          exception);
+      DartCore.logInformation("Unable to locate element at offset (" + startOffset + " - "
+          + endOffset + ") in " + compilationUnit.getElementName(), exception);
       return null;
     }
     return foundElement;
@@ -241,9 +240,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
       int end = start + node.getSourceInfo().getLength();
       if (start <= startOffset && endOffset <= end) {
         DartExpression target = node.getTarget();
-        wordRegion = new Region(
-            target.getSourceInfo().getOffset() + target.getSourceInfo().getLength(),
-            end);
+        wordRegion = new Region(target.getSourceInfo().getOffset()
+            + target.getSourceInfo().getLength(), end);
         Element targetElement = node.getElement();
         findElementFor(targetElement);
         throw new DartElementFoundException();
@@ -261,9 +259,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
       if (start <= startOffset && endOffset <= end) {
         DartExpression leftOperand = node.getArg1();
         DartExpression rightOperand = node.getArg2();
-        wordRegion = computeOperatorRegion(
-            leftOperand.getSourceInfo().getOffset() + leftOperand.getSourceInfo().getLength(),
-            rightOperand.getSourceInfo().getOffset() - 1);
+        wordRegion = computeOperatorRegion(leftOperand.getSourceInfo().getOffset()
+            + leftOperand.getSourceInfo().getLength(), rightOperand.getSourceInfo().getOffset() - 1);
         Element targetElement = node.getElement();
         findElementFor(targetElement);
         throw new DartElementFoundException();
@@ -307,9 +304,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
               try {
                 DartImport[] imports = compilationUnit.getLibrary().getImports();
                 for (DartImport imprt : imports) {
-                  if (Objects.equal(imprt.getLibrary(), foundElement) && Objects.equal(
-                      imprt.getPrefix(),
-                      node.getName())) {
+                  if (Objects.equal(imprt.getLibrary(), foundElement)
+                      && Objects.equal(imprt.getPrefix(), node.getName())) {
                     foundElement = imprt;
                     SourceRange range = imprt.getNameRange();
                     candidateRegion = new Region(range.getOffset(), range.getLength());
@@ -373,6 +369,26 @@ public class DartElementLocator extends ASTVisitor<Void> {
           exception);
     }
     return null;
+  }
+
+  @Override
+  public Void visitPartOfDirective(DartPartOfDirective node) {
+    int start = node.getSourceInfo().getOffset();
+    int end = node.getSourceInfo().getEnd();
+    if (start <= startOffset && endOffset <= end) {
+      if (node.getName() != null) {
+        Element targetElement = node.getName().getElement();
+        findElementFor(targetElement);
+        if (foundElement instanceof DartLibrary) {
+          try {
+            foundElement = ((DartLibrary) foundElement).getDefiningCompilationUnit();
+            candidateRegion = new Region(0, 0);
+          } catch (DartModelException exception) {
+          }
+        }
+      }
+    }
+    return super.visitPartOfDirective(node);
   }
 
   @Override
