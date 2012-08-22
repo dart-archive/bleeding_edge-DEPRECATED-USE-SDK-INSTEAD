@@ -14,6 +14,7 @@
 package com.google.dart.eclipse.ui.internal.jobs;
 
 import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -37,7 +38,7 @@ public class ValidateSDKJob extends Job {
   @Override
   protected IStatus run(IProgressMonitor monitor) {
 
-    DartSdk sdk = DartSdk.getInstance();
+    DartSdk sdk = DartSdkManager.getManager().getSdk();
 
     if (sdk == null) {
       handeMissingSDK();

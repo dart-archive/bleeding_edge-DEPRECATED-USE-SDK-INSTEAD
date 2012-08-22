@@ -15,7 +15,7 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -190,7 +190,7 @@ public class Context {
    */
   public void resolve(File libraryFile, ResolveCallback callback) {
 
-    if (!DartSdk.isInstalled()) {
+    if (!DartSdkManager.getManager().hasSdk()) {
       return;
     }
 

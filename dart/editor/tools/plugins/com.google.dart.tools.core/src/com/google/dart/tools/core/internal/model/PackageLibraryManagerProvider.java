@@ -19,6 +19,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import java.io.File;
 import java.net.URI;
@@ -26,8 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The class <code>PackageLibraryManagerProvider</code> manages the {@link PackageLibraryManager system library managers} used by
- * the tools.
+ * The class <code>PackageLibraryManagerProvider</code> manages the {@link PackageLibraryManager
+ * system library managers} used by the tools.
  */
 public class PackageLibraryManagerProvider {
 
@@ -62,8 +63,8 @@ public class PackageLibraryManagerProvider {
     synchronized (lock) {
       if (ANY_LIBRARY_MANAGER == null) {
 
-        DartSdk sdk = DartSdk.getInstance();
-        if (!DartSdk.isInstalled()) {
+        DartSdk sdk = DartSdkManager.getManager().getSdk();
+        if (!DartSdkManager.getManager().hasSdk()) {
           DartCore.logError("Missing SDK");
           ANY_LIBRARY_MANAGER = new MissingSdkLibaryManager(null, "any");
           return ANY_LIBRARY_MANAGER;
@@ -78,8 +79,9 @@ public class PackageLibraryManagerProvider {
         DartCore.logInformation("Reading bundled libraries from " + sdkDir);
 
         ANY_LIBRARY_MANAGER = new PackageLibraryManager(sdkDir, "any");
-        String packageRoot = DartCore.getPlugin()
-            .getPrefs().get(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, "");
+        String packageRoot = DartCore.getPlugin().getPrefs().get(
+            DartCore.PACKAGE_ROOT_DIR_PREFERENCE,
+            "");
         if (packageRoot != null && !packageRoot.isEmpty()) {
           String[] roots = packageRoot.split(";");
           List<File> packageRoots = new ArrayList<File>();

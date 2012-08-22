@@ -16,7 +16,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -220,7 +220,7 @@ public class DartBasedBuilder {
 
     List<String> args = new ArrayList<String>();
 
-    args.add(DartSdk.getInstance().getVmExecutable().getPath());
+    args.add(DartSdkManager.getManager().getSdk().getVmExecutable().getPath());
     args.add("--new_gen_heap_size=256");
     args.add(builderFile.getProjectRelativePath().toOSString());
     args.addAll(buildArgs);

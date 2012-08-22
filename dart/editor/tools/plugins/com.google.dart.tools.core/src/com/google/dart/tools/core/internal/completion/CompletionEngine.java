@@ -102,7 +102,7 @@ import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.search.MatchKind;
@@ -1423,7 +1423,7 @@ public class CompletionEngine {
   public void complete(CompilationUnit sourceUnit, int completionPosition, int pos)
       throws DartModelException {
 
-    if (!DartSdk.isInstalled()) {
+    if (!DartSdkManager.getManager().hasSdk()) {
       return;
     }
 

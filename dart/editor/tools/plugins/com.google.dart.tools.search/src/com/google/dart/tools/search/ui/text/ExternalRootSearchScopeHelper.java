@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.search.ui.text;
 
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IResource;
 
@@ -24,7 +24,7 @@ import java.io.File;
  */
 public class ExternalRootSearchScopeHelper {
 
-  private static final File SDK_DIR = DartSdk.getInstance().getDirectory();
+  private static final File SDK_DIR = DartSdkManager.getManager().getSdk().getDirectory();
   private static final File[] DEFAULT_ROOTS = new File[] {SDK_DIR};
 
   /**

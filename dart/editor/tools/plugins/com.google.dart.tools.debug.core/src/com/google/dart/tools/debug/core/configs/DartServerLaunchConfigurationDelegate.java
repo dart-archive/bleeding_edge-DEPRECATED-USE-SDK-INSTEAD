@@ -14,7 +14,6 @@
 package com.google.dart.tools.debug.core.configs;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
@@ -92,7 +91,7 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     String vmExecPath = "";
 
     if (DartSdkManager.getManager().hasSdk()) {
-      File vmExec = DartSdk.getInstance().getVmExecutable();
+      File vmExec = DartSdkManager.getManager().getSdk().getVmExecutable();
 
       if (vmExec != null) {
         vmExecPath = vmExec.getAbsolutePath().toString();

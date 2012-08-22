@@ -15,7 +15,7 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -118,7 +118,7 @@ public class AnalysisServer {
    * @param libraryFile the library file (not <code>null</code>)
    */
   public void analyze(File libraryFile) {
-    if (!DartSdk.isInstalled()) {
+    if (!DartSdkManager.getManager().hasSdk()) {
       return;
     }
     if (!libraryFile.isAbsolute()) {

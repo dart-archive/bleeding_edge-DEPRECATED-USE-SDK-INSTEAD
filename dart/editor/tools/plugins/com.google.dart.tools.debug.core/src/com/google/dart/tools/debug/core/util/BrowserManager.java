@@ -14,7 +14,7 @@
 package com.google.dart.tools.debug.core.util;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugTarget;
@@ -99,7 +99,7 @@ public class BrowserManager {
 
     monitor.beginTask("Launching Dartium...", enableDebugging ? 7 : 2);
 
-    File dartium = DartSdk.getInstance().getDartiumExecutable();
+    File dartium = DartSdkManager.getManager().getSdk().getDartiumExecutable();
 
     if (dartium == null) {
       throw new CoreException(new Status(
@@ -608,7 +608,7 @@ public class BrowserManager {
         enableDebugging,
         devToolsPortNumber);
     builder.command(arguments);
-    builder.directory(DartSdk.getInstance().getDartiumWorkingDirectory());
+    builder.directory(DartSdkManager.getManager().getSdk().getDartiumWorkingDirectory());
 
     try {
       process = builder.start();

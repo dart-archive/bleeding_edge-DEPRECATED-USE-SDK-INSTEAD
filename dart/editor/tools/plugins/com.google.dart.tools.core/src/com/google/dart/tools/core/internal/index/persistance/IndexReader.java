@@ -19,7 +19,7 @@ import com.google.dart.tools.core.index.Location;
 import com.google.dart.tools.core.index.Relationship;
 import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -94,7 +94,8 @@ public class IndexReader {
    */
   public boolean readIndexVersion2(ObjectInputStream input) throws IOException {
     String sdkVersion = input.readUTF();
-    if (!DartSdk.isInstalled() || !sdkVersion.equals(DartSdk.getInstance().getSdkVersion())) {
+    if (!DartSdkManager.getManager().hasSdk()
+        || !sdkVersion.equals(DartSdkManager.getManager().getSdk().getSdkVersion())) {
       return false;
     }
     readStringTable(input);

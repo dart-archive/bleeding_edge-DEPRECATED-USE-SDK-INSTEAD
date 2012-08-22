@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.dart2js;
 
 import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,7 +80,7 @@ public class JsonServerManager {
    * @return the path to the dart executable, or null if the path has not been set
    */
   protected static String getDartVmExecutablePath() {
-    DartSdk sdk = DartSdk.getInstance();
+    DartSdk sdk = DartSdkManager.getManager().getSdk();
 
     if (sdk != null) {
       File vm = sdk.getVmExecutable();

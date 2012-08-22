@@ -46,7 +46,7 @@ import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
@@ -671,7 +671,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       final Map<DartElement, DartElementInfo> newElements, final IResource underlyingResource)
       throws DartModelException {
 
-    if (!DartSdk.isInstalled()) {
+    if (!DartSdkManager.getManager().hasSdk()) {
       return false;
     }
 

@@ -17,7 +17,7 @@ package com.google.dart.tools.core.dart2js;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
@@ -229,12 +229,12 @@ public class Dart2JSCompiler {
 
     List<String> args = new ArrayList<String>();
 
-    args.add(DartSdk.getInstance().getVmExecutable().getPath());
+    args.add(DartSdkManager.getManager().getSdk().getVmExecutable().getPath());
     args.add("--new_gen_heap_size=256");
     args.addAll(getCompilerArguments(inputPath, outputPath));
 
     builder.command(args);
-    builder.directory(DartSdk.getInstance().getLibraryDirectory());
+    builder.directory(DartSdkManager.getManager().getSdk().getLibraryDirectory());
     builder.redirectErrorStream(true);
 
     ProcessRunner runner = new ProcessRunner(builder);
@@ -249,7 +249,7 @@ public class Dart2JSCompiler {
   }
 
   public boolean isAvailable() {
-    return DartSdk.isInstalled();
+    return DartSdkManager.getManager().hasSdk();
   }
 
   protected List<String> getCompilerArguments(IPath inputPath, IPath outputPath) {

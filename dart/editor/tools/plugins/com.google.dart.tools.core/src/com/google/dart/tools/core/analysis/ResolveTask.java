@@ -18,7 +18,7 @@ import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import static com.google.dart.tools.core.analysis.AnalysisUtility.resolve;
 import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
@@ -61,7 +61,7 @@ class ResolveTask extends Task {
   @Override
   public void perform() {
 
-    if (!DartSdk.isInstalled()) {
+    if (!DartSdkManager.getManager().hasSdk()) {
       return;
     }
 

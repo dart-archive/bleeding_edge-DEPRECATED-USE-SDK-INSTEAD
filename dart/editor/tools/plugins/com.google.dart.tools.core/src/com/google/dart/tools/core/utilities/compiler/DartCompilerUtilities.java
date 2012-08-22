@@ -25,9 +25,9 @@ import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SourceDelta;
-import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -44,7 +44,7 @@ import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 
 import org.eclipse.core.filesystem.URIUtil;
@@ -795,7 +795,7 @@ public class DartCompilerUtilities {
       final Map<URI, DartUnit> parsedUnits, final CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
 
-    if (!DartSdk.isInstalled()) {
+    if (!DartSdkManager.getManager().hasSdk()) {
       return null;
     }
 
@@ -861,7 +861,7 @@ public class DartCompilerUtilities {
   public static void secureCompileLib(LibrarySource libSource, CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
 
-    if (!DartSdk.isInstalled()) {
+    if (!DartSdkManager.getManager().hasSdk()) {
       return;
     }
 

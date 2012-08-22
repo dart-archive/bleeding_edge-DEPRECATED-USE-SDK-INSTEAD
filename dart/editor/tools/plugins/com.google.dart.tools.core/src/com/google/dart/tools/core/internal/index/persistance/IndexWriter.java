@@ -19,7 +19,7 @@ import com.google.dart.tools.core.index.Location;
 import com.google.dart.tools.core.index.Relationship;
 import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.store.ContributedLocation;
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -340,7 +340,7 @@ public class IndexWriter {
    * @throws IOException if the SDK version could not be written
    */
   private void writeSDKVersionNumber(ObjectOutputStream output) throws IOException {
-    output.writeUTF(DartSdk.getInstance().getSdkVersion());
+    output.writeUTF(DartSdkManager.getManager().getSdk().getSdkVersion());
   }
 
   /**

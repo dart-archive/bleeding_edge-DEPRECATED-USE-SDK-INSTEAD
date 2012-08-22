@@ -17,7 +17,7 @@ package com.google.dart.tools.core.utilities.dartdoc;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartDocumentable;
 import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,7 +46,7 @@ class ExternalDartDocManager {
       return null;
     }
 
-    if (!DartSdk.getInstance().hasDocumentation()) {
+    if (!DartSdkManager.getManager().getSdk().hasDocumentation()) {
       return null;
     }
 
@@ -63,7 +63,7 @@ class ExternalDartDocManager {
       libraryName = libraryName.substring(libraryName.indexOf(':') + 1);
     }
 
-    File file = DartSdk.getInstance().getDocFileFor(libraryName);
+    File file = DartSdkManager.getManager().getSdk().getDocFileFor(libraryName);
 
     if (file == null) {
       return null;

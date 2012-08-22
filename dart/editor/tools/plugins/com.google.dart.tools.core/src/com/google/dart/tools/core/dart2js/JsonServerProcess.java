@@ -15,7 +15,7 @@
 package com.google.dart.tools.core.dart2js;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -76,7 +76,7 @@ public class JsonServerProcess {
   }
 
   public void startProcess() throws IOException {
-    if (DartSdk.getInstance() == null) {
+    if (DartSdkManager.getManager().getSdk() == null) {
       throw new IOException("Unable to start json server - no dart-sdk found");
     }
 
@@ -89,7 +89,7 @@ public class JsonServerProcess {
         SERVER_PATH,
         JsonServerManager.LOCALHOST_ADDRESS,
         Integer.toString(getPort()));
-    builder.directory(DartSdk.getInstance().getLibraryDirectory());
+    builder.directory(DartSdkManager.getManager().getSdk().getLibraryDirectory());
     builder.redirectErrorStream(true);
 
     process = builder.start();
