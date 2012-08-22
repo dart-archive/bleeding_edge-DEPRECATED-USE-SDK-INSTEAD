@@ -36,17 +36,6 @@ public class CompletionEngineTest extends TestCase {
 
   private static boolean analysisCleared = false;
 
-  public void testCommentSnippets001() throws Exception {
-    test(
-        "class X {static final num M!4AX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",
-        "1+MAX",
-        "2+xc",
-        "3+MAX",
-        "3+Map",
-        "3+Math",
-        "4+Math"); // not sure 4+Math is correct
-  }
-
   public void testCommentSnippets002() throws Exception {
     test(
         "class Y {String x='hi';mth() {x.l!1ength;int n = 0;x!2.charCodeAt(n!3);}}",
@@ -82,10 +71,6 @@ public class CompletionEngineTest extends TestCase {
         "6+x");
   }
 
-  public void testCommentSnippets005() throws Exception {
-    test("class X { m() { return Ma!1th.P!2I; }}", "1+Math", "2+PI");
-  }
-
   public void testCommentSnippets006() throws Exception {
     test("class B1 {B1();x(){}}class B2 extends B1 {B2() { super.!2x();}}", "2+x");
   }
@@ -97,10 +82,6 @@ public class CompletionEngineTest extends TestCase {
         "2+bool",
         "3+int",
         "4+Arrays");
-  }
-
-  public void testCommentSnippets008() throws Exception {
-    test("final num PI2 = Mat!1", "1+Math");
   }
 
   public void testCommentSnippets009() throws Exception {
@@ -539,16 +520,38 @@ public class CompletionEngineTest extends TestCase {
         "3+num");
   }
 
-  public void testCompletion_topLevelField_init1() throws Exception {
+  public void testCompletion_while() throws Exception {
+    test("class Foo { int boo = 7; mth() { while (b!1) {} }}", "1+boo");
+  }
+
+  public void xtestCommentSnippets001() throws Exception {
+    // TODO(brianwilkerson) Math has been removed. Enable with a different class or remove this test
+    test(
+        "class X {static final num M!4AX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",
+        "1+MAX",
+        "2+xc",
+        "3+MAX",
+        "3+Map");
+  }
+
+  public void xtestCommentSnippets005() throws Exception {
+    // TODO(brianwilkerson) Math has been removed. Enable with a different class or remove this test
+    test("class X { m() { return Ma!1th.P!2I; }}", "1+Math", "2+PI");
+  }
+
+  public void xtestCommentSnippets008() throws Exception {
+    // TODO(brianwilkerson) Math has been removed. Enable with a different class or remove this test
     test("final num PI2 = Mat!1", "1+Math");
   }
 
-  public void testCompletion_topLevelField_init2() throws Exception {
-    test("final num PI2 = Mat!1h.PI;", "1+Math", "1+Match", "1-void");
+  public void xtestCompletion_topLevelField_init1() throws Exception {
+    // TODO(brianwilkerson) Math has been removed. Enable with a different class or remove this test
+    test("final num PI2 = Mat!1", "1+Math");
   }
 
-  public void testCompletion_while() throws Exception {
-    test("class Foo { int boo = 7; mth() { while (b!1) {} }}", "1+boo");
+  public void xtestCompletion_topLevelField_init2() throws Exception {
+    // TODO(brianwilkerson) Math has been removed. Enable with a different class or remove this test
+    test("final num PI2 = Mat!1h.PI;", "1+Math", "1+Match", "1-void");
   }
 
   /**
