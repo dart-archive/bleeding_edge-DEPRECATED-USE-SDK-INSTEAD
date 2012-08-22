@@ -479,9 +479,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     deployOptimizedAction = new GenerateJavascriptAction(window);
 
-    pubInstallAction = new RunPubAction(window, RunPubAction.INSTALL_COMMAND);
+    pubInstallAction = RunPubAction.createPubInstallAction(window);
 
-    pubUpdateAction = new RunPubAction(window, RunPubAction.UPDATE_COMMAND);
+    pubUpdateAction = RunPubAction.createPubUpdateAction(window);
 
     newApplicationWizardAction = new OpenNewApplicationWizardAction();
 //TODO (pquitslund): deprecated libaries view support        

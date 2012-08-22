@@ -476,6 +476,7 @@ public final class ActionMessages extends NLS {
   public static String RunPubAction_jobText;
   public static String RunPubAction_jobFail;
   public static String RunPubAction_commandText;
+  public static String RunPubAction_runningPubMessage;
 
   public static ResourceBundle getBundle() {
     return bundle;

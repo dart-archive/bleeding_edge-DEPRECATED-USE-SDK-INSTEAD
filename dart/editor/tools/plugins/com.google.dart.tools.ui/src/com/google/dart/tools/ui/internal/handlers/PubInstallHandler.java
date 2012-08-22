@@ -19,7 +19,7 @@ import com.google.dart.tools.ui.actions.RunPubAction;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
@@ -40,13 +40,13 @@ public class PubInstallHandler extends AbstractHandler {
 
   @Override
   public Object execute(ExecutionEvent event) throws ExecutionException {
-    getRunAction(HandlerUtil.getActiveSite(event)).run();
+    getRunAction(HandlerUtil.getActiveWorkbenchWindow(event)).run();
     return null;
   }
 
-  private RunPubAction getRunAction(IWorkbenchSite site) {
+  private RunPubAction getRunAction(IWorkbenchWindow window) {
     if (pubInstallAction == null) {
-      pubInstallAction = new RunPubAction(site, RunPubAction.INSTALL_COMMAND);
+      pubInstallAction = RunPubAction.createPubInstallAction(window);
       pubInstallAction.setId(ID);
     }
 

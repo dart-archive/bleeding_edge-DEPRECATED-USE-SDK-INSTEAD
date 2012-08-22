@@ -3314,7 +3314,7 @@
             locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
          <command
                commandId="com.google.dart.tools.ui.commands.pubInstall"
-               label="Pub install"
+               label="Pub Install"
                style="push"
                tooltip="Run pub install">
                  <visibleWhen
