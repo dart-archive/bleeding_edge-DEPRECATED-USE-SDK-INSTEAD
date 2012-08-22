@@ -20,7 +20,9 @@ import com.google.dart.tools.update.core.UpdateCore;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.preference.PreferencePage;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -37,6 +39,7 @@ public class UpdatePreferencePage extends PreferencePage implements IWorkbenchPr
   public static final String PAGE_ID = "com.google.dart.tools.ui.update.updatePreferencePage"; //$NON-NLS-1$
 
   private Button autoDownloadCheck;
+  private Group statusGroup;
 
   @Override
   public void init(IWorkbench workbench) {
@@ -75,30 +78,29 @@ public class UpdatePreferencePage extends PreferencePage implements IWorkbenchPr
 
   private void createUpdateGroup(Composite composite) {
 
-    Group autoUpdateGroup = new Group(composite, SWT.NONE);
-    autoUpdateGroup.setText("Auto update"); //$NON-NLS-1$
+    Group settingsGroup = new Group(composite, SWT.NONE);
+    settingsGroup.setText("Settings"); //$NON-NLS-1$
     GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
-        autoUpdateGroup);
-    GridLayoutFactory.fillDefaults().numColumns(1).margins(8, 8).applyTo(autoUpdateGroup);
+        settingsGroup);
+    GridLayoutFactory.fillDefaults().numColumns(1).margins(8, 8).applyTo(settingsGroup);
 
     autoDownloadCheck = createCheckBox(
-        autoUpdateGroup,
+        settingsGroup,
         PreferencesMessages.DartBasePreferencePage_auto_download_label,
         PreferencesMessages.DartBasePreferencePage_auto_download_tooltip);
     GridDataFactory.fillDefaults().applyTo(autoDownloadCheck);
 
-    Group statusGroup = new Group(composite, SWT.NONE);
-    statusGroup.setText("Status"); //$NON-NLS-1$
+    statusGroup = new Group(composite, SWT.NONE);
+    statusGroup.setText("Update"); //$NON-NLS-1$
     GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
         statusGroup);
-    GridLayoutFactory.fillDefaults().numColumns(1).margins(8, 8).applyTo(statusGroup);
+    GridLayoutFactory.fillDefaults().numColumns(1).margins(8, 8).spacing(0, 0).applyTo(statusGroup);
 
-    @SuppressWarnings("unused")
-    UpdateStatusControl updateStatus = new UpdateStatusControl(
-        statusGroup,
-        null,
-        new Point(0, 0),
-        false);
+    CLabel currentVersionLabel = new CLabel(statusGroup, SWT.NONE);
+    currentVersionLabel.setText(NLS.bind("Dart Editor build {0}", UpdateCore.getCurrentRevision()));
+    GridDataFactory.fillDefaults().applyTo(currentVersionLabel);
+
+    new UpdateStatusControl(statusGroup, null, new Point(0, 0), false);
 
   }
 

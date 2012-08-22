@@ -44,6 +44,7 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
 
   private CLabel updateStatusLabel;
   private Button updateStatusButton;
+
   private Action updateAction;
 
   private Font regularFont;
@@ -74,6 +75,7 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
 
   private final Color backgroundColor;
   private final Point margin;
+
   private final boolean isCentered;
 
   public UpdateStatusControl(Composite parent, Color backgroundColor, Point margin,
@@ -154,8 +156,12 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
     asyncExec(new Runnable() {
       @Override
       public void run() {
-        setStatus(bindRevision("Update {0} is ready to install"), regularFont);
-        setActionEnabled(applyUpdateAction);
+        if (latestAvailableRevision != null) {
+          setStatus(
+              bindLatestAvailableRevision("A new version {0} is ready to install."),
+              regularFont);
+          setActionEnabled(applyUpdateAction);
+        }
       }
     });
   }
@@ -178,7 +184,7 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
     asyncExec(new Runnable() {
       @Override
       public void run() {
-        setStatus(bindRevision("An update {0} is available"), regularFont);
+        setStatus(bindLatestAvailableRevision("A new version {0} is available."), regularFont);
         setActionEnabled(downloadUpdateAction);
       }
     });
@@ -205,7 +211,7 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
     updateStatusLabel.getDisplay().asyncExec(runnable);
   }
 
-  private String bindRevision(String msg) {
+  private String bindLatestAvailableRevision(String msg) {
     return NLS.bind(msg, "[" + latestAvailableRevision + "]");
   }
 
