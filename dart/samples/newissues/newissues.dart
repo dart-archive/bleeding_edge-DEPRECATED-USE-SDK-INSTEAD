@@ -10,30 +10,34 @@
  */
 class Issue {
   final json;
-  String id, state, title, content;
-  Issue(this.json) {
-    id = json[@"issues$id"][@"$t"];
-    state = json[@"issues$state"][@"$t"];
-    title = json[@"title"][@"$t"];
-    content = json[@"content"][@"$t"];
+  Issue(this.json);
+
+  void addTo(Element div) {
+    div.elements.add(new Element.tag("h2")..text = json[@"title"][@"$t"]);
+    div.elements.add(new Element.tag("pre")..text = json[@"content"][@"$t"]);
   }
-  String toHTML() => "<h2>$title (id=$id $state)</h2><pre>$content</pre>";
 }
 
 /**
  * Decodes JSON into a list of Issues.
  */
 List<Issue> getIssues(json) {
-  return json["feed"]["entry"].map((data) => new Issue(data));
+  var issues = json["feed"]["entry"];
+  if (issues == null) return null; 
+  return issues.map((data) => new Issue(data));
 }
 
 /**
  * Iterates over the recieved issues and construct HTML for them.
  */
 void processJson(json) {
-  StringBuffer buffer = new StringBuffer();
-  getIssues(json).forEach((Issue issue) => buffer.add(issue.toHTML()));
-  query("#container").innerHTML = buffer.toString();
+  Element div = query("#content");
+  List<Issue> list = getIssues(json);
+  if (list == null) {
+    div.elements.add(new Element.tag("h2")..text = "... no issues found.");
+  } else {
+    getIssues(json).forEach((Issue i) => i.addTo(div));
+  }
 }
 
 /**
@@ -41,9 +45,9 @@ void processJson(json) {
  */
 Future<Dynamic> requestJson(String url) {
   Completer c = new Completer<Dynamic>();
-  void callback(HttpRequest xhr) {
-    if (xhr.readyState == HttpRequest.DONE) {
-      c.complete(JSON.parse(xhr.response));
+  void callback(HttpRequest req) {
+    if (req.readyState == HttpRequest.DONE) {
+      c.complete(JSON.parse(req.response));
     }
   };
   new HttpRequest.get(url, callback);
