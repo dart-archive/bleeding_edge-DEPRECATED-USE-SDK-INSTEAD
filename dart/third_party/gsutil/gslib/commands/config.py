@@ -17,6 +17,7 @@ import datetime
 import multiprocessing
 import platform
 import os
+import signal
 import sys
 import time
 import webbrowser
@@ -32,6 +33,7 @@ from gslib.command import MIN_ARGS
 from gslib.command import PROVIDER_URIS_OK
 from gslib.command import SUPPORTED_SUB_ARGS
 from gslib.command import URIS_START_ARG
+from gslib.exception import AbortException
 from gslib.exception import CommandException
 from gslib.help_provider import HELP_NAME
 from gslib.help_provider import HELP_NAME_ALIASES
@@ -253,13 +255,10 @@ CONFIG_BOTO_SECTION_CONTENT = """
 #is_secure = False
 
 # Set 'https_validate_certificates' to False to disable server certificate
-# checking. This is useful if you want to capture/analyze traffic using an
-# intercepting proxy. This option should always be set to True in production
-# environments.
-# In gsutil, the default for this option is True. *However*, the default for
-# this option in the boto library itself is currently 'False'; it is therefore
-# recommended to always set this option explicitly to True in configuration
-# files.
+# checking. The default for this option in the boto library is currently
+# 'False' (to avoid breaking apps that depend on invalid certificates); it is
+# therefore strongly recommended to always set this option explicitly to True
+# in configuration files, to protect against "man-in-the-middle" attacks.
 https_validate_certificates = True
 
 # Set 'send_crlf_after_proxy_auth_headers' to True if you encounter problems
@@ -308,7 +307,7 @@ CONFIG_INPUTLESS_GSUTIL_SECTION_CONTENT = """
 #parallel_thread_count = %(parallel_thread_count)d
 
 # 'use_magicfile' specifies if the 'file --mime-type <filename>' command should
-# be used to guess MIME types instead of the default filename extension-based
+# be used to guess content types instead of the default filename extension-based
 # mechanism. Available on UNIX and MacOS (and possibly on Windows, if you're
 # running Cygwin or some other package that provides implementations of
 # UNIX-like commands). When available and enabled use_magicfile should be more
@@ -634,6 +633,7 @@ class ConfigCommand(Command):
         default_config_path = os.path.expanduser(os.path.join('~', '.boto'))
       if not os.path.exists(default_config_path):
         output_file_name = default_config_path
+        default_config_path_bak = None
       else:
         default_config_path_bak = default_config_path + '.bak'
         if os.path.exists(default_config_path_bak):
@@ -661,15 +661,24 @@ class ConfigCommand(Command):
           'credentials, based on your responses to the following questions.\n\n'
           % output_file_name)
 
+    # Catch ^C so we can restore the backup.
+    signal.signal(signal.SIGINT, cleanup_handler)
     try:
       self._WriteBotoConfigFile(output_file, use_oauth2=use_oauth2,
           launch_browser=launch_browser, oauth2_scopes=scopes)
     except Exception, e:
+      user_aborted = isinstance(e, AbortException)
+      if user_aborted:
+        sys.stderr.write('\nCaught ^C; cleaning up\n')
       # If an error occurred during config file creation, remove the invalid
-      # config file.
+      # config file and restore the backup file.
       if output_file_name != '-':
         output_file.close()
         os.unlink(output_file_name)
+        if default_config_path_bak:
+          sys.stderr.write('Restoring previous backed up file (%s)\n' %
+                           default_config_path_bak)
+          os.rename(default_config_path_bak, output_file_name)
       raise
 
     if output_file_name != '-':
@@ -678,3 +687,6 @@ class ConfigCommand(Command):
           '\nBoto config file "%s" created. If you need to use\na proxy to '
           'access the Internet please see the instructions in that file.\n'
           % output_file_name)
+
+def cleanup_handler(signalnum, handler):
+  raise AbortException('User interrupted config command')

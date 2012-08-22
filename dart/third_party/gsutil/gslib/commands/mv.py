@@ -146,8 +146,8 @@ class MvCommand(Command):
     # and rm commands (e.g., for -p option). Use undocumented (internal
     # use-only) cp -M option, which causes each original object to be deleted
     # after sucessfully copying to its destination, and also causes naming
-    # behavior consistent with Unix mv naming behavior (see _ConstructDstUri in
-    # cp.py).
+    # behavior consistent with Unix mv naming behavior (see comments in
+    # _ConstructDstUri in cp.py).
     unparsed_args = ['-M']
     if self.recursion_requested:
       unparsed_args.append('-R')
@@ -155,8 +155,8 @@ class MvCommand(Command):
     self.command_runner.RunNamedCommand('cp', unparsed_args, self.headers,
                                         self.debug, self.parallel_operations)
 
-  # test specification, see definition of test_steps in base class for
-  # details on how to populate these fields
+  # Test specification. See definition of test_steps in base class for
+  # details on how to populate these fields.
   test_steps = [
     # (test name, cmd line, ret code, (result_file, expect_file))
     ('gen expect files', 'echo 0 >$F0; echo 1 >$F1; echo 2 >$F2', 0, None),

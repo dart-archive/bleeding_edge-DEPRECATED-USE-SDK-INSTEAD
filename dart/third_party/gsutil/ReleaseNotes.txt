@@ -1,9 +1,124 @@
+Release 3.17 (release-date: 2012-08-17)
+
+Bug Fixes
+---------
+
+  - Fixed race condition when multiple threads attempt to get an OAuth2 refresh
+    token concurrently.
+
+Other Changes
+-------------
+
+  - Implemented simplified syntax for setmeta command. The old syntax still
+    works but is now deprecated.
+
+  - Added help to gsutil cp -z option, to describe how to change where temp
+    files are written.
+   
+
+================================================================================
+
+
+Release 3.16 (release-date: 2012-08-13)
+
+Bug Fixes
+---------
+
+  - Added info to built-in help for setmeta command, to explain the syntax
+    needed when running from Windows.
+
+================================================================================
+
+
+Release 3.15 (release-date: 2012-08-12)
+
+New Features
+------------
+  - Implemented gsutil setmeta command.
+
+  - Made gsutil understand bucket subdir conventions used by various tools
+    (like GCS Manager and CloudBerry) so if you cp or mv to a subdir you
+    created with one of those tools it will work as expected.
+
+  - Added support for Windows drive letter-prefaced paths when using Storage
+    URIs.
+
+
+Bug Fixes
+---------
+
+  - Fixed performance bug when downloading a large object with Content-
+    Encoding:gzip, where decompression attempted to load the entire object
+    in memory. Also added "Uncompressing" log output if file is larger than
+    50M, to make it clear the download hasn't stalled.
+
+  - Fixed naming bug when performing gsutil mv from a bucket subdir to
+    and existing bucket subdir.
+
+  - Fixed bug that caused cross-provider copies into Google Cloud Storage to
+    fail.
+
+  - Made change needed to make resumable transfer progress messages not print
+    when running gsutil cp -q.
+
+  - Fixed copy/paste error in config file documentation for
+    https_validate_certificates option.
+
+  - Various typo fixes.
+
+Other Changes
+-------------
+
+  - Changed gsutil to unset http_proxy environment variable if it's set,
+    because it confuses boto. (Proxies should instead be configured via the
+    boto config file.)
+
+================================================================================
+
+
+Release 3.14 (release-date: 2012-07-28)
+
+New Features
+------------
+  - Added cp -q option, to support quiet operation from cron jobs.
+
+  - Made config command restore backed up file if there was a failure or user
+    hits ^C.
+
+Bug Fixes
+---------
+
+  - Fixed bug where gsutil cp -R from a source directory didn't generate
+    correct destination path.
+
+  - Fixed file handle leak in gsutil cp -z
+
+  - Fixed bug that caused cp -a option not to work when copying in the cloud.
+
+  - Fixed bug that caused '/-' to be appended to object name for streaming
+    uploads.
+
+  - Revert incorrect line I changed in previous CL, that attempted to
+    get fp from src_key object. The real fix that's needed is described in
+    http://code.google.com/p/gsutil/issues/detail?id=73.
+
+Other Changes
+-------------
+
+  - Changed logging to print "Copying..." and Content-Type on same line;
+    refactored content type and log handling.
+
+
+================================================================================
+
+
 Release 3.13 (release-date: 2012-07-19)
 
 Bug Fixes
 ---------
 
-  - Included the fix to make 'gsutil config' honor BOTO_CONFIG environment variable (which was intended to be included in Release 3.12)
+  - Included the fix to make 'gsutil config' honor BOTO_CONFIG environment
+    variable (which was intended to be included in Release 3.12)
 
 
 ================================================================================
@@ -15,7 +130,6 @@ New Features
 ------------
 
   - Added support for configuring website buckets.
-
 
 Bug Fixes
 ---------
@@ -160,11 +274,14 @@ Release 3.3 (release-date: 2012-04-03)
 Bug Fixes
 ---------
 
-  - Fixed problem where gsutil ver and debug flags crashed when used with newly generated boto config files.
+  - Fixed problem where gsutil ver and debug flags crashed when used
+    with newly generated boto config files.
 
-  - Fixed gsutil bug in windows path handling, and make checksumming work across platforms
+  - Fixed gsutil bug in windows path handling, and make checksumming work
+    across platforms.
 
-  - Fixed enablelogging to translate -b URI param to plain bucket name in REST API request.
+  - Fixed enablelogging to translate -b URI param to plain bucket name in REST
+    API request.
 
 
 ================================================================================
@@ -175,9 +292,11 @@ Release 3.2 (release-date: 2012-03-30)
 Bug Fixes
 ---------
 
-  - Fixed problem where gsutil didn't convert between OS-specific directory separators when copying individually-named files (issue 87).
+  - Fixed problem where gsutil didn't convert between OS-specific directory
+    separators when copying individually-named files (issue 87).
 
-  - Fixed problem where gsutil ls -R doesn't work right if there was a key with a leading path (like /foo/bar/baz)
+  - Fixed problem where gsutil ls -R didn't work right if there was a key
+    with a leading path (like /foo/bar/baz)
 
 
 ================================================================================

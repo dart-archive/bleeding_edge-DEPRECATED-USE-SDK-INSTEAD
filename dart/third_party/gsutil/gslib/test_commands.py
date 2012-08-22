@@ -276,8 +276,8 @@ class GsutilCommandTests(unittest.TestCase):
     self.assertEqual(1, len(actual))
     self.assertEqual('f0', actual[0].object_name)
 
-  def TestCopyingDirToBucket(self):
-    """Tests recursively copying directory to a bucket"""
+  def TestCopyingAbsolutePathDirToBucket(self):
+    """Tests recursively copying absolute path directory to a bucket"""
     self.RunCommand('cp', ['-R', self.src_dir_root, self.dst_bucket_uri.uri])
     actual = set(str(u) for u in test_util.test_wildcard_iterator(
         '%s**' % self.dst_bucket_uri.uri).IterUris())
@@ -288,6 +288,73 @@ class GsutilCommandTests(unittest.TestCase):
       expected.add('%s%s' % (self.dst_bucket_uri.uri,
                              file_path_sans_top_tmp_dir))
     self.assertEqual(expected, actual)
+
+  def TestCopyingRelativePathDirToBucket(self):
+    """Tests recursively copying relative directory to a bucket"""
+    orig_dir = os.getcwd()
+    os.chdir(self.src_dir_root)
+    self.RunCommand('cp', ['-R', 'dir0', self.dst_bucket_uri.uri])
+    actual = set(str(u) for u in test_util.test_wildcard_iterator(
+        '%s**' % self.dst_bucket_uri.uri).IterUris())
+    expected = set()
+    for file_path in self.all_src_file_paths:
+      start_tmp_pos = file_path.find(self.tmpdir_prefix)
+      file_path_sans_top_tmp_dir = file_path[start_tmp_pos:]
+      expected.add('%s%s' % (self.dst_bucket_uri.uri, 'dir0/dir1/nested'))
+    self.assertEqual(expected, actual)
+    os.chdir(orig_dir)
+
+  def TestCopyingRelativePathSubDirToBucketSubdirSignifiedByDollarFolderObj(self):
+    """Tests recursively copying relative sub-directory to bucket subdir signified by a $folder$ object"""
+    orig_dir = os.getcwd()
+    os.chdir(self.src_dir_root)
+    # Create a $folder$ object to simulate a folder created by GCS manager (or
+    # various other tools), which gsutil understands to mean there is a folder into
+    # which the object is being copied.
+    obj_name = '%sabc_$folder$' % self.dst_bucket_uri
+    self.CreateEmptyObject(test_util.test_storage_uri(obj_name))
+    self.RunCommand('cp', ['-R', 'dir0/dir1', '%sabc'
+                    % self.dst_bucket_uri.uri])
+    actual = set(str(u) for u in test_util.test_wildcard_iterator(
+        '%s**' % self.dst_bucket_uri.uri).IterUris())
+    expected = set([obj_name])
+    for file_path in self.all_src_file_paths:
+      start_tmp_pos = file_path.find(self.tmpdir_prefix)
+      file_path_sans_top_tmp_dir = file_path[start_tmp_pos:]
+      expected.add('%sabc/%s' % (self.dst_bucket_uri.uri, 'dir1/nested'))
+    self.assertEqual(expected, actual)
+    os.chdir(orig_dir)
+
+  def TestCopyingRelativePathSubDirToBucketSubdirSignifiedBySlash(self):
+    """Tests recursively copying relative sub-directory to bucket subdir signified by a / object"""
+    orig_dir = os.getcwd()
+    os.chdir(self.src_dir_root)
+    self.RunCommand('cp', ['-R', 'dir0/dir1', '%sabc/'
+                    % self.dst_bucket_uri.uri])
+    actual = set(str(u) for u in test_util.test_wildcard_iterator(
+        '%s**' % self.dst_bucket_uri.uri).IterUris())
+    expected = set()
+    for file_path in self.all_src_file_paths:
+      start_tmp_pos = file_path.find(self.tmpdir_prefix)
+      file_path_sans_top_tmp_dir = file_path[start_tmp_pos:]
+      expected.add('%sabc/%s' % (self.dst_bucket_uri.uri, 'dir1/nested'))
+    self.assertEqual(expected, actual)
+    os.chdir(orig_dir)
+
+  def TestCopyingRelativePathSubDirToBucket(self):
+    """Tests recursively copying relative sub-directory to a bucket"""
+    orig_dir = os.getcwd()
+    os.chdir(self.src_dir_root)
+    self.RunCommand('cp', ['-R', 'dir0/dir1', self.dst_bucket_uri.uri])
+    actual = set(str(u) for u in test_util.test_wildcard_iterator(
+        '%s**' % self.dst_bucket_uri.uri).IterUris())
+    expected = set()
+    for file_path in self.all_src_file_paths:
+      start_tmp_pos = file_path.find(self.tmpdir_prefix)
+      file_path_sans_top_tmp_dir = file_path[start_tmp_pos:]
+      expected.add('%s%s' % (self.dst_bucket_uri.uri, 'dir1/nested'))
+    self.assertEqual(expected, actual)
+    os.chdir(orig_dir)
 
   def TestCopyingDotSlashToBucket(self):
     """Tests copying ./ to a bucket produces expected naming"""
@@ -648,16 +715,18 @@ class GsutilCommandTests(unittest.TestCase):
 
   def TestLsBucketSubdirRecursive(self):
     """Test that ls -R of a bucket subdir returns expected results"""
-    output = self.RunCommand('ls',
-                             ['-R', '%ssrc_subdir' % self.src_bucket_uri.uri],
-                             return_stdout=True)
-    expected = set(x.uri for x in self.all_src_subdir_and_below_obj_uris)
-    expected = expected.union(x.uri for x in self.all_src_subdir_obj_uris)
-    expected.add('%ssrc_subdir/:' % self.src_bucket_uri.uri)
-    expected.add('%ssrc_subdir/nested/:' % self.src_bucket_uri.uri)
-    expected.add('') # Blank line between subdir listings.
-    actual = set(output.split('\n'))
-    self.assertEqual(expected, actual)
+    for final_char in ('/', ''):
+      output = self.RunCommand('ls',
+                               ['-R', '%ssrc_subdir%s'
+                                % (self.src_bucket_uri.uri, final_char)],
+                               return_stdout=True)
+      expected = set(x.uri for x in self.all_src_subdir_and_below_obj_uris)
+      expected = expected.union(x.uri for x in self.all_src_subdir_obj_uris)
+      expected.add('%ssrc_subdir/:' % self.src_bucket_uri.uri)
+      expected.add('%ssrc_subdir/nested/:' % self.src_bucket_uri.uri)
+      expected.add('') # Blank line between subdir listings.
+      actual = set(output.split('\n'))
+      self.assertEqual(expected, actual)
 
   def TestMakeBucketsCommand(self):
     """Test mb on existing bucket"""
@@ -838,27 +907,23 @@ class GsutilCommandTests(unittest.TestCase):
   def TestRecursiveCopyObjsAndFilesToNonExistentBucketSubDir(self):
     """Tests recursive copy of objs + files to non-existent bucket subdir"""
     # Test with and without final slash on dest subdir.
-    for final_char in ('/', ''):
-      self.RunCommand(
-          'cp', ['-R', '%s' % self.src_bucket_uri.uri,
-                 '%s' % self.src_dir_root,
-                 '%sdst_subdir%s' % (self.dst_bucket_uri.uri, final_char)])
-      actual = set(str(u) for u in test_util.test_wildcard_iterator(
-          '%s**' % self.dst_bucket_uri.uri).IterUris())
-      expected = set()
-      for uri in self.all_src_obj_uris:
-        expected.add('%sdst_subdir/%s' %
-                    (self.dst_bucket_uri.uri, uri.object_name))
-      for file_path in self.all_src_file_paths:
-        start_tmp_pos = file_path.find(self.tmpdir_prefix)
-        file_path_sans_base_dir = (
-            file_path[start_tmp_pos:].partition(os.sep)[-1])
-        expected.add('%sdst_subdir/%s' %
-                     (self.dst_bucket_uri.uri, file_path_sans_base_dir))
-      self.assertEqual(expected, actual)
-      # Clean up/re-set up for next variant iteration.
-      self.TearDownClass()
-      self.SetUpClass()
+    self.RunCommand(
+        'cp', ['-R', '%s' % self.src_bucket_uri.uri,
+               '%s' % self.src_dir_root,
+               '%sdst_subdir' % (self.dst_bucket_uri.uri)])
+    actual = set(str(u) for u in test_util.test_wildcard_iterator(
+        '%s**' % self.dst_bucket_uri.uri).IterUris())
+    expected = set()
+    for uri in self.all_src_obj_uris:
+      expected.add('%sdst_subdir/%s' %
+                  (self.dst_bucket_uri.uri, uri.object_name))
+    for file_path in self.all_src_file_paths:
+      start_tmp_pos = file_path.find(self.tmpdir_prefix)
+      file_path_sans_base_dir = (
+          file_path[start_tmp_pos:].partition(os.sep)[-1])
+      expected.add('%sdst_subdir/%s' %
+                   (self.dst_bucket_uri.uri, file_path_sans_base_dir))
+    self.assertEqual(expected, actual)
 
   def TestCopyingBucketSubDirToDir(self):
     """Tests copying a bucket subdir to a directory"""
@@ -932,8 +997,29 @@ class GsutilCommandTests(unittest.TestCase):
       self.TearDownClass()
       self.SetUpClass()
 
-  def TestMovingBucketSubDirToBucketSubDir(self):
-    """Tests moving a bucket subdir to another bucket subdir"""
+  def TestMovingBucketSubDirToNonExistentBucketSubDir(self):
+    """Tests moving a bucket subdir to a non-existent bucket subdir"""
+    # Test with and without final slash on dest subdir.
+    for final_src_char in ('', '/'):
+      self.RunCommand(
+          'mv', ['%s%s' % (self.src_bucket_subdir_uri, final_src_char),
+                 '%s' % (self.dst_bucket_subdir_uri.uri)])
+      actual = set(str(u) for u in test_util.test_wildcard_iterator(
+          '%s**' % self.dst_bucket_subdir_uri.uri).IterUris())
+      expected = set([])
+      for uri in self.all_src_subdir_and_below_obj_uris:
+        # Unlike the case with copying, with mv we expect renaming to occur
+        # at the level of the src subdir, vs appending that subdir beneath the
+        # dst subdir like is done for copying.
+        expected_name = uri.object_name.replace('src_', 'dst_')
+        expected.add('%s%s' % (self.dst_bucket_uri.uri, expected_name))
+      self.assertEqual(expected, actual)
+      # Clean up/re-set up for next variant iteration.
+      self.TearDownClass()
+      self.SetUpClass()
+
+  def TestMovingBucketSubDirToExistingBucketSubDir(self):
+    """Tests moving a bucket subdir to a existing bucket subdir"""
     # Test with and without final slash on dest subdir.
     for (final_src_char, final_dst_char) in (
         ('', ''), ('', '/'), ('/', ''), ('/', '/') ):
@@ -948,11 +1034,8 @@ class GsutilCommandTests(unittest.TestCase):
           '%s**' % self.dst_bucket_subdir_uri.uri).IterUris())
       expected = set(['%sdst_subdir/existing_obj' % self.dst_bucket_uri.uri])
       for uri in self.all_src_subdir_and_below_obj_uris:
-        # Unlike the case with copying, with mv we expect renaming to occur
-        # at the level of the src subdir, vs appending that subdir beneath the
-        # dst subdir like is done for copying.
-        expected_name = uri.object_name.replace('src_', 'dst_')
-        expected.add('%s%s' % (self.dst_bucket_uri.uri, expected_name))
+        expected.add(
+            '%s/%s' % (self.dst_bucket_subdir_uri.uri, uri.object_name))
       self.assertEqual(expected, actual)
       # Clean up/re-set up for next variant iteration.
       self.TearDownClass()
@@ -1088,18 +1171,13 @@ class GsutilCommandTests(unittest.TestCase):
   def TestMovingBucketNestedSubDirToBucketNestedSubDir(self):
     """Tests moving a bucket nested subdir to another bucket nested subdir"""
     # Test with and without final slash on dest subdir.
-    for (final_src_char, final_dst_char) in (
-        ('', ''), ('', '/'), ('/', ''), ('/', '/') ):
-      # Set up existing bucket subdir by creating an object in the subdir.
-      self.RunCommand(
-          'cp', ['%sf0' % self.src_dir_root,
-                 '%sdst_subdir/existing_obj' % self.dst_bucket_uri.uri])
+    for final_src_char in ('', '/'):
       self.RunCommand(
           'mv', ['%s%s' % (self.src_bucket_subdir_uri, final_src_char),
-                 '%s%s' % (self.dst_bucket_subdir_uri.uri, final_dst_char)])
+                 '%s' % (self.dst_bucket_subdir_uri.uri)])
       actual = set(str(u) for u in test_util.test_wildcard_iterator(
           '%s**' % self.dst_bucket_subdir_uri.uri).IterUris())
-      expected = set(['%sdst_subdir/existing_obj' % self.dst_bucket_uri.uri])
+      expected = set([])
       for uri in self.all_src_subdir_and_below_obj_uris:
         # Unlike the case with copying, with mv we expect renaming to occur
         # at the level of the src subdir, vs appending that subdir beneath the

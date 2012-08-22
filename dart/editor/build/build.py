@@ -22,7 +22,7 @@ BUILD_OS = None
 DART_PATH = None
 TOOLS_PATH = None
 GSU_PATH_REV = None
-GDU_API_DOCS_PATH = None
+GSU_API_DOCS_PATH = None
 GSU_API_DOCS_BUCKET = 'gs://dartlang-api-docs'
 GSU_PATH_LATEST = None
 REVISION = None
@@ -893,8 +893,8 @@ def BuildUpdateSite(gsu, ant, revision, name, buildroot, buildout,
              'build.xml', revision, name, buildroot, buildout,
               editorpath, buildos, ['-Dbuild.dir=%s' % buildout])
   #TODO(pquitslund): migrate to a bucket copy (rather than serial uploads)
-  UploadSite(gsu, buildout, "%s/%s" % (GSU_PATH_REV,'eclipse-update'))
-  UploadSite(gsu, buildout, "%s/%s" % (GSU_PATH_LATEST,'eclipse-update'))
+  UploadSite(gsu, buildout, "%s/%s" % (GSU_PATH_REV, 'eclipse-update'))
+  UploadSite(gsu, buildout, "%s/%s" % (GSU_PATH_LATEST, 'eclipse-update'))
   
   
 def UploadSite(gsu, buildout, gsPath) :
@@ -914,7 +914,8 @@ def CreateApiDocs(buildLocation):
   
   CallBuildScript('release', 'ia32', 'api_docs')
   
-  apidir = join(DART_PATH, utils.GetBuildRoot('linux', 'release', 'ia32'),'api_docs')
+  apidir = join(DART_PATH, utils.GetBuildRoot(BUILD_OS, 'release', 'ia32'),
+                'api_docs')
 
   UploadApiDocs(apidir)
   
@@ -1057,7 +1058,7 @@ def UploadFile(file):
 
 
 def UploadDirectory(filesToUpload, gs_dir):
-  Gsutil(['cp', '-a', 'public-read', '-r'] + filesToUpload + [gs_dir])
+  Gsutil(['-m', 'cp', '-a', 'public-read', '-r'] + filesToUpload + [gs_dir])
 
 
 def UploadApiDocs(dirName):
@@ -1071,7 +1072,8 @@ def UploadApiDocs(dirName):
 
   # copy -R api_docs into dartlang-api-docs/REVISION
   filesToUpload = glob.glob(join(dirName, '*'))
-  result = Gsutil(['cp', '-a', 'public-read', '-r'] + filesToUpload + [GSU_API_DOCS_PATH])
+  result = Gsutil(['-m', 'cp', '-a', 'public-read', '-r'] + filesToUpload +
+                  [GSU_API_DOCS_PATH])
 
   if result == 0:
     destLatestRevFile = GSU_API_DOCS_BUCKET + '/latest.txt'
