@@ -30,68 +30,11 @@ import java.util.List;
 
 public class NameOccurrencesFinderTest extends TestCase {
 
-  public void test2() throws Exception {
-    /*
-    #import('../x/x.dart', prefix: 'x');
-    class extra {
-      f() {
-        x.x u;
-        var y = new x.x.x();
-      }
-    }
-    */
-    test(
-        compose(
-            "var y = 0;",
-            "class S {",
-            "  S();",
-            "  S.s(x);",
-            "}",
-            "int tf!6(var xx) => xx * xx + 42 - !7tf(xx-1);",
-            "class R extends S {",
-            "  R.a() : this.!1b();",
-            "  R.b() : super.s!2(1);",
-            "  var q = new Map<St!5ring, Object!3>();",
-            "  var w = new Map<String, !4Dynamic>();",
-            "  var zz = t!8f(y);",
-            "  var z2 = tf((xx!9) => 11);",
-            "}"),
-        // 1 redirect constructor
-        "1+b();",
-        "1+b() ",
-        // 2 super constructor
-        "2+s(x);",
-        "2+s(1);",
-        // 3 terminal generic type ref
-        "3+Object>",
-        // 4 explicit Dynamic ref
-        "4+Dynamic>",
-        // 5 multiple generic type ref
-        "5+String, O",
-        "5+String, D",
-        // 6 top-level function def
-        "6+tf(var",
-        "6+tf(xx",
-        "6+tf(y",
-        // 7 top-level function ref in top-level func
-        "7+tf(var",
-        "7+tf(xx",
-        "7+tf(y",
-        // 8 top-level function def in class method
-        "8+tf(var",
-        "8+tf(xx",
-        "8+tf(y",
-        // not finding parameter
-        "9-xx) =>"
-    // end of tests
-    );
-  }
-
-  public void xtest1() throws Exception {
-    // TODO(brianwilkerson) Math has been removed. Enable with a different class or remove this test.
+  public void test1() throws Exception {
     test(
         compose(
             "#import('dart:html');",
+            "#import('dart:math', prefix: 'Math');",
             "main() {",
             "  new Sunfl!2ower();",
             "}",
@@ -185,6 +128,63 @@ public class NameOccurrencesFinderTest extends TestCase {
         "b+Sunflower {",
         "b-Sunflower() {",
         "b-new Sunflower();"
+    // end of tests
+    );
+  }
+
+  public void test2() throws Exception {
+    /*
+    #import('../x/x.dart', prefix: 'x');
+    class extra {
+      f() {
+        x.x u;
+        var y = new x.x.x();
+      }
+    }
+    */
+    test(
+        compose(
+            "var y = 0;",
+            "class S {",
+            "  S();",
+            "  S.s(x);",
+            "}",
+            "int tf!6(var xx) => xx * xx + 42 - !7tf(xx-1);",
+            "class R extends S {",
+            "  R.a() : this.!1b();",
+            "  R.b() : super.s!2(1);",
+            "  var q = new Map<St!5ring, Object!3>();",
+            "  var w = new Map<String, !4Dynamic>();",
+            "  var zz = t!8f(y);",
+            "  var z2 = tf((xx!9) => 11);",
+            "}"),
+        // 1 redirect constructor
+        "1+b();",
+        "1+b() ",
+        // 2 super constructor
+        "2+s(x);",
+        "2+s(1);",
+        // 3 terminal generic type ref
+        "3+Object>",
+        // 4 explicit Dynamic ref
+        "4+Dynamic>",
+        // 5 multiple generic type ref
+        "5+String, O",
+        "5+String, D",
+        // 6 top-level function def
+        "6+tf(var",
+        "6+tf(xx",
+        "6+tf(y",
+        // 7 top-level function ref in top-level func
+        "7+tf(var",
+        "7+tf(xx",
+        "7+tf(y",
+        // 8 top-level function def in class method
+        "8+tf(var",
+        "8+tf(xx",
+        "8+tf(y",
+        // not finding parameter
+        "9-xx) =>"
     // end of tests
     );
   }
