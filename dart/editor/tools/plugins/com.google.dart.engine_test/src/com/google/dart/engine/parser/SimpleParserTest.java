@@ -15,6 +15,7 @@ package com.google.dart.engine.parser;
 
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.Annotation;
+import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.ArrayAccess;
 import com.google.dart.engine.ast.AssignmentExpression;
@@ -1572,7 +1573,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseFunctionDeclarationStatement() throws Exception {
     FunctionDeclarationStatement statement = parse(
         "parseFunctionDeclarationStatement",
-        "void f(int p) => p * 2");
+        "void f(int p) => p * 2;");
     assertNotNull(statement.getFunctionDeclaration());
   }
 
@@ -2141,6 +2142,12 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals("foo", identifier.getPrefix().getName());
     assertNotNull(identifier.getPeriod());
     assertEquals("bar", identifier.getIdentifier().getName());
+  }
+
+  public void test_parsePrimaryExpression_argumentDefinitionTest() throws Exception {
+    ArgumentDefinitionTest expression = parse("parseArgumentDefinitionTest", "?a");
+    assertNotNull(expression.getQuestion());
+    assertNotNull(expression.getIdentifier());
   }
 
   public void test_parsePrimaryExpression_const() throws Exception {

@@ -279,7 +279,7 @@ public class Parser {
     }
     // Remove uses of this method in favor of matches?
     // Pass in the error code to use to report the error?
-    // reportError(ParserErrorCode.?);
+    reportError(ParserErrorCode.EXPECTED_TOKEN, keyword.getSyntax());
     return currentToken;
   }
 
@@ -296,7 +296,7 @@ public class Parser {
     }
     // Remove uses of this method in favor of matches?
     // Pass in the error code to use to report the error?
-    // reportError(ParserErrorCode.?);
+    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
     return currentToken;
   }
 
@@ -313,7 +313,7 @@ public class Parser {
     }
     // Remove uses of this method in favor of matches?
     // Pass in the error code to use to report the error?
-    // reportError(ParserErrorCode.?);
+    reportError(ParserErrorCode.EXPECTED_TOKEN, type.getLexeme());
     return currentToken;
   }
 
@@ -723,7 +723,10 @@ public class Parser {
     } else {
       if (!optional) {
         // Report the missing selector.
-        // reportError(ParserErrorCode.?);
+        // TODO (jwren) investigate, enabling this causes tests to fail, logic in
+        // parseAssignableExpression should be updated so that we can enable this, without failures
+        // in the tests
+        //reportError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
       }
       return prefix;
     }
@@ -904,7 +907,7 @@ public class Parser {
     boolean progress = true;
     while (progress) {
       progress = false;
-      Expression selector = parseAssignableSelector(expression, false);
+      Expression selector = parseAssignableSelector(expression, true);
       if (selector != expression) {
         expression = selector;
         progress = true;
@@ -4037,7 +4040,7 @@ public class Parser {
     return token;
   }
 
-  /**
+/**
    * Parse a list of type arguments, starting at the given token, without actually creating a type argument list
    * or changing the current token. Return the token following the type argument list that was parsed,
    * or {@code null} if the given token is not the first token in a valid type argument list.

@@ -56,11 +56,11 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_breakOutsideOfLoop_functionExpression_inALoop() throws Exception {
-    parse("parseStatement", "for(; x;) {() {break;}}", ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);
+    parse("parseStatement", "for(; x;) {() {break;};}", ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);
   }
 
   public void test_breakOutsideOfLoop_functionExpression_withALoop() throws Exception {
-    parse("parseStatement", "() {for (; x;) {break;}}");
+    parse("parseStatement", "() {for (; x;) {break;}};");
   }
 
   public void test_builtInIdentifierAsFunctionName_constConstructor() throws Exception {
@@ -108,7 +108,7 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseTypeAlias", "typedef as();", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
   }
 
-  public void test_builtInIdentifierAsTypeName() throws Exception {
+  public void test_builtInIdentifierAsTypeName_classDeclaration() throws Exception {
     parse("parseClassDeclaration", "class as {}", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
   }
 
@@ -171,11 +171,11 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_continueOutsideOfLoop_functionExpression_inALoop() throws Exception {
-    parse("parseStatement", "for(; x;) {() {continue;}}", ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP);
+    parse("parseStatement", "for(; x;) {() {continue;};}", ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP);
   }
 
   public void test_continueOutsideOfLoop_functionExpression_withALoop() throws Exception {
-    parse("parseStatement", "() {for (; x;) {continue;}}");
+    parse("parseStatement", "() {for (; x;) {continue;}};");
   }
 
   public void test_directiveOutOfOrder_classBeforeDirective() throws Exception {
@@ -221,6 +221,18 @@ public class ErrorParserTest extends ParserTestCase {
     assertTrue(expression.isSynthetic());
   }
 
+  public void test_expectedToken_commaMissingInArgumentList() throws Exception {
+    parse("parseArgumentList", "(x, y z)", ParserErrorCode.EXPECTED_TOKEN);
+  }
+
+  public void test_expectedToken_semicolonMissingAfterExpression() throws Exception {
+    parse("parseStatement", "x", ParserErrorCode.EXPECTED_TOKEN);
+  }
+
+  public void test_expectedToken_whileMissingInDoStatement() throws Exception {
+    parse("parseStatement", "do {} (x);", ParserErrorCode.EXPECTED_TOKEN);
+  }
+
   public void test_noUnaryPlusOperator() throws Exception {
     parse("parseUnaryExpression", "+x", ParserErrorCode.NO_UNARY_PLUS_OPERATOR);
   }
@@ -236,21 +248,21 @@ public class ErrorParserTest extends ParserTestCase {
   public void test_operatorCannotBeStatic_noReturnType() throws Exception {
     parse(
         "parseClassMember",
-        "static operator +(int x) => x + 1",
+        "static operator +(int x) => x + 1;",
         ParserErrorCode.OPERATOR_CANNOT_BE_STATIC);
   }
 
   public void test_operatorCannotBeStatic_returnType() throws Exception {
     parse(
         "parseClassMember",
-        "static int operator +(int x) => x + 1",
+        "static int operator +(int x) => x + 1;",
         ParserErrorCode.OPERATOR_CANNOT_BE_STATIC);
   }
 
   public void test_operatorIsNotUserDefinable() throws Exception {
     parse(
         "parseClassMember",
-        "operator +=(int x) => x + 1",
+        "operator +=(int x) => x + 1;",
         ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE);
   }
 
