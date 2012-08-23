@@ -7,16 +7,12 @@
 #
 #     -debug /path/to/options/file
 #
-com.google.dart.tools.core/debug/build = false
-com.google.dart.tools.core/debug/dartlib = false
 com.google.dart.tools.core/debug/analysis/server = false
 com.google.dart.tools.core/debug/index/contributor = false
 com.google.dart.tools.core/debug/metrics = false
 com.google.dart.tools.core/debug/warmup = false
 com.google.dart.tools.core/debug/verbose = false
 com.google.dart.tools.core/logging/debugger = false
-
-com.google.dart.tools.core/perf/analysis/filescan = false
 
 com.google.dart.tools.core/experimental/altKeyBindings = false
 com.google.dart.tools.core/experimental/update = false

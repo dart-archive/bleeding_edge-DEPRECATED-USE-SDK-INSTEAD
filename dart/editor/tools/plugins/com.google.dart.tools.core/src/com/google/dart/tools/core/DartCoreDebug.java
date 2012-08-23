@@ -23,8 +23,6 @@ import org.eclipse.core.runtime.Platform;
 public class DartCoreDebug {
   // Debugging / Tracing options
 
-  public static final boolean BUILD = isOptionTrue("debug/build");
-  public static final boolean DARTLIB = isOptionTrue("debug/dartlib");
   public static final boolean DEBUG_ANALYSIS = isOptionTrue("debug/analysis/server");
   public static final boolean DEBUG_INDEX_CONTRIBUTOR = isOptionTrue("debug/index/contributor");
   public static final boolean METRICS = isOptionTrue("debug/metrics");
@@ -42,7 +40,6 @@ public class DartCoreDebug {
 
   // Performance measurement and reporting options.
 
-  public static final boolean PERF_ANALYSIS_FILESCAN = isOptionTrue("perf/analysis/filescan");
   public static final boolean PERF_INDEX = isOptionTrue("perf/index");
   public static final boolean PERF_OS_RESOURCES = isOptionTrue("perf/osResources");
 
