@@ -91,7 +91,7 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
 
         IRegion wordRegion = locator.getWordRegion();
         final IRegion candidateRegion = locator.getCandidateRegion();
-        if (candidateRegion != null) {
+        if (candidateRegion != null && wordRegion != null) {
           return new IHyperlink[] {new DartElementHyperlink(
               foundElement,
               wordRegion,
@@ -105,10 +105,12 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
                 }
               })};
         }
-        return new IHyperlink[] {new DartElementHyperlink(
-            foundElement,
-            wordRegion,
-            (SelectionDispatchAction) openAction)};
+        if (wordRegion != null) {
+          return new IHyperlink[] {new DartElementHyperlink(
+              foundElement,
+              wordRegion,
+              (SelectionDispatchAction) openAction)};
+        }
       }
     }
     return null;
