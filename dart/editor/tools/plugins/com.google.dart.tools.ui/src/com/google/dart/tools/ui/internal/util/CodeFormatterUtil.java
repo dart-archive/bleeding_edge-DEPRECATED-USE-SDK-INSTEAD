@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -17,7 +17,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.formatter.CodeFormatter;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
-import com.google.dart.tools.core.internal.formatter.DefaultCodeFormatter;
+import com.google.dart.tools.core.internal.formatter.DartCodeFormatter;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
@@ -350,7 +350,8 @@ public class CodeFormatterUtil {
           DefaultCodeFormatterConstants.FORMATTER_NEVER_INDENT_LINE_COMMENTS_ON_FIRST_COLUMN,
           DefaultCodeFormatterConstants.FALSE);
     }
-    return new DefaultCodeFormatter(currentOptions);
+//    return new DefaultCodeFormatter(currentOptions);
+    return new DartCodeFormatter(currentOptions);
   }
 
   private static Document createDocument(String string, Position[] positions)

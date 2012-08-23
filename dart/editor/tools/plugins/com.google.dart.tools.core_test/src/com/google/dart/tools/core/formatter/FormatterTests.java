@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.formatter;
 
-import com.google.dart.tools.core.internal.formatter.DefaultCodeFormatter;
+import com.google.dart.tools.core.internal.formatter.DartCodeFormatter;
 import com.google.dart.tools.core.internal.formatter.DefaultCodeFormatterOptions;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
@@ -90,13 +90,17 @@ public class FormatterTests extends TestCase {
   private IProject project;
   private IContainer container;
 
-  public void test001() {
-    runTest("test001", "A.dart");//$NON-NLS-1$ //$NON-NLS-2$
+  public void testA() {
+    runTest("testA", "A.dart");
   }
 
-  public void test002() {
-    runTest("test002", "A.dart");//$NON-NLS-1$ //$NON-NLS-2$
-  }
+//  public void test001() {
+//    runTest("test001", "A.dart");//$NON-NLS-1$ //$NON-NLS-2$
+//  }
+
+//  public void test002() {
+//    runTest("test002", "A.dart");//$NON-NLS-1$ //$NON-NLS-2$
+//  }
 
   /*
   public void test007() {
@@ -176,9 +180,9 @@ public class FormatterTests extends TestCase {
     }
     if (!actual.equals(expected)) {
       System.out.println("Expected source in " + getName() + " should be:");
-      System.out.println("|" + actual + "|");
-      System.out.println(" but it is:");
       System.out.println("|" + expected + "|");
+      System.out.println(" but it is:");
+      System.out.println("|" + actual + "|");
     }
     assertEquals(message, expected, actual);
   }
@@ -416,7 +420,8 @@ public class FormatterTests extends TestCase {
     preferences.number_of_empty_lines_to_preserve = 0;
     preferences.blank_lines_before_imports = 0;
     preferences.blank_lines_after_imports = 0;
-    DefaultCodeFormatter codeFormatter = new DefaultCodeFormatter(preferences);
+    DartCodeFormatter codeFormatter = new DartCodeFormatter(preferences);
+//    DefaultCodeFormatter codeFormatter = new DefaultCodeFormatter(preferences);
     runTest(codeFormatter, testName, compilationUnitName, CodeFormatter.K_COMPILATION_UNIT, 0);
   }
 
