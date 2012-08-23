@@ -19,6 +19,7 @@ import com.google.dart.tools.core.analysis.ScanTask.DartFileType;
 import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertPackageContexts;
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTrackedLibraryFiles;
 import static com.google.dart.tools.core.analysis.ScanTask.DartFileType.Library;
 import static com.google.dart.tools.core.analysis.ScanTask.DartFileType.PartOf;
@@ -35,22 +36,35 @@ public class ScanTaskTest extends AbstractDartCoreTest {
 
   private static File tempDir;
   private static File moneyDir;
-  private static File libraryFile;
-  private static File dartFile;
-  private static File doesNotExist;
+  private static File moneyLibFile;
+  private static File simpleMoneySrcFile;
+  private static File bankDir;
+  private static File bankLibFile;
+  private static File nestedAppFile;
+  private static File nestedLibFile;
 
   /**
    * Called once prior to executing the first test in this class
    */
   public static void setUpOnce() throws Exception {
     tempDir = TestUtilities.createTempDirectory();
+
     moneyDir = new File(tempDir, "Money");
     TestUtilities.copyPluginRelativeContent("Money", moneyDir);
-    libraryFile = new File(moneyDir, "money.dart");
-    assertTrue(libraryFile.exists());
-    dartFile = new File(moneyDir, "simple_money.dart");
-    assertTrue(dartFile.exists());
-    doesNotExist = new File(moneyDir, "doesNotExist.dart");
+    moneyLibFile = new File(moneyDir, "money.dart");
+    assertTrue(moneyLibFile.exists());
+    simpleMoneySrcFile = new File(moneyDir, "simple_money.dart");
+    assertTrue(simpleMoneySrcFile.exists());
+
+    bankDir = new File(tempDir, "Bank");
+    TestUtilities.copyPluginRelativeContent("Bank", bankDir);
+    bankLibFile = new File(bankDir, "bank.dart");
+    assertTrue(bankLibFile.exists());
+
+    nestedAppFile = new File(new File(bankDir, "nested"), "nestedApp.dart");
+    assertTrue(nestedAppFile.exists());
+    nestedLibFile = new File(new File(bankDir, "nested"), "nestedLib.dart");
+    assertTrue(nestedLibFile.exists());
   }
 
   /**
@@ -64,18 +78,28 @@ public class ScanTaskTest extends AbstractDartCoreTest {
   private AnalysisServerAdapter server;
   private Listener listener;
 
+  public void test_scan_application() throws Exception {
+    assertTrackedLibraryFiles(server);
+    server.scan(bankDir, true);
+    server.start();
+    listener.waitForIdle(1, FIVE_MINUTES_MS);
+    assertTrackedLibraryFiles(server, bankLibFile, nestedAppFile, nestedLibFile);
+    assertPackageContexts(server, bankDir);
+    server.assertAnalyzeContext(true);
+  }
+
   public void test_scan_directory() throws Exception {
     assertTrackedLibraryFiles(server);
     server.scan(moneyDir, true);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
-    assertTrackedLibraryFiles(server, libraryFile);
+    assertTrackedLibraryFiles(server, moneyLibFile);
     server.assertAnalyzeContext(true);
   }
 
   public void test_scan_doesNotExist() throws Exception {
     assertTrackedLibraryFiles(server);
-    server.scan(doesNotExist, true);
+    server.scan(new File(moneyDir, "doesNotExist.dart"), true);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server);
@@ -84,37 +108,37 @@ public class ScanTaskTest extends AbstractDartCoreTest {
 
   public void test_scan_library() throws Exception {
     assertTrackedLibraryFiles(server);
-    server.scan(libraryFile, true);
+    server.scan(moneyLibFile, true);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
-    assertTrackedLibraryFiles(server, libraryFile);
+    assertTrackedLibraryFiles(server, moneyLibFile);
     server.assertAnalyzeContext(true);
   }
 
   public void test_scan_libraryThenSource() throws Exception {
     test_scan_library();
     server.resetAnalyzeContext();
-    server.scan(dartFile, true);
+    server.scan(simpleMoneySrcFile, true);
     listener.waitForIdle(2, FIVE_MINUTES_MS);
-    assertTrackedLibraryFiles(server, libraryFile);
+    assertTrackedLibraryFiles(server, moneyLibFile);
     server.assertAnalyzeContext(false);
   }
 
   public void test_scan_source() throws Exception {
     assertTrackedLibraryFiles(server);
-    server.scan(dartFile, true);
+    server.scan(simpleMoneySrcFile, true);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
-    assertTrackedLibraryFiles(server, dartFile);
+    assertTrackedLibraryFiles(server, simpleMoneySrcFile);
     server.assertAnalyzeContext(true);
   }
 
   public void test_scan_sourceThenLibrary() throws Exception {
     test_scan_source();
     server.resetAnalyzeContext();
-    server.scan(libraryFile, true);
+    server.scan(moneyLibFile, true);
     listener.waitForIdle(2, FIVE_MINUTES_MS);
-    assertTrackedLibraryFiles(server, libraryFile);
+    assertTrackedLibraryFiles(server, moneyLibFile);
     server.assertAnalyzeContext(true);
   }
 

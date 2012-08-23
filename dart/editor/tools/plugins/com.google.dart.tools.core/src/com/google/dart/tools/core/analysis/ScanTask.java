@@ -369,8 +369,8 @@ public class ScanTask extends Task implements TaskListener {
       return;
     }
     if (file.isDirectory()) {
-      if (AnalysisUtility.isApplicationDirectory(file)) {
-        // TODO (danrubel): create application context
+      if (DartCore.containsPackagesDirectory(file)) {
+        server.getSavedContext().getOrCreatePackageContext(file);
       }
       if (!DartCore.isPackagesDirectory(file)) {
         filesToScan.addAll(Arrays.asList(file.listFiles()));

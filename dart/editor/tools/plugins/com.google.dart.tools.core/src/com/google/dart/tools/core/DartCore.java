@@ -233,6 +233,14 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * Return true if directory contains a "packages" directory that is installed by pub
+   */
+  public static boolean containsPackagesDirectory(File file) {
+    File pkgsDir = new File(file, PACKAGES_DIRECTORY_NAME);
+    return pkgsDir.isDirectory() && checkForPubspec(pkgsDir);
+  }
+
+  /**
    * Return the Dart element corresponding to the given file, or <code>null</code> if the given file
    * is not associated with any Dart element.
    * 

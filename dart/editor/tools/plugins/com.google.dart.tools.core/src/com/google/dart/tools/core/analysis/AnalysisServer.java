@@ -17,6 +17,9 @@ import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdkManager;
 
+import static com.google.dart.tools.core.analysis.AnalysisUtility.equalsOrContains;
+import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -151,13 +154,14 @@ public class AnalysisServer {
    * @param file the library file (not <code>null</code>)
    */
   public void discard(File file) {
+    file = file.getAbsoluteFile();
 
     // If this is a dart file, then discard the library
 
     if (file.isFile() || (!file.exists() && DartCore.isDartLikeFileName(file.getName()))) {
       synchronized (libraryFiles) {
         if (libraryFiles.remove(file)) {
-          queueNewTask(new DiscardLibraryTask(this, savedContext, file));
+          queueNewTask(new DiscardTask(this, file));
         }
       }
       return;
@@ -165,16 +169,14 @@ public class AnalysisServer {
 
     // Otherwise, discard all libraries in the specified directory tree
 
-    String prefix = file.getAbsolutePath() + File.separator;
     synchronized (libraryFiles) {
       Iterator<File> iter = libraryFiles.iterator();
       while (iter.hasNext()) {
-        File libraryFile = iter.next();
-        if (libraryFile.getPath().startsWith(prefix)) {
+        if (equalsOrContains(file, iter.next())) {
           iter.remove();
-          queueNewTask(new DiscardLibraryTask(this, savedContext, libraryFile));
         }
       }
+      queueNewTask(new DiscardTask(this, file));
     }
   }
 
@@ -514,7 +516,7 @@ public class AnalysisServer {
         DartCore.logError(e);
         return true;
       }
-      File dartCoreFile = AnalysisUtility.toFile(this, dartCoreUri);
+      File dartCoreFile = toFile(this, dartCoreUri);
       if (dartCoreFile != null) {
         queue.addLastTask(new AnalyzeLibraryTask(this, savedContext, dartCoreFile, null));
       }

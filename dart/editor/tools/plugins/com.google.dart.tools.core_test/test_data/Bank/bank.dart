@@ -1,5 +1,6 @@
 #import('dart:html');
 #import('../Money/money.dart');
+#import('nested/nestedLib.dart');
 #import('package:customer/customer.dart');
 
 Customer customer;

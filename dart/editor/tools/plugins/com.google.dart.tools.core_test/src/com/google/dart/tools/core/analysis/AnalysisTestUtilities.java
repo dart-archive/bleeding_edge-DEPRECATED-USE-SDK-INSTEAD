@@ -21,7 +21,9 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 public class AnalysisTestUtilities {
 
@@ -56,6 +58,24 @@ public class AnalysisTestUtilities {
     waitForIdle(PackageLibraryManagerProvider.getDefaultAnalysisServer(), milliseconds);
   }
 
+  static void assertCachedLibraries(AnalysisServer server, File appDir, File... expected)
+      throws Exception {
+    Context context;
+    if (appDir == null) {
+      context = server.getSavedContext();
+    } else {
+      context = getPackageContexts(server).get(appDir);
+      if (context == null) {
+        fail("Expected package context for " + appDir);
+      }
+    }
+    assertFiles(expected, getCachedLibraryFiles(context));
+  }
+
+  static void assertPackageContexts(AnalysisServer server, File... expected) throws Exception {
+    assertFiles(expected, getPackageContextDirectories(server));
+  }
+
   static void assertQueuedTasks(AnalysisServer server, String... expectedTaskNames)
       throws Exception {
     Task[] actualTasks = getServerTaskQueue(server).getTasks();
@@ -82,7 +102,59 @@ public class AnalysisTestUtilities {
   }
 
   static void assertTrackedLibraryFiles(AnalysisServer server, File... expected) throws Exception {
-    File[] actual = getTrackedLibraryFiles(server);
+    assertFiles(expected, getTrackedLibraryFiles(server));
+  }
+
+  static Object getCachedLibrary(Context context, File libraryFile) throws Exception {
+    Method method = Context.class.getDeclaredMethod("getCachedLibrary", File.class);
+    method.setAccessible(true);
+    return method.invoke(context, libraryFile);
+  }
+
+  static File[] getCachedLibraryFiles(Context context) throws Exception {
+    Field field = Context.class.getDeclaredField("libraryCache");
+    field.setAccessible(true);
+    @SuppressWarnings("unchecked")
+    HashMap<File, Object> cache = (HashMap<File, Object>) field.get(context);
+    Set<File> directories = cache.keySet();
+    return directories.toArray(new File[directories.size()]);
+  }
+
+  static File[] getPackageContextDirectories(AnalysisServer server) throws Exception {
+    HashMap<File, PackageContext> packageContexts = getPackageContexts(server);
+    Set<File> directories = packageContexts.keySet();
+    return directories.toArray(new File[directories.size()]);
+  }
+
+  @SuppressWarnings("unchecked")
+  static HashMap<File, PackageContext> getPackageContexts(AnalysisServer server)
+      throws NoSuchFieldException, IllegalAccessException {
+    Field field = SavedContext.class.getDeclaredField("packageContexts");
+    field.setAccessible(true);
+    return (HashMap<File, PackageContext>) field.get(server.getSavedContext());
+  }
+
+  static TaskQueue getServerTaskQueue(AnalysisServer server) throws Exception {
+    Field field = AnalysisServer.class.getDeclaredField("queue");
+    field.setAccessible(true);
+    return (TaskQueue) field.get(server);
+  }
+
+  static File[] getTrackedLibraryFiles(AnalysisServer server) throws Exception {
+    Method method = AnalysisServer.class.getDeclaredMethod("getTrackedLibraryFiles");
+    method.setAccessible(true);
+    Object result = method.invoke(server);
+    return (File[]) result;
+  }
+
+  static boolean isLibraryCached(AnalysisServer server, File libFile) throws Exception {
+    Method method = AnalysisServer.class.getDeclaredMethod("isLibraryCached", File.class);
+    method.setAccessible(true);
+    Object result = method.invoke(server, libFile);
+    return result instanceof Boolean && ((Boolean) result).booleanValue();
+  }
+
+  private static void assertFiles(File[] expected, File[] actual) {
     if (actual.length == expected.length) {
       HashSet<File> files = new HashSet<File>();
       files.addAll(Arrays.asList(actual));
@@ -106,24 +178,5 @@ public class AnalysisTestUtilities {
       msg += "\n   " + file;
     }
     fail(msg);
-  }
-
-  static Object getCachedLibrary(Context context, File libraryFile) throws Exception {
-    Method method = Context.class.getDeclaredMethod("getCachedLibrary", File.class);
-    method.setAccessible(true);
-    return method.invoke(context, libraryFile);
-  }
-
-  static TaskQueue getServerTaskQueue(AnalysisServer server) throws Exception {
-    Field field = AnalysisServer.class.getDeclaredField("queue");
-    field.setAccessible(true);
-    return (TaskQueue) field.get(server);
-  }
-
-  static File[] getTrackedLibraryFiles(AnalysisServer server) throws Exception {
-    Method method = AnalysisServer.class.getDeclaredMethod("getTrackedLibraryFiles");
-    method.setAccessible(true);
-    Object result = method.invoke(server);
-    return (File[]) result;
   }
 }

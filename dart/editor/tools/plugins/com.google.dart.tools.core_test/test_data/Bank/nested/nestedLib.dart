@@ -1,0 +1,4 @@
+#library('nestedLib');
+
+class SomeClass {
+}

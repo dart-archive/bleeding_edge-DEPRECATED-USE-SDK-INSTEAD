@@ -40,6 +40,8 @@ import java.util.Set;
  */
 class Library {
 
+  static final Library[] NONE = new Library[] {};
+
   private static final String END_PREFIXES_TAG = "</end-prefixes>";
   private static final String END_IMPORTS_TAG = "</end-imports>";
   private static final String END_SOURCES_TAG = "</end-sources>";
@@ -124,21 +126,21 @@ class Library {
   }
 
   private final File libraryFile;
+
   private final LibrarySource librarySource;
   private final Set<String> prefixes;
   private final boolean hasDirectives;
   private final HashMap<String, File> imports;
   private final HashMap<String, File> sources;
   private final HashMap<File, Long> lastModified;
-
   private LibraryUnit libraryUnit;
+
   private final HashMap<File, DartUnit> dartUnits;
   private HashMap<File, DartCompilationError[]> parseErrors;
-
   /**
    * Flag indicating if listeners should be notified when the library is parsed and resolved. This
-   * is <code>false</code> when a library is reloaded from a cache file so that listeners will not be
-   * notified because they were already notified when the library was first parsed and resolved.
+   * is <code>false</code> when a library is reloaded from a cache file so that listeners will not
+   * be notified because they were already notified when the library was first parsed and resolved.
    */
   public final boolean shouldNotify;
 
@@ -159,6 +161,11 @@ class Library {
     for (File file : sources.values()) {
       lastModified.put(file, file.lastModified());
     }
+  }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "[" + libraryFile + "]";
   }
 
   void cacheDartUnit(File file, DartUnit unit, Collection<AnalysisError> analysisErrors) {

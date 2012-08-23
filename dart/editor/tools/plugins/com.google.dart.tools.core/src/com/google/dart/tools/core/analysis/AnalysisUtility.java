@@ -21,8 +21,8 @@ import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
-import com.google.dart.compiler.Source;
 import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -63,11 +63,33 @@ class AnalysisUtility {
   };
 
   /**
-   * Answer <code>true</code> if the specified directory contains a "packages" subdirectory and the
-   * pubspec declaration file.
+   * Answer a new array containing the elements of the old array with the new element appended
    */
-  static boolean isApplicationDirectory(File dir) {
-    return DartCore.isPackagesDirectory(new File(dir, DartCore.PACKAGES_DIRECTORY_NAME));
+  static Library[] append(Library[] oldArray, Library library) {
+    if (oldArray.length == 0) {
+      return new Library[] {library};
+    }
+    int oldLen = oldArray.length;
+    Library[] newArray = new Library[oldLen + 1];
+    System.arraycopy(oldArray, 0, newArray, 0, oldLen);
+    newArray[oldLen] = library;
+    return newArray;
+  }
+
+  /**
+   * Answer <code>true</code> if the directory equals or contains the specified file.
+   * 
+   * @param directory the directory (not <code>null</code>, absolute file)
+   * @param file the file (not <code>null</code>, absolute file)
+   */
+  static boolean equalsOrContains(File directory, File file) {
+    String dirPath = directory.getPath();
+    String filePath = file.getPath();
+    if (!filePath.startsWith(dirPath)) {
+      return false;
+    }
+    int index = dirPath.length();
+    return index == filePath.length() || filePath.charAt(index) == File.separatorChar;
   }
 
   /**

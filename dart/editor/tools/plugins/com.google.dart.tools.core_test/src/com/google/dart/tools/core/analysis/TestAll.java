@@ -24,6 +24,7 @@ public class TestAll {
     suite.addTestSuite(CacheTest.class);
     //suite.addTestSuite(ApplicationContextTest.class);
     suite.addTestSuite(ContextTest.class);
+    suite.addTestSuite(DiscardTaskTest.class);
     //suite.addTestSuite(EditContextTest.class);
     suite.addTestSuite(FileChangedTaskTest.class);
     suite.addTestSuite(ScanTaskTest.class);
