@@ -13,11 +13,17 @@
  */
 package com.google.dart.tools.debug.ui.internal.view;
 
+import com.google.dart.tools.debug.core.util.IDartDebugVariable;
+
+import org.eclipse.debug.internal.ui.viewers.model.provisional.TreeModelViewer;
 import org.eclipse.debug.internal.ui.views.variables.VariablesView;
 import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 
 /**
  * This custom subclass of the debugger VariablesView allows us to customize the actions that the
@@ -59,6 +65,34 @@ public class DartVariablesView extends VariablesView {
     // Overridden to do nothing. This prevents a nasty class cast exception.
     // See https://code.google.com/p/dart/issues/detail?id=2008.
 
+  }
+
+  @Override
+  public void viewerUpdatesComplete() {
+    super.viewerUpdatesComplete();
+
+    // If the first element is an exception, select it.
+    // Because the viewer uses a lazy content provider, there is no happy, clean
+    // way of getting the contents of the viewer.
+    TreeModelViewer viewer = (TreeModelViewer) getViewer();
+
+    Tree tree = viewer.getTree();
+
+    int itemCount = tree.getItemCount();
+
+    if (itemCount > 0) {
+      TreeItem item = tree.getItem(0);
+
+      Object data = item.getData();
+
+      if (data instanceof IDartDebugVariable) {
+        IDartDebugVariable var = (IDartDebugVariable) data;
+
+        if (var.isThrownException()) {
+          viewer.setSelection(new StructuredSelection(var));
+        }
+      }
+    }
   }
 
   @Override

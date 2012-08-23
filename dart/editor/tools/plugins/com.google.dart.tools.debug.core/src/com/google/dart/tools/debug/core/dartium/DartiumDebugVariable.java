@@ -15,16 +15,16 @@ package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
+import com.google.dart.tools.debug.core.util.IDartDebugVariable;
 import com.google.dart.tools.debug.core.webkit.WebkitPropertyDescriptor;
 
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
-import org.eclipse.debug.core.model.IVariable;
 
 /**
  * The IVariable implementation of the Dartium Debug Element
  */
-public class DartiumDebugVariable extends DartiumDebugElement implements IVariable {
+public class DartiumDebugVariable extends DartiumDebugElement implements IDartDebugVariable {
   private WebkitPropertyDescriptor descriptor;
 
   private DartiumDebugVariable parent;
@@ -124,6 +124,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
     return isSpecialObject && getName().equals("this");
   }
 
+  @Override
   public boolean isThrownException() {
     return isSpecialObject && getName().equals("exception");
   }

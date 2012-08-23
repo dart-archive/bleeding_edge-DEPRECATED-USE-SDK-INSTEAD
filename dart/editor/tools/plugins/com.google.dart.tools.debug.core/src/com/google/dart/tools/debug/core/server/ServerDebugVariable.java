@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
+import com.google.dart.tools.debug.core.util.IDartDebugVariable;
 
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -29,7 +30,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * An IVariable implementation for VM debugging.
  */
-public class ServerDebugVariable extends ServerDebugElement implements IVariable {
+public class ServerDebugVariable extends ServerDebugElement implements IDartDebugVariable {
   public static interface IValueRetriever {
     public String getDisplayName();
 
@@ -153,6 +154,7 @@ public class ServerDebugVariable extends ServerDebugElement implements IVariable
     return "this".equals(getName());
   }
 
+  @Override
   public boolean isThrownException() {
     return vmVariable != null && vmVariable.getIsException();
   }
