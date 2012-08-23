@@ -818,7 +818,9 @@ public class IndexContributor extends ASTVisitor<Void> {
     try {
       return ElementFactory.getElement(element, allowGetter, allowSetter);
     } catch (DartModelException exception) {
-      DartCore.logError("Could not getElement for field element " + element.getName(), exception);
+      DartCore.logInformation(
+          "Could not getElement for field element " + element.getName(),
+          exception);
     }
     return null;
   }
@@ -844,7 +846,9 @@ public class IndexContributor extends ASTVisitor<Void> {
     try {
       return ElementFactory.getElement(element);
     } catch (DartModelException exception) {
-      DartCore.logError("Could not getElement for method element " + element.getName(), exception);
+      DartCore.logInformation(
+          "Could not getElement for method element " + element.getName(),
+          exception);
     }
     return null;
   }
@@ -879,7 +883,7 @@ public class IndexContributor extends ASTVisitor<Void> {
       try {
         return ResourceFactory.getResource(compilationUnit);
       } catch (DartModelException exception) {
-        DartCore.logError("Could not get underlying resource for compilation unit "
+        DartCore.logInformation("Could not get underlying resource for compilation unit "
             + compilationUnit.getElementName(), exception);
       }
     }
@@ -1241,7 +1245,8 @@ public class IndexContributor extends ASTVisitor<Void> {
         }
       }
     } catch (Throwable e) {
-      DartCore.logError("Could not record reference to library import " + importLibraryElement, e);
+      DartCore.logInformation("Could not record reference to library import "
+          + importLibraryElement, e);
     }
   }
 
@@ -1288,7 +1293,7 @@ public class IndexContributor extends ASTVisitor<Void> {
         Path uriPath = new Path(uriString);
         if (uriPath.isAbsolute()) {
           // If the resource isn't in the workspace, then we can't record the reference.
-          DartCore.logError("Could not record resource reference \"" + uriLiteral + "\"");
+          DartCore.logInformation("Could not record resource reference \"" + uriLiteral + "\"");
           return;
         }
         IFile libraryFile = (IFile) compilationUnit.getLibrary().getCorrespondingResource();
@@ -1302,7 +1307,7 @@ public class IndexContributor extends ASTVisitor<Void> {
         }
       } catch (Throwable e) {
         // If the resource isn't in the workspace, then we can't record the reference.
-        DartCore.logError("Could not record resource reference \"" + uriLiteral + "\"", e);
+        DartCore.logInformation("Could not record resource reference \"" + uriLiteral + "\"", e);
       }
     }
   }
