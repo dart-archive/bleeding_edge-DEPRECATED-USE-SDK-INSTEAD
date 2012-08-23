@@ -171,6 +171,11 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String PUBSPEC_FILE_NAME = "pubspec.yaml";
 
   /**
+   * The name of the build.dart special file.
+   */
+  public static final String BUILD_DART_FILE_NAME = "build.dart";
+
+  /**
    * The shared message console instance.
    */
   private static final MessageConsole CONSOLE = new MessageConsoleImpl();

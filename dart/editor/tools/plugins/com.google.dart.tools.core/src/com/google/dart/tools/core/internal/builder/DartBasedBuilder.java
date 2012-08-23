@@ -145,7 +145,7 @@ public class DartBasedBuilder {
    * @return
    */
   private IFile getBuilderFile(IProject project) {
-    IResource resource = project.findMember("build.dart");
+    IResource resource = project.findMember(DartCore.BUILD_DART_FILE_NAME);
 
     if (resource instanceof IFile) {
       return (IFile) resource;

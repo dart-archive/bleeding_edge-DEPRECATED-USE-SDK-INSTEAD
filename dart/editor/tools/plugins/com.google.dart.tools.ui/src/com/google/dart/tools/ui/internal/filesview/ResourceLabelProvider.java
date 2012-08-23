@@ -41,7 +41,6 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
 
   private static final String LIBRARY_ICON = "icons/full/dart16/dart_library.png";
 
-  private static final String BUILD_FILE_NAME = "build.dart";
   private static final String BUILD_FILE_ICON = "icons/full/dart16/build_dart.png";
 
   private final WorkbenchLabelProvider workbenchLabelProvider = new WorkbenchLabelProvider();
@@ -72,7 +71,7 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
       }
 
       if (resource instanceof IFile && resource.getParent() instanceof IProject
-          && resource.getName().equals(BUILD_FILE_NAME)) {
+          && resource.getName().equals(DartCore.BUILD_DART_FILE_NAME)) {
         return DartToolsPlugin.getImage(BUILD_FILE_ICON);
       }
 

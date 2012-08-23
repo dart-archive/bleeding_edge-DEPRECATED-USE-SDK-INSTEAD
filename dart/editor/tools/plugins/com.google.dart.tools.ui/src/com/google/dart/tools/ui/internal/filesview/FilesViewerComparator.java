@@ -14,8 +14,11 @@
 
 package com.google.dart.tools.ui.internal.filesview;
 
+import com.google.dart.tools.core.DartCore;
+
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.ViewerComparator;
 
@@ -26,9 +29,10 @@ import java.util.Comparator;
  */
 public class FilesViewerComparator extends ViewerComparator {
   private static final int DIRECTORY_SORT = 0;
-  private static final int RESOURCE_SORT = 1;
-  private static final int FILESTORE_SORT = 2;
-  private static final int DEFAULT_SORT = 3;
+  private static final int SPECIAL_RESOURCE_SORT = 1;
+  private static final int RESOURCE_SORT = 2;
+  private static final int FILESTORE_SORT = 3;
+  private static final int DEFAULT_SORT = 4;
 
   public FilesViewerComparator() {
     super(new Comparator<String>() {
@@ -46,6 +50,23 @@ public class FilesViewerComparator extends ViewerComparator {
     if (element instanceof IContainer) {
       return DIRECTORY_SORT;
     } else if (element instanceof IResource) {
+      IResource resource = (IResource) element;
+
+      if (resource.getParent() instanceof IProject) {
+        // At the top level of a project, check for pubspec.yaml and build.dart.
+        if (resource.getType() == IResource.FILE) {
+          String name = resource.getName();
+
+          // TODO(devoncarew): we're sorting pubspec.lock next to pubspec.yaml 
+          // right now, through it'd be nice if the file moved into the packages
+          // directory or was renamed to something like .publock.
+          if (name.equals(DartCore.PUBSPEC_FILE_NAME) || name.equals("pubspec.lock")
+              || name.equals(DartCore.BUILD_DART_FILE_NAME)) {
+            return SPECIAL_RESOURCE_SORT;
+          }
+        }
+      }
+
       return RESOURCE_SORT;
     } else if (element instanceof IFileStore) {
       IFileStore fileStore = (IFileStore) element;
