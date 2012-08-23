@@ -5,7 +5,7 @@
 #library("swipe");
 
 #import('dart:html');
-#import('dart:math', prefix: 'Math');
+#import('dart:math');
 
 Element target;
 
@@ -75,7 +75,7 @@ void initialize3D() {
 
   query("#target").rect.then((ElementRect r) {
     num width = r.client.width;
-    figureWidth = ((width / 2) / Math.tan(Math.PI / childCount)).toInt();
+    figureWidth = ((width / 2) / tan(PI / childCount)).toInt();
 
     target.style.transform = "translateZ(-${figureWidth}px)";
 

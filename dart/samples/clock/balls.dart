@@ -42,7 +42,7 @@ class Balls {
 
     showFps(1000.0 / (now - lastTime + 0.01));
 
-    double delta = Math.min((now - lastTime) / 1000.0, 0.1);
+    double delta = min((now - lastTime) / 1000.0, 0.1);
     lastTime = now;
 
     // incrementally move each ball, removing balls that are offscreen
@@ -68,7 +68,7 @@ class Balls {
           }
 
           // They've collided. Normalize the collision vector.
-          double d = Math.sqrt(d2);
+          double d = sqrt(d2);
 
           if (d == 0) {
             // TODO: move balls apart.
@@ -117,8 +117,14 @@ class Ball {
   static final double INIT_VELOCITY = 800.0;
   static final double RADIUS = 14.0;
 
+  static Random random;
+
   static double randomVelocity() {
-    return (new Math.Random().nextDouble() - 0.5) * INIT_VELOCITY;
+    if (random == null) {
+      random = new Random();
+    }
+
+    return (random.nextDouble() - 0.5) * INIT_VELOCITY;
   }
 
   Element root;

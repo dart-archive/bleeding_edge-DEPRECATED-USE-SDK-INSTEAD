@@ -5,7 +5,7 @@
 #library("clock");
 
 #import('dart:html');
-#import('dart:math', prefix: "Math");
+#import('dart:math');
 
 #source('balls.dart');
 #source('numbers.dart');

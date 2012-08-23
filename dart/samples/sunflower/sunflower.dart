@@ -5,11 +5,11 @@
 #library('sunflower');
 
 #import('dart:html');
-#import('dart:math', prefix: 'Math');
+#import('dart:math');
 
 final SEED_RADIUS = 2;
 final SCALE_FACTOR = 4;
-final TAU = Math.PI * 2;
+final TAU = PI * 2;
 
 final MAX_D = 300;
 final ORANGE = "orange";
@@ -20,20 +20,20 @@ int seeds = 0;
 var PHI;
 
 main() {
-  PHI = (Math.sqrt(5) + 1) / 2;
-  
+  PHI = (sqrt(5) + 1) / 2;
+
   CanvasElement canvas = query("#canvas");
   centerX = centerY = MAX_D / 2;
   var context = canvas.context2d;
-  
+
   InputElement slider = query("#slider");
   slider.on.change.add((Event e) {
-    seeds = Math.parseInt(slider.value);
+    seeds = parseInt(slider.value);
     drawFrame(context);
   }, true);
-  
-  seeds = Math.parseInt(slider.value);
-  
+
+  seeds = parseInt(slider.value);
+
   drawFrame(context);
 }
 
@@ -42,16 +42,16 @@ main() {
  */
 void drawFrame(CanvasRenderingContext2D context) {
   context.clearRect(0, 0, MAX_D, MAX_D);
-  
+
   for (var i = 0; i < seeds; i++) {
     var theta = i * TAU / PHI;
-    var r = Math.sqrt(i) * SCALE_FACTOR;
-    var x = centerX + r * Math.cos(theta);
-    var y = centerY - r * Math.sin(theta);
-    
+    var r = sqrt(i) * SCALE_FACTOR;
+    var x = centerX + r * cos(theta);
+    var y = centerY - r * sin(theta);
+
     drawSeed(context, x, y);
   }
-  
+
   displaySeedCount(seeds);
 }
 
@@ -70,5 +70,5 @@ void drawSeed(CanvasRenderingContext2D context, num x, num y) {
 }
 
 void displaySeedCount(num seedCount) {
-  query("#notes").text = "${seedCount} seeds";  
+  query("#notes").text = "${seedCount} seeds";
 }
