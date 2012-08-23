@@ -122,15 +122,9 @@ public class ContextTest extends AbstractDartCoreTest {
     assertEquals("Money", libraryUnit.getName());
     assertTrue(listener.getParsedCount() > 10);
     listener.assertResolved(libraryFile);
-
-    // TODO (danrubel): figure out why DartC is complaining about "no such type Expando"
-    // in /lib/core/core_runtime.dart, then restore call to assertNoErrors();
-    listener.assertErrors("no such type \"Expando\"");
-//    listener.assertNoErrors();
-
+    listener.assertNoErrors();
     listener.assertNoDuplicates();
     listener.assertNoDiscards();
-
     listener.reset();
     libraryUnit = context.resolve(libraryFile, FIVE_MINUTES_MS);
     assertEquals("Money", libraryUnit.getName());
