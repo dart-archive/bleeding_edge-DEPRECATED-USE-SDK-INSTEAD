@@ -114,15 +114,25 @@ class Listener implements AnalysisListener, IdleListener {
       }
       writer = new PrintStringWriter();
       writer.print("Expected " + expectedErrorCount + " errors, but found " + errors.size());
-      for (AnalysisError error : errors) {
-        writer.println();
-        DartCompilationError compError = error.getCompilationError();
-        writer.println(compError != null ? compError.getMessage() : "unknown error");
-        writer.print("  in ");
-        writer.println(error.getDartFile());
-        writer.print("  library ");
-        writer.print(error.getLibraryFile());
+      printErrors(writer);
+    }
+    fail(writer.toString());
+  }
+
+  void assertErrors(String... errorMessages) {
+    PrintStringWriter writer;
+    synchronized (lock) {
+      if (hasErrors(errorMessages)) {
+        return;
       }
+      writer = new PrintStringWriter();
+      writer.println("Expected errors:");
+      for (String errMsg : errorMessages) {
+        writer.print("  ");
+        writer.println(errMsg);
+      }
+      writer.print("Actual errors:");
+      printErrors(writer);
     }
     fail(writer.toString());
   }
@@ -192,6 +202,30 @@ class Listener implements AnalysisListener, IdleListener {
       }
       return count;
     }
+  }
+
+  boolean hasErrors(String... errorMessages) {
+    if (errorMessages.length != errors.size()) {
+      return false;
+    }
+    for (AnalysisError error : errors) {
+      DartCompilationError compError = error.getCompilationError();
+      if (compError == null) {
+        continue;
+      }
+      String actual = compError.getMessage();
+      boolean found = false;
+      for (String expected : errorMessages) {
+        if (actual.contains(expected)) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        return false;
+      }
+    }
+    return true;
   }
 
   boolean isIdle() {
@@ -399,5 +433,18 @@ class Listener implements AnalysisListener, IdleListener {
       psw.println("    " + path);
     }
     fail(psw.toString().trim());
+  }
+
+  private void printErrors(PrintStringWriter writer) {
+    for (AnalysisError error : errors) {
+      writer.println();
+      DartCompilationError compError = error.getCompilationError();
+      writer.print("  ");
+      writer.println(compError != null ? compError.getMessage() : "unknown error");
+      writer.print("    in ");
+      writer.println(error.getDartFile());
+      writer.print("    library ");
+      writer.print(error.getLibraryFile());
+    }
   }
 }
