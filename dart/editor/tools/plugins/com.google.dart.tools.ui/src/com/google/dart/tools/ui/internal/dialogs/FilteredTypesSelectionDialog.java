@@ -89,11 +89,35 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Shows a list of Java types to the user with a text entry field for a string pattern used to
+ * Shows a list of Dart types to the user with a text entry field for a string pattern used to
  * filter the list of types.
  */
 public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog implements
     ITypeSelectionComponent {
+
+  //TODO(pquitslund): display search-in-progress status
+  //TODO(pquitslund): improve/make incremental refresh
+
+  /**
+   * The <code>ShowContainerForDuplicatesAction</code> provides means to show/hide container
+   * information for duplicate elements.
+   */
+  private class ShowContainerForDuplicatesAction extends Action {
+
+    /**
+     * Creates a new instance of the class
+     */
+    public ShowContainerForDuplicatesAction() {
+      super(
+          DartUIMessages.FilteredTypeSelectionDialog_showContainerForDuplicatesAction,
+          IAction.AS_CHECK_BOX);
+    }
+
+    @Override
+    public void run() {
+      fTypeInfoLabelProvider.setContainerInfo(isChecked());
+    }
+  }
 
 // TODO: enable history
 //  /**
@@ -234,47 +258,6 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 //      } catch (DartModelException e) {
 //        throw new InvocationTargetException(e);
 //      }
-//    }
-//  }
-
-  /**
-   * The <code>ShowContainerForDuplicatesAction</code> provides means to show/hide container
-   * information for duplicate elements.
-   */
-  private class ShowContainerForDuplicatesAction extends Action {
-
-    /**
-     * Creates a new instance of the class
-     */
-    public ShowContainerForDuplicatesAction() {
-      super(
-          DartUIMessages.FilteredTypeSelectionDialog_showContainerForDuplicatesAction,
-          IAction.AS_CHECK_BOX);
-    }
-
-    @Override
-    public void run() {
-      fTypeInfoLabelProvider.setContainerInfo(isChecked());
-    }
-  }
-
-//TODO: enable or remove type filter preferences
-//  private class TypeFiltersPreferencesAction extends Action {
-//
-//    public TypeFiltersPreferencesAction() {
-//      super(
-//          DartUIMessages.FilteredTypesSelectionDialog_TypeFiltersPreferencesAction_label);
-//    }
-//
-//    /*
-//     * (non-Javadoc)
-//     * @see org.eclipse.jface.action.Action#run()
-//     */
-//    public void run() {
-//      String typeFilterID = TypeFilterPreferencePage.TYPE_FILTER_PREF_PAGE_ID;
-//      PreferencesUtil.createPreferenceDialogOn(getShell(), typeFilterID,
-//          new String[]{typeFilterID}, null).open();
-//      triggerSearch();
 //    }
 //  }
 
@@ -508,6 +491,26 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 //      }
 //    }
   }
+
+//TODO: enable or remove type filter preferences
+//  private class TypeFiltersPreferencesAction extends Action {
+//
+//    public TypeFiltersPreferencesAction() {
+//      super(
+//          DartUIMessages.FilteredTypesSelectionDialog_TypeFiltersPreferencesAction_label);
+//    }
+//
+//    /*
+//     * (non-Javadoc)
+//     * @see org.eclipse.jface.action.Action#run()
+//     */
+//    public void run() {
+//      String typeFilterID = TypeFilterPreferencePage.TYPE_FILTER_PREF_PAGE_ID;
+//      PreferencesUtil.createPreferenceDialogOn(getShell(), typeFilterID,
+//          new String[]{typeFilterID}, null).open();
+//      triggerSearch();
+//    }
+//  }
 
   /**
    * A <code>LabelProvider</code> for the label showing type details.
@@ -876,7 +879,8 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
       if (fMyTypeFilterVersion != typeItemsFilter.getMyTypeFilterVersion()) {
         return false;
       }
-      return getPattern().indexOf('.', filter.getPattern().length()) == -1;
+      //TODO(pquitslund): this forces a full refresh which works-around filter application refresh issues
+      return false;
     }
 
     public boolean matchesCachedResult(CompilationUnitElement element) {
@@ -1026,7 +1030,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
    * <code>TypeNameMatch</code> ).
    */
   @SuppressWarnings("unused")
-  private static class TypeSearchRequestor implements SearchListener {
+  private class TypeSearchRequestor implements SearchListener {
     private volatile boolean fStop;
 
     private final AbstractContentProvider fContentProvider;
@@ -1039,21 +1043,6 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
       fContentProvider = contentProvider;
       fTypeItemsFilter = typeItemsFilter;
     }
-
-//    /*
-//     * (non-Javadoc)
-//     * @see
-//     * org.eclipse.wst.jsdt.core.search.TypeNameMatchRequestor#acceptTypeNameMatch
-//     * (org.eclipse.wst.jsdt.core.search.TypeNameMatch)
-//     */
-//    public void acceptTypeNameMatch(TypeNameMatch match) {
-//      if (fStop)
-//        return;
-//      if (TypeFilter.isFiltered(match))
-//        return;
-//      if (fTypeItemsFilter.matchesFilterExtension(match))
-//        fContentProvider.add(match, fTypeItemsFilter);
-//    }
 
     public void cancel() {
       fStop = true;
@@ -1068,6 +1057,8 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
       if (fTypeItemsFilter.matchesFilterExtension(element)) {
         fContentProvider.add(element, fTypeItemsFilter);
       }
+      //TODO(pquitslund): this shouldn't be necessary (possibly remove once history is working)
+      scheduleRefresh();
     }
 
     @Override
@@ -1117,26 +1108,26 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 
   private int fTypeFilterVersion = 0;
 
-  /**
-   * Creates new FilteredTypesSelectionDialog instance
-   * 
-   * @param parent shell to parent the dialog on
-   * @param multi <code>true</code> if multiple selection is allowed
-   * @param context context used to execute long-running operations associated with this dialog
-   * @param scope scope used when searching for types
-   * @param elementKinds flags defining nature of searched elements; the only valid values are:
-   *          <code>IJavaScriptSearchConstants.TYPE</code>
-   *          <code>IJavaScriptSearchConstants.ANNOTATION_TYPE</code>
-   *          <code>IJavaScriptSearchConstants.INTERFACE</code>
-   *          <code>IJavaScriptSearchConstants.ENUM</code>
-   *          <code>IJavaScriptSearchConstants.CLASS_AND_INTERFACE</code>
-   *          <code>IJavaScriptSearchConstants.CLASS_AND_ENUM</code>. Please note that the bitwise
-   *          OR combination of the elementary constants is not supported.
-   */
-  public FilteredTypesSelectionDialog(Shell parent, boolean multi, IRunnableContext context,
-      SearchScope scope, int elementKinds) {
-    this(parent, multi, context, scope, elementKinds, null);
-  }
+//  /**
+//   * Creates new FilteredTypesSelectionDialog instance
+//   * 
+//   * @param parent shell to parent the dialog on
+//   * @param multi <code>true</code> if multiple selection is allowed
+//   * @param context context used to execute long-running operations associated with this dialog
+//   * @param scope scope used when searching for types
+//   * @param elementKinds flags defining nature of searched elements; the only valid values are:
+//   *          <code>IJavaScriptSearchConstants.TYPE</code>
+//   *          <code>IJavaScriptSearchConstants.ANNOTATION_TYPE</code>
+//   *          <code>IJavaScriptSearchConstants.INTERFACE</code>
+//   *          <code>IJavaScriptSearchConstants.ENUM</code>
+//   *          <code>IJavaScriptSearchConstants.CLASS_AND_INTERFACE</code>
+//   *          <code>IJavaScriptSearchConstants.CLASS_AND_ENUM</code>. Please note that the bitwise
+//   *          OR combination of the elementary constants is not supported.
+//   */
+//  public FilteredTypesSelectionDialog(Shell parent, boolean multi, IRunnableContext context,
+//      SearchScope scope, int elementKinds) {
+//    this(parent, multi, context, scope, elementKinds, null);
+//  }
 
   /**
    * Creates new FilteredTypesSelectionDialog instance.
@@ -1146,14 +1137,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
    * @param context context used to execute long-running operations associated with this dialog
    * @param scope scope used when searching for types. If the scope is <code>null</code>, then
    *          workspace is scope is used as default, and the user can choose a working set as scope.
-   * @param elementKinds flags defining nature of searched elements; the only valid values are:
-   *          <code>IJavaScriptSearchConstants.TYPE</code>
-   *          <code>IJavaScriptSearchConstants.ANNOTATION_TYPE</code>
-   *          <code>IJavaScriptSearchConstants.INTERFACE</code>
-   *          <code>IJavaScriptSearchConstants.ENUM</code>
-   *          <code>IJavaScriptSearchConstants.CLASS_AND_INTERFACE</code>
-   *          <code>IJavaScriptSearchConstants.CLASS_AND_ENUM</code>. Please note that the bitwise
-   *          OR combination of the elementary constants is not supported.
+   * @param elementKinds flags defining nature of searched elements (<em>currently ignored</em>).
    * @param extension an extension of the standard type selection dialog; See
    *          {@link TypeSelectionExtension}
    */
@@ -1192,9 +1176,6 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
     fTypeItemsComparator = new TypeItemsComparator();
   }
 
-  /*
-   * @see org.eclipse.ui.dialogs.FilteredItemsSelectionDialog#create()
-   */
   @Override
   public void create() {
     super.create();
@@ -1229,10 +1210,6 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
     return super.open();
   }
 
-  /*
-   * @see org.eclipse.ui.dialogs.FilteredItemsSelectionDialog#reloadCache(boolean,
-   * org.eclipse.core.runtime.IProgressMonitor)
-   */
   @Override
   public void reloadCache(boolean checkDuplicates, IProgressMonitor monitor) {
     IProgressMonitor remainingMonitor = monitor;
@@ -1277,9 +1254,6 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
     fValidator = validator;
   }
 
-  /*
-   * @see org.eclipse.wst.jsdt.ui.dialogs.ITypeSelectionComponent#triggerSearch()
-   */
   @Override
   public void triggerSearch() {
     fTypeFilterVersion++;
@@ -1325,12 +1299,6 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
     return new TypeItemsFilter(fSearchScope, fElementKinds, fFilterExtension);
   }
 
-  /**
-   * @see org.eclipse.ui.dialogs.FilteredItemsSelectionDialog#fillContentProvider (org.
-   *      eclipse.ui.dialogs.FilteredItemsSelectionDialog.AbstractContentProvider,
-   *      org.eclipse.ui.dialogs.FilteredItemsSelectionDialog.ItemsFilter,
-   *      org.eclipse.core.runtime.IProgressMonitor)
-   */
   @Override
   protected void fillContentProvider(final AbstractContentProvider provider,
       ItemsFilter itemsFilter, IProgressMonitor progressMonitor) throws CoreException {
@@ -1388,7 +1356,6 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
           progressMonitor);
     } catch (SearchException e) {
       DartToolsPlugin.log(e);
-      //TODO: do we need to update the UI as well?  Or schedule another search?
     } finally {
       typeSearchFilter.setMatchEverythingMode(false);
     }
