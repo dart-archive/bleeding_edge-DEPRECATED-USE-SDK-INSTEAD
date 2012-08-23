@@ -470,7 +470,8 @@ public class ContentAssistProcessor implements IContentAssistProcessor {
     // default mix - enable all included computers
     List included = getDefaultCategoriesUnchecked();
 
-    if ((DartPartitions.DART_DOC.equals(fPartition) || IDocument.DEFAULT_CONTENT_TYPE.equals(fPartition))
+    if ((DartPartitions.DART_DOC.equals(fPartition)
+        || DartPartitions.DART_SINGLE_LINE_DOC.equals(fPartition) || IDocument.DEFAULT_CONTENT_TYPE.equals(fPartition))
         && included.isEmpty() && !fCategories.isEmpty()) {
       if (informUserAboutEmptyDefaultCategory()) {
         // preferences were restored - recompute the default categories

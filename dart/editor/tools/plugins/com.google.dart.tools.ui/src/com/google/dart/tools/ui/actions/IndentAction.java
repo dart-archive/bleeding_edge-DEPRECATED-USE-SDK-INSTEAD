@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -281,8 +281,9 @@ public class IndentAction extends TextEditorAction {
       } else if (DartPartitions.DART_DOC.equals(type)
           || DartPartitions.DART_MULTI_LINE_COMMENT.equals(type)) {
         indent = computeJavadocIndent(document, line, scanner, startingPartition);
-      } else if (!isTabAction && isCommentStart
-          && DartPartitions.DART_SINGLE_LINE_COMMENT.equals(startingType)) {
+      } else if (!isTabAction
+          && isCommentStart
+          && (DartPartitions.DART_SINGLE_LINE_COMMENT.equals(startingType) || DartPartitions.DART_SINGLE_LINE_DOC.equals(startingType))) {
         // line comment starting at position 0
         if (multiLine) {
           //Do what the formatter does

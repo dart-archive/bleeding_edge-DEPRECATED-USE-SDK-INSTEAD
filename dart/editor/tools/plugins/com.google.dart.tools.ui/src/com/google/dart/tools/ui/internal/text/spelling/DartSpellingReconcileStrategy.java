@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -54,7 +54,8 @@ public class DartSpellingReconcileStrategy extends SpellingReconcileStrategy {
             false).getType();
         if (DartPartitions.DART_DOC.equals(type)
             || DartPartitions.DART_MULTI_LINE_COMMENT.equals(type)
-            || DartPartitions.DART_SINGLE_LINE_COMMENT.equals(type)) {
+            || DartPartitions.DART_SINGLE_LINE_COMMENT.equals(type)
+            || DartPartitions.DART_SINGLE_LINE_DOC.equals(type)) {
           fParentCollector.accept(problem);
         }
       } catch (BadLocationException e) {

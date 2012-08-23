@@ -103,11 +103,12 @@ public class DartPartitionScanner extends RuleBasedPartitionScanner implements D
     IToken javaDoc = new Token(DART_DOC);
     IToken multiLineComment = new Token(DART_MULTI_LINE_COMMENT);
     IToken singleLineComment = new Token(DART_SINGLE_LINE_COMMENT);
+    IToken singleLineDoc = new Token(DART_SINGLE_LINE_DOC);
 
     List<IPredicateRule> rules = new ArrayList<IPredicateRule>();
 
-    // Add rule for single line comments.
-    rules.add(new EndOfLineRule("///", javaDoc)); //$NON-NLS-1$
+    // Add rules for single line comments and single-line doc comments.
+    rules.add(new EndOfLineRule("///", singleLineDoc)); //$NON-NLS-1$
     rules.add(new EndOfLineRule("//", singleLineComment)); //$NON-NLS-1$
 
     // Add rule for strings.
@@ -120,7 +121,7 @@ public class DartPartitionScanner extends RuleBasedPartitionScanner implements D
     EmptyCommentRule wordRule = new EmptyCommentRule(multiLineComment);
     rules.add(wordRule);
 
-    // Add rules for multi-line comments and javadoc.
+    // Add rules for multi-line comments and Dart doc.
     rules.add(new MultiLineRule("/**", "*/", javaDoc)); //$NON-NLS-1$ //$NON-NLS-2$
     rules.add(new MultiLineRule("/*", "*/", multiLineComment)); //$NON-NLS-1$ //$NON-NLS-2$
 

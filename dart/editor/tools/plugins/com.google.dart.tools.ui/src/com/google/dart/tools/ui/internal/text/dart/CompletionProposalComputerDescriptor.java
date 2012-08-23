@@ -91,6 +91,7 @@ final class CompletionProposalComputerDescriptor {
     partitions.add(DartPartitions.DART_DOC);
     partitions.add(DartPartitions.DART_MULTI_LINE_COMMENT);
     partitions.add(DartPartitions.DART_SINGLE_LINE_COMMENT);
+    partitions.add(DartPartitions.DART_SINGLE_LINE_DOC);
     partitions.add(DartPartitions.DART_STRING);
     partitions.add(DartPartitions.DART_MULTI_LINE_STRING);
 

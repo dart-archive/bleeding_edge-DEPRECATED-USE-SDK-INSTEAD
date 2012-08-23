@@ -801,6 +801,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         }
       } else {
         if (index < length - 1 && line.charAt(index) == '/' && line.charAt(index + 1) == '/') {
+          if (type.equals(DartPartitions.DART_SINGLE_LINE_DOC)
+              && (index < length - 2 && line.charAt(index + 2) == '/')) {
+            index++;
+          }
           index++;
           do {
             ++index;

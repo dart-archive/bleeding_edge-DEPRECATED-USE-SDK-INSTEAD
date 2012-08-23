@@ -206,7 +206,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
 
   private static IToken CODE_TOKEN = new Token(null);
   private static IToken SINGLE_LINE_COMMENT_TOKEN = new Token(DART_SINGLE_LINE_COMMENT);
-  private static IToken SINGLE_LINE_DOC_COMMENT_TOKEN = new Token(DART_DOC); //TODO new partition
+  private static IToken SINGLE_LINE_DOC_COMMENT_TOKEN = new Token(DART_SINGLE_LINE_DOC);
   private static IToken MULTI_LINE_COMMENT_TOKEN = new Token(DART_MULTI_LINE_COMMENT);
   private static IToken DOC_COMMENT_TOKEN = new Token(DART_DOC);
   private static IToken STRING_TOKEN = new Token(DART_STRING);

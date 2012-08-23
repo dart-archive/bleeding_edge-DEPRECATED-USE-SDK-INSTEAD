@@ -115,6 +115,9 @@ public class CommentFormattingStrategy extends ContextBasedFormattingStrategy {
     if (DartPartitions.DART_DOC.equals(type)) {
       return CodeFormatter.K_JAVA_DOC;
     }
+    if (DartPartitions.DART_SINGLE_LINE_DOC.equals(type)) {
+      return CodeFormatter.K_SINGLE_LINE_DOC;
+    }
     return CodeFormatter.K_UNKNOWN;
   }
 

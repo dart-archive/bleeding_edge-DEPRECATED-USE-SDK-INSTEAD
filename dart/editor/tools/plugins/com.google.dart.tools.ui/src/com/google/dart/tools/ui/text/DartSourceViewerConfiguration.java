@@ -209,9 +209,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
         || fMultilineStringScanner.affectsBehavior(event);
   }
 
-  /*
-   * @see SourceViewerConfiguration#getAnnotationHover(ISourceViewer)
-   */
   @Override
   public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
     return new HTMLAnnotationHover() {
@@ -222,10 +219,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     };
   }
 
-  /*
-   * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getAutoEditStrategies
-   * (org.eclipse.jface.text.source.ISourceViewer, java.lang.String)
-   */
   @Override
   public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
     DartX.todo("indent");
@@ -253,21 +246,15 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     }
   }
 
-  /*
-   * @see SourceViewerConfiguration#getConfiguredContentTypes(ISourceViewer)
-   */
   @Override
   public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
     return new String[] {
         IDocument.DEFAULT_CONTENT_TYPE, DartPartitions.DART_DOC,
         DartPartitions.DART_MULTI_LINE_COMMENT, DartPartitions.DART_SINGLE_LINE_COMMENT,
-        DartPartitions.DART_STRING, DartPartitions.DART_MULTI_LINE_STRING};
+        DartPartitions.DART_SINGLE_LINE_DOC, DartPartitions.DART_STRING,
+        DartPartitions.DART_MULTI_LINE_STRING};
   }
 
-  /*
-   * @see org.eclipse.jface.text.source.SourceViewerConfiguration# getConfiguredDocumentPartitioning
-   * (org.eclipse.jface.text.source.ISourceViewer)
-   */
   @Override
   public String getConfiguredDocumentPartitioning(ISourceViewer sourceViewer) {
     if (fDocumentPartitioning != null) {
@@ -276,9 +263,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     return super.getConfiguredDocumentPartitioning(sourceViewer);
   }
 
-  /*
-   * @see SourceViewerConfiguration#getConfiguredTextHoverStateMasks(ISourceViewer, String)
-   */
   @Override
   public int[] getConfiguredTextHoverStateMasks(ISourceViewer sourceViewer, String contentType) {
     return super.getConfiguredTextHoverStateMasks(sourceViewer, contentType);
@@ -308,9 +292,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     // return shortenedStateMasks;
   }
 
-  /*
-   * @see SourceViewerConfiguration#getContentAssistant(ISourceViewer)
-   */
   @Override
   public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
 
@@ -334,6 +315,8 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
       assistant.setContentAssistProcessor(
           singleLineProcessor,
           DartPartitions.DART_SINGLE_LINE_COMMENT);
+      // TODO temporary, see docProcessor below
+      assistant.setContentAssistProcessor(singleLineProcessor, DartPartitions.DART_SINGLE_LINE_DOC);
 
       ContentAssistProcessor stringProcessor = new DartCompletionProcessor(
           getEditor(),
@@ -349,12 +332,13 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
       assistant.setContentAssistProcessor(
           multiLineProcessor,
           DartPartitions.DART_MULTI_LINE_COMMENT);
+      // TODO temporary, see docProcessor below
+      assistant.setContentAssistProcessor(multiLineProcessor, DartPartitions.DART_DOC);
 
-      // ContentAssistProcessor javadocProcessor = new
-      // JavadocCompletionProcessor(
-      // getEditor(), assistant);
-      // assistant.setContentAssistProcessor(javadocProcessor,
-      // DartPartitions.DART_DOC);
+      // TODO Code completion in doc comments
+//      ContentAssistProcessor docProcessor = new DartDocCompletionProcessor(getEditor(), assistant);
+//      assistant.setContentAssistProcessor(docProcessor, DartPartitions.DART_DOC);
+//      assistant.setContentAssistProcessor(docProcessor, DartPartitions.DART_SINGLE_LINE_DOC);
 
       ContentAssistPreference.configure(assistant, fPreferenceStore);
       // Turn on auto-completion so code completion runs when '.' is typed
@@ -369,9 +353,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     return null;
   }
 
-  /*
-   * @see SourceViewerConfiguration#getContentFormatter(ISourceViewer)
-   */
   @Override
   public IContentFormatter getContentFormatter(ISourceViewer sourceViewer) {
     final MultiPassContentFormatter formatter = new MultiPassContentFormatter(
@@ -383,6 +364,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     formatter.setSlaveStrategy(
         new CommentFormattingStrategy(),
         DartPartitions.DART_SINGLE_LINE_COMMENT);
+    formatter.setSlaveStrategy(new CommentFormattingStrategy(), DartPartitions.DART_SINGLE_LINE_DOC);
     formatter.setSlaveStrategy(
         new CommentFormattingStrategy(),
         DartPartitions.DART_MULTI_LINE_COMMENT);
@@ -390,21 +372,16 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     return formatter;
   }
 
-  /*
-   * @see SourceViewerConfiguration#getDefaultPrefixes(ISourceViewer, String)
-   */
   @Override
   public String[] getDefaultPrefixes(ISourceViewer sourceViewer, String contentType) {
     return new String[] {"//", ""}; //$NON-NLS-1$ //$NON-NLS-2$
   }
 
-  /*
-   * @see SourceViewerConfiguration#getDoubleClickStrategy(ISourceViewer, String)
-   */
   @Override
   public ITextDoubleClickStrategy getDoubleClickStrategy(ISourceViewer sourceViewer,
       String contentType) {
-    if (DartPartitions.DART_DOC.equals(contentType)) {
+    if (DartPartitions.DART_DOC.equals(contentType)
+        || DartPartitions.DART_SINGLE_LINE_DOC.equals(contentType)) {
       return new DartDocDoubleClickStrategy();
     }
     if (DartPartitions.DART_MULTI_LINE_COMMENT.equals(contentType)
@@ -460,9 +437,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     // return presenter;
   }
 
-  /*
-   * @see SourceViewerConfiguration#getIndentPrefixes(ISourceViewer, String)
-   */
   @Override
   public String[] getIndentPrefixes(ISourceViewer sourceViewer, String contentType) {
     return super.getIndentPrefixes(sourceViewer, contentType);
@@ -494,9 +468,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     // return getIndentPrefixesForSpaces(tabWidth);
   }
 
-  /*
-   * @see SourceViewerConfiguration#getInformationControlCreator(ISourceViewer)
-   */
   @Override
   public IInformationControlCreator getInformationControlCreator(ISourceViewer sourceViewer) {
     return new IInformationControlCreator() {
@@ -508,9 +479,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     };
   }
 
-  /*
-   * @see SourceViewerConfiguration#getInformationPresenter(ISourceViewer)
-   */
   @Override
   public IInformationPresenter getInformationPresenter(ISourceViewer sourceViewer) {
     return super.getInformationPresenter(sourceViewer);
@@ -556,6 +524,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     presenter.setInformationProvider(provider, DartPartitions.DART_DOC);
     presenter.setInformationProvider(provider, DartPartitions.DART_MULTI_LINE_COMMENT);
     presenter.setInformationProvider(provider, DartPartitions.DART_SINGLE_LINE_COMMENT);
+    presenter.setInformationProvider(provider, DartPartitions.DART_SINGLE_LINE_DOC);
     presenter.setInformationProvider(provider, DartPartitions.DART_STRING);
     presenter.setInformationProvider(provider, DartPartitions.DART_MULTI_LINE_STRING);
     presenter.setInformationProvider(provider, DartPartitions.JAVA_CHARACTER);
@@ -563,9 +532,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     return presenter;
   }
 
-  /*
-   * @see SourceViewerConfiguration#getOverviewRulerAnnotationHover(ISourceViewer)
-   */
   @Override
   public IAnnotationHover getOverviewRulerAnnotationHover(ISourceViewer sourceViewer) {
     return new HTMLAnnotationHover() {
@@ -576,9 +542,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     };
   }
 
-  /*
-   * @see SourceViewerConfiguration#getPresentationReconciler(ISourceViewer)
-   */
   @Override
   public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 
@@ -592,6 +555,8 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     dr = new DefaultDamagerRepairer(getJavaDocScanner());
     reconciler.setDamager(new DartIndiscriminateDamager(), DartPartitions.DART_DOC);
     reconciler.setRepairer(dr, DartPartitions.DART_DOC);
+    reconciler.setDamager(new DartIndiscriminateDamager(), DartPartitions.DART_SINGLE_LINE_DOC);
+    reconciler.setRepairer(dr, DartPartitions.DART_SINGLE_LINE_DOC);
 
     dr = new DefaultDamagerRepairer(getMultilineCommentScanner());
     reconciler.setDamager(dr, DartPartitions.DART_MULTI_LINE_COMMENT);
@@ -609,10 +574,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     reconciler.setDamager(dr, DartPartitions.DART_MULTI_LINE_STRING);
     reconciler.setRepairer(dr, DartPartitions.DART_MULTI_LINE_STRING);
 
-    // dr = new DefaultDamagerRepairer(getStringScanner());
-    // reconciler.setDamager(dr, DartPartitions.JAVA_CHARACTER);
-    // reconciler.setRepairer(dr, DartPartitions.JAVA_CHARACTER);
-
     return reconciler;
   }
 
@@ -627,9 +588,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     return null;
   }
 
-  /*
-   * @see SourceViewerConfiguration#getReconciler(ISourceViewer)
-   */
   @Override
   public IReconciler getReconciler(ISourceViewer sourceViewer) {
 
@@ -652,26 +610,17 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     return null;
   }
 
-  /*
-   * @see SourceViewerConfiguration#getTabWidth(ISourceViewer)
-   */
   @Override
   public int getTabWidth(ISourceViewer sourceViewer) {
     return TAB_WIDTH_IN_SPACES;
     // return CodeFormatterUtil.getTabWidth(getProject());
   }
 
-  /*
-   * @see SourceViewerConfiguration#getTextHover(ISourceViewer, String)
-   */
   @Override
   public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
     return getTextHover(sourceViewer, contentType, ITextViewerExtension2.DEFAULT_HOVER_STATE_MASK);
   }
 
-  /*
-   * @see SourceViewerConfiguration#getTextHover(ISourceViewer, String, int)
-   */
   @Override
   public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType, int stateMask) {
     return new DartTextHover(fTextEditor, sourceViewer, this);

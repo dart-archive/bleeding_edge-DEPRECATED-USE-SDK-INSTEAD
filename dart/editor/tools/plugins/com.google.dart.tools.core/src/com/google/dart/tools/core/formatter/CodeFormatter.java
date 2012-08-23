@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -94,6 +94,11 @@ public abstract class CodeFormatter {
    * Kind used to format a Javadoc comment
    */
   public static final int K_JAVA_DOC = 0x40;
+
+  /**
+   * Kind used to format a single-line Dart doc comment
+   */
+  public static final int K_SINGLE_LINE_DOC = 0x80;
 
   /**
    * Flag used to include the comments during the formatting of the code snippet.

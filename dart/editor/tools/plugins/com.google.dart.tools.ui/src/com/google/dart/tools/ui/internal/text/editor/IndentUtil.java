@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -441,8 +441,10 @@ public final class IndentUtil {
       if (type.equals(DartPartitions.DART_DOC)
           || type.equals(DartPartitions.DART_MULTI_LINE_COMMENT)) {
         indent = computeJavadocIndent(document, line, scanner, startingPartition);
-      } else if (!commentLines[lineIndex] && startingPartition.getOffset() == offset
-          && startingPartition.getType().equals(DartPartitions.DART_SINGLE_LINE_COMMENT)) {
+      } else if (!commentLines[lineIndex]
+          && startingPartition.getOffset() == offset
+          && (startingPartition.getType().equals(DartPartitions.DART_SINGLE_LINE_COMMENT) || startingPartition.getType().equals(
+              DartPartitions.DART_SINGLE_LINE_DOC))) {
         return false;
       }
     }
@@ -478,7 +480,7 @@ public final class IndentUtil {
           end,
           false);
       if (partition.getOffset() == end
-          && DartPartitions.DART_SINGLE_LINE_COMMENT.equals(partition.getType())) {
+          && (DartPartitions.DART_SINGLE_LINE_COMMENT.equals(partition.getType()) || DartPartitions.DART_SINGLE_LINE_DOC.equals(partition.getType()))) {
         commentLines[lineIndex] = true;
       }
     }

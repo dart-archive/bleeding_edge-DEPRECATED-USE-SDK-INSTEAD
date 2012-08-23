@@ -136,7 +136,8 @@ public final class TemplateCompletionProposalComputer implements IDartCompletion
           DartPartitions.DART_PARTITIONING,
           context.getInvocationOffset(),
           true);
-      if (partition.equals(DartPartitions.DART_DOC)) {
+      if (partition.equals(DartPartitions.DART_DOC)
+          || partition.equals(DartPartitions.DART_SINGLE_LINE_DOC)) {
         engine = fJavadocTemplateEngine;
       } else {
         engine = fJavaTemplateEngine;

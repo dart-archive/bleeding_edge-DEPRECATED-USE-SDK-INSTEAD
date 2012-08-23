@@ -430,8 +430,9 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
   private static void installDartStuff(Document document) {
     String[] types = new String[] {
         DartPartitions.DART_DOC, DartPartitions.DART_MULTI_LINE_COMMENT,
-        DartPartitions.DART_SINGLE_LINE_COMMENT, DartPartitions.DART_STRING,
-        DartPartitions.DART_MULTI_LINE_STRING, IDocument.DEFAULT_CONTENT_TYPE};
+        DartPartitions.DART_SINGLE_LINE_COMMENT, DartPartitions.DART_SINGLE_LINE_DOC,
+        DartPartitions.DART_STRING, DartPartitions.DART_MULTI_LINE_STRING,
+        IDocument.DEFAULT_CONTENT_TYPE};
     FastPartitioner partitioner = new FastPartitioner(new FastDartPartitionScanner(), types);
     partitioner.connect(document);
     document.setDocumentPartitioner(DartPartitions.DART_PARTITIONING, partitioner);
