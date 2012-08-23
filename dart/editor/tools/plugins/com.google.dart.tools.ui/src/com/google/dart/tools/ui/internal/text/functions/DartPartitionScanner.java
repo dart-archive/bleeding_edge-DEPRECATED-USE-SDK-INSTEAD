@@ -98,6 +98,7 @@ public class DartPartitionScanner extends RuleBasedPartitionScanner implements D
     super();
 
     IToken string = new Token(DART_STRING);
+    @SuppressWarnings("deprecation")
     IToken character = new Token(JAVA_CHARACTER);
     IToken javaDoc = new Token(DART_DOC);
     IToken multiLineComment = new Token(DART_MULTI_LINE_COMMENT);
@@ -106,6 +107,7 @@ public class DartPartitionScanner extends RuleBasedPartitionScanner implements D
     List<IPredicateRule> rules = new ArrayList<IPredicateRule>();
 
     // Add rule for single line comments.
+    rules.add(new EndOfLineRule("///", javaDoc)); //$NON-NLS-1$
     rules.add(new EndOfLineRule("//", singleLineComment)); //$NON-NLS-1$
 
     // Add rule for strings.

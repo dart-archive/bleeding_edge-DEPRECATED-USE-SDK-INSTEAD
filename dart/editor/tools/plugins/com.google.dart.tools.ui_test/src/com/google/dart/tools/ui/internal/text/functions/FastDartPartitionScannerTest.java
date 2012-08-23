@@ -1,5 +1,5 @@
 /*
- * Copyright 2011, the Dart project authors.
+ * Copyright 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -124,6 +124,28 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
         "\"xxx ", DART_STRING, //
         "${yyy ", DEFAULT_TYPE, //
         "// comment\n", DART_SINGLE_LINE_COMMENT, //
+        " + zzz}", DEFAULT_TYPE, //
+        " xxx\"", DART_STRING, //
+        ";\n}\n", DEFAULT_TYPE //
+    );
+  }
+
+  public void test_FastDartPartitionScanner_endOfLineDocComment() {
+    // class X { /// comment } 
+    assertPartitions( //
+        "class X {\n", DEFAULT_TYPE, //
+        "/// comment\n", DART_DOC, //
+        "}\n", DEFAULT_TYPE //
+    );
+  }
+
+  public void test_FastDartPartitionScanner_endOfLineDocComment_inInterpolation() {
+    // class X { var s="xxx ${yyy /// comment + zzz} xxx"; }
+    assertPartitions( //
+        "class X {\nvar s=", DEFAULT_TYPE, //
+        "\"xxx ", DART_STRING, //
+        "${yyy ", DEFAULT_TYPE, //
+        "/// comment\n", DART_DOC, //
         " + zzz}", DEFAULT_TYPE, //
         " xxx\"", DART_STRING, //
         ";\n}\n", DEFAULT_TYPE //
