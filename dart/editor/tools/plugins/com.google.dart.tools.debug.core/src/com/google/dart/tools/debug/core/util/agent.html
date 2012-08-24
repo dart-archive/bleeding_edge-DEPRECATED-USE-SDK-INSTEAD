@@ -13,10 +13,19 @@
     <script>
       window.addEventListener('message', function (event) {
         var xhr = new XMLHttpRequest();
-
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState != 4)  { return; }
+          if (xhr.status != 200)  {
+            if (window.console) {
+              console.log('Unable to POST Dart print() message ('
+                  + xhr.statusText + ':' + xhr.status + ').');
+            }
+            return;
+          } 
+        };
         xhr.open('POST', '/log', true);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.send(encodeURIComponent(event.data));    
+        xhr.send(encodeURIComponent(event.data));
       }, false);
     </script>
   </body>

@@ -474,11 +474,14 @@ class ResourceServerHandler implements Runnable {
   }
 
   private HttpResponse createPOSTResponse(HttpHeader header, DataInputStream in) throws IOException {
+    // This 200000 value matches Jetty's setting.
+    final int MAX_POST = 200000 + 100;
+
     String file = header.file;
 
     int length = header.getContentLength();
 
-    if (length > 20000) {
+    if (length > MAX_POST) {
       return createErrorResponse("Invalid POST length");
     }
 
