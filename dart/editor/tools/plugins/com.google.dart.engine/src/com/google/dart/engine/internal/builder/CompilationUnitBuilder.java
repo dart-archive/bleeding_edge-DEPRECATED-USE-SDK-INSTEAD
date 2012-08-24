@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
+import com.google.dart.engine.provider.CompilationUnitProvider;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -23,10 +24,17 @@ import com.google.dart.engine.source.Source;
  */
 public class CompilationUnitBuilder {
   /**
-   * Initialize a newly created compilation unit element builder.
+   * The provider used to access the compilation unit associated with a given source.
    */
-  public CompilationUnitBuilder() {
-    super();
+  private CompilationUnitProvider provider;
+
+  /**
+   * Initialize a newly created compilation unit element builder.
+   * 
+   * @param provider the provider used to access the compilation unit associated with a given source
+   */
+  public CompilationUnitBuilder(CompilationUnitProvider provider) {
+    this.provider = provider;
   }
 
   /**
@@ -36,7 +44,7 @@ public class CompilationUnitBuilder {
    * @return the compilation unit element that was built
    */
   public CompilationUnitElementImpl buildCompilationUnit(Source compilationUnitSource) {
-    CompilationUnit unit = getCompilationUnit(compilationUnitSource);
+    CompilationUnit unit = provider.getCompilationUnit(compilationUnitSource);
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     unit.accept(builder);
@@ -50,16 +58,5 @@ public class CompilationUnitBuilder {
     element.setTypeAliases(holder.getTypeAliases());
     element.setTypes(holder.getTypes());
     return element;
-  }
-
-  /**
-   * Return the AST structure for the compilation unit with the given source.
-   * 
-   * @param source the source describing the compilation unit
-   * @return the AST structure for the compilation unit with the given source
-   */
-  protected CompilationUnit getCompilationUnit(Source source) {
-    // TODO(brianwilkerson) Implement this.
-    return null;
   }
 }

@@ -22,7 +22,6 @@ import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
-import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NamedFormalParameter;
@@ -42,6 +41,7 @@ import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.scanner.Keyword;
 
+import static com.google.dart.engine.ast.ASTFactory.block;
 import static com.google.dart.engine.ast.ASTFactory.blockFunctionBody;
 import static com.google.dart.engine.ast.ASTFactory.breakStatement;
 import static com.google.dart.engine.ast.ASTFactory.catchClause;
@@ -53,16 +53,20 @@ import static com.google.dart.engine.ast.ASTFactory.formalParameterList;
 import static com.google.dart.engine.ast.ASTFactory.functionExpression;
 import static com.google.dart.engine.ast.ASTFactory.functionTypedFormalParameter;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.ASTFactory.label;
 import static com.google.dart.engine.ast.ASTFactory.labeledStatement;
 import static com.google.dart.engine.ast.ASTFactory.list;
 import static com.google.dart.engine.ast.ASTFactory.methodDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.namedFormalParameter;
+import static com.google.dart.engine.ast.ASTFactory.returnStatement;
 import static com.google.dart.engine.ast.ASTFactory.simpleFormalParameter;
+import static com.google.dart.engine.ast.ASTFactory.tryStatement;
 import static com.google.dart.engine.ast.ASTFactory.typeAlias;
 import static com.google.dart.engine.ast.ASTFactory.typeParameter;
 import static com.google.dart.engine.ast.ASTFactory.typeParameterList;
 import static com.google.dart.engine.ast.ASTFactory.variableDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.variableDeclarationList;
+import static com.google.dart.engine.ast.ASTFactory.variableDeclarationStatement;
 
 public class ElementBuilderTest extends EngineTestCase {
   public void test_visitCatchClause() {
@@ -160,6 +164,57 @@ public class ElementBuilderTest extends EngineTestCase {
     assertFalse(type.isSynthetic());
   }
 
+  public void test_visitClassDeclaration_withMembers() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String className = "C";
+    String typeVariableName = "E";
+    String fieldName = "f";
+    String methodName = "m";
+    ClassDeclaration classDeclaration = classDeclaration(
+        null,
+        className,
+        typeParameterList(typeVariableName),
+        null,
+        null,
+        fieldDeclaration(false, null, variableDeclaration(fieldName)),
+        methodDeclaration(
+            null,
+            null,
+            null,
+            null,
+            identifier(methodName),
+            formalParameterList(),
+            blockFunctionBody()));
+    classDeclaration.accept(builder);
+    TypeElement[] types = holder.getTypes();
+    assertLength(1, types);
+
+    TypeElement type = types[0];
+    assertNotNull(type);
+    assertEquals(className, type.getName());
+    assertFalse(type.isAbstract());
+    assertFalse(type.isSynthetic());
+
+    TypeVariableElement[] typeVariables = type.getTypeVariables();
+    assertLength(1, typeVariables);
+    TypeVariableElement typeVariable = typeVariables[0];
+    assertNotNull(typeVariable);
+    assertEquals(typeVariableName, typeVariable.getName());
+
+    FieldElement[] fields = type.getFields();
+    assertLength(1, fields);
+    FieldElement field = fields[0];
+    assertNotNull(field);
+    assertEquals(fieldName, field.getName());
+
+    MethodElement[] methods = type.getMethods();
+    assertLength(1, methods);
+    MethodElement method = methods[0];
+    assertNotNull(method);
+    assertEquals(methodName, method.getName());
+  }
+
   public void test_visitConstructorDeclaration_factory() {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
@@ -241,11 +296,11 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String firstFieldName = "x";
     String secondFieldName = "y";
-    FieldDeclaration fieldDeclaration = fieldDeclaration(false, null, new VariableDeclaration(
+    FieldDeclaration fieldDeclaration = fieldDeclaration(
+        false,
         null,
-        identifier(firstFieldName),
-        null,
-        null), new VariableDeclaration(null, identifier(secondFieldName), null, null));
+        variableDeclaration(firstFieldName),
+        variableDeclaration(secondFieldName));
     fieldDeclaration.accept(builder);
     FieldElement[] fields = holder.getFields();
     assertLength(2, fields);
@@ -343,9 +398,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String labelName = "l";
-    LabeledStatement statement = labeledStatement(
-        list(new Label(identifier(labelName), null)),
-        breakStatement());
+    LabeledStatement statement = labeledStatement(list(label(labelName)), breakStatement());
     statement.accept(builder);
     LabelElement[] labels = holder.getLabels();
     assertLength(1, labels);
@@ -532,6 +585,61 @@ public class ElementBuilderTest extends EngineTestCase {
     assertFalse(method.isAbstract());
     assertTrue(method.isStatic());
     assertFalse(method.isSynthetic());
+  }
+
+  public void test_visitMethodDeclaration_withMembers() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String methodName = "m";
+    String parameterName = "p";
+    String localVariableName = "v";
+    String labelName = "l";
+    String exceptionParameterName = "e";
+    MethodDeclaration methodDeclaration = methodDeclaration(
+        null,
+        null,
+        null,
+        null,
+        identifier(methodName),
+        formalParameterList(simpleFormalParameter(parameterName)),
+        blockFunctionBody(
+            variableDeclarationStatement(Keyword.VAR, variableDeclaration(localVariableName)),
+            tryStatement(
+                block(labeledStatement(list(label(labelName)), returnStatement())),
+                catchClause(exceptionParameterName))));
+    methodDeclaration.accept(builder);
+    MethodElement[] methods = holder.getMethods();
+    assertLength(1, methods);
+
+    MethodElement method = methods[0];
+    assertNotNull(method);
+    assertEquals(methodName, method.getName());
+    assertFalse(method.isAbstract());
+    assertFalse(method.isStatic());
+    assertFalse(method.isSynthetic());
+
+    VariableElement[] parameters = method.getParameters();
+    assertLength(1, parameters);
+    VariableElement parameter = parameters[0];
+    assertNotNull(parameter);
+    assertEquals(parameterName, parameter.getName());
+
+    VariableElement[] localVariables = method.getLocalVariables();
+    assertLength(2, localVariables);
+    VariableElement firstVariable = localVariables[0];
+    VariableElement secondVariable = localVariables[1];
+    assertNotNull(firstVariable);
+    assertNotNull(secondVariable);
+    assertTrue((firstVariable.getName().equals(localVariableName) && secondVariable.getName().equals(
+        exceptionParameterName))
+        || (firstVariable.getName().equals(exceptionParameterName) && secondVariable.getName().equals(
+            localVariableName)));
+
+    LabelElement[] labels = method.getLabels();
+    assertLength(1, labels);
+    LabelElement label = labels[0];
+    assertNotNull(label);
+    assertEquals(labelName, label.getName());
   }
 
   public void test_visitNamedFormalParameter() {

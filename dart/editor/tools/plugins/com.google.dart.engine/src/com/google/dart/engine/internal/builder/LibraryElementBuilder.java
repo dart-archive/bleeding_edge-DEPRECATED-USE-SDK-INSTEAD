@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.builder;
 
+import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.Identifier;
@@ -23,6 +24,7 @@ import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportCombinator;
@@ -34,6 +36,7 @@ import com.google.dart.engine.internal.element.ImportSpecificationImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.PrefixElementImpl;
 import com.google.dart.engine.internal.element.ShowCombinatorImpl;
+import com.google.dart.engine.provider.CompilationUnitProvider;
 import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;
@@ -44,15 +47,22 @@ import java.util.HashMap;
  */
 public class LibraryElementBuilder {
   /**
+   * The provider used to access the compilation unit associated with a given source.
+   */
+  private CompilationUnitProvider provider;
+
+  /**
    * The name of the function used as an entry point.
    */
   private static final String ENTRY_POINT_NAME = "main";
 
   /**
    * Initialize a newly created library element builder.
+   * 
+   * @param provider the provider used to access the compilation unit associated with a given source
    */
-  public LibraryElementBuilder() {
-    super();
+  public LibraryElementBuilder(CompilationUnitProvider provider) {
+    this.provider = provider;
   }
 
   /**
@@ -62,8 +72,8 @@ public class LibraryElementBuilder {
    * @return the library element that was built
    */
   public LibraryElement buildLibrary(Source librarySource) {
-    CompilationUnitBuilder builder = new CompilationUnitBuilder();
-    CompilationUnit definingCompilationUnit = getCompilationUnit(librarySource);
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(provider);
+    CompilationUnit definingCompilationUnit = provider.getCompilationUnit(librarySource);
     CompilationUnitElementImpl definingCompilationUnitElement = builder.buildCompilationUnit(librarySource);
     NodeList<Directive> directives = definingCompilationUnit.getDirectives();
     Identifier libraryNameNode = null;
@@ -125,7 +135,9 @@ public class LibraryElementBuilder {
 
     LibraryElementImpl libraryElement = new LibraryElementImpl(libraryNameNode);
     libraryElement.setDefiningCompilationUnit(definingCompilationUnitElement);
-    libraryElement.setEntryPoint(entryPoint);
+    if (entryPoint != null) {
+      libraryElement.setEntryPoint(entryPoint);
+    }
     libraryElement.setImports(imports.toArray(new ImportSpecification[imports.size()]));
     libraryElement.setSourcedCompilationUnits(sourcedCompilationUnits.toArray(new CompilationUnitElementImpl[sourcedCompilationUnits.size()]));
     return libraryElement;
@@ -144,17 +156,6 @@ public class LibraryElementBuilder {
         return function;
       }
     }
-    return null;
-  }
-
-  /**
-   * Return the AST structure for the compilation unit with the given source.
-   * 
-   * @param source the source describing the compilation unit
-   * @return the AST structure for the compilation unit with the given source
-   */
-  private CompilationUnit getCompilationUnit(Source source) {
-    // TODO(brianwilkerson) Implement this.
     return null;
   }
 
@@ -181,8 +182,14 @@ public class LibraryElementBuilder {
    * @return the result of resolving the given URI against the URI of the library
    */
   private Source getSource(Source librarySource, StringLiteral partUri) {
-    // TODO(brianwilkerson) Implement this. We need a way to get the string from the string literal.
-    // return librarySource.resolve(partUri.getStringValue());
+    if (partUri instanceof SimpleStringLiteral) {
+      return librarySource.resolve(((SimpleStringLiteral) partUri).getValue());
+    } else if (partUri instanceof AdjacentStrings) {
+      // TODO(brianwilkerson) This case needs to be handled. Consider adding a getValue() method to
+      // StringLiteral that will return the constant value of the string, or {@code null} if the
+      // literal is not a compile time constant.
+      // return librarySource.resolve(partUri.getStringValue());
+    }
     return null;
   }
 }
