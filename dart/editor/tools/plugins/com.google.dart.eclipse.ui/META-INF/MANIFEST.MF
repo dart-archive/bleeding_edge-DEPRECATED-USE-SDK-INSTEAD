@@ -20,5 +20,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.navigator,
  org.eclipse.core.expressions,
  org.eclipse.core.filesystem,
- com.google.dart.compiler.js
+ com.google.dart.compiler.js,
+ org.eclipse.jface.text
 Bundle-Activator: com.google.dart.eclipse.DartEclipseUI

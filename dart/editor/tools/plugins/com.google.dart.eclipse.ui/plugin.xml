@@ -245,9 +245,6 @@
                   <adapt
                         type="org.eclipse.core.resources.IResource">
                   </adapt>
-                  <test
-                        property="com.google.dart.tools.core.expressions.isAnalyzable">
-                  </test>
                </iterate>
            </with>
         </visibleWhen>
@@ -259,6 +256,11 @@
           <command
                 commandId="com.google.dart.tools.ui.commands.ignoreResource"
                 label="Don&apos;t Analyze"
+                style="push">
+          </command>
+          <command
+                commandId="com.google.dart.eclipse.cleanup"
+                label="%command.cleanup.name"
                 style="push">
           </command>
        </menu>
@@ -294,7 +296,12 @@
             defaultHandler="com.google.dart.eclipse.ui.internal.handlers.OpenTypeDialogHandler"
             description="%command.openType.desc"
             id="com.google.dart.eclipse.openType"
-            name="%command.openType.name"/> 
+            name="%command.openType.name"/>
+      <command
+            defaultHandler="com.google.dart.eclipse.ui.internal.handlers.CleanupHandler"
+            id="com.google.dart.eclipse.cleanup"
+            name="%command.cleanup.name">
+      </command> 
    </extension>
 
    <extension
