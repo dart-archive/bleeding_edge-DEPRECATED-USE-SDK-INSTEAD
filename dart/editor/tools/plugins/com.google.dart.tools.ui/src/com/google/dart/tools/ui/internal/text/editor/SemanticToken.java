@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,68 +13,47 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.compiler.ast.DartExpression;
-import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.core.dom.IBinding;
+import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.common.SourceInfo;
+
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
 
 /**
  * Semantic token
  */
-public final class SemanticToken {
+public final class SemanticToken<T extends DartNode> {
 
   /** AST node */
-  private DartIdentifier fNode;
-  private DartExpression fLiteral;
-
-  /** Binding */
-  private IBinding fBinding;
-  /** Is the binding resolved? */
-  private boolean fIsBindingResolved = false;
-
-  /** AST root */
-  private DartUnit fRoot;
-  private boolean fIsRootResolved = false;
+  private T node;
+  private IDocument document;
 
   /**
-   * @return Returns the binding, can be <code>null</code>.
+   * Attach source to this token (in case the AST is insufficient).
+   * 
+   * @param the source
    */
-  public IBinding getBinding() {
-    if (!fIsBindingResolved) {
-      fIsBindingResolved = true;
-      //TODO (pquitslund): implement/remove DartIdentifier.resolveBinding()
-      //likely by replacing resolveBinding() with getTargetSymbol() and to replace IBinding with Element
-//      if (fNode != null)
-//        fBinding = fNode.resolveBinding();
-    }
-
-    return fBinding;
-  }
-
-  /**
-   * @return the AST node (a <code>Boolean-, Character- or NumberLiteral</code>)
-   */
-  public DartExpression getLiteral() {
-    return fLiteral;
+  public void attachSource(IDocument source) {
+    this.document = source;
   }
 
   /**
    * @return the AST node (a {@link SimpleName})
    */
-  public DartIdentifier getNode() {
-    return fNode;
+  public T getNode() {
+    return node;
   }
 
   /**
-   * @return the AST root
+   * @return the source associated with this token
    */
-  public DartUnit getRoot() {
-    if (!fIsRootResolved) {
-      fIsRootResolved = true;
-      fRoot = (DartUnit) (fNode != null ? fNode : fLiteral).getRoot();
+  public String getSource() {
+    SourceInfo sourceInfo = node.getSourceInfo();
+    try {
+      return document.get(sourceInfo.getOffset(), sourceInfo.getLength());
+    } catch (BadLocationException e) {
+      return null;
     }
-
-    return fRoot;
   }
 
   /**
@@ -84,25 +63,8 @@ public final class SemanticToken {
    * </p>
    */
   void clear() {
-    fNode = null;
-    fLiteral = null;
-    fBinding = null;
-    fIsBindingResolved = false;
-    fRoot = null;
-    fIsRootResolved = false;
-  }
-
-  /**
-   * Update this token with the given AST node.
-   * <p>
-   * NOTE: Allowed to be used by {@link SemanticHighlightingReconciler} only.
-   * </p>
-   * 
-   * @param literal the AST literal
-   */
-  void update(DartExpression literal) {
-    clear();
-    fLiteral = literal;
+    node = null;
+    document = null;
   }
 
   /**
@@ -113,8 +75,8 @@ public final class SemanticToken {
    * 
    * @param node the AST simple name
    */
-  void update(DartIdentifier node) {
+  void update(T node) {
     clear();
-    fNode = node;
+    this.node = node;
   }
 }

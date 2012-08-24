@@ -116,6 +116,7 @@ final class DartEditorMessages extends NLS {
     NLS.initializeMessages(BUNDLE_NAME, DartEditorMessages.class);
   }
   public static String BasicEditorActionContributor_specific_content_assist_menu;
+  public static String SemanticHighlighting_directive;
 
   /**
    * Returns the message bundle which contains constructed keys.

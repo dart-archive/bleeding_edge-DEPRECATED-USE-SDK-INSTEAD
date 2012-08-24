@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.DartDeclaration;
+import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
@@ -23,7 +24,9 @@ import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.LibraryPrefixElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.tools.core.utilities.ast.DynamicTypesFinder;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
+import com.google.dart.tools.ui.text.IDartColorConstants;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
@@ -34,6 +37,80 @@ import org.eclipse.swt.graphics.RGB;
  * Semantic highlightings.
  */
 public class SemanticHighlightings {
+
+  /**
+   * Abstract clause highlighting.
+   */
+  private static class AbstractClauseHighlighting extends AbstractDirectiveHighlighting {
+
+    private int clauseOffset;
+
+    public AbstractClauseHighlighting(String token) {
+      super(token);
+    }
+
+    @Override
+    public boolean consumesOfClause(SemanticToken<DartDirective> token) {
+      return testForClause(token);
+    }
+
+    @Override
+    public int getSourceOffset(DartNode node) {
+      return node.getSourceInfo().getOffset() + clauseOffset;
+    }
+
+    protected boolean testForClause(SemanticToken<DartDirective> token) {
+      clauseOffset = token.getSource().indexOf(tokenString);
+      return clauseOffset != -1;
+    }
+
+  }
+
+  /**
+   * Base class for directive semantic highlightings.
+   */
+  private static abstract class AbstractDirectiveHighlighting extends DefaultSemanticHighlighting {
+
+    private static final RGB KEY_WORD_COLOR = PreferenceConverter.getColor(
+        DartToolsPlugin.getDefault().getPreferenceStore(),
+        IDartColorConstants.JAVA_KEYWORD);
+
+    protected final String tokenString;
+
+    protected AbstractDirectiveHighlighting(String token) {
+      this.tokenString = token;
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return KEY_WORD_COLOR;
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_directive;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return DIRECTIVE;
+    }
+
+    @Override
+    public int getSourceLength(DartNode node) {
+      return tokenString.length();
+    }
+
+    @Override
+    public int getSourceOffset(DartNode node) {
+      return node.getSourceInfo().getOffset();
+    }
+
+    @Override
+    public boolean isBoldByDefault() {
+      return true;
+    }
+  }
 
   /**
    * Abstract {@link SemanticHighlighting} with empty methods by default.
@@ -76,7 +153,7 @@ public class SemanticHighlightings {
    */
   private static final class DeprecatedElementHighlighting extends DefaultSemanticHighlighting {
     @Override
-    public boolean consumes(SemanticToken token) {
+    public boolean consumesIdentifier(SemanticToken<DartIdentifier> token) {
       DartIdentifier node = token.getNode();
       NodeElement element = node.getElement();
       return element != null && element.getMetadata().isDeprecated();
@@ -104,7 +181,7 @@ public class SemanticHighlightings {
   private static final class DynamicTypeHighlighting extends DefaultSemanticHighlighting {
 
     @Override
-    public boolean consumes(SemanticToken token) {
+    public boolean consumesIdentifier(SemanticToken<DartIdentifier> token) {
       DartIdentifier node = token.getNode();
       return DynamicTypesFinder.isDynamic(node);
     }
@@ -129,12 +206,28 @@ public class SemanticHighlightings {
   }
 
   /**
+   * Export clause highlighting.
+   */
+  private static class ExportClauseHighlighting extends AbstractClauseHighlighting {
+
+    public ExportClauseHighlighting() {
+      super("export");
+    }
+
+    @Override
+    public boolean consumesExportClause(SemanticToken<DartDirective> token) {
+      return testForClause(token);
+    }
+
+  }
+
+  /**
    * Semantic highlighting for fields.
    */
   private static class FieldHighlighting extends DefaultSemanticHighlighting {
 
     @Override
-    public boolean consumes(SemanticToken token) {
+    public boolean consumesIdentifier(SemanticToken<DartIdentifier> token) {
       DartIdentifier node = token.getNode();
       NodeElement element = node.getElement();
       if (element == null || element.isDynamic()) {
@@ -166,11 +259,123 @@ public class SemanticHighlightings {
   }
 
   /**
+   * Hide clause highlighting.
+   */
+  private static class HideClauseHighlighting extends AbstractClauseHighlighting {
+
+    public HideClauseHighlighting() {
+      super("hide");
+    }
+
+    @Override
+    public boolean consumesHideClause(SemanticToken<DartDirective> token) {
+      return testForClause(token);
+    }
+
+  }
+
+  /**
+   * Import directive highlighting.
+   */
+  private static class ImportDirectiveHighlighting extends AbstractDirectiveHighlighting {
+
+    public ImportDirectiveHighlighting() {
+      super("import");
+    }
+
+    @Override
+    public boolean consumesImportDirective(SemanticToken<DartDirective> directiveToken) {
+      return true;
+    }
+
+  }
+
+  /**
+   * Library directive highlighting.
+   */
+  private static class LibraryDirectiveHighlighting extends AbstractDirectiveHighlighting {
+
+    public LibraryDirectiveHighlighting() {
+      super("library");
+    }
+
+    @Override
+    public boolean consumesLibraryDirective(SemanticToken<DartDirective> directiveToken) {
+      return true;
+    }
+
+  }
+
+  /**
+   * Of clause highlighting.
+   */
+  private static class OfClauseHighlighting extends AbstractClauseHighlighting {
+
+    public OfClauseHighlighting() {
+      super("of");
+    }
+
+    @Override
+    public boolean consumesOfClause(SemanticToken<DartDirective> token) {
+      return testForClause(token);
+    }
+
+  }
+
+  /**
+   * Part directive highlighting.
+   */
+  private static class PartDirectiveHighlighting extends AbstractDirectiveHighlighting {
+
+    public PartDirectiveHighlighting() {
+      super("part");
+    }
+
+    @Override
+    public boolean consumesPartDirective(SemanticToken<DartDirective> directiveToken) {
+      return true;
+    }
+
+  }
+
+  /**
+   * Part of directive highlighting.
+   */
+  private static class PartOfDirectiveHighlighting extends AbstractDirectiveHighlighting {
+
+    public PartOfDirectiveHighlighting() {
+      super("part");
+    }
+
+    @Override
+    public boolean consumesPartOfDirective(SemanticToken<DartDirective> token) {
+      return true;
+    }
+
+  }
+
+  /**
+   * Show clause highlighting.
+   */
+  private static class ShowClauseHighlighting extends AbstractClauseHighlighting {
+
+    public ShowClauseHighlighting() {
+      super("show");
+    }
+
+    @Override
+    public boolean consumesShowClause(SemanticToken<DartDirective> token) {
+      return testForClause(token);
+    }
+
+  }
+
+  /**
    * Semantic highlighting for static fields.
    */
   private static class StaticFieldHighlighting extends FieldHighlighting {
     @Override
-    public boolean consumes(SemanticToken token) {
+    public boolean consumesIdentifier(SemanticToken<DartIdentifier> token) {
       DartIdentifier node = token.getNode();
       NodeElement element = node.getElement();
       if (element == null || element.isDynamic()) {
@@ -204,7 +409,7 @@ public class SemanticHighlightings {
    */
   private static class TopLevelMemberHighlighting extends DefaultSemanticHighlighting {
     @Override
-    public boolean consumes(SemanticToken token) {
+    public boolean consumesIdentifier(SemanticToken<DartIdentifier> token) {
 
       DartIdentifier node = token.getNode();
       NodeElement element = node.getElement();
@@ -270,6 +475,11 @@ public class SemanticHighlightings {
    * A named preference part that controls the highlighting of top level members.
    */
   public static final String TOP_LEVEL_MEMBER = "topLevelMember"; //$NON-NLS-1$
+
+  /**
+   * A named preference part that controls the highlighting of directives.
+   */
+  public static final String DIRECTIVE = "directive"; //$NON-NLS-1$
 
   /**
    * A named preference part that controls the highlighting of fields.
@@ -452,6 +662,10 @@ public class SemanticHighlightings {
   public static SemanticHighlighting[] getSemanticHighlightings() {
     if (SEMANTIC_HIGHTLIGHTINGS == null) {
       SEMANTIC_HIGHTLIGHTINGS = new SemanticHighlighting[] {
+          new LibraryDirectiveHighlighting(), new ImportDirectiveHighlighting(),
+          new ExportClauseHighlighting(), new HideClauseHighlighting(),
+          new ShowClauseHighlighting(), new PartDirectiveHighlighting(),
+          new PartOfDirectiveHighlighting(), new OfClauseHighlighting(),
           new DeprecatedElementHighlighting(), new StaticFieldHighlighting(),
           new FieldHighlighting(), new DynamicTypeHighlighting(), new TopLevelMemberHighlighting()};
     }

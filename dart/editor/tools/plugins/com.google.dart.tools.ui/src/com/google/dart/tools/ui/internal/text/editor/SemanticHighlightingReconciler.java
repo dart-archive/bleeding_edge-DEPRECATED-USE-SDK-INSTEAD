@@ -14,8 +14,13 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartImportDirective;
+import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartPartOfDirective;
+import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -49,25 +54,103 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
    */
   private class PositionCollector extends ASTVisitor<Void> {
 
-    /** The semantic token */
-    private SemanticToken fToken = new SemanticToken();
+    //result holders cached and reused for performance
+    private final SemanticToken<DartIdentifier> identifierToken = new SemanticToken<DartIdentifier>();
+
+    //    private final SemanticToken<DartLiteral> literalToken = new SemanticToken<DartLiteral>();
+    private final SemanticToken<DartDirective> directiveToken = new SemanticToken<DartDirective>();
 
     @Override
     public Void visitIdentifier(DartIdentifier node) {
-      fToken.update(node);
-      for (int i = 0, n = fJobSemanticHighlightings.length; i < n; i++) {
-        SemanticHighlighting semanticHighlighting = fJobSemanticHighlightings[i];
-        if (fJobHighlightings[i].isEnabled() && semanticHighlighting.consumes(fToken)) {
-          int offset = node.getSourceInfo().getOffset();
-          int length = node.getSourceInfo().getLength();
-          if (offset > -1 && length > 0) {
-            addPosition(offset, length, fJobHighlightings[i]);
-          }
-          break;
-        }
-      }
-      fToken.clear();
+
+      processNode(
+          identifierToken,
+          node,
+          SemanticHighlightingReconciler.this,
+          PositionCollector.this,
+          IDENTIFIER_TEST);
+
       return super.visitIdentifier(node);
+    }
+
+    @Override
+    public Void visitImportDirective(DartImportDirective node) {
+
+      processNode(
+          directiveToken,
+          node,
+          SemanticHighlightingReconciler.this,
+          PositionCollector.this,
+          IMPORT_DIRECTIVE_TEST);
+
+      processNode(
+          directiveToken,
+          node,
+          SemanticHighlightingReconciler.this,
+          PositionCollector.this,
+          SHOW_CLAUSE_TEST);
+
+      processNode(
+          directiveToken,
+          node,
+          SemanticHighlightingReconciler.this,
+          PositionCollector.this,
+          HIDE_CLAUSE_TEST);
+
+      processNode(
+          directiveToken,
+          node,
+          SemanticHighlightingReconciler.this,
+          PositionCollector.this,
+          EXPORT_CLAUSE_TEST);
+
+      return super.visitImportDirective(node);
+    }
+
+    @Override
+    public Void visitLibraryDirective(DartLibraryDirective node) {
+
+      processNode(
+          directiveToken,
+          node,
+          SemanticHighlightingReconciler.this,
+          PositionCollector.this,
+          LIBRARY_DIRECTIVE_TEST);
+
+      return super.visitLibraryDirective(node);
+    }
+
+    @Override
+    public Void visitPartOfDirective(DartPartOfDirective node) {
+
+      processNode(
+          directiveToken,
+          node,
+          SemanticHighlightingReconciler.this,
+          PositionCollector.this,
+          PART_OF_DIRECTIVE_TEST);
+
+      processNode(
+          directiveToken,
+          node,
+          SemanticHighlightingReconciler.this,
+          PositionCollector.this,
+          OF_CLAUSE_TEST);
+
+      return super.visitPartOfDirective(node);
+    }
+
+    @Override
+    public Void visitSourceDirective(DartSourceDirective node) {
+
+      processNode(
+          directiveToken,
+          node,
+          SemanticHighlightingReconciler.this,
+          PositionCollector.this,
+          PART_DIRECTIVE_TEST);
+
+      return super.visitSourceDirective(node);
     }
 
     /**
@@ -134,6 +217,95 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
 //    }
   }
 
+  /**
+   * Tests if a highlighting consumes a given token.
+   */
+  private static interface Predicate<T extends DartNode> {
+    boolean consumes(SemanticHighlighting h, SemanticToken<T> token);
+  }
+
+  private static final Predicate<DartDirective> LIBRARY_DIRECTIVE_TEST = new Predicate<DartDirective>() {
+    @Override
+    public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
+      return h.consumesLibraryDirective(token);
+    }
+  };
+
+  private static final Predicate<DartDirective> PART_OF_DIRECTIVE_TEST = new Predicate<DartDirective>() {
+    @Override
+    public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
+      return h.consumesPartOfDirective(token);
+    }
+  };
+
+  private static final Predicate<DartDirective> OF_CLAUSE_TEST = new Predicate<DartDirective>() {
+    @Override
+    public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
+      return h.consumesOfClause(token);
+    }
+  };
+
+  private static final Predicate<DartDirective> SHOW_CLAUSE_TEST = new Predicate<DartDirective>() {
+    @Override
+    public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
+      return h.consumesShowClause(token);
+    }
+  };
+
+  private static final Predicate<DartDirective> HIDE_CLAUSE_TEST = new Predicate<DartDirective>() {
+    @Override
+    public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
+      return h.consumesHideClause(token);
+    }
+  };
+
+  private static final Predicate<DartDirective> EXPORT_CLAUSE_TEST = new Predicate<DartDirective>() {
+    @Override
+    public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
+      return h.consumesExportClause(token);
+    }
+  };
+
+  private static final Predicate<DartDirective> PART_DIRECTIVE_TEST = new Predicate<DartDirective>() {
+    @Override
+    public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
+      return h.consumesPartDirective(token);
+    }
+  };
+
+  private static final Predicate<DartDirective> IMPORT_DIRECTIVE_TEST = new Predicate<DartDirective>() {
+    @Override
+    public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
+      return h.consumesImportDirective(token);
+    }
+  };
+
+  private static final Predicate<DartIdentifier> IDENTIFIER_TEST = new Predicate<DartIdentifier>() {
+    @Override
+    public boolean consumes(SemanticHighlighting h, SemanticToken<DartIdentifier> token) {
+      return h.consumesIdentifier(token);
+    }
+  };
+
+  private static <T extends DartNode> void processNode(SemanticToken<T> token, T node,
+      SemanticHighlightingReconciler reconciler, PositionCollector collector, Predicate<T> tester) {
+    token.update(node);
+    token.attachSource(reconciler.fSourceViewer.getDocument());
+    for (int i = 0, n = reconciler.fJobSemanticHighlightings.length; i < n; i++) {
+      SemanticHighlighting semanticHighlighting = reconciler.fJobSemanticHighlightings[i];
+      if (reconciler.fJobHighlightings[i].isEnabled()
+          && tester.consumes(semanticHighlighting, token)) {
+        int offset = semanticHighlighting.getSourceOffset(node);
+        int length = semanticHighlighting.getSourceLength(node);
+        if (offset > -1 && length > 0) {
+          collector.addPosition(offset, length, reconciler.fJobHighlightings[i]);
+        }
+        break;
+      }
+    }
+    token.clear();
+  }
+
   /** Position collector */
   private PositionCollector fCollector = new PositionCollector();
 
@@ -185,18 +357,11 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
    */
   private Highlighting[] fJobHighlightings;
 
-  /*
-   * @see com.google.dart.tools.ui.functions.java.IJavaReconcilingListener# aboutToBeReconciled()
-   */
   @Override
   public void aboutToBeReconciled() {
     // Do nothing
   }
 
-  /*
-   * @see org.eclipse.jface.text.ITextInputListener#inputDocumentAboutToBeChanged
-   * (org.eclipse.jface.text.IDocument, org.eclipse.jface.text.IDocument)
-   */
   @Override
   public void inputDocumentAboutToBeChanged(IDocument oldInput, IDocument newInput) {
     synchronized (fJobLock) {
@@ -207,10 +372,6 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     }
   }
 
-  /*
-   * @see org.eclipse.jface.text.ITextInputListener#inputDocumentChanged(org.eclipse
-   * .jface.text.IDocument, org.eclipse.jface.text.IDocument)
-   */
   @Override
   public void inputDocumentChanged(IDocument oldInput, IDocument newInput) {
     if (newInput != null) {
@@ -245,10 +406,6 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     }
   }
 
-  /*
-   * @see com.google.dart.tools.ui.functions.java.IJavaReconcilingListener#reconciled (DartUnit,
-   * boolean, IProgressMonitor)
-   */
   @Override
   public void reconciled(DartUnit ast, boolean forced, IProgressMonitor progressMonitor) {
     // ensure at most one thread can be reconciling at any time
