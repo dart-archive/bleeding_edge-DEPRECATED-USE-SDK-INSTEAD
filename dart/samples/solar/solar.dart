@@ -56,9 +56,9 @@ class SolarSystem {
 
   }
 
-  num get width() => _width;
+  num get width => _width;
 
-  num get height() => _height;
+  num get height => _height;
 
   start() {
     // Measure the canvas element.
