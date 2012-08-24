@@ -34,6 +34,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import java.io.File;
 import java.net.URI;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 
 /**
  * Creates projects in the workspace.
@@ -161,22 +162,49 @@ public class CreateAndRevealProjectAction extends Action {
   }
 
   private boolean nestsAnExistingProject(IPath path) {
-    for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+    // Reference the set of projects in the workspace
+    final IProject[] projectArray = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+
+    // Create a list of Strings which we will populate with project names which are sub directories
+    // of the passed IPath, if there aren't many projects in the workspace, no reason to create a
+    // large array.
+    ArrayList<String> violatingProjectNameList = new ArrayList<String>(Math.min(
+        projectArray.length,
+        10));
+
+    // Loop through each of the projects to populate projectArray
+    for (IProject project : projectArray) {
       IPath location = project.getLocation();
       if (path.isPrefixOf(location)) {
-        String folderName = path.lastSegment();
-        String projectName = project.getName();
-        MessageDialog.openError(
-            getShell(),
-            ProjectMessages.OpenExistingFolderWizardAction_nesting_title,
-            NLS.bind(
-                ProjectMessages.OpenExistingFolderWizardAction_nesting_msg,
-                folderName,
-                projectName));
-        return true;
+        violatingProjectNameList.add(project.getName());
       }
     }
+    // If there are any violating projects, throw an error message.
+    if (!violatingProjectNameList.isEmpty()) {
+      // For the error message in the dialog, we need the name of the project we are trying to create.
+      String folderName = path.lastSegment();
+      // And we need the list of violating project names, the following converts the list of strings
+      // into a comma separated list to make it human readable.
+      String violatingNamesMessage = "'" + violatingProjectNameList.get(0) + "'";
+      for (int i = 1; i < violatingProjectNameList.size() - 1; i++) {
+        violatingNamesMessage += ", '" + violatingProjectNameList.get(i) + "'";
+      }
+      if (violatingProjectNameList.size() > 1) {
+        violatingNamesMessage += " and '"
+            + violatingProjectNameList.get(violatingProjectNameList.size() - 1) + "'";
+      }
+      // Finally, open the dialog and then return true.
+      MessageDialog.openError(
+          getShell(),
+          ProjectMessages.OpenExistingFolderWizardAction_nesting_title,
+          NLS.bind(
+              ProjectMessages.OpenExistingFolderWizardAction_nesting_msg,
+              folderName,
+              violatingNamesMessage));
+      return true;
+    }
+
+    // Otherwise, none of the projects in the workspace are children of the new project, return false.
     return false;
   }
-
 }
