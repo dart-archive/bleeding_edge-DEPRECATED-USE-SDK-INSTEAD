@@ -20,6 +20,8 @@ import com.google.dart.tools.internal.corext.SourceRangeFactory;
 
 /**
  * In specification 1.0 M1 "operator equals(other)" was replaced with "operator ==(other)".
+ * 
+ * @coverage dart.editor.ui.cleanup
  */
 public class Migrate_1M1_equals_CleanUp extends AbstractMigrateCleanUp {
   @Override

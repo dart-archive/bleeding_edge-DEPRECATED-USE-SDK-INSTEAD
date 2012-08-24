@@ -772,12 +772,12 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
   public void test_preCondition_externalElement() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "f() {",
-        "  Math.sin(0);",
-        "  Math.sin(1);",
+        "main() {",
+        "  Strings.concatAll(['0']);",
+        "  Strings.concatAll(['1']);",
         "}",
         "");
-    Method method = findElement("sin(0)");
+    Method method = findElement("concatAll(['0'])");
     // try to rename
     showStatusCancel = false;
     renameMethod(method, "newName");
@@ -790,9 +790,9 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     // status was non-fatal error, so rename was done
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "f() {",
-        "  Math.newName(0);",
-        "  Math.newName(1);",
+        "main() {",
+        "  Strings.newName(['0']);",
+        "  Strings.newName(['1']);",
         "}",
         "");
   }

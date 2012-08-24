@@ -20,6 +20,8 @@ import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.fix.CompilationUnitFix;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.cleanup.CleanUpContext;
 import com.google.dart.tools.ui.cleanup.CleanUpRequirements;
 import com.google.dart.tools.ui.cleanup.ICleanUpFix;
@@ -33,6 +35,8 @@ import org.eclipse.text.edits.TextEdit;
 
 /**
  * In specification 1.0 M1 getter should not have parameters.
+ * 
+ * @coverage dart.editor.ui.cleanup
  */
 public abstract class AbstractMigrateCleanUp extends AbstractCleanUp {
   protected CompilationUnit unit;
@@ -48,7 +52,13 @@ public abstract class AbstractMigrateCleanUp extends AbstractCleanUp {
       if (change == null) {
         return null;
       }
-      createFix();
+      // run and rethrow exceptions
+      ExecutionUtils.runRethrowCore(new RunnableEx() {
+        @Override
+        public void run() throws Exception {
+          createFix();
+        }
+      });
       // ignore if empty
       if (!rootEdit.hasChildren()) {
         return null;
@@ -72,7 +82,7 @@ public abstract class AbstractMigrateCleanUp extends AbstractCleanUp {
   /**
    * Adds {@link TextEdit} into {@link #change}.
    */
-  protected abstract void createFix();
+  protected abstract void createFix() throws Exception;
 
   /**
    * Initializes values of fields.

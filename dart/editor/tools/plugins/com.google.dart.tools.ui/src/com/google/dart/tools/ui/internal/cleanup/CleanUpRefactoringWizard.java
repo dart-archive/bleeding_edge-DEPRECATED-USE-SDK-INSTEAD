@@ -20,8 +20,10 @@ import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_catch_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_equals_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_get_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
 import com.google.dart.tools.ui.internal.util.GridDataFactory;
 import com.google.dart.tools.ui.internal.util.GridLayoutFactory;
 
@@ -535,23 +537,31 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
 //  }
   private static class CleanUpConfigurationPage extends UserInputWizardPage {
     private static final Map<String, ICleanUp> CLEAN_UPS = Maps.newHashMap();
+    private static final CleanUpSettings settings = new CleanUpSettings();
 
-    private static final String ID_MIGRATE_SYNTAX_1M1_GET = "migrateSyntax-1M1-get";
+    private static final String ID_MIGRATE_SYNTAX_1M1_CATCH = "migrateSyntax-1M1-catch";
     private static final String ID_MIGRATE_SYNTAX_1M1_EQUALS = "migrateSyntax-1M1-equals";
+    private static final String ID_MIGRATE_SYNTAX_1M1_GET = "migrateSyntax-1M1-get";
+    private static final String ID_MIGRATE_SYNTAX_1M1_LIBRARY = "migrateSyntax-1M1-library";
 
     static {
-      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_GET, new Migrate_1M1_get_CleanUp());
+      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_CATCH, new Migrate_1M1_catch_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_EQUALS, new Migrate_1M1_equals_CleanUp());
+      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_GET, new Migrate_1M1_get_CleanUp());
+      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_LIBRARY, new Migrate_1M1_library_CleanUp());
+      settings.setDefault(ID_MIGRATE_SYNTAX_1M1_CATCH, true);
+      settings.setDefault(ID_MIGRATE_SYNTAX_1M1_EQUALS, false);
+      settings.setDefault(ID_MIGRATE_SYNTAX_1M1_GET, true);
+      settings.setDefault(ID_MIGRATE_SYNTAX_1M1_LIBRARY, false);
     }
 
-    private final CleanUpRefactoring fCleanUpRefactoring;
-    private final CleanUpSettings fCustomSettings = new CleanUpSettings();
+    private final CleanUpRefactoring refactoring;
 
     public CleanUpConfigurationPage(CleanUpRefactoring refactoring) {
       super(MultiFixMessages.CleanUpRefactoringWizard_CleanUpConfigurationPage_title);
-      fCleanUpRefactoring = refactoring;
-      int cleanUpTargetsSize = fCleanUpRefactoring.getCleanUpTargetsSize();
-      DartProject[] projects = fCleanUpRefactoring.getProjects();
+      this.refactoring = refactoring;
+      int cleanUpTargetsSize = refactoring.getCleanUpTargetsSize();
+      DartProject[] projects = refactoring.getProjects();
       if (cleanUpTargetsSize == 1) {
         setMessage(MultiFixMessages.CleanUpRefactoringWizard_CleaningUp11_Title);
       } else if (projects.length == 1) {
@@ -582,11 +592,19 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
             Composite syntaxComposite = new Composite(tabFolder, SWT.NONE);
             syntaxItem.setControl(syntaxComposite);
             GridLayoutFactory.create(syntaxComposite);
-            createCheckButton(syntaxComposite, ID_MIGRATE_SYNTAX_1M1_GET, "Migrate getters");
+            createCheckButton(
+                syntaxComposite,
+                ID_MIGRATE_SYNTAX_1M1_CATCH,
+                "Migrate 'catch' blocks");
             createCheckButton(
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M1_EQUALS,
                 "Migrate 'operator equals()'");
+            createCheckButton(syntaxComposite, ID_MIGRATE_SYNTAX_1M1_GET, "Migrate getters");
+            createCheckButton(
+                syntaxComposite,
+                ID_MIGRATE_SYNTAX_1M1_LIBRARY,
+                "Migrate library/import/source");
           }
         }
       }
@@ -611,23 +629,21 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
     private Button createCheckButton(Composite syntaxComposite, final String key, String text) {
       final Button button = new Button(syntaxComposite, SWT.CHECK);
       button.setText(text);
-      button.setSelection(fCustomSettings.getBoolean(key));
+      button.setSelection(settings.getBoolean(key));
       button.addListener(SWT.Selection, new Listener() {
         @Override
         public void handleEvent(Event event) {
-          fCustomSettings.set(key, button.getSelection());
+          settings.set(key, button.getSelection());
         }
       });
       return button;
     }
 
     private void initializeRefactoring() {
-      CleanUpRefactoring refactoring = (CleanUpRefactoring) getRefactoring();
-      // add selected clean-ups
       refactoring.clearCleanUps();
       for (Entry<String, ICleanUp> entry : CLEAN_UPS.entrySet()) {
         String id = entry.getKey();
-        if (fCustomSettings.getBoolean(id)) {
+        if (settings.getBoolean(id)) {
           ICleanUp cleanUp = entry.getValue();
           refactoring.addCleanUp(cleanUp);
         }
@@ -635,18 +651,19 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
     }
 
     private void restoreSettings() {
-      String settings = getDialogSettings().get(CUSTOM_PROFILE_KEY);
-      fCustomSettings.decode(settings);
+      String str = getDialogSettings().get(CUSTOM_PROFILE_KEY);
+      settings.decode(str);
     }
 
     private void storeSettings() {
-      getDialogSettings().put(CUSTOM_PROFILE_KEY, fCustomSettings.encode());
+      getDialogSettings().put(CUSTOM_PROFILE_KEY, settings.encode());
     }
 
   }
 
   private static class CleanUpSettings {
     private Map<String, String> map;
+    private Map<String, String> defaultMap = Maps.newHashMap();
 
     public void decode(String settings) {
       map = Maps.newHashMap();
@@ -673,7 +690,11 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
     }
 
     public void set(String key, boolean value) {
-      map.put(key, value ? "TRUE" : null);
+      map.put(key, value ? "TRUE" : "FALSE");
+    }
+
+    public void setDefault(String key, boolean value) {
+      defaultMap.put(key, value ? "TRUE" : "FALSE");
     }
   }
 

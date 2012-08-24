@@ -26,6 +26,8 @@ import java.util.List;
 
 /**
  * In specification 1.0 M1 getter should not have parameters.
+ * 
+ * @coverage dart.editor.ui.cleanup
  */
 public class Migrate_1M1_get_CleanUp extends AbstractMigrateCleanUp {
   @Override

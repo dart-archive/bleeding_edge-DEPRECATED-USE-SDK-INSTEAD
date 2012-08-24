@@ -152,6 +152,11 @@ public interface DartLibrary extends OpenableElement, ParentElement {
   public DartImport[] getImports() throws DartModelException;
 
   /**
+   * @return the name specified in "library" directive, may be <code>null</code>.
+   */
+  public String getLibraryDirectiveName() throws DartModelException;
+
+  /**
    * Return a possibly empty list of the libraries that reference this library.
    * 
    * @return a list of the libraries that reference this library

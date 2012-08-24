@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
@@ -41,8 +43,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-
-import static org.fest.assertions.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -658,6 +658,44 @@ public class DartLibraryImplTest extends TestCase {
     DartLibrary[] importedLibraries = getDartLibExternal().getImportedLibraries();
     assertContainsLibImpl(importedLibraries, "/empty/empty.dart");
     assertEquals(1, importedLibraries.length);
+  }
+
+  /**
+   * Test for {@link DartLibrary#getLibraryDirectiveName()}.
+   */
+  public void test_DartLibraryImpl_getLibraryDirectiveName_new() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResource = testProject.setUnitContent(
+          "Test.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "library test.lib.name;",
+              "")).getResource();
+      DartLibrary library = testProject.getDartProject().getDartLibrary(libResource);
+      assertEquals("test.lib.name", library.getLibraryDirectiveName());
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  /**
+   * Test for {@link DartLibrary#getLibraryDirectiveName()}.
+   */
+  public void test_DartLibraryImpl_getLibraryDirectiveName_old() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResource = testProject.setUnitContent(
+          "Test.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('test.lib.name');",
+              "")).getResource();
+      DartLibrary library = testProject.getDartProject().getDartLibrary(libResource);
+      assertEquals("test.lib.name", library.getLibraryDirectiveName());
+    } finally {
+      testProject.dispose();
+    }
   }
 
   public void test_DartLibraryImpl_hasMain_lib1() throws Exception {

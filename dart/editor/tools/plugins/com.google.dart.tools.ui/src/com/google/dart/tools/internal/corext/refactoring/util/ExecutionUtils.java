@@ -129,4 +129,15 @@ public class ExecutionUtils {
     }
   }
 
+  /**
+   * Runs given {@link RunnableEx} and re-throws exceptions as {@link CoreException}.
+   */
+  public static void runRethrowCore(RunnableEx runnable) throws CoreException {
+    try {
+      runnable.run();
+    } catch (Throwable e) {
+      throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, e.getMessage(), e));
+    }
+  }
+
 }

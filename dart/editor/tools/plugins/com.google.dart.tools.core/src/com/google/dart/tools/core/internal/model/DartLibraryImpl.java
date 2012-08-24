@@ -473,6 +473,12 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     }
   }
 
+  @Override
+  public String getLibraryDirectiveName() throws DartModelException {
+    DartLibraryInfo info = (DartLibraryInfo) getElementInfo();
+    return info.getName();
+  }
+
   /**
    * Return the structured representation of the library file that defines this library.
    * 
