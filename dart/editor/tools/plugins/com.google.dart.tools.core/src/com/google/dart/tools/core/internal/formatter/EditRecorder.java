@@ -80,6 +80,14 @@ public class EditRecorder {
 //    this.alignment = new Alignment(Alignment.MESSAGE_SEND, 0, 0, null, 0, 0, 0); // TODO(messick): need new Alignment class.
   }
 
+  public void advance(String token) {
+    if (this.token.getLexeme().equals(token)) {
+      advance(this.token);
+    } else {
+      wrongToken(token);
+    }
+  }
+
   public void advance(Token token) {
     if (this.token.equals(token)) {
       // TODO(messick) emit comments
@@ -92,7 +100,7 @@ public class EditRecorder {
       advance(len);
       this.token = this.token.getNext();
     } else {
-      throw new IllegalStateException("unexpected token: " + token.getLexeme());
+      wrongToken(token.getLexeme());
     }
   }
 
@@ -316,5 +324,9 @@ public class EditRecorder {
 
   private boolean isSpaceAt(int index) {
     return source.charAt(index) == ' ';
+  }
+
+  private void wrongToken(String token) {
+    throw new IllegalStateException("unexpected token: " + token);
   }
 }

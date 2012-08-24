@@ -19,8 +19,14 @@ import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.ExtendsClause;
+import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.TypeArgumentList;
+import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.TypeParameter;
+import com.google.dart.engine.ast.TypeParameterList;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.scanner.Token;
 
@@ -69,6 +75,7 @@ public class FormattingEngine extends RecursiveASTVisitor<Void> {
     }
     if (node.getExtendsClause() != null) {
       node.getExtendsClause().accept(this);
+      recorder.space();
     }
     if (node.getImplementsClause() != null) {
       node.getImplementsClause().accept(this);
@@ -101,7 +108,24 @@ public class FormattingEngine extends RecursiveASTVisitor<Void> {
     NodeList<CompilationUnitMember> nodes = node.getDeclarations();
     for (CompilationUnitMember element : nodes) {
       element.accept(this);
+      recorder.newline();
     }
+    return null;
+  }
+
+  @Override
+  public Void visitExtendsClause(ExtendsClause node) {
+    recorder.advance(node.getKeyword());
+    recorder.space();
+    node.getSuperclass().accept(this);
+    return null;
+  }
+
+  @Override
+  public Void visitImplementsClause(ImplementsClause node) {
+    recorder.advance(node.getKeyword());
+    recorder.space();
+    visitNodeList(node.getInterfaces(), ",");
     return null;
   }
 
@@ -109,5 +133,53 @@ public class FormattingEngine extends RecursiveASTVisitor<Void> {
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     recorder.advance(node.getToken());
     return null;
+  }
+
+  @Override
+  public Void visitTypeArgumentList(TypeArgumentList node) {
+    recorder.advance(node.getLeftBracket());
+    NodeList<TypeName> types = node.getArguments();
+    visitNodeList(types, ",");
+//    types.get(0).accept(this);
+//    for (int i = 1; i < types.size(); i++) {
+//      recorder.advance(",");
+//      recorder.space();
+//      types.get(i).accept(this);
+//    }
+    recorder.advance(node.getRightBracket());
+    return null;
+  }
+
+  @Override
+  public Void visitTypeName(TypeName node) {
+    node.getName().accept(this);
+    if (node.getTypeArguments() != null) {
+      node.getTypeArguments().accept(this);
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitTypeParameterList(TypeParameterList node) {
+    recorder.advance(node.getLeftBracket());
+    NodeList<TypeParameter> types = node.getTypeParameters();
+    visitNodeList(types, ",");
+//    types.get(0).accept(this);
+//    for (int i = 1; i < types.size(); i++) {
+//      recorder.advance(",");
+//      recorder.space();
+//      types.get(i).accept(this);
+//    }
+    recorder.advance(node.getRightBracket());
+    return null;
+  }
+
+  private void visitNodeList(NodeList<? extends ASTNode> types, String separatedBy) {
+    types.get(0).accept(this);
+    for (int i = 1; i < types.size(); i++) {
+      recorder.advance(separatedBy);
+      recorder.space();
+      types.get(i).accept(this);
+    }
   }
 }
