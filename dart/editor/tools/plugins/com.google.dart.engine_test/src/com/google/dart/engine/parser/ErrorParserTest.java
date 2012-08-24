@@ -35,6 +35,18 @@ public class ErrorParserTest extends ParserTestCase {
     assertTrue(literal.isSynthetic());
   }
 
+  public void fail_multiplePartOfDirectives() throws Exception {
+    parse(
+        "parseCompilationUnit",
+        "part of l; part of m;",
+        ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES);
+  }
+
+  public void fail_unexpectedToken_invalidPostfixExpression() throws Exception {
+    // Note: this might not be the right error to produce, but some error should be produced
+    parse("parseExpression", "f()++", ParserErrorCode.UNEXPECTED_TOKEN);
+  }
+
   public void test_breakOutsideOfLoop_breakInDoStatement() throws Exception {
     parse("parseDoStatement", "do {break;} while (x);");
   }
@@ -108,7 +120,7 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseTypeAlias", "typedef as();", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
   }
 
-  public void test_builtInIdentifierAsTypeName_classDeclaration() throws Exception {
+  public void test_builtInIdentifierAsTypeName() throws Exception {
     parse("parseClassDeclaration", "class as {}", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
   }
 
@@ -125,29 +137,6 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_builtInIdentifierAsVariableName_variable() throws Exception {
     parse("parseVariableDeclaration", "as", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_VARIABLE_NAME);
-  }
-
-  public void test_catchOrFinallyExpected() throws Exception {
-    TryStatement statement = parse(
-        "parseTryStatement",
-        "try {}",
-        ParserErrorCode.CATCH_OR_FINALLY_EXPECTED);
-    assertNotNull(statement);
-  }
-
-  public void test_continueInCaseMustHaveLabel_error() throws Exception {
-    parse(
-        "parseSwitchStatement",
-        "switch (x) {case 1: continue;}",
-        ParserErrorCode.CONTINUE_IN_CASE_MUST_HAVE_LABEL);
-  }
-
-  public void test_continueInCaseMustHaveLabel_noError() throws Exception {
-    parse("parseSwitchStatement", "switch (x) {case 1: continue a;}");
-  }
-
-  public void test_continueInCaseMustHaveLabel_noError_switchInLoop() throws Exception {
-    parse("parseWhileStatement", "while (a) { switch (b) {default: continue;}}");
   }
 
   public void test_continueOutsideOfLoop_continueInDoStatement() throws Exception {
@@ -178,19 +167,34 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseStatement", "() {for (; x;) {continue;}};");
   }
 
-  public void test_directiveOutOfOrder_classBeforeDirective() throws Exception {
+  public void test_continueWithoutLabelInCase_error() throws Exception {
+    parse(
+        "parseSwitchStatement",
+        "switch (x) {case 1: continue;}",
+        ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE);
+  }
+
+  public void test_continueWithoutLabelInCase_noError() throws Exception {
+    parse("parseSwitchStatement", "switch (x) {case 1: continue a;}");
+  }
+
+  public void test_continueWithoutLabelInCase_noError_switchInLoop() throws Exception {
+    parse("parseWhileStatement", "while (a) { switch (b) {default: continue;}}");
+  }
+
+  public void test_directiveAfterDeclaration_classBeforeDirective() throws Exception {
     CompilationUnit unit = parse(
         "parseCompilationUnit",
-        "class Foo{}\nlibrary l;",
-        ParserErrorCode.DIRECTIVE_OUT_OF_ORDER);
+        "class Foo{} library l;",
+        ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
     assertNotNull(unit);
   }
 
-  public void test_directiveOutOfOrder_classBetweenDirectives() throws Exception {
+  public void test_directiveAfterDeclaration_classBetweenDirectives() throws Exception {
     CompilationUnit unit = parse(
         "parseCompilationUnit",
         "library l;\nclass Foo{}\npart 'a.dart';",
-        ParserErrorCode.DIRECTIVE_OUT_OF_ORDER);
+        ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
     assertNotNull(unit);
   }
 
@@ -233,44 +237,51 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseStatement", "do {} (x);", ParserErrorCode.EXPECTED_TOKEN);
   }
 
-  public void test_noUnaryPlusOperator() throws Exception {
-    parse("parseUnaryExpression", "+x", ParserErrorCode.NO_UNARY_PLUS_OPERATOR);
+  public void test_missingCatchOrFinally() throws Exception {
+    TryStatement statement = parse(
+        "parseTryStatement",
+        "try {}",
+        ParserErrorCode.MISSING_CATCH_OR_FINALLY);
+    assertNotNull(statement);
   }
 
-  public void test_onlyOneLibraryDirective() throws Exception {
-    CompilationUnit unit = parse(
+  public void test_multipleLibraryDirectives() throws Exception {
+    parse(
         "parseCompilationUnit",
-        "library l;library m;",
-        ParserErrorCode.ONLY_ONE_LIBRARY_DIRECTIVE);
-    assertNotNull(unit);
+        "library l; library m;",
+        ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
   }
 
-  public void test_operatorCannotBeStatic_noReturnType() throws Exception {
-    parse(
-        "parseClassMember",
-        "static operator +(int x) => x + 1;",
-        ParserErrorCode.OPERATOR_CANNOT_BE_STATIC);
-  }
-
-  public void test_operatorCannotBeStatic_returnType() throws Exception {
-    parse(
-        "parseClassMember",
-        "static int operator +(int x) => x + 1;",
-        ParserErrorCode.OPERATOR_CANNOT_BE_STATIC);
-  }
-
-  public void test_operatorIsNotUserDefinable() throws Exception {
+  public void test_nonUserDefinableOperator() throws Exception {
     parse(
         "parseClassMember",
         "operator +=(int x) => x + 1;",
-        ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE);
+        ParserErrorCode.NON_USER_DEFINABLE_OPERATOR);
   }
 
   public void test_positionalAfterNamedArgument() throws Exception {
     parse("parseArgumentList", "(x: 1, 2)", ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
   }
 
-  public void test_topLevelCannotBeStatic() throws Exception {
-    parse("parseCompilationUnitMember", "static var x;", ParserErrorCode.TOP_LEVEL_CANNOT_BE_STATIC);
+  public void test_staticOperator_noReturnType() throws Exception {
+    parse("parseClassMember", "static operator +(int x) => x + 1;", ParserErrorCode.STATIC_OPERATOR);
+  }
+
+  public void test_staticOperator_returnType() throws Exception {
+    parse(
+        "parseClassMember",
+        "static int operator +(int x) => x + 1;",
+        ParserErrorCode.STATIC_OPERATOR);
+  }
+
+  public void test_staticTopLevelDeclaration() throws Exception {
+    parse(
+        "parseCompilationUnitMember",
+        "static var x;",
+        ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
+  }
+
+  public void test_useOfUnaryPlusOperator() throws Exception {
+    parse("parseUnaryExpression", "+x", ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR);
   }
 }

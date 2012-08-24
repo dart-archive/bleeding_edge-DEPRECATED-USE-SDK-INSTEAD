@@ -19,25 +19,29 @@ import com.google.dart.engine.error.SubSystem;
 
 /**
  * The enumeration {@code ParserErrorCode} defines the error codes used for errors detected by the
- * parser.
+ * parser. The convention for this class is for the name of the error code to indicate the problem
+ * that caused the error to be generated and for the error message to explain what is wrong and,
+ * when appropriate, how the problem can be corrected.
  */
 public enum ParserErrorCode implements ErrorCode {
 //  ABSTRACT_METHOD_WITH_BODY("Abstract method cannot have a body"),
 //  ABSTRACT_TOP_LEVEL_ELEMENT("Only class can be abstract top-level element"),
-  BREAK_OUTSIDE_OF_LOOP("'break' used outside of loop or case statement"),
+  BREAK_OUTSIDE_OF_LOOP("A break statement cannot be used outside of a loop or switch statement"),
   BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME(ErrorSeverity.WARNING,
-      "Built-in identifier cannot be used as a function name"),
+      "The built-in identifier '%s' cannot be used as a function name"),
   BUILT_IN_IDENTIFIER_AS_LABEL(ErrorSeverity.WARNING,
-      "Built-in identifier cannot be used as a label"),
-  BUILT_IN_IDENTIFIER_AS_TYPE_NAME("Built-in identifier cannot be used as a type name"),
-  BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME("Built-in identifier cannot be used as a type alias name"),
+      "The built-in identifier '%s' cannot be used as a label"),
+  BUILT_IN_IDENTIFIER_AS_TYPE_NAME("The built-in identifier '%s' cannot be used as a type name"),
+  BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME(
+      "The built-in identifier '%s' cannot be used as a type alias name"),
   BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME(
-      "Built-in identifier cannot be used as a type variable name"),
+      "The built-in identifier '%s' cannot be used as a type variable name"),
   BUILT_IN_IDENTIFIER_AS_VARIABLE_NAME(ErrorSeverity.WARNING,
-      "Built-in identifier cannot be used as a variable name"),
-  CATCH_OR_FINALLY_EXPECTED("catch or finally clause expected"),
-  CONTINUE_IN_CASE_MUST_HAVE_LABEL("'continue' in case statement must have a label as a target"),
-  CONTINUE_OUTSIDE_OF_LOOP("'continue' used outside of loop or case statement"),
+      "The built-in identifier '%s' cannot be used as a variable name"),
+  CONTINUE_OUTSIDE_OF_LOOP(
+      "A continue statement cannot be used outside of a loop or switch statement"),
+  CONTINUE_WITHOUT_LABEL_IN_CASE(
+      "A continue statement in a switch statement must have a label as a target"),
 //  DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_CLOSURE(
 //      "Default values can not be specified in closure parameter"),
 //  DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_TYPEDEF(
@@ -45,7 +49,7 @@ public enum ParserErrorCode implements ErrorCode {
 //  DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),
 //  DEPRECATED_USE_OF_FACTORY_KEYWORD(ErrorSeverity.WARNING,
 //      "Deprecated use of the 'factory' keyword: use 'default' instead"),
-  DIRECTIVE_OUT_OF_ORDER("Directive out of order"),
+  DIRECTIVE_AFTER_DECLARATION("Directives must appear before any declarations"),
 //  DISALLOWED_ABSTRACT_KEYWORD("Abstract keyword not allowed here"),
 //  DISALLOWED_FACTORY_KEYWORD("Factory keyword not allowed here"),
 //  DISALLOWED_STATIC_KEYWORD("Static keyword not allowed here"),
@@ -59,13 +63,13 @@ public enum ParserErrorCode implements ErrorCode {
 //  EXPECTED_EXPRESSION_AFTER_COMMA("Expected expression after comma"),
 //  EXPECTED_EXTENDS("Expected 'extends'"),
 //  EXPECTED_FUNCTION_STATEMENT_BODY("Expected function statement body"),
-  EXPECTED_IDENTIFIER("Expected identifier"),
+  EXPECTED_IDENTIFIER("Expected an identifier"),
 //  EXPECTED_LEFT_PAREN("'(' expected"),
-  EXPECTED_LIST_OR_MAP_LITERAL("Expected list or map literal"),
+  EXPECTED_LIST_OR_MAP_LITERAL("Expected a list or map literal"),
 //  EXPECTED_PREFIX_KEYWORD("Expected 'prefix' after comma"),
 //  EXPECTED_PREFIX_IDENTIFIER("Prefix string can only contain valid identifier characters"),
 //  EXPECTED_SEMICOLON("Expected ';'"),
-  EXPECTED_STRING_LITERAL("Expected string literal"),
+  EXPECTED_STRING_LITERAL("Expected a string literal"),
 //  EXPECTED_STRING_LITERAL_MAP_ENTRY_KEY("Expected string literal for map entry key"),
   EXPECTED_TOKEN("Expected to find: %s"),
 //  EXPECTED_TOKEN("Unexpected token '%s' (expected '%s')"),
@@ -91,31 +95,35 @@ public enum ParserErrorCode implements ErrorCode {
 //  LABEL_NOT_FOLLOWED_BY_CASE_OR_DEFAULT("Label not followed by 'case', 'default', or statement"),
 //  LOCAL_CANNOT_BE_STATIC("Local function can not be static"),
 //  MISSING_FUNCTION_NAME("a function name is required for a declaration"),
+  // TODO(brianwilkerson) Improve this message. We probably need to know the context in which we are
+  // parsing the assignable selector in order to get decent messages.
   MISSING_ASSIGNABLE_SELECTOR("Missing selector such as \".<identifier>\" or \"[0]\""),
+  MISSING_CATCH_OR_FINALLY("A try statement must have either a catch or finally clause"),
+  MULTIPLE_LIBRARY_DIRECTIVES("Only one library directive may be declared in a file"),
+  MULTIPLE_PART_OF_DIRECTIVES("Only one part-of directive may be declared in a file"),
 //  NAMED_PARAMETER_NOT_ALLOWED("Named parameter is not allowed for operator or setter method"),
 //  NO_SPACE_AFTER_PLUS("Cannot have space between plus and numeric literal"),
 //  NO_SOUP_FOR_YOU("Too many errors"),
-  NO_UNARY_PLUS_OPERATOR("No unary plus operator in Dart"),
-  ONLY_ONE_LIBRARY_DIRECTIVE("Only one library directive may be declared in a file"),
-  OPERATOR_CANNOT_BE_STATIC("Operators cannot be static"),
-  OPERATOR_IS_NOT_USER_DEFINABLE("Operator is not user definable"),
-  POSITIONAL_AFTER_NAMED_ARGUMENT("Positional argument after named argument"),
+  NON_USER_DEFINABLE_OPERATOR("The operator '%s' is not user definable"),
+  POSITIONAL_AFTER_NAMED_ARGUMENT("Positional arguments must occur before named arguments"),
 //  REDIRECTING_CONSTRUCTOR_CANNOT_HAVE_A_BODY("Redirecting constructor cannot have a body"),
 //  REDIRECTING_CONSTRUCTOR_PARAM("Redirecting constructor can not have initializers"),
 //  REDIRECTING_CONSTRUCTOR_ITSELF("Redirecting constructor can not have initializers"),
 //  REDIRECTING_CONSTRUCTOR_MULTIPLE("Multiple redirecting constructor invocations"),
 //  REDIRECTING_CONSTRUCTOR_OTHER("Redirecting constructor can not have initializers"),
 //  STATIC_MEMBERS_CANNOT_BE_ABSTRACT("Static members cannot be abstract"),
+  STATIC_OPERATOR("Operators cannot be static"),
+  STATIC_TOP_LEVEL_DECLARATION("Top-level fields and methods cannot be static"),
 //  SUPER_CONSTRUCTOR_MULTIPLE("'super' must be called only once in the initialization list"),
 //  SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND(
 //      "'super' cannot be used as the second operand in a binary expression."),
 //  SUPER_IS_NOT_VALID_AS_A_BOOLEAN_OPERAND("'super' is not valid as a boolean operand"),
 //  SUPER_IS_NOT_VALID_ALONE_OR_AS_A_BOOLEAN_OPERAND(
 //      "'super' is not valid alone or as a boolean operand"),
-  TOP_LEVEL_CANNOT_BE_STATIC("Top-level field or method cannot be static"),
 //  UNREACHABLE_CODE_IN_CASE(ErrorSeverity.WARNING, "Unreachable code in case statement"),
-  UNEXPECTED_TOKEN("Unexpected token '%s'");
+  UNEXPECTED_TOKEN("Unexpected token '%s'"),
 //  UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION("Unexpected token in string interpolation: %s"),
+  USE_OF_UNARY_PLUS_OPERATOR("There is no unary plus operator in Dart");
 //  VAR_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION("'var' is not allowed on a method definition"),
 //  VOID_FIELD("Field cannot be of type void"),
 //  VOID_PARAMETER("Parameter cannot be of type void");
