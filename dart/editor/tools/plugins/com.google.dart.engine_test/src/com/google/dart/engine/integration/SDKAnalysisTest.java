@@ -20,6 +20,8 @@ import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
 import com.google.dart.engine.parser.ASTValidator;
 import com.google.dart.engine.parser.Parser;
+//import com.google.dart.engine.parser.ParserErrorCode;
+import com.google.dart.engine.provider.CompilationUnitProvider;
 import com.google.dart.engine.scanner.CharBufferScanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.sdk.DartSdk;
@@ -118,12 +120,12 @@ public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
     //
     // Build the element model for the compilation unit.
     //
-    CompilationUnitBuilder builder = new CompilationUnitBuilder() {
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(new CompilationUnitProvider() {
       @Override
-      protected CompilationUnit getCompilationUnit(Source source) {
+      public CompilationUnit getCompilationUnit(Source source) {
         return unit;
       }
-    };
+    });
     CompilationUnitElement element = builder.buildCompilationUnit(source);
     Assert.assertNotNull(element);
   }
