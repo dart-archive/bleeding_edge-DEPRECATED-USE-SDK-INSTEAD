@@ -89,7 +89,9 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
 
   @Override
   public String getName() throws DebugException {
-    return "dart-0";
+    // TODO(devoncarew): we need to be able to retrieve the list of isolates from the VM.
+
+    return "isolate-0" + (isSuspended() ? " [suspended]" : "");
   }
 
   @Override

@@ -14,12 +14,16 @@
 
 package com.google.dart.tools.debug.ui.internal.presentation;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugVariable;
 import com.google.dart.tools.debug.core.server.ServerDebugVariable;
 
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.core.runtime.IAdapterManager;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.Launch;
+import org.eclipse.debug.internal.ui.viewers.model.provisional.IElementContentProvider;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IElementLabelProvider;
 
 /**
@@ -37,10 +41,17 @@ public class DebugElementAdapterFactory implements IAdapterFactory {
 
     manager.registerAdapters(factory, DartiumDebugVariable.class);
     manager.registerAdapters(factory, ServerDebugVariable.class);
+
+    if (!DartCore.isPluginsBuild()) {
+      manager.registerAdapters(factory, Launch.class);
+    }
   }
 
   private DartiumVariableLabelProvider dartiumLabelProvider = new DartiumVariableLabelProvider();
   private ServerVariableLabelProvider serverLabelProvider = new ServerVariableLabelProvider();
+
+  private static IElementContentProvider launchContentProvider = new DartLaunchContentProvider();
+  private static IElementLabelProvider debugElementLabelProvider = new DartLaunchElementLabelProvider();
 
   public DebugElementAdapterFactory() {
 
@@ -61,13 +72,25 @@ public class DebugElementAdapterFactory implements IAdapterFactory {
       }
     }
 
+    if (adapterType.equals(IElementContentProvider.class)) {
+      if (adaptableObject instanceof ILaunch) {
+        return launchContentProvider;
+      }
+    }
+
+    if (adapterType.equals(IElementLabelProvider.class)) {
+      if (adaptableObject instanceof ILaunch) {
+        return debugElementLabelProvider;
+      }
+    }
+
     return null;
   }
 
   @SuppressWarnings("rawtypes")
   @Override
   public Class[] getAdapterList() {
-    return new Class[] {IElementLabelProvider.class};
+    return new Class[] {IElementLabelProvider.class, IElementContentProvider.class};
   }
 
 }

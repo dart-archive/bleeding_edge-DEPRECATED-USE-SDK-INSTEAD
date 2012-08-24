@@ -92,7 +92,9 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public String getName() throws DebugException {
-    return "Call Stack";
+    // TODO(devoncarew): we need to be able to retrieve the list of isolates from the VM.
+
+    return "isolate-0" + (isSuspended() ? " [suspended]" : "");
   }
 
   @Override
