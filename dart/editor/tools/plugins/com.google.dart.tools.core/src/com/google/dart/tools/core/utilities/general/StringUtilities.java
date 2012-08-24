@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -12,6 +12,9 @@
  * the License.
  */
 package com.google.dart.tools.core.utilities.general;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class StringUtilities {
 
@@ -170,6 +173,46 @@ public final class StringUtilities {
    */
   public static boolean isNotEmpty(String str) {
     return !isEmpty(str);
+  }
+
+  /**
+   * Convert an argument string into a list of arguments. This essentially splits on the space char,
+   * with handling for quotes and escaped quotes.
+   * <p>
+   * <ul>
+   * <li>foo bar baz ==> [foo][bar][baz]
+   * <li>foo=three bar='one two' ==> [foo=three][bar='one two']
+   * 
+   * @param command
+   * @return
+   */
+  public static String[] parseArgumentString(String command) {
+    List<String> args = new ArrayList<String>();
+
+    StringBuilder builder = new StringBuilder();
+    boolean inQuote = false;
+    boolean prevWasSlash = false;
+
+    for (final char c : command.toCharArray()) {
+      if (!prevWasSlash && (c == '\'' || c == '"')) {
+        inQuote = !inQuote;
+      }
+
+      if (c == ' ' && !inQuote) {
+        args.add(builder.toString());
+        builder.setLength(0);
+      } else {
+        builder.append(c);
+      }
+
+      prevWasSlash = c == '\\';
+    }
+
+    if (builder.length() > 0) {
+      args.add(builder.toString());
+    }
+
+    return args.toArray(new String[args.size()]);
   }
 
   /**

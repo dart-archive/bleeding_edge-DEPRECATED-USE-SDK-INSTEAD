@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.debug.core;
 
+import com.google.dart.tools.core.utilities.general.StringUtilities;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -107,7 +109,7 @@ public class DartLaunchConfigWrapper {
       return new String[0];
     }
 
-    return command.split(" ");
+    return StringUtilities.parseArgumentString(command);
   }
 
   /**
