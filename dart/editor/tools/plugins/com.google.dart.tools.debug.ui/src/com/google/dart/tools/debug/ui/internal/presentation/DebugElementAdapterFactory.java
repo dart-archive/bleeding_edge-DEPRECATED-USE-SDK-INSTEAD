@@ -47,6 +47,8 @@ public class DebugElementAdapterFactory implements IAdapterFactory {
     }
   }
 
+  private IAdapterFactory defaultAdapter = new org.eclipse.debug.internal.ui.views.launch.DebugElementAdapterFactory();
+
   private DartiumVariableLabelProvider dartiumLabelProvider = new DartiumVariableLabelProvider();
   private ServerVariableLabelProvider serverLabelProvider = new ServerVariableLabelProvider();
 
@@ -60,6 +62,15 @@ public class DebugElementAdapterFactory implements IAdapterFactory {
   @SuppressWarnings("rawtypes")
   @Override
   public Object getAdapter(Object adaptableObject, Class adapterType) {
+    if (adapterType.equals(IElementContentProvider.class)) {
+      if (adaptableObject instanceof ILaunch) {
+        return launchContentProvider;
+      }
+
+      // If we don't return the default debug adapter we won't be able to expand any variables.
+      return defaultAdapter.getAdapter(adaptableObject, adapterType);
+    }
+
     if (adaptableObject instanceof DartiumDebugVariable) {
       if (adapterType == IElementLabelProvider.class) {
         return dartiumLabelProvider;
@@ -69,12 +80,6 @@ public class DebugElementAdapterFactory implements IAdapterFactory {
     if (adaptableObject instanceof ServerDebugVariable) {
       if (adapterType == IElementLabelProvider.class) {
         return serverLabelProvider;
-      }
-    }
-
-    if (adapterType.equals(IElementContentProvider.class)) {
-      if (adaptableObject instanceof ILaunch) {
-        return launchContentProvider;
       }
     }
 
@@ -90,7 +95,11 @@ public class DebugElementAdapterFactory implements IAdapterFactory {
   @SuppressWarnings("rawtypes")
   @Override
   public Class[] getAdapterList() {
-    return new Class[] {IElementLabelProvider.class, IElementContentProvider.class};
+    if (DartCore.isPluginsBuild()) {
+      return new Class[] {IElementLabelProvider.class};
+    } else {
+      return new Class[] {IElementLabelProvider.class, IElementContentProvider.class};
+    }
   }
 
 }
