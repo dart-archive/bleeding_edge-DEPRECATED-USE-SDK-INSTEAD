@@ -340,7 +340,7 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   public void test_getType_typedLiteral_List_noTypeArgument() throws Exception {
-    assertTypeSimple("List", "[1, 2, 3]");
+    assertTypeSimple("List<int>", "[1, 2, 3]");
   }
 
   public void test_getType_typedLiteral_List_withTypeArgument() throws Exception {
@@ -348,11 +348,11 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   public void test_getType_typedLiteral_Map_noTypeArgument() throws Exception {
-    assertTypeSimple("Map<String, Dynamic>", "{'a' : 1, 'b' : 2, 'c' : 3}");
+    assertTypeSimple("Map<String, int>", "{'a' : 1, 'b' : 2, 'c' : 3}");
   }
 
   public void test_getType_typedLiteral_Map_withTypeArgument() throws Exception {
-    assertTypeSimple("Map<String, int>", "<int>{'a' : 1, 'b' : 2, 'c' : 3}");
+    assertTypeSimple("Map<String, int>", "<String, int>{'a' : 1, 'b' : 2, 'c' : 3}");
   }
 
   public void test_getType_unaryExpression_BIT_NOT() throws Exception {
