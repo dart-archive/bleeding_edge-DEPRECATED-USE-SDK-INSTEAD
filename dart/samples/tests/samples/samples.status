@@ -62,7 +62,7 @@ swarm/swarm_test: Skip # Issue 3152: Timeout $.window().get$location().get$proto
 [ $compiler == dart2js && $runtime == drt && $system == windows ]
 swarm/swarm_test: Fail # Issue 4517
 
-[ $compiler == dart2js ]
+[ $compiler == dart2js && $host_checked ]
 # This test occasionally timeout.
 samples/lib/layout/layout_test: Slow
 
