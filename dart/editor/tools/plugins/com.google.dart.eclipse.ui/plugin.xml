@@ -269,7 +269,7 @@
   <extension
         point="org.eclipse.ui.ide.projectNatureImages">
      <image
-           icon="icons/dart_ovr.gif"
+           icon="icons/dart-nature.png"
            id="com.google.dart.eclipse.ui.projectNatureImage"
            natureId="com.google.dart.tools.core.dartNature">
      </image>
