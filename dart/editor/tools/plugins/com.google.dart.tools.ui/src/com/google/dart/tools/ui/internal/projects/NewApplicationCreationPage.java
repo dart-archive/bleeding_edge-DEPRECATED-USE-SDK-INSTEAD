@@ -96,6 +96,7 @@ public class NewApplicationCreationPage extends WizardPage {
 
     projectNameField = new Text(container, SWT.BORDER);
     projectNameField.setText(""); //$NON-NLS-1$
+    projectNameField.setToolTipText(ProjectMessages.NewApplicationWizardPage_project_name_tooltip);
     projectNameField.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
     projectNameField.addFocusListener(new FocusAdapter() {
       @Override
@@ -115,6 +116,7 @@ public class NewApplicationCreationPage extends WizardPage {
 
     projectLocationField = new Text(container, SWT.BORDER);
     projectLocationField.setText(defaultLocation);
+    projectLocationField.setToolTipText(ProjectMessages.NewApplicationWizardPage_directory_tooltip);
     projectLocationField.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
     projectLocationField.addFocusListener(new FocusAdapter() {
       @Override
