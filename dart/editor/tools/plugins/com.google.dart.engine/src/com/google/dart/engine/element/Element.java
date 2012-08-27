@@ -76,6 +76,13 @@ public interface Element {
   public ElementLocation getLocation();
 
   /**
+   * Return an array containing all of the metadata associated with this element.
+   * 
+   * @return the metadata associated with this element
+   */
+  public Annotation[] getMetadata();
+
+  /**
    * Return the name of this element.
    * 
    * @return the name of this element

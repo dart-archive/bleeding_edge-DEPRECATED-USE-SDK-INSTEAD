@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.LibraryElement;
@@ -47,6 +48,11 @@ public abstract class ElementImpl implements Element {
    * A bit-encoded form of the modifiers associated with this element.
    */
   private EnumSet<Modifier> modifiers;
+
+  /**
+   * An array containing all of the metadata associated with this element.
+   */
+  private Annotation[] metadata = AnnotationImpl.EMPTY_ARRAY;
 
   /**
    * Initialize a newly created element to have the given name.
@@ -106,6 +112,11 @@ public abstract class ElementImpl implements Element {
   }
 
   @Override
+  public Annotation[] getMetadata() {
+    return metadata;
+  }
+
+  @Override
   public String getName() {
     return name;
   }
@@ -123,6 +134,15 @@ public abstract class ElementImpl implements Element {
   @Override
   public boolean isSynthetic() {
     return hasModifier(Modifier.SYNTHETIC);
+  }
+
+  /**
+   * Set the metadata associate with this element to the given array of annotations.
+   * 
+   * @param metadata the metadata to be associated with this element
+   */
+  public void setMetadata(Annotation[] metadata) {
+    this.metadata = metadata;
   }
 
   /**
