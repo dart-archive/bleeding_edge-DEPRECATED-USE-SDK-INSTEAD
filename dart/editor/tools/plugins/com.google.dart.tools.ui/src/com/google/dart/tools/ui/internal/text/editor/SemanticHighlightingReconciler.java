@@ -50,6 +50,13 @@ import java.util.List;
 public class SemanticHighlightingReconciler implements IDartReconcilingListener, ITextInputListener {
 
   /**
+   * Tests if a highlighting consumes a given token.
+   */
+  private static interface NodeTester<T extends DartNode> {
+    boolean consumes(SemanticHighlighting h, SemanticToken<T> token);
+  }
+
+  /**
    * Collects positions from the AST.
    */
   private class PositionCollector extends ASTVisitor<Void> {
@@ -57,7 +64,6 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     //result holders cached and reused for performance
     private final SemanticToken<DartIdentifier> identifierToken = new SemanticToken<DartIdentifier>();
 
-    //    private final SemanticToken<DartLiteral> literalToken = new SemanticToken<DartLiteral>();
     private final SemanticToken<DartDirective> directiveToken = new SemanticToken<DartDirective>();
 
     @Override
@@ -182,105 +188,65 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
       }
     }
 
-//    /**
-//     * Retain the positions completely contained in the given range.
-//     * 
-//     * @param offset The range offset
-//     * @param length The range length
-//     */
-//    private void retainPositions(int offset, int length) {
-//      // TODO: use binary search
-//      for (int i = 0, n = fRemovedPositions.size(); i < n; i++) {
-//        HighlightedPosition position = (HighlightedPosition) fRemovedPositions.get(i);
-//        if (position != null && position.isContained(offset, length)) {
-//          fRemovedPositions.set(i, null);
-//          fNOfRemovedPositions--;
-//        }
-//      }
-//    }
-
-//    private boolean visitLiteralNode(DartExpression node) {
-//      fToken.update(node);
-//      for (int i = 0, n = fJobSemanticHighlightings.length; i < n; i++) {
-//        SemanticHighlighting semanticHighlighting = fJobSemanticHighlightings[i];
-//        if (fJobHighlightings[i].isEnabled() && semanticHighlighting.consumesLiteral(fToken)) {
-//          int offset = node.getSourceInfo().getOffset();
-//          int length = node.getSourceInfo().getLength();
-//          if (offset > -1 && length > 0) {
-//            addPosition(offset, length, fJobHighlightings[i]);
-//          }
-//          break;
-//        }
-//      }
-//      fToken.clear();
-//      return false;
-//    }
   }
 
-  /**
-   * Tests if a highlighting consumes a given token.
-   */
-  private static interface Predicate<T extends DartNode> {
-    boolean consumes(SemanticHighlighting h, SemanticToken<T> token);
-  }
-
-  private static final Predicate<DartDirective> LIBRARY_DIRECTIVE_TEST = new Predicate<DartDirective>() {
+  private static final NodeTester<DartDirective> LIBRARY_DIRECTIVE_TEST = new NodeTester<DartDirective>() {
     @Override
     public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
       return h.consumesLibraryDirective(token);
     }
   };
 
-  private static final Predicate<DartDirective> PART_OF_DIRECTIVE_TEST = new Predicate<DartDirective>() {
+  private static final NodeTester<DartDirective> PART_OF_DIRECTIVE_TEST = new NodeTester<DartDirective>() {
     @Override
     public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
       return h.consumesPartOfDirective(token);
     }
   };
 
-  private static final Predicate<DartDirective> OF_CLAUSE_TEST = new Predicate<DartDirective>() {
+  private static final NodeTester<DartDirective> OF_CLAUSE_TEST = new NodeTester<DartDirective>() {
     @Override
     public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
       return h.consumesOfClause(token);
     }
   };
 
-  private static final Predicate<DartDirective> SHOW_CLAUSE_TEST = new Predicate<DartDirective>() {
+  private static final NodeTester<DartDirective> SHOW_CLAUSE_TEST = new NodeTester<DartDirective>() {
     @Override
     public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
       return h.consumesShowClause(token);
     }
   };
 
-  private static final Predicate<DartDirective> HIDE_CLAUSE_TEST = new Predicate<DartDirective>() {
+  private static final NodeTester<DartDirective> HIDE_CLAUSE_TEST = new NodeTester<DartDirective>() {
     @Override
     public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
       return h.consumesHideClause(token);
     }
   };
 
-  private static final Predicate<DartDirective> EXPORT_CLAUSE_TEST = new Predicate<DartDirective>() {
+  private static final NodeTester<DartDirective> EXPORT_CLAUSE_TEST = new NodeTester<DartDirective>() {
     @Override
     public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
       return h.consumesExportClause(token);
     }
   };
 
-  private static final Predicate<DartDirective> PART_DIRECTIVE_TEST = new Predicate<DartDirective>() {
+  private static final NodeTester<DartDirective> PART_DIRECTIVE_TEST = new NodeTester<DartDirective>() {
     @Override
     public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
       return h.consumesPartDirective(token);
     }
   };
 
-  private static final Predicate<DartDirective> IMPORT_DIRECTIVE_TEST = new Predicate<DartDirective>() {
+  private static final NodeTester<DartDirective> IMPORT_DIRECTIVE_TEST = new NodeTester<DartDirective>() {
     @Override
     public boolean consumes(SemanticHighlighting h, SemanticToken<DartDirective> token) {
       return h.consumesImportDirective(token);
     }
   };
 
-  private static final Predicate<DartIdentifier> IDENTIFIER_TEST = new Predicate<DartIdentifier>() {
+  private static final NodeTester<DartIdentifier> IDENTIFIER_TEST = new NodeTester<DartIdentifier>() {
     @Override
     public boolean consumes(SemanticHighlighting h, SemanticToken<DartIdentifier> token) {
       return h.consumesIdentifier(token);
@@ -288,7 +254,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
   };
 
   private static <T extends DartNode> void processNode(SemanticToken<T> token, T node,
-      SemanticHighlightingReconciler reconciler, PositionCollector collector, Predicate<T> tester) {
+      SemanticHighlightingReconciler reconciler, PositionCollector collector, NodeTester<T> tester) {
     token.update(node);
     token.attachSource(reconciler.fSourceViewer.getDocument());
     for (int i = 0, n = reconciler.fJobSemanticHighlightings.length; i < n; i++) {
@@ -309,32 +275,41 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
   /** Position collector */
   private PositionCollector fCollector = new PositionCollector();
 
-  /** The Java editor this semantic highlighting reconciler is installed on */
+  /** The Dart editor on which this semantic highlighting reconciler is installed */
   private DartEditor fEditor;
+
   /** The source viewer this semantic highlighting reconciler is installed on */
   private ISourceViewer fSourceViewer;
+
   /** The semantic highlighting presenter */
   private SemanticHighlightingPresenter fPresenter;
+
   /** Semantic highlightings */
   private SemanticHighlighting[] fSemanticHighlightings;
+
   /** Highlightings */
   private Highlighting[] fHighlightings;
 
   /** Background job's added highlighted positions */
   private List<Position> fAddedPositions = new ArrayList<Position>();
+
   /** Background job's removed highlighted positions */
   private List<Position> fRemovedPositions = new ArrayList<Position>();
+
   /** Number of removed positions */
   private int fNOfRemovedPositions;
 
   /** Background job */
   private Job fJob;
+
   /** Background job lock */
   private final Object fJobLock = new Object();
+
   /**
    * Reconcile operation lock.
    */
   private final Object fReconcileLock = new Object();
+
   /**
    * <code>true</code> if any thread is executing <code>reconcile</code>, <code>false</code>
    * otherwise.
@@ -346,11 +321,13 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
    * {@link #reconciled(DartUnit, boolean, IProgressMonitor)}
    */
   private SemanticHighlightingPresenter fJobPresenter;
+
   /**
    * Semantic highlightings - cache for background thread, only valid during
    * {@link #reconciled(DartUnit, boolean, IProgressMonitor)}
    */
   private SemanticHighlighting[] fJobSemanticHighlightings;
+
   /**
    * Highlightings - cache for background thread, only valid during
    * {@link #reconciled(DartUnit, boolean, IProgressMonitor)}
