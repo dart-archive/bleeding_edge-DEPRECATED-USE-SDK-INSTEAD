@@ -13,25 +13,21 @@
  */
 package com.google.dart.eclipse.ui.internal.navigator;
 
-import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.ui.internal.filesview.FilesViewerComparator;
 
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
-
-import java.util.Comparator;
 
 /**
  * Sorts dart elements in the CNF project explorer.
  */
 public class DartNavigatorViewerSorter extends ViewerSorter {
 
-  @Override
-  public int category(Object element) {
-    return (element instanceof DartLibrary) ? 2 : 1;
-  }
+  private final FilesViewerComparator comparator = new FilesViewerComparator();
 
   @Override
-  protected Comparator<?> getComparator() {
-    return String.CASE_INSENSITIVE_ORDER;
+  public int compare(Viewer viewer, Object e1, Object e2) {
+    return comparator.compare(viewer, e1, e2);
   }
 
 }
