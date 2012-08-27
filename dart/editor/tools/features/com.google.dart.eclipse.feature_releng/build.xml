@@ -206,6 +206,9 @@
                 <arg value="-source" />
                 <arg value="${build.dir}/buildRepo" />
                 
+                <arg value="-artifactrepositoryname" />
+                <arg value="dart editor" />
+                
                 <arg value="-categoryDefinition" />
                 <arg value="file:/${build.dir}/features/com.google.dart.eclipse.feature_releng/category.xml" />
                 <arg value="-categoryQualifier" />
