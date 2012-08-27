@@ -196,6 +196,10 @@ public final class StringUtilities {
     for (final char c : command.toCharArray()) {
       if (!prevWasSlash && (c == '\'' || c == '"')) {
         inQuote = !inQuote;
+        prevWasSlash = false;
+
+        // Don't include the quote char.
+        continue;
       }
 
       if (c == ' ' && !inQuote) {
