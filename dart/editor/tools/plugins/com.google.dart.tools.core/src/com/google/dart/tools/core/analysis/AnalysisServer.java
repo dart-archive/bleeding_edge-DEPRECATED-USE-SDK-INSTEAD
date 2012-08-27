@@ -341,7 +341,8 @@ public class AnalysisServer {
    */
   protected void queueAnalyzeContext() {
     if (!processor.addLastTaskAndWaitUntilRunning(savedContextAnalysisTask, 50)) {
-      DartCore.logError("Gave up waiting for " + getClass().getSimpleName() + " to start analysis");
+      DartCore.logInformation("Gave up waiting for " + getClass().getSimpleName()
+          + " to start analysis");
     }
   }
 
@@ -366,7 +367,8 @@ public class AnalysisServer {
    */
   void queueNewTask(Task task) {
     if (!processor.addNewTaskAndWaitUntilRunning(task, 50)) {
-      DartCore.logError("Gave up waiting for " + getClass().getSimpleName() + " to start analysis");
+      DartCore.logInformation("Gave up waiting for " + getClass().getSimpleName()
+          + " to start analysis");
     }
   }
 

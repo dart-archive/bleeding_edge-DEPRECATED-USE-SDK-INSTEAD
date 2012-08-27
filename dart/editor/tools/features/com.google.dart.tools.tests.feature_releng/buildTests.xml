@@ -233,6 +233,11 @@
         <unzip dest="${build.target.dropins}" > 
             <fileset dir="${build.stage.abs}/${build.pde.buildLabel}" includes="*.zip" />
         </unzip>
+        <copy todir="${build.target.abs}/eclipse">
+            <fileset dir=".">
+                <include name=".options"/>
+            </fileset>
+        </copy>
     </target>
 
     <!--

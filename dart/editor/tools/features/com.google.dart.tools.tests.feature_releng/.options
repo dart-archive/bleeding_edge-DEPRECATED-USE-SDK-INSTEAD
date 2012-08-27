@@ -1,0 +1,5 @@
+#
+# Internal options used when running tests
+#
+
+com.google.dart.tools.core/debug/verbose = true

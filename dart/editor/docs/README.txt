@@ -235,12 +235,35 @@ See dart/editor/tools/plugins/com.google.dart.tools.core/.options
 
 Setup your <username>.properties file as described above in "Installing Dart SDK and Dartium"
 
+In a similar fashion create a new <username>.<build-os>.properties file in the same directory
+as the <username>.properties file with content copied from chrome-bot.<build-os>.properties
+
 Run the build_rcp.xml ant script in the com.google.dart.tools.deploy.feature_releng project
-(ant -f build_rcp.xml). It will create Windows, Linux, and Mac builds in the 'out' directory
+
+    ant -f build_rcp.xml -Dbuild.os=<os>
+  where <os> is one of
+    linux
+    macos
+    win32
+
+It will create Windows, Linux, and Mac builds in the 'out' directory
 of the build directory specified above.
 
 ====================================
-Running SWTBot UI tests
+  Build/Run Dart Editor Tests
+====================================
+
+After building the Dart editor as described above,
+run the buildTests.xml ant script in the com.google.dart.tools.tests.feature_releng project
+
+    ant -f buildTest.xml -Dbuild.os=<os>
+  where <os> is one of
+    linux
+    macos
+    win32
+
+====================================
+  Running SWTBot UI tests
 ====================================
 
 Install SWTBot (see optional installation step above)

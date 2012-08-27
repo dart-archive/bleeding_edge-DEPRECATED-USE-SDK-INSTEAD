@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.test.util;
 
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.runtime.ILog;
@@ -22,8 +23,6 @@ import org.osgi.framework.Bundle;
 
 import static org.junit.Assert.fail;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 
 /**
@@ -74,25 +73,22 @@ public class DartCoreTestLog implements ILog {
       content.clear();
       return;
     }
-    StringWriter sw = new StringWriter(1000);
-    PrintWriter pw = new PrintWriter(sw);
-    pw.println("Expected " + severities.length + " log entries, but found " + content.size());
+    PrintStringWriter psw = new PrintStringWriter();
+    psw.println("Expected " + severities.length + " log entries, but found " + content.size());
     if (severities.length > 0) {
-      pw.println("  expected:");
+      psw.println("  expected:");
       for (int severity : severities) {
-        pw.println("    Status " + severityToString(severity));
+        psw.println("    Status " + severityToString(severity));
       }
     }
     if (content.size() > 0) {
-      ILog eclipseLog = DartCore.getPlugin().getLog();
-      pw.println("  found:");
+      psw.println("  found:");
       for (IStatus status : content) {
-        pw.println("    " + status);
-        eclipseLog.log(status);
+        psw.println("    " + status);
       }
       content.clear();
     }
-    fail(sw.toString().trim());
+    fail(psw.toString().trim());
   }
 
   @Override
@@ -102,7 +98,10 @@ public class DartCoreTestLog implements ILog {
 
   @Override
   public void log(IStatus status) {
-    content.add(status);
+    DartCore.getPlugin().getLog().log(status);
+    if (status.getSeverity() != IStatus.INFO) {
+      content.add(status);
+    }
   }
 
   @Override
