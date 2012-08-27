@@ -4,6 +4,13 @@
 
 [ $compiler == dartc ]
 chat/*: Skip
+swarm/swarm_test: Fail  # Issue 4713
+dartcombat/dartcombat_test: Fail  # Issue 4713
+lib/observable/observable_test: Fail  # Issue 4713
+lib/util/util_test: Fail  # Issue 4713
+lib/touch/touch_test: Fail  # Issue 4713
+lib/layout/layout_test: Fail  # Issue 4713
+lib/view/view_test: Fail  # Issue 4713
 
 [ $arch == x64 ]
 *: Skip
