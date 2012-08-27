@@ -85,11 +85,6 @@ public class BooleanLiteral extends Literal {
   }
 
   @Override
-  public boolean isConstant() {
-    return true;
-  }
-
-  @Override
   public boolean isSynthetic() {
     return literal.isSynthetic();
   }

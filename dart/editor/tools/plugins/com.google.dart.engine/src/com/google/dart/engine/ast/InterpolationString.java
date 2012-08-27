@@ -31,6 +31,11 @@ public class InterpolationString extends InterpolationElement {
   private Token contents;
 
   /**
+   * The value of the literal.
+   */
+  private String value;
+
+  /**
    * Initialize a newly created string of characters that are part of a string interpolation.
    */
   public InterpolationString() {
@@ -40,9 +45,11 @@ public class InterpolationString extends InterpolationElement {
    * Initialize a newly created string of characters that are part of a string interpolation.
    * 
    * @param the characters that will be added to the string
+   * @param value the value of the literal
    */
-  public InterpolationString(Token contents) {
+  public InterpolationString(Token contents, String value) {
     this.contents = contents;
+    this.value = value;
   }
 
   @Override
@@ -69,9 +76,13 @@ public class InterpolationString extends InterpolationElement {
     return contents;
   }
 
-  @Override
-  public boolean isConstant() {
-    return true;
+  /**
+   * Return the value of the literal.
+   * 
+   * @return the value of the literal
+   */
+  public String getValue() {
+    return value;
   }
 
   /**
@@ -81,6 +92,15 @@ public class InterpolationString extends InterpolationElement {
    */
   public void setContents(Token string) {
     contents = string;
+  }
+
+  /**
+   * Set the value of the literal to the given string.
+   * 
+   * @param string the value of the literal
+   */
+  public void setValue(String string) {
+    value = string;
   }
 
   @Override

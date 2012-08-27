@@ -69,11 +69,6 @@ public class NullLiteral extends Literal {
     return literal;
   }
 
-  @Override
-  public boolean isConstant() {
-    return true;
-  }
-
   /**
    * Set the token representing the literal to the given token.
    * 

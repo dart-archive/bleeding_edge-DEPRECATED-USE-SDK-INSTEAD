@@ -88,11 +88,6 @@ public class DoubleLiteral extends Literal {
     return value;
   }
 
-  @Override
-  public boolean isConstant() {
-    return true;
-  }
-
   /**
    * Set the token representing the literal to the given token.
    * 

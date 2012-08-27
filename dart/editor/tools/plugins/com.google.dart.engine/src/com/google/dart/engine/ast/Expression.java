@@ -24,12 +24,4 @@ package com.google.dart.engine.ast;
  * </pre>
  */
 public abstract class Expression extends ASTNode {
-  /**
-   * Return {@code true} if this expression is a compile-time constant expression.
-   * 
-   * @return {@code true} if this expression is a compile-time constant expression
-   */
-  public boolean isConstant() {
-    return false;
-  }
 }

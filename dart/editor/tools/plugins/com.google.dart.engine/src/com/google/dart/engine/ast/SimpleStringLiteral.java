@@ -101,11 +101,6 @@ public class SimpleStringLiteral extends StringLiteral {
     return value;
   }
 
-  @Override
-  public boolean isConstant() {
-    return true;
-  }
-
   /**
    * Return {@code true} if this string literal is a multi-line string.
    * 

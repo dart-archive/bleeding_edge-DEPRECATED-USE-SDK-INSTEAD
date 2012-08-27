@@ -476,8 +476,8 @@ public final class ASTFactory {
         null);
   }
 
-  public static InterpolationString interpolationString(String contents) {
-    return new InterpolationString(token(contents));
+  public static InterpolationString interpolationString(String contents, String value) {
+    return new InterpolationString(token(contents), value);
   }
 
   public static IsExpression isExpression(Expression expression, boolean negated, TypeName type) {

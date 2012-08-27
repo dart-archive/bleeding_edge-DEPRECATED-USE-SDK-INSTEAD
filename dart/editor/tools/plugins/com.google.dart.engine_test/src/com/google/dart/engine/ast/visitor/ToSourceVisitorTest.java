@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast.visitor;
 
+import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorInitializer;
@@ -110,13 +111,11 @@ import static com.google.dart.engine.ast.ASTFactory.variableDeclarationList;
 import static com.google.dart.engine.ast.ASTFactory.variableDeclarationStatement;
 import static com.google.dart.engine.ast.ASTFactory.whileStatement;
 
-import junit.framework.TestCase;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 
-public class ToSourceVisitorTest extends TestCase {
+public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitAdjacentStrings() {
     assertSource("'a' 'b'", adjacentStrings(string("a"), string("b")));
   }
@@ -826,7 +825,7 @@ public class ToSourceVisitorTest extends TestCase {
   }
 
   public void test_visitInterpolationString() {
-    assertSource("x", interpolationString("x"));
+    assertSource("'x", interpolationString("'x", "x"));
   }
 
   public void test_visitIsExpression_negated() {
@@ -1131,9 +1130,9 @@ public class ToSourceVisitorTest extends TestCase {
     assertSource(
         "'a${e}b'",
         string(
-            interpolationString("'a"),
+            interpolationString("'a", "a"),
             interpolationExpression(identifier("e")),
-            interpolationString("b'")));
+            interpolationString("b'", "b")));
   }
 
   public void test_visitSuperConstructorInvocation() {

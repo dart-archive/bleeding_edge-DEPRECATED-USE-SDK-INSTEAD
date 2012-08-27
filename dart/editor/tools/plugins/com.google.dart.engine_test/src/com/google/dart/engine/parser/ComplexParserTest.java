@@ -33,6 +33,14 @@ import com.google.dart.engine.ast.SimpleIdentifier;
  * Simpler tests should be defined in the class {@link SimpleParserTest}.
  */
 public class ComplexParserTest extends ParserTestCase {
+  public void fail_localFunctionDefinition() throws Exception {
+    parseStatement("int constant() { return 0;};");
+  }
+
+  public void fail_methodInvocation_super() throws Exception {
+    parseStatement("return super.m();");
+  }
+
   public void test_additiveExpression_normal() throws Exception {
     BinaryExpression expression = parseExpression("x + y - z");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());

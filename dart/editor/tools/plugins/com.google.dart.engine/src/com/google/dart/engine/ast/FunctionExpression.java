@@ -77,8 +77,10 @@ public class FunctionExpression extends Expression {
       return returnType.getBeginToken();
     } else if (name != null) {
       return name.getBeginToken();
+    } else if (parameters != null) {
+      return parameters.getBeginToken();
     }
-    return parameters.getBeginToken();
+    return body.getBeginToken();
   }
 
   /**

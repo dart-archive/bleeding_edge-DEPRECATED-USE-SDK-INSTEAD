@@ -707,6 +707,19 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(method.getReturnType());
   }
 
+  public void test_parseClassMember_method_external_withTypeAndArgs() throws Exception {
+    MethodDeclaration method = parse("parseClassMember", "external int m(int a);");
+    assertNotNull(method.getBody());
+    assertNull(method.getDocumentationComment());
+    assertNotNull(method.getExternalKeyword());
+    assertNull(method.getModifierKeyword());
+    assertNotNull(method.getName());
+    assertNull(method.getOperatorKeyword());
+    assertNotNull(method.getParameters());
+    assertNull(method.getPropertyKeyword());
+    assertNotNull(method.getReturnType());
+  }
+
   public void test_parseCommentReference_prefixed() throws Exception {
     CommentReference reference = parse("parseCommentReference", new Class[] {
         String.class, int.class}, new Object[] {"a.b", 7}, "");
@@ -1544,13 +1557,13 @@ public class SimpleParserTest extends ParserTestCase {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     FunctionDeclaration declaration = parse("parseFunctionDeclaration", new Class[] {
-        Comment.class, TypeName.class}, new Object[] {comment, returnType}, "get p() => 0;");
+        Comment.class, TypeName.class}, new Object[] {comment, returnType}, "get p => 0;");
     assertEquals(comment, declaration.getDocumentationComment());
     FunctionExpression expression = declaration.getFunctionExpression();
     assertNotNull(expression);
     assertNotNull(expression.getBody());
     assertNotNull(expression.getName());
-    assertNotNull(expression.getParameters());
+    assertNull(expression.getParameters());
     assertEquals(returnType, expression.getReturnType());
     assertNotNull(declaration.getPropertyKeyword());
   }
@@ -2247,9 +2260,8 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parsePrimaryExpression_string() throws Exception {
     SimpleStringLiteral literal = parse("parsePrimaryExpression", "\"string\"");
-    assertTrue(literal.isConstant());
     assertFalse(literal.isMultiline());
-    assertEquals(literal.getValue(), "string");
+    assertEquals("string", literal.getValue());
   }
 
   public void test_parsePrimaryExpression_super() throws Exception {

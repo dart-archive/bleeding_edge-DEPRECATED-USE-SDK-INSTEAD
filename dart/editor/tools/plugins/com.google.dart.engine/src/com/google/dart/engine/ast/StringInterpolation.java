@@ -72,16 +72,6 @@ public class StringInterpolation extends StringLiteral {
   }
 
   @Override
-  public boolean isConstant() {
-    for (InterpolationElement element : elements) {
-      if (!element.isConstant()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     elements.accept(visitor);
   }

@@ -66,16 +66,6 @@ public class AdjacentStrings extends StringLiteral {
   }
 
   @Override
-  public boolean isConstant() {
-    for (StringLiteral string : strings) {
-      if (!string.isConstant()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     strings.accept(visitor);
   }

@@ -212,11 +212,17 @@ public class Parser {
     } else if (lexeme.startsWith("@\"") || lexeme.startsWith("@'")) { //$NON-NLS-1$ //$NON-NLS-2$
       return lexeme.substring(2, lexeme.length() - 1);
     }
-    int start = 1;
-    int end = lexeme.length() - 1;
+    int start = 0;
     if (lexeme.startsWith("\"\"\"") || lexeme.startsWith("'''")) { //$NON-NLS-1$ //$NON-NLS-2$
-      start += 2;
-      end -= 2;
+      start += 3;
+    } else if (lexeme.startsWith("\"") || lexeme.startsWith("'")) { //$NON-NLS-1$ //$NON-NLS-2$
+      start += 1;
+    }
+    int end = lexeme.length();
+    if (lexeme.endsWith("\"\"\"") || lexeme.endsWith("'''")) { //$NON-NLS-1$ //$NON-NLS-2$
+      end -= 3;
+    } else if (lexeme.endsWith("\"") || lexeme.endsWith("'")) { //$NON-NLS-1$ //$NON-NLS-2$
+      end -= 1;
     }
     StringBuilder builder = new StringBuilder(end - start + 1);
     int index = start;
@@ -2034,12 +2040,19 @@ public class Parser {
    */
   private FunctionDeclaration parseFunctionDeclaration(Comment comment, TypeName returnType) {
     Token keyword = null;
-    if (matches(Keyword.GET) || matches(Keyword.SET)) {
+    boolean isGetter = false;
+    if (matches(Keyword.GET)) {
+      keyword = getAndAdvance();
+      isGetter = true;
+    } else if (matches(Keyword.SET)) {
       keyword = getAndAdvance();
     }
     SimpleIdentifier name = parseSimpleIdentifier();
     validateName(name, false, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
-    FormalParameterList parameters = parseFormalParameterList();
+    FormalParameterList parameters = null;
+    if (!isGetter) {
+      parameters = parseFormalParameterList();
+    }
     FunctionBody body = parseFunctionBody(false, false);
     return new FunctionDeclaration(comment, keyword, new FunctionExpression(
         returnType,
@@ -3255,7 +3268,7 @@ public class Parser {
    */
   private StringInterpolation parseStringInterpolation(Token string) {
     List<InterpolationElement> elements = new ArrayList<InterpolationElement>();
-    elements.add(new InterpolationString(string));
+    elements.add(new InterpolationString(string, computeStringValue(string.getLexeme())));
     while (matches(TokenType.STRING_INTERPOLATION_EXPRESSION)
         || matches(TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
       if (matches(TokenType.STRING_INTERPOLATION_EXPRESSION)) {
@@ -3269,7 +3282,8 @@ public class Parser {
         elements.add(new InterpolationExpression(openToken, expression, null));
       }
       if (matches(TokenType.STRING)) {
-        elements.add(new InterpolationString(getAndAdvance()));
+        string = getAndAdvance();
+        elements.add(new InterpolationString(string, computeStringValue(string.getLexeme())));
       }
     }
     return new StringInterpolation(elements);
