@@ -3123,23 +3123,6 @@
             contextId="org.eclipse.ui.textEditorScope"
             commandId="org.eclipse.ui.edit.text.showInformation"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
-      <key
-            sequence="M2+M3+A"
-            contextId="org.eclipse.ui.textEditorScope"
-            commandId="org.eclipse.ui.edit.text.toggleBlockSelectionMode"
-            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
-      <key
-            platform="carbon"
-            sequence="M2+M3+A"
-            contextId="org.eclipse.ui.textEditorScope"
-            commandId=""
-            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
-      <key
-            platform="carbon"
-            sequence="COMMAND+ALT+A"
-            contextId="org.eclipse.ui.textEditorScope"
-            commandId="org.eclipse.ui.edit.text.toggleBlockSelectionMode"
-            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
 
       <key
             sequence="CTRL+ALT+H"
