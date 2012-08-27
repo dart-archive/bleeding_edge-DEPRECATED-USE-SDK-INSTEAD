@@ -57,11 +57,8 @@ public class OpenNewProjectWizardAction extends AbstractOpenWizardAction impleme
     return new DartProjectWizard();
   }
 
-  /**
-   * 
-   */
   private void closeIntroPage() {
-    final IIntroPart introPart = PlatformUI.getWorkbench().getIntroManager().getIntro();
+    IIntroPart introPart = PlatformUI.getWorkbench().getIntroManager().getIntro();
     PlatformUI.getWorkbench().getIntroManager().closeIntro(introPart);
   }
 

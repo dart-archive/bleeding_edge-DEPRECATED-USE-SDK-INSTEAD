@@ -301,6 +301,12 @@
             defaultHandler="com.google.dart.eclipse.ui.internal.handlers.CleanupHandler"
             id="com.google.dart.eclipse.cleanup"
             name="%command.cleanup.name">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.help"
+            defaultHandler="com.google.dart.eclipse.ui.internal.actions.OpenFeedbackDialogHandler"
+            id="com.google.dart.eclipse.sendFeedback"
+            name="%action.sendFeedbackAction.label">
       </command> 
    </extension>
 
@@ -324,6 +330,20 @@
                id="com.google.dart.eclipse.openTypeAction"
                label="%action.openType.label"
                menubarPath="navigate/open.ext2"
+               style="push">
+         </action>
+      </actionSet>
+      <actionSet
+            id="com.google.dart.eclipse.feedbackActions"
+            label="Feedback"
+            visible="true">
+         <action
+               class="com.google.dart.eclipse.ui.internal.actions.OpenFeedbackDialogHandler"
+               definitionId="com.google.dart.eclipse.sendFeedback"
+               icon="icons/dart_16_16.gif"
+               id="com.google.dart.eclipse.sendFeedbackAction"
+               label="%action.sendFeedbackAction.label"
+               menubarPath="help/helpStart"
                style="push">
          </action>
       </actionSet>
