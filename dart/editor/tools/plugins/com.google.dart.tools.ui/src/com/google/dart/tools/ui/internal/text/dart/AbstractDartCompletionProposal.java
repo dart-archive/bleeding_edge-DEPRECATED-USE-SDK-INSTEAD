@@ -208,7 +208,7 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     RGB rgb = PreferenceConverter.getColor(
         preference,
         PreferenceConstants.CODEASSIST_REPLACEMENT_BACKGROUND);
-    DartTextTools textTools = DartToolsPlugin.getDefault().getJavaTextTools();
+    DartTextTools textTools = DartToolsPlugin.getDefault().getDartTextTools();
     return textTools.getColorManager().getColor(rgb);
   }
 
@@ -217,7 +217,7 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     RGB rgb = PreferenceConverter.getColor(
         preference,
         PreferenceConstants.CODEASSIST_REPLACEMENT_FOREGROUND);
-    DartTextTools textTools = DartToolsPlugin.getDefault().getJavaTextTools();
+    DartTextTools textTools = DartToolsPlugin.getDefault().getDartTextTools();
     return textTools.getColorManager().getColor(rgb);
   }
 

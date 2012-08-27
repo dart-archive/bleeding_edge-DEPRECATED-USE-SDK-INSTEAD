@@ -258,7 +258,7 @@ public class DartTextTools {
    * @param document the document to be set up
    */
   public void setupJavaDocumentPartitioner(IDocument document) {
-    setupJavaDocumentPartitioner(document, IDocumentExtension3.DEFAULT_PARTITIONING);
+    setupDartDocumentPartitioner(document, IDocumentExtension3.DEFAULT_PARTITIONING);
   }
 
   /**
@@ -267,7 +267,7 @@ public class DartTextTools {
    * @param document the document to be set up
    * @param partitioning the document partitioning
    */
-  public void setupJavaDocumentPartitioner(IDocument document, String partitioning) {
+  public void setupDartDocumentPartitioner(IDocument document, String partitioning) {
     IDocumentPartitioner partitioner = createDocumentPartitioner();
     if (document instanceof IDocumentExtension3) {
       IDocumentExtension3 extension3 = (IDocumentExtension3) document;

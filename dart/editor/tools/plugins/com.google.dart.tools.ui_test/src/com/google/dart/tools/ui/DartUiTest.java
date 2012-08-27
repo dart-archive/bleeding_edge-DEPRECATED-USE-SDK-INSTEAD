@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -82,7 +82,7 @@ public class DartUiTest extends TestCase {
 
   public void testHeuristicScanner() {
     Document doc = new Document(source);
-    DartTextTools tools = DartToolsPlugin.getDefault().getJavaTextTools();
+    DartTextTools tools = DartToolsPlugin.getDefault().getDartTextTools();
     IDocumentPartitioner part = tools.createDocumentPartitioner();
     doc.setDocumentPartitioner(DartPartitions.DART_PARTITIONING, part);
     part.connect(doc);
@@ -107,7 +107,7 @@ public class DartUiTest extends TestCase {
 
   public void testPartitioner() {
     Document doc = new Document(source);
-    DartTextTools tools = DartToolsPlugin.getDefault().getJavaTextTools();
+    DartTextTools tools = DartToolsPlugin.getDefault().getDartTextTools();
     IDocumentPartitioner part = tools.createDocumentPartitioner();
     doc.setDocumentPartitioner(DartPartitions.DART_PARTITIONING, part);
     part.connect(doc);

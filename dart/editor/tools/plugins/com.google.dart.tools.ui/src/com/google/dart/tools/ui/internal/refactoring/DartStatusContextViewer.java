@@ -54,7 +54,7 @@ public class DartStatusContextViewer extends TextStatusContextViewer {
     viewer.unconfigure();
     IPreferenceStore store = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     viewer.configure(new DartSourceViewerConfiguration(
-        DartToolsPlugin.getDefault().getJavaTextTools().getColorManager(),
+        DartToolsPlugin.getDefault().getDartTextTools().getColorManager(),
         store,
         null,
         null));
@@ -117,7 +117,7 @@ public class DartStatusContextViewer extends TextStatusContextViewer {
 
   private IDocument newDocument(String source) {
     IDocument result = new Document(source);
-    DartTextTools textTools = DartToolsPlugin.getDefault().getJavaTextTools();
+    DartTextTools textTools = DartToolsPlugin.getDefault().getDartTextTools();
     textTools.setupJavaDocumentPartitioner(result);
     return result;
   }

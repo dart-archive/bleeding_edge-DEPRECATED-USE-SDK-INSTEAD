@@ -193,7 +193,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
     fSignaturePreview = new DartSourceViewer(composite, null, null, false, SWT.READ_ONLY
         | SWT.V_SCROLL | SWT.WRAP /*| SWT.BORDER*/, store);
     fSignaturePreview.configure(new DartSourceViewerConfiguration(
-        DartToolsPlugin.getDefault().getJavaTextTools().getColorManager(),
+        DartToolsPlugin.getDefault().getDartTextTools().getColorManager(),
         store,
         null,
         null));

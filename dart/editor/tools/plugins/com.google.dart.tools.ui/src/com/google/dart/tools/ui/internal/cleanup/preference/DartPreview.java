@@ -112,10 +112,10 @@ public abstract class DartPreview {
   private WhitespaceCharacterPainter fWhitespaceCharacterPainter;
 
   public DartPreview(Map<String, String> workingValues, Composite parent) {
-    DartTextTools tools = DartToolsPlugin.getDefault().getJavaTextTools();
+    DartTextTools tools = DartToolsPlugin.getDefault().getDartTextTools();
     fPreviewDocument = new Document();
     fWorkingValues = workingValues;
-    tools.setupJavaDocumentPartitioner(fPreviewDocument, DartPartitions.DART_PARTITIONING);
+    tools.setupDartDocumentPartitioner(fPreviewDocument, DartPartitions.DART_PARTITIONING);
 
     PreferenceStore prioritizedSettings = new PreferenceStore();
 //    prioritizedSettings.setValue(DartCore.COMPILER_SOURCE, JavaCore.VERSION_1_5);

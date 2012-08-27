@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -207,7 +207,7 @@ public class SourceViewerInformationControl implements IInformationControl,
     IPreferenceStore store = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     fViewer = new DartSourceViewer(composite, null, null, false, style, store);
     fViewer.configure(new SimpleDartSourceViewerConfiguration(
-        DartToolsPlugin.getDefault().getJavaTextTools().getColorManager(),
+        DartToolsPlugin.getDefault().getDartTextTools().getColorManager(),
         store,
         null,
         DartPartitions.DART_PARTITIONING,
@@ -416,7 +416,7 @@ public class SourceViewerInformationControl implements IInformationControl,
     }
 
     IDocument doc = new Document(content);
-    DartToolsPlugin.getDefault().getJavaTextTools().setupJavaDocumentPartitioner(
+    DartToolsPlugin.getDefault().getDartTextTools().setupDartDocumentPartitioner(
         doc,
         DartPartitions.DART_PARTITIONING);
     fViewer.setInput(doc);

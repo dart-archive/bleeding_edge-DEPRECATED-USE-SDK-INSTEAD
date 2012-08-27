@@ -3310,4 +3310,19 @@
       </menuContribution-->
    </extension>
 
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="dart,dart2"
+            label="%contentMergeViewers.java.label"
+            class="com.google.dart.tools.ui.internal.compare.DartContentViewerCreator"
+            id="com.google.dart.tools.ui.internal.compare.DartContentViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.google.dart.tools.core.dartSourceFile"
+            contentMergeViewerId="com.google.dart.tools.ui.internal.compare.DartContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+    
+
 </plugin>

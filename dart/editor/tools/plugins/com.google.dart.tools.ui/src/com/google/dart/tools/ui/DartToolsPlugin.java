@@ -686,7 +686,7 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   }
 
   @SuppressWarnings("deprecation")
-  public synchronized DartTextTools getJavaTextTools() {
+  public synchronized DartTextTools getDartTextTools() {
     if (dartTextTools == null) {
       dartTextTools = new DartTextTools(
           getPreferenceStore(),

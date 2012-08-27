@@ -528,7 +528,7 @@ public final class DartUI {
    * @return the color manager to be used for JavaScript text viewers
    */
   public static IColorManager getColorManager() {
-    return DartToolsPlugin.getDefault().getJavaTextTools().getColorManager();
+    return DartToolsPlugin.getDefault().getDartTextTools().getColorManager();
   }
 
   /**

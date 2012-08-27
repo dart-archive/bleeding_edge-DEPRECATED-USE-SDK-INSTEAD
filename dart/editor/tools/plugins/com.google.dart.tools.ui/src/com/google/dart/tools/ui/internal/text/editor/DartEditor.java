@@ -2609,7 +2609,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * @return a new <code>DartSourceViewerConfiguration</code>
    */
   protected DartSourceViewerConfiguration createDartSourceViewerConfiguration() {
-    DartTextTools textTools = DartToolsPlugin.getDefault().getJavaTextTools();
+    DartTextTools textTools = DartToolsPlugin.getDefault().getDartTextTools();
     return new DartSourceViewerConfiguration(
         textTools.getColorManager(),
         getPreferenceStore(),
@@ -3480,7 +3480,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected void setPreferenceStore(IPreferenceStore store) {
     super.setPreferenceStore(store);
     if (getSourceViewerConfiguration() instanceof DartSourceViewerConfiguration) {
-      DartTextTools textTools = DartToolsPlugin.getDefault().getJavaTextTools();
+      DartTextTools textTools = DartToolsPlugin.getDefault().getDartTextTools();
       setSourceViewerConfiguration(new DartSourceViewerConfiguration(
           textTools.getColorManager(),
           store,
@@ -3976,7 +3976,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       fSemanticManager.install(
           this,
           (DartSourceViewer) getSourceViewer(),
-          DartToolsPlugin.getDefault().getJavaTextTools().getColorManager(),
+          DartToolsPlugin.getDefault().getDartTextTools().getColorManager(),
           getPreferenceStore());
     }
   }

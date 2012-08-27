@@ -377,7 +377,7 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
    */
   private void assertPartitionsAfter(String previousContent, String... strings) {
     Document doc = new Document(previousContent);
-    DartTextTools tools = DartToolsPlugin.getDefault().getJavaTextTools();
+    DartTextTools tools = DartToolsPlugin.getDefault().getDartTextTools();
     IDocumentPartitioner partitioner = tools.createDocumentPartitioner();
     doc.setDocumentPartitioner(DartPartitions.DART_PARTITIONING, partitioner);
     partitioner.connect(doc);
@@ -485,7 +485,7 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
    */
   private ITypedRegion[] partition(String source) {
     Document doc = new Document(source);
-    DartTextTools tools = DartToolsPlugin.getDefault().getJavaTextTools();
+    DartTextTools tools = DartToolsPlugin.getDefault().getDartTextTools();
     IDocumentPartitioner part = tools.createDocumentPartitioner();
     doc.setDocumentPartitioner(DartPartitions.DART_PARTITIONING, part);
     part.connect(doc);
