@@ -54,6 +54,7 @@ public class DartTypeCompletionProposalComputer extends DartCompletionProposalCo
     if (true) {
       return new ArrayList(); // TODO enable for type completions
     }
+    @SuppressWarnings("unused")
     List types = super.computeCompletionProposals(context, monitor);
     if (context instanceof DartContentAssistInvocationContext) {
       DartContentAssistInvocationContext javaContext = (DartContentAssistInvocationContext) context;

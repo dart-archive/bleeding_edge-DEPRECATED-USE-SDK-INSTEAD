@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -45,6 +45,7 @@ public final class TypeProposalInfo extends ProposalInfo {
    * @return the resolved member or <code>null</code> if none is found
    * @throws DartModelException if accessing the Dart model fails
    */
+  @SuppressWarnings("deprecation")
   protected Type resolveType() throws DartModelException {
     String typeName = String.valueOf(proposal.getSignature());
     Type type = project.findType(typeName);

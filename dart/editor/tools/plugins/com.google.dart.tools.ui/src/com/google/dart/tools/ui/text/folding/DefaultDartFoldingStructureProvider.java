@@ -600,6 +600,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
      * @param delta the JavaScript element delta for the given AST element
      * @return <code>true</code> if the delta should be ignored
      */
+    @SuppressWarnings("unused")
     private boolean shouldIgnoreDelta(CompilationUnit ast, DartElementDelta delta) {
       if (ast == null) {
         return false; // can't compute
@@ -630,7 +631,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 //        return false; // can't compute
 //      }
 
-      @SuppressWarnings("unused")
       int caretLine = 0;
       try {
         caretLine = document.getLineOfOffset(editor.getCachedSelectedRange().x) + 1;
@@ -1480,6 +1480,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       return;
     }
 
+    @SuppressWarnings("unused")
     Map additions = new HashMap();
     List deletions = new ArrayList();
     List updates = new ArrayList();

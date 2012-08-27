@@ -333,9 +333,6 @@
       <perspectiveExtension targetID="org.eclipse.debug.ui.DebugPerspective">
          <perspectiveShortcut id="com.google.dart.tools.ui.DartPerspective"/>
       </perspectiveExtension>
-      <perspectiveExtension targetID="org.eclipse.wst.web.ui.webDevPerspective">
-         <perspectiveShortcut id="com.google.dart.tools.ui.DartPerspective"/>
-      </perspectiveExtension> 
       <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
          <perspectiveShortcut id="com.google.dart.tools.ui.DartPerspective"/>
       </perspectiveExtension>
@@ -346,9 +343,6 @@
       </perspectiveExtension>
       <perspectiveExtension targetID="com.google.dart.tools.ui.DartPerspective">
          <perspectiveShortcut id="org.eclipse.debug.ui.DebugPerspective"/>
-      </perspectiveExtension>
-      <perspectiveExtension targetID="com.google.dart.tools.ui.DartPerspective">
-         <perspectiveShortcut id="org.eclipse.wst.web.ui.webDevPerspective"/>
       </perspectiveExtension>
       <perspectiveExtension targetID="com.google.dart.tools.ui.DartPerspective">
          <perspectiveShortcut id="org.eclipse.ui.resourcePerspective"/>
@@ -2458,14 +2452,6 @@
             value="COLOR_LIST_SELECTION">
          </colorOverride>
          <colorOverride
-            id="org.eclipse.wst.jsdt.ui.autoboxHighlighting"
-            value="COLOR_WIDGET_DARK_SHADOW">
-         </colorOverride>
-         <colorOverride
-            id="org.eclipse.wst.jsdt.ui.abstractMethodDeclarationNameHighlighting"
-            value="COLOR_LIST_FOREGROUND">
-         </colorOverride>
-         <colorOverride
             id="org.eclipse.wst.jsdt.ui.annotationElementReferenceHighlighting"
             value="COLOR_LIST_FOREGROUND">
          </colorOverride>
@@ -2531,10 +2517,6 @@
          </colorOverride>
          <colorOverride
             id="org.eclipse.wst.jsdt.ui.methodDeclarationNameHighlighting"
-            value="COLOR_LIST_FOREGROUND">
-         </colorOverride>
-         <colorOverride
-            id="org.eclipse.wst.jsdt.ui.staticMethodDeclarationHighlighting"
             value="COLOR_LIST_FOREGROUND">
          </colorOverride>
       </theme>

@@ -210,6 +210,7 @@ public class DartDebugCorePlugin extends Plugin {
     return getPrefs().getBoolean(PREFS_DEFAULT_BROWSER, true);
   }
 
+  @SuppressWarnings("deprecation")
   public IEclipsePreferences getPrefs() {
     if (prefs == null) {
       prefs = new InstanceScope().getNode(PLUGIN_ID);
