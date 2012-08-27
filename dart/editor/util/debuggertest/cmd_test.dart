@@ -11,7 +11,6 @@ num petCount = 0;
 void main() {
   print("starting debuggertest");
 
-  // TODO(devoncarew): cmd-line: bp here stops at next line
   var cat = SPARKY;
 
   print("my ${cat} says:");

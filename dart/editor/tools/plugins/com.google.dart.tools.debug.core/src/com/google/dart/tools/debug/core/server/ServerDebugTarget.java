@@ -21,9 +21,7 @@ import com.google.dart.tools.debug.core.server.VmConnection.BreakpointResolvedCa
 import com.google.dart.tools.debug.core.util.NetUtils;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IMarkerDelta;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
@@ -57,13 +55,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
         if (bp.getLocation().getUrl().equals(url)) {
           if (bp.getLocation().getLineNumber() != dartBreakpoint.getLine()) {
-            try {
-              dartBreakpoint.getMarker().setAttribute(
-                  IMarker.LINE_NUMBER,
-                  bp.getLocation().getLineNumber());
-            } catch (CoreException e) {
-              DartDebugCorePlugin.logError(e);
-            }
+            dartBreakpoint.updateLineNumber(bp.getLocation().getLineNumber());
           }
         }
       }

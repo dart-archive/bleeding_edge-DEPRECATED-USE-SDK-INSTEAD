@@ -158,6 +158,16 @@ class BreakpointManager implements IBreakpointListener {
 
   void handleBreakpointResolved(WebkitBreakpoint webkitBreakpoint) {
     webkitBreakpoints.add(webkitBreakpoint);
+
+    DartBreakpoint breakpoint = breakpointMap.get(webkitBreakpoint.getBreakpointId());
+
+    if (breakpoint != null) {
+      int eclipseLine = WebkitLocation.webkitToElipseLine(webkitBreakpoint.getLocation().getLineNumber());
+
+      if (breakpoint.getLine() != eclipseLine) {
+        breakpoint.updateLineNumber(eclipseLine);
+      }
+    }
   }
 
   void handleGlobalObjectCleared() {

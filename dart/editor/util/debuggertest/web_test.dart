@@ -36,7 +36,8 @@ void rotateText(Event event) {
 void testAnimals() {
   print("starting debuggertest");
 
-  // TODO(devoncarew): cmd-line: bp here stops at next line
+  // TODO(devoncarew): if the breakpoint is set before the dart source is
+  // loaded, dartium does not send us the adjusted bp location.
   var tempCat = SPARKY;
 
   print("${tempCat}:");

@@ -108,4 +108,13 @@ public class DartBreakpoint extends LineBreakpoint {
     }
   }
 
+  public void updateLineNumber(int newLine) {
+    try {
+      getMarker().setAttribute(IMarker.LINE_NUMBER, newLine);
+    } catch (CoreException e) {
+      // We make a best effort to update the breakpoint's line.
+
+    }
+  }
+
 }
