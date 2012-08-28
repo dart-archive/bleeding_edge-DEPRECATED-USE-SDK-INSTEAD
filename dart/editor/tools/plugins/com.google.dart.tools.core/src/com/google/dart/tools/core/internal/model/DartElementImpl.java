@@ -495,6 +495,11 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
     return false;
   }
 
+  @Override
+  public boolean isInSdk() {
+    return getAncestor(DartProject.class) instanceof ExternalDartProject;
+  }
+
   @Deprecated
   public boolean isOpen() {
     return DartModelManager.getInstance().getInfo(this) != null;

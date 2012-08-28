@@ -84,7 +84,7 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
         // don't link to non-existent resources (dartbug.com/2308)
         if (foundElement instanceof CompilationUnit) {
           IResource resource = foundElement.getResource();
-          if (resource == null || !resource.exists()) {
+          if ((resource == null || !resource.exists()) && !foundElement.isInSdk()) {
             return null;
           }
         }

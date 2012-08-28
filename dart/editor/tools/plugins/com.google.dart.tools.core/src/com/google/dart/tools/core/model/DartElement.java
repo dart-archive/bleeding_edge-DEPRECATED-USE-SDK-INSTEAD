@@ -294,6 +294,13 @@ public interface DartElement extends IAdaptable {
   public IResource getUnderlyingResource() throws DartModelException;
 
   /**
+   * Return <code>true</code> if this element is a part of the SDK.
+   * 
+   * @return <code>true</code> if this element is a part of the SDK
+   */
+  public boolean isInSdk();
+
+  /**
    * Return <code>true</code> if this Dart element is read-only. An element is read-only if its
    * structure cannot be modified by the Dart model.
    * <p>

@@ -125,6 +125,11 @@ public class MockDartElement implements DartElement {
   }
 
   @Override
+  public boolean isInSdk() {
+    return false;
+  }
+
+  @Override
   public boolean isReadOnly() {
     return false;
   }
