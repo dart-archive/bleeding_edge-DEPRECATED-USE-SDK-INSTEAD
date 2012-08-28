@@ -15,13 +15,17 @@ package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue.ValueCallback;
+import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
+import com.google.dart.tools.debug.core.expr.WatchExpressionResult;
 import com.google.dart.tools.debug.core.source.ISourceLookup;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 import com.google.dart.tools.debug.core.util.IVariableResolver;
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
+import com.google.dart.tools.debug.core.webkit.WebkitCallback;
 import com.google.dart.tools.debug.core.webkit.WebkitLocation;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
+import com.google.dart.tools.debug.core.webkit.WebkitResult;
 import com.google.dart.tools.debug.core.webkit.WebkitScope;
 import com.google.dart.tools.debug.core.webkit.WebkitScript;
 
@@ -32,8 +36,11 @@ import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IRegisterGroup;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
+import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
+import org.eclipse.debug.core.model.IWatchExpressionListener;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +52,7 @@ import java.util.concurrent.TimeUnit;
  * represents a Dart frame.
  */
 public class DartiumDebugStackFrame extends DartiumDebugElement implements IStackFrame,
-    ISourceLookup, IExceptionStackFrame, IVariableResolver {
+    ISourceLookup, IExceptionStackFrame, IVariableResolver, IExpressionEvaluator {
   private IThread thread;
   private WebkitCallFrame webkitFrame;
   private boolean isExceptionStackFrame;
@@ -93,6 +100,47 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   @Override
   public boolean canTerminate() {
     return getThread().canTerminate();
+  }
+
+  @Override
+  public void evaluateExpression(final String expression, final IWatchExpressionListener listener) {
+    try {
+      getConnection().getDebugger().evaluateOnCallFrame(
+          webkitFrame.getCallFrameId(),
+          expression,
+          new WebkitCallback<WebkitRemoteObject>() {
+            @Override
+            public void handleResult(WebkitResult<WebkitRemoteObject> result) {
+              if (result.isError()) {
+                if (result.getError() instanceof WebkitRemoteObject) {
+                  WebkitRemoteObject error = (WebkitRemoteObject) result.getError();
+
+                  String desc;
+
+                  if (error.isObject()) {
+                    desc = error.getDescription();
+                  } else if (error.isString()) {
+                    desc = error.getValue();
+                  } else {
+                    desc = error.toString();
+                  }
+
+                  listener.watchEvaluationFinished(WatchExpressionResult.error(expression, desc));
+                } else {
+                  listener.watchEvaluationFinished(WatchExpressionResult.error(
+                      expression,
+                      result.getError().toString()));
+                }
+              } else {
+                IValue value = new DartiumDebugValue(getTarget(), null, result.getResult());
+
+                listener.watchEvaluationFinished(WatchExpressionResult.value(expression, value));
+              }
+            }
+          });
+    } catch (IOException e) {
+      listener.watchEvaluationFinished(WatchExpressionResult.noOp(expression));
+    }
   }
 
   @Override

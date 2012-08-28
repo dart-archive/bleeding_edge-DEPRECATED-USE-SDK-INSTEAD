@@ -64,10 +64,10 @@
    </extension>
    
    <!-- debugger expression evaluation -->
-   <!-- extension point="org.eclipse.debug.core.watchExpressionDelegates">
+   <extension point="org.eclipse.debug.core.watchExpressionDelegates">
       <watchExpressionDelegate
          debugModel="com.google.dart.tools.debug.core"
-         delegateClass="com.google.dart.tools.debug.core.internal.WatchExpressionDelegate"/>
-   </extension -->
+         delegateClass="com.google.dart.tools.debug.core.expr.WatchExpressionDelegate"/>
+   </extension>
 
 </plugin>

@@ -633,7 +633,7 @@ public class WebkitDebugger extends WebkitDomain {
 
       WebkitRemoteObject remoteObject = WebkitRemoteObject.createFrom(object.getJSONObject("result"));
 
-      if (object.has("wasThrown")) {
+      if (object.optBoolean("wasThrown", false)) {
         result.setError(remoteObject);
       } else {
         result.setResult(remoteObject);

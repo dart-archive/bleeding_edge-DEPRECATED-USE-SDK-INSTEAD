@@ -54,7 +54,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
 
   public void computeDetail(final ValueCallback callback) {
     // If the value is a primitive type, just return the display string.
-    if (value.isPrimitive() || variable.isLibraryObject()) {
+    if (value.isPrimitive() || (variable != null && variable.isLibraryObject())) {
       callback.detailComputed(getDisplayString());
 
       return;
@@ -84,7 +84,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
    * @throws DebugException
    */
   public String getDisplayString() {
-    if (variable.isLibraryObject()) {
+    if (variable != null && variable.isLibraryObject()) {
       return "";
     }
 

@@ -69,6 +69,7 @@ public class DartPerspective implements IPerspectiveFactory {
     outputfolder.addPlaceholder(DartUI.ID_CONSOLE_VIEW);
     outputfolder.addPlaceholder(IPageLayout.ID_TASK_LIST);
     outputfolder.addPlaceholder(IProgressConstants.PROGRESS_VIEW_ID);
+    outputfolder.addPlaceholder(BREAKPOINTS_VIEW_ID);
 
     // Top right: Debugger View
     IPlaceholderFolderLayout debuggerFolder = layout.createPlaceholderFolder(
@@ -77,7 +78,6 @@ public class DartPerspective implements IPerspectiveFactory {
         0.70f,
         editorArea);
     debuggerFolder.addPlaceholder(DEBUGGER_VIEW_ID);
-    debuggerFolder.addPlaceholder(BREAKPOINTS_VIEW_ID);
 
     layout.addActionSet(IPageLayout.ID_NAVIGATE_ACTION_SET);
 

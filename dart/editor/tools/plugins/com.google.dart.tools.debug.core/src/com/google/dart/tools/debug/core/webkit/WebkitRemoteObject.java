@@ -117,6 +117,10 @@ public class WebkitRemoteObject {
     return "number".equals(type);
   }
 
+  public boolean isObject() {
+    return "object".equals(type);
+  }
+
   public boolean isPrimitive() {
     return "number".equals(type) || "string".equals(type) || "boolean".equals(type);
   }
