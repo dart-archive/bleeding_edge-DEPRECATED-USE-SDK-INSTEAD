@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.text.folding;
 
+import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -66,91 +68,83 @@ import java.util.Set;
  * <p>
  * Clients may instantiate or subclass. Subclasses must make sure to always call the superclass'
  * code when overriding methods that are marked with "subclasses may extend".
- * </p>
- * Provisional API: This class/interface is part of an interim API that is still under development
- * and expected to change significantly before reaching stability. It is being made available at
- * this early stage to solicit feedback from pioneering adopters on the understanding that any code
- * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class DefaultDartFoldingStructureProvider implements IDartFoldingStructureProvider,
     IDartFoldingStructureProviderExtension {
+
   /**
-   * A {@link ProjectionAnnotation} for JavaScript code.
+   * A {@link ProjectionAnnotation} for Dart code.
    */
   protected static final class DartProjectionAnnotation extends ProjectionAnnotation {
 
-    private DartElement fJavaElement;
-    private boolean fIsComment;
+    private DartElement dartElement;
+    private boolean isComment;
 
     /**
      * Creates a new projection annotation.
      * 
      * @param isCollapsed <code>true</code> to set the initial state to collapsed,
      *          <code>false</code> to set it to expanded
-     * @param element the JavaScript element this annotation refers to
+     * @param element the Dart element this annotation refers to
      * @param isComment <code>true</code> for a foldable comment, <code>false</code> for a foldable
      *          code element
      */
     public DartProjectionAnnotation(boolean isCollapsed, DartElement element, boolean isComment) {
       super(isCollapsed);
-      fJavaElement = element;
-      fIsComment = isComment;
+      this.dartElement = element;
+      this.isComment = isComment;
     }
 
-    /*
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
-      return "JavaProjectionAnnotation:\n" + //$NON-NLS-1$
-          "\telement: \t" + fJavaElement.toString() + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
+      return "DartProjectionAnnotation:\n" + //$NON-NLS-1$
+          "\telement: \t" + dartElement.toString() + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
           "\tcollapsed: \t" + isCollapsed() + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
           "\tcomment: \t" + isComment() + "\n"; //$NON-NLS-1$ //$NON-NLS-2$
     }
 
     DartElement getElement() {
-      return fJavaElement;
+      return dartElement;
     }
 
     boolean isComment() {
-      return fIsComment;
+      return isComment;
     }
 
     void setElement(DartElement element) {
-      fJavaElement = element;
+      dartElement = element;
     }
 
     void setIsComment(boolean isComment) {
-      fIsComment = isComment;
+      this.isComment = isComment;
     }
   }
 
   /**
-   * A context that contains the information needed to compute the folding structure of an
-   * {@link org.eclipse.wst.jsdt.core.IJavaScriptUnit} or an
-   * {@link org.eclipse.wst.jsdt.core.IClassFile}. Computed folding regions are collected via
+   * A context that contains the information needed to compute the folding structure of a Dart
+   * compilation unit. Computed folding regions are collected via
    * {@linkplain #addProjectionRange(DefaultDartFoldingStructureProvider.DartProjectionAnnotation, Position)
    * addProjectionRange}.
    */
   protected final class FoldingStructureComputationContext {
-    private final ProjectionAnnotationModel fModel;
-    private final IDocument fDocument;
+    private final ProjectionAnnotationModel model;
+    private final IDocument document;
 
-    private final boolean fAllowCollapsing;
+    private final boolean allowCollapsing;
 
-    private Type fFirstType;
-    private boolean fHasHeaderComment;
-    private LinkedHashMap fMap = new LinkedHashMap();
+    private Type firstType;
+    private boolean hasHeaderComment;
+    private LinkedHashMap map = new LinkedHashMap();
     private TokenStream tokenStream;
 
     private FoldingStructureComputationContext(IDocument document, ProjectionAnnotationModel model,
         boolean allowCollapsing) {
       Assert.isNotNull(document);
       Assert.isNotNull(model);
-      fDocument = document;
-      fModel = model;
-      fAllowCollapsing = allowCollapsing;
+      this.document = document;
+      this.model = model;
+      this.allowCollapsing = allowCollapsing;
     }
 
     /**
@@ -162,7 +156,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
      * @param position the corresponding position
      */
     public void addProjectionRange(DartProjectionAnnotation annotation, Position position) {
-      fMap.put(annotation, position);
+      map.put(annotation, position);
     }
 
     /**
@@ -175,7 +169,16 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
      *         <code>false</code> if not
      */
     public boolean allowCollapsing() {
-      return fAllowCollapsing;
+      return allowCollapsing;
+    }
+
+    /**
+     * Returns <code>true</code> if javadoc comments should be collapsed.
+     * 
+     * @return <code>true</code> if javadoc comments should be collapsed
+     */
+    public boolean collapseDartDoc() {
+      return allowCollapsing && collapseDartDoc;
     }
 
     /**
@@ -184,7 +187,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
      * @return <code>true</code> if header comments should be collapsed
      */
     public boolean collapseHeaderComments() {
-      return fAllowCollapsing && fCollapseHeaderComments;
+      return allowCollapsing && collapseHeaderComments;
     }
 
     /**
@@ -193,7 +196,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
      * @return <code>true</code> if import containers should be collapsed
      */
     public boolean collapseImportContainer() {
-      return fAllowCollapsing && fCollapseImportContainer;
+      return allowCollapsing && collapseImportContainer;
     }
 
     /**
@@ -202,16 +205,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
      * @return <code>true</code> if inner types should be collapsed
      */
     public boolean collapseInnerTypes() {
-      return fAllowCollapsing && fCollapseInnerTypes;
-    }
-
-    /**
-     * Returns <code>true</code> if javadoc comments should be collapsed.
-     * 
-     * @return <code>true</code> if javadoc comments should be collapsed
-     */
-    public boolean collapseJavadoc() {
-      return fAllowCollapsing && fCollapseJavadoc;
+      return allowCollapsing && collapseInnerTypes;
     }
 
     /**
@@ -220,11 +214,11 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
      * @return <code>true</code> if methods should be collapsed
      */
     public boolean collapseMembers() {
-      return fAllowCollapsing && fCollapseMembers;
+      return allowCollapsing && collapseMembers;
     }
 
     boolean hasFirstType() {
-      return fFirstType != null;
+      return firstType != null;
     }
 
     /**
@@ -233,15 +227,15 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
      * @return the document which contains the code being folded
      */
     private IDocument getDocument() {
-      return fDocument;
+      return document;
     }
 
     private Type getFirstType() {
-      return fFirstType;
+      return firstType;
     }
 
     private ProjectionAnnotationModel getModel() {
-      return fModel;
+      return model;
     }
 
     private TokenStream getScanner() {
@@ -254,18 +248,18 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     }
 
     private boolean hasHeaderComment() {
-      return fHasHeaderComment;
+      return hasHeaderComment;
     }
 
     private void setFirstType(Type type) {
       if (hasFirstType()) {
         throw new IllegalStateException();
       }
-      fFirstType = type;
+      firstType = type;
     }
 
     private void setHasHeaderComment() {
-      fHasHeaderComment = true;
+      hasHeaderComment = true;
     }
 
     private void setScannerSource(String source) {
@@ -296,22 +290,13 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       super(offset, length);
     }
 
-    /*
-     * @see org.eclipse.jface.text.source.projection.IProjectionPosition#
-     * computeCaptionOffset(org.eclipse.jface.text.IDocument)
-     */
     @Override
     public int computeCaptionOffset(IDocument document) {
-//			return 0;
       DocumentCharacterIterator sequence = new DocumentCharacterIterator(document, offset, offset
           + length);
       return findFirstContent(sequence, 0);
     }
 
-    /*
-     * @see org.eclipse.jface.text.source.projection.IProjectionPosition#
-     * computeFoldingRegions(org.eclipse.jface.text.IDocument)
-     */
     @Override
     public IRegion[] computeProjectionRegions(IDocument document) throws BadLocationException {
       DocumentCharacterIterator sequence = new DocumentCharacterIterator(document, offset, offset
@@ -416,10 +401,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       fMember = member;
     }
 
-    /*
-     * @see org.eclipse.jface.text.source.projection.IProjectionPosition#
-     * computeCaptionOffset(org.eclipse.jface.text.IDocument)
-     */
     @Override
     public int computeCaptionOffset(IDocument document) throws BadLocationException {
       int nameStart = offset;
@@ -436,10 +417,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       return nameStart - offset;
     }
 
-    /*
-     * @see org.eclipse.jface.text.source.projection.IProjectionPosition#
-     * computeFoldingRegions(org.eclipse.jface.text.IDocument)
-     */
     @Override
     public IRegion[] computeProjectionRegions(IDocument document) throws BadLocationException {
       int nameStart = offset;
@@ -509,7 +486,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   }
 
   /**
-   * Matches JavaScript elements contained in a certain set.
+   * Matches Dart elements contained in a certain set.
    */
   private static final class DartElementSetFilter implements Filter {
     private final Set<? extends DartElement> fSet;
@@ -536,10 +513,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   private class ElementChangedListener implements
       com.google.dart.tools.core.model.ElementChangedListener {
 
-    /*
-     * @see org.eclipse.wst.jsdt.core.IElementChangedListener#elementChanged(org.
-     * eclipse.wst.jsdt.core.ElementChangedEvent)
-     */
     @Override
     public void elementChanged(ElementChangedEvent e) {
       DartElementDelta delta = findElement(fInput, e.getDelta());
@@ -605,7 +578,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
         return false; // can't compute
       }
 
-      DartEditor editor = fEditor;
+      DartEditor editor = dartEditor;
       if (editor == null || editor.getCachedSelectedRange() == null) {
         return false; // can't compute
       }
@@ -699,17 +672,11 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       }
     }
 
-    /*
-     * @see org.eclipse.jface.text.source.projection.IProjectionListener# projectionDisabled()
-     */
     @Override
     public void projectionDisabled() {
       handleProjectionDisabled();
     }
 
-    /*
-     * @see org.eclipse.jface.text.source.projection.IProjectionListener# projectionEnabled()
-     */
     @Override
     public void projectionEnabled() {
       handleProjectionEnabled();
@@ -717,13 +684,13 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   }
 
   private static class TokenStream {
-    com.google.dart.engine.scanner.StringScanner scanner;
-    com.google.dart.engine.scanner.Token firstToken;
-    com.google.dart.engine.scanner.Token currentToken;
+    StringScanner scanner;
+    Token firstToken;
+    Token currentToken;
     int begin;
 
     TokenStream(String source) {
-      scanner = new com.google.dart.engine.scanner.StringScanner(null, source, null);
+      scanner = new StringScanner(null, source, null);
       firstToken = scanner.tokenize();
       currentToken = firstToken;
       begin = 0;
@@ -743,8 +710,8 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       }
     }
 
-    com.google.dart.engine.scanner.Token next() {
-      com.google.dart.engine.scanner.Token next = currentToken;
+    Token next() {
+      Token next = currentToken;
       currentToken = currentToken.getNext();
       return next;
     }
@@ -765,30 +732,24 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   }
 
   /* context and listeners */
-  private DartEditor fEditor;
-  private ProjectionListener fProjectionListener;
+  private DartEditor dartEditor;
+  private ProjectionListener projectionListener;
   private DartElement fInput;
 
   private ElementChangedListener fElementListener;
   /* preferences */
-  private boolean fCollapseJavadoc = false;
-  private boolean fCollapseImportContainer = true;
-  private boolean fCollapseInnerTypes = true;
-  private boolean fCollapseMembers = false;
+  private boolean collapseDartDoc = false;
+  private boolean collapseImportContainer = true;
+  private boolean collapseInnerTypes = true;
+  private boolean collapseMembers = false;
 
-  private boolean fCollapseHeaderComments = true;
+  private boolean collapseHeaderComments = true;
   /* filters */
   /** Member filter, matches nested members (but not top-level types). */
   private final Filter fMemberFilter = new MemberFilter();
 
   /** Comment filter, matches comments. */
   private final Filter fCommentFilter = new CommentFilter();
-
-  /**
-   * Reusable scanner.
-   */
-//  private DartScanner fSharedScanner = ToolFactory.createScanner(true, false,
-//      false, false);
 
 //  private volatile int fUpdatingCount = 0;
 
@@ -803,45 +764,28 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   public DefaultDartFoldingStructureProvider() {
   }
 
-  /*
-   * @see IJavaFoldingStructureProviderExtension#collapseComments()
-   */
   @Override
   public final void collapseComments() {
     modifyFiltered(fCommentFilter, false);
   }
 
-  /*
-   * @see com.google.dart.tools.ui.text.folding.IJavaFoldingStructureProviderExtension
-   * #collapseElements(org.eclipse.wst.jsdt.core.DartElement[])
-   */
   @Override
   public final void collapseElements(DartElement[] elements) {
     Set set = new HashSet(Arrays.asList(elements));
     modifyFiltered(new DartElementSetFilter(set, false), false);
   }
 
-  /*
-   * @see IJavaFoldingStructureProviderExtension#collapseMembers()
-   */
   @Override
   public final void collapseMembers() {
     modifyFiltered(fMemberFilter, false);
   }
 
-  /*
-   * @see com.google.dart.tools.ui.text.folding.IJavaFoldingStructureProviderExtension
-   * #expandElements(org.eclipse.wst.jsdt.core.DartElement[])
-   */
   @Override
   public final void expandElements(DartElement[] elements) {
     Set set = new HashSet(Arrays.asList(elements));
     modifyFiltered(new DartElementSetFilter(set, true), true);
   }
 
-  /*
-   * @see com.google.dart.tools.ui.text.folding.IJavaFoldingStructureProvider#initialize ()
-   */
   @Override
   public final void initialize() {
 //    fUpdatingCount++;
@@ -852,15 +796,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     }
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * Subclasses may extend.
-   * </p>
-   * 
-   * @param editor {@inheritDoc}
-   * @param viewer {@inheritDoc}
-   */
   @Override
   public void install(ITextEditor editor, ProjectionViewer viewer) {
     Assert.isLegal(editor != null);
@@ -869,17 +804,11 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     internalUninstall();
 
     if (editor instanceof DartEditor) {
-      fProjectionListener = new ProjectionListener(viewer);
-      fEditor = (DartEditor) editor;
+      projectionListener = new ProjectionListener(viewer);
+      dartEditor = (DartEditor) editor;
     }
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * Subclasses may extend.
-   * </p>
-   */
   @Override
   public void uninstall() {
     internalUninstall();
@@ -980,7 +909,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
                 && element == ctx.getFirstType()) {
               commentCollapse = ctx.collapseHeaderComments();
             } else {
-              commentCollapse = ctx.collapseJavadoc();
+              commentCollapse = ctx.collapseDartDoc();
             }
             ctx.addProjectionRange(
                 new DartProjectionAnnotation(commentCollapse, element, true),
@@ -1008,11 +937,11 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
    * none at all may be returned. If there are no foldable regions, an empty array is returned.
    * <p>
    * The last region in the returned array (if not empty) describes the region for the java element
-   * that implements the source reference. Any preceding regions describe javadoc comments of that
-   * JavaScript element.
+   * that implements the source reference. Any preceding regions describe Dart doc comments of that
+   * element.
    * </p>
    * 
-   * @param reference a JavaScript element that is a source reference
+   * @param reference a Dart element that is a source reference
    * @param ctx the folding context
    * @return the regions to be folded
    */
@@ -1043,9 +972,9 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       TokenStream scanner = ctx.getScanner(shift);
 
       int start = shift;
-      com.google.dart.engine.scanner.Token token = scanner.next();
+      Token token = scanner.next();
       start = token.getOffset();
-      com.google.dart.engine.scanner.Token comment = token.getPrecedingComments();
+      Token comment = token.getPrecedingComments();
       while (comment != null) {
         int s = token.getOffset();
         int l = token.getLength();
@@ -1119,7 +1048,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
    * </p>
    */
   protected void handleProjectionEnabled() {
-    // http://home.ott.oti.com/teams/wswb/anon/out/vms/index.html
     // projectionEnabled messages are not always paired with projectionDisabled
     // i.e. multiple enabled messages may be sent out.
     // we have to make sure that we disable first when getting an enable
@@ -1143,7 +1071,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
    * @return <code>true</code> if the provider is installed, <code>false</code> otherwise
    */
   protected final boolean isInstalled() {
-    return fEditor != null;
+    return dartEditor != null;
   }
 
   private Map computeCurrentStructure(FoldingStructureComputationContext ctx) {
@@ -1222,8 +1150,8 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     int headerStart = -1;
     int headerEnd = -1;
     boolean foundComment = false;
-    com.google.dart.engine.scanner.Token terminal = scanner.next();
-    com.google.dart.engine.scanner.Token comment = terminal.getPrecedingComments();
+    Token terminal = scanner.next();
+    Token comment = terminal.getPrecedingComments();
     while (comment != null) {
       if (!foundComment) {
         headerStart = comment.getOffset();
@@ -1270,8 +1198,8 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 
   /**
    * Finds a match for <code>tuple</code> in a collection of annotations. The positions for the
-   * <code>JavaProjectionAnnotation</code> instances in <code>annotations</code> can be found in the
-   * passed <code>positionMap</code> or <code>fCachedModel</code> if <code>positionMap</code> is
+   * <code>DartProjectionAnnotation</code> instances in <code>annotations</code> can be found in the
+   * passed <code>positionMap</code> or <code>cachedModel</code> if <code>positionMap</code> is
    * <code>null</code>.
    * <p>
    * A tuple is said to match another if their annotations have the same comment flag and their
@@ -1310,7 +1238,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   }
 
   private IDocument getDocument() {
-    DartEditor editor = fEditor;
+    DartEditor editor = dartEditor;
     if (editor == null) {
       return null;
     }
@@ -1324,23 +1252,23 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   }
 
   private DartElement getInputElement() {
-    if (fEditor == null) {
+    if (dartEditor == null) {
       return null;
     }
-    return EditorUtility.getEditorInputDartElement(fEditor, false);
+    return EditorUtility.getEditorInputDartElement(dartEditor, false);
   }
 
   private ProjectionAnnotationModel getModel() {
-    return (ProjectionAnnotationModel) fEditor.getAdapter(ProjectionAnnotationModel.class);
+    return (ProjectionAnnotationModel) dartEditor.getAdapter(ProjectionAnnotationModel.class);
   }
 
   private void initializePreferences() {
     IPreferenceStore store = DartToolsPlugin.getDefault().getPreferenceStore();
-    fCollapseInnerTypes = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_INNERTYPES);
-    fCollapseImportContainer = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_IMPORTS);
-    fCollapseJavadoc = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_JAVADOC);
-    fCollapseMembers = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_METHODS);
-    fCollapseHeaderComments = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_HEADERS);
+    collapseInnerTypes = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_INNERTYPES);
+    collapseImportContainer = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_IMPORTS);
+    collapseDartDoc = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_JAVADOC);
+    collapseMembers = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_METHODS);
+    collapseHeaderComments = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_HEADERS);
   }
 
   /**
@@ -1349,9 +1277,9 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   private void internalUninstall() {
     if (isInstalled()) {
       handleProjectionDisabled();
-      fProjectionListener.dispose();
-      fProjectionListener = null;
-      fEditor = null;
+      projectionListener.dispose();
+      projectionListener = null;
+      dartEditor = null;
     }
   }
 
@@ -1363,7 +1291,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
    * @return <code>true</code> if <code>type</code> is an inner type
    */
   private boolean isInnerType(Type type) {
-//    return type.getDeclaringType() != null;
     return false;
   }
 
@@ -1480,7 +1407,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     List updates = new ArrayList();
 
     computeFoldingStructure(ctx);
-    Map newStructure = ctx.fMap;
+    Map newStructure = ctx.map;
     Map oldStructure = computeCurrentStructure(ctx);
 
     Iterator e = newStructure.keySet().iterator();
