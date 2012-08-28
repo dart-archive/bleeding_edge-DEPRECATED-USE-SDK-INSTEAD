@@ -14,24 +14,21 @@
 
 package com.google.dart.tools.ui.internal.filesview;
 
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
-import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 import org.eclipse.ui.model.WorkbenchAdapter;
 
-import java.io.File;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
- * A class used to represent the SDK directory.
+ * A class used to represent the Dart SDK in the Files view.
  */
-class SdkDirectoryNode {
+class DartSdkNode implements IDartNode {
 
   static class SdkDirectoryWorkbenchAdapter extends WorkbenchAdapter implements IAdapterFactory {
     @SuppressWarnings("rawtypes")
@@ -52,57 +49,51 @@ class SdkDirectoryNode {
 
     @Override
     public ImageDescriptor getImageDescriptor(Object object) {
-      return DartToolsPlugin.getImageDescriptor("icons/full/dart16/sdk.png");
+      return ((IDartNode) object).getImageDescriptor();
     }
 
     @Override
     public String getLabel(Object object) {
-      return ((SdkDirectoryNode) object).toString();
+      return ((IDartNode) object).getLabel();
     }
   }
-
-  public static final SdkDirectoryNode INSTANCE = new SdkDirectoryNode();
 
   static {
     Platform.getAdapterManager().registerAdapters(
         new SdkDirectoryWorkbenchAdapter(),
-        SdkDirectoryNode.class);
+        IDartNode.class);
   }
 
-  private SdkLibraryNode[] libraries;
+  private List<DartDirectoryNode> children;
 
-  public SdkLibraryNode[] getLibraries() {
-    if (libraries == null) {
-      List<SdkLibraryNode> libs = new ArrayList<SdkLibraryNode>();
+  public DartSdkNode() {
+    children = Arrays.asList(
+        DartDirectoryNode.createLibNode(this),
+        DartDirectoryNode.createPkgNode(this));
+  }
 
-      File file = PackageLibraryManagerProvider.getPackageLibraryManager().getSdkLibPath();
+  public DartDirectoryNode[] getChildDirectories() {
+    return children.toArray(new DartDirectoryNode[children.size()]);
+  }
 
-      for (File child : file.listFiles()) {
-        if (child.isDirectory()) {
-          // Skip the config directory - it is not a Dart library.
-          // TODO(devoncarew): will config be going away?
-          if (child.getName().equals("config")) {
-            continue;
-          }
+  @Override
+  public ImageDescriptor getImageDescriptor() {
+    return DartToolsPlugin.getImageDescriptor("icons/full/dart16/sdk.png");
+  }
 
-          // Skip the _internal directory (and any other similar private libraries).
-          if (child.getName().startsWith("_")) {
-            continue;
-          }
+  @Override
+  public String getLabel() {
+    return "Dart SDK";
+  }
 
-          libs.add(new SdkLibraryNode(EFS.getLocalFileSystem().fromLocalFile(child)));
-        }
-      }
-
-      libraries = libs.toArray(new SdkLibraryNode[libs.size()]);
-    }
-
-    return libraries;
+  @Override
+  public IDartNode getParent() {
+    return null;
   }
 
   @Override
   public String toString() {
-    return "Dart SDK";
+    return getLabel();
   }
 
 }

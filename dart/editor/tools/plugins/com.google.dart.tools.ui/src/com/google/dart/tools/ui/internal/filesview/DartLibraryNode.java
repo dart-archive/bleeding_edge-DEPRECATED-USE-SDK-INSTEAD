@@ -19,58 +19,21 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.ui.model.IWorkbenchAdapter;
-import org.eclipse.ui.model.WorkbenchAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A representation of a sdk library (e.g. dart:core, dart:io, ...).
+ * A representation of a sdk library (e.g. dart:core, dart:io, package:logging/logging.dart, ...).
  */
-class SdkLibraryNode {
-
-  static class SdkLibraryWorkbenchAdapter extends WorkbenchAdapter implements IAdapterFactory {
-    @SuppressWarnings("rawtypes")
-    @Override
-    public Object getAdapter(Object adaptableObject, Class adapterType) {
-      if (adapterType == IWorkbenchAdapter.class) {
-        return this;
-      } else {
-        return null;
-      }
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public Class[] getAdapterList() {
-      return new Class[] {IWorkbenchAdapter.class};
-    }
-
-    @Override
-    public ImageDescriptor getImageDescriptor(Object object) {
-      return DartToolsPlugin.findImageDescriptor("icons/full/obj16/package_obj.gif");
-    }
-
-    @Override
-    public String getLabel(Object object) {
-      return ((SdkLibraryNode) object).toString();
-    }
-  }
-
-  static {
-    Platform.getAdapterManager().registerAdapters(
-        new SdkLibraryWorkbenchAdapter(),
-        SdkLibraryNode.class);
-  }
-
+class DartLibraryNode implements IDartNode {
+  private DartDirectoryNode parent;
   private IFileStore root;
 
-  public SdkLibraryNode(IFileStore root) {
+  public DartLibraryNode(DartDirectoryNode parent, IFileStore root) {
+    this.parent = parent;
     this.root = root;
   }
 
@@ -85,8 +48,27 @@ class SdkLibraryNode {
   }
 
   @Override
+  public ImageDescriptor getImageDescriptor() {
+    return DartToolsPlugin.findImageDescriptor("icons/full/obj16/package_obj.gif");
+  }
+
+  @Override
+  public String getLabel() {
+    if (isPkgNode()) {
+      return "package:" + root.getName() + "/" + root.getName() + ".dart";
+    } else {
+      return "dart:" + root.getName();
+    }
+  }
+
+  @Override
+  public IDartNode getParent() {
+    return parent;
+  }
+
+  @Override
   public String toString() {
-    return "dart:" + root.getName();
+    return getLabel();
   }
 
   private List<IFileStore> filteredMembers(IFileStore file) throws CoreException {
@@ -100,6 +82,10 @@ class SdkLibraryNode {
     }
 
     return children;
+  }
+
+  private boolean isPkgNode() {
+    return root.getParent().getName().equals("pkg");
   }
 
 }

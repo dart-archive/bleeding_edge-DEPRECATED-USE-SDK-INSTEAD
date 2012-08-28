@@ -40,10 +40,14 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
 
   private Viewer viewer;
 
-  private Map<IFileStore, SdkLibraryNode> sdkChildMap;
+  private DartSdkNode sdkNode;
+
+  private Map<IFileStore, DartLibraryNode> sdkChildMap;
 
   public ResourceContentProvider() {
     ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
+
+    sdkNode = new DartSdkNode();
   }
 
   @Override
@@ -60,7 +64,7 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
         List<Object> children = new ArrayList<Object>();
 
         children.addAll(Arrays.asList(root.members()));
-        children.add(SdkDirectoryNode.INSTANCE);
+        children.add(sdkNode);
 
         return children.toArray();
       } else if (element instanceof IContainer) {
@@ -69,10 +73,12 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
       } else if (element instanceof IFileStore) {
         IFileStore fileStore = (IFileStore) element;
         return fileStore.childStores(EFS.NONE, null);
-      } else if (element instanceof SdkDirectoryNode) {
-        return ((SdkDirectoryNode) element).getLibraries();
-      } else if (element instanceof SdkLibraryNode) {
-        return ((SdkLibraryNode) element).getFiles();
+      } else if (element instanceof DartSdkNode) {
+        return ((DartSdkNode) element).getChildDirectories();
+      } else if (element instanceof DartDirectoryNode) {
+        return ((DartDirectoryNode) element).getLibraries();
+      } else if (element instanceof DartLibraryNode) {
+        return ((DartLibraryNode) element).getFiles();
       }
     } catch (CoreException ce) {
       //fall through
@@ -98,8 +104,8 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
       }
 
       return fileStore.getParent();
-    } else if (element instanceof SdkLibraryNode) {
-      return SdkDirectoryNode.INSTANCE;
+    } else if (element instanceof IDartNode) {
+      return ((IDartNode) element).getParent();
     } else {
       return null;
     }
@@ -127,12 +133,14 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
     });
   }
 
-  private Map<IFileStore, SdkLibraryNode> createSdkChildMap() {
-    Map<IFileStore, SdkLibraryNode> map = new HashMap<IFileStore, SdkLibraryNode>();
+  private Map<IFileStore, DartLibraryNode> createSdkChildMap() {
+    Map<IFileStore, DartLibraryNode> map = new HashMap<IFileStore, DartLibraryNode>();
 
-    for (SdkLibraryNode library : SdkDirectoryNode.INSTANCE.getLibraries()) {
-      for (IFileStore child : library.getFiles()) {
-        map.put(child, library);
+    for (DartDirectoryNode directoryNode : sdkNode.getChildDirectories()) {
+      for (DartLibraryNode library : directoryNode.getLibraries()) {
+        for (IFileStore child : library.getFiles()) {
+          map.put(child, library);
+        }
       }
     }
 
@@ -152,7 +160,7 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
     return children;
   }
 
-  private SdkLibraryNode getSdkParent(IFileStore fileStore) {
+  private DartLibraryNode getSdkParent(IFileStore fileStore) {
     if (sdkChildMap == null) {
       sdkChildMap = createSdkChildMap();
     }
