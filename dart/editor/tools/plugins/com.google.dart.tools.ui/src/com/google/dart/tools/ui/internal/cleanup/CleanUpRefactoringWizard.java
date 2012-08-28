@@ -35,6 +35,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -578,7 +579,6 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
     @Override
     public void createControl(Composite parent) {
       restoreSettings();
-      // TODO(scheglov)
       initializeDialogUnits(parent);
       Composite composite = new Composite(parent, SWT.NONE);
       GridLayoutFactory.create(composite);
@@ -597,14 +597,16 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 ID_MIGRATE_SYNTAX_1M1_CATCH,
                 "Migrate 'catch' blocks");
             createCheckButton(syntaxComposite, ID_MIGRATE_SYNTAX_1M1_GET, "Migrate getters");
+            new Label(syntaxComposite, SWT.NONE);
+            new Label(syntaxComposite, SWT.NONE).setText("Work in progress... not fully implemented:");
             createCheckButton(
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M1_EQUALS,
-                "Migrate 'operator equals()' (not done yet in dart2js)");
+                "Migrate 'operator equals()'");
             createCheckButton(
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M1_LIBRARY,
-                "Migrate library/import/source (not done yet in VM and dart2js)");
+                "Migrate library/import/source");
           }
         }
       }
