@@ -4,17 +4,22 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Cleanup the Google Storage dart-editor-archive-continuous bucket.
+# Dart Editor Google Storage Utilities.
 
-import optparse
-import sys
 import gsutil
+import optparse
+import os
+import subprocess
+import sys
+
+from os.path import join
 
 CONTINUOUS = 'gs://dart-editor-archive-continuous'
 TESTING = 'gs://dart-editor-archive-testing'
 INTEGRATION = 'gs://dart-editor-archive-integration'
 RELEASE = 'gs://dart-editor-archive-release'
 
+DART_PATH = os.path.join('..', '..', '..', 'dart');
 
 def _BuildOptions():
   """Setup the argument processing for this program.
@@ -43,8 +48,12 @@ def _BuildOptions():
       promote revision 567 from continuous to integration
         python gsTool.py promote --revision=567 --continuous
 
-      promote revision 567 to integration to release
-        python gsTool.py promote --revision=567 --integration"""
+      promote revision 567 from integration to release
+        python gsTool.py promote --revision=567 --integration
+
+      promote revision 11480 from continuous to testing
+        python gsTool.py promote --revision 11480 --continuous --testing"""
+
 
   result = optparse.OptionParser(usage=usage)
   result.set_default('gsbucketuri', 'gs://dart-editor-archive-continuous')
@@ -91,7 +100,7 @@ def _BuildOptions():
 
 
 def main():
-  """Main entry point for the Google Storage Cleanup."""
+  """Main entry point for Google Storage Tools."""
 
   _PrintSeparator('main')
 
@@ -157,7 +166,7 @@ def main():
     version_dirs = _ReadBucket(gsu, '{0}/{1}'.format(bucket, '[0-9]*'))
     _RemoveElements(gsu, bucket, version_dirs, options.keepcount)
   elif command == 'promote':
-    _PromoteBuild(gsu, options.revision, bucket_from, bucket_to)
+    _PromoteBuild(options.revision, bucket_from, bucket_to)
 
 
 def _ReadBucket(gsu, bucket):
@@ -189,7 +198,7 @@ def _ReadBucket(gsu, bucket):
 
 
 def _RemoveElements(gsu, bucket, version_dirs, keepcount):
-  """Remove the delected elements from Google Storage.
+  """Remove the selected elements from Google Storage.
 
   Args:
     gsu: the gsutil program to run
@@ -217,44 +226,25 @@ def _RemoveElements(gsu, bucket, version_dirs, keepcount):
                                                        keepcount)
 
 
-def _PromoteBuild(gsu, revision, from_bucket, to_bucket):
-  """Promote a build to another environment.
+def _PromoteBuild(revision, from_bucket, to_bucket):
+  """Promote a build from one bucket to another.
 
-    because Google Storage does not support symbolic links two copies need
-    to be made one with the revision number and one with latest
   Args:
-    gsu: the gsutil class
     revision: the revision to promote
     from_bucket: the bucket to promote from
-    to_bucket: the bucket to promote from
+    to_bucket: the bucket to promote to
   """
-  print '_PromoteBuild(gsu, {0} , {1}, {2})'.format(revision, from_bucket,
-                                                    to_bucket)
+  
+  src = '{0}/{1}/*'.format(from_bucket, revision);
+  dest = '{0}/{1}/'.format(to_bucket, 'latest');
 
-  elements = gsu.ReadBucket('{0}/{1}/*'.format(from_bucket, revision))
-  for element in elements:
-    if not '/tests/' in element:
-      from_element = element
-      to_element = element.replace(from_bucket, to_bucket)
-      print 'promoting {0} to {1}'.format(from_element, to_element)
-      gsu.Copy(from_element, to_element)
-      acl = gsu.GetAcl(to_element)
-      if acl is None:
-        _PrintFailure('non-fatal failure, could not get'
-                      ' ACL for {0}'.format(to_element))
-      else:
-        newacl = gsu.AddPublicAcl(acl)
-        gsu.SetAcl(to_element, newacl)
-      to_element = to_element.replace(revision, 'latest')
-      gsu.Copy(from_element, to_element)
-      acl = gsu.GetAcl(to_element)
-      if acl is None:
-        _PrintFailure('non-fatal failure, could not get'
-                      ' ACL for {0}'.format(to_element))
-      else:
-        newacl = gsu.AddPublicAcl(acl)
-        gsu.SetAcl(to_element, newacl)
-
+  print 'promoting: {0} -> {1}'.format(src, dest);
+ 
+  # copy all
+  _Gsutil(['cp', '-R', '-a', 'public-read', src, dest]);
+  # remove tests
+  _Gsutil(['rm', '-R', '{0}tests'.format(dest)]);
+  
 
 def _PrintSeparator(text):
   """Print a separator for the build steps."""
@@ -277,6 +267,18 @@ def _PrintFailure(text):
   print error_line_seperator
   print error_line_seperator
 
+def _Gsutil(cmd):
+  gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
+  return _ExecuteCommand([sys.executable, gsutilTool] + cmd)
+
+def _ExecuteCommand(cmd, dir=None):
+  """Execute the given command."""
+  if dir is not None:
+    cwd = os.getcwd()
+    os.chdir(dir)
+  status = subprocess.call(cmd, env=os.environ)
+  if dir is not None:
+    os.chdir(cwd)
 
 if __name__ == '__main__':
   sys.exit(main())
