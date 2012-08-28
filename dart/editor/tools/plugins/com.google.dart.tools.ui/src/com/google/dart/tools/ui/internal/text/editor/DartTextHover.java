@@ -78,7 +78,7 @@ public class DartTextHover extends DefaultTextHover {
     String annotationHover = super.getHoverInfo(textViewer, region);
 
     if (annotationHover != null) {
-      return annotationHover;
+      return escapeHtmlEntities(annotationHover);
     }
 
     if (editor == null) {
@@ -132,6 +132,12 @@ public class DartTextHover extends DefaultTextHover {
   @Override
   protected boolean isIncluded(Annotation annotation) {
     return sourceViewerConfiguration.isShownInText(annotation);
+  }
+
+  private String escapeHtmlEntities(String str) {
+    str = str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+
+    return str;
   }
 
 }
