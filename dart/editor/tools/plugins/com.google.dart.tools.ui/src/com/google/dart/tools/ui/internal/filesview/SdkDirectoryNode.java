@@ -52,7 +52,7 @@ class SdkDirectoryNode {
 
     @Override
     public ImageDescriptor getImageDescriptor(Object object) {
-      return DartToolsPlugin.getImageDescriptor("icons/full/dart16/library_container.png");
+      return DartToolsPlugin.getImageDescriptor("icons/full/dart16/sdk.png");
     }
 
     @Override
@@ -102,7 +102,7 @@ class SdkDirectoryNode {
 
   @Override
   public String toString() {
-    return "SDK Libraries";
+    return "Dart SDK";
   }
 
 }

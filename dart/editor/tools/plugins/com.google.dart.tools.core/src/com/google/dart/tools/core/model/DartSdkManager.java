@@ -48,12 +48,8 @@ import java.util.zip.ZipInputStream;
 public class DartSdkManager {
   /**
    * A special Dart SDK instance signifying that no SDK is installed.
-   * <p>
-   * NOTE: to check if an SDK is installed, clients should always prefer
-   * {@link DartSdk#isInstalled()} over direct access to this member.
-   * </p>
    */
-  public static DartSdk NONE = new DartSdk(null) {
+  private static DartSdk NONE = new DartSdk(null) {
     @Override
     public File getDirectory() {
       return null;

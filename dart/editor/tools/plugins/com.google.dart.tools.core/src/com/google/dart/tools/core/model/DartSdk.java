@@ -38,24 +38,6 @@ import java.io.IOException;
  */
 public class DartSdk {
 
-  /**
-   * @return
-   * @deprecated use DartSdkManager.getManager().getSdk()
-   */
-  @Deprecated
-  public static DartSdk getInstance() {
-    return DartSdkManager.getManager().getSdk();
-  }
-
-  /**
-   * @return
-   * @deprecated use DartSdkManager.getManager().hasSdk()
-   */
-  @Deprecated
-  public static boolean isInstalled() {
-    return DartSdkManager.getManager().hasSdk();
-  }
-
   private final File sdkPath;
 
   private File dartium;
@@ -116,7 +98,7 @@ public class DartSdk {
    * @return the SDK's documentation directory
    */
   public File getDocDirectory() {
-    return new File(DartSdk.getInstance().getDirectory(), "docs");
+    return new File(getDirectory(), "docs");
   }
 
   /**
@@ -148,7 +130,14 @@ public class DartSdk {
    * @return the SDK's library directory path
    */
   public File getLibraryDirectory() {
-    return new File(DartSdk.getInstance().getDirectory(), "lib");
+    return new File(getDirectory(), "lib");
+  }
+
+  /**
+   * @return the SDK's package directory path (pkg)
+   */
+  public File getPackageDirectory() {
+    return new File(getDirectory(), "pkg");
   }
 
   /**

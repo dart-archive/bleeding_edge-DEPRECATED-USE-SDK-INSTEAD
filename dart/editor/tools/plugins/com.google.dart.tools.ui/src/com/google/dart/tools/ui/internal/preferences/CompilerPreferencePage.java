@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.preferences;
 
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -64,8 +64,8 @@ public class CompilerPreferencePage extends PreferencePage implements IWorkbench
         sdkGroup);
     GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(sdkGroup);
     Label sdkLabel = new Label(sdkGroup, SWT.NONE);
-    if (DartSdk.isInstalled()) {
-      String version = DartSdk.getInstance().getSdkVersion();
+    if (DartSdkManager.getManager().hasSdk()) {
+      String version = DartSdkManager.getManager().getSdk().getSdkVersion();
       if (version.equals("0")) {
         sdkLabel.setText("Dart SDK is installed");
       } else {

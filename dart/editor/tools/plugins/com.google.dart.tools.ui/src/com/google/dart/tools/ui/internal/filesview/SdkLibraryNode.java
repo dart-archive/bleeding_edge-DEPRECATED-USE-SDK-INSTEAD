@@ -14,7 +14,7 @@
 
 package com.google.dart.tools.ui.internal.filesview;
 
-import com.google.dart.tools.ui.DartPluginImages;
+import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
@@ -53,7 +53,7 @@ class SdkLibraryNode {
 
     @Override
     public ImageDescriptor getImageDescriptor(Object object) {
-      return DartPluginImages.DESC_DART_LIB_FILE;
+      return DartToolsPlugin.findImageDescriptor("icons/full/obj16/package_obj.gif");
     }
 
     @Override
