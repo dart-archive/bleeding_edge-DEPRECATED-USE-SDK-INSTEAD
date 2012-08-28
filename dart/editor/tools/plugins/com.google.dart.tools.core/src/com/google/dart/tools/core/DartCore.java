@@ -645,6 +645,22 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * @return <code>true</code> if given {@link IResource} was installed by pub.
+   */
+  public static boolean isPackagesResource(IResource resource) {
+    if (resource instanceof IFolder) {
+      if (isPackagesDirectory((IFolder) resource)) {
+        return true;
+      }
+    }
+    if (resource != null && resource.getParent() instanceof IFolder) {
+      IFolder parentFolder = (IFolder) resource.getParent();
+      return isPackagesResource(parentFolder);
+    }
+    return false;
+  }
+
+  /**
    * @return whether we're running in the context of the eclipse plugins build
    */
   public static boolean isPluginsBuild() {

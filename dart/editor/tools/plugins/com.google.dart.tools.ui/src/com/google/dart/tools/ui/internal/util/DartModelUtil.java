@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.util;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.core.ILocalVariable;
 import com.google.dart.core.IPackageFragment;
@@ -502,6 +503,20 @@ public final class DartModelUtil {
 //  }
 
   /**
+   * @return the {@link CompilationUnit}s which are not from "packages" directory.
+   */
+  public static CompilationUnit[] getNotPackageCompilationUnits(CompilationUnit[] units) {
+    List<CompilationUnit> filteredUnits = Lists.newArrayList();
+    for (CompilationUnit unit : units) {
+      IResource resource = unit.getResource();
+      if (!DartCore.isPackagesResource(resource)) {
+        filteredUnits.add(unit);
+      }
+    }
+    return filteredUnits.toArray(new CompilationUnit[filteredUnits.size()]);
+  }
+
+  /**
    * Compute a new name for a compilation unit, given the name of the new main type. This query
    * tries to maintain the existing extension (e.g. ".java").
    * 
@@ -553,16 +568,6 @@ public final class DartModelUtil {
 //    }
   }
 
-  /**
-   * Returns the qualified type name of the given type using '.' as separators. This is a replace
-   * for Type.getTypeQualifiedName() which uses '$' as separators. As '$' is also a valid character
-   * in an id this is ambiguous. JavaScriptCore PR: 1GCFUNT
-   */
-  @SuppressWarnings("deprecation")
-  public static String getTypeQualifiedName(Type type) {
-    return type.getTypeQualifiedName('.');
-  }
-
 //  /**
 //   * Returns the fully qualified name of a type's container. (package name or
 //   * enclosing type name)
@@ -575,6 +580,16 @@ public final class DartModelUtil {
 //      return type.getPackageFragment().getElementName();
 //    }
 //  }
+
+  /**
+   * Returns the qualified type name of the given type using '.' as separators. This is a replace
+   * for Type.getTypeQualifiedName() which uses '$' as separators. As '$' is also a valid character
+   * in an id this is ambiguous. JavaScriptCore PR: 1GCFUNT
+   */
+  @SuppressWarnings("deprecation")
+  public static String getTypeQualifiedName(Type type) {
+    return type.getTypeQualifiedName('.');
+  }
 
   /**
    * @return the {@link CompilationUnit}s which are based on unique files.
