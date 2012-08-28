@@ -99,7 +99,7 @@ final String _jscode = '''
     try {
       var args = Array.prototype.slice.call(args);
       return eval('('+name+')').apply(this, args);
-    } catch(e) {
+    } catch (e) {
       console.log('Dispatch Error: ' + e);
     }
   }

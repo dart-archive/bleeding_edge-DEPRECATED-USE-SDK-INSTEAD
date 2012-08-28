@@ -99,7 +99,7 @@ class AnimationScheduler {
           _intervalId = window.webkitRequestAnimationFrame(
               (int ignored) { _step(); });
               // TODO(jacobr) fix this odd type error.
-        } catch (var e) {
+        } catch (e) {
           _webkitAnimationFrameMaybeAvailable = false;
         }
       }
@@ -145,7 +145,7 @@ class AnimationScheduler {
       if (callbackData.ready(minTime)) {
         try {
           (callbackData.callback)(minTime);
-        } catch (var e) {
+        } catch (e) {
           final msg = e.toString();
           print('Suppressed exception ${msg} triggered by callback');
         }

@@ -24,7 +24,7 @@ class Suite {
     try {
       // dart:dom_deprecated
       _window.addEventListener('message', starter, false);
-    } catch (NoSuchMethodException e) {
+    } on NoSuchMethodException catch (e) {
       // dart:html
       _window.on.message.add(starter);
     }
@@ -71,7 +71,7 @@ class Suite {
 
           runsPerSecond.add((runs * 1000.0) / (cur - start));
         }
-      } catch(var exception, var stacktrace) {
+      } catch (exception, stacktrace) {
         _window.alert('Exception ${exception}: ${stacktrace}');
         return;
       }

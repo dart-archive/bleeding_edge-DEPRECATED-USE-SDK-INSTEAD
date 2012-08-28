@@ -241,7 +241,7 @@ class LeapCompiler extends Compiler {
     String text = "";
     try {
       text = cache.readAll(uri.path.toString());
-    } catch (var exception) {
+    } catch (exception) {
       cancel("${uri.path}: $exception", node: node);
     }
     SourceFile sourceFile = new SourceFile(uri.toString(), text);
@@ -265,7 +265,7 @@ class LeapCompiler extends Compiler {
     Element e;
     try {
       e = runCompilerSelective(script);
-    } catch (CompilerCancelledException exception) {
+    } on CompilerCancelledException catch (exception) {
       log(exception.toString());
       log('compilation failed');
       return null;

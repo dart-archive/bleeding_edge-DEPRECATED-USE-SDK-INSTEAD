@@ -97,7 +97,7 @@ class Dromaeo {
           try {
             final response = JSON.parse(event.data);
             _handler = _handler(response['command'], response['data']);
-          } catch (final e, final stacktrace) {
+          } catch (e, stacktrace) {
             window.alert('Exception: ${e}: ${stacktrace}');
           }
         },

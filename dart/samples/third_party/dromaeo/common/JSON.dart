@@ -460,7 +460,7 @@ class JsonStringifier {
     /*
     try {
       stringifier._stringify(object);
-    } catch (JsonUnsupportedObjectType e) {
+    } on JsonUnsupportedObjectType catch (e) {
       return null;
       }*/
     return stringifier._result;

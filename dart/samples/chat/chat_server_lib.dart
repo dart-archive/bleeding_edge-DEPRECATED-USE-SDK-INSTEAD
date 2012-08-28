@@ -591,7 +591,7 @@ class IsolatedServer {
         _server.listen(_host, _port, backlog: message.backlog);
         replyTo.send(new ChatServerStatus.started(_server.port), null);
         _loggingTimer = new Timer.repeating(1000, _handleLogging);
-      } catch (var e) {
+      } catch (e) {
         replyTo.send(new ChatServerStatus.error(e.toString()), null);
       }
     } else if (message.isStop) {

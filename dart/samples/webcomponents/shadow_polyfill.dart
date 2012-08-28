@@ -240,7 +240,7 @@ bool get hasShadowRoot() {
       // an exception to be thrown.
       new ShadowRoot(new DivElement());
       _hasShadowRoot = true;
-    } catch (var e) {
+    } catch (e) {
       _hasShadowRoot = false;
       // Hide <template> elements.
       // TODO(jmesserly): This is a workaround because we don't distribute

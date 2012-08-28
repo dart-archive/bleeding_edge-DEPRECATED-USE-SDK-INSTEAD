@@ -146,7 +146,7 @@ class Matrix4 {
         String display;
         try {
           display = v.toStringAsPrecision(4);
-        } catch (Object e) {
+        } catch (e) {
           // TODO - remove this once toStringAsPrecision is implemented in vm
           display = v.toString();
         }
