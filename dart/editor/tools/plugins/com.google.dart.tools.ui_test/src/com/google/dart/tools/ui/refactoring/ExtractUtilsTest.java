@@ -340,7 +340,7 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   public void test_getType_typedLiteral_List_noTypeArgument() throws Exception {
-    assertTypeSimple("List<int>", "const [1, 2, 3]");
+    assertTypeSimple("List", "const [1, 2, 3]");
   }
 
   public void test_getType_typedLiteral_List_withTypeArgument() throws Exception {
@@ -348,7 +348,7 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   public void test_getType_typedLiteral_Map_noTypeArgument() throws Exception {
-    assertTypeSimple("Map<String, int>", "const {'a' : 1, 'b' : 2, 'c' : 3}");
+    assertTypeSimple("Map<String, Dynamic>", "const {'a' : 1, 'b' : 2, 'c' : 3}");
   }
 
   public void test_getType_typedLiteral_Map_withTypeArgument() throws Exception {
