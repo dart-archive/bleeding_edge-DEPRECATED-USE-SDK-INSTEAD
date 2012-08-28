@@ -13,9 +13,8 @@
  */
 package com.google.dart.tools.ui.text.folding;
 
-import com.google.dart.compiler.parser.DartScanner;
-import com.google.dart.compiler.parser.Token;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartElementDelta;
@@ -143,17 +142,15 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     private Type fFirstType;
     private boolean fHasHeaderComment;
     private LinkedHashMap fMap = new LinkedHashMap();
-//    private DartScanner fScanner;
-    private String source;
+    private TokenStream tokenStream;
 
     private FoldingStructureComputationContext(IDocument document, ProjectionAnnotationModel model,
-        boolean allowCollapsing, DartScanner scanner) {
+        boolean allowCollapsing) {
       Assert.isNotNull(document);
       Assert.isNotNull(model);
       fDocument = document;
       fModel = model;
       fAllowCollapsing = allowCollapsing;
-//      fScanner = scanner;
     }
 
     /**
@@ -247,16 +244,13 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       return fModel;
     }
 
-    private DartScanner getScanner() {
+    private TokenStream getScanner() {
       return getScanner(0);
     }
 
-    private DartScanner getScanner(int start) {
-      DartX.todo(); // reuse scanner?
-      return new DartScanner(source, start);
-//      if (fScanner == null)
-//        fScanner = new DartScanner(source, start);
-//      return fScanner;
+    private TokenStream getScanner(int start) {
+      tokenStream.begin(start);
+      return tokenStream;
     }
 
     private boolean hasHeaderComment() {
@@ -275,7 +269,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     }
 
     private void setScannerSource(String source) {
-      this.source = source;
+      this.tokenStream = new TokenStream(source);
     }
   }
 
@@ -722,6 +716,40 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     }
   }
 
+  private static class TokenStream {
+    com.google.dart.engine.scanner.StringScanner scanner;
+    com.google.dart.engine.scanner.Token firstToken;
+    com.google.dart.engine.scanner.Token currentToken;
+    int begin;
+
+    TokenStream(String source) {
+      scanner = new com.google.dart.engine.scanner.StringScanner(null, source, null);
+      firstToken = scanner.tokenize();
+      currentToken = firstToken;
+      begin = 0;
+    }
+
+    void begin(int start) {
+      if (start == begin) {
+        return;
+      }
+      if (start < begin) {
+        begin = 0;
+        currentToken = firstToken;
+      }
+      while (begin < start) {
+        currentToken = currentToken.getNext();
+        begin = currentToken.getOffset();
+      }
+    }
+
+    com.google.dart.engine.scanner.Token next() {
+      com.google.dart.engine.scanner.Token next = currentToken;
+      currentToken = currentToken.getNext();
+      return next;
+    }
+  }
+
   private static final class Tuple {
     DartProjectionAnnotation annotation;
     Position position;
@@ -1012,32 +1040,20 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       }
 
       final int shift = range.getOffset();
-      DartScanner scanner = ctx.getScanner(shift);
-//      scanner.resetTo(shift, shift + range.getLength());
+      TokenStream scanner = ctx.getScanner(shift);
 
       int start = shift;
-      int stop = shift + range.getLength();
-      while (true) {
-
-        Token token = scanner.next();
-        start = scanner.getTokenLocation().getBegin();
-        if (start > stop) {
-          break;
+      com.google.dart.engine.scanner.Token token = scanner.next();
+      start = token.getOffset();
+      com.google.dart.engine.scanner.Token comment = token.getPrecedingComments();
+      while (comment != null) {
+        int s = token.getOffset();
+        int l = token.getLength();
+        regions.add(new Region(s, l));
+        comment = comment.getNext();
+        if (comment == token) {
+          comment = null;
         }
-
-//        switch (token) {
-//          case ITerminalSymbols.TokenNameCOMMENT_JAVADOC:
-//          case ITerminalSymbols.TokenNameCOMMENT_BLOCK: {
-        if (token == Token.COMMENT) {
-          int end = scanner.getTokenLocation().getEnd() + 1;
-          regions.add(new Region(start, end - start));
-          continue;
-        }
-//          case ITerminalSymbols.TokenNameCOMMENT_LINE:
-//            continue;
-//        }
-
-        break;
       }
 
       regions.add(new Region(start, shift + range.getLength() - start - 1));
@@ -1200,35 +1216,23 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     if (range == null) {
       return null;
     }
-//    int start = 0;
-    int end = range.getOffset();
 
-    /*
-     * code adapted from CommentFormattingStrategy: scan the header content up to the first type.
-     * Once a comment is found, accumulate any additional comments up to the stop condition. The
-     * stop condition is reaching a package declaration, import container, or the end of the input.
-     */
-    DartScanner scanner = ctx.getScanner();
-//    scanner.resetTo(start, end);
+    TokenStream scanner = ctx.getScanner();
 
     int headerStart = -1;
     int headerEnd = -1;
     boolean foundComment = false;
-    Token terminal = scanner.next();
-    while (terminal == Token.COMMENT || terminal == Token.WHITESPACE)
-
-    {
-
-      if (terminal == Token.COMMENT) {
-        if (!foundComment) {
-          headerStart = scanner.getTokenLocation().getBegin();
-        }
-        headerEnd = scanner.getTokenLocation().getEnd();
-        foundComment = true;
+    com.google.dart.engine.scanner.Token terminal = scanner.next();
+    com.google.dart.engine.scanner.Token comment = terminal.getPrecedingComments();
+    while (comment != null) {
+      if (!foundComment) {
+        headerStart = comment.getOffset();
       }
-      terminal = scanner.next();
-      if (scanner.getTokenLocation().getBegin() > end) {
-        break;
+      headerEnd = comment.getEnd();
+      foundComment = true;
+      comment = comment.getNext();
+      if (comment == terminal) {
+        comment = null;
       }
     }
 
@@ -1251,12 +1255,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       return null;
     }
 
-    DartScanner scanner = null;
-    DartX.todo();
-//    if (fUpdatingCount == 1)
-//      scanner = fSharedScanner; // reuse scanner
-
-    return new FoldingStructureComputationContext(doc, model, allowCollapse, scanner);
+    return new FoldingStructureComputationContext(doc, model, allowCollapse);
   }
 
   private FoldingStructureComputationContext createInitialContext() {
@@ -1473,14 +1472,9 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     if (ctx == null) {
       return;
     }
-
-    // TODO (danrubel) Skip folding until scanning is more performant
-    DartX.todo();
-    if (ctx != null) {
+    if (!DartCoreDebug.ENABLE_FOLDING) {
       return;
     }
-
-    @SuppressWarnings("unused")
     Map additions = new HashMap();
     List deletions = new ArrayList();
     List updates = new ArrayList();
@@ -1562,7 +1556,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     Annotation[] deletedArray = (Annotation[]) deletions.toArray(new Annotation[deletions.size()]);
     Annotation[] changedArray = (Annotation[]) updates.toArray(new Annotation[updates.size()]);
     ctx.getModel().modifyAnnotations(deletedArray, additions, changedArray);
-
-//    ctx.fScanner.setSource(null);
+    ctx.setScannerSource(""); // clear token stream
   }
 }
