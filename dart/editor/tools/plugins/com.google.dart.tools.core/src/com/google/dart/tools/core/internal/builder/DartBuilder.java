@@ -148,7 +148,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
           if (resource.getType() != IResource.FILE) {
             switch (delta.getKind()) {
               case IResourceDelta.ADDED:
-                server.scan(file, false);
+                server.scan(file, null);
                 return false;
               case IResourceDelta.REMOVED:
                 server.discard(file);
@@ -164,7 +164,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
           if (resource.getName().endsWith(Extensions.DOT_DART)) {
             switch (delta.getKind()) {
               case IResourceDelta.ADDED:
-                server.scan(file, false);
+                server.scan(file, null);
                 return false;
               case IResourceDelta.REMOVED:
                 server.discard(file);

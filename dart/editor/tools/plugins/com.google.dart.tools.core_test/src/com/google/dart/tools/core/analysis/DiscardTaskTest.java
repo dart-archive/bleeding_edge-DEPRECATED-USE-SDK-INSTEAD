@@ -74,7 +74,7 @@ public class DiscardTaskTest extends AbstractDartCoreTest {
 
   public void test_discard_application_directory() throws Exception {
     assertTrackedLibraryFiles(server);
-    server.scan(bankDir, true);
+    server.scan(bankDir, null);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
     server.assertAnalyzeContext(true);
@@ -93,7 +93,7 @@ public class DiscardTaskTest extends AbstractDartCoreTest {
 
   public void test_discard_application_nestedLib() throws Exception {
     assertTrackedLibraryFiles(server);
-    server.scan(bankDir, true);
+    server.scan(bankDir, null);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
     server.assertAnalyzeContext(true);
@@ -113,7 +113,7 @@ public class DiscardTaskTest extends AbstractDartCoreTest {
 
   public void test_discard_libraryDirectory() throws Exception {
     assertTrackedLibraryFiles(server);
-    server.scan(moneyDir, true);
+    server.scan(moneyDir, null);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
     server.assertAnalyzeContext(true);
@@ -132,7 +132,7 @@ public class DiscardTaskTest extends AbstractDartCoreTest {
 
   public void test_discard_libraryFile() throws Exception {
     assertTrackedLibraryFiles(server);
-    server.scan(moneyLibFile, true);
+    server.scan(moneyLibFile, null);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
     server.assertAnalyzeContext(true);

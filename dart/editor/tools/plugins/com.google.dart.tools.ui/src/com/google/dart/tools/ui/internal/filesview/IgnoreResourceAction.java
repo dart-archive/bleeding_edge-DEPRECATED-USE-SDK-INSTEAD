@@ -119,7 +119,7 @@ public class IgnoreResourceAction extends SelectionListenerAction {
     } else {
       DartModelManager.getInstance().removeFromIgnores(resource);
       File file = resource.getLocation().toFile();
-      PackageLibraryManagerProvider.getDefaultAnalysisServer().scan(file, true);
+      PackageLibraryManagerProvider.getDefaultAnalysisServer().scan(file, null);
     }
   }
 

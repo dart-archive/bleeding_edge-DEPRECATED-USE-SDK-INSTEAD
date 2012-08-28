@@ -104,7 +104,7 @@ public class AnalysisIndexManager {
   private static void initServerContent() {
     if (!server.readCache()) {
       for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-        server.scan(project.getLocation().toFile(), true);
+        server.scan(project.getLocation().toFile(), null);
       }
     }
   }

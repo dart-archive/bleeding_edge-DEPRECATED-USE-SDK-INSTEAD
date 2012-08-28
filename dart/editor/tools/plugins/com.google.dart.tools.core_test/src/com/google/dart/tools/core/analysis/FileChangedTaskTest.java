@@ -87,7 +87,7 @@ public class FileChangedTaskTest extends AbstractDartCoreTest {
     final String newContent = oldContent.substring(0, index)
         + oldContent.substring(index + directive.length());
 
-    server.scan(libraryFile, true);
+    server.scan(libraryFile, null);
     assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
     assertTrackedLibraryFiles(server, libraryFile);
     Object lib1 = getCachedLibrary(savedContext, libraryFile);
@@ -135,7 +135,7 @@ public class FileChangedTaskTest extends AbstractDartCoreTest {
     writer.append(oldContent);
     final String newContent = writer.toString();
 
-    server.scan(libraryFile, true);
+    server.scan(libraryFile, null);
     assertTrue(server.waitForIdle(FIVE_MINUTES_MS));
     assertTrackedLibraryFiles(server, libraryFile);
     Object lib1 = getCachedLibrary(savedContext, libraryFile);

@@ -245,17 +245,6 @@ public class AnalysisServer {
 
   /**
    * Scan the specified file or recursively scan the specified directory for libraries to analyze.
-   * This has been replaced by {@link #scan(File, ScanCallback)}.
-   * 
-   * @param file the file or directory of files to scan (not <code>null</code>)
-   * @param fullScan ignored
-   */
-  public void scan(File file, boolean fullScan) {
-    scan(file, null);
-  }
-
-  /**
-   * Scan the specified file or recursively scan the specified directory for libraries to analyze.
    * 
    * @param file the file or directory of files to scan (not <code>null</code>).
    * @param milliseconds the number of milliseconds to wait for the scan to complete.

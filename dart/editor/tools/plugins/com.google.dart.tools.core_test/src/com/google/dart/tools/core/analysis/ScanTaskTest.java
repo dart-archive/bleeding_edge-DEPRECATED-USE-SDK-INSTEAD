@@ -80,7 +80,7 @@ public class ScanTaskTest extends AbstractDartCoreTest {
 
   public void test_scan_application() throws Exception {
     assertTrackedLibraryFiles(server);
-    server.scan(bankDir, true);
+    server.scan(bankDir, null);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server, bankLibFile, nestedAppFile, nestedLibFile);
@@ -90,7 +90,7 @@ public class ScanTaskTest extends AbstractDartCoreTest {
 
   public void test_scan_directory() throws Exception {
     assertTrackedLibraryFiles(server);
-    server.scan(moneyDir, true);
+    server.scan(moneyDir, null);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server, moneyLibFile);
@@ -99,7 +99,7 @@ public class ScanTaskTest extends AbstractDartCoreTest {
 
   public void test_scan_doesNotExist() throws Exception {
     assertTrackedLibraryFiles(server);
-    server.scan(new File(moneyDir, "doesNotExist.dart"), true);
+    server.scan(new File(moneyDir, "doesNotExist.dart"), null);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server);
@@ -108,7 +108,7 @@ public class ScanTaskTest extends AbstractDartCoreTest {
 
   public void test_scan_library() throws Exception {
     assertTrackedLibraryFiles(server);
-    server.scan(moneyLibFile, true);
+    server.scan(moneyLibFile, null);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server, moneyLibFile);
@@ -118,7 +118,7 @@ public class ScanTaskTest extends AbstractDartCoreTest {
   public void test_scan_libraryThenSource() throws Exception {
     test_scan_library();
     server.resetAnalyzeContext();
-    server.scan(simpleMoneySrcFile, true);
+    server.scan(simpleMoneySrcFile, null);
     listener.waitForIdle(2, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server, moneyLibFile);
     server.assertAnalyzeContext(false);
@@ -126,7 +126,7 @@ public class ScanTaskTest extends AbstractDartCoreTest {
 
   public void test_scan_source() throws Exception {
     assertTrackedLibraryFiles(server);
-    server.scan(simpleMoneySrcFile, true);
+    server.scan(simpleMoneySrcFile, null);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server, simpleMoneySrcFile);
@@ -136,7 +136,7 @@ public class ScanTaskTest extends AbstractDartCoreTest {
   public void test_scan_sourceThenLibrary() throws Exception {
     test_scan_source();
     server.resetAnalyzeContext();
-    server.scan(moneyLibFile, true);
+    server.scan(moneyLibFile, null);
     listener.waitForIdle(2, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server, moneyLibFile);
     server.assertAnalyzeContext(true);
