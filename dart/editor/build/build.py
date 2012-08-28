@@ -29,17 +29,15 @@ REVISION = None
 
 utils = None
 
-# TODO: unused: _ShouldMoveToLatest, _MoveContinuousToLatest, _CleanupStaging
-
 class AntWrapper(object):
-  """Class to abstract the ant calls from the program."""
+  """A wrapper for ant build invocations"""
 
   _antpath = None
   _bzippath = None
   _propertyfile = None
 
   def __init__(self, propertyfile, antpath='/usr/bin', bzippath=None):
-    """Initialize the class with the ant path.
+    """Initialize the ant path.
 
     Args:
       propertyfile: the file to write the build properties to
@@ -490,120 +488,6 @@ def PrintErrorLog(rootdir):
         print logline
   if not found:
     print 'no log file was found in ' + configdir
-
-
-def _DeployToContinuous(build_os, to_bucket, zip_files, svnid, gsu):
-  """Deploy the build RCP's to continuous bucket.
-
-  Args:
-    build_os: the os for this build
-    to_bucket: the location on GoogleStorage to copy the files
-    zip_files: list of zip files to copy to GoogleStorage
-    svnid: the revision id for this build
-    gsu: the GoogleStorage wrapper
-  Returns:
-    the status of the copy to Google Storage
-  """
-  print '_DeployToContinuous({0}, {1}, {2}, gsu)'.format(to_bucket, zip_files,
-                                                         build_os)
-  gs_objects = []
-  for element in zip_files:
-    base_name = os.path.basename(element)
-    svnid_object = '{0}/{1}/{2}'.format(to_bucket,
-                                        svnid, base_name)
-    status = gsu.Copy(element, svnid_object)
-    gs_objects.append(svnid_object)
-    if status:
-      PrintError('failed to copy {0} to {1}'.format(element, svnid_object))
-      return status
-
-  return (status, gs_objects)
-
-
-def _ShouldMoveToLatest(bucket, svnid, gsu):
-  """Determin if all os specific builds are done for a SVN Revision.
-
-  Args:
-    bucket: the Google Storage bucket to copy to
-    svnid: the revision id for this build
-    gsu: the gsutil object
-
-  Returns:
-    True if all OS Specific builds are done for this svnid False otherwise
-  """
-  print ('_ShouldMoveToLatest({0}, {1}').format(bucket, svnid)
-  gs_ls = '{0}/tags/done-{1}-*'.format(bucket, svnid)
-  gs_objects = gsu.ReadBucket(gs_ls)
-  os_build_done = {'linux': False, 'win32': False, 'macos': False}
-  for gs_object in gs_objects:
-    base_name = os.path.basename(gs_object)
-    parts = base_name.split('-')
-    os_build_done[parts[-1].strip()] = True
-  all_builds_done = True
-  for build_done in os_build_done:
-    if not os_build_done[build_done]:
-      all_builds_done = False
-  return all_builds_done
-
-
-def _MoveContinuousToLatest(bucket_stage, bucket_continuous, svnid, gsu):
-  """Move the staged builds to continuous.
-
-  Args:
-    bucket_stage: the Google Storage bucket the code is staged in
-    bucket_continuous: the Google Storage bucket the code is copied to
-    svnid: the revision id for this build
-    gsu: the gsutil object
-  """
-  print ('_MoveContinuousToLatest({0},'
-         ' {1}, {2}, gsu)'.format(bucket_stage, bucket_continuous, svnid))
-  bucket_to_template = string.Template('$bucket/latest/$file')
-  bucket_from_template = string.Template('$bucket/$revision/$file')
-  data = {'bucket': bucket_continuous, 'revision': str(svnid),
-          'buildos': '', 'file': '*'}
-  elements = gsu.ReadBucket(bucket_from_template.substitute(data))
-  for element in elements:
-    if not '/tests/' in element:
-      file_name = os.path.basename(element)
-      data['file'] = file_name
-      element_to = bucket_to_template.substitute(data)
-      gsu.Copy(element, element_to)
-
-
-def _CleanupStaging(bucket_stage, svnid, gsu):
-  """Cleanup the stagging area.
-
-    remove all old builds from staging and cleanup the old tag files
-  Args:
-    bucket_stage: the bucket to cleanup the staging data from
-    svnid: the svn revison
-    gsu: the gsutil object
-  """
-  print '_CleanupStaging({0}, {1}, gsu'.format(bucket_stage, svnid)
-  tag_file_re = re.compile('^.+done-(\d+)-([lwm].+)')
-  tag_template = '{0}/tags/done-{1}-*'
-  stage_template = '{0}/staging/{1}/{2}/*'
-  target_revistion = int(svnid)
-  version_map = {}
-  elements_to_remove = []
-  tags = gsu.ReadBucket(tag_template.format(bucket_stage, '*'))
-  for tag in tags:
-    try:
-      re_result = tag_file_re.match(tag)
-      version_str = re_result.group(1)
-      version_map[int(version_str)] = tag
-    except IndexError as e:
-      print 'error {0} processing {1} '.format(e, tag)
-  for current_revision in version_map.iterkeys():
-    if target_revistion > int(current_revision):
-      elements_to_remove.append(tag_template.format(bucket_stage,
-                                                    current_revision))
-      for os_name in ['win32', 'macos', 'linux']:
-        elements_to_remove.append(stage_template.format(bucket_stage,
-                                                        os_name,
-                                                        current_revision))
-  for element in elements_to_remove:
-    gsu.Remove(element)
 
 
 def UploadTestHtml(buildout, bucket, svnid, buildos, gsu):
