@@ -679,7 +679,7 @@ public class Parser {
    * 
    * @return the assignable expression that was parsed
    */
-  private Expression parseAssignableExpression() {
+  private Expression parseAssignableExpression(boolean orPrimaryWithSelectors) {
     if (matches(Keyword.SUPER)) {
       return parseAssignableSelector(new SuperExpression(getAndAdvance()), false);
     }
@@ -689,19 +689,21 @@ public class Parser {
     // assignableSelector.
     //
     Expression expression = parsePrimaryExpression();
-    boolean optional = expression instanceof SimpleIdentifier;
+    boolean isOptional = orPrimaryWithSelectors || expression instanceof SimpleIdentifier;
     while (true) {
       while (matches(TokenType.OPEN_PAREN)) {
         ArgumentList argumentList = parseArgumentList();
         expression = new FunctionExpressionInvocation(expression, argumentList);
-        optional = false;
+        if (!orPrimaryWithSelectors) {
+          isOptional = false;
+        }
       }
-      Expression selectorExpression = parseAssignableSelector(expression, optional);
+      Expression selectorExpression = parseAssignableSelector(expression, isOptional);
       if (selectorExpression == expression) {
         return expression;
       }
       expression = selectorExpression;
-      optional = true;
+      isOptional = true;
     }
   }
 
@@ -730,10 +732,7 @@ public class Parser {
     } else {
       if (!optional) {
         // Report the missing selector.
-        // TODO (jwren) investigate, enabling this causes tests to fail, logic in
-        // parseAssignableExpression should be updated so that we can enable this, without failures
-        // in the tests
-        //reportError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
+        reportError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
       }
       return prefix;
     }
@@ -2891,9 +2890,12 @@ public class Parser {
    * @return the postfix expression that was parsed
    */
   private Expression parsePostfixExpression() {
-    Expression operand = parseAssignableExpression();
+    Expression operand = parseAssignableExpression(true);
     if (!currentToken.getType().isIncrementOperator()) {
       return operand;
+    }
+    if (operand instanceof FunctionExpressionInvocation) {
+      reportError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
     }
     Token operator = getAndAdvance();
     return new PostfixExpression(operand, operator);
@@ -3679,7 +3681,7 @@ public class Parser {
           return new PrefixExpression(operator, new SuperExpression(getAndAdvance()));
         }
       }
-      return new PrefixExpression(operator, parseAssignableExpression());
+      return new PrefixExpression(operator, parseAssignableExpression(false));
     } else if (matches(TokenType.PLUS)) {
       reportError(ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR);
     }

@@ -16,6 +16,7 @@ package com.google.dart.engine.parser;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypedLiteral;
 import com.google.dart.engine.scanner.Token;
@@ -235,6 +236,34 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_expectedToken_whileMissingInDoStatement() throws Exception {
     parse("parseStatement", "do {} (x);", ParserErrorCode.EXPECTED_TOKEN);
+  }
+
+  public void test_missingAssignableSelector_identifiersAssigned() throws Exception {
+    parse("parseExpression", "x.y = y;");
+  }
+
+  public void test_missingAssignableSelector_primarySelectorPostfix() throws Exception {
+    parse("parseExpression", "x(y)(z)++", ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
+  }
+
+  public void test_missingAssignableSelector_selector() throws Exception {
+    parse("parseExpression", "x(y)(z).a++");
+  }
+
+  public void test_missingAssignableSelector_superAssigned() throws Exception {
+    parse("parseExpression", "super = x;", ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
+  }
+
+  public void test_missingAssignableSelector_superPrimaryExpression() throws Exception {
+    SuperExpression expression = parse(
+        "parsePrimaryExpression",
+        "super",
+        ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
+    assertNotNull(expression.getKeyword());
+  }
+
+  public void test_missingAssignableSelector_superPropertyAccessAssigned() throws Exception {
+    parse("parseExpression", "super.x = x;");
   }
 
   public void test_missingCatchOrFinally() throws Exception {

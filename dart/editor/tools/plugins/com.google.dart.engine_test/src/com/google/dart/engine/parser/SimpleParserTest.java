@@ -444,7 +444,11 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseAssignableExpression_dot_normal() throws Exception {
-    PropertyAccess propertyAccess = parse("parseAssignableExpression", "(x).y");
+    PropertyAccess propertyAccess = parse(
+        "parseAssignableExpression",
+        new Class[] {boolean.class},
+        new Object[] {false},
+        "(x).y");
     assertNotNull(propertyAccess.getTarget());
     assertNotNull(propertyAccess.getOperator());
     assertEquals(TokenType.PERIOD, propertyAccess.getOperator().getType());
@@ -452,7 +456,11 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseAssignableExpression_dot_super() throws Exception {
-    PropertyAccess propertyAccess = parse("parseAssignableExpression", "super.y");
+    PropertyAccess propertyAccess = parse(
+        "parseAssignableExpression",
+        new Class[] {boolean.class},
+        new Object[] {false},
+        "super.y");
     assertInstanceOf(SuperExpression.class, propertyAccess.getTarget());
     assertNotNull(propertyAccess.getOperator());
     assertEquals(TokenType.PERIOD, propertyAccess.getOperator().getType());
@@ -460,7 +468,11 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseAssignableExpression_index_normal() throws Exception {
-    ArrayAccess arrayAccess = parse("parseAssignableExpression", "x[y]");
+    ArrayAccess arrayAccess = parse(
+        "parseAssignableExpression",
+        new Class[] {boolean.class},
+        new Object[] {false},
+        "x[y]");
     assertNotNull(arrayAccess.getArray());
     assertNotNull(arrayAccess.getLeftBracket());
     assertNotNull(arrayAccess.getIndex());
@@ -468,19 +480,29 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseAssignableExpression_index_super() throws Exception {
-    ArrayAccess expression = parse("parseAssignableExpression", "super[y]");
-    assertNotNull(expression.getArray());
-    assertNotNull(expression.getLeftBracket());
-    assertNotNull(expression.getIndex());
-    assertNotNull(expression.getRightBracket());
+    ArrayAccess arrayAccess = parse(
+        "parseAssignableExpression",
+        new Class[] {boolean.class},
+        new Object[] {false},
+        "super[y]");
+    assertNotNull(arrayAccess.getArray());
+    assertNotNull(arrayAccess.getLeftBracket());
+    assertNotNull(arrayAccess.getIndex());
+    assertNotNull(arrayAccess.getRightBracket());
   }
 
   public void test_parseAssignableExpression_invoke() throws Exception {
-    FunctionExpressionInvocation invocation = parse("parseAssignableExpression", "x(y)");
+    PropertyAccess propertyAccess = parse(
+        "parseAssignableExpression",
+        new Class[] {boolean.class},
+        new Object[] {false},
+        "x(y).z");
+    FunctionExpressionInvocation invocation = (FunctionExpressionInvocation) propertyAccess.getTarget();
     assertNotNull(invocation.getFunction());
     ArgumentList argumentList = invocation.getArgumentList();
     assertNotNull(argumentList);
     assertSize(1, argumentList.getArguments());
+    assertNotNull(propertyAccess.getPropertyName());
   }
 
   public void test_parseBitwiseAndExpression_normal() throws Exception {
@@ -2265,8 +2287,11 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parsePrimaryExpression_super() throws Exception {
-    SuperExpression expression = parse("parsePrimaryExpression", "super");
-    assertNotNull(expression.getKeyword());
+    PropertyAccess propertyAccess = parse("parsePrimaryExpression", "super.x");
+    assertTrue(propertyAccess.getTarget() instanceof SuperExpression);
+    assertNotNull(propertyAccess.getOperator());
+    assertEquals(TokenType.PERIOD, propertyAccess.getOperator().getType());
+    assertNotNull(propertyAccess.getPropertyName());
   }
 
   public void test_parsePrimaryExpression_this() throws Exception {
