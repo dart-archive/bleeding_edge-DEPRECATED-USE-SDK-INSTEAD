@@ -1413,15 +1413,16 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
   }
 
   private void smartIndentUponT(IDocument d, DocumentCommand c) {
-    if (c.offset < 4 || d.getLength() == 0) {
+    int numCharsBeforeT = 6;
+    if (c.offset < numCharsBeforeT || d.getLength() == 0) {
       return;
     }
 
     try {
-      String content = d.get(c.offset - 6, 6);
+      String content = d.get(c.offset - numCharsBeforeT, numCharsBeforeT);
 
       if (content.equals("defaul")) { //$NON-NLS-1$
-        smartReindentSwitchCase(d, c, "default", 6); //$NON-NLS-1$
+        smartReindentSwitchCase(d, c, "default", numCharsBeforeT); //$NON-NLS-1$
         return;
       }
 
