@@ -17,6 +17,7 @@ import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
@@ -165,5 +166,19 @@ public class EngineTestCase extends TestCase {
     } else if (map.size() != expectedSize) {
       fail("Expected map of size " + expectedSize + "; contained " + map.size() + " elements");
     }
+  }
+
+  /**
+   * Convert the given array of lines into a single source string.
+   * 
+   * @param lines the lines to be merged into a single source string
+   * @return the source string composed of the given lines
+   */
+  public static String createSource(String... lines) {
+    PrintStringWriter writer = new PrintStringWriter();
+    for (String line : lines) {
+      writer.println(line);
+    }
+    return writer.toString();
   }
 }

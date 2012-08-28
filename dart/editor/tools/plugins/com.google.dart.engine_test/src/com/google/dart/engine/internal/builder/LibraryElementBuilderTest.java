@@ -14,51 +14,39 @@
 package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.TypeElement;
 import com.google.dart.engine.error.GatheringErrorListener;
-import com.google.dart.engine.parser.Parser;
-import com.google.dart.engine.provider.CompilationUnitProvider;
-import com.google.dart.engine.scanner.StringScanner;
-import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.provider.TestCompilationUnitProvider;
+import com.google.dart.engine.provider.TestSourceContentProvider;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 
 import java.io.File;
-import java.util.HashMap;
 
 public class LibraryElementBuilderTest extends EngineTestCase {
-  private static class FileManager {
-    private HashMap<Source, String> contentMap = new HashMap<Source, String>();
-
-    public FileManager() {
-      super();
-    }
-
-    public void addSource(Source source, String contents) {
-      contentMap.put(source, contents);
-    }
-
-    public String getSource(Source source) {
-      return contentMap.get(source);
-    }
-  }
-
+  /**
+   * The source factory used to create {@link Source sources}.
+   */
   private SourceFactory sourceFactory;
+
+  /**
+   * The content provider used to provide the contents of the sources.
+   */
+  private TestSourceContentProvider contentProvider;
 
   @Override
   public void setUp() {
     sourceFactory = new SourceFactory(new FileUriResolver());
+    contentProvider = new TestSourceContentProvider();
   }
 
   public void test_empty() {
-    FileManager fileManager = new FileManager();
     Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
-    fileManager.addSource(librarySource, "library lib;");
-    LibraryElement element = buildLibrary(fileManager, librarySource);
+    contentProvider.addSource(librarySource, "library lib;");
+    LibraryElement element = buildLibrary(librarySource);
     assertNotNull(element);
     assertEquals("lib", element.getName());
     assertNull(element.getEntryPoint());
@@ -80,16 +68,22 @@ public class LibraryElementBuilderTest extends EngineTestCase {
   }
 
   public void test_multipleFiles() {
-    FileManager fileManager = new FileManager();
     Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
     Source firstSource = sourceFactory.forFile(new File("/first.dart"));
     Source secondSource = sourceFactory.forFile(new File("/second.dart"));
-    fileManager.addSource(
-        librarySource,
-        "library lib; part 'first.dart'; part 'second.dart'; class A {}");
-    fileManager.addSource(firstSource, "part of lib; class B {}");
-    fileManager.addSource(secondSource, "part of lib; class C {}");
-    LibraryElement element = buildLibrary(fileManager, librarySource);
+    contentProvider.addSource(librarySource, createSource(//
+        "library lib;",
+        "part 'first.dart';",
+        "part 'second.dart';",
+        "",
+        "class A {}"));
+    contentProvider.addSource(firstSource, createSource(//
+        "part of lib;",
+        "class B {}"));
+    contentProvider.addSource(secondSource, createSource(//
+        "part of lib;",
+        "class C {}"));
+    LibraryElement element = buildLibrary(librarySource);
     assertNotNull(element);
     CompilationUnitElement[] sourcedUnits = element.getSourcedCompilationUnits();
     assertLength(2, sourcedUnits);
@@ -105,10 +99,12 @@ public class LibraryElementBuilderTest extends EngineTestCase {
   }
 
   public void test_singleFile() {
-    FileManager fileManager = new FileManager();
     Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
-    fileManager.addSource(librarySource, "library lib; class A {}");
-    LibraryElement element = buildLibrary(fileManager, librarySource);
+    contentProvider.addSource(librarySource, createSource(//
+        "library lib;",
+        "",
+        "class A {}"));
+    LibraryElement element = buildLibrary(librarySource);
     assertNotNull(element);
 
     assertTypes(element.getDefiningCompilationUnit(), "A");
@@ -133,34 +129,11 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     }
   }
 
-  private LibraryElement buildLibrary(final FileManager fileManager, Source librarySource) {
-    final GatheringErrorListener listener = new GatheringErrorListener();
-    LibraryElementBuilder builder = new LibraryElementBuilder(new CompilationUnitProvider() {
-      private HashMap<Source, CompilationUnit> sourceMap = new HashMap<Source, CompilationUnit>();
-
-      @Override
-      public CompilationUnit getCompilationUnit(Source source) {
-        CompilationUnit unit = sourceMap.get(source);
-        if (unit == null) {
-          String contents = fileManager.getSource(source);
-          if (contents == null) {
-            fail("Could not get contents for " + source.getFile().getAbsolutePath());
-          }
-          //
-          // Scan the file.
-          //
-          StringScanner scanner = new StringScanner(source, contents, listener);
-          Token token = scanner.tokenize();
-          //
-          // Parse the file.
-          //
-          Parser parser = new Parser(source, listener);
-          unit = parser.parseCompilationUnit(token);
-          sourceMap.put(source, unit);
-        }
-        return unit;
-      }
-    });
+  private LibraryElement buildLibrary(Source librarySource) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    LibraryElementBuilder builder = new LibraryElementBuilder(new TestCompilationUnitProvider(
+        contentProvider,
+        listener));
     return builder.buildLibrary(librarySource);
   }
 }
