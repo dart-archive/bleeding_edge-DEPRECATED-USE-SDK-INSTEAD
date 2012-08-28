@@ -360,6 +360,7 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
           for (CompilationUnit cu : parseList) {
             DartUnit unitNode = DartCompilerUtilities.resolveUnit(cu);
             requestor.acceptAST(cu, unitNode);
+            monitor.worked(1);
           }
 //          ASTBatchParser parser = new ASTBatchParser() {
 //            @Override

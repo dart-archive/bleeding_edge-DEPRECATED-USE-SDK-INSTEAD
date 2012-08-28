@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.util;
 
+import com.google.common.collect.Sets;
 import com.google.dart.core.ILocalVariable;
 import com.google.dart.core.IPackageFragment;
 import com.google.dart.core.util.MethodOverrideTester;
@@ -62,6 +63,7 @@ import org.eclipse.text.edits.TextEdit;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Utility methods for the Dart Model.
@@ -405,6 +407,15 @@ public final class DartModelUtil {
     return null;
   }
 
+  /**
+   * Returns the fully qualified name of the given type using '.' as separators. This is a replace
+   * for Type.getFullyQualifiedTypeName which uses '$' as separators. As '$' is also a valid
+   * character in an id this is ambiguous. JavaScriptCore PR: 1GCFUNT
+   */
+  public static String getFullyQualifiedName(Type type) {
+    return type.getElementName();
+  }
+
 //  /**
 //   * Helper method that tests if an classpath entry can be found in a container.
 //   * <code>null</code> is returned if the entry can not be found or if the
@@ -491,15 +502,6 @@ public final class DartModelUtil {
 //  }
 
   /**
-   * Returns the fully qualified name of the given type using '.' as separators. This is a replace
-   * for Type.getFullyQualifiedTypeName which uses '$' as separators. As '$' is also a valid
-   * character in an id this is ambiguous. JavaScriptCore PR: 1GCFUNT
-   */
-  public static String getFullyQualifiedName(Type type) {
-    return type.getElementName();
-  }
-
-  /**
    * Compute a new name for a compilation unit, given the name of the new main type. This query
    * tries to maintain the existing extension (e.g. ".java").
    * 
@@ -551,6 +553,16 @@ public final class DartModelUtil {
 //    }
   }
 
+  /**
+   * Returns the qualified type name of the given type using '.' as separators. This is a replace
+   * for Type.getTypeQualifiedName() which uses '$' as separators. As '$' is also a valid character
+   * in an id this is ambiguous. JavaScriptCore PR: 1GCFUNT
+   */
+  @SuppressWarnings("deprecation")
+  public static String getTypeQualifiedName(Type type) {
+    return type.getTypeQualifiedName('.');
+  }
+
 //  /**
 //   * Returns the fully qualified name of a type's container. (package name or
 //   * enclosing type name)
@@ -565,13 +577,19 @@ public final class DartModelUtil {
 //  }
 
   /**
-   * Returns the qualified type name of the given type using '.' as separators. This is a replace
-   * for Type.getTypeQualifiedName() which uses '$' as separators. As '$' is also a valid character
-   * in an id this is ambiguous. JavaScriptCore PR: 1GCFUNT
+   * @return the {@link CompilationUnit}s which are based on unique files.
    */
-  @SuppressWarnings("deprecation")
-  public static String getTypeQualifiedName(Type type) {
-    return type.getTypeQualifiedName('.');
+  public static CompilationUnit[] getUniqueCompilationUnits(CompilationUnit[] allUnits) {
+    Set<IResource> files = Sets.newHashSet();
+    Set<CompilationUnit> units = Sets.newHashSet();
+    for (CompilationUnit unit : allUnits) {
+      IResource resource = unit.getResource();
+      if (!files.contains(resource)) {
+        files.add(resource);
+        units.add(unit);
+      }
+    }
+    return units.toArray(new CompilationUnit[units.size()]);
   }
 
 //  public static boolean is50OrHigher(DartProject project) {

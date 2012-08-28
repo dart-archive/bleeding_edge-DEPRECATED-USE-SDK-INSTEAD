@@ -17,7 +17,6 @@ import com.google.common.collect.Sets;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
@@ -35,6 +34,7 @@ import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
@@ -78,7 +78,8 @@ public class CleanUpAction extends SelectionDispatchAction {
     for (Object element : selection.toArray()) {
       collectCompilationUnits(element, result);
     }
-    return result.toArray(new CompilationUnit[result.size()]);
+    CompilationUnit[] allUnits = result.toArray(new CompilationUnit[result.size()]);
+    return DartModelUtil.getUniqueCompilationUnits(allUnits);
   }
 
   @Override
@@ -160,14 +161,19 @@ public class CleanUpAction extends SelectionDispatchAction {
 
   private void collectCompilationUnits(Object element, Collection<DartElement> result) {
     try {
+      // IFolder cannot be DartElement
+      if (element instanceof IFolder) {
+        IFolder folder = (IFolder) element;
+        for (IResource member : folder.members()) {
+          collectCompilationUnits(member, result);
+        }
+        return;
+      }
+      // may be some DartElement
       DartElement elem = null;
       if (element instanceof IFile) {
         IFile file = (IFile) element;
         elem = DartCore.create(file);
-      }
-      if (element instanceof IFolder) {
-        IFolder folder = (IFolder) element;
-        elem = DartCore.create(folder);
       }
       if (element instanceof IProject) {
         IProject folder = (IProject) element;
@@ -185,7 +191,7 @@ public class CleanUpAction extends SelectionDispatchAction {
             break;
         }
       }
-    } catch (DartModelException e) {
+    } catch (CoreException e) {
       if (DartModelUtil.isExceptionToBeLogged(e)) {
         DartToolsPlugin.log(e);
       }
