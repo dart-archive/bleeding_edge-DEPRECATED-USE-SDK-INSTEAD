@@ -596,15 +596,15 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M1_CATCH,
                 "Migrate 'catch' blocks");
-            createCheckButton(
-                syntaxComposite,
-                ID_MIGRATE_SYNTAX_1M1_EQUALS,
-                "Migrate 'operator equals()'");
             createCheckButton(syntaxComposite, ID_MIGRATE_SYNTAX_1M1_GET, "Migrate getters");
             createCheckButton(
                 syntaxComposite,
+                ID_MIGRATE_SYNTAX_1M1_EQUALS,
+                "Migrate 'operator equals()' (not done yet in dart2js)");
+            createCheckButton(
+                syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M1_LIBRARY,
-                "Migrate library/import/source");
+                "Migrate library/import/source (not done yet in VM and dart2js)");
           }
         }
       }
@@ -686,7 +686,11 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
     }
 
     public boolean getBoolean(String key) {
-      return "TRUE".equals(map.get(key));
+      String str = map.get(key);
+      if (str == null) {
+        str = defaultMap.get(key);
+      }
+      return "TRUE".equals(str);
     }
 
     public void set(String key, boolean value) {
