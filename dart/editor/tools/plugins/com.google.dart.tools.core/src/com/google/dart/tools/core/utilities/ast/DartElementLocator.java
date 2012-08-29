@@ -407,7 +407,11 @@ public class DartElementLocator extends ASTVisitor<Void> {
             && ((DartSourceDirective) parent).getSourceUri() == node) {
           //resolvedElement = ((DartSourceDirective) parent).getElement();
           DartLibrary library = compilationUnit.getLibrary();
-          String fileName = getFileName(library, node.getValue());
+          String value = node.getValue();
+          if (value == null) {
+            return null;
+          }
+          String fileName = getFileName(library, value);
           CompilationUnit sourcedUnit = library.getCompilationUnit(fileName);
           if (sourcedUnit != null && sourcedUnit.exists()) {
             foundElement = sourcedUnit;
