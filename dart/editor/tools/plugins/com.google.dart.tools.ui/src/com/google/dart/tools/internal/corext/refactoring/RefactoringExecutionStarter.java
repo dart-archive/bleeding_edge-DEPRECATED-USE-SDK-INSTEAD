@@ -77,8 +77,13 @@ public final class RefactoringExecutionStarter {
         return RenameSupport.create((DartTypeParameter) element, newName);
       case DartElement.FIELD:
         return RenameSupport.create((Field) element, newName);
-      case DartElement.METHOD:
-        return RenameSupport.create((Method) element, newName);
+      case DartElement.METHOD: {
+        Method method = (Method) element;
+        if (method.isConstructor() && !method.getElementName().contains(".")) {
+          return createRenameSupport(method.getDeclaringType(), newName, flags);
+        }
+        return RenameSupport.create(method, newName);
+      }
       case DartElement.VARIABLE:
         return RenameSupport.create((DartVariableDeclaration) element, newName);
     }

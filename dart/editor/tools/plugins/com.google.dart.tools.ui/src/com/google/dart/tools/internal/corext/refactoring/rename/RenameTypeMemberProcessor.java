@@ -301,7 +301,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
   }
 
   protected final TypeMember member;
-  private final String oldName;
+  protected final String oldName;
   private final TextChangeManager changeManager = new TextChangeManager(true);
 
   private List<SearchMatch> declarations;
@@ -408,6 +408,10 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
     }
   }
 
+  protected String getNewNameSource() {
+    return getNewElementName();
+  }
+
   private void addDeclarationUpdates(IProgressMonitor pm) throws CoreException {
     String editName = RefactoringCoreMessages.RenameProcessor_update_declaration;
     addUpdates(pm, editName, declarations);
@@ -475,7 +479,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
   }
 
   private TextEdit createTextChange(SourceRange sourceRange) {
-    return new ReplaceEdit(sourceRange.getOffset(), sourceRange.getLength(), getNewElementName());
+    return new ReplaceEdit(sourceRange.getOffset(), sourceRange.getLength(), getNewNameSource());
   }
 
   private void prepareReferences(IProgressMonitor pm) throws CoreException {

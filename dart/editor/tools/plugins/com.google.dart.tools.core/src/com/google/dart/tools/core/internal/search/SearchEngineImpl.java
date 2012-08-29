@@ -674,20 +674,21 @@ public class SearchEngineImpl implements SearchEngine {
       throw new IllegalArgumentException("listener cannot be null");
     }
     SearchListener filteredListener = new CountingSearchListener(4, applyFilter(filter, listener));
+    Element element = createElement(method);
     index.getRelationships(
-        createElement(method),
+        element,
         IndexConstants.IS_INVOKED_BY_QUALIFIED,
         new RelationshipCallbackImpl(MatchKind.METHOD_INVOCATION, filteredListener));
     index.getRelationships(
-        createElement(method),
+        element,
         IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
         new RelationshipCallbackImpl(MatchKind.METHOD_INVOCATION, filteredListener));
     index.getRelationships(
-        createElement(method),
+        element,
         IndexConstants.IS_ACCESSED_BY_QUALIFIED,
         new RelationshipCallbackImpl(MatchKind.METHOD_REFERENCE, filteredListener));
     index.getRelationships(
-        createElement(method),
+        element,
         IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
         new RelationshipCallbackImpl(MatchKind.METHOD_REFERENCE, filteredListener));
   }

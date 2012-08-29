@@ -21,6 +21,7 @@ import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.type.InterfaceType;
+import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Resource;
@@ -237,7 +238,8 @@ public final class ElementFactory {
     }
     String methodName = element.getName();
     if (element instanceof ConstructorElement) {
-      methodName = element.getEnclosingElement().getName();
+      String typeName = element.getEnclosingElement().getName();
+      methodName = StringUtils.isEmpty(methodName) ? typeName : typeName + "." + methodName;
     }
     EnclosingElement parentElement = element.getEnclosingElement();
     if (parentElement instanceof LibraryElement) {

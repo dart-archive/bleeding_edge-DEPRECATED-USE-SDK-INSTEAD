@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.dom;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
@@ -25,26 +27,67 @@ import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
 import junit.framework.TestCase;
 
-import static org.fest.assertions.Assertions.assertThat;
-
 import java.util.List;
 
 public class NodeFinderTest extends TestCase {
+  private static String makeSource(String... lines) {
+    return Joiner.on("\n").join(lines);
+  }
+
+  private String source;
+
   private TestProject testProject;
 
-  public void test_localVariable_onName() throws Exception {
-    DartNode node = findSelectedNode("est =", new String[] {
+  public void test_constructor_named_onName() throws Exception {
+    source = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler filler",
-        "class A {", "  foo() {", "    var test = 1;", "  }", "}", ""});
+        "class A {",
+        "  A.named() {",
+        "  }",
+        "}",
+        "");
+    DartNode node = findSelectedNode("amed() {");
+    assertThat(node).isInstanceOf(DartIdentifier.class);
+    assertEquals("named", ((DartIdentifier) node).getName());
+  }
+
+  public void test_constructor_named_onType() throws Exception {
+    source = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A.named() {",
+        "  }",
+        "}",
+        "");
+    DartNode node = findSelectedNode("A.named() {");
+    assertThat(node).isInstanceOf(DartIdentifier.class);
+    assertEquals("A", ((DartIdentifier) node).getName());
+  }
+
+  public void test_localVariable_onName() throws Exception {
+    source = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {",
+        "    var test = 1;",
+        "  }",
+        "}",
+        "");
+    DartNode node = findSelectedNode("est =");
     // selected node should be "test"
     assertThat(node).isInstanceOf(DartIdentifier.class);
     assertEquals("test", ((DartIdentifier) node).getName());
   }
 
   public void test_method_onName() throws Exception {
-    DartNode node = findSelectedNode("est() {", new String[] {
+    source = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler filler",
-        "class A {", "  test() {", "  }", "}", ""});
+        "class A {",
+        "  test() {",
+        "  }",
+        "}",
+        "");
+    DartNode node = findSelectedNode("est() {");
     // selected node should be "test"
     assertThat(node).isInstanceOf(DartIdentifier.class);
     assertEquals("test", ((DartIdentifier) node).getName());
@@ -60,14 +103,15 @@ public class NodeFinderTest extends TestCase {
   protected void tearDown() throws Exception {
     testProject.dispose();
     testProject = null;
+    source = null;
     super.tearDown();
   }
 
   /**
    * @return the {@link DartNode} under position of "pattern".
    */
-  private DartNode findSelectedNode(String pattern, String[] lines) throws Exception {
-    CompilationUnit unitModel = testProject.setUnitContent("Test.dart", Joiner.on("\n").join(lines));
+  private DartNode findSelectedNode(String pattern) throws Exception {
+    CompilationUnit unitModel = testProject.setUnitContent("Test.dart", source);
     // prepare position
     int pos = unitModel.getSource().indexOf(pattern);
     assertThat(pos).isNotEqualTo(-1);

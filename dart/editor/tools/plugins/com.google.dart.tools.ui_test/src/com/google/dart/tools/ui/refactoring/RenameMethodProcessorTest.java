@@ -273,6 +273,28 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "}");
   }
 
+  public void test_OK_namedConstructor_newName() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A.test() {}",
+        "}",
+        "main() {",
+        "  new A.test();",
+        "}");
+    Method method = findElement("test() {}");
+    // do rename
+    renameMethod(method, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A.newName() {}",
+        "}",
+        "main() {",
+        "  new A.newName();",
+        "}");
+  }
+
   /**
    * When we rename method, it should be renamed in super-types and sub-types.
    */

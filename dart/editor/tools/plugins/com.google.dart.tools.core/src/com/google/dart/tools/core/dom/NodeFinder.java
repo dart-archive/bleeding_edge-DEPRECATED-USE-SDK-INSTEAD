@@ -17,6 +17,7 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
+import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.parser.DartScanner;
@@ -219,6 +220,19 @@ public class NodeFinder extends ASTVisitor<Void> {
         node.visitChildren(this);
       }
       return null;
+    }
+    // There is problem in DartMethodDefinition and DartFunction.
+    // DartFunction starts at same offset as method, but does not include name.
+    if (node instanceof DartFunction && node.getParent() == enclosingMethod
+        && enclosingMethod != null) {
+      DartNode n = fCoveringNode;
+      while (n != null) {
+        if (n == enclosingMethod.getName()) {
+          node.visitChildren(this);
+          return null;
+        }
+        n = n.getParent();
+      }
     }
     if (nodeStart <= fStart && fEnd <= nodeEnd) {
       fCoveringNode = node;

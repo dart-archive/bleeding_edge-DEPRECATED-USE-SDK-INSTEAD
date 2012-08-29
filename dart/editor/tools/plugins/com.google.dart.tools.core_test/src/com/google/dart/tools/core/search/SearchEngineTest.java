@@ -33,6 +33,7 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
+import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
@@ -562,6 +563,102 @@ public class SearchEngineTest extends TestCase {
             expected.get(matchOffset).booleanValue(),
             match.isQualified());
       }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_searchReferences_method_constructor() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = buildSource(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {",
+          "  A() {}",
+          "}",
+          "main() {",
+          "  new A();",
+          "}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnits(unit);
+      // find references
+      Method method = ((Type) unit.getChildren()[0]).getMethods()[0];
+      List<SearchMatch> matches = getMethodReferences(method);
+      assertThat(matches).hasSize(1);
+      // assert references
+      SearchMatch match = matches.get(0);
+      SourceRange matchRange = match.getSourceRange();
+      assertEquals(source.indexOf("A();"), matchRange.getOffset());
+      assertEquals(1, matchRange.getLength());
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_searchReferences_method_constructorNamed() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = buildSource(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {",
+          "  A.test() {}",
+          "}",
+          "main() {",
+          "  new A.test();",
+          "}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnits(unit);
+      // find references
+      Method method = ((Type) unit.getChildren()[0]).getMethods()[0];
+      List<SearchMatch> matches = getMethodReferences(method);
+      assertThat(matches).hasSize(1);
+      // assert references
+      SearchMatch match = matches.get(0);
+      SourceRange matchRange = match.getSourceRange();
+      assertEquals(source.indexOf("A.test();"), matchRange.getOffset());
+      assertEquals("A.test".length(), matchRange.getLength());
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_searchReferences_method_constructorNamed_withPrefix() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      testProject.setUnitContent(
+          "Lib.dart",
+          buildSource(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "library lib;",
+              "class A {",
+              "  A.test() {}",
+              "}",
+              ""));
+      String source = buildSource(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "library test;",
+          "import 'Lib.dart' as pref;",
+          "main() {",
+          "  new pref.A.test();",
+          "}",
+          "");
+      CompilationUnit testUnit = testProject.setUnitContent("Test.dart", source);
+      IResource resourceTest = testUnit.getResource();
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      // index unit
+      CompilationUnit unit = libraryTest.getDefiningCompilationUnit();
+      indexUnits(unit);
+      // find references
+      Method method = findElement(unit, "test()");
+      List<SearchMatch> matches = getMethodReferences(method);
+      assertThat(matches).hasSize(1);
+      // assert references
+      SearchMatch match = matches.get(0);
+      SourceRange matchRange = match.getSourceRange();
+      assertEquals(source.indexOf("A.test();"), matchRange.getOffset());
+      assertEquals("A.test".length(), matchRange.getLength());
     } finally {
       testProject.dispose();
     }

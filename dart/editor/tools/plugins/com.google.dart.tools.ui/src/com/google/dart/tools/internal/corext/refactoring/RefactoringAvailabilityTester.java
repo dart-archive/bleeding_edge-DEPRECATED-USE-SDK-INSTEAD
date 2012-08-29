@@ -1356,9 +1356,6 @@ public class RefactoringAvailabilityTester {
     if (!Checks.isAvailable(method)) {
       return false;
     }
-    if (method.isConstructor()) {
-      return false;
-    }
     if (isRenameProhibited(method)) {
       return false;
     }

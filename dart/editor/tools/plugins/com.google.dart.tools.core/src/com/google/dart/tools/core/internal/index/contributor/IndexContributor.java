@@ -429,6 +429,8 @@ public class IndexContributor extends ASTVisitor<Void> {
       // record only getter/setter here, there are special handlers for explicit invocations
       if (methodElement.getModifiers().isGetter() || methodElement.getModifiers().isSetter()) {
         processMethodInvocation(node, (MethodElement) element);
+      } else if (element instanceof ConstructorElement) {
+        // constructors references are recorded in DartNewExpression
       } else if (!isExplicitInvocation(node)) {
         Element indexElement = getElement(methodElement);
         Location location = createLocation(node);
@@ -485,8 +487,12 @@ public class IndexContributor extends ASTVisitor<Void> {
   public Void visitNewExpression(DartNewExpression node) {
     com.google.dart.compiler.resolver.Element element = node.getElement();
     if (element instanceof MethodElement) {
-      DartNode className = node.getConstructor();
-      processMethodInvocation(getIdentifier(className), (MethodElement) element);
+      MethodElement methodElement = (MethodElement) element;
+      DartNode name = node.getConstructor();
+      recordRelationship(
+          getElement(methodElement),
+          IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
+          getConstructorNameLocation(name));
     } else {
       notFound("new expression", node);
     }
@@ -719,6 +725,35 @@ public class IndexContributor extends ASTVisitor<Void> {
       superclass = getSuperclass(superclass);
     }
     return null;
+  }
+
+  /**
+   * @return the "Type[.name]" location for given "Type", "Type.name" or "prefix.Type.name".
+   */
+  private Location getConstructorNameLocation(DartNode constructorName) {
+    // prepare Type or prefix.Type
+    DartTypeNode typeNode;
+    if (constructorName instanceof DartTypeNode) {
+      typeNode = (DartTypeNode) constructorName;
+    } else {
+      DartPropertyAccess pa = (DartPropertyAccess) constructorName;
+      typeNode = (DartTypeNode) pa.getQualifier();
+    }
+    // prepare Type name start
+    int typeNameStart;
+    {
+      DartNode typeNameNode = typeNode.getIdentifier();
+      if (typeNameNode instanceof DartIdentifier) {
+        typeNameStart = typeNameNode.getSourceInfo().getOffset();
+      } else {
+        DartPropertyAccess pa = (DartPropertyAccess) typeNameNode;
+        typeNameStart = pa.getName().getSourceInfo().getOffset();
+      }
+    }
+    // create location
+    int constructorNameEnd = constructorName.getSourceInfo().getEnd();
+    String prefix = getLibraryImportPrefix(typeNode);
+    return createLocation(typeNameStart, constructorNameEnd - typeNameStart, prefix);
   }
 
   /**
