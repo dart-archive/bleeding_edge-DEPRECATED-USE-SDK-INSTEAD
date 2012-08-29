@@ -185,6 +185,7 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
     StringBuffer buf = new StringBuffer();
     buf.append("<form><p>Build HTML5 apps for the modern web! Dart brings structure to web app engineering with a new language, libraries, and tools.</p>");
     buf.append("<li style=\"image\" value=\"image\"><a href=\"http://www.dartlang.org\">Visit dartlang.org</a></li>");
+    buf.append("<li style=\"image\" value=\"image\"><a href=\"http://blog.dartwatch.com/p/community-dart-packages-and-examples.html\">See Community Dart Packages and Examples</a></li>");
     buf.append("<li style=\"image\" value=\"image\"><a href=\"http://www.dartlang.org/editor\">View Editor documentation</a></li>");
     buf.append("</form>");
     FormText formText = toolkit.createFormText(client, true);
