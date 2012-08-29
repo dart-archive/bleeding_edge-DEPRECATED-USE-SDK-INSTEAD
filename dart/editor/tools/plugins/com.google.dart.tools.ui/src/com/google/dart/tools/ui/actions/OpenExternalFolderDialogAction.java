@@ -13,13 +13,15 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.internal.dialogs.OpenFolderDialog;
 import com.google.dart.tools.ui.internal.util.DirectoryVerification;
 
-import org.eclipse.jface.action.IAction;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.window.Window;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 
@@ -31,10 +33,7 @@ import java.io.File;
 public class OpenExternalFolderDialogAction extends AbstractInstrumentedAction implements
     IWorkbenchAction {
 
-  private static final String ACTION_ID = "com.google.dart.tools.ui.folder.open";
-
-  private static final String DIALOGSTORE_LAST_DIR = DartUI.class.getPackage().getName()
-      + ".last.dir"; //$NON-NLS-1$
+  private static final String ACTION_ID = "com.google.dart.tools.ui.folder.open"; //$NON-NLS-1$
 
   private final IWorkbenchWindow window;
 
@@ -55,27 +54,35 @@ public class OpenExternalFolderDialogAction extends AbstractInstrumentedAction i
   @Override
   public void run() {
 
-    DirectoryDialog directoryDialog = new DirectoryDialog(window.getShell());
+    OpenFolderDialog openFolderDialog = new OpenFolderDialog(window.getShell());
+    if (openFolderDialog.open() == Window.OK) {
+      String directory = openFolderDialog.getFolderLocation();
 
-    IDialogSettings dialogSettings = DartToolsPlugin.getDefault().getDialogSettings();
+      if (directory == null) {
+        return;
+      }
 
-    String lastDir = dialogSettings.get(DIALOGSTORE_LAST_DIR);
-    directoryDialog.setFilterPath(lastDir);
+      File directoryFile = new File(directory);
 
-    String directory = directoryDialog.open();
+      if (DirectoryVerification.validateOpenDirectoryLocation(window.getShell(), directoryFile)) {
 
-    if (directory == null) {
-      return;
-    }
+        IDialogSettings dialogSettings = DartToolsPlugin.getDefault().getDialogSettings();
+        dialogSettings.put(OpenFolderDialog.DIALOGSTORE_LAST_DIR, directory);
 
-    dialogSettings.put(DIALOGSTORE_LAST_DIR, directory);
+        CreateAndRevealProjectAction createAction = new CreateAndRevealProjectAction(
+            window,
+            directory);
+        createAction.run();
 
-    File directoryFile = new File(directory);
+        if (openFolderDialog.isRunpub()) {
+          IProject project = createAction.getProject();
+          if (project != null && project.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
+            RunPubAction runPubAction = RunPubAction.createPubInstallAction(window);
+            runPubAction.run(new StructuredSelection(project));
+          }
+        }
+      }
 
-    if (DirectoryVerification.validateOpenDirectoryLocation(window.getShell(), directoryFile)) {
-      IAction createAction = new CreateAndRevealProjectAction(window, directory);
-
-      createAction.run();
     }
   }
 

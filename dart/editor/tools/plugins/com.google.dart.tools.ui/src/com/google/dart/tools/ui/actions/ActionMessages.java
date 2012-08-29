@@ -242,6 +242,7 @@ public final class ActionMessages extends NLS {
   public static String FindStringsToExternalizeAction_non_externalized;
   public static String FindStringsToExternalizeAction_button_label;
   public static String FindStringsToExternalizeAction_find_strings;
+
   public static String OpenExternalJavadocAction_label;
   public static String OpenExternalJavadocAction_description;
   public static String OpenExternalJavadocAction_tooltip;

@@ -15,9 +15,11 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
+import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -29,8 +31,13 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import java.io.File;
@@ -157,17 +164,41 @@ public class RunPubAction extends SelectionDispatchAction {
   }
 
   @Override
+  public void run(ISelection selection) {
+    if (selection instanceof ITextSelection) {
+      IWorkbenchPage page = DartToolsPlugin.getActivePage();
+      if (page != null) {
+        IEditorPart part = page.getActiveEditor();
+        if (part != null) {
+          IEditorInput editorInput = part.getEditorInput();
+          DartProject dartProject = EditorUtility.getDartProject(editorInput);
+          if (dartProject != null) {
+            IProject project = dartProject.getProject();
+            runPubJob(project);
+          }
+        }
+      }
+
+    }
+
+  }
+
+  @Override
   public void run(IStructuredSelection selection) {
     if (!selection.isEmpty() && selection.getFirstElement() instanceof IResource) {
       Object object = selection.getFirstElement();
       IProject project = ((IResource) object).getProject();
-      if (project.findMember(DartCore.PUBSPEC_FILE_NAME) == null) {
-        MessageDialog.openError(
-            getShell(),
-            ActionMessages.RunPubAction_fail,
-            ActionMessages.RunPubAction_fileNotFound);
-        return;
-      }
+      runPubJob(project);
+    } else {
+      MessageDialog.openError(
+          getShell(),
+          ActionMessages.RunPubAction_fail,
+          ActionMessages.RunPubAction_fileNotFound);
+    }
+  }
+
+  private void runPubJob(IProject project) {
+    if (project.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
       RunPubJob runPubJob = new RunPubJob(project);
       runPubJob.schedule();
     } else {
@@ -176,7 +207,6 @@ public class RunPubAction extends SelectionDispatchAction {
           ActionMessages.RunPubAction_fail,
           ActionMessages.RunPubAction_fileNotFound);
     }
-
   }
 
 }

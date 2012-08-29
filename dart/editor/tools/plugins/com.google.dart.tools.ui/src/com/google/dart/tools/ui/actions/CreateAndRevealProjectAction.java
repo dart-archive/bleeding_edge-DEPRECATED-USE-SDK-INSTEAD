@@ -46,6 +46,7 @@ public class CreateAndRevealProjectAction extends Action {
   private final IWorkbenchWindow window;
   private final String[] directories;
   private IStatus status;
+  private IProject project = null;
 
   /**
    * Create the action.
@@ -56,6 +57,10 @@ public class CreateAndRevealProjectAction extends Action {
   public CreateAndRevealProjectAction(IWorkbenchWindow window, String... directories) {
     this.directories = directories;
     this.window = window;
+  }
+
+  public IProject getProject() {
+    return project;
   }
 
   /**
@@ -82,16 +87,17 @@ public class CreateAndRevealProjectAction extends Action {
     if (projectHandle.exists()) {
       if (projectHandle.getLocation().equals(path)) {
         ProjectUtils.selectAndReveal(projectHandle);
-        return;
+        project = projectHandle;
       } else {
         name = generateUniqueNameFrom(name);
         projectHandle = getProjectHandle(name);
+        project = projectHandle;
       }
     }
     if (!isNestedByAnExistingProject(path) && !nestsAnExistingProject(path)) {
       URI location = new File(directoryPath).toURI();
 
-      IProject project = ProjectUtils.createNewProject(
+      IProject newProject = ProjectUtils.createNewProject(
           name,
           projectHandle,
           ProjectType.NONE,
@@ -99,7 +105,8 @@ public class CreateAndRevealProjectAction extends Action {
           window,
           getShell());
 
-      ProjectUtils.selectAndReveal(project);
+      ProjectUtils.selectAndReveal(newProject);
+      project = newProject;
     } else {
       status = Status.CANCEL_STATUS;
     }
