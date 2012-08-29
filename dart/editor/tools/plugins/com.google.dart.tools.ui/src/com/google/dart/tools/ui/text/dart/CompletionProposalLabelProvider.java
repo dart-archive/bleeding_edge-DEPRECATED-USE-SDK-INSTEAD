@@ -38,6 +38,10 @@ import java.util.Arrays;
  */
 public class CompletionProposalLabelProvider {
 
+  private static final String RIGHT_ARROW = " → "; //$NON-NLS-1$
+  private static final String VOID_INDICATOR = "  void"; //$NON-NLS-1$
+  private static final String DYNAMIC_INDICATOR = "  dynamic"; //$NON-NLS-1$
+
   /**
    * The completion context.
    */
@@ -137,7 +141,7 @@ public class CompletionProposalLabelProvider {
         if (fContext != null && fContext.isInJavadoc()) {
           return createJavadocMethodProposalLabel(proposal);
         }
-        return createMethodProposalLabel(proposal);
+        return createMethodProposalLabel(proposal).getString();
       case CompletionProposal.METHOD_DECLARATION:
         return createOverrideMethodProposalLabel(proposal);
       case CompletionProposal.ANONYMOUS_CLASS_DECLARATION:
@@ -156,7 +160,7 @@ public class CompletionProposalLabelProvider {
       case CompletionProposal.LIBRARY_PREFIX:
         return createLibraryPrefixProposalLabel(proposal);
       case CompletionProposal.FIELD_REF:
-        return createLabelWithTypeAndDeclaration(proposal);
+        return createSimpleLabelWithType(proposal);
       case CompletionProposal.LOCAL_VARIABLE_REF:
       case CompletionProposal.VARIABLE_DECLARATION:
         return createSimpleLabelWithType(proposal);
@@ -196,9 +200,25 @@ public class CompletionProposalLabelProvider {
     }
   }
 
-  public StyledString createStyledLabel(CompletionProposal fProposal) {
+  @SuppressWarnings("deprecation")
+  public StyledString createStyledLabel(CompletionProposal proposal) {
     // TODO(messick) rewrite to create styled labels from the beginning
-    return new StyledString(createLabel(fProposal));
+    switch (proposal.getKind()) {
+      case CompletionProposal.METHOD_NAME_REFERENCE:
+      case CompletionProposal.METHOD_REF:
+      case CompletionProposal.POTENTIAL_METHOD_DECLARATION:
+        if (fContext != null && fContext.isInJavadoc()) {
+          return new StyledString(createLabel(proposal));
+        }
+        return createMethodProposalLabel(proposal);
+      case CompletionProposal.FIELD_REF:
+        return createLabelWithType(proposal);
+      case CompletionProposal.LOCAL_VARIABLE_REF:
+      case CompletionProposal.VARIABLE_DECLARATION:
+        return createLabelWithType(proposal);
+      default:
+        return new StyledString(createLabel(proposal));
+    }
   }
 
   String createAnonymousTypeLabel(CompletionProposal proposal) {
@@ -278,6 +298,23 @@ public class CompletionProposalLabelProvider {
     return createJavadocTypeProposalLabel(fullName);
   }
 
+  StyledString createLabelWithType(CompletionProposal proposal) {
+    StyledString buf = new StyledString();
+    buf.append(proposal.getCompletion());
+    char[] typeName = Signature.getSignatureSimpleName(proposal.getSignature());
+
+    if (typeName.length > 0) {
+      if (isDynamic(typeName)) {
+        buf.append(DYNAMIC_INDICATOR, StyledString.QUALIFIER_STYLER);
+      } else {
+        buf.append(RIGHT_ARROW, StyledString.QUALIFIER_STYLER);
+        TypeLabelUtil.insertTypeLabel(typeName, buf);
+      }
+    }
+    return buf;
+  }
+
+  // TODO(messick) Delete this unused method.
   String createLabelWithTypeAndDeclaration(CompletionProposal proposal) {
     char[] name = proposal.getCompletion();
     if (!isThisPrefix(name)) {
@@ -341,7 +378,7 @@ public class CompletionProposalLabelProvider {
    * @param methodProposal the method proposal to display
    * @return the display label for the given method proposal
    */
-  String createMethodProposalLabel(CompletionProposal methodProposal) {
+  StyledString createMethodProposalLabel(CompletionProposal methodProposal) {
     StringBuffer nameBuffer = new StringBuffer();
 
     // method name
@@ -356,22 +393,29 @@ public class CompletionProposalLabelProvider {
       }
     }
 
+    StyledString label = new StyledString(nameBuffer.toString());
     // return type
     if (!methodProposal.isConstructor()) {
       char[] returnType = createTypeDisplayName(methodProposal.getReturnTypeName());
       if (!Arrays.equals(Signature.ANY, returnType)) {
-        nameBuffer.append(" : "); //$NON-NLS-1$
-        TypeLabelUtil.insertTypeLabel(returnType, nameBuffer);
+        if (isVoid(returnType)) {
+          label.append(VOID_INDICATOR, StyledString.QUALIFIER_STYLER);
+        } else if (isDynamic(returnType)) {
+          label.append(DYNAMIC_INDICATOR, StyledString.QUALIFIER_STYLER);
+        } else {
+          label.append(RIGHT_ARROW, StyledString.QUALIFIER_STYLER);
+          TypeLabelUtil.insertTypeLabel(returnType, label);
+        }
       }
     }
 
     // declaring type
-    String declaringType = extractDeclaringTypeFQN(methodProposal);
-    if (!declaringType.isEmpty()) {
-      nameBuffer.append(" - "); //$NON-NLS-1$
-      TypeLabelUtil.insertTypeLabel(declaringType, nameBuffer);
-    }
-    return nameBuffer.toString();
+//    String declaringType = extractDeclaringTypeFQN(methodProposal);
+//    if (!declaringType.isEmpty()) {
+//      label.append(" - "); //$NON-NLS-1$
+//      TypeLabelUtil.insertTypeLabel(declaringType, label);
+//    }
+    return label;
   }
 
   String createOverrideMethodProposalLabel(CompletionProposal methodProposal) {
@@ -409,7 +453,7 @@ public class CompletionProposalLabelProvider {
     char[] typeName = Signature.getSignatureSimpleName(proposal.getSignature());
 
     if (typeName.length > 0) {
-      buf.append(" : "); //$NON-NLS-1$
+      buf.append(RIGHT_ARROW);
       TypeLabelUtil.insertTypeLabel(typeName, buf);
     }
     return buf.toString();
@@ -549,6 +593,40 @@ public class CompletionProposalLabelProvider {
     return appendParameterSignature(buffer, parameterTypes, parameterNames, positionalCount);
   }
 
+  /**
+   * Returns the display string for a Dart type signature.
+   * 
+   * @param typeSignature the type signature to create a display name for
+   * @return the display name for <code>typeSignature</code>
+   * @throws IllegalArgumentException if <code>typeSignature</code> is not a valid signature
+   * @see Signature#toCharArray(char[])
+   * @see Signature#getSimpleName(char[])
+   */
+  private char[] createTypeDisplayName(char[] typeSignature) throws IllegalArgumentException {
+    char[] displayName = Signature.getSimpleName(Signature.toCharArray(typeSignature));
+
+    // XXX see https://bugs.eclipse.org/bugs/show_bug.cgi?id=84675
+    boolean useShortGenerics = false;
+    if (useShortGenerics) {
+      StringBuffer buf = new StringBuffer();
+      buf.append(displayName);
+      int pos;
+      do {
+        pos = buf.indexOf("? extends "); //$NON-NLS-1$
+        if (pos >= 0) {
+          buf.replace(pos, pos + 10, "+"); //$NON-NLS-1$
+        } else {
+          pos = buf.indexOf("? super "); //$NON-NLS-1$
+          if (pos >= 0) {
+            buf.replace(pos, pos + 8, "-"); //$NON-NLS-1$
+          }
+        }
+      } while (pos >= 0);
+      return buf.toString().toCharArray();
+    }
+    return displayName;
+  }
+
 //  /**
 //   * Converts the display name for an array type into a variable arity display name.
 //   * <p>
@@ -589,40 +667,6 @@ public class CompletionProposalLabelProvider {
 //    vararg[len] = '.';
 //    return vararg;
 //  }
-
-  /**
-   * Returns the display string for a Dart type signature.
-   * 
-   * @param typeSignature the type signature to create a display name for
-   * @return the display name for <code>typeSignature</code>
-   * @throws IllegalArgumentException if <code>typeSignature</code> is not a valid signature
-   * @see Signature#toCharArray(char[])
-   * @see Signature#getSimpleName(char[])
-   */
-  private char[] createTypeDisplayName(char[] typeSignature) throws IllegalArgumentException {
-    char[] displayName = Signature.getSimpleName(Signature.toCharArray(typeSignature));
-
-    // XXX see https://bugs.eclipse.org/bugs/show_bug.cgi?id=84675
-    boolean useShortGenerics = false;
-    if (useShortGenerics) {
-      StringBuffer buf = new StringBuffer();
-      buf.append(displayName);
-      int pos;
-      do {
-        pos = buf.indexOf("? extends "); //$NON-NLS-1$
-        if (pos >= 0) {
-          buf.replace(pos, pos + 10, "+"); //$NON-NLS-1$
-        } else {
-          pos = buf.indexOf("? super "); //$NON-NLS-1$
-          if (pos >= 0) {
-            buf.replace(pos, pos + 8, "-"); //$NON-NLS-1$
-          }
-        }
-      } while (pos >= 0);
-      return buf.toString().toCharArray();
-    }
-    return displayName;
-  }
 
   /**
    * Returns a version of <code>descriptor</code> decorated according to the passed
@@ -686,6 +730,12 @@ public class CompletionProposalLabelProvider {
     return lastDot;
   }
 
+  private boolean isDynamic(char[] name) {
+    return name != null && name.length == 9 && name[0] == '<' && name[1] == 'd' && name[2] == 'y'
+        && name[3] == 'n' && name[4] == 'a' && name[5] == 'm' && name[6] == 'i' && name[7] == 'c'
+        && name[8] == '>';
+  }
+
   /**
    * Returns whether the given string starts with "this.".
    * 
@@ -698,6 +748,11 @@ public class CompletionProposalLabelProvider {
     }
     return string[0] == 't' && string[1] == 'h' && string[2] == 'i' && string[3] == 's'
         && string[4] == '.';
+  }
+
+  private boolean isVoid(char[] name) {
+    return name != null && name.length == 4 && name[0] == 'v' && name[1] == 'o' && name[2] == 'i'
+        && name[3] == 'd';
   }
 
 }

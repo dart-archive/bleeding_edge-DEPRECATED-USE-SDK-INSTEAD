@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,11 +13,22 @@
  */
 package com.google.dart.tools.ui.internal.util;
 
+import org.eclipse.jface.viewers.StyledString;
+
 /**
  * TODO(brianwilkerson): This is a temporary interface, used to resolve compilation errors.
  */
 public class TypeLabelUtil {
+
   public static void insertTypeLabel(char[] typeName, StringBuffer buf) {
+    if (typeName != null) {
+      buf.append(typeName);
+    } else {
+      buf.append("<dynamic>");
+    }
+  }
+
+  public static void insertTypeLabel(char[] typeName, StyledString buf) {
     if (typeName != null) {
       buf.append(typeName);
     } else {

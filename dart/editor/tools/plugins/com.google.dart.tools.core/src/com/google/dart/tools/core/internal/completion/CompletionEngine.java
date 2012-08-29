@@ -1401,6 +1401,8 @@ public class CompletionEngine {
   private static final String CORELIB_NAME = "dart:core";
   private static final String MAP_TYPE_NAME = "Map";
   private static final String LIST_TYPE_NAME = "List";
+  /** Signature of Object.noSuchMethod(), which should not appear in proposal lists. */
+  private static final String NO_SUCH_METHOD = "noSuchMethodStringList";
 
   /**
    * @param options
@@ -1913,6 +1915,7 @@ public class CompletionEngine {
         break;
     }
     Set<String> previousNames = new HashSet<String>(members.size());
+    previousNames.add(NO_SUCH_METHOD);
     for (Element elem : members) {
       if (!(elem instanceof MethodElement)) {
         continue;
@@ -1929,7 +1932,16 @@ public class CompletionEngine {
       String name = method.getName();
       char[][] paramTypeNames = getParameterTypeNames(method);
       String sig = makeSig(name, paramTypeNames);
-      if (name.isEmpty() || previousNames.contains(sig)) {
+      if (name.isEmpty()) {
+        continue;
+      }
+      if (previousNames.contains(sig)) {
+        // Unclear if overriding noSuchMethod should be proposed, for now, leave it out.
+//        if (!sig.equals(NO_SUCH_METHOD))
+//          continue;
+//        String className = method.getEnclosingElement().getName();
+//        if (className.equals("Object"))
+//          continue;
         continue;
       }
       previousNames.add(sig);

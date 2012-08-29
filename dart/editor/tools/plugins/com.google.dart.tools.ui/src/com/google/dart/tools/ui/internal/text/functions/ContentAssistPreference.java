@@ -136,6 +136,7 @@ public class ContentAssistPreference {
 
     enabled = store.getBoolean(PREFIX_COMPLETION);
     assistant.enablePrefixCompletion(enabled);
+    assistant.enableColoredLabels(true);
 
     configureJavaProcessor(assistant, store);
     DartX.todo("dartdoc");

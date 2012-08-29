@@ -856,7 +856,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
     int start = proposal.getReplaceStart();
     int length = getLength(proposal);
     Image image = getImage(fLabelProvider.createLocalImageDescriptor(proposal));
-    StyledString label = new StyledString(fLabelProvider.createSimpleLabelWithType(proposal));//TODO(messick)
+    StyledString label = fLabelProvider.createLabelWithType(proposal);
     int relevance = computeRelevance(proposal);
     final DartCompletionProposal dartProposal = new DartCompletionProposal(
         completion,
