@@ -26,15 +26,15 @@ deps = {
 }
 
 deps_os = {
+  "android": {
+    "dart/third_party//android_tools":
+      Var("chromium_git") + "/android_tools.git" +
+      "@ebd740fc3d55dda34d9322c8c5f7749302734325",
+  },
   "win": {
     "dart/third_party/cygwin":
       Var("chromium_url") + "/trunk/deps/third_party/cygwin@66844",
   },
-  "android": {
-    "src/third_party/android_tools":
-      Var("chromium_git") + "/android_tools.git" +
-      "@ebd740fc3d55dda34d9322c8c5f7749302734325",
-  }
 }
 
 # TODO(iposva): Move the necessary tools so that hooks can be run
