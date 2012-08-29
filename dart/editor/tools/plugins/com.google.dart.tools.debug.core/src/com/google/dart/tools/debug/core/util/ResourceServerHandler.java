@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.util;
 
+import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
@@ -490,7 +491,7 @@ class ResourceServerHandler implements Runnable {
     in.readFully(data);
 
     String str = new String(data);
-    str = URLDecoder.decode(str);
+    str = URLDecoder.decode(str, "UTF-8");
 
     if ("/log".equals(file)) {
       handleLoggingPost(str);
@@ -634,8 +635,10 @@ class ResourceServerHandler implements Runnable {
     return javaFile;
   }
 
-  private HttpHeader parseHeader(DataInputStream in) throws IOException {
+  private HttpHeader parseHeader(DataInputStream stream) throws IOException {
     HttpHeader header = new HttpHeader();
+
+    BufferedReader in = new BufferedReader(new InputStreamReader(stream, Charsets.US_ASCII));
 
     String line = in.readLine();
 
