@@ -74,7 +74,8 @@ public class ExternalCompilationUnitImpl extends CompilationUnitImpl {
 
   @Override
   public boolean exists() {
-    return getDartSource() != null;
+    DartSource source = getDartSource();
+    return source != null && source.exists();
   }
 
   @Override
