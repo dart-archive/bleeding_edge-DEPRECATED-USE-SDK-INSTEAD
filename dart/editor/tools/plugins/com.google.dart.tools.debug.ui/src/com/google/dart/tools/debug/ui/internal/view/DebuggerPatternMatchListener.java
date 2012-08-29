@@ -18,21 +18,27 @@ import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchConfigurationDelegate;
 import com.google.dart.tools.ui.DartUI;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.ui.console.FileLink;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.console.IHyperlink;
 import org.eclipse.ui.console.IPatternMatchListener;
 import org.eclipse.ui.console.PatternMatchEvent;
 import org.eclipse.ui.console.TextConsole;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 // VM exceptions look like:
 //
@@ -52,6 +58,36 @@ import java.net.URISyntaxException;
  * exceptions.
  */
 public class DebuggerPatternMatchListener implements IPatternMatchListener {
+
+  /**
+   * Link in console that opens a browser on the specified URL when clicked
+   */
+  private static class BrowserLink implements IHyperlink {
+
+    private final URL url;
+
+    public BrowserLink(URL url) {
+      this.url = url;
+    }
+
+    @Override
+    public void linkActivated() {
+      try {
+        BrowserLaunchConfigurationDelegate.openBrowser(url.toString());
+      } catch (CoreException e) {
+        DartCore.logInformation("Failed to open " + url, e);
+        Display.getDefault().beep();
+      }
+    }
+
+    @Override
+    public void linkEntered() {
+    }
+
+    @Override
+    public void linkExited() {
+    }
+  }
 
   private static class Location {
     private String filePath;
@@ -117,30 +153,35 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
   @Override
   public String getPattern() {
     // (http://127.0.0.1:3030/Users/util/debuggertest/web_test.dart:33:14)
+    // http://127.0.0.1:8081
 
-    return "\\(\\S+\\.dart:\\d+:\\d+\\)";
+    return "\\(?http://\\S+";
   }
 
   @Override
   public void matchFound(PatternMatchEvent event) {
+    if (console == null) {
+      return;
+    }
     try {
-      if (console != null) {
-        String match = console.getDocument().get(event.getOffset(), event.getLength());
+      String match = console.getDocument().get(event.getOffset(), event.getLength());
 
-        Location location = parseMatch(match);
+      Location location = parseForLocation(match);
+      if (location != null && location.doesExist()) {
+        console.addHyperlink(
+            new FileLink(location.getFile(), DartUI.ID_CU_EDITOR, -1, -1, location.getLine()),
+            event.getOffset(),
+            event.getLength());
+        return;
+      }
 
-        if (location != null && location.doesExist()) {
-          console.addHyperlink(new FileLink(
-              location.getFile(),
-              DartUI.ID_CU_EDITOR,
-              -1,
-              -1,
-              location.getLine()), event.getOffset(), event.getLength());
-        }
+      URL url = parseForUrl(match);
+      if (url != null) {
+        console.addHyperlink(new BrowserLink(url), event.getOffset(), event.getLength());
+        return;
       }
     } catch (BadLocationException e) {
       // don't create a hyperlink
-
     }
   }
 
@@ -150,7 +191,7 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     return ResourceUtil.getFile(path.toFile());
   }
 
-  private Location parseMatch(String match) {
+  private Location parseForLocation(String match) {
     // (http://127.0.0.1:3030/Users/util/debuggertest/web_test.dart:33:14)
 
     if (!(match.startsWith("(") && match.endsWith(")"))) {
@@ -218,6 +259,32 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     } catch (NumberFormatException nfe) {
       return null;
     } catch (URISyntaxException e) {
+      return null;
+    }
+  }
+
+  private URL parseForUrl(String match) {
+    // http://127.0.0.1:8081
+
+    if (match.startsWith("(")) {
+      match = match.substring(1);
+    }
+    int index = match.length() - 1;
+    while (index > 0) {
+      if (Character.isLetterOrDigit(match.charAt(index))) {
+        break;
+      }
+      index--;
+    }
+    match = match.substring(0, index + 1);
+    // references to Dart source should be handled by parseForLocation
+    if (match.endsWith(".dart")) {
+      return null;
+    }
+
+    try {
+      return new URL(match);
+    } catch (MalformedURLException e) {
       return null;
     }
   }

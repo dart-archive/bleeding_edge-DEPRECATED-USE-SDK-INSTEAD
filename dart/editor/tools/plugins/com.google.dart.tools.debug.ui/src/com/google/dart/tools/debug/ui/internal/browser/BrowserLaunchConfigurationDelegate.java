@@ -15,8 +15,8 @@ package com.google.dart.tools.debug.ui.internal.browser;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
-import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler.CompilationResult;
+import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.HTMLFile;
@@ -57,6 +57,35 @@ import java.util.List;
  * Launches the Dart application (compiled to js) in the browser.
  */
 public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDelegate {
+
+  public static void openBrowser(String url) throws CoreException {
+    IWebBrowser browser = null;
+    try {
+      browser = PlatformUI.getWorkbench().getBrowserSupport().createBrowser(
+          IWorkbenchBrowserSupport.AS_EXTERNAL,
+          "defaultBrowser",
+          "Default Browser",
+          "Browser");
+      if (browser != null) {
+        browser.openURL(new URL(url));
+      } else {
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
+            Messages.BrowserLaunchConfigurationDelegate_DefaultBrowserNotFound));
+      }
+    } catch (PartInitException e1) {
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          Messages.BrowserLaunchConfigurationDelegate_DefaultBrowserNotFound));
+    } catch (MalformedURLException e) {
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          Messages.BrowserLaunchConfigurationDelegate_UrlError));
+    }
+  }
 
   /**
    * Match both the input and id, so that different types of editor can be opened on the same input.
@@ -119,32 +148,7 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     }
 
     if (launchConfig.getUseDefaultBrowser()) {
-      IWebBrowser browser = null;
-      try {
-        browser = PlatformUI.getWorkbench().getBrowserSupport().createBrowser(
-            IWorkbenchBrowserSupport.AS_EXTERNAL,
-            "defaultBrowser",
-            "Default Browser",
-            "Browser");
-        if (browser != null) {
-          browser.openURL(new URL(url));
-        } else {
-          throw new CoreException(new Status(
-              IStatus.ERROR,
-              DartDebugCorePlugin.PLUGIN_ID,
-              Messages.BrowserLaunchConfigurationDelegate_DefaultBrowserNotFound));
-        }
-      } catch (PartInitException e1) {
-        throw new CoreException(new Status(
-            IStatus.ERROR,
-            DartDebugCorePlugin.PLUGIN_ID,
-            Messages.BrowserLaunchConfigurationDelegate_DefaultBrowserNotFound));
-      } catch (MalformedURLException e) {
-        throw new CoreException(new Status(
-            IStatus.ERROR,
-            DartDebugCorePlugin.PLUGIN_ID,
-            Messages.BrowserLaunchConfigurationDelegate_UrlError));
-      }
+      openBrowser(url);
     } else {
       launchInExternalBrowser(launchConfig, url);
     }
