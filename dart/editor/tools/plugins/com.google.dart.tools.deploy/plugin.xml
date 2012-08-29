@@ -319,6 +319,14 @@
             category="com.google.dart.tools.ui.dart"
             icon="icons/full/obj16/breakpoint_view.gif">
       </view>
+      <view
+            class="com.google.dart.tools.debug.ui.internal.view.DartExpressionView"
+            id="com.google.dart.tools.debug.expressionsView"
+            name="Expressions"
+            restorable="true"
+            category="com.google.dart.tools.ui.dart"
+            icon="icons/full/obj16/watchlist_view.gif">
+      </view>
    </extension>
 
    <extension

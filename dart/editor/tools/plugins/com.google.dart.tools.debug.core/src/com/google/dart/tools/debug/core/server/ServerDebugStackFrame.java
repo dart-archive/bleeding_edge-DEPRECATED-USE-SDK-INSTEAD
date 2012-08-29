@@ -17,6 +17,8 @@ package com.google.dart.tools.debug.core.server;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
+import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
+import com.google.dart.tools.debug.core.expr.WatchExpressionResult;
 import com.google.dart.tools.debug.core.source.ISourceLookup;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
@@ -28,6 +30,7 @@ import org.eclipse.debug.core.model.IRegisterGroup;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.IVariable;
+import org.eclipse.debug.core.model.IWatchExpressionListener;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -39,7 +42,7 @@ import java.util.List;
  * Dart frame.
  */
 public class ServerDebugStackFrame extends ServerDebugElement implements IStackFrame,
-    ISourceLookup, IExceptionStackFrame, IVariableResolver {
+    ISourceLookup, IExceptionStackFrame, IVariableResolver, IExpressionEvaluator {
   private IThread thread;
   private VmCallFrame vmFrame;
   private boolean isExceptionStackFrame;
@@ -81,6 +84,13 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
   @Override
   public boolean canTerminate() {
     return getThread().canTerminate();
+  }
+
+  @Override
+  public void evaluateExpression(String expression, IWatchExpressionListener listener) {
+    // TODO(devoncarew): implement this when the command-line debugger supports expression evaluation
+
+    listener.watchEvaluationFinished(WatchExpressionResult.noOp(expression));
   }
 
   @Override
@@ -134,7 +144,8 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     URI uri = URI.create(vmFrame.getLocation().getUrl());
 
     // Resolve a package: reference.
-    if (PackageLibraryManager.isPackageUri(uri) && DartCore.getPlugin().getPackageRootPref() != null) {
+    if (PackageLibraryManager.isPackageUri(uri)
+        && DartCore.getPlugin().getPackageRootPref() != null) {
       uri = PackageLibraryManagerProvider.getPackageLibraryManager().resolvePackageUri(
           vmFrame.getLocation().getUrl());
     }

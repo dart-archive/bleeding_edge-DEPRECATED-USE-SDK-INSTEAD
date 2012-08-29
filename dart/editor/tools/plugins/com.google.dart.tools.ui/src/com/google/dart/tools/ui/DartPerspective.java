@@ -26,6 +26,7 @@ import org.eclipse.ui.progress.IProgressConstants;
 public class DartPerspective implements IPerspectiveFactory {
   private static final String DEBUGGER_VIEW_ID = "com.google.dart.tools.debug.debuggerView"; //$NON-NLS-1$
   private static final String BREAKPOINTS_VIEW_ID = "com.google.dart.tools.debug.breakpointsView"; //$NON-NLS-1$
+  private static final String EXPRESSIONS_VIEW_ID = "com.google.dart.tools.debug.expressionsView";
 
   private static final String BR = "bottomRight"; //$NON-NLS-1$
   private static final String TL = "topLeft"; //$NON-NLS-1$
@@ -70,6 +71,7 @@ public class DartPerspective implements IPerspectiveFactory {
     outputfolder.addPlaceholder(IPageLayout.ID_TASK_LIST);
     outputfolder.addPlaceholder(IProgressConstants.PROGRESS_VIEW_ID);
     outputfolder.addPlaceholder(BREAKPOINTS_VIEW_ID);
+    outputfolder.addPlaceholder(EXPRESSIONS_VIEW_ID);
 
     // Top right: Debugger View
     IPlaceholderFolderLayout debuggerFolder = layout.createPlaceholderFolder(
