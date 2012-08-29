@@ -24,6 +24,42 @@ public final class StringUtilities {
   public static final String EMPTY = "";
 
   /**
+   * Test to see if this string contains any upper case characters.
+   * 
+   * @param str the string to test
+   * @return <code>true</code> if this string contains any upper case characters, <code>false</code>
+   *         otherwise.
+   */
+  public static boolean containsUpperCase(String str) {
+    if (str != null) {
+      for (char c : str.toCharArray()) {
+        if (Character.isUpperCase(c)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Test to see if this string contains any whitespace characters.
+   * 
+   * @param str the string to test
+   * @return <code>true</code> if this string contains any whitespace characters, <code>false</code>
+   *         otherwise.
+   */
+  public static boolean containsWhitespace(String str) {
+    if (str != null) {
+      for (char c : str.toCharArray()) {
+        if (Character.isWhitespace(c)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * <p>
    * Counts how many times the substring appears in the larger String.
    * </p>

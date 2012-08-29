@@ -13,14 +13,16 @@
  */
 package com.google.dart.tools.ui.internal.projects;
 
-import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.generator.NewFileGenerator;
+import com.google.dart.tools.core.utilities.general.StringUtilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.dialogs.WizardNewFileCreationPage;
@@ -32,10 +34,6 @@ import java.io.InputStream;
  */
 public class CreateFileWizardPage extends WizardNewFileCreationPage {
 
-  /**
-   * @param pageName
-   * @param selection
-   */
   public CreateFileWizardPage(String pageName, IStructuredSelection selection) {
     super(pageName, selection);
   }
@@ -44,8 +42,8 @@ public class CreateFileWizardPage extends WizardNewFileCreationPage {
   public IFile createNewFile() {
 
     String fileName = getFileName();
-    if (fileName.indexOf(".") == -1) {
-      setFileName(fileName + ".dart");
+    if (fileName.indexOf(".") == -1) { //$NON-NLS-1$
+      setFileName(fileName + ".dart"); //$NON-NLS-1$
     }
 
     return super.createNewFile();
@@ -85,30 +83,21 @@ public class CreateFileWizardPage extends WizardNewFileCreationPage {
     if (!workspaceValidation) {
       return workspaceValidation;
     }
-    // Else, no problems were discovered by the Eclipse-resource framework
-    String keyword = isADartKeyword(getFileName());
-    if (keyword != null) {
-      setErrorMessage("'" + keyword + "' is a Dart keyword.");
-      return false;
+
+    setMessage(null);
+
+    String fileName = getFileName();
+
+    boolean hasExtension = fileName.contains("."); //$NON-NLS-1$
+
+    if ((!hasExtension || hasExtension && DartCore.isDartLikeFileName(fileName))
+        && (StringUtilities.containsUpperCase(fileName) || StringUtilities.containsWhitespace(fileName))) {
+      setMessage(
+          ProjectMessages.CreateFileWizardPage_filename_content_warning_label,
+          IMessageProvider.WARNING);
     }
+
     return true;
   }
 
-  /**
-   * Returns <code>null</code> if the passed String is not a Dart keyword, or the keyword if it is a
-   * Dart keyword.
-   * 
-   * @param str the String to test against
-   * @return <code>null</code> if the passed String is not a Dart keyword, or the keyword if it is a
-   *         Dart keyword
-   */
-  private String isADartKeyword(String str) {
-    for (Keyword keyword : Keyword.values()) {
-      String syntax = keyword.getSyntax();
-      if (str.equalsIgnoreCase(syntax)) {
-        return syntax;
-      }
-    }
-    return null;
-  }
 }
