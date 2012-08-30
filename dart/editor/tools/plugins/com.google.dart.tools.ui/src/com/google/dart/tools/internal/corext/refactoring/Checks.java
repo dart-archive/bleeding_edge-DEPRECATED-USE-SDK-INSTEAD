@@ -501,6 +501,24 @@ public class Checks {
     if (dartElement.isReadOnly()) {
       return false;
     }
+    if (isInReadOnlyUnit(dartElement)) {
+      return false;
+    }
+    return true;
+  }
+
+  // TODO(scheglov) write JavaDoc
+  public static boolean isExtractableExpression(DartNode node) {
+    if (!(node instanceof DartExpression)) {
+      return false;
+    }
+    if (node.getElement() instanceof VariableElement) {
+      return true;
+    }
+//    if (node instanceof Name) {
+//      IBinding binding= ((Name) node).resolveBinding();
+//      return binding == null || binding instanceof IVariableBinding;
+//    }
     return true;
   }
 
@@ -627,21 +645,6 @@ public class Checks {
   //---- Selection checks --------------------------------------------------------------------
 
   // TODO(scheglov) write JavaDoc
-  public static boolean isExtractableExpression(DartNode node) {
-    if (!(node instanceof DartExpression)) {
-      return false;
-    }
-    if (node.getElement() instanceof VariableElement) {
-      return true;
-    }
-//    if (node instanceof Name) {
-//      IBinding binding= ((Name) node).resolveBinding();
-//      return binding == null || binding instanceof IVariableBinding;
-//    }
-    return true;
-  }
-
-  // TODO(scheglov) write JavaDoc
   public static boolean isExtractableExpression(DartNode[] selectedNodes, DartNode coveringNode) {
     DartNode node = coveringNode;
 //    if (isEnumCase(node)) {
@@ -651,6 +654,11 @@ public class Checks {
       node = selectedNodes[0];
     }
     return isExtractableExpression(node);
+  }
+
+  public static boolean isInReadOnlyUnit(DartElement element) {
+    CompilationUnit unit = element.getAncestor(CompilationUnit.class);
+    return unit == null || unit.isReadOnly();
   }
 
 //  public static boolean isEnumCase(DartNode node) {

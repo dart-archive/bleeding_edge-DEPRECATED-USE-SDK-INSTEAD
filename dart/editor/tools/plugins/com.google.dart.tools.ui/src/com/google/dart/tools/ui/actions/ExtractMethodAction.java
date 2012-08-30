@@ -65,12 +65,17 @@ public class ExtractMethodAction extends SelectionDispatchAction {
 
   @Override
   public void selectionChanged(DartTextSelection selection) {
-    setEnabled(RefactoringAvailabilityTester.isExtractMethodAvailable(selection));
+    setEnabled(editor != null && editor.isEditable()
+        && RefactoringAvailabilityTester.isExtractMethodAvailable(selection));
   }
 
   @Override
   public void selectionChanged(ITextSelection selection) {
-    setEnabled(selection.getLength() == 0 ? false : editor != null
-        && SelectionConverter.getInputAsCompilationUnit(editor) != null);
+    if (selection.getLength() == 0) {
+      setEnabled(false);
+    } else {
+      setEnabled(editor != null && editor.isEditable()
+          && SelectionConverter.getInputAsCompilationUnit(editor) != null);
+    }
   }
 }

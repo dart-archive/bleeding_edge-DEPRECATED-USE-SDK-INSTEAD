@@ -50,11 +50,13 @@ public class ExtractLocalAction extends SelectionDispatchAction {
 
   @Override
   public void selectionChanged(DartTextSelection selection) {
-    setEnabled(RefactoringAvailabilityTester.isExtractLocalAvailable(selection));
+    setEnabled(editor != null && editor.isEditable()
+        && RefactoringAvailabilityTester.isExtractLocalAvailable(selection));
   }
 
   @Override
   public void selectionChanged(ITextSelection selection) {
-    setEnabled(editor != null && SelectionConverter.getInputAsCompilationUnit(editor) != null);
+    setEnabled(editor != null && editor.isEditable()
+        && SelectionConverter.getInputAsCompilationUnit(editor) != null);
   }
 }
