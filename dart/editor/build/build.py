@@ -15,6 +15,7 @@ import sys
 import tempfile
 import gsutil
 import ziputils
+import hashlib
 
 from os.path import join
 
@@ -423,6 +424,7 @@ def main():
       found_zips = _FindRcpZipFiles(buildout)
       for zipfile in found_zips:
         UploadFile(zipfile)
+        CreateAndUploadChecksum(zipfile)
         
     return junit_status
   finally:
@@ -748,6 +750,32 @@ def PostProcessEditorBuilds(out_dir):
       os.remove(infofile)
       
       
+def CalculateChecksum(filename):
+  """Calculate the MD5 checksum for filename."""
+
+  md5 = hashlib.md5()
+  
+  with open(filename, 'rb') as file:
+    data = file.read(65536)
+    while len(data) > 0:
+      md5.update(data)
+      data = file.read(65536)
+      
+  return md5.hexdigest()
+
+
+def CreateAndUploadChecksum(filename):
+  """Create and upload an MD5 checksum file for filename."""
+
+  checksum = CalculateChecksum(filename)
+  checksum_filename = '%s.md5sum' % filename
+  
+  with open(checksum_filename, 'w') as file:
+    file.write('%s  %s\n' % (checksum, os.path.basename(filename)))
+    
+  UploadFile(checksum_filename)
+
+
 def ReplaceInFiles(paths, subs):
   '''Reads a series of files, applies a series of substitutions to each, and
      saves them back out. subs should by a list of (pattern, replace) tuples.'''
@@ -853,6 +881,11 @@ def CreateLinuxSDK(sdkpath):
   UploadFile(sdk64_zip)
   UploadFile(sdk64_tgz)
 
+  CreateAndUploadChecksum(sdk32_zip)
+  CreateAndUploadChecksum(sdk32_tgz)
+  CreateAndUploadChecksum(sdk64_zip)
+  CreateAndUploadChecksum(sdk64_tgz)
+
   return sdk32_zip
 
 
@@ -879,6 +912,11 @@ def CreateMacosSDK(sdkpath):
   UploadFile(sdk32_tgz)
   UploadFile(sdk64_tgz)
 
+  CreateAndUploadChecksum(sdk32_zip)
+  CreateAndUploadChecksum(sdk64_zip)
+  CreateAndUploadChecksum(sdk32_tgz)
+  CreateAndUploadChecksum(sdk64_tgz)
+
   return sdk32_zip;
 
 
@@ -896,6 +934,9 @@ def CreateWin32SDK(sdkpath):
 
   UploadFile(sdk32_zip)
   UploadFile(sdk64_zip)
+
+  CreateAndUploadChecksum(sdk32_zip)
+  CreateAndUploadChecksum(sdk64_zip)
 
   return sdk32_zip;
 
