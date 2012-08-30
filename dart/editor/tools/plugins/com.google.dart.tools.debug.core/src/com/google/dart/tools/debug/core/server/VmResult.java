@@ -40,6 +40,14 @@ public class VmResult<T> {
     return result;
   }
 
+  static JSONObject createJsonErrorResult(String message) throws JSONException {
+    JSONObject obj = new JSONObject();
+
+    obj.put("error", message);
+
+    return obj;
+  }
+
   private String error;
 
   private T result;

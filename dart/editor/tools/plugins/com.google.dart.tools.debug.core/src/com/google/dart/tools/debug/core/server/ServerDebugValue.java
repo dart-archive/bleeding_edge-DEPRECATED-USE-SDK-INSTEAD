@@ -56,19 +56,33 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
     } else if (value.isString()) {
       return "\"" + getValueString() + "\"";
     } else if (value.isObject()) {
-      // TODO(devoncarew): show the type of object here
+      try {
+        return getReferenceTypeName();
+      } catch (DebugException e) {
 
-      return getValueString();
+      }
     } else if (value.isList()) {
       return "List[" + getListLength() + "]";
-    } else {
-      return getValueString();
     }
+
+    return getValueString();
   }
 
   @Override
-  public String getReferenceTypeName() {
-    return value == null ? null : value.getKind();
+  public String getReferenceTypeName() throws DebugException {
+    if (value == null) {
+      return null;
+    }
+
+    if (value.isObject()) {
+      getVariables();
+
+      if (value.getVmObject() != null) {
+        return getConnection().getClassNameSync(value.getVmObject());
+      }
+    }
+
+    return value.getKind();
   }
 
   @Override
@@ -111,6 +125,8 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
         @Override
         public void handleResult(VmResult<VmObject> result) {
           if (!result.isError()) {
+            value.setVmObject(result.getResult());
+
             tempFields.addAll(convert(result.getResult()));
           }
 

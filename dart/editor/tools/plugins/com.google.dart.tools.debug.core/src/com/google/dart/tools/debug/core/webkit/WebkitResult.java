@@ -33,6 +33,14 @@ public class WebkitResult<T> {
     return result;
   }
 
+  static JSONObject createJsonErrorResult(String message) throws JSONException {
+    JSONObject obj = new JSONObject();
+
+    obj.put("error", message);
+
+    return obj;
+  }
+
   private Object error;
   private T result;
 

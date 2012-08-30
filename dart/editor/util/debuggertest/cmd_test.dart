@@ -4,30 +4,30 @@
  */
 #library("cmd_test");
 
-#import("pets.dart");
+#import('pets.dart', prefix: 'pets');
 
 num petCount = 0;
 
 void main() {
   print("starting debuggertest");
 
-  var cat = SPARKY;
+  var cat = pets.SPARKY;
 
   print("my ${cat} says:");
 
   cat.performAction();
 
-  var dog = new Dog("Scooter");
+  var dog = new pets.Dog("Scooter");
 
   dog.performAction();
 
-  var l = getLotsOfAnimals();
+  var l = pets.getLotsOfAnimals();
 
   print(l);
 
   // TODO(devoncarew): cmd-line: display maps better
   // TODO(devoncarew): cmd-line: display the type of the object
-  var m = getMapOfAnimals();
+  var m = pets.getMapOfAnimals();
 
   print(m);
 }

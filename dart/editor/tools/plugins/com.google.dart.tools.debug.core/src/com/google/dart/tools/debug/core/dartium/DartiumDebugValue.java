@@ -37,7 +37,6 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
 
   private DartiumDebugVariable variable;
   private WebkitRemoteObject value;
-  private String overrideClassName;
 
   private VariableCollector variableCollector = VariableCollector.empty();
 
@@ -48,7 +47,6 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
     this.variable = variable;
     this.value = value;
 
-    // TODO: should maybe not populate here - wait until it's requested
     populate();
   }
 
@@ -89,11 +87,11 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
     }
 
     if (isPrimitive() && value.isString()) {
-      return "\"" + getValueString() + "\"";
+      return "\"" + value.getValue() + "\"";
     }
 
     if (isPrimitive()) {
-      return getValueString();
+      return value.getValue();
     }
 
     if (isList()) {
@@ -104,21 +102,26 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
       }
     }
 
-    return getReferenceTypeName();
-  }
-
-  @Override
-  public String getReferenceTypeName() {
-    if (overrideClassName != null) {
-      return overrideClassName;
-    } else {
+    try {
+      return getReferenceTypeName();
+    } catch (DebugException e) {
       return value.getClassName();
     }
   }
 
   @Override
+  public String getReferenceTypeName() throws DebugException {
+    // The special property @classInfo contains this like the class name. We need to populate the
+    // variable information before we attempt to retrieve the class name.
+    getVariables();
+
+    return getConnection().getDebugger().getClassNameSync(value);
+  }
+
+  @Override
   public String getValueString() {
-    return value.getValue();
+    //return value.getValue();
+    return getDisplayString();
   }
 
   @Override
@@ -150,10 +153,6 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
 
   public boolean isPrimitive() {
     return value.isPrimitive();
-  }
-
-  protected void setClassName(String name) {
-    this.overrideClassName = name;
   }
 
   private int getListLength() {

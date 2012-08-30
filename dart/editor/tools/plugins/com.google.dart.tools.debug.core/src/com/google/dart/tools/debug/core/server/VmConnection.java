@@ -69,8 +69,7 @@ public class VmConnection {
    * A set of core libraries - semantically considered part of the core Dart library implementation.
    */
   private static final Set<String> CORE_IMPL_LIBRARIES = new HashSet<String>(
-      Arrays.asList(new String[] {
-          "dart:core", "dart:coreimpl", "dart:nativewrappers"}));
+      Arrays.asList(new String[] {"dart:core", "dart:coreimpl", "dart:nativewrappers"}));
 
   private List<VmListener> listeners = new ArrayList<VmListener>();
   private int port;
@@ -87,6 +86,8 @@ public class VmConnection {
   private Map<String, String> sourceCache = new HashMap<String, String>();
 
   protected Map<Integer, BreakpointResolvedCallback> breakpointCallbackMap = new HashMap<Integer, VmConnection.BreakpointResolvedCallback>();
+
+  private Map<Integer, String> classNameMap = new HashMap<Integer, String>();
 
   public VmConnection(int port) {
     this.port = port;
@@ -165,6 +166,14 @@ public class VmConnection {
 
   public List<VmBreakpoint> getBreakpoints() {
     return breakpoints;
+  }
+
+  public String getClassNameSync(VmObject obj) {
+    if (!classNameMap.containsKey(obj.getClassId())) {
+      populateClassName(obj.getClassId());
+    }
+
+    return classNameMap.get(obj.getClassId());
   }
 
   public void getClassProperties(final int classId, final VmCallback<VmClass> callback)
@@ -522,8 +531,10 @@ public class VmConnection {
         @Override
         public void handleResult(JSONObject object) throws JSONException {
           if (object.has("error")) {
-            DartDebugCorePlugin.logInfo("error setting breakpoint at " + url + ", " + line + ": "
-                + JsonUtils.getString(object, "error"));
+            if (DartDebugCorePlugin.LOGGING) {
+              System.out.println("    error setting breakpoint at " + url + ", " + line + ": "
+                  + JsonUtils.getString(object, "error"));
+            }
           } else {
             int breakpointId = JsonUtils.getInt(object.getJSONObject("result"), "breakpointId");
 
@@ -599,6 +610,21 @@ public class VmConnection {
 
   public void stepOver() throws IOException {
     sendSimpleCommand("stepOver", resumeOnSuccess());
+  }
+
+  protected void handleTerminated() {
+    // Clean up the callbackMap on termination.
+    List<Callback> callbacks = new ArrayList<VmConnection.Callback>(callbackMap.values());
+
+    for (Callback callback : callbacks) {
+      try {
+        callback.handleResult(VmResult.createJsonErrorResult("connection termination"));
+      } catch (JSONException e) {
+
+      }
+    }
+
+    callbackMap.clear();
   }
 
   protected void processJson(JSONObject result) {
@@ -813,8 +839,35 @@ public class VmConnection {
   }
 
   private void notifyDebuggerResumed() {
+    classNameMap.clear();
+
     for (VmListener listener : listeners) {
       listener.debuggerResumed();
+    }
+  }
+
+  private void populateClassName(final int classId) {
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    try {
+      getClassProperties(classId, new VmCallback<VmClass>() {
+        @Override
+        public void handleResult(VmResult<VmClass> result) {
+          if (!result.isError()) {
+            classNameMap.put(classId, result.getResult().getName());
+          }
+
+          latch.countDown();
+        }
+      });
+    } catch (IOException e1) {
+      latch.countDown();
+    }
+
+    try {
+      latch.await();
+    } catch (InterruptedException e) {
+
     }
   }
 

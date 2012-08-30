@@ -402,6 +402,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   }
 
   private void dispose() {
+    getConnection().handleTerminated();
+
     if (DebugPlugin.getDefault() != null) {
       DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
     }

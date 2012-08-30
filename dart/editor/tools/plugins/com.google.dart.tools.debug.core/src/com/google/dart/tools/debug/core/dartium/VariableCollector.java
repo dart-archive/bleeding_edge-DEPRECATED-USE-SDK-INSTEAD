@@ -43,7 +43,7 @@ class VariableCollector {
     for (WebkitRemoteObject obj : remoteObjects) {
       try {
         target.getConnection().getRuntime().getProperties(
-            obj.getObjectId(),
+            obj,
             true,
             new WebkitCallback<WebkitPropertyDescriptor[]>() {
               @Override
@@ -79,7 +79,7 @@ class VariableCollector {
     for (WebkitRemoteObject obj : remoteObjects) {
       try {
         target.getConnection().getRuntime().getProperties(
-            obj.getObjectId(),
+            obj,
             true,
             new WebkitCallback<WebkitPropertyDescriptor[]>() {
               @Override
@@ -193,7 +193,7 @@ class VariableCollector {
   private boolean collectStaticFields(final WebkitRemoteObject classInfo, final CountDownLatch latch) {
     try {
       target.getConnection().getRuntime().getProperties(
-          classInfo.getObjectId(),
+          classInfo,
           true,
           new WebkitCallback<WebkitPropertyDescriptor[]>() {
             @Override

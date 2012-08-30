@@ -66,13 +66,19 @@ class Dog extends FloppyEars implements Animal {
   bool livesWith(Animal other) => true;
 
   void performAction() {
+    String name = "iHideAnInstanceVariable";
+    
     print("bark");
-    print("bark");
-    print("bark");
+    
+    var closure = () {
+      // TODO: we want the call frame name to be Dog.performAction.{}
+      print("bark");
+      print("bark");
+      print("bark");
+    };
+    
+    closure();
   }
-
-  String toString() => "dog ${name}";
-
 }
 
 List<Animal> getLotsOfAnimals() {

@@ -207,6 +207,19 @@ public class WebkitConnection {
     for (WebkitConnectionListener listener : connectionListeners) {
       listener.connectionClosed(this);
     }
+
+    // Clean up the callbackMap on termination.
+    List<Callback> callbacks = new ArrayList<Callback>(callbackMap.values());
+
+    for (Callback callback : callbacks) {
+      try {
+        callback.handleResult(WebkitResult.createJsonErrorResult("connection termination"));
+      } catch (JSONException e) {
+
+      }
+    }
+
+    callbackMap.clear();
   }
 
   protected void processWebSocketMessage(WebSocketMessage message) {

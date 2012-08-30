@@ -66,6 +66,17 @@ public class WebkitRemoteObject {
 
   private String value;
 
+  private WebkitRemoteObject classInfo;
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof WebkitRemoteObject) {
+      return ((WebkitRemoteObject) obj).getObjectId().equals(getObjectId());
+    }
+
+    return false;
+  }
+
   public String getClassName() {
     return className;
   }
@@ -99,6 +110,11 @@ public class WebkitRemoteObject {
     } else {
       return value;
     }
+  }
+
+  @Override
+  public int hashCode() {
+    return objectId.hashCode();
   }
 
   public boolean hasObjectId() {
@@ -136,6 +152,14 @@ public class WebkitRemoteObject {
     } else {
       return "[" + type + "," + value + "]";
     }
+  }
+
+  protected WebkitRemoteObject getClassInfo() {
+    return classInfo;
+  }
+
+  protected void setClassInfo(WebkitRemoteObject classInfo) {
+    this.classInfo = classInfo;
   }
 
 }

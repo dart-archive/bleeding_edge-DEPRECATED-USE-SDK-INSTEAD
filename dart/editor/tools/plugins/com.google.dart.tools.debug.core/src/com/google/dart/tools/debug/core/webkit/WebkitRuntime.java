@@ -77,7 +77,7 @@ public class WebkitRuntime extends WebkitDomain {
    * @param callback
    * @throws IOException
    */
-  public void getProperties(String objectId, boolean ownProperties,
+  public void getProperties(final WebkitRemoteObject object, boolean ownProperties,
       final WebkitCallback<WebkitPropertyDescriptor[]> callback) throws IOException {
     if (callback == null) {
       throw new IllegalArgumentException("callback is required");
@@ -89,12 +89,12 @@ public class WebkitRuntime extends WebkitDomain {
       request.put("method", "Runtime.getProperties");
       request.put(
           "params",
-          new JSONObject().put("objectId", objectId).put("ownProperties", ownProperties));
+          new JSONObject().put("objectId", object.getObjectId()).put("ownProperties", ownProperties));
 
       connection.sendRequest(request, new Callback() {
         @Override
         public void handleResult(JSONObject result) throws JSONException {
-          callback.handleResult(convertGetPropertiesResult(result));
+          callback.handleResult(convertGetPropertiesResult(object, result));
         }
       });
     } catch (JSONException exception) {
@@ -164,14 +164,22 @@ public class WebkitRuntime extends WebkitDomain {
     return result;
   }
 
-  private WebkitResult<WebkitPropertyDescriptor[]> convertGetPropertiesResult(JSONObject object)
-      throws JSONException {
+  private WebkitResult<WebkitPropertyDescriptor[]> convertGetPropertiesResult(
+      WebkitRemoteObject parentObject, JSONObject object) throws JSONException {
     WebkitResult<WebkitPropertyDescriptor[]> result = WebkitResult.createFrom(object);
 
     if (object.has("result")) {
       JSONObject obj = object.getJSONObject("result");
 
-      result.setResult(WebkitPropertyDescriptor.createFrom(obj.getJSONArray("result")));
+      WebkitPropertyDescriptor[] properties = WebkitPropertyDescriptor.createFrom(obj.getJSONArray("result"));
+
+      for (WebkitPropertyDescriptor property : properties) {
+        if (property.getName().equals(WebkitPropertyDescriptor.CLASS_INFO)) {
+          parentObject.setClassInfo(property.getValue());
+        }
+      }
+
+      result.setResult(properties);
     }
 
     return result;
