@@ -49,7 +49,6 @@ import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionDeclarationStatement;
 import com.google.dart.engine.ast.FunctionExpression;
-import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
@@ -66,6 +65,7 @@ import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NamedFormalParameter;
 import com.google.dart.engine.ast.NodeList;
@@ -129,7 +129,6 @@ public class SimpleParserTest extends ParserTestCase {
   // parseCascadeSection(Expression)
   // parseDirective()
   // parseExpressionWithoutCascade()
-  // parseNonLabeledStatement()?
   // parseNormalFormalParameter()?
 
 //  public void test_parseExpressionWithoutCascade() throws Exception {
@@ -146,7 +145,7 @@ public class SimpleParserTest extends ParserTestCase {
    * @throws Exception if the method could not be invoked or throws an exception
    * @throws AssertionFailedError if the result is {@code null}
    */
-  protected static Token skip(String methodName, String source) throws Exception {
+  private static Token skip(String methodName, String source) throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
     //
     // Scan the source.
@@ -160,6 +159,17 @@ public class SimpleParserTest extends ParserTestCase {
     Method skipMethod = Parser.class.getDeclaredMethod(methodName, new Class[] {Token.class});
     skipMethod.setAccessible(true);
     return (Token) skipMethod.invoke(parser, new Object[] {tokenStream});
+  }
+
+  public void fail_parseExpression_superMethodInvocation() throws Exception {
+    MethodInvocation invocation = parse("parseExpression", "super.m()");
+    assertNotNull(invocation.getTarget());
+    assertNotNull(invocation.getMethodName());
+    assertNotNull(invocation.getArgumentList());
+  }
+
+  public void test_computeStringValue_emptyInterpolationPrefix() throws Exception {
+    assertEquals("", computeStringValue("'''"));
   }
 
   public void test_computeStringValue_escape_b() throws Exception {
@@ -497,11 +507,12 @@ public class SimpleParserTest extends ParserTestCase {
         new Class[] {boolean.class},
         new Object[] {false},
         "x(y).z");
-    FunctionExpressionInvocation invocation = (FunctionExpressionInvocation) propertyAccess.getTarget();
-    assertNotNull(invocation.getFunction());
+    MethodInvocation invocation = (MethodInvocation) propertyAccess.getTarget();
+    assertEquals("x", invocation.getMethodName().getName());
     ArgumentList argumentList = invocation.getArgumentList();
     assertNotNull(argumentList);
     assertSize(1, argumentList.getArguments());
+    assertNotNull(propertyAccess.getOperator());
     assertNotNull(propertyAccess.getPropertyName());
   }
 
@@ -1120,6 +1131,14 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getOperator());
     assertEquals(TokenType.EQ, expression.getOperator().getType());
     assertNotNull(expression.getRightHandSide());
+  }
+
+  public void test_parseExpression_comparison() throws Exception {
+    BinaryExpression expression = parse("parseExpression", "--a.b == c");
+    assertNotNull(expression.getLeftOperand());
+    assertNotNull(expression.getOperator());
+    assertEquals(TokenType.EQ_EQ, expression.getOperator().getType());
+    assertNotNull(expression.getRightOperand());
   }
 
   public void test_parseExpressionList_multiple() throws Exception {
@@ -2459,6 +2478,11 @@ public class SimpleParserTest extends ParserTestCase {
     SimpleIdentifier identifier = parse("parseSimpleIdentifier", lexeme);
     assertNotNull(identifier.getToken());
     assertEquals(lexeme, identifier.getName());
+  }
+
+  public void test_parseStatement_functionDeclaration() throws Exception {
+    ExpressionStatement statement = parse("parseStatement", "int f(a, b) {};");
+    assertInstanceOf(FunctionExpression.class, statement.getExpression());
   }
 
   public void test_parseStatement_mulipleLabels() throws Exception {

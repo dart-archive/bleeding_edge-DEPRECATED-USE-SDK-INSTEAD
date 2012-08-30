@@ -20,6 +20,7 @@ import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.LabeledStatement;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.ReturnStatement;
@@ -33,14 +34,6 @@ import com.google.dart.engine.ast.SimpleIdentifier;
  * Simpler tests should be defined in the class {@link SimpleParserTest}.
  */
 public class ComplexParserTest extends ParserTestCase {
-  public void fail_localFunctionDefinition() throws Exception {
-    parseStatement("int constant() { return 0;};");
-  }
-
-  public void fail_methodInvocation_super() throws Exception {
-    parseStatement("return super.m();");
-  }
-
   public void test_additiveExpression_normal() throws Exception {
     BinaryExpression expression = parseExpression("x + y - z");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
@@ -67,38 +60,32 @@ public class ComplexParserTest extends ParserTestCase {
     //
     // a(b)(c).d(e)
     //
-    FunctionExpressionInvocation invocation2 = assertInstanceOf(
-        FunctionExpressionInvocation.class,
+    MethodInvocation invocation2 = assertInstanceOf(
+        MethodInvocation.class,
         propertyAccess1.getTarget());
+    assertEquals("d", invocation2.getMethodName().getName());
     ArgumentList argumentList2 = invocation2.getArgumentList();
     assertNotNull(argumentList2);
     assertSize(1, argumentList2.getArguments());
     //
-    // a(b)(c).d
-    //
-    PropertyAccess propertyAccess3 = assertInstanceOf(
-        PropertyAccess.class,
-        invocation2.getFunction());
-    assertEquals("d", propertyAccess3.getPropertyName().getName());
-    //
     // a(b)(c)
     //
-    FunctionExpressionInvocation invocation4 = assertInstanceOf(
+    FunctionExpressionInvocation invocation3 = assertInstanceOf(
         FunctionExpressionInvocation.class,
-        propertyAccess3.getTarget());
-    ArgumentList argumentList4 = invocation4.getArgumentList();
-    assertNotNull(argumentList4);
-    assertSize(1, argumentList4.getArguments());
+        invocation2.getTarget());
+    ArgumentList argumentList3 = invocation3.getArgumentList();
+    assertNotNull(argumentList3);
+    assertSize(1, argumentList3.getArguments());
     //
     // a(b)
     //
-    FunctionExpressionInvocation invocation5 = assertInstanceOf(
-        FunctionExpressionInvocation.class,
-        invocation4.getFunction());
-    assertInstanceOf(SimpleIdentifier.class, invocation5.getFunction());
-    ArgumentList argumentList5 = invocation4.getArgumentList();
-    assertNotNull(argumentList5);
-    assertSize(1, argumentList5.getArguments());
+    MethodInvocation invocation4 = assertInstanceOf(
+        MethodInvocation.class,
+        invocation3.getFunction());
+    assertEquals("a", invocation4.getMethodName().getName());
+    ArgumentList argumentList4 = invocation4.getArgumentList();
+    assertNotNull(argumentList4);
+    assertSize(1, argumentList4.getArguments());
   }
 
   public void test_assignmentExpression_compound() throws Exception {
