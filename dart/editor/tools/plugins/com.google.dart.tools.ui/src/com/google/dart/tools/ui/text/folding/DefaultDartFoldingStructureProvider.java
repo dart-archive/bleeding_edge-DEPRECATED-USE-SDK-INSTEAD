@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.text.folding;
 
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.tools.core.DartCore;
@@ -21,6 +23,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartElementDelta;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartModelStatus;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.ParentElement;
 import com.google.dart.tools.core.model.SourceRange;
@@ -262,7 +265,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       hasHeaderComment = true;
     }
 
-    private void setScannerSource(String source) {
+    private void setScannerSource(String source) throws DartModelException {
       this.tokenStream = new TokenStream(source);
     }
   }
@@ -689,11 +692,22 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     Token currentToken;
     int begin;
 
-    TokenStream(String source) {
-      scanner = new StringScanner(null, source, null);
-      firstToken = scanner.tokenize();
-      currentToken = firstToken;
-      begin = 0;
+    TokenStream(String source) throws DartModelException {
+      final boolean[] errorFound = {false};
+      AnalysisErrorListener listener = new AnalysisErrorListener() {
+        @Override
+        public void onError(AnalysisError error) {
+          errorFound[0] = true;
+        }
+      };
+      scanner = new StringScanner(null, source, listener);
+      if (errorFound[0]) {
+        throw new DartModelException((DartModelStatus) null);
+      } else {
+        firstToken = scanner.tokenize();
+        currentToken = firstToken;
+        begin = 0;
+      }
     }
 
     void begin(int start) {
@@ -1483,6 +1497,9 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     Annotation[] deletedArray = (Annotation[]) deletions.toArray(new Annotation[deletions.size()]);
     Annotation[] changedArray = (Annotation[]) updates.toArray(new Annotation[updates.size()]);
     ctx.getModel().modifyAnnotations(deletedArray, additions, changedArray);
-    ctx.setScannerSource(""); // clear token stream
+    try {
+      ctx.setScannerSource(""); // clear token stream
+    } catch (DartModelException e1) {
+    }
   }
 }
