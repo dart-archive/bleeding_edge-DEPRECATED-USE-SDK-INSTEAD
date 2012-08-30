@@ -20,6 +20,7 @@ import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.util.AppSelectionDialog;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -55,6 +56,8 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
   private Text heapText;
   private Button checkedModeButton;
   private Button enableDebuggingButton;
+  private Label workingDirText;
+  private IPath scriptPath;
 
   private ModifyListener textModifyListener = new ModifyListener() {
     @Override
@@ -79,9 +82,20 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     GridLayoutFactory.swtDefaults().numColumns(3).extendedMargins(0, 0, 0, 4).applyTo(group);
 
     Label label = new Label(group, SWT.NONE);
+    label.setText("Working directory:");
+    label.pack();
+    workingDirText = new Label(group, SWT.NONE);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(
+        workingDirText);
+
+    // spacer
+    label = new Label(group, SWT.NONE);
+
+    label = new Label(group, SWT.NONE);
     label.setText("Dart script:");
 
     scriptText = new Text(group, SWT.BORDER | SWT.SINGLE);
+    scriptText.setEditable(false);
     scriptText.addModifyListener(textModifyListener);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(scriptText);
 
@@ -184,7 +198,12 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
   public void initializeFrom(ILaunchConfiguration configuration) {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
 
-    scriptText.setText(dartLauncher.getApplicationName());
+    scriptPath = new Path(dartLauncher.getApplicationName());
+    IResource resource = dartLauncher.getApplicationResource();
+    if (resource != null) {
+      scriptText.setText(resource.getProjectRelativePath().toPortableString());
+    }
+    workingDirText.setText(getWorkingDir(dartLauncher));
     argsText.setText(dartLauncher.getArguments());
 
     checkedModeButton.setSelection(dartLauncher.getCheckedMode());
@@ -203,7 +222,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
   public void performApply(ILaunchConfigurationWorkingCopy configuration) {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
 
-    dartLauncher.setApplicationName(scriptText.getText());
+    dartLauncher.setApplicationName(scriptPath.toPortableString());
     dartLauncher.setArguments(argsText.getText());
 
     dartLauncher.setCheckedMode(checkedModeButton.getSelection());
@@ -242,9 +261,31 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
 
     Object[] results = dialog.getResult();
     if ((results != null) && (results.length > 0) && (results[0] instanceof IFile)) {
-      String pathStr = ((IFile) results[0]).getFullPath().toPortableString();
+      IFile resource = (IFile) results[0];
+      scriptPath = (resource.getFullPath());
+      scriptText.setText(resource.getProjectRelativePath().toPortableString());
+      workingDirText.setText(getWorkingDir(resource));
+    }
+  }
 
-      scriptText.setText(pathStr);
+  private String getWorkingDir(DartLaunchConfigWrapper dartLauncher) {
+    IResource resource = dartLauncher.getApplicationResource();
+    if (resource != null) {
+      return getWorkingDir(resource);
+    } else {
+      IProject project = dartLauncher.getProject();
+      if (project != null) {
+        return dartLauncher.getProject().getLocation().toPortableString();
+      }
+    }
+    return "";
+  }
+
+  private String getWorkingDir(IResource resource) {
+    if (resource.isLinked()) {
+      return resource.getLocation().toFile().getParentFile().toString();
+    } else {
+      return resource.getProject().getLocation().toFile().toString();
     }
   }
 
