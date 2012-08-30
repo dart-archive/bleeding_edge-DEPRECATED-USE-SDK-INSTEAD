@@ -14,9 +14,6 @@ deps = {
   "runtime":
     Var("dart_branch") + "/dart/runtime",
 
-  "corelib":
-    Var("dart_branch") + "/dart/corelib",
-
   "language":
     Var("dart_branch") + "/dart/language",
 
