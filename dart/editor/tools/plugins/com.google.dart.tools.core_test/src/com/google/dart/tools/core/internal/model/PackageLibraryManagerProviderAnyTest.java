@@ -19,10 +19,6 @@ import java.io.File;
 
 public class PackageLibraryManagerProviderAnyTest extends PackageLibraryManagerProviderTest {
 
-  public void test_PackageLibraryManagerProvider_builtin() throws Exception {
-    testLibrary("builtin", "builtin_runtime.dart");
-  }
-
   public void test_PackageLibraryManagerProvider_core() throws Exception {
     testLibrary("core", "core.dart");
   }
