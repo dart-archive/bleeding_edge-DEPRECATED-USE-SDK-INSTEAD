@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.ScanCallback;
 import com.google.dart.tools.core.builder.DartBuildParticipant;
+import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.Extensions;
 
@@ -24,7 +25,10 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
@@ -202,6 +206,15 @@ public class DartBuilder extends IncrementalProjectBuilder {
     }
 
     DartBasedBuilder.getBuilder().handleClean(getProject(), new NullProgressMonitor());
+
+    // Clear the index before triggering reanalyze so that updates from re-analysis
+    // will be included in the rebuilt index
+    InMemoryIndex.getInstance().clear();
+
+    IWorkspace workspace = ResourcesPlugin.getWorkspace();
+    IWorkspaceRoot root = workspace.getRoot();
+
+    root.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_INFINITE);
 
     AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
     server.reanalyze();
