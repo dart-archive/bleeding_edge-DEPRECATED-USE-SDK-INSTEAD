@@ -70,7 +70,7 @@ public class VmConnection {
    */
   private static final Set<String> CORE_IMPL_LIBRARIES = new HashSet<String>(
       Arrays.asList(new String[] {
-          "dart:core", "dart:coreimpl", "dart:nativewrappers", "dart:builtin"}));
+          "dart:core", "dart:coreimpl", "dart:nativewrappers"}));
 
   private List<VmListener> listeners = new ArrayList<VmListener>();
   private int port;

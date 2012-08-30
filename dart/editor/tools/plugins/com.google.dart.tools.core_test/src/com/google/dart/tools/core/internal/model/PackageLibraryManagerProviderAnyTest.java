@@ -24,11 +24,11 @@ public class PackageLibraryManagerProviderAnyTest extends PackageLibraryManagerP
   }
 
   public void test_PackageLibraryManagerProvider_core() throws Exception {
-    testLibrary("core", "core_runtime.dart");
+    testLibrary("core", "core.dart");
   }
 
   public void test_PackageLibraryManagerProvider_coreImpl() throws Exception {
-    testLibrary("coreimpl", "coreimpl_runtime.dart");
+    testLibrary("coreimpl", "coreimpl.dart");
   }
 
   public void test_PackageLibraryManagerProvider_html() throws Exception {

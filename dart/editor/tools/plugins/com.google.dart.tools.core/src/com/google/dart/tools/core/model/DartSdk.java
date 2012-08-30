@@ -30,7 +30,7 @@ import java.io.IOException;
  *          Chromium/   <-- Dartium
  *       lib/
  *          core/
- *             core_runtime.dart
+ *             core.dart
  *             ... other core library files ...
  *          ... other libraries ...
  *       util/

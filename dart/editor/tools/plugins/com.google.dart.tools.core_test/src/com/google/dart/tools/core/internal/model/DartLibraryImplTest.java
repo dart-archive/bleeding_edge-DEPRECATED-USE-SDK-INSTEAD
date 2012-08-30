@@ -360,7 +360,7 @@ public class DartLibraryImplTest extends TestCase {
 
   public void test_DartLibraryImpl_getChildren_libCore() throws Exception {
     DartElement[] children = getDartLibCore().getChildren();
-    assertContainsCompUnit(children, "core_runtime.dart", false, false);
+    assertContainsCompUnit(children, "core.dart", false, false);
     assertContainsCompUnit(children, "object.dart", false, false);
     assertContainsCompUnit(children, "list.dart", false, false);
     assertTrue(children.length > 20);
