@@ -337,9 +337,8 @@ def main():
       EnsureDirectoryExists(buildout)
       sdk_zip = CreateSDK(buildout)
 
-    #TODO(devoncarew): comment this back in
-    #if (BUILD_OS == 'linux' and builder_name != 'dart-editor'):
-    #  CreateApiDocs(buildout)
+    if (BUILD_OS == 'linux' and builder_name != 'dart-editor'):
+      CreateApiDocs(buildout)
 
     if builder_name == 'dart-editor':
       BuildUpdateSite(gsu, ant, revision, options.name, buildroot, buildout,
