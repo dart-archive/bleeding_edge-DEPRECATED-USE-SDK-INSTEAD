@@ -19,7 +19,7 @@ deps = {
     "http://gyp.googlecode.com/svn/trunk" + Var("gyp_rev"),
 
   "dart/third_party/v8":
-    "http://v8.googlecode.com/svn/branches/3.10",
+    "http://v8.googlecode.com/svn/branches/3.12",
 
   "dart/tests/co19/src":
     Var("co19_repo") + "tests/co19/src" + Var("co19_rev"),
