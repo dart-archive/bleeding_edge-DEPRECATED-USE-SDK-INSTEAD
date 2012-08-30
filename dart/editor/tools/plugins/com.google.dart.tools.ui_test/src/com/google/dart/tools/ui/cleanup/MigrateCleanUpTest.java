@@ -60,7 +60,7 @@ public final class MigrateCleanUpTest extends AbstractDartTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  try {",
-        "  } catch (Exception e, stack) {",
+        "  } catch (final Exception e, stack) {",
         "  }",
         "}",
         "");

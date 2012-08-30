@@ -49,7 +49,7 @@ public class Migrate_1M1_catch_CleanUp extends AbstractMigrateCleanUp {
             addReplaceEdit(
                 SourceRangeFactory.forStartLength(node, 0),
                 "on " + utils.getText(exceptionType) + " ");
-            addReplaceEdit(SourceRangeFactory.forStartStart(exceptionType, exceptionName), "");
+            addReplaceEdit(SourceRangeFactory.forStartStart(exception, exceptionName), "");
           }
         }
         // remove "StackTrace" type

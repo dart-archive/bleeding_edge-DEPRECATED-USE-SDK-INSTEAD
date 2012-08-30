@@ -551,7 +551,7 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_GET, new Migrate_1M1_get_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_LIBRARY, new Migrate_1M1_library_CleanUp());
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_CATCH, true);
-      settings.setDefault(ID_MIGRATE_SYNTAX_1M1_EQUALS, false);
+      settings.setDefault(ID_MIGRATE_SYNTAX_1M1_EQUALS, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_GET, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_LIBRARY, false);
     }
@@ -596,13 +596,13 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M1_CATCH,
                 "Migrate 'catch' blocks");
-            createCheckButton(syntaxComposite, ID_MIGRATE_SYNTAX_1M1_GET, "Migrate getters");
-            new Label(syntaxComposite, SWT.NONE);
-            new Label(syntaxComposite, SWT.NONE).setText("Work in progress... not fully implemented:");
             createCheckButton(
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M1_EQUALS,
                 "Migrate 'operator equals()'");
+            createCheckButton(syntaxComposite, ID_MIGRATE_SYNTAX_1M1_GET, "Migrate getters");
+            new Label(syntaxComposite, SWT.NONE);
+            new Label(syntaxComposite, SWT.NONE).setText("Work in progress... not fully implemented:");
             createCheckButton(
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M1_LIBRARY,
