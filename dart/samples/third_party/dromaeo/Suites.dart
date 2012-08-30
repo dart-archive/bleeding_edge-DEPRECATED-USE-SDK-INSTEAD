@@ -30,6 +30,7 @@ class Suites {
     'dart2js': 'DOM Core Tests (dart2js)',
 
     // Library tags
+    'dom': 'DOM Core Tests (dart:dom_deprecated)',
     'html': 'DOM Core Tests (dart:html)',
     'htmlidiomatic': 'DOM Core Tests (dart:html) Idiomatic',
   };
@@ -39,8 +40,8 @@ class Suites {
       // Each item in the list is a pair of (platform x [variants]).
       const ['js', const ['']],
       const ['dart', const ['html', 'htmlidiomatic']],
-      const ['frog', const ['html', 'htmlidiomatic']],
-      const ['dart2js', const ['html', 'htmlidiomatic']],
+      const ['frog', const ['dom', 'html', 'htmlidiomatic']],
+      const ['dart2js', const ['dom', 'html', 'htmlidiomatic']],
     ];
 
   static final _CORE_SUITE_DESCRIPTIONS = const [
