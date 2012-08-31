@@ -85,7 +85,6 @@ import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
-import com.google.dart.engine.ast.ResourceDirective;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.ScriptTag;
 import com.google.dart.engine.ast.SimpleFormalParameter;
@@ -726,14 +725,6 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
     writer.print("this");
     visit(".", node.getConstructorName());
     visit(node.getArgumentList());
-    return null;
-  }
-
-  @Override
-  public Void visitResourceDirective(ResourceDirective node) {
-    writer.print("resource ");
-    visit(node.getResourceUri());
-    writer.print(";");
     return null;
   }
 

@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.parser;
 
+import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -154,7 +155,24 @@ public class ComplexParserTest extends ParserTestCase {
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
-  public void test_conditionalExpression_presidence_logicalOrExpression() throws Exception {
+  public void test_conditionalExpression_precedence_argumentDefinitionTest_not() throws Exception {
+    // This expression came from a puzzler posed by Gilad: !?a?!?b:!?c == ?a??b:?c  ?
+    ConditionalExpression conditional = parseExpression("!?a?!?b:!?c");
+    assertInstanceOf(PrefixExpression.class, conditional.getCondition());
+    assertInstanceOf(
+        ArgumentDefinitionTest.class,
+        ((PrefixExpression) conditional.getCondition()).getOperand());
+    assertInstanceOf(PrefixExpression.class, conditional.getThenExpression());
+    assertInstanceOf(
+        ArgumentDefinitionTest.class,
+        ((PrefixExpression) conditional.getThenExpression()).getOperand());
+    assertInstanceOf(PrefixExpression.class, conditional.getElseExpression());
+    assertInstanceOf(
+        ArgumentDefinitionTest.class,
+        ((PrefixExpression) conditional.getElseExpression()).getOperand());
+  }
+
+  public void test_conditionalExpression_precedence_logicalOrExpression() throws Exception {
     ConditionalExpression expression = parseExpression("a | b ? y : z");
     assertInstanceOf(BinaryExpression.class, expression.getCondition());
   }

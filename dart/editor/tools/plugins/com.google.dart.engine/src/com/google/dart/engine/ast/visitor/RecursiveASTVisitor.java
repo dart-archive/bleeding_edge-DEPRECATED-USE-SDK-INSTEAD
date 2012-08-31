@@ -80,7 +80,6 @@ import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
-import com.google.dart.engine.ast.ResourceDirective;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.ScriptTag;
 import com.google.dart.engine.ast.SimpleFormalParameter;
@@ -508,12 +507,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public R visitResourceDirective(ResourceDirective node) {
     node.visitChildren(this);
     return null;
   }

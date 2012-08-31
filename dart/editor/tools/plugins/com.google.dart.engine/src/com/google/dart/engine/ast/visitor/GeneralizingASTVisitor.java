@@ -420,11 +420,6 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitResourceDirective(ResourceDirective node) {
-    return visitDirective(node);
-  }
-
-  @Override
   public R visitReturnStatement(ReturnStatement node) {
     return visitStatement(node);
   }

@@ -22,20 +22,11 @@ import java.util.List;
  * 
  * <pre>
  * compilationUnit ::=
- *     {@link ScriptTag scriptTag}? directives compilationUnitMember*
+ *     {@link ScriptTag scriptTag}? directives {@link CompilationUnitMember compilationUnitMember}*
  * 
  * directives ::=
- *     {@link LibraryDirective libraryDirective}? {@link ImportDirective importDirective}* {@link PartDirective partDirective}* {@link ResourceDirective resourceDirective}*
+ *     {@link LibraryDirective libraryDirective}? {@link ImportDirective importDirective}* {@link PartDirective partDirective}*
  *   | {@link PartOfDirective partOfDirective}
- * 
- * compilationUnitMember ::=
- *     {@link ClassDeclaration classDeclaration}
- *   | {@link InterfaceDeclaration interfaceDeclaration}
- *   | {@link TypeAlias typeAlias}
- *   | {@link FunctionDeclaration functionDeclaration}
- *   | {@link MethodDeclaration getOrSetDeclaration}
- *   | {@link VariableDeclaration constantsDeclaration}
- *   | {@link VariableDeclaration variablesDeclaration}
  * </pre>
  */
 public class CompilationUnit extends ASTNode {

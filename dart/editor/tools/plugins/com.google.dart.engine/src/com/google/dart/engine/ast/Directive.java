@@ -23,7 +23,6 @@ package com.google.dart.engine.ast;
  *   | {@link LibraryDirective libraryDirective}
  *   | {@link PartDirective partDirective}
  *   | {@link PartOfDirective partOfDirective}
- *   | {@link ResourceDirective resourceDirective}
  * </pre>
  */
 public abstract class Directive extends ASTNode {

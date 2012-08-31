@@ -78,7 +78,6 @@ import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
-import com.google.dart.engine.ast.ResourceDirective;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -2386,13 +2385,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getOperator());
     assertEquals(TokenType.LT, expression.getOperator().getType());
     assertNotNull(expression.getRightOperand());
-  }
-
-  public void test_parseResourceDirective() throws Exception {
-    ResourceDirective directive = parse("parseResourceDirective", "resource 'lib/lib.dart';");
-    assertNotNull(directive.getResourceToken());
-    assertNotNull(directive.getResourceUri());
-    assertNotNull(directive.getSemicolon());
   }
 
   public void test_parseReturnStatement_noValue() throws Exception {

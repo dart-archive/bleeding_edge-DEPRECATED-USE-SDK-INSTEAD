@@ -117,7 +117,6 @@ public class Parser {
   private static final String OF = "of"; //$NON-NLS-1$
   private static final String ON = "on"; //$NON-NLS-1$
   private static final String PART = "part"; //$NON-NLS-1$
-  private static final String RESOURCE = "resource"; //$NON-NLS-1$
   private static final String SHOW = "show"; //$NON-NLS-1$
 
   private static final ArrayList<Expression> EMPTY_EXPRESSION_LIST = new ArrayList<Expression>(0);
@@ -1250,7 +1249,7 @@ public class Parser {
     List<CompilationUnitMember> declarations = new ArrayList<CompilationUnitMember>();
     Token memberStart = currentToken;
     while (!matches(TokenType.EOF)) {
-      if (matches(IMPORT) || matches(LIBRARY) || matches(PART) || matches(RESOURCE)) {
+      if (matches(IMPORT) || matches(LIBRARY) || matches(PART)) {
         if (declarationFound && !errorGenerated) {
           // reportError(ParserErrorCode.?);
           errorGenerated = true;
@@ -1538,8 +1537,6 @@ public class Parser {
       return parseLibraryDirective();
     } else if (lexeme.equals(PART)) {
       return parsePartDirective();
-    } else if (lexeme.equals(RESOURCE)) {
-      return parseResourceDirective();
     } else {
       // Internal error
       return null;
@@ -3103,23 +3100,6 @@ public class Parser {
       }
     }
     return expression;
-  }
-
-  /**
-   * Parse a resource directive.
-   * 
-   * <pre>
-   * resourceDirective ::=
-   *     'resource' stringLiteral ';'
-   * </pre>
-   * 
-   * @return the resource directive that was parsed
-   */
-  private ResourceDirective parseResourceDirective() {
-    Token keyword = expect(RESOURCE);
-    StringLiteral resourceUri = parseStringLiteral();
-    Token semicolon = expect(TokenType.SEMICOLON);
-    return new ResourceDirective(keyword, resourceUri, semicolon);
   }
 
   /**
