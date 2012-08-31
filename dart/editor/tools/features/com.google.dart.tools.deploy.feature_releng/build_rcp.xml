@@ -170,6 +170,9 @@ build system.  The PDE build system has to run under Eclipse.
         <property name="samples.out.dir" 
                   value="${build.stage.include.dir}/samples" />
         
+    	  <!-- delete old samples -->
+    	  <delete dir="${samples.out.dir}"/>
+    	
         <!-- copy specific samples -->
         <copy todir="${samples.out.dir}">
             <fileset dir="${build.source.root}/samples">
