@@ -66,8 +66,7 @@ public class NewApplicationCreationPage extends WizardPage {
   private Text projectNameField;
   private Text projectLocationField;
   private String defaultLocation;
-  private Button serverButton;
-  private Button webButton;
+  private Button webAppCheckboxButton;
 
   /**
    * Creates a new project creation wizard page.
@@ -143,17 +142,13 @@ public class NewApplicationCreationPage extends WizardPage {
     projectNameField.setFocus();
 
     Group contentGroup = new Group(container, SWT.NONE);
-    contentGroup.setText("Create sample content");
+//    contentGroup.setText("Create sample content");
     GridDataFactory.fillDefaults().span(3, 1).grab(true, false).indent(0, 10).applyTo(contentGroup);
     GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(contentGroup);
 
-    serverButton = new Button(contentGroup, SWT.RADIO);
-    serverButton.setText("Command-line application");
-
-    webButton = new Button(contentGroup, SWT.RADIO);
-    webButton.setText("Web application");
-
-    webButton.setSelection(true);
+    webAppCheckboxButton = new Button(contentGroup, SWT.CHECK);
+    webAppCheckboxButton.setText("Add HTML and CSS starter files");
+    webAppCheckboxButton.setSelection(false);
 
     setPageComplete(false);
   }
@@ -201,16 +196,11 @@ public class NewApplicationCreationPage extends WizardPage {
     if (doesProjectExist()) {
       return ProjectType.NONE;
     }
-
-    if (serverButton.getSelection()) {
+    if (webAppCheckboxButton.getSelection()) {
+      return ProjectType.WEB;
+    } else {
       return ProjectType.SERVER;
     }
-
-    if (webButton.getSelection()) {
-      return ProjectType.WEB;
-    }
-
-    return ProjectType.NONE;
   }
 
   protected String getDefaultFolder() {
@@ -280,8 +270,7 @@ public class NewApplicationCreationPage extends WizardPage {
   }
 
   private void update() {
-    serverButton.setEnabled(!doesProjectExist());
-    webButton.setEnabled(!doesProjectExist());
+    webAppCheckboxButton.setEnabled(!doesProjectExist());
 
     if (getProjectNameFieldValue().isEmpty()) {
       setMessage(ProjectMessages.OpenNewApplicationWizardAction_desc);
