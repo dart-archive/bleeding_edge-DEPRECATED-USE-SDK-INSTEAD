@@ -21,7 +21,13 @@ class Suite {
           _window.alert('[${_name}]: unknown command ${command}');
       }
     };
-    _window.on.message.add(starter);
+    try {
+      // dart:dom_deprecated
+      _window.addEventListener('message', starter, false);
+    } on NoSuchMethodException catch (e) {
+      // dart:html
+      _window.on.message.add(starter);
+    }
   }
 
   /**
