@@ -46,6 +46,8 @@ import java.util.zip.ZipInputStream;
  * The clearing house for getting the current SDK and listening for SDK changes.
  */
 public class DartSdkManager {
+  private static final String SDK_DIR_NAME = "dart-sdk";
+
   /**
    * A special Dart SDK instance signifying that no SDK is installed.
    */
@@ -74,7 +76,7 @@ public class DartSdkManager {
   private static File getDefaultEditorSdkDirectory() {
     File parent = getEclipseInstallationDirectory().getParentFile();
 
-    return new File(parent, "dart-sdk");
+    return new File(parent, SDK_DIR_NAME);
   }
 
   /**
@@ -83,7 +85,7 @@ public class DartSdkManager {
    * @return
    */
   private static File getDefaultPluginsSdkDirectory() {
-    return new File(getEclipseInstallationDirectory(), "dart-sdk");
+    return new File(getEclipseInstallationDirectory(), SDK_DIR_NAME);
   }
 
   /**
@@ -225,7 +227,7 @@ public class DartSdkManager {
   }
 
   private File downloadFile(IProgressMonitor monitor) throws IOException {
-    File tempFile = File.createTempFile("dart-sdk", ".zip");
+    File tempFile = File.createTempFile(SDK_DIR_NAME, ".zip");
     tempFile.deleteOnExit();
 
     URI downloadURI = URI.create("http://commondatastorage.googleapis.com/dart-editor-archive-integration/latest/dartsdk-"

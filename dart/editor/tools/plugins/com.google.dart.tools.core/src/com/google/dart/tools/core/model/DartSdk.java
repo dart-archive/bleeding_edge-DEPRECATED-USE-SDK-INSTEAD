@@ -134,6 +134,13 @@ public class DartSdk {
   }
 
   /**
+   * @return the Dart Editor index file for the SDK libraries
+   */
+  public File getLibraryIndexFile() {
+    return new File(new File(getLibraryDirectory(), "_internal"), "index.idx");
+  }
+
+  /**
    * @return the SDK's package directory path (pkg)
    */
   public File getPackageDirectory() {

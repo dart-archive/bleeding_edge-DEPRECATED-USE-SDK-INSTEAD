@@ -410,12 +410,12 @@ def main():
       junit_status = 0
 
     if buildos:
+      _InstallArtifacts(buildout, buildos, extra_artifacts)
+      
       # dart-editor-linux.gtk.x86.zip --> darteditor-linux-32.zip
       RenameRcpZipFiles(buildout);
       
       PostProcessEditorBuilds(buildout)
-      
-      _InstallArtifacts(buildout, buildos, extra_artifacts)
       
       version_file = _FindVersionFile(buildout)
       if version_file:

@@ -13,17 +13,22 @@
  */
 package com.google.dart.tools.core;
 
+import com.google.dart.tools.core.artifact.TestGenerateArtifacts;
+
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
+
+    // Build the SDK index first
+    suite.addTestSuite(TestGenerateArtifacts.class);
+
     suite.addTestSuite(DartCoreTest.class);
     suite.addTestSuite(PluginXMLTest.class);
 
     suite.addTest(com.google.dart.tools.core.analysis.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.artifact.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.dom.TestAll.suite());
 //    suite.addTest(com.google.dart.tools.core.formatter.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.generator.TestAll.suite());

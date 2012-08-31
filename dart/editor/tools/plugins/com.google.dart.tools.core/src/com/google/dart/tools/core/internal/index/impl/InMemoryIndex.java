@@ -53,6 +53,8 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -115,7 +117,7 @@ public class InMemoryIndex implements Index {
   /**
    * The name of the file containing the initial state of the index.
    */
-  private static final String INITIAL_INDEX_FILE = "initial_index.idx";
+  //private static final String INITIAL_INDEX_FILE = "initial_index.idx";
 
   /**
    * Return the unique instance of this class.
@@ -348,22 +350,17 @@ public class InMemoryIndex implements Index {
    * @param callback the callback that will be invoked when the operation is reached in the queue
    */
   public void notify(final NotifyCallback callback) {
-    queue.enqueue(new IndexOperation() {
-      @Override
-      public boolean isQuery() {
-        return false;
-      }
+    notify(callback, false);
+  }
 
-      @Override
-      public void performOperation() {
-        callback.done();
-      }
-
-      @Override
-      public boolean removeWhenResourceRemoved(Resource resource) {
-        return false;
-      }
-    });
+  /**
+   * Asynchronously invoke the given {@link NotifyCallback} when the index is has finished indexing
+   * everything on its queue and is processing queries.
+   * 
+   * @param callback the callback that will be invoked when the operation is reached in the queue
+   */
+  public void notifyWhenReadyForQueries(final NotifyCallback callback) {
+    notify(callback, true);
   }
 
   /**
@@ -448,6 +445,15 @@ public class InMemoryIndex implements Index {
   }
 
   /**
+   * Write the current index to the SDK directory.
+   * 
+   * @see DartSdk#getLibraryIndexFile()
+   */
+  public void writeIndexToSdk() {
+    writeIndexTo(DartSdkManager.getManager().getSdk().getLibraryIndexFile());
+  }
+
+  /**
    * Return the file in which the state of the index is to be stored between sessions.
    * 
    * @return the file in which the state of the index is to be stored
@@ -476,7 +482,12 @@ public class InMemoryIndex implements Index {
    */
   private File getInitialIndexFile() {
     //DartCore.getPlugin().getBundle().getResource(INITIAL_INDEX_FILE).openStream();
-    return new File(DartCore.getPlugin().getStateLocation().toFile(), INITIAL_INDEX_FILE);
+    // return new File(DartCore.getPlugin().getStateLocation().toFile(), INITIAL_INDEX_FILE);
+    DartSdkManager sdkManager = DartSdkManager.getManager();
+    if (sdkManager.hasSdk()) {
+      return sdkManager.getSdk().getLibraryIndexFile();
+    }
+    return null;
   }
 
   /**
@@ -595,7 +606,7 @@ public class InMemoryIndex implements Index {
    * @return <code>true</code> if the index was correctly initialized
    */
   private boolean initializeIndexFrom(File indexFile) {
-    if (indexFile.exists()) {
+    if (indexFile != null && indexFile.exists()) {
       try {
         readIndexFrom(indexFile);
         if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
@@ -618,6 +629,25 @@ public class InMemoryIndex implements Index {
       }
     }
     return false;
+  }
+
+  private void notify(final NotifyCallback callback, final boolean isQuery) {
+    queue.enqueue(new IndexOperation() {
+      @Override
+      public boolean isQuery() {
+        return isQuery;
+      }
+
+      @Override
+      public void performOperation() {
+        callback.done();
+      }
+
+      @Override
+      public boolean removeWhenResourceRemoved(Resource resource) {
+        return false;
+      }
+    });
   }
 
   /**
