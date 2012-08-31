@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.dialogs;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 
@@ -50,7 +51,7 @@ public class OpenFolderDialog extends TitleAreaDialog {
   private Text text;
   private Button runPubButton;
 
-  private boolean runpub = true;
+  private boolean runpub = false;
   private String folderLocation;
 
   public OpenFolderDialog(Shell parentShell) {
@@ -85,15 +86,18 @@ public class OpenFolderDialog extends TitleAreaDialog {
     setTitle(DialogMessages.OpenFolderDialog_message);
     setMessage(DialogMessages.OpenFolderDialog_description);
     createFolderBrowseRow(composite);
-    createRunPubMessage(parent);
-
+    if (DartCoreDebug.ENABLE_PUB) {
+      createRunPubMessage(parent);
+    }
     return composite;
   }
 
   @Override
   protected void okPressed() {
     folderLocation = text.getText().trim();
-    runpub = runPubButton.getSelection();
+    if (DartCoreDebug.ENABLE_PUB) {
+      runpub = runPubButton.getSelection();
+    }
     super.okPressed();
   }
 
@@ -129,7 +133,9 @@ public class OpenFolderDialog extends TitleAreaDialog {
             }
           }
           okButton.setEnabled(nonWhitespaceFound);
-          setCheckBoxState();
+          if (DartCoreDebug.ENABLE_PUB) {
+            setCheckBoxState();
+          }
         }
       }
     });
