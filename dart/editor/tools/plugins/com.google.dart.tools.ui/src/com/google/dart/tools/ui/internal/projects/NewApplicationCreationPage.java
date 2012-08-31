@@ -148,7 +148,7 @@ public class NewApplicationCreationPage extends WizardPage {
 
     webAppCheckboxButton = new Button(contentGroup, SWT.CHECK);
     webAppCheckboxButton.setText("Add HTML and CSS starter files");
-    webAppCheckboxButton.setSelection(false);
+    webAppCheckboxButton.setSelection(true);
 
     setPageComplete(false);
   }
