@@ -95,7 +95,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   private Text urlText;
 
-  private Label projectText;
+  private Text projectText;
 
   private Button projectBrowseButton;
 
@@ -348,8 +348,9 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     projectLabel.setText(DartiumLaunchMessages.DartiumMainTab_ProjectLabel);
     GridDataFactory.swtDefaults().indent(20, 0).applyTo(projectLabel);
 
-    projectText = new Label(composite, SWT.NONE);
-    projectText.setBackground(composite.getDisplay().getSystemColor(SWT.COLOR_WHITE));
+    projectText = new Text(composite, SWT.BORDER | SWT.SINGLE);
+    projectText.setEditable(false);
+    projectText.setCursor(composite.getShell().getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(projectText);
 
     projectBrowseButton = new Button(composite, SWT.PUSH);
