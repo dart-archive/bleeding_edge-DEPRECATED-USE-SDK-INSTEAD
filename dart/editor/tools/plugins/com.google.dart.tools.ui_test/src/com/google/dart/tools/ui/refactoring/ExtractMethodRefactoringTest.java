@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.refactoring;
 
-import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractMethodRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.ParameterInfo;
@@ -383,7 +382,6 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  }",
         "}",
         "");
-    TestProject.waitForAutoBuild();
     setSelectionFromStartEndComments();
     createRefactoring();
     assertTrue(refactoringStatus.hasError());
@@ -405,7 +403,6 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "// end",
         "}",
         "");
-    TestProject.waitForAutoBuild();
     setSelectionFromStartEndComments();
     createRefactoring();
     assertTrue(refactoringStatus.hasError());
@@ -427,7 +424,6 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "// end",
         "}",
         "");
-    TestProject.waitForAutoBuild();
     setSelectionFromStartEndComments();
     createRefactoring();
     assertTrue(refactoringStatus.hasError());
@@ -456,7 +452,6 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "// end",
         "}",
         "");
-    TestProject.waitForAutoBuild();
     setSelectionFromStartEndComments();
     createRefactoring();
     assertTrue(refactoringStatus.hasError());
@@ -2059,7 +2054,6 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
   }
 
   private void performRefactoringChange() throws Exception {
-    TestProject.waitForAutoBuild();
     ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
       @Override
       public void run(IProgressMonitor monitor) throws CoreException {
@@ -2068,7 +2062,6 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         new PerformChangeOperation(change).run(pm);
       }
     }, null);
-    TestProject.waitForAutoBuild();
   }
 
   private void prepareSuccessfullRefactoring() throws Exception {

@@ -46,7 +46,6 @@ public class DartElementLocatorTest extends TestCase {
   @SuppressWarnings("unchecked")
   private static <T extends DartElement> T assertLocation(CompilationUnit unit, String posMarker,
       Class<?> expectedElementType, String expectedMarker, int expectedLen) throws Exception {
-    TestProject.waitForAutoBuild();
     String source = unit.getSource();
     // prepare DartUnit
     DartUnit dartUnit;
@@ -189,7 +188,6 @@ public class DartElementLocatorTest extends TestCase {
               "  aaa.A a;",
               "}",
               "")).getResource();
-      TestProject.waitForAutoBuild();
       DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
       DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
       // usage of "aaa" = "libraryA"
@@ -231,7 +229,6 @@ public class DartElementLocatorTest extends TestCase {
               "  bbb.field = 0;",
               "}",
               "")).getResource();
-      TestProject.waitForAutoBuild();
       DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
       DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
       // usage of "aaa" = "libraryA"
@@ -273,7 +270,6 @@ public class DartElementLocatorTest extends TestCase {
               "  ccc.f();",
               "}",
               "")).getResource();
-      TestProject.waitForAutoBuild();
       DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
       DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
       // usage of "aaa" = "libraryA"
@@ -420,7 +416,6 @@ public class DartElementLocatorTest extends TestCase {
               "// filler filler filler filler filler filler filler filler filler filler",
               "part of my.lib;",
               ""));
-      TestProject.waitForAutoBuild();
       DartLibrary library = testProject.getDartProject().getDartLibrary(libResourceA);
       CompilationUnit testUnit = library.getCompilationUnit("Test.dart");
       // usage of "aaa" = "libraryA"

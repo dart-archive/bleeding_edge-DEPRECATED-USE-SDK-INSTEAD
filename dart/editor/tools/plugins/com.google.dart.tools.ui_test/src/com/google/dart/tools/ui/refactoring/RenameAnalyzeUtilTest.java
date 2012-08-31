@@ -26,7 +26,6 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.MatchQuality;
 import com.google.dart.tools.core.search.SearchMatch;
-import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.rename.FunctionLocalElement;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
@@ -139,7 +138,6 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
         "c() {}",
         "class _D {}",
         "");
-    TestProject.waitForAutoBuild();
     DartLibrary library = testUnit.getLibrary();
     //
     Set<String> names = RenameAnalyzeUtil.getExportedTopLevelNames(library);
@@ -299,7 +297,6 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
         "class B extends A {}",
         "class C extends B {}",
         "");
-    TestProject.waitForAutoBuild();
     Type typeA = getTopLevelElementNamed("A");
     Type typeB = getTopLevelElementNamed("B");
     Type typeC = getTopLevelElementNamed("C");
@@ -333,7 +330,6 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
         "class B extends A {}",
         "class C extends B {}",
         "");
-    TestProject.waitForAutoBuild();
     Type typeA = getTopLevelElementNamed("A");
     Type typeB = getTopLevelElementNamed("B");
     Type typeC = getTopLevelElementNamed("C");
@@ -366,7 +362,6 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
         "interface IBC extends IB, IC {}",
         "class CA implements IAB, IBC {}",
         "");
-    TestProject.waitForAutoBuild();
     Type typeIA = getTopLevelElementNamed("IA");
     Type typeIB = getTopLevelElementNamed("IB");
     Type typeIC = getTopLevelElementNamed("IC");
@@ -385,7 +380,6 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class MyClass {}",
         "");
-    TestProject.waitForAutoBuild();
     assertNotNull(getTopLevelElementNamed("MyClass"));
     assertNull(getTopLevelElementNamed("noSuchName"));
   }
@@ -401,7 +395,6 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "#import('LibA.dart', prefix: 'myImport');",
         "");
-    TestProject.waitForAutoBuild();
     assertNotNull(getTopLevelElementNamed("myImport"));
     assertNull(getTopLevelElementNamed("noSuchName"));
   }
@@ -411,7 +404,6 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "interface MyInterface {}",
         "");
-    TestProject.waitForAutoBuild();
     assertNotNull(getTopLevelElementNamed("MyInterface"));
     assertNull(getTopLevelElementNamed("noSuchName"));
   }
@@ -421,7 +413,6 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "typedef MyFunctionTypeAlias();",
         "");
-    TestProject.waitForAutoBuild();
     assertNotNull(getTopLevelElementNamed("MyFunctionTypeAlias"));
     assertNull(getTopLevelElementNamed("noSuchName"));
   }
@@ -438,7 +429,6 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
         "#import('Lib.dart');",
         "var testVar;",
         "");
-    TestProject.waitForAutoBuild();
     assertNotNull(getTopLevelElementNamed("testVar"));
     assertNotNull(getTopLevelElementNamed("libVar"));
     assertNull(getTopLevelElementNamed("noSuchName"));
@@ -482,7 +472,6 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
         "class B extends A {}",
         "class C extends B {}",
         "");
-    TestProject.waitForAutoBuild();
     Type typeA = getTopLevelElementNamed("A");
     Type typeB = getTopLevelElementNamed("B");
     Type typeC = getTopLevelElementNamed("C");
@@ -512,7 +501,6 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
         "class B extends A {}",
         "class C extends B {}",
         "");
-    TestProject.waitForAutoBuild();
     Type typeA = getTopLevelElementNamed("A");
     Type typeB = getTopLevelElementNamed("B");
     Type typeC = getTopLevelElementNamed("C");

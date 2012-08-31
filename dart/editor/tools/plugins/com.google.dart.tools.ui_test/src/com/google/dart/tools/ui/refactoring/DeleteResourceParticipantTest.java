@@ -46,7 +46,6 @@ public final class DeleteResourceParticipantTest extends RefactoringTest {
    */
   @SuppressWarnings("restriction")
   private static void deleteFile(IFile file) throws Exception {
-    TestProject.waitForAutoBuild();
     // prepare status
     IProgressMonitor pm = new NullProgressMonitor();
     RefactoringStatus status = new RefactoringStatus();

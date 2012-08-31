@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.refactoring;
 
-import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring;
 
@@ -245,7 +244,6 @@ public final class InlineLocalRefactoringTest extends RefactoringTest {
   }
 
   private void performRefactoringChange() throws Exception {
-    TestProject.waitForAutoBuild();
     ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
       @Override
       public void run(IProgressMonitor monitor) throws CoreException {
@@ -254,6 +252,5 @@ public final class InlineLocalRefactoringTest extends RefactoringTest {
         new PerformChangeOperation(change).run(pm);
       }
     }, null);
-    TestProject.waitForAutoBuild();
   }
 }

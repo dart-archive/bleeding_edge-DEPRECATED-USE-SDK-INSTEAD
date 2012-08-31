@@ -43,7 +43,6 @@ public final class RenameResourceParticipantTest extends RefactoringTest {
    * Renames given {@link IFile}.
    */
   private static void renameFile(IFile file, String newName) throws Exception {
-    TestProject.waitForAutoBuild();
     IProgressMonitor pm = new NullProgressMonitor();
     RefactoringStatus status = new RefactoringStatus();
     // create Refactoring

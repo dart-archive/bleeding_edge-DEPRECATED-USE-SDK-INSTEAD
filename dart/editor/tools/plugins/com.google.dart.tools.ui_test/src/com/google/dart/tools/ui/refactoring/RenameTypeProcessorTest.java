@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeProcessor;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
@@ -951,7 +950,6 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     check_postCondition_topLevel("variable");
   }
 
-  // XXX
   public void test_postCondition_topLevel_withPrefixes_hasConflict() throws Exception {
     setUnitContent("LibA.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -972,7 +970,6 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "  a.Test test = null;",
         "}",
         "");
-    TestProject.waitForAutoBuild();
     // get units, because they have not library
     CompilationUnit unitA = testProject.getUnit("LibA.dart");
     // find Type to rename
@@ -995,7 +992,6 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     }
   }
 
-  // XXX
   public void test_postCondition_topLevel_withPrefixes_noConflict() throws Exception {
     setUnitContent("LibA.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1016,7 +1012,6 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "  a.Test test = null;",
         "}",
         "");
-    TestProject.waitForAutoBuild();
     // get units, because they have not library
     CompilationUnit unitA = testProject.getUnit("LibA.dart");
     CompilationUnit unitB = testProject.getUnit("LibB.dart");
