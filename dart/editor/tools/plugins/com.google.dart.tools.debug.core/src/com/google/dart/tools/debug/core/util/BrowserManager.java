@@ -567,7 +567,7 @@ public class BrowserManager {
     }
 
     // Pass in --package-root if the preference is set
-    String packageRoot = DartCore.getPlugin().getFirstPackageRootPref();
+    String packageRoot = DartCore.getPlugin().getPackageRootPref();
     // TODO(keertip): if using default "packages" directory, do not set env variable
     // TODO(devoncarew): why are we only passing package root in when launching a file (not a url)?
     if (packageRoot != null && launchConfig.getShouldLaunchFile()) {

@@ -116,7 +116,7 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
       commandsList.add("--debug:" + connectionPort);
     }
 
-    String packageRoot = DartCore.getPlugin().getFirstPackageRootPref();
+    String packageRoot = DartCore.getPlugin().getPackageRootPref();
     if (packageRoot != null) {
       packageRoot = new Path(packageRoot).makeAbsolute().toOSString();
       String fileSeparator = System.getProperty("file.separator");

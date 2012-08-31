@@ -98,6 +98,8 @@ public final class PreferencesMessages extends NLS {
 
   public static String DartBasePreferencePage_auto_download_tooltip;
 
+  public static String DartBasePreferencePage_auxiliaryDirectory;
+
   public static String DartBasePreferencePage_Browse;
 
   public static String DartBasePreferencePage_description;
@@ -768,6 +770,8 @@ public final class PreferencesMessages extends NLS {
   public static String DartBasePreferencePage_show_print_margin_tooltip;
   public static String DartBasePreferencePage_editor_preferences;
   public static String DartBasePreferencePage_general;
+
+  public static String DartBasePreferencePage_groupTitle;
 
   public static String DartBasePreferencePage_Package_Title;
   public static String DartBasePreferencePage_select;
