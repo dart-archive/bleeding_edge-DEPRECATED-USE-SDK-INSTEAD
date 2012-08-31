@@ -115,6 +115,10 @@ void main() {
       case '--link-api':
         dartdoc.linkToApi = true;
         break;
+        
+      // Dirty hack to allow generated script to run as expected.  
+      case '--colors':
+        break;
 
       default:
         if (arg.startsWith('--out=')) {
