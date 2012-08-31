@@ -119,7 +119,6 @@ public class ExtractUtils {
    */
   public static String getTypeSource(Type type) {
     String typeSource = type.toString();
-    typeSource = StringUtils.replace(typeSource, "<dynamic>", "Dynamic");
     typeSource = StringUtils.replace(typeSource, "<Dynamic>", "");
     typeSource = StringUtils.replace(typeSource, "<Dynamic, Dynamic>", "");
     return typeSource;

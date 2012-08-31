@@ -24,7 +24,7 @@ public class TypeLabelUtil {
     if (typeName != null) {
       buf.append(typeName);
     } else {
-      buf.append("<dynamic>");
+      buf.append("Dynamic");
     }
   }
 
@@ -32,7 +32,7 @@ public class TypeLabelUtil {
     if (typeName != null) {
       buf.append(typeName);
     } else {
-      buf.append("<dynamic>");
+      buf.append("Dynamic");
     }
   }
 
