@@ -71,7 +71,7 @@ public class FeedbackDialog extends Dialog implements IRunnableContext, DisposeL
   /**
    * FeedbackReport report for preview and submission.
    */
-  private FeedbackReport feedbackReport = new FeedbackReport();
+  private final FeedbackReport feedbackReport;
 
   /**
    * Feedback image, cached for proper disposal.
@@ -81,10 +81,12 @@ public class FeedbackDialog extends Dialog implements IRunnableContext, DisposeL
   /**
    * Create the feedback dialog.
    * 
-   * @param parentShell
+   * @param parentShell the parent shell
+   * @param productName the name of the installed product (e.g., "Editor" vs. "Editor Plugin")
    */
-  public FeedbackDialog(Shell parentShell) {
+  public FeedbackDialog(Shell parentShell, String productName) {
     super(parentShell);
+    feedbackReport = new FeedbackReport(productName);
   }
 
   @Override

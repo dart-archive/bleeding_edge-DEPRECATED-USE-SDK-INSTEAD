@@ -24,11 +24,32 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import java.util.Dictionary;
+
 /**
- * Hadnler to open the send feedback dialog.
+ * Handler to open the send feedback dialog.
  */
 public class OpenFeedbackDialogHandler extends AbstractHandler implements
     IWorkbenchWindowActionDelegate {
+
+  private static String getPlatformVersion() {
+
+    String version = "unknown";
+
+    try {
+      @SuppressWarnings("restriction")
+      Dictionary<String, String> dictionary = org.eclipse.ui.internal.WorkbenchPlugin.getDefault().getBundle().getHeaders();
+      version = dictionary.get("Bundle-Version"); //$NON-NLS-1$
+    } catch (NoClassDefFoundError e) {
+      //fall back to "unknown"
+    }
+
+    return version;
+  }
+
+  private static String getProductName() {
+    return "Editor Plugin (Eclipse " + getPlatformVersion() + ")";
+  }
 
   private IWorkbenchWindow window;
 
@@ -55,6 +76,7 @@ public class OpenFeedbackDialogHandler extends AbstractHandler implements
   }
 
   private void doRun() {
-    new OpenFeedbackDialogAction(window).run();
+    new OpenFeedbackDialogAction(window, getProductName()).run();
   }
+
 }

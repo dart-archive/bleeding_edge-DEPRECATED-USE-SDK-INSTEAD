@@ -84,7 +84,7 @@ public class FeedbackControlContribution {
   }
 
   private OpenFeedbackDialogAction createOpenDialogAction() {
-    return new OpenFeedbackDialogAction(getWorkbenchWindow()) {
+    return new OpenFeedbackDialogAction(getWorkbenchWindow(), "Editor") {
       @Override
       public void run() {
         //if there is a dialog, give it focus, else open one

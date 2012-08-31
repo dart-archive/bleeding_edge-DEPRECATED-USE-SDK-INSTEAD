@@ -25,13 +25,15 @@ public class FeedbackReport {
   private final String osDetails;
   private final String ideVersion;
   private final String logContents;
+  private final String productName;
 
   /**
    * Create a new feedback instance with default values.
    */
-  public FeedbackReport() {
+  public FeedbackReport(String productName) {
     this(
         "",
+        productName,
         FeedbackUtils.getOSName(),
         FeedbackUtils.getEditorVersionDetails(),
         LogReader.readLogSafely());
@@ -45,8 +47,10 @@ public class FeedbackReport {
    * @param osDetails OS details
    * @param logContents system log contents
    */
-  public FeedbackReport(String feedbackText, String osDetails, String ideVersion, String logContents) {
+  public FeedbackReport(String feedbackText, String productName, String osDetails,
+      String ideVersion, String logContents) {
     this.feedbackText = feedbackText;
+    this.productName = productName;
     this.osDetails = osDetails;
     this.ideVersion = ideVersion;
     this.logContents = logContents;
@@ -63,6 +67,10 @@ public class FeedbackReport {
     new FeedbackWriter(this, sendAdditionalData).writeDetails(writer);
     writer.flush();
     return writer.toString();
+  }
+
+  public String getEditorProductName() {
+    return productName;
   }
 
   /**

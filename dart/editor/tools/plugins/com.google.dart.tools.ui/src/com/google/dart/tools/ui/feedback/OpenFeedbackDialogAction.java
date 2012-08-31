@@ -28,11 +28,15 @@ public class OpenFeedbackDialogAction extends Action implements IShellProvider {
   //the dialog shell, cached in case we want to ensure there is only one
   private Shell dialogShell;
 
-  public OpenFeedbackDialogAction() {
+  private final String productName;
+
+  public OpenFeedbackDialogAction(IShellProvider shellProvider, String productName) {
+    this.productName = productName;
+    setShellProvider(shellProvider);
   }
 
-  public OpenFeedbackDialogAction(IShellProvider shellProvider) {
-    setShellProvider(shellProvider);
+  public OpenFeedbackDialogAction(String productName) {
+    this(null, productName);
   }
 
   /**
@@ -49,7 +53,7 @@ public class OpenFeedbackDialogAction extends Action implements IShellProvider {
 
   @Override
   public void run() {
-    new FeedbackDialog(getShell()) {
+    new FeedbackDialog(getShell(), productName) {
 
       @Override
       public void create() {
