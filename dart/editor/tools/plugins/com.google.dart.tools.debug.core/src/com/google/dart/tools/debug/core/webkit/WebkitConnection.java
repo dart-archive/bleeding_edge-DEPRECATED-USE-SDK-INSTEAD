@@ -152,6 +152,10 @@ public class WebkitConnection {
       websocket.connect();
     } catch (WebSocketException exception) {
       throw new IOException(exception);
+    } catch (Throwable exception) {
+      // The websocket library can occasionally throw an ArrayIndexOutOfBoundsException.
+      // Tracked here: http://code.google.com/p/weberknecht/issues/detail?id=17
+      throw new IOException(exception);
     }
   }
 
