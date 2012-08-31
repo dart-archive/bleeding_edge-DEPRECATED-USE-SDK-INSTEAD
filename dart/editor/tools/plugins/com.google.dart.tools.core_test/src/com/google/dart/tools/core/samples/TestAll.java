@@ -19,7 +19,8 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(SamplesTest.class);
+    //TODO(pquitslund): re-enable once dart:dom_deprecated is gone for real
+    //suite.addTestSuite(SamplesTest.class);
     return suite;
   }
 }
