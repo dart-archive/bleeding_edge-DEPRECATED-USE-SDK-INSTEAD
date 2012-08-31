@@ -47,6 +47,8 @@ import java.util.List;
  * Instances of <code>DartLibraryGenerator</code> are used to create a new Dart library in an
  * existing Dart project after validating the name of the new library.
  */
+@Deprecated
+//TODO(pquitslund): remove me!
 public class DartLibraryGenerator extends DartFileGenerator {
 
   static {
@@ -164,9 +166,6 @@ public class DartLibraryGenerator extends DartFileGenerator {
           sourceFiles.add(Paths.relativePathToFile(libFile, source.getName()));
         }
         List<File> importedLibs = new ArrayList<File>(imports.size());
-
-//         TODO do not automatically add the DOM to the import list in the future
-        importedLibs.add(new File("dart:dom_deprecated"));
 
         for (DartLibrary lib : imports) {
           LibrarySource libSource = ((DartLibraryImpl) lib).getLibrarySourceFile();
