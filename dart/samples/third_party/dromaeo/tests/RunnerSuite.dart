@@ -33,7 +33,7 @@ class Suite {
   }
 
   // How many times each individual test should be ran.
-  static final int _N_RUNS = 5;
+  static const int _N_RUNS = 5;
 
   /**
    * Adds another test to the suite.

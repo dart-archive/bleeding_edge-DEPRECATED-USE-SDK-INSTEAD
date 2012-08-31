@@ -84,7 +84,7 @@ class PageNumberView extends View {
  */
 class PagedColumnView extends View {
 
-  static final MIN_THROW_PAGE_FRACTION = 0.01;
+  static const MIN_THROW_PAGE_FRACTION = 0.01;
   final View contentView;
 
   final PageState pages;

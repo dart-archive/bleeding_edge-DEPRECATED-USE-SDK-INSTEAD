@@ -6,10 +6,10 @@
 
 #import("dart:io");
 
-final HOST = "127.0.0.1";
-final PORT = 8080;
+const HOST = "127.0.0.1";
+const PORT = 8080;
 
-final LOG_REQUESTS = true;
+const LOG_REQUESTS = true;
 
 void main() {
   HttpServer server = new HttpServer();

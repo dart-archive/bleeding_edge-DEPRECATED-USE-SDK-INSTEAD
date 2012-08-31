@@ -340,7 +340,7 @@ class DataHandler(webapp.RequestHandler):
     prefs = UserData.get_by_key_name(user.user_id())
     articleKeys = []
     data = prefs.getEncodedData(articleKeys)
-    lines.append('  static final Map<String,String> data = const {')
+    lines.append('  static const Map<String,String> data = const {')
     for article in db.get(articleKeys):
       key = makeDartSafe(urllib.quote(article.key().name())+'.html')
       lines.append('    %s:%s, ' % (key, makeDartSafe(article.content)))

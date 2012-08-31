@@ -5,12 +5,12 @@
 typedef void PickerListener(String selectedColor);
 
 class ColorPicker {
-  static final hexValues = const ['00', '33', '66', '99', 'CC', 'FF'];
-  static final COLS = 18;
+  static const hexValues = const ['00', '33', '66', '99', 'CC', 'FF'];
+  static const COLS = 18;
   // Block height, width, padding
-  static final BH = 10;
-  static final BW = 10;
-  static final BP = 1;
+  static const BH = 10;
+  static const BW = 10;
+  static const BP = 1;
   final List<PickerListener> _listeners;
   CanvasElement canvasElement;
   String _selectedColor = 'red';

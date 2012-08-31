@@ -9,7 +9,7 @@
 
 #source('components.dart');
 
-final int ENTER_KEY = 13;
+const int ENTER_KEY = 13;
 
 // hack to get unique todo id's.
 int id = 0;

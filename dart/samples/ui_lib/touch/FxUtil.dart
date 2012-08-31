@@ -7,16 +7,16 @@
  */
 class FxUtil {
   /** On transition end event. */
-  static final TRANSITION_END_EVENT = 'webkitTransitionEnd';
+  static const TRANSITION_END_EVENT = 'webkitTransitionEnd';
 
   /** The translate3d transform function. */
-  static final TRANSLATE_3D = 'translate3d';
+  static const TRANSLATE_3D = 'translate3d';
 
   /** The rotate transform function. */
-  static final ROTATE = 'rotate';
+  static const ROTATE = 'rotate';
 
   /** The scale transform function. */
-  static final SCALE = 'scale';
+  static const SCALE = 'scale';
 
   /** Stops and clears the transition on an element. */
   static void clearWebkitTransition(Element el) {
@@ -97,7 +97,7 @@ class FxUtil {
 }
 
 class TransitionTimingFunction {
-  static final EASE_IN = 'ease-in';
-  static final EASE_OUT = 'ease-out';
-  static final EASE_IN_OUT = 'ease-in-out';
+  static const EASE_IN = 'ease-in';
+  static const EASE_OUT = 'ease-out';
+  static const EASE_IN_OUT = 'ease-in-out';
 }

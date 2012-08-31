@@ -20,9 +20,9 @@ class SuiteDescription {
 }
 
 class Suites {
-  static final JOHN_RESIG = const Origin('John Resig', 'http://ejohn.org/');
+  static const JOHN_RESIG = const Origin('John Resig', 'http://ejohn.org/');
 
-  static final CATEGORIES = const {
+  static const CATEGORIES = const {
     // Platform tags
     'js': 'DOM Core Tests (JavaScript)',
     'dart': 'DOM Core Tests (dart)',
@@ -34,7 +34,7 @@ class Suites {
     'htmlidiomatic': 'DOM Core Tests (dart:html) Idiomatic',
   };
 
-  static final _CORE_TEST_OPTIONS = const [
+  static const _CORE_TEST_OPTIONS = const [
       // A list of valid combinations for core Dromaeo DOM tests.
       // Each item in the list is a pair of (platform x [variants]).
       const ['js', const ['']],
@@ -43,7 +43,7 @@ class Suites {
       const ['dart2js', const ['html', 'htmlidiomatic']],
     ];
 
-  static final _CORE_SUITE_DESCRIPTIONS = const [
+  static const _CORE_SUITE_DESCRIPTIONS = const [
       const SuiteDescription(
           'dom-attr.html',
           'DOM Attributes',

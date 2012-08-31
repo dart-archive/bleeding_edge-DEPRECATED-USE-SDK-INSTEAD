@@ -15,7 +15,7 @@ class MeasureText {
   num _spaceLength;
   num _typicalCharLength;
 
-  static final String ELLIPSIS = '...';
+  static const String ELLIPSIS = '...';
 
   MeasureText(this.font) {
     if (_context === null) {

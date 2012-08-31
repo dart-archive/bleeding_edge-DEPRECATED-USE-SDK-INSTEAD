@@ -7,12 +7,12 @@
 #import('dart:html');
 #import('dart:math');
 
-final SEED_RADIUS = 2;
-final SCALE_FACTOR = 4;
-final TAU = PI * 2;
+const SEED_RADIUS = 2;
+const SCALE_FACTOR = 4;
+const TAU = PI * 2;
 
-final MAX_D = 300;
-final ORANGE = "orange";
+const MAX_D = 300;
+const ORANGE = "orange";
 
 num centerX, centerY;
 int seeds = 0;

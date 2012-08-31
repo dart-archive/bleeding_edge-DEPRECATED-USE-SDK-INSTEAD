@@ -7,7 +7,7 @@
 #import('dart:html');
 #import('../ui_lib/view/view.dart');
 
-final menuItems = const["Apple", "Banana", "Cherry", "Durian"];
+const menuItems = const["Apple", "Banana", "Cherry", "Durian"];
 
 main() {
   var sliderMenu = new SliderMenu(menuItems, (selectedText) {

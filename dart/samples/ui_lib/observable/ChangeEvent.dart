@@ -7,19 +7,19 @@ class ChangeEvent {
   // TODO(sigmund): capture language issues around enums & create a cannonical
   // Dart enum design.
   /** Type denoting an in-place update event. */
-  static final UPDATE = 0;
+  static const UPDATE = 0;
 
   /** Type denoting an insertion event. */
-  static final INSERT = 1;
+  static const INSERT = 1;
 
   /** Type denoting a single-remove event. */
-  static final REMOVE = 2;
+  static const REMOVE = 2;
 
   /**
    * Type denoting events that affect the entire observable instance. For
    * example, a list operation like clear or sort.
    */
-  static final GLOBAL = 3;
+  static const GLOBAL = 3;
 
   /** The observable instance that changed. */
   final Observable target;

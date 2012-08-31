@@ -47,5 +47,5 @@ class Result {
 
   // Populated from: http://www.medcalc.be/manual/t-distribution.php
   // 95% confidence for N - 1 = 4
-  static final double T_DISTRIBUTION = 2.776;
+  static const double T_DISTRIBUTION = 2.776;
 }

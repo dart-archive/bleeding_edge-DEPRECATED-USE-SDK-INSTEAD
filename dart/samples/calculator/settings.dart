@@ -4,8 +4,8 @@
 
 class Settings {
   // theme values:
-  static final THEME_SIMPLE = 1;
-  static final THEME_BUTTON = 2;
+  static const THEME_SIMPLE = 1;
+  static const THEME_BUTTON = 2;
 
   SettingsDialog ui;
   int theme;

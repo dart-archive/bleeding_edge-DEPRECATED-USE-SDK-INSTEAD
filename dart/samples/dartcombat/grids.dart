@@ -87,11 +87,11 @@ class GridState {
 
 /** Static constants used by the game. */
 class Constants {
-  static final SIZE = 10;
-  static final MISS = 1;
-  static final HIT = 2;
-  static final SUNK = 3;
-  static final PENDING = 4;
+  static const SIZE = 10;
+  static const MISS = 1;
+  static const HIT = 2;
+  static const SUNK = 3;
+  static const PENDING = 4;
 
   Constants() {}
 }

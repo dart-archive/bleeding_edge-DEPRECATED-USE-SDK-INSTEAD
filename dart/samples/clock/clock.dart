@@ -30,9 +30,9 @@ void showFps(num fps) {
 }
 
 class CountDownClock {
-  static final int NUMBER_SPACING = 19;
-  static final double BALL_WIDTH = 19.0;
-  static final double BALL_HEIGHT = 19.0;
+  static const int NUMBER_SPACING = 19;
+  static const double BALL_WIDTH = 19.0;
+  static const double BALL_HEIGHT = 19.0;
 
   List<ClockNumber> hours, minutes, seconds;
   Balls balls;

@@ -107,9 +107,9 @@ interface ListViewLayout<D> {
  */
 class GenericListView<D> extends View {
   /** Minimum throw distance in pixels to trigger snapping to the next item. */
-  static final SNAP_TO_NEXT_THROW_THRESHOLD = 15;
+  static const SNAP_TO_NEXT_THROW_THRESHOLD = 15;
 
-  static final INDEX_DATA_ATTRIBUTE = 'data-index';
+  static const INDEX_DATA_ATTRIBUTE = 'data-index';
 
   final bool _scrollable;
   final bool _showScrollbar;

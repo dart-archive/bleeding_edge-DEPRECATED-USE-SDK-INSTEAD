@@ -6,10 +6,10 @@
 class ContactsWidget {
 
   // Statically populated for demo purposes.
-  static final _contacts = const ['Gertrude Stein', 'Ezra Pound', 
+  static const _contacts = const ['Gertrude Stein', 'Ezra Pound', 
                                    'T.S. Elliot', 'James Joyce', 
                                    'F. Scott Fitzgerald', 'Ernest Hemmingway'];
-  static final _contactStyle = 
+  static const _contactStyle = 
     """
     <style scoped> 
       ul {

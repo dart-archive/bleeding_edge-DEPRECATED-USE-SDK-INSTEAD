@@ -76,11 +76,11 @@ class User {
 
 
 class Message {
-  static final int JOIN = 0;
-  static final int MESSAGE = 1;
-  static final int LEAVE = 2;
-  static final int TIMEOUT = 3;
-  static final List<String> _typeName =
+  static const int JOIN = 0;
+  static const int MESSAGE = 1;
+  static const int LEAVE = 2;
+  static const int TIMEOUT = 3;
+  static const List<String> _typeName =
       const [ "join", "message", "leave", "timeout"];
 
   Message.join(this._from)
@@ -116,7 +116,7 @@ class Message {
 
 
 class Topic {
-  static final int DEFAULT_IDLE_TIMEOUT = 60 * 60 * 1000;  // One hour.
+  static const int DEFAULT_IDLE_TIMEOUT = 60 * 60 * 1000;  // One hour.
   Topic()
       : _activeUsers = new Map(),
         _messages = new List(),
@@ -219,8 +219,8 @@ class Topic {
 
 
 class ChatServerCommand {
-  static final START = 0;
-  static final STOP = 1;
+  static const START = 0;
+  static const STOP = 1;
 
   ChatServerCommand.start(String this._host,
                           int this._port,
@@ -246,11 +246,11 @@ class ChatServerCommand {
 
 
 class ChatServerStatus {
-  static final STARTING = 0;
-  static final STARTED = 1;
-  static final STOPPING = 2;
-  static final STOPPED = 3;
-  static final ERROR = 4;
+  static const STARTING = 0;
+  static const STARTED = 1;
+  static const STOPPING = 2;
+  static const STOPPED = 3;
+  static const ERROR = 4;
 
   ChatServerStatus(this._state, this._message);
   ChatServerStatus.starting() : _state = STARTING;
@@ -293,12 +293,12 @@ class ChatServerStatus {
 
 
 class IsolatedServer {
-  static final String redirectPageHtml = """
+  static const String redirectPageHtml = """
 <html>
 <head><title>Welcome to the dart server</title></head>
 <body><h1>Redirecting to the front page...</h1></body>
 </html>""";
-  static final String notFoundPageHtml = """
+  static const String notFoundPageHtml = """
 <html><head>
 <title>404 Not Found</title>
 </head><body>

@@ -69,23 +69,23 @@ class TouchHandler {
   /**
    * Minimum movement of touch required to be considered a drag.
    */
-  static final _MIN_TRACKING_FOR_DRAG = 2;
+  static const _MIN_TRACKING_FOR_DRAG = 2;
 
   /**
    * The maximum number of ms to track a touch event. After an event is older
    * than this value, it will be ignored in velocity calculations.
    */
-  static final _MAX_TRACKING_TIME = 250;
+  static const _MAX_TRACKING_TIME = 250;
 
   /** The maximum number of touches to track. */
-  static final _MAX_TRACKING_TOUCHES = 5;
+  static const _MAX_TRACKING_TOUCHES = 5;
 
   /**
    * The maximum velocity to return, in pixels per millisecond, that is used to
    * guard against errors in calculating end velocity of a drag. This is a very
    * fast drag velocity.
    */
-  static final _MAXIMUM_VELOCITY = 5;
+  static const _MAXIMUM_VELOCITY = 5;
 
   /**
    * The velocity to return, in pixel per millisecond, when the time stamps on
@@ -94,7 +94,7 @@ class TouchHandler {
    * prevent the content from moving quickly after a slow drag. It is less
    * jarring if the content moves slowly after a fast drag.
    */
-  static final _VELOCITY_FOR_INCORRECT_EVENTS = 1;
+  static const _VELOCITY_FOR_INCORRECT_EVENTS = 1;
 
   Draggable _draggable;
   bool _tracking;

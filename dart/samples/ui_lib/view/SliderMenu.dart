@@ -9,7 +9,7 @@ typedef void SelectHandler(String menuText);
  * that points at the currently selected item.
  */
 class SliderMenu extends View {
-  static final int TRIANGLE_WIDTH = 24;
+  static const int TRIANGLE_WIDTH = 24;
 
   // currently selected menu item
   Element selectedItem;

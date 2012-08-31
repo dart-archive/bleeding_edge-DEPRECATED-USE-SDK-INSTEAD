@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class ClockNumber {
-  static final int WIDTH = 4;
-  static final int HEIGHT = 7;
+  static const int WIDTH = 4;
+  static const int HEIGHT = 7;
 
   CountDownClock app;
   Element root;
@@ -79,7 +79,7 @@ class Colon {
 }
 
 class ClockNumbers {
-  static final PIXELS = const [
+  static const PIXELS = const [
      const [
        const[ 1, 1, 1, 1 ],
        const[ 1, 0, 0, 1 ],

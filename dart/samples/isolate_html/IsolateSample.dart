@@ -7,8 +7,8 @@
  * that we create.
  */
 class MessageId {
-  static final INIT = 'init';
-  static final GREETING = 'greeting';
+  static const INIT = 'init';
+  static const GREETING = 'greeting';
 }
 
 /**

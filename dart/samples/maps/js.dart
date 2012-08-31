@@ -79,15 +79,15 @@
 #import('dart:json');
 
 // Tags in JSON sent to JS.
-final String _DESERIALIZER = '_js_dart_deserialize_function';
-final String _ARGUMENTS = '_js_dart_deserialize_arguments';
-final String _CALLBACK = '_js_dart_callback';
+const String _DESERIALIZER = '_js_dart_deserialize_function';
+const String _ARGUMENTS = '_js_dart_deserialize_arguments';
+const String _CALLBACK = '_js_dart_callback';
 
 // Tags in JSON returned from JS.
-final String _TYPEID = '_js_dart_type';
+const String _TYPEID = '_js_dart_type';
 
 // JS support code.
-final String _jscode = '''
+const String _jscode = '''
 (function () {
   function createEvent(name, data) {
     var event = document.createEvent('TextEvent');

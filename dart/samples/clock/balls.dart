@@ -7,17 +7,17 @@ int clientWidth() => window.innerWidth;
 int clientHeight() => window.innerHeight;
 
 class Balls {
-  static final double RADIUS2 = Ball.RADIUS * Ball.RADIUS;
+  static const double RADIUS2 = Ball.RADIUS * Ball.RADIUS;
 
-  static final int LT_GRAY_BALL_INDEX = 0;
-  static final int GREEN_BALL_INDEX = 1;
-  static final int BLUE_BALL_INDEX = 2;
+  static const int LT_GRAY_BALL_INDEX = 0;
+  static const int GREEN_BALL_INDEX = 1;
+  static const int BLUE_BALL_INDEX = 2;
 
-  static final int DK_GRAY_BALL_INDEX = 4;
-  static final int RED_BALL_INDEX = 5;
-  static final int MD_GRAY_BALL_INDEX = 6;
+  static const int DK_GRAY_BALL_INDEX = 4;
+  static const int RED_BALL_INDEX = 5;
+  static const int MD_GRAY_BALL_INDEX = 6;
 
-  static final List<String> PNGS = const [
+  static const List<String> PNGS = const [
       "images/ball-d9d9d9.png", "images/ball-009a49.png",
       "images/ball-13acfa.png", "images/ball-265897.png",
       "images/ball-b6b4b5.png", "images/ball-c0000b.png",
@@ -111,11 +111,11 @@ class Balls {
 }
 
 class Ball {
-  static final double GRAVITY = 400.0;
-  static final double RESTITUTION = 0.8;
-  static final double MIN_VELOCITY = 100.0;
-  static final double INIT_VELOCITY = 800.0;
-  static final double RADIUS = 14.0;
+  static const double GRAVITY = 400.0;
+  static const double RESTITUTION = 0.8;
+  static const double MIN_VELOCITY = 100.0;
+  static const double INIT_VELOCITY = 800.0;
+  static const double RADIUS = 14.0;
 
   static Random random;
 

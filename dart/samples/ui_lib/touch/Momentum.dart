@@ -84,9 +84,9 @@ interface MomentumDelegate {
 }
 
 class BouncingState {
-  static final NOT_BOUNCING = 0;
-  static final BOUNCING_AWAY = 1;
-  static final BOUNCING_BACK = 2;
+  static const NOT_BOUNCING = 0;
+  static const BOUNCING_AWAY = 1;
+  static const BOUNCING_BACK = 2;
 }
 
 class _Move {
@@ -160,7 +160,7 @@ class Solver {
  */
 class SingleDimensionPhysics {
   /** The number of frames per second the animation should run at. */
-  static final _FRAMES_PER_SECOND = 60;
+  static const _FRAMES_PER_SECOND = 60;
 
   /**
    * The spring coefficient for when the element has passed a boundary and is
@@ -169,7 +169,7 @@ class SingleDimensionPhysics {
    * value of the element from its boundary. This will end when velocity reaches
    * zero.
    */
-  static final _PRE_BOUNCE_COEFFICIENT = 7.0 / _FRAMES_PER_SECOND;
+  static const _PRE_BOUNCE_COEFFICIENT = 7.0 / _FRAMES_PER_SECOND;
 
   /**
    * The spring coefficient for when the element is bouncing back from a
@@ -178,40 +178,40 @@ class SingleDimensionPhysics {
    * value of the element from its boundary. This will end when the stretch
    * value reaches 0.
    */
-  static final _POST_BOUNCE_COEFFICIENT = 7.0 / _FRAMES_PER_SECOND;
+  static const _POST_BOUNCE_COEFFICIENT = 7.0 / _FRAMES_PER_SECOND;
 
   /**
    * The number of milliseconds per animation frame.
    */
-  static final _MS_PER_FRAME = 1000.0 / _FRAMES_PER_SECOND;
+  static const _MS_PER_FRAME = 1000.0 / _FRAMES_PER_SECOND;
 
   /**
    * The constant factor applied to velocity at each frame to simulate
    * deceleration.
    */
-  static final _DECELERATION_FACTOR = 0.97;
+  static const _DECELERATION_FACTOR = 0.97;
 
 
-  static final _MAX_VELOCITY_STATIC_FRICTION = 0.08 * _MS_PER_FRAME;
-  static final _DECELERATION_FACTOR_STATIC_FRICTION = 0.92;
+  static const _MAX_VELOCITY_STATIC_FRICTION = 0.08 * _MS_PER_FRAME;
+  static const _DECELERATION_FACTOR_STATIC_FRICTION = 0.92;
 
   /**
    * Minimum velocity required to start or continue deceleration, in
    * pixels/frame. This is equivalent to 0.25 px/ms.
    */
-  static final _MIN_VELOCITY = 0.25 * _MS_PER_FRAME;
+  static const _MIN_VELOCITY = 0.25 * _MS_PER_FRAME;
 
   /**
    * Minimum velocity during a step, in pixels/frame. This is equivalent to 0.01
    * px/ms.
    */
-  static final _MIN_STEP_VELOCITY = 0.01 * _MS_PER_FRAME;
+  static const _MIN_STEP_VELOCITY = 0.01 * _MS_PER_FRAME;
 
   /**
    * Boost the initial velocity by a certain factor before applying momentum.
    * This just gives the momentum a better feel.
    */
-  static final _INITIAL_VELOCITY_BOOST_FACTOR = 1.25;
+  static const _INITIAL_VELOCITY_BOOST_FACTOR = 1.25;
 
   /**
    * Additional deceleration factor to apply for the current move only.  This
@@ -234,7 +234,7 @@ class SingleDimensionPhysics {
    * location. Chosen arbitrarily. All that really matters is that the velocity
    * is large enough that a throw gesture will occur.
    */
-  static final _VELOCITY_GUESS = 20;
+  static const _VELOCITY_GUESS = 20;
 
   SingleDimensionPhysics() : _bouncingState = BouncingState.NOT_BOUNCING {
   }

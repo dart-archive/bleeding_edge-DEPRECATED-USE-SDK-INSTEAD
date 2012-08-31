@@ -8,7 +8,7 @@ class Conversation {
   HttpRequest request;
   HttpResponse response;
 
-  static final String LEAP_LANDING_PAGE = 'samples/leap/index.html';
+  static const String LEAP_LANDING_PAGE = 'samples/leap/index.html';
 
   static String landingPage = LEAP_LANDING_PAGE;
 

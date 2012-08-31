@@ -13,7 +13,7 @@ class GridExamples {
   // the example, or they're using flow.
   // TODO(jmesserly): also needed to set "display: inline-block" to get
   // horizontal content sizing to work.
-  static final styles = const {
+  static const styles = const {
     '1 Adaptive Layouts': AdaptiveLayout.selectors,
     '2a Source Independence: Portrait': SourceIndependencePortrait.selectors,
     '2b Source Independence: Landscape': SourceIndependenceLandscape.selectors,

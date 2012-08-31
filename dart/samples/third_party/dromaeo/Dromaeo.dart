@@ -137,7 +137,7 @@ class Dromaeo {
     }
   }
 
-  static final double _SECS_PER_TEST = 5.0;
+  static const double _SECS_PER_TEST = 5.0;
 
   Function _createHandler() {
     int suitesLoaded = 0;

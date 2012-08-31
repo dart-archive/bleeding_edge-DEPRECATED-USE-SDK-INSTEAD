@@ -126,7 +126,7 @@ class FlatPadUI {
   // With functions:
 
   // CSS for this template.
-  static final String stylesheet = '''
+  static const String stylesheet = '''
     
 .calc-pad {
   background-color: #222;
@@ -709,7 +709,7 @@ class ButtonPadUI {
   // With functions:
 
   // CSS for this template.
-  static final String stylesheet = '''
+  static const String stylesheet = '''
     
 .button-pad {
   background-color: #F4F4F4;
@@ -1187,7 +1187,7 @@ class SettingsDialog {
   // With functions:
 
   // CSS for this template.
-  static final String stylesheet = '''
+  static const String stylesheet = '''
     
 .setting-glyph {
   position: absolute;
@@ -1336,7 +1336,7 @@ class TapeUI {
   // With functions:
 
   // CSS for this template.
-  static final String stylesheet = '''
+  static const String stylesheet = '''
     
 .calculator-tape {
   height: 7em;

@@ -39,8 +39,8 @@ class LayoutParams {
 // TODO(jmesserly): enums would really help here
 class Dimension {
   // TODO(jmesserly): perhaps this should be X and Y
-  static final WIDTH = const Dimension._internal('width');
-  static final HEIGHT = const Dimension._internal('height');
+  static const WIDTH = const Dimension._internal('width');
+  static const HEIGHT = const Dimension._internal('height');
 
   final String name; // for debugging
   const Dimension._internal(this.name);
@@ -48,10 +48,10 @@ class Dimension {
 
 class ContentSizeMode {
   /** Minimum content size, e.g. min-width and min-height in CSS. */
-  static final MIN = const ContentSizeMode._internal('min');
+  static const MIN = const ContentSizeMode._internal('min');
 
   /** Maximum content size, e.g. min-width and min-height in CSS. */
-  static final MAX = const ContentSizeMode._internal('max');
+  static const MAX = const ContentSizeMode._internal('max');
 
   // TODO(jmesserly): we probably want some sort of "auto" or "best fit" mode
   // Don't need it yet though.

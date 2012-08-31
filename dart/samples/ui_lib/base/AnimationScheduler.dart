@@ -33,9 +33,9 @@ class CallbackData {
 // TODO(jacobr): use window.requestAnimationFrame when it is available and
 // 60fps for the current browser.
 class AnimationScheduler {
-  static final FRAMES_PER_SECOND = 60;
-  static final MS_PER_FRAME = 1000 ~/ FRAMES_PER_SECOND;
-  static final USE_INTERVALS = false;
+  static const FRAMES_PER_SECOND = 60;
+  static const MS_PER_FRAME = 1000 ~/ FRAMES_PER_SECOND;
+  static const USE_INTERVALS = false;
 
   /** List of callbacks to be executed next animation frame. */
   List<CallbackData> _callbacks;

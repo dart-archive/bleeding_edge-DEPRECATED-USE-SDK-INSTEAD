@@ -29,17 +29,17 @@ class JSON {
  * Union-like class for JSON tokens.
  */
 class JsonToken {
-  static final int STRING = 0;
-  static final int NUMBER = 1;
-  static final int NULL = 2;
-  static final int FALSE = 3;
-  static final int TRUE = 4;
-  static final int RBRACKET = 5;
-  static final int LBRACKET = 6;
-  static final int RBRACE = 7;
-  static final int LBRACE = 8;
-  static final int COLON = 9;
-  static final int COMMA = 10;
+  static const int STRING = 0;
+  static const int NUMBER = 1;
+  static const int NULL = 2;
+  static const int FALSE = 3;
+  static const int TRUE = 4;
+  static const int RBRACKET = 5;
+  static const int LBRACKET = 6;
+  static const int RBRACE = 7;
+  static const int LBRACE = 8;
+  static const int COLON = 9;
+  static const int COMMA = 10;
 
   final int kind;
   final String _s;
@@ -108,33 +108,33 @@ class JsonToken {
 typedef bool Predicate(int c);
 
 class JsonTokenizer {
-  static final int BACKSPACE = 8;  // '\b'.charCodeAt(0)
-  static final int TAB = 9;  // '\t'.charCodeAt(0)
-  static final int NEW_LINE = 10;  // '\n'.charCodeAt(0)
-  static final int FORM_FEED = 12;  // '\f'.charCodeAt(0)
-  static final int LINE_FEED = 13;  // '\r'.charCodeAt(0)
-  static final int SPACE = 32;  // ' '.charCodeAt(0)
-  static final int QUOTE = 34;  // '"'.charCodeAt(0)
-  static final int PLUS = 43;  // '+'.charCodeAt(0)
-  static final int COMMA = 44;  // ','.charCodeAt(0)
-  static final int MINUS = 45;  // '-'.charCodeAt(0)
-  static final int DOT = 46;  // '.'.charCodeAt(0)
-  static final int BACKSLASH = 47;  // '/'.charCodeAt(0)
-  static final int ZERO = 48;  // '0'.charCodeAt(0)
-  static final int NINE = 57;  // '9'.charCodeAt(0)
-  static final int COLON = 58;  // ':'.charCodeAt(0)
-  static final int A_BIG = 65;  // 'A'.charCodeAt(0)
-  static final int E_BIG = 69;  // 'E'.charCodeAt(0)
-  static final int Z_BIG = 90;  // 'Z'.charCodeAt(0)
-  static final int LBRACKET = 91;  // '['.charCodeAt(0)
-  static final int SLASH = 92;  // '\\'.charCodeAt(0)
-  static final int RBRACKET = 93;  // ']'.charCodeAt(0)
-  static final int A_SMALL = 97;  // 'a'.charCodeAt(0)
-  static final int B_SMALL = 98;  // 'b'.charCodeAt(0)
-  static final int E_SMALL = 101;  // 'e'.charCodeAt(0)
-  static final int Z_SMALL = 122;  // 'z'.charCodeAt(0)
-  static final int LBRACE = 123;  // '{'.charCodeAt(0)
-  static final int RBRACE = 125;  // '}'.charCodeAt(0)
+  static const int BACKSPACE = 8;  // '\b'.charCodeAt(0)
+  static const int TAB = 9;  // '\t'.charCodeAt(0)
+  static const int NEW_LINE = 10;  // '\n'.charCodeAt(0)
+  static const int FORM_FEED = 12;  // '\f'.charCodeAt(0)
+  static const int LINE_FEED = 13;  // '\r'.charCodeAt(0)
+  static const int SPACE = 32;  // ' '.charCodeAt(0)
+  static const int QUOTE = 34;  // '"'.charCodeAt(0)
+  static const int PLUS = 43;  // '+'.charCodeAt(0)
+  static const int COMMA = 44;  // ','.charCodeAt(0)
+  static const int MINUS = 45;  // '-'.charCodeAt(0)
+  static const int DOT = 46;  // '.'.charCodeAt(0)
+  static const int BACKSLASH = 47;  // '/'.charCodeAt(0)
+  static const int ZERO = 48;  // '0'.charCodeAt(0)
+  static const int NINE = 57;  // '9'.charCodeAt(0)
+  static const int COLON = 58;  // ':'.charCodeAt(0)
+  static const int A_BIG = 65;  // 'A'.charCodeAt(0)
+  static const int E_BIG = 69;  // 'E'.charCodeAt(0)
+  static const int Z_BIG = 90;  // 'Z'.charCodeAt(0)
+  static const int LBRACKET = 91;  // '['.charCodeAt(0)
+  static const int SLASH = 92;  // '\\'.charCodeAt(0)
+  static const int RBRACKET = 93;  // ']'.charCodeAt(0)
+  static const int A_SMALL = 97;  // 'a'.charCodeAt(0)
+  static const int B_SMALL = 98;  // 'b'.charCodeAt(0)
+  static const int E_SMALL = 101;  // 'e'.charCodeAt(0)
+  static const int Z_SMALL = 122;  // 'z'.charCodeAt(0)
+  static const int LBRACE = 123;  // '{'.charCodeAt(0)
+  static const int RBRACE = 125;  // '}'.charCodeAt(0)
 
   JsonTokenizer(String s) : _s = s + ' ', _pos = 0, _len = s.length + 1 {}
 

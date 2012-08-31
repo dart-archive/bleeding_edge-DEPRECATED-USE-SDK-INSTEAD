@@ -9,7 +9,7 @@
 
 #source('ContactsWidget.dart');
 
-final String SITE_NAME = 'Contactifier Inc.';
+const String SITE_NAME = 'Contactifier Inc.';
 
 void main() {
   // TODO(samhop): check for shadow dom support

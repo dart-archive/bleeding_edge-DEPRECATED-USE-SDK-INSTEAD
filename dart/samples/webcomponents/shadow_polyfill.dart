@@ -27,7 +27,7 @@ typedef WebComponent WebComponentFactory (ShadowRoot shadowRoot, Element elt);
 typedef WebComponentFactory RegistryLookupFunction(String tagName);
 
 // Globals
-final int REQUEST_DONE = 4;
+const int REQUEST_DONE = 4;
 CustomElementsManager _manager;
 CustomElementsManager get manager() => _manager;
 

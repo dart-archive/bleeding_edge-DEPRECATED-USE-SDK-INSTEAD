@@ -7,22 +7,22 @@
  * Handles the lower level stuff, i.e. what a scanner/tokenizer would do.
  */
 class _Parser {
-  static final WHITESPACE = ' \r\n\t';
+  static const WHITESPACE = ' \r\n\t';
 
   // TODO(jmesserly): shouldn't need this optimization, but dart_json parser
   // found that they needed this.
-  static final A_BIG = 65;  // 'A'.charCodeAt(0)
-  static final Z_BIG = 90;  // 'Z'.charCodeAt(0)
-  static final A_SMALL = 97;  // 'a'.charCodeAt(0)
-  static final Z_SMALL = 122;  // 'z'.charCodeAt(0)
-  static final TAB = 9;  // '\t'.charCodeAt(0)
-  static final NEW_LINE = 10;  // '\n'.charCodeAt(0)
-  static final LINE_FEED = 13;  // '\r'.charCodeAt(0)
-  static final SPACE = 32;  // ' '.charCodeAt(0)
-  static final ZERO = 48;  // '0'.charCodeAt(0)
-  static final NINE = 57;  // '9'.charCodeAt(0)
-  static final DOT = 46;  // '.'.charCodeAt(0)
-  static final R_PAREN = 41;  // ')'.charCodeAt(0)
+  static const A_BIG = 65;  // 'A'.charCodeAt(0)
+  static const Z_BIG = 90;  // 'Z'.charCodeAt(0)
+  static const A_SMALL = 97;  // 'a'.charCodeAt(0)
+  static const Z_SMALL = 122;  // 'z'.charCodeAt(0)
+  static const TAB = 9;  // '\t'.charCodeAt(0)
+  static const NEW_LINE = 10;  // '\n'.charCodeAt(0)
+  static const LINE_FEED = 13;  // '\r'.charCodeAt(0)
+  static const SPACE = 32;  // ' '.charCodeAt(0)
+  static const ZERO = 48;  // '0'.charCodeAt(0)
+  static const NINE = 57;  // '9'.charCodeAt(0)
+  static const DOT = 46;  // '.'.charCodeAt(0)
+  static const R_PAREN = 41;  // ')'.charCodeAt(0)
 
   final String _src;
   int _offset;

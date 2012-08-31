@@ -14,15 +14,15 @@
  * supported in the future.
  */
 class BezierPhysics {
-  static final _ONE_THIRD = 1 / 3;
-  static final _TWO_THIRDS = 2 / 3;
+  static const _ONE_THIRD = 1 / 3;
+  static const _TWO_THIRDS = 2 / 3;
 
   /**
    * A list [:[x1, y1, x2, y2]:] of the intermediate control points of a cubic
    * bezier when the final velocity is zero. This is a special case for which
    * these control points are constants.
    */
-  static final List<num> _FINAL_VELOCITY_ZERO_BEZIER =
+  static const List<num> _FINAL_VELOCITY_ZERO_BEZIER =
       const [_ONE_THIRD, _TWO_THIRDS, _TWO_THIRDS, 1];
 
   /**

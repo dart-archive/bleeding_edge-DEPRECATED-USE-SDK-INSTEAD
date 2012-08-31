@@ -40,7 +40,7 @@ class BenchUtil {
     return start.charCodeAt(0) <= charCode && charCode <= end.charCodeAt(0);
   }
 
-  static final String DIGITS = '0123456789ABCDEF';
+  static const String DIGITS = '0123456789ABCDEF';
   static String _asDigit(int value) {
     return DIGITS[value];
   }

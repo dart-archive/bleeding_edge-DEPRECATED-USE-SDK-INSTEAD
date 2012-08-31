@@ -336,7 +336,7 @@ class SwarmBackButton extends View {
 /** Top view constaining the title and standard buttons. */
 class HeaderView extends CompositeView {
   // TODO(jacobr): make this value be coupled with the CSS file.
-  static final HEIGHT = 80;
+  static const HEIGHT = 80;
   Swarm swarm;
 
   View _title;
@@ -524,7 +524,7 @@ class DataSourceViewFactory implements ViewFactory<Feed> {
  */
 class DataSourceView extends CompositeView  {
   // TODO(jacobr): make this value be coupled with the CSS file.
-  static final TAB_ONLY_HEIGHT = 34;
+  static const TAB_ONLY_HEIGHT = 34;
 
   final Feed source;
   VariableSizeListView<Article> itemsView;
@@ -622,18 +622,18 @@ class ArticleViewMetrics {
 class ArticleViewLayout {
   // TODO(terry): clean this up once we have a framework for sharing constants
   // between JS and CSS. See bug #5405307.
-  static final IPAD_WIDTH = 257;
-  static final DESKTOP_WIDTH = 297;
-  static final CHROME_OS_WIDTH = 317;
-  static final TITLE_MARGIN_LEFT = 257 - 150;
-  static final BODY_MARGIN_LEFT = 257 - 221;
-  static final LINE_HEIGHT = 18;
-  static final TITLE_FONT = 'bold 13px arial,sans-serif';
-  static final BODY_FONT = '13px arial,sans-serif';
-  static final TOTAL_MARGIN = 16 * 2 + 70;
-  static final MIN_TITLE_HEIGHT = 36;
-  static final MAX_TITLE_LINES = 2;
-  static final MAX_BODY_LINES = 4;
+  static const IPAD_WIDTH = 257;
+  static const DESKTOP_WIDTH = 297;
+  static const CHROME_OS_WIDTH = 317;
+  static const TITLE_MARGIN_LEFT = 257 - 150;
+  static const BODY_MARGIN_LEFT = 257 - 221;
+  static const LINE_HEIGHT = 18;
+  static const TITLE_FONT = 'bold 13px arial,sans-serif';
+  static const BODY_FONT = '13px arial,sans-serif';
+  static const TOTAL_MARGIN = 16 * 2 + 70;
+  static const MIN_TITLE_HEIGHT = 36;
+  static const MAX_TITLE_LINES = 2;
+  static const MAX_BODY_LINES = 4;
 
   MeasureText measureTitleText;
   MeasureText measureBodyText;
@@ -697,7 +697,7 @@ class ArticleViewLayout {
  */
 class ArticleView extends View {
   // Set to false to make inspecting the HTML more pleasant...
-  static final SAVE_IMAGES = false;
+  static const SAVE_IMAGES = false;
 
   final Article item;
   final Swarm swarm;

@@ -91,17 +91,17 @@ class EnemyImpl implements Enemy {
 /** Collection of message IDs used to communicate with player isolates. */
 class MessageIds {
   /** message to set up a new player. */
-  static final SETUP = 1;
+  static const SETUP = 1;
 
   /** message to initialize the enemy of a player. */
-  static final SET_ENEMY = 2;
+  static const SET_ENEMY = 2;
 
   /** message indicating that the enemy is ready to play. */
-  static final ENEMY_IS_READY = 3;
+  static const ENEMY_IS_READY = 3;
 
   /** message describing a shoot action. */
-  static final SHOOT = 4;
+  static const SHOOT = 4;
 
   /** message to set up a test port, used to make tests non-flaky. */
-  static final SET_PORT_FOR_TEST = 5;
+  static const SET_PORT_FOR_TEST = 5;
 }

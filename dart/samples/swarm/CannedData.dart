@@ -4,7 +4,7 @@
 
 // TODO(jimhug): Work out correct copyright for this file.
 class CannedData {
-  static final Map<String,String> data = const {
+  static const Map<String,String> data = const {
     'Test0_0_0.html':'Lorem ipsum something or other...',
     'Test0_0_1.html':'Lorem ipsum something or other...',
     'Test0_0_2.html':'Lorem ipsum something or other...',

@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Tape {
-  static final int OP_NOOP = 0;
-  static final int OP_PLUS = 1;
-  static final int OP_MINUS = 2;
-  static final int OP_MULTI = 3;
-  static final int OP_DIV = 4;
-  static final int OP_EQUAL = 5;
-  static final int OP_CLEAR = 6;
+  static const int OP_NOOP = 0;
+  static const int OP_PLUS = 1;
+  static const int OP_MINUS = 2;
+  static const int OP_MULTI = 3;
+  static const int OP_DIV = 4;
+  static const int OP_EQUAL = 5;
+  static const int OP_CLEAR = 6;
 
   Tape() {
     clearTape();

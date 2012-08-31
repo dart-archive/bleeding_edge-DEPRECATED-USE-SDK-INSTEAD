@@ -7,12 +7,12 @@
  */
 class DateUtils {
   // TODO(jmesserly): localized strings
-  static final WEEKDAYS = const ['Monday', 'Tuesday', 'Wednesday', 'Thursday',
+  static const WEEKDAYS = const ['Monday', 'Tuesday', 'Wednesday', 'Thursday',
                                  'Friday', 'Saturday', 'Sunday'];
 
-  static final YESTERDAY = 'Yesterday';
+  static const YESTERDAY = 'Yesterday';
 
-  static final MS_IN_WEEK = Date.DAYS_IN_WEEK * Duration.MILLISECONDS_PER_DAY;
+  static const MS_IN_WEEK = Date.DAYS_IN_WEEK * Duration.MILLISECONDS_PER_DAY;
 
   // TODO(jmesserly): workaround for missing Date.fromDate in Dartium
   // Remove this once that is implemented. See b/5055106

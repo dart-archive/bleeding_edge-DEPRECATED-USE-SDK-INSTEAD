@@ -50,10 +50,10 @@ void joinFutures(List<Future> futures, Callback callback) {
 class Scroller implements Draggable, MomentumDelegate {
 
   /** Pixels to move each time an arrow key is pressed. */
-  static final ARROW_KEY_DELTA = 30;
-  static final SCROLL_WHEEL_VELOCITY = 0.01;
-  static final FAST_SNAP_DECELERATION_FACTOR = 0.84;
-  static final PAGE_KEY_SCROLL_FRACTION = .85;
+  static const ARROW_KEY_DELTA = 30;
+  static const SCROLL_WHEEL_VELOCITY = 0.01;
+  static const FAST_SNAP_DECELERATION_FACTOR = 0.84;
+  static const PAGE_KEY_SCROLL_FRACTION = .85;
 
   // TODO(jacobr): remove this static variable.
   static bool _dragInProgress = false;
@@ -675,11 +675,11 @@ class Scroller implements Draggable, MomentumDelegate {
 
 // TODO(jacobr): cleanup this class of enum constants.
 class ScrollerEventType {
-  static final SCROLLER_START = "scroller:scroll_start";
-  static final SCROLLER_END = "scroller:scroll_end";
-  static final DRAG_END = "scroller:drag_end";
-  static final CONTENT_MOVED = "scroller:content_moved";
-  static final DECEL_START = "scroller:decel_start";
+  static const SCROLLER_START = "scroller:scroll_start";
+  static const SCROLLER_END = "scroller:scroll_end";
+  static const DRAG_END = "scroller:drag_end";
+  static const CONTENT_MOVED = "scroller:content_moved";
+  static const DECEL_START = "scroller:decel_start";
 }
 
 // TODO(jacobr): for now this ignores capture.
@@ -726,6 +726,6 @@ class SimpleEventListenerList implements EventListenerList {
 }
 
 class ScrollerScrollTechnique {
-  static final TRANSFORM_3D = 1;
-  static final RELATIVE_POSITIONING = 2;
+  static const TRANSFORM_3D = 1;
+  static const RELATIVE_POSITIONING = 2;
 }

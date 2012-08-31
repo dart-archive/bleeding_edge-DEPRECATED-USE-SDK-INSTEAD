@@ -67,7 +67,7 @@ class LatLngBounds extends js.Serializable {
 }
 
 class MapTypeId {
-  static final ROADMAP = 'roadmap';
+  static const ROADMAP = 'roadmap';
 }
 
 class DirectionsService {
@@ -85,20 +85,20 @@ function (request, callback) {
 }
 
 class ControlPosition {
-  static final TOP = 2;
+  static const TOP = 2;
 }
 
 class DirectionsResult {
 }
 
 class DirectionsTravelMode {
-  static final DRIVING = 'DRIVING';
-  static final BICYCLING = 'BICYCLING';
-  static final WALKING = 'WALKING';
+  static const DRIVING = 'DRIVING';
+  static const BICYCLING = 'BICYCLING';
+  static const WALKING = 'WALKING';
 }
 
 class DirectionsStatus {
-  static final OK = 'OK';
+  static const OK = 'OK';
 }
 
 class DirectionsRenderer extends js.Serializable {

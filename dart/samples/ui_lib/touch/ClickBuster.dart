@@ -25,13 +25,13 @@ class ClickBuster {
   /**
    * The threshold for how long we allow a click to occur after a touchstart.
    */
-  static final _TIME_THRESHOLD = 2500;
+  static const _TIME_THRESHOLD = 2500;
 
   /**
    * The threshold for how close a click has to be to the saved coordinate for
    * us to allow it.
    */
-  static final _DISTANCE_THRESHOLD = 25;
+  static const _DISTANCE_THRESHOLD = 25;
 
   /**
    * The list of coordinates that we use to measure the distance of clicks from.

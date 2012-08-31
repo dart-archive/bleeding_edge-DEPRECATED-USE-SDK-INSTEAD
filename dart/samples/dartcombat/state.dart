@@ -173,10 +173,10 @@ class PlayerState {
     }
   }
 
-  static final LEFT_DIR = const [-1, 0];
-  static final RIGHT_DIR = const [1, 0];
-  static final UP_DIR = const [0, -1];
-  static final DOWN_DIR = const [0, 1];
+  static const LEFT_DIR = const [-1, 0];
+  static const RIGHT_DIR = const [1, 0];
+  static const UP_DIR = const [0, -1];
+  static const DOWN_DIR = const [0, 1];
 
   Future<bool> _exploreAllDirections(int x, int y, bool parallel) {
     Completer<bool> superShot_ = new Completer<bool>();

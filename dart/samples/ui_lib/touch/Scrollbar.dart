@@ -10,21 +10,21 @@ class Scrollbar implements ScrollListener {
   /**
    * The minimum size of scrollbars when not compressed.
    */
-  static final _MIN_SIZE = 30;
+  static const _MIN_SIZE = 30;
 
   /**
    * The minimum compressed size of scrollbars. Scrollbars are compressed when
    * the content is stretching past its boundaries.
    */
-  static final _MIN_COMPRESSED_SIZE = 8;
+  static const _MIN_COMPRESSED_SIZE = 8;
   /** Padding in pixels to add above and bellow the scrollbar. */
-  static final _PADDING_LENGTH = 10;
+  static const _PADDING_LENGTH = 10;
   /**
    * The amount of time to wait before hiding scrollbars after showing them.
    * Measured in ms.
    */
-  static final _DISPLAY_TIME = 300;
-  static final DRAG_CLASS_NAME = 'drag';
+  static const _DISPLAY_TIME = 300;
+  static const DRAG_CLASS_NAME = 'drag';
 
   Scroller _scroller;
   Element _frame;

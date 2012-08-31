@@ -3,7 +3,7 @@
 
 class AdaptiveLayout {
   // selector, properties<propertyName, value>
-  static final selectors = const {
+  static const selectors = const {
     '#grid' : const {
       'display' : '-dart-grid',
       'grid-columns' : 'auto minmax(min-content, 1fr)',
@@ -37,7 +37,7 @@ class AdaptiveLayout {
 
 class SourceIndependencePortrait {
   // selector, properties<propertyName, value>
-  static final selectors = const {
+  static const selectors = const {
     '#grid' : const {
       'display' : '-dart-grid',
       'grid-template' : '"ta" "sa" "bb" "cc"',
@@ -64,7 +64,7 @@ class SourceIndependencePortrait {
 
 class SourceIndependenceLandscape {
   // selector, properties<propertyName, value>
-  static final selectors = const {
+  static const selectors = const {
     '#grid' : const {
       'display' : '-dart-grid',
       'grid-template' : '"tb" "ab" "sc"',
@@ -91,7 +91,7 @@ class SourceIndependenceLandscape {
 
 class GridLayering {
   // selector, properties<propertyName, value>
-  static final selectors = const {
+  static const selectors = const {
     '#grid' : const {
       'display' : '-dart-grid',
       'grid-columns' : '"start" auto "track-start" 0.5fr "thumb-start" auto "fill-split" auto "thumb-end" 0.5fr "track-end" auto "end"',
@@ -125,7 +125,7 @@ class GridLayering {
 
 class GridLines_5 {
   // selector, properties<propertyName, value>
-  static final selectors = const {
+  static const selectors = const {
     '#grid' : const {
       'display' : '-dart-grid',
       'grid-columns' : '150px 1fr',
@@ -140,7 +140,7 @@ class GridLines_5 {
 
 class GridLines_6 {
   // selector, properties<propertyName, value>
-  static final selectors = const {
+  static const selectors = const {
     '#grid' : const {
       'display' : '-dart-grid',
       'grid-columns' : '150px "item1-start" 1fr "item1-end"',
@@ -155,7 +155,7 @@ class GridLines_6 {
 
 class GridCells {
   // selector, properties<propertyName, value>
-  static final selectors = const {
+  static const selectors = const {
     '#grid' : const {
       'display' : '-dart-grid',
       'grid-template' : '"ad" "bd" "cd"',
@@ -176,7 +176,7 @@ class GridCells {
 
 class StartEndingGridlines11a {
   // selector, properties<propertyName, value>
-  static final selectors = const {
+  static const selectors = const {
     '#grid' : const {
       'display' : '-dart-grid',
       'grid-columns' : '50px 1fr',
@@ -191,7 +191,7 @@ class StartEndingGridlines11a {
 
 class StartEndingGridlines11b {
   // selector, properties<propertyName, value>
-  static final selectors = const {
+  static const selectors = const {
     '#grid' : const {
       'display' : '-dart-grid',
       'grid-columns' : '50px 1fr',
@@ -206,7 +206,7 @@ class StartEndingGridlines11b {
 
 class RepeatingColumnsRows {
   // selector, properties<propertyName, value>
-  static final selectors = const {
+  static const selectors = const {
     '#grid' : const {
       'display' : '-dart-grid',
       'grid-columns' : '10px ("content" 1fr 10px) [4]',
@@ -229,7 +229,7 @@ class RepeatingColumnsRows {
 
 class AnonymousGridCells {
   // selector, properties<propertyName, value>
-  static final selectors = const {
+  static const selectors = const {
     '#grid' : const {
       'display' : '-dart-grid',
       'grid-rows' : '"header" auto "main" 1fr "footer" auto',
@@ -252,7 +252,7 @@ class AnonymousGridCells {
 
 class ImplicitColumnsRows {
   // selector, properties<propertyName, value>
-  static final selectors = const {
+  static const selectors = const {
     '#grid' : const {
       'display' : '-dart-grid',
       'grid-columns' : '20px',
@@ -279,7 +279,7 @@ class ImplicitColumnsRows {
 
 class AlignGridItems {
   // selector, properties<propertyName, value>
-  static final selectors = const {
+  static const selectors = const {
     '#grid' : const {
       'display' : '-dart-grid',
       'grid-columns' : '1fr 1fr',
@@ -302,7 +302,7 @@ class AlignGridItems {
 
 class DrawOrderGridItems {
   // selector, properties<propertyName, value>
-  static final selectors = const {
+  static const selectors = const {
     '#grid' : const {
       'display' : '-dart-grid',
       'grid-columns' : '1fr 1fr',

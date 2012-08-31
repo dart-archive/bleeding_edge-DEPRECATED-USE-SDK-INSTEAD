@@ -8,8 +8,8 @@
 #import("chat_server_lib.dart");
 
 
-final DEFAULT_PORT = 8123;
-final DEFAULT_HOST = "127.0.0.1";
+const DEFAULT_PORT = 8123;
+const DEFAULT_HOST = "127.0.0.1";
 
 void main() {
   // For profiling stopping after some time is convenient. Set
