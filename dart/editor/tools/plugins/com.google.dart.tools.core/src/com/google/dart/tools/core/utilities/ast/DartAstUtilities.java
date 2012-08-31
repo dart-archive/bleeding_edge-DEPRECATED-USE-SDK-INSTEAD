@@ -17,6 +17,7 @@ import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartNamedExpression;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -25,6 +26,7 @@ import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
@@ -45,6 +47,16 @@ public class DartAstUtilities {
   public static Element getElement(DartNode node, boolean includeDeclarations) {
     Element targetElement = node.getElement();
     DartNode parent = node.getParent();
+    // name of named parameter in invocation
+    if (node instanceof DartIdentifier && node.getParent() instanceof DartNamedExpression) {
+      DartNamedExpression namedExpression = (DartNamedExpression) node.getParent();
+      if (namedExpression.getName() == node) {
+        Object parameterId = ((DartIdentifier) node).getInvocationParameterId();
+        if (parameterId instanceof VariableElement) {
+          targetElement = (VariableElement) parameterId;
+        }
+      }
+    }
     // target of "new X()" or "new X.a()" is not just a type, it is a constructor
     if (parent instanceof DartTypeNode || parent instanceof DartPropertyAccess) {
       DartNode grandparent = parent.getParent();

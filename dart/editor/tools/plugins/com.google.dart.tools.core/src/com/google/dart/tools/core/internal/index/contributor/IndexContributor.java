@@ -29,9 +29,11 @@ import com.google.dart.compiler.ast.DartFunctionObjectInvocation;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartImportDirective;
+import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
+import com.google.dart.compiler.ast.DartNamedExpression;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
@@ -481,6 +483,25 @@ public class IndexContributor extends ASTVisitor<Void> {
       notFound("method invocation: " + node.toString(), node);
     }
     return super.visitMethodInvocation(node);
+  }
+
+  @Override
+  public Void visitNamedExpression(DartNamedExpression node) {
+    if (node.getParent() instanceof DartInvocation
+        && node.getParent().getElement() instanceof MethodElement) {
+      MethodElement methodElement = (MethodElement) node.getParent().getElement();
+      Object parameterId = node.getInvocationParameterId();
+      if (parameterId instanceof VariableElement) {
+        String name = ((VariableElement) parameterId).getName();
+        try {
+          Element indexElement = ElementFactory.getParameterElement(methodElement, name);
+          Location location = createLocation(node.getName());
+          recordRelationship(indexElement, IndexConstants.IS_REFERENCED_BY, location);
+        } catch (DartModelException exception) {
+        }
+      }
+    }
+    return super.visitNamedExpression(node);
   }
 
   @Override

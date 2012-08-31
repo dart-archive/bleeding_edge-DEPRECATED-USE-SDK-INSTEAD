@@ -75,17 +75,27 @@ public class SearchEngineTest extends TestCase {
 
 //  private DartLibraryImpl moneyLibrary;
 
+  @SuppressWarnings("unchecked")
+  private static <T extends DartElement> T findElement(CompilationUnit unit, String pattern)
+      throws Exception {
+    int offset = findPattern(unit, pattern);
+    DartElement[] elements = unit.codeSelect(offset, 0);
+    assertThat(elements).hasSize(1);
+    return (T) elements[0];
+  }
+
+  private static int findPattern(CompilationUnit unit, String pattern) throws Exception {
+    String unitSource = unit.getSource();
+    int offset = unitSource.indexOf(pattern);
+    assertThat(offset).describedAs(unitSource).isNotEqualTo(-1);
+    return offset;
+  }
+
   private InMemoryIndex index;
 
   @Override
   public void setUp() {
     try {
-//      DartProject moneyProject = getMoneyProject();
-//      DartLibrary[] libraries = moneyProject.getDartLibraries();
-//      assertNotNull(libraries);
-//      assertEquals(1, libraries.length);
-//      moneyLibrary = (DartLibraryImpl) libraries[0];
-
       index = InMemoryIndex.getInstance();
       index.initializeIndex();
     } catch (Exception exception) {
@@ -99,50 +109,6 @@ public class SearchEngineTest extends TestCase {
       index.shutdown();
     }
   }
-
-  // scheglov: this test fails for me, probably depends on order of execution
-//  public void test_searchConstructorDeclarations() throws Exception {
-//    SearchEngine engine = createSearchEngine();
-//    List<SearchMatch> matches = engine.searchConstructorDeclarations(
-//        SearchScopeFactory.createWorkspaceScope(),
-//        SearchPatternFactory.createPrefixPattern("Simpl", true),
-//        null,
-//        new NullProgressMonitor());
-//    assertEquals(2, matches.size());
-//  }
-
-//  public void test_searchImplementors() throws Exception {
-//    Type type = moneyLibrary.getCompilationUnit("money.dart").getType("Money");
-//    SearchEngine engine = createSearchEngine();
-//    List<SearchMatch> matches = engine.searchImplementors(
-//        type,
-//        SearchScopeFactory.createWorkspaceScope(),
-//        null,
-//        new NullProgressMonitor());
-//    assertEquals(2, matches.size());
-//  }
-//
-//  public void test_searchMethodDeclarations() throws Exception {
-//    SearchEngine engine = createSearchEngine();
-//    List<SearchMatch> matches = engine.searchMethodDeclarations(
-//        SearchScopeFactory.createLibraryScope(moneyLibrary),
-//        SearchPatternFactory.createPrefixPattern("ad", true),
-//        null,
-//        new NullProgressMonitor());
-//    assertEquals(6, matches.size());
-//  }
-//
-//  public void test_searchReferences_field() throws Exception {
-//    Type type = moneyLibrary.getCompilationUnit("simple_money.dart").getType("SimpleMoney");
-//    Field field = type.getField("amount");
-//    SearchEngine engine = createSearchEngine();
-//    List<SearchMatch> matches = engine.searchReferences(
-//        field,
-//        SearchScopeFactory.createWorkspaceScope(),
-//        null,
-//        new NullProgressMonitor());
-//    assertEquals(4, matches.size());
-//  }
 
   public void test_searchReferences_field_local() throws Exception {
     TestProject testProject = new TestProject();
@@ -849,6 +815,64 @@ public class SearchEngineTest extends TestCase {
     }
   }
 
+  public void test_searchReferences_namedParameter_ofFunction() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      CompilationUnit unit = testProject.setUnitContent(
+          "Test.dart",
+          buildSource(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "f({test: 0}) {}",
+              "",
+              "void main() {",
+              "  f(test: 42);",
+              "}",
+              ""));
+      indexUnits(unit);
+      DartVariableDeclaration variable = findElement(unit, "test: 0");
+      List<SearchMatch> matches = getVariableReferences(variable);
+      assertEquals(1, matches.size());
+      {
+        SearchMatch match = matches.get(0);
+        SourceRange range = match.getSourceRange();
+        assertEquals(findPattern(unit, "test: 42"), range.getOffset());
+        assertEquals("test".length(), range.getLength());
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_searchReferences_namedParameter_ofMethod() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      CompilationUnit unit = testProject.setUnitContent(
+          "Test.dart",
+          buildSource(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "class A {",
+              "  static f({test: 0}) {}",
+              "}",
+              "",
+              "void main() {",
+              "  A.f(test: 42);",
+              "}",
+              ""));
+      indexUnits(unit);
+      DartVariableDeclaration variable = findElement(unit, "test: 0");
+      List<SearchMatch> matches = getVariableReferences(variable);
+      assertEquals(1, matches.size());
+      {
+        SearchMatch match = matches.get(0);
+        SourceRange range = match.getSourceRange();
+        assertEquals(findPattern(unit, "test: 42"), range.getOffset());
+        assertEquals("test".length(), range.getLength());
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
   /**
    * Test that we {@link SearchMatch#getImportPrefix()}.
    */
@@ -996,17 +1020,6 @@ public class SearchEngineTest extends TestCase {
       testProject.dispose();
     }
   }
-
-//  public void test_searchReferences_type() throws Exception {
-//    Type type = moneyLibrary.getCompilationUnit("simple_money.dart").getType("SimpleMoney");
-//    SearchEngine engine = createSearchEngine();
-//    List<SearchMatch> matches = engine.searchReferences(
-//        type,
-//        SearchScopeFactory.createWorkspaceScope(),
-//        null,
-//        new NullProgressMonitor());
-//    assertEquals(20, matches.size()); // I believe that this should eventually be 17.
-//  }
 
   public void test_searchReferences_variable() throws Exception {
     TestProject testProject = new TestProject("Test");
@@ -1174,34 +1187,6 @@ public class SearchEngineTest extends TestCase {
     return new SearchEngineImpl(index);
   }
 
-  // TODO (danrubel): Investigate why test is flaky
-//  public void test_searchTypeDeclarations_workspace() throws Exception {
-//    SearchEngine engine = createSearchEngine();
-//    List<SearchMatch> matches = engine.searchTypeDeclarations(
-//        SearchScopeFactory.createWorkspaceScope(),
-//        SearchPatternFactory.createPrefixPattern("Money", true),
-//        (SearchFilter) null,
-//        new NullProgressMonitor());
-//    assertEquals(1, matches.size());
-//    for (SearchMatch match : matches) {
-//      if (isType(match, "Money")) {
-//        return;
-//      }
-//    }
-//    fail("Type Money not found");
-//  }
-
-  @SuppressWarnings("unchecked")
-  private <T extends DartElement> T findElement(CompilationUnit unit, String pattern)
-      throws DartModelException {
-    String unitSource = unit.getSource();
-    int offset = unitSource.indexOf(pattern);
-    assertThat(offset).describedAs(unitSource).isNotEqualTo(-1);
-    DartElement[] elements = unit.codeSelect(offset, 0);
-    assertThat(elements).hasSize(1);
-    return (T) elements[0];
-  }
-
   private List<SearchMatch> getFileReferences(IFile targetFile) throws SearchException {
     SearchEngine engine = createSearchEngine();
     List<SearchMatch> references = engine.searchReferences(
@@ -1279,11 +1264,6 @@ public class SearchEngineTest extends TestCase {
           DartCompilerUtilities.resolveUnit(unit, errors));
     }
   }
-
-//  private boolean isType(SearchMatch match, String typeName) {
-//    DartElement element = match.getElement();
-//    return element instanceof Type && typeName.equals(element.getElementName());
-//  }
 
   private void prepare_searchReferences_import(TestProject testProject) throws Exception {
     testProject.setUnitContent(

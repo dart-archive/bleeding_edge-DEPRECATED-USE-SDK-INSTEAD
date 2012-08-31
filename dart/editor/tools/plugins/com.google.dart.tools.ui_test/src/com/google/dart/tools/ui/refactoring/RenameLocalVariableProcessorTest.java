@@ -216,6 +216,46 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
         "}");
   }
 
+  public void test_OK_parameter_named_onDeclaration() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f({test: 10}) {}",
+        "main() {",
+        "  f(test: 42);",
+        "}",
+        "");
+    DartVariableDeclaration variable = findElement("test: 10");
+    // do rename
+    renameLocalVariable(variable, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f({newName: 10}) {}",
+        "main() {",
+        "  f(newName: 42);",
+        "}",
+        "");
+  }
+
+  public void test_OK_parameter_named_onInvocation() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f({test: 10}) {}",
+        "main() {",
+        "  f(test: 42);",
+        "}",
+        "");
+    DartVariableDeclaration variable = findElement("test: 42");
+    // do rename
+    renameLocalVariable(variable, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f({newName: 10}) {}",
+        "main() {",
+        "  f(newName: 42);",
+        "}",
+        "");
+  }
+
   public void test_OK_parameter_onDeclaration() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

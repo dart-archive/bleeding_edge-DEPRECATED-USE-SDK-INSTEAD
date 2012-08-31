@@ -23,13 +23,11 @@ import com.google.common.collect.Sets;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNamedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.parser.Token;
-import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
@@ -155,15 +153,9 @@ public class StubUtility {
     }
     // positional argument
     if (location == DART_INVOCATION_ARGS) {
-      DartInvocation invocation = (DartInvocation) expression.getParent();
-      MethodElement invocationElement = (MethodElement) invocation.getElement();
-      Object parameterId = expression.getInvocationParameterId();
-      if (parameterId instanceof Integer) {
-        int index = ((Integer) parameterId).intValue();
-        List<VariableElement> parameters = invocationElement.getParameters();
-        if (index < parameters.size()) {
-          return parameters.get(index).getName();
-        }
+      if (expression.getInvocationParameterId() instanceof VariableElement) {
+        VariableElement parameter = (VariableElement) expression.getInvocationParameterId();
+        return parameter.getName();
       }
     }
     // unknown

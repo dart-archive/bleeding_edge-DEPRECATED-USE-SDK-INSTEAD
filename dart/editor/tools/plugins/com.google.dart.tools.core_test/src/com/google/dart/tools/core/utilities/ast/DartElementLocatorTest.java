@@ -623,6 +623,24 @@ public class DartElementLocatorTest extends TestCase {
         2);
   }
 
+  public void test_VariableElement_parameter_namedInInvocation() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  static f({test: 0}) {}",
+            "}",
+            "",
+            "void main() {",
+            "  A.f(test: 42);",
+            "}",
+            ""),
+        "test: 42",
+        DartVariableDeclaration.class,
+        "test: 0",
+        4);
+  }
+
   public void test_VariableElement_parameter_reference_inClassMethod() throws Exception {
     testElementLocator(
         formatLines(

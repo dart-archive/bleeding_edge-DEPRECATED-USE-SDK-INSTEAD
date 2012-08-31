@@ -72,6 +72,11 @@ public enum MatchKind {
   METHOD_REFERENCE,
 
   /**
+   * A reference to a named parameter in invocation.
+   */
+  NAMED_PARAMETER_REFERENCE,
+
+  /**
    * A reference to a type.
    */
   TYPE_REFERENCE;

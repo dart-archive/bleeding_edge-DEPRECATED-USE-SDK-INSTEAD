@@ -360,6 +360,14 @@ public class SearchEngineImpl implements SearchEngine {
     public void performSearch(SearchListener listener) throws SearchException;
   }
 
+  private static Resource getResource(CompilationUnit compilationUnit) throws SearchException {
+    try {
+      return ResourceFactory.getResource(compilationUnit);
+    } catch (DartModelException exception) {
+      throw new SearchException(exception);
+    }
+  }
+
   /**
    * The index used to respond to the search requests.
    */
@@ -577,23 +585,32 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    SearchListener filteredListener = new CountingSearchListener(4, applyFilter(filter, listener));
-    index.getRelationships(
-        createElement(variable),
-        IndexConstants.IS_ACCESSED_BY_QUALIFIED,
-        new RelationshipCallbackImpl(MatchKind.FIELD_READ, filteredListener));
-    index.getRelationships(
-        createElement(variable),
-        IndexConstants.IS_MODIFIED_BY_QUALIFIED,
-        new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, filteredListener));
-    index.getRelationships(
-        createElement(variable),
-        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
-        new RelationshipCallbackImpl(MatchKind.FIELD_READ, filteredListener));
-    index.getRelationships(
-        createElement(variable),
-        IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
-        new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, filteredListener));
+    if (variable.isParameter()) {
+      SearchListener filteredListener = new CountingSearchListener(1, applyFilter(filter, listener));
+      Element element = createMethodParameterElement(variable);
+      index.getRelationships(
+          element,
+          IndexConstants.IS_REFERENCED_BY,
+          new RelationshipCallbackImpl(MatchKind.NAMED_PARAMETER_REFERENCE, filteredListener));
+    } else {
+      SearchListener filteredListener = new CountingSearchListener(4, applyFilter(filter, listener));
+      index.getRelationships(
+          createElement(variable),
+          IndexConstants.IS_ACCESSED_BY_QUALIFIED,
+          new RelationshipCallbackImpl(MatchKind.FIELD_READ, filteredListener));
+      index.getRelationships(
+          createElement(variable),
+          IndexConstants.IS_MODIFIED_BY_QUALIFIED,
+          new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, filteredListener));
+      index.getRelationships(
+          createElement(variable),
+          IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+          new RelationshipCallbackImpl(MatchKind.FIELD_READ, filteredListener));
+      index.getRelationships(
+          createElement(variable),
+          IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
+          new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, filteredListener));
+    }
   }
 
   @Override
@@ -945,6 +962,14 @@ public class SearchEngineImpl implements SearchEngine {
     return new Element[] {IndexConstants.UNIVERSE};
   }
 
+  private Element createMethodParameterElement(DartVariableDeclaration parameter)
+      throws SearchException {
+    DartFunction function = (DartFunction) parameter.getParent();
+    Element functionElement = createElement(function);
+    return new Element(functionElement.getResource(), functionElement.getElementId()
+        + ResourceFactory.SEPARATOR_CHAR + parameter.getElementName());
+  }
+
   /**
    * Use the given runner to perform the given number of asynchronous searches, then wait until the
    * search has completed and return the results that were produced.
@@ -960,14 +985,6 @@ public class SearchEngineImpl implements SearchEngine {
       Thread.yield();
     }
     return listener.getMatches();
-  }
-
-  private Resource getResource(CompilationUnit compilationUnit) throws SearchException {
-    try {
-      return ResourceFactory.getResource(compilationUnit);
-    } catch (DartModelException exception) {
-      throw new SearchException(exception);
-    }
   }
 
   private Resource getResource(IFile file) throws SearchException {

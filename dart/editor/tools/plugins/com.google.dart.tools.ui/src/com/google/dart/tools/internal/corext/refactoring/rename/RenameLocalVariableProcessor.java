@@ -338,8 +338,10 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
     return analyzePossibleConflicts(new FunctionLocalElement(variable), newName, pm);
   }
 
-  private void createEdits() {
-    List<TextEdit> allRenameEdits = getAllRenameEdits();
+  private void createEdits() throws CoreException {
+    List<TextEdit> allRenameEdits = Lists.newArrayList();
+    allRenameEdits.addAll(getLocalRenameEdits());
+    allRenameEdits.addAll(getNamedParameterRenameEdits());
 
     change = new CompilationUnitChange(
         RefactoringCoreMessages.RenameLocalVariableProcessor_name,
@@ -360,7 +362,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
     return new ReplaceEdit(offset, oldName.length(), newName);
   }
 
-  private List<TextEdit> getAllRenameEdits() {
+  private List<TextEdit> getLocalRenameEdits() {
     final List<TextEdit> edits = Lists.newArrayList();
     DartNode enclosingMethod = ASTNodes.getParent(variableNode, DartMethodDefinition.class);
     enclosingMethod.accept(new ASTVisitor<Void>() {
@@ -374,6 +376,19 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
         return null;
       }
     });
+    return edits;
+  }
+
+  private List<TextEdit> getNamedParameterRenameEdits() throws CoreException {
+    List<TextEdit> edits = Lists.newArrayList();
+    if (variable.isParameter()) {
+      List<SearchMatch> references = RenameAnalyzeUtil.getReferences(variable, null);
+      for (SearchMatch match : references) {
+        int offset = match.getSourceRange().getOffset();
+        TextEdit edit = createRenameEdit(offset);
+        edits.add(edit);
+      }
+    }
     return edits;
   }
 

@@ -192,6 +192,12 @@ public final class ElementFactory {
     return result;
   }
 
+  public static Element getParameterElement(MethodElement method, String parameterName)
+      throws DartModelException {
+    Element methodElement = getElement(method);
+    return new Element(methodElement.getResource(), composeElementId(methodElement, parameterName));
+  }
+
   private static Element getElement0(ClassElement element) throws DartModelException {
     Element result;
     LibraryElement libraryElement = getLibraryElement(element);
