@@ -170,6 +170,18 @@ public class Parser {
   }
 
   /**
+   * Parse a sequence of statements, starting with the given token.
+   * 
+   * @param token the first token of the sequence of statement
+   * @return the statements that were parsed, or {@code null} if the tokens do not represent a
+   *         recognizable sequence of statements
+   */
+  public ArrayList<Statement> parseStatements(Token token) {
+    currentToken = token;
+    return parseStatements();
+  }
+
+  /**
    * Advance to the next token in the token stream.
    */
   private void advance() {
