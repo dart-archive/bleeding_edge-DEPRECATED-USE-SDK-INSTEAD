@@ -419,12 +419,11 @@ def main():
       
       version_file = _FindVersionFile(buildout)
       if version_file:
-        UploadFile(version_file)
+        UploadFile(version_file, False)
 
       found_zips = _FindRcpZipFiles(buildout)
       for zipfile in found_zips:
         UploadFile(zipfile)
-        CreateAndUploadChecksum(zipfile)
         
     return junit_status
   finally:
@@ -764,16 +763,16 @@ def CalculateChecksum(filename):
   return md5.hexdigest()
 
 
-def CreateAndUploadChecksum(filename):
+def CreateChecksumFile(filename):
   """Create and upload an MD5 checksum file for filename."""
 
   checksum = CalculateChecksum(filename)
   checksum_filename = '%s.md5sum' % filename
   
   with open(checksum_filename, 'w') as file:
-    file.write('%s  %s\n' % (checksum, os.path.basename(filename)))
+    file.write('%s *%s' % (checksum, os.path.basename(filename)))
     
-  UploadFile(checksum_filename)
+  return checksum_filename
 
 
 def ReplaceInFiles(paths, subs):
@@ -836,7 +835,7 @@ def CreateApiDocs(buildLocation):
   CreateZip(apidir, api_zip)
 
   # upload to continuous/svn_rev and to continuous/latest
-  UploadFile(api_zip)
+  UploadFile(api_zip, False)
   
   
 def CreateSDK(sdkpath):
@@ -881,11 +880,6 @@ def CreateLinuxSDK(sdkpath):
   UploadFile(sdk64_zip)
   UploadFile(sdk64_tgz)
 
-  CreateAndUploadChecksum(sdk32_zip)
-  CreateAndUploadChecksum(sdk32_tgz)
-  CreateAndUploadChecksum(sdk64_zip)
-  CreateAndUploadChecksum(sdk64_tgz)
-
   return sdk32_zip
 
 
@@ -912,11 +906,6 @@ def CreateMacosSDK(sdkpath):
   UploadFile(sdk32_tgz)
   UploadFile(sdk64_tgz)
 
-  CreateAndUploadChecksum(sdk32_zip)
-  CreateAndUploadChecksum(sdk64_zip)
-  CreateAndUploadChecksum(sdk32_tgz)
-  CreateAndUploadChecksum(sdk64_tgz)
-
   return sdk32_zip;
 
 
@@ -934,9 +923,6 @@ def CreateWin32SDK(sdkpath):
 
   UploadFile(sdk32_zip)
   UploadFile(sdk64_zip)
-
-  CreateAndUploadChecksum(sdk32_zip)
-  CreateAndUploadChecksum(sdk64_zip)
 
   return sdk32_zip;
 
@@ -972,14 +958,25 @@ def CreateTgz(directory, file):
                  os.path.dirname(directory))
 
 
-def UploadFile(file):
+def UploadFile(file, createChecksum=True):
   """Upload the given file to google storage."""
   
-  gspathRev = "%s/%s" % (GSU_PATH_REV, os.path.basename(file))
-  Gsutil(['cp', '-a', 'public-read', r'file://' + file, gspathRev])
-
-  gspathLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(file))
-  Gsutil(['cp', '-a', 'public-read', gspathRev, gspathLatest])
+  filePathRev = "%s/%s" % (GSU_PATH_REV, os.path.basename(file))
+  filePathLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(file))
+  
+  if (createChecksum):
+    checksum = CreateChecksumFile(file)
+    
+    checksumRev = "%s/%s" % (GSU_PATH_REV, os.path.basename(checksum))
+    checksumLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(checksum))
+  
+  Gsutil(['cp', '-a', 'public-read', r'file://' + file, filePathRev])
+  if (createChecksum):
+    Gsutil(['cp', '-a', 'public-read', r'file://' + checksum, checksumRev])
+    
+  Gsutil(['cp', '-a', 'public-read', filePathRev, filePathLatest])
+  if (createChecksum):
+    Gsutil(['cp', '-a', 'public-read', checksumRev, checksumLatest])
 
 
 def UploadDirectory(filesToUpload, gs_dir):
