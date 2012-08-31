@@ -67,7 +67,6 @@ public class OpenFolderDialog extends TitleAreaDialog {
 
   @Override
   protected void configureShell(Shell newShell) {
-    String s = DialogMessages.OpenFolderDialog_title;
     newShell.setText(DialogMessages.OpenFolderDialog_title);
     super.configureShell(newShell);
   }
