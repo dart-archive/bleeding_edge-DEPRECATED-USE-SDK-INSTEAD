@@ -8,17 +8,17 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "127060",
+  "webkit_revision": "127156",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "9589",
+  "nacl_revision": "9602",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "9330",  # native_client/DEPS: tools_rev
   "gtm_revision": "534",
 
-  "libjingle_revision": "175",
+  "libjingle_revision": "177",
   "libphonenumber_revision": "456",
   "libvpx_revision": "152423",
   "lss_revision": "11",
@@ -29,11 +29,11 @@ vars = {
   "ffmpeg_hash": "2079ffae30f8da6c6eed985cce00e04c31b40888",
 
   "sfntly_revision": "134",
-  "skia_revision": "5330",
+  "skia_revision": "5341",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "12377",
+  "v8_revision": "12408",
   "webrtc_revision": "2662",
   "jsoncpp_revision": "248",
   "nss_revision": "145873",
@@ -311,7 +311,7 @@ deps = {
     (Var("googlecode_url") % "web-page-replay") + "/trunk@494",
 
   "src/third_party/pywebsocket/src":
-    (Var("googlecode_url") % "pywebsocket") + "/trunk/src@658",
+    (Var("googlecode_url") % "pywebsocket") + "/trunk/src@661",
 }
 
 
@@ -528,7 +528,7 @@ deps_os = {
 
     "src/third_party/android_tools":
       Var("chromium_git") + "/android_tools.git" +
-      "@470254c5379907d6a71f8885ee2d8c616fa0b191",
+      "@e1bf0d38fe01f7ada8ff7ba96321c9af8c06d7c2",
   },
 }
 
