@@ -1080,35 +1080,6 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     assertEquals(source, testUnit.getSource());
   }
 
-  /**
-   * We should warn about renaming external elements, but allow rename.
-   */
-  public void test_preCondition_externalElement() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "f() {",
-        "  Map m = new Map();",
-        "}",
-        "");
-    Type type = findElement("Map ");
-    // try to rename
-    showStatusCancel = false;
-    renameType(type, "NewName");
-    // warning should be displayed
-    assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
-    assertThat(showStatusMessages.get(0)).contains(
-        "Only workspace references will be changed for type defined outside of workspace");
-    // status was non-fatal error, so rename was done
-    assertTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "f() {",
-        "  NewName m = new NewName();",
-        "}",
-        "");
-  }
-
   public void test_preCondition_hasCompilationErrors() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

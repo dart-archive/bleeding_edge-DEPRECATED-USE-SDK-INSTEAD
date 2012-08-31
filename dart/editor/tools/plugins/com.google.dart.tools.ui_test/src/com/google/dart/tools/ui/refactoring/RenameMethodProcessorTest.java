@@ -788,37 +788,6 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     assertEquals(source, testUnit.getSource());
   }
 
-  /**
-   * We should warn about renaming external elements, but allow rename.
-   */
-  public void test_preCondition_externalElement() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  Strings.concatAll(['0']);",
-        "  Strings.concatAll(['1']);",
-        "}",
-        "");
-    Method method = findElement("concatAll(['0'])");
-    // try to rename
-    showStatusCancel = false;
-    renameMethod(method, "newName");
-    // warning should be displayed
-    assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
-    assertThat(showStatusMessages.get(0)).contains(
-        "Only workspace references will be changed for method defined outside of workspace");
-    // status was non-fatal error, so rename was done
-    assertTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  Strings.newName(['0']);",
-        "  Strings.newName(['1']);",
-        "}",
-        "");
-  }
-
   public void test_preCondition_hasCompilationErrors() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
