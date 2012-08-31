@@ -23,8 +23,7 @@ public class TestAll {
 //    suite.addTestSuite(CompilationUnitImpl2Test.class);
     suite.addTestSuite(DartElementImplTest.class);
     suite.addTestSuite(DartFieldImplTest.class);
-    // TODO(devoncarew): DartLibraryImplTest needs to be cleaned of dart:dom_deprecated references.
-    //suite.addTestSuite(DartLibraryImplTest.class);
+    suite.addTestSuite(DartLibraryImplTest.class);
     suite.addTestSuite(DartImportImplTest.class);
     suite.addTestSuite(DartMethodImplTest.class);
     suite.addTestSuite(DartModelImplTest.class);
