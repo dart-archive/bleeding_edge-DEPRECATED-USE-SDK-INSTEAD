@@ -38,7 +38,7 @@ import java.util.Arrays;
  */
 public class CompletionProposalLabelProvider {
 
-  private static final String RIGHT_ARROW = " → "; //$NON-NLS-1$
+  private static final String RIGHT_ARROW = " -> "; //$NON-NLS-1$
   private static final String VOID_INDICATOR = "  void"; //$NON-NLS-1$
   private static final String DYNAMIC_INDICATOR = "  dynamic"; //$NON-NLS-1$
 
