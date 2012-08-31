@@ -353,6 +353,13 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * Returns the day (yyyy-MM-dd) the product was built.
+   */
+  public static String getBuildDate() {
+    return "@BUILDDATE@";
+  }
+
+  /**
    * Returns the SVN revision number as a String.
    */
   public static String getBuildId() {

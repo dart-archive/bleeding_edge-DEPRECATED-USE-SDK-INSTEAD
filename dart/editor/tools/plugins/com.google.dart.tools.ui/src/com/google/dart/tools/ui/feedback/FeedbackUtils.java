@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.feedback;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.swt.internal.Library;
@@ -59,11 +60,11 @@ public class FeedbackUtils {
   public static String getEditorVersionDetails() {
     String binaryDetails = null;
     try {
-      binaryDetails = binaryMismatch() ? getBinaryString() : "";
+      binaryDetails = binaryMismatch() ? " - " + getBinaryString() : "";
     } catch (Exception e) {
       binaryDetails = "- <unable to detect binary type>";
     }
-    return DartToolsPlugin.getBuildId() + binaryDetails;
+    return DartToolsPlugin.getBuildId() + " (" + getBuildDate() + ") " + binaryDetails;
   }
 
   /**
@@ -102,7 +103,11 @@ public class FeedbackUtils {
   }
 
   private static String getBinaryString() throws Exception {
-    return " - *" + (is64bitBinary() ? "64" : "32") + " bit binary*";
+    return "*" + (is64bitBinary() ? "64" : "32") + " bit binary*";
+  }
+
+  private static String getBuildDate() {
+    return DartCore.getBuildDate();
   }
 
   private static String getOSArch() {

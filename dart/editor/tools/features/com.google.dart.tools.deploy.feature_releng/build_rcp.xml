@@ -65,6 +65,9 @@ build system.  The PDE build system has to run under Eclipse.
             <format property="build.date" pattern="yyyyMMddHHmm" />
         </tstamp>
         <tstamp>
+            <format property="build.date.ymd" pattern="yyyy-MM-dd" />
+        </tstamp>
+        <tstamp>
             <format property="build.year" pattern="yyyy" />
         </tstamp>
         <echoProperty propertyname="build.osgi.arch"/>
@@ -370,7 +373,7 @@ build system.  The PDE build system has to run under Eclipse.
         <replace dir="${build.stage.features}/com.google.dart.tools.deploy.feature">
             <include name="*.html" />
             <include name="*.mappings" />
-            <replacefilter token="@BUILDDATE@" value="${build.date}" />
+            <replacefilter token="@BUILDDATE@" value="${build.date.ymd}" />
             <replacefilter token="@REVISION@" value="${build.revision}" />
             <replacefilter token="@BUILDYEAR@" value="${build.year}" />
         </replace>
@@ -382,6 +385,7 @@ build system.  The PDE build system has to run under Eclipse.
         
         <replace dir="${build.stage.plugins}/com.google.dart.tools.core" >
             <include name="**/DartCore.java" />
+            <replacefilter token="@BUILDDATE@" value="${build.date.ymd}" />
             <replacefilter token="@REVISION@" value="${build.revision}" />
         </replace>
 
