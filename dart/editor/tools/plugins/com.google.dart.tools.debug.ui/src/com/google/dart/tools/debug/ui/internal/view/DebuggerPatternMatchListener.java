@@ -155,7 +155,7 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     // (http://127.0.0.1:3030/Users/util/debuggertest/web_test.dart:33:14)
     // http://127.0.0.1:8081
 
-    return "\\(?http://\\S+";
+    return "(http|file)://\\S+";
   }
 
   @Override
@@ -166,18 +166,30 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     try {
       String match = console.getDocument().get(event.getOffset(), event.getLength());
 
+      // Strip extraneous trailing characters
+      int index = match.length() - 1;
+      while (index > 0) {
+        if (Character.isLetterOrDigit(match.charAt(index))) {
+          break;
+        }
+        index--;
+      }
+      match = match.substring(0, index + 1);
+
+      // Check for reference to line in dart source
       Location location = parseForLocation(match);
       if (location != null && location.doesExist()) {
         console.addHyperlink(
             new FileLink(location.getFile(), DartUI.ID_CU_EDITOR, -1, -1, location.getLine()),
             event.getOffset(),
-            event.getLength());
+            match.length());
         return;
       }
 
+      // Check for generic URL
       URL url = parseForUrl(match);
       if (url != null) {
-        console.addHyperlink(new BrowserLink(url), event.getOffset(), event.getLength());
+        console.addHyperlink(new BrowserLink(url), event.getOffset(), match.length());
         return;
       }
     } catch (BadLocationException e) {
@@ -193,13 +205,6 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
 
   private Location parseForLocation(String match) {
     // (http://127.0.0.1:3030/Users/util/debuggertest/web_test.dart:33:14)
-
-    if (!(match.startsWith("(") && match.endsWith(")"))) {
-      return null;
-    }
-
-    // remove the parans
-    match = match.substring(1, match.length() - 1);
 
     int index = match.indexOf(".dart:");
 
@@ -266,19 +271,8 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
   private URL parseForUrl(String match) {
     // http://127.0.0.1:8081
 
-    if (match.startsWith("(")) {
-      match = match.substring(1);
-    }
-    int index = match.length() - 1;
-    while (index > 0) {
-      if (Character.isLetterOrDigit(match.charAt(index))) {
-        break;
-      }
-      index--;
-    }
-    match = match.substring(0, index + 1);
     // references to Dart source should be handled by parseForLocation
-    if (match.endsWith(".dart")) {
+    if (match.startsWith("file:") || match.endsWith(".dart")) {
       return null;
     }
 
