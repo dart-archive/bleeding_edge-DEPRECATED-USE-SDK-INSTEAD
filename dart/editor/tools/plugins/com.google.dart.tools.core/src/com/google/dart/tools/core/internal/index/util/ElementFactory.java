@@ -195,6 +195,9 @@ public final class ElementFactory {
   public static Element getParameterElement(MethodElement method, String parameterName)
       throws DartModelException {
     Element methodElement = getElement(method);
+    if (methodElement == null) {
+      return null;
+    }
     return new Element(methodElement.getResource(), composeElementId(methodElement, parameterName));
   }
 
