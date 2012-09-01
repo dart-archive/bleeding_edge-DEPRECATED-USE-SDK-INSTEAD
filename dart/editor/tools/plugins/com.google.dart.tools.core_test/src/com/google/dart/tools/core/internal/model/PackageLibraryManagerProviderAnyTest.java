@@ -27,9 +27,8 @@ public class PackageLibraryManagerProviderAnyTest extends PackageLibraryManagerP
     testLibrary("coreimpl", "coreimpl.dart");
   }
 
-  //TODO(pquitslund): improve this test
   public void test_PackageLibraryManagerProvider_html() throws Exception {
-    testLibrary("dartium", "html_dartium.dart");
+    testLibrary("html", "html_dartium.dart");
   }
 
   public void test_PackageLibraryManagerProvider_io() throws Exception {
