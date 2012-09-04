@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
@@ -41,8 +43,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-
-import static org.fest.assertions.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -171,6 +171,43 @@ public class DartLibraryImplTest extends TestCase {
     DartLibraryImpl lib = getDartLibExternal();
     File libDir = new File(getTempDir(), "libExternal");
     assertEquals(lib, new DartLibraryImpl(new File(libDir, "libExternal.dart")));
+  }
+
+  /**
+   * Test for {@link DartLibrary#findTopLevelElement(String)}.
+   */
+  public void test_DartLibraryImpl_findTopLevelElement() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      testProject.setUnitContent(
+          "Test1.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "testB() {}",
+              ""));
+      testProject.setUnitContent(
+          "Test2.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "const TEST_C = 0;",
+              ""));
+      IResource libResource = testProject.setUnitContent(
+          "Test.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('test');",
+              "#source('Test1.dart');",
+              "#source('Test2.dart');",
+              "class A {}",
+              "")).getResource();
+      DartLibrary library = testProject.getDartProject().getDartLibrary(libResource);
+      assertNotNull(library.findTopLevelElement("A"));
+      assertNotNull(library.findTopLevelElement("testB"));
+      assertNotNull(library.findTopLevelElement("TEST_C"));
+      assertNull(library.findTopLevelElement("NoSuchElement"));
+    } finally {
+      testProject.dispose();
+    }
   }
 
   /**

@@ -260,11 +260,12 @@ class AnalysisMarkerManager implements AnalysisListener {
       }
 
       // Sleep for 1 second to allow marker operations to accumulate and be batched
-
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        //$FALL-THROUGH$
+      if (System.getProperty("dartEditorTesting") == null) {
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
       }
     }
   }

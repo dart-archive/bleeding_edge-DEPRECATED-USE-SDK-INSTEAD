@@ -278,6 +278,18 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   @Override
+  public DartElement findTopLevelElement(String name) throws DartModelException {
+    for (CompilationUnit unit : getCompilationUnits()) {
+      for (DartElement element : unit.getChildren()) {
+        if (element.getElementName().equals(name)) {
+          return element;
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
   public Type findType(String typeName) throws DartModelException {
     for (CompilationUnit unit : getCompilationUnits()) {
       for (Type type : unit.getTypes()) {

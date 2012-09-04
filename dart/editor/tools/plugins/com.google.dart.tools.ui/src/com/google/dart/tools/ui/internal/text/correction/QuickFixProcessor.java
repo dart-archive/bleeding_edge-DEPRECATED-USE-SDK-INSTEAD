@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_FUNCTION_NAME;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_TARGET;
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 
@@ -20,8 +22,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.ErrorCode;
-import com.google.dart.compiler.Source;
 import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartClassMember;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartExpression;
@@ -47,7 +49,6 @@ import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
 import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
 import com.google.dart.tools.core.dom.rewrite.TrackedNodePosition;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
@@ -192,8 +193,13 @@ public class QuickFixProcessor implements IQuickFixProcessor {
             if (errorCode == TypeErrorCode.NO_SUCH_TYPE) {
               addFix_importLibrary_withType(location);
             }
+            if (errorCode == ResolverErrorCode.CANNOT_RESOLVE_METHOD) {
+              addFix_importLibrary_withFunction(location);
+            }
+            if (errorCode == ResolverErrorCode.CANNOT_BE_RESOLVED) {
+              addFix_importLibrary_withField(location);
+            }
           }
-
         });
       }
     }
@@ -202,7 +208,8 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 
   @Override
   public boolean hasCorrections(CompilationUnit unit, ErrorCode errorCode) {
-    return errorCode == ResolverErrorCode.CANNOT_RESOLVE_METHOD
+    return errorCode == ResolverErrorCode.CANNOT_BE_RESOLVED
+        || errorCode == ResolverErrorCode.CANNOT_RESOLVE_METHOD
         || errorCode == ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_CLASS
         || errorCode == TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED
         || errorCode == TypeErrorCode.IS_STATIC_METHOD_IN
@@ -295,8 +302,10 @@ public class QuickFixProcessor implements IQuickFixProcessor {
           // append parameter name
           {
             String[] suggestions = getArgumentNameSuggestions(excluded, type, argument, i);
+            String favorite = suggestions[0];
+            excluded.add(favorite);
             sb.startPosition("ARG" + i);
-            sb.append(suggestions[0]);
+            sb.append(favorite);
             sb.setProposals(suggestions);
             sb.endPosition();
           }
@@ -337,70 +346,9 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     return type;
   }
 
-  private void addFix_importLibrary_withType(IProblemLocation location) throws Exception {
-    if (node instanceof DartIdentifier && node.getParent() instanceof DartTypeNode) {
-      String typeName = ((DartIdentifier) node).getName();
-      // ignore if private
-      if (typeName.startsWith("_")) {
-        return;
-      }
-      // prepare base URI
-      CompilationUnit libraryUnit = unit.getLibrary().getDefiningCompilationUnit();
-      URI unitNormalizedUri;
-      {
-        URI unitUri = libraryUnit.getUnderlyingResource().getLocationURI();
-        unitNormalizedUri = unitUri.resolve(".").normalize();
-      }
-      // may be there is existing import, but it is with prefix and we don't use this prefix
-      for (DartImport imp : unit.getLibrary().getImports()) {
-        String prefix = imp.getPrefix();
-        if (!StringUtils.isEmpty(prefix) && imp.getLibrary().findType(typeName) != null) {
-          SourceRange range = SourceRangeFactory.forStartLength(node, 0);
-          addReplaceEdit(range, prefix + ".");
-          // add proposal
-          proposalRelevance++;
-          addUnitCorrectionProposal(
-              libraryUnit,
-              TextFileChange.FORCE_SAVE,
-              Messages.format(
-                  CorrectionMessages.QuickFixProcessor_importLibrary_addPrefix,
-                  new Object[] {getSource(imp.getUriRange()), prefix}),
-              DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
-        }
-      }
-      // prepare Dart model
-      DartModel model = DartCore.create(ResourcesPlugin.getWorkspace().getRoot());
-      // check workspace libraries
-      for (DartProject project : model.getDartProjects()) {
-        for (DartLibrary library : project.getDartLibraries()) {
-          if (library.findType(typeName) != null) {
-            URI libraryUri = library.getUri();
-            URI libraryRelativeUri = unitNormalizedUri.relativize(libraryUri);
-            if (StringUtils.isEmpty(libraryRelativeUri.getScheme())) {
-              String importPath = libraryRelativeUri.toString();
-              addFix_importLibrary_withType(importPath);
-            }
-          }
-        }
-      }
-      // check SDK libraries
-      PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getPackageLibraryManager();
-      for (DartLibrary library : model.getBundledLibraries()) {
-        if (library.findType(typeName) != null) {
-          URI libraryUri = library.getUri();
-          URI libraryShortUri = libraryManager.getShortUri(libraryUri);
-          if (libraryShortUri != null) {
-            String importPath = libraryShortUri.toString();
-            addFix_importLibrary_withType(importPath);
-          }
-        }
-      }
-    }
-  }
-
-  private void addFix_importLibrary_withType(String importPath) throws Exception {
+  private void addFix_importLibrary(String importPath) throws Exception {
     CompilationUnit libraryUnit = unit.getLibrary().getDefiningCompilationUnit();
-    // prepare new #import location
+    // prepare new import location
     SourceRange range;
     String prefix;
     String suffix;
@@ -422,10 +370,11 @@ public class QuickFixProcessor implements IQuickFixProcessor {
         }
       }
     }
-    // insert new #import
-    String importSource = prefix + "#import('" + importPath + "');" + suffix;
+    // insert new import
+    String importSource = prefix + "import '" + importPath + "';" + suffix;
     addReplaceEdit(range, importSource);
     // add proposal
+    proposalRelevance += 1;
     addUnitCorrectionProposal(
         libraryUnit,
         TextFileChange.FORCE_SAVE,
@@ -433,8 +382,88 @@ public class QuickFixProcessor implements IQuickFixProcessor {
         DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
   }
 
+  private void addFix_importLibrary_withElement(String name) throws Exception {
+    // ignore if private
+    if (name.startsWith("_")) {
+      return;
+    }
+    // prepare base URI
+    CompilationUnit libraryUnit = unit.getLibrary().getDefiningCompilationUnit();
+    URI unitNormalizedUri;
+    {
+      URI unitUri = libraryUnit.getUnderlyingResource().getLocationURI();
+      unitNormalizedUri = unitUri.resolve(".").normalize();
+    }
+    // may be there is existing import, but it is with prefix and we don't use this prefix
+    for (DartImport imp : unit.getLibrary().getImports()) {
+      String prefix = imp.getPrefix();
+      if (!StringUtils.isEmpty(prefix) && imp.getLibrary().findTopLevelElement(name) != null) {
+        SourceRange range = SourceRangeFactory.forStartLength(node, 0);
+        addReplaceEdit(range, prefix + ".");
+        // add proposal
+        proposalRelevance += 2;
+        addUnitCorrectionProposal(
+            libraryUnit,
+            TextFileChange.FORCE_SAVE,
+            Messages.format(
+                CorrectionMessages.QuickFixProcessor_importLibrary_addPrefix,
+                new Object[] {getSource(imp.getUriRange()), prefix}),
+            DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+      }
+    }
+    // prepare Dart model
+    DartModel model = DartCore.create(ResourcesPlugin.getWorkspace().getRoot());
+    // check workspace libraries
+    for (DartProject project : model.getDartProjects()) {
+      for (DartLibrary library : project.getDartLibraries()) {
+        if (library.findTopLevelElement(name) != null) {
+          URI libraryUri = library.getUri();
+          URI libraryRelativeUri = unitNormalizedUri.relativize(libraryUri);
+          if (StringUtils.isEmpty(libraryRelativeUri.getScheme())) {
+            String importPath = libraryRelativeUri.toString();
+            addFix_importLibrary(importPath);
+          }
+        }
+      }
+    }
+    // check SDK libraries
+    PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getPackageLibraryManager();
+    for (DartLibrary library : model.getBundledLibraries()) {
+      if (library.findTopLevelElement(name) != null) {
+        URI libraryUri = library.getUri();
+        URI libraryShortUri = libraryManager.getShortUri(libraryUri);
+        if (libraryShortUri != null) {
+          String importPath = libraryShortUri.toString();
+          addFix_importLibrary(importPath);
+        }
+      }
+    }
+  }
+
+  private void addFix_importLibrary_withField(IProblemLocation location) throws Exception {
+    if (node instanceof DartIdentifier) {
+      String name = ((DartIdentifier) node).getName();
+      addFix_importLibrary_withElement(name);
+    }
+  }
+
+  private void addFix_importLibrary_withFunction(IProblemLocation location) throws Exception {
+    if (node instanceof DartIdentifier
+        && getLocationInParent(node) == DART_METHOD_INVOCATION_TARGET) {
+      String name = ((DartIdentifier) node).getName();
+      addFix_importLibrary_withElement(name);
+    }
+  }
+
+  private void addFix_importLibrary_withType(IProblemLocation location) throws Exception {
+    if (node instanceof DartIdentifier && node.getParent() instanceof DartTypeNode) {
+      String typeName = ((DartIdentifier) node).getName();
+      addFix_importLibrary_withElement(typeName);
+    }
+  }
+
   private void addFix_useStaticAccess_method(IProblemLocation location) throws Exception {
-    if (PropertyDescriptorHelper.getLocationInParent(node) == PropertyDescriptorHelper.DART_METHOD_INVOCATION_FUNCTION_NAME) {
+    if (getLocationInParent(node) == DART_METHOD_INVOCATION_FUNCTION_NAME) {
       DartMethodInvocation invocation = (DartMethodInvocation) node.getParent();
       Element methodElement = node.getElement();
       if (methodElement instanceof MethodElement

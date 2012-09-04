@@ -57,6 +57,12 @@ public interface DartLibrary extends OpenableElement, ParentElement {
   public void delete(IProgressMonitor monitor) throws DartModelException;
 
   /**
+   * @return the top-level {@link DartElement} with the given name that is declared within this
+   *         library, may be <code>null</code>.
+   */
+  public DartElement findTopLevelElement(String name) throws DartModelException;
+
+  /**
    * Return the type with the given name that is declared within this library, or <code>null</code>
    * if there is no such type declared in this library.
    * 

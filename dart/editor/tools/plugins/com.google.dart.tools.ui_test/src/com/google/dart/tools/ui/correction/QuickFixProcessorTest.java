@@ -14,8 +14,6 @@
 package com.google.dart.tools.ui.correction;
 
 import com.google.dart.compiler.ErrorCode;
-import com.google.dart.compiler.resolver.ResolverErrorCode;
-import com.google.dart.compiler.resolver.TypeErrorCode;
 import com.google.dart.compiler.util.apache.ArrayUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.internal.text.correction.AssistContext;
@@ -27,19 +25,20 @@ import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
 import com.google.dart.tools.ui.text.dart.IQuickFixProcessor;
 
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
 import static org.fest.assertions.Assertions.assertThat;
+
+import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * Test for {@link QuickFixProcessor}.
  */
 public final class QuickFixProcessorTest extends AbstractDartTest {
   private static final IQuickFixProcessor PROCESSOR = new QuickFixProcessor();
-
-  private ErrorCode problemCode;
-  private int problemOffset;
-  private int problemLength;
 
   private int proposalsExpectedNumber = 1;
   private int proposalsIndexToCheck = 0;
@@ -51,9 +50,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  foo(1, 2.0, '');",
         "}",
         "");
-    problemCode = ResolverErrorCode.CANNOT_RESOLVE_METHOD;
-    problemOffset = findOffset("foo(");
-    problemLength = "foo".length();
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -72,9 +68,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  foo(null);",
         "}",
         "");
-    problemCode = ResolverErrorCode.CANNOT_RESOLVE_METHOD;
-    problemOffset = findOffset("foo(");
-    problemLength = "foo".length();
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -93,9 +86,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  var v = foo();",
         "}",
         "");
-    problemCode = ResolverErrorCode.CANNOT_RESOLVE_METHOD;
-    problemOffset = findOffset("foo();");
-    problemLength = "foo".length();
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -114,9 +104,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  int v = foo();",
         "}",
         "");
-    problemCode = ResolverErrorCode.CANNOT_RESOLVE_METHOD;
-    problemOffset = findOffset("foo();");
-    problemLength = "foo".length();
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -135,9 +122,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  foo();",
         "}",
         "");
-    problemCode = ResolverErrorCode.CANNOT_RESOLVE_METHOD;
-    problemOffset = findOffset("foo();");
-    problemLength = "foo".length();
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -161,9 +145,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  a.test();",
         "}",
         "");
-    problemCode = TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED;
-    problemOffset = findOffset("test(");
-    problemLength = "foo".length();
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -191,9 +172,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  A.test();",
         "}",
         "");
-    problemCode = ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_CLASS;
-    problemOffset = findOffset("test(");
-    problemLength = "foo".length();
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -218,9 +196,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  }",
         "}",
         "");
-    problemCode = TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED;
-    problemOffset = findOffset("test(");
-    problemLength = "test".length();
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -243,9 +218,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  }",
         "}",
         "");
-    problemCode = ResolverErrorCode.CANNOT_RESOLVE_METHOD;
-    problemOffset = findOffset("test(");
-    problemLength = "test".length();
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -259,6 +231,103 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "");
   }
 
+  public void test_importLibrary_withField_fromSDK() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  process(PI);",
+        "}",
+        "process(x) {}",
+        "");
+    assertQuickFix(
+        "import 'dart:math';",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  process(PI);",
+        "}",
+        "process(x) {}",
+        "");
+  }
+
+  public void test_importLibrary_withFunction() throws Exception {
+    setUnitContent("Lib.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test() {}",
+        ""});
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  test();",
+        "}",
+        "");
+    proposalsExpectedNumber = 2;
+    proposalsIndexToCheck = 0;
+    assertQuickFix(
+        "import 'Lib.dart';",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  test();",
+        "}",
+        "");
+  }
+
+  public void test_importLibrary_withFunction_fromSDK() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  min(1, 2);",
+        "}",
+        "");
+    proposalsExpectedNumber = 2;
+    proposalsIndexToCheck = 0;
+    assertQuickFix(
+        "import 'dart:math';",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  min(1, 2);",
+        "}",
+        "");
+  }
+
+  public void test_importLibrary_withFunction_hasImportWithPrefix() throws Exception {
+    setUnitContent("Lib.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library Lib;",
+        "test() {}",
+        ""});
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'Lib.dart' as lib;",
+        "main() {",
+        "  test();",
+        "}",
+        "");
+    proposalsExpectedNumber = 3;
+    proposalsIndexToCheck = 0;
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'Lib.dart' as lib;",
+        "main() {",
+        "  lib.test();",
+        "}",
+        "");
+  }
+
+  public void test_importLibrary_withFunction_privateName() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  _test();",
+        "}",
+        "");
+    // no "import" proposal
+    IDartCompletionProposal[] proposals = prepareQuickFixes();
+    for (IDartCompletionProposal proposal : proposals) {
+      String title = proposal.getDisplayString().toLowerCase();
+      assertThat(title).excludes("import");
+    }
+  }
+
   public void test_importLibrary_withType_fromSDK() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -266,11 +335,8 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  TableElement t = null;",
         "}",
         "");
-    problemCode = TypeErrorCode.NO_SUCH_TYPE;
-    problemOffset = findOffset("TableElement");
-    problemLength = "TableElement".length();
     assertQuickFix(
-        "#import('dart:html');",
+        "import 'dart:html';",
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  TableElement t = null;",
@@ -279,17 +345,17 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_importLibrary_withType_hasDirectiveImport() throws Exception {
-    setUnitContent("AAA.dart", new String[] {
+    setUnitContent("LibA.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('AAA');",
+        "library A;",
         "class AAA {",
         "}",
         ""});
     setUnitContent("App.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('App');",
-        "#import('dart:core');",
-        "#source('Test.dart');",
+        "library App;",
+        "import 'dart:core';",
+        "part 'Test.dart';",
         ""});
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -297,16 +363,13 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  AAA a = null;",
         "}",
         "");
-    problemCode = TypeErrorCode.NO_SUCH_TYPE;
-    problemOffset = findOffset("AAA");
-    problemLength = "AAA".length();
     // we have "fix", note that preview is for library
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('App');",
-        "#import('dart:core');",
-        "#import('AAA.dart');",
-        "#source('Test.dart');",
+        "library App;",
+        "import 'dart:core';",
+        "import 'LibA.dart';",
+        "part 'Test.dart';",
         "");
     // unit itself is not changed
     assertTestUnitContent(
@@ -320,25 +383,23 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   public void test_importLibrary_withType_hasImportWithPrefix() throws Exception {
     setUnitContent("Lib.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
+        "library Lib;",
         "class Test {",
         "}",
         ""});
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('Lib.dart', prefix: 'lib');",
+        "import 'Lib.dart' as lib;",
         "main() {",
         "  Test t = null;",
         "}",
         "");
-    problemCode = TypeErrorCode.NO_SUCH_TYPE;
-    problemOffset = findOffset("Test");
-    problemLength = "Test".length();
     // do check
     proposalsExpectedNumber = 2;
     proposalsIndexToCheck = 0;
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('Lib.dart', prefix: 'lib');",
+        "import 'Lib.dart' as lib;",
         "main() {",
         "  lib.Test t = null;",
         "}",
@@ -357,11 +418,8 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  Test t = null;",
         "}",
         "");
-    problemCode = TypeErrorCode.NO_SUCH_TYPE;
-    problemOffset = findOffset("Test");
-    problemLength = "Test".length();
     assertQuickFix(
-        "#import('Lib.dart');",
+        "import 'Lib.dart';",
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  Test t = null;",
@@ -376,9 +434,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  _Test t = null;",
         "}",
         "");
-    problemCode = TypeErrorCode.NO_SUCH_TYPE;
-    problemOffset = findOffset("_Test");
-    problemLength = "_Test".length();
     assertNoQuickFix();
   }
 
@@ -392,9 +447,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  A aaaa = new A();",
         "  aaaa.foo();",
         "}");
-    problemCode = TypeErrorCode.IS_STATIC_METHOD_IN;
-    problemOffset = findOffset("foo();");
-    problemLength = "foo".length();
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -409,25 +461,22 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   public void test_useStaticAccess_method_importWithPrefix() throws Exception {
     setUnitContent("Lib.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('Lib');",
+        "library Lib;",
         "class A {",
         " static foo() {}",
         "}",
         ""});
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('Lib.dart', prefix: 'lib');",
+        "import 'Lib.dart' as lib;",
         "main() {",
         "  lib.A aaaa = new lib.A();",
         "  aaaa.foo();",
         "}",
         "");
-    problemCode = TypeErrorCode.IS_STATIC_METHOD_IN;
-    problemOffset = findOffset("foo();");
-    problemLength = "foo".length();
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('Lib.dart', prefix: 'lib');",
+        "import 'Lib.dart' as lib;",
         "main() {",
         "  lib.A aaaa = new lib.A();",
         "  lib.A.foo();",
@@ -463,25 +512,71 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   /**
+   * Waits for a find single Dart problem in {@link #testUnit}.
+   */
+  private IProblemLocation findProblemLocation() throws CoreException {
+    long start = System.currentTimeMillis();
+    while (System.currentTimeMillis() - start < 5000) {
+      IMarker[] markers = testUnit.getResource().findMarkers(
+          DartCore.DART_PROBLEM_MARKER_TYPE,
+          true,
+          IResource.DEPTH_INFINITE);
+      if (markers.length != 0) {
+        assertThat(markers).hasSize(1);
+        IMarker marker = markers[0];
+        // if "errorCode" is not set, then marker is not fully configured yet
+        ErrorCode problemCode;
+        {
+          String qualifiedName = marker.getAttribute("errorCode", (String) null);
+          if (qualifiedName == null) {
+            continue;
+          }
+          assertThat(qualifiedName).isNotNull();
+          problemCode = ErrorCode.Helper.forQualifiedName(qualifiedName);
+        }
+        // get location
+        int problemOffset = marker.getAttribute(IMarker.CHAR_START, -1);
+        int problemLength = marker.getAttribute(IMarker.CHAR_END, -1) - problemOffset;
+        // done
+        return new ProblemLocation(
+            problemOffset,
+            problemLength,
+            problemCode,
+            ArrayUtils.EMPTY_STRING_ARRAY,
+            true,
+            DartCore.DART_PROBLEM_MARKER_TYPE);
+      }
+      // wait
+      waitEventLoop(0);
+    }
+    fail("Could not find Dart problem in 5000 ms");
+    return null;
+  }
+
+  /**
    * @return proposals created for {@link IProblemLocation} using "problem*" fields.
    */
   private IDartCompletionProposal[] prepareQuickFixes() throws CoreException {
-    IProblemLocation problemLocation = new ProblemLocation(
-        problemOffset,
-        problemLength,
-        problemCode,
-        ArrayUtils.EMPTY_STRING_ARRAY,
-        true,
-        DartCore.DART_PROBLEM_MARKER_TYPE);
+    IProblemLocation problemLocation = findProblemLocation();
     IProblemLocation problemLocations[] = new IProblemLocation[] {problemLocation};
     // prepare context
     AssistContext context = new AssistContext(
         testUnit,
         problemLocation.getOffset(),
         problemLocation.getLength());
-    assertTrue(PROCESSOR.hasCorrections(testUnit, problemCode));
+    assertTrue(PROCESSOR.hasCorrections(testUnit, problemLocation.getProblemId()));
     // run single proposal
     IDartCompletionProposal[] proposals = PROCESSOR.getCorrections(context, problemLocations);
+    sortByRelavance(proposals);
     return proposals;
+  }
+
+  private void sortByRelavance(IDartCompletionProposal[] proposals) {
+    Arrays.sort(proposals, new Comparator<IDartCompletionProposal>() {
+      @Override
+      public int compare(IDartCompletionProposal o1, IDartCompletionProposal o2) {
+        return o2.getRelevance() - o1.getRelevance();
+      }
+    });
   }
 }
