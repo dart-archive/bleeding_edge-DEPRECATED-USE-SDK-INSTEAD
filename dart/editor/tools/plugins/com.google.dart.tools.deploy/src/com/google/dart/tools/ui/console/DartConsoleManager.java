@@ -20,6 +20,7 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.internal.ui.views.console.ProcessConsole;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.ConsolePlugin;
@@ -171,14 +172,18 @@ public class DartConsoleManager implements IConsoleListener {
       // Else create a new console.
       try {
         if (PlatformUI.getWorkbench() != null) {
-          view = (DartConsoleView) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(
-              DartConsoleView.VIEW_ID,
-              createViewId(console),
-              IWorkbenchPage.VIEW_VISIBLE);
+          IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
-          view.display(console);
+          if (window != null && window.getActivePage() != null) {
+            view = (DartConsoleView) window.getActivePage().showView(
+                DartConsoleView.VIEW_ID,
+                createViewId(console),
+                IWorkbenchPage.VIEW_VISIBLE);
 
-          view.warnOfContentChange(console);
+            view.display(console);
+
+            view.warnOfContentChange(console);
+          }
         }
       } catch (PartInitException e) {
         Activator.logError(e);
