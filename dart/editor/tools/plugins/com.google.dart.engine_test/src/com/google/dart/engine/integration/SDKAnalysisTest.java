@@ -14,13 +14,14 @@
 package com.google.dart.engine.integration;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.cmdline.Analyzer;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
 import com.google.dart.engine.parser.ASTValidator;
 import com.google.dart.engine.parser.Parser;
-//import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.provider.CompilationUnitProvider;
 import com.google.dart.engine.scanner.CharBufferScanner;
 import com.google.dart.engine.scanner.Token;
@@ -36,6 +37,7 @@ import junit.framework.TestSuite;
 import java.io.File;
 import java.io.IOException;
 import java.nio.CharBuffer;
+import java.util.HashMap;
 
 public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
   public class ReportingTest extends TestCase {
@@ -107,7 +109,7 @@ public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
     // Validate the results.
     //
     // Uncomment the lines below to stop reporting failures for files containing directives.
-//    if (listener.hasError(ParserErrorCode.UNEXPECTED_TOKEN)) {
+//    if (listener.hasError(com.google.dart.engine.parser.ParserErrorCode.UNEXPECTED_TOKEN)) {
 //      return;
 //    }
     listener.assertNoErrors();
@@ -125,7 +127,7 @@ public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
       public CompilationUnit getCompilationUnit(Source source) {
         return unit;
       }
-    });
+    }, new HashMap<Identifier, Element>());
     CompilationUnitElement element = builder.buildCompilationUnit(source);
     Assert.assertNotNull(element);
   }

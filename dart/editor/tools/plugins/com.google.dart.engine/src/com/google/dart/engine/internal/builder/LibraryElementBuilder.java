@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.internal.builder;
 
-import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.Identifier;
@@ -26,6 +25,7 @@ import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportCombinator;
 import com.google.dart.engine.element.ImportSpecification;
@@ -41,6 +41,7 @@ import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Instances of the class {@code LibraryElementBuilder} build an element model for a single library.
@@ -50,6 +51,11 @@ public class LibraryElementBuilder {
    * The provider used to access the compilation unit associated with a given source.
    */
   private CompilationUnitProvider provider;
+
+  /**
+   * A table mapping the identifiers of declared elements to the element that was declared.
+   */
+  private HashMap<Identifier, Element> declaredElementMap = new HashMap<Identifier, Element>();
 
   /**
    * The name of the function used as an entry point.
@@ -72,7 +78,7 @@ public class LibraryElementBuilder {
    * @return the library element that was built
    */
   public LibraryElement buildLibrary(Source librarySource) {
-    CompilationUnitBuilder builder = new CompilationUnitBuilder(provider);
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(provider, declaredElementMap);
     CompilationUnit definingCompilationUnit = provider.getCompilationUnit(librarySource);
     CompilationUnitElementImpl definingCompilationUnitElement = builder.buildCompilationUnit(librarySource);
     NodeList<Directive> directives = definingCompilationUnit.getDirectives();
@@ -144,6 +150,15 @@ public class LibraryElementBuilder {
   }
 
   /**
+   * Return a table mapping the identifiers of declared elements to the element that was declared.
+   * 
+   * @return a table mapping the identifiers of declared elements to the element that was declared
+   */
+  public Map<Identifier, Element> getDeclaredElementMap() {
+    return declaredElementMap;
+  }
+
+  /**
    * Search the top-level functions defined in the given compilation unit for the entry point.
    * 
    * @param element the compilation unit to be searched
@@ -182,13 +197,9 @@ public class LibraryElementBuilder {
    * @return the result of resolving the given URI against the URI of the library
    */
   private Source getSource(Source librarySource, StringLiteral partUri) {
+    // TODO(brianwilkerson) Rewrite this to use a ConstantEvaluator.
     if (partUri instanceof SimpleStringLiteral) {
       return librarySource.resolve(((SimpleStringLiteral) partUri).getValue());
-    } else if (partUri instanceof AdjacentStrings) {
-      // TODO(brianwilkerson) This case needs to be handled. Consider adding a getValue() method to
-      // StringLiteral that will return the constant value of the string, or {@code null} if the
-      // literal is not a compile time constant.
-      // return librarySource.resolve(partUri.getStringValue());
     }
     return null;
   }

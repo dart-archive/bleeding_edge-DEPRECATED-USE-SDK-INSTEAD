@@ -98,7 +98,7 @@ import static com.google.dart.engine.ast.ASTFactory.switchCase;
 import static com.google.dart.engine.ast.ASTFactory.switchDefault;
 import static com.google.dart.engine.ast.ASTFactory.switchStatement;
 import static com.google.dart.engine.ast.ASTFactory.thisExpression;
-import static com.google.dart.engine.ast.ASTFactory.throwStatement;
+import static com.google.dart.engine.ast.ASTFactory.throwExpression;
 import static com.google.dart.engine.ast.ASTFactory.topLevelVariableDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.tryStatement;
 import static com.google.dart.engine.ast.ASTFactory.typeAlias;
@@ -1192,7 +1192,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   }
 
   public void test_visitThrowStatement() {
-    assertSource("throw e;", throwStatement(identifier("e")));
+    assertSource("throw e;", throwExpression(identifier("e")));
   }
 
   public void test_visitTopLevelVariableDeclaration_multiple() {

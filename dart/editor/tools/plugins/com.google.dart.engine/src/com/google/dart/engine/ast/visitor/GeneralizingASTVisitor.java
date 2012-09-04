@@ -492,8 +492,8 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitThrowStatement(ThrowStatement node) {
-    return visitStatement(node);
+  public R visitThrowExpression(ThrowExpression node) {
+    return visitExpression(node);
   }
 
   @Override

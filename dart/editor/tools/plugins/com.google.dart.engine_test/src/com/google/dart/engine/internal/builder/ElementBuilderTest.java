@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NamedFormalParameter;
@@ -30,6 +31,7 @@ import com.google.dart.engine.ast.TypeAlias;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.ConstructorElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LabelElement;
@@ -68,10 +70,12 @@ import static com.google.dart.engine.ast.ASTFactory.variableDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.variableDeclarationList;
 import static com.google.dart.engine.ast.ASTFactory.variableDeclarationStatement;
 
+import java.util.HashMap;
+
 public class ElementBuilderTest extends EngineTestCase {
   public void test_visitCatchClause() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String exceptionParameterName = "e";
     String stackParameterName = "s";
     CatchClause clause = catchClause(exceptionParameterName, stackParameterName);
@@ -98,7 +102,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitClassDeclaration_abstract() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String className = "C";
     ClassDeclaration classDeclaration = classDeclaration(
         Keyword.ABSTRACT,
@@ -121,7 +125,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitClassDeclaration_minimal() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String className = "C";
     ClassDeclaration classDeclaration = classDeclaration(null, className, null, null, null);
     classDeclaration.accept(builder);
@@ -139,7 +143,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitClassDeclaration_parameterized() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String className = "C";
     String firstVariableName = "E";
     String secondVariableName = "F";
@@ -166,7 +170,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitClassDeclaration_withMembers() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String className = "C";
     String typeVariableName = "E";
     String fieldName = "f";
@@ -217,7 +221,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitConstructorDeclaration_factory() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String className = "A";
     ConstructorDeclaration constructorDeclaration = constructorDeclaration(
         Keyword.FACTORY,
@@ -242,7 +246,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitConstructorDeclaration_minimal() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String className = "A";
     ConstructorDeclaration constructorDeclaration = constructorDeclaration(
         null,
@@ -267,7 +271,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitConstructorDeclaration_named() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String className = "A";
     String constructorName = "c";
     ConstructorDeclaration constructorDeclaration = constructorDeclaration(
@@ -293,7 +297,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitFieldDeclaration() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String firstFieldName = "x";
     String secondFieldName = "y";
     FieldDeclaration fieldDeclaration = fieldDeclaration(
@@ -324,7 +328,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitFieldFormalParameter() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String parameterName = "p";
     FieldFormalParameter formalParameter = fieldFormalParameter(null, null, parameterName);
     formalParameter.accept(builder);
@@ -342,7 +346,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitFormalParameterList() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String firstParameterName = "a";
     String secondParameterName = "b";
     FormalParameterList parameterList = formalParameterList(
@@ -359,7 +363,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitFunctionExpression() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String functionName = "f";
     FunctionExpression expression = functionExpression(
         null,
@@ -378,7 +382,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitFunctionTypedFormalParameter() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String parameterName = "p";
     FunctionTypedFormalParameter formalParameter = functionTypedFormalParameter(null, parameterName);
     formalParameter.accept(builder);
@@ -396,7 +400,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitLabeledStatement() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String labelName = "l";
     LabeledStatement statement = labeledStatement(list(label(labelName)), breakStatement());
     statement.accept(builder);
@@ -411,7 +415,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitMethodDeclaration_abstract() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String methodName = "m";
     MethodDeclaration methodDeclaration = methodDeclaration(
         Keyword.ABSTRACT,
@@ -439,7 +443,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitMethodDeclaration_getter() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String methodName = "m";
     MethodDeclaration methodDeclaration = methodDeclaration(
         null,
@@ -472,7 +476,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitMethodDeclaration_minimal() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String methodName = "m";
     MethodDeclaration methodDeclaration = methodDeclaration(
         null,
@@ -500,7 +504,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitMethodDeclaration_operator() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String methodName = "+";
     MethodDeclaration methodDeclaration = methodDeclaration(
         null,
@@ -528,7 +532,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitMethodDeclaration_setter() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String methodName = "m";
     MethodDeclaration methodDeclaration = methodDeclaration(
         null,
@@ -561,7 +565,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitMethodDeclaration_static() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String methodName = "m";
     MethodDeclaration methodDeclaration = methodDeclaration(
         Keyword.STATIC,
@@ -589,7 +593,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitMethodDeclaration_withMembers() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String methodName = "m";
     String parameterName = "p";
     String localVariableName = "v";
@@ -644,7 +648,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitNamedFormalParameter() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String parameterName = "p";
     NamedFormalParameter formalParameter = namedFormalParameter(
         simpleFormalParameter(parameterName),
@@ -666,7 +670,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitSimpleFormalParameter() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String parameterName = "p";
     SimpleFormalParameter formalParameter = simpleFormalParameter(parameterName);
     formalParameter.accept(builder);
@@ -684,7 +688,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitTypeAlias_minimal() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String aliasName = "F";
     TypeAlias typeAlias = typeAlias(null, aliasName, null, null);
     typeAlias.accept(builder);
@@ -699,7 +703,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitTypeAlias_withFormalParameters() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String aliasName = "F";
     String firstParameterName = "x";
     String secondParameterName = "y";
@@ -729,7 +733,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitTypeAlias_withTypeParameters() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String aliasName = "F";
     String firstTypeParameterName = "A";
     String secondTypeParameterName = "B";
@@ -757,7 +761,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitTypeParameter() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String parameterName = "E";
     TypeParameter typeParameter = typeParameter(parameterName);
     typeParameter.accept(builder);
@@ -772,7 +776,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
   public void test_visitVariableDeclaration_noInitializer() {
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder);
+    ElementBuilder builder = new ElementBuilder(holder, new HashMap<Identifier, Element>());
     String variableName = "v";
     VariableDeclaration variableDeclaration = variableDeclaration(variableName, null);
     variableDeclarationList(null, variableDeclaration);

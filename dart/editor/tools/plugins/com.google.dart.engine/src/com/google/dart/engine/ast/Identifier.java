@@ -14,11 +14,14 @@
 package com.google.dart.engine.ast;
 
 /**
- * The abstract class {@code Identifier{@code  defines the behavior common to nodes that represent an
+ * The abstract class {@code Identifier} defines the behavior common to nodes that represent an
  * identifier.
  * 
- * <pre> identifier ::= {@link SimpleIdentifier simpleIdentifier} | {@link PrefixedIdentifier
- * prefixedIdentifier} </pre>
+ * <pre>
+ * identifier ::=
+ *     {@link SimpleIdentifier simpleIdentifier}
+ *   | {@link PrefixedIdentifier prefixedIdentifier}
+ * </pre>
  */
 public abstract class Identifier extends Expression {
   /**

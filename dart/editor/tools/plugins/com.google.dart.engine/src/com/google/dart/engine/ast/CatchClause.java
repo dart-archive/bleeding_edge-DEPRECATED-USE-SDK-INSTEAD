@@ -19,8 +19,12 @@ import com.google.dart.engine.scanner.Token;
  * Instances of the class {@code CatchClause} represent a catch clause within a try statement.
  * 
  * <pre>
- * catchClause ::=
- *     'catch' '(' {@link SimpleFormalParameter exceptionParameter} (',' {@link SimpleFormalParameter stackTraceParameter})? ')' {@link Block block}
+ * onPart ::=
+ *     catchPart {@link Block block}
+ *   | 'on' type catchPart? {@link Block block}
+ * 
+ * catchPart ::=
+ *     'catch' '(' {@link SimpleIdentifier exceptionParameter} (',' {@link SimpleIdentifier stackTraceParameter})? ')'
  * </pre>
  */
 public class CatchClause extends ASTNode {
@@ -89,9 +93,9 @@ public class CatchClause extends ASTNode {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the catch block
    */
-  public CatchClause(Token onKeyword, TypeName exceptionType, Token catchKeyword, Token leftParenthesis,
-      SimpleIdentifier exceptionParameter, Token comma, SimpleIdentifier stackTraceParameter,
-      Token rightParenthesis, Block body) {
+  public CatchClause(Token onKeyword, TypeName exceptionType, Token catchKeyword,
+      Token leftParenthesis, SimpleIdentifier exceptionParameter, Token comma,
+      SimpleIdentifier stackTraceParameter, Token rightParenthesis, Block body) {
     this.onKeyword = onKeyword;
     this.exceptionType = becomeParentOf(exceptionType);
     this.catchKeyword = catchKeyword;

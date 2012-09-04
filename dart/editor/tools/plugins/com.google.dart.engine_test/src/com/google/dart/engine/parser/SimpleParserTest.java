@@ -88,7 +88,7 @@ import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.ThisExpression;
-import com.google.dart.engine.ast.ThrowStatement;
+import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypeAlias;
@@ -2585,18 +2585,18 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getRightBracket());
   }
 
-  public void test_parseThrowStatement_expression() throws Exception {
-    ThrowStatement statement = parse("parseThrowStatement", "throw x;");
+  public void test_parseThrowExpression_expression() throws Exception {
+    ThrowExpression statement = parse("parseThrowExpression", "throw x;");
     assertNotNull(statement.getKeyword());
     assertNotNull(statement.getExpression());
-    assertNotNull(statement.getSemicolon());
+    //assertNotNull(statement.getSemicolon());
   }
 
-  public void test_parseThrowStatement_noExpression() throws Exception {
-    ThrowStatement statement = parse("parseThrowStatement", "throw;");
+  public void test_parseThrowExpression_noExpression() throws Exception {
+    ThrowExpression statement = parse("parseThrowExpression", "throw;");
     assertNotNull(statement.getKeyword());
     assertNull(statement.getExpression());
-    assertNotNull(statement.getSemicolon());
+    //assertNotNull(statement.getSemicolon());
   }
 
   public void test_parseTryStatement_catch() throws Exception {

@@ -25,7 +25,7 @@ import java.util.List;
  *     'class' {@link SimpleIdentifier name} {@link TypeParameterList typeParameterList}?
  *     {@link ExtendsClause classExtendsClause}?
  *     {@link ImplementsClause implementsClause}?
- *     '{' classMemberDefinition* '}'
+ *     '{' {@link ClassMember classMember}* '}'
  * </pre>
  */
 public class ClassDeclaration extends CompilationUnitMember {

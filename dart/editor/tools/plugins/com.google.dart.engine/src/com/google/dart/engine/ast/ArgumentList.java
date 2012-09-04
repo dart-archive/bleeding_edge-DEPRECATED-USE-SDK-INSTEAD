@@ -25,7 +25,7 @@ import java.util.List;
  * argumentList ::=
  *     '(' arguments? ')'
  *
- * arguments:
+ * arguments ::=
  *     {@link NamedExpression namedArgument} (',' {@link NamedExpression namedArgument})*
  *   | {@link Expression expressionList} (',' {@link NamedExpression namedArgument})*
  * </pre>

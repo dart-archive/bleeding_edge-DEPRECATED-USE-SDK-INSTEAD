@@ -31,10 +31,10 @@ import java.util.List;
  *     '//' (CHARACTER - EOL)* EOL
  * 
  * blockComment ::=
- *     '/*' CHARACTER* '&star;/'
+ *     '/*' CHARACTER* '&#42;/'
  * 
  * documentationComment ::=
- *     '/**' (CHARACTER | {@link CommentReference commentReference})* '&star;/'
+ *     '/**' (CHARACTER | {@link CommentReference commentReference})* '&#42;/'
  *   | ('///' (CHARACTER - EOL)* EOL)+
  * </pre>
  */

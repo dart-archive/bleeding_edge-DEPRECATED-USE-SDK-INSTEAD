@@ -16,6 +16,16 @@ package com.google.dart.engine.ast;
 /**
  * Instances of the class {@code CompilationUnitMember} defines the behavior common to nodes that
  * declare a name within the scope of a compilation unit.
+ * 
+ * <pre>
+ * compilationUnitMember ::=
+ *     {@link ClassDeclaration classDeclaration}
+ *   | {@link TypeAlias typeAlias}
+ *   | {@link FunctionDeclaration functionDeclaration}
+ *   | {@link MethodDeclaration getOrSetDeclaration}
+ *   | {@link VariableDeclaration constantsDeclaration}
+ *   | {@link VariableDeclaration variablesDeclaration}
+ * </pre>
  */
 public abstract class CompilationUnitMember extends Declaration {
   /**

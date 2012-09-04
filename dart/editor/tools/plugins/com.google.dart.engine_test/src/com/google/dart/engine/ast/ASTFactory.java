@@ -728,12 +728,12 @@ public final class ASTFactory {
     return new ThisExpression(token(Keyword.THIS));
   }
 
-  public static ThrowStatement throwStatement() {
-    return throwStatement(null);
+  public static ThrowExpression throwExpression() {
+    return throwExpression(null);
   }
 
-  public static ThrowStatement throwStatement(Expression expression) {
-    return new ThrowStatement(token(Keyword.THROW), expression, token(TokenType.SEMICOLON));
+  public static ThrowExpression throwExpression(Expression expression) {
+    return new ThrowExpression(token(Keyword.THROW), expression, token(TokenType.SEMICOLON));
   }
 
   public static TopLevelVariableDeclaration topLevelVariableDeclaration(Keyword keyword,

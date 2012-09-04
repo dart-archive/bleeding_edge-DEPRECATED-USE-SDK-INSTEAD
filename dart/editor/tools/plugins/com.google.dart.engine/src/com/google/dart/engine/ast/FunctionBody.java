@@ -20,14 +20,8 @@ package com.google.dart.engine.ast;
  * <pre>
  * functionBody ::=
  *     {@link BlockFunctionBody blockFunctionBody}
+ *   | {@link EmptyFunctionBody emptyFunctionBody}
  *   | {@link ExpressionFunctionBody expressionFunctionBody}
- *   | {@link NativeFunctionBody nativeFunctionBody}
- * 
- * expressionFunctionBody ::=
- *     '=>' {@link Expression expression} ';'
- * 
- * blockFunctionBody ::=
- *     {@link Block block}
  * </pre>
  */
 public abstract class FunctionBody extends ASTNode {

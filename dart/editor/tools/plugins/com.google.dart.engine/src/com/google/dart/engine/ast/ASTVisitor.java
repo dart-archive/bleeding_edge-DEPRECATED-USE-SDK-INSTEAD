@@ -62,7 +62,7 @@ public interface ASTVisitor<R> {
 
   public R visitDoubleLiteral(DoubleLiteral node);
 
-  public R visitEmptyFunctionBody(EmptyFunctionBody emptyFunctionBody);
+  public R visitEmptyFunctionBody(EmptyFunctionBody node);
 
   public R visitEmptyStatement(EmptyStatement node);
 
@@ -174,7 +174,7 @@ public interface ASTVisitor<R> {
 
   public R visitThisExpression(ThisExpression node);
 
-  public R visitThrowStatement(ThrowStatement node);
+  public R visitThrowExpression(ThrowExpression node);
 
   public R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node);
 

@@ -1661,11 +1661,15 @@ public class Parser {
    * expression ::=
    *     assignableExpression assignmentOperator expression
    *   | conditionalExpression cascadeSection*
+   *   | throwExpression
    * </pre>
    * 
    * @return the expression that was parsed
    */
   private Expression parseExpression() {
+    if (matches(Keyword.THROW)) {
+      return parseThrowExpression();
+    }
     //
     // assignableExpression is a subset of conditionalExpression, so we can parse a conditional
     // expression and then determine whether it is followed by an assignmentOperator, checking for
@@ -1713,11 +1717,15 @@ public class Parser {
    * expressionWithoutCascade ::=
    *     assignableExpression assignmentOperator expressionWithoutCascade
    *   | conditionalExpression
+   *   | throwExpressionWithoutCascade
    * </pre>
    * 
    * @return the expression that was parsed
    */
   private Expression parseExpressionWithoutCascade() {
+    if (matches(Keyword.THROW)) {
+      return parseThrowExpressionWithoutCascade();
+    }
     //
     // assignableExpression is a subset of conditionalExpression, so we can parse a conditional
     // expression and then determine whether it is followed by an assignmentOperator, checking for
@@ -2746,7 +2754,7 @@ public class Parser {
       } else if (keyword == Keyword.SWITCH) {
         return parseSwitchStatement();
       } else if (keyword == Keyword.THROW) {
-        return parseThrowStatement();
+        return new ExpressionStatement(parseThrowExpression(), expect(TokenType.SEMICOLON));
       } else if (keyword == Keyword.TRY) {
         return parseTryStatement();
       } else if (keyword == Keyword.WHILE) {
@@ -3450,23 +3458,43 @@ public class Parser {
   }
 
   /**
-   * Parse a throw statement.
+   * Parse a throw expression.
    * 
    * <pre>
-   * throwStatement ::=
+   * throwExpression ::=
    *     'throw' expression? ';'
    * </pre>
    * 
-   * @return the throw statement that was parsed
+   * @return the throw expression that was parsed
    */
-  private Statement parseThrowStatement() {
+  private Expression parseThrowExpression() {
     Token keyword = expect(Keyword.THROW);
     if (matches(TokenType.SEMICOLON)) {
-      return new ThrowStatement(keyword, null, getAndAdvance());
+      return new ThrowExpression(keyword, null, getAndAdvance());
     }
     Expression expression = parseExpression();
-    Token semicolon = expect(TokenType.SEMICOLON);
-    return new ThrowStatement(keyword, expression, semicolon);
+    Token semicolon = null; //expect(TokenType.SEMICOLON);
+    return new ThrowExpression(keyword, expression, semicolon);
+  }
+
+  /**
+   * Parse a throw expression.
+   * 
+   * <pre>
+   * throwExpressionWithoutCascade ::=
+   *     'throw' expressionWithoutCascade? ';'
+   * </pre>
+   * 
+   * @return the throw expression that was parsed
+   */
+  private Expression parseThrowExpressionWithoutCascade() {
+    Token keyword = expect(Keyword.THROW);
+    if (matches(TokenType.SEMICOLON)) {
+      return new ThrowExpression(keyword, null, getAndAdvance());
+    }
+    Expression expression = parseExpressionWithoutCascade();
+    Token semicolon = null; //expect(TokenType.SEMICOLON);
+    return new ThrowExpression(keyword, expression, semicolon);
   }
 
   /**

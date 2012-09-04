@@ -97,7 +97,7 @@ import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchDefault;
 import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.ThisExpression;
-import com.google.dart.engine.ast.ThrowStatement;
+import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypeAlias;
@@ -822,7 +822,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
-  public Void visitThrowStatement(ThrowStatement node) {
+  public Void visitThrowExpression(ThrowExpression node) {
     writer.print("throw ");
     visit(node.getExpression());
     writer.print(";");

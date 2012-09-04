@@ -16,14 +16,14 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class {@code ThrowStatement} represent a throw statement.
+ * Instances of the class {@code ThrowExpression} represent a throw expression.
  * 
  * <pre>
- * throwStatement ::=
+ * throwExpression ::=
  *     'throw' {@link Expression expression}? ';'
  * </pre>
  */
-public class ThrowStatement extends Statement {
+public class ThrowExpression extends Expression {
   /**
    * The token representing the 'throw' keyword.
    */
@@ -37,24 +37,25 @@ public class ThrowStatement extends Statement {
   private Expression expression;
 
   /**
-   * The semicolon terminating the statement.
+   * The semicolon terminating the expression. TODO(brianwilkerson) Remove this field if it is no
+   * longer needed. (Waiting for response from Golad.)
    */
   private Token semicolon;
 
   /**
-   * Initialize a newly created throw statement.
+   * Initialize a newly created throw expression.
    */
-  public ThrowStatement() {
+  public ThrowExpression() {
   }
 
   /**
-   * Initialize a newly created throw statement.
+   * Initialize a newly created throw expression.
    * 
    * @param keyword the token representing the 'throw' keyword
    * @param expression the expression computing the exception to be thrown
-   * @param semicolon the semicolon terminating the statement
+   * @param semicolon the semicolon terminating the expression
    */
-  public ThrowStatement(Token keyword, Expression expression, Token semicolon) {
+  public ThrowExpression(Token keyword, Expression expression, Token semicolon) {
     this.keyword = keyword;
     this.expression = becomeParentOf(expression);
     this.semicolon = semicolon;
@@ -62,7 +63,7 @@ public class ThrowStatement extends Statement {
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
-    return visitor.visitThrowStatement(this);
+    return visitor.visitThrowExpression(this);
   }
 
   @Override
@@ -96,9 +97,9 @@ public class ThrowStatement extends Statement {
   }
 
   /**
-   * Return the semicolon terminating the statement.
+   * Return the semicolon terminating the expression.
    * 
-   * @return the semicolon terminating the statement
+   * @return the semicolon terminating the expression
    */
   public Token getSemicolon() {
     return semicolon;
@@ -123,9 +124,9 @@ public class ThrowStatement extends Statement {
   }
 
   /**
-   * Set the semicolon terminating the statement to the given token.
+   * Set the semicolon terminating the expression to the given token.
    * 
-   * @param semicolon the semicolon terminating the statement
+   * @param semicolon the semicolon terminating the expression
    */
   public void setSemicolon(Token semicolon) {
     this.semicolon = semicolon;

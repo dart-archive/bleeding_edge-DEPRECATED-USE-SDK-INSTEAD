@@ -92,7 +92,7 @@ import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchDefault;
 import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.ThisExpression;
-import com.google.dart.engine.ast.ThrowStatement;
+import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypeAlias;
@@ -584,7 +584,7 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitThrowStatement(ThrowStatement node) {
+  public R visitThrowExpression(ThrowExpression node) {
     node.visitChildren(this);
     return null;
   }

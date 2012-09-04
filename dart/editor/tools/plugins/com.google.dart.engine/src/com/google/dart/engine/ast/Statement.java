@@ -31,7 +31,6 @@ package com.google.dart.engine.ast;
  *   | {@link BreakStatement breakStatement}
  *   | {@link ContinueStatement continueStatement}
  *   | {@link ReturnStatement returnStatement}
- *   | {@link ThrowStatement throwStatement}
  *   | {@link ExpressionStatement expressionStatement}
  *   | {@link FunctionDeclarationStatement functionSignature functionBody}
  * </pre>
