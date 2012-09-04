@@ -618,12 +618,12 @@ public class InMemoryIndex implements Index {
             + " (" + indexFile.getTotalSpace() + ")");
       }
       try {
-        readIndexFrom(indexFile);
+        boolean wasRead = readIndexFrom(indexFile);
         if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
           logIndexStats("After initializing the index from file");
         }
         synchronized (indexStore) {
-          return indexStore.getResourceCount() > 0;
+          return wasRead && indexStore.getResourceCount() > 0;
         }
       } catch (Exception exception) {
         DartCore.logError(
@@ -666,29 +666,32 @@ public class InMemoryIndex implements Index {
    * Read the contents of this index from the given input stream.
    * 
    * @param input the input stream from which this index will be read
+   * @return {@code true} if the file was correctly read
    * @throws IOException if the index could not be read from the given input stream
    */
-  private void readIndex(ObjectInputStream input) throws IOException {
+  private boolean readIndex(ObjectInputStream input) throws IOException {
     IndexReader reader = indexStore.createIndexReader();
-    reader.readIndex(input);
+    return reader.readIndex(input);
   }
 
   /**
    * Read the contents of this index from the given file.
    * 
    * @param indexFile the file from which this index will be read
+   * @return {@code true} if the file was correctly read
    * @throws IOException if the index could not be read from the given file
    */
-  private void readIndexFrom(File indexFile) throws IOException {
+  private boolean readIndexFrom(File indexFile) throws IOException {
     ObjectInputStream input = null;
     try {
       input = new ObjectInputStream(new FileInputStream(indexFile));
       long startTime = System.currentTimeMillis();
-      readIndex(input);
+      boolean wasRead = readIndex(input);
       if (DartCoreDebug.PERF_INDEX) {
         long endTime = System.currentTimeMillis();
         DartCore.logInformation("Reading the index took " + (endTime - startTime) + " ms");
       }
+      return wasRead;
     } finally {
       if (input != null) {
         try {
