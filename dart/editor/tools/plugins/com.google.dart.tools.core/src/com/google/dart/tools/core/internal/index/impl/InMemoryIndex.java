@@ -586,8 +586,14 @@ public class InMemoryIndex implements Index {
     synchronized (indexStore) {
       hasBeenInitialized = true;
       if (!initializeIndexFrom(getInitialIndexFile())) {
+        if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+          logIndexStats("Clearing index after failing to read from initial index file");
+        }
         indexStore.clear();
         if (!indexBundledLibraries()) {
+          if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+            logIndexStats("Clearing index after failing to index bundled libraries");
+          }
           indexStore.clear();
           return false;
         }
@@ -607,13 +613,19 @@ public class InMemoryIndex implements Index {
    */
   private boolean initializeIndexFrom(File indexFile) {
     if (indexFile != null && indexFile.exists()) {
+      if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+        logIndexStats("About to initialize the index from file " + indexFile.getAbsolutePath()
+            + " (" + indexFile.getTotalSpace() + ")");
+      }
       try {
         readIndexFrom(indexFile);
         if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
           logIndexStats("After initializing the index from file");
         }
-        return true;
-      } catch (IOException exception) {
+        synchronized (indexStore) {
+          return indexStore.getResourceCount() > 0;
+        }
+      } catch (Exception exception) {
         DartCore.logError(
             "Could not read index file: \"" + indexFile.getAbsolutePath() + "\"",
             exception);
