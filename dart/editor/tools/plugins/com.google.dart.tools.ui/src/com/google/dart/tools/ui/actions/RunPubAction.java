@@ -21,6 +21,8 @@ import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -53,14 +55,14 @@ public class RunPubAction extends SelectionDispatchAction {
 
   class RunPubJob extends Job {
 
-    IProject project;
+    IResource resource;
     private DartSdk sdk;
 
-    public RunPubJob(IProject project) {
+    public RunPubJob(IResource resource) {
       super(NLS.bind(ActionMessages.RunPubAction_jobText, command));
       setRule(ResourcesPlugin.getWorkspace().getRoot());
       setUser(true);
-      this.project = project;
+      this.resource = resource;
     }
 
     @Override
@@ -81,7 +83,7 @@ public class RunPubAction extends SelectionDispatchAction {
         args.addAll(getPubCommand());
 
         builder.command(args);
-        builder.directory(project.getLocation().toFile());
+        builder.directory(resource.getLocation().toFile());
         Map<String, String> env = builder.environment();
         env.put("DART_SDK", sdk.getDirectory().getAbsolutePath()); //$NON-NLS-1$
         builder.redirectErrorStream(true);
@@ -104,7 +106,7 @@ public class RunPubAction extends SelectionDispatchAction {
         }
 
         DartCore.getConsole().println(stringBuilder.toString());
-        project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+        resource.refreshLocal(IResource.DEPTH_INFINITE, monitor);
         return Status.OK_STATUS;
 
       } catch (OperationCanceledException exception) {
@@ -131,6 +133,7 @@ public class RunPubAction extends SelectionDispatchAction {
       args.add(command);
       return args;
     }
+
   }
 
   public static final String INSTALL_COMMAND = "install"; //$NON-NLS-1$
@@ -187,8 +190,10 @@ public class RunPubAction extends SelectionDispatchAction {
   public void run(IStructuredSelection selection) {
     if (!selection.isEmpty() && selection.getFirstElement() instanceof IResource) {
       Object object = selection.getFirstElement();
-      IProject project = ((IResource) object).getProject();
-      runPubJob(project);
+      if (object instanceof IFile) {
+        object = ((IFile) object).getParent();
+      }
+      runPubJob((IResource) object);
     } else {
       MessageDialog.openError(
           getShell(),
@@ -197,9 +202,10 @@ public class RunPubAction extends SelectionDispatchAction {
     }
   }
 
-  private void runPubJob(IProject project) {
-    if (project.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
-      RunPubJob runPubJob = new RunPubJob(project);
+  private void runPubJob(IResource resource) {
+    if (resource instanceof IContainer
+        && ((IContainer) resource).findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
+      RunPubJob runPubJob = new RunPubJob(resource);
       runPubJob.schedule();
     } else {
       MessageDialog.openError(
