@@ -124,7 +124,7 @@ class Runner {
   Runner() : compiler = new LeapCompiler();
 
   String init() {
-    Stopwatch sw = new Stopwatch.start();
+    Stopwatch sw = new Stopwatch()..start();
     compiler.scanBuiltinLibraries();
     sw.stop();
     return 'Scanned core libraries in ${sw.elapsedInMs()}ms';
@@ -133,7 +133,7 @@ class Runner {
   String update(String codeText) {
     StringBuffer sb = new StringBuffer();
 
-    Stopwatch sw = new Stopwatch.start();
+    Stopwatch sw = new Stopwatch()..start();
 
     LibraryElement e = compile(new LeapScript(codeText));
 
@@ -261,7 +261,7 @@ class LeapCompiler extends Compiler {
   }
 
   Element runSelective(Script script) {
-    Stopwatch sw = new Stopwatch.start();
+    Stopwatch sw = new Stopwatch()..start();
     Element e;
     try {
       e = runCompilerSelective(script);

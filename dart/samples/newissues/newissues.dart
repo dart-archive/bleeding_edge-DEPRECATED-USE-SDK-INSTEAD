@@ -5,9 +5,7 @@
 #import('dart:html');
 #import('dart:json');
 
-/**
- *  Issue wraps JSON structure that describes a bug.
- */
+/// Issue wraps JSON structure that describes a bug.
 class Issue {
   final json;
   Issue(this.json);
@@ -18,18 +16,14 @@ class Issue {
   }
 }
 
-/**
- * Decodes JSON into a list of Issues.
- */
+/// Decodes JSON into a list of Issues.
 List<Issue> getIssues(json) {
   var issues = json["feed"]["entry"];
   if (issues == null) return null; 
   return issues.map((data) => new Issue(data));
 }
 
-/**
- * Iterates over the recieved issues and construct HTML for them.
- */
+/// Iterates over the recieved issues and construct HTML for them.
 void processJson(json) {
   Element div = query("#content");
   List<Issue> list = getIssues(json);
@@ -40,9 +34,7 @@ void processJson(json) {
   }
 }
 
-/**
- * Sends a HTTPRequest and returns a future fo the date.
- */
+/// Sends a HTTPRequest and returns a future fo the date.
 Future<Dynamic> requestJson(String url) {
   Completer c = new Completer<Dynamic>();
   void callback(HttpRequest req) {
@@ -55,8 +47,8 @@ Future<Dynamic> requestJson(String url) {
 }
 
 void main() {
-  // Requests new issues (can=new) from the Dart issue database.
-  final String url =
-    "https://code.google.com/feeds/issues/p/dart/issues/full?alt=json&can=new";
-  requestJson(url).then(processJson);
+  // Requests new issues from the Dart issue database as json.
+  const String url = "https://code.google.com/feeds/issues/p/dart/issues/full";
+  const String options = "alt=json&can=new";
+  requestJson("$url?$options").then(processJson);
 }
