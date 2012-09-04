@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.index;
 
+import com.google.common.base.Objects;
+
 /**
  * Instances of the class <code>Element</code> represent a program element (such as a type, field,
  * or method) within a resource.
@@ -46,7 +48,7 @@ public final class Element {
       return false;
     }
     Element element = (Element) object;
-    return resource.equals(element.resource) && elementId.equals(element.elementId);
+    return Objects.equal(element.resource, resource) && Objects.equal(element.elementId, elementId);
   }
 
   /**
@@ -69,7 +71,7 @@ public final class Element {
 
   @Override
   public int hashCode() {
-    return (resource.hashCode() << 7) ^ elementId.hashCode();
+    return Objects.hashCode(resource, elementId);
   }
 
   @Override

@@ -23,6 +23,11 @@ import com.google.dart.tools.core.index.Resource;
  */
 public interface IndexConstants {
   /**
+   * An {@link Resource} for unresolved elements.
+   */
+  public static final Resource DYNAMIC = new Resource("--dynamic--");
+
+  /**
    * An element used to represent the workspace.
    */
   public static final Element UNIVERSE = new Element(new Resource("--universe--"), "--universe--");

@@ -249,7 +249,7 @@ public class IndexStore {
     }
     recordElement(element);
     recordElement(location.getElement());
-    // add ContributedLocationfor "element"
+    // add ContributedLocation for "element"
     ContributedLocation contributedLocation;
     {
       HashMap<Relationship, ArrayList<ContributedLocation>> elementRelationshipMap = relationshipMap.get(element);
@@ -265,14 +265,7 @@ public class IndexStore {
       contributedLocation = new ContributedLocation(locations, contributor, location);
     }
     // add to "contributor" -> "locations" map
-    {
-      List<ContributedLocation> locations = contributorToContributedLocations.get(contributor);
-      if (locations == null) {
-        locations = Lists.newArrayList();
-        contributorToContributedLocations.put(contributor, locations);
-      }
-      locations.add(contributedLocation);
-    }
+    recordContributorToLocation(contributor, contributedLocation);
   }
 
   /**
@@ -340,6 +333,13 @@ public class IndexStore {
     }
   }
 
+  @Override
+  public String toString() {
+    PrintStringWriter writer = new PrintStringWriter();
+    writeIndex(writer);
+    return writer.toString();
+  }
+
 //  private int getRelationshipCount() {
 //    int count = 0;
 //    for (HashMap<Relationship, ArrayList<Location>> elementMap : relationshipMap.values()) {
@@ -350,11 +350,14 @@ public class IndexStore {
 //    return count;
 //  }
 
-  @Override
-  public String toString() {
-    PrintStringWriter writer = new PrintStringWriter();
-    writeIndex(writer);
-    return writer.toString();
+  private void recordContributorToLocation(Resource contributor,
+      ContributedLocation contributedLocation) {
+    List<ContributedLocation> locations = contributorToContributedLocations.get(contributor);
+    if (locations == null) {
+      locations = Lists.newArrayList();
+      contributorToContributedLocations.put(contributor, locations);
+    }
+    locations.add(contributedLocation);
   }
 
   /**

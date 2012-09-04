@@ -18,6 +18,7 @@ import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Location;
 import com.google.dart.tools.core.index.Relationship;
 import com.google.dart.tools.core.index.Resource;
+import com.google.dart.tools.core.internal.index.contributor.IndexConstants;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
 import com.google.dart.tools.core.model.DartSdkManager;
 
@@ -61,6 +62,8 @@ public class IndexReader {
    */
   public IndexReader(IndexStore index) {
     this.index = index;
+    putResource(IndexConstants.DYNAMIC);
+    putResource(IndexConstants.UNIVERSE.getResource());
   }
 
   /**
@@ -102,6 +105,13 @@ public class IndexReader {
     readAttributeMap(input);
     readRelationshipMap(input);
     return true;
+  }
+
+  /**
+   * Defines static resource.
+   */
+  private void putResource(Resource resource) {
+    resourceMap.put(resource.getResourceId(), resource);
   }
 
   /**

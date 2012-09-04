@@ -36,7 +36,6 @@ import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNamedExpression;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartSourceDirective;
@@ -56,7 +55,6 @@ import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType;
-import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
@@ -366,44 +364,22 @@ public class IndexContributor extends ASTVisitor<Void> {
     com.google.dart.compiler.resolver.Element element = node.getElement();
     if (element == null) {
       DartNode parent = node.getParent();
-      if (parent instanceof DartTypeNode) {
-        DartNode grandparent = parent.getParent();
-        if (grandparent instanceof DartNewExpression) {
-          element = ((DartNewExpression) grandparent).getElement();
-        }
-        if (element == null) {
-          Type type = ((DartTypeNode) parent).getType();
-          if (type instanceof InterfaceType) {
-            processTypeReference(node, (InterfaceType) type);
-          }
-          return super.visitIdentifier(node);
-        }
-      } else if (parent instanceof DartMethodInvocation) {
-        DartMethodInvocation invocation = (DartMethodInvocation) parent;
-        if (node == invocation.getFunctionName()) {
-          element = invocation.getElement();
-        }
-      } else if (parent instanceof DartPropertyAccess) {
-        DartPropertyAccess access = (DartPropertyAccess) parent;
-        if (node == access.getName()) {
-          element = access.getElement();
-        }
-      } else if (parent instanceof DartUnqualifiedInvocation) {
-        DartUnqualifiedInvocation invocation = (DartUnqualifiedInvocation) parent;
-        if (node == invocation.getTarget()) {
-          element = invocation.getElement();
-        }
-      } else if (parent instanceof DartParameterizedTypeNode) {
-        DartParameterizedTypeNode typeNode = (DartParameterizedTypeNode) parent;
-        DartNode grandparent = typeNode.getParent();
-        if (grandparent instanceof DartClass) {
-          DartClass classDef = (DartClass) grandparent;
-          if (typeNode == classDef.getDefaultClass()) {
-            InterfaceType defaultClass = classDef.getElement().getDefaultClass();
-            if (defaultClass != null) {
-              element = defaultClass.getElement();
-            }
-          }
+      if (parent instanceof DartMethodInvocation
+          && ((DartMethodInvocation) parent).getFunctionName() == node) {
+        Element indexElement = new Element(IndexConstants.DYNAMIC, node.getName());
+        recordRelationship(
+            indexElement,
+            IndexConstants.IS_INVOKED_BY_QUALIFIED,
+            createLocation(node));
+      }
+      if (parent instanceof DartPropertyAccess && ((DartPropertyAccess) parent).getName() == node) {
+        boolean isAssignedTo = isAssignedTo(node);
+        Element indexElement = new Element(IndexConstants.DYNAMIC, node.getName());
+        Location location = createLocation(node);
+        if (isAssignedTo) {
+          recordRelationship(indexElement, IndexConstants.IS_MODIFIED_BY_QUALIFIED, location);
+        } else {
+          recordRelationship(indexElement, IndexConstants.IS_ACCESSED_BY_QUALIFIED, location);
         }
       }
     }

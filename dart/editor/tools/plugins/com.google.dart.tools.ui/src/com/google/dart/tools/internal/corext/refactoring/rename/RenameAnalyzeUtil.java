@@ -15,6 +15,7 @@ package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartIdentifier;
@@ -41,6 +42,7 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.core.search.MatchQuality;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchMatch;
@@ -48,6 +50,7 @@ import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
+import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
@@ -56,10 +59,16 @@ import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.ltk.core.refactoring.Change;
+import org.eclipse.ltk.core.refactoring.CompositeChange;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+import org.eclipse.ltk.core.refactoring.TextChange;
+import org.eclipse.ltk.core.refactoring.TextEditChangeGroup;
 import org.eclipse.ltk.core.refactoring.participants.RenameProcessor;
+import org.eclipse.text.edits.TextEdit;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -220,12 +229,22 @@ public class RenameAnalyzeUtil {
   }
 
   /**
-   * @return the references to the given {@link DartElement}, may be empty {@link List}, but not
-   *         <code>null</code>.
+   * @return the {@link MatchQuality#EXACT} references to the given {@link DartElement}, may be
+   *         empty {@link List}, but not <code>null</code>.
    */
   public static List<SearchMatch> getReferences(final DartElement element, final IProgressMonitor pm)
       throws CoreException {
-    List<SearchMatch> fieldReferences = ExecutionUtils.runObjectCore(new RunnableObjectEx<List<SearchMatch>>() {
+    return getReferences(element, MatchQuality.EXACT, pm);
+  }
+
+  /**
+   * @return the references to the given {@link DartElement}, may be empty {@link List}, but not
+   *         <code>null</code>.
+   */
+  public static List<SearchMatch> getReferences(final DartElement element, MatchQuality quality,
+      final IProgressMonitor pm) throws CoreException {
+    // prepare all references
+    List<SearchMatch> references = ExecutionUtils.runObjectCore(new RunnableObjectEx<List<SearchMatch>>() {
       @Override
       public List<SearchMatch> runObject() throws Exception {
         SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
@@ -253,7 +272,14 @@ public class RenameAnalyzeUtil {
         return Lists.newArrayList();
       }
     });
-    return fieldReferences;
+    // filter by quality
+    List<SearchMatch> qualityReferences = Lists.newArrayList();
+    for (SearchMatch match : references) {
+      if (match.getQuality() == quality) {
+        qualityReferences.add(match);
+      }
+    }
+    return qualityReferences;
   }
 
   /**
@@ -391,6 +417,39 @@ public class RenameAnalyzeUtil {
    */
   public static boolean isTypeHierarchy(Type type, Type superType) throws CoreException {
     return getSuperTypes(type).contains(superType);
+  }
+
+  /**
+   * Merges {@link TextChange}s from "newCompositeChange" into "existingCompositeChange".
+   */
+  public static void mergeTextChanges(CompositeChange existingCompositeChange,
+      CompositeChange newCompositeChange) {
+    // [element -> Change map] in CompositeChange
+    Map<Object, Change> elementChanges = Maps.newHashMap();
+    for (Change change : existingCompositeChange.getChildren()) {
+      Object modifiedElement = change.getModifiedElement();
+      elementChanges.put(modifiedElement, change);
+    }
+    // merge new changes into CompositeChange
+    for (Change newChange : newCompositeChange.getChildren()) {
+      TextChange newTextChange = (TextChange) newChange;
+      // prepare existing TextChange
+      Object modifiedElement = newChange.getModifiedElement();
+      TextChange existingChange = (TextChange) elementChanges.get(modifiedElement);
+      // add TextEditChangeGroup from new TextChange
+      if (existingChange != null) {
+        for (TextEditChangeGroup group : newTextChange.getTextEditChangeGroups()) {
+          existingChange.addTextEditChangeGroup(group);
+          for (TextEdit edit : group.getTextEdits()) {
+            edit.getParent().removeChild(edit);
+            TextChangeCompatibility.insert(existingChange.getEdit(), edit);
+          }
+        }
+      } else {
+        newCompositeChange.remove(newChange);
+        existingCompositeChange.add(newChange);
+      }
+    }
   }
 
   private RenameAnalyzeUtil() {

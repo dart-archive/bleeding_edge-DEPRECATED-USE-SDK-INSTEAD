@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.dart.compiler.util.apache.ArrayUtils;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
@@ -34,7 +35,9 @@ import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
@@ -45,6 +48,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.CompositeChange;
+import org.eclipse.ltk.core.refactoring.NullChange;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.TextChange;
 import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
@@ -61,6 +65,22 @@ import java.util.Set;
  * @coverage dart.editor.ui.refactoring.core
  */
 public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
+
+  /**
+   * Almost same as {@link NullChange}, but returns empty array from {@link #getAffectedObjects()},
+   * so prevents warning during apply/undo.
+   */
+  private static class NullChange2 extends NullChange {
+    @Override
+    public Object[] getAffectedObjects() {
+      return ArrayUtils.EMPTY_OBJECT_ARRAY;
+    }
+
+    @Override
+    public Change perform(IProgressMonitor pm) throws CoreException {
+      return new NullChange2();
+    }
+  }
 
   /**
    * Analyzes possible conflicts when {@link DartElement} is renamed (or created) to the given
@@ -303,10 +323,10 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
   protected final TypeMember member;
   protected final String oldName;
   private final TextChangeManager changeManager = new TextChangeManager(true);
-
+  private final TextChangeManager changeManagerNames = new TextChangeManager(true);
   private List<SearchMatch> declarations;
-
   private List<SearchMatch> references;
+  private List<SearchMatch> nameReferences;
 
   /**
    * @param member the {@link TypeMember} to rename, not <code>null</code>.
@@ -357,7 +377,29 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
   public Change createChange(IProgressMonitor monitor) throws CoreException {
     monitor.beginTask(RefactoringCoreMessages.RenameProcessor_checking, 1);
     try {
-      return new CompositeChange(getProcessorName(), changeManager.getAllChanges());
+      // simple case - only exact changes
+      if (changeManagerNames.isEmpty()) {
+        return new CompositeChange(getProcessorName(), changeManager.getAllChanges());
+      }
+      // has potential, unresolved names changes
+      final CompositeChange namesChange = new CompositeChange(
+          RefactoringCoreMessages.RenameProcessor_changesPotential,
+          changeManagerNames.getAllChanges()) {
+        @Override
+        public Change perform(IProgressMonitor pm) throws CoreException {
+          return new NullChange2();
+        }
+      };
+      CompositeChange exactChange = new CompositeChange(
+          RefactoringCoreMessages.RenameProcessor_changesExact,
+          changeManager.getAllChanges()) {
+        @Override
+        public Change perform(IProgressMonitor pm) throws CoreException {
+          RenameAnalyzeUtil.mergeTextChanges(this, namesChange);
+          return super.perform(pm);
+        }
+      };
+      return new CompositeChange(getProcessorName(), new Change[] {namesChange, exactChange});
     } finally {
       monitor.done();
     }
@@ -376,6 +418,20 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
   @Override
   public int getSaveMode() {
     return RefactoringSaveHelper.SAVE_ALL;
+  }
+
+  @Override
+  public boolean hasUnresolvedNameReferences() {
+    if (nameReferences == null) {
+      nameReferences = Lists.newArrayList();
+      ExecutionUtils.runIgnore(new RunnableEx() {
+        @Override
+        public void run() throws Exception {
+          nameReferences = RenameAnalyzeUtil.getReferences(member, MatchQuality.NAME, null);
+        }
+      });
+    }
+    return !nameReferences.isEmpty();
   }
 
   @Override
@@ -413,20 +469,12 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
   }
 
   private void addDeclarationUpdates(IProgressMonitor pm) throws CoreException {
-    String editName = RefactoringCoreMessages.RenameProcessor_update_declaration;
-    addUpdates(pm, editName, declarations);
+    addUpdates(pm, RefactoringCoreMessages.RenameProcessor_update_declaration, declarations);
   }
 
   private void addReferenceUpdates(IProgressMonitor pm) throws CoreException {
-    String editName = RefactoringCoreMessages.RenameProcessor_update_reference;
-    addUpdates(pm, editName, references);
-  }
-
-  private void addTextEdit(CompilationUnit unit, String groupName, TextEdit textEdit) {
-    if (unit.getResource() != null) {
-      TextChange change = changeManager.get(unit);
-      TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
-    }
+    addUpdates(pm, RefactoringCoreMessages.RenameProcessor_update_reference, references);
+    addUpdates(pm, RefactoringCoreMessages.RenameProcessor_update_reference, nameReferences);
   }
 
   private void addUpdates(IProgressMonitor pm, String editName, List<SearchMatch> matches)
@@ -435,7 +483,11 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
     for (SearchMatch match : matches) {
       CompilationUnit cu = match.getElement().getAncestor(CompilationUnit.class);
       SourceRange matchRange = match.getSourceRange();
-      addTextEdit(cu, editName, createTextChange(matchRange));
+      TextEdit textEdit = createTextChange(matchRange);
+      if (cu.getResource() != null) {
+        TextChange change = getChangeManager(match).get(cu);
+        TextChangeCompatibility.addTextEdit(change, editName, textEdit);
+      }
       pm.worked(1);
     }
   }
@@ -482,6 +534,13 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
     return new ReplaceEdit(sourceRange.getOffset(), sourceRange.getLength(), getNewNameSource());
   }
 
+  private TextChangeManager getChangeManager(SearchMatch match) {
+    if (match.getQuality() == MatchQuality.EXACT) {
+      return changeManager;
+    }
+    return changeManagerNames;
+  }
+
   private void prepareReferences(IProgressMonitor pm) throws CoreException {
     String name = member.getElementName();
     // prepare types which have member with required name
@@ -515,6 +574,8 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
         references.addAll(RenameAnalyzeUtil.getReferences(typeMember, null));
       }
     }
+    // unresolved name references
+    nameReferences = RenameAnalyzeUtil.getReferences(member, MatchQuality.NAME, null);
     // done
     pm.done();
   }

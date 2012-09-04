@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.internal.corext.refactoring.tagging.INameUpdating;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 
@@ -49,6 +50,14 @@ public abstract class DartRenameProcessor extends RenameProcessor implements INa
    * @see RefactoringSaveHelper
    */
   public abstract int getSaveMode();
+
+  /**
+   * @return <code>true</code> if there are unresolved name references to the renaming
+   *         {@link DartElement}, which may be OK, but may be not OK to change.
+   */
+  public boolean hasUnresolvedNameReferences() {
+    return false;
+  }
 
   @Override
   public final RefactoringParticipant[] loadParticipants(RefactoringStatus status,

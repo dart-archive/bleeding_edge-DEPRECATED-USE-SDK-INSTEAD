@@ -39,6 +39,8 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameProcessor_update_reference;
   public static String RenameProcessor_searching;
   public static String RenameProcessor_checking;
+  public static String RenameProcessor_changesExact;
+  public static String RenameProcessor_changesPotential;
   // Shadowing
   public static String RenameProcessor_typeMemberDecl_shadowedBy_element;
   public static String RenameProcessor_typeMemberUsage_shadowedBy_element;

@@ -114,6 +114,13 @@ public class TextChangeManager {
   }
 
   /**
+   * @return <code>true</code> if there are no actual {@link TextChange}s.
+   */
+  public boolean isEmpty() {
+    return fMap.isEmpty();
+  }
+
+  /**
    * Adds an association between the given compilation unit and the passed change to this manager.
    * 
    * @param cu the compilation unit (key)

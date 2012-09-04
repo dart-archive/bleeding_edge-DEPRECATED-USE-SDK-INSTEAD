@@ -432,6 +432,9 @@ public class RenameLinkedMode {
       }
 
       Shell shell = fEditor.getSite().getShell();
+      if (renameSupport.hasUnresolvedNameReferences()) {
+        fShowPreview = true;
+      }
       boolean executed;
       if (fShowPreview) { // could have been updated by undoAndCreateRenameSupport(..)
         executed = renameSupport.openDialog(shell, true);

@@ -110,6 +110,46 @@ public class SearchEngineTest extends TestCase {
     }
   }
 
+  public void test_searchReferences_field_inexact() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = buildSource(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {",
+          "  var test;",
+          "}",
+          "f(p) {",
+          "  process(p.test);",
+          "  p.test = 0;",
+          "}",
+          "process(x) {}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnits(unit);
+      // find references
+      Field method = findElement(unit, "test;");
+      List<SearchMatch> matches = getFieldReferences(method);
+      assertThat(matches).hasSize(2);
+      // assert references
+      {
+        SearchMatch match = matches.get(0);
+        assertSame(MatchQuality.NAME, match.getQuality());
+        assertSame(MatchKind.FIELD_READ, match.getKind());
+        int matchOffset = match.getSourceRange().getOffset();
+        assertEquals(source.indexOf("test);"), matchOffset);
+      }
+      {
+        SearchMatch match = matches.get(1);
+        assertSame(MatchQuality.NAME, match.getQuality());
+        assertSame(MatchKind.FIELD_WRITE, match.getKind());
+        int matchOffset = match.getSourceRange().getOffset();
+        assertEquals(source.indexOf("test = 0;"), matchOffset);
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
   public void test_searchReferences_field_local() throws Exception {
     TestProject testProject = new TestProject();
     try {
@@ -133,12 +173,7 @@ public class SearchEngineTest extends TestCase {
       indexUnits(unit);
       // find references
       Field field = ((Type) unit.getChildren()[0]).getField("test");
-      SearchEngine engine = createSearchEngine();
-      List<SearchMatch> matches = engine.searchReferences(
-          field,
-          SearchScopeFactory.createWorkspaceScope(),
-          null,
-          new NullProgressMonitor());
+      List<SearchMatch> matches = getFieldReferences(field);
       assertThat(matches).hasSize(3);
       // assert "qualified"
       Map<Integer, Boolean> expected = ImmutableMap.of(
@@ -657,6 +692,37 @@ public class SearchEngineTest extends TestCase {
       int matchOffset = match.getSourceRange().getOffset();
       assertEquals(source.indexOf("test);"), matchOffset);
       assertTrue(match.isQualified());
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_searchReferences_method_inexact() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = buildSource(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {",
+          "  test() {}",
+          "}",
+          "f(p) {",
+          "  p.test();",
+          "}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnits(unit);
+      // find references
+      Method method = findElement(unit, "test() {}");
+      List<SearchMatch> matches = getMethodReferences(method);
+      assertThat(matches).hasSize(1);
+      // assert reference
+      {
+        SearchMatch match = matches.get(0);
+        assertSame(MatchQuality.NAME, match.getQuality());
+        assertSame(MatchKind.METHOD_INVOCATION, match.getKind());
+        int matchOffset = match.getSourceRange().getOffset();
+        assertEquals(source.indexOf("test();"), matchOffset);
+      }
     } finally {
       testProject.dispose();
     }
@@ -1185,6 +1251,15 @@ public class SearchEngineTest extends TestCase {
 
   private SearchEngine createSearchEngine() {
     return new SearchEngineImpl(index);
+  }
+
+  private List<SearchMatch> getFieldReferences(Field field) throws SearchException {
+    SearchEngine engine = createSearchEngine();
+    return engine.searchReferences(
+        field,
+        SearchScopeFactory.createWorkspaceScope(),
+        null,
+        new NullProgressMonitor());
   }
 
   private List<SearchMatch> getFileReferences(IFile targetFile) throws SearchException {

@@ -460,6 +460,36 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "  }",
         "}");
   }
+  
+  public void test_OK_inexactReferences() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {}",
+        "}",
+        "f1(A a) {",
+        "  a.test();",
+        "}",
+        "f2(a) {",
+        "  a.test();",
+        "}",
+        "");
+    Method method = findElement("test() {}");
+    // do rename
+    renameMethod(method, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  newName() {}",
+        "}",
+        "f1(A a) {",
+        "  a.newName();",
+        "}",
+        "f2(a) {",
+        "  a.newName();",
+        "}",
+        "");
+  }
 
   public void test_OK_singleUnit_onReference() throws Exception {
     setTestUnitContent(

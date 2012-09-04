@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.core.IPackageFragment;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartImport;
@@ -342,6 +343,14 @@ public class RenameSupport {
 //      fPreCheckStatus = refactoringStatus;
 //    }
 //  }
+
+  /**
+   * @return <code>true</code> if there are unresolved name references to the renaming
+   *         {@link DartElement}, which may be OK, but may be not OK to change.
+   */
+  public boolean hasUnresolvedNameReferences() {
+    return getDartRenameProcessor().hasUnresolvedNameReferences();
+  }
 
   /**
    * Opens the refactoring dialog for this rename support.
