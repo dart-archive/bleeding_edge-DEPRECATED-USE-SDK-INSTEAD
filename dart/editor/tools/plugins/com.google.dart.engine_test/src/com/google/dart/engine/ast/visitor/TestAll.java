@@ -21,7 +21,6 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(ConstantEvaluatorTest.class);
     suite.addTestSuite(NodeLocatorTest.class);
     suite.addTestSuite(ToSourceVisitorTest.class);
     return suite;
