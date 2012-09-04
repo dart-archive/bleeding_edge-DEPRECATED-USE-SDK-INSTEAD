@@ -52,6 +52,18 @@ public class WebkitResult<T> {
     return error;
   }
 
+  public String getErrorMessage() {
+    if (error instanceof WebkitRemoteObject) {
+      WebkitRemoteObject obj = (WebkitRemoteObject) error;
+
+      if (obj.isString()) {
+        return obj.getValue();
+      }
+    }
+
+    return "";
+  }
+
   public T getResult() {
     return result;
   }

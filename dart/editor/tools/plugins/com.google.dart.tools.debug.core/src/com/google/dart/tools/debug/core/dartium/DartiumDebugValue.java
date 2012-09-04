@@ -64,7 +64,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
         @Override
         public void handleResult(WebkitResult<String> result) {
           if (result.isError()) {
-            callback.detailComputed("");
+            callback.detailComputed(result.getErrorMessage());
           } else {
             callback.detailComputed(result.getResult());
           }
