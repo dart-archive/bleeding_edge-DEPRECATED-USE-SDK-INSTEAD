@@ -79,3 +79,10 @@ lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
+
+[ $compiler == dart2js && $checked  && $browser ]
+lib/layout/layout_test: Fail
+lib/observable/observable_test: Fail
+lib/util/util_test: Fail
+lib/view/view_test: Fail
+swarm/swarm_test: Fail
