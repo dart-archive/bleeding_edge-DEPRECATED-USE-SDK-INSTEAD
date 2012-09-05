@@ -20,6 +20,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.actions.CopyFilePathAction;
 import com.google.dart.tools.ui.actions.DeleteAction;
+import com.google.dart.tools.ui.actions.OpenAsTextAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.internal.actions.CleanUpAction;
@@ -169,6 +170,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
    * Used to refresh view content when ignores are updated.
    */
   private DartIgnoreListener dartIgnoreListener;
+
+  private OpenAsTextAction openAsTextAction;
 
   @Override
   public void createPartControl(Composite parent) {
@@ -351,6 +354,11 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
 
       manager.add(pasteAction);
+
+      if (selection.size() == 1 && selection.getFirstElement() instanceof IFile) {
+        manager.add(openAsTextAction);
+      }
+
       manager.add(new Separator());
       manager.add(refreshAction);
     }
@@ -529,5 +537,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     copyFilePathAction = new CopyFilePathAction(getSite());
     treeViewer.addSelectionChangedListener(copyFilePathAction);
+
+    openAsTextAction = new OpenAsTextAction(getSite().getPage());
+    treeViewer.addSelectionChangedListener(openAsTextAction);
   }
 }

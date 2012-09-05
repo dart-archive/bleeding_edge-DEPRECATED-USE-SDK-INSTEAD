@@ -463,6 +463,9 @@ public final class ActionMessages extends NLS {
   public static String OpenApiDocsAction_tooltip;
   public static String OpenApiDocsAction_href;
 
+  public static String OpenAsTextAction_description;
+  public static String OpenAsTextAction_title;
+  public static String OpenAsTextAction_toolTip;
   public static String CopyFilePathAction_text;
   public static String CopyFilePathAction_description;
   public static String CopyFilePathAction_tooltip;
