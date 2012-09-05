@@ -63,8 +63,8 @@ swarm/swarm_test: Skip # Issue 3152: Timeout $.window().get$location().get$proto
 swarm/swarm_test: Fail # Issue 4517
 
 [ $compiler == dart2js ]
-lib/layout/layout_test: Slow # Occasionally times out.
-swarm/swarm_test: Slow # Occasionally times out.
+lib/layout/layout_test: Slow, Pass # Occasionally times out.
+swarm/swarm_test: Slow, Pass # Occasionally times out.
 
 [ $runtime == opera ]
 *: Skip
