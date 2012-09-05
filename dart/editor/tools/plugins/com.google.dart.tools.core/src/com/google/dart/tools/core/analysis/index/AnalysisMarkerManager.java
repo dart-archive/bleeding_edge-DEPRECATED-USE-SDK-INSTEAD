@@ -16,7 +16,6 @@ package com.google.dart.tools.core.analysis.index;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ErrorSeverity;
-import com.google.dart.compiler.SubSystem;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisError;
 import com.google.dart.tools.core.analysis.AnalysisEvent;
@@ -66,9 +65,7 @@ class AnalysisMarkerManager implements AnalysisListener {
 
       int severity;
       ErrorSeverity errorSeverity = error.getErrorCode().getErrorSeverity();
-      if (error.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
-        severity = IMarker.SEVERITY_WARNING;
-      } else if (errorSeverity == ErrorSeverity.ERROR) {
+      if (errorSeverity == ErrorSeverity.ERROR) {
         severity = IMarker.SEVERITY_ERROR;
       } else if (errorSeverity == ErrorSeverity.WARNING || errorSeverity == ErrorSeverity.INFO) {
         severity = IMarker.SEVERITY_WARNING;
@@ -98,8 +95,9 @@ class AnalysisMarkerManager implements AnalysisListener {
         marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
         marker.setAttribute("errorCode", errorCodeString);
       } catch (CoreException e) {
-        DartCore.logError("Failed to create marker for " + res + "\n   at " + offset + " message: "
-            + errMsg, e);
+        DartCore.logError(
+            "Failed to create marker for " + res + "\n   at " + offset + " message: " + errMsg,
+            e);
       }
     }
 
