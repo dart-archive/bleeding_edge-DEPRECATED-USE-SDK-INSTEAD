@@ -36,6 +36,28 @@ class Cat implements Animal {
   }
 }
 
+class Rodent implements Animal {
+  final String name;
+
+  const Rodent(this.name);
+
+  bool livesWith(Animal other) => other is Rodent;
+
+  void performAction() {
+
+  }
+
+  String toString() {
+    var temp = "123";
+
+    if (true) {
+      throw "123456";
+    }
+
+    return "won't get here...";
+  }
+}
+
 class FloppyEars {
   // TODO(devoncarew): both: EAR_COUNT is not displayed
   static final int EAR_COUNT = 2;
@@ -67,16 +89,16 @@ class Dog extends FloppyEars implements Animal {
 
   void performAction() {
     String name = "iHideAnInstanceVariable";
-    
+
     print("bark");
-    
+
     var closure = () {
       // TODO: we want the call frame name to be Dog.performAction.{}
       print("bark");
       print("bark");
       print("bark");
     };
-    
+
     closure();
   }
 }

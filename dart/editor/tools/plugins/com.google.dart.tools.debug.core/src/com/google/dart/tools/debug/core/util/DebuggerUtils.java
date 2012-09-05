@@ -14,6 +14,12 @@
 
 package com.google.dart.tools.debug.core.util;
 
+import org.eclipse.debug.core.DebugException;
+import org.eclipse.debug.core.model.IStackFrame;
+
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * This class contains static utility methods for use by the debugger.
  */
@@ -22,6 +28,42 @@ public class DebuggerUtils {
   public static final String LIBRARY_NAME = "library";
 
   public static final String TOP_LEVEL_NAME = "top-level";
+
+  /**
+   * Returns whether the given frame needs some additional disambiguating information from its two
+   * surrounding frames.
+   * 
+   * @param frame
+   * @return
+   * @throws DebugException
+   */
+  public static boolean areSiblingNamesUnique(IExceptionStackFrame frame) throws DebugException {
+    List<IStackFrame> frames = Arrays.asList(frame.getThread().getStackFrames());
+
+    int index = frames.indexOf(frame);
+
+    if (index == -1) {
+      return true;
+    }
+
+    if (index > 0) {
+      IExceptionStackFrame other = (IExceptionStackFrame) frames.get(index - 1);
+
+      if (needsDisambiguating(other, frame)) {
+        return false;
+      }
+    }
+
+    if ((index + 1) < frames.size()) {
+      IExceptionStackFrame other = (IExceptionStackFrame) frames.get(index + 1);
+
+      if (needsDisambiguating(frame, other)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 
   /**
    * The names of private fields are mangled by the VM.
@@ -53,6 +95,28 @@ public class DebuggerUtils {
     }
 
     return name;
+  }
+
+  /**
+   * @return whether the given debugger symbol name represents a private symbol
+   */
+  public static boolean isPrivateName(String name) {
+    if (name.indexOf('.') != -1) {
+      return name.indexOf("._") != -1;
+    } else {
+      return name.startsWith("_");
+    }
+  }
+
+  private static boolean needsDisambiguating(IExceptionStackFrame frame1,
+      IExceptionStackFrame frame2) {
+    if (frame1.getShortName().equals(frame2.getShortName())) {
+      // These will need disambiguating if the long names are different.
+
+      return !frame1.getLongName().equals(frame2.getLongName());
+    }
+
+    return false;
   }
 
   private DebuggerUtils() {

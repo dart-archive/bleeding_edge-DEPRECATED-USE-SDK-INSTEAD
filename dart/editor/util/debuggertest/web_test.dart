@@ -52,6 +52,9 @@ void testAnimals() {
 
   print(l);
 
+  // Throws during toString()
+  var rodent = new Rodent("Skittles");
+
   // TODO(devoncarew): dartium: display maps better
   var m = getMapOfAnimals();
 

@@ -130,13 +130,29 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
   }
 
   @Override
+  public String getLongName() {
+    String file = getFileOrLibraryName();
+
+    return getShortName() + (file == null ? "" : " - " + file);
+  }
+
+  @Override
   public String getName() throws DebugException {
-    return DebuggerUtils.demanglePrivateName(vmFrame.getFunctionName()) + "()";
+    if (DebuggerUtils.areSiblingNamesUnique(this)) {
+      return getShortName();
+    } else {
+      return getLongName();
+    }
   }
 
   @Override
   public IRegisterGroup[] getRegisterGroups() throws DebugException {
     return new IRegisterGroup[0];
+  }
+
+  @Override
+  public String getShortName() {
+    return DebuggerUtils.demanglePrivateName(vmFrame.getFunctionName()) + "()";
   }
 
   @Override
@@ -182,6 +198,10 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
   @Override
   public boolean hasVariables() throws DebugException {
     return getVariables().length > 0;
+  }
+
+  public boolean isPrivate() {
+    return DebuggerUtils.isPrivateName(vmFrame.getFunctionName());
   }
 
   @Override
@@ -261,4 +281,23 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
       return variables;
     }
   }
+
+  private String getFileOrLibraryName() {
+    VmLocation location = vmFrame.getLocation();
+
+    if (location != null) {
+      String url = location.getUrl();
+
+      int index = url.lastIndexOf('/');
+
+      if (index != -1) {
+        return url.substring(index + 1);
+      } else {
+        return url;
+      }
+    }
+
+    return null;
+  }
+
 }

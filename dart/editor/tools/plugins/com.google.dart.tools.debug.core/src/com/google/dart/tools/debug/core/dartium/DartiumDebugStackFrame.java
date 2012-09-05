@@ -206,13 +206,29 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   @Override
+  public String getLongName() {
+    String file = getFileOrLibraryName();
+
+    return getShortName() + (file == null ? "" : " - " + file);
+  }
+
+  @Override
   public String getName() throws DebugException {
-    return DebuggerUtils.demanglePrivateName(webkitFrame.getFunctionName()) + "()";
+    if (DebuggerUtils.areSiblingNamesUnique(this)) {
+      return getShortName();
+    } else {
+      return getLongName();
+    }
   }
 
   @Override
   public IRegisterGroup[] getRegisterGroups() throws DebugException {
     return new IRegisterGroup[0];
+  }
+
+  @Override
+  public String getShortName() {
+    return DebuggerUtils.demanglePrivateName(webkitFrame.getFunctionName()) + "()";
   }
 
   @Override
@@ -265,6 +281,10 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   @Override
   public boolean hasVariables() throws DebugException {
     return getVariables().length > 0;
+  }
+
+  public boolean isPrivate() {
+    return DebuggerUtils.isPrivateName(webkitFrame.getFunctionName());
   }
 
   public boolean isPrivateMethod() {
@@ -348,6 +368,22 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
         remoteObjects,
         libraryObject,
         exception);
+  }
+
+  private String getFileOrLibraryName() {
+    String path = getSourceLocationPath();
+
+    if (path != null) {
+      int index = path.lastIndexOf('/');
+
+      if (index != -1) {
+        return path.substring(index + 1);
+      } else {
+        return path;
+      }
+    }
+
+    return null;
   }
 
 }

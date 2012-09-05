@@ -23,6 +23,10 @@ public interface IExceptionStackFrame extends IStackFrame {
 
   public String getExceptionDisplayText();
 
+  public String getLongName();
+
+  public String getShortName();
+
   public boolean hasException();
 
 }

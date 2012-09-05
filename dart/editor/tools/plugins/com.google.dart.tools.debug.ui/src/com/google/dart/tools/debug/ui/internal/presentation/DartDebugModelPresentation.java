@@ -14,13 +14,16 @@
 package com.google.dart.tools.debug.ui.internal.presentation;
 
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
+import com.google.dart.tools.debug.core.dartium.DartiumDebugStackFrame;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugVariable;
+import com.google.dart.tools.debug.core.server.ServerDebugStackFrame;
 import com.google.dart.tools.debug.core.server.ServerDebugVariable;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.DebuggerEditorInput;
+import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.resources.IFile;
@@ -188,6 +191,18 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
       } else {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       }
+    } else if (element instanceof ServerDebugStackFrame) {
+      ServerDebugStackFrame frame = (ServerDebugStackFrame) element;
+
+      return DartDebugUIPlugin.getImage(DartElementImageProvider.getMethodImageDescriptor(
+          false,
+          frame.isPrivate()));
+    } else if (element instanceof DartiumDebugStackFrame) {
+      DartiumDebugStackFrame frame = (DartiumDebugStackFrame) element;
+
+      return DartDebugUIPlugin.getImage(DartElementImageProvider.getMethodImageDescriptor(
+          false,
+          frame.isPrivate()));
     } else if (element instanceof DartBreakpoint) {
       return null;
     } else {

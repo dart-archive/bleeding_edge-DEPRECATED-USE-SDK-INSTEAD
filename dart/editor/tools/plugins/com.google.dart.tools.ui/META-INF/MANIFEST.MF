@@ -57,6 +57,7 @@ Export-Package: com.google.dart.tools.internal.corext;x-friends:="com.google.dar
  com.google.dart.tools.ui.internal.text.editor;x-friends:="com.google.dart.tools.ui_test,com.google.dart.tools.debug.ui,com.google.dart.tools.ui.swtbot_test",
  com.google.dart.tools.ui.internal.text.functions;x-friends:="com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.internal.util;x-friends:="com.google.dart.tools.deploy",
+ com.google.dart.tools.ui.internal.viewsupport,
  com.google.dart.tools.ui.text;x-friends:="com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.text.dart;x-friends:="com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.themes
