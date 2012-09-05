@@ -8,11 +8,11 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "127410",
+  "webkit_revision": "127533",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "9612",
+  "nacl_revision": "9629",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "9330",  # native_client/DEPS: tools_rev
@@ -29,7 +29,7 @@ vars = {
   "ffmpeg_hash": "2079ffae30f8da6c6eed985cce00e04c31b40888",
 
   "sfntly_revision": "134",
-  "skia_revision": "5360",
+  "skia_revision": "5378",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -147,7 +147,7 @@ deps = {
     Var("webkit_trunk") + "/Tools/TestWebKitAPI@" + Var("webkit_revision"),
 
   "src/third_party/ots":
-    (Var("googlecode_url") % "ots") + "/trunk@94",
+    (Var("googlecode_url") % "ots") + "/trunk@95",
 
   "src/tools/page_cycler/acid3":
     "/trunk/deps/page_cycler/acid3@150075",
