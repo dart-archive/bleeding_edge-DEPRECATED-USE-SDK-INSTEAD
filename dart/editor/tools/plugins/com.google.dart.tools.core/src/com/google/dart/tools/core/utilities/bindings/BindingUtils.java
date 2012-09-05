@@ -604,6 +604,10 @@ public class BindingUtils {
     }
     try {
       for (Method method : declaringType.getMethods()) {
+        if (methodName.equals("-binary") && "-".equals(method.getElementName())
+            && method.getParameterNames().length == 1) {
+          return method;
+        }
         if (methodName.equals(method.getElementName())) {
           return method;
         }
