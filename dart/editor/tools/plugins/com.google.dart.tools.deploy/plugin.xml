@@ -253,11 +253,15 @@
             content-type="org.eclipse.core.runtime.text"
             file-extensions="js">
       </file-association>
-       <file-association
+      <file-association
+            content-type="org.eclipse.core.runtime.text"
+            file-extensions="json">
+      </file-association>
+      <file-association
             content-type="org.eclipse.core.runtime.text"
             file-extensions="py">
       </file-association>
-       <file-association
+      <file-association
             content-type="org.eclipse.core.runtime.text"
             file-extensions="yaml">
       </file-association>      
