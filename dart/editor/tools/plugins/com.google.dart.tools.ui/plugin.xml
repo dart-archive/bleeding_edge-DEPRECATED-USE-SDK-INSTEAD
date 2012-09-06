@@ -394,7 +394,7 @@
       </view>
    </extension>
 
-   <extension
+   <!-- extension
          point="org.eclipse.ui.propertyPages">
       <page
             name="%dartPropertiesPageName"
@@ -406,8 +406,8 @@
            </adapt>         
          </enabledWhen>
       </page>
- 
-   </extension>
+   </extension-->
+
    <extension
          point="org.eclipse.ui.elementFactories">
       <factory
