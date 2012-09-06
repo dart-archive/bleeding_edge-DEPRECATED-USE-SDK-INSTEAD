@@ -56,6 +56,7 @@ lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 
 [ $compiler == dart2js && $runtime == ff ]
+swarm/swarm_test: Fail # BUG(4949)
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 
 [ $compiler == dart2js && $runtime == drt && $system == windows ]
@@ -70,7 +71,7 @@ lib/view/view_test: Slow, Pass # Occasionally times out.
 *: Skip
 
 [ $compiler == dart2js && $runtime == ie ]
-swarm/swarm_test: Fail # BUG(3304)
+swarm/swarm_test: Fail # BUG(4949)
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 
 [ $compiler == dart2js && $runtime == safari ]
