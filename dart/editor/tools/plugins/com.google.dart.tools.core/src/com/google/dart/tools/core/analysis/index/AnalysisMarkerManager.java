@@ -67,8 +67,10 @@ class AnalysisMarkerManager implements AnalysisListener {
       ErrorSeverity errorSeverity = error.getErrorCode().getErrorSeverity();
       if (errorSeverity == ErrorSeverity.ERROR) {
         severity = IMarker.SEVERITY_ERROR;
-      } else if (errorSeverity == ErrorSeverity.WARNING || errorSeverity == ErrorSeverity.INFO) {
+      } else if (errorSeverity == ErrorSeverity.WARNING) {
         severity = IMarker.SEVERITY_WARNING;
+      } else if (errorSeverity == ErrorSeverity.INFO) {
+        severity = IMarker.SEVERITY_INFO;
       } else {
         return;
       }
@@ -95,9 +97,8 @@ class AnalysisMarkerManager implements AnalysisListener {
         marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
         marker.setAttribute("errorCode", errorCodeString);
       } catch (CoreException e) {
-        DartCore.logError(
-            "Failed to create marker for " + res + "\n   at " + offset + " message: " + errMsg,
-            e);
+        DartCore.logError("Failed to create marker for " + res + "\n   at " + offset + " message: "
+            + errMsg, e);
       }
     }
 

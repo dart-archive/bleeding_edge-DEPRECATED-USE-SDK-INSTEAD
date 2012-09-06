@@ -550,7 +550,7 @@
             markerSeverity="1"/>
         <type
             name="com.google.dart.tools.ui.info"
-            super="org.eclipse.ui.workbench.texteditor.info"
+            super="com.google.dart.tools.ui.analysis.suggestion"
             markerType="com.google.dart.tools.core.problem"
             markerSeverity="0"/>
       <type name="com.google.dart.tools.ui.occurrences"/>
@@ -605,6 +605,31 @@
             isGoToNextNavigationTarget="false"
             isGoToPreviousNavigationTargetKey="javaScriptIsOverrideIndicatorGoToPreviousNavigationTarget"
             isGoToPreviousNavigationTarget="false">
+     </specification>
+     <specification
+           annotationType="com.google.dart.tools.ui.analysis.suggestion"
+           colorPreferenceKey="infoIndicationColor"
+           colorPreferenceValue="100,200,210"
+           contributesToHeader="true"
+           highlightPreferenceKey="infoIndicationHighlighting"
+           highlightPreferenceValue="false"
+           isGoToNextNavigationTarget="false"
+           isGoToNextNavigationTargetKey="isInfoGoToNextNavigationTarget"
+           isGoToPreviousNavigationTarget="false"
+           isGoToPreviousNavigationTargetKey="isInfoGoToPreviousNavigationTarget"
+           label="Suggestion"
+           overviewRulerPreferenceKey="warningIndicationInOverviewRuler"
+           overviewRulerPreferenceValue="true"
+           presentationLayer="4"
+           showInNextPrevDropdownToolbarAction="true"
+           showInNextPrevDropdownToolbarActionKey="showInfoInNextPrevDropdownToolbarAction"
+           symbolicIcon="info"
+           textPreferenceKey="infoIndication"
+           textPreferenceValue="true"
+           textStylePreferenceKey="warningTextStyle"
+           textStylePreferenceValue="PROBLEM_UNDERLINE"
+           verticalRulerPreferenceKey="warningIndicationInVerticalRuler"
+           verticalRulerPreferenceValue="true">
      </specification>
    </extension>
 

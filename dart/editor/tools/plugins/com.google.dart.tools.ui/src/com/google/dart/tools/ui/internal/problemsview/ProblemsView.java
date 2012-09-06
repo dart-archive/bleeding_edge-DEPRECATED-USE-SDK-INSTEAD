@@ -310,12 +310,12 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
     @Override
     public boolean select(Viewer viewer, Object parentElement, Object element) {
-//      IMarker marker = (IMarker) element;
-//
+      IMarker marker = (IMarker) element;
+
 //      if (!showInfosAction.isChecked()) {
-//        if (marker.getAttribute(IMarker.SEVERITY, 0) == IMarker.SEVERITY_INFO) {
-//          return false;
-//        }
+      if (marker.getAttribute(IMarker.SEVERITY, 0) == IMarker.SEVERITY_INFO) {
+        return false;
+      }
 //      }
 
       return true;
