@@ -638,7 +638,7 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
             createCheckButton(
                 tabComposite,
                 ID_STYLE_USE_BLOCKS,
-                "User blocks in if/while/for statements");
+                "Use blocks in if/while/for statements");
             {
               Composite blocksComposite = new Composite(tabComposite, SWT.NONE);
               GridDataFactory.create(blocksComposite).indentHorizontalChars(3);
