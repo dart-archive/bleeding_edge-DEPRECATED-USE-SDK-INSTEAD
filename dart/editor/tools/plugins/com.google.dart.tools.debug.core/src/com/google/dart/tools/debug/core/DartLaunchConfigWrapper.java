@@ -40,6 +40,7 @@ public class DartLaunchConfigWrapper {
   private static final String VM_CHECKED_MODE = "vmCheckedMode";
   private static final String VM_ENABLE_DEBUGGING = "vmEnableDebugging";
   private static final String VM_HEAP_MB = "vmHeapMB";
+  private static final String SHOW_LAUNCH_OUTPUT = "showLaunchOutput";
 
   private static final String IS_FILE = "launchHtmlFile";
   private static final String URL = "url";
@@ -247,6 +248,16 @@ public class DartLaunchConfigWrapper {
     }
   }
 
+  public boolean getShowLaunchOutput() {
+    try {
+      return launchConfig.getAttribute(SHOW_LAUNCH_OUTPUT, false);
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return false;
+    }
+  }
+
   public String getUrl() {
     try {
       return launchConfig.getAttribute(URL, "");
@@ -369,6 +380,10 @@ public class DartLaunchConfigWrapper {
 
   public void setShouldLaunchFile(boolean value) {
     getWorkingCopy().setAttribute(IS_FILE, value);
+  }
+
+  public void setShowLaunchOutput(boolean value) {
+    getWorkingCopy().setAttribute(SHOW_LAUNCH_OUTPUT, value);
   }
 
   /**

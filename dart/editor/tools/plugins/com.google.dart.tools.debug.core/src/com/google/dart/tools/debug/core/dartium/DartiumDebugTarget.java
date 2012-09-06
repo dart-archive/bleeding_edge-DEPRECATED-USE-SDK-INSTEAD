@@ -358,6 +358,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     process.terminate();
   }
 
+  public void writeToStdout(String message) {
+    outputStreamMonitor.messageAdded(message);
+  }
+
   protected BreakpointManager getBreakpointManager() {
     return breakpointManager;
   }

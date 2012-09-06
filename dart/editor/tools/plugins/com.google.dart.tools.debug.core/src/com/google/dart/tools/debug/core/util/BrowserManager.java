@@ -18,6 +18,7 @@ import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugTarget;
+import com.google.dart.tools.debug.core.util.ListeningStream.StreamListener;
 import com.google.dart.tools.debug.core.webkit.ChromiumConnector;
 import com.google.dart.tools.debug.core.webkit.ChromiumTabInfo;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection;
@@ -53,15 +54,19 @@ public class BrowserManager {
 
   private static boolean firstLaunch = true;
 
+  private static IResourceResolver resourceResolver;
+
   public static BrowserManager getManager() {
     return manager;
   }
 
-  private StringBuilder stdout;
+  private static IResourceResolver getResourceServer() throws IOException {
+    if (resourceResolver == null) {
+      resourceResolver = ResourceServerManager.getServer();
+    }
 
-  private StringBuilder stderr;
-
-  private IResourceResolver resourceResolver;
+    return resourceResolver;
+  }
 
   private int devToolsPortNumber;
 
@@ -136,7 +141,7 @@ public class BrowserManager {
     } else {
       terminateExistingBrowserProcess();
 
-      startNewBrowserProcess(
+      ListeningStream dartiumOutput = startNewBrowserProcess(
           launchConfig,
           url,
           monitor,
@@ -149,13 +154,13 @@ public class BrowserManager {
       monitor.worked(1);
 
       if (isProcessTerminated(browserProcess)) {
-        DartDebugCorePlugin.logError("Dartium stdout: " + stdout);
-        DartDebugCorePlugin.logError("Dartium stderr: " + stderr);
+        DartDebugCorePlugin.logError("Dartium output: " + dartiumOutput.toString());
 
         throw new CoreException(new Status(
             IStatus.ERROR,
             DartDebugCorePlugin.PLUGIN_ID,
-            "Could not launch browser - process terminated on startup" + getProcessStreamMessage()));
+            "Could not launch browser - process terminated on startup"
+                + getProcessStreamMessage(dartiumOutput.toString())));
       }
 
       connectToChromiumDebug(
@@ -167,7 +172,8 @@ public class BrowserManager {
           browserProcess,
           timer,
           enableBreakpoints,
-          devToolsPortNumber);
+          devToolsPortNumber,
+          dartiumOutput);
     }
 
     BrowserHelper.activateApplication(dartium);
@@ -182,15 +188,18 @@ public class BrowserManager {
    */
   void connectToChromiumDebug(String browserName, ILaunch launch,
       DartLaunchConfigWrapper launchConfig, String url, IProgressMonitor monitor,
-      Process runtimeProcess, LogTimer timer, boolean enableBreakpoints, int devToolsPortNumber)
-      throws CoreException {
+      Process runtimeProcess, LogTimer timer, boolean enableBreakpoints, int devToolsPortNumber,
+      ListeningStream dartiumOutput) throws CoreException {
     monitor.worked(1);
 
     try {
       // avg: 383ms
       timer.startTask("get chromium tabs");
 
-      ChromiumTabInfo chromiumTab = getChromiumTab(runtimeProcess, devToolsPortNumber);
+      ChromiumTabInfo chromiumTab = getChromiumTab(
+          runtimeProcess,
+          devToolsPortNumber,
+          dartiumOutput);
 
       monitor.worked(2);
 
@@ -215,7 +224,7 @@ public class BrowserManager {
 
       WebkitConnection connection = new WebkitConnection(chromiumTab.getWebSocketDebuggerUrl());
 
-      DartiumDebugTarget debugTarget = new DartiumDebugTarget(
+      final DartiumDebugTarget debugTarget = new DartiumDebugTarget(
           browserName,
           connection,
           launch,
@@ -228,6 +237,15 @@ public class BrowserManager {
       launch.setAttribute(DebugPlugin.ATTR_CONSOLE_ENCODING, "UTF-8");
       launch.addDebugTarget(debugTarget);
       launch.addProcess(debugTarget.getProcess());
+
+      if (launchConfig.getShowLaunchOutput()) {
+        dartiumOutput.setListener(new StreamListener() {
+          @Override
+          public void handleStreamData(String data) {
+            debugTarget.writeToStdout(data);
+          }
+        });
+      }
 
       debugTarget.openConnection(url);
 
@@ -341,8 +359,8 @@ public class BrowserManager {
     return null;
   }
 
-  private ChromiumTabInfo getChromiumTab(Process runtimeProcess, int devToolsPortNumber)
-      throws IOException, CoreException {
+  private ChromiumTabInfo getChromiumTab(Process runtimeProcess, int devToolsPortNumber,
+      ListeningStream dartiumOutput) throws IOException, CoreException {
     // Give Chromium 20 seconds to start up.
     final int maxStartupDelay = 20 * 1000;
 
@@ -354,7 +372,7 @@ public class BrowserManager {
             IStatus.ERROR,
             DartDebugCorePlugin.PLUGIN_ID,
             "Could not launch browser - process terminated while trying to connect"
-                + getProcessStreamMessage()));
+                + getProcessStreamMessage(dartiumOutput.toString())));
       }
 
       try {
@@ -415,17 +433,17 @@ public class BrowserManager {
     return dataDirPath;
   }
 
-  private String getProcessStreamMessage() {
+  private String getProcessStreamMessage(String output) {
     StringBuilder msg = new StringBuilder();
 
-    if (stdout.length() != 0) {
-      msg.append("Dartium stdout: ").append(stdout).append("\n");
+    if (output.length() != 0) {
+      msg.append("Dartium stdout: ").append(output).append("\n");
     }
 
     boolean expired = false;
 
-    if (stderr.length() != 0) {
-      if (stderr.indexOf("Dartium build has expired") != -1) {
+    if (output.length() != 0) {
+      if (output.indexOf("Dartium build has expired") != -1) {
         expired = true;
       }
 
@@ -433,8 +451,6 @@ public class BrowserManager {
         msg.append("\nThis build of Dartium has expired.\n\n");
         msg.append("Please download a new Dart Editor or Dartium build from \n");
         msg.append("http://www.dartlang.org/downloads.html.");
-      } else {
-        msg.append("Dartium stderr: ").append(stderr);
       }
     }
 
@@ -452,14 +468,6 @@ public class BrowserManager {
     return msg.toString();
   }
 
-  private IResourceResolver getResourceServer() throws IOException {
-    if (resourceResolver == null) {
-      resourceResolver = ResourceServerManager.getServer();
-    }
-
-    return resourceResolver;
-  }
-
   private boolean isProcessTerminated(Process process) {
     try {
       if (process != null) {
@@ -472,8 +480,8 @@ public class BrowserManager {
     }
   }
 
-  private StringBuilder readFromProcessPipes(final String processName, final InputStream in) {
-    final StringBuilder output = new StringBuilder();
+  private ListeningStream readFromProcessPipes(final String processName, final InputStream in) {
+    final ListeningStream output = new ListeningStream();
 
     Thread thread = new Thread(new Runnable() {
       @Override
@@ -492,7 +500,7 @@ public class BrowserManager {
                 System.out.print(str);
               }
 
-              output.append(str);
+              output.appendData(str);
             }
 
             count = in.read(buffer);
@@ -547,7 +555,7 @@ public class BrowserManager {
    * @param browserName
    * @throws CoreException
    */
-  private void startNewBrowserProcess(DartLaunchConfigWrapper launchConfig, String url,
+  private ListeningStream startNewBrowserProcess(DartLaunchConfigWrapper launchConfig, String url,
       IProgressMonitor monitor, boolean enableDebugging, IPath browserLocation, String browserName)
       throws CoreException {
 
@@ -609,6 +617,7 @@ public class BrowserManager {
         devToolsPortNumber);
     builder.command(arguments);
     builder.directory(DartSdkManager.getManager().getSdk().getDartiumWorkingDirectory());
+    builder.redirectErrorStream(true);
 
     try {
       process = builder.start();
@@ -622,8 +631,8 @@ public class BrowserManager {
     }
 
     browserProcess = process;
-    stdout = readFromProcessPipes(browserName, browserProcess.getInputStream());
-    stderr = readFromProcessPipes(browserName, browserProcess.getErrorStream());
+
+    return readFromProcessPipes(browserName, browserProcess.getInputStream());
   }
 
   private void terminateExistingBrowserProcess() {

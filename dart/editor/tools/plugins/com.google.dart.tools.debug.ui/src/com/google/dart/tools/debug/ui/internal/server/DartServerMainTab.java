@@ -79,7 +79,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     Group group = new Group(composite, SWT.NONE);
     group.setText("Application");
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-    GridLayoutFactory.swtDefaults().numColumns(3).extendedMargins(0, 0, 0, 4).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
 
     Label label = new Label(group, SWT.NONE);
     label.setText("Working directory:");
@@ -116,7 +116,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
 
     argsText = new Text(group, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL);
     argsText.addModifyListener(textModifyListener);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.FILL).grab(true, false).hint(400, 75).applyTo(
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.FILL).grab(true, false).hint(400, 74).applyTo(
         argsText);
 
     // spacer
@@ -126,7 +126,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     group = new Group(composite, SWT.NONE);
     group.setText("VM settings");
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-    GridLayoutFactory.swtDefaults().numColumns(3).extendedMargins(0, 0, 0, 4).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
 
     label = new Label(group, SWT.NONE);
     label.setText("Max heap (MB):");

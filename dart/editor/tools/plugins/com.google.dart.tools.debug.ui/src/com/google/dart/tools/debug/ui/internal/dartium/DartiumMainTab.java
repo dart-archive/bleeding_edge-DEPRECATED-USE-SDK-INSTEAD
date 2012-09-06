@@ -103,6 +103,8 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   private Button enableDebuggingButton;
 
+  private Button showOutputButton;
+
   protected Text argumentText;
 
   /**
@@ -126,7 +128,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     createHtmlField(group);
 
     Label filler = new Label(group, SWT.NONE);
-    GridDataFactory.swtDefaults().span(3, 1).applyTo(filler);
+    GridDataFactory.swtDefaults().span(3, 1).hint(-1, 4).applyTo(filler);
 
     createUrlField(group);
 
@@ -156,6 +158,9 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
       }
     });
 
+    Label sep = new Label(group, SWT.NONE);
+    GridDataFactory.fillDefaults().span(3, 1).hint(-1, 4).grab(true, false).applyTo(sep);
+
     // additional browser arguments
     Label argsLabel = new Label(group, SWT.NONE);
     argsLabel.setText("Arguments:");
@@ -169,6 +174,16 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     PixelConverter converter = new PixelConverter(spacer);
     int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).hint(widthHint, -1).applyTo(spacer);
+
+    showOutputButton = new Button(group, SWT.CHECK);
+    showOutputButton.setText("Show browser stdout and stderr output");
+    GridDataFactory.swtDefaults().span(3, 1).applyTo(showOutputButton);
+    showOutputButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        notifyPanelChanged();
+      }
+    });
 
     setControl(composite);
   }
@@ -237,6 +252,10 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
       enableDebuggingButton.setSelection(dartLauncher.getEnableDebugging());
     }
 
+    if (showOutputButton != null) {
+      showOutputButton.setSelection(dartLauncher.getShowLaunchOutput());
+    }
+
     argumentText.setText(dartLauncher.getArguments());
   }
 
@@ -283,6 +302,10 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
     if (enableDebuggingButton != null) {
       dartLauncher.setEnableDebugging(enableDebuggingButton.getSelection());
+    }
+
+    if (showOutputButton != null) {
+      dartLauncher.setShowLaunchOutput(showOutputButton.getSelection());
     }
 
     dartLauncher.setArguments(argumentText.getText().trim());
