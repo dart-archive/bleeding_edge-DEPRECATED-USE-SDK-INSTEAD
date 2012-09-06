@@ -33,11 +33,6 @@ public class TestGenerateArtifacts extends TestCase {
    * Generate the index for the SDK so that it does not need to be computed at startup
    */
   public void test_generate_SDK_index() throws Exception {
-    String userName = System.getProperty("user.name"); //$NON-NLS-1$
-    if (getOutputName() == null && !userName.startsWith("chrome")) {
-      System.out.println(">>> Skipping " + getClass().getSimpleName());
-      return;
-    }
 
     DartSdk sdk = DartSdkManager.getManager().getSdk();
     File sdkIndexFile = sdk.getLibraryIndexFile();
@@ -70,6 +65,13 @@ public class TestGenerateArtifacts extends TestCase {
       // delete bad index file so that it does not interfere with other tests
       sdkIndexFile.delete();
       fail(sdkIndexFile.getName() + " has only " + actualSize + " bytes");
+    }
+
+    // If this is a local test execution, not a build, then don't copy the index file
+    String userName = System.getProperty("user.name"); //$NON-NLS-1$
+    if (getOutputName() == null && !userName.startsWith("chrome")) {
+      System.out.println(">>> Skip copying " + getClass().getSimpleName());
+      return;
     }
 
     // Copy the index file to a location that can be picked up by the build
