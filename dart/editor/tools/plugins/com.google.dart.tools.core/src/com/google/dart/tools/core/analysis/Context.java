@@ -159,6 +159,19 @@ public class Context {
     server.queueNewTask(new ParseTask(server, this, libraryFile, relPath, dartFile, callback));
   }
 
+  public void removeAnalysisListener(AnalysisListener listener) {
+    for (int i = 0; i < analysisListeners.length; i++) {
+      if (analysisListeners[i] == listener) {
+        int oldLen = analysisListeners.length;
+        AnalysisListener[] newListeners = new AnalysisListener[oldLen - 1];
+        System.arraycopy(analysisListeners, 0, newListeners, 0, i);
+        System.arraycopy(analysisListeners, i + 1, newListeners, i, oldLen - i - 1);
+        analysisListeners = newListeners;
+        return;
+      }
+    }
+  }
+
   /**
    * Resolve the specified library. Similar to {@link AnalysisServer#analyze(File)}, but does not
    * add the library to the list of libraries to be tracked.
