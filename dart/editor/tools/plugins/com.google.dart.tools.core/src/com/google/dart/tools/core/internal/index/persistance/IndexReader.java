@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.internal.index.persistance;
 
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.index.Attribute;
 import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Location;
@@ -79,6 +81,9 @@ public class IndexReader {
       // Version 1 was considered unreadable if the editor's build number had changed. Given that
       // a change to the version number necessitates a new build, a file with this version can never
       // be readable once a new version was introduced.
+      if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+        DartCore.logInformation("Could not read index file: obsolete index file version '1'");
+      }
       return false;
     } else if (version == 2) {
       return readIndexVersion2(input);
@@ -97,8 +102,17 @@ public class IndexReader {
    */
   public boolean readIndexVersion2(ObjectInputStream input) throws IOException {
     String sdkVersion = input.readUTF();
-    if (!DartSdkManager.getManager().hasSdk()
-        || !sdkVersion.equals(DartSdkManager.getManager().getSdk().getSdkVersion())) {
+    if (!DartSdkManager.getManager().hasSdk()) {
+      if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+        DartCore.logInformation("Could not read index file: no SDK installed");
+      }
+    }
+    String expectedSdkVersion = DartSdkManager.getManager().getSdk().getSdkVersion();
+    if (!sdkVersion.equals(expectedSdkVersion)) {
+      if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+        DartCore.logInformation("Could not read index file: obsolete SDK version " + sdkVersion
+            + " expected " + expectedSdkVersion);
+      }
       return false;
     }
     readStringTable(input);

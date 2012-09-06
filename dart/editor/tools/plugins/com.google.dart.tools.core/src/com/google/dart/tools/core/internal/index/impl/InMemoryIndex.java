@@ -301,7 +301,7 @@ public class InMemoryIndex implements Index {
       indexStore.clear();
       if (!initializeIndexFrom(getIndexFile())) {
         if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
-          logIndexStats("Clearing index after failing to read from file");
+          logIndexStats("Clearing index after failing to read from index file");
         }
         indexStore.clear();
         if (!initializeBundledLibraries()) {
@@ -612,33 +612,41 @@ public class InMemoryIndex implements Index {
    * @return <code>true</code> if the index was correctly initialized
    */
   private boolean initializeIndexFrom(File indexFile) {
-    if (indexFile != null && indexFile.exists()) {
+    if (indexFile == null) {
       if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
-        logIndexStats("About to initialize the index from file " + indexFile.getAbsolutePath()
-            + " (" + indexFile.getTotalSpace() + ")");
+        DartCore.logInformation("Index file was null");
       }
-      try {
-        boolean wasRead = readIndexFrom(indexFile);
-        if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
-          logIndexStats("After initializing the index from file");
-        }
-        synchronized (indexStore) {
-          return wasRead && indexStore.getResourceCount() > 0;
-        }
-      } catch (Exception exception) {
-        DartCore.logError(
-            "Could not read index file: \"" + indexFile.getAbsolutePath() + "\"",
-            exception);
-      }
+      return false;
+    } else if (!indexFile.exists()) {
       if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
-        logIndexStats("Deleting corrupted index file");
+        DartCore.logInformation("Index file " + indexFile.getAbsolutePath() + " does not exist");
       }
-      try {
-        indexFile.delete();
-      } catch (Exception exception) {
-        DartCore.logError("Could not delete corrupt index file: \"" + indexFile.getAbsolutePath()
-            + "\"", exception);
+      return false;
+    }
+    if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+      DartCore.logInformation("About to initialize the index from file "
+          + indexFile.getAbsolutePath() + " (size = " + indexFile.getTotalSpace() + " bytes)");
+    }
+    try {
+      boolean wasRead = readIndexFrom(indexFile);
+      if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+        logIndexStats("After initializing the index from file " + indexFile.getAbsolutePath());
       }
+      synchronized (indexStore) {
+        return wasRead && indexStore.getResourceCount() > 0;
+      }
+    } catch (Exception exception) {
+      DartCore.logError("Could not read index file " + indexFile.getAbsolutePath(), exception);
+    }
+    if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
+      logIndexStats("Deleting corrupted index file " + indexFile.getAbsolutePath());
+    }
+    try {
+      indexFile.delete();
+    } catch (Exception exception) {
+      DartCore.logError(
+          "Could not delete corrupt index file " + indexFile.getAbsolutePath(),
+          exception);
     }
     return false;
   }
