@@ -4,8 +4,8 @@
 
 vars = {
   "chromium_url": "http://src.chromium.org/svn",
-  "gyp_rev": "@937",
-  "co19_rev": "@290",
+  "gyp_rev": "@1451",
+  "co19_rev": "@328",
   "co19_repo": "http://co19.googlecode.com/svn/trunk/co19/",
   "dart_branch": "/branches/bleeding_edge"
 }
@@ -13,9 +13,6 @@ vars = {
 deps = {
   "runtime":
     Var("dart_branch") + "/dart/runtime",
-
-  "language":
-    Var("dart_branch") + "/dart/language",
 
   "lib":
     Var("dart_branch") + "/dart/lib",
