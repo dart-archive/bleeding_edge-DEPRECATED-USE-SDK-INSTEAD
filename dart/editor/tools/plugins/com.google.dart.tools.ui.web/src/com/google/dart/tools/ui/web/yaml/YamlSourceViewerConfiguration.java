@@ -44,6 +44,11 @@ public class YamlSourceViewerConfiguration extends SourceViewerConfiguration {
   }
 
   @Override
+  public String[] getIndentPrefixes(ISourceViewer sourceViewer, String contentType) {
+    return new String[] {"  ", ""};
+  }
+
+  @Override
   public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
     PresentationReconciler reconciler = new PresentationReconciler();
 
@@ -66,6 +71,11 @@ public class YamlSourceViewerConfiguration extends SourceViewerConfiguration {
     }
 
     return reconciler;
+  }
+
+  @Override
+  public int getTabWidth(ISourceViewer sourceViewer) {
+    return 2;
   }
 
   protected YamlScanner getScanner() {

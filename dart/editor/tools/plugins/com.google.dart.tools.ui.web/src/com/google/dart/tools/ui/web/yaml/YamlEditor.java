@@ -20,7 +20,7 @@ import com.google.dart.tools.ui.web.yaml.model.YamlParser;
 import org.eclipse.jface.text.IRegion;
 
 /**
- * An editor for yaml files
+ * An editor for yaml files.
  */
 public class YamlEditor extends WebEditor {
 
@@ -51,6 +51,11 @@ public class YamlEditor extends WebEditor {
   @Override
   protected void handleReconcilation(IRegion partition) {
 
+  }
+
+  @Override
+  protected boolean isTabsToSpacesConversionEnabled() {
+    return true;
   }
 
 }
