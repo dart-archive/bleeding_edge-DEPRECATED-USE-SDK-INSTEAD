@@ -125,8 +125,6 @@ class AntWrapper(object):
       args.append('-Dbuild.extra.artifacts={0}'.format(extra_artifacts))
     if is_windows:
       args.append('-autoproxy')
-      #add the JAVA_HOME to the environment for the windows builds
-      local_env['JAVA_HOME'] = 'C:\Program Files\Java\jdk1.6.0_29'
     if extra_args:
       args.extend(extra_args)
     args.append('-Dbuild.local.build=false')
