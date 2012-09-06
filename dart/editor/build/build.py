@@ -17,7 +17,7 @@ import gsutil
 import ziputils
 import hashlib
 
-from os.path import join
+from os.path import join, basename
 
 BUILD_OS = None
 DART_PATH = None
@@ -627,8 +627,14 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
   if not dartiumFiles:
     raise Exception("could not find any dartium files")
 
+  tempList = []
+  
   for dartiumFile in dartiumFiles:
     print '  found dartium: %s' % dartiumFile
+    tempList.append(RemapDartiumUrl(dartiumFile))
+
+  dartiumFiles = tempList
+
   
   for rcpZipFile in rcpZipFiles:
     searchString = None;
@@ -692,6 +698,24 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
         
   shutil.rmtree(tmp_dir, True)
 
+
+# convert:
+#   gs://dartium-archive/latest/dartium-lucid32-full-9420.9420.zip
+# to:
+#   gs://dartium-archive/dartium-lucid32-full/dartium-lucid32-full-9420.9420.zip  
+def RemapDartiumUrl(url):
+  name = basename(url)
+
+  reResult = re.search('(\S*-\S*-full)-.*', name)
+
+  directory = reResult.group(1)
+  
+  remap = "gs://dartium-archive/%s/%s" % (directory, name)
+  
+  print "    %s ==> %s" % (url, remap)
+  
+  return remap
+  
 
 def _InstallArtifacts(buildout, buildos, extra_artifacts):
   """Install extra build artifacts into the RCP zip files.
