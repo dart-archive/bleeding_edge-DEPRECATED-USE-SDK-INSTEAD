@@ -57,7 +57,6 @@ lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9
 
 [ $compiler == dart2js && $runtime == ff ]
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
-swarm/swarm_test: Skip # Issue 3152: Timeout $.window().get$location().get$protocol is not a function
 
 [ $compiler == dart2js && $runtime == drt && $system == windows ]
 swarm/swarm_test: Fail # Issue 4517
@@ -82,4 +81,4 @@ lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9
 *: Skip
 
 [ $compiler == dart2js && $checked ]
-swarm_test: Fail # TypeError: Object #<HTMLParagraphElement> has no method 'get$text'
+swarm/swarm_test: Fail # TypeError: Object #<HTMLParagraphElement> has no method 'get$text'
