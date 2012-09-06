@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.cleanup;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.utilities.io.Base16;
@@ -21,9 +22,11 @@ import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_catch_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_equals_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_get_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_operators_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.style.Style_trailingSpace_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.style.Style_useBlocks_CleanUp;
 import com.google.dart.tools.ui.internal.util.GridDataFactory;
 import com.google.dart.tools.ui.internal.util.GridLayoutFactory;
 
@@ -541,19 +544,28 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
     private static final CleanUpSettings settings = new CleanUpSettings();
 
     private static final String ID_MIGRATE_SYNTAX_1M1_CATCH = "migrateSyntax-1M1-catch";
-    private static final String ID_MIGRATE_SYNTAX_1M1_EQUALS = "migrateSyntax-1M1-equals";
+    private static final String ID_MIGRATE_SYNTAX_1M1_OPERS = "migrateSyntax-1M1-operators";
     private static final String ID_MIGRATE_SYNTAX_1M1_GET = "migrateSyntax-1M1-get";
     private static final String ID_MIGRATE_SYNTAX_1M1_LIBRARY = "migrateSyntax-1M1-library";
+    private static final String ID_STYLE_TRAILING_WHITESPACE = "style-trailingWhitespace";
+    private static final String ID_STYLE_USE_BLOCKS = "style-useBlocks";
+    private static final String ID_STYLE_USE_BLOCKS_FLAG = "style-useBlocks-flag";
 
     static {
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_CATCH, new Migrate_1M1_catch_CleanUp());
-      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_EQUALS, new Migrate_1M1_equals_CleanUp());
+      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_OPERS, new Migrate_1M1_operators_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_GET, new Migrate_1M1_get_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_LIBRARY, new Migrate_1M1_library_CleanUp());
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_CATCH, true);
-      settings.setDefault(ID_MIGRATE_SYNTAX_1M1_EQUALS, true);
+      settings.setDefault(ID_MIGRATE_SYNTAX_1M1_OPERS, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_GET, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_LIBRARY, false);
+      // style
+      CLEAN_UPS.put(ID_STYLE_TRAILING_WHITESPACE, new Style_trailingSpace_CleanUp());
+      CLEAN_UPS.put(ID_STYLE_USE_BLOCKS, new Style_useBlocks_CleanUp());
+      settings.setDefault(ID_STYLE_TRAILING_WHITESPACE, true);
+      settings.setDefault(ID_STYLE_USE_BLOCKS, true);
+      settings.setDefault(ID_STYLE_USE_BLOCKS_FLAG, "ALWAYS");
     }
 
     private final CleanUpRefactoring refactoring;
@@ -585,6 +597,7 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       {
         TabFolder tabFolder = new TabFolder(composite, SWT.NONE);
         GridDataFactory.create(tabFolder).grab().fill();
+        // Migrate Syntax
         {
           TabItem syntaxItem = new TabItem(tabFolder, SWT.NONE);
           syntaxItem.setText("Migrate Syntax");
@@ -598,8 +611,8 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 "Migrate 'catch' blocks");
             createCheckButton(
                 syntaxComposite,
-                ID_MIGRATE_SYNTAX_1M1_EQUALS,
-                "Migrate 'operator equals()'");
+                ID_MIGRATE_SYNTAX_1M1_OPERS,
+                "Migrate 'operator equals()' and 'operator negate()'");
             createCheckButton(syntaxComposite, ID_MIGRATE_SYNTAX_1M1_GET, "Migrate getters");
             new Label(syntaxComposite, SWT.NONE);
             new Label(syntaxComposite, SWT.NONE).setText("Work in progress... not fully implemented:");
@@ -607,6 +620,33 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M1_LIBRARY,
                 "Migrate library/import/source");
+          }
+        }
+        // Code Style
+        {
+          TabItem tabItem = new TabItem(tabFolder, SWT.NONE);
+          tabItem.setText("Code style");
+          {
+            Composite tabComposite = new Composite(tabFolder, SWT.NONE);
+            tabItem.setControl(tabComposite);
+            GridLayoutFactory.create(tabComposite);
+            createCheckButton(
+                tabComposite,
+                ID_STYLE_TRAILING_WHITESPACE,
+                "Remove trailing whitespaces");
+            // use blocks
+            createCheckButton(
+                tabComposite,
+                ID_STYLE_USE_BLOCKS,
+                "User blocks in if/while/for statements");
+            {
+              Composite blocksComposite = new Composite(tabComposite, SWT.NONE);
+              GridDataFactory.create(blocksComposite).indentHorizontalChars(3);
+              GridLayoutFactory.create(blocksComposite);
+              createRadioButtons(blocksComposite, ID_STYLE_USE_BLOCKS_FLAG, new String[] {
+                  "Always", "Only if necessary"}, new String[] {
+                  Style_useBlocks_CleanUp.ALWAYS, Style_useBlocks_CleanUp.WHEN_NECESSARY});
+            }
           }
         }
       }
@@ -641,6 +681,24 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       return button;
     }
 
+    private void createRadioButtons(Composite syntaxComposite, final String key, String[] titles,
+        String[] values) {
+      String currentValue = settings.get(key);
+      for (int i = 0; i < titles.length; i++) {
+        String text = titles[i];
+        final String value = values[i];
+        Button button = new Button(syntaxComposite, SWT.RADIO);
+        button.setText(text);
+        button.setSelection(Objects.equal(value, currentValue));
+        button.addListener(SWT.Selection, new Listener() {
+          @Override
+          public void handleEvent(Event event) {
+            settings.set(key, value);
+          }
+        });
+      }
+    }
+
     private void initializeRefactoring() {
       refactoring.clearCleanUps();
       for (Entry<String, ICleanUp> entry : CLEAN_UPS.entrySet()) {
@@ -650,6 +708,7 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
           refactoring.addCleanUp(cleanUp);
         }
       }
+      ((Style_useBlocks_CleanUp) CLEAN_UPS.get(ID_STYLE_USE_BLOCKS)).setFlag(settings.get(ID_STYLE_USE_BLOCKS_FLAG));
     }
 
     private void restoreSettings() {
@@ -687,11 +746,16 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       }
     }
 
-    public boolean getBoolean(String key) {
+    public String get(String key) {
       String str = map.get(key);
       if (str == null) {
         str = defaultMap.get(key);
       }
+      return str;
+    }
+
+    public boolean getBoolean(String key) {
+      String str = get(key);
       return "TRUE".equals(str);
     }
 
@@ -699,8 +763,16 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       map.put(key, value ? "TRUE" : "FALSE");
     }
 
+    public void set(String key, String value) {
+      map.put(key, value);
+    }
+
     public void setDefault(String key, boolean value) {
       defaultMap.put(key, value ? "TRUE" : "FALSE");
+    }
+
+    public void setDefault(String key, String value) {
+      defaultMap.put(key, value);
     }
   }
 

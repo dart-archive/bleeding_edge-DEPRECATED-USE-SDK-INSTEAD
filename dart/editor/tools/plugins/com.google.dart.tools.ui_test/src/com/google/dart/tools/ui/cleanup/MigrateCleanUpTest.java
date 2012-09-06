@@ -13,20 +13,16 @@
  */
 package com.google.dart.tools.ui.cleanup;
 
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.tools.core.refactoring.CompilationUnitChange;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.ui.internal.cleanup.migration.AbstractMigrateCleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_catch_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_equals_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_operators_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_get_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
-import com.google.dart.tools.ui.refactoring.AbstractDartTest;
 
 /**
  * Test for {@link AbstractMigrateCleanUp}.
  */
-public final class MigrateCleanUpTest extends AbstractDartTest {
+public final class MigrateCleanUpTest extends AbstractCleanUpTest {
 
   public void test_1M1_catch_alreadyNewSyntax_withoutType() throws Exception {
     ICleanUp cleanUp = new Migrate_1M1_catch_CleanUp();
@@ -97,7 +93,7 @@ public final class MigrateCleanUpTest extends AbstractDartTest {
   }
 
   public void test_1M1_equals() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_equals_CleanUp();
+    ICleanUp cleanUp = new Migrate_1M1_operators_CleanUp();
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -114,7 +110,7 @@ public final class MigrateCleanUpTest extends AbstractDartTest {
   }
 
   public void test_1M1_equals_noOp() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_equals_CleanUp();
+    ICleanUp cleanUp = new Migrate_1M1_operators_CleanUp();
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -223,36 +219,32 @@ public final class MigrateCleanUpTest extends AbstractDartTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
-  private void assertCleanUp(ICleanUp cleanUp, String initial, String expected) throws Exception {
-    ICleanUpFix fix = prepareFix(cleanUp, initial);
-    assertNotNull(fix);
-    // assert result
-    CompilationUnitChange unitChange = fix.createChange(null);
-    String result = unitChange.getPreviewContent(null);
-    assertEquals(expected, result);
+  public void test_1M1_negate() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_operators_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  operator negate() => this;",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  operator -() => this;",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
   }
 
-  private void assertNoFix(ICleanUp cleanUp, String initial) throws Exception {
-    ICleanUpFix fix = prepareFix(cleanUp, initial);
-    assertNull(fix);
-  }
-
-  private ICleanUpFix prepareFix(ICleanUp cleanUp, String initial) throws Exception {
-    setTestUnitContent(initial);
-    // prepare CleanUpContext
-    CleanUpContext context;
-    {
-      DartUnit ast = DartCompilerUtilities.resolveUnit(testUnit);
-      context = new CleanUpContext(testUnit, ast);
-    }
-    // check requirements
-    {
-      CleanUpRequirements requirements = cleanUp.getRequirements();
-      assertTrue(requirements.requiresAST());
-    }
-    // prepare ICleanUpFix
-    ICleanUpFix fix = cleanUp.createFix(context);
-    return fix;
+  public void test_1M1_negate_noOp() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_operators_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  operator -() => this;",
+        "}",
+        "");
+    assertNoFix(cleanUp, initial);
   }
 
 }

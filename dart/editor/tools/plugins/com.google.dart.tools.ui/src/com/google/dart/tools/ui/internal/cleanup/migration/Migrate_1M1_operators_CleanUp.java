@@ -19,19 +19,29 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.tools.internal.corext.SourceRangeFactory;
 
 /**
- * In specification 1.0 M1 "operator equals(other)" was replaced with "operator ==(other)".
+ * In specification 1.0 M1 syntax for operators was changed.
+ * <ul>
+ * <li>"operator equals(other)" was replaced with "operator ==(other)"</li>
+ * <li>"operator negate()" was replaced with "operator -()"</li>
+ * </ul>
  * 
  * @coverage dart.editor.ui.cleanup
  */
-public class Migrate_1M1_equals_CleanUp extends AbstractMigrateCleanUp {
+public class Migrate_1M1_operators_CleanUp extends AbstractMigrateCleanUp {
   @Override
   protected void createFix() {
     unitNode.accept(new ASTVisitor<Void>() {
       @Override
       public Void visitMethodDefinition(DartMethodDefinition node) {
-        DartExpression name = node.getName();
-        if (node.getModifiers().isOperator() && name.toString().equals("equals")) {
-          addReplaceEdit(SourceRangeFactory.create(name), "==");
+        if (node.getModifiers().isOperator()) {
+          DartExpression nameNode = node.getName();
+          String name = nameNode.toString();
+          if (name.equals("equals")) {
+            addReplaceEdit(SourceRangeFactory.create(nameNode), "==");
+          }
+          if (name.equals("negate")) {
+            addReplaceEdit(SourceRangeFactory.create(nameNode), "-");
+          }
         }
         return super.visitMethodDefinition(node);
       }

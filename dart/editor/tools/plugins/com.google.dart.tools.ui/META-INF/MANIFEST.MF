@@ -43,6 +43,7 @@ Export-Package: com.google.dart.tools.internal.corext;x-friends:="com.google.dar
  com.google.dart.tools.ui.internal.actions;x-friends:="com.google.dart.eclipse.ui",
  com.google.dart.tools.ui.internal.callhierarchy,
  com.google.dart.tools.ui.internal.cleanup.migration;x-friends:="com.google.dart.tools.ui_test",
+ com.google.dart.tools.ui.internal.cleanup.style;x-friends:="com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.internal.filesview,
  com.google.dart.tools.ui.internal.handlers,
  com.google.dart.tools.ui.internal.intro;x-friends:="com.google.dart.tools.deploy",

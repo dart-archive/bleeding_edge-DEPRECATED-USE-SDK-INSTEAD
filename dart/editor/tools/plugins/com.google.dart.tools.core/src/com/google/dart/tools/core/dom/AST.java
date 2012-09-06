@@ -138,7 +138,7 @@ public class AST {
     } else if (nodeClass == DartFieldDefinition.class) {
       return (N) new DartFieldDefinition(null, new ArrayList<DartField>());
     } else if (nodeClass == DartForStatement.class) {
-      return (N) new DartForStatement(null, null, null, null);
+      return (N) new DartForStatement(null, null, null, 0, null);
     } else if (nodeClass == DartFunction.class) {
       return (N) new DartFunction(new ArrayList<DartParameter>(), null, null);
     } else if (nodeClass == DartFunctionExpression.class) {
@@ -216,7 +216,7 @@ public class AST {
     } else if (nodeClass == DartVariableStatement.class) {
       return (N) new DartVariableStatement(new ArrayList<DartVariable>(), null);
     } else if (nodeClass == DartWhileStatement.class) {
-      return (N) new DartWhileStatement(null, null);
+      return (N) new DartWhileStatement(null, 0, null);
     }
     return null;
   }

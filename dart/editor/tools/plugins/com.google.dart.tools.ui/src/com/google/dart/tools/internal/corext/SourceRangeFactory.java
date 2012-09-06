@@ -54,6 +54,14 @@ public class SourceRangeFactory {
   }
 
   /**
+   * @return the {@link SourceRange} which start at end of "a" and ends at "end".
+   */
+  public static SourceRange forEndEnd(HasSourceInfo a, int end) {
+    int start = a.getSourceInfo().getEnd();
+    return forStartEnd(start, end);
+  }
+
+  /**
    * @return the {@link SourceRange} which start at the end of "startInfo" and has specified length.
    */
   public static SourceRange forEndLength(HasSourceInfo startInfo, int length) {
