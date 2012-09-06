@@ -255,7 +255,7 @@ public class Dart2JSCompiler {
   protected List<String> getCompilerArguments(IPath inputPath, IPath outputPath) {
     List<String> args = new ArrayList<String>();
 
-    args.add("dart2js/lib/compiler/implementation/dart2js.dart");
+    args.add("compiler/implementation/dart2js.dart");
     args.add("--no-colors");
     args.add("--suppress-warnings");
     //args.add("--library-root=" + DartSdk.getInstance().getLibraryDirectory().getPath());
