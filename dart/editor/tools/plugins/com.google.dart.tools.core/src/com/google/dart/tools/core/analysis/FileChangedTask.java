@@ -22,13 +22,11 @@ import java.util.Collection;
 class FileChangedTask extends Task {
 
   private final AnalysisServer server;
-  private final Context context;
-  private final File file;
+  private final File rootFile;
 
-  FileChangedTask(AnalysisServer server, Context context, File file) {
+  FileChangedTask(AnalysisServer server, File file) {
     this.server = server;
-    this.context = context;
-    this.file = file;
+    this.rootFile = file;
   }
 
   @Override
@@ -43,45 +41,44 @@ class FileChangedTask extends Task {
 
   @Override
   public void perform() {
+    SavedContext savedContext = server.getSavedContext();
     ScanTask task = null;
-    Library library = context.getCachedLibrary(file);
-    Library[] librariesSourcing = context.getLibrariesSourcing(file);
 
-    // If this file is a library, then scan the library and all its files for directive changes
+    Library library = savedContext.getCachedLibrary(rootFile);
+    Library[] librariesSourcing = savedContext.getLibrariesSourcing(rootFile);
+
+    // If this rootFile is a library, then scan the library and all its files for directive changes
     if (library != null) {
 
       // Discard and re-analyze only if this library is not already up to date
-      if (file.lastModified() != library.lastModified(file)) {
-        task = new ScanTask(server, context, file, null);
+      if (rootFile.lastModified() != library.lastModified(rootFile)) {
+        task = new ScanTask(server, rootFile, null);
 
         // Discard and scan any libraries that were incorrectly sourced
         Collection<File> sourceFiles = library.getSourceFiles();
         task.addFilesToScan(sourceFiles);
         for (File sourceFile : sourceFiles) {
-          Library sourcedLibrary = context.getCachedLibrary(sourceFile);
-          if (sourcedLibrary != null) {
-            context.discardLibrary(sourcedLibrary);
-          }
+          savedContext.discardLibrary(sourceFile);
         }
 
         // Discard the library and any downstream libraries
-        context.discardLibraryAndReferencingLibraries(library);
+        savedContext.discardLibraries(library.getFile());
       }
     }
 
-    // If this file is sourced by another library, then scan the file for directive changes
+    // If this rootFile is sourced by another library, then scan the rootFile for directive changes
     for (Library otherLibrary : librariesSourcing) {
 
       // Discard and re-analyze only if this library is not already up to date
-      if (file.lastModified() != otherLibrary.lastModified(file)) {
+      if (rootFile.lastModified() != otherLibrary.lastModified(rootFile)) {
 
         if (task == null) {
-          task = new ScanTask(server, context, file, null);
+          task = new ScanTask(server, rootFile, null);
         }
         task.addFilesToScan(otherLibrary.getFile());
 
         // Discard the library and any downstream libraries
-        context.discardLibraryAndReferencingLibraries(otherLibrary);
+        savedContext.discardLibraries(otherLibrary.getFile());
       }
     }
 

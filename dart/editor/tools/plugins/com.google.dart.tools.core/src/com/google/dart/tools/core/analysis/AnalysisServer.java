@@ -139,13 +139,14 @@ public class AnalysisServer {
   }
 
   /**
-   * Called when a file or directory has been added or removed or file content has been modified.
+   * Called when file content has been modified or anything in the "packages" directory has changed.
    * Use {@link #discard(File)} if the file or directory content should no longer be analyzed.
    * 
    * @param file the file or directory (not <code>null</code>)
    */
   public void changed(File file) {
-    queueNewTask(new FileChangedTask(this, savedContext, file));
+    file = file.getAbsoluteFile();
+    queueNewTask(new FileChangedTask(this, file));
   }
 
   /**
@@ -157,27 +158,21 @@ public class AnalysisServer {
     file = file.getAbsoluteFile();
 
     // If this is a dart file, then discard the library
-
-    if (file.isFile() || (!file.exists() && DartCore.isDartLikeFileName(file.getName()))) {
-      synchronized (libraryFiles) {
-        if (libraryFiles.remove(file)) {
-          queueNewTask(new DiscardTask(this, file));
-        }
-      }
-      return;
-    }
-
-    // Otherwise, discard all libraries in the specified directory tree
-
+    // otherwise, discard all libraries in the specified directory tree
     synchronized (libraryFiles) {
-      Iterator<File> iter = libraryFiles.iterator();
-      while (iter.hasNext()) {
-        if (equalsOrContains(file, iter.next())) {
-          iter.remove();
+      if (file.isFile() || (!file.exists() && DartCore.isDartLikeFileName(file.getName()))) {
+        libraryFiles.remove(file);
+      } else {
+        Iterator<File> iter = libraryFiles.iterator();
+        while (iter.hasNext()) {
+          if (equalsOrContains(file, iter.next())) {
+            iter.remove();
+          }
         }
       }
-      queueNewTask(new DiscardTask(this, file));
     }
+
+    queueNewTask(new DiscardTask(this, file));
   }
 
   /**
@@ -200,6 +195,25 @@ public class AnalysisServer {
    */
   public boolean isIdle() {
     return processor.isIdle();
+  }
+
+  /**
+   * TESTING: Answer <code>true</code> if information about the specified library is cached
+   * 
+   * @param file the library file (not <code>null</code>)
+   */
+  public boolean isLibraryCached(File file) {
+    return savedContext.getCachedLibrary(file) != null;
+  }
+
+  /**
+   * TESTING: Answer <code>true</code> if specified library has been resolved
+   * 
+   * @param file the library file (not <code>null</code>)
+   */
+  public boolean isLibraryResolved(File file) {
+    Library library = savedContext.getCachedLibrary(file);
+    return library != null && library.getLibraryUnit() != null;
   }
 
   /**
@@ -233,10 +247,12 @@ public class AnalysisServer {
   }
 
   /**
-   * Called when all cached information should be discarded and all libraries reanalyzed
+   * Called when all cached information should be discarded and all libraries reanalyzed. No
+   * {@link AnalysisListener#discarded(AnalysisEvent)} events are sent when the information is
+   * discarded.
    */
   public void reanalyze() {
-    queueNewTask(new EverythingChangedTask(this, savedContext));
+    queueNewTask(new EverythingChangedTask(this));
   }
 
   public void removeIdleListener(IdleListener listener) {
@@ -264,7 +280,20 @@ public class AnalysisServer {
    * @param callback for reporting progress and canceling the operation.
    */
   public void scan(File file, ScanCallback callback) {
-    queueNewTask(new ScanTask(this, savedContext, file, callback));
+    file = file.getAbsoluteFile();
+
+    // If scanning a "packages" directory, then assume that the packages directory has just been
+    // added and create a new application context if one does not already exist
+    if (DartCore.isPackagesDirectory(file)) {
+      File appDir = file.getParentFile();
+      queueNewTask(new DiscardTask(this, appDir));
+      queueNewTask(new ScanTask(this, appDir, callback));
+    }
+
+    // Otherwise scan the file/directory
+    else {
+      queueNewTask(new ScanTask(this, file, callback));
+    }
   }
 
   /**
@@ -418,27 +447,6 @@ public class AnalysisServer {
 
   private File getAnalysisStateFile() {
     return new File(DartCore.getPlugin().getStateLocation().toFile(), "analysis.cache");
-  }
-
-  /**
-   * TESTING: Answer <code>true</code> if information about the specified library is cached
-   * 
-   * @param file the library file (not <code>null</code>)
-   */
-  @SuppressWarnings("unused")
-  private boolean isLibraryCached(File file) {
-    return savedContext.getCachedLibrary(file) != null;
-  }
-
-  /**
-   * TESTING: Answer <code>true</code> if specified library has been resolved
-   * 
-   * @param file the library file (not <code>null</code>)
-   */
-  @SuppressWarnings("unused")
-  private boolean isLibraryResolved(File file) {
-    Library library = savedContext.getCachedLibrary(file);
-    return library != null && library.getLibraryUnit() != null;
   }
 
   /**

@@ -26,7 +26,6 @@ import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertQu
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTrackedLibraryFiles;
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.getServerTaskQueue;
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.getTrackedLibraryFiles;
-import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.isLibraryCached;
 
 import junit.framework.TestCase;
 
@@ -72,7 +71,7 @@ public class AnalysisServerTest extends TestCase {
     listener.assertNoDuplicates();
     listener.assertNoDiscards();
     assertTrackedLibraryFiles(server, libFile);
-    assertTrue(isLibraryResolved(libFile));
+    assertTrue(server.isLibraryResolved(libFile));
     return libFile;
   }
 
@@ -249,8 +248,8 @@ public class AnalysisServerTest extends TestCase {
         waitForIdle();
 
         assertTrackedLibraryFiles(server, libFile);
-        assertTrue(isLibraryCached(server, libFile));
-        assertFalse(isLibraryResolved(libFile));
+        assertTrue(server.isLibraryCached(libFile));
+        assertFalse(server.isLibraryResolved(libFile));
         assertQueuedTasks(server);
       }
     });
@@ -284,7 +283,7 @@ public class AnalysisServerTest extends TestCase {
         server.analyze(libFile);
         listener.waitForResolved(FIVE_MINUTES_MS, libFile);
         assertTrackedLibraryFiles(server, libFile);
-        assertTrue(isLibraryResolved(libFile));
+        assertTrue(server.isLibraryResolved(libFile));
 
         StringWriter writer = new StringWriter(5000);
         server.stop();
@@ -294,8 +293,8 @@ public class AnalysisServerTest extends TestCase {
 
         assertQueuedTasks(server, "AnalyzeLibraryTask"); // dart:core
         assertTrackedLibraryFiles(server, libFile);
-        assertTrue(isLibraryCached(server, libFile));
-        assertFalse(isLibraryResolved(libFile));
+        assertTrue(server.isLibraryCached(libFile));
+        assertFalse(server.isLibraryResolved(libFile));
       }
     });
   }
@@ -369,13 +368,6 @@ public class AnalysisServerTest extends TestCase {
       readCache(reader);
     }
     listener = new Listener(server);
-  }
-
-  private boolean isLibraryResolved(File libFile) throws Exception {
-    Method method = server.getClass().getDeclaredMethod("isLibraryResolved", File.class);
-    method.setAccessible(true);
-    Object result = method.invoke(server, libFile);
-    return result instanceof Boolean && ((Boolean) result).booleanValue();
   }
 
   private void readCache(Reader reeader) throws Exception {

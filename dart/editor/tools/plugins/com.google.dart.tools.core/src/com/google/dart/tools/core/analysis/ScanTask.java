@@ -187,7 +187,6 @@ public class ScanTask extends Task implements TaskListener {
   }
 
   private final AnalysisServer server;
-  private final Context context;
   private final File rootFile;
   private final ScanCallback callback;
   private final ArrayList<File> filesToScan = new ArrayList<File>(200);
@@ -201,9 +200,8 @@ public class ScanTask extends Task implements TaskListener {
 
   private float progress = 0;
 
-  ScanTask(AnalysisServer server, Context context, File rootFile, ScanCallback callback) {
+  ScanTask(AnalysisServer server, File rootFile, ScanCallback callback) {
     this.server = server;
-    this.context = context;
     this.rootFile = rootFile;
     this.callback = callback;
     this.filesToScan.add(rootFile);
@@ -230,6 +228,7 @@ public class ScanTask extends Task implements TaskListener {
 
   @Override
   public void perform() {
+    SavedContext savedContext = server.getSavedContext();
 
     // Scan for files defining libraries
 
@@ -271,9 +270,9 @@ public class ScanTask extends Task implements TaskListener {
       // Parse libraries that have not been parsed
 
       File libFile = iter.next();
-      Library lib = context.getCachedLibrary(libFile);
+      Library lib = savedContext.getCachedLibrary(libFile);
       if (lib == null) {
-        server.queueSubTask(new ParseTask(server, context, libFile, null));
+        queueParseTask(libFile);
         continue;
       }
 
@@ -282,7 +281,7 @@ public class ScanTask extends Task implements TaskListener {
       librariesToAnalyze.add(lib);
       looseFiles.removeAll(lib.getSourceFiles());
       for (File sourcedFile : lib.getSourceFiles()) {
-        Library otherLib = context.getCachedLibrary(sourcedFile);
+        Library otherLib = savedContext.getCachedLibrary(sourcedFile);
         // If there is no information about the sourcedFile currently in the cache
         // make the assumption that it is not a library file rather than doing more work
         if (otherLib == null || !otherLib.hasDirectives()) {
@@ -302,8 +301,8 @@ public class ScanTask extends Task implements TaskListener {
       server.analyze(lib.getFile());
     }
     for (File file : looseFiles) {
-      if (context.getLibrariesSourcing(file).length == 0) {
-        server.queueSubTask(new ParseTask(server, context, file, null));
+      if (savedContext.getLibrariesSourcing(file).length == 0) {
+        queueParseTask(file);
         server.analyze(file);
       }
     }
@@ -359,6 +358,14 @@ public class ScanTask extends Task implements TaskListener {
     return;
   }
 
+  private void queueParseTask(File libFile) {
+    File libDir = libFile.getParentFile();
+    if (DartCore.containsPackagesDirectory(libDir)) {
+      server.getSavedContext().getOrCreatePackageContext(libDir);
+    }
+    server.queueSubTask(new ParseTask(server, server.getSavedContext(), libFile, null));
+  }
+
   /**
    * Scan the specified file to see if it is a library. If the total number of bytes of source code
    * scanned exceeds the threshold, then abort the scan, mark the root folder as ignored, and
@@ -369,9 +376,6 @@ public class ScanTask extends Task implements TaskListener {
       return;
     }
     if (file.isDirectory()) {
-      if (DartCore.containsPackagesDirectory(file)) {
-        server.getSavedContext().getOrCreatePackageContext(file);
-      }
       if (!DartCore.isPackagesDirectory(file)) {
         filesToScan.addAll(Arrays.asList(file.listFiles()));
       }

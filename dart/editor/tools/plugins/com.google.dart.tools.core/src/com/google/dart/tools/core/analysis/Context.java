@@ -15,7 +15,10 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdkManager;
+
+import static com.google.dart.tools.core.analysis.AnalysisUtility.equalsOrContains;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +26,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -216,19 +220,73 @@ public class Context {
     libraryCache.put(library.getFile(), library);
   }
 
-  void discardLibraries() {
+  /**
+   * Discard all libraries cached in this context without notifying any listeners.
+   */
+  void discardAllLibraries() {
     libraryCache.clear();
   }
 
-  void discardLibrary(Library library) {
-    libraryCache.remove(library.getFile());
+  /**
+   * If the specified file is a directory, then discard all libraries in that directory tree
+   * otherwise discard the specified library. In both cases, discard all libraries that directly or
+   * indirectly reference the discarded libraries.
+   * 
+   * @param rootFile the original file or directory to discard
+   * @param discarded the collection of libraries that have already been discarded and to which
+   *          newly discarded libraries should be added
+   */
+  void discardLibraries(File rootFile, ArrayList<Library> discarded) {
+    // If this is a dart file, then discard the cached library
+    if (rootFile.isFile()
+        || (!rootFile.exists() && DartCore.isDartLikeFileName(rootFile.getName()))) {
+      Library library = discardLibrary(rootFile);
+      if (library != null) {
+        discarded.add(library);
+      }
+    }
+
+    // Otherwise discard all cached libraries in the specified directory tree
+    else {
+      Iterator<Library> iter = libraryCache.values().iterator();
+      while (iter.hasNext()) {
+        Library library = iter.next();
+        if (equalsOrContains(rootFile, library.getFile())) {
+          iter.remove();
+          notifyDiscarded(library);
+          discarded.add(library);
+        }
+      }
+    }
+
+    // Recursively discard all libraries referencing the discarded libraries
+    for (int index = 0; index < discarded.size(); index++) {
+      File discardedLibraryFile = discarded.get(index).getFile();
+      Iterator<Library> iter = libraryCache.values().iterator();
+      while (iter.hasNext()) {
+        Library library = iter.next();
+        if (library.getImportedFiles().contains(discardedLibraryFile)) {
+          iter.remove();
+          notifyDiscarded(library);
+          discarded.add(library);
+        }
+      }
+    }
   }
 
-  void discardLibraryAndReferencingLibraries(Library library) {
-    discardLibrary(library);
-    for (Library cachedLibrary : getLibrariesImporting(library.getFile())) {
-      discardLibraryAndReferencingLibraries(cachedLibrary);
+  /**
+   * If there is a library associated with the specified library file, discard it and notify each
+   * listener.
+   * 
+   * @param libraryFile the library file (not <code>null</code>)
+   * @return the library discarded, or <code>null</code> if none found
+   */
+  Library discardLibrary(File libraryFile) {
+    Library library = libraryCache.remove(libraryFile);
+    if (library != null) {
+      notifyDiscarded(library);
     }
+    return library;
   }
 
   AnalysisListener[] getAnalysisListeners() {
@@ -290,6 +348,23 @@ public class Context {
       }
     }
     return resolvedLibs;
+  }
+
+  /**
+   * Notify listeners that the specified library was discarded
+   */
+  void notifyDiscarded(Library library) {
+    AnalysisEvent event = new AnalysisEvent(
+        library.getFile(),
+        library.getSourceFiles(),
+        AnalysisError.NONE);
+    for (AnalysisListener listener : getAnalysisListeners()) {
+      try {
+        listener.discarded(event);
+      } catch (Throwable e) {
+        DartCore.logError("Exception during discard notification", e);
+      }
+    }
   }
 
   /**

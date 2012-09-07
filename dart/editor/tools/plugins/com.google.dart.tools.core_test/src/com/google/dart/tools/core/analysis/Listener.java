@@ -242,24 +242,6 @@ class Listener implements AnalysisListener, IdleListener {
     errors.clear();
   }
 
-  void waitForDiscarded(long milliseconds, File... files) {
-    synchronized (lock) {
-      long end = System.currentTimeMillis() + milliseconds;
-      while (!wasDiscarded(files)) {
-        long delta = end - System.currentTimeMillis();
-        if (delta <= 0) {
-          failDiscarded(files);
-          return;
-        }
-        try {
-          lock.wait(delta);
-        } catch (InterruptedException e) {
-          //$FALL-THROUGH$
-        }
-      }
-    }
-  }
-
   /**
    * Wait up to the specified number of milliseconds for the receiver to have the specified idle
    * count. If the specified number is less than or equal to zero, then this method returns

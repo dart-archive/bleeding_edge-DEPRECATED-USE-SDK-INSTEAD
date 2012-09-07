@@ -147,13 +147,6 @@ public class AnalysisTestUtilities {
     return (File[]) result;
   }
 
-  static boolean isLibraryCached(AnalysisServer server, File libFile) throws Exception {
-    Method method = AnalysisServer.class.getDeclaredMethod("isLibraryCached", File.class);
-    method.setAccessible(true);
-    Object result = method.invoke(server, libFile);
-    return result instanceof Boolean && ((Boolean) result).booleanValue();
-  }
-
   private static void assertFiles(File[] expected, File[] actual) {
     if (actual.length == expected.length) {
       HashSet<File> files = new HashSet<File>();

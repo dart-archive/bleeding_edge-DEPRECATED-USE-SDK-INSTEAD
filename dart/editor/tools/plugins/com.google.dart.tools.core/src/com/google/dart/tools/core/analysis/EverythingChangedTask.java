@@ -16,11 +16,9 @@ package com.google.dart.tools.core.analysis;
 class EverythingChangedTask extends Task {
 
   private final AnalysisServer server;
-  private final Context context;
 
-  EverythingChangedTask(AnalysisServer server, Context context) {
+  EverythingChangedTask(AnalysisServer server) {
     this.server = server;
-    this.context = context;
   }
 
   @Override
@@ -35,7 +33,7 @@ class EverythingChangedTask extends Task {
 
   @Override
   public void perform() {
-    context.discardLibraries();
+    server.getSavedContext().discardAllLibraries();
     server.queueAnalyzeContext();
   }
 }
