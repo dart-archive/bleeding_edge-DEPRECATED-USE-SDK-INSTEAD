@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 import com.google.dart.tools.ui.internal.projects.ProjectMessages;
 import com.google.dart.tools.ui.internal.projects.ProjectUtils;
@@ -23,10 +24,11 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -201,13 +203,23 @@ public class CreateAndRevealProjectAction extends Action {
             + violatingProjectNameList.get(violatingProjectNameList.size() - 1) + "'";
       }
       // Finally, open the dialog and then return true.
-      MessageDialog.openError(
+      String message1 = NLS.bind(
+          ProjectMessages.OpenExistingFolderWizardAction_nesting_msg1,
+          folderName,
+          violatingNamesMessage);
+      String message2 = NLS.bind(
+          ProjectMessages.OpenExistingFolderWizardAction_nesting_msg2,
+          folderName,
+          violatingNamesMessage);
+      ErrorDialog.openError(
           getShell(),
           ProjectMessages.OpenExistingFolderWizardAction_nesting_title,
-          NLS.bind(
-              ProjectMessages.OpenExistingFolderWizardAction_nesting_msg,
-              folderName,
-              violatingNamesMessage));
+          ProjectMessages.OpenExistingFolderWizardAction_nesting_title,
+          new MultiStatus(DartToolsPlugin.PLUGIN_ID, 1, new IStatus[] {new Status(
+              IStatus.ERROR,
+              DartToolsPlugin.PLUGIN_ID,
+              message2)}, message1, null),
+          IStatus.ERROR);
       return true;
     }
 
