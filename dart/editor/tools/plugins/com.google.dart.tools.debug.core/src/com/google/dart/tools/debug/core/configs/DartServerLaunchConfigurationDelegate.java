@@ -35,8 +35,12 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.SequenceInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -79,7 +83,6 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
   protected void launchVM(ILaunch launch, DartLaunchConfigWrapper launchConfig,
       boolean enableDebugging, IProgressMonitor monitor) throws CoreException {
-
     // Usage: dart [options] script.dart [arguments]
 
     File currentWorkingDirectory = getCurrentWorkingDirectory(launchConfig);
@@ -157,7 +160,7 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
       eclipseProcess = DebugPlugin.newProcess(
           launch,
-          runtimeProcess,
+          wrapProcess(runtimeProcess, processBuilder),
           launchConfig.getApplicationName(),
           processAttributes);
     }
@@ -189,6 +192,28 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     }
 
     monitor.done();
+  }
+
+  private String describe(ProcessBuilder processBuilder) {
+    StringBuilder builder = new StringBuilder();
+
+    for (String arg : processBuilder.command()) {
+      // Showing the --debug option doesn't provide a lot of value.
+      if (arg.startsWith("--debug")) {
+        continue;
+      }
+
+      // Shorten the long path to the dart vm - just show "dart".
+      if (arg.endsWith(File.separator + "dart")) {
+        builder.append("dart");
+      } else {
+        builder.append(arg);
+      }
+
+      builder.append(" ");
+    }
+
+    return builder.toString().trim() + "\n\n";
   }
 
   private String generateCommandLine(String[] commands) {
@@ -275,4 +300,45 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     }
   }
 
+  private Process wrapProcess(final Process process, final ProcessBuilder processBuilder) {
+    return new Process() {
+      private InputStream in;
+
+      @Override
+      public void destroy() {
+        process.destroy();
+      }
+
+      @Override
+      public int exitValue() {
+        return process.exitValue();
+      }
+
+      @Override
+      public InputStream getErrorStream() {
+        return process.getErrorStream();
+      }
+
+      @Override
+      public InputStream getInputStream() {
+        if (in == null) {
+          in = new SequenceInputStream(
+              new ByteArrayInputStream(describe(processBuilder).getBytes()),
+              process.getInputStream());
+        }
+
+        return in;
+      }
+
+      @Override
+      public OutputStream getOutputStream() {
+        return process.getOutputStream();
+      }
+
+      @Override
+      public int waitFor() throws InterruptedException {
+        return process.waitFor();
+      }
+    };
+  }
 }
