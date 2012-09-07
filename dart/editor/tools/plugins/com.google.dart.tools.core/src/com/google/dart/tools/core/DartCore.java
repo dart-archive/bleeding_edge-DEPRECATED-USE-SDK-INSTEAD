@@ -46,11 +46,13 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
@@ -61,6 +63,7 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
+import org.osgi.service.prefs.BackingStoreException;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -133,6 +136,8 @@ public class DartCore extends Plugin implements DartSdkListener {
    * Preference to control if "not a member" warnings should be suppressed for inferred types.
    */
   public static final String TYPE_CHECKS_FOR_INFERRED_TYPES = "typeChecksForInferredTypes";
+
+  public static final String PROJECT_PREF_DISABLE_DART_BASED_BUILDER = "disableDartBasedBuilder";
 
   /**
    * Cached extensions for CSS files.
@@ -949,6 +954,10 @@ public class DartCore extends Plugin implements DartSdkListener {
     return DartSdkManager.getManager().hasSdk();
   }
 
+  public boolean getDisableDartBasedBuilder(IProject project) {
+    return getProjectPreferences(project).getBoolean(PROJECT_PREF_DISABLE_DART_BASED_BUILDER, false);
+  }
+
   /**
    * Return the package root preference
    */
@@ -970,11 +979,27 @@ public class DartCore extends Plugin implements DartSdkListener {
     return prefs;
   }
 
+  public IEclipsePreferences getProjectPreferences(IProject project) {
+    ProjectScope projectScope = new ProjectScope(project);
+
+    return projectScope.getNode(PLUGIN_ID);
+  }
+
   @Override
   public void sdkUpdated(DartSdk sdk) {
     Job job = new CleanLibrariesJob(true);
 
     job.schedule();
+  }
+
+  public void setDisableDartBasedBuilder(IProject project, boolean value) throws CoreException {
+    IEclipsePreferences prefs = getProjectPreferences(project);
+    prefs.putBoolean(PROJECT_PREF_DISABLE_DART_BASED_BUILDER, value);
+    try {
+      prefs.flush();
+    } catch (BackingStoreException ex) {
+      throw new CoreException(new Status(IStatus.ERROR, PLUGIN_ID, ex.toString(), ex));
+    }
   }
 
   @Override

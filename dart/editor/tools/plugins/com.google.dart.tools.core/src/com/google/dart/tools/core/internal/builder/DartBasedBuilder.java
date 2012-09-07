@@ -63,15 +63,16 @@ public class DartBasedBuilder {
 
   }
 
-  public void build(IProject project, int kind, IResourceDelta delta, IProgressMonitor monitor)
+  public void handleBuild(IProject project, int kind, IResourceDelta delta, IProgressMonitor monitor)
       throws CoreException {
     IFile builderFile = getBuilderFile(project);
 
-    if (builderFile != null) {
+    if (builderFile != null && shouldInvokeDartBasedBuilder(project)) {
       monitor.beginTask("Running build.dart...", IProgressMonitor.UNKNOWN);
 
       try {
         List<String> args;
+        boolean invokeBuilder = true;
 
         if (IncrementalProjectBuilder.FULL_BUILD == kind) {
           // no args == a full build
@@ -83,6 +84,10 @@ public class DartBasedBuilder {
 
           getFileDeltas(project, delta, changedFiles, deletedFiles);
 
+          // Don't report changes to "build.dart".
+          changedFiles.remove(DartCore.BUILD_DART_FILE_NAME);
+          deletedFiles.remove(DartCore.BUILD_DART_FILE_NAME);
+
           // Construct the args array.
           args = new ArrayList<String>(changedFiles.size() + deletedFiles.size());
 
@@ -93,14 +98,21 @@ public class DartBasedBuilder {
           for (String file : deletedFiles) {
             args.add("--removed=" + file);
           }
+
+          // No changes were of interest to the build.dart script.
+          if (args.size() == 0) {
+            invokeBuilder = false;
+          }
         } else {
           // Will we encounter this else clause?
           args = Collections.emptyList();
         }
 
-        invokeBuilder(monitor, project, builderFile, args);
+        if (invokeBuilder) {
+          invokeBuilder(monitor, project, builderFile, args);
 
-        BuilderUtil.delayedRefresh(project);
+          BuilderUtil.delayedRefresh(project);
+        }
       } catch (IOException ioe) {
         throw new CoreException(
             new Status(IStatus.ERROR, DartCore.PLUGIN_ID, ioe.getMessage(), ioe));
@@ -113,7 +125,7 @@ public class DartBasedBuilder {
   public void handleClean(IProject project, IProgressMonitor monitor) throws CoreException {
     IFile builderFile = getBuilderFile(project);
 
-    if (builderFile != null) {
+    if (builderFile != null && shouldInvokeDartBasedBuilder(project)) {
       monitor.beginTask("Running build.dart --clean", IProgressMonitor.UNKNOWN);
 
       try {
@@ -176,6 +188,12 @@ public class DartBasedBuilder {
               deletedFiles.add(getFilePath((IFile) resource));
               break;
           }
+        } else if (resource.getType() == IResource.FOLDER) {
+          // Don't report changes in hidden directories, specifically SCM (.svn, .git) directories.
+          // https://code.google.com/p/dart/issues/detail?id=4885
+          if (resource.getName().startsWith(".")) {
+            return false;
+          }
         }
 
         return true;
@@ -212,8 +230,8 @@ public class DartBasedBuilder {
     }
 
     // Trim long command summaries - used for verbose printing.
-    if (commandSummary.length() > 60) {
-      commandSummary = commandSummary.substring(0, 60) + "...";
+    if (commandSummary.length() > 100) {
+      commandSummary = commandSummary.substring(0, 100) + "...";
     }
 
     ProcessBuilder builder = new ProcessBuilder();
@@ -243,18 +261,30 @@ public class DartBasedBuilder {
     // TODO(devoncarew): process the stdout of the builder, looking for generated:<filepath>
     // messages? This convention would let us mark such files as derived resources.
 
+    if (result != 0) {
+      DartCore.getConsole().println(builderFile.getFullPath().toString() + " " + commandSummary);
+      DartCore.getConsole().println("Failed with error code " + result);
+      String stdout = runner.getStdOut().trim();
+      if (stdout.length() > 0) {
+        DartCore.getConsole().println(indent(stdout));
+      }
+      DartCore.getConsole().println();
+    }
+
     if (VERBOSE) {
       long elapsedTime = System.currentTimeMillis() - startTime;
 
       System.out.println("build.dart finished [" + elapsedTime + " ms]");
     }
+  }
 
-    if (result != 0) {
-      DartCore.getConsole().println(
-          builderFile.getFullPath().toString() + " " + commandSummary + " failed with error code "
-              + result);
-      DartCore.getConsole().println(indent(runner.getStdOut().trim()));
-    }
+  /**
+   * @return whether we should invoke build.dart for the given project
+   */
+  private boolean shouldInvokeDartBasedBuilder(IProject project) {
+    boolean disableBuilder = DartCore.getPlugin().getDisableDartBasedBuilder(project);
+
+    return !disableBuilder;
   }
 
 }

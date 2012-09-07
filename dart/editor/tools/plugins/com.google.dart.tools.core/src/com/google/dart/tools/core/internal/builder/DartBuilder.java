@@ -125,7 +125,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
       throw new OperationCanceledException();
     }
 
-    DartBasedBuilder.getBuilder().build(getProject(), kind, delta, subMon.newChild(10));
+    DartBasedBuilder.getBuilder().handleBuild(getProject(), kind, delta, subMon.newChild(10));
 
     // If delta is null, then building a new project
 

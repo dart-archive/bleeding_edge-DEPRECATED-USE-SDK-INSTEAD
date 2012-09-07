@@ -141,6 +141,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private OpenNewApplicationWizardAction createApplicationAction;
 
   private IgnoreResourceAction ignoreResourceAction;
+  private EnableDartBuilderAction enableBuilderAction;
 
   private CopyFilePathAction copyFilePathAction;
 
@@ -377,6 +378,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       manager.add(new Separator());
       ignoreResourceAction.updateLabel();
       manager.add(ignoreResourceAction);
+      if (enableBuilderAction.shouldBeEnabled()) {
+        enableBuilderAction.updateLabel();
+        manager.add(enableBuilderAction);
+      }
       manager.add(new Separator());
       manager.add(deleteAction);
       manager.add(new Separator());
@@ -515,6 +520,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     ignoreResourceAction = new IgnoreResourceAction(getShell());
     treeViewer.addSelectionChangedListener(ignoreResourceAction);
+
+    enableBuilderAction = new EnableDartBuilderAction(getShell());
+    treeViewer.addSelectionChangedListener(enableBuilderAction);
 
     clipboard = new Clipboard(getShell().getDisplay());
 

@@ -23,6 +23,9 @@ public class FilesViewMessages extends NLS {
   public static String IgnoreResourceAction_Analyze_fail_message;
   public static String IgnoreResourcesAction_do_analyze_label;
   public static String IgnoreResourcesAction_dont_analyze_label;
+  public static String EnableDartBuilderAction_autoRunBuilder_label;
+  public static String EnableDartBuilderAction_dontAutoRunBuilder_label;
+
   static {
     // initialize resource bundle
     NLS.initializeMessages(BUNDLE_NAME, FilesViewMessages.class);
