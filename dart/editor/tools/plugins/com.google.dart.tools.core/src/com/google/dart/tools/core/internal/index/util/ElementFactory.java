@@ -241,7 +241,10 @@ public final class ElementFactory {
     }
     CompilationUnitElement method = BindingUtils.getDartElement(library, element);
     if (method == null) {
-      DartCore.logInformation("Could not getElement for method " + pathTo(element));
+      //there's no element for assert in dart:core so don't warn about it
+      if (!("dart:core".equals(library.getElementName()) && "assert".equals(element.getName()))) {
+        DartCore.logInformation("Could not getElement for method " + pathTo(element));
+      }
       return null;
     }
     String methodName = element.getName();
