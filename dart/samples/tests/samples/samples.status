@@ -83,12 +83,3 @@ lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9
 
 [ $compiler == dart2js && $checked ]
 swarm/swarm_test: Fail # TypeError: Object #<HTMLParagraphElement> has no method 'get$text'
-
-# The following tests fail on int checks.
-# Issue 3720
-lib/layout/layout_test: Fail
-lib/view/view_test: Fail
-
-[ $compiler == dart2js && $checked && $browser ]
-lib/util/util_test: Fail # Issue 3720
-lib/observable/observable_test: Fail # Issue 3720
