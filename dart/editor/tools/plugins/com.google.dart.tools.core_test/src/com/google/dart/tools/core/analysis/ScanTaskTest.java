@@ -13,9 +13,13 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.common.collect.Lists;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.AbstractDartCoreTest;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.ScanTask.DartFileType;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
@@ -28,6 +32,7 @@ import static com.google.dart.tools.core.analysis.ScanTask.DartFileType.Unknown;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class ScanTaskTest extends AbstractDartCoreTest {
 
@@ -40,6 +45,8 @@ public class ScanTaskTest extends AbstractDartCoreTest {
   private static File simpleMoneySrcFile;
   private static File bankDir;
   private static File bankLibFile;
+  private static File packagesDir;
+  private static File pubspecFile;
   private static File nestedAppFile;
   private static File nestedLibFile;
 
@@ -60,6 +67,10 @@ public class ScanTaskTest extends AbstractDartCoreTest {
     TestUtilities.copyPluginRelativeContent("Bank", bankDir);
     bankLibFile = new File(bankDir, "bank.dart");
     assertTrue(bankLibFile.exists());
+    packagesDir = new File(bankDir, DartCore.PACKAGES_DIRECTORY_NAME);
+    assertTrue(packagesDir.exists());
+    pubspecFile = new File(bankDir, DartCore.PUBSPEC_FILE_NAME);
+    assertTrue(pubspecFile.exists());
 
     nestedAppFile = new File(new File(bankDir, "nested"), "nestedApp.dart");
     assertTrue(nestedAppFile.exists());
@@ -78,8 +89,33 @@ public class ScanTaskTest extends AbstractDartCoreTest {
   private AnalysisServerAdapter server;
   private Listener listener;
 
+  public void test_packages_preference() throws Exception {
+    PackageLibraryManager libMgr = PackageLibraryManagerProvider.getAnyLibraryManager();
+    assertTrackedLibraryFiles(server);
+    server.assertAnalyzeContext(false);
+
+    List<File> packageRoots = Lists.newArrayList(packagesDir);
+    libMgr.setPackageRoots(packageRoots);
+    try {
+      server.scan(bankDir, null);
+      server.start();
+      listener.waitForIdle(1, FIVE_MINUTES_MS);
+      assertTrackedLibraryFiles(server, bankLibFile, nestedAppFile, nestedLibFile);
+      assertPackageContexts(server, bankDir);
+      server.assertAnalyzeContext(true);
+    } finally {
+      libMgr.setPackageRoots(null);
+    }
+    server.resetAnalyzeContext();
+    server.scan(bankDir, null);
+    listener.waitForIdle(2, FIVE_MINUTES_MS);
+    assertTrackedLibraryFiles(server, bankLibFile, nestedAppFile, nestedLibFile);
+    assertPackageContexts(server, bankDir);
+  }
+
   public void test_scan_application() throws Exception {
     assertTrackedLibraryFiles(server);
+    server.assertAnalyzeContext(false);
     server.scan(bankDir, null);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
