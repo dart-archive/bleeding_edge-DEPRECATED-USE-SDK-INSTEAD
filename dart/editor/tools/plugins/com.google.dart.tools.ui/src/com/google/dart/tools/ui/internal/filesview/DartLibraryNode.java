@@ -31,10 +31,12 @@ import java.util.List;
 class DartLibraryNode implements IDartNode {
   private DartDirectoryNode parent;
   private IFileStore root;
+  private String name;
 
-  public DartLibraryNode(DartDirectoryNode parent, IFileStore root) {
+  public DartLibraryNode(DartDirectoryNode parent, IFileStore root, String name) {
     this.parent = parent;
     this.root = root;
+    this.name = name;
   }
 
   public IFileStore[] getFiles() {
@@ -57,7 +59,7 @@ class DartLibraryNode implements IDartNode {
     if (isPkgNode()) {
       return "package:" + root.getName() + "/" + root.getName() + ".dart";
     } else {
-      return "dart:" + root.getName();
+      return "dart:" + name;
     }
   }
 
