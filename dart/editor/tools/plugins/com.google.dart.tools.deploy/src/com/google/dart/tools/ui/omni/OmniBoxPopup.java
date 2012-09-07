@@ -624,6 +624,12 @@ public class OmniBoxPopup extends BasePopupDialog {
   }
 
   private void addPreviousPick(String text, OmniElement element) {
+
+    //header elements (e.g, "search in progress") should not get cached
+    if (element instanceof HeaderElement) {
+      return;
+    }
+
     // previousPicksList:
     // Remove element from previousPicksList so there are no duplicates
     // If list is max size, remove last(oldest) element
