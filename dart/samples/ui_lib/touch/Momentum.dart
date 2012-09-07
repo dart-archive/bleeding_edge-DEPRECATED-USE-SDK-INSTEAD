@@ -27,9 +27,9 @@ interface Momentum default TimeoutMomentum {
 
   Momentum(MomentumDelegate delegate, [num defaultDecelerationFactor]);
 
-  bool get decelerating();
+  bool get decelerating;
 
-  num get decelerationFactor();
+  num get decelerationFactor;
 
  /**
   * Transition end handler. This function must be invoked after any transition
@@ -62,7 +62,7 @@ interface Momentum default TimeoutMomentum {
   void abort();
 
   /** null if no transition is in progress. */
-  Coordinate get destination();
+  Coordinate get destination;
 }
 
 /**
@@ -406,8 +406,8 @@ class TimeoutMomentum implements Momentum {
     }
   }
 
-  bool get decelerating() => _decelerating;
-  num get decelerationFactor() => _customDecelerationFactor;
+  bool get decelerating => _decelerating;
+  num get decelerationFactor => _customDecelerationFactor;
 
   /**
    * Checks whether or not an animation step is necessary or not. Animations
@@ -543,7 +543,7 @@ class TimeoutMomentum implements Momentum {
     return velocity;
   }
 
-  Coordinate get destination() {
+  Coordinate get destination {
     if (!_moves.isEmpty()) {
       final lastMove = _moves.last();
       return new Coordinate(lastMove.x, lastMove.y);

@@ -141,8 +141,8 @@ interface Draggable extends Touchable {
    */
   bool onDragStart(TouchEvent e);
 
-  bool get verticalEnabled();
-  bool get horizontalEnabled();
+  bool get verticalEnabled;
+  bool get horizontalEnabled;
 }
 
 class MockTouch implements Touch {
@@ -150,26 +150,26 @@ class MockTouch implements Touch {
 
   MockTouch(MouseEvent this.wrapped) {}
 
-  int get clientX() => wrapped.clientX;
+  int get clientX => wrapped.clientX;
 
-  int get clientY() => wrapped.clientY;
+  int get clientY => wrapped.clientY;
 
-  int get identifier() => 0;
+  int get identifier => 0;
 
-  int get pageX() => wrapped.pageX;
+  int get pageX => wrapped.pageX;
 
-  int get pageY() => wrapped.pageY;
+  int get pageY => wrapped.pageY;
 
-  int get screenX() => wrapped.screenX;
+  int get screenX => wrapped.screenX;
 
-  int get screenY() {return wrapped.screenY; }
+  int get screenY {return wrapped.screenY; }
 
-  EventTarget get target() => wrapped.target;
+  EventTarget get target => wrapped.target;
 
-  num get webkitForce() { throw new NotImplementedException(); }
-  int get webkitRadiusX() { throw new NotImplementedException(); }
-  int get webkitRadiusY() { throw new NotImplementedException(); }
-  num get webkitRotationAngle() { throw new NotImplementedException(); }
+  num get webkitForce { throw new NotImplementedException(); }
+  int get webkitRadiusX { throw new NotImplementedException(); }
+  int get webkitRadiusY { throw new NotImplementedException(); }
+  num get webkitRotationAngle { throw new NotImplementedException(); }
 }
 
 class MockTouchEvent implements TouchEvent {
@@ -182,31 +182,31 @@ class MockTouchEvent implements TouchEvent {
       List<Touch> this.targetTouches,
       List<Touch> this.changedTouches) {}
 
-  bool get bubbles() => wrapped.bubbles;
+  bool get bubbles => wrapped.bubbles;
 
-  bool get cancelBubble() => wrapped.cancelBubble;
+  bool get cancelBubble => wrapped.cancelBubble;
 
   void set cancelBubble(bool value) { wrapped.cancelBubble = value; }
 
-  bool get cancelable() => wrapped.cancelable;
+  bool get cancelable => wrapped.cancelable;
 
-  EventTarget get currentTarget() => wrapped.currentTarget;
+  EventTarget get currentTarget => wrapped.currentTarget;
 
-  bool get defaultPrevented() => wrapped.defaultPrevented;
+  bool get defaultPrevented => wrapped.defaultPrevented;
 
-  int get eventPhase() => wrapped.eventPhase;
+  int get eventPhase => wrapped.eventPhase;
 
   void set returnValue(bool value) { wrapped.returnValue = value; }
 
-  bool get returnValue() => wrapped.returnValue;
+  bool get returnValue => wrapped.returnValue;
 
-  EventTarget get srcElement() => wrapped.srcElement;
+  EventTarget get srcElement => wrapped.srcElement;
 
-  EventTarget get target() => wrapped.target;
+  EventTarget get target => wrapped.target;
 
-  int get timeStamp() => wrapped.timeStamp;
+  int get timeStamp => wrapped.timeStamp;
 
-  String get type() => wrapped.type;
+  String get type => wrapped.type;
 
   void preventDefault() { wrapped.preventDefault(); }
 
@@ -214,29 +214,29 @@ class MockTouchEvent implements TouchEvent {
 
   void stopPropagation() { wrapped.stopPropagation(); }
 
-  int get charCode() => wrapped.charCode;
+  int get charCode => wrapped.charCode;
 
-  int get detail() => wrapped.detail;
+  int get detail => wrapped.detail;
 
-  int get keyCode() => wrapped.keyCode;
+  int get keyCode => wrapped.keyCode;
 
-  int get layerX() => wrapped.layerX;
+  int get layerX => wrapped.layerX;
 
-  int get layerY() => wrapped.layerY;
+  int get layerY => wrapped.layerY;
 
-  int get pageX() => wrapped.pageX;
+  int get pageX => wrapped.pageX;
 
-  int get pageY() => wrapped.pageY;
+  int get pageY => wrapped.pageY;
 
-  Window get view() => wrapped.view;
+  Window get view => wrapped.view;
 
-  int get which() => wrapped.which;
+  int get which => wrapped.which;
 
-  bool get altKey() => wrapped.altKey;
+  bool get altKey => wrapped.altKey;
 
-  bool get ctrlKey() => wrapped.ctrlKey;
+  bool get ctrlKey => wrapped.ctrlKey;
 
-  bool get metaKey() => wrapped.metaKey;
+  bool get metaKey => wrapped.metaKey;
 
-  bool get shiftKey() => wrapped.shiftKey;
+  bool get shiftKey => wrapped.shiftKey;
 }

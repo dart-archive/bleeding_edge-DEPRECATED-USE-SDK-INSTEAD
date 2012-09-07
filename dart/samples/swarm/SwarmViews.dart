@@ -85,7 +85,7 @@ class FrontView extends CompositeView {
     sections.viewSelected = _onSectionTransitionEnded;
   }
 
-  SectionView get currentSection() {
+  SectionView get currentSection {
     var view = sections.selectedView;
     // TODO(jmesserly): this code works around a bug in the DartC --optimize
     if (view == null) {
@@ -513,8 +513,8 @@ class DataSourceViewFactory implements ViewFactory<Feed> {
 
   View newView(Feed data) => new DataSourceView(data, swarm);
 
-  int get width() => ArticleViewLayout.getSingleton().width;
-  int get height() => null; // Width for this view isn't known.
+  int get width => ArticleViewLayout.getSingleton().width;
+  int get height => null; // Width for this view isn't known.
 }
 
 
@@ -575,7 +575,7 @@ class ToggleButton extends View {
     node.on.click.add((event) { toggle(); }, false);
   }
 
-  String get state() {
+  String get state {
     final currentState = node.innerHTML;
     assert(states.indexOf(currentState, 0) >= 0);
     return currentState;
@@ -848,7 +848,7 @@ class StoryContentView extends View {
 
   StoryContentView(this.swarm, this.item) : super();
 
-  get childViews() => [_pagedStory];
+  get childViews => [_pagedStory];
 
   Element render() {
     final storyContent = new Element.html(

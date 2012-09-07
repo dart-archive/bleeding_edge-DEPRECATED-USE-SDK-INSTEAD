@@ -38,7 +38,7 @@ class MeasureText {
     return character == ' ' || character == '\t' || character == '\n';
   }
 
-  num get typicalCharLength() {
+  num get typicalCharLength {
     return _typicalCharLength;
   }
 

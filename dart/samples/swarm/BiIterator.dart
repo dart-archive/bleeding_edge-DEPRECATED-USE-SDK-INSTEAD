@@ -37,7 +37,7 @@ class BiIterator<E> {
    * Returns the current Section (page in the UI) that the user is 
    * looking at.
    */
-  E get current() {
+  E get current {
     return list[currentIndex.value];
   }
 

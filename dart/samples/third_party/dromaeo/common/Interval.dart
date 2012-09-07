@@ -19,12 +19,12 @@ class Interval {
   }
 
   // Microseconds from between start() and stop().
-  int get elapsedMicrosec() {
+  int get elapsedMicrosec {
     return (_stop - _start) * 1000;
   }
 
   // Milliseconds from between start() and stop().
-  int get elapsedMillisec() {
+  int get elapsedMillisec {
     return (_stop - _start);
   }
 }

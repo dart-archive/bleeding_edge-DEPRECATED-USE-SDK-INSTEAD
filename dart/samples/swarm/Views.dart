@@ -10,10 +10,10 @@ interface ViewFactory<D> {
   View newView(D item);
 
   /** The width of the created view or null if the width is not fixed. */
-  int get width();
+  int get width;
 
   /** The height of the created view or null if the height is not fixed. */
-  int get height();
+  int get height;
 }
 
 interface VariableSizeViewFactory<D> {
@@ -168,7 +168,7 @@ class GenericListView<D> extends View {
     _lastSelectedItem = _selectedItem.value;
   }
 
-  Collection<View> get childViews() {
+  Collection<View> get childViews {
     return _itemViews.getValues();
   }
 
@@ -374,7 +374,7 @@ class GenericListView<D> extends View {
     }
   }
 
-  num get _offset() {
+  num get _offset {
     return scroller.verticalEnabled ?
         scroller.getVerticalOffset() : scroller.getHorizontalOffset();
   }
@@ -618,7 +618,7 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
     return itemViewFactory.newView(_data[index]);
   }
 
-  int get _itemLength() {
+  int get _itemLength {
     return _vertical ? itemViewFactory.height : itemViewFactory.width;
   }
 

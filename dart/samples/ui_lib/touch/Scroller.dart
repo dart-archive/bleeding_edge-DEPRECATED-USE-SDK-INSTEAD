@@ -239,35 +239,35 @@ class Scroller implements Draggable, MomentumDelegate {
     _initLayer();
   }
 
-  EventListenerList get onScrollerStart() {
+  EventListenerList get onScrollerStart {
     if (_onScrollerStart === null) {
       _onScrollerStart = new SimpleEventListenerList();
     }
     return _onScrollerStart;
   }
 
-  EventListenerList get onScrollerEnd() {
+  EventListenerList get onScrollerEnd {
     if (_onScrollerEnd === null) {
       _onScrollerEnd = new SimpleEventListenerList();
     }
     return _onScrollerEnd;
   }
 
-  EventListenerList get onScrollerDragEnd() {
+  EventListenerList get onScrollerDragEnd {
     if (_onScrollerDragEnd === null) {
       _onScrollerDragEnd = new SimpleEventListenerList();
     }
     return _onScrollerDragEnd;
   }
 
-  EventListenerList get onContentMoved() {
+  EventListenerList get onContentMoved {
     if (_onContentMoved === null) {
       _onContentMoved = new SimpleEventListenerList();
     }
     return _onContentMoved;
   }
 
-  EventListenerList get onDecelStart() {
+  EventListenerList get onDecelStart {
     if (_onDecelStart === null) {
       _onDecelStart = new SimpleEventListenerList();
     }
@@ -308,7 +308,7 @@ class Scroller implements Draggable, MomentumDelegate {
   /**
    * Coordinate we would end up at if we did nothing.
    */
-  Coordinate get currentTarget() {
+  Coordinate get currentTarget {
     Coordinate end = _momentum.destination;
     if (end === null) {
       end = _contentOffset;
@@ -316,7 +316,7 @@ class Scroller implements Draggable, MomentumDelegate {
     return end;
   }
 
-  Coordinate get contentOffset() => _contentOffset;
+  Coordinate get contentOffset => _contentOffset;
 
   /**
    * Animate the position of the scroller to the specified [x], [y] coordinates
@@ -398,7 +398,7 @@ class Scroller implements Draggable, MomentumDelegate {
 
   num getMaxPointY()=> _maxPoint.y;
   num getMinPointY() => _minPoint.y;
-  Momentum get momentum() => _momentum;
+  Momentum get momentum => _momentum;
 
   /**
    * Provide access to the touch handler that the scroller created to manage

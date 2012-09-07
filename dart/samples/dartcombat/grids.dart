@@ -12,7 +12,7 @@ class Boat {
 
   Boat(this.startX, this.startY, this.horizontal, this.length) {}
 
-  bool get sunk() => length == hitCount;
+  bool get sunk => length == hitCount;
 }
 
 /** Represents a grid configuration. */

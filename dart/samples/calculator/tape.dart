@@ -220,7 +220,7 @@ class Tape {
     scrollToTapeBottom();
   }
 
-  bool get isClear() {
+  bool get isClear {
     return tapeUI.tape.elements.last().classes.contains(TapeUI.clearCalc);
   }
 
@@ -232,8 +232,8 @@ class Tape {
     mySettings = new Settings(settingsUI, Settings.THEME_BUTTON);
   }
 
-  DivElement get activeInput() => window.document.query("#activeInput");
-  DivElement get activeTotal() => window.document.query("#activeTotal");
+  DivElement get activeInput => window.document.query("#activeInput");
+  DivElement get activeTotal => window.document.query("#activeTotal");
 
   void clear() {
     final element = new Element.tag('div');

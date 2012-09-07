@@ -45,7 +45,7 @@ class PublicClass {
 
   abstract double _privateAbstractMethod();
 
-  FunctionTypeAlias get getter() {
+  FunctionTypeAlias get getter {
     return _privateField;
   }
 
@@ -73,7 +73,7 @@ final double PublicTopLevelFinalVariable = 3.14;
 
 String _PrivateTopLevelVariable = "";
 
-String get topLevelGetter() {
+String get topLevelGetter {
   return _PrivateTopLevelVariable;
 }
 

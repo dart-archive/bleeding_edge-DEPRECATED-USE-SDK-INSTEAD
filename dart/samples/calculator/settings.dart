@@ -49,7 +49,7 @@ class Settings {
       "transparent" : "#333";
   }
 
-  bool get isOpen() => _dialogOpened;
+  bool get isOpen => _dialogOpened;
 
   /*
    * Optional MouseEvent if passed if the source of event is from outside of
@@ -71,7 +71,7 @@ class Settings {
     }
   }
 
-  bool get isSimple() => theme == THEME_SIMPLE;
-  bool get isButton() => theme == THEME_BUTTON;
+  bool get isSimple => theme == THEME_SIMPLE;
+  bool get isButton => theme == THEME_BUTTON;
 
 }

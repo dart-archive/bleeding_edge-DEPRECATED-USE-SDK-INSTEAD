@@ -161,7 +161,7 @@ class TodoList implements WebComponent {
     }
   }
 
-  Todos get model() => _model;
+  Todos get model => _model;
 
   void created() {
     _footer = _shadowRoot.query('#footer');

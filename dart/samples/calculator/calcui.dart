@@ -82,43 +82,43 @@ class FlatPadUI {
     keyDot.elements.add(e7);
   }
 
-  Element get root() => _fragment;
+  Element get root => _fragment;
 
   // CSS class selectors for this template.
-  static String get calcPad() => "calc-pad";
-  static String get calcRow() => "calc-row";
-  static String get calcNum() => "calc-num";
-  static String get calcPeriod() => "calc-period";
-  static String get calcOpButton() => "calc-op-button";
-  static String get calcNumHover() => "calc-num-hover";
-  static String get calcNumActive() => "calc-num-active";
-  static String get calcPeriodHover() => "calc-period-hover";
-  static String get calcPeriodActive() => "calc-period-active";
-  static String get calcPeriodError() => "calc-period-error";
-  static String get opPlusBase() => "op-plus-base";
-  static String get opPlus() => "op-plus";
-  static String get opPlusHover() => "op-plus-hover";
-  static String get opPlusActive() => "op-plus-active";
-  static String get opMinusBase() => "op-minus-base";
-  static String get opMinus() => "op-minus";
-  static String get opMinusHover() => "op-minus-hover";
-  static String get opMinusActive() => "op-minus-active";
-  static String get opMultBase() => "op-mult-base";
-  static String get opMult() => "op-mult";
-  static String get opMultHover() => "op-mult-hover";
-  static String get opMultActive() => "op-mult-active";
-  static String get opDivBase() => "op-div-base";
-  static String get opDiv() => "op-div";
-  static String get opDivHover() => "op-div-hover";
-  static String get opDivActive() => "op-div-active";
-  static String get opEqualBase() => "op-equal-base";
-  static String get opEqual() => "op-equal";
-  static String get opEqualHover() => "op-equal-hover";
-  static String get opEqualActive() => "op-equal-active";
-  static String get opArrowBase() => "op-arrow-base";
-  static String get opArrow() => "op-arrow";
-  static String get opArrowHover() => "op-arrow-hover";
-  static String get opArrowActive() => "op-arrow-active";
+  static String get calcPad => "calc-pad";
+  static String get calcRow => "calc-row";
+  static String get calcNum => "calc-num";
+  static String get calcPeriod => "calc-period";
+  static String get calcOpButton => "calc-op-button";
+  static String get calcNumHover => "calc-num-hover";
+  static String get calcNumActive => "calc-num-active";
+  static String get calcPeriodHover => "calc-period-hover";
+  static String get calcPeriodActive => "calc-period-active";
+  static String get calcPeriodError => "calc-period-error";
+  static String get opPlusBase => "op-plus-base";
+  static String get opPlus => "op-plus";
+  static String get opPlusHover => "op-plus-hover";
+  static String get opPlusActive => "op-plus-active";
+  static String get opMinusBase => "op-minus-base";
+  static String get opMinus => "op-minus";
+  static String get opMinusHover => "op-minus-hover";
+  static String get opMinusActive => "op-minus-active";
+  static String get opMultBase => "op-mult-base";
+  static String get opMult => "op-mult";
+  static String get opMultHover => "op-mult-hover";
+  static String get opMultActive => "op-mult-active";
+  static String get opDivBase => "op-div-base";
+  static String get opDiv => "op-div";
+  static String get opDivHover => "op-div-hover";
+  static String get opDivActive => "op-div-active";
+  static String get opEqualBase => "op-equal-base";
+  static String get opEqual => "op-equal";
+  static String get opEqualHover => "op-equal-hover";
+  static String get opEqualActive => "op-equal-active";
+  static String get opArrowBase => "op-arrow-base";
+  static String get opArrow => "op-arrow";
+  static String get opArrowHover => "op-arrow-hover";
+  static String get opArrowActive => "op-arrow-active";
 
   // Injection functions:
   // Each functions:
@@ -666,42 +666,42 @@ class ButtonPadUI {
     keyDot.elements.add(e7);
   }
 
-  Element get root() => _fragment;
+  Element get root => _fragment;
 
   // CSS class selectors for this template.
-  static String get buttonPad() => "button-pad";
-  static String get buttonRow() => "button-row";
-  static String get buttonNum() => "button-num";
-  static String get buttonPeriod() => "button-period";
-  static String get buttonNumHover() => "button-num-hover";
-  static String get buttonNumActive() => "button-num-active";
-  static String get buttonPeriodHover() => "button-period-hover";
-  static String get buttonPeriodActive() => "button-period-active";
-  static String get buttonPeriodError() => "button-period-error";
-  static String get buttonopPlusBase() => "buttonop-plus-base";
-  static String get buttonopPlus() => "buttonop-plus";
-  static String get buttonopPlusHover() => "buttonop-plus-hover";
-  static String get buttonopPlusActive() => "buttonop-plus-active";
-  static String get buttonopMinusBase() => "buttonop-minus-base";
-  static String get buttonopMinus() => "buttonop-minus";
-  static String get buttonopMinusHover() => "buttonop-minus-hover";
-  static String get buttonopMinusActive() => "buttonop-minus-active";
-  static String get buttonopMultBase() => "buttonop-mult-base";
-  static String get buttonopMult() => "buttonop-mult";
-  static String get buttonopMultHover() => "buttonop-mult-hover";
-  static String get buttonopMultActive() => "buttonop-mult-active";
-  static String get buttonopDivBase() => "buttonop-div-base";
-  static String get buttonopDiv() => "buttonop-div";
-  static String get buttonopDivHover() => "buttonop-div-hover";
-  static String get buttonopDivActive() => "buttonop-div-active";
-  static String get buttonopEqualBase() => "buttonop-equal-base";
-  static String get buttonopEqual() => "buttonop-equal";
-  static String get buttonopEqualHover() => "buttonop-equal-hover";
-  static String get buttonopEqualActive() => "buttonop-equal-active";
-  static String get buttonopArrowBase() => "buttonop-arrow-base";
-  static String get buttonopArrow() => "buttonop-arrow";
-  static String get buttonopArrowHover() => "buttonop-arrow-hover";
-  static String get buttonopArrowActive() => "buttonop-arrow-active";
+  static String get buttonPad => "button-pad";
+  static String get buttonRow => "button-row";
+  static String get buttonNum => "button-num";
+  static String get buttonPeriod => "button-period";
+  static String get buttonNumHover => "button-num-hover";
+  static String get buttonNumActive => "button-num-active";
+  static String get buttonPeriodHover => "button-period-hover";
+  static String get buttonPeriodActive => "button-period-active";
+  static String get buttonPeriodError => "button-period-error";
+  static String get buttonopPlusBase => "buttonop-plus-base";
+  static String get buttonopPlus => "buttonop-plus";
+  static String get buttonopPlusHover => "buttonop-plus-hover";
+  static String get buttonopPlusActive => "buttonop-plus-active";
+  static String get buttonopMinusBase => "buttonop-minus-base";
+  static String get buttonopMinus => "buttonop-minus";
+  static String get buttonopMinusHover => "buttonop-minus-hover";
+  static String get buttonopMinusActive => "buttonop-minus-active";
+  static String get buttonopMultBase => "buttonop-mult-base";
+  static String get buttonopMult => "buttonop-mult";
+  static String get buttonopMultHover => "buttonop-mult-hover";
+  static String get buttonopMultActive => "buttonop-mult-active";
+  static String get buttonopDivBase => "buttonop-div-base";
+  static String get buttonopDiv => "buttonop-div";
+  static String get buttonopDivHover => "buttonop-div-hover";
+  static String get buttonopDivActive => "buttonop-div-active";
+  static String get buttonopEqualBase => "buttonop-equal-base";
+  static String get buttonopEqual => "buttonop-equal";
+  static String get buttonopEqualHover => "buttonop-equal-hover";
+  static String get buttonopEqualActive => "buttonop-equal-active";
+  static String get buttonopArrowBase => "buttonop-arrow-base";
+  static String get buttonopArrow => "buttonop-arrow";
+  static String get buttonopArrowHover => "buttonop-arrow-hover";
+  static String get buttonopArrowActive => "buttonop-arrow-active";
 
   // Injection functions:
   // Each functions:
@@ -1171,15 +1171,15 @@ class SettingsDialog {
     buttonTitle.elements.add(e4);
   }
 
-  Element get root() => _fragment;
+  Element get root => _fragment;
 
   // CSS class selectors for this template.
-  static String get settingGlyph() => "setting-glyph";
-  static String get dialog() => "dialog";
-  static String get dlgArea() => "dlg-area";
-  static String get dlgItem() => "dlg-item";
-  static String get dlgSubtitle() => "dlg-subtitle";
-  static String get expressionInput() => "expression-input";
+  static String get settingGlyph => "setting-glyph";
+  static String get dialog => "dialog";
+  static String get dlgArea => "dlg-area";
+  static String get dlgItem => "dlg-item";
+  static String get dlgSubtitle => "dlg-subtitle";
+  static String get expressionInput => "expression-input";
 
   // Injection functions:
   // Each functions:
@@ -1319,16 +1319,16 @@ class TapeUI {
     return '''<div class="alignright">${value}</div>''';
   }
 
-  Element get root() => _fragment;
+  Element get root => _fragment;
 
   // CSS class selectors for this template.
-  static String get calculatorTape() => "calculator-tape";
-  static String get alignleft() => "alignleft";
-  static String get alignright() => "alignright";
-  static String get clearLine() => "clear-line";
-  static String get clearCalc() => "clear-calc";
-  static String get error() => "error";
-  static String get total() => "total";
+  static String get calculatorTape => "calculator-tape";
+  static String get alignleft => "alignleft";
+  static String get alignright => "alignright";
+  static String get clearLine => "clear-line";
+  static String get clearCalc => "clear-calc";
+  static String get error => "error";
+  static String get total => "total";
 
   // Injection functions:
   // Each functions:

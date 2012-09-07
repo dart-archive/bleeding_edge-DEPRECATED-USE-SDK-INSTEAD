@@ -5,7 +5,7 @@
 // Misc benchmark-related utility functions.
 
 class BenchUtil {
-  static int get now() {
+  static int get now {
     return new Date.now().millisecondsSinceEpoch;
   }
 

@@ -11,9 +11,9 @@ class Sections implements Collection<Section> {
 
   operator [](int i) => _sections[i];
 
-  int get length() => _sections.length;
+  int get length => _sections.length;
 
-  List<String> get sectionTitles() =>
+  List<String> get sectionTitles =>
     CollectionUtils.map(_sections, (s) => s.title);
 
   void refresh() {
@@ -32,11 +32,11 @@ class Sections implements Collection<Section> {
   Iterator<Section> iterator() => _sections.iterator();
 
   // TODO(jimhug): Better support for switching between local dev and server.
-  static bool get runningFromFile() {
+  static bool get runningFromFile {
     return window.location.protocol.startsWith('file:');
   }
 
-  static String get home() {
+  static String get home {
     // TODO(jmesserly): window.location.origin not available on Safari 4.
     // Move this workaround to the DOM code. See bug 5389503.
     return '${window.location.protocol}//${window.location.host}';
@@ -84,7 +84,7 @@ class Sections implements Collection<Section> {
     return -1;
   }
 
-  List<Section> get sections() => _sections;
+  List<Section> get sections => _sections;
 
   // Collection<Section> methods:
   List map(f(Section element)) {
@@ -189,17 +189,17 @@ class Article {
       [htmlBody = null, bool unread = true, this.error = false])
     : unread = new ObservableValue<bool>(unread), this._htmlBody = htmlBody;
 
-  String get htmlBody() {
+  String get htmlBody {
     _ensureLoaded();
     return _htmlBody;
   }
 
-  String get dataUri() {
+  String get dataUri {
     return Uri.encodeComponent(id).replaceAll('%2F', '/').
         replaceAll('%253A', '%3A');
   }
 
-  String get thumbUrl() {
+  String get thumbUrl {
     if (!hasThumbnail) return null;
 
     var home;

@@ -23,7 +23,7 @@ class RandomArray {
     });
   }
 
-  SendPort get _servicePort() {
+  SendPort get _servicePort {
     if (_port == null) {
       _port = _newServicePort();
     }

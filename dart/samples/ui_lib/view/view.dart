@@ -54,7 +54,7 @@ class View implements Positionable {
 
   // TODO(rnystrom): Get rid of this when all views are refactored to not use
   // it.
-  Element get node() {
+  Element get node {
     // Lazy render.
     if (_node === null) {
       _render();
@@ -69,7 +69,7 @@ class View implements Positionable {
    * and initialized when their parent view is without the parent having to
    * manually handle that traversal.
    */
-  Collection<View> get childViews() {
+  Collection<View> get childViews {
     return const [];
   }
 
@@ -101,7 +101,7 @@ class View implements Positionable {
   }
 
   /** Gets whether this View has already been rendered or not. */
-  bool get isRendered() {
+  bool get isRendered {
     return _node !== null;
   }
 
@@ -109,7 +109,7 @@ class View implements Positionable {
    * Gets whether this View (or one of its parents) has been added to the
    * document or not.
    */
-  bool get isInDocument() {
+  bool get isInDocument {
     return _node !== null && node.document.body.contains(node);
   }
 
@@ -206,7 +206,7 @@ class View implements Positionable {
   /**
    * Gets whether the view is hidden.
    */
-  bool get hidden() => _node.style.display == 'none';
+  bool get hidden => _node.style.display == 'none';
 
   /**
    * Sets whether the view is hidden.
@@ -275,7 +275,7 @@ class View implements Positionable {
 
   // Layout related methods
 
-  ViewLayout get layout() {
+  ViewLayout get layout {
     if (_layout == null) {
       _layout = new ViewLayout.fromView(this);
     }

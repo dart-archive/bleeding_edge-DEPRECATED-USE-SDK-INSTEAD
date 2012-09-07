@@ -27,7 +27,7 @@ class ColorPicker {
     showSelected();
   }
   
-  String get selectedColor() => _selectedColor;
+  String get selectedColor => _selectedColor;
   
   void set selectedColor(String color) {
     _selectedColor = color;

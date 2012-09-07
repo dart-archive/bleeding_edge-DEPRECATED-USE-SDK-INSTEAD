@@ -66,8 +66,8 @@ class User {
   void markActivity() { _lastActive = new Date.now(); }
   Duration idleTime(Date now) => now.difference(_lastActive);
 
-  String get handle() => _handle;
-  String get sessionId() => _sessionId;
+  String get handle => _handle;
+  String get sessionId => _sessionId;
 
   String _handle;
   String _sessionId;
@@ -92,9 +92,9 @@ class Message {
   Message.timeout(this._from)
       : _received = new Date.now(), _type = TIMEOUT;
 
-  User get from() => _from;
-  Date get received() => _received;
-  String get message() => _message;
+  User get from => _from;
+  Date get received => _received;
+  String get message => _message;
   void set messageNumber(int n) { _messageNumber = n; }
 
   Map toMap() {
@@ -123,7 +123,7 @@ class Topic {
         _nextMessageNumber = 0,
         _callbacks = new Map();
 
-  int get activeUsers() => _activeUsers.length;
+  int get activeUsers => _activeUsers.length;
 
   User _userJoined(String handle) {
     User user = new User(handle);
@@ -229,13 +229,13 @@ class ChatServerCommand {
       : _command = START, _backlog = backlog, _logging = logging;
   ChatServerCommand.stop() : _command = STOP;
 
-  bool get isStart() => _command == START;
-  bool get isStop() => _command == STOP;
+  bool get isStart => _command == START;
+  bool get isStop => _command == STOP;
 
-  String get host() => _host;
-  int get port() => _port;
-  bool get logging() => _logging;
-  int get backlog() => _backlog;
+  String get host => _host;
+  int get port => _port;
+  bool get logging => _logging;
+  int get backlog => _backlog;
 
   int _command;
   String _host;
@@ -259,14 +259,14 @@ class ChatServerStatus {
   ChatServerStatus.stopped() : _state = STOPPED;
   ChatServerStatus.error([this._error]) : _state = ERROR;
 
-  bool get isStarting() => _state == STARTING;
-  bool get isStarted() => _state == STARTED;
-  bool get isStopping() => _state == STOPPING;
-  bool get isStopped() => _state == STOPPED;
-  bool get isError() => _state == ERROR;
+  bool get isStarting => _state == STARTING;
+  bool get isStarted => _state == STARTED;
+  bool get isStopping => _state == STOPPING;
+  bool get isStopped => _state == STOPPED;
+  bool get isError => _state == ERROR;
 
-  int get state() => _state;
-  String get message() {
+  int get state => _state;
+  String get message {
     if (_message != null) return _message;
     switch (_state) {
       case STARTING: return "Server starting";
@@ -282,8 +282,8 @@ class ChatServerStatus {
     }
   }
 
-  int get port() => _port;
-  Dynamic get error() => _error;
+  int get port => _port;
+  Dynamic get error => _error;
 
   int _state;
   String _message;
@@ -655,7 +655,7 @@ class Rate {
   }
 
   // Returns the current rate of events for the time range.
-  num get rate() {
+  num get rate {
     _timePassed();
     return _sum;
   }

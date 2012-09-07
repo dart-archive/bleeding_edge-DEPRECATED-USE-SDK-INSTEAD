@@ -68,7 +68,7 @@ class Interval {
 
   Interval(num this.start, num this.end) {}
 
-  num get length() {
+  num get length {
     return end - start;
   }
 

@@ -70,7 +70,7 @@ class Color {
     return number;
   }
 
-  String get hex() {
+  String get hex {
     final h = (hue % 360) / 360;
     final s = saturation;
     final l = lightness;

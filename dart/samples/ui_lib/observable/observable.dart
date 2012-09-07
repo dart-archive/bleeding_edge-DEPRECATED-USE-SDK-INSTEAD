@@ -51,7 +51,7 @@ class AbstractObservable implements Observable {
   List<ChangeListener> listeners;
 
   /** Whether this object is currently observed by listeners or propagators. */
-  bool get isObserved() {
+  bool get isObserved {
     for (Observable obj = this; obj != null; obj = obj.parent) {
       if (listeners.length > 0) {
         return true;
@@ -148,7 +148,7 @@ class ObservableList<T>
     _internal[index] = value;
   }
 
-  int get length() => _internal.length;
+  int get length => _internal.length;
 
   void set length(int value) {
     _internal.length = value;
@@ -281,7 +281,7 @@ class ObservableValue<T> extends AbstractObservable {
   ObservableValue(T value, [Observable parent = null])
     : super(parent), _value = value;
 
-  T get value() => _value;
+  T get value => _value;
 
   void set value(T newValue) {
     // Only fire on an actual change.

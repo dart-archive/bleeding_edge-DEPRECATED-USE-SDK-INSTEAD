@@ -87,7 +87,7 @@ class App {
   }
 
   /** Returns true if we are running as a packaged application. */
-  static bool get isPackaged() {
+  static bool get isPackaged {
     return window.location.protocol == 'chrome-extension:';
   }
 

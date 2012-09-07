@@ -29,51 +29,51 @@ class Device {
    * the user agent.
    * Returns the user agent.
    */
-  static String get userAgent() => window.navigator.userAgent;
+  static String get userAgent => window.navigator.userAgent;
 
   /**
    * Determines if the current device is an iPhone or iPod.
    * Returns true if the current device is an iPhone or iPod.
    */
-  static bool get isIPhone() => _IPHONE_REGEX.hasMatch(userAgent);
+  static bool get isIPhone => _IPHONE_REGEX.hasMatch(userAgent);
 
   /**
    * Determines if the current device is an iPad.
    * Returns true if the current device is an iPad.
    */
-  static bool get isIPad() => userAgent.contains("iPad", 0);
+  static bool get isIPad => userAgent.contains("iPad", 0);
 
   /**
    * Determines if the current device is running Firefox.
    */
-  static bool get isFirefox() => userAgent.contains("Firefox", 0);
+  static bool get isFirefox => userAgent.contains("Firefox", 0);
 
   /**
    * Determines if the current device is an iPhone or iPod or iPad.
    * Returns true if the current device is an iPhone or iPod or iPad.
    */
-  static bool get isMobileSafari() => _MOBILE_SAFARI_REGEX.hasMatch(userAgent);
+  static bool get isMobileSafari => _MOBILE_SAFARI_REGEX.hasMatch(userAgent);
 
   /**
    * Determines if the current device is the iP* Simulator.
    * Returns true if the current device is an iP* Simulator.
    */
-  static bool get isAppleSimulator() => _APPLE_SIM_REGEX.hasMatch(userAgent);
+  static bool get isAppleSimulator => _APPLE_SIM_REGEX.hasMatch(userAgent);
 
   /**
    * Determines if the current device is an Android.
    * Returns true if the current device is an Android.
    */
-  static bool get isAndroid() => userAgent.contains("Android", 0);
+  static bool get isAndroid => userAgent.contains("Android", 0);
 
   /**
    * Determines if the current device is WebOS WebKit.
    * Returns true if the current device is WebOS WebKit.
    */
-  static bool get isWebOs() => userAgent.contains("webOS", 0);
+  static bool get isWebOs => userAgent.contains("webOS", 0);
 
   static bool _supportsTouch;
-  static bool get supportsTouch() {
+  static bool get supportsTouch {
     if (_supportsTouch == null) {
       _supportsTouch = isMobileSafari || isAndroid;
     }

@@ -64,7 +64,7 @@ class A {
   int x_;
   static int foo;
 
-  static get bar() {
+  static get bar {
     return foo;
   }
 
@@ -74,7 +74,7 @@ class A {
 
   A() {}
 
-  int get x() {
+  int get x {
     return x_;
   }
 
@@ -110,7 +110,7 @@ class C extends A {
     this.x_ = 0;
   }
 
-  int get x() {
+  int get x {
     return y_;
   }
 
@@ -149,7 +149,7 @@ class D extends A {
 class OverrideField extends A {
   OverrideField() : super() {}
 
-  int get x_() {
+  int get x_ {
     return 27;
   }
 }

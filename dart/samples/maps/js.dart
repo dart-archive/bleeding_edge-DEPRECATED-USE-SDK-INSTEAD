@@ -343,7 +343,7 @@ class _SerializableMap implements Map<String, Object> {
   getKeys() => _fail();
   getValues() => _fail();
   isEmpty() => _fail();
-  get length() => _fail();
+  get length => _fail();
   putIfAbsent(key, ifAbsent) => _fail();
   remove(key) => _fail();
 }

@@ -259,13 +259,13 @@ class SwarmState extends UIState {
   /**
    * Returns true if the UI is currently in the Story View state.
    */
-  bool get inMainView() => currentArticle.value == null;
+  bool get inMainView => currentArticle.value == null;
 
   /**
    * Returns true if we currently have an Article selected (for keyboard
    * shortcuts browsing).
    */
-  bool get hasArticleSelected() => selectedArticle.value != null;
+  bool get hasArticleSelected => selectedArticle.value != null;
 
   /**
    * Mark the current article as read
@@ -292,6 +292,6 @@ class SwarmState extends UIState {
         _articleIterator.currentIndex.listeners);
   }
 
-  Section get currentSection() => _sectionIterator.current;
-  Feed get currentFeed() => _feedIterator.current;
+  Section get currentSection => _sectionIterator.current;
+  Feed get currentFeed => _feedIterator.current;
 }

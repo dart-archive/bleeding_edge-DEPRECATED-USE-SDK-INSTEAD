@@ -219,7 +219,7 @@ class LeapCompiler extends Compiler {
 
   void log(message) { print(message); }
 
-  String get legDirectory() => libDir;
+  String get legDirectory => libDir;
 
   LibraryElement scanBuiltinLibrary(String path) {
     Uri base = new Uri.fromString(html.window.location.toString());

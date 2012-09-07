@@ -29,7 +29,7 @@ typedef WebComponentFactory RegistryLookupFunction(String tagName);
 // Globals
 const int REQUEST_DONE = 4;
 CustomElementsManager _manager;
-CustomElementsManager get manager() => _manager;
+CustomElementsManager get manager => _manager;
 
 void initializeComponents(RegistryLookupFunction lookup) {
   _manager = new CustomElementsManager._internal(lookup);
@@ -39,7 +39,7 @@ void initializeComponents(RegistryLookupFunction lookup) {
 /** A Dart wrapper for a web component. */
 abstract class WebComponent {
   /** The web component element wrapped by this class. */
-  abstract Element get element();
+  abstract Element get element;
 
   /** Invoked when this component gets created. */
   abstract void created();
@@ -233,7 +233,7 @@ bool _hasShadowRoot;
  * See the [Shadow DOM spec](http://www.w3.org/TR/shadow-dom/) for more
  * information about the ShadowRoot.
  */
-bool get hasShadowRoot() {
+bool get hasShadowRoot {
   if (_hasShadowRoot == null) {
     try {
       // TODO(jmesserly): it'd be nice if we could check this without causing

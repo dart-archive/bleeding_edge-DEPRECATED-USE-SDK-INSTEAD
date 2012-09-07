@@ -72,7 +72,7 @@ class FlakyProxy {
 
   SendPort _target;
 
-  SendPort get sendPort() => proxy.toSendPort();
+  SendPort get sendPort => proxy.toSendPort();
 
   FlakyProxy(this._target) {
     proxy = new ReceivePort();

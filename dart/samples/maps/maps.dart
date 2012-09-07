@@ -37,7 +37,7 @@ function (selector, options) {
 }''', [_selector, options]);
   }
 
-  List<MVCArray> get controls() => new MVCMapControlArrayList(this);
+  List<MVCArray> get controls => new MVCMapControlArrayList(this);
 
   serialize() =>
       encode('function (selector) { return document.querySelector(selector)._dart_map; }',

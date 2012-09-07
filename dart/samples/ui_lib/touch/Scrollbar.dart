@@ -63,7 +63,7 @@ class Scrollbar implements ScrollListener {
     _boundHideFn = () { _showScrollbars(false); };
   }
 
-  bool get _scrollBarDragInProgress() => _scrollBarDragInProgressValue;
+  bool get _scrollBarDragInProgress => _scrollBarDragInProgressValue;
 
   void set _scrollBarDragInProgress(bool value) {
     _scrollBarDragInProgressValue = value;
