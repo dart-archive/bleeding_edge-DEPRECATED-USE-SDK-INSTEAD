@@ -536,26 +536,26 @@
     </extension>
    
    
-    <extension
+   <extension
          point="org.eclipse.ui.editors.annotationTypes">
-        <type
+      <type
             name="com.google.dart.tools.ui.error"
             super="org.eclipse.ui.workbench.texteditor.error"
             markerType="com.google.dart.tools.core.problem"
             markerSeverity="2"/>
-        <type
+      <type
             name="com.google.dart.tools.ui.warning"
             super="org.eclipse.ui.workbench.texteditor.warning"
             markerType="com.google.dart.tools.core.problem"
             markerSeverity="1"/>
-        <type
-            name="com.google.dart.tools.ui.info"
-            super="com.google.dart.tools.ui.analysis.suggestion"
+      <type
+            name="com.google.dart.tools.ui.analysis.suggestion"
+            super="org.eclipse.ui.workbench.texteditor.warning"
             markerType="com.google.dart.tools.core.problem"
             markerSeverity="0"/>
       <type name="com.google.dart.tools.ui.occurrences"/>
       <type name="com.google.dart.tools.ui.overrideIndicator"/>
-    </extension>
+   </extension>
     
    <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
@@ -608,27 +608,28 @@
      </specification>
      <specification
            annotationType="com.google.dart.tools.ui.analysis.suggestion"
-           colorPreferenceKey="infoIndicationColor"
-           colorPreferenceValue="100,200,210"
+           colorPreferenceKey="suggestionIndicationColor"
+           colorPreferenceValue="127,127,127"
+           icon="icons/full/misc/info2.png"
            contributesToHeader="true"
-           highlightPreferenceKey="infoIndicationHighlighting"
+           highlightPreferenceKey="suggestionIndicationHighlighting"
            highlightPreferenceValue="false"
            isGoToNextNavigationTarget="false"
-           isGoToNextNavigationTargetKey="isInfoGoToNextNavigationTarget"
+           isGoToNextNavigationTargetKey="isSuggestionGoToNextNavigationTarget"
            isGoToPreviousNavigationTarget="false"
-           isGoToPreviousNavigationTargetKey="isInfoGoToPreviousNavigationTarget"
+           isGoToPreviousNavigationTargetKey="isSuggestionGoToPreviousNavigationTarget"
            label="Suggestion"
-           overviewRulerPreferenceKey="warningIndicationInOverviewRuler"
+           overviewRulerPreferenceKey="suggestionIndicationInOverviewRuler"
            overviewRulerPreferenceValue="true"
            presentationLayer="4"
            showInNextPrevDropdownToolbarAction="true"
-           showInNextPrevDropdownToolbarActionKey="showInfoInNextPrevDropdownToolbarAction"
-           symbolicIcon="info"
-           textPreferenceKey="infoIndication"
+           showInNextPrevDropdownToolbarActionKey="showsuggestionInNextPrevDropdownToolbarAction"
+           symbolicIcon="warning"
+           textPreferenceKey="suggestionIndication"
            textPreferenceValue="true"
-           textStylePreferenceKey="warningTextStyle"
+           textStylePreferenceKey="suggestionTextStyle"
            textStylePreferenceValue="PROBLEM_UNDERLINE"
-           verticalRulerPreferenceKey="warningIndicationInVerticalRuler"
+           verticalRulerPreferenceKey="suggestionIndicationInVerticalRuler"
            verticalRulerPreferenceValue="true">
      </specification>
    </extension>

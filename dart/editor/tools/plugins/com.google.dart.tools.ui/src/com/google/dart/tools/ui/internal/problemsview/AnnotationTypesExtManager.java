@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.problemsview;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.graphics.Image;
@@ -37,7 +38,6 @@ class AnnotationTypesExtManager {
       this.iconPath = iconPath;
     }
 
-    @SuppressWarnings("unused")
     Image getImage() {
       return DartToolsPlugin.getImage("/" + pluginId + "/" + iconPath);
     }
@@ -57,14 +57,30 @@ class AnnotationTypesExtManager {
     return SINGLETON;
   }
 
-  private Map<String, ImageData> imageDataForMarkerType = new HashMap<String, ImageData>();
+  private Map<String, Image> imageDataForMarkerType = new HashMap<String, Image>();
 
   private AnnotationTypesExtManager() {
     parseExtensions();
   }
 
   public Image getImageForMarker(IMarker marker) {
-    int severity = marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
+    int severity = marker.getAttribute(IMarker.SEVERITY, -1);
+
+    if (severity != -1) {
+      try {
+        String markerType = marker.getType();
+
+        String key = markerType + "." + severity;
+
+        if (imageDataForMarkerType.get(key) != null) {
+          return imageDataForMarkerType.get(key);
+        } else if (imageDataForMarkerType.get(markerType) != null) {
+          return imageDataForMarkerType.get(markerType);
+        }
+      } catch (CoreException ex) {
+
+      }
+    }
 
     switch (severity) {
       case IMarker.SEVERITY_ERROR:
@@ -75,7 +91,7 @@ class AnnotationTypesExtManager {
         return DartToolsPlugin.getImage("icons/full/misc/info_tsk.gif");
     }
 
-    return null;
+    return DartToolsPlugin.getImage("icons/full/misc/info_tsk.gif");
   }
 
   private ImageData findIconDataForAnnotation(String annotationId) {
@@ -108,16 +124,14 @@ class AnnotationTypesExtManager {
         String markerType = element.getAttribute("markerType");
         String markerSeverity = element.getAttribute("markerSeverity");
 
-        if (annotationId != null) {
+        if (annotationId != null && markerType != null) {
           ImageData data = findIconDataForAnnotation(annotationId);
 
-          if (markerSeverity == null) {
-            if (data != null) {
-              imageDataForMarkerType.put(markerType + "." + markerSeverity, data);
-            }
-          } else {
-            if (data != null) {
-              imageDataForMarkerType.put(markerType, data);
+          if (data != null) {
+            if (markerSeverity != null) {
+              imageDataForMarkerType.put(markerType + "." + markerSeverity, data.getImage());
+            } else {
+              imageDataForMarkerType.put(markerType, data.getImage());
             }
           }
         }

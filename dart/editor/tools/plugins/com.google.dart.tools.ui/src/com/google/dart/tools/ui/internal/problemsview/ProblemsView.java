@@ -216,21 +216,19 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
         IMarker marker = (IMarker) element;
 
         if (marker != null && marker.exists()) {
-          Image image = null;
-
-          try {
-            image = WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider().getImage(marker);
-          } catch (Throwable t) {
-
-          }
+          Image image = AnnotationTypesExtManager.getModel().getImageForMarker(marker);
 
           if (image != null) {
             image = decorateImage(marker, image);
-
-            return image;
           } else {
-            return AnnotationTypesExtManager.getModel().getImageForMarker(marker);
+            try {
+              image = WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider().getImage(marker);
+            } catch (Throwable t) {
+
+            }
           }
+
+          return image;
         }
       }
 
@@ -312,11 +310,11 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     public boolean select(Viewer viewer, Object parentElement, Object element) {
       IMarker marker = (IMarker) element;
 
-//      if (!showInfosAction.isChecked()) {
-      if (marker.getAttribute(IMarker.SEVERITY, 0) == IMarker.SEVERITY_INFO) {
-        return false;
+      if (!showInfosAction.isChecked()) {
+        if (marker.getAttribute(IMarker.SEVERITY, 0) == IMarker.SEVERITY_INFO) {
+          return false;
+        }
       }
-//      }
 
       return true;
     }
@@ -469,31 +467,33 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
   }
 
-//  private class ShowInfosAction extends Action {
-//    public ShowInfosAction() {
-//      super("Show todos and informational messages", AS_CHECK_BOX);
-//
-//      setImageDescriptor(DartToolsPlugin.getBundledImageDescriptor("icons/full/eview16/tasks_tsk.gif"));
-//
-//      // restore state
-//      if (getMemento() != null) {
-//        Boolean val = getMemento().getBoolean("showInfos");
-//
-//        if (val != null) {
-//          setChecked(val.booleanValue());
-//        } else {
-//          setChecked(true);
-//        }
-//      } else {
-//        setChecked(true);
-//      }
-//    }
-//
-//    @Override
-//    public void run() {
-//      updateFilters();
-//    }
-//  }
+  private class ShowInfosAction extends Action {
+    private static final boolean SHOW_INFOS_DEFAULT = false;
+
+    public ShowInfosAction() {
+      super("Show informational messages", AS_CHECK_BOX);
+
+      setImageDescriptor(DartToolsPlugin.getBundledImageDescriptor("icons/full/eview16/tasks_tsk.gif"));
+
+      // restore state
+      if (getMemento() != null) {
+        Boolean val = getMemento().getBoolean("showInfos");
+
+        if (val != null) {
+          setChecked(val.booleanValue());
+        } else {
+          setChecked(SHOW_INFOS_DEFAULT);
+        }
+      } else {
+        setChecked(SHOW_INFOS_DEFAULT);
+      }
+    }
+
+    @Override
+    public void run() {
+      updateFilters();
+    }
+  }
 
   private static class TableSorter extends ViewerSorter {
     private static final int DESCENDING = 1;
@@ -721,7 +721,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   private ErrorViewerFilter tableFilter;
 
-  //private ShowInfosAction showInfosAction;
+  private ShowInfosAction showInfosAction;
 
   private Clipboard clipboard;
 
@@ -890,7 +890,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   public void saveState(IMemento memento) {
     super.saveState(memento);
 
-    memento.putString("partName", getPartName());
+    if (showInfosAction != null) {
+      memento.putBoolean("showInfos", showInfosAction.isChecked());
+    }
 
     StringBuilder builder = new StringBuilder();
 
@@ -911,9 +913,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   }
 
   protected void fillInToolbar(IToolBarManager toolbar) {
-//    showInfosAction = new ShowInfosAction();
-//
-//    toolbar.add(showInfosAction);
+    showInfosAction = new ShowInfosAction();
+
+    toolbar.add(showInfosAction);
   }
 
   protected IMemento getMemento() {
