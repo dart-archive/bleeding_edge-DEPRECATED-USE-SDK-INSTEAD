@@ -21,6 +21,7 @@ import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -33,6 +34,7 @@ import org.eclipse.osgi.util.NLS;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -234,12 +236,14 @@ public class Dart2JSCompiler {
     args.addAll(getCompilerArguments(inputPath, outputPath));
 
     builder.command(args);
-    builder.directory(DartSdkManager.getManager().getSdk().getLibraryDirectory());
+    builder.directory(DartSdkManager.getManager().getSdk().getPackageDirectory());
     builder.redirectErrorStream(true);
 
     ProcessRunner runner = new ProcessRunner(builder);
 
     runner.runSync(monitor);
+
+    refreshParentFolder(outputPath);
 
     return new CompilationResult(runner, outputPath);
   }
@@ -258,7 +262,6 @@ public class Dart2JSCompiler {
     args.add("compiler/implementation/dart2js.dart");
     args.add("--no-colors");
     args.add("--suppress-warnings");
-    //args.add("--library-root=" + DartSdk.getInstance().getLibraryDirectory().getPath());
 
     String packageRoot = DartCore.getPlugin().getPackageRootPref();
     if (packageRoot != null) {
@@ -268,6 +271,20 @@ public class Dart2JSCompiler {
     args.add(inputPath.toOSString());
 
     return args;
+  }
+
+  private void refreshParentFolder(IPath outputPath) {
+    URI uri = outputPath.removeLastSegments(1).toFile().toURI();
+    IContainer[] containers = ResourcesPlugin.getWorkspace().getRoot().findContainersForLocationURI(
+        uri);
+
+    if (containers.length > 0) {
+      try {
+        containers[0].refreshLocal(1, new NullProgressMonitor());
+      } catch (CoreException e) {
+
+      }
+    }
   }
 
 }

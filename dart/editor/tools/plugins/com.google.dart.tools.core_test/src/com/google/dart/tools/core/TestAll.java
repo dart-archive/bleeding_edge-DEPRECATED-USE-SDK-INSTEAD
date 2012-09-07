@@ -29,6 +29,7 @@ public class TestAll {
     suite.addTestSuite(PluginXMLTest.class);
 
     suite.addTest(com.google.dart.tools.core.analysis.TestAll.suite());
+    suite.addTest(com.google.dart.tools.core.dart2js.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.dom.TestAll.suite());
 //    suite.addTest(com.google.dart.tools.core.formatter.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.generator.TestAll.suite());
