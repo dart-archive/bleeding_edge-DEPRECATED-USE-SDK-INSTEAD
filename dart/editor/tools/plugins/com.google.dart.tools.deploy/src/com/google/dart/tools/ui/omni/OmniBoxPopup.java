@@ -1033,40 +1033,41 @@ public class OmniBoxPopup extends BasePopupDialog {
   }
 
   private void restoreDialog() {
-    IDialogSettings dialogSettings = getDialogSettings();
-    if (dialogSettings != null) {
-      String[] orderedElements = dialogSettings.getArray(ORDERED_ELEMENTS);
-      String[] orderedProviders = dialogSettings.getArray(ORDERED_PROVIDERS);
-      String[] textEntries = dialogSettings.getArray(TEXT_ENTRIES);
-      String[] textArray = dialogSettings.getArray(TEXT_ARRAY);
-      elementMap = new HashMap<String, Object>();
-      textMap = new HashMap<Object, ArrayList<String>>();
-      previousPicksList = new LinkedList<OmniElement>();
-      if (orderedElements != null && orderedProviders != null && textEntries != null
-          && textArray != null) {
-        int arrayIndex = 0;
-        for (int i = 0; i < orderedElements.length; i++) {
-          OmniProposalProvider omniElementProvider = providerMap.get(orderedProviders[i]);
-          int numTexts = Integer.parseInt(textEntries[i]);
-          if (omniElementProvider != null) {
-            OmniElement omniElement = omniElementProvider.getElementForId(orderedElements[i]);
-            if (omniElement != null) {
-              ArrayList<String> arrayList = new ArrayList<String>();
-              for (int j = arrayIndex; j < arrayIndex + numTexts; j++) {
-                String text = textArray[j];
-                if (text.length() > 0) {
-                  arrayList.add(text);
-                  elementMap.put(text, omniElement);
-                }
-              }
-              textMap.put(omniElement, arrayList);
-              previousPicksList.add(omniElement);
-            }
-          }
-          arrayIndex += numTexts;
-        }
-      }
-    }
+//TODO(pquitslund): re-enable/remove pending investigation (dartbug.com/5005).    
+//    IDialogSettings dialogSettings = getDialogSettings();
+//    if (dialogSettings != null) {
+//      String[] orderedElements = dialogSettings.getArray(ORDERED_ELEMENTS);
+//      String[] orderedProviders = dialogSettings.getArray(ORDERED_PROVIDERS);
+//      String[] textEntries = dialogSettings.getArray(TEXT_ENTRIES);
+//      String[] textArray = dialogSettings.getArray(TEXT_ARRAY);
+//      elementMap = new HashMap<String, Object>();
+//      textMap = new HashMap<Object, ArrayList<String>>();
+//      previousPicksList = new LinkedList<OmniElement>();
+//      if (orderedElements != null && orderedProviders != null && textEntries != null
+//          && textArray != null) {
+//        int arrayIndex = 0;
+//        for (int i = 0; i < orderedElements.length; i++) {
+//          OmniProposalProvider omniElementProvider = providerMap.get(orderedProviders[i]);
+//          int numTexts = Integer.parseInt(textEntries[i]);
+//          if (omniElementProvider != null) {
+//            OmniElement omniElement = omniElementProvider.getElementForId(orderedElements[i]);
+//            if (omniElement != null) {
+//              ArrayList<String> arrayList = new ArrayList<String>();
+//              for (int j = arrayIndex; j < arrayIndex + numTexts; j++) {
+//                String text = textArray[j];
+//                if (text.length() > 0) {
+//                  arrayList.add(text);
+//                  elementMap.put(text, omniElement);
+//                }
+//              }
+//              textMap.put(omniElement, arrayList);
+//              previousPicksList.add(omniElement);
+//            }
+//          }
+//          arrayIndex += numTexts;
+//        }
+//      }
+//    }
   }
 
   private void setFilterFocus() {
