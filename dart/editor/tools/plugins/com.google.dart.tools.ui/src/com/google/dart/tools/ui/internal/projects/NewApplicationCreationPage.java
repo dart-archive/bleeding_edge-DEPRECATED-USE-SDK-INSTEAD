@@ -62,6 +62,7 @@ public class NewApplicationCreationPage extends WizardPage {
 
   public static final String NEW_APPPLICATION_SETTINGS = "newApplicationWizard.settings";
   public static final String PARENT_DIR = "parentDir";
+  public static final String WEB_APP_CHECKBOX_DISABLED = "webAppCheckboxDisabled";
 
   private Text projectNameField;
   private Text projectLocationField;
@@ -147,8 +148,16 @@ public class NewApplicationCreationPage extends WizardPage {
     GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(contentGroup);
 
     webAppCheckboxButton = new Button(contentGroup, SWT.CHECK);
-    webAppCheckboxButton.setText("Add HTML and CSS starter files");
-    webAppCheckboxButton.setSelection(true);
+    webAppCheckboxButton.setText(ProjectMessages.NewApplicationWizardPage_webAppCheckbox_name_label);
+    webAppCheckboxButton.setSelection(getWebAppCheckboxEnabled());
+    webAppCheckboxButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
+            NEW_APPPLICATION_SETTINGS);
+        settings.put(WEB_APP_CHECKBOX_DISABLED, !webAppCheckboxButton.getSelection());
+      }
+    });
 
     setPageComplete(false);
   }
@@ -267,6 +276,16 @@ public class NewApplicationCreationPage extends WizardPage {
     }
 
     return projectNameField.getText().trim();
+  }
+
+  private boolean getWebAppCheckboxEnabled() {
+    IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
+        NEW_APPPLICATION_SETTINGS);
+    // The following has one of three (not two) states:
+    // 1) If it has never been set before (see listener on checkbox), this will return true- the default behavior
+    // 2) If WEB_APP_CHECKBOX_DISABLED is false, return true.
+    // 3) If WEB_APP_CHECKBOX_DISABLED is true, return false.
+    return !settings.getBoolean(WEB_APP_CHECKBOX_DISABLED);
   }
 
   private void update() {
