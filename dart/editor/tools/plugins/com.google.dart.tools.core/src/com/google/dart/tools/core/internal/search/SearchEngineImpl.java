@@ -212,7 +212,10 @@ public class SearchEngineImpl implements SearchEngine {
         DartCore.logError("Cannot find children of " + parentElement);
         return null;
       }
-      DartCore.logError("Cannot find " + component + " as a child of " + parentElement);
+      //TODO(pquitslund): remove once the SDK has a class 'Type' (dartbug.com/5003)
+      if (!("Type".equals(component) && "object.dart".equals(parentElement.getElementName()))) {
+        DartCore.logError("Cannot find " + component + " as a child of " + parentElement);
+      }
       return null;
     }
 
