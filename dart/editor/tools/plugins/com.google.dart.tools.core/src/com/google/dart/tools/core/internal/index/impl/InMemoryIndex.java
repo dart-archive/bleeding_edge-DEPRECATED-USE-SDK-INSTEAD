@@ -519,6 +519,7 @@ public class InMemoryIndex implements Index {
       librarySpecs.add("dart:html");
     }
     AnalysisServer analysisServer = PackageLibraryManagerProvider.getDefaultAnalysisServer();
+    analysisServer.reanalyze();
     SavedContext savedContext = analysisServer.getSavedContext();
     for (String urlSpec : librarySpecs) {
       try {
