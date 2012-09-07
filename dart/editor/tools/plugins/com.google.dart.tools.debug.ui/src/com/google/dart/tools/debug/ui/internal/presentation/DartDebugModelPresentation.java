@@ -204,7 +204,7 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
           false,
           frame.isPrivate()));
     } else if (element instanceof DartBreakpoint) {
-      return null;
+      return getBreakpointImage((DartBreakpoint) element);
     } else {
       return null;
     }
@@ -339,6 +339,14 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
       return valueString[0];
     } else {
       return value.getDisplayString();
+    }
+  }
+
+  private Image getBreakpointImage(DartBreakpoint bp) {
+    if (bp.isBreakpointEnabled()) {
+      return DartDebugUIPlugin.getImage("obj16/brkp_obj.png");
+    } else {
+      return DartDebugUIPlugin.getImage("obj16/brkpd_obj.png");
     }
   }
 
