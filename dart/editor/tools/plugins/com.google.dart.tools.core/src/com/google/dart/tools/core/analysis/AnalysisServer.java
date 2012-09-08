@@ -399,12 +399,14 @@ public class AnalysisServer {
   }
 
   /**
-   * Remove any tasks related to analysis that do not have callbacks. The assumption is that
-   * analysis tasks with explicit callbacks are related to user requests and should be preserved.
-   * This should only be called from the background thread.
+   * Remove any tasks related to analysis of the specified file or directory and that do not have
+   * callbacks. The assumption is that analysis tasks with explicit callbacks are related to user
+   * requests and should be preserved. This should only be called from the background thread.
+   * 
+   * @param discarded the file or directory tree being affected (not <code>null</code>)
    */
-  void removeAllBackgroundAnalysisTasks() {
-    queue.removeBackgroundTasks();
+  void removeBackgroundTasks(File discarded) {
+    queue.removeBackgroundTasks(discarded);
   }
 
   /**

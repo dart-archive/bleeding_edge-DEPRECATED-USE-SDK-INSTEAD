@@ -1,5 +1,7 @@
 package com.google.dart.tools.core.analysis;
 
+import java.io.File;
+
 public class BlockingTask extends Task {
 
   private Object lock = new Object();
@@ -8,7 +10,7 @@ public class BlockingTask extends Task {
   private boolean performed = false;
 
   @Override
-  public boolean isBackgroundAnalysis() {
+  public boolean canRemove(File discarded) {
     return false;
   }
 

@@ -31,7 +31,7 @@ class DiscardTask extends Task {
   }
 
   @Override
-  public boolean isBackgroundAnalysis() {
+  public boolean canRemove(File discarded) {
     return false;
   }
 
@@ -56,7 +56,7 @@ class DiscardTask extends Task {
     }
 
     // Remove all pending analysis tasks as they may have been related to the discarded libraries
-    server.removeAllBackgroundAnalysisTasks();
+    server.removeBackgroundTasks(file);
 
     // Reanalyze any libraries not already cached
     server.queueAnalyzeContext();

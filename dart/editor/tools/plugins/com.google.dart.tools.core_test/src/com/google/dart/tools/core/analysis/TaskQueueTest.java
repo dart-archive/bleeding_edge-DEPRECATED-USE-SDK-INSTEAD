@@ -15,6 +15,8 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.tools.core.AbstractDartCoreTest;
 
+import java.io.File;
+
 public class TaskQueueTest extends AbstractDartCoreTest {
 
   private TaskQueue queue;
@@ -216,7 +218,7 @@ public class TaskQueueTest extends AbstractDartCoreTest {
   }
 
   public void test_removeBackgroundTasks() throws Exception {
-    NullTask backgroundTask1 = NullTask.newBackgroundTask();
+    NullTask backgroundTask1 = NullTask.newBackgroundTask(new File("foo"));
     NullTask backgroundTask2 = NullTask.newBackgroundTask();
     NullTask requestTask1 = NullTask.newRequestTask();
     NullTask requestTask2 = NullTask.newRequestTask();
@@ -239,14 +241,15 @@ public class TaskQueueTest extends AbstractDartCoreTest {
     assertTrue(requestTask1 == tasks[4]);
     assertTrue(backgroundTask1 == tasks[5]);
 
-    queue.removeBackgroundTasks();
+    queue.removeBackgroundTasks(new File("boo"));
 
     tasks = queue.getTasks();
-    assertEquals(4, tasks.length);
+    assertEquals(5, tasks.length);
     assertTrue(updateTask1 == tasks[0]);
     assertTrue(updateTask2 == tasks[1]);
     assertTrue(requestTask2 == tasks[2]);
     assertTrue(requestTask1 == tasks[3]);
+    assertTrue(backgroundTask1 == tasks[4]);
   }
 
   /**

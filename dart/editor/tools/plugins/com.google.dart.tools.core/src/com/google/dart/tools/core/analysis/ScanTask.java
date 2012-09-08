@@ -208,17 +208,20 @@ public class ScanTask extends Task implements TaskListener {
     this.ignoreManager = DartIgnoreManager.getInstance();
   }
 
+  @Override
+  public boolean canRemove(File discarded) {
+    // Only discard scan tasks if all files to be scan are discarded and either
+    // there is no callback or the callback has indicated the operation should be canceled
+    return AnalysisUtility.equalsOrContains(discarded, rootFile)
+        && (callback == null || callback.isCanceled());
+  }
+
   /**
    * Called by the analysis server when all tasks have been performed
    */
   @Override
   public void idle(boolean idle) {
     server.removeIdleListener(this);
-  }
-
-  @Override
-  public boolean isBackgroundAnalysis() {
-    return callback == null || callback.isCanceled();
   }
 
   @Override

@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import java.io.File;
+
 class EverythingChangedTask extends Task {
 
   private final AnalysisServer server;
@@ -22,7 +24,7 @@ class EverythingChangedTask extends Task {
   }
 
   @Override
-  public boolean isBackgroundAnalysis() {
+  public boolean canRemove(File discarded) {
     return false;
   }
 

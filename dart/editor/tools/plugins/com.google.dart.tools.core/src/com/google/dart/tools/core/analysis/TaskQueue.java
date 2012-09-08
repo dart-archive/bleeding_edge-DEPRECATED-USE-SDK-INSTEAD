@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -125,13 +126,17 @@ public class TaskQueue {
   }
 
   /**
-   * Remove all background tasks
+   * Remove any tasks related to analysis of the specified file or directory and that do not have
+   * callbacks. The assumption is that analysis tasks with explicit callbacks are related to user
+   * requests and should be preserved. This should only be called from the background thread.
+   * 
+   * @param discarded the file or directory tree being affected (not <code>null</code>)
    */
-  public void removeBackgroundTasks() {
+  public void removeBackgroundTasks(File discarded) {
     synchronized (queue) {
       Iterator<Task> iter = queue.iterator();
       while (iter.hasNext()) {
-        if (iter.next().isBackgroundAnalysis()) {
+        if (iter.next().canRemove(discarded)) {
           iter.remove();
         }
       }

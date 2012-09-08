@@ -88,7 +88,7 @@ public class Context {
     server.queueNewTask(new Task() {
 
       @Override
-      public boolean isBackgroundAnalysis() {
+      public boolean canRemove(File discarded) {
         return false;
       }
 

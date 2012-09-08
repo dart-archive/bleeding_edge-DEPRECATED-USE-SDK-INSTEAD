@@ -13,17 +13,22 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import java.io.File;
+
 /**
  * An analysis task. Not intended to be subclassed by clients.
  */
 public abstract class Task {
 
   /**
-   * Answer <code>true</code> if this task is an analysis task and does not have a callback. The
-   * assumption is that analysis tasks with explicit callbacks are related to user requests and thus
-   * are not considered "background" analysis.
+   * Answer <code>true</code> if this task is related to analysis of the specified file or
+   * directory, does not have a callback, and thus can be removed from the task queue. The
+   * assumption is that analysis tasks with explicit callbacks are related to user requests and
+   * should be preserved. This should only be called from the background thread.
+   * 
+   * @param discarded the file or directory tree being affected (not <code>null</code>)
    */
-  public abstract boolean isBackgroundAnalysis();
+  public abstract boolean canRemove(File discarded);
 
   /**
    * Answer <code>true</code> if this task removes cached information and thus should be executed

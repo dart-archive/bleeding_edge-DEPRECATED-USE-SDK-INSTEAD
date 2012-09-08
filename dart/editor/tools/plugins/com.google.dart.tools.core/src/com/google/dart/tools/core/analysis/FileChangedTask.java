@@ -30,7 +30,7 @@ class FileChangedTask extends Task {
   }
 
   @Override
-  public boolean isBackgroundAnalysis() {
+  public boolean canRemove(File discarded) {
     return false;
   }
 
