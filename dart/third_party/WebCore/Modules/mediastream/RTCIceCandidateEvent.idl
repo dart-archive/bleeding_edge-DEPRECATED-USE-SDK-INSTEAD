@@ -22,32 +22,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-module core {
+module events {
 
     interface [
-        Conditional=CSP_NEXT,
-        OmitConstructor,
-        InterfaceName=SecurityPolicy
-    ] DOMSecurityPolicy {
-        readonly attribute DOMStringList reportURIs;
-
-        boolean isActive();
-
-        boolean allowsConnectionTo(in DOMString url);
-        boolean allowsFontFrom(in DOMString url);
-        boolean allowsFormAction(in DOMString url);
-        boolean allowsFrameFrom(in DOMString url);
-        boolean allowsImageFrom(in DOMString url);
-        boolean allowsMediaFrom(in DOMString url);
-        boolean allowsObjectFrom(in DOMString url);
-        boolean allowsPluginType(in DOMString type);
-        boolean allowsScriptFrom(in DOMString url);
-        boolean allowsStyleFrom(in DOMString url);
-
-        boolean allowsEval();
-        boolean allowsInlineScript();
-        boolean allowsInlineStyle();
+        Conditional=MEDIA_STREAM,
+    ] RTCIceCandidateEvent : Event {
+        readonly attribute RTCIceCandidate candidate;
     };
 
 }
-

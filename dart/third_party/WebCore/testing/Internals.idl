@@ -135,11 +135,10 @@ module window {
 
         unsigned long wheelEventHandlerCount(in Document document) raises (DOMException);
         unsigned long touchEventHandlerCount(in Document document) raises (DOMException);
-        boolean hasTouchEventListener(in Document document) raises (DOMException);
 
         NodeList nodesFromRect(in Document document, in long x, in long y,
             in unsigned long topPadding, in unsigned long rightPadding, in unsigned long bottomPadding, in unsigned long leftPadding,
-            in boolean ignoreClipping, in boolean allowShadowContent) raises (DOMException);
+            in boolean ignoreClipping, in boolean allowShadowContent, in boolean allowChildFrameContent) raises (DOMException);
 
         void emitInspectorDidBeginFrame();
         void emitInspectorDidCancelFrame();
@@ -176,6 +175,10 @@ module window {
         DOMString counterValue(in Element element);
         long pageNumber(in Element element, in [Optional] float pageWidth, in [Optional] float pageHeight);
         DOMString[] iconURLs(in Document document);
+        long numberOfPages(in [Optional] double pageWidthInPixels, in [Optional] double pageHeightInPixels);
+        DOMString pageProperty(in DOMString propertyName, in long pageNumber) raises (DOMException);
+        DOMString pageSizeAndMarginsInPixels(in long pageIndex, in long width, in long height, in long marginTop, in long marginRight, in long marginBottom, in long marginLeft) raises (DOMException);
+
 
 #if defined(ENABLE_FULLSCREEN_API) && ENABLE_FULLSCREEN_API
         void webkitWillEnterFullScreenForElement(in Document document, in Element element);
