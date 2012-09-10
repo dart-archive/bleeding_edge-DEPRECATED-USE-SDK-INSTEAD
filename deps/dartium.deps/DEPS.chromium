@@ -8,11 +8,11 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "127696",
+  "webkit_revision": "127997",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "9640",
+  "nacl_revision": "9651",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "9330",  # native_client/DEPS: tools_rev
@@ -25,16 +25,16 @@ vars = {
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "150165",
-  "ffmpeg_hash": "2079ffae30f8da6c6eed985cce00e04c31b40888",
+  "ffmpeg_revision": "155401",
+  "ffmpeg_hash": "4a1909e22211b340ee859a8c9d12e8825fe499b7",
 
   "sfntly_revision": "134",
-  "skia_revision": "5408",
+  "skia_revision": "5446",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "12448",
-  "webrtc_revision": "2702",
+  "v8_revision": "12466",
+  "webrtc_revision": "2718",
   "jsoncpp_revision": "248",
   "nss_revision": "154476",
 }
@@ -220,6 +220,9 @@ deps = {
   "src/content/test/data/layout_tests/LayoutTests/storage/indexeddb":
     Var("webkit_trunk") + "/LayoutTests/storage/indexeddb@" +
     Var("webkit_revision"),
+  "src/content/test/data/layout_tests/LayoutTests/fast/files":
+    Var("webkit_trunk") + "/LayoutTests/fast/files@" +
+    Var("webkit_revision"),
   "src/content/test/data/layout_tests/LayoutTests/fast/filesystem/resources":
     Var("webkit_trunk") + "/LayoutTests/fast/filesystem/resources@" +
     Var("webkit_revision"),
@@ -305,7 +308,7 @@ deps = {
     "/trunk/deps/third_party/undoview@119694",
 
   "src/tools/deps2git":
-    "/trunk/tools/deps2git@148781",
+    "/trunk/tools/deps2git@153866",
 
   "src/third_party/webpagereplay":
     (Var("googlecode_url") % "web-page-replay") + "/trunk@494",
@@ -374,7 +377,7 @@ deps_os = {
     # Binary level profile guided optimizations. This points to the
     # latest release binaries for the toolchain.
     "src/third_party/syzygy/binaries":
-      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@991",
+      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@1083",
 
     # Binaries for nacl sdk.
     "src/third_party/nacl_sdk_binaries":
@@ -391,6 +394,14 @@ deps_os = {
     # class-dump utility to generate header files for undocumented SDKs
     "src/testing/iossim/third_party/class-dump":
       "/trunk/deps/third_party/class-dump@147231",
+
+    # Pull only the headers from WebKit.
+    "src/third_party/WebKit/Source/WebKit/chromium/public":
+      Var("webkit_trunk") + "/Source/WebKit/chromium/public@" +
+      Var("webkit_revision"),
+    "src/third_party/WebKit/Source/Platform/chromium/public":
+      Var("webkit_trunk") + "/Source/Platform/chromium/public@" +
+      Var("webkit_revision"),
 
     # Code that's not needed due to not building everything (especially WebKit).
     "src/build/util/support": None,
