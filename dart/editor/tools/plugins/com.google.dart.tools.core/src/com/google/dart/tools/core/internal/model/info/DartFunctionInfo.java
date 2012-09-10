@@ -27,8 +27,16 @@ public class DartFunctionInfo extends DeclarationElementInfo {
    */
   private char[] returnTypeName;
 
+  private int parametersCloseParen;
   private int visibleStart;
   private int visibleEnd;
+
+  /**
+   * @return the position of parameters close parenthesis.
+   */
+  public int getParametersCloseParen() {
+    return parametersCloseParen;
+  }
 
   /**
    * Return the name of the return type of this method, or <code>null</code> if this method is a
@@ -45,6 +53,10 @@ public class DartFunctionInfo extends DeclarationElementInfo {
    */
   public SourceRange getVisibleRange() {
     return new SourceRangeImpl(visibleStart, visibleEnd - visibleStart + 1);
+  }
+
+  public void setParametersCloseParen(int parametersCloseParen) {
+    this.parametersCloseParen = parametersCloseParen;
   }
 
   /**

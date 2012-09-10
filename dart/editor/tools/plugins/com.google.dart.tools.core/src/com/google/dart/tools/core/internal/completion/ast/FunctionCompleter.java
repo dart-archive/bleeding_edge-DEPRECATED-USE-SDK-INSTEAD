@@ -26,15 +26,18 @@ public class FunctionCompleter extends DartFunction implements CompletionNode {
   static final long serialVersionUID = 1L;
 
   public static FunctionCompleter from(DartFunction p) {
-    return CompletionUtil.init(
-        new FunctionCompleter(p.getParameters(), p.getBody(), p.getReturnTypeNode()),
-        p);
+    return CompletionUtil.init(new FunctionCompleter(
+        p.getParameters(),
+        p.getParametersCloseParen(),
+        p.getBody(),
+        p.getReturnTypeNode()), p);
   }
 
   private Stack<Mark> stack;
 
-  public FunctionCompleter(List<DartParameter> params, DartBlock body, DartTypeNode returnTypeNode) {
-    super(params, body, returnTypeNode);
+  public FunctionCompleter(List<DartParameter> params, int parametersCloseParen, DartBlock body,
+      DartTypeNode returnTypeNode) {
+    super(params, parametersCloseParen, body, returnTypeNode);
   }
 
   @Override

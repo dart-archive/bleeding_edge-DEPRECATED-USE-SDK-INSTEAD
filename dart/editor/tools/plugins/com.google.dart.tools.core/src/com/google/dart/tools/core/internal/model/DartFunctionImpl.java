@@ -91,6 +91,12 @@ public class DartFunctionImpl extends SourceReferenceImpl implements DartFunctio
   }
 
   @Override
+  public SourceRange getParametersCloseParen() throws DartModelException {
+    DartFunctionInfo info = (DartFunctionInfo) getElementInfo();
+    return new SourceRangeImpl(info.getParametersCloseParen(), 1);
+  }
+
+  @Override
   public String[] getParameterTypeNames() throws DartModelException {
     ArrayList<String> typeNames = new ArrayList<String>();
     for (DartVariableDeclaration variable : getChildrenOfType(DartVariableDeclaration.class)) {

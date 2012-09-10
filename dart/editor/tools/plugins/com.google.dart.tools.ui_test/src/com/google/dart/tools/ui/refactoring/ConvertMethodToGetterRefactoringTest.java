@@ -58,7 +58,7 @@ public final class ConvertMethodToGetterRefactoringTest extends RefactoringTest 
     doSuccessfullRefactoring();
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "get test() => 42;",
+        "get test => 42;",
         "main() {",
         "  var v = test;",
         "}");
@@ -93,19 +93,19 @@ public final class ConvertMethodToGetterRefactoringTest extends RefactoringTest 
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  get test() => 1;",
+        "  get test => 1;",
         "}",
         "class B extends A {",
-        "  get test() => 2;",
+        "  get test => 2;",
         "}",
         "class C extends B {",
-        "  get test() => 3;",
+        "  get test => 3;",
         "}",
         "class D extends C {",
-        "  get test() => 4;",
+        "  get test => 4;",
         "}",
         "class E extends D {",
-        "  get test() => 5;",
+        "  get test => 5;",
         "}",
         "",
         "main() {",
@@ -126,7 +126,7 @@ public final class ConvertMethodToGetterRefactoringTest extends RefactoringTest 
     doSuccessfullRefactoring();
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "int get test() => 42;",
+        "int get test => 42;",
         "main() {",
         "  var v = test;",
         "}");

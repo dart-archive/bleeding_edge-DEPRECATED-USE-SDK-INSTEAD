@@ -314,6 +314,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       }
       DartFunctionImpl functionImpl = new DartFunctionImpl(compilationUnit, functionName);
       DartFunctionInfo functionInfo = new DartFunctionInfo();
+      functionInfo.setParametersCloseParen(node.getFunction().getParametersCloseParen());
       int start = node.getSourceInfo().getOffset();
       functionInfo.setSourceRangeStart(start);
       functionInfo.setSourceRangeEnd(node.getSourceInfo().getEnd());
@@ -419,6 +420,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         String className, List<DartElementImpl> children) {
       DartMethodImpl methodImpl = new DartMethodImpl(typeImpl, methodNode.getName().toString());
       DartMethodInfo methodInfo = new DartMethodInfo();
+      methodInfo.setParametersCloseParen(methodNode.getFunction().getParametersCloseParen());
       methodInfo.setSourceRangeStart(methodNode.getSourceInfo().getOffset());
       methodInfo.setSourceRangeEnd(methodNode.getSourceInfo().getEnd());
       captureDartDoc(methodNode, methodInfo);
@@ -503,6 +505,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       DartFunctionImpl functionImpl = new DartFunctionImpl(parentElement, node.getFunctionName());
       functionImpl.occurrenceCount = functionCount++;
       DartFunctionInfo functionInfo = new DartFunctionInfo();
+      functionInfo.setParametersCloseParen(node.getFunction().getParametersCloseParen());
       functionInfo.setSourceRangeStart(node.getSourceInfo().getOffset());
       functionInfo.setSourceRangeEnd(node.getSourceInfo().getEnd());
       // remember visibility range

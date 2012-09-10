@@ -18,6 +18,7 @@ package com.google.dart.tools.core.internal.model.info;
  * methods.
  */
 public class DartMethodInfo extends DeclarationElementInfo {
+  private int parametersCloseParen;
   /**
    * A flag indicating whether this method is a constructor.
    */
@@ -33,6 +34,13 @@ public class DartMethodInfo extends DeclarationElementInfo {
    * constructor or does not have a declared return type.
    */
   private char[] returnTypeName;
+
+  /**
+   * @return the position of parameters close parenthesis.
+   */
+  public int getParametersCloseParen() {
+    return parametersCloseParen;
+  }
 
   /**
    * Return the name of the return type of this method, or <code>null</code> if this method is a
@@ -82,6 +90,10 @@ public class DartMethodInfo extends DeclarationElementInfo {
    */
   public void setImplicit(boolean implicit) {
     isImplicit = implicit;
+  }
+
+  public void setParametersCloseParen(int parametersCloseParen) {
+    this.parametersCloseParen = parametersCloseParen;
   }
 
   /**

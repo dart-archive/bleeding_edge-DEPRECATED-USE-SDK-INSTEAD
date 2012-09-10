@@ -85,6 +85,11 @@ public class DartMethodImpl extends NamedTypeMemberImpl implements Method {
   }
 
   @Override
+  public SourceRange getParametersCloseParen() throws DartModelException {
+    return new SourceRangeImpl(((DartMethodInfo) getElementInfo()).getParametersCloseParen(), 1);
+  }
+
+  @Override
   public String[] getParameterTypeNames() throws DartModelException {
     ArrayList<String> typeNames = new ArrayList<String>();
     for (DartVariableDeclaration variable : getChildrenOfType(DartVariableDeclaration.class)) {

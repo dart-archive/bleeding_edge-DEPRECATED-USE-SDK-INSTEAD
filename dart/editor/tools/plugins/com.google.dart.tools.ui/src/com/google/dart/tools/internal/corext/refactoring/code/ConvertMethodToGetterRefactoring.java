@@ -43,6 +43,7 @@ import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.TextChange;
 import org.eclipse.text.edits.ReplaceEdit;
+import org.eclipse.text.edits.TextEdit;
 
 import java.util.List;
 
@@ -53,7 +54,13 @@ import java.util.List;
  */
 public class ConvertMethodToGetterRefactoring extends Refactoring {
 
+  private static void addReplaceEdit(TextChange change, String name, SourceRange range, String text) {
+    TextEdit edit = new ReplaceEdit(range.getOffset(), range.getLength(), text);
+    TextChangeCompatibility.addTextEdit(change, name, edit);
+  }
+
   private final DartFunction function;
+
   private final CompilationUnit methodUnit;
 
   private final TextChangeManager changeManager = new TextChangeManager(true);
@@ -102,10 +109,18 @@ public class ConvertMethodToGetterRefactoring extends Refactoring {
       // convert method declaration(s) to getter
       for (DartFunction function : declarations) {
         TextChange change = changeManager.get(methodUnit);
-        TextChangeCompatibility.addTextEdit(
+        addReplaceEdit(
             change,
             RefactoringCoreMessages.ConvertMethodToGetterRefactoring_make_getter_declaration,
-            new ReplaceEdit(function.getNameRange().getOffset(), 0, "get "));
+            SourceRangeFactory.forStartLength(function.getNameRange(), 0),
+            "get ");
+        addReplaceEdit(
+            change,
+            RefactoringCoreMessages.ConvertMethodToGetterRefactoring_make_getter_declaration,
+            SourceRangeFactory.forEndEnd(
+                function.getNameRange(),
+                function.getParametersCloseParen()),
+            "");
         pm.worked(1);
       }
       // convert all references
@@ -124,10 +139,11 @@ public class ConvertMethodToGetterRefactoring extends Refactoring {
           SourceRange range = SourceRangeFactory.forStartEnd(
               SourceRangeUtils.getEnd(reference.getSourceRange()),
               invocation);
-          TextChangeCompatibility.addTextEdit(
+          addReplaceEdit(
               refChange,
               RefactoringCoreMessages.ConvertMethodToGetterRefactoring_replace_invocation,
-              new ReplaceEdit(range.getOffset(), range.getLength(), ""));
+              range,
+              "");
         }
       }
       pm.worked(1);

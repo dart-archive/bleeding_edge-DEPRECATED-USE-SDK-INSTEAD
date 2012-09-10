@@ -53,6 +53,11 @@ public interface DartFunction extends CompilationUnitElement, ParentElement, Sou
   public String[] getParameterNames() throws DartModelException;
 
   /**
+   * @return the {@link SourceRange} of close paren in parameters declaration.
+   */
+  public SourceRange getParametersCloseParen() throws DartModelException;
+
+  /**
    * Return an array containing the names of the parameter types for this function, or an empty
    * array if this function does not have any parameters. In the case where the type of a parameter
    * is a function type, this method will return a string that contains only the types of the
