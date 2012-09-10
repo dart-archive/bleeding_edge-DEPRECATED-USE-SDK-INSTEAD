@@ -43,6 +43,8 @@ public class TestAll {
     // inline
     suite.addTestSuite(InlineLocalRefactoringTest.class);
     suite.addTestSuite(InlineMethodRefactoringTest.class);
+    // convert
+    suite.addTestSuite(ConvertMethodToGetterRefactoringTest.class);
     // done
     return suite;
   }

@@ -17,7 +17,6 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.dart.compiler.util.apache.ArrayUtils;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -55,7 +54,6 @@ import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -542,37 +540,17 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
   }
 
   private void prepareReferences(IProgressMonitor pm) throws CoreException {
-    String name = member.getElementName();
-    // prepare types which have member with required name
-    Set<Type> renameTypes;
-    {
-      renameTypes = Sets.newHashSet();
-      Set<Type> checkedTypes = Sets.newHashSet();
-      LinkedList<Type> checkTypes = Lists.newLinkedList();
-      checkTypes.add(member.getDeclaringType());
-      while (!checkTypes.isEmpty()) {
-        Type type = checkTypes.removeFirst();
-        // may be already checked
-        if (checkedTypes.contains(type)) {
-          continue;
-        }
-        checkedTypes.add(type);
-        // if has member with required name, then may be its super-types and sub-types too
-        if (type.getExistingMembers(name).length != 0) {
-          renameTypes.add(type);
-          checkTypes.addAll(RenameAnalyzeUtil.getSuperTypes(type));
-          checkTypes.addAll(RenameAnalyzeUtil.getSubTypes(type));
-        }
-      }
-    }
+    MemberDeclarationsReferences memberInfo = RenameAnalyzeUtil.findDeclarationsReferences(
+        member,
+        pm);
     // prepare all declarations and references to members
+    references = memberInfo.references;
     declarations = Lists.newArrayList();
-    references = Lists.newArrayList();
-    for (Type type : renameTypes) {
-      for (TypeMember typeMember : type.getExistingMembers(name)) {
-        declarations.add(new SearchMatch(MatchQuality.EXACT, type, typeMember.getNameRange()));
-        references.addAll(RenameAnalyzeUtil.getReferences(typeMember, null));
-      }
+    for (TypeMember typeMember : memberInfo.declarations) {
+      declarations.add(new SearchMatch(
+          MatchQuality.EXACT,
+          typeMember.getDeclaringType(),
+          typeMember.getNameRange()));
     }
     // unresolved name references
     nameReferences = RenameAnalyzeUtil.getReferences(member, MatchQuality.NAME, null);

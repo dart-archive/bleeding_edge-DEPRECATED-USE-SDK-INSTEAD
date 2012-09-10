@@ -51,16 +51,21 @@ import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.dom.ASTNodes;
+import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
 import com.google.dart.tools.internal.corext.refactoring.code.TokenUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.RenameRefactoringProposal;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
@@ -72,6 +77,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
+import org.eclipse.ui.IEditorPart;
 
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
@@ -146,9 +152,12 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
   private final List<TextEdit> textEdits = Lists.newArrayList();
   private int proposalRelevance = DEFAULT_RELEVANCE;
 
+  private IInvocationContext context;
+
   @Override
   public synchronized IDartCompletionProposal[] getAssists(IInvocationContext context,
       IProblemLocation[] locations) throws CoreException {
+    this.context = context;
     proposals.clear();
     unit = context.getCompilationUnit();
     selectionOffset = context.getSelectionOffset();
@@ -246,6 +255,34 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
         DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
   }
 
+  void addProposal_convertMethodToGetterRefactoring() throws CoreException {
+    // check that we can rename DartElement under cursor
+    DartElement[] elements = unit.codeSelect(selectionOffset, 0);
+    if (elements.length == 0) {
+      return;
+    }
+    DartElement element = elements[0];
+    if (!(element instanceof com.google.dart.tools.core.model.DartFunction)) {
+      return;
+    }
+    com.google.dart.tools.core.model.DartFunction function = (com.google.dart.tools.core.model.DartFunction) element;
+    if (!RefactoringAvailabilityTester.isConvertMethodToGetterAvailable(function)) {
+      return;
+    }
+    // we need DartEditor
+    if (context instanceof AssistContext) {
+      IEditorPart editor = ((AssistContext) context).getEditor();
+      if (editor instanceof DartEditor) {
+        DartEditor dartEditor = (DartEditor) editor;
+        // add proposal
+        ICommandAccess proposal = new ConvertMethodToGetterRefactoringProposal(
+            dartEditor,
+            proposalRelevance);
+        proposals.add(proposal);
+      }
+    }
+  }
+
   void addProposal_convertToBlockFunctionBody() throws Exception {
     // prepare enclosing function
     DartFunction function = getEnclosingFunctionOrMethodFunction();
@@ -276,8 +313,12 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     if (function == null) {
       return;
     }
-    // prepare return statement
+    // prepare body
     DartBlock body = function.getBody();
+    if (body instanceof DartReturnBlock) {
+      return;
+    }
+    // prepare return statement
     List<DartStatement> statements = body.getStatements();
     if (statements.size() != 1) {
       return;
@@ -417,6 +458,28 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     addUnitCorrectionProposal(
         CorrectionMessages.QuickAssistProcessor_removeTypeAnnotation,
         DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+  }
+
+  void addProposal_renameRefactoring() throws CoreException {
+    // check that we can rename DartElement under cursor
+    DartElement[] elements = unit.codeSelect(selectionOffset, 0);
+    if (elements.length == 0) {
+      return;
+    }
+    DartElement element = elements[0];
+    if (element == null || !RefactoringAvailabilityTester.isRenameElementAvailable(element)) {
+      return;
+    }
+    // we need DartEditor
+    if (context instanceof AssistContext) {
+      IEditorPart editor = ((AssistContext) context).getEditor();
+      if (editor instanceof DartEditor) {
+        DartEditor dartEditor = (DartEditor) editor;
+        // add proposal
+        ICommandAccess proposal = new RenameRefactoringProposal(dartEditor);
+        proposals.add(proposal);
+      }
+    }
   }
 
   void addProposal_replaceConditionalWithIfElse() throws Exception {

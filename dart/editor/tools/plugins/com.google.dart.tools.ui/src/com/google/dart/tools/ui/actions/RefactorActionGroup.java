@@ -132,6 +132,7 @@ public class RefactorActionGroup extends ActionGroup {
 //
 //  private SelectionDispatchAction fInferTypeArgumentsAction;
   private SelectionDispatchAction fInlineAction;
+  private SelectionDispatchAction fConvertMethodToGetterAction;
 //  //private SelectionDispatchAction fReplaceInvocationsAction;
 //  private SelectionDispatchAction fIntroduceIndirectionAction;
   private SelectionDispatchAction fExtractMethodAction;
@@ -280,6 +281,15 @@ public class RefactorActionGroup extends ActionGroup {
     initAction(fInlineAction, selection, DartEditorActionDefinitionIds.INLINE);
     editor.setAction("Inline", fInlineAction); //$NON-NLS-1$
 
+    fConvertMethodToGetterAction = new ConvertMethodToGetterAction(editor);
+    initUpdatingAction(
+        fConvertMethodToGetterAction,
+        provider,
+        null,
+        selection,
+        DartEditorActionDefinitionIds.CONVER_METHOD_TO_GETTER);
+    editor.setAction("ConvertMethodToGetter", fConvertMethodToGetterAction); //$NON-NLS-1$
+
     installQuickAccessAction();
 
     stats.endRun();
@@ -377,6 +387,14 @@ public class RefactorActionGroup extends ActionGroup {
         selection,
         DartEditorActionDefinitionIds.INLINE);
 
+    fConvertMethodToGetterAction = new ConvertMethodToGetterAction(fSite);
+    initUpdatingAction(
+        fConvertMethodToGetterAction,
+        fSelectionProvider,
+        selectionProvider,
+        selection,
+        DartEditorActionDefinitionIds.CONVER_METHOD_TO_GETTER);
+
 //    fUseSupertypeAction= new UseSupertypeAction(fSite);
 //    initUpdatingAction(fUseSupertypeAction, fSelectionProvider, selectionProvider, selection, IJavaEditorActionDefinitionIds.USE_SUPERTYPE);
 //
@@ -424,6 +442,7 @@ public class RefactorActionGroup extends ActionGroup {
 //    disposeAction(fConvertAnonymousToNestedAction, fSelectionProvider);
 //    disposeAction(fIntroduceIndirectionAction, fSelectionProvider);
     disposeAction(fInlineAction, fSelectionProvider);
+    disposeAction(fConvertMethodToGetterAction, fSelectionProvider);
 //    disposeAction(fUseSupertypeAction, fSelectionProvider);
     if (fQuickAccessHandlerActivation != null && fHandlerService != null) {
       fHandlerService.deactivateHandler(fQuickAccessHandlerActivation);
@@ -459,6 +478,9 @@ public class RefactorActionGroup extends ActionGroup {
 //    actionBars.setGlobalActionHandler(JdtActionConstants.CONVERT_ANONYMOUS_TO_NESTED, fConvertAnonymousToNestedAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.INTRODUCE_PARAMETER_OBJECT, fIntroduceParameterObjectAction);
     actionBars.setGlobalActionHandler(JdtActionConstants.INLINE, fInlineAction);
+    actionBars.setGlobalActionHandler(
+        JdtActionConstants.CONVERT_METHOD_TO_GETTER,
+        fConvertMethodToGetterAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.USE_SUPERTYPE, fUseSupertypeAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.INTRODUCE_INDIRECTION, fIntroduceIndirectionAction);
     if (fUndoRedoActionGroup != null) {
@@ -578,6 +600,7 @@ public class RefactorActionGroup extends ActionGroup {
     added += addAction(refactorSubmenu, GROUP_REORG, fExtractLocalAction);
     added += addAction(refactorSubmenu, GROUP_REORG, fExtractMethodAction);
     added += addAction(refactorSubmenu, GROUP_REORG, fInlineAction);
+    added += addAction(refactorSubmenu, GROUP_REORG, fConvertMethodToGetterAction);
 //    added += addAction(refactorSubmenu, fMoveAction);
 
     refactorSubmenu.add(new Separator(GROUP_CODING));

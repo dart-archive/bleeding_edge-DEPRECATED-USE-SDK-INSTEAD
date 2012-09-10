@@ -100,6 +100,30 @@ public final class RefactoringMessages extends NLS {
   public static String InlineLocalInputPage_message_one;
   public static String InlineLocalWizard_defaultPageTitle;
 
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // Inline method refactoring
+  ///////////////////////////////////////////////////////////////////////////////////////
+  public static String InlineMethodAction_dialog_title;
+  public static String InlineMethodAction_inline_Method;
+  public static String InlineMethodAction_no_method_invocation_or_declaration_selected;
+  public static String InlineMethodAction_unexpected_exception;
+  public static String InlineMethodWizard_page_title;
+  public static String InlineMethodInputPage_all_invocations;
+  public static String InlineMethodInputPage_delete_declaration;
+  public static String InlineMethodInputPage_description;
+  public static String InlineMethodInputPage_inline_method;
+  public static String InlineMethodInputPage_only_selected;
+
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // Convert method <=> getter
+  ///////////////////////////////////////////////////////////////////////////////////////
+  public static String ConvertMethodToGetterAction_title;
+  public static String ConvertMethodToGetterAction_dialog_title;
+  public static String ConvertMethodToGetterAction_select;
+  public static String ConvertMethodToGetterAction_already_getter;
+  public static String ConvertMethodToGetterAction_only_without_arguments;
+  public static String ConvertMethodToGetterWizard_page_title;
+
   // XXX
   // These constants are not used yet in Dart refactoring.
   //
@@ -461,26 +485,6 @@ public final class RefactoringMessages extends NLS {
   public static String InlineConstantWizard_Inline_Constant;
 
   public static String InlineConstantWizard_message;
-
-  public static String InlineMethodAction_dialog_title;
-
-  public static String InlineMethodAction_inline_Method;
-
-  public static String InlineMethodAction_no_method_invocation_or_declaration_selected;
-
-  public static String InlineMethodAction_unexpected_exception;
-
-  public static String InlineMethodInputPage_all_invocations;
-
-  public static String InlineMethodInputPage_delete_declaration;
-
-  public static String InlineMethodInputPage_description;
-
-  public static String InlineMethodInputPage_inline_method;
-
-  public static String InlineMethodInputPage_only_selected;
-
-  public static String InlineMethodWizard_page_title;
 
   public static String IntroduceFactoryAction_description;
 

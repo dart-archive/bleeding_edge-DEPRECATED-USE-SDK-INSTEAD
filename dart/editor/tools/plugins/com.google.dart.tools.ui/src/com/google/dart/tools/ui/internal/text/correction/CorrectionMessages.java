@@ -25,6 +25,8 @@ public final class CorrectionMessages extends NLS {
   private static final String BUNDLE_NAME = CorrectionMessages.class.getName();
 
   // strings which we use in Dart
+  public static String ConvertMethodToGetterRefactoringProposal_additionalInfo;
+  public static String ConvertMethodToGetterRefactoringProposal_name;
   public static String QuickAssistProcessor_exchangeOperands;
   public static String QuickAssistProcessor_addTypeAnnotation;
   public static String QuickAssistProcessor_removeTypeAnnotation;
@@ -35,6 +37,8 @@ public final class CorrectionMessages extends NLS {
   public static String QuickAssistProcessor_replaceConditionalWithIfElse;
   public static String QuickAssistProcessor_replaceIfElseWithConditional;
   public static String QuickAssistProcessor_splitAndCondition;
+  public static String RenameRefactoringProposal_additionalInfo;
+  public static String RenameRefactoringProposal_name;
 
   // TODO(scheglov) original strings
 
@@ -137,8 +141,6 @@ public final class CorrectionMessages extends NLS {
   public static String RemoveDeclarationCorrectionProposal_removeunusedconstructor_description;
   public static String RemoveDeclarationCorrectionProposal_removeunusedtype_description;
   public static String RemoveDeclarationCorrectionProposal_removeunusedvar_description;
-  public static String RenameRefactoringProposal_additionalInfo;
-  public static String RenameRefactoringProposal_name;
   public static String ModifierCorrectionSubProcessor_changemodifiertostatic_description;
   public static String ModifierCorrectionSubProcessor_changemodifiertononstatic_description;
   public static String ModifierCorrectionSubProcessor_changemodifiertofinal_description;

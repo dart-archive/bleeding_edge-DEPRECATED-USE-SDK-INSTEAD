@@ -67,6 +67,7 @@ import org.eclipse.ltk.core.refactoring.TextEditChangeGroup;
 import org.eclipse.ltk.core.refactoring.participants.RenameProcessor;
 import org.eclipse.text.edits.TextEdit;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -161,6 +162,45 @@ public class RenameAnalyzeUtil {
         msg,
         RefactoringCoreMessages.RenameProcessor_wordRenamed,
         RefactoringCoreMessages.RenameProcessor_wordCreated);
+  }
+
+  public static MemberDeclarationsReferences findDeclarationsReferences(TypeMember member,
+      IProgressMonitor pm) throws CoreException {
+    String name = member.getElementName();
+    // prepare types which have member with required name
+    Set<Type> renameTypes;
+    {
+      renameTypes = Sets.newHashSet();
+      Set<Type> checkedTypes = Sets.newHashSet();
+      LinkedList<Type> checkTypes = Lists.newLinkedList();
+      checkTypes.add(member.getDeclaringType());
+      while (!checkTypes.isEmpty()) {
+        Type type = checkTypes.removeFirst();
+        // may be already checked
+        if (checkedTypes.contains(type)) {
+          continue;
+        }
+        checkedTypes.add(type);
+        // if has member with required name, then may be its super-types and sub-types too
+        if (type.getExistingMembers(name).length != 0) {
+          renameTypes.add(type);
+          checkTypes.addAll(RenameAnalyzeUtil.getSuperTypes(type));
+          checkTypes.addAll(RenameAnalyzeUtil.getSubTypes(type));
+        }
+      }
+    }
+    // prepare all declarations and references to members
+    List<TypeMember> declarations = Lists.newArrayList();
+    List<SearchMatch> references = Lists.newArrayList();
+    for (Type type : renameTypes) {
+      for (TypeMember typeMember : type.getExistingMembers(name)) {
+        declarations.add(typeMember);
+        references.addAll(RenameAnalyzeUtil.getReferences(typeMember, null));
+      }
+    }
+    // done
+    pm.done();
+    return new MemberDeclarationsReferences(member, declarations, references);
   }
 
   /**

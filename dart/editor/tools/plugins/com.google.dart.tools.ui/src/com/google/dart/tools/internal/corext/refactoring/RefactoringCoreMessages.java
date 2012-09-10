@@ -114,6 +114,14 @@ public final class RefactoringCoreMessages extends NLS {
   public static String InlineMethodRefactoring_name;
   public static String InlineMethodRefactoring_multipleReturns;
 
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // Convert method to getter refactoring
+  ///////////////////////////////////////////////////////////////////////////////////////
+  public static String ConvertMethodToGetterRefactoring_name;
+  public static String ConvertMethodToGetterRefactoring_processing;
+  public static String ConvertMethodToGetterRefactoring_make_getter_declaration;
+  public static String ConvertMethodToGetterRefactoring_replace_invocation;
+
   // XXX
   // These constants were used, but later we decided to don't use them.
   //

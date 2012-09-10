@@ -17,10 +17,13 @@ import com.google.dart.tools.ui.internal.text.correction.AssistContext;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionMessages;
 import com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal;
+import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 import com.google.dart.tools.ui.refactoring.AbstractDartTest;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
 import com.google.dart.tools.ui.text.dart.IQuickAssistProcessor;
+
+import org.eclipse.jface.text.source.ISourceViewer;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -32,6 +35,23 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
   private static final IQuickAssistProcessor PROCESSOR = new QuickAssistProcessor();
   private static final IProblemLocation[] NO_PROBLEMS = new IProblemLocation[0];
 
+  private static void assertHasProposal(IDartCompletionProposal[] proposals, String proposalName) {
+    for (IDartCompletionProposal proposal : proposals) {
+      if (proposal.getDisplayString().equals(proposalName)) {
+        return;
+      }
+    }
+    fail("Expected: " + proposalName);
+  }
+
+  private static void assertNoProposal(IDartCompletionProposal[] proposals, String proposalName) {
+    for (IDartCompletionProposal proposal : proposals) {
+      if (proposal.getDisplayString().equals(proposalName)) {
+        fail("Not expected: " + proposalName);
+      }
+    }
+  }
+
   /**
    * @return <code>true</code> if given {@link IDartCompletionProposal} has required name.
    */
@@ -41,6 +61,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
   }
 
   private IProblemLocation problemLocations[] = NO_PROBLEMS;
+
   private int selectionLength = 0;
 
   public void test_addTypeAnnotation_classField_OK_final() throws Exception {
@@ -105,6 +126,24 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
   public void test_addTypeAnnotation_topLevelField_wrong_noValue() throws Exception {
     String source = "var v;";
     assert_addTypeAnnotation_topLevelField(source, "var ", source);
+  }
+
+  public void test_convertMethodToGetterRefactoring_OK() throws Exception {
+    String source = "int test() => 42;";
+    String offsetPattern = "test()";
+    assert_convertMethodToGetterRefactoring(source, offsetPattern, true);
+  }
+
+  public void test_convertMethodToGetterRefactoring_wrong_hasParameters() throws Exception {
+    String source = "int test(p) => 42;";
+    String offsetPattern = "test(p)";
+    assert_convertMethodToGetterRefactoring(source, offsetPattern, false);
+  }
+
+  public void test_convertMethodToGetterRefactoring_wrong_notFunction() throws Exception {
+    String source = "class AAA {}";
+    String offsetPattern = "AAA {}";
+    assert_convertMethodToGetterRefactoring(source, offsetPattern, false);
   }
 
   public void test_convertToBlockBody_OK_onMethodName() throws Exception {
@@ -181,6 +220,16 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() => 0;");
     assert_convertToExpressionBody(initial, "return 0;", expected);
+  }
+
+  public void test_convertToExpressionBody_wrong_already() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() => 0;");
+    assertNoProposal(
+        initial,
+        "f()",
+        CorrectionMessages.QuickAssistProcessor_convertToExpressionBody);
   }
 
   public void test_convertToExpressionBody_wrong_moreThanOneStatement() throws Exception {
@@ -392,6 +441,24 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
 
   public void test_removeTypeAnnotation_topLevelField_OK() throws Exception {
     assert_removeTypeAnnotation("int v = 1;", "int ", "var v = 1;");
+  }
+
+  public void test_renameRefactoring_OK() throws Exception {
+    String initialSource = "var test;";
+    String offsetPattern = "test;";
+    assertHasProposal(
+        initialSource,
+        offsetPattern,
+        CorrectionMessages.RenameRefactoringProposal_name);
+  }
+
+  public void test_renameRefactoring_wrong_emptyUnit() throws Exception {
+    String initialSource = "";
+    String offsetPattern = "";
+    assertNoProposal(
+        initialSource,
+        offsetPattern,
+        CorrectionMessages.RenameRefactoringProposal_name);
   }
 
   public void test_replaceConditionalWithIfElse_OK_assignment() throws Exception {
@@ -777,6 +844,18 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_addTypeAnnotation(initialSource, offsetPattern, expectedSource);
   }
 
+  private void assert_convertMethodToGetterRefactoring(
+      String source,
+      String offsetPattern,
+      boolean expected) throws Exception {
+    String name = CorrectionMessages.ConvertMethodToGetterRefactoringProposal_name;
+    if (expected) {
+      assertHasProposal(source, offsetPattern, name);
+    } else {
+      assertNoProposal(source, offsetPattern, name);
+    }
+  }
+
   private void assert_convertToBlockBody(
       String initialSource,
       String offsetPattern,
@@ -913,14 +992,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
 //    if (!proposalName.equals(CorrectionMessages.QuickAssistProcessor_splitAndCondition)) {
 //      return;
 //    }
-    // set initial source
-    setTestUnitContent(initialSource);
-    // just to get coverage
-    PROCESSOR.hasAssists(null);
-    // prepare proposals
-    int offset = findOffset(offsetPattern);
-    AssistContext context = new AssistContext(testUnit, offset, selectionLength);
-    IDartCompletionProposal[] proposals = PROCESSOR.getAssists(context, problemLocations);
+    IDartCompletionProposal[] proposals = getProposals(initialSource, offsetPattern);
     // find and apply required proposal
     String result = initialSource;
     for (IDartCompletionProposal proposal : proposals) {
@@ -962,5 +1034,34 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
   private void assert_splitVariableDeclaration_wrong(String initialSource, String offsetPattern)
       throws Exception {
     assert_splitVariableDeclaration(initialSource, offsetPattern, initialSource);
+  }
+
+  private void assertHasProposal(String initialSource, String offsetPattern, String proposalName)
+      throws Exception {
+    IDartCompletionProposal[] proposals = getProposals(initialSource, offsetPattern);
+    assertHasProposal(proposals, proposalName);
+  }
+
+  private void assertNoProposal(String initial, String offsetPattern, String proposalName)
+      throws Exception {
+    IDartCompletionProposal[] proposals = getProposals(initial, offsetPattern);
+    assertNoProposal(proposals, proposalName);
+  }
+
+  private IDartCompletionProposal[] getProposals(String source, String offsetPattern)
+      throws Exception {
+    // set initial source
+    setTestUnitContent(source);
+    // just to get coverage
+    PROCESSOR.hasAssists(null);
+    // prepare proposals
+    int offset = findOffset(offsetPattern);
+    AssistContext context = new AssistContext(
+        testUnit,
+        (ISourceViewer) null,
+        new CompilationUnitEditor(),
+        offset,
+        selectionLength);
+    return PROCESSOR.getAssists(context, problemLocations);
   }
 }

@@ -185,6 +185,8 @@ public interface DartHelpContextIds {
   public static final String FIND_STRINGS_TO_EXTERNALIZE_ACTION = PREFIX
       + "find_strings_to_externalize_action"; //$NON-NLS-1$
   public static final String INLINE_ACTION = PREFIX + "inline_action"; //$NON-NLS-1$
+  public static final String CONVERT_METHOD_TO_GETTER_ACTION = PREFIX
+      + "convertMethodToGetter_action"; //$NON-NLS-1$
   /**
 	 * 
 	 */

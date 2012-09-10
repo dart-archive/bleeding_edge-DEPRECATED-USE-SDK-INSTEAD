@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -333,6 +333,8 @@ public class JdtActionConstants {
    * <code>"com.google.dart.tools.ui.actions.Inline"</code>).
    */
   public static final String INLINE = "com.google.dart.tools.ui.actions.Inline"; //$NON-NLS-1$
+
+  public static final String CONVERT_METHOD_TO_GETTER = "com.google.dart.tools.ui.actions.ConvertMethodToGetter"; //$NON-NLS-1$
 
   /**
    * Refactor menu: name of standard Extract Interface global action (value
