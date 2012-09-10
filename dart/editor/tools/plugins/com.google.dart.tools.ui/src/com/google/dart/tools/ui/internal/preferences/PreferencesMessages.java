@@ -750,6 +750,7 @@ public final class PreferencesMessages extends NLS {
   public static String ProblemSeveritiesConfigurationBlock_section_generics;
 
   public static String DartAnalysisPreferencePage_typeChecksForInferredTypes;
+  public static String DartAnalysisPreferencePage_reportNoSuchMemberWhenHasInterceptor;
 
   public static String DartBasePreferencePage_dialogs;
   public static String DartBasePreferencePage_do_not_hide_description;

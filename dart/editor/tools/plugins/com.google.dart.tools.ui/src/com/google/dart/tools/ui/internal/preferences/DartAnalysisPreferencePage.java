@@ -54,6 +54,7 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
   }
 
   private Button typeChecksForInferredTypes_check;
+  private Button reportNoSuchMemberWhenHasInterceptor_check;
 
   public DartAnalysisPreferencePage() {
     setPreferenceStore(null);
@@ -71,6 +72,10 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
         DartCore.TYPE_CHECKS_FOR_INFERRED_TYPES,
         typeChecksForInferredTypes_check.getSelection(),
         true);
+    hasChanges |= applyCheck(
+        DartCore.REPORT_NO_MEMBER_WHEN_HAS_INTERCEPTOR,
+        reportNoSuchMemberWhenHasInterceptor_check.getSelection(),
+        false);
     if (hasChanges) {
       Job job = new CleanLibrariesJob();
       job.schedule();
@@ -87,6 +92,10 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
         composite,
         PreferencesMessages.DartAnalysisPreferencePage_typeChecksForInferredTypes,
         null);
+    reportNoSuchMemberWhenHasInterceptor_check = createCheckBox(
+        composite,
+        PreferencesMessages.DartAnalysisPreferencePage_reportNoSuchMemberWhenHasInterceptor,
+        null);
     // done
     initFromPrefs();
     return composite;
@@ -97,6 +106,9 @@ public class DartAnalysisPreferencePage extends PreferencePage implements IWorkb
     typeChecksForInferredTypes_check.setSelection(prefs.getBoolean(
         DartCore.TYPE_CHECKS_FOR_INFERRED_TYPES,
         true));
+    reportNoSuchMemberWhenHasInterceptor_check.setSelection(prefs.getBoolean(
+        DartCore.REPORT_NO_MEMBER_WHEN_HAS_INTERCEPTOR,
+        false));
   }
 
 }

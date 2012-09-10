@@ -480,6 +480,13 @@ public class DartCompilerUtilities {
 
   public static final CompilerOptions COMPILER_OPTIONS = new CompilerOptions() {
     @Override
+    public boolean reportNoMemberWhenHasInterceptor() {
+      return DartCore.getPlugin().getPrefs().getBoolean(
+          DartCore.REPORT_NO_MEMBER_WHEN_HAS_INTERCEPTOR,
+          false);
+    }
+
+    @Override
     public boolean typeChecksForInferredTypes() {
       return DartCore.getPlugin().getPrefs().getBoolean(
           DartCore.TYPE_CHECKS_FOR_INFERRED_TYPES,
