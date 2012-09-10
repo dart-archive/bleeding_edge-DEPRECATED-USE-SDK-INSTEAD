@@ -7,6 +7,8 @@ final num MAX_CATS = 10;
 
 final SPARKY = const Cat("Sparky");
 
+final CHIPPY = const _Chipmunk("Chi\np\npy");
+
 interface Animal {
   bool livesWith(Animal other);
   void performAction();
@@ -56,6 +58,18 @@ class Rodent implements Animal {
 
     return "won't get here...";
   }
+}
+
+class _Chipmunk implements Animal {
+  final String name;
+
+  const _Chipmunk(this.name);
+
+  bool livesWith(Animal other) => other is _Chipmunk;
+
+  void performAction() { }
+
+  String toString() => name;
 }
 
 class FloppyEars {

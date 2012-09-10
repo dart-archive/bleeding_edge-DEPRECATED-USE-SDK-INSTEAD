@@ -74,6 +74,10 @@ public class DebuggerUtils {
    * @return
    */
   public static String demanglePrivateName(String name) {
+    if (name == null) {
+      return null;
+    }
+
     int atIndex = name.indexOf('@');
 
     while (atIndex != -1) {
@@ -106,6 +110,26 @@ public class DebuggerUtils {
     } else {
       return name.startsWith("_");
     }
+  }
+
+  public static String printString(String str) {
+    if (str == null) {
+      return null;
+    }
+
+    if (str.indexOf('\n') != -1) {
+      str = str.replace("\n", "\\n");
+    }
+
+    if (str.indexOf('\r') != -1) {
+      str = str.replace("\r", "\\r");
+    }
+
+    if (str.indexOf('\t') != -1) {
+      str = str.replace("\t", "\\t");
+    }
+
+    return "\"" + str + "\"";
   }
 
   private static boolean needsDisambiguating(IExceptionStackFrame frame1,

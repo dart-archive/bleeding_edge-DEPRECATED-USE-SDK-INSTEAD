@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.webkit.WebkitCallback;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
 import com.google.dart.tools.debug.core.webkit.WebkitResult;
@@ -87,7 +88,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
     }
 
     if (isPrimitive() && value.isString()) {
-      return "\"" + value.getValue() + "\"";
+      return DebuggerUtils.printString(value.getValue());
     }
 
     if (isPrimitive()) {
@@ -115,7 +116,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
     // variable information before we attempt to retrieve the class name.
     getVariables();
 
-    return getConnection().getDebugger().getClassNameSync(value);
+    return DebuggerUtils.demanglePrivateName(getConnection().getDebugger().getClassNameSync(value));
   }
 
   @Override

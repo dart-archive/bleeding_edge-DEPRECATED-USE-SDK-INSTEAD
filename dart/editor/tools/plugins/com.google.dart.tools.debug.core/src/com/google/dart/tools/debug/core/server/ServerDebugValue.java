@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.debug.core.server.ServerDebugVariable.IValueRetriever;
+import com.google.dart.tools.debug.core.util.DebuggerUtils;
 
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -54,7 +55,7 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
     if (value == null) {
       return getValueString();
     } else if (value.isString()) {
-      return "\"" + getValueString() + "\"";
+      return DebuggerUtils.printString(getValueString());
     } else if (value.isObject()) {
       try {
         return getReferenceTypeName();
@@ -78,11 +79,12 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
       getVariables();
 
       if (value.getVmObject() != null) {
-        return getConnection().getClassNameSync(value.getVmObject());
+        return DebuggerUtils.demanglePrivateName(getConnection().getClassNameSync(
+            value.getVmObject()));
       }
     }
 
-    return value.getKind();
+    return DebuggerUtils.demanglePrivateName(value.getKind());
   }
 
   @Override
