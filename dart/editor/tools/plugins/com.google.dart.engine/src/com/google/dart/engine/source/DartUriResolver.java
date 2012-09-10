@@ -14,7 +14,6 @@
 package com.google.dart.engine.source;
 
 import com.google.dart.engine.sdk.DartSdk;
-import com.google.dart.engine.sdk.Platform;
 
 import java.io.File;
 import java.net.URI;
@@ -27,11 +26,6 @@ public class DartUriResolver extends UriResolver {
    * The Dart SDK against which URI's are to be resolved.
    */
   private final DartSdk sdk;
-
-  /**
-   * The platform that determines which URI's can be resolved.
-   */
-  private final Platform platform;
 
   /**
    * The name of the {@code dart} scheme.
@@ -53,11 +47,9 @@ public class DartUriResolver extends UriResolver {
    * given Dart SDK.
    * 
    * @param sdk the Dart SDK against which URI's are to be resolved
-   * @param platform the platform that determines which URI's can be resolved
    */
-  public DartUriResolver(DartSdk sdk, Platform platform) {
+  public DartUriResolver(DartSdk sdk) {
     this.sdk = sdk;
-    this.platform = platform;
   }
 
   @Override
@@ -65,7 +57,7 @@ public class DartUriResolver extends UriResolver {
     if (!isDartUri(uri)) {
       return null;
     }
-    File resolvedFile = sdk.getLibrariesForPlatform(platform).mapDartUri(uri.toString());
+    File resolvedFile = sdk.mapDartUri(uri.toString());
     return new SourceImpl(factory, resolvedFile, true);
   }
 }

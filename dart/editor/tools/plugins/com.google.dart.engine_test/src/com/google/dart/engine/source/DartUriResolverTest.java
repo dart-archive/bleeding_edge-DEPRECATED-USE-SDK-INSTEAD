@@ -14,7 +14,6 @@
 package com.google.dart.engine.source;
 
 import com.google.dart.engine.sdk.DartSdk;
-import com.google.dart.engine.sdk.Platform;
 
 import junit.framework.TestCase;
 
@@ -26,8 +25,7 @@ public class DartUriResolverTest extends TestCase {
     File sdkDirectory = DartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DartSdk(sdkDirectory);
-    Platform platform = Platform.getPlatform("dartium");
-    assertNotNull(new DartUriResolver(sdk, platform));
+    assertNotNull(new DartUriResolver(sdk));
   }
 
   public void test_resolve_dart() throws Exception {
@@ -35,8 +33,7 @@ public class DartUriResolverTest extends TestCase {
     File sdkDirectory = DartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DartSdk(sdkDirectory);
-    Platform platform = Platform.getPlatform("dartium");
-    UriResolver resolver = new DartUriResolver(sdk, platform);
+    UriResolver resolver = new DartUriResolver(sdk);
     Source result = resolver.resolve(factory, null, new URI("dart:core"));
     assertNotNull(result);
   }
@@ -46,8 +43,7 @@ public class DartUriResolverTest extends TestCase {
     File sdkDirectory = DartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DartSdk(sdkDirectory);
-    Platform platform = Platform.getPlatform("dartium");
-    UriResolver resolver = new DartUriResolver(sdk, platform);
+    UriResolver resolver = new DartUriResolver(sdk);
     Source result = resolver.resolve(factory, null, new URI("package:some/file.dart"));
     assertNull(result);
   }

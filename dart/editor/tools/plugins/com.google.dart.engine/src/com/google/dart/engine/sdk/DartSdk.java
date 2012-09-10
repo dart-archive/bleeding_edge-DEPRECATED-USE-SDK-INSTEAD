@@ -13,71 +13,19 @@
  */
 package com.google.dart.engine.sdk;
 
+import com.google.dart.engine.internal.sdk.SdkLibrary;
+import com.google.dart.engine.internal.sdk.LibraryMap;
+import com.google.dart.engine.internal.sdk.SdkLibrariesReader;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.engine.utilities.os.OSUtilities;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
 
 /**
  * Instances of the class {@code DartSdk} represent a Dart SDK installed in a specified location.
  */
 public class DartSdk {
-  /**
-   * Instances of the class {@code LibraryMap} map Dart library URI's to the file within the SDK
-   * representing that library.
-   */
-  public static class LibraryMap {
-    /**
-     * A table mapping Dart library URI's to the file within the SDK representing that library.
-     */
-    private HashMap<String, File> libraryMap = new HashMap<String, File>();
-
-    /**
-     * Prevent the creation of instances of this class from outside the SDK.
-     */
-    private LibraryMap() {
-      super();
-    }
-
-    /**
-     * Return an array containing the library URI's for which a mapping is available.
-     * 
-     * @return the library URI's for which a mapping is available
-     */
-    public String[] getUris() {
-      return libraryMap.keySet().toArray(new String[libraryMap.size()]);
-    }
-
-    /**
-     * Return the file within the SDK that represents the library with the given URI, or
-     * {@code null} if the URI does not map to a file.
-     * 
-     * @param dartUri the URI to be mapped to a file
-     * @return the file within the SDK that represents the library with the given URI
-     */
-    public File mapDartUri(String dartUri) {
-      return libraryMap.get(dartUri);
-    }
-
-    /**
-     * Return the number of library URI's for which a mapping is available.
-     * 
-     * @return the number of library URI's for which a mapping is available
-     */
-    public int size() {
-      return libraryMap.size();
-    }
-  }
-
   /**
    * The directory containing the SDK.
    */
@@ -87,12 +35,6 @@ public class DartSdk {
    * The revision number of this SDK, or {@code "0"} if the revision number cannot be discovered.
    */
   private String sdkVersion;
-
-  /**
-   * The revision number of Dartium that is included in this SDK, or {@code "0"} if the revision
-   * number cannot be discovered.
-   */
-  private String dartiumVersion;
 
   /**
    * The file containing the Dartium executable.
@@ -105,9 +47,9 @@ public class DartSdk {
   private File vmExecutable;
 
   /**
-   * A table mapping platforms to a list of the library files associated with that platform.
+   * A mapping from Dart library URI's to the library represented by that URI.
    */
-  private Map<Platform, LibraryMap> platformMap;
+  private LibraryMap libraryMap;
 
   /**
    * The name of the directory within the SDK directory that contains executables.
@@ -118,42 +60,6 @@ public class DartSdk {
    * The name of the directory within the SDK directory that contains Chromium.
    */
   private static final String CHROMIUM_DIRECTORY_NAME = "chromium"; //$NON-NLS-1$
-
-  /**
-   * The name of the file containing property values for Chromium.
-   */
-  private static final String CHROMIUM_PROPERTIES_FILE_NAME = "chromium.properties"; //$NON-NLS-1$
-
-  /**
-   * The name of the property whose value is the version of Chromium.
-   */
-  private static final String CHROMIUM_VERSION_PROPERTY_NAME = "chromium.version"; //$NON-NLS-1$
-
-  /**
-   * The name of the directory within the library directory that contains the platform configuration
-   * files.
-   */
-  private static final String CONFIG_DIRECTORY_NAME = "config"; //$NON-NLS-1$
-
-  /**
-   * The prefix at the beginning of the name of every platform configuration file.
-   */
-  private static final String CONFIG_FILE_PREFIX = "import_"; //$NON-NLS-1$
-
-  /**
-   * The prefix at the beginning of the name of every platform configuration file.
-   */
-  private static final int CONFIG_FILE_PREFIX_LENGTH = CONFIG_FILE_PREFIX.length();
-
-  /**
-   * The suffix at the end of the name of every platform configuration file.
-   */
-  private static final String CONFIG_FILE_SUFFIX = ".config"; //$NON-NLS-1$
-
-  /**
-   * The suffix at the end of the name of every platform configuration file.
-   */
-  private static final int CONFIG_FILE_SUFFIX_LENGTH = CONFIG_FILE_SUFFIX.length();
 
   /**
    * The name of the environment variable whose value is the path to the default Dart SDK directory.
@@ -199,9 +105,24 @@ public class DartSdk {
   private static final String DOC_FILE_SUFFIX = "_api.json"; //$NON-NLS-1$
 
   /**
+   * The name of the directory within the SDK directory that contains the libraries file.
+   */
+  private static final String INTERNAL_DIR = "_internal"; //$NON-NLS-1$
+
+  /**
    * The name of the directory within the SDK directory that contains the libraries.
    */
   private static final String LIB_DIRECTORY_NAME = "lib"; //$NON-NLS-1$
+
+  /**
+   * The name of the libraries file.
+   */
+  private static final String LIBRARIES_FILE = "libraries.dart"; //$NON-NLS-1$
+
+  /**
+   * The name of the directory within the SDK directory that contains the packages.
+   */
+  private static final String PKG_DIRECTORY_NAME = "pkg"; //$NON-NLS-1$
 
   /**
    * The name of the file within the SDK directory that contains the revision number of the SDK.
@@ -284,25 +205,6 @@ public class DartSdk {
   }
 
   /**
-   * Return the revision number of Dartium that is included in this SDK.
-   * 
-   * @return the revision number of Dartium included in this SDK
-   */
-  public String getDartiumVersion() {
-    synchronized (this) {
-      if (dartiumVersion == null) {
-        dartiumVersion = DEFAULT_VERSION;
-        File versionFile = new File(sdkDirectory, CHROMIUM_PROPERTIES_FILE_NAME);
-        if (versionFile.exists()) {
-          Properties properties = readProperties(versionFile);
-          dartiumVersion = properties.getProperty(CHROMIUM_VERSION_PROPERTY_NAME, DEFAULT_VERSION);
-        }
-      }
-    }
-    return dartiumVersion;
-  }
-
-  /**
    * Return the directory where dartium can be found in the Dart SDK (the directory that will be the
    * working directory is Dartium is invoked without changing the default).
    * 
@@ -356,21 +258,21 @@ public class DartSdk {
   }
 
   /**
-   * Return a map from Dart library URI's to the file within the SDK representing that library. The
-   * map will be specific to the given platform.
+   * Return the directory within the SDK directory that contains the libraries.
    * 
-   * @param platform the platform defining the libraries that can be mapped to files
-   * @return a map from Dart library URI's to the file within the SDK representing that library
-   */
-  public LibraryMap getLibrariesForPlatform(Platform platform) {
-    return platformMap.get(platform);
-  }
-
-  /**
-   * @return the SDK's library directory path
+   * @return the directory that contains the libraries
    */
   public File getLibraryDirectory() {
     return new File(sdkDirectory, LIB_DIRECTORY_NAME);
+  }
+
+  /**
+   * Return the directory within the SDK directory that contains the packages.
+   * 
+   * @return the directory that contains the packages
+   */
+  public File getPackageDirectory() {
+    return new File(getDirectory(), PKG_DIRECTORY_NAME);
   }
 
   /**
@@ -395,15 +297,6 @@ public class DartSdk {
       }
     }
     return sdkVersion;
-  }
-
-  /**
-   * Return an array containing all of the platforms that are supported by this SDK.
-   * 
-   * @return the platforms that are supported by this SDK
-   */
-  public Platform[] getSupportedPlatforms() {
-    return platformMap.keySet().toArray(new Platform[platformMap.size()]);
   }
 
   /**
@@ -442,6 +335,21 @@ public class DartSdk {
   }
 
   /**
+   * Return the file representing the library with the given {@code dart:} URI, or {@code null} if
+   * the given URI does not denote a library in this SDK.
+   * 
+   * @param dartUri the URI of the library to be returned
+   * @return the file representing the specified library
+   */
+  public File mapDartUri(String dartUri) {
+    SdkLibrary library = libraryMap.getLibrary(dartUri);
+    if (library == null) {
+      return null;
+    }
+    return new File(getLibraryDirectory(), library.getPath());
+  }
+
+  /**
    * Ensure that the dart VM is executable. If it is not, make it executable and log that it was
    * necessary for us to do so.
    */
@@ -453,17 +361,6 @@ public class DartSdk {
         //DartCore.logError(dartVm.getPath() + " was not executable");
       }
     }
-  }
-
-  /**
-   * Return the name of the platform for which the given file name is a configuration file.
-   * 
-   * @param configFileName the file name containing the name of the platform being configured
-   * @return the name of the platform embedded in the given file name
-   */
-  private String extractPlatformName(String configFileName) {
-    return configFileName.substring(CONFIG_FILE_PREFIX_LENGTH, configFileName.length()
-        - CONFIG_FILE_SUFFIX_LENGTH);
   }
 
   /**
@@ -495,78 +392,16 @@ public class DartSdk {
   }
 
   /**
-   * Read the given configuration file to extract the information about the libraries that are
-   * defined for the platform it configures.
-   * 
-   * @param configFile the configuration file to be read
-   * @return the information that was extracted from the file
-   */
-  private LibraryMap getLibrariesForPlatform(File configFile) {
-    if (!configFile.exists()) {
-      // TODO(brianwilkerson) Report the error?
-      return new LibraryMap();
-    }
-    Properties properties = readProperties(configFile);
-    return getLibrariesFromProperties(properties);
-  }
-
-  /**
-   * Process the given properties to extract the information about the libraries that are defined
-   * for the platform it configures.
-   * 
-   * @param properties the properties to be processed
-   * @return the information that was extracted from the properties
-   */
-  private LibraryMap getLibrariesFromProperties(Properties properties) {
-    LibraryMap libraries = new LibraryMap();
-    File base = getLibraryDirectory();
-    HashSet<String> explicitShortNames = new HashSet<String>();
-    for (Entry<Object, Object> entry : properties.entrySet()) {
-      String shortName = ((String) entry.getKey()).trim();
-      String path = ((String) entry.getValue()).trim();
-      File file = new File(base, path);
-      if (!file.exists()) {
-        // TODO(brianwilkerson) Report the error?
-        continue;
-      }
-      if (shortName.endsWith(":")) { //$NON-NLS-1$
-        // If the shortName ends with ":" then search the associated directory for libraries
-        if (file.isDirectory()) {
-          for (File child : file.listFiles()) {
-            String host = child.getName();
-            // Do not overwrite explicit shortName to dart file mappings
-            if (!explicitShortNames.contains(shortName + host) && child.isDirectory()) {
-              File dartFile = new File(child, child.getName() + ".dart"); //$NON-NLS-1$
-              if (dartFile.isFile()) {
-                libraries.libraryMap.put(shortName, dartFile);
-              }
-            }
-          }
-        }
-      } else {
-        // Otherwise treat the entry as an explicit shortName to dart file mapping
-        int index = shortName.indexOf(':');
-        if (index > 0) {
-          libraries.libraryMap.put(shortName, file);
-        }
-      }
-    }
-    return libraries;
-  }
-
-  /**
    * Read all of the configuration files to initialize the library maps.
    */
   private void initializeLibraryMap() {
-    platformMap = new HashMap<Platform, LibraryMap>();
-    File libraryDirectory = getLibraryDirectory();
-    File configDirectory = new File(libraryDirectory, CONFIG_DIRECTORY_NAME);
-    for (File configFile : configDirectory.listFiles()) {
-      String configFileName = configFile.getName();
-      if (isConfigFileName(configFileName)) {
-        Platform platform = Platform.getPlatform(extractPlatformName(configFileName));
-        platformMap.put(platform, getLibrariesForPlatform(configFile));
-      }
+    try {
+      File librariesFile = new File(new File(getLibraryDirectory(), INTERNAL_DIR), LIBRARIES_FILE);
+      String contents = FileUtilities.getContents(librariesFile);
+      libraryMap = new SdkLibrariesReader().readFrom(contents);
+    } catch (Exception exception) {
+      // TODO Auto-generated catch block
+      exception.printStackTrace();
     }
   }
 
@@ -577,39 +412,5 @@ public class DartSdk {
     if (!OSUtilities.isWindows()) {
       ensureVmIsExecutable();
     }
-  }
-
-  /**
-   * Return {@code true} if the given file name is the name of a configuration file.
-   * 
-   * @param fileName the file name being tested
-   * @return {@code true} if the given file name is the name of a configuration file
-   */
-  private boolean isConfigFileName(String fileName) {
-    return fileName.startsWith(CONFIG_FILE_PREFIX) && fileName.endsWith(CONFIG_FILE_SUFFIX);
-  }
-
-  /**
-   * Read the given file as a properties file.
-   * 
-   * @param file the file containing the properties to be read
-   * @return the properties that were read from the file
-   */
-  private Properties readProperties(File file) {
-    Properties importConfig = new Properties();
-    InputStream stream = null;
-    try {
-      stream = new BufferedInputStream(new FileInputStream(file));
-      importConfig.load(stream);
-    } catch (IOException exception) {
-      // Fall through to return an empty set of properties.
-    } finally {
-      try {
-        stream.close();
-      } catch (IOException exception) {
-        // Ignored
-      }
-    }
-    return importConfig;
   }
 }

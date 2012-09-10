@@ -29,13 +29,6 @@ public class DartSdkTest extends TestCase {
     assertNotNull(sdk);
   }
 
-  public void test_getDartiumVersion() {
-    DartSdk sdk = createDartSdk();
-    String version = sdk.getDartiumVersion();
-    assertNotNull(version);
-    assertTrue(version.length() > 0);
-  }
-
   public void test_getDartiumWorkingDirectory() {
     DartSdk sdk = createDartSdk();
     File directory = sdk.getDartiumWorkingDirectory();
@@ -56,27 +49,16 @@ public class DartSdkTest extends TestCase {
     assertNotNull(directory);
   }
 
-  public void test_getLibrariesForPlatform() {
-    DartSdk sdk = createDartSdk();
-    Platform[] platforms = sdk.getSupportedPlatforms();
-    assertNotNull(platforms);
-    for (Platform platform : platforms) {
-      DartSdk.LibraryMap libraries = sdk.getLibrariesForPlatform(platform);
-      assertNotNull(libraries);
-      String[] uris = libraries.getUris();
-      assertNotNull(uris);
-      assertTrue(uris.length > 0);
-      for (String uri : uris) {
-        File file = libraries.mapDartUri(uri);
-        assertNotNull(file);
-        assertTrue(file.exists());
-      }
-    }
-  }
-
   public void test_getLibraryDirectory() {
     DartSdk sdk = createDartSdk();
     File directory = sdk.getLibraryDirectory();
+    assertNotNull(directory);
+    assertTrue(directory.exists());
+  }
+
+  public void test_getPackageDirectory() {
+    DartSdk sdk = createDartSdk();
+    File directory = sdk.getPackageDirectory();
     assertNotNull(directory);
     assertTrue(directory.exists());
   }
@@ -86,13 +68,6 @@ public class DartSdkTest extends TestCase {
     String version = sdk.getSdkVersion();
     assertNotNull(version);
     assertTrue(version.length() > 0);
-  }
-
-  public void test_getSupportedPlatforms() {
-    DartSdk sdk = createDartSdk();
-    Platform[] platforms = sdk.getSupportedPlatforms();
-    assertNotNull(platforms);
-    assertEquals(4, platforms.length);
   }
 
   public void test_getVmExecutable() {
