@@ -25,14 +25,16 @@ import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationAccessExtension;
+import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRulerInfo;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.EditorsUI;
-import org.eclipse.ui.texteditor.AbstractMarkerAnnotationModel;
 import org.eclipse.ui.texteditor.AnnotationPreference;
 import org.eclipse.ui.texteditor.AnnotationPreferenceLookup;
+import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorExtension;
 import org.eclipse.ui.texteditor.SelectMarkerRulerAction;
@@ -131,7 +133,7 @@ public class JavaSelectAnnotationRulerAction extends SelectMarkerRulerAction {
     fAnnotation = null;
     fHasCorrection = false;
 
-    AbstractMarkerAnnotationModel model = getAnnotationModel();
+    IAnnotationModel model = getAnyAnnotationModel();
     IAnnotationAccessExtension annotationAccess = getAnnotationAccessExtension();
 
     IDocument document = getDocument();
@@ -193,5 +195,15 @@ public class JavaSelectAnnotationRulerAction extends SelectMarkerRulerAction {
         }
       }
     }
+  }
+
+  /**
+   * @return the {@link IAnnotationModel} or <code>null</code> if there's none. In contrast to
+   *         {@link #getAnnotationModel()} does not enforce and specific type of the model.
+   */
+  private IAnnotationModel getAnyAnnotationModel() {
+    IDocumentProvider provider = fTextEditor.getDocumentProvider();
+    IEditorInput input = fTextEditor.getEditorInput();
+    return provider.getAnnotationModel(input);
   }
 }
