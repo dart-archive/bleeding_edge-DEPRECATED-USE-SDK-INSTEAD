@@ -56,10 +56,14 @@
       <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="0" />
       <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.ds" autoStart="true" startLevel="1" />
+      <plugin id="com.google.dart.tools.patch.eclipse" autoStart="true" startLevel="1" />
       <plugin id="org.eclipse.equinox.simpleconfigurator" autoStart="true" startLevel="1" />
       <plugin id="org.eclipse.osgi" autoStart="true" startLevel="-1" />
       <plugin id="org.eclipse.update.configurator" autoStart="true" startLevel="3" />
+      <plugin id="org.eclipse.equinox.transforms.replace" autoStart="true" startLevel="1" />
       <property name="org.eclipse.update.reconcile" value="false" />
+      <property name="osgi.extensions.framework" value="org.eclipse.equinox.transforms.hook" />
+      <property name="osgi.framework.extensions" value="org.eclipse.equinox.transforms.hook" />
    </configurations>
 
 </product>

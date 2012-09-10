@@ -1,0 +1,20 @@
+#Bundle ID regex, Resource Path regex, resource path
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$1\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$1.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$2\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$2.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$3\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$3.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$4\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$4.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$5\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$5.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$6\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$6.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$7\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$7.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$8\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$8.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$8\$1\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$8$1.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$9\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$9.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$10\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$10.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$11\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$11.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$12\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$12.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$13\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$13.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$CommandKeyListener\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$CommandKeyListener.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$EmptyProposal\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$EmptyProposal.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$ProposalSelectionHandler\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$ProposalSelectionHandler.class
+org\.eclipse\.jface\.text,.*org/eclipse/jface/text/contentassist/CompletionProposalPopup\$ProposalSelectionListener\.class,/org/eclipse/jface/text/contentassist/CompletionProposalPopup$ProposalSelectionListener.class

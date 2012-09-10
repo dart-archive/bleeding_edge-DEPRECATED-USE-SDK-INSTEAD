@@ -871,35 +871,32 @@ public class CompletionEngine {
 
     @Override
     public Void visitMethodInvocation(DartMethodInvocation completionNode) {
-      if (completionNode instanceof MethodInvocationCompleter) {
-        DartIdentifier functionName = completionNode.getFunctionName();
-        int nameStart = functionName.getSourceInfo().getOffset();
-        if (!(actualCompletionPosition >= nameStart + functionName.getSourceInfo().getLength())) {
-          if (nameStart > actualCompletionPosition) {
-            functionName = null;
-          }
-          // { foo.! doFoo(); }
-          DartExpression expr = completionNode.getTarget();
-          if (expr.getElement() != null
-              && expr.getElement().getKind() == ElementKind.LIBRARY_PREFIX
-              && expr instanceof DartIdentifier) {
-            DartIdentifier ident = (DartIdentifier) expr;
-            for (LibraryElement lib : ((LibraryPrefixElement) expr.getElement()).getLibraries()) {
-              createCompletionsForLibraryPrefix(ident, lib);
-            }
-          } else {
-            Type type = analyzeType(completionNode.getTarget());
-            if (type != null) {
-              createCompletionsForQualifiedMemberAccess(functionName, type, false, false);
-            }
+      DartIdentifier functionName = completionNode.getFunctionName();
+      int nameStart = functionName.getSourceInfo().getOffset();
+      if (!(actualCompletionPosition >= nameStart + functionName.getSourceInfo().getLength())) {
+        if (nameStart > actualCompletionPosition) {
+          functionName = null;
+        }
+        // { foo.! doFoo(); }
+        DartExpression expr = completionNode.getTarget();
+        if (expr.getElement() != null && expr.getElement().getKind() == ElementKind.LIBRARY_PREFIX
+            && expr instanceof DartIdentifier) {
+          DartIdentifier ident = (DartIdentifier) expr;
+          for (LibraryElement lib : ((LibraryPrefixElement) expr.getElement()).getLibraries()) {
+            createCompletionsForLibraryPrefix(ident, lib);
           }
         } else {
-          // { methodWithCallback(!) }
-          proposeInlineFunction(completionNode);
-          proposeVariables(completionNode, null, resolvedMember);
-          createCompletionsForIdentifierPrefix(completionNode, null);
-          proposeTypesForNewParam();
+          Type type = analyzeType(completionNode.getTarget());
+          if (type != null) {
+            createCompletionsForQualifiedMemberAccess(functionName, type, false, false);
+          }
         }
+      } else {
+        // { methodWithCallback(!) }
+        proposeInlineFunction(completionNode);
+        proposeVariables(completionNode, null, resolvedMember);
+        createCompletionsForIdentifierPrefix(completionNode, null);
+        proposeTypesForNewParam();
       }
       return null;
     }
@@ -979,36 +976,34 @@ public class CompletionEngine {
 
     @Override
     public Void visitPropertyAccess(DartPropertyAccess completionNode) {
-      if (completionNode instanceof PropertyAccessCompleter) {
-        DartIdentifier propertyName = completionNode.getName();
-        if (propertyName.getSourceInfo().getOffset() > actualCompletionPosition) {
-          propertyName = null;
-        }
-        // { foo.! } or { class X { X(this.!c) : super() {}}
-        Type type = analyzeType(completionNode.getQualifier());
-        if (TypeKind.of(type) == TypeKind.DYNAMIC) {
-          // if dynamic use ScopedNameFinder to look for a declaration
-          // { List list; list.! Map map; }
-          DartNode qualifier = completionNode.getQualifier();
-          DartIdentifier name = null;
-          if (qualifier instanceof DartIdentifier) {
-            name = (DartIdentifier) qualifier;
-          } else if (qualifier instanceof DartPropertyAccess) {
-            name = ((DartPropertyAccess) qualifier).getName();
-          } else if (qualifier instanceof DartMethodInvocation) {
-            name = ((DartMethodInvocation) qualifier).getFunctionName();
-          }
-          Element element = name.getElement();
-          ScopedNameFinder vars = new ScopedNameFinder(actualCompletionPosition);
-          completionNode.accept(vars);
-          ScopedName varName = vars.getLocals().get(name.getName());
-          if (varName != null) {
-            element = varName.getSymbol();
-            type = element.getType();
-          }
-        }
-        createCompletionsForQualifiedMemberAccess(propertyName, type, true, false);
+      DartIdentifier propertyName = completionNode.getName();
+      if (propertyName.getSourceInfo().getOffset() > actualCompletionPosition) {
+        propertyName = null;
       }
+      // { foo.! } or { class X { X(this.!c) : super() {}}
+      Type type = analyzeType(completionNode.getQualifier());
+      if (TypeKind.of(type) == TypeKind.DYNAMIC) {
+        // if dynamic use ScopedNameFinder to look for a declaration
+        // { List list; list.! Map map; }
+        DartNode qualifier = completionNode.getQualifier();
+        DartIdentifier name = null;
+        if (qualifier instanceof DartIdentifier) {
+          name = (DartIdentifier) qualifier;
+        } else if (qualifier instanceof DartPropertyAccess) {
+          name = ((DartPropertyAccess) qualifier).getName();
+        } else if (qualifier instanceof DartMethodInvocation) {
+          name = ((DartMethodInvocation) qualifier).getFunctionName();
+        }
+        Element element = name.getElement();
+        ScopedNameFinder vars = new ScopedNameFinder(actualCompletionPosition);
+        completionNode.accept(vars);
+        ScopedName varName = vars.getLocals().get(name.getName());
+        if (varName != null) {
+          element = varName.getSymbol();
+          type = element.getType();
+        }
+      }
+      createCompletionsForQualifiedMemberAccess(propertyName, type, true, false);
       return null;
     }
 

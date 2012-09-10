@@ -507,6 +507,7 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+
    <plugin
          id="org.eclipse.core.boot"
          download-size="0"
@@ -777,14 +778,14 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-   
+
    <plugin
          id="org.eclipse.debug.ui"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-   
+
    <plugin
          id="org.eclipse.equinox.security"
          download-size="0"
@@ -884,12 +885,26 @@
          version="0.0.0"
          unpack="false"/>
 
-  <!-- The next four are required by org.eclipse.ltk.ui.refactoring -->
    <plugin
          id="org.eclipse.compare"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-   
+
+   <plugin
+         id="org.eclipse.equinox.transforms.hook"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.equinox.transforms.replace"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
 </feature>
