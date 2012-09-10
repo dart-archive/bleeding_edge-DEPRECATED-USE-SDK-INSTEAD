@@ -1,0 +1,12 @@
+/xcodebuild
+/out
+/Debug
+/DebugARM
+/DebugIA32
+/DebugSIMARM
+/DebugX64
+/Release
+/ReleaseARM
+/ReleaseIA32
+/ReleaseSIMARM
+/ReleaseX64
