@@ -69,7 +69,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   /**
    * A table mapping the identifiers of declared elements to the element that was declared.
    */
-  private HashMap<Identifier, Element> declaredElementMap = new HashMap<Identifier, Element>();
+  private HashMap<ASTNode, Element> declaredElementMap = new HashMap<ASTNode, Element>();
 
   /**
    * A flag indicating whether a variable declaration is in the context of a field declaration.
@@ -83,7 +83,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
    * @param declaredElementMap a table mapping the identifiers of declared elements to the element
    *          that was declared
    */
-  public ElementBuilder(ElementHolder initialHolder, HashMap<Identifier, Element> declaredElementMap) {
+  public ElementBuilder(ElementHolder initialHolder, HashMap<ASTNode, Element> declaredElementMap) {
     currentHolder = initialHolder;
     this.declaredElementMap = declaredElementMap;
   }
@@ -225,7 +225,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     if (property == null) {
       Identifier methodName = node.getName();
       // TODO(brianwilkerson) If the method is defining the unary minus operator, then the name
-      // needs to be mangled to "unary-".
+      // needs to be mangled to "unary-" (I think).
       MethodElementImpl element = new MethodElementImpl(methodName);
       Token keyword = node.getModifierKeyword();
       element.setAbstract(matches(keyword, Keyword.ABSTRACT));

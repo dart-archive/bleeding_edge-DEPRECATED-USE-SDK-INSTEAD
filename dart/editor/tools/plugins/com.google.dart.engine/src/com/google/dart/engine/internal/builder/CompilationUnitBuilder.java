@@ -13,8 +13,8 @@
  */
 package com.google.dart.engine.internal.builder;
 
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.provider.CompilationUnitProvider;
@@ -35,17 +35,17 @@ public class CompilationUnitBuilder {
   /**
    * A table mapping the identifiers of declared elements to the element that was declared.
    */
-  private HashMap<Identifier, Element> declaredElementMap = new HashMap<Identifier, Element>();
+  private HashMap<ASTNode, Element> declaredElementMap = new HashMap<ASTNode, Element>();
 
   /**
    * Initialize a newly created compilation unit element builder.
    * 
    * @param provider the provider used to access the compilation unit associated with a given source
-   * @param declaredElementMap a table mapping the identifiers of declared elements to the
-   *          element that was declared
+   * @param declaredElementMap a table mapping the identifiers of declared elements to the element
+   *          that was declared
    */
   public CompilationUnitBuilder(CompilationUnitProvider provider,
-      HashMap<Identifier, Element> declaredElementMap) {
+      HashMap<ASTNode, Element> declaredElementMap) {
     this.provider = provider;
     this.declaredElementMap = declaredElementMap;
   }

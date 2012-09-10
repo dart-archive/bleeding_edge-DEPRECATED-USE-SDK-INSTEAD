@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.builder;
 
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.Identifier;
@@ -55,7 +56,7 @@ public class LibraryElementBuilder {
   /**
    * A table mapping the identifiers of declared elements to the element that was declared.
    */
-  private HashMap<Identifier, Element> declaredElementMap = new HashMap<Identifier, Element>();
+  private HashMap<ASTNode, Element> declaredElementMap = new HashMap<ASTNode, Element>();
 
   /**
    * The name of the function used as an entry point.
@@ -130,11 +131,13 @@ public class LibraryElementBuilder {
         }
         imports.add(specification);
       } else if (directive instanceof PartDirective) {
-        Source source = getSource(librarySource, ((PartDirective) directive).getPartUri());
+        StringLiteral partUri = ((PartDirective) directive).getPartUri();
+        Source source = getSource(librarySource, partUri);
         CompilationUnitElementImpl part = builder.buildCompilationUnit(source);
         if (entryPoint == null) {
           entryPoint = findEntryPoint(part);
         }
+        declaredElementMap.put(partUri, part);
         sourcedCompilationUnits.add(part);
       }
     }
@@ -146,6 +149,7 @@ public class LibraryElementBuilder {
     }
     libraryElement.setImports(imports.toArray(new ImportSpecification[imports.size()]));
     libraryElement.setSourcedCompilationUnits(sourcedCompilationUnits.toArray(new CompilationUnitElementImpl[sourcedCompilationUnits.size()]));
+
     return libraryElement;
   }
 
@@ -154,7 +158,7 @@ public class LibraryElementBuilder {
    * 
    * @return a table mapping the identifiers of declared elements to the element that was declared
    */
-  public Map<Identifier, Element> getDeclaredElementMap() {
+  public Map<ASTNode, Element> getDeclaredElementMap() {
     return declaredElementMap;
   }
 

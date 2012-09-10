@@ -13,8 +13,8 @@
  */
 package com.google.dart.engine.integration;
 
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.cmdline.Analyzer;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
@@ -127,7 +127,7 @@ public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
       public CompilationUnit getCompilationUnit(Source source) {
         return unit;
       }
-    }, new HashMap<Identifier, Element>());
+    }, new HashMap<ASTNode, Element>());
     CompilationUnitElement element = builder.buildCompilationUnit(source);
     Assert.assertNotNull(element);
   }
