@@ -25,6 +25,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.actions.ActionGroup;
+import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
 /**
  * Action group that adds the search for references actions to a context menu and the global menu
@@ -113,8 +114,7 @@ public class ReferencesSearchGroup extends ActionGroup {
 
   private void appendToGroup(IMenuManager menu, IAction action) {
     if (action.isEnabled()) {
-//      menu.appendToGroup(ITextEditorActionConstants.GROUP_FIND, action);
-      menu.add(action);
+      menu.prependToGroup(ITextEditorActionConstants.GROUP_OPEN, action);
     }
   }
 
