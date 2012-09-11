@@ -520,7 +520,7 @@ public class OmniBoxPopup extends BasePopupDialog {
 
         @Override
         public void focusGained(FocusEvent e) {
-          Display.getDefault().asyncExec(new Runnable() {
+          Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
               //punt focus back to the text box
