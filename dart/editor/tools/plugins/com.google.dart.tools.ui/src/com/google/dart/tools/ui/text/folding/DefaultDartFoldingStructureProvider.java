@@ -18,7 +18,6 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartElementDelta;
@@ -1411,9 +1410,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 
   private void update(FoldingStructureComputationContext ctx) {
     if (ctx == null) {
-      return;
-    }
-    if (!DartCoreDebug.ENABLE_FOLDING) {
       return;
     }
     Map additions = new HashMap();

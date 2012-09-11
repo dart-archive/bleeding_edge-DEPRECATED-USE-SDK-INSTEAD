@@ -65,15 +65,12 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   }
 
   private Button lineNumbersCheck;
-
   private Button printMarginCheck;
   private Text printMarginText;
-
   private Button removeTrailingWhitespaceCheck;
-
   private Text packageRootDir;
-
   private Text auxDirText;
+  private Button enableFolding;
 
   public DartBasePreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
@@ -112,6 +109,10 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     handleSave(editorPreferences);
 
     IPreferenceStore toolsPreferenceStore = PreferenceConstants.getPreferenceStore();
+
+    toolsPreferenceStore.setValue(
+        PreferenceConstants.EDITOR_FOLDING_ENABLED,
+        enableFolding.getSelection());
     toolsPreferenceStore.setValue(
         PreferenceConstants.EDITOR_REMOVE_TRAILING_WS,
         removeTrailingWhitespaceCheck.getSelection());
@@ -192,6 +193,12 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     printMarginText = new Text(generalGroup, SWT.BORDER | SWT.SINGLE | SWT.RIGHT);
     printMarginText.setTextLimit(5);
     GridDataFactory.fillDefaults().hint(50, SWT.DEFAULT).applyTo(printMarginText);
+
+    enableFolding = createCheckBox(
+        generalGroup,
+        PreferencesMessages.DartBasePreferencePage_enable_code_folding,
+        PreferencesMessages.DartBasePreferencePage_enable_code_folding_tooltip);
+    GridDataFactory.fillDefaults().span(2, 1).applyTo(enableFolding);
 
     Group saveGroup = new Group(composite, SWT.NONE);
     saveGroup.setText(PreferencesMessages.DartBasePreferencePage_save);
@@ -298,14 +305,15 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 
   private void initFromPrefs() {
     IPreferenceStore editorPreferences = EditorsPlugin.getDefault().getPreferenceStore();
+    IPreferenceStore toolsPreferences = PreferenceConstants.getPreferenceStore();
 
     lineNumbersCheck.setSelection(editorPreferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_LINE_NUMBER_RULER));
     printMarginCheck.setSelection(editorPreferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN));
     printMarginText.setText(editorPreferences.getString(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN));
     printMarginText.setEnabled(printMarginCheck.getSelection());
 
-    removeTrailingWhitespaceCheck.setSelection(PreferenceConstants.getPreferenceStore().getBoolean(
-        PreferenceConstants.EDITOR_REMOVE_TRAILING_WS));
+    removeTrailingWhitespaceCheck.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_REMOVE_TRAILING_WS));
+    enableFolding.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_FOLDING_ENABLED));
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {

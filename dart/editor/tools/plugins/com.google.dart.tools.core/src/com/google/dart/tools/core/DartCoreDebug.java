@@ -50,7 +50,6 @@ public class DartCoreDebug {
   public static final boolean ENABLE_TESTS_VIEW = isOptionTrue("experimental/testsView");
   public static final boolean ENABLE_EXPRESSIONS_VIEW = isOptionTrue("experimental/expressionsView");
   public static final boolean ENABLE_FORMATTER = isOptionTrue("experimental/formatter");
-  public static final boolean ENABLE_FOLDING = isOptionTrue("experimental/folding");
 
   public static final boolean ENABLE_PUB = isOptionTrue("experimental/pub");
 
