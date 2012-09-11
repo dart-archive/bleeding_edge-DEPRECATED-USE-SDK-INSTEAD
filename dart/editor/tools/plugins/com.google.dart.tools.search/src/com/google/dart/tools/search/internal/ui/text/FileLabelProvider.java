@@ -28,8 +28,13 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.jface.viewers.StyledString.Styler;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.TextStyle;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 import java.io.File;
@@ -56,6 +61,18 @@ public class FileLabelProvider extends LabelProvider implements IStyledLabelProv
   private int fOrder;
 
   private static final int MIN_MATCH_CONTEXT = 10; // minimal number of characters shown after and before a match
+
+  private static final Color MATCH_COUNT_COLOR = new Color(Display.getDefault(), new RGB(
+      0,
+      127,
+      174)); // #007FAE
+
+  public static final Styler MATCH_COUNT_STYLER = new Styler() {
+    @Override
+    public void applyStyles(TextStyle textStyle) {
+      textStyle.foreground = MATCH_COUNT_COLOR;
+    }
+  };
 
   @SuppressWarnings("rawtypes")
   public FileLabelProvider(AbstractTextSearchViewPage page, int orderFlag) {
@@ -272,7 +289,7 @@ public class FileLabelProvider extends LabelProvider implements IStyledLabelProv
 
     String countInfo = Messages.format(SearchMessages.FileLabelProvider_count_format, new Integer(
         matchCount));
-    coloredName.append(' ').append(countInfo, StyledString.COUNTER_STYLER);
+    coloredName.append(' ').append(countInfo, MATCH_COUNT_STYLER);
     return coloredName;
   }
 
