@@ -8,17 +8,17 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "127997",
+  "webkit_revision": "128017",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "9651",
+  "nacl_revision": "9652",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "9330",  # native_client/DEPS: tools_rev
   "gtm_revision": "534",
 
-  "libjingle_revision": "177",
+  "libjingle_revision": "181",
   "libphonenumber_revision": "456",
   "libvpx_revision": "152423",
   "lss_revision": "11",
@@ -29,7 +29,7 @@ vars = {
   "ffmpeg_hash": "4a1909e22211b340ee859a8c9d12e8825fe499b7",
 
   "sfntly_revision": "134",
-  "skia_revision": "5446",
+  "skia_revision": "5453",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -59,7 +59,7 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@405",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@1274",
+    (Var("googlecode_url") % "angleproject") + "/trunk@1275",
 
   "src/third_party/trace-viewer":
     (Var("googlecode_url") % "trace-viewer") + "/trunk@144",
@@ -100,7 +100,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@67",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1490",
+    (Var("googlecode_url") % "gyp") + "/trunk@1492",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -527,7 +527,7 @@ deps_os = {
     # For Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@f648289dfe3c51cb5e4b93b0b5e1642978df0295",
+      "@79ce75ccdb0effff2a8e9241153e295ac21699d6",
   },
   "android": {
     "src/third_party/freetype":
@@ -585,7 +585,6 @@ hooks = [
     "action": [
         "python", "src/build/download_nacl_toolchains.py",
          "--no-arm-trusted",
-         "--optional-pnacl",
          "--save-downloads-dir",
              "src/native_client_sdk/src/build_tools/toolchain_archives",
          "--keep",
