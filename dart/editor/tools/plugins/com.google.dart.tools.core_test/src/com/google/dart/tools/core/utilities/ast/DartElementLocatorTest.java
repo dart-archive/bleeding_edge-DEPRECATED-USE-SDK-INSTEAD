@@ -369,6 +369,23 @@ public class DartElementLocatorTest extends TestCase {
         3);
   }
 
+  public void test_Function_getter_topLevel() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "process(x) {}",
+            "get test => 0;",
+            "set test(x) {}",
+            "main() {",
+            "  process( test );",
+            "}",
+            ""),
+        "test );",
+        DartFunction.class,
+        "test => 0;",
+        4);
+  }
+
   public void test_Function_onDeclaration() throws Exception {
     testElementLocator(
         formatLines(
@@ -397,6 +414,23 @@ public class DartElementLocatorTest extends TestCase {
         "test();",
         DartFunction.class,
         "test() {",
+        4);
+  }
+
+  public void test_Function_setter_topLevel() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "process(x) {}",
+            "get test => 0;",
+            "set test(x) {}",
+            "main() {",
+            "  test = 0;",
+            "}",
+            ""),
+        "test = 0;",
+        DartFunction.class,
+        "test(x)",
         4);
   }
 
@@ -458,8 +492,8 @@ public class DartElementLocatorTest extends TestCase {
             "// filler filler filler filler filler filler filler filler filler filler filler",
             "process(x) {}",
             "class A {",
-            "  int get test() {",
-            "  }",
+            "  get test() {}",
+            "  set test(x) {}",
             "}",
             ""),
         "est() {",
@@ -474,8 +508,8 @@ public class DartElementLocatorTest extends TestCase {
             "// filler filler filler filler filler filler filler filler filler filler filler",
             "process(x) {}",
             "class A {",
-            "  int get test() {",
-            "  }",
+            "  get test() {}",
+            "  set test(x) {}",
             "}",
             "f() {",
             "  A a = new A();",
@@ -485,6 +519,26 @@ public class DartElementLocatorTest extends TestCase {
         "test);",
         Method.class,
         "test() {",
+        4);
+  }
+
+  public void test_Method_getter_static() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "process(x) {}",
+            "class A {",
+            "  static get test => 0;",
+            "  static set test(x) {}",
+            "}",
+            "main() {",
+            "  A a = new A();",
+            "  process( A.test );",
+            "}",
+            ""),
+        "test );",
+        DartFunction.class,
+        "test => 0;",
         4);
   }
 
@@ -530,8 +584,8 @@ public class DartElementLocatorTest extends TestCase {
             "// filler filler filler filler filler filler filler filler filler filler filler",
             "process(x) {}",
             "class A {",
-            "  void set test(x) {",
-            "  }",
+            "  get test() {}",
+            "  set test(x) {}",
             "}",
             ""),
         "est(x) {",
@@ -545,8 +599,8 @@ public class DartElementLocatorTest extends TestCase {
         formatLines(
             "// filler filler filler filler filler filler filler filler filler filler filler",
             "class A {",
-            "  void set test(x) {",
-            "  }",
+            "  get test() {}",
+            "  set test(x) {}",
             "}",
             "f() {",
             "  A a = new A();",
@@ -556,6 +610,26 @@ public class DartElementLocatorTest extends TestCase {
         "test = 42;",
         Method.class,
         "test(x) {",
+        4);
+  }
+
+  public void test_Method_setter_static() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "process(x) {}",
+            "class A {",
+            "  static get test => 0;",
+            "  static set test(x) {}",
+            "}",
+            "main() {",
+            "  A a = new A();",
+            "  A.test = 1;",
+            "}",
+            ""),
+        "test = 1;",
+        DartFunction.class,
+        "test(x) {}",
         4);
   }
 

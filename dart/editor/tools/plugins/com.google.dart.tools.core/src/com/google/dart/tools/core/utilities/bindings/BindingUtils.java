@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.utilities.bindings;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.MapMaker;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.PackageLibraryManager;
@@ -553,7 +554,11 @@ public class BindingUtils {
     if (methodBinding == null) {
       return null;
     }
+    int methodNumParameters = methodBinding.getParameters().size();
     String methodName = methodBinding.getName();
+    if ("-binary".equals(methodName)) {
+      methodName = "-";
+    }
     Element enclosingElement = methodBinding.getEnclosingElement();
     if (enclosingElement == null) {
       // We don't have enough information to find the method or function.
@@ -567,6 +572,15 @@ public class BindingUtils {
       List<com.google.dart.tools.core.model.DartFunction> matchingFunctions = getImmediateFunctions(
           definingLibrary,
           methodBinding.getName());
+      try {
+        for (com.google.dart.tools.core.model.DartFunction function : matchingFunctions) {
+          if (Objects.equal(methodName, function.getElementName())
+              && function.getParameterNames().length == methodNumParameters) {
+            return function;
+          }
+        }
+      } catch (DartModelException exception) {
+      }
       if (matchingFunctions.size() == 1) {
         return matchingFunctions.get(0);
       }
@@ -604,11 +618,8 @@ public class BindingUtils {
     }
     try {
       for (Method method : declaringType.getMethods()) {
-        if (methodName.equals("-binary") && "-".equals(method.getElementName())
-            && method.getParameterNames().length == 1) {
-          return method;
-        }
-        if (methodName.equals(method.getElementName())) {
+        if (Objects.equal(methodName, method.getElementName())
+            && method.getParameterNames().length == methodNumParameters) {
           return method;
         }
       }
