@@ -25,6 +25,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -151,7 +152,7 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
     toolkit.createLabel(client, "");
 
     Button createButton = new Button(client, SWT.PUSH);
-    createButton.setText("Create a new application...");
+    createButton.setText("Create an application...");
     createButton.setImage(DartToolsPlugin.getImage("icons/full/dart16/library_new.png"));
     createButton.addSelectionListener(new SelectionAdapter() {
       @Override
@@ -162,8 +163,8 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
       }
     });
 
-    Button openButton = new Button(client, SWT.PUSH);
-    openButton.setText("Open an existing application...");
+    Button openButton = new Button(client, SWT.PUSH | SWT.LEFT);
+    openButton.setText("Open existing code...");
     openButton.setImage(DartToolsPlugin.getImage("icons/full/obj16/fldr_obj.gif"));
     openButton.addSelectionListener(new SelectionAdapter() {
       @Override
@@ -173,6 +174,7 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
         action.run();
       }
     });
+    GridDataFactory.fillDefaults().hint(createButton.getSize().x, -1).applyTo(openButton);
 
     section.setClient(client);
 
@@ -185,8 +187,9 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
     StringBuffer buf = new StringBuffer();
     buf.append("<form><p>Build HTML5 apps for the modern web! Dart brings structure to web app engineering with a new language, libraries, and tools.</p>");
     buf.append("<li style=\"image\" value=\"image\"><a href=\"http://www.dartlang.org\">Visit dartlang.org</a></li>");
-    buf.append("<li style=\"image\" value=\"image\"><a href=\"http://blog.dartwatch.com/p/community-dart-packages-and-examples.html\">See Community Dart Packages and Examples</a></li>");
     buf.append("<li style=\"image\" value=\"image\"><a href=\"http://www.dartlang.org/editor\">View Editor documentation</a></li>");
+    buf.append("<li style=\"image\" value=\"image\"><a href=\"https://github.com/dart-lang/dart-html5-samples\">View additional HTML5 samples</a></li>");
+    buf.append("<li style=\"image\" value=\"image\"><a href=\"http://blog.dartwatch.com/p/community-dart-packages-and-examples.html\">See community Dart packages and examples</a></li>");
     buf.append("</form>");
     FormText formText = toolkit.createFormText(client, true);
     formText.setWhitespaceNormalized(true);
