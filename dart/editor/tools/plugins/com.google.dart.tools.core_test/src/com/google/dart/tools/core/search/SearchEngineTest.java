@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.core.search;
 
-import static org.fest.assertions.Assertions.assertThat;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.dart.compiler.DartCompilationError;
@@ -43,6 +41,8 @@ import junit.framework.TestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.NullProgressMonitor;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -292,6 +292,29 @@ public class SearchEngineTest extends TestCase {
       int matchOffset = match.getSourceRange().getOffset();
       assertEquals(source.indexOf("test);"), matchOffset);
       assertFalse(match.isQualified());
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_searchReferences_function_ref() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      CompilationUnit unit = testProject.setUnitContent(
+          "Test.dart",
+          buildSource(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "thing(_) => 1;",
+              "stuff(f, x) => f(x);",
+              "main() {",
+              "  stuff(thing, 9);",
+              "}",
+              ""));
+      indexUnits(unit);
+      DartFunction function = (DartFunction) unit.getChildren()[0];
+      List<SearchMatch> matches = getFunctionReferences(function);
+      assertEquals(1, matches.size());
+      assertFalse(matches.get(0).isQualified());
     } finally {
       testProject.dispose();
     }
