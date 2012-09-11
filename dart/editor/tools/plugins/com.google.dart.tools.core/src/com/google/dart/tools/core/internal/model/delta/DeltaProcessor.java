@@ -13,7 +13,12 @@
  */
 package com.google.dart.tools.core.internal.model.delta;
 
+import com.google.dart.compiler.ast.DartDirective;
+import com.google.dart.compiler.ast.DartPartOfDirective;
+import com.google.dart.compiler.ast.DartSourceDirective;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartElementImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
@@ -32,6 +37,7 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.ElementChangedListener;
+import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import com.google.dart.tools.core.utilities.resource.IResourceUtilities;
 
@@ -880,6 +886,69 @@ public class DeltaProcessor {
   }
 
   /**
+   * Checks the source for changes that affect the model in such a way that the project cache needs
+   * to be reset
+   * 
+   * @param dartElement the compilation unit with the change
+   * @return true if project cache reset, false otherwise
+   */
+  private boolean requiresProjectCacheReset(DartElement dartElement) {
+
+    try {
+      if (dartElement instanceof CompilationUnitImpl) {
+        CompilationUnitImpl cu = (CompilationUnitImpl) dartElement;
+        DartUnit unit = DartCompilerUtilities.parseSource(cu.getElementName(), cu.getSource());
+
+        if (unit != null) {
+          List<DartDirective> directives = unit.getDirectives();
+          if (cu.definesLibrary()) {
+            // check if directives have changed
+            DartLibrary library = cu.getLibrary();
+            CompilationUnit[] libraryParts = library.getCompilationUnits();
+            if (libraryParts.length > 1 && directives.isEmpty()) {
+              return true;
+            } else {
+              List<String> names = new ArrayList<String>();
+              for (CompilationUnit part : libraryParts) {
+                names.add(part.getElementName());
+              }
+              int noOfSources = 1;
+              // check if any of the part directives have changed
+              for (DartDirective directive : directives) {
+                if (directive instanceof DartSourceDirective) {
+                  noOfSources++;
+                  String importUri = ((DartSourceDirective) directive).getSourceUri().getValue();
+                  if (!names.contains(importUri)) {
+                    return true;
+                  }
+                }
+              }
+              // check for sources removed
+              if (libraryParts.length != noOfSources) {
+                return true;
+              }
+            }
+
+          } else {
+            // change from non lib -> lib 
+            if (directives.isEmpty()) {
+              return false;
+            }
+            if (directives.size() == 1 && directives.get(0) instanceof DartPartOfDirective) {
+              return false;
+            }
+            return true;
+          }
+        }
+
+      }
+    } catch (DartModelException e) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * This is called by the {@link DeltaProcessor} when some Dart project has been changed.
    * <p>
    * Since the user cannot directly delete, open or close the dart projects, this is currently only
@@ -1053,8 +1122,21 @@ public class DeltaProcessor {
             }
             return true;
           }
-          recomputeLibrarySet(element);
-          resetThisProjectCache((DartProjectImpl) element.getDartProject());
+
+          if (requiresProjectCacheReset(element)) {
+            recomputeLibrarySet(element);
+            resetThisProjectCache((DartProjectImpl) element.getDartProject());
+          } else {
+            try {
+              if (element instanceof CompilationUnitImpl
+                  && ((CompilationUnitImpl) element).definesLibrary()) {
+                element = (DartLibraryImpl) ((CompilationUnitImpl) element).getLibrary();
+              }
+              DartModelManager.getInstance().removeInfoAndChildren(element);
+            } catch (DartModelException e) {
+              DartCore.logError(e);
+            }
+          }
           // This has been replaced by the call to recomputeLibrarySet, more a *hammer* approach to
           // get the Libraries view working ASAP, this could be re-visited in the future to make the
           // delta processing a faster process.
