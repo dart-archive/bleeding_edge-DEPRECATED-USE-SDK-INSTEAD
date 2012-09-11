@@ -78,7 +78,7 @@ import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartSyntheticErrorExpression;
 import com.google.dart.compiler.ast.DartSyntheticErrorStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
-import com.google.dart.compiler.ast.DartThrowStatement;
+import com.google.dart.compiler.ast.DartThrowExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -731,11 +731,11 @@ public class PropertyGetter extends PropertyVisitor {
   }
 
   @Override
-  public Object visitThrowStatement(DartThrowStatement node) {
+  public Object visitThrowExpression(DartThrowExpression node) {
     if (property == PropertyDescriptorHelper.DART_THROW_STATEMENT_EXCEPTION) {
       return node.getException();
     } else {
-      return visitStatement(node);
+      return visitExpression(node);
     }
   }
 

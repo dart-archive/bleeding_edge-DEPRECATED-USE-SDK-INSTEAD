@@ -79,7 +79,7 @@ import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartSyntheticErrorExpression;
 import com.google.dart.compiler.ast.DartSyntheticErrorStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
-import com.google.dart.compiler.ast.DartThrowStatement;
+import com.google.dart.compiler.ast.DartThrowExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -1909,7 +1909,7 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
   }
 
   @Override
-  public DartNode visitThrowStatement(DartThrowStatement throwStatement) {
+  public DartNode visitThrowExpression(DartThrowExpression throwStatement) {
     scribe.printNextToken(Token.THROW);
     DartExpression expression = throwStatement.getException();
     final int numberOfParens = countParens(expression);
@@ -1918,11 +1918,6 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       scribe.space();
     }
     expression.accept(this);
-    /*
-     * Print the semi-colon
-     */
-    scribe.printNextToken(Token.SEMICOLON, preferences.insert_space_before_semicolon);
-    scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
     return null;
   }
 
@@ -3456,9 +3451,12 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     return !commentStartsBlock(
         block.getSourceInfo().getOffset(),
         block.getSourceInfo().getLength() + block.getSourceInfo().getOffset()) &&
-        block.getStatements() != null && block.getStatements().size() == 1 && (
-        block.getStatements().get(0) instanceof DartReturnStatement
-        || block.getStatements().get(0) instanceof DartThrowStatement);
+        block.getStatements() != null && block.getStatements().size() == 1
+        && (
+            block.getStatements().get(0) instanceof DartReturnStatement || (
+                block.getStatements().get(0) instanceof DartExprStmt
+                && (((DartExprStmt) block.getStatements().get(0))
+                  .getExpression() instanceof DartThrowExpression)));
   }
 
   private boolean isMultipleLocalDeclaration(DartVariableStatement localDeclaration) {

@@ -62,7 +62,7 @@ import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartSwitchMember;
 import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
-import com.google.dart.compiler.ast.DartThrowStatement;
+import com.google.dart.compiler.ast.DartThrowExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -195,8 +195,8 @@ public class AST {
       return (N) new DartSwitchStatement(null, new ArrayList<DartSwitchMember>());
     } else if (nodeClass == DartThisExpression.class) {
       return (N) DartThisExpression.get();
-    } else if (nodeClass == DartThrowStatement.class) {
-      return (N) new DartThrowStatement(null);
+    } else if (nodeClass == DartThrowExpression.class) {
+      return (N) new DartThrowExpression(null);
     } else if (nodeClass == DartTryStatement.class) {
       return (N) new DartTryStatement(null, new ArrayList<DartCatchBlock>(), null);
     } else if (nodeClass == DartTypeExpression.class) {

@@ -70,7 +70,7 @@ import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartSyntheticErrorExpression;
 import com.google.dart.compiler.ast.DartSyntheticErrorStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
-import com.google.dart.compiler.ast.DartThrowStatement;
+import com.google.dart.compiler.ast.DartThrowExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -554,9 +554,9 @@ public class WrappedDartVisitorAdaptor<R> extends ASTVisitor<R> {
   }
 
   @Override
-  public R visitThrowStatement(DartThrowStatement node) {
+  public R visitThrowExpression(DartThrowExpression node) {
     baseVisitor.preVisit(node);
-    R result = baseVisitor.visitThrowStatement(node);
+    R result = baseVisitor.visitThrowExpression(node);
     baseVisitor.postVisit(node);
     return result;
   }

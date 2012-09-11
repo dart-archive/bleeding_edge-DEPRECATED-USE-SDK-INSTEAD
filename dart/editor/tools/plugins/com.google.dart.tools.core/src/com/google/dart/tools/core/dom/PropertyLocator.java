@@ -78,7 +78,7 @@ import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartSyntheticErrorExpression;
 import com.google.dart.compiler.ast.DartSyntheticErrorStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
-import com.google.dart.compiler.ast.DartThrowStatement;
+import com.google.dart.compiler.ast.DartThrowExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -759,11 +759,11 @@ public class PropertyLocator extends ASTVisitor<StructuralPropertyDescriptor> {
   }
 
   @Override
-  public StructuralPropertyDescriptor visitThrowStatement(DartThrowStatement node) {
+  public StructuralPropertyDescriptor visitThrowExpression(DartThrowExpression node) {
     if (childNode == node.getException()) {
       return PropertyDescriptorHelper.DART_THROW_STATEMENT_EXCEPTION;
     } else {
-      return visitStatement(node);
+      return visitExpression(node);
     }
   }
 

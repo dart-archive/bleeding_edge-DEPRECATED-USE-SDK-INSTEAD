@@ -72,7 +72,7 @@ import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartSyntheticErrorExpression;
 import com.google.dart.compiler.ast.DartSyntheticErrorStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
-import com.google.dart.compiler.ast.DartThrowStatement;
+import com.google.dart.compiler.ast.DartThrowExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -1585,7 +1585,7 @@ public final class ASTRewriteAnalyzer {
     }
 
     @Override
-    public Object visitThrowStatement(DartThrowStatement node) {
+    public Object visitThrowExpression(DartThrowExpression node) {
       // try {
       DartCore.notYetImplemented();
       beforeRequiredSpaceIndex = 0; // getScanner().getTokenEndOffset(TerminalTokens.TokenNamethrow,

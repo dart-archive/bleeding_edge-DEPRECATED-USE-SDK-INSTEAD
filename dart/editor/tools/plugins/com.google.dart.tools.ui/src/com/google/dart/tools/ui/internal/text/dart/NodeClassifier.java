@@ -61,7 +61,7 @@ import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
-import com.google.dart.compiler.ast.DartThrowStatement;
+import com.google.dart.compiler.ast.DartThrowExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -317,7 +317,7 @@ public class NodeClassifier extends ASTVisitor<Void> {
   }
 
   @Override
-  public Void visitThrowStatement(DartThrowStatement node) {
+  public Void visitThrowExpression(DartThrowExpression node) {
     return null;
   }
 

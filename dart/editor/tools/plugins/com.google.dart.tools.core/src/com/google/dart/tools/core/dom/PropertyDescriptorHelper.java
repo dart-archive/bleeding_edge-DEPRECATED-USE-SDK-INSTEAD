@@ -78,7 +78,7 @@ import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartSyntheticErrorExpression;
 import com.google.dart.compiler.ast.DartSyntheticErrorStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
-import com.google.dart.compiler.ast.DartThrowStatement;
+import com.google.dart.compiler.ast.DartThrowExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -1141,7 +1141,7 @@ public class PropertyDescriptorHelper {
    */
   public static final StructuralPropertyDescriptor
       DART_THROW_STATEMENT_EXCEPTION = new ChildPropertyDescriptor(
-          DartThrowStatement.class,
+          DartThrowExpression.class,
           "exception",
           DartExpression.class,
           StructuralPropertyDescriptor.MANDATORY,
@@ -1562,7 +1562,7 @@ public class PropertyDescriptorHelper {
         properties.add(DART_SWITCH_STATEMENT_MEMBERS);
       } else if (type == DartThisExpression.class) {
         // Nothing added
-      } else if (type == DartThrowStatement.class) {
+      } else if (type == DartThrowExpression.class) {
         properties.add(DART_THROW_STATEMENT_EXCEPTION);
       } else if (type == DartTryStatement.class) {
         properties.add(DART_TRY_STATEMENT_CATCH_BLOCKS);

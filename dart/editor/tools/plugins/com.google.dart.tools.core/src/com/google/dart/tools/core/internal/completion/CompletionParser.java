@@ -452,8 +452,8 @@ public class CompletionParser extends DartParser {
   }
 
   @Override
-  protected void beginThrowStatement() {
-    super.beginThrowStatement();
+  protected void beginThrowExpression() {
+    super.beginThrowExpression();
     pushMark(ThrowStatement);
   }
 
