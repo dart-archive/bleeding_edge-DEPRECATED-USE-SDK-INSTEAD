@@ -28,8 +28,8 @@ import java.util.Comparator;
  * Sorts files alphabetically.
  */
 public class FilesViewerComparator extends ViewerComparator {
-  private static final int DIRECTORY_SORT = 0;
-  private static final int SPECIAL_RESOURCE_SORT = 1;
+  private static final int SPECIAL_RESOURCE_SORT = 0;
+  private static final int DIRECTORY_SORT = 1;
   private static final int RESOURCE_SORT = 2;
   private static final int FILESTORE_SORT = 3;
   private static final int DEFAULT_SORT = 4;
@@ -48,7 +48,13 @@ public class FilesViewerComparator extends ViewerComparator {
   @Override
   public int category(Object element) {
     if (element instanceof IContainer) {
-      return DIRECTORY_SORT;
+      IContainer container = (IContainer) element;
+
+      if (container.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
+        return SPECIAL_RESOURCE_SORT;
+      } else {
+        return DIRECTORY_SORT;
+      }
     } else if (element instanceof IResource) {
       IResource resource = (IResource) element;
 
@@ -57,11 +63,7 @@ public class FilesViewerComparator extends ViewerComparator {
         if (resource.getType() == IResource.FILE) {
           String name = resource.getName();
 
-          // TODO(devoncarew): we're sorting pubspec.lock next to pubspec.yaml 
-          // right now, through it'd be nice if the file moved into the packages
-          // directory or was renamed to something like .publock.
-          if (name.equals(DartCore.PUBSPEC_FILE_NAME) || name.equals("pubspec.lock")
-              || name.equals(DartCore.BUILD_DART_FILE_NAME)) {
+          if (name.equals(DartCore.PUBSPEC_FILE_NAME)) {
             return SPECIAL_RESOURCE_SORT;
           }
         }
