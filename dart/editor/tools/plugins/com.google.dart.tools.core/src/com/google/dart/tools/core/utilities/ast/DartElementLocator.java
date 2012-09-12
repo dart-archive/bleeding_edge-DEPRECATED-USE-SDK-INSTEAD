@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.utilities.ast;
 
 import com.google.common.base.Objects;
+import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
@@ -277,7 +278,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
       int end = start + length;
       if (start <= startOffset && endOffset <= end) {
         wordRegion = new Region(start, length);
-        Element targetElement = DartAstUtilities.getElement(node, includeDeclarations);
+        Element targetElement = ASTNodes.getElement(node, includeDeclarations);
         if (targetElement == null) {
           foundElement = null;
         } else {

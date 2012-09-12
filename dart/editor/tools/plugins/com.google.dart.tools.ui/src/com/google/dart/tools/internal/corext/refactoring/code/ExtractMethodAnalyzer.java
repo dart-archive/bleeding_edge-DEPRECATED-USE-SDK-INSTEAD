@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.code;
 
+import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartForStatement;
@@ -25,7 +26,6 @@ import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.internal.corext.dom.ASTNodes;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
 import com.google.dart.tools.ui.internal.text.Selection;

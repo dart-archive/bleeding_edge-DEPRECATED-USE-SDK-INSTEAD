@@ -11,18 +11,25 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.internal.corext.dom;
+package com.google.dart.compiler.ast;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartBlock;
+import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartNamedExpression;
+import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
+import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartStatement;
+import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartThisExpression;
+import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.resolver.Element;
@@ -31,10 +38,17 @@ import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.VariableElement;
+import com.google.dart.compiler.type.InterfaceType;
+import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.TypeKind;
 
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Defines utility methods that operate on nodes in a Dart AST structure (instances of
+ * {@link DartNode} and its subclasses).
+ */
 public class ASTNodes {
 
   public static List<DartNode> findDeepestCommonPath(List<DartNode> nodes) {
@@ -55,6 +69,70 @@ public class ASTNodes {
       node = node.getParent();
     };
     return (E) node;
+  }
+
+  /**
+   * Get the element associated with the given AST node.
+   * 
+   * @param node the target node
+   * @param includeDeclarations <code>true</code> if elements should be returned for declaration
+   *          sites as well as for reference sites
+   * @return the associated element (or <code>null</code> if none can be found)
+   */
+  public static Element getElement(DartNode node, boolean includeDeclarations) {
+    Element targetElement = node.getElement();
+    DartNode parent = node.getParent();
+    // name of named parameter in invocation
+    if (node instanceof DartIdentifier && node.getParent() instanceof DartNamedExpression) {
+      DartNamedExpression namedExpression = (DartNamedExpression) node.getParent();
+      if (namedExpression.getName() == node) {
+        Object parameterId = ((DartIdentifier) node).getInvocationParameterId();
+        if (parameterId instanceof VariableElement) {
+          targetElement = (VariableElement) parameterId;
+        }
+      }
+    }
+    // target of "new X()" or "new X.a()" is not just a type, it is a constructor
+    if (parent instanceof DartTypeNode || parent instanceof DartPropertyAccess) {
+      DartNode grandparent = parent.getParent();
+      if (grandparent instanceof DartNewExpression) {
+        targetElement = ((DartNewExpression) grandparent).getElement();
+      }
+    } else if (parent instanceof DartRedirectConstructorInvocation
+        || parent instanceof DartSuperConstructorInvocation) {
+      targetElement = parent.getElement();
+    }
+    return targetElement;
+  }
+
+  /**
+   * Return the class definition enclosing the given node, or <code>null</code> if the node is not a
+   * child of a class definition.
+   * 
+   * @param node the node enclosed in the class definition to be returned
+   * @return the class definition enclosing the given node
+   */
+  public static DartClass getEnclosingDartClass(DartNode node) {
+    return getEnclosingNodeOfType(DartClass.class, node);
+  }
+
+  /**
+   * Return the first node of the given class that encloses the given node, or <code>null</code> if
+   * the node is not a child of a node of the given class. The node itself will <b>not</b> be
+   * returned, even if it is an instance of the given class.
+   * 
+   * @param enclosingNodeClass the class of node to be returned
+   * @param node the child of the node to be returned
+   * @return the specified parent of the given node
+   */
+  @SuppressWarnings("unchecked")
+  public static <E extends DartNode> E getEnclosingNodeOfType(Class<E> enclosingNodeClass,
+      DartNode node) {
+    DartNode parent = node.getParent();
+    while (parent != null && !enclosingNodeClass.isInstance(parent)) {
+      parent = parent.getParent();
+    }
+    return (E) parent;
   }
 
   public static int getExclusiveEnd(DartNode node) {
@@ -91,6 +169,53 @@ public class ASTNodes {
       }
     }
     return null;
+  }
+
+  /**
+   * @return the {@link VariableElement} if the given {@link DartIdentifier} is the parameter
+   *         reference, or <code>null</code> in the other case.
+   */
+  public static VariableElement getParameterElement(DartIdentifier node) {
+    Element element = node.getElement();
+    if (ElementKind.of(element) == ElementKind.PARAMETER) {
+      return (VariableElement) element;
+    }
+    return null;
+  }
+
+  /**
+   * @return the index of given {@link VariableElement} in parameters, or <code>-1</code> if not
+   *         parameter.
+   */
+  public static int getParameterIndex(VariableElement variableElement) {
+    Element enclosingElement = variableElement.getEnclosingElement();
+    if (enclosingElement instanceof MethodElement) {
+      MethodElement methodElement = (MethodElement) enclosingElement;
+      return methodElement.getParameters().indexOf(variableElement);
+    }
+    return -1;
+  }
+
+  /**
+   * Returns the closest ancestor of <code>node</code> that is an instance of
+   * <code>parentClass</code>, or <code>null</code> if none.
+   * <p>
+   * <b>Warning:</b> This method does not stop at any boundaries like parentheses, statements, body
+   * declarations, etc. The resulting node may be in a totally different scope than the given node.
+   * Consider using one of the {@link ASTResolving}<code>.find(..)</code> methods instead.
+   * </p>
+   * 
+   * @param node the node
+   * @param parentClass the class of the sought ancestor node
+   * @return the closest ancestor of <code>node</code> that is an instance of
+   *         <code>parentClass</code>, or <code>null</code> if none
+   */
+  @SuppressWarnings("unchecked")
+  public static <E extends DartNode> E getParent(DartNode node, Class<E> parentClass) {
+    do {
+      node = node.getParent();
+    } while (node != null && !parentClass.isInstance(node));
+    return (E) node;
   }
 
 //  private static class ChildrenCollector extends ASTVisitor<Void> {
@@ -609,53 +734,6 @@ public class ASTNodes {
 //  }
 
   /**
-   * @return the {@link VariableElement} if the given {@link DartIdentifier} is the parameter
-   *         reference, or <code>null</code> in the other case.
-   */
-  public static VariableElement getParameterElement(DartIdentifier node) {
-    Element element = node.getElement();
-    if (ElementKind.of(element) == ElementKind.PARAMETER) {
-      return (VariableElement) element;
-    }
-    return null;
-  }
-
-  /**
-   * @return the index of given {@link VariableElement} in parameters, or <code>-1</code> if not
-   *         parameter.
-   */
-  public static int getParameterIndex(VariableElement variableElement) {
-    Element enclosingElement = variableElement.getEnclosingElement();
-    if (enclosingElement instanceof MethodElement) {
-      MethodElement methodElement = (MethodElement) enclosingElement;
-      return methodElement.getParameters().indexOf(variableElement);
-    }
-    return -1;
-  }
-
-  /**
-   * Returns the closest ancestor of <code>node</code> that is an instance of
-   * <code>parentClass</code>, or <code>null</code> if none.
-   * <p>
-   * <b>Warning:</b> This method does not stop at any boundaries like parentheses, statements, body
-   * declarations, etc. The resulting node may be in a totally different scope than the given node.
-   * Consider using one of the {@link ASTResolving}<code>.find(..)</code> methods instead.
-   * </p>
-   * 
-   * @param node the node
-   * @param parentClass the class of the sought ancestor node
-   * @return the closest ancestor of <code>node</code> that is an instance of
-   *         <code>parentClass</code>, or <code>null</code> if none
-   */
-  @SuppressWarnings("unchecked")
-  public static <E extends DartNode> E getParent(DartNode node, Class<E> parentClass) {
-    do {
-      node = node.getParent();
-    } while (node != null && !parentClass.isInstance(node));
-    return (E) node;
-  }
-
-  /**
    * @return parent {@link DartNode}s from {@link DartUnit} (at index "0") to the given one.
    */
   public static List<DartNode> getParents(DartNode node) {
@@ -711,6 +789,28 @@ public class ASTNodes {
   }
 
   /**
+   * Return the type associated with the given type node, or <code>null</code> if the type could not
+   * be determined.
+   * 
+   * @param typeNode the type node whose type is to be returned
+   * @return the type associated with the given type node
+   */
+  public static Type getType(DartTypeNode typeNode) {
+    Type type = typeNode.getType();
+    if (type == null) {
+      DartNode parent = typeNode.getParent();
+      if (parent instanceof DartTypeNode) {
+        Type parentType = getType((DartTypeNode) parent);
+        if (parentType != null && parentType.getKind() == TypeKind.INTERFACE) {
+          int index = ((DartTypeNode) parent).getTypeArguments().indexOf(typeNode);
+          return ((InterfaceType) parentType).getArguments().get(index);
+        }
+      }
+    }
+    return type;
+  }
+
+  /**
    * @return the {@link VariableElement} with {@link ElementKind#VARIABLE} if the given
    *         {@link DartIdentifier} is the local variable reference, or <code>null</code> in the
    *         other case.
@@ -734,6 +834,44 @@ public class ASTNodes {
       return (VariableElement) element;
     }
     return null;
+  }
+
+  /**
+   * Return <code>true</code> if the given method is a constructor.
+   * 
+   * @param method the method being tested
+   * @return <code>true</code> if the given method is a constructor
+   */
+  public static boolean isConstructor(DartMethodDefinition method) {
+    MethodElement methodElement = method.getElement();
+    if (methodElement != null) {
+      return methodElement.isConstructor();
+    }
+    return isConstructor(((DartClass) method.getParent()).getClassName(), method);
+  }
+
+  /**
+   * Return <code>true</code> if the given method is a constructor.
+   * 
+   * @param className the name of the type containing the method definition
+   * @param method the method being tested
+   * @return <code>true</code> if the given method is a constructor
+   */
+  public static boolean isConstructor(String className, DartMethodDefinition method) {
+    if (method.getModifiers().isFactory()) {
+      return true;
+    }
+    DartExpression name = method.getName();
+    if (name instanceof DartIdentifier) {
+      return ((DartIdentifier) name).getName().equals(className);
+    } else if (name instanceof DartPropertyAccess) {
+      DartPropertyAccess property = (DartPropertyAccess) name;
+      DartNode qualifier = property.getQualifier();
+      if (qualifier instanceof DartIdentifier) {
+        return ((DartIdentifier) qualifier).getName().equals(className);
+      }
+    }
+    return false;
   }
 
   /**

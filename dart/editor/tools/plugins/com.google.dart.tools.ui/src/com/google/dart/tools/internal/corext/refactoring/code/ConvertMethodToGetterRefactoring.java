@@ -15,6 +15,7 @@ package com.google.dart.tools.internal.corext.refactoring.code;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.util.apache.StringUtils;
@@ -27,7 +28,6 @@ import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.internal.corext.SourceRangeFactory;
-import com.google.dart.tools.internal.corext.dom.ASTNodes;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
 import com.google.dart.tools.internal.corext.refactoring.rename.MemberDeclarationsReferences;
