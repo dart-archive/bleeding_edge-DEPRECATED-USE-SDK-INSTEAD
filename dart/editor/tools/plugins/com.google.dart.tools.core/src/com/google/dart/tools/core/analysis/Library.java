@@ -22,6 +22,8 @@ import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
+import com.google.dart.tools.core.DartCore;
 
 import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
 import static com.google.dart.tools.core.analysis.AnalysisUtility.toLibrarySource;
@@ -133,10 +135,12 @@ class Library {
   private final HashMap<String, File> imports;
   private final HashMap<String, File> sources;
   private final HashMap<File, Long> lastModified;
+  private Context context;
   private LibraryUnit libraryUnit;
 
   private final HashMap<File, DartUnit> dartUnits;
   private HashMap<File, DartCompilationError[]> parseErrors;
+
   /**
    * Flag indicating if listeners should be notified when the library is parsed and resolved. This
    * is <code>false</code> when a library is reloaded from a cache file so that listeners will not
@@ -191,6 +195,10 @@ class Library {
         dartUnits.put(file, dartUnit);
       }
     }
+  }
+
+  Context getContext() {
+    return context;
   }
 
   DartUnit getDartUnit(File file) {
@@ -248,6 +256,20 @@ class Library {
   long lastModified(File file) {
     Long timestamp = lastModified.get(file);
     return timestamp != null ? timestamp : -1L;
+  }
+
+  void setContext(Context context) {
+    if (this.context != null) {
+      PrintStringWriter msg = new PrintStringWriter();
+      msg.print("Library ");
+      msg.println(getFile());
+      msg.print("  was in ");
+      msg.println(this.context);
+      msg.print("  but has been moved to ");
+      msg.println(context);
+      DartCore.logError(msg.toString());
+    }
+    this.context = context;
   }
 
   /**

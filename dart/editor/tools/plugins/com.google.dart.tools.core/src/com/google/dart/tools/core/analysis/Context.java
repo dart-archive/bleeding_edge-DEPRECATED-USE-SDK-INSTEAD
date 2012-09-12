@@ -217,6 +217,7 @@ public class Context {
   }
 
   void cacheLibrary(Library library) {
+    library.setContext(this);
     libraryCache.put(library.getFile(), library);
   }
 

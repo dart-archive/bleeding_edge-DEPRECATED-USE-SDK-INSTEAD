@@ -38,13 +38,6 @@ public class SavedContext extends Context {
     super(server, libraryManager);
   }
 
-  /**
-   * TESTING: Answer an array of directories for which a {@link PackageContext} has been defined
-   */
-  public File[] getApplicationDirectories() {
-    return packageContexts.keySet().toArray(new File[packageContexts.keySet().size()]);
-  }
-
   @Override
   public String toString() {
     return getClass().getSimpleName();
@@ -98,6 +91,37 @@ public class SavedContext extends Context {
   };
 
   /**
+   * Answer a collection of zero or more libraries for the specified file.
+   * 
+   * @return the cached libraries (not <code>null</code>, contains no <code>null</code>s)
+   */
+  Library[] getCachedLibraries(File libFile) {
+    Library[] result = getCachedLibrariesInPackageContexts(libFile);
+    Library lib = getCachedLibrary(libFile);
+    if (lib != null) {
+      result = AnalysisUtility.append(result, lib);
+    }
+    return result;
+  }
+
+  /**
+   * Answer a collection of zero or more libraries for the specified file cached in a
+   * {@link PackageContext} but not in the receiver.
+   * 
+   * @return the cached libraries (not <code>null</code>, contains no <code>null</code>s)
+   */
+  Library[] getCachedLibrariesInPackageContexts(File libFile) {
+    Library[] result = Library.NONE;
+    for (PackageContext context : packageContexts.values()) {
+      Library lib = context.getCachedLibrary(libFile);
+      if (lib != null) {
+        result = AnalysisUtility.append(result, lib);
+      }
+    }
+    return result;
+  }
+
+  /**
    * Answer the package context for the specified application directory, creating and caching a new
    * one if one does not already exist.
    * 
@@ -111,5 +135,23 @@ public class SavedContext extends Context {
       packageContexts.put(applicationDirectory, context);
     }
     return context;
+  }
+
+  /**
+   * Look up the directory hierarchy for a pre-existing context
+   * 
+   * @param libDir the library directory
+   * @return the context in which the specified library should be analyzed (not <code>null</code>)
+   */
+  Context getSuggestedContext(File libDir) {
+    File dir = libDir;
+    while (dir != null) {
+      PackageContext context = packageContexts.get(dir);
+      if (context != null) {
+        return context;
+      }
+      dir = dir.getParentFile();
+    }
+    return this;
   }
 }

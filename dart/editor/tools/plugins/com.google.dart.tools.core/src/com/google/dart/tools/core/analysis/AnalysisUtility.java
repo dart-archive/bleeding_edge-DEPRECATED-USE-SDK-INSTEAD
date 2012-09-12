@@ -31,6 +31,7 @@ import com.google.dart.compiler.parser.DartPrefixParser;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.builder.CachingArtifactProvider;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 
@@ -45,6 +46,9 @@ import java.util.Set;
  * Static utility methods
  */
 class AnalysisUtility {
+
+  private static final File sdkLibDir = DartSdkManager.getManager().getSdk().getLibraryDirectory();
+
   private static final CompilerConfiguration config = new DefaultCompilerConfiguration(
       DartCompilerUtilities.COMPILER_OPTIONS,
       PackageLibraryManagerProvider.getPackageLibraryManager()) {
@@ -90,6 +94,13 @@ class AnalysisUtility {
     }
     int index = dirPath.length();
     return index == filePath.length() || filePath.charAt(index) == File.separatorChar;
+  }
+
+  /**
+   * Answer <code>true</code> if this library resides in the "lib" directory
+   */
+  static boolean isSdkLibrary(File libraryFile) {
+    return equalsOrContains(sdkLibDir, libraryFile);
   }
 
   /**
