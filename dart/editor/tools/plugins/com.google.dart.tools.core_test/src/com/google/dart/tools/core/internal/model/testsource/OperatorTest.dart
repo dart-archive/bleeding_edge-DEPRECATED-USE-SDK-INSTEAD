@@ -132,7 +132,7 @@ class Operator {
     return ~value;
   }
 
-  operator negate() {
+  operator -() {
     return -value;
   }
 }

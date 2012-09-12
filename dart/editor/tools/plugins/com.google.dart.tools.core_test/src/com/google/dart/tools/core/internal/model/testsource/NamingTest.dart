@@ -180,7 +180,7 @@ class Hoisting {
     f_ = function() { return x; };
   }
 
-  operator negate() {
+  operator -() {
     var x = 3;
     return function() { return x + 1; };
   }
