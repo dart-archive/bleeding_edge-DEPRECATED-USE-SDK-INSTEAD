@@ -268,6 +268,15 @@ public final class ActionMessages extends NLS {
   public static String GenerateJavascriptAction_FailMessage;
   public static String GenerateJavascriptAction_GenerateMessage;
 
+  public static String GenerateDartdocAction_Compiling;
+  public static String GenerateDartdocAction_title;
+  public static String GenerateDartdocAction_description;
+  public static String GenerateDartdocAction_tooltip;
+  public static String GenerateDartdocAction_jobTitle;
+  public static String GenerateDartdocAction_unableToLaunch;
+  public static String GenerateDartdocAction_noneSelected;
+  public static String GenerateDartdocAction_FailException;
+
   public static String SelfEncapsulateFieldAction_label;
   public static String SelfEncapsulateFieldAction_dialog_title;
   public static String SelfEncapsulateFieldAction_dialog_unavailable;

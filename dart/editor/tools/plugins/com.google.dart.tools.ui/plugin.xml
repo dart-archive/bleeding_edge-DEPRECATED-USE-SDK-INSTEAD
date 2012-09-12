@@ -248,6 +248,13 @@
             id="com.google.dart.tools.ui.generateJavascript"
             name="%command.generateJavascript.name">
       </command>
+      <command
+            categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.ui.internal.handlers.GenerateDartdocHandler"
+            description="%command.generateDartdoc.name"
+            id="com.google.dart.tools.ui.generateDartdoc"
+            name="%command.generateDartdoc.name">
+      </command>
    </extension>
    
    <extension
