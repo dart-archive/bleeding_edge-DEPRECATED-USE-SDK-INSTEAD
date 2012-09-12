@@ -6,7 +6,7 @@
 // As it grows, it may need to be split into multiple files.
 
 /** A factory that creates a view from a data model. */
-interface ViewFactory<D> {
+abstract class ViewFactory<D> {
   View newView(D item);
 
   /** The width of the created view or null if the width is not fixed. */
@@ -16,7 +16,7 @@ interface ViewFactory<D> {
   int get height;
 }
 
-interface VariableSizeViewFactory<D> {
+abstract class VariableSizeViewFactory<D> {
   View newView(D item);
 
   /** The width of the created view for a specific data model. */
@@ -58,7 +58,7 @@ class _PlaceholderView extends View {
 /**
  * Class providing all metrics required to layout a data driven list view.
  */
-interface ListViewLayout<D> {
+abstract class ListViewLayout<D> {
   void onDataChange();
 
   // TODO(jacobr): placing the newView member function on this class seems like
@@ -297,7 +297,7 @@ class GenericListView<D> extends View {
         }
         renderVisibleItems(true);
       }
-    }); 
+    });
   }
 
   void enterDocument() {
@@ -330,9 +330,9 @@ class GenericListView<D> extends View {
     if (current != currentTarget) {
       // The user is throwing rather than statically releasing.
       // For this case, we want to move them to the next snap interval
-      // as long as they made at least a minimal throw gesture. 
+      // as long as they made at least a minimal throw gesture.
       num currentIndex = _layout.getSnapIndex(current, _viewLength);
-      if (currentIndex == targetIndex && 
+      if (currentIndex == targetIndex &&
         (currentTarget - current).abs() > SNAP_TO_NEXT_THROW_THRESHOLD &&
         -_layout.getOffset(targetIndex) != currentTarget) {
         num snappedCurrentPosition = -_layout.getOffset(targetIndex);
@@ -379,7 +379,7 @@ class GenericListView<D> extends View {
         scroller.getVerticalOffset() : scroller.getHorizontalOffset();
   }
 
-  /** 
+  /**
    * Calculates visible interval, based on the scroller position.
    */
   Interval getVisibleInterval() {
@@ -464,7 +464,7 @@ class GenericListView<D> extends View {
       childViewAdded(view);
      return view;
     }
- 
+
     final view = _newView(index);
     _itemViews[index] = view;
     // TODO(jacobr): its ugly to put this here... but its needed
@@ -480,7 +480,7 @@ class GenericListView<D> extends View {
     childViewAdded(view);
     return view;
   }
- 
+
   void _addViewHelper(View view, int index) {
     _positionSubview(view.node, index);
     // The view might already be attached.
@@ -622,11 +622,11 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
     return _vertical ? itemViewFactory.height : itemViewFactory.width;
   }
 
- 
+
   int getWidth(int viewLength) {
     return _vertical ? itemViewFactory.width : getLength(viewLength);
   }
- 
+
   int getHeight(int viewLength) {
     return _vertical ? getLength(viewLength) : itemViewFactory.height;
   }
@@ -873,7 +873,7 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
     _lastOffset = offset;
     return _lastVisibleInterval;
   }
- 
+
   int _findFirstItemAfter(num target, int hint) {
     for (int i = 0; i < _data.length; i++) {
       if (getOffset(i) > target) {

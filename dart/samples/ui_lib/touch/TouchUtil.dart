@@ -104,7 +104,7 @@ bool _touchEventTargetsNode(event, Node node) {
   return false;
 }
 
-interface Touchable {
+abstract class Touchable {
   /**
    * Provide the HTML element that should respond to touch events.
    */
@@ -123,7 +123,7 @@ interface Touchable {
   bool onTouchStart(TouchEvent e);
 }
 
-interface Draggable extends Touchable {
+abstract class Draggable implements Touchable {
   /**
    * The object's drag sequence is now complete.
    */

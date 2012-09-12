@@ -122,7 +122,7 @@ class TrackSizing {
 
 /** Represents a GridTrack breadth property. */
 // TODO(jmesserly): these classes could be replaced with reflection/mirrors
-interface _BreadthAccumulator {
+abstract class _BreadthAccumulator {
   void setSize(GridTrack t, num value);
   num getSize(GridTrack t);
 

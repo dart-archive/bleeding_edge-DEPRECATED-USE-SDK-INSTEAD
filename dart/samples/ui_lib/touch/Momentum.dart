@@ -70,7 +70,7 @@ interface Momentum default TimeoutMomentum {
  * You are required to implement this interface in order to use the
  * Momentum behavior.
  */
-interface MomentumDelegate {
+abstract class MomentumDelegate {
   /**
    * Callback for a deceleration step. The delegate is responsible for redrawing
    * the element in its new position specified in px.

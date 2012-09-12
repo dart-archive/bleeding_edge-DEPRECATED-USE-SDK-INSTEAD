@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** The interface that the layout algorithms use to talk to the view. */
-interface Positionable {
+abstract class Positionable {
   ViewLayout get layout();
 
   /** Gets our custom CSS properties, as provided by the CSS preprocessor. */

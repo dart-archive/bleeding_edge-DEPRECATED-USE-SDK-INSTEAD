@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface ScrollListener {
+abstract class ScrollListener {
   /**
    * The callback invoked for a scroll event.
    * [decelerating] specifies whether or not the content is moving due

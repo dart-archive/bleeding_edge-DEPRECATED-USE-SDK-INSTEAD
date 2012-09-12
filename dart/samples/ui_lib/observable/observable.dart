@@ -13,16 +13,16 @@
  * An object whose changes are tracked and who can issue events notifying how it
  * has been changed.
  */
-interface Observable {
+abstract class Observable {
   /** Returns a globally unique identifier for the object. */
   // TODO(sigmund): remove once dart supports maps with arbitrary keys.
-  final int uid;
+  int get uid;
 
   /** Listeners on this model. */
-  final List<ChangeListener> listeners;
+  List<ChangeListener> get listeners;
 
   /** The parent observable to notify when this child is changed. */
-  final Observable parent;
+  Observable get parent;
 
   /**
    * Adds a listener for changes on this observable instance. Returns whether
