@@ -20,6 +20,7 @@ import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 
 import java.io.File;
@@ -72,11 +73,23 @@ public class DartDirectoryNode implements IDartNode {
         for (SystemLibrary systemLibrary : systemLibraries) {
           if (systemLibrary.isDocumented()) {
             file = systemLibrary.getLibraryDir();
-            libs.add(
-                new DartLibraryNode(
-                    this,
-                    EFS.getLocalFileSystem().fromLocalFile(file),
-                    systemLibrary.getShortName()));
+            String pathToLib = systemLibrary.getPathToLib();
+            if (pathToLib.indexOf("/") != -1) {
+              file = new File(file, new Path(pathToLib).removeLastSegments(1).toOSString());
+            }
+            if (!systemLibrary.isShared()) {
+              libs.add(new DartLibraryNode(
+                  this,
+                  EFS.getLocalFileSystem().fromLocalFile(file),
+                  systemLibrary.getShortName(),
+                  systemLibrary.getCategory().toLowerCase()));
+            } else {
+              libs.add(new DartLibraryNode(
+                  this,
+                  EFS.getLocalFileSystem().fromLocalFile(file),
+                  systemLibrary.getShortName()));
+            }
+
           }
         }
 
@@ -86,11 +99,10 @@ public class DartDirectoryNode implements IDartNode {
         if (file != null) {
           for (File child : file.listFiles()) {
             if (child.isDirectory()) {
-              libs.add(
-                  new DartLibraryNode(
-                      this,
-                      EFS.getLocalFileSystem().fromLocalFile(child),
-                      child.getName()));
+              libs.add(new DartLibraryNode(
+                  this,
+                  EFS.getLocalFileSystem().fromLocalFile(child),
+                  child.getName()));
             }
           }
         }

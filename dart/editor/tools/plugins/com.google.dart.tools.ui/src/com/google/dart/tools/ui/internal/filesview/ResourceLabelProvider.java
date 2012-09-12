@@ -121,6 +121,14 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
 
       return string;
     }
+    if (element instanceof DartLibraryNode && ((DartLibraryNode) element).getCategory() != null) {
+      StyledString string = new StyledString(((DartLibraryNode) element).getLabel());
+      string.append(
+          " [" + ((DartLibraryNode) element).getCategory() + "]",
+          StyledString.QUALIFIER_STYLER);
+
+      return string;
+    }
 
     return workbenchLabelProvider.getStyledText(element);
   }

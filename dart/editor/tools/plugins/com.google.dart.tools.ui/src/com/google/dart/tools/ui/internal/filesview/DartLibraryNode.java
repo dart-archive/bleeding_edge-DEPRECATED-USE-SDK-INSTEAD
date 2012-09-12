@@ -32,11 +32,23 @@ class DartLibraryNode implements IDartNode {
   private DartDirectoryNode parent;
   private IFileStore root;
   private String name;
+  private String category;
 
   public DartLibraryNode(DartDirectoryNode parent, IFileStore root, String name) {
     this.parent = parent;
     this.root = root;
     this.name = name;
+  }
+
+  public DartLibraryNode(DartDirectoryNode parent, IFileStore root, String name, String category) {
+    this.parent = parent;
+    this.root = root;
+    this.name = name;
+    this.category = category;
+  }
+
+  public String getCategory() {
+    return category;
   }
 
   public IFileStore[] getFiles() {
