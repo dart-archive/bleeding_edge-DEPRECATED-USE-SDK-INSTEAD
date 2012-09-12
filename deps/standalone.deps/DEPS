@@ -4,7 +4,7 @@
 
 vars = {
   "chromium_url": "http://src.chromium.org/svn",
-  "gyp_rev": "@1451",
+  "gyp_rev": "@1495",
   "co19_rev": "@336",
   "co19_repo": "http://co19.googlecode.com/svn/trunk/co19/",
   "dart_branch": "/branches/bleeding_edge"
