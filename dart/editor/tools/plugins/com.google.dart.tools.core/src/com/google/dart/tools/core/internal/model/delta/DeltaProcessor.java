@@ -895,53 +895,51 @@ public class DeltaProcessor {
   private boolean requiresProjectCacheReset(DartElement dartElement) {
 
     try {
-      if (dartElement instanceof CompilationUnitImpl) {
-        CompilationUnitImpl cu = (CompilationUnitImpl) dartElement;
-        DartUnit unit = DartCompilerUtilities.parseSource(cu.getElementName(), cu.getSource());
+      CompilationUnitImpl cu = (CompilationUnitImpl) dartElement;
+      DartUnit unit = DartCompilerUtilities.parseSource(cu.getElementName(), cu.getSource());
 
-        if (unit != null) {
-          List<DartDirective> directives = unit.getDirectives();
-          if (cu.definesLibrary()) {
-            // check if directives have changed
-            DartLibrary library = cu.getLibrary();
-            CompilationUnit[] libraryParts = library.getCompilationUnits();
-            if (libraryParts.length > 1 && directives.isEmpty()) {
-              return true;
-            } else {
-              List<String> names = new ArrayList<String>();
-              for (CompilationUnit part : libraryParts) {
-                names.add(part.getElementName());
-              }
-              int noOfSources = 1;
-              // check if any of the part directives have changed
-              for (DartDirective directive : directives) {
-                if (directive instanceof DartSourceDirective) {
-                  noOfSources++;
-                  String importUri = ((DartSourceDirective) directive).getSourceUri().getValue();
-                  if (!names.contains(importUri)) {
-                    return true;
-                  }
+      if (unit != null) {
+        List<DartDirective> directives = unit.getDirectives();
+        if (cu.definesLibrary()) {
+          // check if directives have changed
+          DartLibrary library = cu.getLibrary();
+          CompilationUnit[] libraryParts = library.getCompilationUnits();
+          if (libraryParts.length > 1 && directives.isEmpty()) {
+            return true;
+          } else {
+            List<String> names = new ArrayList<String>();
+            for (CompilationUnit part : libraryParts) {
+              names.add(part.getElementName());
+            }
+            int noOfSources = 1;
+            // check if any of the part directives have changed
+            for (DartDirective directive : directives) {
+              if (directive instanceof DartSourceDirective) {
+                noOfSources++;
+                String importUri = ((DartSourceDirective) directive).getSourceUri().getValue();
+                if (!names.contains(importUri)) {
+                  return true;
                 }
               }
-              // check for sources removed
-              if (libraryParts.length != noOfSources) {
-                return true;
-              }
             }
-
-          } else {
-            // change from non lib -> lib 
-            if (directives.isEmpty()) {
-              return false;
+            // check for sources removed
+            if (libraryParts.length != noOfSources) {
+              return true;
             }
-            if (directives.size() == 1 && directives.get(0) instanceof DartPartOfDirective) {
-              return false;
-            }
-            return true;
           }
-        }
 
+        } else {
+          // change from non lib -> lib 
+          if (directives.isEmpty()) {
+            return false;
+          }
+          if (directives.size() == 1 && directives.get(0) instanceof DartPartOfDirective) {
+            return false;
+          }
+          return true;
+        }
       }
+
     } catch (DartModelException e) {
       return true;
     }
@@ -1123,20 +1121,25 @@ public class DeltaProcessor {
             return true;
           }
 
-          if (requiresProjectCacheReset(element)) {
+          if (element instanceof CompilationUnitImpl) {
+            if (requiresProjectCacheReset(element)) {
+              recomputeLibrarySet(element);
+              resetThisProjectCache((DartProjectImpl) element.getDartProject());
+            } else {
+              try {
+                if (((CompilationUnitImpl) element).definesLibrary()) {
+                  element = (DartLibraryImpl) ((CompilationUnitImpl) element).getLibrary();
+                }
+                DartModelManager.getInstance().removeInfoAndChildren(element);
+              } catch (DartModelException e) {
+                DartCore.logError(e);
+              }
+            }
+          } else {
             recomputeLibrarySet(element);
             resetThisProjectCache((DartProjectImpl) element.getDartProject());
-          } else {
-            try {
-              if (element instanceof CompilationUnitImpl
-                  && ((CompilationUnitImpl) element).definesLibrary()) {
-                element = (DartLibraryImpl) ((CompilationUnitImpl) element).getLibrary();
-              }
-              DartModelManager.getInstance().removeInfoAndChildren(element);
-            } catch (DartModelException e) {
-              DartCore.logError(e);
-            }
           }
+
           // This has been replaced by the call to recomputeLibrarySet, more a *hammer* approach to
           // get the Libraries view working ASAP, this could be re-visited in the future to make the
           // delta processing a faster process.
