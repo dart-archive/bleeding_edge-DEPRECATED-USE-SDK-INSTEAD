@@ -15,9 +15,10 @@ package com.google.dart.tools.ui.cleanup;
 
 import com.google.dart.tools.ui.internal.cleanup.migration.AbstractMigrateCleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_catch_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_operators_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_get_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_operators_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalNamed_CleanUp;
 
 /**
  * Test for {@link AbstractMigrateCleanUp}.
@@ -245,6 +246,205 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "}",
         "");
     assertNoFix(cleanUp, initial);
+  }
+
+  public void test_1M1_optionalNamed_noOp_alreadyNewSyntax() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_optionalNamed_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo(a, {b: 2})",
+        "}",
+        "main() {",
+        "  A.foo(1, b: 2);",
+        "}",
+        "");
+    assertNoFix(cleanUp, initial);
+  }
+
+  public void test_1M1_optionalNamed_noOp_function_mixOptionalPositionalNamed() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_optionalNamed_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(a, [b = 2, c = 3])",
+        "main() {",
+        "  foo(10, 20, c: 30);",
+        "}",
+        "");
+    assertNoFix(cleanUp, initial);
+  }
+
+  public void test_1M1_optionalNamed_noOp_method_mixOptionalPositionalNamed() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_optionalNamed_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo(a, [b = 2, c = 3])",
+        "}",
+        "main() {",
+        "  A.foo(10, 20, c: 30);",
+        "}",
+        "");
+    assertNoFix(cleanUp, initial);
+  }
+
+  public void test_1M1_optionalNamed_noOp_noInvocations() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_optionalNamed_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo(a, [b = 2, c = 3])",
+        "}",
+        "");
+    assertNoFix(cleanUp, initial);
+  }
+
+  public void test_1M1_optionalNamed_noOp_onlyOptionalPositional() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_optionalNamed_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo(a, [b = 2, c = 3])",
+        "}",
+        "main() {",
+        "  A.foo(10, 20, 30);",
+        "}",
+        "");
+    assertNoFix(cleanUp, initial);
+  }
+
+  public void test_1M1_optionalNamed_OK_method() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_optionalNamed_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo(a, [b = 2, c = 3])",
+        "}",
+        "main() {",
+        "  A.foo(10, b: 20, c: 30);",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo(a, {b: 2, c: 3})",
+        "}",
+        "main() {",
+        "  A.foo(10, b: 20, c: 30);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M1_optionalNamed_OK_method_differentOrderOfArguments() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_optionalNamed_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo(a, [b = 2, c = 3])",
+        "}",
+        "main() {",
+        "  A.foo(10, c: 30, b: 20);",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo(a, {b: 2, c: 3})",
+        "}",
+        "main() {",
+        "  A.foo(10, c: 30, b: 20);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M1_optionalNamed_OK_method_noDefault() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_optionalNamed_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo(a, [b, c])",
+        "}",
+        "main() {",
+        "  A.foo(10, b: 20, c: 30);",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo(a, {b, c})",
+        "}",
+        "main() {",
+        "  A.foo(10, b: 20, c: 30);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M1_optionalNamed_OK_method_noOptionalArguments() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_optionalNamed_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo(a, [b = 2, c = 3])",
+        "}",
+        "main() {",
+        "  A.foo(10);",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo(a, {b: 2, c: 3})",
+        "}",
+        "main() {",
+        "  A.foo(10);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M1_optionalNamed_OK_method_onlyOneNamedArgument() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_optionalNamed_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo(a, [b = 2, c = 3])",
+        "}",
+        "main() {",
+        "  A.foo(10, c: 30);",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo(a, {b: 2, c: 3})",
+        "}",
+        "main() {",
+        "  A.foo(10, c: 30);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M1_optionalNamed_OK_topLevelFunction() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_optionalNamed_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(a, [b = 2, c = 3])",
+        "main() {",
+        "  foo(10, b: 20, c: 30);",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(a, {b: 2, c: 3})",
+        "main() {",
+        "  foo(10, b: 20, c: 30);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
   }
 
 }

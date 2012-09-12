@@ -140,7 +140,7 @@ public class AST {
     } else if (nodeClass == DartForStatement.class) {
       return (N) new DartForStatement(null, null, null, 0, null);
     } else if (nodeClass == DartFunction.class) {
-      return (N) new DartFunction(new ArrayList<DartParameter>(), 0, null, null);
+      return (N) new DartFunction(new ArrayList<DartParameter>(), -1, -1, 0, null, null);
     } else if (nodeClass == DartFunctionExpression.class) {
       return (N) new DartFunctionExpression(null, null, false);
     } else if (nodeClass == DartFunctionObjectInvocation.class) {

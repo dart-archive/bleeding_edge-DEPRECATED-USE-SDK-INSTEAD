@@ -130,6 +130,17 @@ public class ExecutionUtils {
   }
 
   /**
+   * Runs given {@link RunnableEx} and re-throws any exceptions without declaring it.
+   */
+  public static void runRethrow(RunnableEx runnable) {
+    try {
+      runnable.run();
+    } catch (Throwable e) {
+      propagate(e);
+    }
+  }
+
+  /**
    * Runs given {@link RunnableEx} and re-throws exceptions as {@link CoreException}.
    */
   public static void runRethrowCore(RunnableEx runnable) throws CoreException {
