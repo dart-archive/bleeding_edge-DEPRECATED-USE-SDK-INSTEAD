@@ -34,6 +34,7 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -55,11 +56,14 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
         if (bp.getLocation().getUrl().equals(url)) {
           if (bp.getLocation().getLineNumber() != dartBreakpoint.getLine()) {
+            ignoredBreakpoints.add(dartBreakpoint);
+
             dartBreakpoint.updateLineNumber(bp.getLocation().getLineNumber());
           }
         }
       }
     }
+
   }
 
   private static ServerDebugTarget activeTarget;
@@ -86,6 +90,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private int resumeCount = 0;
 
+  private List<IBreakpoint> ignoredBreakpoints = new ArrayList<IBreakpoint>();
+
   public ServerDebugTarget(ILaunch launch, IProcess process, int connectionPort) {
     super(null);
 
@@ -107,6 +113,11 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
+    if (ignoredBreakpoints.contains(breakpoint)) {
+      ignoredBreakpoints.remove(breakpoint);
+      return;
+    }
+
     if (supportsBreakpoint(breakpoint)) {
       breakpointRemoved(breakpoint, delta);
       breakpointAdded(breakpoint);

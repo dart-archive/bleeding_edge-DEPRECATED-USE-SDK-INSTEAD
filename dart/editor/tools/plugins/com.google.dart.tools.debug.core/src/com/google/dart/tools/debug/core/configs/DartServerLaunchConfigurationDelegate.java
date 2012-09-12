@@ -204,7 +204,8 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
       }
 
       // Shorten the long path to the dart vm - just show "dart".
-      if (arg.endsWith(File.separator + "dart")) {
+      if (arg.endsWith(File.separator
+          + DartSdkManager.getManager().getSdk().getVmExecutable().getName())) {
         builder.append("dart");
       } else {
         builder.append(arg);

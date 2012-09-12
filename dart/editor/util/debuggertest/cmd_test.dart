@@ -25,8 +25,7 @@ void main() {
 
   print(l);
 
-  // TODO(devoncarew): fix throwing during toString()
-  //var rodent = new pets.Rodent("Skittles");
+  var rodent = new pets.Rodent("Skittles");
 
   // TODO(devoncarew): cmd-line: display maps better
   var m = pets.getMapOfAnimals();

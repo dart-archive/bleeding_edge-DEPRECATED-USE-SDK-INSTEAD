@@ -46,6 +46,8 @@ class BreakpointManager implements IBreakpointListener {
 
   private List<WebkitBreakpoint> webkitBreakpoints = new ArrayList<WebkitBreakpoint>();
 
+  private List<IBreakpoint> ignoredBreakpoints = new ArrayList<IBreakpoint>();
+
   public BreakpointManager(DartiumDebugTarget debugTarget, IResourceResolver resourceResolver) {
     this.debugTarget = debugTarget;
     this.resourceResolver = resourceResolver;
@@ -66,8 +68,15 @@ class BreakpointManager implements IBreakpointListener {
 
   @Override
   public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
-    breakpointRemoved(breakpoint, delta);
-    breakpointAdded(breakpoint);
+    if (ignoredBreakpoints.contains(breakpoint)) {
+      ignoredBreakpoints.remove(breakpoint);
+      return;
+    }
+
+    if (debugTarget.supportsBreakpoint(breakpoint)) {
+      breakpointRemoved(breakpoint, delta);
+      breakpointAdded(breakpoint);
+    }
   }
 
   @Override
@@ -165,6 +174,8 @@ class BreakpointManager implements IBreakpointListener {
       int eclipseLine = WebkitLocation.webkitToElipseLine(webkitBreakpoint.getLocation().getLineNumber());
 
       if (breakpoint.getLine() != eclipseLine) {
+        ignoredBreakpoints.add(breakpoint);
+
         breakpoint.updateLineNumber(eclipseLine);
       }
     }

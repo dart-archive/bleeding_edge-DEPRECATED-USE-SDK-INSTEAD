@@ -977,6 +977,10 @@ public class VmConnection {
                 System.out.println("<== " + str);
               }
 
+              // The VM doesn't escape newlines in toString values - our JSON parser chokes.
+              // TODO(devoncarew): file a bug
+              str = str.replace("\n", "\\n");
+
               return new JSONObject(str);
             } catch (JSONException e) {
               throw new IOException(e);
