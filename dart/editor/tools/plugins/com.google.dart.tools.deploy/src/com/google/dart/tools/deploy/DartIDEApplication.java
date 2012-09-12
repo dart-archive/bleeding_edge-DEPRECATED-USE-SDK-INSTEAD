@@ -36,6 +36,18 @@ import java.util.ArrayList;
  */
 public class DartIDEApplication implements IApplication {
 
+  /**
+   * Value taken from <code>DartEditorCommandLineManager.PERF_FLAG</code>.
+   * <p>
+   * NOTE that we can't reference DartEditorCommandLineManager directly since doing so will force
+   * the dart core bundle to load (prematurely) before we've started the platform in
+   * {@link #start(IApplicationContext)}.
+   */
+  private static final String PERF_FLAG = "-perf"; //DartEditorCommandLineManager.PERF_FLAG
+
+  //a flag to cache whether we're measuring perf, used to delay loading of dart core
+  private boolean perfFlagSet = false;
+
   @Override
   public Object start(IApplicationContext context) throws Exception {
     Display display = PlatformUI.createDisplay();
@@ -50,7 +62,7 @@ public class DartIDEApplication implements IApplication {
 
       // Now that the start time of the Editor has been recorded from the command line, we can
       // record the time taken to start the Application
-      if (DartEditorCommandLineManager.MEASURE_PERFORMANCE) {
+      if (perfFlagSet) {
         System.out.println("Dart Editor build " + DartCore.getBuildIdOrDate());
         Performance.TIME_TO_START_ECLIPSE.log(DartEditorCommandLineManager.getStartTime());
       }
@@ -101,7 +113,8 @@ public class DartIDEApplication implements IApplication {
     // and isn't in the set already
     for (int i = 0; i < args.length; i++) {
       String arg = args[i];
-      if (arg.equals(DartEditorCommandLineManager.PERF_FLAG)) {
+      if (arg.equals(PERF_FLAG)) {
+        perfFlagSet = true;
         DartEditorCommandLineManager.MEASURE_PERFORMANCE = true;
         boolean failedToGetStartTime = false;
         // Now record the start time
@@ -158,7 +171,9 @@ public class DartIDEApplication implements IApplication {
         }
       }
     }
-    DartEditorCommandLineManager.setFileSet(fileSet);
+    if (perfFlagSet) {
+      DartEditorCommandLineManager.setFileSet(fileSet);
+    }
   }
 
   private void setWorkspaceLocation() {

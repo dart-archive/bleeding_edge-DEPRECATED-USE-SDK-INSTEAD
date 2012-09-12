@@ -289,6 +289,9 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
   @Override
   public void preStartup() {
 
+    // since there's no support for closed projects, we remove any that exist
+    cleanupClosedProjects();
+
     // Suspend background jobs while we startup
     Job.getJobManager().suspend();
 
@@ -319,6 +322,18 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
       //set to false to ensure old state does not get re-loaded; this will be reset to true in 
       //ApplicationWorkbenchWindowAdvisor.preWindowOpen()
       workbenchConfigurer.setSaveAndRestore(false);
+    }
+  }
+
+  private void cleanupClosedProjects() {
+    for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+      if (!project.isOpen()) {
+        try {
+          project.delete(false /* don't delete content */, true /* force */, null /* no monitor */);
+        } catch (CoreException e) {
+          Activator.logError(e);
+        }
+      }
     }
   }
 
