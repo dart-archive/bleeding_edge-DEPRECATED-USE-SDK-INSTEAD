@@ -45,6 +45,8 @@ import java.util.Map;
 public class ExternalCompilationUnitImpl extends CompilationUnitImpl {
   private final String relPath;
   private DartSource source;
+  private IPath path;
+  private DartSource pathReadyFor;
   private String elementName;
 
   public ExternalCompilationUnitImpl(DartLibraryImpl library, String relPath) {
@@ -95,7 +97,11 @@ public class ExternalCompilationUnitImpl extends CompilationUnitImpl {
 
   @Override
   public IPath getPath() {
-    return URIUtil.toPath(URIUtilities.safelyResolveDartUri(source.getUri()));
+    if (pathReadyFor != source) {
+      pathReadyFor = source;
+      path = URIUtil.toPath(URIUtilities.safelyResolveDartUri(source.getUri()));
+    }
+    return path;
   }
 
   /**
