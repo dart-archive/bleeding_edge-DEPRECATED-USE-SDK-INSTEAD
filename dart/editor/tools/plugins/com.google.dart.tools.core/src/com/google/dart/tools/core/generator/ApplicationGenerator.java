@@ -85,16 +85,6 @@ public class ApplicationGenerator extends AbstractGenerator {
       applicationFile = generateCommandLineApp(monitor, applicationFileName);
     }
 
-//TODO (pquitslund): deprecated libaries view support    
-//    if (!DartCoreDebug.PROJECTS_VIEW) {
-//      DartLibrary library = DartCore.openLibrary(applicationFile, monitor);
-//      if (library != null) {
-//        library.setTopLevel(true);
-//      }
-//      IResource[] files = ResourceUtil.getResources(applicationFile);
-//      iApplicationFile = (IFile) files[0];
-//    } else 
-
     // The generator creates resources using java.io.File APIs.
     project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
 

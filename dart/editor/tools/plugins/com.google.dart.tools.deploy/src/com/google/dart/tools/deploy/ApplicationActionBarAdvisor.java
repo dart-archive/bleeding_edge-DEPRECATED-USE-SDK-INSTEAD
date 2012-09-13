@@ -489,9 +489,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     pubUpdateAction = RunPubAction.createPubUpdateAction(window);
 
     newApplicationWizardAction = new OpenNewApplicationWizardAction();
-//TODO (pquitslund): deprecated libaries view support        
-//    newApplicationWizardAction = DartCoreDebug.PROJECTS_VIEW ? new OpenNewProjectWizardAction()
-//        : new OpenNewApplicationWizardAction();
 
     register(newApplicationWizardAction);
 
@@ -864,16 +861,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(openFolderAction);
 
     menu.add(new Separator());
-
-    //TODO (pquitslund): deprecated libaries view support    
-//   {
-//
-//      /* New File and New Application are defined in plugin.xml */
-//      menu.add(new GroupMarker(IWorkbenchActionConstants.NEW_EXT));
-//      menu.add(new Separator());
-//      /* Open is defined in plugin.xml */
-//      menu.add(new GroupMarker(IWorkbenchActionConstants.OPEN_EXT));
-//    }
 
     menu.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
 

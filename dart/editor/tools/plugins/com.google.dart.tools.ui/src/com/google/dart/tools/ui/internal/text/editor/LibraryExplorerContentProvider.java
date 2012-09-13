@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.internal.libraryview;
+package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelManager;
@@ -48,13 +48,17 @@ import java.util.List;
 /**
  * A subclass of {@link StandardDartElementContentProvider} which implements
  * {@link ElementChangedListener} to update itself when changes are made to the Dart model.
+ * <p>
+ * This content provider is used by the {@link DartOutlinePage}.
+ * 
+ * @see DartOutlinePage
  */
 public class LibraryExplorerContentProvider extends StandardDartElementContentProvider implements
     ElementChangedListener {
 
   protected static final int ORIGINAL = 0;
   protected static final int PARENT = 1 << 0;
-  protected static final int GRANT_PARENT = 1 << 1;
+  protected static final int GRAND_PARENT = 1 << 1;
   protected static final int PROJECT = 1 << 2;
 
   private TreeViewer viewer;
@@ -170,7 +174,7 @@ public class LibraryExplorerContentProvider extends StandardDartElementContentPr
    * Can be implemented by subclasses to add additional elements to refresh.
    * 
    * @param toRefresh the elements to refresh
-   * @param relation the relation to the affected element ({@link #GRANT_PARENT}, {@link #PARENT},
+   * @param relation the relation to the affected element ({@link #GRAND_PARENT}, {@link #PARENT},
    *          {@link #ORIGINAL}, {@link #PROJECT})
    * @param affectedElement the affected element
    */

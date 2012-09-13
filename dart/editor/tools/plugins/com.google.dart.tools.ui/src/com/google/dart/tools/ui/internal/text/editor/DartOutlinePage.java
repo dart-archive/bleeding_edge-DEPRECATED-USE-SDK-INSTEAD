@@ -35,7 +35,6 @@ import com.google.dart.tools.ui.actions.DartSearchActionGroup;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
 import com.google.dart.tools.ui.actions.RefactorActionGroup;
 import com.google.dart.tools.ui.internal.actions.AbstractToggleLinkingAction;
-import com.google.dart.tools.ui.internal.libraryview.LibraryExplorerContentProvider;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.IProductConstants;
