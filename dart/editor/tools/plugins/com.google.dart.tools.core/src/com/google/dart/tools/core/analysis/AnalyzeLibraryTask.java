@@ -106,11 +106,6 @@ public class AnalyzeLibraryTask extends Task {
     }
 
     // Notify that analysis for this library is complete
-
-    PerformanceListener listener = AnalysisServer.getPerformanceListener();
-    if (listener != null) {
-      listener.analysisComplete(start, rootLibraryFile);
-    }
     if (callback != null) {
       try {
         callback.resolved(context.getCachedLibrary(rootLibraryFile).getLibraryUnit());

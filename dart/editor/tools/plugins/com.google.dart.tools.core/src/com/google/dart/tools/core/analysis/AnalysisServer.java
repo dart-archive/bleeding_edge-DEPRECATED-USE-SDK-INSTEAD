@@ -45,16 +45,6 @@ public class AnalysisServer {
   private static final String END_LIBRARIES_TAG = "</end-libraries>";
   private static final String END_QUEUE_TAG = "</end-queue>";
 
-  private static PerformanceListener performanceListener;
-
-  public static PerformanceListener getPerformanceListener() {
-    return performanceListener;
-  }
-
-  public static void setPerformanceListener(PerformanceListener performanceListener) {
-    AnalysisServer.performanceListener = performanceListener;
-  }
-
   /**
    * The library files being analyzed by the receiver. Synchronize against this object before
    * accessing it.

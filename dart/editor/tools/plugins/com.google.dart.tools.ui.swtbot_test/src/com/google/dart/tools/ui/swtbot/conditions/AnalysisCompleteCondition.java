@@ -15,15 +15,12 @@ package com.google.dart.tools.ui.swtbot.conditions;
 
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.IdleListener;
-import com.google.dart.tools.core.analysis.PerformanceListener;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.waits.ICondition;
-
-import java.io.File;
 
 public class AnalysisCompleteCondition implements ICondition {
 
@@ -37,21 +34,6 @@ public class AnalysisCompleteCondition implements ICondition {
    */
   public static void startListening() {
     AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
-    AnalysisServer.setPerformanceListener(new PerformanceListener() {
-
-      @Override
-      public void analysisComplete(long start, File libraryFile) {
-        SwtBotPerformance.ANALYZE.log(start, fileNameWithoutExtension(libraryFile.getName()));
-      }
-
-      private String fileNameWithoutExtension(String libName) {
-        String simpleName = libName.substring(libName.lastIndexOf('/') + 1);
-        if (simpleName.endsWith(".dart")) {
-          simpleName = simpleName.substring(0, simpleName.length() - 5);
-        }
-        return simpleName;
-      }
-    });
     server.addIdleListener(new IdleListener() {
 
       @Override
