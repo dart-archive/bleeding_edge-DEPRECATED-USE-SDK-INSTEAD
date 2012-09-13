@@ -444,6 +444,196 @@ public class CompletionEngineTest extends TestCase {
     test(source, "1-toUpperCase", "2+toUpperCase");
   }
 
+  public void testCommentSnippets064() throws Exception {
+    String source = Joiner.on("\n").join(
+        "class Spline {",
+        "  Line c;",
+        "  Spline a() {",
+        "    return this;",
+        "  }",
+        "  Line b() {",
+        "    return null;",
+        "  }",
+        "  Spline f() {",
+        "    Line x = new Line();",
+        "    x.!9h()..!1a()..!2b().!7f();",
+        "    x.!8j..!3b()..!4c..!6c..!5a();",
+        "  }",
+        "}",
+        "class Line {",
+        "  Spline j;",
+        "  Line g() {",
+        "    return this;",
+        "  }",
+        "  Spline h() {",
+        "    return null;",
+        "  }",
+        "}");
+    test(source, "1+a", "2+b", "1-g", "2-h", "3+b", "4+c", "5+a", "6+c", "7+f", "8+j", "9+h");
+  }
+
+  public void testCommentSnippets065() throws Exception {
+    String source = Joiner.on("\n").join(
+        "class Spline {",
+        "  Line c;",
+        "  Spline a() {",
+        "    return this;",
+        "  }",
+        "  Line b() {",
+        "    return null;",
+        "  }",
+        "  Spline f() {",
+        "    Line x = new Line();",
+        "    x.h()..!1;",
+        "  }",
+        "}",
+        "class Line {",
+        "  Spline j;",
+        "  Line g() {",
+        "    return this;",
+        "  }",
+        "  Spline h() {",
+        "    return null;",
+        "  }",
+        "}");
+    test(source, "1+a");
+  }
+
+  public void testCommentSnippets066() throws Exception {
+    String source = Joiner.on("\n").join(
+        "class Spline {",
+        "  Line c;",
+        "  Spline a() {",
+        "    return this;",
+        "  }",
+        "  Line b() {",
+        "    return null;",
+        "  }",
+        "  Spline f() {",
+        "    Line x = new Line();",
+        "    x.h()..a()..!1;",
+        "  }",
+        "}",
+        "class Line {",
+        "  Spline j;",
+        "  Line g() {",
+        "    return this;",
+        "  }",
+        "  Spline h() {",
+        "    return null;",
+        "  }",
+        "}");
+    test(source, "1+b");
+  }
+
+  public void testCommentSnippets067() throws Exception {
+    String source = Joiner.on("\n").join(
+        "class Spline {",
+        "  Line c;",
+        "  Spline a() {",
+        "    return this;",
+        "  }",
+        "  Line b() {",
+        "    return null;",
+        "  }",
+        "  Spline f() {",
+        "    Line x = new Line();",
+        "    x.h()..a()..c..!1;",
+        "  }",
+        "}",
+        "class Line {",
+        "  Spline j;",
+        "  Line g() {",
+        "    return this;",
+        "  }",
+        "  Spline h() {",
+        "    return null;",
+        "  }",
+        "}");
+    test(source, "1+b");
+  }
+
+  public void testCommentSnippets068() throws Exception {
+    String source = Joiner.on("\n").join(
+        "class Spline {",
+        "  Line c;",
+        "  Spline a() {",
+        "    return this;",
+        "  }",
+        "  Line b() {",
+        "    return null;",
+        "  }",
+        "  Spline f() {",
+        "    Line x = new Line();",
+        "    x.j..b()..c..!1;",
+        "  }",
+        "}",
+        "class Line {",
+        "  Spline j;",
+        "  Line g() {",
+        "    return this;",
+        "  }",
+        "  Spline h() {",
+        "    return null;",
+        "  }",
+        "}");
+    test(source, "1+c");
+  }
+
+  public void testCommentSnippets069() throws Exception {
+    String source = Joiner.on("\n").join(
+        "class Spline {",
+        "  Line c;",
+        "  Spline a() {",
+        "    return this;",
+        "  }",
+        "  Line b() {",
+        "    return null;",
+        "  }",
+        "  Spline f() {",
+        "    Line x = new Line();",
+        "    x.j..b()..!1;",
+        "  }",
+        "}",
+        "class Line {",
+        "  Spline j;",
+        "  Line g() {",
+        "    return this;",
+        "  }",
+        "  Spline h() {",
+        "    return null;",
+        "  }",
+        "}");
+    test(source, "1+c");
+  }
+
+  public void testCommentSnippets070() throws Exception {
+    String source = Joiner.on("\n").join(
+        "class Spline {",
+        "  Line c;",
+        "  Spline a() {",
+        "    return this;",
+        "  }",
+        "  Line b() {",
+        "    return null;",
+        "  }",
+        "  Spline f() {",
+        "    Line x = new Line();",
+        "    x.j..!1;",
+        "  }",
+        "}",
+        "class Line {",
+        "  Spline j;",
+        "  Line g() {",
+        "    return this;",
+        "  }",
+        "  Spline h() {",
+        "    return null;",
+        "  }",
+        "}");
+    test(source, "1+b");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test

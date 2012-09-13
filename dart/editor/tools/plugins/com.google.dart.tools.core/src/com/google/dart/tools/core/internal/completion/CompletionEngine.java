@@ -35,6 +35,7 @@ import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
+import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartStatement;
@@ -86,9 +87,7 @@ import com.google.dart.tools.core.internal.completion.ScopedNameFinder.ScopedNam
 import com.google.dart.tools.core.internal.completion.ast.BlockCompleter;
 import com.google.dart.tools.core.internal.completion.ast.FunctionCompleter;
 import com.google.dart.tools.core.internal.completion.ast.IdentifierCompleter;
-import com.google.dart.tools.core.internal.completion.ast.MethodInvocationCompleter;
 import com.google.dart.tools.core.internal.completion.ast.ParameterCompleter;
-import com.google.dart.tools.core.internal.completion.ast.PropertyAccessCompleter;
 import com.google.dart.tools.core.internal.completion.ast.TypeCompleter;
 import com.google.dart.tools.core.internal.completion.ast.TypeParameterCompleter;
 import com.google.dart.tools.core.internal.model.DartFunctionTypeAliasImpl;
@@ -272,30 +271,28 @@ public class CompletionEngine {
 
     @Override
     public Void visitMethodInvocation(DartMethodInvocation completionNode) {
-      if (completionNode instanceof MethodInvocationCompleter) {
-        DartIdentifier methodName = completionNode.getFunctionName();
-        if (methodName == identifier) {
-          // { x.y! }
-          Type type = analyzeType(completionNode.getTarget());
-          if (TypeKind.of(type) == TypeKind.VOID) {
-            DartExpression exp = completionNode.getTarget();
-            if (exp instanceof DartIdentifier) {
-              Element element = ((DartIdentifier) exp).getElement();
-              type = element.getType();
-            }
+      DartIdentifier methodName = completionNode.getFunctionName();
+      if (methodName == identifier || isCompletionAfterCascade()) {
+        // { x.y! } OR { a.b..! }
+        Type type = analyzeType(completionNode.getTarget());
+        if (TypeKind.of(type) == TypeKind.VOID) {
+          DartExpression exp = completionNode.getTarget();
+          if (exp instanceof DartIdentifier) {
+            Element element = ((DartIdentifier) exp).getElement();
+            type = element.getType();
           }
-          createCompletionsForQualifiedMemberAccess(methodName, type, true, false);
-        } else {
-          // { x!.y } or { x.y(a!) } or { x.y(a, b, C!) }
-          proposeInlineFunction(completionNode);
-          // TODO Consider using proposeIdentifierPrefixCompletions() here
-          proposeVariables(completionNode, identifier, resolvedMember);
-          if (resolvedMember.getParent() instanceof DartClass) {
-            DartClass classDef = (DartClass) resolvedMember.getParent();
-            ClassElement elem = classDef.getElement();
-            Type type = elem.getType();
-            createCompletionsForPropertyAccess(identifier, type, false, true, false);
-          }
+        }
+        createCompletionsForQualifiedMemberAccess(identifier, type, true, false);
+      } else {
+        // { x!.y } or { x.y(a!) } or { x.y(a, b, C!) }
+        proposeInlineFunction(completionNode);
+        // TODO Consider using proposeIdentifierPrefixCompletions() here
+        proposeVariables(completionNode, identifier, resolvedMember);
+        if (resolvedMember.getParent() instanceof DartClass) {
+          DartClass classDef = (DartClass) resolvedMember.getParent();
+          ClassElement elem = classDef.getElement();
+          Type type = elem.getType();
+          createCompletionsForPropertyAccess(identifier, type, false, true, false);
         }
       }
       return null;
@@ -323,106 +320,101 @@ public class CompletionEngine {
 
     @Override
     public Void visitPropertyAccess(DartPropertyAccess completionNode) {
-      if (completionNode instanceof PropertyAccessCompleter) {
-        DartIdentifier propertyName = completionNode.getName();
-        if (propertyName == identifier) {
-          Type type = analyzeType(completionNode.getQualifier());
-          if (type.getKind() == TypeKind.DYNAMIC || type.getKind() == TypeKind.VOID) {
-            if (completionNode.getQualifier() instanceof DartIdentifier) {
-              DartIdentifier qualNode = (DartIdentifier) completionNode.getQualifier();
-              Element element = qualNode.getElement();
-              if (ElementKind.of(element) == ElementKind.CLASS) {
-                type = element.getType();
-                if (type instanceof InterfaceType) {
-                  // { Array.! } or { Array.f! }
-                  createCompletionsForFactoryInvocation(
-                      propertyName,
-                      completionNode,
-                      (InterfaceType) type);
-                  createCompletionsForQualifiedMemberAccess(propertyName, type, false, false);
-                }
-              } else if (ElementKind.of(element) == ElementKind.LIBRARY) {
-                if (completionNode.getParent().getParent() instanceof DartNewExpression) {
-                  // { new html.! }
-                  DartNode prop = completionNode.getParent().getParent();
-                  prop.accept(new IdentifierCompletionProposer(propertyName));
-                } else {
-                  // #import('dart:html', prefix: 'html'); class X{ html.!DivElement! div; }
-                  createCompletionsForLibraryPrefix(propertyName, (LibraryElement) element);
-                }
+      DartIdentifier propertyName = completionNode.getName();
+      if (propertyName == identifier || isCompletionAfterCascade()) {
+        Type type = analyzeType(completionNode.getQualifier());
+        if (type.getKind() == TypeKind.DYNAMIC || type.getKind() == TypeKind.VOID) {
+          if (completionNode.getQualifier() instanceof DartIdentifier) {
+            DartIdentifier qualNode = (DartIdentifier) completionNode.getQualifier();
+            Element element = qualNode.getElement();
+            if (ElementKind.of(element) == ElementKind.CLASS) {
+              type = element.getType();
+              if (type instanceof InterfaceType) {
+                // { Array.! } or { Array.f! }
+                createCompletionsForFactoryInvocation(
+                    identifier,
+                    completionNode,
+                    (InterfaceType) type);
+                createCompletionsForQualifiedMemberAccess(identifier, type, false, false);
+              }
+            } else if (ElementKind.of(element) == ElementKind.LIBRARY) {
+              if (completionNode.getParent().getParent() instanceof DartNewExpression) {
+                // { new html.! }
+                DartNode prop = completionNode.getParent().getParent();
+                prop.accept(new IdentifierCompletionProposer(identifier));
               } else {
-                if (completionNode.getParent().getParent() instanceof DartNewExpression) {
-                  // { new html.! }
-                  DartNode prop = completionNode.getParent().getParent();
-                  prop.accept(new IdentifierCompletionProposer(propertyName));
-                } else {
-                  if (ElementKind.of(element) == ElementKind.LIBRARY_PREFIX) {
-                    // { html.E! }
-                    String prefixToMatch = qualNode.getName();
-                    Collection<LibraryUnit> libs = parsedUnit.getLibrary().getLibrariesWithPrefix(
-                        prefixToMatch);
-                    for (LibraryUnit lib : libs) {
-                      createCompletionsForLibraryPrefix(propertyName, lib.getElement());
-                    }
-                  } else {
-                    boolean allowDynamic = false;
-                    switch (ElementKind.of(element)) {
-                      case CONSTRUCTOR:
-                      case FIELD:
-                      case METHOD:
-                      case VARIABLE:
-                        allowDynamic = true;
-                        break;
-                    }
-                    createCompletionsForQualifiedMemberAccess(
-                        propertyName,
-                        type,
-                        allowDynamic,
-                        false);
-                  }
-                }
+                // #import('dart:html', prefix: 'html'); class X{ html.!DivElement! div; }
+                createCompletionsForLibraryPrefix(identifier, (LibraryElement) element);
               }
             } else {
-              if (completionNode.getParent() instanceof DartNewExpression) {
+              if (completionNode.getParent().getParent() instanceof DartNewExpression) {
                 // { new html.! }
-                DartNewExpression prop = (DartNewExpression) completionNode.getParent();
-                prop.accept(new IdentifierCompletionProposer(completionNode.getName()));
+                DartNode prop = completionNode.getParent().getParent();
+                prop.accept(new IdentifierCompletionProposer(identifier));
               } else {
-                createCompletionsForQualifiedMemberAccess(propertyName, type, false, false);
+                if (ElementKind.of(element) == ElementKind.LIBRARY_PREFIX) {
+                  // { html.E! }
+                  String prefixToMatch = qualNode.getName();
+                  Collection<LibraryUnit> libs = parsedUnit.getLibrary().getLibrariesWithPrefix(
+                      prefixToMatch);
+                  for (LibraryUnit lib : libs) {
+                    createCompletionsForLibraryPrefix(identifier, lib.getElement());
+                  }
+                } else {
+                  boolean allowDynamic = false;
+                  switch (ElementKind.of(element)) {
+                    case CONSTRUCTOR:
+                    case FIELD:
+                    case METHOD:
+                    case VARIABLE:
+                      allowDynamic = true;
+                      break;
+                  }
+                  createCompletionsForQualifiedMemberAccess(identifier, type, allowDynamic, false);
+                }
               }
             }
           } else {
-            if (type instanceof InterfaceType) {
-              DartNode q = completionNode.getQualifier();
-              if (q instanceof DartTypeNode) {
-                createCompletionsForFactoryInvocation(
-                    propertyName,
-                    completionNode,
-                    (InterfaceType) type);
-              } else {
-                createCompletionsForQualifiedMemberAccess(propertyName, type, false, false);
-              }
+            if (completionNode.getParent() instanceof DartNewExpression) {
+              // { new html.! }
+              DartNewExpression prop = (DartNewExpression) completionNode.getParent();
+              prop.accept(new IdentifierCompletionProposer(completionNode.getName()));
             } else {
-              // { a.! } or { a.x! }
-              boolean isInstance = completionNode.getQualifier() instanceof DartThisExpression;
-              createCompletionsForQualifiedMemberAccess(propertyName, type, !isInstance, isInstance);
+              createCompletionsForQualifiedMemberAccess(identifier, type, false, false);
             }
           }
         } else {
-          DartNode q = completionNode.getQualifier();
-          if (q instanceof DartIdentifier) {
-            DartIdentifier qualifier = (DartIdentifier) q;
-            proposeIdentifierPrefixCompletions(qualifier);
-          } else if (q instanceof DartTypeNode) {
-            DartTypeNode type = (DartTypeNode) q;
-            DartNode name = type.getIdentifier();
-            if (name instanceof DartIdentifier) {
-              DartIdentifier id = (DartIdentifier) name;
-              proposeTypesForPrefix(id);
+          if (type instanceof InterfaceType) {
+            DartNode q = completionNode.getQualifier();
+            if (q instanceof DartTypeNode) {
+              createCompletionsForFactoryInvocation(
+                  identifier,
+                  completionNode,
+                  (InterfaceType) type);
+            } else {
+              createCompletionsForQualifiedMemberAccess(identifier, type, false, false);
             }
+          } else {
+            // { a.! } or { a.x! }
+            boolean isInstance = completionNode.getQualifier() instanceof DartThisExpression;
+            createCompletionsForQualifiedMemberAccess(identifier, type, !isInstance, isInstance);
+          }
+        }
+      } else {
+        DartNode q = completionNode.getQualifier();
+        if (q instanceof DartIdentifier) {
+          DartIdentifier qualifier = (DartIdentifier) q;
+          proposeIdentifierPrefixCompletions(qualifier);
+        } else if (q instanceof DartTypeNode) {
+          DartTypeNode type = (DartTypeNode) q;
+          DartNode name = type.getIdentifier();
+          if (name instanceof DartIdentifier) {
+            DartIdentifier id = (DartIdentifier) name;
+            proposeTypesForPrefix(id);
           }
         }
       }
+
       return null;
     }
 
@@ -839,17 +831,27 @@ public class CompletionEngine {
     @Override
     public Void visitIdentifier(DartIdentifier node) {
       DartNode parent = node.getParent();
-      if (node instanceof IdentifierCompleter) {
-        if (((IdentifierCompleter) node).getCompletionParsingContext().size() > 4) {
-          DartNode ancestor = parent.getParent().getParent().getParent();
-          if (ancestor instanceof DartClassMember) {
-            DartClassMember<?> member = (DartClassMember<?>) ancestor;
-            if (member.getModifiers().isConstant()) {
-              // class X { const !; } to be continued with X.init();
-              proposeTypesForNewParam();
-              return null;
-            }
+      if ((node instanceof IdentifierCompleter)
+          && ((IdentifierCompleter) node).getCompletionParsingContext().size() > 4) {
+        DartNode ancestor = parent.getParent().getParent().getParent();
+        if (ancestor instanceof DartClassMember) {
+          DartClassMember<?> member = (DartClassMember<?>) ancestor;
+          if (member.getModifiers().isConstant()) {
+            // class X { const !; } to be continued with X.init();
+            proposeTypesForNewParam();
+            return null;
           }
+        }
+      } else if (isCompletionAfterCascade()) {
+        if (node.getSourceInfo().getOffset() - 1 == actualCompletionPosition) {
+          if (node.getParent() instanceof DartMethodInvocation) {
+            // { x.j..b()..c..!a(); }
+            ((DartMethodInvocation) node.getParent()).getTarget().accept(this);
+          } else if (node.getParent() instanceof DartPropertyAccess) {
+            // { x.j..b()..c..!c; }
+            ((DartPropertyAccess) node.getParent()).getQualifier().accept(this);
+          }
+          return null;
         }
       }
       return parent.accept(new IdentifierCompletionProposer(node));
@@ -890,6 +892,20 @@ public class CompletionEngine {
           if (type != null) {
             createCompletionsForQualifiedMemberAccess(functionName, type, false, false);
           }
+        }
+      } else if (isCompletionAfterDot) {
+        DartNode typeTarget;
+        if (isCompletionAfterCascade()) {
+          typeTarget = findCascadeReceiver(completionNode);
+        } else {
+          typeTarget = completionNode;
+        }
+        Type type = typeTarget.getElement().getType();
+        if (type != null) {
+          if (type instanceof FunctionType) {
+            type = ((FunctionType) type).getReturnType();
+          }
+          createCompletionsForQualifiedMemberAccess(functionName, type, false, false);
         }
       } else {
         // { methodWithCallback(!) }
@@ -975,13 +991,24 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitParenthesizedExpression(DartParenthesizedExpression node) {
+      return node.getExpression().accept(this);
+    }
+
+    @Override
     public Void visitPropertyAccess(DartPropertyAccess completionNode) {
       DartIdentifier propertyName = completionNode.getName();
       if (propertyName.getSourceInfo().getOffset() > actualCompletionPosition) {
         propertyName = null;
       }
+      DartNode typeTarget;
+      if (isCompletionAfterCascade()) {
+        typeTarget = findCascadeReceiver(completionNode);
+      } else {
+        typeTarget = completionNode.getQualifier();
+      }
       // { foo.! } or { class X { X(this.!c) : super() {}}
-      Type type = analyzeType(completionNode.getQualifier());
+      Type type = analyzeType(typeTarget);
       if (TypeKind.of(type) == TypeKind.DYNAMIC) {
         // if dynamic use ScopedNameFinder to look for a declaration
         // { List list; list.! Map map; }
@@ -2325,6 +2352,21 @@ public class CompletionEngine {
     return elements;
   }
 
+  private DartNode findCascadeReceiver(DartNode node) {
+    if (node instanceof DartMethodInvocation) {
+      DartMethodInvocation invoke = (DartMethodInvocation) node;
+      if (invoke.isCascade()) {
+        return findCascadeReceiver(invoke.getTarget());
+      }
+    } else if (node instanceof DartPropertyAccess) {
+      DartPropertyAccess access = (DartPropertyAccess) node;
+      if (access.isCascade()) {
+        return findCascadeReceiver(access.getQualifier());
+      }
+    }
+    return node;
+  }
+
   private Collection<DartLibrary> findLibrariesForQualifier(DartNode node) {
     // return null if no prefix is specified
     // return empty collection if specified prefix is not defined for at least one library
@@ -2464,6 +2506,10 @@ public class CompletionEngine {
       e = e.getEnclosingElement();
     }
     return (LibraryElement) e;
+  }
+
+  private boolean isCompletionAfterCascade() {
+    return isCompletionAfterDot && source.charAt(actualCompletionPosition - 1) == '.';
   }
 
   private boolean isCompletionNode(DartNode node) {
