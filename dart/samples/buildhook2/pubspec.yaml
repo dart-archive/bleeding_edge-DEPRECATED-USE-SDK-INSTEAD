@@ -1,0 +1,5 @@
+name: buildhook2
+description: A demo of the buildhook build.dart script.
+
+dependencies:
+  args: { sdk: args }
