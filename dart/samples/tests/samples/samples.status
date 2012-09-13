@@ -28,6 +28,7 @@ lib/observable/observable_test: Fail # Illegal dart code, duplicate field initia
 [ ($runtime == chrome || $runtime == ff || $runtime == safari)) ]
 dartcombat/dartcombat_test: Skip # passes locally but timeout on bot?
 dartcombat_test: Skip
+lib/layout/layout_test: Fail # http://darbug.com/5132
 
 [ $runtime == safari ]
 promise_based_test: Skip
