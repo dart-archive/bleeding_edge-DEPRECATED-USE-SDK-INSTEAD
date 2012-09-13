@@ -1016,7 +1016,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     menu.add(deployOptimizedAction);
 
-    menu.add(generateDartdocAction);
+    //menu.add(generateDartdocAction);
 
     if (DartCoreDebug.ENABLE_PUB) {
       menu.add(new Separator());
