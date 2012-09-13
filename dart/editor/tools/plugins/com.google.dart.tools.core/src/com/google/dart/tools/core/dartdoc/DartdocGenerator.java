@@ -1,11 +1,11 @@
 /*
  * Copyright 2012 Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -39,7 +39,7 @@ import java.util.List;
 
 /**
  * Launch the dartdoc process and collect stdout, stderr, and exit code information.
- * 
+ *
  * @see Dart2JSCompiler
  */
 public class DartdocGenerator {
@@ -93,7 +93,7 @@ public class DartdocGenerator {
    * A static utility method to handle the common use case for calling the dartdoc script. Compile
    * the given dart library, optionally poll the given monitor to check for user cancellation, and
    * write any output to the given console.
-   * 
+   *
    * @param library
    * @param monitor
    * @param console
@@ -126,7 +126,7 @@ public class DartdocGenerator {
 
   /**
    * Answer the Dartdoc <code>index.html</code> path for the specified source.
-   * 
+   *
    * @param source the application source file (not <code>null</code>)
    * @return the application file path (may not exist)
    */
@@ -136,7 +136,7 @@ public class DartdocGenerator {
 
   /**
    * Answer the Dartdoc directory path for the specified source.
-   * 
+   *
    * @param source the application source file (not <code>null</code>)
    * @return the application file path (may not exist)
    */
@@ -174,7 +174,7 @@ public class DartdocGenerator {
 
   /**
    * Dartdoc creates java.io.Files; we need to tell the workspace about the new / changed resources.
-   * 
+   *
    * @param correspondingResource
    * @throws CoreException
    */
@@ -203,7 +203,7 @@ public class DartdocGenerator {
    * Run dartdoc as a process to compile the given input file to the given output file. If an
    * IProgressMonitor is passed in, it is polled to see if the user cancelled the compile operation.
    * The progress monitor is not used for any other purpose.
-   * 
+   *
    * @param inputPath
    * @param outputPath
    * @param monitor
@@ -243,7 +243,7 @@ public class DartdocGenerator {
   private List<String> getCompilerArguments(IPath inputPath, IPath outputPath) {
     List<String> args = new ArrayList<String>();
 
-    args.add("dartdoc/dartdoc.dart");
+    args.add("dartdoc/bin/dartdoc.dart");
 
     args.add("--mode=static");
     args.add("--link-api");
