@@ -9,8 +9,8 @@
 #import('../../../../ui_lib/layout/layout.dart');
 #import('../../../../ui_lib/view/view.dart');
 #import('../../../../ui_lib/util/utilslib.dart');
-#import('../../../../../pkg/unittest/unittest.dart');
-#import('../../../../../pkg/unittest/html_config.dart');
+#import('../../../../../pkg/unittest/lib/unittest.dart');
+#import('../../../../../pkg/unittest/lib/html_config.dart');
 
 #source('grid_layout_demo.dart');
 #source('grid_examples.dart');
@@ -159,7 +159,7 @@ usingGrid(String example, void test_(View grid)) {
   window.setTimeout(() {
     test_(grid);
     window.setTimeout(expectAsync0(() { grid.removeFromDocument(); }), 0);
-  }, 0); 
+  }, 0);
 }
 
 verifyGrid(String example, [Map expected = null]) {

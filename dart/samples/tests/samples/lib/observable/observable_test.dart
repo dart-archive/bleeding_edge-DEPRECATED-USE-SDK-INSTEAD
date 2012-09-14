@@ -6,8 +6,8 @@
 
 #import('dart:html');
 #import('../../../../ui_lib/observable/observable.dart');
-#import('../../../../../pkg/unittest/unittest.dart');
-#import('../../../../../pkg/unittest/html_config.dart');
+#import('../../../../../pkg/unittest/lib/unittest.dart');
+#import('../../../../../pkg/unittest/lib/html_config.dart');
 
 #source('abstract_observable_tests.dart');
 #source('change_event_tests.dart');
