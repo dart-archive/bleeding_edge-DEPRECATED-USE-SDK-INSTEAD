@@ -258,7 +258,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static boolean containsPackagesDirectory(File file) {
     File pkgsDir = new File(file, PACKAGES_DIRECTORY_NAME);
-    return pkgsDir.isDirectory() && checkForPubspec(pkgsDir);
+    return pkgsDir.isDirectory();
   }
 
   /**
@@ -569,7 +569,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static boolean isContainedInPackages(File file) {
     if (file.getAbsolutePath().contains(PACKAGES_DIRECTORY_NAME)) {
-      return checkForPubspec(file);
+      return true;
     }
     return false;
   }
@@ -651,7 +651,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static boolean isPackagesDirectory(File file) {
     if (file.getName().equals(PACKAGES_DIRECTORY_NAME)) {
-      return checkForPubspec(file);
+      return true;
     }
     return false;
   }
@@ -907,21 +907,6 @@ public class DartCore extends Plugin implements DartSdkListener {
     return oldLog;
   }
 
-  /**
-   * Check whether the pubspec file is a sibling of the given file
-   * 
-   * @param file to be checked
-   * @return <code>true</code> if file is sibling of pubspec.yaml
-   */
-  private static boolean checkForPubspec(File file) {
-    String path = file.getAbsolutePath();
-    path = path.substring(0, path.indexOf(PACKAGES_DIRECTORY_NAME));
-    File pubspec = new File(path, PUBSPEC_FILE_NAME);
-    if (pubspec.exists()) {
-      return true;
-    }
-    return false;
-  }
 
   /**
    * Return <code>true</code> if the given file name's extension matches one of the passed
