@@ -56,10 +56,10 @@ class ServerMain {
 
 
 class User {
+  static int nextSessionId = 0;
+
   User(this._handle) {
-    // TODO(sgjesse) Generate more secure and unique session id's.
-    var rand = new Random();
-    _sessionId = "a${rand.nextInt(1000000)}";
+    _sessionId = "a${nextSessionId++}";
     markActivity();
   }
 
