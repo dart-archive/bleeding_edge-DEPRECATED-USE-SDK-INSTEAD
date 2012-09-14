@@ -32,7 +32,6 @@ import org.osgi.service.prefs.BackingStoreException;
 
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 
@@ -67,11 +66,6 @@ public class UpdateCore extends Plugin {
    */
   //TODO(pquitslund): move to props file
   private static final String CHANGELOG_URL = "http://commondatastorage.googleapis.com/dart-editor-archive-integration/latest/changelog.html";
-
-  /**
-   * Key to fetch the default update check interval.
-   */
-  private static final String UPDATE_CHECK_INTERVAL_PROP_KEY = "updateCheckInterval";
 
   /**
    * Key to fetch the update URL.
@@ -111,7 +105,7 @@ public class UpdateCore extends Plugin {
   /**
    * Default update check interval.
    */
-  private static final long DEFAULT_UPDATE_CHECK_INTERVAL = TimeUnit.DAYS.toMillis(1);
+  private static final long DEFAULT_UPDATE_CHECK_INTERVAL = TimeUnit.HOURS.toMillis(1);
 
   //The activated plugin
   private static UpdateCore PLUGIN;
@@ -172,19 +166,9 @@ public class UpdateCore extends Plugin {
 
   /**
    * Get the interval for automatic update checks.
-   * 
-   * @return the interval (or {@link #DEFAULT_UPDATE_CHECK_INTERVAL} if unset).
    */
   public static long getUpdateCheckInterval() {
-    ResourceBundle resourceBundle = getResourceBundle();
-    try {
-      String value = (String) resourceBundle.getObject(UPDATE_CHECK_INTERVAL_PROP_KEY);
-      return Integer.parseInt(value);
-    } catch (MissingResourceException e) {
-      return DEFAULT_UPDATE_CHECK_INTERVAL;
-    } catch (NumberFormatException e) {
-      return DEFAULT_UPDATE_CHECK_INTERVAL;
-    }
+    return DEFAULT_UPDATE_CHECK_INTERVAL;
   }
 
   /**
