@@ -17,7 +17,6 @@ import com.google.dart.tools.ui.internal.cleanup.migration.AbstractMigrateCleanU
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_catch_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_get_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_operators_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalNamed_CleanUp;
 
 /**
@@ -91,34 +90,6 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);
-  }
-
-  public void test_1M1_equals() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_operators_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  operator equals(other) => false;",
-        "}",
-        "");
-    String expected = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  operator ==(other) => false;",
-        "}",
-        "");
-    assertCleanUp(cleanUp, initial, expected);
-  }
-
-  public void test_1M1_equals_noOp() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_operators_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  operator ==(other) => false;",
-        "}",
-        "");
-    assertNoFix(cleanUp, initial);
   }
 
   public void test_1M1_getter() throws Exception {
@@ -218,34 +189,6 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "part 'A.dart';",
         "");
     assertCleanUp(cleanUp, initial, expected);
-  }
-
-  public void test_1M1_negate() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_operators_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  operator negate() => this;",
-        "}",
-        "");
-    String expected = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  operator -() => this;",
-        "}",
-        "");
-    assertCleanUp(cleanUp, initial, expected);
-  }
-
-  public void test_1M1_negate_noOp() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_operators_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  operator -() => this;",
-        "}",
-        "");
-    assertNoFix(cleanUp, initial);
   }
 
   public void test_1M1_optionalNamed_noOp_alreadyNewSyntax() throws Exception {

@@ -24,7 +24,6 @@ import com.google.dart.tools.ui.cleanup.ICleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_catch_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_get_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_operators_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalNamed_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_trailingSpace_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_useBlocks_CleanUp;
@@ -545,7 +544,6 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
     private static final CleanUpSettings settings = new CleanUpSettings();
 
     private static final String ID_MIGRATE_SYNTAX_1M1_CATCH = "migrateSyntax-1M1-catch";
-    private static final String ID_MIGRATE_SYNTAX_1M1_OPERS = "migrateSyntax-1M1-operators";
     private static final String ID_MIGRATE_SYNTAX_1M1_GET = "migrateSyntax-1M1-get";
     private static final String ID_MIGRATE_SYNTAX_1M1_LIBRARY = "migrateSyntax-1M1-library";
     private static final String ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED = "migrateSyntax-1M1-optionalNamed-whereSure";
@@ -556,12 +554,10 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
 
     static {
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_CATCH, new Migrate_1M1_catch_CleanUp());
-      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_OPERS, new Migrate_1M1_operators_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_GET, new Migrate_1M1_get_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_LIBRARY, new Migrate_1M1_library_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED, new Migrate_1M1_optionalNamed_CleanUp());
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_CATCH, true);
-      settings.setDefault(ID_MIGRATE_SYNTAX_1M1_OPERS, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_GET, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_LIBRARY, false);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED, false);
@@ -614,10 +610,6 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M1_CATCH,
                 "Migrate 'catch' blocks");
-            createCheckButton(
-                syntaxComposite,
-                ID_MIGRATE_SYNTAX_1M1_OPERS,
-                "Migrate 'operator equals()' and 'operator negate()'");
             createCheckButton(syntaxComposite, ID_MIGRATE_SYNTAX_1M1_GET, "Migrate getters");
             createCheckButton(
                 syntaxComposite,
