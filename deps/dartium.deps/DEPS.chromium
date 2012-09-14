@@ -8,11 +8,11 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "128402",
+  "webkit_revision": "128550",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "9718",
+  "nacl_revision": "9728",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "9330",  # native_client/DEPS: tools_rev
@@ -29,7 +29,7 @@ vars = {
   "ffmpeg_hash": "4a1909e22211b340ee859a8c9d12e8825fe499b7",
 
   "sfntly_revision": "134",
-  "skia_revision": "5503",
+  "skia_revision": "5516",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -528,7 +528,7 @@ deps_os = {
     # For Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@f496bd2240e01f38b7ba84c485d4866379c16756",
+      "@cb147b466b03f18b56c04056a375f097ed52189b",
   },
   "android": {
     "src/third_party/freetype":
