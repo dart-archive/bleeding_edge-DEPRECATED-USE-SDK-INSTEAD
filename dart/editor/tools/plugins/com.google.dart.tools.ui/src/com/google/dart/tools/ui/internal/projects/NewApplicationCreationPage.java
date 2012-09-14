@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.ui.internal.projects;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.util.StatusUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.DirectoryVerification;
@@ -60,14 +61,16 @@ public class NewApplicationCreationPage extends WizardPage {
     WEB
   }
 
-  public static final String NEW_APPPLICATION_SETTINGS = "newApplicationWizard.settings";
-  public static final String PARENT_DIR = "parentDir";
-  public static final String WEB_APP_CHECKBOX_DISABLED = "webAppCheckboxDisabled";
+  public static final String NEW_APPPLICATION_SETTINGS = "newApplicationWizard.settings"; //$NON-NLS-1$
+  public static final String PARENT_DIR = "parentDir"; //$NON-NLS-1$
+  public static final String WEB_APP_CHECKBOX_DISABLED = "webAppCheckboxDisabled"; //$NON-NLS-1$
+  public static final String PUB_SUPPORT_CHECKBOX_DISABLED = "pubSupportCheckboxDisabled"; //$NON-NLS-1$
 
   private Text projectNameField;
   private Text projectLocationField;
   private String defaultLocation;
   private Button webAppCheckboxButton;
+  private Button pubSupportCheckboxButton;
 
   /**
    * Creates a new project creation wizard page.
@@ -159,6 +162,19 @@ public class NewApplicationCreationPage extends WizardPage {
       }
     });
 
+    if (DartCoreDebug.ENABLE_PUB) {
+      pubSupportCheckboxButton = new Button(contentGroup, SWT.CHECK);
+      pubSupportCheckboxButton.setText(ProjectMessages.NewApplicationCreationPage_pubSupportCheckbox_name_label);
+      pubSupportCheckboxButton.setSelection(getPubSupportCheckboxEnabled());
+      pubSupportCheckboxButton.addSelectionListener(new SelectionAdapter() {
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+          IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
+              NEW_APPPLICATION_SETTINGS);
+          settings.put(PUB_SUPPORT_CHECKBOX_DISABLED, !pubSupportCheckboxButton.getSelection());
+        }
+      });
+    }
     setPageComplete(false);
   }
 
@@ -210,6 +226,18 @@ public class NewApplicationCreationPage extends WizardPage {
     } else {
       return ProjectType.SERVER;
     }
+  }
+
+  /**
+   * Specifies if contents should be generated to suit pub package layout
+   * 
+   * @return true/false
+   */
+  public boolean hasPubSupport() {
+    if (DartCoreDebug.ENABLE_PUB) {
+      return pubSupportCheckboxButton.getSelection();
+    }
+    return false;
   }
 
   protected String getDefaultFolder() {
@@ -276,6 +304,12 @@ public class NewApplicationCreationPage extends WizardPage {
     }
 
     return projectNameField.getText().trim();
+  }
+
+  private boolean getPubSupportCheckboxEnabled() {
+    IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
+        NEW_APPPLICATION_SETTINGS);
+    return !settings.getBoolean(PUB_SUPPORT_CHECKBOX_DISABLED);
   }
 
   private boolean getWebAppCheckboxEnabled() {

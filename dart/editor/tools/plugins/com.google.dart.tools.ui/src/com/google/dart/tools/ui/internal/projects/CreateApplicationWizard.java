@@ -113,6 +113,7 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
   private void createFolder(IPath path) {
 
     final ProjectType projectType = page.getProjectType();
+    final boolean hasPubSupport = page.hasPubSupport();
 
     IPath containerPath = path.removeLastSegments(1);
 
@@ -139,7 +140,8 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
                 newProject,
                 newFolderHandle.getLocation().toOSString(),
                 newFolderHandle.getName(),
-                projectType);
+                projectType,
+                hasPubSupport);
           }
 
         } catch (ExecutionException e) {
@@ -196,6 +198,7 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
     // get a project handle
     final IProject newProjectHandle = page.getProjectHandle();
     final ProjectType projectType = page.getProjectType();
+    final boolean hasPubSupport = page.hasPubSupport();
 
     // get a project descriptor
     URI location = page.getLocationURI();
@@ -217,7 +220,8 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
                 newProjectHandle,
                 newProjectHandle.getLocation().toOSString(),
                 newProjectHandle.getName(),
-                projectType);
+                projectType,
+                hasPubSupport);
           }
         } catch (ExecutionException e) {
           throw new InvocationTargetException(e);
@@ -281,12 +285,13 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
    * @throws CoreException
    */
   private IFile createProjectContent(IProject project, String location, String name,
-      ProjectType projectType) throws CoreException {
+      ProjectType projectType, boolean hasPubSupport) throws CoreException {
     ApplicationGenerator generator = new ApplicationGenerator(project);
 
     generator.setApplicationLocation(location);
     generator.setApplicationName(DartIdentifierUtil.createValidIdentifier(name));
     generator.setWebApplication(projectType == ProjectType.WEB);
+    generator.setHasPubSupport(hasPubSupport);
 
     generator.execute(new NullProgressMonitor());
 

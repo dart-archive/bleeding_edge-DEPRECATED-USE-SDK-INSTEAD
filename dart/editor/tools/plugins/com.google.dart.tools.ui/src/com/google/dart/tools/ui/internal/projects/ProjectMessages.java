@@ -31,6 +31,7 @@ public class ProjectMessages extends NLS {
   public static String HideProjectAction_problems_title;
   public static String HideProjectAction_text;
   public static String HideProjectAction_tooltip;
+  public static String NewApplicationCreationPage_pubSupportCheckbox_name_label;
   public static String NewApplicationWizardPage_browse_label;
   public static String NewApplicationWizardPage_directory_label;
   public static String NewApplicationWizardPage_directory_tooltip;

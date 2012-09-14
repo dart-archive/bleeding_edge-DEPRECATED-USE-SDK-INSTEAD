@@ -42,6 +42,7 @@ public class ApplicationGenerator extends AbstractGenerator {
 
   public static final String CSS_FILENAME_EXTENSION = ".css"; //$NON-NLS-1$
   public static final String HTML_FILENAME_EXTENSION = ".html"; //$NON-NLS-1$
+  public static final String SOURCE_DIRECTORY_NAME = "lib";
 
   public static final String DESCRIPTION = GeneratorMessages.ApplicationGenerator_description;
 
@@ -50,6 +51,8 @@ public class ApplicationGenerator extends AbstractGenerator {
   private String applicationLocation;
 
   private boolean isWebApplication;
+
+  private boolean hasPubSupport;
 
   private IFile iApplicationFile = null;
 
@@ -85,10 +88,23 @@ public class ApplicationGenerator extends AbstractGenerator {
       applicationFile = generateCommandLineApp(monitor, applicationFileName);
     }
 
+    if (hasPubSupport) {
+      generatePubspecFile(monitor, applicationFileName);
+    }
     // The generator creates resources using java.io.File APIs.
     project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
 
     iApplicationFile = (IFile) ResourceUtil.getResource(applicationFile);
+  }
+
+  public File getApplicationFile(String fileName) {
+    // Fail fast for null elements
+    Assert.isNotNull(fileName);
+    if (hasPubSupport) {
+      return new File(applicationLocation + File.separator + SOURCE_DIRECTORY_NAME + File.separator
+          + fileName);
+    }
+    return new File(applicationLocation + File.separator + fileName);
   }
 
   public IFile getFile() {
@@ -123,6 +139,10 @@ public class ApplicationGenerator extends AbstractGenerator {
     this.applicationName = applicationName;
   }
 
+  public void setHasPubSupport(boolean hasPubSupport) {
+    this.hasPubSupport = hasPubSupport;
+  }
+
   public void setWebApplication(boolean isWebApplication) {
     this.isWebApplication = isWebApplication;
   }
@@ -153,12 +173,31 @@ public class ApplicationGenerator extends AbstractGenerator {
     final HashMap<String, String> substitutions = new HashMap<String, String>();
     substitutions.put("className", className); //$NON-NLS-1$
 
-    File applicationFile = getSystemFile(applicationFileName);
+    File applicationFile = getApplicationFile(applicationFileName);
     execute("generated-dart-server.txt", applicationFile, substitutions, monitor); //$NON-NLS-1$
     subMonitor.newChild(100);
     subMonitor.done();
 
     return applicationFile;
+  }
+
+  private void generatePubspecFile(IProgressMonitor monitor, String applicationFileName)
+      throws CoreException {
+
+    SubMonitor subMonitor = SubMonitor.convert(
+        monitor,
+        GeneratorMessages.ApplicationGenerator_message,
+        100);
+
+    String className = applicationFileName.substring(0, applicationFileName.indexOf('.'));
+
+    final HashMap<String, String> substitutions = new HashMap<String, String>();
+    substitutions.put("className", className); //$NON-NLS-1$
+
+    File pubspecFile = getSystemFile(DartCore.PUBSPEC_FILE_NAME);
+    execute("generated-pubspec.txt", pubspecFile, substitutions, monitor); //$NON-NLS-1$
+    subMonitor.newChild(100);
+    subMonitor.done();
   }
 
   private File generateWebApplication(IProgressMonitor monitor, String applicationFileName)
@@ -175,7 +214,7 @@ public class ApplicationGenerator extends AbstractGenerator {
     substitutions.put("extends", ""); //$NON-NLS-1$ //$NON-NLS-2$
     substitutions.put("implements", ""); //$NON-NLS-1$ //$NON-NLS-2$
 
-    File applicationFile = getSystemFile(applicationFileName);
+    File applicationFile = getApplicationFile(applicationFileName);
     execute("generated-dart-class-main.txt", applicationFile, substitutions, monitor); //$NON-NLS-1$
     subMonitor.newChild(100);
     subMonitor.done();
