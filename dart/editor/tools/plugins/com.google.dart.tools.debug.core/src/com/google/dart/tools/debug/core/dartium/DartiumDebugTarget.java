@@ -230,14 +230,17 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
    * @param url
    * @throws IOException
    */
-  public void navigateToUrl(String url, boolean enableBreakpoints) throws IOException {
+  public void navigateToUrl(final String url, boolean enableBreakpoints) throws IOException {
     if (breakpointManager != null) {
       breakpointManager.dispose(true);
       breakpointManager = null;
     }
 
     if (enableBreakpoints) {
-      connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.uncaught);
+      PauseOnExceptionsType pauseType = DartDebugCorePlugin.getPlugin().getBreakOnExceptions()
+          ? PauseOnExceptionsType.uncaught : PauseOnExceptionsType.none;
+
+      connection.getDebugger().setPauseOnExceptions(pauseType, createNavigateWebkitCallback(url));
     } else {
       connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.none);
     }
@@ -250,7 +253,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     getConnection().getPage().navigate(url);
   }
 
-  public void openConnection(String url) throws IOException {
+  public void openConnection(final String url) throws IOException {
     connection.addConnectionListener(new WebkitConnectionListener() {
       @Override
       public void connectionClosed(WebkitConnection connection) {
@@ -321,12 +324,14 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     }
 
     // TODO(devoncarew): listen for changes to DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS
-    // Turn on break-on-exceptions.
-    if (breakpointManager != null && DartDebugCorePlugin.getPlugin().getBreakOnExceptions()) {
-      connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.uncaught);
-    }
+    if (breakpointManager != null) {
+      PauseOnExceptionsType pauseType = DartDebugCorePlugin.getPlugin().getBreakOnExceptions()
+          ? PauseOnExceptionsType.uncaught : PauseOnExceptionsType.none;
 
-    connection.getPage().navigate(url);
+      connection.getDebugger().setPauseOnExceptions(pauseType, createNavigateWebkitCallback(url));
+    } else {
+      connection.getPage().navigate(url);
+    }
   }
 
   @Override
@@ -360,6 +365,20 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
   public void writeToStdout(String message) {
     outputStreamMonitor.messageAdded(message);
+  }
+
+  protected WebkitCallback<Boolean> createNavigateWebkitCallback(final String url) {
+    return new WebkitCallback<Boolean>() {
+      @Override
+      public void handleResult(WebkitResult<Boolean> result) {
+        // Once all other requests have been processed, then navigate to the given url.
+        try {
+          connection.getPage().navigate(url);
+        } catch (IOException e) {
+          DartDebugCorePlugin.logError(e);
+        }
+      }
+    };
   }
 
   protected BreakpointManager getBreakpointManager() {

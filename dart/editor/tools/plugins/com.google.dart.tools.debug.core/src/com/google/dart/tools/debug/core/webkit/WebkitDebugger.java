@@ -490,6 +490,10 @@ public class WebkitDebugger extends WebkitDomain {
     }
   }
 
+  public void setPauseOnExceptions(PauseOnExceptionsType state) throws IOException {
+    setPauseOnExceptions(state, null);
+  }
+
   /**
    * Legal values are PauseOnExceptionsType.all, PauseOnExceptionsType.none, or
    * PauseOnExceptionsType.uncaught.
@@ -497,14 +501,24 @@ public class WebkitDebugger extends WebkitDomain {
    * @param state
    * @throws IOException
    */
-  public void setPauseOnExceptions(PauseOnExceptionsType state) throws IOException {
+  public void setPauseOnExceptions(PauseOnExceptionsType state,
+      final WebkitCallback<Boolean> callback) throws IOException {
     try {
       JSONObject request = new JSONObject();
 
       request.put("method", "Debugger.setPauseOnExceptions");
       request.put("params", new JSONObject().put("state", state.toString()));
 
-      connection.sendRequest(request);
+      connection.sendRequest(request, callback == null ? null : new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          WebkitResult<Boolean> webkitResult = WebkitResult.createFrom(result);
+
+          webkitResult.setResult(!webkitResult.isError());
+
+          callback.handleResult(webkitResult);
+        }
+      });
     } catch (JSONException exception) {
       throw new IOException(exception);
     }
