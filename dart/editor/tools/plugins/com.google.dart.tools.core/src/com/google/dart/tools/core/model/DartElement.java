@@ -330,4 +330,9 @@ public interface DartElement extends IAdaptable {
    *           accessing its corresponding resource
    */
   public boolean isStructureKnown() throws DartModelException;
+
+  /**
+   * Visit hierarchy of {@link DartElement}s starting form this one.
+   */
+  void accept(DartElementVisitor visitor) throws DartModelException;
 }

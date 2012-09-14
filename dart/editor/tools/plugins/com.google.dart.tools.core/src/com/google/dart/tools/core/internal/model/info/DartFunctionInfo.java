@@ -27,9 +27,19 @@ public class DartFunctionInfo extends DeclarationElementInfo {
    */
   private char[] returnTypeName;
 
+  private int optionalParametersOpeningGroupChar;
+  private int optionalParametersClosingGroupChar;
   private int parametersCloseParen;
   private int visibleStart;
   private int visibleEnd;
+
+  public int getOptionalParametersClosingGroupChar() {
+    return optionalParametersClosingGroupChar;
+  }
+
+  public int getOptionalParametersOpeningGroupChar() {
+    return optionalParametersOpeningGroupChar;
+  }
 
   /**
    * @return the position of parameters close parenthesis.
@@ -53,6 +63,14 @@ public class DartFunctionInfo extends DeclarationElementInfo {
    */
   public SourceRange getVisibleRange() {
     return new SourceRangeImpl(visibleStart, visibleEnd - visibleStart + 1);
+  }
+
+  public void setOptionalParametersClosingGroupChar(int parametersOptionalClose) {
+    this.optionalParametersClosingGroupChar = parametersOptionalClose;
+  }
+
+  public void setOptionalParametersOpeningGroupChar(int parametersOptionalOpen) {
+    this.optionalParametersOpeningGroupChar = parametersOptionalOpen;
   }
 
   public void setParametersCloseParen(int parametersCloseParen) {

@@ -26,12 +26,14 @@ import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.refactoring.code.ConvertMethodToGetterRefactoring;
+import com.google.dart.tools.internal.corext.refactoring.code.ConvertOptionalParametersToNamedRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoring;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoringWizard;
 import com.google.dart.tools.ui.internal.refactoring.ConvertMethodToGetterWizard;
+import com.google.dart.tools.ui.internal.refactoring.ConvertOptionalParametersToNamedWizard;
 import com.google.dart.tools.ui.internal.refactoring.InlineLocalWizard;
 import com.google.dart.tools.ui.internal.refactoring.InlineMethodWizard;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringExecutionHelper;
@@ -251,36 +253,45 @@ public final class RefactoringExecutionStarter {
 //  	return false;
 //  }
 
-  public static boolean startConvertMethodToGetterRefactoring(CompilationUnit unit, int offset,
-      int length, Shell shell) {
+  public static boolean startConvertMethodToGetterRefactoring(DartFunction function, Shell shell) {
     try {
-      DartElement[] elements = unit.codeSelect(offset, length);
-      if (elements.length == 1 && elements[0] instanceof DartFunction) {
-        DartFunction method = (DartFunction) elements[0];
-        if (method.getParameterNames().length != 0) {
-          MessageDialog.openInformation(
-              shell,
-              RefactoringMessages.ConvertMethodToGetterAction_dialog_title,
-              RefactoringMessages.ConvertMethodToGetterAction_only_without_arguments);
-          return true;
-        }
-        Refactoring refactoring = new ConvertMethodToGetterRefactoring(method);
-        new RefactoringStarter().activate(
-            new ConvertMethodToGetterWizard(refactoring),
+      if (function.getParameterNames().length != 0) {
+        MessageDialog.openInformation(
             shell,
             RefactoringMessages.ConvertMethodToGetterAction_dialog_title,
+            RefactoringMessages.ConvertMethodToGetterAction_only_without_arguments);
+        return true;
+      }
+      Refactoring refactoring = new ConvertMethodToGetterRefactoring(function);
+      new RefactoringStarter().activate(
+          new ConvertMethodToGetterWizard(refactoring),
+          shell,
+          RefactoringMessages.ConvertMethodToGetterAction_dialog_title,
+          RefactoringSaveHelper.SAVE_ALL);
+      return true;
+    } catch (DartModelException e) {
+    }
+    return false;
+  }
+
+  public static boolean startConvertOptionalParametersToNamedRefactoring(DartFunction function,
+      Shell shell) {
+    try {
+      if (function != null) {
+        if (!RefactoringAvailabilityTester.isConvertOptionalParametersToNamedAvailable(function)) {
+          MessageDialog.openInformation(
+              shell,
+              RefactoringMessages.ConvertOptionalParametersToNamedAction_dialog_title,
+              RefactoringMessages.ConvertOptionalParametersToNamedAction_noOptionalPositional);
+          return true;
+        }
+        Refactoring refactoring = new ConvertOptionalParametersToNamedRefactoring(function);
+        new RefactoringStarter().activate(
+            new ConvertOptionalParametersToNamedWizard(refactoring),
+            shell,
+            RefactoringMessages.ConvertOptionalParametersToNamedAction_dialog_title,
             RefactoringSaveHelper.SAVE_ALL);
         return true;
-        // TODO(scheglov)
-//        InlineMethodRefactoring refactoring = new InlineMethodRefactoring(method, unit, offset);
-//        if (refactoring != null) {
-//          new RefactoringStarter().activate(
-//              new InlineMethodWizard(refactoring),
-//              shell,
-//              RefactoringMessages.InlineMethodAction_dialog_title,
-//              RefactoringSaveHelper.SAVE_ALL);
-//          return true;
-//        }
       }
     } catch (DartModelException e) {
     }

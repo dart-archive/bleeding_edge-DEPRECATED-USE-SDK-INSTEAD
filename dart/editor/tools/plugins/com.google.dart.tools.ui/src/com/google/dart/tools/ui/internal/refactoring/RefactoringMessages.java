@@ -123,6 +123,9 @@ public final class RefactoringMessages extends NLS {
   public static String ConvertMethodToGetterAction_already_getter;
   public static String ConvertMethodToGetterAction_only_without_arguments;
   public static String ConvertMethodToGetterWizard_page_title;
+  public static String ConvertOptionalParametersToNamedWizard_page_title;
+  public static String ConvertOptionalParametersToNamedAction_dialog_title;
+  public static String ConvertOptionalParametersToNamedAction_noOptionalPositional;
 
   // XXX
   // These constants are not used yet in Dart refactoring.

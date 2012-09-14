@@ -70,12 +70,16 @@ public class ExecutionUtils {
 
   /**
    * Runs given {@link RunnableEx} and ignores exception.
+   * 
+   * @return <code>true</code> if execution was done without exception.
    */
-  public static void runIgnore(RunnableEx runnable) {
+  public static boolean runIgnore(RunnableEx runnable) {
     try {
       runnable.run();
+      return true;
     } catch (Throwable e) {
     }
+    return false;
   }
 
   /**

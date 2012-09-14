@@ -42,6 +42,14 @@ public class DartVariableInfo extends DeclarationElementInfo {
 
   private int visibleStart;
   private int visibleEnd;
+  private SourceRange defaultExpressionRange;
+
+  /**
+   * @return the {@link SourceRange} of the default parameter expression, may be <code>null</code>.
+   */
+  public SourceRange getDefaultExpressionRange() {
+    return defaultExpressionRange;
+  }
 
   /**
    * Return the name of the declared type of this variable, or <code>null</code> if this variable
@@ -80,6 +88,10 @@ public class DartVariableInfo extends DeclarationElementInfo {
    */
   public boolean isParameter() {
     return isParameter;
+  }
+
+  public void setDefaultExpressionRange(SourceRange range) {
+    this.defaultExpressionRange = range;
   }
 
   /**

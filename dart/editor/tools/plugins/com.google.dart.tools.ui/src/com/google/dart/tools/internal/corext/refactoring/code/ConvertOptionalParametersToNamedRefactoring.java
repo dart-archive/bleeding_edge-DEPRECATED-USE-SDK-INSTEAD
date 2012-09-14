@@ -16,22 +16,27 @@ package com.google.dart.tools.internal.corext.refactoring.code;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.ASTNodes;
+import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartInvocation;
+import com.google.dart.compiler.ast.DartNamedExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.dom.NodeFinder;
-import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartFunction;
+import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
+import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
 import com.google.dart.tools.internal.corext.refactoring.rename.MemberDeclarationsReferences;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
+import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
 
 import org.eclipse.core.runtime.CoreException;
@@ -48,11 +53,12 @@ import org.eclipse.text.edits.TextEdit;
 import java.util.List;
 
 /**
- * Converts {@link DartFunction} without arguments into getter.
+ * Converts {@link DartFunction} with optional positional parameters style <code>[a = 10]</code> to
+ * optional named style <code>{a: 10}</code>.
  * 
  * @coverage dart.editor.ui.refactoring.core
  */
-public class ConvertMethodToGetterRefactoring extends Refactoring {
+public class ConvertOptionalParametersToNamedRefactoring extends Refactoring {
 
   private static void addReplaceEdit(TextChange change, String name, SourceRange range, String text) {
     TextEdit edit = new ReplaceEdit(range.getOffset(), range.getLength(), text);
@@ -62,25 +68,14 @@ public class ConvertMethodToGetterRefactoring extends Refactoring {
   private final DartFunction function;
   private final TextChangeManager changeManager = new TextChangeManager(true);
 
-  public ConvertMethodToGetterRefactoring(DartFunction function) {
+  public ConvertOptionalParametersToNamedRefactoring(DartFunction function) {
     this.function = function;
   }
 
   @Override
   public RefactoringStatus checkFinalConditions(IProgressMonitor pm) throws CoreException {
-    pm.done();
-    return new RefactoringStatus();
-  }
-
-  @Override
-  public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException {
-    pm.done();
-    return new RefactoringStatus();
-  }
-
-  @Override
-  public Change createChange(IProgressMonitor pm) throws CoreException {
-    pm.beginTask(RefactoringCoreMessages.ConvertMethodToGetterRefactoring_processing, 3);
+    RefactoringStatus result = new RefactoringStatus();
+    pm.beginTask(RefactoringCoreMessages.ConvertOptionalParametersToNamedRefactoring_processing, 3);
     pm.subTask(StringUtils.EMPTY);
     try {
       List<DartFunction> declarations;
@@ -102,29 +97,38 @@ public class ConvertMethodToGetterRefactoring extends Refactoring {
         declarations = ImmutableList.of(function);
         references = RenameAnalyzeUtil.getReferences(function, pm2);
       }
-      // convert method declaration(s) to getter
+      // update declarations to use {}
       for (DartFunction function : declarations) {
         CompilationUnit unit = function.getCompilationUnit();
         TextChange change = changeManager.get(unit);
-        String changeName = RefactoringCoreMessages.ConvertMethodToGetterRefactoring_make_getter_declaration;
-        addReplaceEdit(
-            change,
-            changeName,
-            SourceRangeFactory.forStartLength(function.getNameRange(), 0),
-            "get ");
-        addReplaceEdit(
-            change,
-            changeName,
-            SourceRangeFactory.forEndEnd(
-                function.getNameRange(),
-                function.getParametersCloseParen()),
-            "");
-        pm.worked(1);
+        String changeName = RefactoringCoreMessages.ConvertOptionalParametersToNamedRefactoring_update_declaration;
+        addReplaceEdit(change, changeName, function.getOptionalParametersOpeningGroupChar(), "{");
+        addReplaceEdit(change, changeName, function.getOptionalParametersClosingGroupChar(), "}");
+        // replace "p = value" with "p: value"
+        for (DartVariableDeclaration parameter : function.getLocalVariables()) {
+          if (parameter.isParameter()) {
+            SourceRange expressionRange = parameter.getDefaultExpressionRange();
+            if (expressionRange != null) {
+              addReplaceEdit(
+                  change,
+                  changeName,
+                  SourceRangeFactory.forEndStart(parameter.getNameRange(), expressionRange),
+                  ": ");
+            }
+          }
+        }
       }
+      pm.worked(1);
       // convert all references
       for (SearchMatch reference : references) {
         CompilationUnit refUnit = reference.getElement().getAncestor(CompilationUnit.class);
-        TextChange refChange = changeManager.get(refUnit);
+        if (!Checks.isAvailable(refUnit)) {
+          result.addError(Messages.format(
+              RefactoringCoreMessages.ConvertOptionalParametersToNamedRefactoring_externalUnit,
+              refUnit));
+          continue;
+        }
+        TextChange refChange = null;
         ExtractUtils utils = new ExtractUtils(refUnit);
         // prepare invocation
         DartNode coveringNode = NodeFinder.find(
@@ -134,27 +138,49 @@ public class ConvertMethodToGetterRefactoring extends Refactoring {
         DartInvocation invocation = ASTNodes.getAncestor(coveringNode, DartInvocation.class);
         // we need invocation
         if (invocation != null) {
-          SourceRange range = SourceRangeFactory.forStartEnd(
-              SourceRangeUtils.getEnd(reference.getSourceRange()),
-              invocation);
-          addReplaceEdit(
-              refChange,
-              RefactoringCoreMessages.ConvertMethodToGetterRefactoring_replace_invocation,
-              range,
-              "");
+          List<DartExpression> arguments = invocation.getArguments();
+          for (DartExpression argument : arguments) {
+            if (!(argument instanceof DartNamedExpression)) {
+              Object parameterId = argument.getInvocationParameterId();
+              if (parameterId instanceof VariableElement) {
+                VariableElement parameterElement = (VariableElement) parameterId;
+                if (parameterElement.getModifiers().isOptional()) {
+                  if (refChange == null) {
+                    refChange = changeManager.get(refUnit);
+                  }
+                  addReplaceEdit(
+                      refChange,
+                      RefactoringCoreMessages.ConvertOptionalParametersToNamedRefactoring_update_invocation,
+                      SourceRangeFactory.forStartLength(argument, 0),
+                      parameterElement.getName() + ": ");
+                }
+              }
+            }
+          }
         }
       }
       pm.worked(1);
-      // done
-      return new CompositeChange(getName(), changeManager.getAllChanges());
     } finally {
       pm.done();
     }
+    return result;
+  }
+
+  @Override
+  public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException {
+    pm.done();
+    return new RefactoringStatus();
+  }
+
+  @Override
+  public Change createChange(IProgressMonitor pm) throws CoreException {
+    pm.done();
+    return new CompositeChange(getName(), changeManager.getAllChanges());
   }
 
   @Override
   public String getName() {
-    return RefactoringCoreMessages.ConvertMethodToGetterRefactoring_name;
+    return RefactoringCoreMessages.ConvertOptionalParametersToNamedRefactoring_name;
   }
 
 }

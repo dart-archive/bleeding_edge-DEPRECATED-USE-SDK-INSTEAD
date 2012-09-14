@@ -19,7 +19,7 @@ import com.google.dart.engine.scanner.BeginToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.tools.core.model.SourceRange;
-import com.google.dart.tools.internal.corext.SourceRangeFactory;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.code.TokenUtils;
 
 import java.util.List;

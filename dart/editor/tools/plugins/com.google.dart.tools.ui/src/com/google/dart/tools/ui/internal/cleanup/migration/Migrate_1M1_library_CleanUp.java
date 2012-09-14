@@ -20,7 +20,7 @@ import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.internal.corext.SourceRangeFactory;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 
 /**
  * In specification 1.0 M1 new library/import/source syntax is defined.

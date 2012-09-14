@@ -24,15 +24,19 @@ import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartElementVisitor;
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
+import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeHierarchy;
 import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
@@ -188,6 +192,47 @@ public final class DartModelUtil {
     // }
     // }
     return null; // attachment not possible
+  }
+
+  /**
+   * @return the inner-most {@link DartFunction} on given offset.
+   */
+  public static DartFunction findFunction(CompilationUnit unit, int offset)
+      throws DartModelException {
+    // try to find on function name
+    DartElement[] elements = unit.codeSelect(offset, 0);
+    if (elements.length != 0) {
+      DartElement element = elements[0];
+      if (element instanceof DartFunction) {
+        return (DartFunction) element;
+      }
+    }
+    // only declaration, but on whole header, not just on name
+    return findFunctionDeclarationHeader(unit, offset);
+  }
+
+  /**
+   * @return the inner-most {@link DartFunction} with "offset" in its header.
+   */
+  public static DartFunction findFunctionDeclarationHeader(CompilationUnit unit, final int offset)
+      throws DartModelException {
+    final DartFunction[] functions = {null};
+    unit.accept(new DartElementVisitor() {
+      @Override
+      public boolean visit(DartElement element) throws DartModelException {
+        if (element instanceof DartFunction) {
+          DartFunction function = (DartFunction) element;
+          SourceRange headerRange = SourceRangeFactory.forStartEnd(
+              function.getSourceRange(),
+              SourceRangeUtils.getEndInclusive(function.getParametersCloseParen()));
+          if (SourceRangeUtils.contains(headerRange, offset)) {
+            functions[0] = function;
+          }
+        }
+        return true;
+      }
+    });
+    return functions[0];
   }
 
   /**

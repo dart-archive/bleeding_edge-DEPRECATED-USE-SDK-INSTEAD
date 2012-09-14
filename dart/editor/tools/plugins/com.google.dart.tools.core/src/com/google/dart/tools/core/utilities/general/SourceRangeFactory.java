@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.internal.corext;
+package com.google.dart.tools.core.utilities.general;
 
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.common.HasSourceInfo;
@@ -28,8 +28,15 @@ public class SourceRangeFactory {
     return new SourceRangeImpl(error.getStartPosition(), error.getLength());
   }
 
+  /**
+   * @return the {@link SourceRange} for given {@link HasSourceInfo}, or <code>null</code> if
+   *         <code>null</code> was given.
+   */
   public static SourceRange create(HasSourceInfo hasSourceInfo) {
-    return new SourceRangeImpl(hasSourceInfo);
+    if (hasSourceInfo != null) {
+      return new SourceRangeImpl(hasSourceInfo);
+    }
+    return null;
   }
 
   /**
@@ -97,6 +104,15 @@ public class SourceRangeFactory {
   }
 
   /**
+   * @return the {@link SourceRange} which start at the end of "a" and ends at the start of "b".
+   */
+  public static SourceRange forEndStart(SourceRange a, SourceRange b) {
+    int start = SourceRangeUtils.getEnd(a);
+    int end = b.getOffset();
+    return forStartEnd(start, end);
+  }
+
+  /**
    * @return the {@link SourceRange} which start at start of "a" and ends at end of "b".
    */
   public static SourceRange forStartEnd(HasSourceInfo a, HasSourceInfo b) {
@@ -115,6 +131,23 @@ public class SourceRangeFactory {
 
   public static SourceRange forStartEnd(int start, int end) {
     return new SourceRangeImpl(start, end - start);
+  }
+
+  /**
+   * @return the {@link SourceRange} which start at start of "a" and ends at "end".
+   */
+  public static SourceRange forStartEnd(SourceRange a, int end) {
+    int start = a.getOffset();
+    return forStartEnd(start, end);
+  }
+
+  /**
+   * @return the {@link SourceRange} which start at start of "a" and ends at end of "b".
+   */
+  public static SourceRange forStartEnd(SourceRange a, SourceRange b) {
+    int start = a.getOffset();
+    int end = SourceRangeUtils.getEnd(b);
+    return forStartEnd(start, end);
   }
 
   public static SourceRange forStartEnd(Token a, Token b) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -18,6 +18,8 @@ package com.google.dart.tools.core.internal.model.info;
  * methods.
  */
 public class DartMethodInfo extends DeclarationElementInfo {
+  private int optionalParametersOpeningGroupChar;
+  private int optionalParametersClosingGroupChar;
   private int parametersCloseParen;
   /**
    * A flag indicating whether this method is a constructor.
@@ -34,6 +36,14 @@ public class DartMethodInfo extends DeclarationElementInfo {
    * constructor or does not have a declared return type.
    */
   private char[] returnTypeName;
+
+  public int getOptionalParametersClosingGroupChar() {
+    return optionalParametersClosingGroupChar;
+  }
+
+  public int getOptionalParametersOpeningGroupChar() {
+    return optionalParametersOpeningGroupChar;
+  }
 
   /**
    * @return the position of parameters close parenthesis.
@@ -90,6 +100,14 @@ public class DartMethodInfo extends DeclarationElementInfo {
    */
   public void setImplicit(boolean implicit) {
     isImplicit = implicit;
+  }
+
+  public void setOptionalParametersClosingGroupChar(int parametersOptionalClose) {
+    this.optionalParametersClosingGroupChar = parametersOptionalClose;
+  }
+
+  public void setOptionalParametersOpeningGroupChar(int parametersOptionalOpen) {
+    this.optionalParametersOpeningGroupChar = parametersOptionalOpen;
   }
 
   public void setParametersCloseParen(int parametersCloseParen) {

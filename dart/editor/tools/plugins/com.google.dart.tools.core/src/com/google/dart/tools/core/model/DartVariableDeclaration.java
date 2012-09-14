@@ -21,6 +21,11 @@ package com.google.dart.tools.core.model;
  */
 public interface DartVariableDeclaration extends CompilationUnitElement, SourceReference {
   /**
+   * @return the {@link SourceRange} of the default parameter expression, may be <code>null</code>.
+   */
+  public SourceRange getDefaultExpressionRange() throws DartModelException;
+
+  /**
    * Return the name of the type of this variable, or <code>null</code> if this variable does not
    * have a declared type. In the case where the type is a function type, this method will return a
    * string that contains both the types and names of the function's parameters.

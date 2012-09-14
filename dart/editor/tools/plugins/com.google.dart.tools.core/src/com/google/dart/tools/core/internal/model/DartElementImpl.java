@@ -21,6 +21,7 @@ import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartElementVisitor;
 import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModelStatus;
@@ -55,17 +56,17 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
    */
   private final DartElement parent;
 
+  /**
+   * The character used before the name of a compilation unit.
+   */
+  public static final char MEMENTO_DELIMITER_COMPILATION_UNIT = '!';
+
   /*
    * CRITICAL! Do not use colon (:) as a delimiter. It is used in the indexer as a delimiter between
    * the memento and other information. Using it as a delimiter here would break the indexer.
    * 
    * Suggested characters for additional delimiters: '*', ')', '}', '?'
    */
-
-  /**
-   * The character used before the name of a compilation unit.
-   */
-  public static final char MEMENTO_DELIMITER_COMPILATION_UNIT = '!';
 
   /**
    * The character used before an integer for elements that have no name.
@@ -175,6 +176,16 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
    */
   protected DartElementImpl(DartElement parent) {
     this.parent = parent;
+  }
+
+  @Override
+  public void accept(DartElementVisitor visitor) throws DartModelException {
+    if (visitor.visit(this)) {
+      DartElement[] children = getChildren();
+      for (DartElement child : children) {
+        child.accept(visitor);
+      }
+    }
   }
 
   /**

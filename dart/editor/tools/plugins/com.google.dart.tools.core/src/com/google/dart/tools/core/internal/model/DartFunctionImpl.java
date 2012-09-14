@@ -97,6 +97,20 @@ public class DartFunctionImpl extends SourceReferenceImpl implements DartFunctio
   }
 
   @Override
+  public SourceRange getOptionalParametersClosingGroupChar() throws DartModelException {
+    DartFunctionInfo info = (DartFunctionInfo) getElementInfo();
+    int offset = info.getOptionalParametersClosingGroupChar();
+    return offset == -1 ? null : new SourceRangeImpl(offset, 1);
+  }
+
+  @Override
+  public SourceRange getOptionalParametersOpeningGroupChar() throws DartModelException {
+    DartFunctionInfo info = (DartFunctionInfo) getElementInfo();
+    int offset = info.getOptionalParametersOpeningGroupChar();
+    return offset == -1 ? null : new SourceRangeImpl(offset, 1);
+  }
+
+  @Override
   public String[] getParameterTypeNames() throws DartModelException {
     ArrayList<String> typeNames = new ArrayList<String>();
     for (DartVariableDeclaration variable : getChildrenOfType(DartVariableDeclaration.class)) {

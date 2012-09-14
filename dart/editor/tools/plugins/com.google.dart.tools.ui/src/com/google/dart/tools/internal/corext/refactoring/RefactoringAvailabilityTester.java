@@ -33,6 +33,7 @@ import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
+import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
@@ -410,6 +411,15 @@ public class RefactoringAvailabilityTester {
     return SourceRangeUtils.isAvailable(function.getNameRange());
   }
 
+  public static boolean isConvertMethodToGetterAvailable(DartTextSelection selection)
+      throws DartModelException {
+    DartElement[] elements = selection.resolveElementAtOffset();
+    if (elements.length != 1) {
+      return false;
+    }
+    return elements[0] instanceof Method && isConvertMethodToGetterAvailable((Method) elements[0]);
+  }
+
 //  public static boolean isExtractSupertypeAvailable(TypeMember member) throws DartModelException {
 //    if (!member.exists()) {
 //      return false;
@@ -501,13 +511,13 @@ public class RefactoringAvailabilityTester {
 //    return isExtractSupertypeAvailable(new TypeMember[]{(TypeMember) element});
 //  }
 
-  public static boolean isConvertMethodToGetterAvailable(DartTextSelection selection)
+  public static boolean isConvertMethodToGetterAvailable(IStructuredSelection selection)
       throws DartModelException {
-    DartElement[] elements = selection.resolveElementAtOffset();
-    if (elements.length != 1) {
+    if (selection.isEmpty() || selection.size() != 1) {
       return false;
     }
-    return elements[0] instanceof Method && isConvertMethodToGetterAvailable((Method) elements[0]);
+    Object first = selection.getFirstElement();
+    return first instanceof Method && isConvertMethodToGetterAvailable((Method) first);
   }
 
 //  public static boolean isGeneralizeTypeAvailable(DartElement element)
@@ -665,13 +675,26 @@ public class RefactoringAvailabilityTester {
 //    return elements[0] instanceof Field && isInlineConstantAvailable((Field) elements[0]);
 //  }
 
-  public static boolean isConvertMethodToGetterAvailable(IStructuredSelection selection)
+  public static boolean isConvertOptionalParametersToNamedAvailable(DartFunction function)
       throws DartModelException {
-    if (selection.isEmpty() || selection.size() != 1) {
+    if (function == null) {
       return false;
     }
-    Object first = selection.getFirstElement();
-    return first instanceof Method && isConvertMethodToGetterAvailable((Method) first);
+    if (!function.exists()) {
+      return false;
+    }
+    if (!function.isStructureKnown()) {
+      return false;
+    }
+    if (function.getParameterNames().length == 0) {
+      return false;
+    }
+    SourceRange optionalOpen = function.getOptionalParametersOpeningGroupChar();
+    if (optionalOpen == null) {
+      return false;
+    }
+    String unitSource = function.getCompilationUnit().getSource();
+    return unitSource.substring(optionalOpen.getOffset()).startsWith("[");
   }
 
   public static boolean isExtractLocalAvailable(DartTextSelection selection) {

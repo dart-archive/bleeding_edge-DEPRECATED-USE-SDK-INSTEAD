@@ -22,7 +22,7 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.search.SearchMatch;
-import com.google.dart.tools.internal.corext.SourceRangeFactory;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.ui.internal.text.Selection;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;

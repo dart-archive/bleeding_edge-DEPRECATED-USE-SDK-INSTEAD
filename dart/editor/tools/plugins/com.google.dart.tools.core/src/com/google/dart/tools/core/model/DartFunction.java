@@ -58,6 +58,18 @@ public interface DartFunction extends CompilationUnitElement, ParentElement, Sou
   public SourceRange getParametersCloseParen() throws DartModelException;
 
   /**
+   * @return the {@link SourceRange} of the close character optional parameters declaration,
+   *         <code>]</code> or <code>}</code>. May be <code>null</code> if no optional parameters.
+   */
+  public SourceRange getOptionalParametersClosingGroupChar() throws DartModelException;
+
+  /**
+   * @return the {@link SourceRange} of the open character optional parameters declaration,
+   *         <code>[</code> or <code>{</code>. May be <code>null</code> if no optional parameters.
+   */
+  public SourceRange getOptionalParametersOpeningGroupChar() throws DartModelException;
+
+  /**
    * Return an array containing the names of the parameter types for this function, or an empty
    * array if this function does not have any parameters. In the case where the type of a parameter
    * is a function type, this method will return a string that contains only the types of the

@@ -26,7 +26,7 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.MatchQuality;
 import com.google.dart.tools.core.search.SearchMatch;
-import com.google.dart.tools.internal.corext.SourceRangeFactory;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.rename.FunctionLocalElement;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 

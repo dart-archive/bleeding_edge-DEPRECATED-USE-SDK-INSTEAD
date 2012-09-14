@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.internal.cleanup.style;
 
 import com.google.common.base.CharMatcher;
 import com.google.dart.compiler.util.apache.StringUtils;
-import com.google.dart.tools.internal.corext.SourceRangeFactory;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.ui.internal.cleanup.migration.AbstractMigrateCleanUp;
 
 /**

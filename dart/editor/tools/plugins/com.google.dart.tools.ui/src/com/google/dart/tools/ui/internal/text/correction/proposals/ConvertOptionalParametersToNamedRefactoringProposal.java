@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.internal.text.correction.proposals;
 
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
-import com.google.dart.tools.internal.corext.refactoring.code.ConvertMethodToGetterRefactoring;
+import com.google.dart.tools.internal.corext.refactoring.code.ConvertOptionalParametersToNamedRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
@@ -35,37 +35,37 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
 /**
- * A quick assist proposal that starts the {@link ConvertMethodToGetterRefactoring}.
+ * A quick assist proposal that starts the {@link ConvertOptionalParametersToNamedRefactoring}.
  * 
  * @coverage dart.editor.ui.correction
  */
-public class ConvertMethodToGetterRefactoringProposal implements IDartCompletionProposal,
-    ICompletionProposalExtension6, ICommandAccess {
+public class ConvertOptionalParametersToNamedRefactoringProposal implements
+    IDartCompletionProposal, ICompletionProposalExtension6, ICommandAccess {
 
   private final DartEditor editor;
   private final DartFunction function;
   private final int relevance;
   private final String label;
 
-  public ConvertMethodToGetterRefactoringProposal(DartEditor editor, DartFunction function,
-      int relevance) {
+  public ConvertOptionalParametersToNamedRefactoringProposal(DartEditor editor,
+      DartFunction function, int relevance) {
     Assert.isNotNull(editor);
     this.editor = editor;
     this.function = function;
     this.relevance = relevance;
-    this.label = CorrectionMessages.ConvertMethodToGetterRefactoringProposal_name;
+    this.label = CorrectionMessages.ConvertOptionalParametersToNamedRefactoringProposal_name;
   }
 
   @Override
   public void apply(IDocument document) {
-    RefactoringExecutionStarter.startConvertMethodToGetterRefactoring(
+    RefactoringExecutionStarter.startConvertOptionalParametersToNamedRefactoring(
         function,
         editor.getSite().getShell());
   }
 
   @Override
   public String getAdditionalProposalInfo() {
-    return CorrectionMessages.ConvertMethodToGetterRefactoringProposal_additionalInfo;
+    return CorrectionMessages.ConvertOptionalParametersToNamedRefactoringProposal_additionalInfo;
   }
 
   @Override

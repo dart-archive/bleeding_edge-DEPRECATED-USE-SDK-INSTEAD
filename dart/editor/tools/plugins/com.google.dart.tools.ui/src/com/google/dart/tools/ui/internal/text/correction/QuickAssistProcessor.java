@@ -13,6 +13,13 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_BINARY_EXPRESSION_LEFT_OPERAND;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_BINARY_EXPRESSION_RIGHT_OPERAND;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_RETURN_STATEMENT_VALUE;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_NAME;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
+
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.DartBinaryExpression;
@@ -48,7 +55,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
-import com.google.dart.tools.internal.corext.SourceRangeFactory;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
 import com.google.dart.tools.internal.corext.refactoring.code.TokenUtils;
@@ -57,19 +64,14 @@ import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertOptionalParametersToNamedRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.RenameRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.util.DartModelUtil;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
 import com.google.dart.tools.ui.text.dart.IQuickAssistProcessor;
-
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_BINARY_EXPRESSION_LEFT_OPERAND;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_BINARY_EXPRESSION_RIGHT_OPERAND;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_RETURN_STATEMENT_VALUE;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_NAME;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
@@ -154,6 +156,8 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
 
   private IInvocationContext context;
 
+  private com.google.dart.tools.core.model.DartFunction selectionFunction;
+
   @Override
   public synchronized IDartCompletionProposal[] getAssists(IInvocationContext context,
       IProblemLocation[] locations) throws CoreException {
@@ -162,6 +166,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     unit = context.getCompilationUnit();
     selectionOffset = context.getSelectionOffset();
     selectionLength = context.getSelectionLength();
+    selectionFunction = DartModelUtil.findFunction(unit, selectionOffset);
     node = context.getCoveringNode();
     utils = new ExtractUtils(unit, (DartUnit) node.getRoot());
     if (node != null) {
@@ -256,17 +261,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
   }
 
   void addProposal_convertMethodToGetterRefactoring() throws CoreException {
-    // check that we can rename DartElement under cursor
-    DartElement[] elements = unit.codeSelect(selectionOffset, 0);
-    if (elements.length == 0) {
-      return;
-    }
-    DartElement element = elements[0];
-    if (!(element instanceof com.google.dart.tools.core.model.DartFunction)) {
-      return;
-    }
-    com.google.dart.tools.core.model.DartFunction function = (com.google.dart.tools.core.model.DartFunction) element;
-    if (!RefactoringAvailabilityTester.isConvertMethodToGetterAvailable(function)) {
+    if (!RefactoringAvailabilityTester.isConvertMethodToGetterAvailable(selectionFunction)) {
       return;
     }
     // we need DartEditor
@@ -277,6 +272,26 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
         // add proposal
         ICommandAccess proposal = new ConvertMethodToGetterRefactoringProposal(
             dartEditor,
+            selectionFunction,
+            proposalRelevance);
+        proposals.add(proposal);
+      }
+    }
+  }
+
+  void addProposal_ConvertOptionalParametersToNamedRefactoring() throws CoreException {
+    if (!RefactoringAvailabilityTester.isConvertOptionalParametersToNamedAvailable(selectionFunction)) {
+      return;
+    }
+    // we need DartEditor
+    if (context instanceof AssistContext) {
+      IEditorPart editor = ((AssistContext) context).getEditor();
+      if (editor instanceof DartEditor) {
+        DartEditor dartEditor = (DartEditor) editor;
+        // add proposal
+        ICommandAccess proposal = new ConvertOptionalParametersToNamedRefactoringProposal(
+            dartEditor,
+            selectionFunction,
             proposalRelevance);
         proposals.add(proposal);
       }

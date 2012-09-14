@@ -90,6 +90,20 @@ public class DartMethodImpl extends NamedTypeMemberImpl implements Method {
   }
 
   @Override
+  public SourceRange getOptionalParametersClosingGroupChar() throws DartModelException {
+    DartMethodInfo info = (DartMethodInfo) getElementInfo();
+    int offset = info.getOptionalParametersClosingGroupChar();
+    return offset == -1 ? null : new SourceRangeImpl(offset, 1);
+  }
+
+  @Override
+  public SourceRange getOptionalParametersOpeningGroupChar() throws DartModelException {
+    DartMethodInfo info = (DartMethodInfo) getElementInfo();
+    int offset = info.getOptionalParametersOpeningGroupChar();
+    return offset == -1 ? null : new SourceRangeImpl(offset, 1);
+  }
+
+  @Override
   public String[] getParameterTypeNames() throws DartModelException {
     ArrayList<String> typeNames = new ArrayList<String>();
     for (DartVariableDeclaration variable : getChildrenOfType(DartVariableDeclaration.class)) {

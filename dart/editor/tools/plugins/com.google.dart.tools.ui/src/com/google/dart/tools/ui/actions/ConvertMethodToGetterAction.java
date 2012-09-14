@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
@@ -23,6 +24,7 @@ import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
+import com.google.dart.tools.ui.internal.util.DartModelUtil;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
@@ -78,13 +80,15 @@ public class ConvertMethodToGetterAction extends SelectionDispatchAction {
     }
 
     CompilationUnit cu = SelectionConverter.getInputAsCompilationUnit(fEditor);
-    boolean success = RefactoringExecutionStarter.startConvertMethodToGetterRefactoring(
-        cu,
-        selection.getOffset(),
-        selection.getLength(),
-        getShell());
-    if (success) {
-      return;
+    try {
+      DartFunction function = DartModelUtil.findFunction(cu, selection.getOffset());
+      boolean success = RefactoringExecutionStarter.startConvertMethodToGetterRefactoring(
+          function,
+          getShell());
+      if (success) {
+        return;
+      }
+    } catch (Throwable e) {
     }
 
     MessageDialog.openInformation(

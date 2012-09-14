@@ -146,6 +146,31 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_convertMethodToGetterRefactoring(source, offsetPattern, false);
   }
 
+  public void test_convertOptionalParametersToNamedRefactoring_OK() throws Exception {
+    String source = "test(a, [b = 2]) {}";
+    String offsetPattern = "test(a";
+    assert_convertOptionalParametersToNamedRefactoring(source, offsetPattern, true);
+  }
+
+  public void test_convertOptionalParametersToNamedRefactoring_wrong_noOptional() throws Exception {
+    String source = "test(a) {}";
+    String offsetPattern = "test(a";
+    assert_convertOptionalParametersToNamedRefactoring(source, offsetPattern, false);
+  }
+
+  public void test_convertOptionalParametersToNamedRefactoring_wrong_notFunction() throws Exception {
+    String source = "class AAA {}";
+    String offsetPattern = "AAA {}";
+    assert_convertOptionalParametersToNamedRefactoring(source, offsetPattern, false);
+  }
+
+  public void test_convertOptionalParametersToNamedRefactoring_wrong_notOptionalPositional()
+      throws Exception {
+    String source = "test(a, {b: 2}) {}";
+    String offsetPattern = "test(a";
+    assert_convertOptionalParametersToNamedRefactoring(source, offsetPattern, false);
+  }
+
   public void test_convertToBlockBody_OK_onMethodName() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -849,6 +874,18 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
       String offsetPattern,
       boolean expected) throws Exception {
     String name = CorrectionMessages.ConvertMethodToGetterRefactoringProposal_name;
+    if (expected) {
+      assertHasProposal(source, offsetPattern, name);
+    } else {
+      assertNoProposal(source, offsetPattern, name);
+    }
+  }
+
+  private void assert_convertOptionalParametersToNamedRefactoring(
+      String source,
+      String offsetPattern,
+      boolean expected) throws Exception {
+    String name = CorrectionMessages.ConvertOptionalParametersToNamedRefactoringProposal_name;
     if (expected) {
       assertHasProposal(source, offsetPattern, name);
     } else {

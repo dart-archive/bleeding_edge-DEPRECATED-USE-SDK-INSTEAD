@@ -287,7 +287,7 @@ public class RefactorActionGroup extends ActionGroup {
         provider,
         null,
         selection,
-        DartEditorActionDefinitionIds.CONVER_METHOD_TO_GETTER);
+        DartEditorActionDefinitionIds.CONVERT_METHOD_TO_GETTER);
     editor.setAction("ConvertMethodToGetter", fConvertMethodToGetterAction); //$NON-NLS-1$
 
     installQuickAccessAction();
@@ -393,7 +393,7 @@ public class RefactorActionGroup extends ActionGroup {
         fSelectionProvider,
         selectionProvider,
         selection,
-        DartEditorActionDefinitionIds.CONVER_METHOD_TO_GETTER);
+        DartEditorActionDefinitionIds.CONVERT_METHOD_TO_GETTER);
 
 //    fUseSupertypeAction= new UseSupertypeAction(fSite);
 //    initUpdatingAction(fUseSupertypeAction, fSelectionProvider, selectionProvider, selection, IJavaEditorActionDefinitionIds.USE_SUPERTYPE);

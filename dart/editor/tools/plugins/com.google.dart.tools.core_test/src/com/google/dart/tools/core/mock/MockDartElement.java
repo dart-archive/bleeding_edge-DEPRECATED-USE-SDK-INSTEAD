@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.mock;
 
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartElementVisitor;
 import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
@@ -30,6 +31,10 @@ public class MockDartElement implements DartElement {
 
   public MockDartElement(String elementName) {
     this.elementName = elementName;
+  }
+
+  @Override
+  public void accept(DartElementVisitor visitor) throws DartModelException {
   }
 
   @Override

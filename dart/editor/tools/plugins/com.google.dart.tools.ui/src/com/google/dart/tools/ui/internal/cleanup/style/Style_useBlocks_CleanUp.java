@@ -23,7 +23,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.tools.core.model.SourceRange;
-import com.google.dart.tools.internal.corext.SourceRangeFactory;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.ui.internal.cleanup.migration.AbstractMigrateCleanUp;
 
 import java.util.List;

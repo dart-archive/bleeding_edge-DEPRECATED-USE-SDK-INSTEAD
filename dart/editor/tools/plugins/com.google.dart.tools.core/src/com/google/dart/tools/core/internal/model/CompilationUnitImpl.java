@@ -76,6 +76,7 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.problem.ProblemRequestor;
 import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
@@ -315,6 +316,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       DartFunctionImpl functionImpl = new DartFunctionImpl(compilationUnit, functionName);
       DartFunctionInfo functionInfo = new DartFunctionInfo();
       functionInfo.setParametersCloseParen(node.getFunction().getParametersCloseParen());
+      functionInfo.setOptionalParametersOpeningGroupChar(node.getFunction().getParametersOptionalOpen());
+      functionInfo.setOptionalParametersClosingGroupChar(node.getFunction().getParametersOptionalClose());
       int start = node.getSourceInfo().getOffset();
       functionInfo.setSourceRangeStart(start);
       functionInfo.setSourceRangeEnd(node.getSourceInfo().getEnd());
@@ -421,6 +424,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       DartMethodImpl methodImpl = new DartMethodImpl(typeImpl, methodNode.getName().toString());
       DartMethodInfo methodInfo = new DartMethodInfo();
       methodInfo.setParametersCloseParen(methodNode.getFunction().getParametersCloseParen());
+      methodInfo.setOptionalParametersOpeningGroupChar(methodNode.getFunction().getParametersOptionalOpen());
+      methodInfo.setOptionalParametersClosingGroupChar(methodNode.getFunction().getParametersOptionalClose());
       methodInfo.setSourceRangeStart(methodNode.getSourceInfo().getOffset());
       methodInfo.setSourceRangeEnd(methodNode.getSourceInfo().getEnd());
       captureDartDoc(methodNode, methodInfo);
@@ -506,6 +511,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       functionImpl.occurrenceCount = functionCount++;
       DartFunctionInfo functionInfo = new DartFunctionInfo();
       functionInfo.setParametersCloseParen(node.getFunction().getParametersCloseParen());
+      functionInfo.setOptionalParametersOpeningGroupChar(node.getFunction().getParametersOptionalOpen());
+      functionInfo.setOptionalParametersClosingGroupChar(node.getFunction().getParametersOptionalClose());
       functionInfo.setSourceRangeStart(node.getSourceInfo().getOffset());
       functionInfo.setSourceRangeEnd(node.getSourceInfo().getEnd());
       // remember visibility range
@@ -693,9 +700,11 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         variableInfo.setSourceRangeStart(parameter.getSourceInfo().getOffset());
         variableInfo.setSourceRangeEnd(parameter.getSourceInfo().getEnd());
         captureDartDoc(parameter, variableInfo);
-        variableInfo.setNameRange(new SourceRangeImpl(
-            parameterName.getSourceInfo().getOffset(),
-            parameterName.getSourceInfo().getLength()));
+        variableInfo.setNameRange(SourceRangeFactory.create(parameterName));
+        {
+          DartExpression defaultExpr = parameter.getDefaultExpr();
+          variableInfo.setDefaultExpressionRange(SourceRangeFactory.create(defaultExpr));
+        }
         variableInfo.setParameter(true);
         variableInfo.setVisibleStart(parameterName.getSourceInfo().getOffset());
         variableInfo.setVisibleEnd(visibleEnd);

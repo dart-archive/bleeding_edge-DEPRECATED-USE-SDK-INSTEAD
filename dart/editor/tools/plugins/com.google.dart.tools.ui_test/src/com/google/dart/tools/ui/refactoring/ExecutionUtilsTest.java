@@ -92,22 +92,25 @@ public class ExecutionUtilsTest extends TestCase {
    * Test for {@link ExecutionUtils#runIgnore(RunnableEx)}.
    */
   public void test_runIgnore() throws Exception {
+    boolean success;
     // no exception
     final AtomicBoolean executed = new AtomicBoolean();
-    ExecutionUtils.runIgnore(new RunnableEx() {
+    success = ExecutionUtils.runIgnore(new RunnableEx() {
       @Override
       public void run() throws Exception {
         executed.set(true);
       }
     });
     assertTrue(executed.get());
+    assertTrue(success);
     // with exception
-    ExecutionUtils.runIgnore(new RunnableEx() {
+    success = ExecutionUtils.runIgnore(new RunnableEx() {
       @Override
       public void run() throws Exception {
         throw new Exception();
       }
     });
+    assertFalse(success);
   }
 
   /**

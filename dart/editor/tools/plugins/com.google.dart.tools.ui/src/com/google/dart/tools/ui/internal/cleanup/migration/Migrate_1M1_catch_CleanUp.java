@@ -18,7 +18,7 @@ import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartTypeNode;
-import com.google.dart.tools.internal.corext.SourceRangeFactory;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 
 /**
  * In specification 1.0 M1 "on Type catch (e, stack)" syntax should be used.

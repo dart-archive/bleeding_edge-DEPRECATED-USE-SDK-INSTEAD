@@ -53,6 +53,12 @@ public class DartVariableImpl extends SourceReferenceImpl implements DartVariabl
   }
 
   @Override
+  public SourceRange getDefaultExpressionRange() throws DartModelException {
+    DartVariableInfo info = (DartVariableInfo) getElementInfo();
+    return info.getDefaultExpressionRange();
+  }
+
+  @Override
   public String getElementName() {
     return name;
   }

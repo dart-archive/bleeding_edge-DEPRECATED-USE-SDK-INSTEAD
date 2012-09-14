@@ -36,10 +36,17 @@ public class SourceRangeUtils {
   }
 
   /**
-   * @return the end position of given {@link SourceRange}, result of <code>offset + length</code>.
+   * @return the exclusive end position of given {@link SourceRange}.
    */
   public static int getEnd(SourceRange r) {
     return r.getOffset() + r.getLength();
+  }
+
+  /**
+   * @return the inclusive end position of given {@link SourceRange}.
+   */
+  public static int getEndInclusive(SourceRange r) {
+    return r.getOffset() + r.getLength() + 1;
   }
 
   /**
