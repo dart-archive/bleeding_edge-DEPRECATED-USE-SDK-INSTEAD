@@ -260,7 +260,6 @@ public class Dart2JSCompiler {
     List<String> args = new ArrayList<String>();
 
     args.add("compiler/implementation/dart2js.dart");
-    args.add("--no-colors");
     args.add("--suppress-warnings");
 
     String packageRoot = DartCore.getPlugin().getPackageRootPref();
