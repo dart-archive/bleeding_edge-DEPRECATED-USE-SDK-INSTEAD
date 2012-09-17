@@ -67,7 +67,7 @@ public class AnalysisServerTest extends TestCase {
 
     server.analyze(libFile);
     listener.waitForResolved(FIVE_MINUTES_MS, libFile);
-    listener.assertResolvedCount(4);
+    listener.assertResolvedCount(3);
     listener.assertNoDuplicates();
     listener.assertNoDiscards();
     assertTrackedLibraryFiles(server, libFile);
