@@ -161,6 +161,12 @@ Set to ignore:
 - Potential programming problems > Serializable class w/o serialVersionUID
 - Unnecessary Code > Parameter is never read
 
+------------ Plug-in Development > API Baselines
+
+Set to ignore:
+
+- Missing API baseline
+
 ====================================
   Importing the Eclipse projects
 ====================================
