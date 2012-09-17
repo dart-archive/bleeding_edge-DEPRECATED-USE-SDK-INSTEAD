@@ -381,7 +381,7 @@ public interface DartHelpContextIds {
       + "java_base_preference_page_context"; //$NON-NLS-1$
   public static final String REFACTORING_PREFERENCE_PAGE = PREFIX
       + "refactoring_preference_page_context"; //$NON-NLS-1$
-  public static final String JAVA_EDITOR_PREFERENCE_PAGE = PREFIX
+  public static final String DART_EDITOR_PREFERENCE_PAGE = PREFIX
       + "java_editor_preference_page_context"; //$NON-NLS-1$
   public static final String SPELLING_CONFIGURATION_BLOCK = PREFIX
       + "spelling_configuration_block_context"; //$NON-NLS-1$

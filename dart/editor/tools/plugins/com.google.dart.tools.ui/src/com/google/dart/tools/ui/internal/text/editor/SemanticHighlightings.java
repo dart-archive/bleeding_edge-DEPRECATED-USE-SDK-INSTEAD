@@ -13,17 +13,30 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.compiler.ast.DartDeclaration;
-import com.google.dart.compiler.ast.DartDirective;
+import com.google.common.collect.Lists;
+import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartDoubleLiteral;
+import com.google.dart.compiler.ast.DartExportDirective;
+import com.google.dart.compiler.ast.DartField;
+import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartImportDirective;
+import com.google.dart.compiler.ast.DartIntegerLiteral;
+import com.google.dart.compiler.ast.DartLibraryDirective;
+import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.Modifiers;
-import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.ast.DartPartOfDirective;
+import com.google.dart.compiler.ast.DartSourceDirective;
+import com.google.dart.compiler.ast.DartTypeNode;
+import com.google.dart.compiler.ast.DartVariable;
+import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.FieldElement;
-import com.google.dart.compiler.resolver.LibraryElement;
-import com.google.dart.compiler.resolver.LibraryPrefixElement;
 import com.google.dart.compiler.resolver.NodeElement;
+import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
+import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.utilities.ast.DynamicTypesFinder;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.text.IDartColorConstants;
@@ -33,81 +46,45 @@ import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.RGB;
 
+import java.util.List;
+
 /**
  * Semantic highlightings.
  */
 public class SemanticHighlightings {
 
-  /**
-   * Abstract clause highlighting.
-   */
-  private static class AbstractClauseHighlighting extends AbstractDirectiveHighlighting {
-
-    private int clauseOffset;
-
-    public AbstractClauseHighlighting(String token) {
-      super(token);
-    }
+  private static class ClassHighlighting extends DefaultSemanticHighlighting {
 
     @Override
-    public boolean consumesOfClause(SemanticToken<DartDirective> token) {
-      return testForClause(token);
-    }
-
-    @Override
-    public int getSourceOffset(DartNode node) {
-      return node.getSourceInfo().getOffset() + clauseOffset;
-    }
-
-    protected boolean testForClause(SemanticToken<DartDirective> token) {
-      clauseOffset = token.getSource().indexOf(tokenString);
-      return clauseOffset != -1;
-    }
-
-  }
-
-  /**
-   * Base class for directive semantic highlightings.
-   */
-  private static abstract class AbstractDirectiveHighlighting extends DefaultSemanticHighlighting {
-
-    private static final RGB KEY_WORD_COLOR = PreferenceConverter.getColor(
-        DartToolsPlugin.getDefault().getPreferenceStore(),
-        IDartColorConstants.JAVA_KEYWORD);
-
-    protected final String tokenString;
-
-    protected AbstractDirectiveHighlighting(String token) {
-      this.tokenString = token;
+    public boolean consumesIdentifier(SemanticToken token) {
+      DartIdentifier node = token.getNodeIdentifier();
+      if (node.getParent() instanceof DartClass) {
+        DartClass parentClass = (DartClass) node.getParent();
+        return parentClass.getName() == node;
+      }
+      if (node.getParent() instanceof DartTypeNode) {
+        return true;
+      }
+      return false;
     }
 
     @Override
     public RGB getDefaultDefaultTextColor() {
-      return KEY_WORD_COLOR;
+      return new RGB(0x00, 0x80, 0x30);
     }
 
     @Override
     public String getDisplayName() {
-      return DartEditorMessages.SemanticHighlighting_directive;
+      return DartEditorMessages.SemanticHighlighting_class;
     }
 
     @Override
     public String getPreferenceKey() {
-      return DIRECTIVE;
+      return CLASS;
     }
 
     @Override
-    public int getSourceLength(DartNode node) {
-      return tokenString.length();
-    }
-
-    @Override
-    public int getSourceOffset(DartNode node) {
-      return node.getSourceInfo().getOffset();
-    }
-
-    @Override
-    public boolean isBoldByDefault() {
+    public boolean isEnabledByDefault() {
       return true;
     }
   }
@@ -153,8 +130,8 @@ public class SemanticHighlightings {
    */
   private static final class DeprecatedElementHighlighting extends DefaultSemanticHighlighting {
     @Override
-    public boolean consumesIdentifier(SemanticToken<DartIdentifier> token) {
-      DartIdentifier node = token.getNode();
+    public boolean consumesIdentifier(SemanticToken token) {
+      DartIdentifier node = token.getNodeIdentifier();
       NodeElement element = node.getElement();
       return element != null && element.getMetadata().isDeprecated();
     }
@@ -170,7 +147,88 @@ public class SemanticHighlightings {
     }
 
     @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+
+    @Override
     public boolean isStrikethroughByDefault() {
+      return true;
+    }
+  }
+
+  /**
+   * Highlights directives - "library", "import", "part of", etc.
+   */
+  private static class DirectiveHighlighting extends DefaultSemanticHighlighting {
+
+    private static final RGB KEY_WORD_COLOR = PreferenceConverter.getColor(
+        DartToolsPlugin.getDefault().getPreferenceStore(),
+        IDartColorConstants.JAVA_KEYWORD);
+
+    private static void addPosition(List<SourceRange> result, SemanticToken token, String str) {
+      DartNode node = token.getNode();
+      int index = token.getSource().indexOf(str);
+      if (index != -1) {
+        int start = node.getSourceInfo().getOffset() + index;
+        int length = str.length();
+        result.add(SourceRangeFactory.forStartLength(start, length));
+      }
+    }
+
+    @Override
+    public List<SourceRange> consumesMulti(SemanticToken token) {
+      List<SourceRange> result = null;
+      DartNode node = token.getNode();
+      if (node instanceof DartLibraryDirective) {
+        result = Lists.newArrayList();
+        addPosition(result, token, "library");
+      }
+      if (node instanceof DartImportDirective) {
+        result = Lists.newArrayList();
+        addPosition(result, token, "import");
+        addPosition(result, token, "show");
+        addPosition(result, token, "hide");
+      }
+      if (node instanceof DartExportDirective) {
+        result = Lists.newArrayList();
+        addPosition(result, token, "export");
+        addPosition(result, token, "show");
+        addPosition(result, token, "hide");
+      }
+      if (node instanceof DartSourceDirective) {
+        result = Lists.newArrayList();
+        addPosition(result, token, "part");
+      }
+      if (node instanceof DartPartOfDirective) {
+        result = Lists.newArrayList();
+        addPosition(result, token, "part of");
+      }
+      return result;
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return KEY_WORD_COLOR;
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_directive;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return DIRECTIVE;
+    }
+
+    @Override
+    public boolean isBoldByDefault() {
+      return true;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
       return true;
     }
   }
@@ -181,8 +239,8 @@ public class SemanticHighlightings {
   private static final class DynamicTypeHighlighting extends DefaultSemanticHighlighting {
 
     @Override
-    public boolean consumesIdentifier(SemanticToken<DartIdentifier> token) {
-      DartIdentifier node = token.getNode();
+    public boolean consumesIdentifier(SemanticToken token) {
+      DartIdentifier node = token.getNodeIdentifier();
       return DynamicTypesFinder.isDynamic(node);
     }
 
@@ -191,7 +249,9 @@ public class SemanticHighlightings {
 //      return new RGB(237, 145, 33); //carrot
 //      return new RGB(184, 115, 51); //copper
 //      return new RGB(0xd7, 0x96, 0x7d); //taupe
-      return new RGB(0x67, 0x4C, 0x47); //dark taupe
+//      return new RGB(0x67, 0x4C, 0x47); //dark taupe
+//      return new RGB(0x85, 0x60, 0x46); // dark mocha
+      return new RGB(0xFF, 0x40, 0x40); // red-orange
     }
 
     @Override
@@ -203,22 +263,11 @@ public class SemanticHighlightings {
     public String getPreferenceKey() {
       return DYNAMIC_TYPE;
     }
-  }
-
-  /**
-   * Export clause highlighting.
-   */
-  private static class ExportClauseHighlighting extends AbstractClauseHighlighting {
-
-    public ExportClauseHighlighting() {
-      super("export");
-    }
 
     @Override
-    public boolean consumesExportClause(SemanticToken<DartDirective> token) {
-      return testForClause(token);
+    public boolean isEnabledByDefault() {
+      return true;
     }
-
   }
 
   /**
@@ -227,19 +276,10 @@ public class SemanticHighlightings {
   private static class FieldHighlighting extends DefaultSemanticHighlighting {
 
     @Override
-    public boolean consumesIdentifier(SemanticToken<DartIdentifier> token) {
-      DartIdentifier node = token.getNode();
+    public boolean consumesIdentifier(SemanticToken token) {
+      DartIdentifier node = token.getNodeIdentifier();
       NodeElement element = node.getElement();
-      if (element == null || element.isDynamic()) {
-        return false;
-      }
-      if (element instanceof FieldElement) {
-        FieldElement field = (FieldElement) element;
-        //skip getters/setters
-        Modifiers modifiers = field.getModifiers();
-        return !modifiers.isGetter() && !modifiers.isSetter();
-      }
-      return false;
+      return ElementKind.of(element) == ElementKind.FIELD;
     }
 
     @Override
@@ -256,118 +296,227 @@ public class SemanticHighlightings {
     public String getPreferenceKey() {
       return FIELD;
     }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
   }
 
-  /**
-   * Hide clause highlighting.
-   */
-  private static class HideClauseHighlighting extends AbstractClauseHighlighting {
+  private static class LocalVariableDeclarationHighlighting extends DefaultSemanticHighlighting {
 
-    public HideClauseHighlighting() {
-      super("hide");
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      DartIdentifier node = token.getNodeIdentifier();
+      if (node.getParent() instanceof DartVariable) {
+        DartVariable parent = (DartVariable) node.getParent();
+        return parent.getName() == node;
+      }
+      return false;
     }
 
     @Override
-    public boolean consumesHideClause(SemanticToken<DartDirective> token) {
-      return testForClause(token);
-    }
-
-  }
-
-  /**
-   * Import directive highlighting.
-   */
-  private static class ImportDirectiveHighlighting extends AbstractDirectiveHighlighting {
-
-    public ImportDirectiveHighlighting() {
-      super("import");
+    public RGB getDefaultDefaultTextColor() {
+      return new RGB(0x80, 0x2C, 0x45);
     }
 
     @Override
-    public boolean consumesImportDirective(SemanticToken<DartDirective> directiveToken) {
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_localVariableDeclaration;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return LOCAL_VARIABLE_DECLARATION;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+  }
+
+  private static class LocalVariableHighlighting extends DefaultSemanticHighlighting {
+
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      DartIdentifier node = token.getNodeIdentifier();
+      NodeElement element = node.getElement();
+      return ElementKind.of(element) == ElementKind.VARIABLE;
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return new RGB(0xF0, 0x00, 0xF0);
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_localVariable;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return LOCAL_VARIABLE;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+  }
+
+  private static class MethodDeclarationHighlighting extends DefaultSemanticHighlighting {
+
+    static DartMethodDefinition getParentMethod(DartNode node) {
+      DartMethodDefinition parentMethod = null;
+      if (node.getParent() instanceof DartMethodDefinition) {
+        parentMethod = (DartMethodDefinition) node.getParent();
+      }
+      if (node.getParent() instanceof DartField) {
+        DartField field = (DartField) node.getParent();
+        parentMethod = field.getAccessor();
+      }
+      return parentMethod;
+    }
+
+    @Override
+    public boolean consumes(SemanticToken token) {
+      DartNode node = token.getNode();
+      {
+        DartMethodDefinition parentMethod = getParentMethod(node);
+        if (parentMethod != null && parentMethod.getName() == node) {
+          return true;
+        }
+      }
+      if (node.getParent() instanceof DartFunctionExpression
+          && ((DartFunctionExpression) node.getParent()).getName() == node) {
+        return true;
+      }
+      return false;
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return new RGB(0x80, 0x00, 0xFF); // grape
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_methodDeclaration;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return METHOD_DECLARATION;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+  }
+
+  private static class MethodHighlighting extends DefaultSemanticHighlighting {
+
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      DartIdentifier node = token.getNodeIdentifier();
+      NodeElement element = node.getElement();
+      return ElementKind.of(element) == ElementKind.METHOD;
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return new RGB(43, 166, 232);
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_method;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return METHOD;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+  }
+
+  private static class NumberHighlighting extends DefaultSemanticHighlighting {
+
+    @Override
+    public boolean consumes(SemanticToken token) {
+      DartNode node = token.getNode();
+      return node instanceof DartIntegerLiteral || node instanceof DartDoubleLiteral;
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return new RGB(0x00, 0x80, 0x00);
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_number;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return NUMBER;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
       return true;
     }
 
-  }
-
-  /**
-   * Library directive highlighting.
-   */
-  private static class LibraryDirectiveHighlighting extends AbstractDirectiveHighlighting {
-
-    public LibraryDirectiveHighlighting() {
-      super("library");
-    }
-
     @Override
-    public boolean consumesLibraryDirective(SemanticToken<DartDirective> directiveToken) {
+    public boolean isItalicByDefault() {
       return true;
     }
-
   }
 
-  /**
-   * Of clause highlighting.
-   */
-  private static class OfClauseHighlighting extends AbstractClauseHighlighting {
+  private static class ParameterHighlighting extends DefaultSemanticHighlighting {
 
-    public OfClauseHighlighting() {
-      super("of");
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      DartIdentifier node = token.getNodeIdentifier();
+      Element element = node.getElement();
+      if (ElementKind.of(element) == ElementKind.PARAMETER) {
+        return true;
+      }
+      if (PropertyDescriptorHelper.getLocationInParent(node) == PropertyDescriptorHelper.DART_NAMED_EXPRESSION_NAME) {
+        if (PropertyDescriptorHelper.getLocationInParent(node.getParent()) == PropertyDescriptorHelper.DART_INVOCATION_ARGS) {
+          return true;
+        }
+      }
+      return false;
     }
 
     @Override
-    public boolean consumesOfClause(SemanticToken<DartDirective> token) {
-      return testForClause(token);
-    }
-
-  }
-
-  /**
-   * Part directive highlighting.
-   */
-  private static class PartDirectiveHighlighting extends AbstractDirectiveHighlighting {
-
-    public PartDirectiveHighlighting() {
-      super("part");
+    public RGB getDefaultDefaultTextColor() {
+      return new RGB(215, 114, 30);
     }
 
     @Override
-    public boolean consumesPartDirective(SemanticToken<DartDirective> directiveToken) {
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_parameterVariable;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return PARAMETER_VARIABLE;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
       return true;
     }
-
-  }
-
-  /**
-   * Part of directive highlighting.
-   */
-  private static class PartOfDirectiveHighlighting extends AbstractDirectiveHighlighting {
-
-    public PartOfDirectiveHighlighting() {
-      super("part");
-    }
-
-    @Override
-    public boolean consumesPartOfDirective(SemanticToken<DartDirective> token) {
-      return true;
-    }
-
-  }
-
-  /**
-   * Show clause highlighting.
-   */
-  private static class ShowClauseHighlighting extends AbstractClauseHighlighting {
-
-    public ShowClauseHighlighting() {
-      super("show");
-    }
-
-    @Override
-    public boolean consumesShowClause(SemanticToken<DartDirective> token) {
-      return testForClause(token);
-    }
-
   }
 
   /**
@@ -375,8 +524,8 @@ public class SemanticHighlightings {
    */
   private static class StaticFieldHighlighting extends FieldHighlighting {
     @Override
-    public boolean consumesIdentifier(SemanticToken<DartIdentifier> token) {
-      DartIdentifier node = token.getNode();
+    public boolean consumesIdentifier(SemanticToken token) {
+      DartIdentifier node = token.getNodeIdentifier();
       NodeElement element = node.getElement();
       if (element == null || element.isDynamic()) {
         return false;
@@ -404,44 +553,29 @@ public class SemanticHighlightings {
 
   }
 
-  /**
-   * Semantic highlighting for top level members.
-   */
-  private static class TopLevelMemberHighlighting extends DefaultSemanticHighlighting {
+  private static class StaticMethodDeclarationHighlighting extends MethodDeclarationHighlighting {
+
     @Override
-    public boolean consumesIdentifier(SemanticToken<DartIdentifier> token) {
-
-      DartIdentifier node = token.getNode();
-      NodeElement element = node.getElement();
-
-      if (element == null || element instanceof ClassElement
-          || element instanceof LibraryPrefixElement) {
+    public boolean consumes(SemanticToken token) {
+      DartNode node = token.getNode();
+      DartMethodDefinition parentMethod = getParentMethod(node);
+      if (parentMethod == null || parentMethod.getName() != node) {
         return false;
       }
-
-      DartNode parent = node.getParent();
-      if (parent instanceof DartDeclaration<?>) {
-        if (((DartDeclaration<?>) parent).getName().equals(node)) {
-          return false;
-        }
+      if (!parentMethod.getModifiers().isStatic()) {
+        return false;
       }
-
-      return element.getEnclosingElement() instanceof LibraryElement;
-    }
-
-    @Override
-    public RGB getDefaultDefaultTextColor() {
-      return new RGB(0x40, 0x40, 0x40);
+      return parentMethod.getName() == node;
     }
 
     @Override
     public String getDisplayName() {
-      return DartEditorMessages.SemanticHighlighting_topLevelMember;
+      return DartEditorMessages.SemanticHighlighting_methodDeclaration;
     }
 
     @Override
     public String getPreferenceKey() {
-      return TOP_LEVEL_MEMBER;
+      return STATIC_METHOD_DECLARATION;
     }
 
     @Override
@@ -450,11 +584,96 @@ public class SemanticHighlightings {
     }
 
     @Override
-    public boolean isItalicByDefault() {
-      return false;
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+  }
+
+  private static class StaticMethodHighlighting extends MethodHighlighting {
+
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      DartIdentifier node = token.getNodeIdentifier();
+      NodeElement element = node.getElement();
+      return ElementKind.of(element) == ElementKind.METHOD && element.getModifiers().isStatic();
     }
 
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_staticMethod;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return STATIC_METHOD;
+    }
+
+    @Override
+    public boolean isBoldByDefault() {
+      return true;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
   }
+
+//  /**
+//   * Semantic highlighting for top level members.
+//   */
+//  private static class TopLevelMemberHighlighting extends DefaultSemanticHighlighting {
+//    @Override
+//    public boolean consumesIdentifier(SemanticToken token) {
+//      DartIdentifier node = token.getNodeIdentifier();
+//      NodeElement element = node.getElement();
+//
+//      if (element == null || element instanceof ClassElement
+//          || element instanceof LibraryPrefixElement) {
+//        return false;
+//      }
+//
+//      DartNode parent = node.getParent();
+//      if (parent instanceof DartDeclaration<?>) {
+//        if (((DartDeclaration<?>) parent).getName().equals(node)) {
+//          return false;
+//        }
+//      }
+//
+//      return element.getEnclosingElement() instanceof LibraryElement;
+//    }
+//
+//    @Override
+//    public RGB getDefaultDefaultTextColor() {
+//      return new RGB(0x40, 0x40, 0x40);
+//    }
+//
+//    @Override
+//    public String getDisplayName() {
+//      return DartEditorMessages.SemanticHighlighting_topLevelMember;
+//    }
+//
+//    @Override
+//    public String getPreferenceKey() {
+//      return TOP_LEVEL_MEMBER;
+//    }
+//
+//    @Override
+//    public boolean isBoldByDefault() {
+//      return true;
+//    }
+//
+//    @Override
+//    public boolean isEnabledByDefault() {
+//      return true;
+//    }
+//
+//    @Override
+//    public boolean isItalicByDefault() {
+//      return false;
+//    }
+//
+//  }
 
   /**
    * A named preference part that controls the highlighting of deprecated elements.
@@ -490,6 +709,11 @@ public class SemanticHighlightings {
    * A named preference part that controls the highlighting of method declarations.
    */
   public static final String METHOD_DECLARATION = "methodDeclarationName"; //$NON-NLS-1$
+
+  /**
+   * A named preference part that controls the highlighting of static method declarations.
+   */
+  public static final String STATIC_METHOD_DECLARATION = "staticMethodDeclarationName"; //$NON-NLS-1$
 
   /**
    * A named preference part that controls the highlighting of static method invocations.
@@ -545,6 +769,12 @@ public class SemanticHighlightings {
   public static final String METHOD = "method"; //$NON-NLS-1$
 
   /**
+   * A named preference part that controls the highlighting of static methods (invocations and
+   * declarations).
+   */
+  public static final String STATIC_METHOD = "staticMethod"; //$NON-NLS-1$
+
+  /**
    * A named preference part that controls the highlighting of classes.
    */
   public static final String CLASS = "class"; //$NON-NLS-1$
@@ -565,6 +795,11 @@ public class SemanticHighlightings {
   public static final String TYPE_ARGUMENT = "typeArgument"; //$NON-NLS-1$
 
   /**
+   * A named preference part that controls the highlighting of numbers.
+   */
+  public static final String NUMBER = "number"; //$NON-NLS-1$
+
+  /**
    * Semantic highlightings
    */
   private static SemanticHighlighting[] SEMANTIC_HIGHTLIGHTINGS;
@@ -579,30 +814,31 @@ public class SemanticHighlightings {
    *         <code>false</code> if it did not
    */
   public static boolean affectsEnablement(IPreferenceStore store, PropertyChangeEvent event) {
-    String relevantKey = null;
-    SemanticHighlighting[] highlightings = getSemanticHighlightings();
-    for (int i = 0; i < highlightings.length; i++) {
-      if (event.getProperty().equals(getEnabledPreferenceKey(highlightings[i]))) {
-        relevantKey = event.getProperty();
-        break;
-      }
-    }
-    if (relevantKey == null) {
-      return false;
-    }
-
-    for (int i = 0; i < highlightings.length; i++) {
-      String key = getEnabledPreferenceKey(highlightings[i]);
-      if (key.equals(relevantKey)) {
-        continue;
-      }
-      if (store.getBoolean(key)) {
-        return false; // another is still enabled or was enabled before
-      }
-    }
-
-    // all others are disabled, so toggling relevantKey affects the enablement
-    return true;
+    return false;
+//    String relevantKey = null;
+//    SemanticHighlighting[] highlightings = getSemanticHighlightings();
+//    for (int i = 0; i < highlightings.length; i++) {
+//      if (event.getProperty().equals(getEnabledPreferenceKey(highlightings[i]))) {
+//        relevantKey = event.getProperty();
+//        break;
+//      }
+//    }
+//    if (relevantKey == null) {
+//      return false;
+//    }
+//
+//    for (int i = 0; i < highlightings.length; i++) {
+//      String key = getEnabledPreferenceKey(highlightings[i]);
+//      if (key.equals(relevantKey)) {
+//        continue;
+//      }
+//      if (store.getBoolean(key)) {
+//        return false; // another is still enabled or was enabled before
+//      }
+//    }
+//
+//    // all others are disabled, so toggling relevantKey affects the enablement
+//    return true;
   }
 
   /**
@@ -662,12 +898,13 @@ public class SemanticHighlightings {
   public static SemanticHighlighting[] getSemanticHighlightings() {
     if (SEMANTIC_HIGHTLIGHTINGS == null) {
       SEMANTIC_HIGHTLIGHTINGS = new SemanticHighlighting[] {
-          new LibraryDirectiveHighlighting(), new ImportDirectiveHighlighting(),
-          new ExportClauseHighlighting(), new HideClauseHighlighting(),
-          new ShowClauseHighlighting(), new PartDirectiveHighlighting(),
-          new PartOfDirectiveHighlighting(), new OfClauseHighlighting(),
-          new DeprecatedElementHighlighting(), new StaticFieldHighlighting(),
-          new FieldHighlighting(), new DynamicTypeHighlighting(), new TopLevelMemberHighlighting()};
+          new DirectiveHighlighting(), new DeprecatedElementHighlighting(),
+          new StaticFieldHighlighting(), new FieldHighlighting(), new DynamicTypeHighlighting(),
+          new ClassHighlighting(), new NumberHighlighting(),
+          new LocalVariableDeclarationHighlighting(), new LocalVariableHighlighting(),
+          new ParameterHighlighting(), new StaticMethodDeclarationHighlighting(),
+          new StaticMethodHighlighting(), new MethodDeclarationHighlighting(),
+          new MethodHighlighting()};
     }
     return SEMANTIC_HIGHTLIGHTINGS;
   }
@@ -705,27 +942,18 @@ public class SemanticHighlightings {
    */
   public static void initDefaults(IPreferenceStore store) {
     SemanticHighlighting[] semanticHighlightings = getSemanticHighlightings();
-    for (int i = 0, n = semanticHighlightings.length; i < n; i++) {
-      SemanticHighlighting semanticHighlighting = semanticHighlightings[i];
+    for (SemanticHighlighting highlighting : semanticHighlightings) {
       setDefaultAndFireEvent(
           store,
-          SemanticHighlightings.getColorPreferenceKey(semanticHighlighting),
-          semanticHighlighting.getDefaultTextColor());
+          getColorPreferenceKey(highlighting),
+          highlighting.getDefaultTextColor());
+      store.setDefault(getBoldPreferenceKey(highlighting), highlighting.isBoldByDefault());
+      store.setDefault(getItalicPreferenceKey(highlighting), highlighting.isItalicByDefault());
       store.setDefault(
-          SemanticHighlightings.getBoldPreferenceKey(semanticHighlighting),
-          semanticHighlighting.isBoldByDefault());
-      store.setDefault(
-          SemanticHighlightings.getItalicPreferenceKey(semanticHighlighting),
-          semanticHighlighting.isItalicByDefault());
-      store.setDefault(
-          SemanticHighlightings.getStrikethroughPreferenceKey(semanticHighlighting),
-          semanticHighlighting.isStrikethroughByDefault());
-      store.setDefault(
-          SemanticHighlightings.getUnderlinePreferenceKey(semanticHighlighting),
-          semanticHighlighting.isUnderlineByDefault());
-      store.setDefault(
-          SemanticHighlightings.getEnabledPreferenceKey(semanticHighlighting),
-          semanticHighlighting.isEnabledByDefault());
+          getStrikethroughPreferenceKey(highlighting),
+          highlighting.isStrikethroughByDefault());
+      store.setDefault(getUnderlinePreferenceKey(highlighting), highlighting.isUnderlineByDefault());
+      store.setDefault(getEnabledPreferenceKey(highlighting), highlighting.isEnabledByDefault());
     }
   }
 
@@ -737,16 +965,13 @@ public class SemanticHighlightings {
    */
   public static boolean isEnabled(IPreferenceStore store) {
     SemanticHighlighting[] highlightings = getSemanticHighlightings();
-    boolean enable = false;
-    for (int i = 0; i < highlightings.length; i++) {
-      String enabledKey = getEnabledPreferenceKey(highlightings[i]);
+    for (SemanticHighlighting highlighting : highlightings) {
+      String enabledKey = getEnabledPreferenceKey(highlighting);
       if (store.getBoolean(enabledKey)) {
-        enable = true;
-        break;
+        return true;
       }
     }
-
-    return enable;
+    return false;
   }
 
   /**

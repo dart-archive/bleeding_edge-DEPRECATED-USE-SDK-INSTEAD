@@ -1262,7 +1262,7 @@ public class PreferenceConstants {
    * @see org.eclipse.jface.resource.StringConverter
    * @see org.eclipse.jface.preference.PreferenceConverter
    */
-  public final static String EDITOR_JAVA_KEYWORD_COLOR = IDartColorConstants.JAVA_KEYWORD;
+  public final static String EDITOR_DART_KEYWORD_COLOR = IDartColorConstants.JAVA_KEYWORD;
 
   /**
    * A named preference that controls whether keywords are rendered in bold.
@@ -1405,7 +1405,7 @@ public class PreferenceConstants {
    * @see org.eclipse.jface.resource.StringConverter
    * @see org.eclipse.jface.preference.PreferenceConverter
    */
-  public final static String EDITOR_JAVA_KEYWORD_RETURN_COLOR = IDartColorConstants.JAVA_KEYWORD_RETURN;
+  public final static String EDITOR_DART_KEYWORD_RETURN_COLOR = IDartColorConstants.JAVA_KEYWORD_RETURN;
 
   /**
    * A named preference that controls whether 'return' keyword is rendered in bold.
@@ -1453,7 +1453,7 @@ public class PreferenceConstants {
    * @see org.eclipse.jface.resource.StringConverter
    * @see org.eclipse.jface.preference.PreferenceConverter
    */
-  public final static String EDITOR_JAVA_OPERATOR_COLOR = IDartColorConstants.JAVA_OPERATOR;
+  public final static String EDITOR_DART_OPERATOR_COLOR = IDartColorConstants.JAVA_OPERATOR;
 
   /**
    * A named preference that controls whether operators are rendered in bold.
@@ -1501,7 +1501,7 @@ public class PreferenceConstants {
    * @see org.eclipse.jface.resource.StringConverter
    * @see org.eclipse.jface.preference.PreferenceConverter
    */
-  public final static String EDITOR_JAVA_BRACKET_COLOR = IDartColorConstants.JAVA_BRACKET;
+  public final static String EDITOR_DART_BRACKET_COLOR = IDartColorConstants.JAVA_BRACKET;
 
   /**
    * A named preference that controls whether brackets are rendered in bold.
@@ -1616,7 +1616,7 @@ public class PreferenceConstants {
    * @see org.eclipse.jface.resource.StringConverter
    * @see org.eclipse.jface.preference.PreferenceConverter
    */
-  public final static String EDITOR_JAVA_DEFAULT_COLOR = IDartColorConstants.JAVA_DEFAULT;
+  public final static String EDITOR_DART_DEFAULT_COLOR = IDartColorConstants.JAVA_DEFAULT;
 
   /**
    * A named preference that controls whether JavaScript default text is rendered in bold.
@@ -1710,7 +1710,7 @@ public class PreferenceConstants {
    * @see org.eclipse.jface.resource.StringConverter
    * @see org.eclipse.jface.preference.PreferenceConverter
    */
-  public final static String EDITOR_JAVADOC_KEYWORD_COLOR = IDartColorConstants.JAVADOC_KEYWORD;
+  public final static String EDITOR_DARTDOC_KEYWORD_COLOR = IDartColorConstants.JAVADOC_KEYWORD;
 
   /**
    * A named preference that controls whether javadoc keywords are rendered in bold.
@@ -1758,7 +1758,7 @@ public class PreferenceConstants {
    * @see org.eclipse.jface.resource.StringConverter
    * @see org.eclipse.jface.preference.PreferenceConverter
    */
-  public final static String EDITOR_JAVADOC_TAG_COLOR = IDartColorConstants.JAVADOC_TAG;
+  public final static String EDITOR_DARTDOC_TAG_COLOR = IDartColorConstants.JAVADOC_TAG;
 
   /**
    * A named preference that controls whether javadoc tags are rendered in bold.
@@ -1806,7 +1806,7 @@ public class PreferenceConstants {
    * @see org.eclipse.jface.resource.StringConverter
    * @see org.eclipse.jface.preference.PreferenceConverter
    */
-  public final static String EDITOR_JAVADOC_LINKS_COLOR = IDartColorConstants.JAVADOC_LINK;
+  public final static String EDITOR_DARTDOC_LINKS_COLOR = IDartColorConstants.JAVADOC_LINK;
 
   /**
    * A named preference that controls whether javadoc links are rendered in bold.
@@ -1854,7 +1854,7 @@ public class PreferenceConstants {
    * @see org.eclipse.jface.resource.StringConverter
    * @see org.eclipse.jface.preference.PreferenceConverter
    */
-  public final static String EDITOR_JAVADOC_DEFAULT_COLOR = IDartColorConstants.JAVADOC_DEFAULT;
+  public final static String EDITOR_DARTDOC_DEFAULT_COLOR = IDartColorConstants.JAVADOC_DEFAULT;
 
   /**
    * A named preference that controls whether javadoc default text is rendered in bold.
@@ -3384,7 +3384,7 @@ public class PreferenceConstants {
 
     setDefaultAndFireEvent(
         store,
-        PreferenceConstants.EDITOR_JAVA_KEYWORD_COLOR,
+        PreferenceConstants.EDITOR_DART_KEYWORD_COLOR,
         findRGB(registry, IJavaThemeConstants.EDITOR_JAVA_KEYWORD_COLOR, new RGB(127, 0, 85)));
     store.setDefault(PreferenceConstants.EDITOR_JAVA_KEYWORD_BOLD, true);
     store.setDefault(PreferenceConstants.EDITOR_JAVA_KEYWORD_ITALIC, false);
@@ -3411,7 +3411,7 @@ public class PreferenceConstants {
 
     setDefaultAndFireEvent(
         store,
-        PreferenceConstants.EDITOR_JAVA_DEFAULT_COLOR,
+        PreferenceConstants.EDITOR_DART_DEFAULT_COLOR,
         findRGB(registry, IJavaThemeConstants.EDITOR_JAVA_DEFAULT_COLOR, new RGB(0, 0, 0)));
     store.setDefault(PreferenceConstants.EDITOR_JAVA_DEFAULT_BOLD, false);
     store.setDefault(PreferenceConstants.EDITOR_JAVA_DEFAULT_ITALIC, false);
@@ -3425,21 +3425,21 @@ public class PreferenceConstants {
 
     setDefaultAndFireEvent(
         store,
-        PreferenceConstants.EDITOR_JAVA_KEYWORD_RETURN_COLOR,
+        PreferenceConstants.EDITOR_DART_KEYWORD_RETURN_COLOR,
         findRGB(registry, IJavaThemeConstants.EDITOR_JAVA_KEYWORD_RETURN_COLOR, new RGB(127, 0, 85)));
     store.setDefault(PreferenceConstants.EDITOR_JAVA_KEYWORD_RETURN_BOLD, true);
     store.setDefault(PreferenceConstants.EDITOR_JAVA_KEYWORD_RETURN_ITALIC, false);
 
     setDefaultAndFireEvent(
         store,
-        PreferenceConstants.EDITOR_JAVA_OPERATOR_COLOR,
+        PreferenceConstants.EDITOR_DART_OPERATOR_COLOR,
         findRGB(registry, IJavaThemeConstants.EDITOR_JAVA_OPERATOR_COLOR, new RGB(0, 0, 0)));
     store.setDefault(PreferenceConstants.EDITOR_JAVA_OPERATOR_BOLD, false);
     store.setDefault(PreferenceConstants.EDITOR_JAVA_OPERATOR_ITALIC, false);
 
     setDefaultAndFireEvent(
         store,
-        PreferenceConstants.EDITOR_JAVA_BRACKET_COLOR,
+        PreferenceConstants.EDITOR_DART_BRACKET_COLOR,
         findRGB(registry, IJavaThemeConstants.EDITOR_JAVA_BRACKET_COLOR, new RGB(0, 0, 0)));
     store.setDefault(PreferenceConstants.EDITOR_JAVA_BRACKET_BOLD, false);
     store.setDefault(PreferenceConstants.EDITOR_JAVA_BRACKET_ITALIC, false);
@@ -3453,28 +3453,28 @@ public class PreferenceConstants {
 
     setDefaultAndFireEvent(
         store,
-        PreferenceConstants.EDITOR_JAVADOC_KEYWORD_COLOR,
+        PreferenceConstants.EDITOR_DARTDOC_KEYWORD_COLOR,
         findRGB(registry, IJavaThemeConstants.EDITOR_JAVADOC_KEYWORD_COLOR, new RGB(127, 159, 191)));
     store.setDefault(PreferenceConstants.EDITOR_JAVADOC_KEYWORD_BOLD, true);
     store.setDefault(PreferenceConstants.EDITOR_JAVADOC_KEYWORD_ITALIC, false);
 
     setDefaultAndFireEvent(
         store,
-        PreferenceConstants.EDITOR_JAVADOC_TAG_COLOR,
+        PreferenceConstants.EDITOR_DARTDOC_TAG_COLOR,
         findRGB(registry, IJavaThemeConstants.EDITOR_JAVADOC_TAG_COLOR, new RGB(127, 127, 159)));
     store.setDefault(PreferenceConstants.EDITOR_JAVADOC_TAG_BOLD, false);
     store.setDefault(PreferenceConstants.EDITOR_JAVADOC_TAG_ITALIC, false);
 
     setDefaultAndFireEvent(
         store,
-        PreferenceConstants.EDITOR_JAVADOC_LINKS_COLOR,
+        PreferenceConstants.EDITOR_DARTDOC_LINKS_COLOR,
         findRGB(registry, IJavaThemeConstants.EDITOR_JAVADOC_LINKS_COLOR, new RGB(63, 63, 191)));
     store.setDefault(PreferenceConstants.EDITOR_JAVADOC_LINKS_BOLD, false);
     store.setDefault(PreferenceConstants.EDITOR_JAVADOC_LINKS_ITALIC, false);
 
     setDefaultAndFireEvent(
         store,
-        PreferenceConstants.EDITOR_JAVADOC_DEFAULT_COLOR,
+        PreferenceConstants.EDITOR_DARTDOC_DEFAULT_COLOR,
         findRGB(registry, IJavaThemeConstants.EDITOR_JAVADOC_DEFAULT_COLOR, new RGB(63, 95, 191)));
     store.setDefault(PreferenceConstants.EDITOR_JAVADOC_DEFAULT_BOLD, false);
     store.setDefault(PreferenceConstants.EDITOR_JAVADOC_DEFAULT_ITALIC, false);
@@ -3644,8 +3644,7 @@ public class PreferenceConstants {
     store.setDefault(PreferenceConstants.PREF_DEFAULT_EXPAND_WITH_CONSTRUCTORS_MEMBERS, ""); //$NON-NLS-1$
 
     // semantic highlighting
-    DartX.todo();
-//    SemanticHighlightings.initDefaults(store);
+    SemanticHighlightings.initDefaults(store);
 
     // do more complicated stuff
     DartX.todo();

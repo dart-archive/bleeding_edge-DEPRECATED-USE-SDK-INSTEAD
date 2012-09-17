@@ -13,10 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.compiler.ast.DartDirective;
-import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartLiteral;
-import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.ui.DartUI;
 
 import org.eclipse.jface.resource.ColorRegistry;
@@ -24,6 +21,8 @@ import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.ui.PlatformUI;
+
+import java.util.List;
 
 /**
  * Base class for semantic highlightings.
@@ -46,21 +45,32 @@ public abstract class SemanticHighlighting {
     return defaultRGB;
   }
 
-  /**
-   * Returns <code>true</code> iff the highlighting consumes the export clause in the given token.
-   * 
-   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
-   */
-  public boolean consumesExportClause(SemanticToken<DartDirective> token) {
-    return false;
-  }
+//  /**
+//   * Returns <code>true</code> iff the highlighting consumes the export clause in the given token.
+//   * 
+//   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
+//   */
+//  public boolean consumesExportClause(SemanticToken<DartDirective> token) {
+//    return false;
+//  }
+//
+//  /**
+//   * Returns <code>true</code> iff the highlighting consumes the hide clause in the given token.
+//   * 
+//   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
+//   */
+//  public boolean consumesHideClause(SemanticToken<DartDirective> token) {
+//    return false;
+//  }
 
   /**
-   * Returns <code>true</code> iff the highlighting consumes the hide clause in the given token.
-   * 
-   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
+   * Returns <code>true</code> iff the semantic highlighting consumes the semantic token.
+   * <p>
+   * NOTE: Implementors are not allowed to keep a reference on the token or on any object retrieved
+   * from the token.
+   * </p>
    */
-  public boolean consumesHideClause(SemanticToken<DartDirective> token) {
+  public boolean consumes(SemanticToken token) {
     return false;
   }
 
@@ -71,78 +81,87 @@ public abstract class SemanticHighlighting {
    * from the token.
    * </p>
    */
-  public boolean consumesIdentifier(SemanticToken<DartIdentifier> token) {
-    return false;
+  public boolean consumesIdentifier(SemanticToken token) {
+    return consumes(token);
   }
 
   /**
-   * Returns <code>true</code> iff the highlighting consumes the given import directive token.
-   * 
-   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
+   * @return {@link SourceRange}s which should be decorated according this semantic highlighting.
+   *         May be <code>null</code> if this {@link SemanticHighlighting} does not support multiple
+   *         ranges.
    */
-  public boolean consumesImportDirective(SemanticToken<DartDirective> token) {
-    return false;
+  public List<SourceRange> consumesMulti(SemanticToken token) {
+    return null;
   }
 
-  /**
-   * Returns <code>true</code> iff the semantic highlighting consumes the semantic token.
-   * 
-   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
-   */
-  public boolean consumesLibraryDirective(SemanticToken<DartDirective> directiveToken) {
-    return false;
-  }
+//  /**
+//   * Returns <code>true</code> iff the highlighting consumes the given import directive token.
+//   * 
+//   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
+//   */
+//  public boolean consumesImportDirective(SemanticToken<DartDirective> token) {
+//    return false;
+//  }
+//
+//  /**
+//   * Returns <code>true</code> iff the semantic highlighting consumes the semantic token.
+//   * 
+//   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
+//   */
+//  public boolean consumesLibraryDirective(SemanticToken<DartDirective> directiveToken) {
+//    return false;
+//  }
 
-  /**
-   * Returns <code>true</code> iff the semantic highlighting consumes the semantic token.
-   * <p>
-   * NOTE: Implementors are not allowed to keep a reference on the token or on any object retrieved
-   * from the token.
-   * </p>
-   * 
-   * @param token the semantic token
-   * @return <code>true</code> iff the semantic highlighting consumes the semantic token
-   */
-  public boolean consumesLiteral(SemanticToken<DartLiteral> token) {
-    return false;
-  }
+//  /**
+//   * Returns <code>true</code> iff the semantic highlighting consumes the semantic token.
+//   * <p>
+//   * NOTE: Implementors are not allowed to keep a reference on the token or on any object retrieved
+//   * from the token.
+//   * </p>
+//   * 
+//   * @param token the semantic token
+//   * @return <code>true</code> iff the semantic highlighting consumes the semantic token
+//   */
+//  public boolean consumesLiteral(SemanticToken<DartLiteral> token) {
+//    return false;
+//  }
 
-  /**
-   * Returns <code>true</code> iff the highlighting consumes the hide clause in the given token.
-   * 
-   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
-   */
-  public boolean consumesOfClause(SemanticToken<DartDirective> token) {
-    return false;
-  }
-
-  /**
-   * Returns <code>true</code> iff the highlighting consumes the given part directive token.
-   * 
-   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
-   */
-  public boolean consumesPartDirective(SemanticToken<DartDirective> token) {
-    return false;
-  }
-
-  /**
-   * Returns <code>true</code> iff the highlighting consumes the given part directive token.
-   * 
-   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
-   */
-  public boolean consumesPartOfDirective(SemanticToken<DartDirective> token) {
-    return false;
-  }
-
-  /**
-   * Returns <code>true</code> iff the highlighting consumes the show clause in the given token.
-   * 
-   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
-   */
-
-  public boolean consumesShowClause(SemanticToken<DartDirective> token) {
-    return false;
-  }
+//  /**
+//   * Returns <code>true</code> iff the highlighting consumes the hide clause in the given token.
+//   * 
+//   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
+//   */
+//  public boolean consumesOfClause(SemanticToken<DartDirective> token) {
+//    return false;
+//  }
+//
+//  /**
+//   * Returns <code>true</code> iff the highlighting consumes the given part directive token.
+//   * 
+//   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
+//   */
+//  public boolean consumesPartDirective(SemanticToken<DartDirective> token) {
+//    return false;
+//  }
+//
+//  /**
+//   * Returns <code>true</code> iff the highlighting consumes the given part directive token.
+//   * 
+//   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
+//   */
+//  public boolean consumesPartOfDirective(SemanticToken<DartDirective> token) {
+//    return false;
+//  }
+//
+//  /**
+//   * Returns <code>true</code> iff the highlighting consumes the show clause in the given token.
+//   * 
+//   * @see SemanticHighlighting#consumesIdentifier(SemanticToken)
+//   */
+//
+//  public boolean consumesShowClause(SemanticToken<DartDirective> token) {
+//    return false;
+//  }
 
   /**
    * @return the default default text color
@@ -185,20 +204,6 @@ public abstract class SemanticHighlighting {
    * @return the preference key, will be augmented by a prefix and a suffix for each preference
    */
   public abstract String getPreferenceKey();
-
-  /**
-   * Calculate the source length for the given node.
-   */
-  public int getSourceLength(DartNode node) {
-    return node.getSourceInfo().getLength();
-  }
-
-  /**
-   * Calculate the source offset for the given node.
-   */
-  public int getSourceOffset(DartNode node) {
-    return node.getSourceInfo().getOffset();
-  }
 
   /**
    * @return <code>true</code> if the text attribute bold is set by default

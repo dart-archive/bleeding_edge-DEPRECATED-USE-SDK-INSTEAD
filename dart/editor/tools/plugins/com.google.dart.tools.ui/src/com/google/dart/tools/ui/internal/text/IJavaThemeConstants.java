@@ -40,7 +40,7 @@ public interface IJavaThemeConstants {
    * Theme constant for the color used to render java keywords.
    */
   public final String EDITOR_JAVA_KEYWORD_COLOR = ID_PREFIX
-      + PreferenceConstants.EDITOR_JAVA_KEYWORD_COLOR;
+      + PreferenceConstants.EDITOR_DART_KEYWORD_COLOR;
 
   /**
    * A theme constant that holds the color used to render string constants.
@@ -63,37 +63,37 @@ public interface IJavaThemeConstants {
    * A theme constant that holds the color used to render operators.
    */
   public final String EDITOR_JAVA_OPERATOR_COLOR = ID_PREFIX
-      + PreferenceConstants.EDITOR_JAVA_OPERATOR_COLOR;
+      + PreferenceConstants.EDITOR_DART_OPERATOR_COLOR;
 
   /**
    * A theme constant that holds the color used to render java default text.
    */
   public final String EDITOR_JAVA_DEFAULT_COLOR = ID_PREFIX
-      + PreferenceConstants.EDITOR_JAVA_DEFAULT_COLOR;
+      + PreferenceConstants.EDITOR_DART_DEFAULT_COLOR;
 
   /**
    * A theme constant that holds the color used to render the 'return' keyword.
    */
   public final String EDITOR_JAVA_KEYWORD_RETURN_COLOR = ID_PREFIX
-      + PreferenceConstants.EDITOR_JAVA_KEYWORD_RETURN_COLOR;
+      + PreferenceConstants.EDITOR_DART_KEYWORD_RETURN_COLOR;
 
   /**
    * A theme constant that holds the color used to render javadoc keywords.
    */
   public final String EDITOR_JAVADOC_KEYWORD_COLOR = ID_PREFIX
-      + PreferenceConstants.EDITOR_JAVADOC_KEYWORD_COLOR;
+      + PreferenceConstants.EDITOR_DARTDOC_KEYWORD_COLOR;
 
   /**
    * A theme constant that holds the color used to render javadoc tags.
    */
   public final String EDITOR_JAVADOC_TAG_COLOR = ID_PREFIX
-      + PreferenceConstants.EDITOR_JAVADOC_TAG_COLOR;
+      + PreferenceConstants.EDITOR_DARTDOC_TAG_COLOR;
 
   /**
    * A theme constant that holds the color used to render brackets.
    */
   public final String EDITOR_JAVA_BRACKET_COLOR = ID_PREFIX
-      + PreferenceConstants.EDITOR_JAVA_BRACKET_COLOR;
+      + PreferenceConstants.EDITOR_DART_BRACKET_COLOR;
 
   /**
    * A theme constant that holds the color used to render task tags.
@@ -104,13 +104,13 @@ public interface IJavaThemeConstants {
    * A theme constant that holds the color used to render javadoc links.
    */
   public final String EDITOR_JAVADOC_LINKS_COLOR = ID_PREFIX
-      + PreferenceConstants.EDITOR_JAVADOC_LINKS_COLOR;
+      + PreferenceConstants.EDITOR_DARTDOC_LINKS_COLOR;
 
   /**
    * A theme constant that holds the color used to render javadoc default text.
    */
   public final String EDITOR_JAVADOC_DEFAULT_COLOR = ID_PREFIX
-      + PreferenceConstants.EDITOR_JAVADOC_DEFAULT_COLOR;
+      + PreferenceConstants.EDITOR_DARTDOC_DEFAULT_COLOR;
 
   /**
    * A theme constant that holds the background color used in the code assist selection dialog.

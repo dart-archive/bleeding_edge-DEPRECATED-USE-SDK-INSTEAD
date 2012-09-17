@@ -89,13 +89,12 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
-import com.google.dart.tools.core.DartCore;
 
 import java.util.List;
 
 /**
- * Instances of the class <code>PropertyLocator</code> implement a visitor that returns a description of the
- * property whose value is (or contains) a given child node.
+ * Instances of the class <code>PropertyLocator</code> implement a visitor that returns a
+ * description of the property whose value is (or contains) a given child node.
  */
 public class PropertyLocator extends ASTVisitor<StructuralPropertyDescriptor> {
   /**
@@ -543,11 +542,9 @@ public class PropertyLocator extends ASTVisitor<StructuralPropertyDescriptor> {
 
   @Override
   public StructuralPropertyDescriptor visitNamedExpression(DartNamedExpression node) {
-//    if (childNode == node.getName()) {
-//      return PropertyDescriptorHelper.DART_NAMED_EXPRESSION_NAME;
-//    } else
-    DartCore.notYetImplemented();
-    if (childNode == node.getExpression()) {
+    if (childNode == node.getName()) {
+      return PropertyDescriptorHelper.DART_NAMED_EXPRESSION_NAME;
+    } else if (childNode == node.getExpression()) {
       return PropertyDescriptorHelper.DART_NAMED_EXPRESSION_EXPRESSION;
     } else {
       return visitExpression(node);
@@ -623,8 +620,7 @@ public class PropertyLocator extends ASTVisitor<StructuralPropertyDescriptor> {
   }
 
   @Override
-  public StructuralPropertyDescriptor visitParenthesizedExpression(
-      DartParenthesizedExpression node) {
+  public StructuralPropertyDescriptor visitParenthesizedExpression(DartParenthesizedExpression node) {
     if (childNode == node.getExpression()) {
       return PropertyDescriptorHelper.DART_PARENTHESIZED_EXPRESSION_EXPRESSION;
     } else {
@@ -744,8 +740,7 @@ public class PropertyLocator extends ASTVisitor<StructuralPropertyDescriptor> {
   }
 
   @Override
-  public StructuralPropertyDescriptor visitSyntheticErrorStatement(
-      DartSyntheticErrorStatement node) {
+  public StructuralPropertyDescriptor visitSyntheticErrorStatement(DartSyntheticErrorStatement node) {
     // if (childNode == node.getTokenString()) {
     // return PropertyDescriptorHelper.DART_SYNTHETIC_ERROR_STATEMENT_TOKEN_STRING;
     // } else {

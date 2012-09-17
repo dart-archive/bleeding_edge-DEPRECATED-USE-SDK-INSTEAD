@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.common.SourceInfo;
 
@@ -22,10 +23,9 @@ import org.eclipse.jface.text.IDocument;
 /**
  * Semantic token
  */
-public final class SemanticToken<T extends DartNode> {
+public final class SemanticToken {
 
-  /** AST node */
-  private T node;
+  private DartNode node;
   private IDocument document;
 
   /**
@@ -38,10 +38,17 @@ public final class SemanticToken<T extends DartNode> {
   }
 
   /**
-   * @return the AST node (a {@link SimpleName})
+   * @return the {@link DartNode}.
    */
-  public T getNode() {
+  public DartNode getNode() {
     return node;
+  }
+
+  /**
+   * @return the {@link DartIdentifier}.
+   */
+  public DartIdentifier getNodeIdentifier() {
+    return (DartIdentifier) node;
   }
 
   /**
@@ -73,9 +80,9 @@ public final class SemanticToken<T extends DartNode> {
    * NOTE: Allowed to be used by {@link SemanticHighlightingReconciler} only.
    * </p>
    * 
-   * @param node the AST simple name
+   * @param node the {@link DartNode}
    */
-  void update(T node) {
+  void update(DartNode node) {
     clear();
     this.node = node;
   }

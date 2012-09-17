@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -410,15 +410,6 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
     return runnable;
   }
 
-//	private void checkOrdering(String s, List positions) {
-//		Position previous= null;
-//		for (int i= 0, n= positions.size(); i < n; i++) {
-//			Position current= (Position) positions.get(i);
-//			if (previous != null && previous.getOffset() + previous.getLength() > current.getOffset())
-//				return;
-//		}
-//	}
-
   /*
    * @see org.eclipse.jface.text.IDocumentListener#documentAboutToBeChanged(org.eclipse
    * .jface.text.DocumentEvent)
@@ -559,9 +550,9 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
       return;
     }
 
-//		checkOrdering("added positions: ", Arrays.asList(addedPositions)); //$NON-NLS-1$
-//		checkOrdering("removed positions: ", Arrays.asList(removedPositions)); //$NON-NLS-1$
-//		checkOrdering("old positions: ", fPositions); //$NON-NLS-1$
+//    checkOrdering("added positions: ", Arrays.asList(addedPositions)); //$NON-NLS-1$
+//    checkOrdering("removed positions: ", Arrays.asList(removedPositions)); //$NON-NLS-1$
+//    checkOrdering("old positions: ", fPositions); //$NON-NLS-1$
 
     // TODO: double-check consistency with document.getPositions(...)
     // TODO: reuse removed positions
@@ -613,8 +604,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
             document.addPosition(positionCategory, addedPosition);
           }
 
-          // c) merge: add the next of position/addedPosition with the lower
-// offset
+          // c) merge: add the next of position/addedPosition with the lower offset
           if (position != null) {
             if (addedPosition != null) {
               if (position.getOffset() <= addedPosition.getOffset()) {
@@ -642,7 +632,7 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
       // Should not happen
       DartToolsPlugin.log(e);
     }
-//		checkOrdering("new positions: ", fPositions); //$NON-NLS-1$
+//    checkOrdering("new positions: ", fPositions); //$NON-NLS-1$
 
     if (textPresentation != null) {
       fSourceViewer.changeTextPresentation(textPresentation, false);
@@ -680,6 +670,17 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
       DartToolsPlugin.log(e);
     }
   }
+
+//  private void checkOrdering(String s, List<? extends Position> positions) {
+//    System.out.println(s + positions);
+//    Position previous = null;
+//    for (int i = 0, n = positions.size(); i < n; i++) {
+//      Position current = positions.get(i);
+//      if (previous != null && previous.getOffset() + previous.getLength() > current.getOffset()) {
+//        return;
+//      }
+//    }
+//  }
 
   /**
    * Returns the index of the first position with an offset greater than the given offset.
