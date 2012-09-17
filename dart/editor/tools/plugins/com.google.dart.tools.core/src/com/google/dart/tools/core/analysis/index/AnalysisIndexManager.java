@@ -34,7 +34,6 @@ public class AnalysisIndexManager {
   private static AnalysisServer server;
   private static AnalysisMarkerManager markerManager;
   private static AnalysisDebug analysisDebugSaved;
-  private static AnalysisDebug analysisDebugEdit;
 
   private static boolean indexing = false;
 
@@ -114,8 +113,6 @@ public class AnalysisIndexManager {
       analysisDebugSaved = new AnalysisDebug("Saved");
       server.addIdleListener(analysisDebugSaved);
       server.getSavedContext().addAnalysisListener(analysisDebugSaved);
-      analysisDebugEdit = new AnalysisDebug("Edit");
-      server.getEditContext().addAnalysisListener(analysisDebugEdit);
     }
   }
 
@@ -131,10 +128,6 @@ public class AnalysisIndexManager {
     if (analysisDebugSaved != null) {
       analysisDebugSaved.stop();
       analysisDebugSaved = null;
-    }
-    if (analysisDebugEdit != null) {
-      analysisDebugEdit.stop();
-      analysisDebugEdit = null;
     }
   }
 

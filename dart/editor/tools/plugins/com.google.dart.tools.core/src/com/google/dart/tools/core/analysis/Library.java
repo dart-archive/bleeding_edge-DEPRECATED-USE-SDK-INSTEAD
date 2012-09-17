@@ -22,8 +22,6 @@ import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.engine.utilities.io.PrintStringWriter;
-import com.google.dart.tools.core.DartCore;
 
 import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
 import static com.google.dart.tools.core.analysis.AnalysisUtility.toLibrarySource;
@@ -52,8 +50,8 @@ class Library {
    * Construct a new library from the unresolved dart unit that defines the library
    */
   @SuppressWarnings("deprecation")
-  static Library fromDartUnit(AnalysisServer server, File libFile, LibrarySource libSource,
-      Collection<DartDirective> directives) {
+  static Library fromDartUnit(AnalysisServer server, Context context, File libFile,
+      LibrarySource libSrc, Collection<DartDirective> directives) {
     HashMap<String, File> imports = new HashMap<String, File>();
     HashMap<String, File> sources = new HashMap<String, File>();
     URI base = libFile.toURI();
@@ -80,7 +78,7 @@ class Library {
           }
         }
         relPath = importDirective.getLibraryUri().getValue();
-        File file = server.resolvePath(base, relPath);
+        File file = context.resolvePath(base, relPath);
         if (file == null) {
           // Resolution errors reported by ResolveLibraryTask
         } else {
@@ -88,7 +86,7 @@ class Library {
         }
       } else if (directive instanceof DartSourceDirective) {
         relPath = ((DartSourceDirective) directive).getSourceUri().getValue();
-        File file = server.resolvePath(base, relPath);
+        File file = context.resolvePath(base, relPath);
         if (file == null) {
           // Resolution errors reported by ResolveLibraryTask
         } else {
@@ -100,7 +98,7 @@ class Library {
     // Import "dart:core" if it was not explicitly imported
 
     if (imports.get("dart:core") == null) {
-      File file = server.resolvePath(base, "dart:core");
+      File file = context.resolvePath(base, "dart:core");
       if (file == null) {
         // Resolution errors reported by ResolveLibraryTask
       } else {
@@ -109,7 +107,7 @@ class Library {
     }
 
     boolean hasDirectives = directives.size() > 0;
-    return new Library(libFile, libSource, prefixes, hasDirectives, imports, sources, true);
+    return new Library(context, libFile, libSrc, prefixes, hasDirectives, imports, sources, true);
   }
 
   /**
@@ -117,30 +115,30 @@ class Library {
    * when the ASTs are re-parsed and re-resolved because they were already notified the first time
    * it was parsed and resolved.
    */
-  static Library readCache(AnalysisServer server, File libFile, CacheReader reader)
+  static Library readCache(AnalysisServer server, Context context, File libFile, CacheReader reader)
       throws IOException {
-    LibrarySource libSource = toLibrarySource(server, libFile);
+    LibrarySource libSrc = toLibrarySource(context, libFile);
     boolean hasDirectives = reader.readBoolean();
     HashSet<String> prefixes = reader.readStringSet(END_PREFIXES_TAG);
     HashMap<String, File> imports = reader.readStringFileMap(END_IMPORTS_TAG);
     HashMap<String, File> sources = reader.readStringFileMap(END_SOURCES_TAG);
-    return new Library(libFile, libSource, prefixes, hasDirectives, imports, sources, false);
+    return new Library(context, libFile, libSrc, prefixes, hasDirectives, imports, sources, false);
   }
 
+  private final Context context;
   private final File libraryFile;
-
   private final LibrarySource librarySource;
+
   private final Set<String> prefixes;
   private final boolean hasDirectives;
   private final HashMap<String, File> imports;
   private final HashMap<String, File> sources;
   private final HashMap<File, Long> lastModified;
-  private Context context;
+
   private LibraryUnit libraryUnit;
-
   private final HashMap<File, DartUnit> dartUnits;
-  private HashMap<File, DartCompilationError[]> parseErrors;
 
+  private HashMap<File, DartCompilationError[]> parseErrors;
   /**
    * Flag indicating if listeners should be notified when the library is parsed and resolved. This
    * is <code>false</code> when a library is reloaded from a cache file so that listeners will not
@@ -148,9 +146,10 @@ class Library {
    */
   public final boolean shouldNotify;
 
-  private Library(File libraryFile, LibrarySource librarySource, Set<String> prefixes,
-      boolean hasDirectives, HashMap<String, File> imports, HashMap<String, File> sources,
-      boolean shouldNotify) {
+  private Library(Context context, File libraryFile, LibrarySource librarySource,
+      Set<String> prefixes, boolean hasDirectives, HashMap<String, File> imports,
+      HashMap<String, File> sources, boolean shouldNotify) {
+    this.context = context;
     this.libraryFile = libraryFile;
     this.librarySource = librarySource;
     this.prefixes = prefixes;
@@ -190,7 +189,7 @@ class Library {
   void cacheLibraryUnit(AnalysisServer server, LibraryUnit libUnit) {
     this.libraryUnit = libUnit;
     for (DartUnit dartUnit : libUnit.getUnits()) {
-      File file = toFile(server, dartUnit.getSourceInfo().getSource().getUri());
+      File file = toFile(context, dartUnit.getSourceInfo().getSource().getUri());
       if (file != null) {
         dartUnits.put(file, dartUnit);
       }
@@ -256,20 +255,6 @@ class Library {
   long lastModified(File file) {
     Long timestamp = lastModified.get(file);
     return timestamp != null ? timestamp : -1L;
-  }
-
-  void setContext(Context context) {
-    if (this.context != null) {
-      PrintStringWriter msg = new PrintStringWriter();
-      msg.print("Library ");
-      msg.println(getFile());
-      msg.print("  was in ");
-      msg.println(this.context);
-      msg.print("  but has been moved to ");
-      msg.println(context);
-      DartCore.logError(msg.toString());
-    }
-    this.context = context;
   }
 
   /**

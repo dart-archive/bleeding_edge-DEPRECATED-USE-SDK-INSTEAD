@@ -2,6 +2,7 @@
 #import('../Money/money.dart');
 #import('nested/nestedLib.dart');
 #import('package:customer/customer.dart');
+#source('localbank.dart');
 
 Customer customer;
 SimpleMoney balance;

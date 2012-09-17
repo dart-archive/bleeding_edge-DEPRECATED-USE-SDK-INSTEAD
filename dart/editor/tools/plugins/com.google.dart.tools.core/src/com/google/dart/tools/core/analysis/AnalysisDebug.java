@@ -39,6 +39,11 @@ public class AnalysisDebug implements AnalysisListener, IdleListener {
       message.print("discarded ");
       File file = event.getLibraryFile();
       message.println(file != null ? file.getName() : "null");
+      File appDir = event.getApplicationDirectory();
+      if (appDir != null) {
+        message.print("  in app ");
+        message.println(appDir);
+      }
       message.notifyAll();
     }
   }
@@ -77,6 +82,11 @@ public class AnalysisDebug implements AnalysisListener, IdleListener {
         }
         message.println();
       }
+      File appDir = event.getApplicationDirectory();
+      if (appDir != null) {
+        message.print("  in app ");
+        message.println(appDir);
+      }
       message.notifyAll();
     }
   }
@@ -88,6 +98,11 @@ public class AnalysisDebug implements AnalysisListener, IdleListener {
       message.print("resolved ");
       File file = event.getLibraryFile();
       message.println(file != null ? file.getName() : "null");
+      File appDir = event.getApplicationDirectory();
+      if (appDir != null) {
+        message.print("  in app ");
+        message.println(appDir);
+      }
       message.notifyAll();
     }
   }

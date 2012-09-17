@@ -183,7 +183,7 @@ class AnalysisUtility {
    * 
    * @return the file or <code>null</code> if unknown
    */
-  static File toFile(AnalysisServer server, URI uri) {
+  static File toFile(Context context, URI uri) {
     String scheme = uri.getScheme();
     if (scheme == null || "file".equals(scheme)) {
       File file = new File(uri.getPath());
@@ -194,7 +194,7 @@ class AnalysisUtility {
       return null;
     }
     if (PackageLibraryManager.isDartUri(uri) || PackageLibraryManager.isPackageUri(uri)) {
-      URI resolveUri = server.getLibraryManager().resolveDartUri(uri);
+      URI resolveUri = context.getLibraryManager().resolveDartUri(uri);
       if (resolveUri == null) {
         DartCore.logError("Failed to resolve: " + uri);
         return null;
@@ -210,9 +210,9 @@ class AnalysisUtility {
    * 
    * @return the library source (not <code>null</code>)
    */
-  static UrlLibrarySource toLibrarySource(AnalysisServer server, File libraryFile) {
-    URI libUri = toLibraryUri(server, libraryFile);
-    return new UrlLibrarySource(libUri, server.getLibraryManager());
+  static UrlLibrarySource toLibrarySource(Context context, File libraryFile) {
+    URI libUri = toLibraryUri(context, libraryFile);
+    return new UrlLibrarySource(libUri, context.getLibraryManager());
   }
 
   /**
@@ -220,9 +220,9 @@ class AnalysisUtility {
    * 
    * @return the library URI (not <code>null</code>)
    */
-  static URI toLibraryUri(AnalysisServer server, File libraryFile) {
+  static URI toLibraryUri(Context context, File libraryFile) {
     URI fileUri = libraryFile.toURI();
-    URI shortUri = server.getLibraryManager().getRelativeUri(fileUri);
+    URI shortUri = context.getLibraryManager().getRelativeUri(fileUri);
     return shortUri != null && !PackageLibraryManager.isPackageUri(shortUri) ? shortUri : fileUri;
   }
 

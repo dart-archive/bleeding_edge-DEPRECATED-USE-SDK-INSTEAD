@@ -44,11 +44,9 @@ class FileChangedTask extends Task {
     SavedContext savedContext = server.getSavedContext();
     ScanTask task = null;
 
-    Library library = savedContext.getCachedLibrary(rootFile);
-    Library[] librariesSourcing = savedContext.getLibrariesSourcing(rootFile);
-
-    // If this rootFile is a library, then scan the library and all its files for directive changes
-    if (library != null) {
+    // Discard and scan cached libraries
+    for (Library library : savedContext.getCachedLibraries(rootFile)) {
+      Context context = library.getContext();
 
       // Discard and re-analyze only if this library is not already up to date
       if (rootFile.lastModified() != library.lastModified(rootFile)) {
@@ -58,16 +56,17 @@ class FileChangedTask extends Task {
         Collection<File> sourceFiles = library.getSourceFiles();
         task.addFilesToScan(sourceFiles);
         for (File sourceFile : sourceFiles) {
-          savedContext.discardLibrary(sourceFile);
+          context.discardLibrary(sourceFile);
         }
 
         // Discard the library and any downstream libraries
-        savedContext.discardLibraries(library.getFile());
+        context.discardLibraries(library.getFile());
       }
     }
 
     // If this rootFile is sourced by another library, then scan the rootFile for directive changes
-    for (Library otherLibrary : librariesSourcing) {
+    for (Library otherLibrary : savedContext.getLibrariesSourcing(rootFile)) {
+      Context context = otherLibrary.getContext();
 
       // Discard and re-analyze only if this library is not already up to date
       if (rootFile.lastModified() != otherLibrary.lastModified(rootFile)) {
@@ -78,7 +77,7 @@ class FileChangedTask extends Task {
         task.addFilesToScan(otherLibrary.getFile());
 
         // Discard the library and any downstream libraries
-        savedContext.discardLibraries(otherLibrary.getFile());
+        context.discardLibraries(otherLibrary.getFile());
       }
     }
 

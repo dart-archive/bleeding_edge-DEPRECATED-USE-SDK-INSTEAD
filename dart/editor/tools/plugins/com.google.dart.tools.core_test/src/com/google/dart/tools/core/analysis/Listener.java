@@ -41,7 +41,6 @@ class Listener implements AnalysisListener, IdleListener {
   public Listener(AnalysisServer server) {
     server.addIdleListener(this);
     server.getSavedContext().addAnalysisListener(this);
-    server.getEditContext().addAnalysisListener(this);
   }
 
   @Override

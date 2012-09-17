@@ -6,7 +6,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.tools.core.DartCore;
 
-import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
+import static com.google.dart.tools.core.analysis.AnalysisUtility.*;
 
 import java.io.File;
 import java.net.URI;
@@ -16,29 +16,34 @@ import java.util.Map;
 
 final class SelectiveCacheAdapter extends SelectiveCache {
 
-  private final AnalysisServer server;
+  private final SavedContext savedContext;
   private final Context context;
   private final HashMap<File, HashSet<File>> parsedFiles;
 
   SelectiveCacheAdapter(AnalysisServer server, Context context) {
-    this.server = server;
+    this.savedContext = server.getSavedContext();
     this.context = context;
     this.parsedFiles = new HashMap<File, HashSet<File>>();
   }
 
   @Override
   public Map<URI, LibraryUnit> getResolvedLibraries() {
-    return context.getResolvedLibraries();
+    HashMap<URI, LibraryUnit> resolvedLibraries = context.getResolvedLibraries();
+    if (context != savedContext) {
+      resolvedLibraries.putAll(savedContext.getResolvedSdkLibraries());
+    }
+    return resolvedLibraries;
   }
 
   @Override
   public DartUnit getUnresolvedDartUnit(DartSource dartSrc) {
-    File libraryFile = toFile(server, dartSrc.getLibrary().getUri());
-    File dartFile = toFile(server, dartSrc.getUri());
+    File libraryFile = toFile(context, dartSrc.getLibrary().getUri());
+    File dartFile = toFile(context, dartSrc.getUri());
     if (libraryFile == null || dartFile == null) {
       return null;
     }
-    Library library = context.getCachedLibrary(libraryFile);
+    Context libraryContext = isSdkLibrary(libraryFile) ? savedContext : context;
+    Library library = libraryContext.getCachedLibrary(libraryFile);
     if (library != null) {
 
       // Sanity check... should not be requesting unresolved units for resolved libraries

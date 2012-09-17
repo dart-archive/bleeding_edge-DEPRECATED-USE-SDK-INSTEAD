@@ -16,13 +16,10 @@ package com.google.dart.tools.core.analysis;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
-import com.google.dart.tools.core.AbstractDartCoreTest;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.ScanTask.DartFileType;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
-import com.google.dart.tools.core.test.util.FileUtilities;
-import com.google.dart.tools.core.test.util.TestUtilities;
 
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertCachedLibraries;
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertPackageContexts;
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTrackedLibraryFiles;
 import static com.google.dart.tools.core.analysis.ScanTask.DartFileType.Library;
@@ -34,56 +31,22 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class ScanTaskTest extends AbstractDartCoreTest {
+public class ScanTaskTest extends AbstractDartAnalysisTest {
 
-  private static final long FIVE_MINUTES_MS = 300000;
   private static final byte[] BUFFER = new byte[1024];
-
-  private static File tempDir;
-  private static File moneyDir;
-  private static File moneyLibFile;
-  private static File simpleMoneySrcFile;
-  private static File bankDir;
-  private static File bankLibFile;
-  private static File packagesDir;
-  private static File pubspecFile;
-  private static File nestedAppFile;
-  private static File nestedLibFile;
 
   /**
    * Called once prior to executing the first test in this class
    */
   public static void setUpOnce() throws Exception {
-    tempDir = TestUtilities.createTempDirectory();
-
-    moneyDir = new File(tempDir, "Money");
-    TestUtilities.copyPluginRelativeContent("Money", moneyDir);
-    moneyLibFile = new File(moneyDir, "money.dart");
-    assertTrue(moneyLibFile.exists());
-    simpleMoneySrcFile = new File(moneyDir, "simple_money.dart");
-    assertTrue(simpleMoneySrcFile.exists());
-
-    bankDir = new File(tempDir, "Bank");
-    TestUtilities.copyPluginRelativeContent("Bank", bankDir);
-    bankLibFile = new File(bankDir, "bank.dart");
-    assertTrue(bankLibFile.exists());
-    packagesDir = new File(bankDir, DartCore.PACKAGES_DIRECTORY_NAME);
-    assertTrue(packagesDir.exists());
-    pubspecFile = new File(bankDir, DartCore.PUBSPEC_FILE_NAME);
-    assertTrue(pubspecFile.exists());
-
-    nestedAppFile = new File(new File(bankDir, "nested"), "nestedApp.dart");
-    assertTrue(nestedAppFile.exists());
-    nestedLibFile = new File(new File(bankDir, "nested"), "nestedLib.dart");
-    assertTrue(nestedLibFile.exists());
+    setUpBankExample();
   }
 
   /**
    * Called once after executing the last test in this class
    */
   public static void tearDownOnce() {
-    FileUtilities.delete(tempDir);
-    tempDir = null;
+    tearDownBankExample();
   }
 
   private AnalysisServerAdapter server;
@@ -121,6 +84,8 @@ public class ScanTaskTest extends AbstractDartCoreTest {
     listener.waitForIdle(1, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server, bankLibFile, nestedAppFile, nestedLibFile);
     assertPackageContexts(server, bankDir);
+    assertCachedLibraries(server, null);
+    assertCachedLibraries(server, bankDir, bankLibFile, nestedLibFile, nestedAppFile);
     server.assertAnalyzeContext(true);
   }
 

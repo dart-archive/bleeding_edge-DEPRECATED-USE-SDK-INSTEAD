@@ -27,11 +27,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 class ErrorListener implements DartCompilerListener {
-  private final AnalysisServer server;
+  private final Context context;
   private Collection<AnalysisError> errors = AnalysisError.NONE;
 
-  ErrorListener(AnalysisServer server) {
-    this.server = server;
+  ErrorListener(Context context) {
+    this.context = context;
   }
 
   public Collection<AnalysisError> getErrors() {
@@ -48,7 +48,7 @@ class ErrorListener implements DartCompilerListener {
     }
 
     // TODO (danrubel): Where to report errors that do not map to a file
-    File dartFile = toFile(server, source.getUri());
+    File dartFile = toFile(context, source.getUri());
 
     if (dartFile == null) {
       return;
@@ -62,7 +62,7 @@ class ErrorListener implements DartCompilerListener {
     File libraryFile;
     if (source instanceof DartSource) {
       // TODO (danrubel): Where to report errors that do not map to a library
-      libraryFile = toFile(server, ((DartSource) source).getLibrary().getUri());
+      libraryFile = toFile(context, ((DartSource) source).getLibrary().getUri());
       if (libraryFile == null) {
         return;
       }

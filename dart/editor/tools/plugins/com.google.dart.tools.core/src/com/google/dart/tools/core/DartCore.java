@@ -257,8 +257,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * Return true if directory contains a "packages" directory that is installed by pub
    */
   public static boolean containsPackagesDirectory(File file) {
-    File pkgsDir = new File(file, PACKAGES_DIRECTORY_NAME);
-    return pkgsDir.isDirectory();
+    return new File(file, PACKAGES_DIRECTORY_NAME).isDirectory();
   }
 
   /**
@@ -558,6 +557,13 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static boolean isAnalyzed(IResource resource) {
     return DartModelManager.getInstance().isAnalyzed(resource);
+  }
+
+  /**
+   * Return true if directory contains a "packages" directory and a "pubspec.yaml" file
+   */
+  public static boolean isApplicationDirectory(File directory) {
+    return containsPackagesDirectory(directory) && new File(directory, PUBSPEC_FILE_NAME).isFile();
   }
 
   /**
@@ -906,7 +912,6 @@ public class DartCore extends Plugin implements DartSdkListener {
     PLUGIN_LOG = log;
     return oldLog;
   }
-
 
   /**
    * Return <code>true</code> if the given file name's extension matches one of the passed

@@ -17,7 +17,6 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.tools.core.DartCore;
 
 import static com.google.dart.tools.core.analysis.AnalysisUtility.parse;
 import static com.google.dart.tools.core.analysis.AnalysisUtility.toLibrarySource;
@@ -28,8 +27,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Parse and cache a Dart source file if it has not already been cached. If this source file does
- * not define a library, then parse and cache the library source file as well.
+ * Parse and cache a Dart source file in a specific context if it has not already been cached. If
+ * this source file does not define a library, then parse and cache the library source file as well.
+ * If you do not know the context in which the parse is or should be cached, use
+ * {@link ParseRequestTask} instead.
  */
 public class ParseTask extends Task {
   private final AnalysisServer server;
@@ -37,25 +38,23 @@ public class ParseTask extends Task {
   private final File libraryFile;
   private final String relPath;
   private final File dartFile;
-  private final ParseCallback callback;
 
-  public ParseTask(AnalysisServer server, Context context, File libraryFile, ParseCallback callback) {
-    this(server, context, libraryFile, libraryFile.getName(), libraryFile, callback);
+  public ParseTask(AnalysisServer server, Context context, File libraryFile) {
+    this(server, context, libraryFile, libraryFile.getName(), libraryFile);
   }
 
   public ParseTask(AnalysisServer server, Context context, File libraryFile, String relPath,
-      File dartFile, ParseCallback callback) {
+      File dartFile) {
     this.server = server;
     this.context = context;
     this.libraryFile = libraryFile;
     this.relPath = relPath;
     this.dartFile = dartFile;
-    this.callback = callback;
   }
 
   @Override
   public boolean canRemove(File discarded) {
-    return callback == null;
+    return true;
   }
 
   @Override
@@ -71,18 +70,21 @@ public class ParseTask extends Task {
     Library library = context.getCachedLibrary(libraryFile);
     if (library == null) {
       Set<String> prefixes = new HashSet<String>();
-      ErrorListener errorListener = new ErrorListener(server);
-      UrlLibrarySource librarySource = toLibrarySource(server, libraryFile);
+      ErrorListener errorListener = new ErrorListener(context);
+      UrlLibrarySource librarySource = toLibrarySource(context, libraryFile);
       DartSource source = librarySource.getSourceFor(libraryFile.getName());
 
       DartUnit unit = parse(libraryFile, source, prefixes, errorListener);
 
-      AnalysisEvent event = new AnalysisEvent(libraryFile, errorListener.getErrors());
+      AnalysisEvent event = new AnalysisEvent(
+          context.getApplicationDirectory(),
+          libraryFile,
+          errorListener.getErrors());
       event.addFileAndDartUnit(libraryFile, unit);
-      event.notifyParsed(context);
+      server.getSavedContext().notifyParsed(event);
 
       List<DartDirective> directives = unit.getDirectives();
-      library = Library.fromDartUnit(server, libraryFile, librarySource, directives);
+      library = Library.fromDartUnit(server, context, libraryFile, librarySource, directives);
       library.cacheDartUnit(libraryFile, unit, errorListener.getErrors());
       context.cacheLibrary(library);
     }
@@ -92,26 +94,19 @@ public class ParseTask extends Task {
     DartUnit unit = library.getDartUnit(dartFile);
     if (unit == null) {
       Set<String> prefixes = library.getPrefixes();
-      ErrorListener errorListener = new ErrorListener(server);
+      ErrorListener errorListener = new ErrorListener(context);
       DartSource source = library.getLibrarySource().getSourceFor(relPath);
 
       unit = AnalysisUtility.parse(dartFile, source, prefixes, errorListener);
 
       library.cacheDartUnit(dartFile, unit, errorListener.getErrors());
       if (library.shouldNotify) {
-        AnalysisEvent event = new AnalysisEvent(libraryFile, errorListener.getErrors());
+        AnalysisEvent event = new AnalysisEvent(
+            context.getApplicationDirectory(),
+            libraryFile,
+            errorListener.getErrors());
         event.addFileAndDartUnit(dartFile, unit);
-        event.notifyParsed(context);
-      }
-    }
-
-    // Notify the caller
-
-    if (callback != null) {
-      try {
-        callback.parsed(new ParseResult(unit, library.getParseErrors(dartFile)));
-      } catch (Throwable e) {
-        DartCore.logError("Exception during parse notification", e);
+        server.getSavedContext().notifyParsed(event);
       }
     }
   }

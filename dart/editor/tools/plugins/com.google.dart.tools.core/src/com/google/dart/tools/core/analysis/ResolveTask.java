@@ -20,6 +20,7 @@ import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdkManager;
 
+import static com.google.dart.tools.core.analysis.AnalysisUtility.isSdkLibrary;
 import static com.google.dart.tools.core.analysis.AnalysisUtility.resolve;
 import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
 
@@ -39,11 +40,13 @@ import java.util.Map;
 class ResolveTask extends Task {
 
   private final AnalysisServer server;
+  private final SavedContext savedContext;
   private final Context context;
   private final Library rootLibrary;
 
   ResolveTask(AnalysisServer server, Context context, Library library) {
     this.server = server;
+    this.savedContext = server.getSavedContext();
     this.context = context;
     this.rootLibrary = library;
   }
@@ -68,7 +71,7 @@ class ResolveTask extends Task {
     if (rootLibrary.getLibraryUnit() != null) {
       return;
     }
-    ErrorListener errorListener = new ErrorListener(server);
+    ErrorListener errorListener = new ErrorListener(context);
 
     // Resolve
 
@@ -84,11 +87,12 @@ class ResolveTask extends Task {
       // Cache the resolved library
 
       LibrarySource librarySource = libUnit.getSource();
-      File libraryFile = toFile(server, librarySource.getUri());
+      File libraryFile = toFile(context, librarySource.getUri());
       if (libraryFile == null) {
         continue;
       }
-      Library library = context.getCachedLibrary(libraryFile);
+      Context libraryContext = isSdkLibrary(libraryFile) ? savedContext : context;
+      Library library = libraryContext.getCachedLibrary(libraryFile);
       if (library == null) {
         List<DartDirective> directives;
 
@@ -98,8 +102,13 @@ class ResolveTask extends Task {
           directives = libUnit.getSelfDartUnit().getDirectives();
         }
 
-        library = Library.fromDartUnit(server, libraryFile, librarySource, directives);
-        context.cacheLibrary(library);
+        library = Library.fromDartUnit(
+            server,
+            libraryContext,
+            libraryFile,
+            librarySource,
+            directives);
+        libraryContext.cacheLibrary(library);
       }
       library.cacheLibraryUnit(server, libUnit);
 
@@ -127,11 +136,13 @@ class ResolveTask extends Task {
       if (parsedFiles != null && parsedFiles.size() > 0) {
         // Do not report errors during this notification because they will be reported
         // as part of the resolution notification
-        AnalysisEvent parseEvent = new AnalysisEvent(libraryFile);
+        AnalysisEvent parseEvent = new AnalysisEvent(
+            libraryContext.getApplicationDirectory(),
+            libraryFile);
         Iterator<DartUnit> iter = libUnit.getUnits().iterator();
         while (iter.hasNext()) {
           DartUnit dartUnit = iter.next();
-          File dartFile = toFile(server, dartUnit.getSourceInfo().getSource().getUri());
+          File dartFile = toFile(libraryContext, dartUnit.getSourceInfo().getSource().getUri());
           if (dartFile == null) {
             continue;
           }
@@ -139,22 +150,25 @@ class ResolveTask extends Task {
             parseEvent.addFileAndDartUnit(dartFile, dartUnit);
           }
         }
-        parseEvent.notifyParsed(context);
+        savedContext.notifyParsed(parseEvent);
       }
 
       // Notify listeners that the library was resolved
 
-      AnalysisEvent resolutionEvent = new AnalysisEvent(libraryFile, newErrors);
+      AnalysisEvent resolutionEvent = new AnalysisEvent(
+          libraryContext.getApplicationDirectory(),
+          libraryFile,
+          newErrors);
       Iterator<DartUnit> iter = libUnit.getUnits().iterator();
       while (iter.hasNext()) {
         DartUnit dartUnit = iter.next();
-        File dartFile = toFile(server, dartUnit.getSourceInfo().getSource().getUri());
+        File dartFile = toFile(libraryContext, dartUnit.getSourceInfo().getSource().getUri());
         if (dartFile == null) {
           continue;
         }
         resolutionEvent.addFileAndDartUnit(dartFile, dartUnit);
       }
-      resolutionEvent.notifyResolved(context);
+      savedContext.notifyResolved(resolutionEvent);
     }
 
     // If the expected library was not resolved then log an error and insert a placeholder

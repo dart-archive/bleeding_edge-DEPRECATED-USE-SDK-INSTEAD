@@ -22,6 +22,8 @@ import com.google.dart.tools.core.test.util.FileOperation;
 import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertCachedLibraries;
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertPackageContexts;
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertQueuedTasks;
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTrackedLibraryFiles;
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.getServerTaskQueue;
@@ -44,7 +46,7 @@ import java.util.Set;
 
 public class AnalysisServerTest extends TestCase {
 
-  private static final String EMPTY_CACHE_CONTENT = "v3\n</end-libraries>\n</end-cache>\n</end-queue>\n";
+  private static final String EMPTY_CACHE_CONTENT = "v4\n</end-libraries>\n0\n</end-cache>\n</end-queue>\n";
   private static final String TEST_CLASS_SIMPLE_NAME = AnalysisServerTest.class.getSimpleName();
   private static final long FIVE_MINUTES_MS = 300000;
 
@@ -118,7 +120,7 @@ public class AnalysisServerTest extends TestCase {
 
   public void test_read_analyzeContext() throws Exception {
     initServer(new StringReader(
-        "v3\none\n</end-libraries>\n</end-cache>\nAnalyzeContextTask\n</end-queue>"));
+        "v4\none\n</end-libraries>\n0\n</end-cache>\nAnalyzeContextTask\n</end-queue>"));
     File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
     assertEquals(1, trackedLibraryFiles.length);
     assertEquals("one", trackedLibraryFiles[0].getName());
@@ -126,7 +128,7 @@ public class AnalysisServerTest extends TestCase {
   }
 
   public void test_read_analyzeLibrary() throws Exception {
-    initServer(new StringReader("v3\none\n</end-libraries>\n</end-cache>\none\n</end-queue>"));
+    initServer(new StringReader("v4\none\n</end-libraries>\n0\n</end-cache>\none\n</end-queue>"));
     File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
     assertEquals(1, trackedLibraryFiles.length);
     assertEquals("one", trackedLibraryFiles[0].getName());
@@ -151,11 +153,48 @@ public class AnalysisServerTest extends TestCase {
     assertQueuedTasks(server, "AnalyzeContextTask");
   }
 
+  public void test_read_empty_v3() throws Exception {
+    initServer(new StringReader("v3\n</end-libraries>\n</end-cache>\n</end-queue>"));
+    assertEquals(0, getTrackedLibraryFiles(server).length);
+    assertQueuedTasks(server, "AnalyzeLibraryTask");
+  }
+
   public void test_read_one() throws Exception {
-    initServer(new StringReader("v3\none\n</end-libraries>\n</end-cache>\n</end-queue>"));
+    PrintStringWriter content = new PrintStringWriter();
+
+    // version
+    content.println("v4");
+
+    // tracked libraries
+    content.println("one.dart");
+    content.println("</end-libraries>");
+
+    // saved context... one library cached
+    content.println("0");
+    content.println("two.dart");
+    content.println("true");
+    content.println("three");
+    content.println("</end-prefixes>");
+    content.println("four.dart");
+    content.println("four.dart");
+    content.println("</end-imports>");
+    content.println("five.dart");
+    content.println("five.dart");
+    content.println("</end-sources>");
+    content.println("</end-cache>");
+
+    // queued tasks
+    content.print("</end-queue>");
+
+    initServer(new StringReader(content.toString()));
+
     File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
     assertEquals(1, trackedLibraryFiles.length);
-    assertEquals("one", trackedLibraryFiles[0].getName());
+    assertEquals("one.dart", trackedLibraryFiles[0].getName());
+
+    assertPackageContexts(server);
+    assertCachedLibraries(server, null, new File("two.dart"));
+
     assertQueuedTasks(server, "AnalyzeLibraryTask");
   }
 
@@ -173,6 +212,98 @@ public class AnalysisServerTest extends TestCase {
     assertEquals(1, trackedLibraryFiles.length);
     assertEquals("one", trackedLibraryFiles[0].getName());
     assertQueuedTasks(server, "AnalyzeContextTask");
+  }
+
+  public void test_read_one_v3() throws Exception {
+    PrintStringWriter content = new PrintStringWriter();
+
+    // version
+    content.println("v3");
+
+    // tracked libraries
+    content.println("one.dart");
+    content.println("</end-libraries>");
+
+    // saved context... one library cached
+    content.println("two.dart");
+    content.println("true");
+    content.println("three");
+    content.println("</end-prefixes>");
+    content.println("four.dart");
+    content.println("four.dart");
+    content.println("</end-imports>");
+    content.println("five.dart");
+    content.println("five.dart");
+    content.println("</end-sources>");
+    content.println("</end-cache>");
+
+    // queued tasks
+    content.print("</end-queue>");
+
+    initServer(new StringReader(content.toString()));
+
+    File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
+    assertEquals(1, trackedLibraryFiles.length);
+    assertEquals("one.dart", trackedLibraryFiles[0].getName());
+
+    assertPackageContexts(server);
+    assertCachedLibraries(server, null, new File("two.dart"));
+
+    assertQueuedTasks(server, "AnalyzeLibraryTask");
+  }
+
+  public void test_read_two() throws Exception {
+    PrintStringWriter content = new PrintStringWriter();
+
+    // version
+    content.println("v4");
+
+    // tracked libraries
+    content.println("one.dart");
+    content.println("</end-libraries>");
+
+    // saved context... one library cached
+    content.println("1");
+    content.println("two.dart");
+    content.println("true");
+    content.println("three");
+    content.println("</end-prefixes>");
+    content.println("four.dart");
+    content.println("four.dart");
+    content.println("</end-imports>");
+    content.println("five.dart");
+    content.println("five.dart");
+    content.println("</end-sources>");
+    content.println("</end-cache>");
+
+    // bank context... one library cached
+    content.println("bankAppDir");
+    content.println("six.dart");
+    content.println("true");
+    content.println("seven");
+    content.println("</end-prefixes>");
+    content.println("eight.dart");
+    content.println("eight.dart");
+    content.println("</end-imports>");
+    content.println("nine.dart");
+    content.println("nine.dart");
+    content.println("</end-sources>");
+    content.println("</end-cache>");
+
+    // queued tasks
+    content.print("</end-queue>");
+
+    initServer(new StringReader(content.toString()));
+
+    File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
+    assertEquals(1, trackedLibraryFiles.length);
+    assertEquals("one.dart", trackedLibraryFiles[0].getName());
+
+    assertPackageContexts(server, new File("bankAppDir"));
+    assertCachedLibraries(server, null, new File("two.dart"));
+    assertCachedLibraries(server, new File("bankAppDir"), new File("six.dart"));
+
+    assertQueuedTasks(server, "AnalyzeLibraryTask");
   }
 
   public void test_read_version_invalid() throws Exception {

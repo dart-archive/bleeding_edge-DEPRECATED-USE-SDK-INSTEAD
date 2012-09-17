@@ -20,15 +20,16 @@ import com.google.dart.tools.core.DartCore;
 import java.io.File;
 
 /**
- * A context for analyzing applications with a "packages" directory. Analysis of libraries directly
- * or indirectly referenced by this context's applications are cached in this context.
+ * A context for analyzing applications with a "packages" directory and a "pubspec.yaml" file.
+ * Analysis of libraries directly or indirectly referenced by this context's applications are cached
+ * in this context.
  */
 public class PackageContext extends Context {
 
   /**
    * The directory containing a "packages" directory and a pubspec.yaml
    * 
-   * @see DartCore#containsPackagesDirectory(File)
+   * @see DartCore#isApplicationDirectory(File)
    */
   private final File applicationDirectory;
 
@@ -44,6 +45,7 @@ public class PackageContext extends Context {
     return getClass().getSimpleName() + "[" + applicationDirectory + "]";
   }
 
+  @Override
   File getApplicationDirectory() {
     return applicationDirectory;
   }

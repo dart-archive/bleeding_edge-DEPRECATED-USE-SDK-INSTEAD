@@ -38,6 +38,7 @@ import java.util.Iterator;
  */
 public class AnalysisServer {
 
+  private static final String CACHE_V4_TAG = "v4";
   private static final String CACHE_V3_TAG = "v3";
   private static final String CACHE_V2_TAG = "v2";
   private static final String CACHE_V1_TAG = "v1";
@@ -84,13 +85,12 @@ public class AnalysisServer {
    * @param libraryManager the target (VM, Dartium, JS) against which user libraries are resolved
    */
   public AnalysisServer(PackageLibraryManager libraryManager) {
-
     if (libraryManager == null) {
       throw new IllegalArgumentException();
     }
     savedContext = new SavedContext(this, libraryManager);
     editContext = new EditContext(this, savedContext, libraryManager);
-    savedContextAnalysisTask = new AnalyzeContextTask(this, savedContext);
+    savedContextAnalysisTask = new AnalyzeContextTask(this);
 
   }
 
@@ -354,10 +354,6 @@ public class AnalysisServer {
     }
   }
 
-  PackageLibraryManager getLibraryManager() {
-    return getSavedContext().getLibraryManager();
-  }
-
   /**
    * Answer the library files identified by {@link #analyze(File)}
    * 
@@ -399,44 +395,6 @@ public class AnalysisServer {
     queue.removeBackgroundTasks(discarded);
   }
 
-  /**
-   * Resolve the specified path to a file.
-   * 
-   * @return the file or <code>null</code> if it could not be resolved
-   */
-  File resolvePath(URI base, String relPath) {
-    if (relPath == null) {
-      return null;
-    }
-    if (PackageLibraryManager.isDartSpec(relPath) || PackageLibraryManager.isPackageSpec(relPath)) {
-      URI relativeUri;
-      try {
-        relativeUri = new URI(relPath);
-      } catch (URISyntaxException e) {
-        DartCore.logError("Failed to create URI: " + relPath, e);
-        return null;
-      }
-      URI resolveUri = getLibraryManager().resolveDartUri(relativeUri);
-      if (resolveUri == null) {
-        return null;
-      }
-      return new File(resolveUri.getPath());
-    }
-    File file = new File(relPath);
-    if (file.isAbsolute()) {
-      return file;
-    }
-    try {
-      String path = base.resolve(new URI(null, null, relPath, null)).normalize().getPath();
-      if (path != null) {
-        return new File(path);
-      }
-    } catch (URISyntaxException e) {
-      //$FALL-THROUGH$
-    }
-    return null;
-  }
-
   private File getAnalysisStateFile() {
     return new File(DartCore.getPlugin().getStateLocation().toFile(), "analysis.cache");
   }
@@ -455,14 +413,16 @@ public class AnalysisServer {
 
     int version;
     String line = cacheReader.readString();
-    if (CACHE_V3_TAG.equals(line)) {
+    if (CACHE_V4_TAG.equals(line)) {
+      version = 4;
+    } else if (CACHE_V3_TAG.equals(line)) {
       version = 3;
     } else if (CACHE_V2_TAG.equals(line)) {
       version = 2;
     } else if (CACHE_V1_TAG.equals(line)) {
       version = 1;
     } else {
-      throw new IOException("Expected cache version " + CACHE_V2_TAG + " but found " + line);
+      throw new IOException("Expected cache version " + CACHE_V4_TAG + " but found " + line);
     }
 
     // Tracked libraries
@@ -473,10 +433,16 @@ public class AnalysisServer {
     }
 
     // Cached libraries
-    savedContext.readCache(cacheReader);
     if (version == 2) {
+      savedContext.readCache(cacheReader);
       queueAnalyzeContext();
       return true;
+    }
+    if (version == 3) {
+      savedContext.readCache(cacheReader);
+    } else {
+      int packageContextCount = cacheReader.readInt();
+      savedContext.readCache(cacheReader, packageContextCount);
     }
 
     // Queued tasks
@@ -495,7 +461,7 @@ public class AnalysisServer {
         continue;
       }
       File libraryFile = new File(path);
-      queue.addLastTask(new AnalyzeLibraryTask(this, savedContext, libraryFile, null));
+      queue.addLastTask(new AnalyzeLibraryTask(this, libraryFile, null));
     }
 
     // If no queued tasks, then at minimum resolve dart:core
@@ -507,9 +473,9 @@ public class AnalysisServer {
         DartCore.logError(e);
         return true;
       }
-      File dartCoreFile = toFile(this, dartCoreUri);
+      File dartCoreFile = toFile(savedContext, dartCoreUri);
       if (dartCoreFile != null) {
-        queue.addLastTask(new AnalyzeLibraryTask(this, savedContext, dartCoreFile, null));
+        queue.addLastTask(new AnalyzeLibraryTask(this, dartCoreFile, null));
       }
     }
 
@@ -525,7 +491,7 @@ public class AnalysisServer {
       throw new IllegalStateException();
     }
     CacheWriter cacheWriter = new CacheWriter(writer);
-    cacheWriter.writeString(CACHE_V3_TAG);
+    cacheWriter.writeString(CACHE_V4_TAG);
     cacheWriter.writeFilePaths(libraryFiles, END_LIBRARIES_TAG);
 
     savedContext.writeCache(cacheWriter);

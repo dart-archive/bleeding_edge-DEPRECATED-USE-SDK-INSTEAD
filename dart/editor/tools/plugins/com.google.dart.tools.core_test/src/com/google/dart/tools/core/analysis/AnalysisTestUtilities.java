@@ -14,18 +14,24 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import static junit.framework.Assert.fail;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class AnalysisTestUtilities {
+
+  private static final File sdkLibDir = DartSdkManager.getManager().getSdk().getLibraryDirectory();
 
   /**
    * Wait for any background analysis to be complete
@@ -63,6 +69,21 @@ public class AnalysisTestUtilities {
     Context context;
     if (appDir == null) {
       context = server.getSavedContext();
+
+      // SDK libraries are not explicitly listed but should only be in saved context
+      // so add them to the list of expected files
+
+      ArrayList<File> expectedLibFiles = new ArrayList<File>();
+      for (File libFile : expected) {
+        expectedLibFiles.add(libFile);
+      }
+      for (File libFile : getCachedLibraryFiles(context)) {
+        if (isSdkLibrary(libFile)) {
+          expectedLibFiles.add(libFile);
+        }
+      }
+      expected = expectedLibFiles.toArray(new File[expectedLibFiles.size()]);
+
     } else {
       context = getPackageContexts(server).get(appDir);
       if (context == null) {
@@ -103,6 +124,22 @@ public class AnalysisTestUtilities {
 
   static void assertTrackedLibraryFiles(AnalysisServer server, File... expected) throws Exception {
     assertFiles(expected, getTrackedLibraryFiles(server));
+  }
+
+  /**
+   * Answer <code>true</code> if the directory equals or contains the specified file.
+   * 
+   * @param directory the directory (not <code>null</code>, absolute file)
+   * @param file the file (not <code>null</code>, absolute file)
+   */
+  static boolean equalsOrContains(File directory, File file) {
+    String dirPath = directory.getPath();
+    String filePath = file.getPath();
+    if (!filePath.startsWith(dirPath)) {
+      return false;
+    }
+    int index = dirPath.length();
+    return index == filePath.length() || filePath.charAt(index) == File.separatorChar;
   }
 
   static Object getCachedLibrary(Context context, File libraryFile) throws Exception {
@@ -147,6 +184,13 @@ public class AnalysisTestUtilities {
     return (File[]) result;
   }
 
+  /**
+   * Answer <code>true</code> if this library resides in the "lib" directory
+   */
+  static boolean isSdkLibrary(File libraryFile) {
+    return equalsOrContains(sdkLibDir, libraryFile);
+  }
+
   private static void assertFiles(File[] expected, File[] actual) {
     if (actual.length == expected.length) {
       HashSet<File> files = new HashSet<File>();
@@ -163,13 +207,26 @@ public class AnalysisTestUtilities {
       }
     }
     String msg = "Expected:";
-    for (File file : expected) {
+    for (File file : sort(expected)) {
       msg += "\n   " + file;
     }
     msg += "\nbut found:";
-    for (File file : actual) {
+    for (File file : sort(actual)) {
       msg += "\n   " + file;
     }
     fail(msg);
+  }
+
+  private static File[] sort(File[] original) {
+    TreeSet<File> sorted = new TreeSet<File>(new Comparator<File>() {
+      @Override
+      public int compare(File f1, File f2) {
+        return f1.getPath().compareTo(f2.getPath());
+      }
+    });
+    for (File file : original) {
+      sorted.add(file);
+    }
+    return sorted.toArray(new File[sorted.size()]);
   }
 }

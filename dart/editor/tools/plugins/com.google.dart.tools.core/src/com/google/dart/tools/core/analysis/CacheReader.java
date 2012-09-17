@@ -59,6 +59,15 @@ public class CacheReader {
     }
   }
 
+  public int readInt() throws IOException {
+    String value = readString();
+    try {
+      return Integer.parseInt(value);
+    } catch (NumberFormatException e) {
+      throw new IOException("Expected integer, but found " + value);
+    }
+  }
+
   /**
    * Read a string originally written by {@link CacheWriter#writeString(String)}
    * 

@@ -15,6 +15,8 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.PackageLibraryManager;
 
+import java.io.File;
+
 /**
  * Analysis of Dart source currently being edited
  */
@@ -25,5 +27,10 @@ public class EditContext extends Context {
   EditContext(AnalysisServer server, Context savedContext, PackageLibraryManager libraryManager) {
     super(server, libraryManager);
 //    this.savedContext = savedContext;
+  }
+
+  @Override
+  File getApplicationDirectory() {
+    return null;
   }
 }

@@ -52,7 +52,7 @@ public class ContextTest extends AbstractDartCoreTest {
   }
 
   private AnalysisServer server;
-  private Context context;
+  private SavedContext context;
   private Listener listener;
 
   public void test_parse_library() throws Exception {

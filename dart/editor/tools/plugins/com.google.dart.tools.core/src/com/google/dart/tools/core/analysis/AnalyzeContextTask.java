@@ -13,18 +13,19 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.tools.core.DartCore;
+
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * Analyze all libraries in a context
  */
 class AnalyzeContextTask extends Task {
   private final AnalysisServer server;
-  private final Context context;
 
-  AnalyzeContextTask(AnalysisServer server, Context context) {
+  AnalyzeContextTask(AnalysisServer server) {
     this.server = server;
-    this.context = context;
   }
 
   @Override
@@ -39,11 +40,24 @@ class AnalyzeContextTask extends Task {
 
   @Override
   public void perform() {
-    for (File libraryFile : server.getTrackedLibraryFiles()) {
-      server.queueSubTask(new ParseTask(server, context, libraryFile, null));
+    File[] libraryFiles = server.getTrackedLibraryFiles();
+    ArrayList<File> todo = new ArrayList<File>(libraryFiles.length);
+
+    // Analyze libraries in application directories first
+
+    for (File libFile : libraryFiles) {
+      File libDir = libFile.getParentFile();
+      if (DartCore.isApplicationDirectory(libDir)) {
+        server.queueSubTask(new AnalyzeLibraryTask(server, libFile, null));
+      } else {
+        todo.add(libFile);
+      }
     }
-    for (File libraryFile : server.getTrackedLibraryFiles()) {
-      server.queueSubTask(new AnalyzeLibraryTask(server, context, libraryFile, null));
+
+    // Then analyze all remaining libraries in the saved context
+
+    for (File libFile : todo) {
+      server.queueSubTask(new AnalyzeLibraryTask(server, libFile, null));
     }
   }
 }

@@ -13,82 +13,51 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.tools.core.AbstractDartCoreTest;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
-import com.google.dart.tools.core.test.util.FileUtilities;
-import com.google.dart.tools.core.test.util.TestUtilities;
 
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertCachedLibraries;
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertPackageContexts;
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTrackedLibraryFiles;
 
-import java.io.File;
-
-public class DiscardTaskTest extends AbstractDartCoreTest {
-
-  private static final long FIVE_MINUTES_MS = 300000;
-
-  private static File tempDir;
-  private static File moneyDir;
-  private static File moneyLibFile;
-  private static File simpleMoneySrcFile;
-  private static File bankDir;
-  private static File bankLibFile;
-  private static File packagesDir;
-  private static File pubspecFile;
-  private static File nestedAppFile;
-  private static File nestedLibFile;
+public class DiscardTaskTest extends AbstractDartAnalysisTest {
 
   /**
    * Called once prior to executing the first test in this class
    */
   public static void setUpOnce() throws Exception {
-    tempDir = TestUtilities.createTempDirectory();
-
-    moneyDir = new File(tempDir, "Money");
-    TestUtilities.copyPluginRelativeContent("Money", moneyDir);
-    moneyLibFile = new File(moneyDir, "money.dart");
-    assertTrue(moneyLibFile.exists());
-    simpleMoneySrcFile = new File(moneyDir, "simple_money.dart");
-    assertTrue(simpleMoneySrcFile.exists());
-
-    bankDir = new File(tempDir, "Bank");
-    TestUtilities.copyPluginRelativeContent("Bank", bankDir);
-    bankLibFile = new File(bankDir, "bank.dart");
-    assertTrue(bankLibFile.exists());
-    packagesDir = new File(bankDir, DartCore.PACKAGES_DIRECTORY_NAME);
-    assertTrue(packagesDir.exists());
-    pubspecFile = new File(bankDir, DartCore.PUBSPEC_FILE_NAME);
-    assertTrue(pubspecFile.exists());
-
-    nestedAppFile = new File(new File(bankDir, "nested"), "nestedApp.dart");
-    assertTrue(nestedAppFile.exists());
-    nestedLibFile = new File(new File(bankDir, "nested"), "nestedLib.dart");
-    assertTrue(nestedLibFile.exists());
+    setUpBankExample();
   }
 
   /**
    * Called once after executing the last test in this class
    */
   public static void tearDownOnce() {
-    FileUtilities.delete(tempDir);
-    tempDir = null;
+    tearDownBankExample();
   }
 
   private AnalysisServerAdapter server;
   private Listener listener;
 
-  public void test_discard_application_directory() throws Exception {
-    assertTrackedLibraryFiles(server);
-    server.scan(bankDir, null);
-    server.start();
-    listener.waitForIdle(1, FIVE_MINUTES_MS);
-    server.assertAnalyzeContext(true);
-    assertTrackedLibraryFiles(server, bankLibFile, nestedAppFile, nestedLibFile);
+  /**
+   * Assert discarding the application only discards that library
+   */
+  public void test_discard_application() throws Exception {
+    scanBankDir();
+    server.discard(bankLibFile);
+    listener.waitForIdle(2, FIVE_MINUTES_MS);
+    listener.assertDiscarded(bankLibFile);
+    listener.assertResolvedCount(0);
+    listener.assertNoDuplicates();
     assertPackageContexts(server, bankDir);
-    assertCachedLibraries(server, null, bankLibFile, nestedAppFile, nestedLibFile);
+    assertCachedLibraries(server, null);
+    assertCachedLibraries(server, bankDir, nestedLibFile, nestedAppFile);
+  }
 
+  /**
+   * Assert discarding the application directory discards every library in that directory tree
+   */
+  public void test_discard_application_directory() throws Exception {
+    scanBankDir();
     server.discard(bankDir);
     listener.waitForIdle(2, FIVE_MINUTES_MS);
     listener.assertDiscarded(bankLibFile, nestedAppFile, nestedLibFile);
@@ -99,17 +68,11 @@ public class DiscardTaskTest extends AbstractDartCoreTest {
     assertCachedLibraries(server, null);
   }
 
+  /**
+   * Assert discarding the nested library discards the libraries importing it
+   */
   public void test_discard_application_nestedLib() throws Exception {
-    assertTrackedLibraryFiles(server);
-    server.scan(bankDir, null);
-    server.start();
-    listener.waitForIdle(1, FIVE_MINUTES_MS);
-    server.assertAnalyzeContext(true);
-    assertTrackedLibraryFiles(server, bankLibFile, nestedAppFile, nestedLibFile);
-    assertPackageContexts(server, bankDir);
-    assertCachedLibraries(server, null, bankLibFile, nestedAppFile, nestedLibFile);
-
-    // Discarding nested lib should discard bank app because bank app imports nested lib
+    scanBankDir();
     server.discard(nestedLibFile);
     listener.waitForIdle(2, FIVE_MINUTES_MS);
     listener.assertDiscarded(bankLibFile, nestedLibFile);
@@ -117,7 +80,8 @@ public class DiscardTaskTest extends AbstractDartCoreTest {
     listener.assertNoDuplicates();
     assertTrackedLibraryFiles(server, bankLibFile, nestedAppFile);
     assertPackageContexts(server, bankDir);
-    assertCachedLibraries(server, null, nestedAppFile);
+    assertCachedLibraries(server, null);
+    assertCachedLibraries(server, bankDir, nestedAppFile);
   }
 
   public void test_discard_libraryDirectory() throws Exception {
@@ -160,33 +124,16 @@ public class DiscardTaskTest extends AbstractDartCoreTest {
     assertCachedLibraries(server, null);
   }
 
-//  /**
-//   * Assert adding and removing "packages" directory changes the context
-//   */
-//  // TODO(devoncarew): commented out to fix the build
-//  public void test_discard_packages() throws Exception {
-//    server.scan(bankDir, null);
-//    server.start();
-//    listener.waitForIdle(1, FIVE_MINUTES_MS);
-//    assertPackageContexts(server, bankDir);
-//    assertCachedLibraries(server, null, bankLibFile, nestedAppFile, nestedLibFile);
-//
-//    File renamedPackagesDir = new File(packagesDir.getPath() + "-new");
-//    packagesDir.renameTo(renamedPackagesDir);
-//    try {
-//      server.discard(packagesDir);
-//      listener.waitForIdle(2, FIVE_MINUTES_MS);
-//      assertPackageContexts(server);
-//      assertCachedLibraries(server, null);
-//    } finally {
-//      renamedPackagesDir.renameTo(packagesDir);
-//    }
-//
-//    server.scan(packagesDir, null);
-//    listener.waitForIdle(3, FIVE_MINUTES_MS);
-//    assertPackageContexts(server, bankDir);
-//    assertCachedLibraries(server, null, bankLibFile, nestedAppFile, nestedLibFile);
-//  }
+  /**
+   * Assert adding and removing "packages" directory changes the context
+   */
+  public void test_discard_packages() throws Exception {
+    scanBankDir();
+    server.discard(packagesDir);
+    listener.waitForIdle(2, FIVE_MINUTES_MS);
+    assertPackageContexts(server);
+    assertCachedLibraries(server, null);
+  }
 
   // assert that discard takes priority over analysis
   public void test_discard_priority() throws Exception {
@@ -214,5 +161,17 @@ public class DiscardTaskTest extends AbstractDartCoreTest {
   @Override
   protected void tearDown() throws Exception {
     server.stop();
+  }
+
+  private void scanBankDir() throws Exception {
+    assertTrackedLibraryFiles(server);
+    server.scan(bankDir, null);
+    server.start();
+    listener.waitForIdle(1, FIVE_MINUTES_MS);
+    server.assertAnalyzeContext(true);
+    assertTrackedLibraryFiles(server, bankLibFile, nestedAppFile, nestedLibFile);
+    assertPackageContexts(server, bankDir);
+    assertCachedLibraries(server, null);
+    assertCachedLibraries(server, bankDir, bankLibFile, nestedLibFile, nestedAppFile);
   }
 }

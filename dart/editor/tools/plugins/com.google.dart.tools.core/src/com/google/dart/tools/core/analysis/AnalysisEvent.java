@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.tools.core.DartCore;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -28,24 +27,36 @@ import java.util.HashMap;
  */
 public class AnalysisEvent {
 
+  private final File applicationDirectory;
   private final File libraryFile;
   private final Collection<File> files;
   private final HashMap<File, DartUnit> units;
   private Collection<AnalysisError> errors;
 
-  AnalysisEvent(File libraryFile) {
-    this(libraryFile, new ArrayList<File>(), AnalysisError.NONE);
+  AnalysisEvent(File applicationDirectory, File libraryFile) {
+    this(applicationDirectory, libraryFile, new ArrayList<File>(), AnalysisError.NONE);
   }
 
-  AnalysisEvent(File libraryFile, Collection<AnalysisError> errors) {
-    this(libraryFile, new ArrayList<File>(), errors);
+  AnalysisEvent(File applicationDirectory, File libraryFile, Collection<AnalysisError> errors) {
+    this(applicationDirectory, libraryFile, new ArrayList<File>(), errors);
   }
 
-  AnalysisEvent(File libraryFile, Collection<File> files, Collection<AnalysisError> errors) {
+  AnalysisEvent(File applicationDirectory, File libraryFile, Collection<File> files,
+      Collection<AnalysisError> errors) {
+    this.applicationDirectory = applicationDirectory;
     this.libraryFile = libraryFile;
     this.files = files;
     this.units = new HashMap<File, DartUnit>();
     this.errors = errors;
+  }
+
+  /**
+   * Answer the application directory (the directory containing the packages directory) representing
+   * the context in which the analysis occurred, or <code>null</code> if the analysis was performed
+   * in the saved context.
+   */
+  public File getApplicationDirectory() {
+    return applicationDirectory;
   }
 
   /**
@@ -85,25 +96,5 @@ public class AnalysisEvent {
   void addFileAndDartUnit(File file, DartUnit unit) {
     files.add(file);
     units.put(file, unit);
-  }
-
-  void notifyParsed(Context context) {
-    for (AnalysisListener listener : context.getAnalysisListeners()) {
-      try {
-        listener.parsed(this);
-      } catch (Throwable e) {
-        DartCore.logError("Exception during parsed notification", e);
-      }
-    }
-  }
-
-  void notifyResolved(Context context) {
-    for (AnalysisListener listener : context.getAnalysisListeners()) {
-      try {
-        listener.resolved(this);
-      } catch (Throwable e) {
-        DartCore.logError("Exception during resolved notification", e);
-      }
-    }
   }
 }

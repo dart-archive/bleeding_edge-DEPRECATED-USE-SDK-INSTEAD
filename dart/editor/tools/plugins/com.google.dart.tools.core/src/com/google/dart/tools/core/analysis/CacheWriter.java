@@ -39,6 +39,10 @@ public class CacheWriter {
     writeString(endTag);
   }
 
+  public void writeInt(int value) {
+    writer.println(value);
+  }
+
   /**
    * Write a string that can be read by {@link CacheReader#readString()}
    */
