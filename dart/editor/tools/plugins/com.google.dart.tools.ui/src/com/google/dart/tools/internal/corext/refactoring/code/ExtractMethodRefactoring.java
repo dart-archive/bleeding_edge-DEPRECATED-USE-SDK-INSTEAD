@@ -30,7 +30,6 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.resolver.ClassElement;
-import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.engine.scanner.Token;
@@ -133,7 +132,7 @@ public class ExtractMethodRefactoring extends Refactoring {
    *         declaration of the variable.
    */
   private static boolean isLeftHandOfAssignment(DartIdentifier node) {
-    if (Elements.inSetterContext(node)) {
+    if (ASTNodes.inSetterContext(node)) {
       return true;
     }
     return PropertyDescriptorHelper.getLocationInParent(node) == PropertyDescriptorHelper.DART_VARIABLE_NAME;

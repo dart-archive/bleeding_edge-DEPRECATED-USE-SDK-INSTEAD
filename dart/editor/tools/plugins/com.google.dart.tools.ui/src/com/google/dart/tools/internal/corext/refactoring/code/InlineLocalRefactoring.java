@@ -25,7 +25,6 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.common.SourceInfo;
-import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
@@ -201,7 +200,7 @@ public class InlineLocalRefactoring extends Refactoring {
     }
     // should not have assignments
     for (DartIdentifier reference : getReferences()) {
-      if (Elements.inSetterContext(reference)) {
+      if (ASTNodes.inSetterContext(reference)) {
         String message = Messages.format(
             RefactoringCoreMessages.InlineLocalRefactoring_assigned_more_once,
             variableElement.getName());

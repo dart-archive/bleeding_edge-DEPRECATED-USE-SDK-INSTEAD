@@ -23,13 +23,17 @@ import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPartOfDirective;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
+import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
+import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.LibraryElement;
+import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.tools.core.DartCore;
@@ -282,6 +286,22 @@ public class DartElementLocator extends ASTVisitor<Void> {
         if (targetElement == null) {
           foundElement = null;
         } else {
+          // pure assignment to field is call of setter
+          if (targetElement instanceof FieldElement) {
+            DartNode parent = node.getParent();
+            if (parent instanceof DartPropertyAccess
+                && ((DartPropertyAccess) parent).getName() == node) {
+              parent = parent.getParent();
+            }
+            if (parent instanceof DartBinaryExpression) {
+              FieldElement fieldElement = (FieldElement) targetElement;
+              MethodElement setter = fieldElement.getSetter();
+              if (((DartBinaryExpression) parent).getOperator() == Token.ASSIGN && setter != null) {
+                targetElement = setter;
+              }
+            }
+          }
+          // convert Element from Resolver into DartElement
           if (targetElement instanceof VariableElement) {
             VariableElement variableElement = (VariableElement) targetElement;
             resolvedElement = variableElement;

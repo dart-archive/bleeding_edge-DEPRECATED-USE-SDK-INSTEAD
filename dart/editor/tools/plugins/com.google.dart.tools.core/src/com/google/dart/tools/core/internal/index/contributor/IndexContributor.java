@@ -14,11 +14,11 @@
 package com.google.dart.tools.core.internal.index.contributor;
 
 import com.google.common.base.Objects;
+import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.ast.DartClassMember;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
@@ -39,7 +39,6 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartSourceDirective;
-import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -362,6 +361,7 @@ public class IndexContributor extends ASTVisitor<Void> {
       return null;
     }
     com.google.dart.compiler.resolver.Element element = node.getElement();
+    // no resolved Element, potential match
     if (element == null) {
       DartNode parent = node.getParent();
       if (parent instanceof DartMethodInvocation
@@ -373,33 +373,41 @@ public class IndexContributor extends ASTVisitor<Void> {
             createLocation(node));
       }
       if (parent instanceof DartPropertyAccess && ((DartPropertyAccess) parent).getName() == node) {
-        boolean isAssignedTo = isAssignedTo(node);
+        DartPropertyAccess propertyAccess = (DartPropertyAccess) parent;
+        boolean inGetterContext = ASTNodes.inGetterContext(propertyAccess);
         Element indexElement = new Element(IndexConstants.DYNAMIC, node.getName());
         Location location = createLocation(node);
-        if (isAssignedTo) {
-          recordRelationship(indexElement, IndexConstants.IS_MODIFIED_BY_QUALIFIED, location);
-        } else {
+        if (inGetterContext) {
           recordRelationship(indexElement, IndexConstants.IS_ACCESSED_BY_QUALIFIED, location);
+        } else {
+          recordRelationship(indexElement, IndexConstants.IS_MODIFIED_BY_QUALIFIED, location);
         }
       }
     }
+    // analyze Element
     if (element instanceof ClassElement) {
       processTypeReference(node, ((ClassElement) element).getType());
     } else if (element instanceof FieldElement) {
-      boolean isAssignedTo = isAssignedTo(node);
-      Element indexElement = getElement((FieldElement) element, !isAssignedTo, isAssignedTo);
+      FieldElement fieldElement = (FieldElement) element;
+      DartNode propertyAccess = ASTNodes.getPropertyAccessNode(node);
+      boolean inGetterContext = ASTNodes.inGetterContext(propertyAccess);
+      Element indexElement = getElement(fieldElement, inGetterContext, true);
       Location location = createLocation(node);
-      if (isAssignedTo) {
-        if (isQualified(node)) {
-          recordRelationship(indexElement, IndexConstants.IS_MODIFIED_BY_QUALIFIED, location);
-        } else {
-          recordRelationship(indexElement, IndexConstants.IS_MODIFIED_BY_UNQUALIFIED, location);
-        }
-      } else {
-        if (isQualified(node)) {
+      if (inGetterContext) {
+        if (fieldElement.getGetter() != null) {
+          processMethodInvocation(node, fieldElement.getGetter());
+        } else if (isQualified(node)) {
           recordRelationship(indexElement, IndexConstants.IS_ACCESSED_BY_QUALIFIED, location);
         } else {
           recordRelationship(indexElement, IndexConstants.IS_ACCESSED_BY_UNQUALIFIED, location);
+        }
+      } else {
+        if (fieldElement.getSetter() != null) {
+          processMethodInvocation(node, fieldElement.getSetter());
+        } else if (isQualified(node)) {
+          recordRelationship(indexElement, IndexConstants.IS_MODIFIED_BY_QUALIFIED, location);
+        } else {
+          recordRelationship(indexElement, IndexConstants.IS_MODIFIED_BY_UNQUALIFIED, location);
         }
       }
     } else if (element instanceof MethodElement) {
@@ -935,29 +943,6 @@ public class IndexContributor extends ASTVisitor<Void> {
       return null;
     }
     return superType.getElement();
-  }
-
-  private boolean isAssignedTo(DartIdentifier node) {
-    DartNode child = node;
-    DartNode parent = child.getParent();
-    while (parent != null) {
-      if (parent instanceof DartBinaryExpression) {
-        DartBinaryExpression binary = (DartBinaryExpression) parent;
-        if (binary.getOperator().isAssignmentOperator() && child == binary.getArg1()) {
-          return true;
-        }
-      } else if (parent instanceof DartPropertyAccess) {
-        if (child != ((DartPropertyAccess) parent).getName()) {
-          return false;
-        }
-      } else if (parent instanceof DartStatement || parent instanceof DartClassMember<?>
-          || parent instanceof DartClass) {
-        return false;
-      }
-      child = parent;
-      parent = child.getParent();
-    }
-    return false;
   }
 
   private boolean isExplicitInvocation(DartIdentifier identifier) {

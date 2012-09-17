@@ -23,7 +23,6 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.resolver.ElementKind;
-import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
@@ -48,7 +47,7 @@ public class ExtractMethodAnalyzer extends StatementAnalyzer {
   public Void visitBinaryExpression(DartBinaryExpression node) {
     super.visitBinaryExpression(node);
     DartExpression lhs = node.getArg1();
-    if (isFirstSelectedNode(lhs) && Elements.inSetterContext(lhs)) {
+    if (isFirstSelectedNode(lhs) && ASTNodes.inSetterContext(lhs)) {
       invalidSelection(
           RefactoringCoreMessages.ExtractMethodAnalyzer_leftHandSideOfAssignment,
           DartStatusContext.create(fCUnit, node));
