@@ -133,7 +133,7 @@ Window->Preferences->Java->Code Style->Organize Imports->Import...
 
 Window->Preferences->Java->Appearance->Members Sort Order
 There is no import here, so make your settings match:
-  settings/code-style/dart-sort-order.png
+  editor/docs/dart-sort-order.png
 
 First, members should be sorted by category.
 1) Types
