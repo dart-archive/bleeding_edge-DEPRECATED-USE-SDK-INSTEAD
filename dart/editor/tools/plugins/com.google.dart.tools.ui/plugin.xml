@@ -3314,7 +3314,7 @@
    </extension>
    <extension
          point="org.eclipse.ui.menus">
-      <!--menuContribution
+      <menuContribution
             allPopups="false"
             locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
          <command
@@ -3343,7 +3343,7 @@
                </with>
             </visibleWhen>
          </command>
-      </menuContribution-->
+      </menuContribution>
    </extension>
 
     <extension

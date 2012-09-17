@@ -51,8 +51,6 @@ public class DartCoreDebug {
   public static final boolean ENABLE_EXPRESSIONS_VIEW = isOptionTrue("experimental/expressionsView");
   public static final boolean ENABLE_FORMATTER = isOptionTrue("experimental/formatter");
 
-  public static final boolean ENABLE_PUB = isOptionTrue("experimental/pub");
-
   // Persistent developer settings
 
   public static final boolean DISABLE_MARK_OCCURRENCES = isOptionTrue("dev/disableMarkOccurrences");

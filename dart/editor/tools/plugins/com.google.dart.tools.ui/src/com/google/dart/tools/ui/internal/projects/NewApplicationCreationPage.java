@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.ui.internal.projects;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.util.StatusUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.DirectoryVerification;
@@ -162,19 +161,18 @@ public class NewApplicationCreationPage extends WizardPage {
       }
     });
 
-    if (DartCoreDebug.ENABLE_PUB) {
-      pubSupportCheckboxButton = new Button(contentGroup, SWT.CHECK);
-      pubSupportCheckboxButton.setText(ProjectMessages.NewApplicationCreationPage_pubSupportCheckbox_name_label);
-      pubSupportCheckboxButton.setSelection(getPubSupportCheckboxEnabled());
-      pubSupportCheckboxButton.addSelectionListener(new SelectionAdapter() {
-        @Override
-        public void widgetSelected(SelectionEvent e) {
-          IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
-              NEW_APPPLICATION_SETTINGS);
-          settings.put(PUB_SUPPORT_CHECKBOX_DISABLED, !pubSupportCheckboxButton.getSelection());
-        }
-      });
-    }
+    pubSupportCheckboxButton = new Button(contentGroup, SWT.CHECK);
+    pubSupportCheckboxButton.setText(ProjectMessages.NewApplicationCreationPage_pubSupportCheckbox_name_label);
+    pubSupportCheckboxButton.setSelection(getPubSupportCheckboxEnabled());
+    pubSupportCheckboxButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
+            NEW_APPPLICATION_SETTINGS);
+        settings.put(PUB_SUPPORT_CHECKBOX_DISABLED, !pubSupportCheckboxButton.getSelection());
+      }
+    });
+
     setPageComplete(false);
   }
 
@@ -234,10 +232,7 @@ public class NewApplicationCreationPage extends WizardPage {
    * @return true/false
    */
   public boolean hasPubSupport() {
-    if (DartCoreDebug.ENABLE_PUB) {
-      return pubSupportCheckboxButton.getSelection();
-    }
-    return false;
+    return pubSupportCheckboxButton.getSelection();
   }
 
   protected String getDefaultFolder() {

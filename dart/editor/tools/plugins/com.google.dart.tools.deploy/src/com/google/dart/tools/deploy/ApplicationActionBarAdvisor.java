@@ -1018,11 +1018,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     menu.add(generateDartdocAction);
 
-    if (DartCoreDebug.ENABLE_PUB) {
-      menu.add(new Separator());
-      menu.add(pubInstallAction);
-      menu.add(pubUpdateAction);
-    }
+    menu.add(new Separator());
+    menu.add(pubInstallAction);
+    menu.add(pubUpdateAction);
 
     Separator sep = new Separator(IWorkbenchActionConstants.MB_ADDITIONS);
     sep.setVisible(!Util.isMac());
