@@ -239,17 +239,15 @@ def _PromoteBuild(revision, from_bucket, to_bucket):
   integ_rev = '{0}/{1}/'.format(to_bucket, revision);
   latest = '{0}/{1}/'.format(to_bucket, 'latest');
 
-  print 'promoting: {0} -> {1}'.format(src, integ_rev);
- 
-  # copy all to integration/REVISION
-  _Gsutil(['cp', '-R', '-a', 'public-read', src, integ_rev]);
-  # remove tests
-  _Gsutil(['rm', '-R', '{0}tests'.format(integ_rev)]);
-
-  print 'copying: {0} -> {1}'.format(integ_rev, latest);
-
   # copy from integration/REVISION to integration/latest
-  _Gsutil(['cp', '-R', '-a', 'public-read', integ_rev, latest]);
+  print 'copying: {0} -> {1}'.format(src, latest);
+  _Gsutil(['cp', '-R', '-a', 'public-read', src, latest]);
+  _Gsutil(['rm', '-R', '{0}tests'.format(latest)]);
+
+  # copy all to integration/REVISION
+  print 'promoting: {0} -> {1}'.format(src, integ_rev);
+  _Gsutil(['cp', '-R', '-a', 'public-read', src, integ_rev]);
+  _Gsutil(['rm', '-R', '{0}tests'.format(integ_rev)]);
 
 
 def _PrintSeparator(text):
