@@ -19,6 +19,8 @@ import com.google.dart.tools.update.core.UpdateAdapter;
 import com.google.dart.tools.update.core.UpdateCore;
 import com.google.dart.tools.update.core.UpdateManager;
 
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.util.Util;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -106,6 +108,10 @@ public class SettingsControlContribution extends UpdateAdapter implements Dispos
         updateState.performAction(controlContribution.getWorkbenchWindow());
       }
     });
+
+    if (Util.isLinux()) {
+      GridDataFactory.fillDefaults().indent(0, 1).grab(true, true).applyTo(toolBar);
+    }
 
     composite.addDisposeListener(this);
 
