@@ -8,11 +8,11 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "128550",
+  "webkit_revision": "128689",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "9728",
+  "nacl_revision": "9742",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "9330",  # native_client/DEPS: tools_rev
@@ -29,11 +29,14 @@ vars = {
   "ffmpeg_hash": "4a1909e22211b340ee859a8c9d12e8825fe499b7",
 
   "sfntly_revision": "134",
-  "skia_revision": "5516",
+  "skia_revision": "5559",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "12481",
+  "v8_revision": "12514",
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling WebRTC
+  # and V8 without interference from each other.
   "webrtc_revision": "2718",
   "jsoncpp_revision": "248",
   "nss_revision": "154476",
@@ -84,7 +87,7 @@ deps = {
     "/trunk/deps/third_party/hunspell_dictionaries@149334",
 
   "src/third_party/safe_browsing/testing":
-    (Var("googlecode_url") % "google-safe-browsing") + "/trunk/testing@111",
+    (Var("googlecode_url") % "google-safe-browsing") + "/trunk/testing@112",
 
   "src/third_party/cacheinvalidation/files/src/google":
     (Var("googlecode_url") % "google-cache-invalidation-api") +
@@ -164,7 +167,7 @@ deps = {
     (Var("googlecode_url") % "bidichecker") + "/trunk/lib@4",
 
   "src/third_party/v8-i18n":
-    (Var("googlecode_url") % "v8-i18n") + "/trunk@117",
+    (Var("googlecode_url") % "v8-i18n") + "/trunk@142",
 
   # When roll to another webgl conformance tests revision, please goto
   # chrome/test/gpu and run generate_webgl_conformance_test_list.py.
@@ -285,7 +288,7 @@ deps = {
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
 
   "src/third_party/libyuv":
-    (Var("googlecode_url") % "libyuv") + "/trunk@347",
+    (Var("googlecode_url") % "libyuv") + "/trunk@354",
 
   "src/third_party/mozc/session":
     (Var("googlecode_url") % "mozc") + "/trunk/src/session@83",
