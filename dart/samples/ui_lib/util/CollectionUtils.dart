@@ -46,7 +46,7 @@ class CollectionUtils {
   static List map(Iterable source, var mapper) {
     // TODO(jmesserly): I was trying to set the capacity here, but instead it
     // seems to create a fixed list. Hence assigning by index below.
-    List result = new List(source is List ? (source as List).length : null);
+    List result = new List(source is List ? source.dynamic.length : null);
     int i = 0;
     for (final item in source) {
       result[i++] = mapper(item);

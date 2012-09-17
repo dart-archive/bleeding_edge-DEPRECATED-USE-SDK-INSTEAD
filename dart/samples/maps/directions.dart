@@ -38,15 +38,15 @@ main() {
     'center': new LatLng(47.6097, -122.3331)
   };
   var map = new GMap('#map_canvas', myOptions);
-
+        
   directionsDisplay = new DirectionsRenderer(map);
   directionsDisplay.setPanel('#directions_panel');
   directionsService = new DirectionsService();
 
   var control = document.query('#control');
   control.style.display = 'block';
-
-  (map.controls[ControlPosition.TOP] as Dynamic).push('#control');
+  
+  map.controls[ControlPosition.TOP].dynamic.push('#control');
 
   query('#start').on.change.add(calcRoute);
   query('#end').on.change.add(calcRoute);
