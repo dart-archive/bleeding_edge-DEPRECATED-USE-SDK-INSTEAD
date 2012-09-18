@@ -228,7 +228,7 @@ public class ApplicationGenerator extends AbstractGenerator {
     File iHtmlFile = getSystemFile(htmlFileName);
     substitutions.put("title", toTitleCase(className));
     substitutions.put("fileName", className);
-    substitutions.put("dartSrcPath", applicationFileName);
+    substitutions.put("dartSrcPath", getDartFilePath(applicationFileName));
     execute("generated-html.txt", iHtmlFile, substitutions, monitor); //$NON-NLS-1$
 
     // css file
@@ -243,6 +243,14 @@ public class ApplicationGenerator extends AbstractGenerator {
     subMonitor.newChild(100);
     subMonitor.done();
     return applicationFile;
+  }
+
+  private String getDartFilePath(String fileName) {
+    if (hasPubSupport) {
+      return SOURCE_DIRECTORY_NAME + "/" + fileName;
+    } else {
+      return fileName;
+    }
   }
 
   private String toTitleCase(String str) {
