@@ -94,14 +94,13 @@ public class UpdatePreferencePage extends PreferencePage implements IWorkbenchPr
     statusGroup.setText("Update"); //$NON-NLS-1$
     GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
         statusGroup);
-    GridLayoutFactory.fillDefaults().numColumns(1).margins(8, 8).spacing(0, 0).applyTo(statusGroup);
+    GridLayoutFactory.fillDefaults().numColumns(1).margins(8, 8).applyTo(statusGroup);
 
     CLabel currentVersionLabel = new CLabel(statusGroup, SWT.NONE);
     currentVersionLabel.setText(NLS.bind("Dart Editor build {0}", UpdateCore.getCurrentRevision()));
     GridDataFactory.fillDefaults().applyTo(currentVersionLabel);
 
     new UpdateStatusControl(statusGroup, null, new Point(0, 0), false);
-
   }
 
   private void initFromPrefs() {

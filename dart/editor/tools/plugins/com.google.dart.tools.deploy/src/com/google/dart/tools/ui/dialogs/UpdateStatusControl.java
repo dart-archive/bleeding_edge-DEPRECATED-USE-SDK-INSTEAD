@@ -234,12 +234,9 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
       updateStatusLabel.setBackground(backgroundColor);
     }
 
-    GridDataFactory.fillDefaults().align(isCentered ? SWT.CENTER : SWT.FILL, SWT.CENTER).hint(
-        350,
-        SWT.DEFAULT).grab(true, false).applyTo(updateStatusLabel);
-
-//    GridDataFactory.fillDefaults().align(isCentered ? SWT.CENTER : SWT.FILL, SWT.CENTER).applyTo(
-//        updateStatusLabel);
+    GridDataFactory.fillDefaults().align(isCentered ? SWT.CENTER : SWT.FILL, SWT.CENTER).grab(
+        true,
+        false).applyTo(updateStatusLabel);
 
     updateStatusButton = new Button(comp, SWT.PUSH);
     updateStatusButton.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
