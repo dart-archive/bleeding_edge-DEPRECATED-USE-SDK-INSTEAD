@@ -14,9 +14,9 @@
 package com.google.dart.tools.ui.web.css;
 
 import com.google.dart.tools.ui.web.DartWebPlugin;
+import com.google.dart.tools.ui.web.html.HtmlWordRule;
 import com.google.dart.tools.ui.web.utils.CssAttributes;
 import com.google.dart.tools.ui.web.utils.HtmlKeywords;
-import com.google.dart.tools.ui.web.utils.WordDetector;
 
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.IRule;
@@ -24,7 +24,6 @@ import org.eclipse.jface.text.rules.MultiLineRule;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
-import org.eclipse.jface.text.rules.WordRule;
 import org.eclipse.swt.SWT;
 
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ public class CssScanner extends RuleBasedScanner {
 
     List<IRule> rules = new ArrayList<IRule>();
 
-    WordRule keywordRule = new WordRule(new WordDetector());
+    HtmlWordRule keywordRule = new HtmlWordRule(new CssWordDetector(), true);
 
     for (String keyword : HtmlKeywords.getKeywords()) {
       keywordRule.addWord(keyword, keywordToken);
@@ -55,7 +54,7 @@ public class CssScanner extends RuleBasedScanner {
 
     rules.add(keywordRule);
 
-    WordRule attributeRule = new WordRule(new WordDetector());
+    HtmlWordRule attributeRule = new HtmlWordRule(new CssWordDetector(), true);
 
     for (String attribute : CssAttributes.getAttributes()) {
       attributeRule.addWord(attribute, attributeToken);

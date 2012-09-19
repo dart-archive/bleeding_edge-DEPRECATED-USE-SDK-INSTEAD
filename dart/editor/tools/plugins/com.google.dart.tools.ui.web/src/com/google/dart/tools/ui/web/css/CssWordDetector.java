@@ -17,6 +17,10 @@ import org.eclipse.jface.text.rules.IWordDetector;
 
 class CssWordDetector implements IWordDetector {
 
+  public static boolean wordPart(char c) {
+    return Character.isJavaIdentifierPart(c) || c == '-';
+  }
+
   public CssWordDetector() {
 
   }

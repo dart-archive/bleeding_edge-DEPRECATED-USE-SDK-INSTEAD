@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * Similar to the class WordRule, but a word must start with a non-word character.
  */
-class HtmlWordRule implements IRule {
+public class HtmlWordRule implements IRule {
   /** Internal setting for the un-initialized column constraint. */
   protected static final int UNDEFINED = -1;
 
@@ -58,6 +58,10 @@ class HtmlWordRule implements IRule {
    */
   public HtmlWordRule(IWordDetector detector) {
     this(detector, Token.UNDEFINED, false);
+  }
+
+  public HtmlWordRule(IWordDetector detector, boolean ignoreCase) {
+    this(detector, Token.UNDEFINED, ignoreCase);
   }
 
   /**

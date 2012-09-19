@@ -108,3 +108,10 @@ ul
 var
 video=src,crossorigin,poster,preload,autoplay,mediagroup,loop,muted,controls,width,height
 wbr
+
+#web components
+content=select
+decorator=apply-author-styles
+element=apply-author-styles,constructor,extends,name
+shadow
+template
