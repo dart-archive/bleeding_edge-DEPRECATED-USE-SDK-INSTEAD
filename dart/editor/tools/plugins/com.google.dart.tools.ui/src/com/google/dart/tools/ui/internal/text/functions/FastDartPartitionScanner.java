@@ -650,7 +650,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
             } else {
               advance();
             }
-          } else if (currentChar == '@') {
+          } else if (currentChar == '@' || currentChar == 'r') {
             int secondChar = scanner.peek(1);
             if (secondChar == '\'' || secondChar == '"') {
               int thirdChar = scanner.peek(2);

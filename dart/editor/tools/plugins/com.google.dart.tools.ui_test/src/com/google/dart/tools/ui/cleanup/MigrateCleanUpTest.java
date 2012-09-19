@@ -18,6 +18,7 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_catch_Cle
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_get_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalNamed_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_rawString_CleanUp;
 
 /**
  * Test for {@link AbstractMigrateCleanUp}.
@@ -385,6 +386,35 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "foo(a, {b: 2, c: 3})",
         "main() {",
         "  foo(10, b: 20, c: 30);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M1_rawString() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_rawString_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var s1 = '111';",
+        "  var s2 = \"222\";",
+        "  var s3 = '333';",
+        "  var s4 = r\"444\";",
+        "  var s5 = r\"555\";",
+        "  var s6 = @\"666\";",
+        "  var s7 = @\"777\";",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var s1 = '111';",
+        "  var s2 = \"222\";",
+        "  var s3 = '333';",
+        "  var s4 = r\"444\";",
+        "  var s5 = r\"555\";",
+        "  var s6 = r\"666\";",
+        "  var s7 = r\"777\";",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);
