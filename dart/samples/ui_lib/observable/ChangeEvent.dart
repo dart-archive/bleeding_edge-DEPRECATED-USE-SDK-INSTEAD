@@ -28,31 +28,33 @@ class ChangeEvent {
   final int type;
 
   /** The value after the change (or inserted value in a list). */
-  final newValue = null;
+  final newValue;
 
   /** The value before the change (or removed value from a list). */
-  final oldValue = null;
+  final oldValue;
 
   /** Property that changed (null for list changes). */
-  final String propertyName = null;
+  final String propertyName;
 
   /**
    * Index of the list operation. Insertions prepend in front of the given
    * index (insert at 0 means an insertion at the beginning of the list).
    */
-  final int index = null;
+  final int index;
 
   /** Factory constructor for property change events. */
   ChangeEvent.property(
       this.target, this.propertyName, this.newValue, this.oldValue)
-    : type = UPDATE;
+    : type = UPDATE, index = null;
 
   /** Factory constructor for list change events. */
   ChangeEvent.list(
-      this.target, this.type, this.index, this.newValue, this.oldValue);
+      this.target, this.type, this.index, this.newValue, this.oldValue)
+    : propertyName = null;
 
   /** Factory constructor for [GLOBAL] change events. */
-  ChangeEvent.global(this.target) : type = GLOBAL;
+  ChangeEvent.global(this.target)
+    : type = GLOBAL, newValue = null, oldValue = null, propertyName = null, index = null;
 }
 
 /** A collection of change events on a single observable instance. */
