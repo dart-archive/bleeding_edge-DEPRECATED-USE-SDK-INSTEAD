@@ -12,14 +12,14 @@ class Util {
   }
 
   static void pos(Element elem, double x, double y) {
-    elem.style.left = x.toRadixString(10) + 'PX';
-    elem.style.top = y.toRadixString(10) + 'PX';
+    elem.style.left = "${x.toRadixString(10)}PX";
+    elem.style.top = "${y.toRadixString(10)}PX";
   }
 
   static void posSize(Element elem, double l, double t, double r, double b) {
     pos(elem, l, t);
-    elem.style.right = r.toRadixString(10) + 'PX';
-    elem.style.bottom = b.toRadixString(10) + 'PX';
+    elem.style.right = "${r.toRadixString(10)}PX";
+    elem.style.bottom = "${b.toRadixString(10)}PX";
   }
 
   static int bounds(Element elem) {
@@ -425,19 +425,19 @@ class Clock {
 
   String pad3(int num) {
     if (num < 10) {
-      return "00" + num;
+      return "00$num";
     }
     if (num < 100) {
-      return "0" + num;
+      return "0$num";
     }
-    return "" + num;
+    return "$num";
   }
 
   String pad2(int num) {
     if (num < 10) {
-      return "0" + num;
+      return "0$num";
     }
-    return "" + num;
+    return "$num";
   }
 
   void createNumbers() {
