@@ -44,4 +44,5 @@ wav audio/wav
 webm video/webm
 xls application/vnd.ms-excel
 xml application/xml
+xslt text/xml
 zip application/zip
