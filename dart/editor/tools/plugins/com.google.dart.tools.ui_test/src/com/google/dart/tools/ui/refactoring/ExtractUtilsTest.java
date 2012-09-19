@@ -348,7 +348,7 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   public void test_getType_typedLiteral_Map_noTypeArgument() throws Exception {
-    assertTypeSimple("Map<String, Dynamic>", "const {'a' : 1, 'b' : 2, 'c' : 3}");
+    assertTypeSimple("Map<String, dynamic>", "const {'a' : 1, 'b' : 2, 'c' : 3}");
   }
 
   public void test_getType_typedLiteral_Map_withTypeArgument() throws Exception {
@@ -399,7 +399,7 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   public void test_getType_unqualifiedInvocation_Map_withTypeArgument2() throws Exception {
-    assert_getType_unqualifiedInvocation("Map<int, Dynamic>");
+    assert_getType_unqualifiedInvocation("Map<int, dynamic>");
   }
 
   public void test_getType_unqualifiedInvocation_String() throws Exception {
