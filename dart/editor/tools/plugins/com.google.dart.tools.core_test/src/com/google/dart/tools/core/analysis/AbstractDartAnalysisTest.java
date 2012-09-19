@@ -45,7 +45,8 @@ public abstract class AbstractDartAnalysisTest extends AbstractDartCoreTest {
     assertTrue(packagesDir.exists());
     pubspecFile = new File(bankDir, DartCore.PUBSPEC_FILE_NAME);
     assertTrue(pubspecFile.exists());
-    customerDir = new File(packagesDir, "customer");
+    // editor resolves package: refs to the canonical file
+    customerDir = new File(packagesDir, "customer").getCanonicalFile();
     customerLibFile = new File(customerDir, "customer.dart");
     assertTrue(customerLibFile.exists());
 
