@@ -8,15 +8,15 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "128729",
+  "webkit_revision": "128937",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "9742",
+  "nacl_revision": "9768",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "9330",  # native_client/DEPS: tools_rev
-  "gtm_revision": "534",
+  "gtm_revision": "578",
 
   "libjingle_revision": "193",
   "libphonenumber_revision": "456",
@@ -29,7 +29,7 @@ vars = {
   "ffmpeg_hash": "4a1909e22211b340ee859a8c9d12e8825fe499b7",
 
   "sfntly_revision": "134",
-  "skia_revision": "5559",
+  "skia_revision": "5575",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -65,7 +65,7 @@ deps = {
     (Var("googlecode_url") % "angleproject") + "/trunk@1275",
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@144",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@168",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -103,9 +103,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@67",
 
   "src/tools/gyp":
-    # DO NOT ROLL GYP. The next gyp roll needs some tricks to work.
-    # Talk to thakis@ for details. (I'll try to get this fixed by friday.)
-    (Var("googlecode_url") % "gyp") + "/trunk@1492",
+    (Var("googlecode_url") % "gyp") + "/trunk@1501",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -255,7 +253,7 @@ deps = {
     Var("libjingle_revision"),
 
   "src/third_party/libsrtp":
-    "/trunk/deps/third_party/libsrtp@156317",
+    "/trunk/deps/third_party/libsrtp@157430",
 
   "src/third_party/speex":
     "/trunk/deps/third_party/speex@149334",
@@ -288,7 +286,7 @@ deps = {
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
 
   "src/third_party/libyuv":
-    (Var("googlecode_url") % "libyuv") + "/trunk@354",
+    (Var("googlecode_url") % "libyuv") + "/trunk@359",
 
   "src/third_party/mozc/session":
     (Var("googlecode_url") % "mozc") + "/trunk/src/session@83",
@@ -313,7 +311,7 @@ deps = {
     "/trunk/deps/third_party/undoview@119694",
 
   "src/tools/deps2git":
-    "/trunk/tools/deps2git@153866",
+    "/trunk/tools/deps2git@157441",
 
   "src/third_party/webpagereplay":
     (Var("googlecode_url") % "web-page-replay") + "/trunk@494",
@@ -517,7 +515,7 @@ deps_os = {
        Var("lss_revision")),
 
     "src/third_party/openssl":
-      "/trunk/deps/third_party/openssl@151890",
+      "/trunk/deps/third_party/openssl@157142",
 
     "src/third_party/WebKit/Tools/gdb":
       Var("webkit_trunk") + "/Tools/gdb@" + Var("webkit_revision"),
