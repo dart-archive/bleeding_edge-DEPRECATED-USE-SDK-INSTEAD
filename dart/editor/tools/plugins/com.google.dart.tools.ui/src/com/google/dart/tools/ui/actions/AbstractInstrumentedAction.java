@@ -29,6 +29,9 @@ import java.util.HashMap;
  */
 public class AbstractInstrumentedAction extends Action {
 
+  //TODO (pquitslund): unused so disabled (NOTE: e4 incompatible)
+  private static final boolean INSTRUMENTATION_ENABLED = false;
+
   public AbstractInstrumentedAction() {
 
   }
@@ -42,21 +45,26 @@ public class AbstractInstrumentedAction extends Action {
   }
 
   protected void EmitInstrumentationCommand() {
-    try {
-      //It doesn't matter which window this command is fired from
-      ICommandService cmd = (ICommandService) PlatformUI.getWorkbench().getWorkbenchWindows()[0].getService(ICommandService.class);
-      Command ic = cmd.getCommand("com.google.dart.tools.ui.BroadcastCommand");
 
-      HashMap<String, String> props = new HashMap<String, String>();
-      props.put("ActionType", this.getClass().toString());
-      if (ic.getHandler() != null) {
-        ExecutionEvent ev = new ExecutionEvent(ic, props, this, PlatformUI.getWorkbench());
+    if (INSTRUMENTATION_ENABLED) {
 
-        ic.executeWithChecks(ev);
+      try {
+        //It doesn't matter which window this command is fired from
+        ICommandService cmd = (ICommandService) PlatformUI.getWorkbench().getWorkbenchWindows()[0].getService(ICommandService.class);
+        Command ic = cmd.getCommand("com.google.dart.tools.ui.BroadcastCommand");
+
+        HashMap<String, String> props = new HashMap<String, String>();
+        props.put("ActionType", this.getClass().toString());
+        if (ic.getHandler() != null) {
+          ExecutionEvent ev = new ExecutionEvent(ic, props, this, PlatformUI.getWorkbench());
+
+          ic.executeWithChecks(ev);
+        }
+      } catch (Exception e) {
+        DartCore.logError(e);
       }
-    } catch (Exception e) {
-      DartCore.logError(e);
     }
+
   }
 
 }
