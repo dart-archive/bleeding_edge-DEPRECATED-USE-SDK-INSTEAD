@@ -67,7 +67,7 @@ swarm/swarm_test: Fail # Issue 4517
 
 [ $compiler == dart2js ]
 lib/layout/layout_test: Slow, Pass # Occasionally times out.
-swarm/swarm_test: Slow, Pass # Occasionally times out.
+swarm/swarm_test: Fail # Bug 5297
 lib/view/view_test: Slow, Pass # Occasionally times out.
 
 [ $runtime == opera ]
