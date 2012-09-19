@@ -88,11 +88,23 @@ public class WebkitConsole extends WebkitDomain {
   }
 
   protected void handleConsoleNotification(String method, JSONObject params) throws JSONException {
+    // If we get this specific error message, there's an additional "url" field with the bad
+    // reference.
+    final String FAILED_TO_LOAD = "Failed to load resource";
+
     if (method.equals(MESSAGE_ADDED)) {
       JSONObject message = params.getJSONObject("message");
 
+      String text = message.getString("text");
+
+      if (text != null && text.contains(FAILED_TO_LOAD)) {
+        if (message.has("url")) {
+          text += "\n  " + message.getString("url");
+        }
+      }
+
       for (ConsoleListener listener : listeners) {
-        listener.messageAdded(message.getString("text"));
+        listener.messageAdded(text);
       }
     } else if (method.equals(MESSAGE_CLEARED)) {
       for (ConsoleListener listener : listeners) {
