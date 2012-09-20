@@ -298,7 +298,7 @@
              icon="icons/full/eview16/console_view.gif"
              id="com.google.dart.tools.ui.console"
              name="Output"
-             restorable="false">
+             restorable="true">
       </view>
       <view
             name="%problemsViewName"
