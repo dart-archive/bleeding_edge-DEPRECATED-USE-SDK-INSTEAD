@@ -23,7 +23,6 @@ lib/touch/touch_test: Skip # Issue 157
 [ $compiler == none && $runtime == drt ]
 dartcombat/dartcombat_test: Fail # Issue 2790
 swarm/swarm_test: Pass, Fail # Issue 3977
-lib/observable/observable_test: Fail # Illegal dart code, duplicate field initializers.
 
 [ $runtime == chrome || $runtime == ff || $runtime == safari ]
 dartcombat/dartcombat_test: Skip # passes locally but timeout on bot?
