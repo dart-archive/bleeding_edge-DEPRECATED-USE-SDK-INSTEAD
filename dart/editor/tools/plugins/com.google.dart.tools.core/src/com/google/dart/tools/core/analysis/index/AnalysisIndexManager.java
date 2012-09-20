@@ -53,9 +53,9 @@ public class AnalysisIndexManager {
           // Ensure index is initialized before starting analysis server
           startIndexing();
 
-          server.start();
+          startServer();
         }
-        
+
       }
     }
     return server;
@@ -77,6 +77,13 @@ public class AnalysisIndexManager {
         }, "Index Operation Processor").start(); //$NON-NLS-1$
       }
     }
+  }
+
+  /**
+   * Start the server (note that {@link #startIndexing()} should haven been called before starting).
+   */
+  public static void startServer() {
+    server.start();
   }
 
   /**

@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.core.jobs;
 
+import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -50,6 +52,12 @@ public class CleanLibrariesJob extends Job {
   protected IStatus run(IProgressMonitor monitor) {
     try {
       if (resetModel) {
+
+        PackageLibraryManagerProvider.resetLibraryManager();
+
+        AnalysisIndexManager.startIndexing();
+        AnalysisIndexManager.startServer();
+
         DartModelManager.getInstance().resetModel();
       }
 

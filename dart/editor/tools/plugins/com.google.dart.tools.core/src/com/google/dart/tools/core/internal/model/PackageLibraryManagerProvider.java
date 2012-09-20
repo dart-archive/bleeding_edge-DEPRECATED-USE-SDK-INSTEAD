@@ -138,4 +138,13 @@ public class PackageLibraryManagerProvider {
   public static PackageLibraryManager getPackageLibraryManager() {
     return getAnyLibraryManager();
   }
+
+  /**
+   * Reset the cached library manager. (Required to ensure a re-initialization post SDK
+   * upgrade/install).
+   */
+  public static void resetLibraryManager() {
+    ANY_LIBRARY_MANAGER = null;
+  }
+
 }
