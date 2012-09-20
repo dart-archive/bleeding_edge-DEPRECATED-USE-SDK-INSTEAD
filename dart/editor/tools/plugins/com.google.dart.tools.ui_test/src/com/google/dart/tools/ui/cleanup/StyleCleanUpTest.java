@@ -100,6 +100,31 @@ public final class StyleCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
+  public void test_useBlocks_always_ifElseIf() throws Exception {
+    Style_useBlocks_CleanUp cleanUp = new Style_useBlocks_CleanUp();
+    cleanUp.setFlag(Style_useBlocks_CleanUp.ALWAYS);
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (0 == 0)",
+        "    print(0);",
+        "  else if (1 == 1)",
+        "    print(0);",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (0 == 0) {",
+        "    print(0);",
+        "  } else if (1 == 1) {",
+        "    print(0);",
+        "  }",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
   public void test_useBlocks_always_nop() throws Exception {
     Style_useBlocks_CleanUp cleanUp = new Style_useBlocks_CleanUp();
     cleanUp.setFlag(Style_useBlocks_CleanUp.ALWAYS);
@@ -120,6 +145,18 @@ public final class StyleCleanUpTest extends AbstractCleanUpTest {
         "  }",
         "}",
         "process() {}",
+        "");
+    assertNoFix(cleanUp, initial);
+  }
+
+  public void test_useBlocks_always_nop_oneLineIf() throws Exception {
+    Style_useBlocks_CleanUp cleanUp = new Style_useBlocks_CleanUp();
+    cleanUp.setFlag(Style_useBlocks_CleanUp.ALWAYS);
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true) return;",
+        "}",
         "");
     assertNoFix(cleanUp, initial);
   }

@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.cleanup.style;
 
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_IF_STATEMENT_ELSE;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
+
 import com.google.common.base.Objects;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBlock;
@@ -66,8 +69,13 @@ public class Style_useBlocks_CleanUp extends AbstractMigrateCleanUp {
         public Void visitIfStatement(DartIfStatement node) {
           DartStatement thenStatement = node.getThenStatement();
           DartStatement elseStatement = node.getElseStatement();
+          // single line "if"
+          if (!utils.getText(node).contains(eol)) {
+            return null;
+          }
+          // ensure block
           if (!(thenStatement instanceof DartBlock)) {
-            String prefix = utils.getNodePrefix(node);
+            String prefix = getNodePrefix(node);
             addReplaceEdit(
                 SourceRangeFactory.forStartLength(node.getCloseParenOffset() + 1, 0),
                 " {");
@@ -95,7 +103,10 @@ public class Style_useBlocks_CleanUp extends AbstractMigrateCleanUp {
           if (statement instanceof DartBlock) {
             return;
           }
-          String prefix = utils.getNodePrefix(node);
+          if (statement instanceof DartIfStatement) {
+            return;
+          }
+          String prefix = getNodePrefix(node);
           addReplaceEdit(SourceRangeFactory.forStartLength(closeParenOffset, 0), " {");
           addReplaceEdit(SourceRangeFactory.forEndLength(statement, 0), eol + prefix + "}");
         }
@@ -170,5 +181,14 @@ public class Style_useBlocks_CleanUp extends AbstractMigrateCleanUp {
         }
       });
     }
+  }
+
+  private String getNodePrefix(DartNode node) {
+    if (node instanceof DartIfStatement) {
+      if (getLocationInParent(node) == DART_IF_STATEMENT_ELSE) {
+        return getNodePrefix(node.getParent());
+      }
+    }
+    return utils.getNodePrefix(node);
   }
 }
