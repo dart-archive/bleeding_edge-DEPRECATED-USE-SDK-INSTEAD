@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** 
- * An informational dialog that shows keyboard shortcuts and provides a 
- * link to the Dart language webpage.  
+/**
+ * An informational dialog that shows keyboard shortcuts and provides a
+ * link to the Dart language webpage.
  */
-//TODO(efortuna): fix DialogView so it doesn't require the HTML passed to 
+//TODO(efortuna): fix DialogView so it doesn't require the HTML passed to
 // the constructor.
 class HelpDialog extends DialogView {
   CompositeView _parent;
   Function _doneHandler;
 
-  HelpDialog(this._parent, this._doneHandler) 
+  HelpDialog(this._parent, this._doneHandler)
     : super('Information', '', makeContent());
 
   void onDone() { _doneHandler(); }
@@ -21,14 +21,14 @@ class HelpDialog extends DialogView {
     return new View.html(
         '''
         <div>
-        
+
           <p>
-          Keyboard shortcuts: 
-          ${generateTableHtml()}  
+          Keyboard shortcuts:
+          ${generateTableHtml()}
           </p>
 
           <p>
-          <div id="dart-logo">  
+          <div id="dart-logo">
           <a href="http://dartlang.org">
           Dart, the programming language</a>.
           </div>
@@ -40,7 +40,7 @@ class HelpDialog extends DialogView {
   static String generateTableHtml() {
     String cellStart = '''<th valign="middle" align="center">''';
     return '''<table width="90%" border=1 cellspacing="0" cellpadding="2">
-            <tr bgcolor="#c3d9ff"> 
+            <tr bgcolor="#c3d9ff">
               ${cellStart} Shortcut Key </th>
               ${cellStart} Action </th>
             </tr>

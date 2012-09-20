@@ -69,14 +69,14 @@ class Size {
    * Returns the longer of the two dimensions in the size.
    */
   num getLongest() {
-    return Math.max(width, height);
+    return max(width, height);
   }
 
   /**
    * Returns the shorter of the two dimensions in the size.
    */
   num getShortest() {
-    return Math.min(width, height);
+    return min(width, height);
   }
 
   /**

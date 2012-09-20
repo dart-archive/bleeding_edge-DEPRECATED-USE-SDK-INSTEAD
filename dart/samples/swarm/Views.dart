@@ -194,7 +194,7 @@ class GenericListView<D> extends View {
     // TODO(jacobr): use data attributes when available.
     String index = node.attributes[INDEX_DATA_ATTRIBUTE];
     if (index != null && index.length > 0) {
-      return Math.parseInt(index);
+      return int.parse(index);
     }
     return null;
   }

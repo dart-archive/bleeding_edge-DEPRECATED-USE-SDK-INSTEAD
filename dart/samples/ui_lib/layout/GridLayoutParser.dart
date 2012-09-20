@@ -55,13 +55,13 @@ class _Parser {
     throw new SyntaxErrorException(msg, _src, _offset);
   }
 
-  int get length() => _src.length;
+  int get length => _src.length;
 
-  int get remaining() => _src.length - _offset;
+  int get remaining => _src.length - _offset;
 
   int _peekChar() => _src.charCodeAt(_offset);
 
-  bool get endOfInput() => _offset >= _src.length;
+  bool get endOfInput => _offset >= _src.length;
 
   bool _maybeEatWhitespace() {
     int start = _offset;
@@ -178,7 +178,7 @@ class _Parser {
       return null;
     }
 
-    return Math.parseInt(_src.substring(start, _offset));
+    return int.parse(_src.substring(start, _offset));
   }
 
   /** Eats an integer. */
@@ -211,7 +211,7 @@ class _Parser {
       _error('expected positive decimal number');
     }
 
-    return Math.parseDouble(_src.substring(start, _offset));
+    return double.parse(_src.substring(start, _offset));
   }
 }
 
@@ -309,7 +309,7 @@ class _GridItemParser extends _Parser {
       int edge = list.lineNames[name];
       if (edge == null) {
         _error('row/column name "$name" not found in the parent\'s '
-            + ' grid-row/grid-columns properties');
+            ' grid-row/grid-columns properties');
       }
       return edge;
     }
@@ -477,7 +477,7 @@ class SyntaxErrorException implements Exception {
   String toString() {
     String location;
     if (_offset < _source.length) {
-      location = 'location: ' + _source.substring(_offset);
+      location = 'location: ${_source.substring(_offset)}';
     } else {
       location = 'end of input';
     }

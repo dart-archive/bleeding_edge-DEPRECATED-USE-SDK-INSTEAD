@@ -144,7 +144,7 @@ class Feed {
   ObservableList<Article> articles;
   ObservableValue<bool> error; // TODO(jimhug): Check if dead code.
 
-  Feed(this.id, this.title, this.iconUrl, [this.description = ''])
+  Feed(this.id, this.title, this.iconUrl, {this.description: ''})
     : articles = new ObservableList<Article>(),
       error = new ObservableValue<bool>(false);
 
@@ -186,7 +186,7 @@ class Article {
 
   Article(this.dataSource, this.id, this.date, this.title, this.author,
       this.srcUrl, this.hasThumbnail, this.textBody,
-      [htmlBody = null, bool unread = true, this.error = false])
+      {htmlBody: null, bool unread: true, this.error: false})
     : unread = new ObservableValue<bool>(unread), this._htmlBody = htmlBody;
 
   String get htmlBody {

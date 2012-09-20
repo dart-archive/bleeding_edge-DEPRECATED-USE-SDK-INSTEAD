@@ -3,14 +3,14 @@
  * a set of items. (Bi-directional)
  */
 class BiIterator<E> {
-  
-  /** 
+
+  /**
    * Provides forward and backward iterator functionality to keep track
    * which item is currently selected.
    */
   ObservableValue<int> currentIndex;
 
-  /** 
+  /**
    * The collection of items we will be iterating through.
    */
   List<E> list;
@@ -22,8 +22,8 @@ class BiIterator<E> {
     }
   }
 
-  /** 
-   * Returns the next section from the sections, given the current 
+  /**
+   * Returns the next section from the sections, given the current
    * position. Returns the last source if there is no next section.
    */
   E next() {
@@ -33,17 +33,17 @@ class BiIterator<E> {
     return list[currentIndex.value];
   }
 
-  /** 
-   * Returns the current Section (page in the UI) that the user is 
+  /**
+   * Returns the current Section (page in the UI) that the user is
    * looking at.
    */
   E get current {
     return list[currentIndex.value];
   }
 
-  /** 
-   * Returns the previous section from the sections, given the current 
-   * position. Returns the front section if we are already at the front of 
+  /**
+   * Returns the previous section from the sections, given the current
+   * position. Returns the front section if we are already at the front of
    * the list.
    */
   E previous() {
@@ -53,7 +53,7 @@ class BiIterator<E> {
     return list[currentIndex.value];
   }
 
-  /** 
+  /**
    * Move the iterator pointer over so that it points to a given list item.
    */
   void jumpToValue(E val) {

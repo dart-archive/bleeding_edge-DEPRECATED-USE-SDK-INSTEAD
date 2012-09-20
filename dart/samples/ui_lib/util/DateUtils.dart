@@ -24,35 +24,35 @@ class DateUtils {
     }
 
     if (parts.length != 6) {
-      throw 'bad date format, expected 6 parts: ' + text;
+      throw 'bad date format, expected 6 parts: $text';
     }
 
     // skip parts[0], the weekday
 
-    int day = Math.parseInt(parts[1]);
+    int day = int.parse(parts[1]);
 
     final months = const['Jan', 'Feb', 'Mar', 'Apr',
                          'May', 'Jun', 'Jul', 'Aug',
                          'Sep', 'Oct', 'Nov', 'Dec'];
     int month = months.indexOf(parts[2], 0) + 1;
     if (month < 0) {
-      throw 'bad month, expected 3 letter month code, got: ' + parts[2];
+      throw 'bad month, expected 3 letter month code, got: ${parts[2]}';
     }
 
-    int year = Math.parseInt(parts[3]);
+    int year = int.parse(parts[3]);
 
     final timeParts = parts[4].split(':');
     if (timeParts.length != 3) {
-      throw 'bad time format, expected 3 parts: ' + parts[4];
+      throw 'bad time format, expected 3 parts: ${parts[4]}';
     }
 
-    int hours = Math.parseInt(timeParts[0]);
-    int minutes = Math.parseInt(timeParts[1]);
-    int seconds = Math.parseInt(timeParts[2]);
+    int hours = int.parse(timeParts[0]);
+    int minutes = int.parse(timeParts[1]);
+    int seconds = int.parse(timeParts[2]);
 
     // TODO(jmesserly): TimeZone is not implemented in Dartium. This ugly
     // hack applies the timezone from the string to the final time
-    int zoneOffset = Math.parseInt(parts[5]) ~/ 100;
+    int zoneOffset = int.parse(parts[5]) ~/ 100;
 
     // Pretend it's a UTC time
     Date result = new Date(
@@ -71,7 +71,7 @@ class DateUtils {
   static Date _parseIsoDate(String text) {
     void ensure(bool value) {
       if (!value) {
-        throw 'bad date format, expected YYYY-MM-DDTHH:MM:SS.mmmZ: ' + text;
+        throw 'bad date format, expected YYYY-MM-DDTHH:MM:SS.mmmZ: $text';
       }
     }
 
@@ -93,16 +93,16 @@ class DateUtils {
     ensure(seconds.length >= 1 && seconds.length <= 2);
     int milliseconds = 0;
     if (seconds.length == 2) {
-      milliseconds = Math.parseInt(seconds[1]);
+      milliseconds = int.parse(seconds[1]);
     }
 
     return new Date(
-        Math.parseInt(date[0]),
-        Math.parseInt(date[1]),
-        Math.parseInt(date[2]),
-        Math.parseInt(time[0]),
-        Math.parseInt(time[1]),
-        Math.parseInt(seconds[0]),
+        int.parse(date[0]),
+        int.parse(date[1]),
+        int.parse(date[2]),
+        int.parse(time[0]),
+        int.parse(time[1]),
+        int.parse(seconds[0]),
         milliseconds,
         isUtc: isUtc);
   }

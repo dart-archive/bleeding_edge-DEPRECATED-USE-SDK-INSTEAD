@@ -15,12 +15,12 @@ class StringUtils {
 
   /** Parse string to a double, and handle null intelligently */
   static double parseDouble(String str, [double ifNull = null]) {
-    return (str == null) ? ifNull : Math.parseDouble(str);
+    return (str == null) ? ifNull : double.parse(str);
   }
 
   /** Parse string to a int, and handle null intelligently */
   static int parseInt(String str, [int ifNull = null]) {
-    return (str == null) ? ifNull : Math.parseInt(str);
+    return (str == null) ? ifNull : int.parse(str);
   }
 
   /** Parse bool to a double, and handle null intelligently */

@@ -50,7 +50,7 @@ class MeasureText {
     }
 
     if (targetLength < text.length) {
-      return text.substring(0, targetLength) + ELLIPSIS;
+      return '${text.substring(0, targetLength)}$ELLIPSIS';
     } else {
       return text;
     }

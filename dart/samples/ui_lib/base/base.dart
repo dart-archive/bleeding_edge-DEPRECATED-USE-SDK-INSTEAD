@@ -4,6 +4,7 @@
 
 #library('base');
 #import('dart:html');
+#import('dart:math');
 #import('../observable/observable.dart');
 #import('../util/utilslib.dart');
 

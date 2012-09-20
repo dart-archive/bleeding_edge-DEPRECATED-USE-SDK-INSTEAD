@@ -50,14 +50,14 @@ class GridTrack {
   GridTrack clone() => new GridTrack(sizing.clone());
 
   /** The min sizing function for the track. */
-  SizingFunction get minSizing() => sizing.min;
+  SizingFunction get minSizing => sizing.min;
 
   /** The min sizing function for the track. */
-  SizingFunction get maxSizing() => sizing.max;
+  SizingFunction get maxSizing => sizing.max;
 
-  num get end() => start + usedBreadth;
+  num get end => start + usedBreadth;
 
-  bool get isFractional() => minSizing.isFraction || maxSizing.isFraction;
+  bool get isFractional => minSizing.isFraction || maxSizing.isFraction;
 }
 
 
@@ -168,7 +168,7 @@ class _GridTemplateRect {
       // TODO(jmesserly): not sure if we should throw here, due to CSS's
       // permissiveness. At the moment we're noisy about errors.
       String cell = new String.fromCharCodes([_char]);
-      throw new UnsupportedOperationException('grid-template "$cell"' +
+      throw new UnsupportedOperationException('grid-template "$cell"'
           ' is not square, expected $expected cells but got $_count');
     }
   }
@@ -183,5 +183,5 @@ class _GridLocation {
   final int start, length;
   _GridLocation(this.start, this.length) {}
 
-  int get end() => start + length;
+  int get end => start + length;
 }

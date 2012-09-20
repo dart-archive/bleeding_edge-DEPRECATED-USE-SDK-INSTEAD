@@ -86,8 +86,8 @@ class GridLayout extends ViewLayout {
   }
 
 
-  int get currentWidth() => _gridWidth;
-  int get currentHeight() => _gridHeight;
+  int get currentWidth => _gridWidth;
+  int get currentHeight => _gridHeight;
 
   void cacheExistingBrowserLayout() {
     // We don't need to do anything as we don't rely on the _cachedViewRect

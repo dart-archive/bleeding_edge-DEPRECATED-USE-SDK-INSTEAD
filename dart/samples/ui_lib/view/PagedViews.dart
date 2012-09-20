@@ -127,7 +127,7 @@ class PagedColumnView extends View {
 
     scroller.onDecelStart.add(_snapToPage);
     scroller.onScrollerDragEnd.add(_snapToPage);
-    scroller.onContentMoved.add(_onContentMoved); 
+    scroller.onContentMoved.add(_onContentMoved);
     return node;
   }
 
@@ -175,7 +175,7 @@ class PagedColumnView extends View {
     if (value.endsWith('px')) {
       value = value.substring(0, value.length - 2);
     }
-    return Math.parseDouble(value).round().toInt();
+    return double.parse(value).round().toInt();
   }
 
   /** Watch for resize and update page count. */
@@ -219,7 +219,7 @@ class PagedColumnView extends View {
 
   void _onContentMoved(Event e) {
     _container.rect.then((ElementRect rect) {
-      num current = scroller.contentOffset.x;    
+      num current = scroller.contentOffset.x;
       int pageSize = _computePageSize(rect);
       pages.current.value = -(current / pageSize).round().toInt();
     });

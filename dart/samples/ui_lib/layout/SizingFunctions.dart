@@ -11,14 +11,14 @@
 class SizingFunction {
   const SizingFunction();
 
-  bool get isContentSized() => isMinContentSized || isMaxContentSized;
-  bool get isMinContentSized() => false;
-  bool get isMaxContentSized() => false;
-  bool get isFraction() => false;
+  bool get isContentSized => isMinContentSized || isMaxContentSized;
+  bool get isMinContentSized => false;
+  bool get isMaxContentSized => false;
+  bool get isFraction => false;
 
   num resolveLength(num gridSize) => 0;
 
-  num get fractionValue() => 0;
+  num get fractionValue => 0;
 
   // TODO(jmesserly): this is only needed because FixedSizing is mutable
   SizingFunction clone() => this;
@@ -51,7 +51,7 @@ class FixedSizing extends SizingFunction {
   // TODO(jmesserly): this is only needed because of our mutable property
   FixedSizing clone() => new FixedSizing(length, units);
 
-  bool get isMinContentSized() => _contentSized;
+  bool get isMinContentSized => _contentSized;
 
   num resolveLength(num gridSize) {
     if (units == '%') {
@@ -81,7 +81,7 @@ class FractionSizing extends SizingFunction {
   final num fractionValue;
   FractionSizing(this.fractionValue) : super() {}
 
-  bool get isFraction() => true;
+  bool get isFraction => true;
 
   String toString() => 'FixedSizing: ${fractionValue}fr';
 }
@@ -89,7 +89,7 @@ class FractionSizing extends SizingFunction {
 class MinContentSizing extends SizingFunction {
   const MinContentSizing() : super();
 
-  bool get isMinContentSized() => true;
+  bool get isMinContentSized => true;
 
   String toString() => 'MinContentSizing';
 }
@@ -97,7 +97,7 @@ class MinContentSizing extends SizingFunction {
 class MaxContentSizing extends SizingFunction {
   const MaxContentSizing() : super();
 
-  bool get isMaxContentSized() { return true; }
+  bool get isMaxContentSized { return true; }
 
   String toString() => 'MaxContentSizing';
 }

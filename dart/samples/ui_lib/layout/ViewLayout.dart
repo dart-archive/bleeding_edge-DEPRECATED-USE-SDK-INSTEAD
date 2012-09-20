@@ -4,16 +4,16 @@
 
 /** The interface that the layout algorithms use to talk to the view. */
 abstract class Positionable {
-  ViewLayout get layout();
+  ViewLayout get layout;
 
   /** Gets our custom CSS properties, as provided by the CSS preprocessor. */
-  Map<String, String> get customStyle();
+  Map<String, String> get customStyle;
 
   /** Gets the root DOM used for layout. */
-  Element get node();
+  Element get node;
 
   /** Gets the collection of child views. */
-  Collection<Positionable> get childViews();
+  Collection<Positionable> get childViews;
 
   /** Causes a view to layout its children. */
   void doLayout();
@@ -29,7 +29,7 @@ class LayoutParams {
   // from calling "window." in an initializer. See b/5332777
   Future<CSSStyleDeclaration> style;
 
-  int get layer() => 0;
+  int get layer => 0;
 
   LayoutParams(Element node) {
     style = node.computedStyle;
@@ -102,26 +102,26 @@ class ViewLayout {
     return view.customStyle['display'] == "-dart-grid";
   }
 
-  CSSStyleDeclaration get _style() => layoutParams.style.value;
+  CSSStyleDeclaration get _style => layoutParams.style.value;
 
   void cacheExistingBrowserLayout() {
     _cachedViewRect = view.node.rect;
   }
 
-  int get currentWidth() {
+  int get currentWidth {
     return _cachedViewRect.value.offset.width;
   }
 
-  int get currentHeight() {
+  int get currentHeight {
     return _cachedViewRect.value.offset.height;
   }
 
-  int get borderLeftWidth() => _toPixels(_style.borderLeftWidth);
-  int get borderTopWidth() => _toPixels(_style.borderTopWidth);
-  int get borderRightWidth() => _toPixels(_style.borderRightWidth);
-  int get borderBottomWidth() => _toPixels(_style.borderBottomWidth);
-  int get borderWidth() => borderLeftWidth + borderRightWidth;
-  int get borderHeight() => borderTopWidth + borderBottomWidth;
+  int get borderLeftWidth => _toPixels(_style.borderLeftWidth);
+  int get borderTopWidth => _toPixels(_style.borderTopWidth);
+  int get borderRightWidth => _toPixels(_style.borderRightWidth);
+  int get borderBottomWidth => _toPixels(_style.borderBottomWidth);
+  int get borderWidth => borderLeftWidth + borderRightWidth;
+  int get borderHeight => borderTopWidth + borderBottomWidth;
 
   /** Implements the custom layout computation. */
   void measureLayout(Future<Size> size, Completer<bool> changed) {
@@ -210,7 +210,7 @@ class ViewLayout {
 
   static int _toPixels(String style) {
     if (style.endsWith('px')) {
-      return Math.parseInt(style.substring(0, style.length - 2));
+      return int.parse(style.substring(0, style.length - 2));
     } else {
       // TODO(jmesserly): other size units
       throw new UnsupportedOperationException(
@@ -224,7 +224,7 @@ class ViewLayout {
       return size;
     }
     if (style.endsWith('%')) {
-      num percent = Math.parseDouble(style.substring(0, style.length - 1));
+      num percent = double.parse(style.substring(0, style.length - 1));
       return ((percent / 100) * parentSize).toInt();
     }
     return _toPixels(style);

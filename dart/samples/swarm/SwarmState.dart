@@ -60,9 +60,9 @@ class SwarmState extends UIState {
     startHistoryTracking();
     // TODO(efortuna): consider having this class just hold observable
     // currentIndecies instead of iterators with observablevalues..
-    _sectionIterator = new BiIterator<Section>(_dataModel.sections); 
+    _sectionIterator = new BiIterator<Section>(_dataModel.sections);
     _feedIterator = new BiIterator<Feed>(_sectionIterator.current.feeds);
-    _articleIterator = 
+    _articleIterator =
         new BiIterator<Article>(_feedIterator.current.articles);
 
     currentArticle.addChangeListener((e) {
@@ -100,7 +100,7 @@ class SwarmState extends UIState {
       _sectionIterator.jumpToValue(_dataModel.
           findSectionById(values['section']));
     } else {
-      _sectionIterator = new BiIterator<Section>(_dataModel.sections); 
+      _sectionIterator = new BiIterator<Section>(_dataModel.sections);
     }
     if (values['feed'] != null && currentSection != null) {
       _feedIterator.jumpToValue(currentSection.findFeed(values['feed']));
@@ -111,7 +111,7 @@ class SwarmState extends UIState {
       currentArticle.value = currentFeed.findArticle(values['article']);
       _articleIterator.jumpToValue(currentArticle.value);
     } else {
-      _articleIterator = 
+      _articleIterator =
           new BiIterator<Article>(_feedIterator.current.articles);
       currentArticle.value = null;
     }
@@ -151,13 +151,13 @@ class SwarmState extends UIState {
 
   /**
    * Move the pointers for selectedArticle to point to the next
-   * Feed. 
+   * Feed.
    */
   void goToNextFeed() {
     var newFeed = _feedIterator.next();
     int oldIndex = _articleIterator.currentIndex.value;
 
-    _articleIterator = new BiIterator<Article>(newFeed.articles, 
+    _articleIterator = new BiIterator<Article>(newFeed.articles,
         _articleIterator.currentIndex.listeners);
 
     _articleIterator.currentIndex.value = oldIndex;
@@ -166,7 +166,7 @@ class SwarmState extends UIState {
 
   /**
    * Move the pointers for selectedArticle to point to the previous
-   * DataSource. 
+   * DataSource.
    */
   void goToPreviousFeed() {
     var newFeed = _feedIterator.previous();
@@ -182,7 +182,7 @@ class SwarmState extends UIState {
    * Move to the next section (page) of feeds in the UI.
    * @param index the previous index (how far down in a given feed)
    * from the Source we are moving from.
-   * This method takes sliderMenu in the event that it needs to move 
+   * This method takes sliderMenu in the event that it needs to move
    * to a previous section, it can notify the UI to update.
    */
   void goToNextSection(SliderMenu sliderMenu) {
@@ -190,7 +190,7 @@ class SwarmState extends UIState {
     var oldSection = currentSection;
     int oldIndex = _articleIterator.currentIndex.value;
     sliderMenu.selectNext(true);
-    // This check prevents our selector from wrapping around when we try to 
+    // This check prevents our selector from wrapping around when we try to
     // go to the "next section", but we're already at the last section.
     if (oldSection != _sectionIterator.current) {
       _feedIterator = new BiIterator<Feed>(_sectionIterator.current.feeds,
@@ -198,7 +198,7 @@ class SwarmState extends UIState {
       _articleIterator =
           new BiIterator<Article>(_feedIterator.current.articles,
           _articleIterator.currentIndex.listeners);
-      _articleIterator.currentIndex.value = oldIndex;    
+      _articleIterator.currentIndex.value = oldIndex;
       selectedArticle.value = _articleIterator.current;
     }
   }
@@ -209,7 +209,7 @@ class SwarmState extends UIState {
    * from the Source we are moving from.
    * @param oldSection the original starting section (before the slider
    * menu moved)
-   * This method takes sliderMenu in the event that it needs to move 
+   * This method takes sliderMenu in the event that it needs to move
    * to a previous section, it can notify the UI to update.
    */
   void goToPreviousSection(SliderMenu sliderMenu) {
@@ -218,7 +218,7 @@ class SwarmState extends UIState {
     int oldIndex = _articleIterator.currentIndex.value;
     sliderMenu.selectPrevious(true);
 
-    // This check prevents our selector from wrapping around when we try to 
+    // This check prevents our selector from wrapping around when we try to
     // go to the "previous section", but we're already at the first section.
     if (oldSection != _sectionIterator.current) {
       _feedIterator = new BiIterator<Feed>(_sectionIterator.current.feeds,
@@ -277,13 +277,13 @@ class SwarmState extends UIState {
   /**
    * The user has moved to a new section (page). This can occur either
    * if the user clicked on a section page, or used keyboard shortcuts.
-   * The default behavior is to move to the first article in the first 
+   * The default behavior is to move to the first article in the first
    * column. The location of the selected item depends on the previous
-   * selected item location if the user used keyboard shortcuts. These 
+   * selected item location if the user used keyboard shortcuts. These
    * are manipulated in goToPrevious/NextSection().
    */
   void moveToNewSection(String sectionTitle) {
-    _sectionIterator.currentIndex.value = 
+    _sectionIterator.currentIndex.value =
         _dataModel.findSectionIndex(sectionTitle);
     _feedIterator = new BiIterator<Feed>(_sectionIterator.current.feeds,
         _feedIterator.currentIndex.listeners);
