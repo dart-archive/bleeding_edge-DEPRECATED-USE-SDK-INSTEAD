@@ -18,6 +18,7 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_catch_Cle
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_get_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalNamed_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_parseNum_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_rawString_CleanUp;
 
 /**
@@ -386,6 +387,48 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "foo(a, {b: 2, c: 3})",
         "main() {",
         "  foo(10, b: 20, c: 30);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M1_parseNum() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_parseNum_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math';",
+        "main() {",
+        "  parseInt('123');",
+        "  parseDouble('123.45');",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math';",
+        "main() {",
+        "  int.parse('123');",
+        "  double.parse('123.45');",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M1_parseNum_qualifiedInvocation() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_parseNum_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math' as m;",
+        "main() {",
+        "  m.parseInt('123');",
+        "  m.parseDouble('123.45');",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:math' as m;",
+        "main() {",
+        "  int.parse('123');",
+        "  double.parse('123.45');",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);
