@@ -437,46 +437,6 @@
             extensions="dart">
             <contentTypeBinding contentTypeId="com.google.dart.tools.core.dartSourceFile" />
       </editor>
-
-      <editor
-            name="%HtmlFileEditorName"
-            icon="$nl$/icons/full/dart16/html.png"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            class="com.google.dart.tools.ui.internal.htmleditor.HtmlFileEditor"
-            symbolicFontName="com.google.dart.tools.ui.editors.textfont"
-            id="com.google.dart.tools.ui.htmleditor.htmlEditor"
-            extensions="html,htm">
-      </editor>
-      
-      <editor
-            name="%TextFileEditorName"
-            default="true"
-            icon="$nl$/icons/full/obj16/file_obj.gif"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            class="com.google.dart.tools.ui.internal.text.editor.SimpleTextEditor"
-            symbolicFontName="com.google.dart.tools.ui.editors.textfont"
-            id="com.google.dart.tools.ui.text.editor.TextEditor">
-            <contentTypeBinding contentTypeId="org.eclipse.core.runtime.text" />
-      </editor>
-      
-      <editor
-            name="%PubspecFileEditorName"
-            default="true"
-            icon="$nl$/icons/full/obj16/file_obj.gif"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            class="com.google.dart.tools.ui.internal.text.editor.SimpleTextEditor"
-            symbolicFontName="com.google.dart.tools.ui.editors.textfont"
-            id="com.google.dart.tools.ui.text.editor.PubspecEditor">
-         <contentTypeBinding contentTypeId="com.google.dart.tools.core.pubspecFile" /> 
-      </editor>
-
-      <editor
-            class="com.google.dart.tools.ui.internal.intro.IntroEditor"
-            default="false"
-            icon="icons/dart_16_16.gif"
-            id="com.google.dart.tools.ui.intro.editor"
-            name="Welcome">
-      </editor>
    </extension>
    
     <extension

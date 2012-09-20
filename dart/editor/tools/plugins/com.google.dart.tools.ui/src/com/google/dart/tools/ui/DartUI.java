@@ -24,7 +24,6 @@ import com.google.dart.tools.ui.internal.SharedImages;
 import com.google.dart.tools.ui.internal.dialogs.FilteredTypesSelectionDialog;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.text.editor.ExternalCompilationUnitEditorInput;
-import com.google.dart.tools.ui.internal.text.editor.SimpleTextEditor;
 import com.google.dart.tools.ui.text.IColorManager;
 
 import org.eclipse.core.resources.IProject;
@@ -114,9 +113,9 @@ public final class DartUI {
   public static final String ID_CF_EDITOR = "com.google.dart.tools.ui.ClassFileEditor"; //$NON-NLS-1$
 
   /**
-   * The editor part id of the default text editor.
+   * The editor part id of the default text editor (used in the RCP but not the plugin).
    */
-  public static final String ID_DEFAULT_TEXT_EDITOR = SimpleTextEditor.ID;
+  public static final String ID_DEFAULT_TEXT_EDITOR = "com.google.dart.tools.ui.text.editor.TextEditor";
 
   /**
    * The editor part id of the code snippet editor (value

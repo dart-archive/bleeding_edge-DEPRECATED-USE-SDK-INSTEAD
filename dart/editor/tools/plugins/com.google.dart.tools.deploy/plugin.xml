@@ -385,5 +385,25 @@
             name="Dart Editor Presentation">
       </factory>
    </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="com.google.dart.tools.ui.internal.text.editor.SimpleTextEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            default="true"
+            icon="$nl$/icons/full/obj16/file_obj.gif"
+            id="com.google.dart.tools.ui.text.editor.TextEditor"
+            name="%TextFileEditorName"
+            symbolicFontName="com.google.dart.tools.ui.editors.textfont">
+            <contentTypeBinding contentTypeId="org.eclipse.core.runtime.text" />
+      </editor>
+      <editor
+            class="com.google.dart.tools.ui.internal.intro.IntroEditor"
+            default="false"
+            icon="icons/dart_16_16.gif"
+            id="com.google.dart.tools.ui.intro.editor"
+            name="Welcome">
+      </editor>
+   </extension>
 
 </plugin>

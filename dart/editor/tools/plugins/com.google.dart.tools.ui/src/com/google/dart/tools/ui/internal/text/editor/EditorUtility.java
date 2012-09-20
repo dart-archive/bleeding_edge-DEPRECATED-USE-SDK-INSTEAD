@@ -581,13 +581,13 @@ public class EditorUtility {
   }
 
   private static String maybeSwapDefaultEditorDescriptor(String editorId) {
-    if (editorId.equals(ID_ORG_ECLIPSE_UI_DEFAULT_TEXT_EDITOR)) {
+    if (!DartCore.isPluginsBuild() && editorId.equals(ID_ORG_ECLIPSE_UI_DEFAULT_TEXT_EDITOR)) {
       /*
        * TODO (rdayal): Once we modify Eclipse's default text editor so that it does not add a bunch
        * of context menu contributions that we do not need (and can't get rid of via activies), we
        * can get rid of the SimpleTextEditor.
        */
-      return SimpleTextEditor.ID;
+      return DartUI.ID_DEFAULT_TEXT_EDITOR;
     }
     return editorId;
   }
