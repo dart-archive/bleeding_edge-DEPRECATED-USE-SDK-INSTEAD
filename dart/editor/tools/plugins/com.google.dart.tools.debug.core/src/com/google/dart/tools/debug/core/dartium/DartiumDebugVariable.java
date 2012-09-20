@@ -110,11 +110,11 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
   }
 
   public boolean isListValue() {
-    return value.isList();
+    return getDartiumValue().isList();
   }
 
   public boolean isPrimitiveValue() {
-    return value.isPrimitive();
+    return getDartiumValue().isPrimitive();
   }
 
   public boolean isStatic() {
@@ -176,6 +176,10 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
 
   protected void setParent(DartiumDebugVariable parent) {
     this.parent = parent;
+  }
+
+  private DartiumDebugValue getDartiumValue() {
+    return (DartiumDebugValue) getValue();
   }
 
   private boolean isListMember() {
