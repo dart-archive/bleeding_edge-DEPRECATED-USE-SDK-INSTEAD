@@ -8,7 +8,7 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "128937",
+  "webkit_revision": "129048",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
@@ -29,7 +29,7 @@ vars = {
   "ffmpeg_hash": "4a1909e22211b340ee859a8c9d12e8825fe499b7",
 
   "sfntly_revision": "134",
-  "skia_revision": "5575",
+  "skia_revision": "5594",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -110,9 +110,6 @@ deps = {
 
   "src/native_client":
     Var("nacl_trunk") + "/src/native_client@" + Var("nacl_revision"),
-
-  "src/native_client_sdk/src/site_scons":
-    Var("nacl_trunk") + "/src/native_client/site_scons@" + Var("nacl_revision"),
 
   "src/third_party/pymox/src":
     (Var("googlecode_url") % "pymox") + "/trunk@70",
@@ -286,7 +283,7 @@ deps = {
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
 
   "src/third_party/libyuv":
-    (Var("googlecode_url") % "libyuv") + "/trunk@359",
+    (Var("googlecode_url") % "libyuv") + "/trunk@364",
 
   "src/third_party/mozc/session":
     (Var("googlecode_url") % "mozc") + "/trunk/src/session@83",
@@ -529,7 +526,7 @@ deps_os = {
     # For Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@cb147b466b03f18b56c04056a375f097ed52189b",
+      "@94ed6fa5e9c8d55d183260a41856899502af0459",
   },
   "android": {
     "src/third_party/freetype":
