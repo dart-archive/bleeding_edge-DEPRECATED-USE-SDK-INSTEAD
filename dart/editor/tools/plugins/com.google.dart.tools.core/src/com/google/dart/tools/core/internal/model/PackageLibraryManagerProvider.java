@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.common.collect.Lists;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.SystemLibrary;
 import com.google.dart.tools.core.DartCore;
@@ -24,6 +25,8 @@ import com.google.dart.tools.core.model.DartSdkManager;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -35,9 +38,25 @@ public class PackageLibraryManagerProvider {
   private static final class MissingSdkLibaryManager extends PackageLibraryManager {
 
     private static final SystemLibrary[] NO_LIBRARIES = new SystemLibrary[0];
+    private static final Collection<String> NO_SPECS = Lists.newArrayList();
 
     public MissingSdkLibaryManager(File sdkPath, String platformName) {
       super(sdkPath, platformName);
+    }
+
+    @Override
+    public Collection<String> getAllLibrarySpecs() {
+      return NO_SPECS;
+    }
+
+    @Override
+    public URI getRelativeUri(URI fileUri) {
+      return fileUri;
+    }
+
+    @Override
+    public File getSdkLibPath() {
+      return null;
     }
 
     @Override
@@ -46,8 +65,18 @@ public class PackageLibraryManagerProvider {
     }
 
     @Override
+    public Collection<SystemLibrary> getSystemLibraries() {
+      return Arrays.asList(getDefaultLibraries());
+    }
+
+    @Override
     protected SystemLibrary[] getDefaultLibraries() {
       return NO_LIBRARIES;
+    }
+
+    @Override
+    protected void initLibraryManager(File sdkPath) {
+      //do nothing since no SDK means system library
     }
 
   }

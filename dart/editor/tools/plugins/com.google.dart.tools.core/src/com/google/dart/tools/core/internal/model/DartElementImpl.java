@@ -27,6 +27,7 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModelStatus;
 import com.google.dart.tools.core.model.DartModelStatusConstants;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.OpenableElement;
 import com.google.dart.tools.core.model.ParentElement;
@@ -277,9 +278,11 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
   public <E extends DartElement> List<E> getChildrenOfType(Class<E> elementClass)
       throws DartModelException {
     List<E> children = new ArrayList<E>();
-    for (DartElement child : getChildren()) {
-      if (elementClass.isInstance(child)) {
-        children.add((E) child);
+    if (DartSdkManager.getManager().hasSdk()) {
+      for (DartElement child : getChildren()) {
+        if (elementClass.isInstance(child)) {
+          children.add((E) child);
+        }
       }
     }
     return children;

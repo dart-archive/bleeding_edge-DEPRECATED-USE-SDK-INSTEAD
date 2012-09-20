@@ -19,6 +19,7 @@ import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.SavedContext;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -48,10 +49,13 @@ public class AnalysisIndexManager {
         initServerDebug();
         initServerContent();
 
-        // Ensure index is initialized before starting analysis server
-        startIndexing();
+        if (DartSdkManager.getManager().hasSdk()) {
+          // Ensure index is initialized before starting analysis server
+          startIndexing();
 
-        server.start();
+          server.start();
+        }
+        
       }
     }
     return server;

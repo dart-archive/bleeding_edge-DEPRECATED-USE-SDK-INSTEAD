@@ -19,6 +19,7 @@ import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -28,7 +29,8 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 /**
- * Instances of the class <code>DartModelInfo</code> maintain the cached data shared by all model objects.
+ * Instances of the class <code>DartModelInfo</code> maintain the cached data shared by all model
+ * objects.
  */
 public class DartModelInfo extends OpenableElementInfo {
   /**
@@ -91,12 +93,14 @@ public class DartModelInfo extends OpenableElementInfo {
 
   private void initializeBundledLibraries() {
     ArrayList<DartLibrary> libraries = new ArrayList<DartLibrary>();
+
     try {
-      PackageLibraryManager libraryManager = PackageLibraryManagerProvider
-        .getPackageLibraryManager();
-      coreLibrary = createBundledLibrary(libraryManager, "dart:core");
-      for (String spec : libraryManager.getAllLibrarySpecs()) {
-        libraries.add(createBundledLibrary(libraryManager, spec));
+      if (DartSdkManager.getManager().hasSdk()) {
+        PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getPackageLibraryManager();
+        coreLibrary = createBundledLibrary(libraryManager, "dart:core");
+        for (String spec : libraryManager.getAllLibrarySpecs()) {
+          libraries.add(createBundledLibrary(libraryManager, spec));
+        }
       }
     } catch (URISyntaxException exception) {
       throw new AssertionError(exception);

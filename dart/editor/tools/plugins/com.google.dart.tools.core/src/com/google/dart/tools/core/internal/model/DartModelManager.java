@@ -1814,7 +1814,9 @@ public class DartModelManager {
 //       | IResourceChangeEvent.PRE_REFRESH
       );
 
-      AnalysisIndexManager.startIndexing();
+      if (DartSdkManager.getManager().hasSdk()) {
+        AnalysisIndexManager.startIndexing();
+      }
 
       ResourceUtil.startup();
       DartCore.notYetImplemented();

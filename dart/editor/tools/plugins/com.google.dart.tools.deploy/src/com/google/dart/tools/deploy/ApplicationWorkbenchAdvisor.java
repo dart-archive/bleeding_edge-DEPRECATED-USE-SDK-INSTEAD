@@ -19,6 +19,7 @@ import com.google.dart.tools.core.MessageConsole.MessageStream;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DeployConsolePatternMatcher;
@@ -265,7 +266,10 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
         }
       });
 
-      new AnalysisMonitor(PackageLibraryManagerProvider.getDefaultAnalysisServer()).start();
+      if (DartSdkManager.getManager().hasSdk()) {
+        new AnalysisMonitor(PackageLibraryManagerProvider.getDefaultAnalysisServer()).start();
+      }
+
       IWorkbench workbench = PlatformUI.getWorkbench();
       IActivityManager act = workbench.getActivitySupport().getActivityManager();
       IBindingService bind = (IBindingService) workbench.getService(IBindingService.class);
