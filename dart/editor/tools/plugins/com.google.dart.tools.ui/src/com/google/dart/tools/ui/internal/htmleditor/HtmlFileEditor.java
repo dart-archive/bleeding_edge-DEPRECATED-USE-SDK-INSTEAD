@@ -14,8 +14,15 @@
 package com.google.dart.tools.ui.internal.htmleditor;
 
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.text.DefaultLineTracker;
+import org.eclipse.jface.text.ITextViewerExtension7;
+import org.eclipse.jface.text.TabsToSpacesConverter;
+import org.eclipse.jface.text.source.SourceViewerConfiguration;
+import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
 // TODO(devoncarew): investigate using a more full-featured html editor (WTP?)
@@ -31,6 +38,12 @@ public class HtmlFileEditor extends TextEditor {
    */
   public HtmlFileEditor() {
     setRulerContextMenuId("#DartHtmlFileEditorRulerContext"); //$NON-NLS-1$
+  }
+
+  @Override
+  public void createPartControl(Composite parent) {
+    super.createPartControl(parent);
+    installTabsToSpacesConverter();
   }
 
   @Override
@@ -55,9 +68,38 @@ public class HtmlFileEditor extends TextEditor {
     addAction(menu, ITextEditorActionConstants.PASTE);
   }
 
+  /**
+   * When the preference store changes, the settings for tabs to spaces can be overridden from what
+   * we set in {@link #createPartControl(Composite)}, thus this method calls super, and then resets
+   * our tabs-to-spaces settings.
+   */
+  @Override
+  protected void handlePreferenceStoreChanged(PropertyChangeEvent event) {
+    super.handlePreferenceStoreChanged(event);
+    installTabsToSpacesConverter();
+  }
+
   @Override
   protected void initializeKeyBindingScopes() {
     setKeyBindingScopes(new String[] {"com.google.dart.tools.ui.dartViewScope"}); //$NON-NLS-1$
+  }
+
+  /**
+   * This method overrides the implementation in
+   * {@link AbstractTextEditor#installTabsToSpacesConverter()} so that the number of spaces is set
+   * to <code>2</code>, instead of <code>4</code>.
+   */
+  @Override
+  protected void installTabsToSpacesConverter() {
+    SourceViewerConfiguration config = getSourceViewerConfiguration();
+    if (config != null && getSourceViewer() instanceof ITextViewerExtension7) {
+      TabsToSpacesConverter tabToSpacesConverter = new TabsToSpacesConverter();
+      tabToSpacesConverter.setLineTracker(new DefaultLineTracker());
+      // TODO(jwren) Revisit and add a preference call for the hard-coded '2':
+      tabToSpacesConverter.setNumberOfSpacesPerTab(2);
+      ((ITextViewerExtension7) getSourceViewer()).setTabsToSpacesConverter(tabToSpacesConverter);
+      updateIndentPrefixes();
+    }
   }
 
   @Override
