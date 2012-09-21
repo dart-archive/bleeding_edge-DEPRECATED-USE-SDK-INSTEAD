@@ -33,7 +33,7 @@ public class OpenNewApplicationWizardAction extends AbstractOpenWizardAction imp
     setText(ProjectMessages.OpenNewApplicationWizardAction_text);
     setDescription(ProjectMessages.OpenNewApplicationWizardAction_desc);
     setToolTipText(ProjectMessages.OpenNewApplicationWizardAction_tooltip);
-    setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/dart16/library_new.png")); //$NON-NLS-1$
+    setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/dart16/package_obj_new.png")); //$NON-NLS-1$
     setId(ACTION_ID);
   }
 

@@ -41,7 +41,7 @@ public class CleanLibrariesJob extends Job {
   }
 
   public CleanLibrariesJob(boolean resetModel) {
-    super("Re-analyzing...");
+    super("Reanalyzing...");
 
     this.resetModel = resetModel;
 
@@ -61,7 +61,7 @@ public class CleanLibrariesJob extends Job {
         DartModelManager.getInstance().resetModel();
       }
 
-      SubMonitor subMonitor = SubMonitor.convert(monitor, "Re-analyzing...", 100);
+      SubMonitor subMonitor = SubMonitor.convert(monitor, "Reanalyzing...", 100);
 
       IWorkspace workspace = ResourcesPlugin.getWorkspace();
       IWorkspaceRoot root = workspace.getRoot();

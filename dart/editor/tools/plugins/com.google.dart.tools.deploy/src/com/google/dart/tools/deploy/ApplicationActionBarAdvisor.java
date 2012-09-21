@@ -997,30 +997,25 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
         WorkbenchMessages.tools_menu,
         IWorkbenchActionConstants.M_WINDOW);
 
-    //menu.add(newWindowAction);
-    //menu.add(newEditorAction);
+    menu.add(new OpenIntroEditorAction());
+
+    menu.add(new Separator());
 
     addViewActions(menu);
 
     menu.add(new Separator());
 
-    menu.add(new OpenIntroEditorAction());
+    menu.add(deployOptimizedAction);
+    menu.add(generateDartdocAction);
+
+    menu.add(new Separator());
+
+    menu.add(pubInstallAction);
+    menu.add(pubUpdateAction);
 
     menu.add(new Separator());
 
     menu.add(cleanAllAction);
-
-    menu.add(new Separator());
-
-    //addKeyboardShortcuts(menu);
-
-    menu.add(deployOptimizedAction);
-
-    menu.add(generateDartdocAction);
-
-    menu.add(new Separator());
-    menu.add(pubInstallAction);
-    menu.add(pubUpdateAction);
 
     Separator sep = new Separator(IWorkbenchActionConstants.MB_ADDITIONS);
     sep.setVisible(!Util.isMac());
