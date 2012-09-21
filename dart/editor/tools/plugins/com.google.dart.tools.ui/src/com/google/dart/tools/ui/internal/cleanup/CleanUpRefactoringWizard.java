@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.cleanup;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.utilities.io.Base16;
@@ -160,19 +159,10 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 tabComposite,
                 ID_STYLE_TRAILING_WHITESPACE,
                 "Remove trailing whitespaces");
-            // use blocks
             createCheckButton(
                 tabComposite,
                 ID_STYLE_USE_BLOCKS,
                 "Use blocks in if/while/for statements");
-            {
-              Composite blocksComposite = new Composite(tabComposite, SWT.NONE);
-              GridDataFactory.create(blocksComposite).indentHorizontalChars(3);
-              GridLayoutFactory.create(blocksComposite);
-              createRadioButtons(blocksComposite, ID_STYLE_USE_BLOCKS_FLAG, new String[] {
-                  "Always", "Only if necessary"}, new String[] {
-                  Style_useBlocks_CleanUp.ALWAYS, Style_useBlocks_CleanUp.WHEN_NECESSARY});
-            }
           }
         }
       }
@@ -207,23 +197,23 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       return button;
     }
 
-    private void createRadioButtons(Composite syntaxComposite, final String key, String[] titles,
-        String[] values) {
-      String currentValue = settings.get(key);
-      for (int i = 0; i < titles.length; i++) {
-        String text = titles[i];
-        final String value = values[i];
-        Button button = new Button(syntaxComposite, SWT.RADIO);
-        button.setText(text);
-        button.setSelection(Objects.equal(value, currentValue));
-        button.addListener(SWT.Selection, new Listener() {
-          @Override
-          public void handleEvent(Event event) {
-            settings.set(key, value);
-          }
-        });
-      }
-    }
+//    private void createRadioButtons(Composite syntaxComposite, final String key, String[] titles,
+//        String[] values) {
+//      String currentValue = settings.get(key);
+//      for (int i = 0; i < titles.length; i++) {
+//        String text = titles[i];
+//        final String value = values[i];
+//        Button button = new Button(syntaxComposite, SWT.RADIO);
+//        button.setText(text);
+//        button.setSelection(Objects.equal(value, currentValue));
+//        button.addListener(SWT.Selection, new Listener() {
+//          @Override
+//          public void handleEvent(Event event) {
+//            settings.set(key, value);
+//          }
+//        });
+//      }
+//    }
 
     private void initializeRefactoring() {
       refactoring.clearCleanUps();
@@ -234,7 +224,6 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
           refactoring.addCleanUp(cleanUp);
         }
       }
-      ((Style_useBlocks_CleanUp) CLEAN_UPS.get(ID_STYLE_USE_BLOCKS)).setFlag(settings.get(ID_STYLE_USE_BLOCKS_FLAG));
     }
 
     private void restoreSettings() {
@@ -287,10 +276,6 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
 
     public void set(String key, boolean value) {
       map.put(key, value ? "TRUE" : "FALSE");
-    }
-
-    public void set(String key, String value) {
-      map.put(key, value);
     }
 
     public void setDefault(String key, boolean value) {

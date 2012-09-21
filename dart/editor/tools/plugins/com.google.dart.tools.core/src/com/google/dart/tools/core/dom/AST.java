@@ -168,7 +168,7 @@ public class AST {
     } else if (nodeClass == DartMethodInvocation.class) {
       return (N) new DartMethodInvocation(null, false, null, new ArrayList<DartExpression>());
     } else if (nodeClass == DartNativeBlock.class) {
-      return (N) new DartNativeBlock();
+      return (N) new DartNativeBlock(null);
     } else if (nodeClass == DartNewExpression.class) {
       return (N) new DartNewExpression(null, new ArrayList<DartExpression>(), false);
     } else if (nodeClass == DartNullLiteral.class) {

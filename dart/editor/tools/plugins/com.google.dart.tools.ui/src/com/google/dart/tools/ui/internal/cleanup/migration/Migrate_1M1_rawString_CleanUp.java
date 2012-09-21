@@ -17,6 +17,8 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 
+import java.util.List;
+
 /**
  * In specification 1.0 M1 raw string should start with 'r'.
  * 
@@ -28,9 +30,12 @@ public class Migrate_1M1_rawString_CleanUp extends AbstractMigrateCleanUp {
     unitNode.accept(new ASTVisitor<Void>() {
       @Override
       public Void visitStringLiteral(DartStringLiteral node) {
-        String source = utils.getText(node);
-        if (source.startsWith("@")) {
-          addReplaceEdit(SourceRangeFactory.forStartLength(node, 1), "r");
+        List<DartStringLiteral> parts = node.getParts();
+        for (DartStringLiteral part : parts) {
+          String source = utils.getText(part);
+          if (source.startsWith("@")) {
+            addReplaceEdit(SourceRangeFactory.forStartLength(part, 1), "r");
+          }
         }
         return null;
       }

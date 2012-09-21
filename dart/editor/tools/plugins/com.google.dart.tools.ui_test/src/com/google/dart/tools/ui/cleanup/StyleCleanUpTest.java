@@ -46,7 +46,6 @@ public final class StyleCleanUpTest extends AbstractCleanUpTest {
 
   public void test_useBlocks_always() throws Exception {
     Style_useBlocks_CleanUp cleanUp = new Style_useBlocks_CleanUp();
-    cleanUp.setFlag(Style_useBlocks_CleanUp.ALWAYS);
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -102,7 +101,6 @@ public final class StyleCleanUpTest extends AbstractCleanUpTest {
 
   public void test_useBlocks_always_ifElseIf() throws Exception {
     Style_useBlocks_CleanUp cleanUp = new Style_useBlocks_CleanUp();
-    cleanUp.setFlag(Style_useBlocks_CleanUp.ALWAYS);
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -127,7 +125,6 @@ public final class StyleCleanUpTest extends AbstractCleanUpTest {
 
   public void test_useBlocks_always_nop() throws Exception {
     Style_useBlocks_CleanUp cleanUp = new Style_useBlocks_CleanUp();
-    cleanUp.setFlag(Style_useBlocks_CleanUp.ALWAYS);
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -149,151 +146,16 @@ public final class StyleCleanUpTest extends AbstractCleanUpTest {
     assertNoFix(cleanUp, initial);
   }
 
-  public void test_useBlocks_always_nop_oneLineIf() throws Exception {
+  public void test_useBlocks_always_nop_oneLine() throws Exception {
     Style_useBlocks_CleanUp cleanUp = new Style_useBlocks_CleanUp();
-    cleanUp.setFlag(Style_useBlocks_CleanUp.ALWAYS);
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  if (true) return;",
+        "  for (var v in []) print(v);",
+        "  for (var i = 0; i < 10; i++) print(i);",
+        "  while (true) print(0);",
         "}",
-        "");
-    assertNoFix(cleanUp, initial);
-  }
-
-  public void test_useBlocks_whenNecessary_ifThenElse() throws Exception {
-    Style_useBlocks_CleanUp cleanUp = new Style_useBlocks_CleanUp();
-    cleanUp.setFlag(Style_useBlocks_CleanUp.WHEN_NECESSARY);
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  //                0",
-        "  if (true) {",
-        "    process();",
-        "  }",
-        "  //                1",
-        "  if (true) {",
-        "    process();",
-        "  } else {",
-        "    process();",
-        "  }",
-        "  //                2",
-        "  if (true) {",
-        "    process();",
-        "  } else",
-        "    process();",
-        "  //                3",
-        "  if (true)",
-        "    process();",
-        "  else {",
-        "    process();",
-        "  }",
-        "}",
-        "process() {}",
-        "");
-    String expected = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  //                0",
-        "  if (true)",
-        "    process();",
-        "  //                1",
-        "  if (true)",
-        "    process();",
-        "  else",
-        "    process();",
-        "  //                2",
-        "  if (true)",
-        "    process();",
-        "  else",
-        "    process();",
-        "  //                3",
-        "  if (true)",
-        "    process();",
-        "  else",
-        "    process();",
-        "}",
-        "process() {}",
-        "");
-    assertCleanUp(cleanUp, initial, expected);
-  }
-
-  public void test_useBlocks_whenNecessary_loops() throws Exception {
-    Style_useBlocks_CleanUp cleanUp = new Style_useBlocks_CleanUp();
-    cleanUp.setFlag(Style_useBlocks_CleanUp.WHEN_NECESSARY);
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  while (true) {",
-        "    process();",
-        "  }",
-        "  for (var item in []) {",
-        "    process();",
-        "  }",
-        "  for (var i = 0; i < 10; i++) {",
-        "    process();",
-        "  }",
-        "}",
-        "process() {}",
-        "");
-    String expected = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  while (true)",
-        "    process();",
-        "  for (var item in [])",
-        "    process();",
-        "  for (var i = 0; i < 10; i++)",
-        "    process();",
-        "}",
-        "process() {}",
-        "");
-    assertCleanUp(cleanUp, initial, expected);
-  }
-
-  public void test_useBlocks_whenNecessary_nop_ifThenElse() throws Exception {
-    Style_useBlocks_CleanUp cleanUp = new Style_useBlocks_CleanUp();
-    cleanUp.setFlag(Style_useBlocks_CleanUp.WHEN_NECESSARY);
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  if (true)",
-        "    process();",
-        "  if (true) {",
-        "    process();",
-        "    process();",
-        "  }",
-        "  if (true) {",
-        "    process();",
-        "    process();",
-        "  } else",
-        "    process();",
-        "  if (true)",
-        "    process();",
-        "  else {",
-        "    process();",
-        "    process();",
-        "  }",
-        "}",
-        "process() {}",
-        "");
-    assertNoFix(cleanUp, initial);
-  }
-
-  public void test_useBlocks_whenNecessary_nop_loops() throws Exception {
-    Style_useBlocks_CleanUp cleanUp = new Style_useBlocks_CleanUp();
-    cleanUp.setFlag(Style_useBlocks_CleanUp.WHEN_NECESSARY);
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  while (true)",
-        "    process();",
-        "  for (var item in [])",
-        "    process();",
-        "  for (var i = 0; i < 10; i++)",
-        "    process();",
-        "}",
-        "process() {}",
         "");
     assertNoFix(cleanUp, initial);
   }

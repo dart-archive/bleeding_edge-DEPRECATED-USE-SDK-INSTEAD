@@ -463,4 +463,42 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
+  public void test_1M1_rawString_adjacent() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_rawString_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var s1 = '111' 'aaa';",
+        "  var s2 = r'222' r'bbb';",
+        "  var s3 = @'333' r'ccc';",
+        "  var s4 = r'444' @'ddd';",
+        "  var s5 = @'555' @'eee';",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var s1 = '111' 'aaa';",
+        "  var s2 = r'222' r'bbb';",
+        "  var s3 = r'333' r'ccc';",
+        "  var s4 = r'444' r'ddd';",
+        "  var s5 = r'555' r'eee';",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M1_rawString_native() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_rawString_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo() native @'abc';",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo() native r'abc';",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
 }
