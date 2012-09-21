@@ -29,9 +29,11 @@ import com.google.dart.compiler.ast.DartPartOfDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartVariable;
+import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.FieldElement;
+import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
 import com.google.dart.tools.core.model.SourceRange;
@@ -69,11 +71,6 @@ public class SemanticHighlightings {
     }
 
     @Override
-    public RGB getDefaultDefaultTextColor() {
-      return new RGB(0x00, 0x80, 0x30);
-    }
-
-    @Override
     public String getDisplayName() {
       return DartEditorMessages.SemanticHighlighting_class;
     }
@@ -88,7 +85,6 @@ public class SemanticHighlightings {
       return true;
     }
   }
-
   /**
    * Abstract {@link SemanticHighlighting} with empty methods by default.
    */
@@ -123,6 +119,10 @@ public class SemanticHighlightings {
     public boolean isUnderlineByDefault() {
       return false;
     }
+
+    RGB defaultFieldColor() {
+      return new RGB(0, 0, 192);
+    }
   }
 
   /**
@@ -134,6 +134,11 @@ public class SemanticHighlightings {
       DartIdentifier node = token.getNodeIdentifier();
       NodeElement element = node.getElement();
       return element != null && element.getMetadata().isDeprecated();
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return new RGB(0, 0, 0);
     }
 
     @Override
@@ -246,12 +251,7 @@ public class SemanticHighlightings {
 
     @Override
     public RGB getDefaultDefaultTextColor() {
-//      return new RGB(237, 145, 33); //carrot
-//      return new RGB(184, 115, 51); //copper
-//      return new RGB(0xd7, 0x96, 0x7d); //taupe
-//      return new RGB(0x67, 0x4C, 0x47); //dark taupe
-//      return new RGB(0x85, 0x60, 0x46); // dark mocha
-      return new RGB(0xFF, 0x40, 0x40); // red-orange
+      return new RGB(0x80, 0x00, 0xCC);
     }
 
     @Override
@@ -279,12 +279,33 @@ public class SemanticHighlightings {
     public boolean consumesIdentifier(SemanticToken token) {
       DartIdentifier node = token.getNodeIdentifier();
       NodeElement element = node.getElement();
-      return ElementKind.of(element) == ElementKind.FIELD;
+      boolean isField = ElementKind.of(element) == ElementKind.FIELD;
+      if (isField) {
+        /*
+         * Annotations should not be highlighted the same as fields.
+         * This whole block needs better support from the model.
+         * The initial @ should have the same presentation as the annotation
+         * but that's not handled here.
+         */
+        if (element.getEnclosingElement() instanceof LibraryElement) {
+          LibraryElement lib = (LibraryElement) element.getEnclosingElement();
+          LibraryUnit libUnit = lib.getLibraryUnit();
+          if (libUnit != null && META_LIB_NAME.equals(libUnit.getName())) {
+            String name = element.getName();
+            for (String annotation : META_NAMES) {
+              if (annotation.equals(name)) {
+                return false;
+              }
+            }
+          }
+        }
+      }
+      return isField;
     }
 
     @Override
     public RGB getDefaultDefaultTextColor() {
-      return new RGB(0, 0, 192);
+      return defaultFieldColor();
     }
 
     @Override
@@ -303,6 +324,42 @@ public class SemanticHighlightings {
     }
   }
 
+  private static class GetterDeclarationHighlighting extends MethodDeclarationHighlighting {
+
+    @Override
+    public boolean consumes(SemanticToken token) {
+      DartNode node = token.getNode();
+      {
+        DartMethodDefinition parentMethod = getParentMethod(node);
+        if (parentMethod != null && parentMethod.getName() == node) {
+          if (parentMethod.getElement().getModifiers().isGetter()) {
+            return true;
+          }
+        }
+      }
+      if (node.getParent() instanceof DartFunctionExpression
+          && ((DartFunctionExpression) node.getParent()).getName() == node) {
+        return true;
+      }
+      return false;
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return defaultFieldColor();
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_getter;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return GETTER_DECLARATION;
+    }
+  }
+
   private static class LocalVariableDeclarationHighlighting extends DefaultSemanticHighlighting {
 
     @Override
@@ -317,7 +374,7 @@ public class SemanticHighlightings {
 
     @Override
     public RGB getDefaultDefaultTextColor() {
-      return new RGB(0x80, 0x2C, 0x45);
+      return new RGB(0, 0, 0); // same as parameter
     }
 
     @Override
@@ -347,7 +404,7 @@ public class SemanticHighlightings {
 
     @Override
     public RGB getDefaultDefaultTextColor() {
-      return new RGB(0xF0, 0x00, 0xF0);
+      return new RGB(0, 0, 0); // same as parameter
     }
 
     @Override
@@ -398,7 +455,7 @@ public class SemanticHighlightings {
 
     @Override
     public RGB getDefaultDefaultTextColor() {
-      return new RGB(0x80, 0x00, 0xFF); // grape
+      return new RGB(64, 64, 64);
     }
 
     @Override
@@ -427,11 +484,6 @@ public class SemanticHighlightings {
     }
 
     @Override
-    public RGB getDefaultDefaultTextColor() {
-      return new RGB(43, 166, 232);
-    }
-
-    @Override
     public String getDisplayName() {
       return DartEditorMessages.SemanticHighlighting_method;
     }
@@ -457,7 +509,7 @@ public class SemanticHighlightings {
 
     @Override
     public RGB getDefaultDefaultTextColor() {
-      return new RGB(0x00, 0x80, 0x00);
+      return new RGB(0x00, 0x70, 0x00);
     }
 
     @Override
@@ -472,11 +524,6 @@ public class SemanticHighlightings {
 
     @Override
     public boolean isEnabledByDefault() {
-      return true;
-    }
-
-    @Override
-    public boolean isItalicByDefault() {
       return true;
     }
   }
@@ -500,7 +547,7 @@ public class SemanticHighlightings {
 
     @Override
     public RGB getDefaultDefaultTextColor() {
-      return new RGB(215, 114, 30);
+      return new RGB(0, 0, 0); // same as local
     }
 
     @Override
@@ -516,6 +563,42 @@ public class SemanticHighlightings {
     @Override
     public boolean isEnabledByDefault() {
       return true;
+    }
+  }
+
+  private static class SetterDeclarationHighlighting extends MethodDeclarationHighlighting {
+
+    @Override
+    public boolean consumes(SemanticToken token) {
+      DartNode node = token.getNode();
+      {
+        DartMethodDefinition parentMethod = getParentMethod(node);
+        if (parentMethod != null && parentMethod.getName() == node) {
+          if (parentMethod.getElement().getModifiers().isSetter()) {
+            return true;
+          }
+        }
+      }
+      if (node.getParent() instanceof DartFunctionExpression
+          && ((DartFunctionExpression) node.getParent()).getName() == node) {
+        return true;
+      }
+      return false;
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return defaultFieldColor();
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_setter;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return SETTER_DECLARATION;
     }
   }
 
@@ -579,12 +662,12 @@ public class SemanticHighlightings {
     }
 
     @Override
-    public boolean isBoldByDefault() {
+    public boolean isEnabledByDefault() {
       return true;
     }
 
     @Override
-    public boolean isEnabledByDefault() {
+    public boolean isItalicByDefault() {
       return true;
     }
   }
@@ -609,12 +692,12 @@ public class SemanticHighlightings {
     }
 
     @Override
-    public boolean isBoldByDefault() {
+    public boolean isEnabledByDefault() {
       return true;
     }
 
     @Override
-    public boolean isEnabledByDefault() {
+    public boolean isItalicByDefault() {
       return true;
     }
   }
@@ -675,6 +758,10 @@ public class SemanticHighlightings {
 //
 //  }
 
+  // Constants used to distinguish annotations from fields.
+  private static final String[] META_NAMES = {"deprecated", "override"};
+  private static final String META_LIB_NAME = "meta";
+
   /**
    * A named preference part that controls the highlighting of deprecated elements.
    */
@@ -734,6 +821,16 @@ public class SemanticHighlightings {
    * A named preference part that controls the highlighting of local variables.
    */
   public static final String LOCAL_VARIABLE_DECLARATION = "localVariableDeclaration"; //$NON-NLS-1$
+
+  /**
+   * A named preference part that controls the highlighting of getters.
+   */
+  public static final String GETTER_DECLARATION = "getterDeclaration"; //$NON-NLS-1$
+
+  /**
+   * A named preference part that controls the highlighting of setters.
+   */
+  public static final String SETTER_DECLARATION = "setterDeclaration"; //$NON-NLS-1$
 
   /**
    * A named preference part that controls the highlighting of local variables.
@@ -899,6 +996,7 @@ public class SemanticHighlightings {
     if (SEMANTIC_HIGHTLIGHTINGS == null) {
       SEMANTIC_HIGHTLIGHTINGS = new SemanticHighlighting[] {
           new DirectiveHighlighting(), new DeprecatedElementHighlighting(),
+          new GetterDeclarationHighlighting(), new SetterDeclarationHighlighting(),
           new StaticFieldHighlighting(), new FieldHighlighting(), new DynamicTypeHighlighting(),
           new ClassHighlighting(), new NumberHighlighting(),
           new LocalVariableDeclarationHighlighting(), new LocalVariableHighlighting(),
