@@ -12,8 +12,6 @@ num rotatePos = 0;
 // TODO(devoncarew): both: what is the best ordering of the fields?
 // By order of their declaration? How do I get that?
 
-// TODO(devoncarew): I can still crash dartium w/ breakpoints
-
 void main() {
   query("#text").text = "Welcome to Dart!";
 
@@ -55,7 +53,6 @@ void testAnimals() {
   // Throws during toString()
   var rodent = new Rodent("Skittles");
 
-  // TODO(devoncarew): dartium: display maps better
   var m = getMapOfAnimals();
 
   print(m);

@@ -17,9 +17,7 @@ import com.google.dart.tools.debug.core.util.IDartDebugVariable;
 
 import org.eclipse.debug.internal.ui.viewers.model.provisional.TreeModelViewer;
 import org.eclipse.debug.internal.ui.views.variables.VariablesView;
-import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.jface.action.IToolBarManager;
-import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Tree;
@@ -97,12 +95,12 @@ public class DartVariablesView extends VariablesView {
 
   @Override
   protected void configureToolBar(IToolBarManager tbm) {
-    tbm.add(new Separator(this.getClass().getName()));
-    tbm.add(new Separator(IDebugUIConstants.RENDER_GROUP));
-
-    //tbm.add(getAction("ShowTypeNames")); //$NON-NLS-1$
-    tbm.add(getAction("ToggleContentProviders")); //$NON-NLS-1$
-    //tbm.add(getAction("CollapseAll")); //$NON-NLS-1$
+//    tbm.add(new Separator(this.getClass().getName()));
+//    tbm.add(new Separator(IDebugUIConstants.RENDER_GROUP));
+//
+//    //tbm.add(getAction("ShowTypeNames")); //$NON-NLS-1$
+//    tbm.add(getAction("ToggleContentProviders")); //$NON-NLS-1$
+//    //tbm.add(getAction("CollapseAll")); //$NON-NLS-1$
   }
 
   @Override

@@ -129,6 +129,10 @@ public class WebkitRemoteObject {
     return "array".equals(subtype);
   }
 
+  public boolean isNull() {
+    return isObject() && (value == null || "null".equals(value));
+  }
+
   public boolean isNumber() {
     return "number".equals(type);
   }

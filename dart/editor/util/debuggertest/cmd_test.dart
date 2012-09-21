@@ -27,7 +27,6 @@ void main() {
 
   var rodent = new pets.Rodent("Skittles");
 
-  // TODO(devoncarew): cmd-line: display maps better
   var m = pets.getMapOfAnimals();
 
   print(m);

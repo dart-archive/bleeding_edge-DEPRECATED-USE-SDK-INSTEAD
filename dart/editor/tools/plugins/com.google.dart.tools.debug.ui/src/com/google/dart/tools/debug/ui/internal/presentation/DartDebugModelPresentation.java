@@ -16,9 +16,8 @@ package com.google.dart.tools.debug.ui.internal.presentation;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugStackFrame;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue;
-import com.google.dart.tools.debug.core.dartium.DartiumDebugVariable;
 import com.google.dart.tools.debug.core.server.ServerDebugStackFrame;
-import com.google.dart.tools.debug.core.server.ServerDebugVariable;
+import com.google.dart.tools.debug.core.util.IDartDebugVariable;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
@@ -27,6 +26,7 @@ import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.ILineBreakpoint;
@@ -42,6 +42,8 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
 
 import java.net.URI;
@@ -105,8 +107,29 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
 
   @Override
   public String getEditorId(IEditorInput input, Object element) {
-    if (element instanceof IFile || element instanceof ILineBreakpoint
-        || element instanceof LocalFileStorage) {
+    IFile file = null;
+
+    if (element instanceof IFile) {
+      file = (IFile) element;
+    }
+
+    if (element instanceof ILineBreakpoint) {
+      IResource resource = ((ILineBreakpoint) element).getMarker().getResource();
+
+      if (resource instanceof IFile) {
+        file = (IFile) resource;
+      }
+    }
+
+    if (file != null) {
+      try {
+        return IDE.getEditorDescriptor(file).getId();
+      } catch (PartInitException e) {
+
+      }
+    }
+
+    if (element instanceof LocalFileStorage) {
       return DART_EDITOR_ID;
     }
 
@@ -163,22 +186,8 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
    */
   @Override
   public Image getImage(Object element) {
-    if (element instanceof DartiumDebugVariable) {
-      DartiumDebugVariable variable = (DartiumDebugVariable) element;
-
-      if (variable.isThrownException()) {
-        return DartDebugUIPlugin.getImage("obj16/object_exception.png");
-      } else if (variable.isThisObject()) {
-        return DartDebugUIPlugin.getImage("obj16/object_this.png");
-      } else if (variable.isLibraryObject()) {
-        return DartDebugUIPlugin.getImage("obj16/object_library.png");
-      } else if (variable.isStatic()) {
-        return DartDebugUIPlugin.getImage("obj16/object_static.png");
-      } else {
-        return DartDebugUIPlugin.getImage("obj16/object_obj.png");
-      }
-    } else if (element instanceof ServerDebugVariable) {
-      ServerDebugVariable variable = (ServerDebugVariable) element;
+    if (element instanceof IDartDebugVariable) {
+      IDartDebugVariable variable = (IDartDebugVariable) element;
 
       if (variable.isThrownException()) {
         return DartDebugUIPlugin.getImage("obj16/object_exception.png");

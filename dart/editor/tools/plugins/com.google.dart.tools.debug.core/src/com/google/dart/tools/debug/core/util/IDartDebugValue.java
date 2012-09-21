@@ -14,22 +14,16 @@
 
 package com.google.dart.tools.debug.core.util;
 
-import org.eclipse.debug.core.model.IVariable;
+import org.eclipse.debug.core.model.IValue;
 
 /**
- * A sub-class of IVariable that adds additional meta-information about the variable.
+ * A sub-class of IValue that adds additional meta-information about the value.
  */
-public interface IDartDebugVariable extends IVariable {
-
-  public boolean isLibraryObject();
-
-  public boolean isStatic();
-
-  public boolean isThisObject();
+public interface IDartDebugValue extends IValue {
 
   /**
-   * @return whether this variable represents a thrown exception
+   * @return whether this value represents a null value
    */
-  public boolean isThrownException();
+  public boolean isNull();
 
 }

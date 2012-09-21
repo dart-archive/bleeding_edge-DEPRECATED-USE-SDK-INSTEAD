@@ -135,6 +135,8 @@ Map<String, Animal> getMapOfAnimals() {
     map[animal.toString()] = animal;
   }
 
+  map["and then"] = SPARKY;
+  
   return map;
 }
 

@@ -84,6 +84,10 @@ public class VmValue {
     return "list".equals(getKind());
   }
 
+  public boolean isNull() {
+    return isObject() && (text == null || "null".equals(text));
+  }
+
   public boolean isObject() {
     return "object".equals(getKind());
   }

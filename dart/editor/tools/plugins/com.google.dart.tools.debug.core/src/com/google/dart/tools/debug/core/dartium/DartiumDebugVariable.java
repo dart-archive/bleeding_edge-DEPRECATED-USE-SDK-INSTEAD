@@ -74,12 +74,12 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
 
     // The names of private fields are mangled by the VM.
     // _foo@652376 ==> _foo
-    return DebuggerUtils.demanglePrivateName(getName());
+    return getName();
   }
 
   @Override
   public String getName() {
-    return descriptor.getName();
+    return DebuggerUtils.demanglePrivateName(descriptor.getName());
   }
 
   @Override
@@ -103,6 +103,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
     return false;
   }
 
+  @Override
   public boolean isLibraryObject() {
     return isSpecialObject
         && (getName().equals(DebuggerUtils.LIBRARY_NAME) || getName().equals(
@@ -117,10 +118,12 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
     return getDartiumValue().isPrimitive();
   }
 
+  @Override
   public boolean isStatic() {
     return isStatic;
   }
 
+  @Override
   public boolean isThisObject() {
     return isSpecialObject && getName().equals("this");
   }

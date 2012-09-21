@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
+import com.google.dart.tools.debug.core.util.IDartDebugValue;
 import com.google.dart.tools.debug.core.webkit.WebkitCallback;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
 import com.google.dart.tools.debug.core.webkit.WebkitResult;
@@ -31,7 +32,7 @@ import java.util.Collections;
 /**
  * The IValue implementation of Dartium Debug element
  */
-public class DartiumDebugValue extends DartiumDebugElement implements IValue {
+public class DartiumDebugValue extends DartiumDebugElement implements IValue, IDartDebugValue {
   public static interface ValueCallback {
     public void detailComputed(String stringValue);
   }
@@ -121,7 +122,6 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
 
   @Override
   public String getValueString() {
-    //return value.getValue();
     return getDisplayString();
   }
 
@@ -150,6 +150,11 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
 
   public boolean isList() {
     return value.isList();
+  }
+
+  @Override
+  public boolean isNull() {
+    return value.isNull();
   }
 
   public boolean isPrimitive() {

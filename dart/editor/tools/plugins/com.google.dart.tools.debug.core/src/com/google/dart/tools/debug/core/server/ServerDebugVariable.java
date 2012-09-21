@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.util.IDartDebugVariable;
 
@@ -87,9 +88,10 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
   }
 
   private VmVariable vmVariable;
-  private ServerDebugValue value;
 
+  private ServerDebugValue value;
   private String name;
+
   private boolean isStatic;
 
   public ServerDebugVariable(IDebugTarget target, String name, IValueRetriever valueRetriever) {
@@ -109,15 +111,37 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
     this.name = vmVariable.getName();
   }
 
+  public DartElement coerceToDartElement() {
+    if (isLibraryObject()) {
+      return null;
+    }
+
+    if (isThisObject()) {
+      return null;
+    }
+
+    if (isListElement()) {
+      return null;
+    }
+
+    // TODO(devoncarew): top-level
+
+    // TODO(devoncarew): instance or static vars
+
+    // TODO(devoncarew): params or locals
+
+    return null;
+  }
+
   public String getDisplayName() {
-    // The names of private fields are mangled by the VM.
-    // _foo@652376 ==> _foo
-    return DebuggerUtils.demanglePrivateName(getName());
+    return getName();
   }
 
   @Override
   public String getName() {
-    return name;
+    // The names of private fields are mangled by the VM.
+    // _foo@652376 ==> _foo
+    return DebuggerUtils.demanglePrivateName(name);
   }
 
   @Override
@@ -137,6 +161,7 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
     return false;
   }
 
+  @Override
   public boolean isLibraryObject() {
     return value.isValueRetriever()
         && (DebuggerUtils.LIBRARY_NAME.equals(getName()) || DebuggerUtils.TOP_LEVEL_NAME.equals(getName()));
@@ -146,10 +171,12 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
     return value.isListValue();
   }
 
+  @Override
   public boolean isStatic() {
     return isStatic;
   }
 
+  @Override
   public boolean isThisObject() {
     return "this".equals(getName());
   }
@@ -192,6 +219,10 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
 
   protected void setIsStatic(boolean value) {
     this.isStatic = value;
+  }
+
+  private boolean isListElement() {
+    return getName().startsWith("[");
   }
 
 }

@@ -70,4 +70,13 @@
          delegateClass="com.google.dart.tools.debug.core.expr.WatchExpressionDelegate"/>
    </extension>
 
+   <extension point="org.eclipse.debug.core.logicalStructureTypes">
+      <logicalStructureType
+         id="com.google.dart.tools.debug.core.logical.mapStructureType"
+         class="com.google.dart.tools.debug.core.logical.MapStructureType"
+         description="Dart Maps"
+         modelIdentifier="com.google.dart.tools.debug.core">
+      </logicalStructureType>
+   </extension>
+
 </plugin>

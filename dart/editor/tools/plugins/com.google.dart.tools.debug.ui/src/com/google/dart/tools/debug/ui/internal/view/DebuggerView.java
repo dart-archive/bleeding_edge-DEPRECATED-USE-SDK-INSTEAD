@@ -22,8 +22,10 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchesListener;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.internal.ui.views.launch.LaunchView;
+import org.eclipse.debug.internal.ui.views.variables.ToggleLogicalStructureAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -185,18 +187,15 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
       manager.add(new ShowExpressionsAction());
     }
 
+    manager.add(new Separator());
+    manager.add(new ToggleLogicalStructureAction(variablesView));
+
     manager.update(true);
   }
 
   @Override
   protected void createActions() {
     super.createActions();
-
-//    IDebugContextService contextService = DebugUITools.getDebugContextManager().getContextService(
-//        getSite().getWorkbenchWindow());
-//
-//    RemoveLaunchAction removeLaunchAction = new RemoveLaunchAction(contextService);
-//    setAction("remove", removeLaunchAction);
 
     showBreakpointsAction = new ShowBreakpointsAction();
     setAction("showBreakpointsAction", showBreakpointsAction);

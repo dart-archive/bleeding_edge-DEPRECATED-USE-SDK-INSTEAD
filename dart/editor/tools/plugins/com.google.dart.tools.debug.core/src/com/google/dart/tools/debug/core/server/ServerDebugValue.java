@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.debug.core.server.ServerDebugVariable.IValueRetriever;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
+import com.google.dart.tools.debug.core.util.IDartDebugValue;
 
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -31,7 +32,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * An IValue implementation for VM debugging.
  */
-public class ServerDebugValue extends ServerDebugElement implements IValue {
+public class ServerDebugValue extends ServerDebugElement implements IValue, IDartDebugValue {
   private VmValue value;
   private IValueRetriever valueRetriever;
 
@@ -50,22 +51,6 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
   }
 
   public String getDisplayString() {
-    fillInFields();
-
-    if (value == null) {
-      return getValueString();
-    } else if (value.isString()) {
-      return DebuggerUtils.printString(getValueString());
-    } else if (value.isObject()) {
-      try {
-        return getReferenceTypeName();
-      } catch (DebugException e) {
-
-      }
-    } else if (value.isList()) {
-      return "List[" + getListLength() + "]";
-    }
-
     return getValueString();
   }
 
@@ -89,11 +74,23 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
 
   @Override
   public String getValueString() {
-    if (valueRetriever != null) {
-      return valueRetriever.getDisplayName();
-    } else {
-      return value.getText();
+    fillInFields();
+
+    if (value == null) {
+      return getValueString_impl();
+    } else if (value.isString()) {
+      return DebuggerUtils.printString(getValueString_impl());
+    } else if (value.isObject()) {
+      try {
+        return getReferenceTypeName();
+      } catch (DebugException e) {
+
+      }
+    } else if (value.isList()) {
+      return "List[" + getListLength() + "]";
     }
+
+    return getValueString_impl();
   }
 
   @Override
@@ -115,6 +112,11 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
 
   public boolean isListValue() {
     return value == null ? false : value.isList();
+  }
+
+  @Override
+  public boolean isNull() {
+    return value.isNull();
   }
 
   protected void fillInFieldsSync() {
@@ -220,6 +222,14 @@ public class ServerDebugValue extends ServerDebugElement implements IValue {
 
   private int getListLength() {
     return value.getLength();
+  }
+
+  private String getValueString_impl() {
+    if (valueRetriever != null) {
+      return valueRetriever.getDisplayName();
+    } else {
+      return value.getText();
+    }
   }
 
 }
