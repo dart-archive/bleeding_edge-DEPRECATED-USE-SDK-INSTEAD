@@ -17,7 +17,11 @@ import com.google.dart.tools.ui.web.utils.WebEditor;
 import com.google.dart.tools.ui.web.yaml.model.YamlDocument;
 import com.google.dart.tools.ui.web.yaml.model.YamlParser;
 
+import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
+import org.eclipse.jface.text.source.ICharacterPairMatcher;
+import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
 /**
  * An editor for yaml files.
@@ -41,6 +45,17 @@ public class YamlEditor extends WebEditor {
     }
 
     return model;
+  }
+
+  @Override
+  protected void configureSourceViewerDecorationSupport(SourceViewerDecorationSupport support) {
+    ICharacterPairMatcher matcher = new DefaultCharacterPairMatcher(
+        new char[] {'{', '}'},
+        IDocumentExtension3.DEFAULT_PARTITIONING);
+    support.setCharacterPairMatcher(matcher);
+    support.setMatchingCharacterPainterPreferenceKeys(MATCHING_BRACKETS, MATCHING_BRACKETS_COLOR);
+
+    super.configureSourceViewerDecorationSupport(support);
   }
 
   @Override

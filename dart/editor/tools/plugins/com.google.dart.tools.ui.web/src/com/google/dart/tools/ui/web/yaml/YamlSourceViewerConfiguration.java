@@ -17,6 +17,8 @@ import com.google.dart.tools.ui.web.utils.WebEditorReconcilingStrategy;
 
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.jface.text.contentassist.ContentAssistant;
+import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.reconciler.IReconciler;
@@ -41,6 +43,17 @@ public class YamlSourceViewerConfiguration extends SourceViewerConfiguration {
   @Override
   public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
     return new String[] {IDocument.DEFAULT_CONTENT_TYPE, YamlPartitionScanner.YAML_COMMENT};
+  }
+
+  @Override
+  public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
+    ContentAssistant assistant = new ContentAssistant();
+
+    assistant.setContentAssistProcessor(
+        new YamlContentAssistProcessor(),
+        IDocument.DEFAULT_CONTENT_TYPE);
+
+    return assistant;
   }
 
   @Override

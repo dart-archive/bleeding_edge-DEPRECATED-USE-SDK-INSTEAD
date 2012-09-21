@@ -1,4 +1,4 @@
 dependencies
-name
 description
+name
 version

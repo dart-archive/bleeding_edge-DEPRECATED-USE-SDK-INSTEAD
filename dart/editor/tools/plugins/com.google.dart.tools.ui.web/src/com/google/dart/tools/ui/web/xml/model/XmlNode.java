@@ -25,6 +25,7 @@ import java.util.List;
 public class XmlNode extends Node {
   private List<XmlAttribute> attributes = new ArrayList<XmlAttribute>();
   private String name;
+  private String contents;
 
   public XmlNode(String name) {
     this.name = name;
@@ -32,6 +33,20 @@ public class XmlNode extends Node {
 
   public List<XmlAttribute> getAttributes() {
     return attributes;
+  }
+
+  public String getAttributeString(String name) {
+    for (XmlAttribute attr : attributes) {
+      if (name.equals(attr.getName())) {
+        return attr.getValue();
+      }
+    }
+
+    return null;
+  }
+
+  public String getContents() {
+    return contents;
   }
 
   @Override

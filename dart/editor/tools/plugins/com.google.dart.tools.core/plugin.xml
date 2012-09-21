@@ -34,8 +34,7 @@
             id="com.google.dart.tools.core.pubspecFile"
             name="%dart.contentType.pubspecFile.name"
             base-type="org.eclipse.core.runtime.text"
-            file-extensions="pubspec"
-            file-names="pubspec"
+            file-names="pubspec.yaml"
             default-charset="UTF-8"/>
    </extension>
 
