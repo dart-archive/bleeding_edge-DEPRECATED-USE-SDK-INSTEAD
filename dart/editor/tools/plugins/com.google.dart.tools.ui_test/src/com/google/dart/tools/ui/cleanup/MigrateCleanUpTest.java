@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.cleanup;
 import com.google.dart.tools.ui.internal.cleanup.migration.AbstractMigrateCleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_catch_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_get_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_identical_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalNamed_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_parseNum_CleanUp;
@@ -120,6 +121,72 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "}",
         "");
     assertNoFix(cleanUp, initial);
+  }
+
+  public void test_1M1_identical() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_identical_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var a;",
+        "  var b;",
+        "  a === null;",
+        "  a === 0;",
+        "  a === 0.0;",
+        "  null === a;",
+        "  0 === a;",
+        "  0.0 === a;",
+        "  a === b;",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var a;",
+        "  var b;",
+        "  a == null;",
+        "  a == 0;",
+        "  a == 0.0;",
+        "  null == a;",
+        "  0 == a;",
+        "  0.0 == a;",
+        "  identical(a, b);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M1_identicalNot() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_identical_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var a;",
+        "  var b;",
+        "  a !== null;",
+        "  a !== 0;",
+        "  a !== 0.0;",
+        "  null !== a;",
+        "  0 !== a;",
+        "  0.0 !== a;",
+        "  a !== b;",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var a;",
+        "  var b;",
+        "  a != null;",
+        "  a != 0;",
+        "  a != 0.0;",
+        "  null != a;",
+        "  0 != a;",
+        "  0.0 != a;",
+        "  !identical(a, b);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
   }
 
   public void test_1M1_library() throws Exception {

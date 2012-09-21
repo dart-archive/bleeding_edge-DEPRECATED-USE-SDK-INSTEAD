@@ -22,6 +22,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_catch_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_get_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_identical_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalNamed_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_parseNum_CleanUp;
@@ -59,6 +60,7 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
     private static final String ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED = "migrateSyntax-1M1-optionalNamed-whereSure";
     private static final String ID_MIGRATE_SYNTAX_1M1_RAW_STRING = "migrateSyntax-1M1-rawString";
     private static final String ID_MIGRATE_SYNTAX_1M1_PARSE_NUM = "migrateSyntax-1M1-parseNum";
+    private static final String ID_MIGRATE_SYNTAX_1M1_IDENTICAL = "migrateSyntax-1M1-identical";
 
     private static final String ID_STYLE_TRAILING_WHITESPACE = "style-trailingWhitespace";
     private static final String ID_STYLE_USE_BLOCKS = "style-useBlocks";
@@ -69,12 +71,14 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_GET, new Migrate_1M1_get_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_RAW_STRING, new Migrate_1M1_rawString_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_PARSE_NUM, new Migrate_1M1_parseNum_CleanUp());
+      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_IDENTICAL, new Migrate_1M1_identical_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_LIBRARY, new Migrate_1M1_library_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED, new Migrate_1M1_optionalNamed_CleanUp());
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_CATCH, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_GET, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_RAW_STRING, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_PARSE_NUM, true);
+      settings.setDefault(ID_MIGRATE_SYNTAX_1M1_IDENTICAL, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_LIBRARY, false);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED, false);
       // style
@@ -135,6 +139,10 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M1_PARSE_NUM,
                 "Migrate parseInt() and parseDouble() to int.parse() and double.parse()");
+            createCheckButton(
+                syntaxComposite,
+                ID_MIGRATE_SYNTAX_1M1_IDENTICAL,
+                "Replace === with == or identical(x,y). Replace !== with != or !identical(x,y).");
             createCheckButton(
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED,
