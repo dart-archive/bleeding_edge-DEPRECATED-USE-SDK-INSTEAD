@@ -59,6 +59,24 @@ public class SavedContext extends Context {
   }
 
   /**
+   * Look up the directory hierarchy for a pre-existing context
+   * 
+   * @param libFileOrDir the library file or directory
+   * @return the context in which the specified library should be analyzed (not <code>null</code>)
+   */
+  public Context getSuggestedContext(File libFileOrDir) {
+    File dir = libFileOrDir;
+    while (dir != null) {
+      PackageContext context = packageContexts.get(dir);
+      if (context != null) {
+        return context;
+      }
+      dir = dir.getParentFile();
+    }
+    return this;
+  }
+
+  /**
    * Parse the specified file, without adding the library to the list of libraries to be tracked.
    * 
    * @param libraryFile the library containing the dart file to be parsed (not <code>null</code>)
@@ -186,12 +204,12 @@ public class SavedContext extends Context {
         iter.remove();
       }
     }
-  }
+  };
 
   @Override
   File getApplicationDirectory() {
     return null;
-  };
+  }
 
   /**
    * Answer a collection of zero or more libraries for the specified file.
@@ -265,24 +283,6 @@ public class SavedContext extends Context {
       }
     }
     return resolvedLibs;
-  }
-
-  /**
-   * Look up the directory hierarchy for a pre-existing context
-   * 
-   * @param libFileOrDir the library file or directory
-   * @return the context in which the specified library should be analyzed (not <code>null</code>)
-   */
-  Context getSuggestedContext(File libFileOrDir) {
-    File dir = libFileOrDir;
-    while (dir != null) {
-      PackageContext context = packageContexts.get(dir);
-      if (context != null) {
-        return context;
-      }
-      dir = dir.getParentFile();
-    }
-    return this;
   }
 
   /**

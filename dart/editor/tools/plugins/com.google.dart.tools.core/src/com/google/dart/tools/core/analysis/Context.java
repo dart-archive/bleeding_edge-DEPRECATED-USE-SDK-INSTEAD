@@ -58,6 +58,10 @@ public abstract class Context {
     this.libraryManager = libraryManager;
   }
 
+  public PackageLibraryManager getLibraryManager() {
+    return libraryManager;
+  }
+
   /**
    * Answer the currently resolved system libraries. If the result is not available within the
    * specified amount of time, then return an empty map.
@@ -257,10 +261,6 @@ public abstract class Context {
     return result;
   }
 
-  PackageLibraryManager getLibraryManager() {
-    return libraryManager;
-  }
-
   /**
    * Answer the currently cached and resolved libraries
    */
@@ -345,4 +345,5 @@ public abstract class Context {
     }
     writer.writeString(END_CACHE_TAG);
   }
+
 }

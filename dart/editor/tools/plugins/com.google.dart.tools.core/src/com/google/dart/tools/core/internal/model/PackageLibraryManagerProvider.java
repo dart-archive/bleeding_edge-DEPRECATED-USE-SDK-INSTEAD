@@ -18,6 +18,8 @@ import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.SystemLibrary;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.analysis.Context;
+import com.google.dart.tools.core.analysis.SavedContext;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
@@ -138,6 +140,20 @@ public class PackageLibraryManagerProvider {
   public static PackageLibraryManager getPackageLibraryManager() {
     return getAnyLibraryManager();
   }
+
+  /**
+   * Return the default library manager.
+   */
+  public static PackageLibraryManager getPackageLibraryManager(File file) {
+    SavedContext savedContext = getDefaultAnalysisServer().getSavedContext();
+    Context context = savedContext.getSuggestedContext(file);
+    if (context != null) {
+      return context.getLibraryManager();
+    } else {
+      return getAnyLibraryManager();
+    }
+  }
+
 
   /**
    * Reset the cached library manager. (Required to ensure a re-initialization post SDK

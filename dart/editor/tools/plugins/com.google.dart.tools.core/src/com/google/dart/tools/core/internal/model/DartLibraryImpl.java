@@ -124,7 +124,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 
     URI uri = libraryFile.toURI().normalize();
 
-    PackageLibraryManager libMgr = PackageLibraryManagerProvider.getPackageLibraryManager();
+    PackageLibraryManager libMgr = PackageLibraryManagerProvider.getPackageLibraryManager(libraryFile);
 
     return new UrlLibrarySource(uri, libMgr);
   }
