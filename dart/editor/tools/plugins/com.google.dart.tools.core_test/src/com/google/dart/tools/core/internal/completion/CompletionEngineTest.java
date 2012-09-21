@@ -677,7 +677,7 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCompletion_ifStmt_field2b() throws Exception {
-    test("class Foo { myField = 7; mth() { if (m!1) {}}}", "1-myField");
+    test("class Foo { myField = 7; mth() { if (m!1) {}}}", "1+myField");
   }
 
   public void testCompletion_ifStmt_localVar() throws Exception {
@@ -693,7 +693,7 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCompletion_ifStmt_topLevelVara() throws Exception {
-    test("topValue = 7; class Foo { mth() { if (t!1) {}}}", "1-topValue");
+    test("topValue = 7; class Foo { mth() { if (t!1) {}}}", "1+topValue");
   }
 
   public void testCompletion_keyword_in() throws Exception {
