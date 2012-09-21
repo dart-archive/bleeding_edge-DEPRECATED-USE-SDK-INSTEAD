@@ -253,56 +253,8 @@ public class AnalysisServerTest extends TestCase {
   }
 
   public void test_read_two() throws Exception {
-    PrintStringWriter content = new PrintStringWriter();
-
-    // version
-    content.println("v4");
-
-    // tracked libraries
-    content.println("one.dart");
-    content.println("</end-libraries>");
-
-    // saved context... one library cached
-    content.println("1");
-    content.println("two.dart");
-    content.println("true");
-    content.println("three");
-    content.println("</end-prefixes>");
-    content.println("four.dart");
-    content.println("four.dart");
-    content.println("</end-imports>");
-    content.println("five.dart");
-    content.println("five.dart");
-    content.println("</end-sources>");
-    content.println("</end-cache>");
-
-    // bank context... one library cached
-    content.println("bankAppDir");
-    content.println("six.dart");
-    content.println("true");
-    content.println("seven");
-    content.println("</end-prefixes>");
-    content.println("eight.dart");
-    content.println("eight.dart");
-    content.println("</end-imports>");
-    content.println("nine.dart");
-    content.println("nine.dart");
-    content.println("</end-sources>");
-    content.println("</end-cache>");
-
-    // queued tasks
-    content.print("</end-queue>");
-
-    initServer(new StringReader(content.toString()));
-
-    File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
-    assertEquals(1, trackedLibraryFiles.length);
-    assertEquals("one.dart", trackedLibraryFiles[0].getName());
-
-    assertPackageContexts(server, new File("bankAppDir"));
-    assertCachedLibraries(server, null, new File("two.dart"));
-    assertCachedLibraries(server, new File("bankAppDir"), new File("six.dart"));
-
+    init2Contexts();
+    assert2Contexts();
     assertQueuedTasks(server, "AnalyzeLibraryTask");
   }
 
@@ -470,11 +422,32 @@ public class AnalysisServerTest extends TestCase {
     }
   }
 
+  public void test_write_read_two() throws Exception {
+    init2Contexts();
+
+    StringWriter writer = new StringWriter(5000);
+    writeCache(writer);
+    initServer(new StringReader(writer.toString()));
+
+    assert2Contexts();
+    assertQueuedTasks(server, "AnalyzeLibraryTask");
+  }
+
   @Override
   protected void tearDown() throws Exception {
     if (server != null) {
       server.stop();
     }
+  }
+
+  private void assert2Contexts() throws Exception {
+    File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
+    assertEquals(1, trackedLibraryFiles.length);
+    assertEquals("one.dart", trackedLibraryFiles[0].getName());
+
+    assertPackageContexts(server, new File("bankAppDir"));
+    assertCachedLibraries(server, null, new File("two.dart"));
+    assertCachedLibraries(server, new File("bankAppDir"), new File("six.dart"));
   }
 
   private void assertTopDeclarationExists(DartUnit unit, String expectedName) {
@@ -490,6 +463,50 @@ public class AnalysisServerTest extends TestCase {
     Field field = queue.getClass().getDeclaredField("queue");
     field.setAccessible(true);
     return field.get(queue);
+  }
+
+  private void init2Contexts() throws Exception {
+    PrintStringWriter content = new PrintStringWriter();
+
+    // version
+    content.println("v4");
+
+    // tracked libraries
+    content.println("one.dart");
+    content.println("</end-libraries>");
+
+    // saved context... one library cached
+    content.println("1");
+    content.println("two.dart");
+    content.println("true");
+    content.println("three");
+    content.println("</end-prefixes>");
+    content.println("four.dart");
+    content.println("four.dart");
+    content.println("</end-imports>");
+    content.println("five.dart");
+    content.println("five.dart");
+    content.println("</end-sources>");
+    content.println("</end-cache>");
+
+    // bank context... one library cached
+    content.println("bankAppDir");
+    content.println("six.dart");
+    content.println("true");
+    content.println("seven");
+    content.println("</end-prefixes>");
+    content.println("eight.dart");
+    content.println("eight.dart");
+    content.println("</end-imports>");
+    content.println("nine.dart");
+    content.println("nine.dart");
+    content.println("</end-sources>");
+    content.println("</end-cache>");
+
+    // queued tasks
+    content.print("</end-queue>");
+
+    initServer(new StringReader(content.toString()));
   }
 
   private void initServer(Reader reader) throws Exception {

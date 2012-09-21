@@ -346,6 +346,7 @@ public class SavedContext extends Context {
     writer.writeInt(packageContexts.size());
     super.writeCache(writer);
     for (PackageContext context : packageContexts.values()) {
+      writer.writeString(context.getApplicationDirectory().getPath());
       context.writeCache(writer);
     }
   }
