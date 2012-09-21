@@ -19,8 +19,11 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 
 import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
+
+import org.eclipse.core.resources.IResource;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -55,7 +58,8 @@ class ErrorListener implements DartCompilerListener {
     }
 
     // if file is in the "packages" directory, do not report errors
-    if (DartCore.isContainedInPackages(dartFile)) {
+    IResource resource = ResourceUtil.getFile(dartFile);
+    if (resource != null && DartCore.isContainedInPackages(resource.getLocation().toFile())) {
       return;
     }
 
