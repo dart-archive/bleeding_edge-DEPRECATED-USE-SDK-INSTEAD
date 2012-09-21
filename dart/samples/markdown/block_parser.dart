@@ -20,8 +20,8 @@ const _RE_INDENT = const RegExp(@'^(?:    |\t)(.*)$');
 /// Three or more hyphens, asterisks or underscores by themselves. Note that
 /// a line like `----` is valid as both HR and SETEXT. In case of a tie,
 /// SETEXT should win.
-const _RE_HR = const RegExp(@'^[ ]{0,3}((-+[ ]{0,2}){3,}|' +
-                                 @'(_+[ ]{0,2}){3,}|' +
+const _RE_HR = const RegExp(@'^[ ]{0,3}((-+[ ]{0,2}){3,}|'
+                                 @'(_+[ ]{0,2}){3,}|'
                                  @'(\*+[ ]{0,2}){3,})$');
 
 /// Really hacky way to detect block-level embedded HTML. Just looks for

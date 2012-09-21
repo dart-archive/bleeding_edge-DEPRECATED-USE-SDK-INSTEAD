@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('dart:html');
-#import('dart:math', prefix: 'Math');
+import 'dart:html';
+import 'dart:math' as Math;
 
 class Color {
   int hue;
@@ -172,8 +172,7 @@ void main() {
      d="M 263.78548,53.048866 220.45349,10.028873 c -10.02,-9.92799955 -23.664,-13.0239996 -30.26,-6.8439996 L 77.677489,77.672866 l 174.239991,-0.036 8.64,0.308 c 3.9,0.124 8.228,0.832 12.708,1.98 l -9.48,-26.876 z m -186.111991,24.62"
      id="path2910"
      style="fill: #75ccc3" />
-</svg>
-""");
+</svg>"""); // TOOD(dgrove) - add newline back when issue 3846 fixed.
 
   query("#icon").elements.add(logo);
   logo.queryAll("path").forEach((p) {
