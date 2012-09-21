@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -21,10 +21,6 @@ public final class ActionMessages extends NLS {
 
   private static final String BUNDLE_NAME = "com.google.dart.tools.ui.actions.ActionMessages";//$NON-NLS-1$
   private static final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_NAME);
-
-  public static String OpenNewOtherProjectWizardAction_text;
-  public static String OpenNewOtherProjectWizardAction_description;
-  public static String OpenNewOtherProjectWizardAction_tooltip;
 
   public static String OpenResourceAction_label;
   public static String OpenResourceAction_error_title;
@@ -121,15 +117,6 @@ public final class ActionMessages extends NLS {
   public static String OpenTypeHierarchyAction_messages_no_types;
   public static String OpenTypeHierarchyAction_messages_no_valid_java_element;
   public static String OpenTypeHierarchyAction_messages_unknown_import_decl;
-  public static String ShowInPackageViewAction_label;
-  public static String ShowInPackageViewAction_description;
-  public static String ShowInPackageViewAction_tooltip;
-  public static String ShowInPackageViewAction_dialog_title;
-  public static String ShowInPackageViewAction_error_message;
-  public static String ShowInNavigatorView_label;
-  public static String ShowInNavigatorView_dialog_title;
-  public static String ShowInNavigatorView_dialog_message;
-  public static String ShowInNavigatorView_error_activation_failed;
   public static String OverrideMethodsAction_label;
   public static String OverrideMethodsAction_description;
   public static String OverrideMethodsAction_tooltip;
@@ -413,18 +400,6 @@ public final class ActionMessages extends NLS {
   static {
     NLS.initializeMessages(BUNDLE_NAME, ActionMessages.class);
   }
-
-  public static String OpenNewApplicationWizardAction_text;
-  public static String OpenNewApplicationWizardAction_description;
-  public static String OpenNewApplicationWizardAction_tooltip;
-
-  public static String OpenNewLibraryWizardAction_text;
-  public static String OpenNewLibraryWizardAction_description;
-  public static String OpenNewLibraryWizardAction_tooltip;
-
-  public static String OpenNewApplication2WizardAction_text;
-  public static String OpenNewApplication2WizardAction_description;
-  public static String OpenNewApplication2WizardAction_tooltip;
 
   public static String OpenNewFileWizardAction_text;
   public static String OpenNewFileWizardAction_description;
