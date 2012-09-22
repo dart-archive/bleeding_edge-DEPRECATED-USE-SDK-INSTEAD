@@ -78,10 +78,11 @@ public class CleanUpAction extends SelectionDispatchAction {
     for (Object element : selection.toArray()) {
       collectCompilationUnits(element, result);
     }
-    CompilationUnit[] allUnits = result.toArray(new CompilationUnit[result.size()]);
-    CompilationUnit[] uniqueUnits = DartModelUtil.getUniqueCompilationUnits(allUnits);
-    CompilationUnit[] notPackageUnits = DartModelUtil.getNotPackageCompilationUnits(uniqueUnits);
-    return notPackageUnits;
+    CompilationUnit[] units = result.toArray(new CompilationUnit[result.size()]);
+    units = DartModelUtil.getExistingCompilationUnits(units);
+    units = DartModelUtil.getUniqueCompilationUnits(units);
+    units = DartModelUtil.getNotPackageCompilationUnits(units);
+    return units;
   }
 
   @Override

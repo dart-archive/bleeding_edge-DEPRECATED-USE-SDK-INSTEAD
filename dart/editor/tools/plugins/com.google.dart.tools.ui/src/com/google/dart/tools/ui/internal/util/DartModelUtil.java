@@ -454,12 +454,16 @@ public final class DartModelUtil {
   }
 
   /**
-   * Returns the fully qualified name of the given type using '.' as separators. This is a replace
-   * for Type.getFullyQualifiedTypeName which uses '$' as separators. As '$' is also a valid
-   * character in an id this is ambiguous. JavaScriptCore PR: 1GCFUNT
+   * @return the {@link CompilationUnit}s which really exist.
    */
-  public static String getFullyQualifiedName(Type type) {
-    return type.getElementName();
+  public static CompilationUnit[] getExistingCompilationUnits(CompilationUnit[] allUnits) {
+    List<CompilationUnit> units = Lists.newArrayList();
+    for (CompilationUnit unit : allUnits) {
+      if (unit.exists()) {
+        units.add(unit);
+      }
+    }
+    return units.toArray(new CompilationUnit[units.size()]);
   }
 
 //  /**
@@ -548,6 +552,15 @@ public final class DartModelUtil {
 //  }
 
   /**
+   * Returns the fully qualified name of the given type using '.' as separators. This is a replace
+   * for Type.getFullyQualifiedTypeName which uses '$' as separators. As '$' is also a valid
+   * character in an id this is ambiguous. JavaScriptCore PR: 1GCFUNT
+   */
+  public static String getFullyQualifiedName(Type type) {
+    return type.getElementName();
+  }
+
+  /**
    * @return the {@link CompilationUnit}s which are not from "packages" directory.
    */
   public static CompilationUnit[] getNotPackageCompilationUnits(CompilationUnit[] units) {
@@ -578,6 +591,19 @@ public final class DartModelUtil {
       return newMainName;
     }
   }
+
+//  /**
+//   * Returns the fully qualified name of a type's container. (package name or
+//   * enclosing type name)
+//   */
+//  public static String getTypeContainerName(Type type) {
+//    Type outerType = type.getDeclaringType();
+//    if (outerType != null) {
+//      return getFullyQualifiedName(outerType);
+//    } else {
+//      return type.getPackageFragment().getElementName();
+//    }
+//  }
 
   /**
    * Resolves a type name in the context of the declaring type.
@@ -612,19 +638,6 @@ public final class DartModelUtil {
 //      return Signature.toString(refTypeSig.substring(arrayCount));
 //    }
   }
-
-//  /**
-//   * Returns the fully qualified name of a type's container. (package name or
-//   * enclosing type name)
-//   */
-//  public static String getTypeContainerName(Type type) {
-//    Type outerType = type.getDeclaringType();
-//    if (outerType != null) {
-//      return getFullyQualifiedName(outerType);
-//    } else {
-//      return type.getPackageFragment().getElementName();
-//    }
-//  }
 
   /**
    * Returns the qualified type name of the given type using '.' as separators. This is a replace
