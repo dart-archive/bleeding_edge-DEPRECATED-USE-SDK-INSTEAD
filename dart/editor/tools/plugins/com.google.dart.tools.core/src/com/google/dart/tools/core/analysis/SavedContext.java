@@ -204,7 +204,7 @@ public class SavedContext extends Context {
         iter.remove();
       }
     }
-  };
+  }
 
   @Override
   File getApplicationDirectory() {

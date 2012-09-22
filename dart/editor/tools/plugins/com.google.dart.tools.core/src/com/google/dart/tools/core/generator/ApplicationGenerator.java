@@ -42,7 +42,8 @@ public class ApplicationGenerator extends AbstractGenerator {
 
   public static final String CSS_FILENAME_EXTENSION = ".css"; //$NON-NLS-1$
   public static final String HTML_FILENAME_EXTENSION = ".html"; //$NON-NLS-1$
-  public static final String SOURCE_DIRECTORY_NAME = "lib";
+  public static final String WEB_SOURCE_DIRECTORY_NAME = "web"; //$NON-NLS-1$
+  public static final String CMD_LINE_SOURCE_DIRECTORY_NAME = "bin"; //$NON-NLS-1$
 
   public static final String DESCRIPTION = GeneratorMessages.ApplicationGenerator_description;
 
@@ -101,8 +102,13 @@ public class ApplicationGenerator extends AbstractGenerator {
     // Fail fast for null elements
     Assert.isNotNull(fileName);
     if (hasPubSupport) {
-      return new File(applicationLocation + File.separator + SOURCE_DIRECTORY_NAME + File.separator
-          + fileName);
+      if (isWebApplication) {
+        return new File(applicationLocation + File.separator + WEB_SOURCE_DIRECTORY_NAME
+            + File.separator + fileName);
+      } else {
+        return new File(applicationLocation + File.separator + CMD_LINE_SOURCE_DIRECTORY_NAME
+            + File.separator + fileName);
+      }
     }
     return new File(applicationLocation + File.separator + fileName);
   }
@@ -228,7 +234,7 @@ public class ApplicationGenerator extends AbstractGenerator {
     File iHtmlFile = getSystemFile(htmlFileName);
     substitutions.put("title", toTitleCase(className));
     substitutions.put("fileName", className);
-    substitutions.put("dartSrcPath", getDartFilePath(applicationFileName));
+    substitutions.put("dartSrcPath", getWebFilePath(applicationFileName));
     execute("generated-html.txt", iHtmlFile, substitutions, monitor); //$NON-NLS-1$
 
     // css file
@@ -245,9 +251,9 @@ public class ApplicationGenerator extends AbstractGenerator {
     return applicationFile;
   }
 
-  private String getDartFilePath(String fileName) {
+  private String getWebFilePath(String fileName) {
     if (hasPubSupport) {
-      return SOURCE_DIRECTORY_NAME + "/" + fileName;
+      return WEB_SOURCE_DIRECTORY_NAME + "/" + fileName;
     } else {
       return fileName;
     }
