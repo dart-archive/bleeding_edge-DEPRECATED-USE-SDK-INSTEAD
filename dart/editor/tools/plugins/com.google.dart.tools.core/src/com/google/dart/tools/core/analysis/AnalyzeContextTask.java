@@ -43,11 +43,10 @@ class AnalyzeContextTask extends Task {
     File[] libraryFiles = server.getTrackedLibraryFiles();
     ArrayList<File> todo = new ArrayList<File>(libraryFiles.length);
 
-    // Analyze libraries in application directories first
+    // Analyze libraries in application directory hierarchies first
 
     for (File libFile : libraryFiles) {
-      File libDir = libFile.getParentFile();
-      if (DartCore.isApplicationDirectory(libDir)) {
+      if (DartCore.getApplicationDirectory(libFile) != null) {
         server.queueSubTask(new AnalyzeLibraryTask(server, libFile, null));
       } else {
         todo.add(libFile);

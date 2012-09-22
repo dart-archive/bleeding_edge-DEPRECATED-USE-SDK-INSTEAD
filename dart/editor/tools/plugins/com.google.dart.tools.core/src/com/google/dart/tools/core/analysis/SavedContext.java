@@ -59,20 +59,39 @@ public class SavedContext extends Context {
   }
 
   /**
-   * Look up the directory hierarchy for a pre-existing context
+   * Answer the suggested context for analysis
    * 
-   * @param libFileOrDir the library file or directory
+   * @param libFileOrDir the library file or directory (not <code>null</code>)
    * @return the context in which the specified library should be analyzed (not <code>null</code>)
    */
   public Context getSuggestedContext(File libFileOrDir) {
-    File dir = libFileOrDir;
-    while (dir != null) {
-      PackageContext context = packageContexts.get(dir);
-      if (context != null) {
-        return context;
-      }
-      dir = dir.getParentFile();
+
+    // SDK libraries always reside in the saved context
+
+    if (isSdkLibrary(libFileOrDir)) {
+      return this;
     }
+
+    // Libraries in an application directory hierarchy should be analyzed in that context
+
+    File appDir = DartCore.getApplicationDirectory(libFileOrDir);
+    if (appDir != null) {
+      return getOrCreatePackageContext(appDir);
+    }
+
+    // See if the library is already cached
+
+    if (libFileOrDir.isFile()) {
+      for (PackageContext context : packageContexts.values()) {
+        Library lib = context.getCachedLibrary(libFileOrDir);
+        if (lib != null) {
+          return lib.getContext();
+        }
+      }
+    }
+
+    // Otherwise should be analyzed in the saved context
+
     return this;
   }
 

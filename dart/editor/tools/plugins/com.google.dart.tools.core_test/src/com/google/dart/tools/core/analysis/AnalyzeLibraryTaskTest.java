@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.analysis;
 
-
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertCachedLibraries;
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertPackageContexts;
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTrackedLibraryFiles;
@@ -259,13 +258,14 @@ public class AnalyzeLibraryTaskTest extends AbstractDartAnalysisTest {
     task.assertResolved(true);
     assertTrackedLibraryFiles(server, bankLibFile, nestedAppFile, nestedLibFile);
     assertPackageContexts(server, bankDir);
-    assertCachedLibraries(server, null, nestedAppFile);
+    assertCachedLibraries(server, null);
     assertCachedLibraries(
         server,
         bankDir,
         bankLibFile,
         nestedLibFile,
         moneyLibFile,
+        nestedAppFile,
         customerLibFile);
   }
 

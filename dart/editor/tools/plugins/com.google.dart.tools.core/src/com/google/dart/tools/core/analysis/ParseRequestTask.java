@@ -71,8 +71,17 @@ public class ParseRequestTask extends Task {
 
     // Determine the appropriate context and queue a subtask to parse the file
 
-    Context context = libraries.length > 0 ? libraries[0].getContext()
-        : savedContext.getSuggestedContext(libraryFile);
+    Context context;
+    if (libraries.length > 0) {
+      context = libraries[0].getContext();
+    } else {
+      File appDir = DartCore.getApplicationDirectory(libraryFile);
+      if (appDir != null) {
+        context = savedContext.getOrCreatePackageContext(appDir);
+      } else {
+        context = savedContext;
+      }
+    }
     queueParseTask(context);
   }
 

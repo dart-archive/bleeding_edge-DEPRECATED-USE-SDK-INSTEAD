@@ -13,12 +13,6 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.compiler.ast.DartExpression;
-import com.google.dart.compiler.ast.DartFunction;
-import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartMethodDefinition;
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 
 import static com.google.dart.tools.core.analysis.AnalysisUtility.isSdkLibrary;
@@ -72,7 +66,7 @@ public class AnalyzeLibraryTask extends Task {
     // Determine the proper context in which to analyze this library
 
     if (rootLibraryContext == null) {
-      rootLibraryContext = determineContext();
+      rootLibraryContext = savedContext.getSuggestedContext(rootLibraryFile);
       if (rootLibraryContext == null) {
         server.queueSubTask(this);
         return;
@@ -205,130 +199,5 @@ public class AnalyzeLibraryTask extends Task {
 
   File getRootLibraryFile() {
     return rootLibraryFile;
-  }
-
-  /**
-   * Determine the context in which the root library should be analyzed or return <code>null</code>
-   * after adding subtasks necessary to do so
-   */
-  private Context determineContext() {
-
-    // SDK libraries should always reside in the saved context... not a packages context
-
-    if (isSdkLibrary(rootLibraryFile)) {
-      return savedContext;
-    }
-
-    // Libraries in an application directory should be analyzed in that package context
-
-    File rootLibraryDir = rootLibraryFile.getParentFile();
-    if (DartCore.isApplicationDirectory(rootLibraryDir)) {
-      return savedContext.getOrCreatePackageContext(rootLibraryDir);
-    }
-
-    // If the library is not cached, then parse and cache it in the suggested context
-
-    Library[] libraries = savedContext.getCachedLibraries(rootLibraryFile);
-    if (libraries.length == 0) {
-      Context context = savedContext.getSuggestedContext(rootLibraryDir);
-      server.queueSubTask(new ParseTask(server, context, rootLibraryFile));
-      return null;
-    }
-
-    // Determine if the library is an application (has a main method)
-
-    Boolean hasMain = null;
-    ArrayList<Task> newTasks = new ArrayList<Task>();
-    for (Library library : libraries) {
-      Context context = library.getContext();
-
-      int initialTaskCount = newTasks.size();
-      DartUnit dartUnit = library.getDartUnit(library.getFile());
-      if (dartUnit == null) {
-        newTasks.add(new ParseTask(server, context, rootLibraryFile));
-        continue;
-      } else if (hasMainMethod(dartUnit)) {
-        hasMain = true;
-        break;
-      }
-
-      for (Entry<String, File> entry : library.getRelativeSourcePathsAndFiles()) {
-        File file = entry.getValue();
-        dartUnit = library.getDartUnit(file);
-        if (dartUnit == null) {
-          String relPath = entry.getKey();
-          newTasks.add(new ParseTask(server, context, rootLibraryFile, relPath, file));
-        } else if (hasMainMethod(dartUnit)) {
-          hasMain = true;
-          break;
-        }
-      }
-
-      // If nothing needed to be parsed but no main method found, then this is not an application
-
-      if (hasMain == null && initialTaskCount == newTasks.size()) {
-        hasMain = false;
-        break;
-      }
-    }
-    if (hasMain == null) {
-      if (newTasks.size() > 0) {
-        for (Task task : newTasks) {
-          server.queueSubTask(task);
-        }
-        return null;
-      }
-      // Should not happen reach here...
-      DartCore.logError("Expected to know if library is application: " + rootLibraryFile);
-      hasMain = false;
-    }
-
-    // If the library is an application (has a main method)
-    // and is not in an application directory (as determined earlier in this method)
-    // then the library should be analyzed in the saved context
-
-    if (hasMain.booleanValue()) {
-
-      // If application is cached in a package context but not referenced, then remove it
-
-      for (Library library : libraries) {
-        Context context = library.getContext();
-        if (context != savedContext && context.getLibrariesImporting(rootLibraryFile).size() == 0) {
-          context.discardLibrary(rootLibraryFile);
-        }
-      }
-
-      return savedContext;
-    }
-
-    // Since this is not an application, then use an existing context
-
-    return libraries[0].getContext();
-  }
-
-  /**
-   * Answer <code>true</code> if the specified unit has a main method.
-   */
-  private boolean hasMainMethod(DartUnit dartUnit) {
-    for (DartNode node : dartUnit.getTopLevelNodes()) {
-      if (node instanceof DartMethodDefinition) {
-        DartMethodDefinition method = (DartMethodDefinition) node;
-        DartExpression name = method.getName();
-        if (!(name instanceof DartIdentifier)) {
-          continue;
-        }
-        if (!"main".equals(((DartIdentifier) name).getName())) {
-          continue;
-        }
-        DartFunction function = method.getFunction();
-        if (function == null) {
-          continue;
-        }
-        if (function.getParameters().size() == 0) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 }

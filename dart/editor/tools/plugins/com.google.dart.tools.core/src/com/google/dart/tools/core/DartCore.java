@@ -368,6 +368,24 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * Answer the application directory (a directory contains a "packages" directory and a
+   * "pubspec.yaml" file) directly or indirectly containing the specified file or the file itself if
+   * it is an application directory.
+   * 
+   * @param libFileOrDir the library file or directory
+   * @return the context in which the specified library should be analyzed (not <code>null</code>)
+   */
+  public static File getApplicationDirectory(File file) {
+    while (file != null) {
+      if (isApplicationDirectory(file)) {
+        return file;
+      }
+      file = file.getParentFile();
+    }
+    return null;
+  }
+
+  /**
    * Returns the day (yyyy-MM-dd) the product was built.
    */
   public static String getBuildDate() {
@@ -563,7 +581,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * Return true if directory contains a "packages" directory and a "pubspec.yaml" file
    */
   public static boolean isApplicationDirectory(File directory) {
-    return containsPackagesDirectory(directory) && new File(directory, PUBSPEC_FILE_NAME).isFile();
+    return new File(directory, PUBSPEC_FILE_NAME).isFile() && containsPackagesDirectory(directory);
   }
 
   /**

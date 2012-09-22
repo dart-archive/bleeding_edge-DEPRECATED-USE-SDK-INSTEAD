@@ -365,21 +365,7 @@ public class ScanTask extends Task implements TaskListener {
   }
 
   private void queueParseTask(File libFile) {
-    File libDir = libFile.getParentFile();
-    Context context;
-
-    // If the library file resides in an application directory, then parse in that context
-    // otherwise look up the directory hierarchy for a suitable context
-
-    if (DartCore.isApplicationDirectory(libDir)) {
-      context = savedContext.getOrCreatePackageContext(libDir);
-    } else {
-      // If library is an application then it should be analyzed in the saved context
-      // but cannot determine that at this point. 
-      // AnalyzeLibraryTask will move it to the appropriate context.
-      context = savedContext.getSuggestedContext(libDir);
-    }
-
+    Context context = savedContext.getSuggestedContext(libFile);
     server.queueSubTask(new ParseTask(server, context, libFile));
   }
 
