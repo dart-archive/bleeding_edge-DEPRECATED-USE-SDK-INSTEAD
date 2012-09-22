@@ -1,0 +1,17 @@
+diff --git a/org/eclipse/ltk/internal/ui/refactoring/RefactoringStatusDialog_ori.java b/org/eclipse/ltk/internal/ui/refactoring/RefactoringStatusDialog.java
+index a2db454..06c444a 100644
+--- a/org/eclipse/ltk/internal/ui/refactoring/RefactoringStatusDialog_ori.java
++++ b/org/eclipse/ltk/internal/ui/refactoring/RefactoringStatusDialog.java
+@@ -104,9 +104,10 @@ public class RefactoringStatusDialog extends Dialog {
+ 
+ 	protected void createButtonsForButtonBar(Composite parent) {
+ 		if (!fStatus.hasFatalError()) {
++		  boolean hasError = fStatus.hasError();
+ 			if (fBackButton)
+-				createButton(parent, IDialogConstants.BACK_ID, IDialogConstants.BACK_LABEL, false);
+-			createButton(parent, IDialogConstants.OK_ID, fLightWeight ? IDialogConstants.OK_LABEL : RefactoringUIMessages.RefactoringStatusDialog_Continue, true);
++				createButton(parent, IDialogConstants.BACK_ID, IDialogConstants.BACK_LABEL, hasError);
++			createButton(parent, IDialogConstants.OK_ID, fLightWeight ? IDialogConstants.OK_LABEL : RefactoringUIMessages.RefactoringStatusDialog_Continue, !hasError);
+ 			createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
+ 		} else {
+ 			if (fBackButton)
