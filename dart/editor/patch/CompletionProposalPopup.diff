@@ -1,0 +1,19 @@
+*** org.eclipse.jface.text.contentassist.CompletionProposalPopup-ori.java	2012-09-24 07:53:25.000000000 -0700
+--- org.eclipse.jface.text.contentassist.CompletionProposalPopup.java	2012-09-24 07:20:22.000000000 -0700
+***************
+*** 1298,1304 ****
+  		switch (key) {
+  			case 0x1B: // Esc
+  				e.doit= false;
+! 				hide();
+  				break;
+  
+  			case '\n': // Ctrl-Enter on w2k
+--- 1298,1304 ----
+  		switch (key) {
+  			case 0x1B: // Esc
+  				e.doit= false;
+! 			case '.': hide();
+  				break;
+  
+  			case '\n': // Ctrl-Enter on w2k
