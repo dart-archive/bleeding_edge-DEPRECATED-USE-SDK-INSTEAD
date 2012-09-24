@@ -88,6 +88,11 @@ public class DartElementImageDescriptor extends CompositeImageDescriptor {
    */
   public final static int GETTER = 0x10000;
 
+  /**
+   * Flag to render the 'linked' adornment
+   */
+  public final static int LINKED = 0x20000;
+
   private ImageDescriptor fBaseImage;
   private int fFlags;
   private Point fSize;
@@ -215,13 +220,16 @@ public class DartElementImageDescriptor extends CompositeImageDescriptor {
 
   private void drawBottomLeft() {
     Point pos = new Point(0, getSize().y);
+
     if ((fFlags & ERROR) != 0) {
       addBottomLeftImage(DartPluginImages.DESC_OVR_ERROR, pos);
     }
     if ((fFlags & WARNING) != 0) {
       addBottomLeftImage(DartPluginImages.DESC_OVR_WARNING, pos);
     }
-
+    if ((fFlags & LINKED) != 0) {
+      addBottomLeftImage(DartPluginImages.DESC_OVR_LINKED, pos);
+    }
   }
 
   private void drawBottomRight() {

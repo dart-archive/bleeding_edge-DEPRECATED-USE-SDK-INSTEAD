@@ -682,6 +682,7 @@ public class DartPluginImages {
   public static final ImageDescriptor DESC_OVR_IMPLEMENTS = createUnManagedCached(
       T_OVR,
       "implm_co.gif"); //$NON-NLS-1$
+  public static final ImageDescriptor DESC_OVR_LINKED = createUnManagedCached(T_OVR, "link_ovr.gif"); //$NON-NLS-1$
   public static final ImageDescriptor DESC_OVR_SYNCH_AND_OVERRIDES = createUnManagedCached(
       T_OVR,
       "sync_over.gif"); //$NON-NLS-1$

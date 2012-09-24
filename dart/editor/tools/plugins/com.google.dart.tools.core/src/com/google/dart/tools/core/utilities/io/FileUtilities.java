@@ -336,6 +336,17 @@ public class FileUtilities {
   }
 
   /**
+   * Returns whether the given file is a symlinked file.
+   * 
+   * @param file
+   * @return
+   * @throws IOException
+   */
+  public static boolean isLinkedFile(File file) throws IOException {
+    return !file.getAbsolutePath().equals(file.getCanonicalPath());
+  }
+
+  /**
    * Return <code>true</code> if the given parent directory is either the same as or a parent of the
    * given child directory.
    * 

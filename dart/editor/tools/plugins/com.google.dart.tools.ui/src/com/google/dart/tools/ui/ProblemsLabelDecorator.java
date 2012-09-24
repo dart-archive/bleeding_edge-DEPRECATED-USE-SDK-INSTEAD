@@ -18,15 +18,18 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
+import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.ui.internal.viewsupport.IProblemChangedListener;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 import com.google.dart.tools.ui.internal.viewsupport.ImageImageDescriptor;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceStatus;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.Position;
@@ -44,6 +47,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 /**
@@ -104,6 +108,7 @@ public class ProblemsLabelDecorator implements ILabelDecorator, ILightweightLabe
 
   private static final int ERRORTICK_WARNING = DartElementImageDescriptor.WARNING;
   private static final int ERRORTICK_ERROR = DartElementImageDescriptor.ERROR;
+  private static final int LINKED = DartElementImageDescriptor.LINKED;
 
   private ImageDescriptorRegistry fRegistry;
   private boolean fUseNewRegistry = false;
@@ -329,11 +334,29 @@ public class ProblemsLabelDecorator implements ILabelDecorator, ILightweightLabe
         }
       }
     }
+
     if (severity == IMarker.SEVERITY_ERROR) {
       return ERRORTICK_ERROR;
     } else if (severity == IMarker.SEVERITY_WARNING) {
       return ERRORTICK_WARNING;
     }
+
+    if (res instanceof IFolder) {
+      IFolder folder = (IFolder) res;
+
+      IPath path = folder.getLocation();
+
+      if (path != null) {
+        try {
+          if (FileUtilities.isLinkedFile(path.toFile())) {
+            return LINKED;
+          }
+        } catch (IOException e) {
+
+        }
+      }
+    }
+
     return 0;
   }
 
