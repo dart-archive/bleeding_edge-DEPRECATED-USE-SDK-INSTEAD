@@ -11,8 +11,8 @@ class Issue {
   Issue(this.json);
 
   void addTo(Element div) {
-    div.elements.add(new Element.tag("h2")..text = json[@"title"][@"$t"]);
-    div.elements.add(new Element.tag("pre")..text = json[@"content"][@"$t"]);
+    div.elements.add(new Element.tag("h2")..text = json[r"title"][r"$t"]);
+    div.elements.add(new Element.tag("pre")..text = json[r"content"][r"$t"]);
   }
 }
 
