@@ -266,7 +266,11 @@ public class UpdateCore extends Plugin {
 
   /**
    * Log the given informational message.
+   * <p>
+   * NOTE: in order for info messages to be logged, the trace option (<code>trace/update</code>)
+   * must be set to <code>true</code>.
    * 
+   * @see DartCoreDebug#TRACE_UPDATE
    * @param message an informational message
    */
   public static void logInfo(String message) {
@@ -274,13 +278,17 @@ public class UpdateCore extends Plugin {
   }
 
   /**
-   * Log the given exception as one representing an informational message.
+   * Log the given exception as one representing an informational message. *
+   * <p>
+   * NOTE: in order for info messages to be logged, the trace option (<code>trace/update</code>)
+   * must be set to <code>true</code>.
    * 
+   * @see DartCoreDebug#TRACE_UPDATE
    * @param message an explanation of why the error occurred or what it means
    * @param exception the exception being logged
    */
   public static void logInfo(String message, Throwable exception) {
-    if (PLUGIN != null) {
+    if (PLUGIN != null && DartCoreDebug.TRACE_UPDATE) {
       PLUGIN.getLog().log(new Status(Status.INFO, PLUGIN_ID, "INFO: " + message, exception));
     }
   }
