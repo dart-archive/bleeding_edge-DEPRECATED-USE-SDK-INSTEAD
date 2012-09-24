@@ -15,8 +15,8 @@
 package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.compiler.PackageLibraryManager;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
 import com.google.dart.tools.debug.core.expr.WatchExpressionResult;
 import com.google.dart.tools.debug.core.source.ISourceLookup;
@@ -24,6 +24,7 @@ import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 import com.google.dart.tools.debug.core.util.IVariableResolver;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IRegisterGroup;
@@ -160,10 +161,17 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     URI uri = URI.create(vmFrame.getLocation().getUrl());
 
     // Resolve a package: reference.
-    if (PackageLibraryManager.isPackageUri(uri)
-        && DartCore.getPlugin().getPackageRootPref() != null) {
-      uri = PackageLibraryManagerProvider.getPackageLibraryManager().resolvePackageUri(
-          vmFrame.getLocation().getUrl());
+    if (PackageLibraryManager.isPackageUri(uri)) {
+      DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(
+          getDebugTarget().getLaunch().getLaunchConfiguration());
+      IResource resource = wrapper.getApplicationResource();
+      if (resource != null) {
+        uri = PackageLibraryManagerProvider.getPackageLibraryManager(
+            resource.getLocation().toFile()).resolvePackageUri(vmFrame.getLocation().getUrl());
+      } else {
+        uri = PackageLibraryManagerProvider.getPackageLibraryManager().resolvePackageUri(
+            vmFrame.getLocation().getUrl());
+      }
     }
 
     if ("file".equals(uri.getScheme())) {

@@ -14,6 +14,8 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.server.VmConnection.BreakOnExceptionsType;
@@ -33,6 +35,7 @@ import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -461,7 +464,15 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   }
 
   private String getUrlForResource(IFile file) {
-    return file.getLocation().toFile().toURI().toString();
+    String locationUrl = file.getLocation().toFile().toURI().toString();
+    String packagesDirName = File.separator + DartCore.PACKAGES_DIRECTORY_NAME + File.separator;
+    int index = locationUrl.indexOf(packagesDirName);
+    if (index != -1) {
+      locationUrl = PackageLibraryManager.PACKAGE_SCHEME_SPEC
+          + locationUrl.substring(index + packagesDirName.length());
+
+    }
+    return locationUrl;
   }
 
   private synchronized void maybeResume() {
