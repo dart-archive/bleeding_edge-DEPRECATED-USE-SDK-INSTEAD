@@ -141,12 +141,12 @@ void main() {
      version="1.1"
      width="371.6655"
      height="374.14087">
-  <filter id="inverse"> 
-     <feComponentTransfer> 
-         <feFuncR type="table" tableValues="1 0"/> 
-         <feFuncG type="table" tableValues="1 0"/> 
-         <feFuncB type="table" tableValues="1 0"/> 
-     </feComponentTransfer> 
+  <filter id="inverse">
+     <feComponentTransfer>
+         <feFuncR type="table" tableValues="1 0"/>
+         <feFuncG type="table" tableValues="1 0"/>
+         <feFuncB type="table" tableValues="1 0"/>
+     </feComponentTransfer>
   </filter>
   <path
      d="m 101.86949,101.86487 -24.192001,-24.192004 0.088,174.807994 0.296,8.164 c 0.12,3.848 0.84,8.18 2.012,12.684 l 191.615991,67.55601 47.89201,-21.216 0.016,-0.056 -217.728,-217.748 z"
@@ -172,7 +172,8 @@ void main() {
      d="M 263.78548,53.048866 220.45349,10.028873 c -10.02,-9.92799955 -23.664,-13.0239996 -30.26,-6.8439996 L 77.677489,77.672866 l 174.239991,-0.036 8.64,0.308 c 3.9,0.124 8.228,0.832 12.708,1.98 l -9.48,-26.876 z m -186.111991,24.62"
      id="path2910"
      style="fill: #75ccc3" />
-</svg>"""); // TOOD(dgrove) - add newline back when issue 3846 fixed.
+</svg>
+""");
 
   query("#icon").elements.add(logo);
   logo.queryAll("path").forEach((p) {
