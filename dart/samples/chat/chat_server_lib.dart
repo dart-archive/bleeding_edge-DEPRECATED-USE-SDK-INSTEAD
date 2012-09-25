@@ -257,7 +257,7 @@ class ChatServerStatus {
   ChatServerStatus.started(this._port) : _state = STARTED;
   ChatServerStatus.stopping() : _state = STOPPING;
   ChatServerStatus.stopped() : _state = STOPPED;
-  ChatServerStatus.error([this._error]) : _state = ERROR;
+  ChatServerStatus.error2([this._error]) : _state = ERROR;
 
   bool get isStarting => _state == STARTING;
   bool get isStarted => _state == STARTED;

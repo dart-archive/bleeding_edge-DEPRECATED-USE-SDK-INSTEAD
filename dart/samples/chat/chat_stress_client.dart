@@ -5,7 +5,6 @@
 #library("chat_stress_client.dart");
 #import("dart:io");
 #import("dart:json");
-#import("dart:io");
 
 
 class ChatStressClient {
