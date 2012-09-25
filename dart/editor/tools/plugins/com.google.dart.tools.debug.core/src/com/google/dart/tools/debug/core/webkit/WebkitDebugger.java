@@ -221,7 +221,9 @@ public class WebkitDebugger extends WebkitDomain {
           "params",
           new JSONObject().put("callFrameId", callFrameId).put("expression", expression).put(
               "objectGroup",
-              OBJECT_GROUP_KEY).put("returnByValue", true));
+              OBJECT_GROUP_KEY).put("returnByValue", false).put("includeCommandLineAPI", true).put(
+              "doNotPauseOnExceptionsAndMuteConsole",
+              false));
 
       connection.sendRequest(request, new Callback() {
         @Override

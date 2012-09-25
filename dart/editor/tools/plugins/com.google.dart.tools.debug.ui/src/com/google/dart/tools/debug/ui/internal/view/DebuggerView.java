@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.debug.ui.internal.view;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 
@@ -182,11 +181,7 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     manager.removeAll();
 
     manager.add(showBreakpointsAction);
-
-    if (DartCoreDebug.ENABLE_EXPRESSIONS_VIEW) {
-      manager.add(new ShowExpressionsAction());
-    }
-
+    manager.add(new ShowExpressionsAction());
     manager.add(new Separator());
     manager.add(new ToggleLogicalStructureAction(variablesView));
 

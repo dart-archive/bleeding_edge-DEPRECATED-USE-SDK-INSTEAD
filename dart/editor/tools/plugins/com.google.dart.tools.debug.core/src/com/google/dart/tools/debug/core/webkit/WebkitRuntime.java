@@ -52,7 +52,7 @@ public class WebkitRuntime extends WebkitDomain {
           "params",
           new JSONObject().put("objectId", objectId).put(
               "functionDeclaration",
-              "function(){return this.toString();}").put("returnByValue", true));
+              "function(){return this.toString();}").put("returnByValue", false));
 
       connection.sendRequest(request, new Callback() {
         @Override

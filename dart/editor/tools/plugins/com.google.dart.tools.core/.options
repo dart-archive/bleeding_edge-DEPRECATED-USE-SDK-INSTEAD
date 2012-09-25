@@ -17,7 +17,6 @@ com.google.dart.tools.core/logging/debugger = false
 com.google.dart.tools.core/experimental/altKeyBindings = false
 com.google.dart.tools.core/experimental/update = false
 com.google.dart.tools.core/experimental/testsView = false
-com.google.dart.tools.core/experimental/expressionsView = false
 com.google.dart.tools.core/experimental/formatter = false
 com.google.dart.tools.core/experimental/pub = false
 
