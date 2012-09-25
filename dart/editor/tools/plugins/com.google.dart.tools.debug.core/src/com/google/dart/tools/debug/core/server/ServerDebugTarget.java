@@ -35,7 +35,6 @@ import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -465,11 +464,11 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private String getUrlForResource(IFile file) {
     String locationUrl = file.getLocation().toFile().toURI().toString();
-    String packagesDirName = File.separator + DartCore.PACKAGES_DIRECTORY_NAME + File.separator;
-    int index = locationUrl.indexOf(packagesDirName);
+
+    int index = locationUrl.indexOf(DartCore.PACKAGES_DIRECTORY_PATH);
     if (index != -1) {
       locationUrl = PackageLibraryManager.PACKAGE_SCHEME_SPEC
-          + locationUrl.substring(index + packagesDirName.length());
+          + locationUrl.substring(index + DartCore.PACKAGES_DIRECTORY_PATH.length());
 
     }
     return locationUrl;

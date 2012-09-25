@@ -182,6 +182,12 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String PACKAGES_DIRECTORY_NAME = "packages";
 
   /**
+   * Path string for packages directory
+   */
+  public static final String PACKAGES_DIRECTORY_PATH = File.separator + PACKAGES_DIRECTORY_NAME
+      + File.separator;
+
+  /**
    * Name of pubspec file
    */
   public static final String PUBSPEC_FILE_NAME = "pubspec.yaml";

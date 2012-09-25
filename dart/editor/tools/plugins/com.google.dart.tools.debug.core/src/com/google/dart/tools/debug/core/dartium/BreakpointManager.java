@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.dartium;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.util.IResourceResolver;
@@ -189,6 +190,11 @@ class BreakpointManager implements IBreakpointListener {
     if (breakpoint.isBreakpointEnabled()) {
       // String url = resourceResolver.getUrlForResource(breakpoint.getFile());
       String regex = breakpoint.getFile().getFullPath().toPortableString();
+
+      int index = regex.indexOf(DartCore.PACKAGES_DIRECTORY_PATH);
+      if (index != -1) {
+        regex = regex.substring(index);
+      }
 
       int line = WebkitLocation.eclipseToWebkitLine(breakpoint.getLine());
 
