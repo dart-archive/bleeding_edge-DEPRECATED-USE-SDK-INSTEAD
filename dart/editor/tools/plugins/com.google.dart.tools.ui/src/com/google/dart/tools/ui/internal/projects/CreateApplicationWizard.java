@@ -18,6 +18,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.generator.ApplicationGenerator;
 import com.google.dart.tools.core.generator.DartIdentifierUtil;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 
@@ -286,6 +287,9 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
    */
   private IFile createProjectContent(IProject project, String location, String name,
       ProjectType projectType, boolean hasPubSupport) throws CoreException {
+
+    IProjectUtilities.configurePackagesFilter(project);
+
     ApplicationGenerator generator = new ApplicationGenerator(project);
 
     generator.setApplicationLocation(location);

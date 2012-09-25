@@ -58,7 +58,7 @@
 	    <persistent value="true"/>
 	</extension>
 
- <extension
+   <extension
        id="refinableType"
        name="%dart.marker.refinableType.name"
        point="org.eclipse.core.resources.markers">
@@ -68,8 +68,9 @@
     <persistent
           value="false">
     </persistent>
- </extension>
- <extension
+   </extension>
+ 
+   <extension
        point="org.eclipse.core.expressions.propertyTesters">
     <propertyTester
           class="com.google.dart.tools.core.expressions.DartResourcePropertyTester"
@@ -78,6 +79,16 @@
           properties="isAnalyzed, isAnalyzable, isIgnored"
           type="java.lang.Object">
     </propertyTester>
- </extension>
+   </extension>
+
+   <extension
+         point="org.eclipse.core.resources.filterMatchers">
+      <filterMatcher
+            argumentType="string"
+            class="com.google.dart.tools.core.refresh.DartPackagesFolderMatcher"
+            id="com.google.dart.tools.core.packagesFolderMatcher"
+            name="%dart.packages.matcher.name">
+      </filterMatcher>
+   </extension>
 
 </plugin>

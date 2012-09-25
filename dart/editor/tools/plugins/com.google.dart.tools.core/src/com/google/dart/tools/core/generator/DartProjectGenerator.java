@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -16,6 +16,7 @@ package com.google.dart.tools.core.generator;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
 import com.google.dart.tools.core.internal.util.Extensions;
+import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -62,9 +63,13 @@ public class DartProjectGenerator extends DartElementGenerator {
         if (monitor.isCanceled()) {
           throw new OperationCanceledException();
         }
+
         DartProjectNature nature = new DartProjectNature();
         nature.setProject(project);
         nature.configure();
+
+        IProjectUtilities.configurePackagesFilter(project);
+
         monitor.done();
       }
     }, monitor);

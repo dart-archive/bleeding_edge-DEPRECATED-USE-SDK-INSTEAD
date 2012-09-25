@@ -15,6 +15,11 @@ package com.google.dart.tools.core.utilities.io;
 
 import com.google.common.io.CharStreams;
 
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileInfo;
+import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.runtime.CoreException;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -340,10 +345,15 @@ public class FileUtilities {
    * 
    * @param file
    * @return
+   * @throws CoreException
    * @throws IOException
    */
-  public static boolean isLinkedFile(File file) throws IOException {
-    return !file.getAbsolutePath().equals(file.getCanonicalPath());
+  public static boolean isLinkedFile(File file) throws CoreException {
+    IFileStore fileStore = EFS.getStore(file.toURI());
+
+    IFileInfo info = fileStore.fetchInfo();
+
+    return info.getAttribute(EFS.ATTRIBUTE_SYMLINK);
   }
 
   /**

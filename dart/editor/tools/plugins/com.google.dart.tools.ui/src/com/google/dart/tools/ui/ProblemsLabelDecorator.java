@@ -47,7 +47,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
 
-import java.io.IOException;
 import java.util.Iterator;
 
 /**
@@ -351,7 +350,7 @@ public class ProblemsLabelDecorator implements ILabelDecorator, ILightweightLabe
           if (FileUtilities.isLinkedFile(path.toFile())) {
             return LINKED;
           }
-        } catch (IOException e) {
+        } catch (CoreException e) {
 
         }
       }

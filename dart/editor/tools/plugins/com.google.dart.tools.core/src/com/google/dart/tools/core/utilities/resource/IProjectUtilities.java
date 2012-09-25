@@ -16,18 +16,22 @@ package com.google.dart.tools.core.utilities.resource;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.core.refresh.DartPackagesFolderMatcher;
 
+import org.eclipse.core.resources.FileInfoMatcherDescription;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceFilterDescription;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
@@ -63,6 +67,16 @@ public final class IProjectUtilities {
           null));
     }
     return newFile;
+  }
+
+  public static void configurePackagesFilter(IProject project) throws CoreException {
+    FileInfoMatcherDescription matcher = new FileInfoMatcherDescription(
+        DartPackagesFolderMatcher.MATCHER_ID,
+        null);
+
+    project.createFilter(IResourceFilterDescription.EXCLUDE_ALL
+        | IResourceFilterDescription.FOLDERS | IResourceFilterDescription.FILES
+        | IResourceFilterDescription.INHERITABLE, matcher, 0, new NullProgressMonitor());
   }
 
   /**
@@ -111,9 +125,13 @@ public final class IProjectUtilities {
         if (monitor.isCanceled()) {
           throw new OperationCanceledException();
         }
+
         DartProjectNature nature = new DartProjectNature();
         nature.setProject(project);
         nature.configure();
+
+        IProjectUtilities.configurePackagesFilter(project);
+
         monitor.done();
       }
     },
