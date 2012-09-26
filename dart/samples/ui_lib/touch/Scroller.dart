@@ -161,10 +161,10 @@ class Scroller implements Draggable, MomentumDelegate {
     _touchHandler.enable(capture);
 
     _frame.on.mouseWheel.add((e) {
-      if (e.wheelDeltaY != 0 && verticalEnabled ||
-          e.wheelDeltaX != 0 && horizontalEnabled) {
-        num x = horizontalEnabled ? e.wheelDeltaX : 0;
-        num y = verticalEnabled ? e.wheelDeltaY : 0;
+      if (e.deltaY != 0 && verticalEnabled ||
+          e.deltaX != 0 && horizontalEnabled) {
+        num x = horizontalEnabled ? e.deltaX : 0;
+        num y = verticalEnabled ? e.deltaY : 0;
         throwDelta(x, y, FAST_SNAP_DECELERATION_FACTOR);
         e.preventDefault();
       }
