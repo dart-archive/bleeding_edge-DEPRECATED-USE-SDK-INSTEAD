@@ -31,7 +31,6 @@ module html {
         attribute [Reflect] boolean open;
         void close() raises(DOMException);
         void show();
-        void showModal() raises(DOMException);
     };
 
 }
