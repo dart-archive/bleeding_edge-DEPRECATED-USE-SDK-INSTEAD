@@ -53,6 +53,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbench;
@@ -61,6 +62,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
+import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE;
@@ -388,6 +390,42 @@ public class EditorUtility {
     }
 
     return openInEditor(input, getEditorID(input), activate);
+  }
+
+  /**
+   * Opens the given file in the registered editor for the file type, or in the default text editor
+   * if no editor is registered. This differs from the openInEditor() method in that the system
+   * editor will never be opened.
+   * 
+   * @param file the file to open
+   * @return an open editor
+   * @throws PartInitException if the editor could not be opened or the input element is not valid
+   */
+  public static IEditorPart openInTextEditor(IFile file) throws PartInitException {
+    if (file == null) {
+      throwPartInitException(DartEditorMessages.EditorUtility_file_must_not_be_null);
+    }
+
+    IWorkbenchPage p = DartToolsPlugin.getActivePage();
+    if (p == null) {
+      throwPartInitException(DartEditorMessages.EditorUtility_no_active_WorkbenchPage);
+    }
+
+    IEditorDescriptor desc = IDE.getEditorDescriptor(file, true);
+
+    if (desc.getId() == IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID) {
+      IEditorRegistry editorReg = PlatformUI.getWorkbench().getEditorRegistry();
+
+      desc = editorReg.findEditor(EditorsUI.DEFAULT_TEXT_EDITOR_ID);
+    }
+
+    IEditorPart editorPart = IDE.openEditor(
+        p,
+        file,
+        maybeSwapDefaultEditorDescriptor(desc.getId()),
+        true);
+    initializeHighlightRange(editorPart);
+    return editorPart;
   }
 
   /**

@@ -365,7 +365,7 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
       @Override
       public void run() {
         try {
-          EditorUtility.openInEditor(ResourceUtil.getFile(file));
+          EditorUtility.openInTextEditor(ResourceUtil.getFile(file));
         } catch (Throwable e) {
           DartCore.logError(e);
         }

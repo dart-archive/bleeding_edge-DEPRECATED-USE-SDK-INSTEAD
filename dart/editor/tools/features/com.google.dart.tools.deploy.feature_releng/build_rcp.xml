@@ -164,11 +164,8 @@ build system.  The PDE build system has to run under Eclipse.
               
          - - - - - - - - - - - - - - - - - -->
     <target name="buildSamples">
-
         <!-- create the samples directory -->
-        
-        <property name="samples.out.dir" 
-                  value="${build.stage.include.dir}/samples" />
+        <property name="samples.out.dir" value="${build.stage.include.dir}/samples" />
         
     	  <!-- delete old samples -->
     	  <delete dir="${samples.out.dir}"/>
@@ -178,8 +175,6 @@ build system.  The PDE build system has to run under Eclipse.
             <fileset dir="${build.source.root}/samples">
                 <include name="clock/**"/>
 
-                <include name="slider/**"/>
-
                 <include name="solar/**"/>
 
                 <include name="sunflower/**"/>
@@ -188,48 +183,30 @@ build system.  The PDE build system has to run under Eclipse.
 
                 <include name="time/**"/>
 
-                <include name="ui_lib/**"/>
-
                 <!-- the READMEs are out of date -->
                 <exclude name="**/README"/>
             </fileset>
         </copy>
 
-        <!-- copy the dart.js file into the individual samples' directories -->
+        <!-- download and setup the html5 examples -->
+        <!-- TODO(devoncarew): enable when we have more confidence in the html5 samples -->
+        <!-- property name="html5.archive" value="${build.stage.include.dir}/html5.zip" />
+
+        <get src="https://github.com/dart-lang/dart-html5-samples/zipball/master"
+          dest="${html5.archive}"
+          usetimestamp="true" />
+        
+        <unzip src="${html5.archive}" dest="${samples.out.dir}/html5">
+            <patternset>
+                <exclude name="**/.gitignore"/>
+            </patternset>
+            <cutdirsmapper dirs="1"/>
+        </unzip>
+
+        <delete file="${html5.archive}"/ -->
+        
+        <!-- copy the dart.js file into the samples directory -->
         <copy todir="${samples.out.dir}" file="${build.source.root}/client/dart.js"/>
-
-        <!-- adjust dart.js references -->
-        <replace dir="${samples.out.dir}"
-          token="http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js"
-          value="../dart.js">
-            <include name="**/*.html"/>
-        </replace>
-        <replace dir="${samples.out.dir}"
-          token='"dart.js"'
-          value='"../../dart.js"'>
-            <include name="**/*.html"/>
-        </replace>
-
-        <!-- copy uri to ui_lib -->
-        <copy todir="${samples.out.dir}/ui_lib">
-            <fileset dir="${build.source.root}/lib">
-              <include name="uri/*.dart"/>
-            </fileset>
-        </copy>
-
-        <!-- fix a uri reference -->
-        <replace dir="${samples.out.dir}/ui_lib"
-          token="../../../lib/uri/uri.dart"
-          value="../uri/uri.dart">
-            <include name="**/*.dart"/>
-        </replace>
-
-        <!-- adjust imports to fit new location -->
-        <replace dir="${samples.out.dir}"
-          token="#import('../../../lib/"
-          value="#import('../../lib/">
-            <include name="**/*.dart"/>
-        </replace>
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
