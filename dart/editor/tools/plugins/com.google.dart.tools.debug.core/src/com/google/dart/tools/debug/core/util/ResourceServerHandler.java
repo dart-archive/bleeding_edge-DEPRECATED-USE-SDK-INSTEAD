@@ -14,7 +14,9 @@
 
 package com.google.dart.tools.debug.core.util;
 
+import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
@@ -37,7 +39,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
-import java.io.SequenceInputStream;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -345,7 +346,7 @@ class ResourceServerHandler implements Runnable {
 
   private HttpResponse createGETResponse(HttpHeader header) throws IOException {
     boolean headOnly = false;
-    boolean appendJSAgent = false;
+    byte[] javaScriptContent = null;
 
     if (HttpHeader.METHOD_HEAD.equals(header.method)) {
       headOnly = true;
@@ -391,7 +392,7 @@ class ResourceServerHandler implements Runnable {
         return createErrorResponse("File not found: " + header.file);
       }
 
-      appendJSAgent = true;
+      javaScriptContent = getCombinedContentAndAgent(javaFile);
     }
 
     HttpResponse response = new HttpResponse();
@@ -416,18 +417,16 @@ class ResourceServerHandler implements Runnable {
     if (javaFile != null) {
       long length = javaFile.length();
 
-      if (appendJSAgent) {
-        length += getJSAgentContent().length;
+      if (javaScriptContent != null) {
+        length = javaScriptContent.length;
       }
 
       response.headers.put(CONTENT_LENGTH, Long.toString(length));
     }
 
     if (!headOnly) {
-      if (appendJSAgent) {
-        response.responseBodyStream = new SequenceInputStream(
-            new FileInputStream(javaFile),
-            new ByteArrayInputStream(getJSAgentContent()));
+      if (javaScriptContent != null) {
+        response.responseBodyStream = new ByteArrayInputStream(javaScriptContent);
       } else {
         List<int[]> ranges = header.getRanges();
 
@@ -501,6 +500,33 @@ class ResourceServerHandler implements Runnable {
     addStandardResponseHeaders(response);
 
     return response;
+  }
+
+  /**
+   * Combine the given *.dart.js file and the debugger JS agent.
+   * 
+   * @param dartJsFile
+   * @return
+   * @throws IOException
+   */
+  private byte[] getCombinedContentAndAgent(File dartJsFile) throws IOException {
+    // If we can find the source map token, then insert our debugger agent just before it.
+    // Otherwise, append the debugger agent to the end of the file content.
+
+    final String SRC_MAP_TOKEN = "//@ sourceMappingURL=";
+
+    String content = Files.toString(dartJsFile, Charsets.UTF_8);
+    String agent = new String(getJSAgentContent());
+
+    if (content.indexOf(SRC_MAP_TOKEN) != -1) {
+      int index = content.indexOf(SRC_MAP_TOKEN);
+
+      content = content.substring(0, index) + agent + content.substring(index);
+    } else {
+      content += agent;
+    }
+
+    return content.getBytes(Charsets.UTF_8);
   }
 
   private String getContentType(String extension) {

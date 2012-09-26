@@ -100,7 +100,8 @@ class CssScriptManager implements ResourceChangeParticipant {
           ref.getStyleSheetId(),
           IFileUtilities.getContents(file));
     } catch (IOException e) {
-      DartDebugCorePlugin.logError(e);
+      // We upload changed css scripts on a best-effort basis.
+      //DartDebugCorePlugin.logError(e);
     } catch (CoreException e) {
       DartDebugCorePlugin.logError(e);
     }
