@@ -18,7 +18,7 @@ class X {
     return "tcb { ${task.toString()}@${state.toString()} }";
   }
 }
-// It's a bug` unclosed @" quote
+// It's a bug` unclosed r" quote
 /**
  * http://www.google.com
  */

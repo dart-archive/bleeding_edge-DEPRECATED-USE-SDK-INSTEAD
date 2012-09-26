@@ -15,7 +15,7 @@ class X {
   }
 }
 
-// It's a bug` unclosed @" quote
+// It's a bug` unclosed r" quote
 
 /**
  * http://www.google.com
