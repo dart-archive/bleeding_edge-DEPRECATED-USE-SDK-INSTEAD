@@ -200,7 +200,8 @@ public class InstallUpdateAction extends Action {
     }
 
     monitor.setTaskName(UpdateJobMessages.InstallUpdateAction_preparing_task);
-    UpdateUtils.deleteDirectory(new File(installTarget, "dart-sdk"), mon.newChild(5)); //$NON-NLS-1$
+    File sdkDir = new File(installTarget, "dart-sdk");
+    UpdateUtils.deleteDirectory(sdkDir, mon.newChild(5)); //$NON-NLS-1$
     UpdateUtils.deleteDirectory(new File(installTarget, "samples"), mon.newChild(5)); //$NON-NLS-1$
 
     monitor.setTaskName(UpdateJobMessages.InstallUpdateAction_install_task);
@@ -208,6 +209,9 @@ public class InstallUpdateAction extends Action {
     int fileCount = UpdateUtils.countFiles(installDir);
     UpdateUtils.copyDirectory(installDir, installTarget, UPDATE_OVERRIDE_FILTER, //$NON-NLS-1$
         mon.newChild(67).setWorkRemaining(fileCount));
+
+    //ensure executables (such as the analyzer, pub and VM) have the exec bit set 
+    UpdateUtils.ensureExecutable(new File(sdkDir, "bin").listFiles());
 
   }
 

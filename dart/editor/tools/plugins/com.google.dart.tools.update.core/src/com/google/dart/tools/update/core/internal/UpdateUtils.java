@@ -221,6 +221,23 @@ public class UpdateUtils {
   }
 
   /**
+   * Ensure that the execute bit is set on the given files.
+   * 
+   * @param files the files that should be executable
+   */
+  public static void ensureExecutable(File... files) {
+    if (files != null) {
+      for (File file : files) {
+        if (!file.canExecute()) {
+          if (!makeExecutable(file)) {
+            UpdateCore.logError("Could not make " + file.getAbsolutePath() + " executable");
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * Parse the latest revision from the revision listing at the given url.
    * 
    * @param url the url to check
@@ -499,6 +516,20 @@ public class UpdateUtils {
       }
     }
     return true;
+  }
+
+  private static boolean makeExecutable(File file) {
+
+    UpdateCore.logInfo("Setting execute bit for " + file.getAbsolutePath());
+
+    // First try and set executable for all users.
+    if (file.setExecutable(true, false)) {
+      // success
+      return true;
+    }
+
+    // Then try only for the current user.
+    return file.setExecutable(true, true);
   }
 
   private static List<Revision> parseRevisions(String urlString) throws IOException {
