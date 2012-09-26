@@ -555,6 +555,19 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
+  public void test_1M1_rawString_interpolation() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_rawString_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var user = 'user';",
+        "  var host = 'host';",
+        "  var s = '$user@$host';",
+        "}",
+        "");
+    assertNoFix(cleanUp, initial);
+  }
+
   public void test_1M1_rawString_native() throws Exception {
     ICleanUp cleanUp = new Migrate_1M1_rawString_CleanUp();
     String initial = makeSource(

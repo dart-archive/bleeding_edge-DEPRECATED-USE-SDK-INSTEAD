@@ -33,7 +33,7 @@ public class Migrate_1M1_rawString_CleanUp extends AbstractMigrateCleanUp {
         List<DartStringLiteral> parts = node.getParts();
         for (DartStringLiteral part : parts) {
           String source = utils.getText(part);
-          if (source.startsWith("@")) {
+          if (source.startsWith("@'") || source.startsWith("@\"")) {
             addReplaceEdit(SourceRangeFactory.forStartLength(part, 1), "r");
           }
         }
