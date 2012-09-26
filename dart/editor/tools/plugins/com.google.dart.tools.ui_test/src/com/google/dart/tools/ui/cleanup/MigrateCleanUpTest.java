@@ -156,6 +156,41 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
+  public void test_1M1_identical_complex() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_identical_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var a;",
+        "  var b;",
+        "  a === -1;",
+        "  a === (1);",
+        "  a === 1 + 2;",
+        "  a === 1 - 2;",
+        "  a === 1 * 2;",
+        "  a === ~1;",
+        "  a === 1 + b;",
+        "  a === b + 1;",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var a;",
+        "  var b;",
+        "  a == -1;",
+        "  a == (1);",
+        "  a == 1 + 2;",
+        "  a == 1 - 2;",
+        "  a == 1 * 2;",
+        "  a == ~1;",
+        "  identical(a, 1 + b);",
+        "  identical(a, b + 1);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
   public void test_1M1_identicalNot() throws Exception {
     ICleanUp cleanUp = new Migrate_1M1_identical_CleanUp();
     String initial = makeSource(

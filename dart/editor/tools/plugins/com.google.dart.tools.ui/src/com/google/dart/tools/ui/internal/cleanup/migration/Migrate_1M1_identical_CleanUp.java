@@ -19,6 +19,8 @@ import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartNullLiteral;
+import com.google.dart.compiler.ast.DartParenthesizedExpression;
+import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
@@ -29,9 +31,21 @@ import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
  * @coverage dart.editor.ui.cleanup
  */
 public class Migrate_1M1_identical_CleanUp extends AbstractMigrateCleanUp {
-  private static boolean isEqualsLiteral(DartExpression arg) {
-    return arg instanceof DartNullLiteral || arg instanceof DartIntegerLiteral
-        || arg instanceof DartDoubleLiteral;
+  private static boolean isEqualsLiteral(DartExpression e) {
+    if (e instanceof DartParenthesizedExpression) {
+      DartParenthesizedExpression paren = (DartParenthesizedExpression) e;
+      return isEqualsLiteral(paren.getExpression());
+    }
+    if (e instanceof DartUnaryExpression) {
+      DartUnaryExpression unary = (DartUnaryExpression) e;
+      return isEqualsLiteral(unary.getArg());
+    }
+    if (e instanceof DartBinaryExpression) {
+      DartBinaryExpression binary = (DartBinaryExpression) e;
+      return isEqualsLiteral(binary.getArg1()) && isEqualsLiteral(binary.getArg2());
+    }
+    return e instanceof DartNullLiteral || e instanceof DartIntegerLiteral
+        || e instanceof DartDoubleLiteral;
   }
 
   @Override
