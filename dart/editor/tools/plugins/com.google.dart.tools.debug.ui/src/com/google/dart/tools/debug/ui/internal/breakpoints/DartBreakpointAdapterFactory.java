@@ -15,7 +15,6 @@
 package com.google.dart.tools.debug.ui.internal.breakpoints;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdapterFactory;
@@ -38,13 +37,17 @@ public class DartBreakpointAdapterFactory implements IAdapterFactory {
   @SuppressWarnings("rawtypes")
   @Override
   public Object getAdapter(Object adaptableObject, Class adapterType) {
-    if (adaptableObject instanceof CompilationUnitEditor) {
+    if (adaptableObject instanceof ITextEditor) {
       ITextEditor editorPart = (ITextEditor) adaptableObject;
 
       IResource resource = (IResource) editorPart.getEditorInput().getAdapter(IResource.class);
 
-      if (resource != null && DartCore.isDartLikeFileName(resource.getName())) {
-        return new DartBreakpointAdapter();
+      if (resource != null) {
+        String name = resource.getName().toLowerCase();
+
+        if (DartCore.isDartLikeFileName(name) || name.endsWith(".html") || name.endsWith(".htm")) {
+          return new DartBreakpointAdapter();
+        }
       }
     }
 

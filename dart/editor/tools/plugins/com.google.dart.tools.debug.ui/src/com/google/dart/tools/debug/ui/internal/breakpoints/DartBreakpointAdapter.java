@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -15,7 +15,6 @@ package com.google.dart.tools.debug.ui.internal.breakpoints;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
-import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -26,6 +25,7 @@ import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 
 /**
  * Adapter class in charge of toggling Dart breakpoints.
@@ -58,7 +58,7 @@ public class DartBreakpointAdapter implements IToggleBreakpointsTarget {
 
   @Override
   public void toggleLineBreakpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
-    CompilationUnitEditor editor = getEditor(part);
+    AbstractTextEditor editor = getEditor(part);
 
     if (editor != null) {
       IResource resource = (IResource) editor.getEditorInput().getAdapter(IResource.class);
@@ -80,6 +80,7 @@ public class DartBreakpointAdapter implements IToggleBreakpointsTarget {
         }
       }
 
+      // TODO(devoncarew): should we still do this line number magic?
       // Line numbers start with 0 in V8, with 1 in Eclipse.
       DartBreakpoint breakpoint = new DartBreakpoint(resource, lineNumber + 1);
 
@@ -98,9 +99,9 @@ public class DartBreakpointAdapter implements IToggleBreakpointsTarget {
 
   }
 
-  protected CompilationUnitEditor getEditor(IWorkbenchPart part) {
-    if (part instanceof CompilationUnitEditor) {
-      return (CompilationUnitEditor) part;
+  protected AbstractTextEditor getEditor(IWorkbenchPart part) {
+    if (part instanceof AbstractTextEditor) {
+      return (AbstractTextEditor) part;
     } else {
       return null;
     }

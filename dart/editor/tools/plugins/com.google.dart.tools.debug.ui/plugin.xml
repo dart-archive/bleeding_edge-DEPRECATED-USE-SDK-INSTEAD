@@ -18,6 +18,7 @@
             type="org.eclipse.jface.viewers.ISelection">
       </propertyTester>
    </extension>
+
    <extension
          point="org.eclipse.core.expressions.propertyTesters">
       <propertyTester
@@ -214,7 +215,7 @@
    <extension
          point="org.eclipse.core.runtime.adapters">
       <factory
-            adaptableType="com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor"
+            adaptableType="org.eclipse.ui.texteditor.ITextEditor"
             class="com.google.dart.tools.debug.ui.internal.breakpoints.DartBreakpointAdapterFactory">
          <adapter
                type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget">
@@ -232,6 +233,16 @@
                class="com.google.dart.tools.debug.ui.internal.breakpoints.DartToggleBreakpointDelegate"
                actionID="RulerDoubleClick"
                id="com.google.dart.tools.debug.breakpointActions.toggle">
+         </action>
+      </editorContribution>
+      <editorContribution
+            targetID="com.google.dart.tools.ui.web.html.HtmlEditor"
+            id="com.google.dart.tools.debug.ui.breakpointActions.html">
+         <action
+               label="%toggleBreakpoints.label"
+               class="com.google.dart.tools.debug.ui.internal.breakpoints.DartToggleBreakpointDelegate"
+               actionID="RulerDoubleClick"
+               id="com.google.dart.tools.debug.breakpointActions.toggle.html">
          </action>
       </editorContribution>
    </extension>
@@ -527,6 +538,7 @@
             sequence="CTRL+Z"
             platform="win32"/ -->                                
     </extension>
+    
    <extension
          point="org.eclipse.ltk.core.refactoring.deleteParticipants">
       <deleteParticipant
@@ -579,5 +591,33 @@
             includeOnPreferencePage="false">
       </specification>
    </extension>
+
+   <!-- debugger variables object contributions -->
    
+   <!-- extension point="org.eclipse.ui.popupMenus">
+      <objectContribution
+         id="com.google.dart.tools.debug.ui.openServerDeclarationContribution"
+         objectClass="com.google.dart.tools.debug.core.server.ServerDebugVariable">
+         <action
+            id="com.google.dart.tools.debug.ui.openServerDeclarationAction"
+            label="Open Declaration"
+            menubarPath="additions"
+            class="com.google.dart.tools.debug.ui.internal.util.OpenServerVariableDeclaration"
+            enablesFor="1">
+         </action>
+      </objectContribution>
+      
+      <objectContribution
+         id="com.google.dart.tools.debug.ui.openDartiumDeclarationContribution"
+         objectClass="com.google.dart.tools.debug.core.dartium.DartiumDebugVariable">
+         <action
+            id="com.google.dart.tools.debug.ui.openDartiumDeclarationAction"
+            label="Open Declaration"
+            menubarPath="additions"
+            class="com.google.dart.tools.debug.ui.internal.util.OpenDartiumVariableDeclaration"
+            enablesFor="1">
+         </action>
+      </objectContribution>
+   </extension -->
+
 </plugin>
