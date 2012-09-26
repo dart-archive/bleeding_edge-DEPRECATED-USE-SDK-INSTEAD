@@ -263,8 +263,102 @@
                 label="%command.cleanup.name"
                 style="push">
           </command>
+          <separator
+                name="com.google.dart.eclipse.ui.separator.pub"
+                visible="true">
+          </separator>
+          <command
+                commandId="com.google.dart.tools.ui.commands.pubInstall"
+                label="Pub Install"
+                style="push"
+                tooltip="Run pub install">
+             <visibleWhen
+                   checkEnabled="false">
+                <with
+                      variable="selection">
+                   <iterate>
+                      <adapt
+                            type="org.eclipse.core.resources.IProject">
+                      </adapt>
+                   </iterate>
+                </with>
+             </visibleWhen>
+          </command>
+          <command
+                commandId="com.google.dart.tools.ui.commands.pubUpdate"
+                label="Pub Update"
+                style="push"
+                tooltip="Run pub update">
+             <visibleWhen
+                   checkEnabled="false">
+                <with
+                      variable="selection">
+                   <iterate>
+                      <adapt
+                            type="org.eclipse.core.resources.IProject">
+                      </adapt>
+                   </iterate>
+                </with>
+             </visibleWhen>
+          </command>
        </menu>
     </menuContribution>
+     <menuContribution
+            allPopups="false"
+            locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=group.generate">
+         <command
+               commandId="com.google.dart.tools.ui.commands.pubInstall"
+               label="Pub Install"
+               style="push"
+               tooltip="Run pub install">
+                 <visibleWhen
+                  checkEnabled="false">
+                  <with
+                     variable="selection">
+                      <and>
+                          <count
+                                value="1">
+                          </count>
+                       <iterate>
+                        <adapt
+                             type="org.eclipse.core.resources.IResource">
+                          <test
+                                property="org.eclipse.core.resources.name"
+                                value="pubspec.yaml">
+                          </test>
+                       </adapt>
+                     </iterate>     
+                 </and>
+               </with>
+            </visibleWhen>
+         </command>
+         <command
+               commandId="com.google.dart.tools.ui.commands.pubUpdate"
+               label="Pub Update"
+               style="push"
+               tooltip="Run pub update">
+                 <visibleWhen
+                  checkEnabled="false">
+                  <with
+                     variable="selection">
+                      <and>
+                          <count
+                                value="1">
+                          </count>
+                       <iterate>
+                        <adapt
+                             type="org.eclipse.core.resources.IResource">
+                          <test
+                                property="org.eclipse.core.resources.name"
+                                value="pubspec.yaml">
+                          </test>
+                       </adapt>
+                     </iterate>     
+                 </and>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
   </extension>
   <extension
         point="org.eclipse.ui.ide.projectNatureImages">

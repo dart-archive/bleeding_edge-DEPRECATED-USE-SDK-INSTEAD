@@ -2007,7 +2007,12 @@
             id="com.google.dart.tools.ui.commands.pubInstall"
             name="Pub Install">
       </command>
-      
+      <command
+            defaultHandler="com.google.dart.tools.ui.internal.handlers.PubUpdateHandler"
+            description="Runs pub update"
+            id="com.google.dart.tools.ui.commands.pubUpdate"
+            name="Pub Update">
+      </command>
    </extension>
       
    <extension
