@@ -129,12 +129,35 @@ public class LaunchUtils {
 
   public static List<ILaunchConfiguration> getAllLaunches() {
     try {
-      return Arrays.asList(DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations());
+      ILaunchConfiguration[] launchConfigs = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations();
+      List<ILaunchConfiguration> validLaunchConfigs = new ArrayList<ILaunchConfiguration>();
+
+      for (ILaunchConfiguration config : launchConfigs) {
+        IResource[] resources = config.getMappedResources();
+        if (resources != null) {
+          for (int i = 0; i < resources.length; i++) {
+            IProject project = resources[i].getProject();
+            if (project != null && project.exists()) {
+              validLaunchConfigs.add(config);
+            }
+          }
+        } else {
+          validLaunchConfigs.add(config);
+        }
+      }
+
+      return validLaunchConfigs;
+
     } catch (CoreException exception) {
       DartUtil.logError(exception);
 
       return Collections.emptyList();
     }
+  }
+
+  public static ILaunchConfiguration[] getAllLaunchesArray() {
+    List<ILaunchConfiguration> configs = getAllLaunches();
+    return configs.toArray(new ILaunchConfiguration[configs.size()]);
   }
 
   /**
@@ -166,7 +189,7 @@ public class LaunchUtils {
   public static List<ILaunchShortcut> getApplicableLaunchShortcuts(IResource resource) {
     List<ILaunchShortcut> candidates = new ArrayList<ILaunchShortcut>();
 
-    for (ILaunchShortcut shortcut : shortcuts) {
+    for (ILaunchShortcut shortcut : getAllLaunchShortcuts()) {
       if (shortcut instanceof ILaunchShortcutExt) {
         ILaunchShortcutExt handler = (ILaunchShortcutExt) shortcut;
 

@@ -14,10 +14,8 @@
 
 package com.google.dart.tools.debug.ui.internal.dialogs;
 
-import com.google.dart.tools.debug.ui.internal.DartUtil;
+import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
@@ -37,13 +35,9 @@ public class LaunchConfigContentProvider implements IStructuredContentProvider {
 
   @Override
   public Object[] getElements(Object inputElement) {
-    try {
-      return DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations();
-    } catch (CoreException exception) {
-      DartUtil.logError(exception);
-
-      return new Object[0];
-    }
+    
+    return LaunchUtils.getAllLaunchesArray();
+  
   }
 
   @Override

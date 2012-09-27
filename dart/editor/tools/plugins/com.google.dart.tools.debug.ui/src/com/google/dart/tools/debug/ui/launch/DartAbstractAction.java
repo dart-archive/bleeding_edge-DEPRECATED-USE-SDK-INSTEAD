@@ -16,12 +16,10 @@ package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
-import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 import com.google.dart.tools.ui.actions.AbstractInstrumentedAction;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
@@ -141,31 +139,27 @@ public abstract class DartAbstractAction extends AbstractInstrumentedAction impl
   }
 
   private void fillMenu(Menu menu) {
-    try {
-      ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
 
-      // Iterate through all the launch configurations and add them to the pulldown menu.
-      for (final ILaunchConfiguration config : sort(manager.getLaunchConfigurations())) {
-        Action launchAction = new Action(
-            config.getName(),
-            DebugUITools.getDefaultImageDescriptor(config)) {
-          @Override
-          public void run() {
-            launch(config);
-          }
-        };
+    // Iterate through all the launch configurations and add them to the pulldown menu.
+    for (final ILaunchConfiguration config : sort(LaunchUtils.getAllLaunchesArray())) {
+      Action launchAction = new Action(
+          config.getName(),
+          DebugUITools.getDefaultImageDescriptor(config)) {
+        @Override
+        public void run() {
+          launch(config);
+        }
+      };
 
-        new ActionContributionItem(launchAction).fill(menu, -1);
-      }
-
-      if (menu.getItemCount() > 0) {
-        new Separator().fill(menu, -1);
-      }
-
-      new ActionContributionItem(new ManageLaunchesAction(window)).fill(menu, -1);
-    } catch (CoreException exception) {
-      DartUtil.logError(exception);
+      new ActionContributionItem(launchAction).fill(menu, -1);
     }
+
+    if (menu.getItemCount() > 0) {
+      new Separator().fill(menu, -1);
+    }
+
+    new ActionContributionItem(new ManageLaunchesAction(window)).fill(menu, -1);
+
   }
 
   private void initMenu() {

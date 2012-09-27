@@ -15,10 +15,7 @@ package com.google.dart.tools.debug.ui.internal;
 
 import com.google.dart.tools.debug.ui.internal.presentation.DebugElementAdapterFactory;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerViewManager;
-import com.google.dart.tools.debug.ui.launch.LaunchResourceChangeListener;
 
-import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -95,10 +92,6 @@ public class DartDebugUIPlugin extends AbstractUIPlugin {
 
     // Initialize the DebuggerViewManager.
     DebuggerViewManager.getDefault();
-
-    ResourcesPlugin.getWorkspace().addResourceChangeListener(
-        new LaunchResourceChangeListener(),
-        IResourceChangeEvent.PRE_DELETE);
 
     // Install our user agent manager.
     DartDebugUserAgentManager.install();
