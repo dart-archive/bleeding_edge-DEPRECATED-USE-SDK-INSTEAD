@@ -112,6 +112,8 @@ public class AST {
           null,
           null,
           new ArrayList<DartTypeNode>(),
+          -1,
+          -1,
           new ArrayList<DartNode>(),
           new ArrayList<DartTypeParameter>(),
           null,

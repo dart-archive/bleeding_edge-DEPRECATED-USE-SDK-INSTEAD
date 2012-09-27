@@ -13,6 +13,12 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_FUNCTION_NAME;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_TARGET;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
+
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -28,7 +34,9 @@ import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMethodInvocation;
+import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
@@ -63,7 +71,9 @@ import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
+import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.ISharedImages;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal;
@@ -71,15 +81,11 @@ import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrect
 import com.google.dart.tools.ui.internal.text.correction.proposals.SourceBuilder;
 import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedNodeProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedPositions;
+import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
 import com.google.dart.tools.ui.text.dart.IQuickFixProcessor;
-
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_FUNCTION_NAME;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_TARGET;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -107,6 +113,13 @@ import java.util.Set;
  */
 public class QuickFixProcessor implements IQuickFixProcessor {
   private static final int DEFAULT_RELEVANCE = 50;
+
+  private static final DartElementImageDescriptor OBJ_CONSTRUCTOR_DESC = new DartElementImageDescriptor(
+      DartPluginImages.DESC_MISC_PUBLIC,
+      DartElementImageDescriptor.CONSTRUCTOR,
+      DartElementImageProvider.SMALL_SIZE);
+  private static final Image OBJ_CONSTRUCTOR_IMG = DartToolsPlugin.getImageDescriptorRegistry().get(
+      OBJ_CONSTRUCTOR_DESC);
 
 //  private static ReplaceEdit createInsertEdit(int offset, String text) {
 //    return new ReplaceEdit(offset, 0, text);
@@ -192,12 +205,16 @@ public class QuickFixProcessor implements IQuickFixProcessor {
             }
             if (errorCode == TypeErrorCode.NO_SUCH_TYPE) {
               addFix_importLibrary_withType(location);
+              addFix_createClass(location);
             }
             if (errorCode == ResolverErrorCode.CANNOT_RESOLVE_METHOD) {
               addFix_importLibrary_withFunction(location);
             }
             if (errorCode == ResolverErrorCode.CANNOT_BE_RESOLVED) {
               addFix_importLibrary_withField(location);
+            }
+            if (errorCode == ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR) {
+              addFix_createConstructor();
             }
           }
         });
@@ -213,7 +230,120 @@ public class QuickFixProcessor implements IQuickFixProcessor {
         || errorCode == ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_CLASS
         || errorCode == TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED
         || errorCode == TypeErrorCode.IS_STATIC_METHOD_IN
-        || errorCode == TypeErrorCode.NO_SUCH_TYPE;
+        || errorCode == TypeErrorCode.NO_SUCH_TYPE
+        || errorCode == ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR;
+  }
+
+  private void addFix_createClass(IProblemLocation location) {
+    if (node instanceof DartIdentifier && node.getParent() instanceof DartTypeNode) {
+      String name = ((DartIdentifier) node).getName();
+      // prepare environment
+      String eol = utils.getEndOfLine();
+      DartClassMember<?> enclosingMember = ASTNodes.getAncestor(node, DartClassMember.class);
+      String prefix = utils.getNodePrefix(enclosingMember);
+      SourceRange range = SourceRangeFactory.forEndLength(enclosingMember, 0);
+      //
+      SourceBuilder sb = new SourceBuilder(range);
+      {
+        sb.append(eol + eol);
+        sb.append(prefix);
+        // "class"
+        sb.append("class ");
+        // append name
+        {
+          sb.startPosition("NAME");
+          sb.append(name);
+          sb.endPosition();
+        }
+        // no members
+        sb.append(" {");
+        sb.append(eol);
+        sb.append("}");
+      }
+      // insert source
+      addReplaceEdit(range, sb.toString());
+      // add linked positions
+      addLinkedPosition("NAME", TrackedPositions.forNode(node));
+      addLinkedPositions(sb);
+      // add proposal
+      addUnitCorrectionProposal(
+          unit,
+          TextFileChange.FORCE_SAVE,
+          Messages.format(CorrectionMessages.QuickFixProcessor_createClass, name),
+          DartPluginImages.get(DartPluginImages.IMG_OBJS_CLASS));
+    }
+  }
+
+  private void addFix_createConstructor() {
+    DartNewExpression newExpression = null;
+    DartNode nameNode = null;
+    String namePrefix = null;
+    String name = null;
+    // prepare "new X()"
+    if (node instanceof DartIdentifier && node.getParent().getParent() instanceof DartNewExpression) {
+      newExpression = (DartNewExpression) node.getParent().getParent();
+      // default constructor
+      if (node.getParent() instanceof DartTypeNode) {
+        namePrefix = ((DartIdentifier) node).getName();
+        name = "";
+      }
+      // named constructor
+      if (node.getParent() instanceof DartPropertyAccess) {
+        DartPropertyAccess constructorNameNode = (DartPropertyAccess) node.getParent();
+        nameNode = constructorNameNode.getName();
+        namePrefix = constructorNameNode.getQualifier().toSource() + ".";
+        name = constructorNameNode.getName().getName();
+      }
+    }
+    // prepare environment
+    String eol = utils.getEndOfLine();
+    String prefix = "  ";
+    CompilationUnit targetUnit;
+    SourceRange range;
+    {
+      ClassElement targetElement = (ClassElement) newExpression.getType().getElement();
+      {
+        SourceInfo targetSourceInfo = targetElement.getSourceInfo();
+        Source targetSource = targetSourceInfo.getSource();
+        IResource targetResource = ResourceUtil.getResource(targetSource);
+        targetUnit = (CompilationUnit) DartCore.create(targetResource);
+      }
+      range = SourceRangeFactory.forStartLength(
+          targetElement.getOpenBraceOffset() + "{".length(),
+          0);
+    }
+    // build source
+    SourceBuilder sb = new SourceBuilder(range);
+    {
+      sb.append(eol);
+      sb.append(prefix);
+      // append name
+      {
+        sb.append(namePrefix);
+        if (name != null) {
+          sb.startPosition("NAME");
+          sb.append(name);
+          sb.endPosition();
+        }
+      }
+      addFix_createUnresolvedMethod_parameters(sb, newExpression);
+      sb.append(") {" + eol + prefix + "}");
+      sb.append(eol);
+    }
+    // insert source
+    addReplaceEdit(range, sb.toString());
+    // add linked positions
+    if (Objects.equal(targetUnit, unit) && nameNode != null) {
+      addLinkedPosition("NAME", TrackedPositions.forNode(nameNode));
+    }
+    addLinkedPositions(sb);
+    // add proposal
+    {
+      String msg = Messages.format(
+          CorrectionMessages.QuickFixProcessor_createConstructor,
+          namePrefix + name);
+      addUnitCorrectionProposal(targetUnit, TextFileChange.FORCE_SAVE, msg, OBJ_CONSTRUCTOR_IMG);
+    }
   }
 
   private void addFix_createUnresolvedMethod(IProblemLocation location) throws Exception {
@@ -277,46 +407,14 @@ public class QuickFixProcessor implements IQuickFixProcessor {
           sb.append(name);
           sb.endPosition();
         }
-        // append parameters
-        sb.append("(");
-        Set<String> excluded = Sets.newHashSet();
-        List<DartExpression> arguments = invocation.getArguments();
-        for (int i = 0; i < arguments.size(); i++) {
-          DartExpression argument = arguments.get(i);
-          // append separator
-          if (i != 0) {
-            sb.append(", ");
-          }
-          // append type name
-          Type type = argument.getType();
-          if (type != null) {
-            String typeSource = ExtractUtils.getTypeSource(type);
-            {
-              sb.startPosition("TYPE" + i);
-              sb.append(typeSource);
-              addSuperTypeProposals(sb, Sets.<Type> newHashSet(), type);
-              sb.endPosition();
-            }
-            sb.append(" ");
-          }
-          // append parameter name
-          {
-            String[] suggestions = getArgumentNameSuggestions(excluded, type, argument, i);
-            String favorite = suggestions[0];
-            excluded.add(favorite);
-            sb.startPosition("ARG" + i);
-            sb.append(favorite);
-            sb.setProposals(suggestions);
-            sb.endPosition();
-          }
-        }
+        addFix_createUnresolvedMethod_parameters(sb, invocation);
         sb.append(") {" + eol + prefix + "}");
         sb.append(sourceSuffix);
       }
       // insert source
       addReplaceEdit(range, sb.toString());
       // add linked positions
-      if (targetUnit == unit) {
+      if (Objects.equal(targetUnit, unit)) {
         addLinkedPosition("NAME", TrackedPositions.forNode(node));
       }
       addLinkedPositions(sb);
@@ -324,7 +422,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
       addUnitCorrectionProposal(
           targetUnit,
           TextFileChange.FORCE_SAVE,
-          Messages.format(CorrectionMessages.QuickFixProcessor_addMethod_topLevel, name),
+          Messages.format(CorrectionMessages.QuickFixProcessor_createMethod, name),
           DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
     }
   }
@@ -344,6 +442,42 @@ public class QuickFixProcessor implements IQuickFixProcessor {
       type = null;
     }
     return type;
+  }
+
+  private void addFix_createUnresolvedMethod_parameters(SourceBuilder sb, DartInvocation invocation) {
+    // append parameters
+    sb.append("(");
+    Set<String> excluded = Sets.newHashSet();
+    List<DartExpression> arguments = invocation.getArguments();
+    for (int i = 0; i < arguments.size(); i++) {
+      DartExpression argument = arguments.get(i);
+      // append separator
+      if (i != 0) {
+        sb.append(", ");
+      }
+      // append type name
+      Type type = argument.getType();
+      if (type != null) {
+        String typeSource = ExtractUtils.getTypeSource(type);
+        {
+          sb.startPosition("TYPE" + i);
+          sb.append(typeSource);
+          addSuperTypeProposals(sb, Sets.<Type> newHashSet(), type);
+          sb.endPosition();
+        }
+        sb.append(" ");
+      }
+      // append parameter name
+      {
+        String[] suggestions = getArgumentNameSuggestions(excluded, type, argument, i);
+        String favorite = suggestions[0];
+        excluded.add(favorite);
+        sb.startPosition("ARG" + i);
+        sb.append(favorite);
+        sb.setProposals(suggestions);
+        sb.endPosition();
+      }
+    }
   }
 
   private void addFix_importLibrary(String importPath) throws Exception {

@@ -43,6 +43,90 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   private int proposalsExpectedNumber = 1;
   private int proposalsIndexToCheck = 0;
 
+  public void test_createClass() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  new Test();",
+        "}",
+        "");
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  new Test();",
+        "}",
+        "",
+        "class Test {",
+        "}",
+        "");
+  }
+
+  public void test_createClass_privateName() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  _Test t = null;",
+        "}",
+        "");
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  _Test t = null;",
+        "}",
+        "",
+        "class _Test {",
+        "}",
+        "");
+  }
+
+  public void test_createConstructor_default() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  new Test(1, 2.0);",
+        "}",
+        "class Test {",
+        "  someExistingMethod() {}",
+        "}",
+        "");
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  new Test(1, 2.0);",
+        "}",
+        "class Test {",
+        "  Test(int i, double d) {",
+        "  }",
+        "",
+        "  someExistingMethod() {}",
+        "}",
+        "");
+  }
+
+  public void test_createConstructor_named() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  new Test.name(1, 2.0);",
+        "}",
+        "class Test {",
+        "  someExistingMethod() {}",
+        "}",
+        "");
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  new Test.name(1, 2.0);",
+        "}",
+        "class Test {",
+        "  Test.name(int i, double d) {",
+        "  }",
+        "",
+        "  someExistingMethod() {}",
+        "}",
+        "");
+  }
+
   public void test_createFunction_hasParameters() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -335,6 +419,8 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  TableElement t = null;",
         "}",
         "");
+    proposalsExpectedNumber = 2;
+    proposalsIndexToCheck = 0;
     assertQuickFix(
         "import 'dart:html';",
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -364,6 +450,8 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "}",
         "");
     // we have "fix", note that preview is for library
+    proposalsExpectedNumber = 2;
+    proposalsIndexToCheck = 0;
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library App;",
@@ -395,7 +483,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "}",
         "");
     // do check
-    proposalsExpectedNumber = 2;
+    proposalsExpectedNumber = 3;
     proposalsIndexToCheck = 0;
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -418,6 +506,8 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  Test t = null;",
         "}",
         "");
+    proposalsExpectedNumber = 2;
+    proposalsIndexToCheck = 0;
     assertQuickFix(
         "import 'Lib.dart';",
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -425,16 +515,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  Test t = null;",
         "}",
         "");
-  }
-
-  public void test_importLibrary_withType_privateName() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  _Test t = null;",
-        "}",
-        "");
-    assertNoQuickFix();
   }
 
   public void test_useStaticAccess_method() throws Exception {
@@ -494,6 +574,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   /**
    * Asserts that there are no quick fixes for {@link IProblemLocation} using "problem*" fields.
    */
+  @SuppressWarnings("unused")
   private void assertNoQuickFix() throws CoreException {
     IDartCompletionProposal[] proposals = prepareQuickFixes();
     assertThat(proposals).isEmpty();
