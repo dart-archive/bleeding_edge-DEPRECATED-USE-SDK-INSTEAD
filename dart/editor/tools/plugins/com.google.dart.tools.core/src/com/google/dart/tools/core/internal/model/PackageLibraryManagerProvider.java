@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.model;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.SystemLibrary;
+import com.google.dart.compiler.SystemLibraryProvider;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.Context;
@@ -57,11 +58,6 @@ public class PackageLibraryManagerProvider {
     }
 
     @Override
-    public File getSdkLibPath() {
-      return null;
-    }
-
-    @Override
     public URI getShortUri(URI uri) {
       return uri;
     }
@@ -77,8 +73,8 @@ public class PackageLibraryManagerProvider {
     }
 
     @Override
-    protected void initLibraryManager(File sdkPath) {
-      //do nothing since no SDK means system library
+    protected void initLibraryManager(SystemLibraryProvider libraryProvider) {
+      //no SDK means no system libraries
     }
 
   }
@@ -153,7 +149,6 @@ public class PackageLibraryManagerProvider {
       return getAnyLibraryManager();
     }
   }
-
 
   /**
    * Reset the cached library manager. (Required to ensure a re-initialization post SDK
