@@ -43,7 +43,7 @@ class SamplesDartcTestSuite extends DartcCompilationTestSuite {
     // Using readOptionsFromFile here causes the file to be read twice,
     // because readOptionsFromFile is called again in the superclass.
     // Avoid this in new code.
-    return readOptionsFromFile(new Path.fromNative(filename))
+    return StandardTestSuite.readOptionsFromFile(new Path.fromNative(filename))
         ["containsLeadingHash"];
   }
 
