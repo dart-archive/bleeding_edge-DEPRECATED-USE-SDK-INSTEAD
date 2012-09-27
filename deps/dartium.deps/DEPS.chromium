@@ -8,11 +8,11 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "129568",
+  "webkit_revision": "129708",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "9834",
+  "nacl_revision": "9843",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "9330",  # native_client/DEPS: tools_rev
@@ -39,12 +39,12 @@ vars = {
   # and V8 without interference from each other.
   "webrtc_revision": "2718",
   "jsoncpp_revision": "248",
-  "nss_revision": "158129",
+  "nss_revision": "158748",
 }
 
 deps = {
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1020",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1052",
 
   "src/googleurl":
     (Var("googlecode_url") % "google-url") + "/trunk@179",
@@ -103,7 +103,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@67",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1501",
+    (Var("googlecode_url") % "gyp") + "/trunk@1507",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
