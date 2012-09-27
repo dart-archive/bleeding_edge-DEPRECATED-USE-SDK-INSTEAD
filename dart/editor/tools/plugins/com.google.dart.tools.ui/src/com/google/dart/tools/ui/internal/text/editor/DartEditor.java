@@ -1926,10 +1926,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     fOpenEditorActionGroup.setContext(null);
 
     // Quick Outline
-    IAction action = getAction(DartEditorActionDefinitionIds.SHOW_OUTLINE);
-    menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
+    {
+      IAction action = getAction(DartEditorActionDefinitionIds.SHOW_OUTLINE);
+      menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
+    }
 
-    // Cut/Copy/Paste actions..
+    // Cut/Copy/Paste actions
     addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.UNDO);
     addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.CUT);
     addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.COPY);
@@ -1941,6 +1943,16 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         ITextEditorActionConstants.GROUP_RESTORE,
         ITextEditorActionConstants.REVERT_TO_SAVED);
 
+    // Quick Assist
+    {
+      IAction action = getAction(ITextEditorActionConstants.QUICK_ASSIST);
+      if (action != null && action.isEnabled()) {
+        addAction(
+            menu,
+            ITextEditorActionConstants.GROUP_EDIT,
+            ITextEditorActionConstants.QUICK_ASSIST);
+      }
+    }
   }
 
   /*
