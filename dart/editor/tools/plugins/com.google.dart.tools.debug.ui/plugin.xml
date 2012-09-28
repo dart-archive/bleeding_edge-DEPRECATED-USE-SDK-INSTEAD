@@ -620,4 +620,127 @@
       </objectContribution>
    </extension -->
 
+   <extension point="org.eclipse.debug.ui.contextViewBindings">
+      <contextViewBinding
+            viewId="com.google.dart.tools.debug.debuggerView"
+            contextId="org.eclipse.debug.ui.debugging">
+      </contextViewBinding>
+      <contextViewBinding
+            viewId="com.google.dart.tools.debug.expressionsView"
+            contextId="org.eclipse.debug.ui.debugging"
+            autoOpen="false">
+      </contextViewBinding>
+      <contextViewBinding
+           viewId="com.google.dart.tools.debug.breakpointsView"
+           contextId="org.eclipse.debug.ui.debugging">
+      </contextViewBinding>
+   </extension>
+
+   <extension point="org.eclipse.ui.viewActions">
+      <viewContribution
+            targetID="com.google.dart.tools.debug.expressionsView"
+            id="org.eclipse.debug.ui.expressionsView.toolbar">
+         <action
+               id="org.eclipse.debug.ui.expresssionsView.toolbar.removeAll"
+               toolbarPath="expressionGroup"
+               hoverIcon="$nl$/icons/full/elcl16/rem_all_co.gif"
+               class="org.eclipse.debug.internal.ui.actions.expressions.RemoveAllExpressionsAction"
+               disabledIcon="$nl$/icons/full/dlcl16/rem_all_co.gif"
+               icon="$nl$/icons/full/elcl16/rem_all_co.gif"
+               helpContextId="remove_all_expressions_action_context"
+               label="%RemoveAllAction.label"
+               tooltip="%RemoveAllExpressionsAction.tooltip">
+         </action>
+         <action
+               id="org.eclipse.debug.ui.expresssionsView.toolbar.remove"
+               toolbarPath="expressionGroup"
+               hoverIcon="$nl$/icons/full/elcl16/rem_co.gif"
+               class="org.eclipse.debug.internal.ui.actions.expressions.RemoveExpressionAction"
+               disabledIcon="$nl$/icons/full/dlcl16/rem_co.gif"
+               icon="$nl$/icons/full/elcl16/rem_co.gif"
+               helpContextId="remove_expression_action_context"
+               label="%RemoveAction.label"
+               tooltip="%RemoveExpressionAction.tooltip">
+            <selection
+                  class="org.eclipse.debug.core.model.IExpression">
+            </selection>
+            <selection
+                  class="org.eclipse.debug.core.model.IVariable">
+            </selection>
+         </action>
+      </viewContribution>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <viewerContribution
+            targetID="com.google.dart.tools.debug.expressionsView"
+            id="org.eclipse.debug.ui.WatchExpressionActions">
+         <action
+               label="%editWatchExpressionAction.label"
+               helpContextId="edit_watch_expression_context"
+               class="org.eclipse.debug.internal.ui.actions.expressions.EditWatchExpressionAction"
+               tooltip="%editWatchExpressionAction.tooltip"
+               menubarPath="additions"
+               enablesFor="1"
+               id="org.eclipse.debug.ui.watchExpressionActions.EditWatchExpression">
+         </action>
+      </viewerContribution>
+      <viewerContribution
+            targetID="com.google.dart.tools.debug.expressionsView"
+            id="org.eclipse.debug.ui.WatchExpressionActions">
+         <action
+               label="%enableWatchExpressionAction.label"
+               helpContextId="enable_watch_expression_context"
+               class="org.eclipse.debug.internal.ui.actions.expressions.EnableWatchExpressionAction"
+               tooltip="%enableWatchExpressionAction.tooltip"
+               menubarPath="additions"
+               enablesFor="1"
+               id="org.eclipse.debug.ui.watchExpressionActions.EnableWatchExpression">
+         </action>
+      </viewerContribution>
+      <viewerContribution
+            targetID="com.google.dart.tools.debug.expressionsView"
+            id="org.eclipse.debug.ui.WatchExpressionActions">
+         <action
+               label="%disableWatchExpressionAction.label"
+               helpContextId="disable_watch_expression_context"
+               class="org.eclipse.debug.internal.ui.actions.expressions.DisableWatchExpressionAction"
+               tooltip="%disableWatchExpressionAction.tooltip"
+               menubarPath="additions"
+               enablesFor="1"
+               id="org.eclipse.debug.ui.watchExpressionActions.DisableWatchExpression">
+         </action>
+      </viewerContribution>
+
+      <!-- Contributions to Expression View Popup Menu -->
+      <viewerContribution
+            targetID="com.google.dart.tools.debug.expressionsView"
+            id="org.eclipse.debug.ui.expressionView.popupMenu">
+         <!-- Expression Group -->
+         <action
+               label="%RemoveAllAction.label"
+               icon="$nl$/icons/full/elcl16/rem_all_co.gif"
+               helpContextId="remove_all_expressions_action_context"
+               class="org.eclipse.debug.internal.ui.actions.expressions.RemoveAllExpressionsAction"
+               menubarPath="expressionGroup"
+               id="org.eclipse.debug.ui.debugview.popupMenu.removeAllExpressionsAction">
+         </action>
+         <action
+               label="%RemoveAction.label"
+               icon="$nl$/icons/full/elcl16/rem_co.gif"
+               helpContextId="remove_expression_action_context"
+               class="org.eclipse.debug.internal.ui.actions.expressions.RemoveExpressionAction"
+               menubarPath="expressionGroup"
+               id="org.eclipse.debug.ui.debugview.popupMenu.removeExpressionAction">
+            <selection
+                  class="org.eclipse.debug.core.model.IExpression">
+            </selection>
+            <selection
+                  class="org.eclipse.debug.core.model.IVariable">
+            </selection>
+         </action>
+      </viewerContribution>
+   </extension>
+      
 </plugin>
