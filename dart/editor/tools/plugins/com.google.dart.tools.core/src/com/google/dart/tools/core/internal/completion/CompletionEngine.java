@@ -274,9 +274,9 @@ public class CompletionEngine {
       DartIdentifier methodName = completionNode.getFunctionName();
       if (methodName == identifier || isCompletionAfterCascade()) {
         // { x.y! } OR { a.b..! }
-        Type type = analyzeType(completionNode.getTarget());
+        Type type = analyzeType(completionNode.getRealTarget());
         if (TypeKind.of(type) == TypeKind.VOID) {
-          DartExpression exp = completionNode.getTarget();
+          DartExpression exp = completionNode.getRealTarget();
           if (exp instanceof DartIdentifier) {
             Element element = ((DartIdentifier) exp).getElement();
             type = element.getType();
@@ -2371,7 +2371,7 @@ public class CompletionEngine {
     if (node instanceof DartMethodInvocation) {
       DartMethodInvocation invoke = (DartMethodInvocation) node;
       if (invoke.isCascade()) {
-        return findCascadeReceiver(invoke.getTarget());
+        return findCascadeReceiver(invoke.getRealTarget());
       }
     } else if (node instanceof DartPropertyAccess) {
       DartPropertyAccess access = (DartPropertyAccess) node;
