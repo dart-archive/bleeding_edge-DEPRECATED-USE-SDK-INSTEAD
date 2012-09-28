@@ -1,5 +1,5 @@
 
-#import('dart:html');
+import 'dart:html';
 
 num rotatePos = 0;
 
