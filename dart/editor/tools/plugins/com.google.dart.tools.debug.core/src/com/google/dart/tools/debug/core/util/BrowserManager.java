@@ -56,6 +56,12 @@ public class BrowserManager {
 
   private static IResourceResolver resourceResolver;
 
+  /** The initial page to navigate to. */
+  private static final String INITIAL_PAGE = "http://www.dartlang.org/";
+
+  /** A fragment of the initial page, used to search for it in a list of open tabs. */
+  private static final String INITIAL_PAGE_FRAGMENT = "dartlang.org/";
+
   public static BrowserManager getManager() {
     return manager;
   }
@@ -321,7 +327,7 @@ public class BrowserManager {
 
     if (enableDebugging) {
       // Start up with a blank page.
-      arguments.add("about:blank");
+      arguments.add(INITIAL_PAGE);
     } else {
       arguments.add(url);
     }
@@ -330,15 +336,12 @@ public class BrowserManager {
   }
 
   private ChromiumTabInfo findTargetTab(List<ChromiumTabInfo> tabs) {
-    //final String aboutBlank = "about:blank";
-    final String aboutBlank = "blank";
-
     for (ChromiumTabInfo tab : tabs) {
-      if (tab.getTitle().contains(aboutBlank)) {
+      if (tab.getTitle().contains(INITIAL_PAGE_FRAGMENT)) {
         return tab;
       }
 
-      if (tab.getUrl().contains(aboutBlank)) {
+      if (tab.getUrl().contains(INITIAL_PAGE_FRAGMENT)) {
         return tab;
       }
     }
