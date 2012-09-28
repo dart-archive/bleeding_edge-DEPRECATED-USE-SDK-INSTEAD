@@ -13,11 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_FUNCTION_NAME;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_TARGET;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
-
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -86,6 +81,11 @@ import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
 import com.google.dart.tools.ui.text.dart.IQuickFixProcessor;
+
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_FUNCTION_NAME;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_TARGET;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -369,7 +369,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
       } else {
         SourceInfo targetSourceInfo;
         {
-          DartExpression targetExpression = ((DartMethodInvocation) invocation).getTarget();
+          DartExpression targetExpression = ((DartMethodInvocation) invocation).getRealTarget();
           staticModifier = ElementKind.of(targetExpression.getElement()) == ElementKind.CLASS;
           Element targetElement = getTypeElement(targetExpression);
           targetSourceInfo = targetElement.getSourceInfo();
@@ -622,8 +622,12 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 
   private void addFix_useStaticAccess_method_proposal(DartMethodInvocation invocation,
       String className) {
+    DartExpression target = invocation.getTarget();
+    if (target == null) {
+      return;
+    }
     // replace "target" with class name
-    SourceRange range = SourceRangeFactory.create(invocation.getTarget());
+    SourceRange range = SourceRangeFactory.create(target);
     addReplaceEdit(range, className);
     // add proposal
     addUnitCorrectionProposal(
