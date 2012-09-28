@@ -68,6 +68,15 @@ void main() {
         <p>para
         1. list</p>
         ''');
+
+    // windows line endings have a \r\n format.
+    // instead of the unix \n
+    validate('take account of windows line endings', '''
+        line1\r\n\r\n        line2\r\n
+        ''', '''
+        <p>line1</p>
+        <p>line2</p>
+        ''');
   });
 
   group('Setext headers', () {
