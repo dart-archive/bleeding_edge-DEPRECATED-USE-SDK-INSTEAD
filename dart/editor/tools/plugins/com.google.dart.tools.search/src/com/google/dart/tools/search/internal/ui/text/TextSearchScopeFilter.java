@@ -37,7 +37,7 @@ public class TextSearchScopeFilter {
    * @return <code>true</code> if the file should be excluded, <code>false</code> otherwise
    */
   public static boolean isFiltered(File file) {
-    return file.isFile() && isExternaFileNameFiltered(file.getName());
+    return isPatchFile(file) || (file.isFile() && isExternaFileNameFiltered(file.getName()));
   }
 
   /**
@@ -63,6 +63,10 @@ public class TextSearchScopeFilter {
       }
     }
     return true;
+  }
+
+  private static boolean isPatchFile(File file) {
+    return DartCore.isPatchfile(file);
   }
 
   /**

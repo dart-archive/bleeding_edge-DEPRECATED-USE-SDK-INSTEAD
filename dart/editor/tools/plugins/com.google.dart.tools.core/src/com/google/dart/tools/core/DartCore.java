@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core;
 
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
@@ -711,6 +712,13 @@ public class DartCore extends Plugin implements DartSdkListener {
       return isPackagesResource(parentFolder);
     }
     return false;
+  }
+
+  /**
+   * Check if this URI denotes a patch file.
+   */
+  public static boolean isPatchfile(File file) {
+    return PackageLibraryManager.isPatchFile(file);
   }
 
   /**
