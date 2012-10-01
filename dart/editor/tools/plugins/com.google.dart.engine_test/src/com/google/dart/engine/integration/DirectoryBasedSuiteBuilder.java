@@ -65,8 +65,11 @@ public abstract class DirectoryBasedSuiteBuilder {
         if (childSuite.countTestCases() > 0) {
           suite.addTest(childSuite);
         }
-      } else if (file.getName().endsWith(".dart")) {
-        addTestForFile(suite, file);
+      } else {
+        String fileName = file.getName();
+        if (fileName.endsWith(".dart") && !fileName.endsWith("_patch.dart")) {
+          addTestForFile(suite, file);
+        }
       }
     }
   }
