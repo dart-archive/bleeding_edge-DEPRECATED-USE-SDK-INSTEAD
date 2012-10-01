@@ -7,7 +7,8 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: com.google.dart.engine;singleton:=true
 Bundle-Version: 0.1.0.qualifier
 Bundle-Vendor: %providerName
-Export-Package: com.google.dart.engine.ast,
+Export-Package: com.google.dart.engine,
+ com.google.dart.engine.ast,
  com.google.dart.engine.ast.visitor,
  com.google.dart.engine.cmdline,
  com.google.dart.engine.element,
@@ -26,6 +27,7 @@ Export-Package: com.google.dart.engine.ast,
  com.google.dart.engine.utilities.collection,
  com.google.dart.engine.utilities.general,
  com.google.dart.engine.utilities.io,
+ com.google.dart.engine.utilities.logging,
  com.google.dart.engine.utilities.os,
  com.google.dart.engine.utilities.source
 Bundle-ClassPath: .,
