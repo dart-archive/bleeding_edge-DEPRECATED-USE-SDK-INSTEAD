@@ -303,8 +303,16 @@ public abstract class AbstractScannerTest extends TestCase {
     assertKeywordToken("do");
   }
 
+  public void test_keyword_dynamic() throws Exception {
+    assertKeywordToken("dynamic");
+  }
+
   public void test_keyword_else() throws Exception {
     assertKeywordToken("else");
+  }
+
+  public void test_keyword_export() throws Exception {
+    assertKeywordToken("export");
   }
 
   public void test_keyword_extends() throws Exception {
@@ -343,12 +351,20 @@ public abstract class AbstractScannerTest extends TestCase {
     assertKeywordToken("implements");
   }
 
+  public void test_keyword_import() throws Exception {
+    assertKeywordToken("import");
+  }
+
   public void test_keyword_in() throws Exception {
     assertKeywordToken("in");
   }
 
   public void test_keyword_is() throws Exception {
     assertKeywordToken("is");
+  }
+
+  public void test_keyword_library() throws Exception {
+    assertKeywordToken("library");
   }
 
   public void test_keyword_new() throws Exception {
@@ -361,6 +377,10 @@ public abstract class AbstractScannerTest extends TestCase {
 
   public void test_keyword_operator() throws Exception {
     assertKeywordToken("operator");
+  }
+
+  public void test_keyword_part() throws Exception {
+    assertKeywordToken("part");
   }
 
   public void test_keyword_return() throws Exception {

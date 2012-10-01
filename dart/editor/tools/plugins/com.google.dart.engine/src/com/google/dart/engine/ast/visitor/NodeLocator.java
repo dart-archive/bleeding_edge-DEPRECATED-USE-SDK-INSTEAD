@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast.visitor;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
 
 /**
@@ -93,8 +94,9 @@ public class NodeLocator extends GeneralizingASTVisitor<Void> {
     } catch (NodeFoundException exception) {
       // A node with the right source position was found.
     } catch (Exception exception) {
-//      DartCore.logInformation("Unable to locate element at offset (" + startOffset + " - "
-//          + endOffset + ")", exception);
+      AnalysisEngine.getInstance().getLogger().logInformation(
+          "Unable to locate element at offset (" + startOffset + " - " + endOffset + ")",
+          exception);
       return null;
     }
     return foundNode;
@@ -108,9 +110,9 @@ public class NodeLocator extends GeneralizingASTVisitor<Void> {
       throw exception;
     } catch (Exception exception) {
       // Ignore the exception and proceed in order to visit the rest of the structure.
-//      DartCore.logInformation(
-//          "Exception caught while traversing an AST structure. Please report to the editor team.",
-//          exception);
+      AnalysisEngine.getInstance().getLogger().logInformation(
+          "Exception caught while traversing an AST structure.",
+          exception);
     }
     int start = node.getOffset();
     int end = start + node.getLength();

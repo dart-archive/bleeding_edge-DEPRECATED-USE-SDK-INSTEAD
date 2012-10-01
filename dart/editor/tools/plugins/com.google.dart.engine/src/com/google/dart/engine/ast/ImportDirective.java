@@ -22,7 +22,7 @@ import java.util.List;
  * 
  * <pre>
  * importDirective ::=
- *     'import' {@link StringLiteral libraryUri} ('as' identifier)? {@link ImportCombinator combinator}* ('&' 'export')? ';'
+ *     'import' {@link StringLiteral libraryUri} ('as' identifier)? {@link ImportCombinator combinator}* ';'
  * </pre>
  */
 public class ImportDirective extends Directive {
@@ -53,17 +53,6 @@ public class ImportDirective extends Directive {
   private NodeList<ImportCombinator> combinators = new NodeList<ImportCombinator>(this);
 
   /**
-   * The token representing the ampersand, or {@code null} if the imported names are not re-export.
-   */
-  private Token ampersand;
-
-  /**
-   * The token representing the 'export' token, or {@code null} if the imported names are not
-   * re-export.
-   */
-  private Token exportToken;
-
-  /**
    * The semicolon terminating the statement.
    */
   private Token semicolon;
@@ -80,37 +69,23 @@ public class ImportDirective extends Directive {
    * @param importToken the token representing the 'import' token
    * @param libraryUri the URI of the library being imported
    * @param asToken the token representing the 'as' token
+   * @param prefix the prefix to be used with the imported names
    * @param combinators the combinators used to control how names are imported
-   * @param ampersand the token representing the ampersand
-   * @param exportToken the token representing the 'export' token
    * @param semicolon the semicolon terminating the statement
    */
   public ImportDirective(Token importToken, StringLiteral libraryUri, Token asToken,
-      SimpleIdentifier prefix, List<ImportCombinator> combinators, Token ampersand,
-      Token exportToken, Token semicolon) {
+      SimpleIdentifier prefix, List<ImportCombinator> combinators, Token semicolon) {
     this.importToken = importToken;
     this.libraryUri = becomeParentOf(libraryUri);
     this.asToken = asToken;
     this.prefix = becomeParentOf(prefix);
     this.combinators.addAll(combinators);
-    this.ampersand = ampersand;
-    this.exportToken = exportToken;
     this.semicolon = semicolon;
   }
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitImportDirective(this);
-  }
-
-  /**
-   * Return the token representing the ampersand, or {@code null} if the imported names are not
-   * re-export.
-   * 
-   * @return the token representing the ampersand
-   */
-  public Token getAmpersand() {
-    return ampersand;
   }
 
   /**
@@ -140,16 +115,6 @@ public class ImportDirective extends Directive {
   @Override
   public Token getEndToken() {
     return semicolon;
-  }
-
-  /**
-   * Return the token representing the 'export' token, or {@code null} if the imported names are not
-   * re-export.
-   * 
-   * @return the token representing the 'export' token
-   */
-  public Token getExportToken() {
-    return exportToken;
   }
 
   /**
@@ -190,30 +155,12 @@ public class ImportDirective extends Directive {
   }
 
   /**
-   * Set the token representing the ampersand to the given token.
-   * 
-   * @param ampersand the token representing the ampersand
-   */
-  public void setAmpersand(Token ampersand) {
-    this.ampersand = ampersand;
-  }
-
-  /**
    * Set the token representing the 'as' token to the given token.
    * 
    * @param asToken the token representing the 'as' token
    */
   public void setAsToken(Token asToken) {
     this.asToken = asToken;
-  }
-
-  /**
-   * Set the token representing the 'export' token to the given token.
-   * 
-   * @param exportToken the token representing the 'export' token
-   */
-  public void setExportToken(Token exportToken) {
-    this.exportToken = exportToken;
   }
 
   /**

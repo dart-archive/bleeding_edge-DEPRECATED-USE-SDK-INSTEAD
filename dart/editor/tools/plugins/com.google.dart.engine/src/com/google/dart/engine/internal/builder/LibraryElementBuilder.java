@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.builder;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.ImportHideCombinator;
@@ -111,7 +112,6 @@ public class LibraryElementBuilder {
           }
         }
         specification.setCombinators(combinators.toArray(new ImportCombinator[combinators.size()]));
-        specification.setExported(importDirective.getExportToken() != null);
         specification.setImportedLibrary(buildLibrary(source));
         if (importDirective.getPrefix() != null) {
           SimpleIdentifier prefixNode = importDirective.getPrefix();
@@ -130,6 +130,8 @@ public class LibraryElementBuilder {
           specification.setPrefix(prefix);
         }
         imports.add(specification);
+      } else if (directive instanceof ExportDirective) {
+        // TODO(brianwilkerson) Implement this
       } else if (directive instanceof PartDirective) {
         StringLiteral partUri = ((PartDirective) directive).getPartUri();
         Source source = getSource(librarySource, partUri);

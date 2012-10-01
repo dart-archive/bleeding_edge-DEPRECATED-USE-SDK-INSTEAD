@@ -109,14 +109,9 @@ public class Parser {
    */
   private boolean inSwitch = false;
 
-  private static final String DYNAMIC = "Dynamic"; //$NON-NLS-1$
-  private static final String EXPORT = "export"; //$NON-NLS-1$
   private static final String HIDE = "hide"; //$NON-NLS-1$
-  private static final String IMPORT = "import"; //$NON-NLS-1$
-  private static final String LIBRARY = "library"; //$NON-NLS-1$
   private static final String OF = "of"; //$NON-NLS-1$
   private static final String ON = "on"; //$NON-NLS-1$
-  private static final String PART = "part"; //$NON-NLS-1$
   private static final String SHOW = "show"; //$NON-NLS-1$
 
   private static final ArrayList<Expression> EMPTY_EXPRESSION_LIST = new ArrayList<Expression>(0);
@@ -302,22 +297,22 @@ public class Parser {
     return currentToken;
   }
 
-  /**
-   * If the current token is an identifier matching the given identifier, return it after advancing
-   * to the next token. Otherwise report an error and return the current token without advancing.
-   * 
-   * @param identifier the identifier that is expected
-   * @return the token that matched the given type
-   */
-  private Token expect(String identifier) {
-    if (matches(identifier)) {
-      return getAndAdvance();
-    }
-    // Remove uses of this method in favor of matches?
-    // Pass in the error code to use to report the error?
-    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
-    return currentToken;
-  }
+//  /**
+//   * If the current token is an identifier matching the given identifier, return it after advancing
+//   * to the next token. Otherwise report an error and return the current token without advancing.
+//   * 
+//   * @param identifier the identifier that is expected
+//   * @return the token that matched the given type
+//   */
+//  private Token expect(String identifier) {
+//    if (matches(identifier)) {
+//      return getAndAdvance();
+//    }
+//    // Remove uses of this method in favor of matches?
+//    // Pass in the error code to use to report the error?
+//    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
+//    return currentToken;
+//  }
 
   /**
    * If the current token has the expected type, return it after advancing to the next token.
@@ -919,12 +914,11 @@ public class Parser {
    *     assignmentOperator expressionWithoutCascade
    * </pre>
    * 
-   * @param target the target of the method invocation
    * @return the expression representing the cascaded method invocation
    */
-  private Expression parseCascadeSection(Expression target) {
+  private Expression parseCascadeSection() {
     Token period = expect(TokenType.PERIOD_PERIOD);
-    Expression expression = target;
+    Expression expression = null;
     SimpleIdentifier functionName = null;
     if (currentToken.getType() == TokenType.IDENTIFIER) {
       functionName = parseSimpleIdentifier();
@@ -932,7 +926,8 @@ public class Parser {
       Token leftBracket = getAndAdvance();
       Expression index = parseExpression();
       Token rightBracket = expect(TokenType.CLOSE_SQUARE_BRACKET);
-      expression = new ArrayAccess(expression, leftBracket, index, rightBracket);
+      expression = new ArrayAccess(period, leftBracket, index, rightBracket);
+      period = null;
     } else {
       reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
       return expression;
@@ -941,13 +936,17 @@ public class Parser {
       while (currentToken.getType() == TokenType.OPEN_PAREN) {
         if (functionName != null) {
           expression = new MethodInvocation(expression, period, functionName, parseArgumentList());
+          period = null;
           functionName = null;
+        } else if (expression == null) {
+          return null;
         } else {
           expression = new FunctionExpressionInvocation(expression, parseArgumentList());
         }
       }
     } else if (functionName != null) {
       expression = new PropertyAccess(expression, period, functionName);
+      period = null;
     }
     boolean progress = true;
     while (progress) {
@@ -1249,7 +1248,8 @@ public class Parser {
     List<CompilationUnitMember> declarations = new ArrayList<CompilationUnitMember>();
     Token memberStart = currentToken;
     while (!matches(TokenType.EOF)) {
-      if (matches(IMPORT) || matches(LIBRARY) || matches(PART)) {
+      if (matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY)
+          || matches(Keyword.PART)) {
         if (declarationFound && !errorGenerated) {
           // reportError(ParserErrorCode.?);
           errorGenerated = true;
@@ -1521,21 +1521,22 @@ public class Parser {
    * 
    * <pre>
    * directive ::=
-   *     importDirective
+   *     exportDirective
    *   | libraryDirective
+   *   | importDirective
    *   | partDirective
-   *   | resourceDirective
    * </pre>
    * 
    * @return the directive that was parsed
    */
   private Directive parseDirective() {
-    String lexeme = currentToken.getLexeme();
-    if (lexeme.equals(IMPORT)) {
+    if (matches(Keyword.IMPORT)) {
       return parseImportDirective();
-    } else if (lexeme.equals(LIBRARY)) {
+    } else if (matches(Keyword.EXPORT)) {
+      return parseExportDirective();
+    } else if (matches(Keyword.LIBRARY)) {
       return parseLibraryDirective();
-    } else if (lexeme.equals(PART)) {
+    } else if (matches(Keyword.PART)) {
       return parsePartDirective();
     } else {
       // Internal error
@@ -1655,6 +1656,38 @@ public class Parser {
   }
 
   /**
+   * Parse an export directive.
+   * 
+   * <pre>
+   * exportDirective ::=
+   *     'export' stringLiteral combinator*';'
+   * 
+   * combinator ::=
+   *     'show' identifier (',' identifier)*
+   *   | 'hide' identifier (',' identifier)*
+   * </pre>
+   * 
+   * @return the export directive that was parsed
+   */
+  private ExportDirective parseExportDirective() {
+    Token exportKeyword = expect(Keyword.EXPORT);
+    StringLiteral libraryUri = parseStringLiteral();
+    List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
+    while (matches(SHOW) || matches(HIDE)) {
+      Token kind = expect(TokenType.IDENTIFIER);
+      if (kind.getLexeme().equals(SHOW)) {
+        List<Identifier> shownNames = parseIdentifierList();
+        combinators.add(new ImportShowCombinator(kind, shownNames));
+      } else {
+        List<Identifier> hiddenNames = parseIdentifierList();
+        combinators.add(new ImportHideCombinator(kind, hiddenNames));
+      }
+    }
+    Token semicolon = expect(TokenType.SEMICOLON);
+    return new ExportDirective(exportKeyword, libraryUri, combinators, semicolon);
+  }
+
+  /**
    * Parse an expression that does not contain any cascades.
    * 
    * <pre>
@@ -1678,15 +1711,19 @@ public class Parser {
     Expression expression = parseConditionalExpression();
     TokenType tokenType = currentToken.getType();
     if (tokenType == TokenType.PERIOD_PERIOD) {
+      List<Expression> cascadeSections = new ArrayList<Expression>();
       while (tokenType == TokenType.PERIOD_PERIOD) {
-        expression = parseCascadeSection(expression);
+        Expression section = parseCascadeSection();
+        if (section != null) {
+          cascadeSections.add(section);
+        }
         tokenType = currentToken.getType();
       }
+      return new CascadeExpression(expression, cascadeSections);
     } else if (tokenType.isAssignmentOperator()) {
       Token operator = getAndAdvance();
       ensureAssignable(expression);
-      expression = new AssignmentExpression(expression, operator, parseExpression());
-      return expression;
+      return new AssignmentExpression(expression, operator, parseExpression());
     }
     return expression;
   }
@@ -2265,7 +2302,7 @@ public class Parser {
    * 
    * <pre>
    * importDirective ::=
-   *     'import' stringLiteral ('as' identifier)? combinator* ('&' 'export')? ';'
+   *     'import' stringLiteral ('as' identifier)? combinator*';'
    * 
    * combinator ::=
    *     'show' identifier (',' identifier)*
@@ -2275,7 +2312,7 @@ public class Parser {
    * @return the import directive that was parsed
    */
   private ImportDirective parseImportDirective() {
-    Token importKeyword = expect(IMPORT);
+    Token importKeyword = expect(Keyword.IMPORT);
     StringLiteral libraryUri = parseStringLiteral();
     Token asToken = null;
     SimpleIdentifier prefix = null;
@@ -2294,22 +2331,8 @@ public class Parser {
         combinators.add(new ImportHideCombinator(kind, hiddenNames));
       }
     }
-    Token ampersand = null;
-    Token exportToken = null;
-    if (matches(TokenType.AMPERSAND)) {
-      ampersand = getAndAdvance();
-      exportToken = expect(EXPORT);
-    }
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new ImportDirective(
-        importKeyword,
-        libraryUri,
-        asToken,
-        prefix,
-        combinators,
-        ampersand,
-        exportToken,
-        semicolon);
+    return new ImportDirective(importKeyword, libraryUri, asToken, prefix, combinators, semicolon);
   }
 
   /**
@@ -2373,7 +2396,7 @@ public class Parser {
    * @return the library directive that was parsed
    */
   private LibraryDirective parseLibraryDirective() {
-    Token keyword = expect(LIBRARY);
+    Token keyword = expect(Keyword.LIBRARY);
     Identifier libraryName = parsePrefixedIdentifier();
     Token semicolon = expect(TokenType.SEMICOLON);
     return new LibraryDirective(keyword, libraryName, semicolon);
@@ -2897,7 +2920,7 @@ public class Parser {
    * @return the part or part-of directive that was parsed
    */
   private Directive parsePartDirective() {
-    Token partKeyword = expect(PART);
+    Token partKeyword = expect(Keyword.PART);
     if (matches(OF)) {
       Token ofKeyword = getAndAdvance();
       Identifier libraryName = parsePrefixedIdentifier();
@@ -3245,7 +3268,7 @@ public class Parser {
   private SimpleIdentifier parseSimpleIdentifier(ParserErrorCode errorCode) {
     if (matchesIdentifier()) {
       Token token = getAndAdvance();
-      if (token.getType() == TokenType.KEYWORD || token.getLexeme().equals(DYNAMIC)) {
+      if (token.getType() == TokenType.KEYWORD) {
         reportError(errorCode, token, token.getLexeme());
       }
       return new SimpleIdentifier(token);
@@ -3469,12 +3492,11 @@ public class Parser {
    */
   private Expression parseThrowExpression() {
     Token keyword = expect(Keyword.THROW);
-    if (matches(TokenType.SEMICOLON)) {
-      return new ThrowExpression(keyword, null, getAndAdvance());
+    if (matches(TokenType.SEMICOLON) || matches(TokenType.CLOSE_PAREN)) {
+      return new ThrowExpression(keyword, null);
     }
     Expression expression = parseExpression();
-    Token semicolon = null; //expect(TokenType.SEMICOLON);
-    return new ThrowExpression(keyword, expression, semicolon);
+    return new ThrowExpression(keyword, expression);
   }
 
   /**
@@ -3489,12 +3511,11 @@ public class Parser {
    */
   private Expression parseThrowExpressionWithoutCascade() {
     Token keyword = expect(Keyword.THROW);
-    if (matches(TokenType.SEMICOLON)) {
-      return new ThrowExpression(keyword, null, getAndAdvance());
+    if (matches(TokenType.SEMICOLON) || matches(TokenType.CLOSE_PAREN)) {
+      return new ThrowExpression(keyword, null);
     }
     Expression expression = parseExpressionWithoutCascade();
-    Token semicolon = null; //expect(TokenType.SEMICOLON);
-    return new ThrowExpression(keyword, expression, semicolon);
+    return new ThrowExpression(keyword, expression);
   }
 
   /**

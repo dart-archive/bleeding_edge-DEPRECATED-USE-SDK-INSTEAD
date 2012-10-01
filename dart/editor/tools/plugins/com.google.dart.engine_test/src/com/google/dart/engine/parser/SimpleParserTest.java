@@ -1740,29 +1740,15 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(clause.getKeyword());
   }
 
-  public void test_parseImportDirective_export() throws Exception {
-    ImportDirective directive = parse("parseImportDirective", "import 'lib/lib.dart' & export;");
-    assertNotNull(directive.getImportToken());
-    assertNotNull(directive.getLibraryUri());
-    assertNull(directive.getAsToken());
-    assertNull(directive.getPrefix());
-    assertSize(0, directive.getCombinators());
-    assertNotNull(directive.getAmpersand());
-    assertNotNull(directive.getExportToken());
-    assertNotNull(directive.getSemicolon());
-  }
-
   public void test_parseImportDirective_full() throws Exception {
     ImportDirective directive = parse(
         "parseImportDirective",
-        "import 'lib/lib.dart' as a hide A show B & export;");
+        "import 'lib/lib.dart' as a hide A show B;");
     assertNotNull(directive.getImportToken());
     assertNotNull(directive.getLibraryUri());
     assertNotNull(directive.getAsToken());
     assertNotNull(directive.getPrefix());
     assertSize(2, directive.getCombinators());
-    assertNotNull(directive.getAmpersand());
-    assertNotNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
   }
 
@@ -1773,8 +1759,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
     assertSize(1, directive.getCombinators());
-    assertNull(directive.getAmpersand());
-    assertNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
   }
 
@@ -1785,8 +1769,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
     assertSize(0, directive.getCombinators());
-    assertNull(directive.getAmpersand());
-    assertNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
   }
 
@@ -1797,8 +1779,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(directive.getAsToken());
     assertNotNull(directive.getPrefix());
     assertSize(0, directive.getCombinators());
-    assertNull(directive.getAmpersand());
-    assertNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
   }
 
@@ -1809,8 +1789,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
     assertSize(1, directive.getCombinators());
-    assertNull(directive.getAmpersand());
-    assertNull(directive.getExportToken());
     assertNotNull(directive.getSemicolon());
   }
 

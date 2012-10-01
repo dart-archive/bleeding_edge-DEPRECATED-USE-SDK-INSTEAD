@@ -40,6 +40,8 @@ public interface ASTVisitor<R> {
 
   public R visitBreakStatement(BreakStatement node);
 
+  public R visitCascadeExpression(CascadeExpression node);
+
   public R visitCatchClause(CatchClause node);
 
   public R visitClassDeclaration(ClassDeclaration node);
@@ -65,6 +67,8 @@ public interface ASTVisitor<R> {
   public R visitEmptyFunctionBody(EmptyFunctionBody node);
 
   public R visitEmptyStatement(EmptyStatement node);
+
+  public R visitExportDirective(ExportDirective node);
 
   public R visitExpressionFunctionBody(ExpressionFunctionBody node);
 

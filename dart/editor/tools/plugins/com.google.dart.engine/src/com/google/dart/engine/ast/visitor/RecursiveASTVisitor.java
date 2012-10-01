@@ -25,6 +25,7 @@ import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.BreakStatement;
+import com.google.dart.engine.ast.CascadeExpression;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.Comment;
@@ -38,6 +39,7 @@ import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.EmptyFunctionBody;
 import com.google.dart.engine.ast.EmptyStatement;
+import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.ExtendsClause;
@@ -182,6 +184,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitCascadeExpression(CascadeExpression node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
   public R visitCatchClause(CatchClause node) {
     node.visitChildren(this);
     return null;
@@ -255,6 +263,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitEmptyStatement(EmptyStatement node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public R visitExportDirective(ExportDirective node) {
     node.visitChildren(this);
     return null;
   }

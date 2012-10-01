@@ -97,6 +97,32 @@ public final class ASTFactory {
     return new BreakStatement(token(Keyword.BREAK), identifier(label), token(TokenType.SEMICOLON));
   }
 
+  public static ArrayAccess cascadedArrayAccess(Expression index) {
+    return new ArrayAccess(
+        token(TokenType.PERIOD_PERIOD),
+        token(TokenType.OPEN_SQUARE_BRACKET),
+        index,
+        token(TokenType.CLOSE_SQUARE_BRACKET));
+  }
+
+  public static MethodInvocation cascadedMethodInvocation(String methodName,
+      Expression... arguments) {
+    return new MethodInvocation(
+        null,
+        token(TokenType.PERIOD_PERIOD),
+        identifier(methodName),
+        argumentList(arguments));
+  }
+
+  public static PropertyAccess cascadedPropertyAccess(String propertyName) {
+    return new PropertyAccess(null, token(TokenType.PERIOD_PERIOD), identifier(propertyName));
+  }
+
+  public static CascadeExpression cascadeExpression(Expression target,
+      Expression... cascadeSections) {
+    return new CascadeExpression(target, list(cascadeSections));
+  }
+
   public static CatchClause catchClause(String exceptionParameter, Statement... statements) {
     return catchClause(null, exceptionParameter, null, statements);
   }
@@ -262,6 +288,14 @@ public final class ASTFactory {
     return new EmptyStatement(token(TokenType.SEMICOLON));
   }
 
+  public static ExportDirective exportDirective(String uri, List<ImportCombinator> combinators) {
+    return new ExportDirective(
+        token(Keyword.EXPORT),
+        string(uri),
+        combinators,
+        token(TokenType.SEMICOLON));
+  }
+
   public static ExpressionFunctionBody expressionFunctionBody(Expression expression) {
     return new ExpressionFunctionBody(
         token(TokenType.FUNCTION),
@@ -423,15 +457,13 @@ public final class ASTFactory {
   }
 
   public static ImportDirective importDirective(String uri, String prefix,
-      List<ImportCombinator> combinators, boolean export) {
+      List<ImportCombinator> combinators) {
     return new ImportDirective(
-        token("import"),
+        token(Keyword.IMPORT),
         string(uri),
         prefix == null ? null : token(Keyword.AS),
         prefix == null ? null : identifier(prefix),
         combinators,
-        export ? token(TokenType.AMPERSAND) : null,
-        export ? token("export") : null,
         token(TokenType.SEMICOLON));
   }
 
@@ -498,7 +530,7 @@ public final class ASTFactory {
 
   public static LibraryDirective libraryDirective(String libraryName) {
     return new LibraryDirective(
-        token("library"),
+        token(Keyword.LIBRARY),
         identifier(libraryName),
         token(TokenType.SEMICOLON));
   }
@@ -600,11 +632,15 @@ public final class ASTFactory {
   }
 
   public static PartDirective partDirective(String url) {
-    return new PartDirective(token(url), string("a.dart"), token(TokenType.SEMICOLON));
+    return new PartDirective(token(Keyword.PART), string(url), token(TokenType.SEMICOLON));
   }
 
   public static PartOfDirective partOfDirective(Identifier libraryName) {
-    return new PartOfDirective(token("part"), token("of"), libraryName, token(TokenType.SEMICOLON));
+    return new PartOfDirective(
+        token(Keyword.PART),
+        token("of"),
+        libraryName,
+        token(TokenType.SEMICOLON));
   }
 
   public static PostfixExpression postfixExpression(Expression expression, TokenType operator) {
@@ -733,7 +769,7 @@ public final class ASTFactory {
   }
 
   public static ThrowExpression throwExpression(Expression expression) {
-    return new ThrowExpression(token(Keyword.THROW), expression, token(TokenType.SEMICOLON));
+    return new ThrowExpression(token(Keyword.THROW), expression);
   }
 
   public static TopLevelVariableDeclaration topLevelVariableDeclaration(Keyword keyword,

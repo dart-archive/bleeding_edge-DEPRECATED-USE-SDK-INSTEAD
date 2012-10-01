@@ -26,6 +26,7 @@ import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.BreakStatement;
+import com.google.dart.engine.ast.CascadeExpression;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.Comment;
@@ -40,6 +41,7 @@ import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.EmptyFunctionBody;
 import com.google.dart.engine.ast.EmptyStatement;
+import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.ExpressionStatement;
@@ -165,7 +167,11 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
 
   @Override
   public Void visitArrayAccess(ArrayAccess node) {
-    visit(node.getArray());
+    if (node.isCascaded()) {
+      writer.print("..");
+    } else {
+      visit(node.getArray());
+    }
     writer.print('[');
     visit(node.getIndex());
     writer.print(']');
@@ -217,6 +223,13 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
     writer.print("break");
     visit(" ", node.getLabel());
     writer.print(";");
+    return null;
+  }
+
+  @Override
+  public Void visitCascadeExpression(CascadeExpression node) {
+    visit(node.getTarget());
+    visitList(node.getCascadeSections());
     return null;
   }
 
@@ -339,6 +352,15 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
 
   @Override
   public Void visitEmptyStatement(EmptyStatement node) {
+    writer.print(';');
+    return null;
+  }
+
+  @Override
+  public Void visitExportDirective(ExportDirective node) {
+    writer.print("export ");
+    visit(node.getLibraryUri());
+    visitList(" ", node.getCombinators(), " ");
     writer.print(';');
     return null;
   }
@@ -499,9 +521,6 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
     visit(node.getLibraryUri());
     visit(" as ", node.getPrefix());
     visitList(" ", node.getCombinators(), " ");
-    if (node.getExportToken() != null) {
-      writer.print(" & export");
-    }
     writer.print(';');
     return null;
   }
@@ -640,7 +659,11 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
 
   @Override
   public Void visitMethodInvocation(MethodInvocation node) {
-    visit(node.getTarget(), ".");
+    if (node.isCascaded()) {
+      writer.print("..");
+    } else {
+      visit(node.getTarget(), ".");
+    }
     visit(node.getMethodName());
     visit(node.getArgumentList());
     return null;
@@ -714,8 +737,12 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
 
   @Override
   public Void visitPropertyAccess(PropertyAccess node) {
-    visit(node.getTarget());
-    writer.print('.');
+    if (node.isCascaded()) {
+      writer.print("..");
+    } else {
+      visit(node.getTarget());
+      writer.print('.');
+    }
     visit(node.getPropertyName());
     return null;
   }

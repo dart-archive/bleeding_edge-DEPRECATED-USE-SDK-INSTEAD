@@ -20,6 +20,7 @@ import java.util.Map;
  * The enumeration {@code Keyword} defines the keywords in the Dart programming language.
  */
 public enum Keyword {
+  ASSERT("assert"),
   BREAK("break"),
   CASE("case"),
   CATCH("catch"),
@@ -53,13 +54,16 @@ public enum Keyword {
   // Pseudo keywords:
   ABSTRACT("abstract", true),
   AS("as", true),
-  ASSERT("assert", true),
-  //DYNAMIC("Dynamic", true),
+  DYNAMIC("dynamic", true),
+  EXPORT("export", true),
   EXTERNAL("external", true),
   FACTORY("factory", true),
   GET("get", true),
   IMPLEMENTS("implements", true),
+  IMPORT("import", true),
+  LIBRARY("library", true),
   OPERATOR("operator", true),
+  PART("part", true),
   SET("set", true),
   STATIC("static", true),
   TYPEDEF("typedef", true);

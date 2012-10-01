@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.scanner.TokenType;
 
 /**
  * Instances of the class {@code PropertyAccess} represent the access of a property of an object.
@@ -102,6 +103,17 @@ public class PropertyAccess extends Expression {
    */
   public Expression getTarget() {
     return target;
+  }
+
+  /**
+   * Return {@code true} if this expression is cascaded. If it is, then the target of this
+   * expression is not stored locally but is stored in the nearest ancestor that is a
+   * {@link CascadeExpression}.
+   * 
+   * @return {@code true} if this expression is cascaded
+   */
+  public boolean isCascaded() {
+    return operator.getType() == TokenType.PERIOD_PERIOD;
   }
 
   /**

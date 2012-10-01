@@ -25,9 +25,16 @@ import com.google.dart.engine.scanner.Token;
  */
 public class ArrayAccess extends Expression {
   /**
-   * The expression used to compute the array being indexed.
+   * The expression used to compute the array being indexed, or {@code null} if this array access is
+   * part of a cascade expression.
    */
   private Expression array;
+
+  /**
+   * The period ("..") before a cascaded array access, or {@code null} if this array access is not
+   * part of a cascade expression.
+   */
+  private Token period;
 
   /**
    * The left square bracket.
@@ -65,13 +72,29 @@ public class ArrayAccess extends Expression {
     this.rightBracket = rightBracket;
   }
 
+  /**
+   * Initialize a newly created array access expression.
+   * 
+   * @param period the period ("..") before a cascaded array access
+   * @param leftBracket the left square bracket
+   * @param index the expression used to compute the index
+   * @param rightBracket the right square bracket
+   */
+  public ArrayAccess(Token period, Token leftBracket, Expression index, Token rightBracket) {
+    this.period = period;
+    this.leftBracket = leftBracket;
+    this.index = becomeParentOf(index);
+    this.rightBracket = rightBracket;
+  }
+
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitArrayAccess(this);
   }
 
   /**
-   * Return the expression used to compute the array being indexed.
+   * Return the expression used to compute the array being indexed, or {@code null} if this array
+   * access is part of a cascade expression.
    * 
    * @return the expression used to compute the array being indexed
    */
@@ -81,7 +104,10 @@ public class ArrayAccess extends Expression {
 
   @Override
   public Token getBeginToken() {
-    return array.getBeginToken();
+    if (array != null) {
+      return array.getBeginToken();
+    }
+    return period;
   }
 
   @Override
@@ -108,12 +134,33 @@ public class ArrayAccess extends Expression {
   }
 
   /**
+   * Return the period ("..") before a cascaded array access, or {@code null} if this array access
+   * is not part of a cascade expression.
+   * 
+   * @return the period ("..") before a cascaded array access
+   */
+  public Token getPeriod() {
+    return period;
+  }
+
+  /**
    * Return the right square bracket.
    * 
    * @return the right square bracket
    */
   public Token getRightBracket() {
     return rightBracket;
+  }
+
+  /**
+   * Return {@code true} if this expression is cascaded. If it is, then the target of this
+   * expression is not stored locally but is stored in the nearest ancestor that is a
+   * {@link CascadeExpression}.
+   * 
+   * @return {@code true} if this expression is cascaded
+   */
+  public boolean isCascaded() {
+    return period != null;
   }
 
   /**
@@ -141,6 +188,15 @@ public class ArrayAccess extends Expression {
    */
   public void setLeftBracket(Token bracket) {
     leftBracket = bracket;
+  }
+
+  /**
+   * Set the period ("..") before a cascaded array access to the given token.
+   * 
+   * @param period the period ("..") before a cascaded array access
+   */
+  public void setPeriod(Token period) {
+    this.period = period;
   }
 
   /**

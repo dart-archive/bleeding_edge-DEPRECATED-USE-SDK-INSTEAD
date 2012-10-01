@@ -37,12 +37,6 @@ public class ThrowExpression extends Expression {
   private Expression expression;
 
   /**
-   * The semicolon terminating the expression. TODO(brianwilkerson) Remove this field if it is no
-   * longer needed. (Waiting for response from Golad.)
-   */
-  private Token semicolon;
-
-  /**
    * Initialize a newly created throw expression.
    */
   public ThrowExpression() {
@@ -53,12 +47,10 @@ public class ThrowExpression extends Expression {
    * 
    * @param keyword the token representing the 'throw' keyword
    * @param expression the expression computing the exception to be thrown
-   * @param semicolon the semicolon terminating the expression
    */
-  public ThrowExpression(Token keyword, Expression expression, Token semicolon) {
+  public ThrowExpression(Token keyword, Expression expression) {
     this.keyword = keyword;
     this.expression = becomeParentOf(expression);
-    this.semicolon = semicolon;
   }
 
   @Override
@@ -73,7 +65,10 @@ public class ThrowExpression extends Expression {
 
   @Override
   public Token getEndToken() {
-    return semicolon;
+    if (expression != null) {
+      return expression.getEndToken();
+    }
+    return keyword;
   }
 
   /**
@@ -97,15 +92,6 @@ public class ThrowExpression extends Expression {
   }
 
   /**
-   * Return the semicolon terminating the expression.
-   * 
-   * @return the semicolon terminating the expression
-   */
-  public Token getSemicolon() {
-    return semicolon;
-  }
-
-  /**
    * Set the expression computing the exception to be thrown to the given expression.
    * 
    * @param expression the expression computing the exception to be thrown
@@ -121,15 +107,6 @@ public class ThrowExpression extends Expression {
    */
   public void setKeyword(Token keyword) {
     this.keyword = keyword;
-  }
-
-  /**
-   * Set the semicolon terminating the expression to the given token.
-   * 
-   * @param semicolon the semicolon terminating the expression
-   */
-  public void setSemicolon(Token semicolon) {
-    this.semicolon = semicolon;
   }
 
   @Override

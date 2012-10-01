@@ -34,6 +34,10 @@ import static com.google.dart.engine.ast.ASTFactory.block;
 import static com.google.dart.engine.ast.ASTFactory.blockFunctionBody;
 import static com.google.dart.engine.ast.ASTFactory.booleanLiteral;
 import static com.google.dart.engine.ast.ASTFactory.breakStatement;
+import static com.google.dart.engine.ast.ASTFactory.cascadeExpression;
+import static com.google.dart.engine.ast.ASTFactory.cascadedArrayAccess;
+import static com.google.dart.engine.ast.ASTFactory.cascadedMethodInvocation;
+import static com.google.dart.engine.ast.ASTFactory.cascadedPropertyAccess;
 import static com.google.dart.engine.ast.ASTFactory.catchClause;
 import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.compilationUnit;
@@ -45,6 +49,7 @@ import static com.google.dart.engine.ast.ASTFactory.doStatement;
 import static com.google.dart.engine.ast.ASTFactory.doubleLiteral;
 import static com.google.dart.engine.ast.ASTFactory.emptyFunctionBody;
 import static com.google.dart.engine.ast.ASTFactory.emptyStatement;
+import static com.google.dart.engine.ast.ASTFactory.exportDirective;
 import static com.google.dart.engine.ast.ASTFactory.expressionFunctionBody;
 import static com.google.dart.engine.ast.ASTFactory.expressionStatement;
 import static com.google.dart.engine.ast.ASTFactory.extendsClause;
@@ -174,6 +179,30 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitBreakStatement_noLabel() {
     assertSource("break;", breakStatement());
+  }
+
+  public void test_visitCascadeExpression_array() {
+    assertSource(
+        "a..[0]..[1]",
+        cascadeExpression(
+            identifier("a"),
+            cascadedArrayAccess(integer(0L)),
+            cascadedArrayAccess(integer(1L))));
+  }
+
+  public void test_visitCascadeExpression_field() {
+    assertSource(
+        "a..b..c",
+        cascadeExpression(identifier("a"), cascadedPropertyAccess("b"), cascadedPropertyAccess("c")));
+  }
+
+  public void test_visitCascadeExpression_method() {
+    assertSource(
+        "a..b()..c()",
+        cascadeExpression(
+            identifier("a"),
+            cascadedMethodInvocation("b"),
+            cascadedMethodInvocation("c")));
   }
 
   public void test_visitCatchClause_catch_noStack() {
@@ -448,6 +477,24 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource(";", emptyStatement());
   }
 
+  public void test_visitExportDirective_combinator() {
+    assertSource(
+        "export 'a.dart' show A;",
+        exportDirective("a.dart", list((ImportCombinator) importShowCombinator(identifier("A")))));
+  }
+
+  public void test_visitExportDirective_combinators() {
+    assertSource(
+        "export 'a.dart' show A hide B;",
+        exportDirective(
+            "a.dart",
+            list(importShowCombinator(identifier("A")), importHideCombinator(identifier("B")))));
+  }
+
+  public void test_visitExportDirective_minimal() {
+    assertSource("export 'a.dart';", exportDirective("a.dart", new ArrayList<ImportCombinator>()));
+  }
+
   public void test_visitExpressionFunctionBody() {
     assertSource("=> a;", expressionFunctionBody(identifier("a")));
   }
@@ -690,18 +737,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
         importDirective(
             "a.dart",
             null,
-            list((ImportCombinator) importShowCombinator(identifier("A"))),
-            false));
-  }
-
-  public void test_visitImportDirective_combinator_export() {
-    assertSource(
-        "import 'a.dart' show A & export;",
-        importDirective(
-            "a.dart",
-            null,
-            list((ImportCombinator) importShowCombinator(identifier("A"))),
-            true));
+            list((ImportCombinator) importShowCombinator(identifier("A")))));
   }
 
   public void test_visitImportDirective_combinators() {
@@ -710,36 +746,19 @@ public class ToSourceVisitorTest extends EngineTestCase {
         importDirective(
             "a.dart",
             null,
-            list(importShowCombinator(identifier("A")), importHideCombinator(identifier("B"))),
-            false));
-  }
-
-  public void test_visitImportDirective_combinators_export() {
-    assertSource(
-        "import 'a.dart' show A hide B & export;",
-        importDirective(
-            "a.dart",
-            null,
-            list(importShowCombinator(identifier("A")), importHideCombinator(identifier("B"))),
-            true));
-  }
-
-  public void test_visitImportDirective_export() {
-    assertSource(
-        "import 'a.dart' & export;",
-        importDirective("a.dart", null, new ArrayList<ImportCombinator>(), true));
+            list(importShowCombinator(identifier("A")), importHideCombinator(identifier("B")))));
   }
 
   public void test_visitImportDirective_minimal() {
     assertSource(
         "import 'a.dart';",
-        importDirective("a.dart", null, new ArrayList<ImportCombinator>(), false));
+        importDirective("a.dart", null, new ArrayList<ImportCombinator>()));
   }
 
   public void test_visitImportDirective_prefix() {
     assertSource(
         "import 'a.dart' as p;",
-        importDirective("a.dart", "p", new ArrayList<ImportCombinator>(), false));
+        importDirective("a.dart", "p", new ArrayList<ImportCombinator>()));
   }
 
   public void test_visitImportDirective_prefix_combinator() {
@@ -748,18 +767,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
         importDirective(
             "a.dart",
             "p",
-            list((ImportCombinator) importShowCombinator(identifier("A"))),
-            false));
-  }
-
-  public void test_visitImportDirective_prefix_combinator_export() {
-    assertSource(
-        "import 'a.dart' as p show A & export;",
-        importDirective(
-            "a.dart",
-            "p",
-            list((ImportCombinator) importShowCombinator(identifier("A"))),
-            true));
+            list((ImportCombinator) importShowCombinator(identifier("A")))));
   }
 
   public void test_visitImportDirective_prefix_combinators() {
@@ -768,24 +776,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
         importDirective(
             "a.dart",
             "p",
-            list(importShowCombinator(identifier("A")), importHideCombinator(identifier("B"))),
-            false));
-  }
-
-  public void test_visitImportDirective_prefix_combinators_export() {
-    assertSource(
-        "import 'a.dart' as p show A hide B & export;",
-        importDirective(
-            "a.dart",
-            "p",
-            list(importShowCombinator(identifier("A")), importHideCombinator(identifier("B"))),
-            true));
-  }
-
-  public void test_visitImportDirective_prefix_export() {
-    assertSource(
-        "import 'a.dart' as p & export;",
-        importDirective("a.dart", "p", new ArrayList<ImportCombinator>(), true));
+            list(importShowCombinator(identifier("A")), importHideCombinator(identifier("B")))));
   }
 
   public void test_visitImportHideCombinator_multiple() {
@@ -1062,7 +1053,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   }
 
   public void test_visitPartDirective() {
-    assertSource("part 'a.dart';", partDirective("part"));
+    assertSource("part 'a.dart';", partDirective("a.dart"));
   }
 
   public void test_visitPartOfDirective() {

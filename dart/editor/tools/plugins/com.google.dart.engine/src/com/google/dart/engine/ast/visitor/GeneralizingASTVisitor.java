@@ -88,6 +88,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitCascadeExpression(CascadeExpression node) {
+    return visitExpression(node);
+  }
+
+  @Override
   public R visitCatchClause(CatchClause node) {
     return visitNode(node);
   }
@@ -170,6 +175,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   @Override
   public R visitEmptyStatement(EmptyStatement node) {
     return visitStatement(node);
+  }
+
+  @Override
+  public R visitExportDirective(ExportDirective node) {
+    return visitDirective(node);
   }
 
   public R visitExpression(Expression node) {
