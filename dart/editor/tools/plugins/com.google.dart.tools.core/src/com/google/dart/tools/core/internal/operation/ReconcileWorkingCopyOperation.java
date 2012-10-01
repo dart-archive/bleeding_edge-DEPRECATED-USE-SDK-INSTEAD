@@ -14,6 +14,8 @@
 package com.google.dart.tools.core.internal.operation;
 
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
@@ -268,17 +270,25 @@ public class ReconcileWorkingCopyOperation extends DartModelOperation {
     String[] arguments = new String[0];
     for (DartCompilationError error : parseErrors) {
       int startPosition = error.getStartPosition();
-      DartCore.notYetImplemented();
-      // TODO(brianwilkerson) We don't currently have any way to get arguments, severity.
       Source source = error.getSource();
+      ErrorCode errorCode = error.getErrorCode();
+      int severity;
+      ErrorSeverity errorSeverity = error.getErrorCode().getErrorSeverity();
+      if (errorSeverity == ErrorSeverity.ERROR) {
+        severity = ProblemSeverities.Error;
+      } else if (errorSeverity == ErrorSeverity.WARNING) {
+        severity = ProblemSeverities.Warning;
+      } else {
+        severity = ProblemSeverities.Info;
+      }
       problemArray[nextIndex++] = new DefaultProblem(
           (source == null ? "" : error.getSource().getName()).toCharArray(),
           error.getMessage(),
-          error.getErrorCode(),
+          errorCode,
           arguments,
-          ProblemSeverities.Error,
+          severity,
           startPosition,
-          startPosition + error.getLineNumber(),
+          startPosition + error.getLength(),
           error.getLineNumber(),
           error.getColumnNumber());
     }

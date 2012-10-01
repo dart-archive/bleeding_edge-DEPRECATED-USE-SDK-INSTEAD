@@ -516,7 +516,7 @@
             markerType="com.google.dart.tools.core.problem"
             markerSeverity="1"/>
       <type
-            name="com.google.dart.tools.ui.analysis.suggestion"
+            name="com.google.dart.tools.ui.info"
             super="org.eclipse.ui.workbench.texteditor.warning"
             markerType="com.google.dart.tools.core.problem"
             markerSeverity="0"/>
@@ -526,7 +526,19 @@
     
    <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
-     <specification
+       <specification
+           annotationType="com.google.dart.tools.ui.error"
+           annotationImageProvider="com.google.dart.tools.ui.internal.text.editor.DartAnnotationImageProvider">
+       </specification>
+       <specification
+           annotationType="com.google.dart.tools.ui.warning"
+           annotationImageProvider="com.google.dart.tools.ui.internal.text.editor.DartAnnotationImageProvider">
+       </specification>
+       <!--<specification
+           annotationType="com.google.dart.tools.ui.info"
+           annotationImageProvider="com.google.dart.tools.ui.internal.text.editor.DartAnnotationImageProvider">
+       </specification>-->
+       <specification
             annotationType="com.google.dart.tools.ui.occurrences"
             label="%OccurrenceAnnotation.label"
             icon="$nl$/icons/full/obj16/searchm_obj.gif"
@@ -574,7 +586,7 @@
             isGoToPreviousNavigationTarget="false">
      </specification>
      <specification
-           annotationType="com.google.dart.tools.ui.analysis.suggestion"
+           annotationType="com.google.dart.tools.ui.info"
            colorPreferenceKey="suggestionIndicationColor"
            colorPreferenceValue="127,127,127"
            icon="icons/full/misc/info2.png"

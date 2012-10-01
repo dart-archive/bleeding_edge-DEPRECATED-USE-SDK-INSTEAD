@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.ui.DartPluginImages;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -115,7 +116,7 @@ public class DartAnnotationImageProvider implements IAnnotationImageProvider {
         } else if (DartMarkerAnnotation.WARNING_ANNOTATION_TYPE.equals(annotationType)) {
           image = sharedImages.getImage(ISharedImages.IMG_OBJS_WARN_TSK);
         } else if (DartMarkerAnnotation.INFO_ANNOTATION_TYPE.equals(annotationType)) {
-          image = sharedImages.getImage(ISharedImages.IMG_OBJS_INFO_TSK);
+          image = DartToolsPlugin.getImage("icons/full/misc/info2.png");
         }
         if (image != null) {
           ImageRegistry registry = getImageRegistry(display);

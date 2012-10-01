@@ -19,7 +19,8 @@ package com.google.dart.tools.core.internal.problem;
  */
 public interface ProblemSeverities {
   final int Ignore = 256; // during handling only
-  final int Warning = 0; // during handling only
+  final int Warning = 512; // during handling only
+  final int Info = 1024; // during handling only
 
   final int Error = 1; // when bit is set: problem is error, if not it is a warning
   final int AbortCompilation = 2;

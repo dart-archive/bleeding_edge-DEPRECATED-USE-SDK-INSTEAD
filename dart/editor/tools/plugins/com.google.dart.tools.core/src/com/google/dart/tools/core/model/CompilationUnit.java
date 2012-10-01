@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.model;
 
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.tools.core.problem.ProblemRequestor;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -174,5 +175,42 @@ public interface CompilationUnit extends CodeAssistElement, SourceFileElement<Co
    * @throws DartModelException
    */
   public boolean hasMain() throws DartModelException;
+
+  /**
+   * Changes this compilation unit handle into a working copy. A new {@link IBuffer} is created
+   * using this compilation unit handle's owner. Uses the primary owner if none was specified when
+   * this compilation unit handle was created.
+   * <p>
+   * When switching to working copy mode, problems are reported to given {@link ProblemRequestor}.
+   * Note that once in working copy mode, the given {@link ProblemRequestor} is ignored. Only the
+   * original {@link ProblemRequestor} is used to report subsequent problems.
+   * </p>
+   * <p>
+   * Once in working copy mode, changes to this compilation unit or its children are done in memory.
+   * Only the new buffer is affected. Using {@link #commitWorkingCopy(boolean, IProgressMonitor)}
+   * will bring the underlying resource in sync with this compilation unit.
+   * </p>
+   * <p>
+   * If this compilation unit was already in working copy mode, an internal counter is incremented
+   * and no other action is taken on this compilation unit. To bring this compilation unit back into
+   * the original mode (where it reflects the underlying resource), {@link #discardWorkingCopy} must
+   * be call as many times as {@link #becomeWorkingCopy(ProblemRequestor, IProgressMonitor)}.
+   * </p>
+   * 
+   * @param problemRequestor a requestor which will get notified of problems detected during
+   *          reconciling as they are discovered. The requestor can be set to <code>null</code>
+   *          indicating that the client is not interested in problems.
+   * @param monitor a progress monitor used to report progress while opening this compilation unit
+   *          or <code>null</code> if no progress should be reported
+   * @throws JavaModelException if this compilation unit could not become a working copy.
+   * @see #discardWorkingCopy()
+   * @since 3.0
+   * @deprecated Use {@link #becomeWorkingCopy(IProgressMonitor)} instead. Note that if this
+   *             deprecated method is used, problems will be reported to the given problem requestor
+   *             as well as the problem requestor returned by the working copy owner (if not null).
+   */
+  @Deprecated
+  void becomeWorkingCopy(ProblemRequestor problemRequestor, IProgressMonitor monitor)
+      throws DartModelException;
 
 }

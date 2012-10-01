@@ -24,7 +24,11 @@ import com.google.dart.tools.ui.internal.viewsupport.ISelectionListenerWithAST;
 import com.google.dart.tools.ui.internal.viewsupport.SelectionListenerWithASTManager;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
 
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationAccessExtension;
 import org.eclipse.jface.text.source.IAnnotationModel;
@@ -38,9 +42,13 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.texteditor.AnnotationPreference;
 import org.eclipse.ui.texteditor.ITextEditor;
+
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 
 /**
  * @coverage dart.editor.ui.correction
@@ -157,16 +165,16 @@ public class QuickAssistLightBulbUpdater {
    * Needs to be called synchronized
    */
   private void calculateLightBulb(IAnnotationModel model, IInvocationContext context) {
-    // TODO(scheglov) restore this later
-//    boolean needsAnnotation = DartCorrectionProcessor.hasAssists(context);
-//    if (fIsAnnotationShown) {
-//      model.removeAnnotation(fAnnotation);
-//    }
-//    if (needsAnnotation) {
-//      model.addAnnotation(fAnnotation,
-//          new Position(context.getSelectionOffset(), context.getSelectionLength()));
-//    }
-//    fIsAnnotationShown = needsAnnotation;
+    boolean needsAnnotation = DartCorrectionProcessor.hasAssists(context);
+    if (fIsAnnotationShown) {
+      model.removeAnnotation(fAnnotation);
+    }
+    if (needsAnnotation) {
+      model.addAnnotation(
+          fAnnotation,
+          new Position(context.getSelectionOffset(), context.getSelectionLength()));
+    }
+    fIsAnnotationShown = needsAnnotation;
   }
 
   private void doSelectionChanged(int offset, int length, DartUnit astRoot) {
@@ -201,63 +209,62 @@ public class QuickAssistLightBulbUpdater {
     return null;
   }
 
-//  private IDocument getDocument() {
-//    return DartUI.getDocumentProvider().getDocument(fEditor.getEditorInput());
-//  }
+  private IDocument getDocument() {
+    return DartUI.getDocumentProvider().getDocument(fEditor.getEditorInput());
+  }
 
   /**
    * Tests if there is already a quick fix light bulb on the current line
    */
   private boolean hasQuickFixLightBulb(IAnnotationModel model, int offset) {
-    // TODO(scheglov) restore this later
-//    try {
-//      IDocument document = getDocument();
-//      if (document == null) {
-//        return false;
-//      }
-//
-//      // we access a document and annotation model from within a job
-//      // since these are only read accesses, we won't hurt anyone else if
-//      // this goes boink
-//
-//      // may throw an IndexOutOfBoundsException upon concurrent document modification
-//      int currLine = document.getLineOfOffset(offset);
-//
-//      // this iterator is not protected, it may throw ConcurrentModificationExceptions
-//      Iterator<Annotation> iter = model.getAnnotationIterator();
-//      while (iter.hasNext()) {
-//        Annotation annot = iter.next();
-//        if (DartCorrectionProcessor.isQuickFixableType(annot)) {
-//          // may throw an IndexOutOfBoundsException upon concurrent annotation model changes
-//          Position pos = model.getPosition(annot);
-//          if (pos != null) {
-//            // may throw an IndexOutOfBoundsException upon concurrent document modification
-//            int startLine = document.getLineOfOffset(pos.getOffset());
-//            if (startLine == currLine && DartCorrectionProcessor.hasCorrections(annot)) {
-//              return true;
-//            }
-//          }
-//        }
-//      }
-//    } catch (BadLocationException e) {
-//      // ignore
-//    } catch (IndexOutOfBoundsException e) {
-//      // concurrent modification - too bad, ignore
-//    } catch (ConcurrentModificationException e) {
-//      // concurrent modification - too bad, ignore
-//    }
+    try {
+      IDocument document = getDocument();
+      if (document == null) {
+        return false;
+      }
+
+      // we access a document and annotation model from within a job
+      // since these are only read accesses, we won't hurt anyone else if
+      // this goes boink
+
+      // may throw an IndexOutOfBoundsException upon concurrent document modification
+      int currLine = document.getLineOfOffset(offset);
+
+      // this iterator is not protected, it may throw ConcurrentModificationExceptions
+      @SuppressWarnings("unchecked")
+      Iterator<Annotation> iter = model.getAnnotationIterator();
+      while (iter.hasNext()) {
+        Annotation annot = iter.next();
+        if (DartCorrectionProcessor.isQuickFixableType(annot)) {
+          // may throw an IndexOutOfBoundsException upon concurrent annotation model changes
+          Position pos = model.getPosition(annot);
+          if (pos != null) {
+            // may throw an IndexOutOfBoundsException upon concurrent document modification
+            int startLine = document.getLineOfOffset(pos.getOffset());
+            if (startLine == currLine && DartCorrectionProcessor.hasCorrections(annot)) {
+              return true;
+            }
+          }
+        }
+      }
+    } catch (BadLocationException e) {
+      // ignore
+    } catch (IndexOutOfBoundsException e) {
+      // concurrent modification - too bad, ignore
+    } catch (ConcurrentModificationException e) {
+      // concurrent modification - too bad, ignore
+    }
     return false;
   }
 
   private void installSelectionListener() {
-    // TODO(scheglov) restore this later
-//    fListener = new ISelectionListenerWithAST() {
-//      public void selectionChanged(IEditorPart part, ITextSelection selection,
-//          CompilationUnit astRoot) {
-//        doSelectionChanged(selection.getOffset(), selection.getLength(), astRoot);
-//      }
-//    };
-//    SelectionListenerWithASTManager.getDefault().addListener(fEditor, fListener);
+    fListener = new ISelectionListenerWithAST() {
+      @Override
+      public void selectionChanged(IEditorPart part, ITextSelection selection, DartUnit astRoot) {
+        doSelectionChanged(selection.getOffset(), selection.getLength(), astRoot);
+      }
+    };
+    SelectionListenerWithASTManager.getDefault().addListener(fEditor, fListener);
   }
 
   private void removeLightBulb(IAnnotationModel model) {

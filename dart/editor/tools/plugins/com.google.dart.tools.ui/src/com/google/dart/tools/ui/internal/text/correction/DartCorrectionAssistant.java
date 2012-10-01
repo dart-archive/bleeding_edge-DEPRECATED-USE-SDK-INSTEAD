@@ -281,7 +281,6 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
    */
   @Override
   public String showPossibleQuickAssists() {
-    // TODO(scheglov) enable later
     boolean isReinvoked = false;
     fIsProblemLocationAvailable = false;
 

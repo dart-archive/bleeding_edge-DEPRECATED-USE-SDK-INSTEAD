@@ -253,24 +253,19 @@ public class DefaultProblem extends CategorizedProblem {
     return startPosition;
   }
 
-  /*
-   * Helper method: checks the severity to see if the Error bit is set.
-   * 
-   * @return boolean
-   */
   @Override
   public boolean isError() {
     return (severity & ProblemSeverities.Error) != 0;
   }
 
-  /*
-   * Helper method: checks the severity to see if the Error bit is not set.
-   * 
-   * @return boolean
-   */
+  @Override
+  public boolean isInfo() {
+    return (severity & ProblemSeverities.Info) != 0;
+  }
+
   @Override
   public boolean isWarning() {
-    return (severity & ProblemSeverities.Error) == 0;
+    return (severity & ProblemSeverities.Warning) != 0;
   }
 
   public void setOriginatingFileName(char[] fileName) {

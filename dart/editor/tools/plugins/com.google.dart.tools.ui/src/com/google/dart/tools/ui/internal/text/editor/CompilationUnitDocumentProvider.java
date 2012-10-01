@@ -42,6 +42,7 @@ import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.Logger;
 import com.google.dart.tools.ui.internal.text.DartStatusConstants;
+import com.google.dart.tools.ui.internal.text.correction.DartCorrectionProcessor;
 import com.google.dart.tools.ui.internal.text.dart.IProblemRequestorExtension;
 import com.google.dart.tools.ui.internal.text.editor.saveparticipant.IPostSaveListener;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
@@ -283,7 +284,8 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
     @Override
     public boolean isProblem() {
       String type = getType();
-      return DartMarkerAnnotation.WARNING_ANNOTATION_TYPE.equals(type)
+      return DartMarkerAnnotation.INFO_ANNOTATION_TYPE.equals(type)
+          || DartMarkerAnnotation.WARNING_ANNOTATION_TYPE.equals(type)
           || DartMarkerAnnotation.ERROR_ANNOTATION_TYPE.equals(type)
           || SPELLING_ANNOTATION_TYPE.equals(type);
     }
@@ -323,7 +325,6 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       fIsQuickFixableStateSet = true;
     }
 
-    @SuppressWarnings("unused")
     private boolean indicateQuixFixableProblems() {
       return PreferenceConstants.getPreferenceStore().getBoolean(
           PreferenceConstants.EDITOR_CORRECTION_INDICATION);
@@ -334,10 +335,10 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       if (!fImageInitialized) {
         initializeImages();
         DartX.todo("quickfix");
-        // if (!isQuickFixableStateSet())
-        // setQuickFixable(isProblem() && indicateQuixFixableProblems()
-        // && JavaCorrectionProcessor.hasCorrections(this)); // no light bulb
-        // // for tasks
+        if (!isQuickFixableStateSet()) {
+          setQuickFixable(isProblem() && indicateQuixFixableProblems()
+              && DartCorrectionProcessor.hasCorrections(this)); // no light bulb for tasks
+        }
         if (isQuickFixable()) {
           if (DartMarkerAnnotation.ERROR_ANNOTATION_TYPE.equals(getType())) {
             fImage = fgQuickFixErrorImage;
@@ -370,7 +371,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
 
       ISharedImages sharedImages = PlatformUI.getWorkbench().getSharedImages();
       fgTaskImage = sharedImages.getImage(SharedImages.IMG_OBJS_TASK_TSK);
-      fgInfoImage = sharedImages.getImage(ISharedImages.IMG_OBJS_INFO_TSK);
+      fgInfoImage = DartToolsPlugin.getImage("icons/full/misc/info2.png");
       fgWarningImage = sharedImages.getImage(ISharedImages.IMG_OBJS_WARN_TSK);
       fgErrorImage = sharedImages.getImage(ISharedImages.IMG_OBJS_ERROR_TSK);
 
@@ -411,13 +412,13 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
     @Override
     public void acceptProblem(Problem problem) {
       // TODO(scheglov) restore when we will implement this feature
-//      if (fIsHandlingTemporaryProblems
-//          || problem.getID() == DartSpellingReconcileStrategy.SPELLING_PROBLEM_ID) {
-//        ProblemRequestorState state = fProblemRequestorState.get();
-//        if (state != null) {
-//          state.fReportedProblems.add(problem);
-//        }
-//      }
+      if (fIsHandlingTemporaryProblems
+      /*|| problem.getID() == DartSpellingReconcileStrategy.SPELLING_PROBLEM_ID*/) {
+        ProblemRequestorState state = fProblemRequestorState.get();
+        if (state != null) {
+          state.fReportedProblems.add(problem);
+        }
+      }
     }
 
     @Override
@@ -536,7 +537,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
         return null;
       }
 
-      int length = problem.getSourceEnd() - problem.getSourceStart() + 1;
+      int length = problem.getSourceEnd() - problem.getSourceStart();
       if (length < 0) {
         return null;
       }
@@ -1188,6 +1189,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   protected FileInfo createFileInfo(Object element) throws CoreException {
     CompilationUnit original = null;
     if (element instanceof IFileEditorInput) {
@@ -1228,9 +1230,8 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
      * Use the deprecated method to ensure that our problem requestor is used; it is the only way to
      * have as-you-type IProblems from reconciling appear in the annotation model.
      */
-    DartX.todo();
     if (DartModelUtil.isPrimary(original)) {
-      original.becomeWorkingCopy(getProgressMonitor());
+      original.becomeWorkingCopy(requestor, getProgressMonitor());
     }
     cuInfo.fCopy = original;
 

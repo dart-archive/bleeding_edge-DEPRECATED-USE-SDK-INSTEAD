@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.problem;
 
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.tools.core.internal.problem.ProblemSeverities;
 
 /**
  * The interface <code>Problem</code> defines the behavior of objects that represent a Dart problem,
@@ -87,6 +88,11 @@ public interface Problem {
    * @return <code>true</code> if the Error bit is set for the severity
    */
   public boolean isError();
+
+  /**
+   * @return <code>true</code> if {@link ProblemSeverities#Info}
+   */
+  public boolean isInfo();
 
   /**
    * Checks the severity to see if the Error bit is not set.
