@@ -1,0 +1,14 @@
+Name: Firefox command line javascript shell.
+Short Name: js-shell
+URL: http://ftp.mozilla.org/pub/mozilla.org/firefox/candidates/15.0.1-candidates/build1/
+Version: 15.0.1
+Date: September 5th 2012
+License: MPL, http://www.mozilla.org/MPL
+
+Description:
+This directory contains the firefox js-shell binaries for Windows, Mac and
+Linux. The files was fetched from:
+http://ftp.mozilla.org/pub/mozilla.org/firefox/candidates/15.0.1-candidates/
+on September 28th 2012.
+The binaries are used for testing dart code compiled to javascript.
+
