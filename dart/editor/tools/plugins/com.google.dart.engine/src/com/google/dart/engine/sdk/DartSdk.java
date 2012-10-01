@@ -13,9 +13,10 @@
  */
 package com.google.dart.engine.sdk;
 
-import com.google.dart.engine.internal.sdk.SdkLibrary;
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.internal.sdk.LibraryMap;
 import com.google.dart.engine.internal.sdk.SdkLibrariesReader;
+import com.google.dart.engine.internal.sdk.SdkLibrary;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.engine.utilities.os.OSUtilities;
 
@@ -358,7 +359,7 @@ public class DartSdk {
     if (dartVm != null) {
       if (!dartVm.canExecute()) {
         FileUtilities.makeExecutable(dartVm);
-        //DartCore.logError(dartVm.getPath() + " was not executable");
+        AnalysisEngine.getInstance().getLogger().logError(dartVm.getPath() + " was not executable");
       }
     }
   }
