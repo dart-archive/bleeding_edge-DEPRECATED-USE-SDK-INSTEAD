@@ -1590,7 +1590,6 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     if (underlyingResource != null) {
       unitInfo.setTimestamp(underlyingResource.getModificationStamp());
     }
-    unitInfo.setSourceLength(source.length());
     return true;
   }
 

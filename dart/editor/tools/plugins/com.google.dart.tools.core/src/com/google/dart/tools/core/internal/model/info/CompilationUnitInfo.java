@@ -23,10 +23,6 @@ import java.util.ArrayList;
  * equal compilation units.
  */
 public class CompilationUnitInfo extends OpenableElementInfo {
-  /**
-   * The length of this compilation unit's source code.
-   */
-  private int sourceLength;
 
   /**
    * The time stamp of the original resource at the time this element was opened or last updated.
@@ -45,15 +41,6 @@ public class CompilationUnitInfo extends OpenableElementInfo {
    */
   public boolean getDefinesLibrary() {
     return definesLibrary;
-  }
-
-  /**
-   * Return the length of this compilation unit's source code.
-   * 
-   * @return the length of this compilation unit's source code
-   */
-  public int getSourceLength() {
-    return sourceLength;
   }
 
   /**
@@ -83,15 +70,6 @@ public class CompilationUnitInfo extends OpenableElementInfo {
    */
   public void setDefinesLibrary(boolean defines) {
     definesLibrary = defines;
-  }
-
-  /**
-   * Set the length of this compilation unit's source code.
-   * 
-   * @param newLength the length of this compilation unit's source code
-   */
-  public void setSourceLength(int newLength) {
-    sourceLength = newLength;
   }
 
   /**
