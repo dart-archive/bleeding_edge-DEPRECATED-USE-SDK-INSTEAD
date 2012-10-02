@@ -191,8 +191,8 @@ public class CompletionEngine {
     }
 
     @Override
-    public void visitorNotImplementedYet(
-        DartNode node, DartNode sourceNode, Class<? extends ASTVisitor<Void>> astClass) {
+    public void visitorNotImplementedYet(DartNode node, DartNode sourceNode,
+        Class<? extends ASTVisitor<Void>> astClass) {
       if (DEBUG) {
         System.out.print("Need visitor for node: " + node.getClass().getSimpleName());
         if (sourceNode != node) {
@@ -355,8 +355,8 @@ public class CompletionEngine {
                 if (ElementKind.of(element) == ElementKind.LIBRARY_PREFIX) {
                   // { html.E! }
                   String prefixToMatch = qualNode.getName();
-                  Collection<LibraryUnit> libs = parsedUnit.getLibrary()
-                      .getLibrariesWithPrefix(prefixToMatch);
+                  Collection<LibraryUnit> libs = parsedUnit.getLibrary().getLibrariesWithPrefix(
+                      prefixToMatch);
                   for (LibraryUnit lib : libs) {
                     createCompletionsForLibraryPrefix(identifier, lib.getElement());
                   }
@@ -471,15 +471,15 @@ public class CompletionEngine {
               }
               break;
             case ForInitialization:
-          // {for (in!t x = 0; i < 5; i++); }
+              // {for (in!t x = 0; i < 5; i++); }
             case TypeFunctionOrVariable:
               // { x; v! x; } or { v! x; }
               proposeGenericTypeCompletions(typeCompleter, true);
               proposeIdentifierPrefixCompletions(typeCompleter);
               break;
             case FunctionLiteral:
-          // at top level
-          // final num PI2 = Mat!
+              // at top level
+              // final num PI2 = Mat!
             case TypeParameter:
               // class X<K extends Ha!shable> {}
               proposeTypesForPrefix(identifier);
@@ -968,9 +968,8 @@ public class CompletionEngine {
         ParameterCompleter param = (ParameterCompleter) node;
         // when completion is requested on the first word of a param decl we assume it is a type
         DartExpression typeName = param.getName();
-        if (typeName.getSourceInfo().getOffset() <= actualCompletionPosition &&
-            typeName.getSourceInfo().getOffset() + typeName.getSourceInfo().getLength()
-            >= actualCompletionPosition) {
+        if (typeName.getSourceInfo().getOffset() <= actualCompletionPosition
+            && typeName.getSourceInfo().getOffset() + typeName.getSourceInfo().getLength() >= actualCompletionPosition) {
           if (typeName instanceof DartIdentifier) {
             DartIdentifier typeId = (DartIdentifier) typeName;
             List<SearchMatch> matches = findTypesWithPrefix(typeId);
@@ -1050,8 +1049,7 @@ public class CompletionEngine {
         // so we will check that we could have a variable interpolation but will not
         // try to be too strict, since we cannot
         if (iStrings.size() >= 1) {
-          for (int idxStrings = 1, idxExprs = 0; idxStrings < iStrings.size(); idxStrings++,
-              idxExprs++) {
+          for (int idxStrings = 1, idxExprs = 0; idxStrings < iStrings.size(); idxStrings++, idxExprs++) {
             DartStringLiteral lit = iStrings.get(idxStrings);
             DartExpression exp = iExprs.get(idxExprs);
             if (lit.getValue().isEmpty() && exp instanceof DartSyntheticErrorExpression) {
@@ -1175,8 +1173,7 @@ public class CompletionEngine {
         List<DartVariable> vars = completionNode.getVariables();
         if (vars.size() > 0) {
           DartVariable var = vars.get(vars.size() - 1);
-          if (var.getSourceInfo().getOffset() + var.getSourceInfo().getLength()
-              <= actualCompletionPosition) {
+          if (var.getSourceInfo().getOffset() + var.getSourceInfo().getLength() <= actualCompletionPosition) {
             // { num theta = i * ! }
             proposeVariables(completionNode, null, resolvedMember);
             proposeTypesForNewParam();
@@ -1252,8 +1249,8 @@ public class CompletionEngine {
     return posParamCount;
   }
 
-  static private Set<Element> findAllElements(
-      LibraryUnit library, String prefix, Set<LibraryUnit> libs) {
+  static private Set<Element> findAllElements(LibraryUnit library, String prefix,
+      Set<LibraryUnit> libs) {
     if (libs.contains(library)) {
       return new HashSet<Element>();
     }
@@ -1425,8 +1422,7 @@ public class CompletionEngine {
   private static final String C_EXTENDS = "extends";
   private static final String C_IMPLEMENTS = "implements";
   private static final char[] DYNAMIC_CA = "Dynamic".toCharArray();
-  private static final boolean DEBUG = "true".equalsIgnoreCase(
-      Platform.getDebugOption("com.google.dart.tools.ui/debug/CompletionEngine"));
+  private static final boolean DEBUG = "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.ui/debug/CompletionEngine"));
   private static final String C_VOID = "void";
   private static final String CORELIB_NAME = "dart:core";
   private static final String MAP_TYPE_NAME = "Map";
@@ -1559,8 +1555,7 @@ public class CompletionEngine {
     NodeFinder finder = NodeFinder.find(parsedUnit, completionPosition, 0);
     DartNode resolvedNode = finder.selectNode();
     // NodeFinder returns the inner most node, in case of DartParameter - name of its type, or name.
-    if (resolvedNode instanceof DartIdentifier
-        && resolvedNode.getParent() instanceof DartParameter) {
+    if (resolvedNode instanceof DartIdentifier && resolvedNode.getParent() instanceof DartParameter) {
       resolvedNode = resolvedNode.getParent();
     }
     resolvedMember = finder.getEnclosingMethod();
@@ -1650,8 +1645,8 @@ public class CompletionEngine {
     }
   }
 
-  private void createCompletionForIndexer(
-      FieldElement field, boolean includeDeclaration, DartIdentifier node, String prefix) {
+  private void createCompletionForIndexer(FieldElement field, boolean includeDeclaration,
+      DartIdentifier node, String prefix) {
     if (!isIndexableType(field.getType())) {
       return;
     }
@@ -1696,8 +1691,7 @@ public class CompletionEngine {
     char[][] parameterTypeNames = getParameterTypeNames(function);
     char[] returnTypeName = null;
     returnTypeName = function.getFunctionType().getReturnType().getElement().getName().toCharArray();
-    proposal.setDeclarationSignature(
-        function.getLibrary().getLibraryUnit().getName().toCharArray());
+    proposal.setDeclarationSignature(function.getLibrary().getLibraryUnit().getName().toCharArray());
     proposal.setSignature(typeName.toCharArray());
     proposal.setCompletion(name.toCharArray());
     proposal.setName(name.toCharArray());
@@ -1710,8 +1704,8 @@ public class CompletionEngine {
     requestor.accept(proposal);
   }
 
-  private void createCompletionsForFactoryInvocation(
-      DartIdentifier memberName, DartNode completionNode, InterfaceType itype) {
+  private void createCompletionsForFactoryInvocation(DartIdentifier memberName,
+      DartNode completionNode, InterfaceType itype) {
     String prefix = extractFilterPrefix(memberName);
     List<Element> members = getConstructors(itype);
     if (!isCompletionAfterDot && memberName == null) {
@@ -1773,8 +1767,7 @@ public class CompletionEngine {
     char[][] parameterTypeNames = getParameterTypeNames(func);
     char[] returnTypeName = null;
     returnTypeName = func.getReturnType().getElement().getName().toCharArray();
-    proposal.setDeclarationSignature(
-        func.getElement().getLibrary().getLibraryUnit().getName().toCharArray());
+    proposal.setDeclarationSignature(func.getElement().getLibrary().getLibraryUnit().getName().toCharArray());
     proposal.setSignature(typeName.toCharArray());
     proposal.setCompletion(name.toCharArray());
     proposal.setName(name.toCharArray());
@@ -1808,8 +1801,8 @@ public class CompletionEngine {
     }
   }
 
-  private void createCompletionsForLibraryPrefix(
-      DartIdentifier identifier, LibraryElement libraryElement) {
+  private void createCompletionsForLibraryPrefix(DartIdentifier identifier,
+      LibraryElement libraryElement) {
     String prefix = extractFilterPrefix(identifier);
     Scope scope = libraryElement.getScope();
     Map<String, Element> elements = scope.getElements();
@@ -1846,8 +1839,7 @@ public class CompletionEngine {
           FunctionAliasElement function = (FunctionAliasElement) element;
           parameterNames = getParameterNames(function);
           parameterTypeNames = getParameterTypeNames(function);
-          returnTypeName = function.getFunctionType()
-            .getReturnType().getElement().getName().toCharArray();
+          returnTypeName = function.getFunctionType().getReturnType().getElement().getName().toCharArray();
           break;
         case METHOD:
           kind = CompletionProposal.METHOD_NAME_REFERENCE;
@@ -1995,8 +1987,8 @@ public class CompletionEngine {
       }
       boolean isSetter = method.getModifiers().isSetter();
       boolean isGetter = method.getModifiers().isGetter();
-      int kind = isGetter || isSetter
-          ? CompletionProposal.FIELD_REF : CompletionProposal.METHOD_REF;
+      int kind = isGetter || isSetter ? CompletionProposal.FIELD_REF
+          : CompletionProposal.METHOD_REF;
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
           kind,
           actualCompletionPosition - offset);
@@ -2096,8 +2088,8 @@ public class CompletionEngine {
     }
   }
 
-  private void createCompletionsForQualifiedMemberAccess(
-      DartIdentifier memberName, Type type, boolean allowDynamic, boolean isInstance) {
+  private void createCompletionsForQualifiedMemberAccess(DartIdentifier memberName, Type type,
+      boolean allowDynamic, boolean isInstance) {
     // At the completion point, the language allows both field and method access.
     // The parser needs more look-ahead to disambiguate. Those tokens may not have
     // been typed yet.
@@ -2126,8 +2118,8 @@ public class CompletionEngine {
     }
   }
 
-  private void createTypeCompletionsForConstructor(
-      DartNode node, DartNewExpression newExpr, SearchMatch match, String prefix) {
+  private void createTypeCompletionsForConstructor(DartNode node, DartNewExpression newExpr,
+      SearchMatch match, String prefix) {
     DartElement element = match.getElement();
     if (!(element instanceof com.google.dart.tools.core.model.Type)) {
       return;
@@ -2161,8 +2153,9 @@ public class CompletionEngine {
             continue;
           }
           name = method.getElementName(); // insert named constructors, too
-          InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal
-            .create(CompletionProposal.METHOD_REF, actualCompletionPosition - offset);
+          InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
+              CompletionProposal.METHOD_REF,
+              actualCompletionPosition - offset);
           char[] declaringTypeName = method.getDeclaringType().getElementName().toCharArray();
           char[] methodName = name.toCharArray();
           proposal.setDeclarationSignature(declaringTypeName);
@@ -2228,8 +2221,7 @@ public class CompletionEngine {
     requestor.accept(proposal);
   }
 
-  private void createTypeCompletionsForParameterDecl(
-      DartNode node, SearchMatch match, String prefix) {
+  private void createTypeCompletionsForParameterDecl(DartNode node, SearchMatch match, String prefix) {
     DartElement element = match.getElement();
     String name;
     boolean isInterface;
@@ -2461,8 +2453,7 @@ public class CompletionEngine {
     if (libs == null) { // no prefix specified (vs undefined prefix)
       try {
         int idx = 0;
-        for (com.google.dart.tools.core.model.Type localType :
-            getCurrentCompilationUnit().getTypes()) {
+        for (com.google.dart.tools.core.model.Type localType : getCurrentCompilationUnit().getTypes()) {
           String typeName = localType.getElementName();
           if (typeName.startsWith(prefix)) { // this test is case sensitive
             SearchMatch match = new SearchMatch(
@@ -2482,8 +2473,7 @@ public class CompletionEngine {
             }
           }
         }
-        for (com.google.dart.tools.core.model.DartFunctionTypeAlias localType :
-            getCurrentCompilationUnit().getFunctionTypeAliases()) {
+        for (com.google.dart.tools.core.model.DartFunctionTypeAlias localType : getCurrentCompilationUnit().getFunctionTypeAliases()) {
           String typeName = localType.getElementName();
           if (typeName.startsWith(prefix)) { // this test is case sensitive
             SearchMatch match = new SearchMatch(
@@ -2767,8 +2757,8 @@ public class CompletionEngine {
     }
   }
 
-  private void visitorNotImplementedYet(
-      DartNode node, DartNode sourceNode, Class<? extends ASTVisitor<Void>> astClass) {
+  private void visitorNotImplementedYet(DartNode node, DartNode sourceNode,
+      Class<? extends ASTVisitor<Void>> astClass) {
     if (metrics != null) {
       metrics.visitorNotImplementedYet(node, sourceNode, astClass);
     }
