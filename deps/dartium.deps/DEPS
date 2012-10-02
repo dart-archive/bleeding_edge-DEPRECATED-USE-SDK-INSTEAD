@@ -48,12 +48,6 @@ deps.update({
     Var("multivm_url") + "/tools@" + Var("dartium_tools_revision"),
 })
 
-hooks[0:0] = [{
-    "pattern": ".",
-    "action": ["python", "src/dart/compiler/scripts/generate_my_projects.py",
-               "--no-gyp"],
-  }]
-
 hooks[-1:-1] = [{
     "pattern": ".",
     "action": ["python", "src/dartium_tools/export_overrides.py"],
