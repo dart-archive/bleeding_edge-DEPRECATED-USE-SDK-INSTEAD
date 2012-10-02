@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.code;
 
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_CLASS_MEMBER_NAME;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -25,6 +28,7 @@ import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartStatement;
@@ -54,9 +58,6 @@ import com.google.dart.tools.internal.corext.refactoring.rename.FunctionLocalEle
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
-
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_CLASS_MEMBER_NAME;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -225,6 +226,14 @@ public class InlineMethodRefactoring extends Refactoring {
       DartInvocation invocation = ASTNodes.getAncestor(coveringNode, DartInvocation.class);
       // we need invocation
       if (invocation != null) {
+        // we don't support cascade
+        if (invocation instanceof DartMethodInvocation
+            && ((DartMethodInvocation) invocation).isCascade()) {
+          result.addFatalError(
+              RefactoringCoreMessages.InlineMethodRefactoring_cascadeInvocation,
+              DartStatusContext.create(refUnit, invocation));
+        }
+        // prepare environment
         DartStatement invocationStatement = ASTNodes.getAncestor(invocation, DartStatement.class);
         SourceRange invocationLineRange = utils.getLinesRange(ImmutableList.of(invocationStatement));
         String refPrefix = utils.getNodePrefix(invocationStatement);

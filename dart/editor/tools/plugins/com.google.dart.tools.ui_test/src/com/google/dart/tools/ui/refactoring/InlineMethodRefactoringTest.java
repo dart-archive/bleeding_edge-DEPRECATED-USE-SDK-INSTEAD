@@ -59,6 +59,24 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
     }
   }
 
+  public void test_bad_cascadeInvocation() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "  bar() {}",
+        "  test() {}",
+        "}",
+        "main() {",
+        " A a = new A();",
+        " a..foo()..test()..bar();",
+        "}");
+    selection = findOffset("test() {");
+    createRefactoring();
+    // fatal error
+    assertTrue(refactoringStatus.hasFatalError());
+  }
+
   public void test_bad_severalReturns() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -396,10 +414,10 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  const FA = 1;",
+        "  static FA = 1;",
         "}",
         "class B extends A {",
-        "  const FB = 2;",
+        "  static FB = 2;",
         "  test() {",
         "    print(FA);",
         "    print(FB);",
@@ -416,10 +434,10 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  const FA = 1;",
+        "  static FA = 1;",
         "}",
         "class B extends A {",
-        "  const FB = 2;",
+        "  static FB = 2;",
         "}",
         "main() {",
         "  B b = new B();",
