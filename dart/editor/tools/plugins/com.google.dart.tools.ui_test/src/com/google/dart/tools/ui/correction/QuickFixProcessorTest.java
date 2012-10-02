@@ -79,6 +79,24 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "");
   }
 
+  public void test_createClass_whenInvocationTarget() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Test.foo();",
+        "}",
+        "");
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Test.foo();",
+        "}",
+        "",
+        "class Test {",
+        "}",
+        "");
+  }
+
   public void test_createConstructor_default() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -513,6 +531,24 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  Test t = null;",
+        "}",
+        "");
+  }
+
+  public void test_importLibrary_withType_whenInvocationTarget() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var foo = JSON.parse('{\"foo\":1}');",
+        "}",
+        "");
+    proposalsExpectedNumber = 2;
+    proposalsIndexToCheck = 0;
+    assertQuickFix(
+        "import 'dart:json';",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var foo = JSON.parse('{\"foo\":1}');",
         "}",
         "");
   }
