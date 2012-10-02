@@ -1406,7 +1406,7 @@ public class CompletionEngine {
       return false;
     }
     List<VariableElement> params = method.getParameters();
-    if (params == null || index > params.size()) {
+    if (params == null || index >= params.size()) {
       return false;
     }
     VariableElement var = params.get(index);
@@ -1418,7 +1418,7 @@ public class CompletionEngine {
       return false;
     }
     List<VariableElement> params = method.getParameters();
-    if (params == null || index > params.size()) {
+    if (params == null || index >= params.size()) {
       return false;
     }
     VariableElement var = params.get(index);
