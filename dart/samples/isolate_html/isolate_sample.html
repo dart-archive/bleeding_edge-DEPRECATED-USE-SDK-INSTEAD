@@ -19,29 +19,28 @@
       <div class="isolateName">This is the main isolate.</div>
       <input type="text" id="greetingText" value="hello" />
       <div>
-        <input type="button" class="sendButton" value = "send message to A" />
+        <input type="button" class="sendButton" value="send message to A"
+            data-isolate-name="A"/>
       </div>
       <div>
-        <input type="button" class="sendButton" value = "send message to B"/>
+        <input type="button" class="sendButton" value="send message to B"
+            data-isolate-name="B"/>
       </div>
       <div class="replyText"></div>
     </div>
 
     <div id="isolateTemplate">
-      <div class="isolate">
-        <div class="isolateTitle">
-          isolate<span class="isolateName"></span>
-        </div>
-        <div class="messageBox"></div>
-        <input class="replyCheckbox" type="checkbox" checked="checked" />
-        <label>Send reply</label>
-        <div>
-          delay reply: <input class="delayTextbox" type="text" value="1200" />ms
-        </div>
-        <input class="chirpButton" type="button" value="chirp" />
+      <div class="isolateTitle">
+        isolate<span class="isolateName"></span>
       </div>
+      <div class="messageBox"></div>
+      <input class="replyCheckbox" type="checkbox" checked="checked" />
+      <label>Send reply</label>
+      <div>
+        delay reply: <input class="delayTextbox" type="text" value="1200" />ms
+      </div>
+      <input class="chirpButton" type="button" value="chirp" />
     </div>
-
 
     <div id="isolateParent"></div>
 
