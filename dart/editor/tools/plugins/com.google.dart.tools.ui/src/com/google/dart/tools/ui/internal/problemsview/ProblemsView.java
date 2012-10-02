@@ -734,6 +734,8 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   private long lastShowTime;
 
+  private Display swtDisplay;
+
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
 
   public ProblemsView() {
@@ -742,6 +744,8 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   @Override
   public void createPartControl(Composite parent) {
+    swtDisplay = parent.getDisplay();
+
     clipboard = new Clipboard(parent.getDisplay());
 
     tableViewer = new TableViewer(parent, SWT.H_SCROLL | SWT.VIRTUAL | SWT.V_SCROLL | SWT.MULTI
@@ -822,7 +826,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
     updateFilters();
 
-    startUpdateJob();
+    startUpdateJob(swtDisplay);
 
     MarkersChangeService.getService().addListener(this);
 
@@ -858,7 +862,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   @Override
   public void handleResourceChange() {
-    startUpdateJob();
+    if (swtDisplay != null) {
+      startUpdateJob(swtDisplay);
+    }
   }
 
   @Override
@@ -941,14 +947,14 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     progressService.showBusyForFamily(REFRESH_MARKERS_JOB_FAMILY);
   }
 
-  protected void showMarkers(final List<IMarker> markers) {
+  protected void showMarkers(Display display, final List<IMarker> markers) {
     for (int i = markers.size() - 1; i >= 0; i--) {
       if (!markers.get(i).exists()) {
         markers.remove(i);
       }
     }
 
-    Display.getDefault().asyncExec(new Runnable() {
+    display.asyncExec(new Runnable() {
       @Override
       public void run() {
         if (tableViewer.getControl() != null && !tableViewer.getControl().isDisposed()) {
@@ -958,7 +964,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     });
   }
 
-  protected void startUpdateJob() {
+  protected void startUpdateJob(final Display display) {
     if (job != null) {
       rescheduleJob = true;
     } else {
@@ -989,7 +995,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
                 markers.addAll(Arrays.asList(marks));
               }
 
-              showMarkers(markers);
+              showMarkers(display, markers);
               lastShowTime = System.currentTimeMillis();
             } catch (CoreException ce) {
               DartToolsPlugin.log(ce);
