@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.operation;
 
+import com.google.common.base.Objects;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ErrorSeverity;
@@ -30,6 +31,7 @@ import com.google.dart.tools.core.internal.problem.CategorizedProblem;
 import com.google.dart.tools.core.internal.problem.DefaultProblem;
 import com.google.dart.tools.core.internal.problem.ProblemSeverities;
 import com.google.dart.tools.core.internal.util.Messages;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModelStatus;
@@ -38,8 +40,11 @@ import com.google.dart.tools.core.problem.ProblemRequestor;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
+import org.eclipse.core.resources.IResource;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -134,6 +139,16 @@ public class ReconcileWorkingCopyOperation extends DartModelOperation {
           DartCore.logInformation("Could not reconcile \""
               + source.getCorrespondingResource().getLocation() + "\"", exception);
         }
+        // keep only errors from current unit
+        IResource unitResource = workingCopy.getResource();
+        for (Iterator<DartCompilationError> I = parseErrors.iterator(); I.hasNext();) {
+          DartCompilationError error = I.next();
+          IResource errorResource = ResourceUtil.getResource(error.getSource());
+          if (!Objects.equal(errorResource, unitResource)) {
+            I.remove();
+          }
+        }
+        // convert DartCompilationError-s to Problem-s
         convertErrors(parseErrors, problems);
         if (progressMonitor != null) {
           progressMonitor.worked(1);
