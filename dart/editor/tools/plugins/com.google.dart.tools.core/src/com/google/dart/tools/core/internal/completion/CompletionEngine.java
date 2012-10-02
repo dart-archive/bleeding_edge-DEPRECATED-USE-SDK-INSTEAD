@@ -54,6 +54,7 @@ import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ClassNodeElement;
@@ -1241,7 +1242,8 @@ public class CompletionEngine {
     List<VariableElement> params = method.getParameters();
     int posParamCount = 0;
     for (VariableElement elem : params) {
-      if (elem.getModifiers().isNamed()) {
+      Modifiers mods = elem.getModifiers();
+      if (mods.isNamed() || mods.isOptional()) {
         break;
       }
       posParamCount++;
@@ -1397,6 +1399,30 @@ public class CompletionEngine {
       }
     }
     return names;
+  }
+
+  static private boolean hasNamedParameterAt(MethodElement method, int index) {
+    if (method == null || index < 0) {
+      return false;
+    }
+    List<VariableElement> params = method.getParameters();
+    if (params == null || index > params.size()) {
+      return false;
+    }
+    VariableElement var = params.get(index);
+    return var.getModifiers().isNamed();
+  }
+
+  static private boolean hasOptionalParameterAt(MethodElement method, int index) {
+    if (method == null || index < 0) {
+      return false;
+    }
+    List<VariableElement> params = method.getParameters();
+    if (params == null || index > params.size()) {
+      return false;
+    }
+    VariableElement var = params.get(index);
+    return var.getModifiers().isOptional();
   }
 
   // keys are either String or char[]; values are Object unless Type works
@@ -1744,7 +1770,11 @@ public class CompletionEngine {
       proposal.setIsSetter(false);
       proposal.setParameterNames(getParameterNames(method));
       proposal.setParameterTypeNames(getParameterTypeNames(method));
-      proposal.setPositionalParameterCount(countPositionalParameters(method));
+      int p = countPositionalParameters(method);
+      boolean hasNamed = hasNamedParameterAt(method, p);
+      boolean hasOptional = hasOptionalParameterAt(method, p);
+      proposal.setPositionalParameterCount(p);
+      proposal.setParameterStyle(hasNamed, hasOptional);
       String returnTypeName = itype.getElement().getName();
       proposal.setTypeName(returnTypeName.toCharArray());
       proposal.setDeclarationTypeName(returnTypeName.toCharArray());
@@ -1827,6 +1857,8 @@ public class CompletionEngine {
       char[][] parameterTypeNames = null;
       char[] returnTypeName = null;
       int positionalCount = 0;
+      boolean hasNamed = false;
+      boolean hasOptional = false;
       boolean isInterface = false;
       int kind;
       switch (ElementKind.of(element)) {
@@ -1846,7 +1878,9 @@ public class CompletionEngine {
           MethodElement method = (MethodElement) element;
           parameterNames = getParameterNames(method);
           parameterTypeNames = getParameterTypeNames(method);
-          positionalCount = countPositionalParameters((MethodElement) element);
+          positionalCount = countPositionalParameters(method);
+          hasNamed = hasNamedParameterAt(method, positionalCount);
+          hasOptional = hasOptionalParameterAt(method, positionalCount);
           returnTypeName = method.getReturnType().getElement().getName().toCharArray();
           break;
         case FIELD:
@@ -1868,6 +1902,7 @@ public class CompletionEngine {
       proposal.setParameterNames(parameterNames);
       proposal.setParameterTypeNames(parameterTypeNames);
       proposal.setPositionalParameterCount(positionalCount);
+      proposal.setParameterStyle(hasNamed, hasOptional);
       proposal.setTypeName(returnTypeName);
       setSourceLoc(proposal, identifier, prefix);
       proposal.setRelevance(1);
@@ -1908,9 +1943,14 @@ public class CompletionEngine {
       proposal.setTypeName(typeName.toCharArray());
       proposal.setName(name.toCharArray());
       if (isMethod) {
-        proposal.setParameterNames(getParameterNames((MethodElement) element));
-        proposal.setParameterTypeNames(getParameterTypeNames((MethodElement) element));
-        proposal.setPositionalParameterCount(countPositionalParameters((MethodElement) element));
+        MethodElement methodElement = (MethodElement) element;
+        proposal.setParameterNames(getParameterNames(methodElement));
+        proposal.setParameterTypeNames(getParameterTypeNames(methodElement));
+        int positionalCount = countPositionalParameters(methodElement);
+        boolean hasNamed = hasNamedParameterAt(methodElement, positionalCount);
+        boolean hasOptional = hasOptionalParameterAt(methodElement, positionalCount);
+        proposal.setPositionalParameterCount(positionalCount);
+        proposal.setParameterStyle(hasNamed, hasOptional);
       }
       setSourceLoc(proposal, node, prefix);
       proposal.setRelevance(1);
@@ -2005,7 +2045,11 @@ public class CompletionEngine {
       proposal.setIsSetter(isSetter);
       proposal.setParameterNames(getParameterNames(method));
       proposal.setParameterTypeNames(paramTypeNames);
-      proposal.setPositionalParameterCount(countPositionalParameters(method));
+      int positionalCount = countPositionalParameters(method);
+      boolean hasNamed = hasNamedParameterAt(method, positionalCount);
+      boolean hasOptional = hasOptionalParameterAt(method, positionalCount);
+      proposal.setPositionalParameterCount(positionalCount);
+      proposal.setParameterStyle(hasNamed, hasOptional);
       String returnTypeName = method.getReturnType().getElement().getName();
       proposal.setTypeName(returnTypeName.toCharArray());
       if (includeDeclaration) {

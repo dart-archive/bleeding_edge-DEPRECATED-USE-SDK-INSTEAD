@@ -1126,6 +1126,14 @@ public class CompletionProposal {
     return -1; // default overridden by concrete implementation
   }
 
+  public boolean hasNamedParameters() {
+    return false;
+  }
+
+  public boolean hasOptionalParameters() {
+    return false;
+  }
+
   /**
    * Return <code>true</code> if this proposal is a constructor.
    * <p>
@@ -1287,6 +1295,10 @@ public class CompletionProposal {
    * @param parameterNames the parameter names, or <code>null</code> if none
    */
   public void setParameterNames(char[][] parameterNames) {
+    // default overridden by concrete implementation
+  }
+
+  public void setParameterStyle(boolean hasNamed, boolean hasOptional) {
     // default overridden by concrete implementation
   }
 

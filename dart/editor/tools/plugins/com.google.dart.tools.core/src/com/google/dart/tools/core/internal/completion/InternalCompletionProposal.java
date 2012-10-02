@@ -139,6 +139,8 @@ public class InternalCompletionProposal extends CompletionProposal {
   private boolean isSetter;
   private boolean isGetter;
   private int positionalParameterCount;
+  private boolean hasNamedParameters;
+  private boolean hasOptionalParameters;
 
   /**
    * Creates a basic completion proposal. All instance field have plausible default values unless
@@ -712,6 +714,16 @@ public class InternalCompletionProposal extends CompletionProposal {
     return this.tokenStart;
   }
 
+  @Override
+  public boolean hasNamedParameters() {
+    return hasNamedParameters;
+  }
+
+  @Override
+  public boolean hasOptionalParameters() {
+    return hasOptionalParameters;
+  }
+
   /**
    * Returns whether this proposal is a constructor.
    * <p>
@@ -841,6 +853,12 @@ public class InternalCompletionProposal extends CompletionProposal {
   public void setParameterNames(char[][] parameterNames) {
     this.parameterNames = parameterNames;
     this.parameterNamesComputed = true;
+  }
+
+  @Override
+  public void setParameterStyle(boolean hasNamed, boolean hasOptional) {
+    hasNamedParameters = hasNamed;
+    hasOptionalParameters = hasOptional;
   }
 
   @Override

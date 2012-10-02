@@ -531,7 +531,7 @@ public class CompletionProposalLabelProvider {
    * @return the display string of the parameter list defined by the passed arguments
    */
   private StringBuffer appendParameterSignature(StringBuffer buffer, char[][] parameterTypes,
-      char[][] parameterNames, int positionalCount) {
+      char[][] parameterNames, int positionalCount, boolean hasNamed, boolean hasOptional) {
     if (parameterTypes == null) {
       if (parameterNames != null && parameterNames.length > 0) {
         for (int i = 0; i < parameterNames.length - 1; i++) {
@@ -548,7 +548,11 @@ public class CompletionProposalLabelProvider {
           buffer.append(' ');
         }
         if (i == positionalCount) {
-          buffer.append('[');
+          if (hasOptional) { // check hasOptional first because hasNamed implies hasOptional
+            buffer.append('[');
+          } else if (hasNamed) {
+            buffer.append('{');
+          }
         }
         if (!Arrays.equals(Signature.ANY, parameterTypes[i])) {
           buffer.append(parameterTypes[i]);
@@ -559,8 +563,10 @@ public class CompletionProposalLabelProvider {
           buffer.append(parameterNames[i]);
         }
       }
-      if (positionalCount > 0 && positionalCount < parameterTypes.length) {
+      if (hasOptional) {
         buffer.append(']');
+      } else if (hasNamed) {
+        buffer.append('}');
       }
     }
     return buffer;
@@ -575,22 +581,22 @@ public class CompletionProposalLabelProvider {
    */
   private StringBuffer appendUnboundedParameterList(StringBuffer buffer,
       CompletionProposal methodProposal) {
-    // TODO remove once https://bugs.eclipse.org/bugs/show_bug.cgi?id=85293
-    // gets fixed.
-//    char[] signature = methodProposal.getSignature();
     char[][] parameterNames = methodProposal.findParameterNames(null);
     char[][] parameterTypes = methodProposal.getParameterTypeNames();
     int positionalCount = methodProposal.getPositionalParameterCount();
+    boolean hasNamed = methodProposal.hasNamedParameters();
+    boolean hasOptional = methodProposal.hasOptionalParameters();
 
 //    for (int i = 0; i < parameterTypes.length; i++) {
 //      parameterTypes[i] = createTypeDisplayName(parameterTypes[i]);
 //    }
-
-//    if (Flags.isVarargs(methodProposal.getFlags())) {
-//      int index = parameterTypes.length - 1;
-//      parameterTypes[index] = convertToVararg(parameterTypes[index]);
-//    }
-    return appendParameterSignature(buffer, parameterTypes, parameterNames, positionalCount);
+    return appendParameterSignature(
+        buffer,
+        parameterTypes,
+        parameterNames,
+        positionalCount,
+        hasNamed,
+        hasOptional);
   }
 
   /**
