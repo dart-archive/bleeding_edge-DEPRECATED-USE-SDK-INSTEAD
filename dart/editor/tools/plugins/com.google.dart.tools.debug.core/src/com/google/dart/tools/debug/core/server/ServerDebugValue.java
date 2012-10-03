@@ -50,6 +50,16 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
     this.value = value;
   }
 
+  public String getDetailValue() {
+    if (value == null) {
+      return null;
+    } else if (value.isString()) {
+      return getValueString();
+    } else {
+      return value.getText();
+    }
+  }
+
   public String getDisplayString() {
     return getValueString();
   }

@@ -17,6 +17,7 @@ import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugStackFrame;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue;
 import com.google.dart.tools.debug.core.server.ServerDebugStackFrame;
+import com.google.dart.tools.debug.core.server.ServerDebugValue;
 import com.google.dart.tools.debug.core.util.IDartDebugVariable;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
@@ -95,6 +96,10 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
           listener.detailComputed(value, stringValue);
         }
       });
+    } else if (value instanceof ServerDebugValue) {
+      ServerDebugValue debugValue = (ServerDebugValue) value;
+
+      listener.detailComputed(value, debugValue.getDetailValue());
     } else {
       listener.detailComputed(value, null);
     }
