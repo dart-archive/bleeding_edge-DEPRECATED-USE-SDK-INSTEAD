@@ -369,6 +369,27 @@ public class DartElementLocatorTest extends TestCase {
         3);
   }
 
+  public void test_FieldElement_onCascade() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "process(x) {}",
+            "class A {",
+            "  var foo;",
+            "  var test;",
+            "}",
+            "main() {",
+            "  A a = new A();",
+            "  a",
+            "   ..foo = 1",
+            "   ..test = 2;",
+            "}"),
+        "test = 2;",
+        Field.class,
+        "test;",
+        4);
+  }
+
   public void test_Function_getter_topLevel() throws Exception {
     testElementLocator(
         formatLines(
@@ -539,6 +560,26 @@ public class DartElementLocatorTest extends TestCase {
         "test );",
         DartFunction.class,
         "test => 0;",
+        4);
+  }
+
+  public void test_Method_onCascade() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "process(x) {}",
+            "class A {",
+            "  foo() {}",
+            "  test() {}",
+            "}",
+            "main() {",
+            "  A a = new A();",
+            "  a..foo()..test();",
+            "}",
+            ""),
+        "test();",
+        Method.class,
+        "test() {}",
         4);
   }
 
