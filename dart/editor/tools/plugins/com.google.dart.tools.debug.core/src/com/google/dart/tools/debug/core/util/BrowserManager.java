@@ -301,9 +301,8 @@ public class BrowserManager {
     // devoncarew: This only works under _CHROMEOS.
     //arguments.add("--bwsi");
 
-    // Disable extensions. Several extensions in the wild have errors that prevent connecting the
-    // debugger to Dartium.
-    arguments.add("--disable-extensions");
+    // Several extensions in the wild have errors that prevent connecting the debugger to Dartium.
+    //arguments.add("--disable-extensions");
 
     // Disables syncing browser data to a Google Account. Do we want to do this?
     //arguments.add("--disable-sync");
