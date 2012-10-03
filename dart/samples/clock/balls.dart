@@ -37,9 +37,7 @@ class Balls {
     setElementSize(root, 0.0, 0.0, 0.0, 0.0);
   }
 
-  void tick() {
-    int now = new Date.now().millisecondsSinceEpoch;
-
+  void tick(int now) {
     showFps(1000.0 / (now - lastTime + 0.01));
 
     double delta = min((now - lastTime) / 1000.0, 0.1);

@@ -35,38 +35,49 @@ class CountDownClock {
   static const double BALL_HEIGHT = 19.0;
 
   List<ClockNumber> hours, minutes, seconds;
+  int displayedHour, displayedMinute, displayedSecond;
   Balls balls;
 
   CountDownClock() :
       hours = new List<ClockNumber>(2),
       minutes = new List<ClockNumber>(2),
       seconds = new List<ClockNumber>(2),
+      displayedHour = 0,
+      displayedMinute = 0,
+      displayedSecond = 0,
       balls = new Balls() {
     var parent = query("#canvas-content");
 
     parent.rect.then((ElementRect r) {
       createNumbers(parent, r.client.width, r.client.height);
 
-      updateTime();
-
-      window.setInterval(f() => updateTime(), 1000);
+      updateTime(new Date.now());
 
       window.requestAnimationFrame(tick);
     });
   }
 
   bool tick(int time) {
-    balls.tick();
-
+    updateTime(new Date.fromMillisecondsSinceEpoch(time));
+    balls.tick(time);
     window.requestAnimationFrame(tick);
   }
 
-  void updateTime() {
-    Date now = new Date.now();
+  void updateTime(Date now) {
+    if (now.hour != displayedHour) {
+      setDigits(pad2(now.hour), hours);
+      displayedHour = now.hour;
+    }
 
-    setDigits(pad2(now.hour), hours);
-    setDigits(pad2(now.minute), minutes);
-    setDigits(pad2(now.second), seconds);
+    if (now.minute != displayedMinute) {
+      setDigits(pad2(now.minute), minutes);
+      displayedMinute = now.minute;
+    }
+
+    if (now.second != displayedSecond) {
+      setDigits(pad2(now.second), seconds);
+      displayedSecond = now.second;
+    }
   }
 
   void setDigits(String digits, List<ClockNumber> numbers) {
