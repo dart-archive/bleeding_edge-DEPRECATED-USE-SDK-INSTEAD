@@ -416,41 +416,6 @@
             </visibleWhen>
          </command>
       </menuContribution>
-      <menuContribution
-            allPopups="false"
-            locationURI="menu:org.eclipse.ui.run?after=breakpointGroup">
-         <command
-               commandId="com.google.dart.tools.debug.ui.run.selection"
-               icon="icons/obj16/run_exc.gif"
-               label="%runCommandName"
-               style="push"
-               tooltip="%runDescription">
-         </command>
-      </menuContribution>
-      <menuContribution
-            allPopups="false"
-            locationURI="menu:org.eclipse.ui.run?after=emptyLaunchGroup">
-         <command
-               commandId="com.google.dart.tools.debug.ui.launchDialog"
-               style="push">
-         </command>
-         <command
-               commandId="com.google.dart.tools.debug.ui.showWebConsole">
-         </command>
-      </menuContribution>
-      <menuContribution
-            allPopups="false"
-            locationURI="menu:org.eclipse.ui.run?after=runGroup">
-         <command
-               commandId="com.google.dart.tools.debug.ui.removeBreakpoints"
-               style="push"
-               icon="icons/obj16/rem_all_brk.gif">
-         </command>
-         <command
-               commandId="com.google.dart.tools.debug.ui.toggleBreakOnExceptions"
-               style="toggle">
-         </command>
-      </menuContribution>
    </extension>
    
    <extension point="org.eclipse.ui.perspectiveExtensions">
