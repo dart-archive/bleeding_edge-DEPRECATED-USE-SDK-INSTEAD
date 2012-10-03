@@ -250,9 +250,10 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
   @Override
   public void updateButtons() {
     if (getButton(IDialogConstants.OK_ID) != null) {
+      // Apply button
+      getButton(IDialogConstants.CLIENT_ID).setEnabled(canEnableButton());
       // Run button
-      getButton(IDialogConstants.OK_ID).setEnabled(
-          activeTab != null && activeTab.getErrorMessage() == null && canLaunch());
+      getButton(IDialogConstants.OK_ID).setEnabled(canEnableButton());
 
       // Delete action
       getDeleteAction().setEnabled(selectedConfig != null);
@@ -476,6 +477,10 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     sashForm.setWeights(new int[] {30, 70});
 
     selectLaunchConfigFromPage();
+  }
+
+  private boolean canEnableButton() {
+    return activeTab != null && activeTab.getErrorMessage() == null && canLaunch();
   }
 
   private ILaunchConfiguration getConfigurationNamed(String name) {
