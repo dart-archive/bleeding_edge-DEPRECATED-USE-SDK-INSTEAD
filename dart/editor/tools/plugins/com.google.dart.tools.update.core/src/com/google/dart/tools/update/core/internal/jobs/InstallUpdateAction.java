@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.update.core.internal.jobs;
 
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.update.core.UpdateCore;
 import com.google.dart.tools.update.core.UpdateManager;
 import com.google.dart.tools.update.core.internal.UpdateUtils;
@@ -201,8 +202,16 @@ public class InstallUpdateAction extends Action {
 
     monitor.setTaskName(UpdateJobMessages.InstallUpdateAction_preparing_task);
     File sdkDir = new File(installTarget, "dart-sdk");
-    UpdateUtils.deleteDirectory(sdkDir, mon.newChild(5)); //$NON-NLS-1$
-    UpdateUtils.deleteDirectory(new File(installTarget, "samples"), mon.newChild(5)); //$NON-NLS-1$
+    UpdateUtils.deleteDirectory(sdkDir, mon.newChild(4)); //$NON-NLS-1$
+    UpdateUtils.deleteDirectory(new File(installTarget, "samples"), mon.newChild(4)); //$NON-NLS-1$
+
+    File dartium = DartSdkManager.getManager().getSdk().getDartiumDir(installTarget);
+    try {
+      UpdateUtils.delete(dartium, mon.newChild(2));
+    } catch (Throwable th) {
+      //TODO(pquitslund): handle delete errors
+      UpdateCore.logError(th);
+    }
 
     monitor.setTaskName(UpdateJobMessages.InstallUpdateAction_install_task);
     File installDir = new File(tmpDir, "dart");
@@ -212,6 +221,7 @@ public class InstallUpdateAction extends Action {
 
     //ensure executables (such as the analyzer, pub and VM) have the exec bit set 
     UpdateUtils.ensureExecutable(new File(sdkDir, "bin").listFiles());
+    UpdateUtils.ensureExecutable(DartSdkManager.getManager().getSdk().getDartiumExecutable());
 
   }
 

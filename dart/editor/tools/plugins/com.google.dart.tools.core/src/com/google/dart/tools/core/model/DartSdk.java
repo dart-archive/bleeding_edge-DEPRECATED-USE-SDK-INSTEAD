@@ -51,6 +51,21 @@ public class DartSdk {
   }
 
   /**
+   * Answer the OS-specific dartium directory.
+   * 
+   * @param installDir the installation directory
+   */
+  public File getDartiumDir(File installDir) {
+    if (DartCore.isMac()) {
+      return new File(installDir, "Chromium.app");
+    } else {
+      // Window and Linux
+      return new File(installDir, "chromium");
+    }
+
+  }
+
+  /**
    * Answer the VM executable or <code>null</code> if it does not exist
    */
   public File getDartiumExecutable() {
@@ -226,15 +241,16 @@ public class DartSdk {
   }
 
   private File getDartiumBinary(File installDir) {
+
+    File dartiumDir = getDartiumDir(installDir);
+
     if (DartCore.isWindows()) {
-      return new File(new File(installDir, "chromium"), "Chrome.exe");
+      return new File(dartiumDir, "Chrome.exe");
     } else if (DartCore.isMac()) {
-      return new File(
-          new File(new File(new File(installDir, "Chromium.app"), "Contents"), "MacOS"),
-          "Chromium");
+      return new File(new File(new File(dartiumDir, "Contents"), "MacOS"), "Chromium");
     } else {
       // Linux
-      return new File(new File(installDir, "chromium"), "chrome");
+      return new File(dartiumDir, "chrome");
     }
   }
 

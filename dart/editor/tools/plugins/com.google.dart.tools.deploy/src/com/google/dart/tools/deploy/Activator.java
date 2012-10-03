@@ -14,6 +14,9 @@
 package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.ui.console.DartConsoleManager;
+import com.google.dart.tools.update.core.UpdateAdapter;
+import com.google.dart.tools.update.core.UpdateListener;
+import com.google.dart.tools.update.core.UpdateManager;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -115,6 +118,21 @@ public class Activator extends AbstractUIPlugin {
   }
 
   /**
+   * Called when the update manager initiates an install.
+   */
+  private static void installStarting() {
+    //TODO(pquitslund): add call to debug to terminate active sessions
+  }
+
+  //a hook into the update lifecycle
+  private final UpdateListener updateListener = new UpdateAdapter() {
+    @Override
+    public void installing() {
+      Activator.installStarting();
+    }
+  };
+
+  /**
    * The constructor
    */
   public Activator() {
@@ -127,11 +145,15 @@ public class Activator extends AbstractUIPlugin {
     plugin = this;
 
     DartConsoleManager.initialize();
+
+    UpdateManager.getInstance().addListener(updateListener);
   }
 
   @Override
   public void stop(BundleContext context) throws Exception {
     DartConsoleManager.shutdown();
+
+    UpdateManager.getInstance().removeListener(updateListener);
 
     plugin = null;
 
