@@ -68,6 +68,7 @@ swarm/swarm_test: Fail # Issue 4517
 lib/layout/layout_test: Slow, Pass # Occasionally times out.
 swarm/swarm_test: Slow, Pass # Occasionally times out.
 lib/view/view_test: Slow, Pass # Occasionally times out.
+dartcombat/dartcombat_test: Slow, Pass # Occasionally times out.
 
 [ $runtime == opera ]
 *: Skip
