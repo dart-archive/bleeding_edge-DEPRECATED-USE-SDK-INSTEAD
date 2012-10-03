@@ -57,4 +57,20 @@ public abstract class TypeImpl implements Type {
   public String getName() {
     return name;
   }
+
+  @Override
+  public boolean isAssignableTo(Type type) {
+    return this.isSubtypeOf(type) || type.isSubtypeOf(this);
+  }
+
+  @Override
+  public boolean isSubtypeOf(Type type) {
+    // TODO(brianwilkerson) Implement this
+    return false;
+  }
+
+  @Override
+  public boolean isSupertypeOf(Type type) {
+    return type.isSubtypeOf(this);
+  }
 }

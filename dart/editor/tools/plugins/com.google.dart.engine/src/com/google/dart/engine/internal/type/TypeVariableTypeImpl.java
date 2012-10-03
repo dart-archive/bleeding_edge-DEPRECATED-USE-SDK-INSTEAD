@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeVariableType;
 
 /**
@@ -34,5 +35,14 @@ public class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
   @Override
   public TypeVariableElement getElement() {
     return (TypeVariableElement) super.getElement();
+  }
+
+  //@Override
+  public boolean isMoreSpecificThan(Type type) {
+    //
+    // T is a type variable and S is the upper bound of T.
+    //
+    Type upperBound = getElement().getBound();
+    return type.equals(upperBound);
   }
 }

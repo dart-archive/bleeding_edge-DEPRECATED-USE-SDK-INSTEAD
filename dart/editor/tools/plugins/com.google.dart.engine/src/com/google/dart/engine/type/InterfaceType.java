@@ -33,4 +33,53 @@ public interface InterfaceType extends Type {
    * @return the actual types of the type arguments
    */
   public Type[] getTypeArguments();
+
+  /**
+   * Return {@code true} if this type is a direct supertype of the given type. The implicit
+   * interface of class <i>I</i> is a direct supertype of the implicit interface of class <i>J</i>
+   * iff:
+   * <ul>
+   * <li><i>I</i> is Object, and <i>J</i> has no extends clause.</li>
+   * <li><i>I</i> is listed in the extends clause of <i>J</i>.</li>
+   * <li><i>I</i> is listed in the implements clause of <i>J</i>.</li>
+   * </ul>
+   * 
+   * @param type the type being compared with this type
+   * @return {@code true} if this type is a direct supertype of the given type
+   */
+  public boolean isDirectSupertypeOf(InterfaceType type);
+
+  /**
+   * Return {@code true} if this type is more specific than the given type. An interface type
+   * <i>T</i> is more specific than an interface type <i>S</i>, written <i>T &laquo; S</i>, if one
+   * of the following conditions is met:
+   * <ul>
+   * <li>Reflexivity: <i>T</i> is <i>S</i>.
+   * <li><i>T</i> is bottom.
+   * <li><i>S</i> is Dynamic.
+   * <li>Direct supertype: <i>S</i> is a direct supertype of <i>T</i>.
+   * <li><i>T</i> is a type variable and <i>S</i> is the upper bound of <i>T</i>.
+   * <li>Covariance: <i>T</i> is of the form <i>I&lt;T<sub>1</sub>, &hellip;, T<sub>n</sub>&gt;</i>
+   * and S</i> is of the form <i>I&lt;S<sub>1</sub>, &hellip;, S<sub>n</sub>&gt;</i> and
+   * <i>T<sub>i</sub> &laquo; S<sub>i</sub></i>, <i>1 <= i <= n</i>.
+   * <li>Transitivity: <i>T &laquo; U</i> and <i>U &laquo; S</i>.
+   * </ul>
+   * 
+   * @param type the type being compared with this type
+   * @return {@code true} if this type is more specific than the given type
+   */
+  public boolean isMoreSpecificThan(Type type);
+
+  /**
+   * Return {@code true} if this type is a subtype of the given type. An interface type <i>T</i> is
+   * a subtype of an interface type <i>S</i>, written <i>T</i> <: <i>S</i>, iff
+   * <i>[bottom/Dynamic]T</i> &laquo; <i>S</i> (<i>T</i> is more specific than <i>S</i>). If an
+   * interface type <i>I</i> includes a method named <i>call()</i>, and the type of <i>call()</i> is
+   * the function type <i>F</i>, then <i>I</i> is considered to be a subtype of <i>F</i>.
+   * 
+   * @param type the type being compared with this type
+   * @return {@code true} if this type is a subtype of the given type
+   */
+  @Override
+  public boolean isSubtypeOf(Type type);
 }

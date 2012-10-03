@@ -71,6 +71,90 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return typeArguments;
   }
 
+  @Override
+  public boolean isDirectSupertypeOf(InterfaceType type) {
+    TypeElement i = getElement();
+    TypeElement j = type.getElement();
+    Type supertype = j.getSupertype();
+    //
+    // I is Object, and J has no extends clause.
+    //
+    if (supertype == null) {
+      // TODO(brianwilkerson) Finish implementing this.
+//      if (i.isObject()) {
+//        return true;
+//      }
+      return false;
+    }
+    TypeElement supertypeElement = (TypeElement) supertype.getElement();
+    //
+    // I is listed in the extends clause of J.
+    //
+    if (supertypeElement.equals(i)) {
+      return true;
+    }
+    //
+    // I is listed in the implements clause of J.
+    //
+    for (Type interfaceType : j.getInterfaces()) {
+      if (interfaceType.equals(i)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean isMoreSpecificThan(Type type) {
+    if (!(type instanceof InterfaceType)) {
+      return false;
+    }
+    InterfaceType s = (InterfaceType) type;
+    // TODO(brianwilkerson) Implement this.
+    //
+    // Reflexivity: T is S.
+    //
+    if (this.equals(s)) {
+      return true;
+    }
+    //
+    // T is bottom.
+    //
+    //
+    // S is Dynamic.
+    //
+    if (s.equals(DYNAMIC_TYPE)) {
+      return true;
+    }
+    //
+    // Direct supertype: S is a direct supertype of T.
+    //
+    if (s.isDirectSupertypeOf(this)) {
+      return true;
+    }
+    //
+    // Covariance: T is of the form I<T1, ..., Tn> and S is of the form I<S1, ..., Sn> and Ti << Si, 1 <= i <= n.
+    //
+//    TypeElement tElement = getElement();
+//    TypeElement sElement = s.getElement();
+//    if (tElement.equals(sElement)) {
+//      TypeVariableElement[] tVariables = tElement.getTypeVariables();
+//      TypeVariableElement[] sVariables = sElement.getTypeVariables();
+//      if (tVariables.length != sVariables.length) {
+//        return false;
+//      }
+//      for (int i = 0; i < tVariables.length; i++) {
+//        if (!tVariables[0].isMoreSpecificThan(sVariables[0])) {
+//          return false;
+//        }
+//      }
+//    }
+    //
+    // Transitivity: <i>T &laquo; U</i> and <i>U &laquo; S</i>.
+    //
+    return false;
+  }
+
   /**
    * Set the actual types of the type arguments to those in the given array.
    * 

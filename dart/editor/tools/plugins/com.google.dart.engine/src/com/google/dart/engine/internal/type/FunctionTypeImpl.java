@@ -26,18 +26,24 @@ import java.util.Map;
  */
 public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   /**
-   * A table mapping the names of named parameters to the types of the named parameters of this type
-   * of function.
-   */
-  private LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();
-
-  /**
    * An array containing the types of the normal parameters of this type of function. The parameter
    * types are in the same order as they appear in the declaration of the function.
    * 
    * @return the types of the normal parameters of this type of function
    */
   private Type[] normalParameterTypes = TypeImpl.EMPTY_ARRAY;
+
+  /**
+   * A table mapping the names of optional (positional) parameters to the types of the optional
+   * parameters of this type of function.
+   */
+  private Type[] optionalParameterTypes = TypeImpl.EMPTY_ARRAY;
+
+  /**
+   * A table mapping the names of named parameters to the types of the named parameters of this type
+   * of function.
+   */
+  private LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();
 
   /**
    * The type of object returned by this type of function.
@@ -70,8 +76,19 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @Override
+  public Type[] getOptionalParameterTypes() {
+    return optionalParameterTypes;
+  }
+
+  @Override
   public Type getReturnType() {
     return returnType;
+  }
+
+  @Override
+  public boolean isSubtypeOf(Type type) {
+    // TODO(brianwilkerson) Implement this
+    return false;
   }
 
   /**
@@ -93,6 +110,16 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
    */
   public void setNormalParameterTypes(Type[] normalParameterTypes) {
     this.normalParameterTypes = normalParameterTypes;
+  }
+
+  /**
+   * Set the types of the optional parameters of this type of function to the types in the given
+   * array.
+   * 
+   * @param optionalParameterTypes the types of the optional parameters of this type of function
+   */
+  public void setOptionalParameterTypes(Type[] optionalParameterTypes) {
+    this.optionalParameterTypes = optionalParameterTypes;
   }
 
   /**

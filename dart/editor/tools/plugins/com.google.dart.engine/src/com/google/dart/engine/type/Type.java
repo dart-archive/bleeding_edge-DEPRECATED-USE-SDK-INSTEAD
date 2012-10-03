@@ -36,4 +36,31 @@ public interface Type {
    * @return the name of this type
    */
   public String getName();
+
+  /**
+   * Return {@code true} if this type is assignable to the given type. A type <i>T</i> may be
+   * assigned to a type <i>S</i>, written <i>T</i> &hArr; <i>S</i>, iff either <i>T</i> <: <i>S</i>
+   * or <i>S</i> <: <i>T</i>.
+   * 
+   * @param type the type being compared with this type
+   * @return {@code true} if this type is assignable to the given type
+   */
+  public boolean isAssignableTo(Type type);
+
+  /**
+   * Return {@code true} if this type is a subtype of the given type.
+   * 
+   * @param type the type being compared with this type
+   * @return {@code true} if this type is a subtype of the given type
+   */
+  public boolean isSubtypeOf(Type type);
+
+  /**
+   * Return {@code true} if this type is a supertype of the given type. A type <i>S</i> is a
+   * supertype of <i>T</i>, written <i>S</i> :> <i>T</i>, iff <i>T</i> is a subtype of <i>S</i>.
+   * 
+   * @param type the type being compared with this type
+   * @return {@code true} if this type is a supertype of the given type
+   */
+  public boolean isSupertypeOf(Type type);
 }
