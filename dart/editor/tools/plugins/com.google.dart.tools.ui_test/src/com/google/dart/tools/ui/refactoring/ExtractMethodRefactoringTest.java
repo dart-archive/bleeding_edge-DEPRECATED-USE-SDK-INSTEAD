@@ -876,26 +876,6 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
     }
   }
 
-  public void test_bad_switch_switchMember() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  switch (0) ",
-        "// start",
-        "     switch (0) {}",
-        "// end",
-        "  } ",
-        "}",
-        "");
-    setSelectionFromStartEndComments();
-    createRefactoring();
-    assertTrue(refactoringStatus.hasFatalError());
-    {
-      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
-      assertEquals(RefactoringCoreMessages.StatementAnalyzer_switch_statement, msg);
-    }
-  }
-
   public void test_bad_tokensBetweenLastNodeAndSelectionEnd() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
