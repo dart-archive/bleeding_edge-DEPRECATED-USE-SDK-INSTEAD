@@ -128,18 +128,6 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
     GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
 
-    label = new Label(group, SWT.NONE);
-    label.setText("Max heap (MB):");
-    GridDataFactory.swtDefaults().hint(labelWidth, -1).applyTo(label);
-
-    heapText = new Text(group, SWT.BORDER | SWT.SINGLE);
-    //heapText.setTextLimit(5);
-    heapText.addModifyListener(textModifyListener);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(heapText);
-
-    Label spacer = new Label(group, SWT.NONE);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).hint(widthHint, -1).applyTo(spacer);
-
     checkedModeButton = new Button(group, SWT.CHECK);
     checkedModeButton.setText("Run in checked mode");
     GridDataFactory.swtDefaults().span(3, 1).applyTo(checkedModeButton);
@@ -166,6 +154,18 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
       String message = "not yet supported on win32";
       enableDebuggingButton.setText(enableDebuggingButton.getText() + " (" + message + ")");
     }
+
+    label = new Label(group, SWT.NONE);
+    label.setText("Max heap (MB):");
+    GridDataFactory.swtDefaults().hint(labelWidth, -1).applyTo(label);
+
+    heapText = new Text(group, SWT.BORDER | SWT.SINGLE);
+    //heapText.setTextLimit(5);
+    heapText.addModifyListener(textModifyListener);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(heapText);
+
+    Label spacer = new Label(group, SWT.NONE);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).hint(widthHint, -1).applyTo(spacer);
 
     setControl(composite);
   }

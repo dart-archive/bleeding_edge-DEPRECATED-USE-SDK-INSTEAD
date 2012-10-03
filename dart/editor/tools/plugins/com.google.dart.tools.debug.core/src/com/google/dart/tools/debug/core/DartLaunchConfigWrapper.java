@@ -42,6 +42,9 @@ public class DartLaunchConfigWrapper {
   private static final String VM_HEAP_MB = "vmHeapMB";
   private static final String SHOW_LAUNCH_OUTPUT = "showLaunchOutput";
 
+  // --enable-experimental-webkit-features and --enable-devtools-experiments
+  private static final String DARTIUM_USE_WEB_COMPONENTS = "enableExperimentalWebkitFeatures";
+
   private static final String IS_FILE = "launchHtmlFile";
   private static final String URL = "url";
   private static final String USE_DEFAULT_BROWSER = "systemDefaultBrowser";
@@ -278,6 +281,16 @@ public class DartLaunchConfigWrapper {
     }
   }
 
+  public boolean getUseWebComponents() {
+    try {
+      return launchConfig.getAttribute(DARTIUM_USE_WEB_COMPONENTS, true);
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return true;
+    }
+  }
+
   /**
    * @return the arguments for the Dart VM
    */
@@ -395,6 +408,10 @@ public class DartLaunchConfigWrapper {
 
   public void setUseDefaultBrowser(boolean value) {
     getWorkingCopy().setAttribute(USE_DEFAULT_BROWSER, value);
+  }
+
+  public void setUseWebComponents(boolean value) {
+    getWorkingCopy().setAttribute(DARTIUM_USE_WEB_COMPONENTS, value);
   }
 
   protected ILaunchConfigurationWorkingCopy getWorkingCopy() {

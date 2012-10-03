@@ -105,6 +105,8 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   private Button showOutputButton;
 
+  private Button useWebComponentsButton;
+
   protected Text argumentText;
 
   /**
@@ -158,8 +160,25 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
       }
     });
 
-    Label sep = new Label(group, SWT.NONE);
-    GridDataFactory.fillDefaults().span(3, 1).hint(-1, 4).grab(true, false).applyTo(sep);
+    useWebComponentsButton = new Button(group, SWT.CHECK);
+    useWebComponentsButton.setText("Enable experimental Webkit features (Web Components)");
+    GridDataFactory.swtDefaults().span(3, 1).applyTo(useWebComponentsButton);
+    useWebComponentsButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        notifyPanelChanged();
+      }
+    });
+
+    showOutputButton = new Button(group, SWT.CHECK);
+    showOutputButton.setText("Show browser stdout and stderr output");
+    GridDataFactory.swtDefaults().span(3, 1).applyTo(showOutputButton);
+    showOutputButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        notifyPanelChanged();
+      }
+    });
 
     // additional browser arguments
     Label argsLabel = new Label(group, SWT.NONE);
@@ -174,16 +193,6 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     PixelConverter converter = new PixelConverter(spacer);
     int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).hint(widthHint, -1).applyTo(spacer);
-
-    showOutputButton = new Button(group, SWT.CHECK);
-    showOutputButton.setText("Show browser stdout and stderr output");
-    GridDataFactory.swtDefaults().span(3, 1).applyTo(showOutputButton);
-    showOutputButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        notifyPanelChanged();
-      }
-    });
 
     setControl(composite);
   }
@@ -256,6 +265,10 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
       showOutputButton.setSelection(dartLauncher.getShowLaunchOutput());
     }
 
+    if (useWebComponentsButton != null) {
+      useWebComponentsButton.setSelection(dartLauncher.getUseWebComponents());
+    }
+
     argumentText.setText(dartLauncher.getArguments());
   }
 
@@ -306,6 +319,10 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
     if (showOutputButton != null) {
       dartLauncher.setShowLaunchOutput(showOutputButton.getSelection());
+    }
+
+    if (useWebComponentsButton != null) {
+      dartLauncher.setUseWebComponents(useWebComponentsButton.getSelection());
     }
 
     dartLauncher.setArguments(argumentText.getText().trim());

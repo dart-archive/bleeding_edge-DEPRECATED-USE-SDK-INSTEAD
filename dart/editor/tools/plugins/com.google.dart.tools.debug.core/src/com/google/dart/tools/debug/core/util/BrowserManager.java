@@ -307,6 +307,11 @@ public class BrowserManager {
     // Disables syncing browser data to a Google Account. Do we want to do this?
     //arguments.add("--disable-sync");
 
+    if (launchConfig.getUseWebComponents()) {
+      arguments.add("--enable-experimental-webkit-features");
+      arguments.add("--enable-devtools-experiments");
+    }
+
     // Whether or not it's actually the first run.
     arguments.add("--no-first-run");
 
