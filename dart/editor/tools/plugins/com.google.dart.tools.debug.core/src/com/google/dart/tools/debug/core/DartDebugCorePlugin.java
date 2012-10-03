@@ -183,7 +183,7 @@ public class DartDebugCorePlugin extends Plugin {
   private IUserAgentManager userAgentManager;
 
   public boolean getBreakOnExceptions() {
-    return getPrefs().getBoolean(PREFS_BREAK_ON_EXCEPTIONS, true);
+    return getPrefs().getBoolean(PREFS_BREAK_ON_EXCEPTIONS, false);
   }
 
   /**
