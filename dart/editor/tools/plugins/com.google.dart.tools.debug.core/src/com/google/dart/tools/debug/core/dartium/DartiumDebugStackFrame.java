@@ -238,12 +238,18 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     WebkitScript script = getConnection().getDebugger().getScript(scriptId);
 
     if (script != null) {
-      if (script.isSystemScript()) {
-        return script.getUrl();
-      } else {
-        URI uri = URI.create(script.getUrl());
+      String url = script.getUrl();
 
-        return uri.getPath();
+      if (script.isSystemScript()) {
+        return url;
+      } else {
+        try {
+          return URI.create(url).getPath();
+        } catch (IllegalArgumentException iae) {
+          // Dartium can send us bad paths:
+          // e:\b\build\slave\dartium-win-full\build\src\build\Relea ... rt\dart\CanvasRenderingContext2DImpl.dart
+          DartDebugCorePlugin.logInfo("Illegal path from Dartium: " + url);
+        }
       }
     }
 
