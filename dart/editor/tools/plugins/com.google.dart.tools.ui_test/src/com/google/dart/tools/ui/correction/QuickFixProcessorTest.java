@@ -40,10 +40,10 @@ import java.util.Comparator;
 public final class QuickFixProcessorTest extends AbstractDartTest {
   private static final IQuickFixProcessor PROCESSOR = new QuickFixProcessor();
 
-  private int proposalsExpectedNumber = 1;
-  private int proposalsIndexToCheck = 0;
+  private String proposalNamePrefix;
 
   public void test_createClass() throws Exception {
+    proposalNamePrefix = "Create class";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -62,6 +62,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_createClass_privateName() throws Exception {
+    proposalNamePrefix = "Create class";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -80,6 +81,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_createClass_whenInvocationTarget() throws Exception {
+    proposalNamePrefix = "Create class";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -98,6 +100,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_createConstructor_default() throws Exception {
+    proposalNamePrefix = "Create constructor";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -122,6 +125,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_createConstructor_named() throws Exception {
+    proposalNamePrefix = "Create constructor";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -146,6 +150,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_createFunction_hasParameters() throws Exception {
+    proposalNamePrefix = "Create method";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -164,6 +169,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_createFunction_hasParameters_Dynamic() throws Exception {
+    proposalNamePrefix = "Create method";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -182,6 +188,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_createFunction_noParameters_hasReturnType_Dynamic() throws Exception {
+    proposalNamePrefix = "Create method";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -200,6 +207,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_createFunction_noParameters_hasReturnType_fromVariable() throws Exception {
+    proposalNamePrefix = "Create method";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -218,6 +226,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_createFunction_noParameters_noReturnType() throws Exception {
+    proposalNamePrefix = "Create method";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -236,6 +245,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_createMethod_qualified() throws Exception {
+    proposalNamePrefix = "Create method";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -264,6 +274,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_createMethod_qualified_static() throws Exception {
+    proposalNamePrefix = "Create method";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -290,6 +301,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_createMethod_unqualified() throws Exception {
+    proposalNamePrefix = "Create method";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -312,6 +324,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_createMethod_unqualified_static() throws Exception {
+    proposalNamePrefix = "Create method";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -334,6 +347,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_importLibrary_withField_fromSDK() throws Exception {
+    proposalNamePrefix = "Import library";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -352,6 +366,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_importLibrary_withFunction() throws Exception {
+    proposalNamePrefix = "Import library";
     setUnitContent("Lib.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
         "test() {}",
@@ -362,8 +377,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  test();",
         "}",
         "");
-    proposalsExpectedNumber = 2;
-    proposalsIndexToCheck = 0;
     assertQuickFix(
         "import 'Lib.dart';",
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -374,14 +387,13 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_importLibrary_withFunction_fromSDK() throws Exception {
+    proposalNamePrefix = "Import library";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  min(1, 2);",
         "}",
         "");
-    proposalsExpectedNumber = 2;
-    proposalsIndexToCheck = 0;
     assertQuickFix(
         "import 'dart:math';",
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -392,6 +404,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_importLibrary_withFunction_hasImportWithPrefix() throws Exception {
+    proposalNamePrefix = "Use imported library 'Lib.dart' with prefix 'lib'";
     setUnitContent("Lib.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
         "library Lib;",
@@ -404,8 +417,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  test();",
         "}",
         "");
-    proposalsExpectedNumber = 3;
-    proposalsIndexToCheck = 0;
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'Lib.dart' as lib;",
@@ -431,14 +442,13 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_importLibrary_withType_fromSDK() throws Exception {
+    proposalNamePrefix = "Import library";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  TableElement t = null;",
         "}",
         "");
-    proposalsExpectedNumber = 2;
-    proposalsIndexToCheck = 0;
     assertQuickFix(
         "import 'dart:html';",
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -449,6 +459,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_importLibrary_withType_hasDirectiveImport() throws Exception {
+    proposalNamePrefix = "Import library";
     setUnitContent("LibA.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
         "library A;",
@@ -468,8 +479,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "}",
         "");
     // we have "fix", note that preview is for library
-    proposalsExpectedNumber = 2;
-    proposalsIndexToCheck = 0;
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library App;",
@@ -487,6 +496,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_importLibrary_withType_hasImportWithPrefix() throws Exception {
+    proposalNamePrefix = "Use imported library 'Lib.dart' with prefix 'lib'";
     setUnitContent("Lib.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
         "library Lib;",
@@ -501,8 +511,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "}",
         "");
     // do check
-    proposalsExpectedNumber = 3;
-    proposalsIndexToCheck = 0;
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'Lib.dart' as lib;",
@@ -513,6 +521,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_importLibrary_withType_noDirectives() throws Exception {
+    proposalNamePrefix = "Import library";
     setUnitContent("Lib.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class Test {",
@@ -524,8 +533,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  Test t = null;",
         "}",
         "");
-    proposalsExpectedNumber = 2;
-    proposalsIndexToCheck = 0;
     assertQuickFix(
         "import 'Lib.dart';",
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -536,14 +543,13 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_importLibrary_withType_whenInvocationTarget() throws Exception {
+    proposalNamePrefix = "Import library";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  var foo = JSON.parse('{\"foo\":1}');",
         "}",
         "");
-    proposalsExpectedNumber = 2;
-    proposalsIndexToCheck = 0;
     assertQuickFix(
         "import 'dart:json';",
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -553,7 +559,142 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "");
   }
 
+  public void test_unresolvedClass_useSimilar() throws Exception {
+    proposalNamePrefix = "Change to 'Person'";
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Person {}",
+        "main() {",
+        "  Prson p;",
+        "}",
+        "");
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Person {}",
+        "main() {",
+        "  Person p;",
+        "}",
+        "");
+  }
+
+  // XXX
+  public void test_unresolvedFunction_useSimilar_qualified_fromClass() throws Exception {
+    proposalNamePrefix = "Change to";
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  sayHello() {}",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.syaHelol();",
+        "}",
+        "");
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  sayHello() {}",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.sayHello();",
+        "}",
+        "");
+  }
+
+  public void test_unresolvedFunction_useSimilar_unqualified_fromClass_same() throws Exception {
+    proposalNamePrefix = "Change to";
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  sayHello() {}",
+        "  foo() {",
+        "    syaHelol();",
+        "  }",
+        "}",
+        "");
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  sayHello() {}",
+        "  foo() {",
+        "    sayHello();",
+        "  }",
+        "}",
+        "");
+  }
+
+  public void test_unresolvedFunction_useSimilar_unqualified_fromClass_super() throws Exception {
+    proposalNamePrefix = "Change to";
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  sayHello() {}",
+        "}",
+        "class B extends A{",
+        "  foo() {",
+        "    syaHelol();",
+        "  }",
+        "}",
+        "");
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  sayHello() {}",
+        "}",
+        "class B extends A{",
+        "  foo() {",
+        "    sayHello();",
+        "  }",
+        "}",
+        "");
+  }
+
+  public void test_unresolvedFunction_useSimilar_unqualified_fromLibrary_import() throws Exception {
+    proposalNamePrefix = "Change to";
+    setUnitContent("MyLib.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library my_lib;",
+        "sayHello() {}",
+        ""});
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library app;",
+        "import 'MyLib.dart';",
+        "main() {",
+        "  syaHelol();",
+        "}",
+        "");
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library app;",
+        "import 'MyLib.dart';",
+        "main() {",
+        "  sayHello();",
+        "}",
+        "");
+  }
+
+  public void test_unresolvedFunction_useSimilar_unqualified_fromLibrary_same() throws Exception {
+    proposalNamePrefix = "Change to";
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  tset();",
+        "}",
+        "test() {}",
+        "");
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  test();",
+        "}",
+        "test() {}",
+        "");
+  }
+
   public void test_useStaticAccess_method() throws Exception {
+    proposalNamePrefix = "Change access to static using 'A'";
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -575,6 +716,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_useStaticAccess_method_importWithPrefix() throws Exception {
+    proposalNamePrefix = "Change access to static using 'lib.A'";
     setUnitContent("Lib.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
         "library Lib;",
@@ -621,8 +763,18 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
    */
   private void assertQuickFix(String... expectedLines) throws CoreException {
     IDartCompletionProposal[] proposals = prepareQuickFixes();
-    assertThat(proposals).hasSize(proposalsExpectedNumber);
-    String result = ((CUCorrectionProposal) proposals[proposalsIndexToCheck]).getPreviewContent();
+    // select proposal using name prefix
+    IDartCompletionProposal selectedProposal = null;
+    assertNotNull(proposalNamePrefix);
+    for (IDartCompletionProposal proposal : proposals) {
+      if (proposal.getDisplayString().startsWith(proposalNamePrefix)) {
+        assertNull(selectedProposal);
+        selectedProposal = proposal;
+      }
+    }
+    assertNotNull(selectedProposal);
+    // prepare result
+    String result = ((CUCorrectionProposal) selectedProposal).getPreviewContent();
     // assert result
     String expectedSource = makeSource(expectedLines);
     assertEquals(expectedSource, result);

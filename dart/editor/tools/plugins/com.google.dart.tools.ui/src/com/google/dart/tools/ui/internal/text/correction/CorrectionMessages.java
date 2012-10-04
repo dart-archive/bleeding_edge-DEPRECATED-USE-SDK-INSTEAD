@@ -389,6 +389,7 @@ public final class CorrectionMessages extends NLS {
 
   public static String QuickFixProcessor_useStaticAccess_method;
   public static String QuickFixProcessor_importLibrary;
+  public static String QuickFixProcessor_changeTo;
   public static String QuickFixProcessor_importLibrary_addPrefix;
   public static String QuickFixProcessor_createClass;
   public static String QuickFixProcessor_createConstructor;
