@@ -1,0 +1,273 @@
+### Eclipse Workspace Patch 1.0
+#P org.eclipse.core.resources
+Index: src/org/eclipse/core/internal/localstore/FileSystemResourceManager.java
+===================================================================
+RCS file: /cvsroot/eclipse/org.eclipse.core.resources/src/org/eclipse/core/internal/localstore/FileSystemResourceManager.java,v
+retrieving revision 1.134
+diff -u -r1.134 FileSystemResourceManager.java
+--- src/org/eclipse/core/internal/localstore/FileSystemResourceManager.java	9 May 2011 16:24:09 -0000	1.134
++++ src/org/eclipse/core/internal/localstore/FileSystemResourceManager.java	4 Oct 2012 18:03:25 -0000
+@@ -31,6 +31,12 @@
+  * Manages the synchronization between the workspace's view and the file system.  
+  */
+ public class FileSystemResourceManager implements ICoreConstants, IManager, Preferences.IPropertyChangeListener {
++	
++	/**
++	 * Flag for migrating .project files to their new location
++	 */
++	private static final boolean CHECK_FOR_OLD_PROJECT_FILE 
++		= new GregorianCalendar().compareTo(new GregorianCalendar(2012, 10, 15)) < 0;
+ 
+ 	/**
+ 	 * The history store is initialized lazily - always use the accessor method
+@@ -361,12 +367,12 @@
+ 	 * Since org.eclipse.core.resources 3.4.1 differences in line endings (CR, LF, CRLF) 
+ 	 * are not considered.
+ 	 */
+-	private boolean descriptionChanged(IFile descriptionFile, byte[] newContents) {
++	private boolean descriptionChanged(java.io.File descriptionFile, byte[] newContents) {
+ 		InputStream oldStream = null;
+ 		try {
+ 			//buffer size: twice the description length, but maximum 8KB
+ 			int bufsize = newContents.length > 4096 ? 8192 : newContents.length * 2;
+-			oldStream = new BufferedInputStream(descriptionFile.getContents(true), bufsize);
++			oldStream = new BufferedInputStream(new FileInputStream(descriptionFile), bufsize);
+ 			InputStream newStream = new ByteArrayInputStream(newContents);
+ 			//compare streams char by char, ignoring line endings
+ 			int newChar = newStream.read();
+@@ -581,7 +587,7 @@
+ 	 * Returns whether the project has a project description file on disk.
+ 	 */
+ 	public boolean hasSavedDescription(IProject project) {
+-		return getStore(project).getChild(IProjectDescription.DESCRIPTION_FILE_NAME).fetchInfo().exists();
++	  return getProjectDescriptionFile(project).exists();
+ 	}
+ 
+ 	/**
+@@ -605,7 +611,7 @@
+ 	 * @return true if a new description was written, and false if it wasn't written
+ 	 * because it was unchanged
+ 	 */
+-	public boolean internalWrite(IProject target, IProjectDescription description, int updateFlags, boolean hasPublicChanges, boolean hasPrivateChanges) throws CoreException {
++  public boolean internalWrite(IProject target, IProjectDescription description, int updateFlags, boolean hasPublicChanges, boolean hasPrivateChanges) throws CoreException {
+ 		//write the project's private description to the metadata area
+ 		if (hasPrivateChanges)
+ 			getWorkspace().getMetaArea().writePrivateDescription(target);
+@@ -624,41 +630,105 @@
+ 			throw new ResourceException(IResourceStatus.FAILED_WRITE_METADATA, target.getFullPath(), msg, e);
+ 		}
+ 		byte[] newContents = out.toByteArray();
+-
+-		//write the contents to the IFile that represents the description
+-		IFile descriptionFile = target.getFile(IProjectDescription.DESCRIPTION_FILE_NAME);
+-		if (!descriptionFile.exists())
+-			workspace.createResource(descriptionFile, false);
+-		else {
+-			//if the description has not changed, don't write anything
+-			if (!descriptionChanged(descriptionFile, newContents))
+-				return false;
++		
++		// Write the description to the Dart Editor meta data area
++		java.io.File descriptionFile = getProjectDescriptionFile(target);
++		if (descriptionFile.exists() && !descriptionChanged(descriptionFile, newContents)) {
++			return false;
+ 		}
+ 		ByteArrayInputStream in = new ByteArrayInputStream(newContents);
+-		IFileStore descriptionFileStore = ((Resource) descriptionFile).getStore();
+-		IFileInfo fileInfo = descriptionFileStore.fetchInfo();
+-		if (fileInfo.getAttribute(EFS.ATTRIBUTE_READ_ONLY)) {
+-			IStatus result = getWorkspace().validateEdit(new IFile[] {descriptionFile}, null);
+-			if (!result.isOK())
+-				throw new ResourceException(result);
+-			// re-read the file info in case the file attributes were modified	
+-			fileInfo = descriptionFileStore.fetchInfo();
++		descriptionFile.getParentFile().mkdirs();
++		OutputStream descriptionOut;
++		String descriptionPath = descriptionFile.getPath();
++		try {
++			descriptionOut = new FileOutputStream(descriptionFile);
++		} catch (FileNotFoundException e) {
++			String msg = NLS.bind(Messages.localstore_couldNotWrite, descriptionPath);
++			throw new ResourceException(IResourceStatus.FAILED_WRITE_LOCAL, new Path(descriptionPath), msg, e);
+ 		}
+-		//write the project description file (don't use API because scheduling rule might not match)
+-		write(descriptionFile, in, fileInfo, IResource.FORCE, false, Policy.monitorFor(null));
+-		workspace.getAliasManager().updateAliases(descriptionFile, getStore(descriptionFile), IResource.DEPTH_ZERO, Policy.monitorFor(null));
+-
+-		//update the timestamp on the project as well so we know when it has
+-		//been changed from the outside
+-		long lastModified = ((Resource) descriptionFile).getResourceInfo(false, false).getLocalSyncInfo();
+-		ResourceInfo info = ((Resource) target).getResourceInfo(false, true);
+-		updateLocalSync(info, lastModified);
++		FileUtil.transferStreams(in, descriptionOut, descriptionPath, Policy.monitorFor(null));
+ 
+ 		//for backwards compatibility, ensure the old .prj file is deleted
+ 		getWorkspace().getMetaArea().clearOldDescription(target);
+ 		return true;
+ 	}
+ 
++  /**
++   * Answer the project description file stored in the project metadata area
++   * 
++   * @param target the project (not <code>null</code>)
++   * @return the project description file (not <code>null</code>)
++   */
++	private java.io.File getProjectDescriptionFile(IProject target) {
++		java.io.File descriptionFile = workspace.getMetaArea().locationFor(target)
++				.append(IProjectDescription.DESCRIPTION_FILE_NAME).toFile();
++
++		// If the new description does not exist, copy it from the old location
++		if (!descriptionFile.exists()) {
++			copyOldDescriptionFile(target, descriptionFile);
++		}
++
++		return descriptionFile;
++	}
++
++	/**
++	 * Look for the .project file in the old location and copy it to the new location
++	 * 
++	 * @param target the project
++	 * @param descriptionFile the .project file in its new location in the metadata area
++	 */
++	private void copyOldDescriptionFile(IProject target, java.io.File descriptionFile) {
++		
++		// Only perform this check/copy for the old project file during the migration period
++		if (!CHECK_FOR_OLD_PROJECT_FILE) {
++			return;
++		}
++		System.out.println("Checking for .project file in old location"); //$NON-NLS-1$
++		System.out.println("  project is accessible: " + target.isAccessible()); //$NON-NLS-1$
++		
++		// Determine the project location
++		ProjectDescription privateDescription = new ProjectDescription();
++		getWorkspace().getMetaArea().readPrivateDescription(target, privateDescription);
++		URI projectLocationUri = privateDescription.getLocationURI();
++		if (projectLocationUri == null) {
++			projectLocationUri = URIUtil.toURI(getProjectDefaultLocation(target));
++		}
++		System.out.println("  location: " + projectLocationUri); //$NON-NLS-1$
++		
++		// Determine the old description file location
++		IPath projectLocation = FileUtil.toPath(projectLocationUri);
++		if (projectLocation == null) {
++			return;
++		} 
++		java.io.File oldDescriptionFile = projectLocation
++			.append(IProjectDescription.DESCRIPTION_FILE_NAME).toFile();
++		System.out.println("  .project file: " + oldDescriptionFile); //$NON-NLS-1$
++
++		// Determine if the old description file exists
++		boolean oldDescriptionFileExists = oldDescriptionFile.exists();
++		System.out.println("  .project file exists: " + oldDescriptionFileExists); //$NON-NLS-1$
++		if (!oldDescriptionFileExists) {
++			return;
++		}
++		
++		// Copy the old description file to its new location
++		try {
++			FileUtil.transferStreams(
++				new FileInputStream(oldDescriptionFile),
++				new FileOutputStream(descriptionFile), 
++				descriptionFile.getPath(), 
++				null);
++			System.out.println("  copied .project to " + descriptionFile); //$NON-NLS-1$
++		} catch (Exception e) {
++			ResourcesPlugin.getPlugin().getLog().log(
++				new Status(
++					IStatus.ERROR, 
++					ResourcesPlugin.PI_RESOURCES, 
++					"Failed to copy old .project file to " + descriptionFile, //$NON-NLS-1$
++					e));
++		}
++	}
++
+ 	/**
+ 	 * Returns true if the given project's description is synchronized with
+ 	 * the project description file on disk, and false otherwise.
+@@ -667,11 +737,11 @@
+ 		//sync info is stored on the description file, and on project info.
+ 		//when the file is changed by someone else, the project info modification
+ 		//stamp will be out of date
+-		IFile descriptionFile = target.getFile(IProjectDescription.DESCRIPTION_FILE_NAME);
++		java.io.File descriptionFile = getProjectDescriptionFile(target);
+ 		ResourceInfo projectInfo = ((Resource) target).getResourceInfo(false, false);
+ 		if (projectInfo == null)
+ 			return false;
+-		return projectInfo.getLocalSyncInfo() == getStore(descriptionFile).fetchInfo().getLastModified();
++		return projectInfo.getLocalSyncInfo() == descriptionFile.lastModified();
+ 	}
+ 
+ 	/**
+@@ -827,26 +897,25 @@
+ 		if (isDefaultLocation) {
+ 			projectLocation = URIUtil.toURI(getProjectDefaultLocation(target));
+ 		}
+-		IFileStore projectStore = initializeStore(target, projectLocation);
+-		IFileStore descriptionStore = projectStore.getChild(IProjectDescription.DESCRIPTION_FILE_NAME);
++		java.io.File descriptionFile = getProjectDescriptionFile(target);
+ 		ProjectDescription description = null;
+ 		//hold onto any exceptions until after sync info is updated, then throw it
+ 		ResourceException error = null;
+ 		InputStream in = null;
+ 		try {
+-			in = new BufferedInputStream(descriptionStore.openInputStream(EFS.NONE, monitor));
++			in = new BufferedInputStream(new FileInputStream(descriptionFile));
+ 			// IFileStore#openInputStream may cancel the monitor, thus the monitor state is checked
+ 			Policy.checkCanceled(monitor);
+ 			description = new ProjectDescriptionReader(target).read(new InputSource(in));
+ 		} catch (OperationCanceledException e) {
+ 			String msg = NLS.bind(Messages.resources_missingProjectMeta, target.getName());
+ 			throw new ResourceException(IResourceStatus.FAILED_READ_METADATA, target.getFullPath(), msg, e);
+-		} catch (CoreException e) {
++		} catch (IOException e) {
+ 			//try the legacy location in the meta area
+ 			description = getWorkspace().getMetaArea().readOldDescription(target);
+ 			if (description != null)
+ 				return description;
+-			if (!descriptionStore.fetchInfo().exists()) {
++			if (!descriptionFile.exists()) {
+ 				String msg = NLS.bind(Messages.resources_missingProjectMeta, target.getName());
+ 				throw new ResourceException(IResourceStatus.FAILED_READ_METADATA, target.getFullPath(), msg, null);
+ 			}
+@@ -866,24 +935,11 @@
+ 				// Bring dynamic state back to life
+ 				description.updateDynamicState(privateDescription);
+ 		}
+-		long lastModified = descriptionStore.fetchInfo().getLastModified();
+-		IFile descriptionFile = target.getFile(IProjectDescription.DESCRIPTION_FILE_NAME);
+-		//don't get a mutable copy because we might be in restore which isn't an operation
+-		//it doesn't matter anyway because local sync info is not included in deltas
+-		ResourceInfo info = ((Resource) descriptionFile).getResourceInfo(false, false);
+-		if (info == null) {
+-			//create a new resource on the sly -- don't want to start an operation
+-			info = getWorkspace().createResource(descriptionFile, false);
+-			updateLocalSync(info, lastModified);
+-		}
+-		//if the project description has changed between sessions, let it remain
+-		//out of sync -- that way link changes will be reconciled on next refresh
+-		if (!creation)
+-			updateLocalSync(info, lastModified);
++		long lastModified = descriptionFile.lastModified();
+ 
+-		//update the timestamp on the project as well so we know when it has
++		//update the timestamp on the project so we know when it has
+ 		//been changed from the outside
+-		info = ((Resource) target).getResourceInfo(false, true);
++		ResourceInfo info = ((Resource) target).getResourceInfo(false, true);
+ 		updateLocalSync(info, lastModified);
+ 
+ 		if (error != null)
+@@ -1154,10 +1210,10 @@
+ 		getWorkspace().getMetaArea().writePrivateDescription(target);
+ 
+ 		//write the file that represents the project description
+-		IFileStore fileStore = projectStore.getChild(IProjectDescription.DESCRIPTION_FILE_NAME);
++		java.io.File descriptionFile = getProjectDescriptionFile(target);
+ 		OutputStream out = null;
+ 		try {
+-			out = fileStore.openOutputStream(EFS.NONE, null);
++			out = new FileOutputStream(descriptionFile);
+ 			new ModelObjectWriter().write(desc, out);
+ 			out.close();
+ 		} catch (IOException e) {
