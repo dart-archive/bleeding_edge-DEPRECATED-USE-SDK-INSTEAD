@@ -1024,9 +1024,21 @@ public class DartElementLabels {
 
   private static void getCommonFunctionLabelElements(DartFunction method, long flags,
       StringBuffer buf) {
+    boolean isSetter = false;
+    if (method instanceof Method) {
+      Method m = (Method) method;
+      if (m.isGetter()) {
+        return;
+      }
+      isSetter = m.isSetter();
+    }
     // parameters
     try {
-      buf.append('(');
+      if (!isSetter) {
+        buf.append('(');
+      } else {
+        buf.append(' ');
+      }
       if (getFlag(flags, M_PARAMETER_TYPES | M_PARAMETER_NAMES)) {
         String[] types = null;
         int nParams = 0;
@@ -1101,7 +1113,9 @@ public class DartElementLabels {
           buf.append(ELLIPSIS_STRING);
         }
       }
-      buf.append(')');
+      if (!isSetter) {
+        buf.append(')');
+      }
     } catch (DartModelException ex) {
       DartToolsPlugin.log(ex);
     }
