@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.projects;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.generator.ApplicationGenerator;
 import com.google.dart.tools.core.generator.DartIdentifierUtil;
+import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 
 import org.eclipse.core.commands.ExecutionException;
@@ -135,6 +136,12 @@ public class ProjectUtils {
       }
       return null;
     }
+    try {
+      IProjectUtilities.configurePackagesFilter(newProjectHandle);
+    } catch (CoreException e) {
+      DartCore.logError("Could not set package filter on folder " + newProjectHandle.getName(), e);
+    }
+
     return newProjectHandle;
   }
 
