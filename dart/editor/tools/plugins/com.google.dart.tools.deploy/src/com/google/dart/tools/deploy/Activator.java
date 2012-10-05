@@ -18,8 +18,13 @@ import com.google.dart.tools.update.core.UpdateAdapter;
 import com.google.dart.tools.update.core.UpdateListener;
 import com.google.dart.tools.update.core.UpdateManager;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.DebugException;
+import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -117,18 +122,37 @@ public class Activator extends AbstractUIPlugin {
         new Status(IStatus.ERROR, PLUGIN_ID, exception.getMessage(), exception));
   }
 
-  /**
-   * Called when the update manager initiates an install.
-   */
-  private static void installStarting() {
-    //TODO(pquitslund): add call to debug to terminate active sessions
-  }
-
   //a hook into the update lifecycle
   private final UpdateListener updateListener = new UpdateAdapter() {
+
     @Override
     public void installing() {
-      Activator.installStarting();
+
+      //terminate all running dart launches 
+      ILaunchManager launchManager = DebugPlugin.getDefault().getLaunchManager();
+      for (ILaunch launch : launchManager.getLaunches()) {
+        if (!launch.isTerminated() && isDartLaunch(launch) && launch.canTerminate()) {
+          terminate(launch);
+        }
+      }
+
+    }
+
+    public boolean isDartLaunch(ILaunch launch) {
+      try {
+        return launch.getLaunchConfiguration().getType().getIdentifier().startsWith("com.google");
+      } catch (CoreException e) {
+        logError(e);
+      }
+      return false;
+    }
+
+    public void terminate(ILaunch launch) {
+      try {
+        launch.terminate();
+      } catch (DebugException e) {
+        logError(e);
+      }
     }
   };
 
@@ -136,7 +160,7 @@ public class Activator extends AbstractUIPlugin {
    * The constructor
    */
   public Activator() {
-  }
+  };
 
   @Override
   public void start(BundleContext context) throws Exception {
