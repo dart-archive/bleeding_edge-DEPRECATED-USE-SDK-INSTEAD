@@ -84,13 +84,13 @@ public class AnalyzeLibraryTask extends Task {
     }
 
     // If this library has directives, 
-    // then discard any sourced files that don't have directives
+    // then discard any sourced files that don't have directives and are not imported
 
     Library rootLibrary = context.getCachedLibrary(rootLibraryFile);
     if (rootLibrary.hasDirectives()) {
       for (File sourceFile : rootLibrary.getSourceFiles()) {
         Library library = context.getCachedLibrary(sourceFile);
-        if (library == null || !library.hasDirectives()) {
+        if (library == null || (!library.hasDirectives() && !library.isImported())) {
           server.discard(sourceFile);
         }
       }
@@ -164,6 +164,9 @@ public class AnalyzeLibraryTask extends Task {
     if (library == null) {
       server.queueSubTask(new ParseTask(server, context, libraryFile));
       return true;
+    }
+    if (!libraryFile.equals(rootLibraryFile)) {
+      library.setImported(true);
     }
     boolean subTasksQueued = false;
     for (File importedFile : library.getImportedFiles()) {

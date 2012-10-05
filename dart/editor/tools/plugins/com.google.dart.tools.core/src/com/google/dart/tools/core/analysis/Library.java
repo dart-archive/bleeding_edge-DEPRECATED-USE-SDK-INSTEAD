@@ -138,7 +138,14 @@ class Library {
   private LibraryUnit libraryUnit;
   private final HashMap<File, DartUnit> dartUnits;
 
+  /**
+   * <code>true</code> if this library is referenced in an import statement. This is used to
+   * determine whether to discard the library when it is both imported and sourced.
+   */
+  private boolean isImported;
+
   private HashMap<File, DartCompilationError[]> parseErrors;
+
   /**
    * Flag indicating if listeners should be notified when the library is parsed and resolved. This
    * is <code>false</code> when a library is reloaded from a cache file so that listeners will not
@@ -247,6 +254,10 @@ class Library {
     return hasDirectives;
   }
 
+  boolean isImported() {
+    return isImported;
+  }
+
   /**
    * Answer the last modification timestamp for the specified file when the analysis was performed.
    * Compare this with the actual file's last modification timestamp to determine whether the
@@ -255,6 +266,10 @@ class Library {
   long lastModified(File file) {
     Long timestamp = lastModified.get(file);
     return timestamp != null ? timestamp : -1L;
+  }
+
+  void setImported(boolean isImported) {
+    this.isImported = isImported;
   }
 
   /**

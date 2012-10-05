@@ -289,7 +289,7 @@ public class ScanTask extends Task implements TaskListener {
           Library otherLib = savedContext.getCachedLibrary(sourcedFile);
           // If there is no information about the sourcedFile currently in the cache
           // make the assumption that it is not a library file rather than doing more work
-          if (otherLib == null || !otherLib.hasDirectives()) {
+          if (otherLib == null || (!otherLib.hasDirectives() && !otherLib.isImported())) {
             server.discard(sourcedFile);
           }
         }
