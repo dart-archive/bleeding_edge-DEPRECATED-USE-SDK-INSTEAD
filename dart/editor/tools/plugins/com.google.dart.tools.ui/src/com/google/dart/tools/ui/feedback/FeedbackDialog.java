@@ -236,7 +236,7 @@ public class FeedbackDialog extends Dialog implements IRunnableContext, DisposeL
 
   @Override
   protected int getShellStyle() {
-    return SWT.ON_TOP | SWT.MODELESS | SWT.CLOSE | SWT.MIN | SWT.MAX | SWT.RESIZE;
+    return SWT.MODELESS | SWT.CLOSE | SWT.MIN | SWT.MAX | SWT.RESIZE;
   }
 
   @Override
