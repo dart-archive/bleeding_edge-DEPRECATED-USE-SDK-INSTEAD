@@ -167,11 +167,16 @@ public class UpdateUtils {
 
   /**
    * Delete the given file. If the file is a directory, recurse and delete contents.
+   * <p>
+   * If the file does not exist, ignore.
    * 
    * @param file the file to delete
    * @param monitor the progress monitor
    */
   public static void delete(File file, IProgressMonitor monitor) {
+    if (!file.exists()) {
+      return;
+    }
     if (file.isFile()) {
       file.delete();
       monitor.worked(1);

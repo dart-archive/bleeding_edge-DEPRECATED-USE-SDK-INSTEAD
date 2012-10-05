@@ -60,8 +60,15 @@ public class InstallUpdateAction extends Action {
     @Override
     public boolean accept(File file) {
 
+      String name = file.getName();
+
       //org.eclipse.equinox.simpleconfigurator/bundles.info
-      if (file.getName().equals("bundles.info")) { //$NON-NLS-1$
+      if (name.equals("bundles.info")) { //$NON-NLS-1$
+        return true;
+      }
+
+      //com.google.dart.tools.deploy/splash.bmp
+      if (name.equals("splash.bmp")) { //$NON-NLS-1$
         return true;
       }
 
