@@ -53,7 +53,7 @@ import java.util.List;
  * 
  * @see DartOutlinePage
  */
-public class LibraryExplorerContentProvider extends StandardDartElementContentProvider implements
+public class DartOutlinePageContentProvider extends StandardDartElementContentProvider implements
     ElementChangedListener {
 
   protected static final int ORIGINAL = 0;
@@ -69,14 +69,12 @@ public class LibraryExplorerContentProvider extends StandardDartElementContentPr
 
   private UIJob updateJob;
 
-  public static boolean DEBUG = false;
-
   /**
    * Creates a new content provider for Dart elements.
    * 
    * @param provideMembers if <code>true</code>, members below compilation units files are provided
    */
-  public LibraryExplorerContentProvider(boolean provideMembers) {
+  public DartOutlinePageContentProvider(boolean provideMembers) {
     this(provideMembers, true);
   }
 
@@ -87,7 +85,7 @@ public class LibraryExplorerContentProvider extends StandardDartElementContentPr
    * @param libsTopLevel of <code>true</code>, then the children of a workspace will be the
    *          libraries in any contained project, not the set of projects
    */
-  public LibraryExplorerContentProvider(boolean provideMembers, boolean libsTopLevel) {
+  public DartOutlinePageContentProvider(boolean provideMembers, boolean libsTopLevel) {
     super(provideMembers, libsTopLevel);
     //DartToolsPlugin.getDefault().getPreferenceStore().addPropertyChangeListener(this);
     pendingUpdates = null;
@@ -110,14 +108,6 @@ public class LibraryExplorerContentProvider extends StandardDartElementContentPr
   @Override
   public void elementChanged(ElementChangedEvent event) {
 
-    if (DEBUG) {
-      System.out.println("LibraryExplorerContentProvider.elementChanged(), start, ...");
-      if (event.getDelta().getElement() == null) {
-        System.out.println("\tno element");
-      } else {
-        System.out.println("\t" + event.getDelta().getElement().getElementName());
-      }
-    }
     final ArrayList<Runnable> runnables = new ArrayList<Runnable>();
     try {
       // 58952 delete project does not update Package Explorer [package explorer]
@@ -132,10 +122,6 @@ public class LibraryExplorerContentProvider extends StandardDartElementContentPr
     } catch (DartModelException e) {
       DartToolsPlugin.log(e);
     } finally {
-      if (DEBUG) {
-        System.out.println("LibraryExplorerContentProvider.elementChanged(), finally, num of runnables = "
-            + runnables.size());
-      }
       // finally, execute the set of runnables gathered from the call to processDelta(..) above
       executeRunnables(runnables);
     }
@@ -323,12 +309,12 @@ public class LibraryExplorerContentProvider extends StandardDartElementContentPr
 
   private void postAsyncUpdate(final Display display) {
     if (updateJob == null) {
-      updateJob = new UIJob(display, "Update library explorer"
+      updateJob = new UIJob(display, "Update outline view"
       //PackagesMessages.PackageExplorerContentProvider_update_job_description
       ) {
         @Override
         public IStatus runInUIThread(IProgressMonitor monitor) {
-          TreeViewer viewer = LibraryExplorerContentProvider.this.viewer;
+          TreeViewer viewer = DartOutlinePageContentProvider.this.viewer;
           if (viewer != null && viewer.isBusy()) {
             schedule(100); // reschedule when viewer is busy: bug 184991
           } else {

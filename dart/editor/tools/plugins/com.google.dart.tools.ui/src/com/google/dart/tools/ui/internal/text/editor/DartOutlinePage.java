@@ -901,7 +901,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     fOutlineViewer = new DartOutlineViewer(tree);
     ColoredViewersManager.install(fOutlineViewer);
     initDragAndDrop();
-    fOutlineViewer.setContentProvider(new LibraryExplorerContentProvider(true));
+    fOutlineViewer.setContentProvider(new DartOutlinePageContentProvider(true));
     fOutlineViewer.setLabelProvider(new DartElementLabelProvider());
     fOutlineViewer.updateTreeFont();
 
