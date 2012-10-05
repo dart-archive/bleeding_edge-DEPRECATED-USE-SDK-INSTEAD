@@ -743,6 +743,11 @@ public class DartCore extends Plugin implements DartSdkListener {
     return System.getProperty("os.name").toLowerCase().startsWith("win");
   }
 
+  public static boolean isWindowsXp() {
+    // Look for the "Windows XP" OS name.
+    return System.getProperty("os.name").toLowerCase().equals("windows xp");
+  }
+
   /**
    * Log the given message as an error.
    * 
