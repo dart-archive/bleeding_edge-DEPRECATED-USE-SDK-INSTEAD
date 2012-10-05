@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,10 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.handlers;
 
-import com.google.dart.tools.core.internal.model.DartModelImpl;
-import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.ui.AbstractSourceProvider;
 import org.eclipse.ui.ISources;
@@ -53,19 +50,10 @@ public class NewFileCommandState extends AbstractSourceProvider {
 
   @Override
   public String[] getProvidedSourceNames() {
-
     return new String[] {NEW_FILE_STATE};
   }
 
   private boolean isEmpty() {
-    DartModelImpl dartModel = DartModelManager.getInstance().getDartModel();
-    try {
-      if (dartModel.getDartLibraries().isEmpty()) {
-        return true;
-      }
-    } catch (DartModelException e) {
-      DartToolsPlugin.log(e);
-    }
-    return false;
+    return DartCore.getDirectorySetManager().getChildren().length == 0;
   }
 }
