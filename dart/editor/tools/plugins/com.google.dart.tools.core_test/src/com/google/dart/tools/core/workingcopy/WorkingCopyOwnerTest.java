@@ -21,6 +21,8 @@ import com.google.dart.tools.core.problem.ProblemRequestor;
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.runtime.Path;
+
 public class WorkingCopyOwnerTest extends TestCase {
   public void test_WorkingCopyOwner_newWorkingCopy() throws DartModelException {
     CompilationUnit workingCopy = newExternalWorkingCopy("X.java", "public class X {\n" + "}");
@@ -42,7 +44,7 @@ public class WorkingCopyOwnerTest extends TestCase {
         return problemRequestor;
       }
     };
-    return owner.newWorkingCopy(name, null);
+    return owner.newWorkingCopy(new Path(name), null);
   }
 
   protected CompilationUnit newExternalWorkingCopy(String name, final String contents)

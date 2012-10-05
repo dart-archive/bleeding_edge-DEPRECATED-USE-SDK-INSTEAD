@@ -273,7 +273,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
 
       fJobPresenter.setCanceled(progressMonitor.isCanceled());
 
-      if (ast == null || fJobPresenter.isCanceled()) {
+      if (ast == null || ast.getLibrary() == null || fJobPresenter.isCanceled()) {
         return;
       }
 

@@ -444,6 +444,9 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
 
     } else if (element instanceof CompilationUnit) {
       DartLibrary targetLibrary = ((CompilationUnitImpl) element).getLibrary();
+      if (targetLibrary == null) {
+        return null;
+      }
       if (targetLibrary.isTopLevel()) {
         return targetLibrary;
       } else {

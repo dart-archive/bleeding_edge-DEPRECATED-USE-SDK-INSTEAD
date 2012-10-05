@@ -1510,7 +1510,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       // cpEntries = new
       // IIncludePathEntry[]{JavaRuntime.getDefaultJREContainerEntry()};
 
-      final CompilationUnit cu = woc.newWorkingCopy(storage.getName(), getProgressMonitor());
+      final CompilationUnit cu = woc.newWorkingCopy(storagePath, getProgressMonitor());
       if (setContents) {
         int READER_CHUNK_SIZE = 2048;
         int BUFFER_SIZE = 8 * READER_CHUNK_SIZE;

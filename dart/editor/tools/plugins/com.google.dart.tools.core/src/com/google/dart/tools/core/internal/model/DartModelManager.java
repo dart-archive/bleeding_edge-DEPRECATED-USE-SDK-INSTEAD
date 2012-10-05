@@ -1226,7 +1226,7 @@ public class DartModelManager {
         CompilationUnitImpl cu = (CompilationUnitImpl) openedElement;
         DartLibrary lib = cu.getLibrary();
         try {
-          if (lib.getDefiningCompilationUnit() == cu) {
+          if (lib != null && lib.getDefiningCompilationUnit() == cu) {
             // redefining library
             DartCompilerUtilities.removeCachedLibrary(((DartLibraryImpl) lib).getLibrarySourceFile());
           }

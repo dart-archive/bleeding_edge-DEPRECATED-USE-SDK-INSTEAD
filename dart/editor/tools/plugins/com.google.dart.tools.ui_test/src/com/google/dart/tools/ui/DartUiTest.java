@@ -33,6 +33,7 @@ import com.google.dart.tools.ui.text.DartTextTools;
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.IRegion;
@@ -165,7 +166,7 @@ public class DartUiTest extends TestCase {
         return problemRequestor;
       }
     };
-    return owner.newWorkingCopy(name, null);
+    return owner.newWorkingCopy(new Path(name), null);
   }
 
   protected CompilationUnit newExternalWorkingCopy(String name, final String contents)
