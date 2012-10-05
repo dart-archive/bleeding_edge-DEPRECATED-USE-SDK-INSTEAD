@@ -24,15 +24,16 @@ public class PropertyAccessCompleter extends DartPropertyAccess implements Compl
   static final long serialVersionUID = 1L;
 
   public static PropertyAccessCompleter from(DartPropertyAccess node) {
-    return CompletionUtil.init(
-        new PropertyAccessCompleter(node.getQualifier(), node.getName()),
-        node);
+    return CompletionUtil.init(new PropertyAccessCompleter(
+        node.getQualifier(),
+        node.isCascade(),
+        node.getName()), node);
   }
 
   private Stack<Mark> stack;
 
-  public PropertyAccessCompleter(DartNode qualifier, DartIdentifier name) {
-    super(qualifier, name);
+  public PropertyAccessCompleter(DartNode qualifier, boolean isCascade, DartIdentifier name) {
+    super(qualifier, isCascade, name);
   }
 
   @Override

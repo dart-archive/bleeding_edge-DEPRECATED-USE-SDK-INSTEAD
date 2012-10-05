@@ -53,6 +53,10 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
     public abstract DartNode getNode();
 
     public abstract Element getSymbol();
+
+    public boolean isParameter() {
+      return false;
+    }
   }
 
   private static class Field extends ScopedName {
@@ -123,6 +127,11 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
     @Override
     public VariableElement getSymbol() {
       return param.getElement();
+    }
+
+    @Override
+    public boolean isParameter() {
+      return true;
     }
   }
 

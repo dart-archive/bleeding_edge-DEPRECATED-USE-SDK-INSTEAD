@@ -21,6 +21,7 @@ import com.google.dart.compiler.UrlDartSource;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
+import com.google.dart.compiler.ast.DartCascadeExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
 import com.google.dart.compiler.ast.DartExprStmt;
@@ -48,6 +49,7 @@ import com.google.dart.compiler.ast.DartSyntheticErrorStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
+import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
@@ -705,6 +707,29 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitCascadeExpression(DartCascadeExpression node) {
+      Type type = node.getTarget().getElement().getType();
+      switch (TypeKind.of(type)) {
+        default:
+        case VOID:
+        case NONE:
+          return null;
+        case FUNCTION:
+          FunctionType fnType = (FunctionType) type;
+          type = fnType.getReturnType();
+          break;
+        case FUNCTION_ALIAS:
+        case VARIABLE:
+        case DYNAMIC:
+          break;
+        case INTERFACE:
+          break;
+      }
+      createCompletionsForQualifiedMemberAccess(null, type, false, false);
+      return null;
+    }
+
+    @Override
     public Void visitClass(DartClass node) {
       String classSrc = source.substring(
           node.getSourceInfo().getOffset(),
@@ -842,6 +867,9 @@ public class CompletionEngine {
             proposeTypesForNewParam();
             return null;
           }
+        } else if (isCompletionAfterQuery(node)) {
+          createCompletionsForParameterNames(node, node);
+          return null;
         }
       } else if (isCompletionAfterCascade()) {
         if (node.getSourceInfo().getOffset() - 1 == actualCompletionPosition) {
@@ -850,13 +878,17 @@ public class CompletionEngine {
             DartExpression target = ((DartMethodInvocation) node.getParent()).getRealTarget();
             if (target != null) {
               target.accept(this);
+              return null;
             }
           } else if (node.getParent() instanceof DartPropertyAccess) {
             // { x.j..b()..c..!c; }
-            ((DartPropertyAccess) node.getParent()).getQualifier().accept(this);
+            ((DartPropertyAccess) node.getParent()).getRealTarget().accept(this);
+            return null;
           }
-          return null;
         }
+      } else if (isCompletionAfterQuery(node)) {
+        createCompletionsForParameterNames(node, node);
+        return null;
       }
       return parent.accept(new IdentifierCompletionProposer(node));
     }
@@ -1455,6 +1487,7 @@ public class CompletionEngine {
   private static final String LIST_TYPE_NAME = "List";
   /** Signature of Object.noSuchMethod(), which should not appear in proposal lists. */
   private static final String NO_SUCH_METHOD = "noSuchMethodStringList";
+  private static final String SETTER_PREFIX = "setter ";
 
   /**
    * @param options
@@ -2061,6 +2094,36 @@ public class CompletionEngine {
     }
   }
 
+  private void createCompletionsForParameterNames(DartNode terminalNode, DartIdentifier node) {
+    String prefix = extractFilterPrefix(node);
+    ScopedNameFinder vars = new ScopedNameFinder(actualCompletionPosition);
+    terminalNode.accept(vars);
+    Map<String, ScopedName> localNames = vars.getLocals();
+    for (ScopedName para : localNames.values()) {
+      if (!para.isParameter()) {
+        continue;
+      }
+      String name = para.getName();
+      if (prefix != null && !name.startsWith(prefix)) {
+        continue;
+      }
+      Element element = para.getSymbol();
+      String typeName = element.getType().toString();
+      int kind = CompletionProposal.LOCAL_VARIABLE_REF;
+      InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
+          kind,
+          actualCompletionPosition - offset);
+      proposal.setSignature(typeName.toCharArray());
+      proposal.setCompletion(name.toCharArray());
+      proposal.setDeclarationSignature(name.toCharArray());
+      proposal.setTypeName(typeName.toCharArray());
+      proposal.setName(name.toCharArray());
+      setSourceLoc(proposal, node, prefix);
+      proposal.setRelevance(1);
+      requestor.accept(proposal);
+    }
+  }
+
   private void createCompletionsForPropertyAccess(DartIdentifier node, Type type,
       boolean isQualifiedByThis, boolean allowDynamic, boolean isMethodStatic) {
     if (!(type instanceof InterfaceType)) {
@@ -2099,6 +2162,9 @@ public class CompletionEngine {
         continue;
       }
       String name = field.getName();
+      if (name.startsWith(SETTER_PREFIX)) {
+        name = name.substring(SETTER_PREFIX.length());
+      }
       String sig = name + field.getType().getElement().getName();
       if (prefix != null && !name.startsWith(prefix)) {
         continue;
@@ -2561,6 +2627,14 @@ public class CompletionEngine {
 
   private boolean isCompletionAfterCascade() {
     return isCompletionAfterDot && source.charAt(actualCompletionPosition - 1) == '.';
+  }
+
+  private boolean isCompletionAfterQuery(DartNode node) {
+    if (node.getParent() instanceof DartUnaryExpression) {
+      DartUnaryExpression uexp = (DartUnaryExpression) node.getParent();
+      return uexp.getOperator().getSyntax().equals("?");
+    }
+    return false;
   }
 
   private boolean isCompletionNode(DartNode node) {

@@ -27,15 +27,16 @@ public class MethodInvocationCompleter extends DartMethodInvocation implements C
   public static MethodInvocationCompleter from(DartMethodInvocation node) {
     return CompletionUtil.init(new MethodInvocationCompleter(
         node.getTarget(),
+        node.isCascade(),
         node.getFunctionName(),
         node.getArguments()), node);
   }
 
   private Stack<Mark> stack;
 
-  public MethodInvocationCompleter(
-      DartExpression target, DartIdentifier functionName, List<DartExpression> args) {
-    super(target, false, functionName, args);
+  public MethodInvocationCompleter(DartExpression target, boolean isCascade,
+      DartIdentifier functionName, List<DartExpression> args) {
+    super(target, isCascade, functionName, args);
   }
 
   @Override
