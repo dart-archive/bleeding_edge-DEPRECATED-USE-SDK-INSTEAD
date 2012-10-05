@@ -243,6 +243,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public void debuggerPaused(PausedReason reason, List<VmCallFrame> frames, VmValue exception) {
+    boolean resumed = false;
+
     if (firstBreak) {
       firstBreak = false;
 
@@ -252,12 +254,14 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
         // If this is our first break, and there is no user breakpoint here, and the stop is on the
         // main() method, then resume.
         if (breakpoint == null && frames.size() > 0 && frames.get(0).isMain()) {
-          maybeResume();
+          resumed = maybeResume();
         }
       }
     }
 
-    debugThread.handleDebuggerPaused(reason, frames, exception);
+    if (!resumed) {
+      debugThread.handleDebuggerPaused(reason, frames, exception);
+    }
   }
 
   @Override
@@ -474,16 +478,20 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     return locationUrl;
   }
 
-  private synchronized void maybeResume() {
+  private synchronized boolean maybeResume() {
     resumeCount++;
 
     if (resumeCount >= 2) {
       try {
         getVmConnection().resume();
+
+        return resumeCount == 2;
       } catch (IOException ioe) {
         DartDebugCorePlugin.logError(ioe);
       }
     }
+
+    return false;
   }
 
   private void monitor(final IProcess process) {
