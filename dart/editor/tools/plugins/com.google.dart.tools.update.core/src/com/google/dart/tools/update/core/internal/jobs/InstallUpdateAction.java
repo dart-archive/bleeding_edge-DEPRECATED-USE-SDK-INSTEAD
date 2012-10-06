@@ -19,9 +19,14 @@ import com.google.dart.tools.update.core.UpdateManager;
 import com.google.dart.tools.update.core.internal.UpdateUtils;
 
 import org.eclipse.core.runtime.AssertionFailedException;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.debug.core.DebugException;
+import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -212,6 +217,8 @@ public class InstallUpdateAction extends Action {
     UpdateUtils.deleteDirectory(sdkDir, mon.newChild(4)); //$NON-NLS-1$
     UpdateUtils.deleteDirectory(new File(installTarget, "samples"), mon.newChild(4)); //$NON-NLS-1$
 
+    terminateRunningDartLaunches();
+
     File dartium = DartSdkManager.getManager().getSdk().getDartiumDir(installTarget);
     try {
       UpdateUtils.delete(dartium, mon.newChild(2));
@@ -236,6 +243,15 @@ public class InstallUpdateAction extends Action {
     return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
   }
 
+  private boolean isDartLaunch(ILaunch launch) {
+    try {
+      return launch.getLaunchConfiguration().getType().getIdentifier().startsWith("com.google");
+    } catch (CoreException e) {
+      UpdateCore.logError(e);
+    }
+    return false;
+  }
+
   private boolean resourcesNeedSaving() {
     for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
       for (IWorkbenchPage page : window.getPages()) {
@@ -255,6 +271,23 @@ public class InstallUpdateAction extends Action {
     System.setProperty(PROP_EXIT_DATA, commandLine);
 
     PlatformUI.getWorkbench().restart();
+  }
+
+  private void terminate(ILaunch launch) {
+    try {
+      launch.terminate();
+    } catch (DebugException e) {
+      UpdateCore.logError(e);
+    }
+  }
+
+  private void terminateRunningDartLaunches() {
+    ILaunchManager launchManager = DebugPlugin.getDefault().getLaunchManager();
+    for (ILaunch launch : launchManager.getLaunches()) {
+      if (!launch.isTerminated() && isDartLaunch(launch) && launch.canTerminate()) {
+        terminate(launch);
+      }
+    }
   }
 
 }

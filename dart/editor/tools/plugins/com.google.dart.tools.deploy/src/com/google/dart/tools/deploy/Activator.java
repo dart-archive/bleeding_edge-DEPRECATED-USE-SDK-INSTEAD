@@ -14,17 +14,9 @@
 package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.ui.console.DartConsoleManager;
-import com.google.dart.tools.update.core.UpdateAdapter;
-import com.google.dart.tools.update.core.UpdateListener;
-import com.google.dart.tools.update.core.UpdateManager;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.debug.core.DebugException;
-import org.eclipse.debug.core.DebugPlugin;
-import org.eclipse.debug.core.ILaunch;
-import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -122,40 +114,6 @@ public class Activator extends AbstractUIPlugin {
         new Status(IStatus.ERROR, PLUGIN_ID, exception.getMessage(), exception));
   }
 
-  //a hook into the update lifecycle
-  private final UpdateListener updateListener = new UpdateAdapter() {
-
-    @Override
-    public void installing() {
-
-      //terminate all running dart launches 
-      ILaunchManager launchManager = DebugPlugin.getDefault().getLaunchManager();
-      for (ILaunch launch : launchManager.getLaunches()) {
-        if (!launch.isTerminated() && isDartLaunch(launch) && launch.canTerminate()) {
-          terminate(launch);
-        }
-      }
-
-    }
-
-    public boolean isDartLaunch(ILaunch launch) {
-      try {
-        return launch.getLaunchConfiguration().getType().getIdentifier().startsWith("com.google");
-      } catch (CoreException e) {
-        logError(e);
-      }
-      return false;
-    }
-
-    public void terminate(ILaunch launch) {
-      try {
-        launch.terminate();
-      } catch (DebugException e) {
-        logError(e);
-      }
-    }
-  };
-
   /**
    * The constructor
    */
@@ -170,14 +128,11 @@ public class Activator extends AbstractUIPlugin {
 
     DartConsoleManager.initialize();
 
-    UpdateManager.getInstance().addListener(updateListener);
   }
 
   @Override
   public void stop(BundleContext context) throws Exception {
     DartConsoleManager.shutdown();
-
-    UpdateManager.getInstance().removeListener(updateListener);
 
     plugin = null;
 
