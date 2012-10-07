@@ -1188,78 +1188,78 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFinalConstVarOrType_const_noType() throws Exception {
-    Parser.FinalConstVarOrType result = parse(
+    Object result = parse(
         "parseFinalConstVarOrType",
         new Class[] {boolean.class},
         new Object[] {false},
         "const");
-    Token keyword = result.getKeyword();
+    Token keyword = invokeMethod(result, "getKeyword");
     assertNotNull(keyword);
     assertEquals(TokenType.KEYWORD, keyword.getType());
     assertEquals(Keyword.CONST, ((KeywordToken) keyword).getKeyword());
-    assertNull(result.getType());
+    assertNull(invokeMethod(result, "getType"));
   }
 
   public void test_parseFinalConstVarOrType_const_type() throws Exception {
-    Parser.FinalConstVarOrType result = parse(
+    Object result = parse(
         "parseFinalConstVarOrType",
         new Class[] {boolean.class},
         new Object[] {false},
         "const A a");
-    Token keyword = result.getKeyword();
+    Token keyword = invokeMethod(result, "getKeyword");
     assertNotNull(keyword);
     assertEquals(TokenType.KEYWORD, keyword.getType());
     assertEquals(Keyword.CONST, ((KeywordToken) keyword).getKeyword());
-    assertNotNull(result.getType());
+    assertNotNull(invokeMethod(result, "getType"));
   }
 
   public void test_parseFinalConstVarOrType_final_noType() throws Exception {
-    Parser.FinalConstVarOrType result = parse(
+    Object result = parse(
         "parseFinalConstVarOrType",
         new Class[] {boolean.class},
         new Object[] {false},
         "final");
-    Token keyword = result.getKeyword();
+    Token keyword = invokeMethod(result, "getKeyword");
     assertNotNull(keyword);
     assertEquals(TokenType.KEYWORD, keyword.getType());
     assertEquals(Keyword.FINAL, ((KeywordToken) keyword).getKeyword());
-    assertNull(result.getType());
+    assertNull(invokeMethod(result, "getType"));
   }
 
   public void test_parseFinalConstVarOrType_final_type() throws Exception {
-    Parser.FinalConstVarOrType result = parse(
+    Object result = parse(
         "parseFinalConstVarOrType",
         new Class[] {boolean.class},
         new Object[] {false},
         "final A a");
-    Token keyword = result.getKeyword();
+    Token keyword = invokeMethod(result, "getKeyword");
     assertNotNull(keyword);
     assertEquals(TokenType.KEYWORD, keyword.getType());
     assertEquals(Keyword.FINAL, ((KeywordToken) keyword).getKeyword());
-    assertNotNull(result.getType());
+    assertNotNull(invokeMethod(result, "getType"));
   }
 
   public void test_parseFinalConstVarOrType_type() throws Exception {
-    Parser.FinalConstVarOrType result = parse(
+    Object result = parse(
         "parseFinalConstVarOrType",
         new Class[] {boolean.class},
         new Object[] {false},
         "A a");
-    assertNull(result.getKeyword());
-    assertNotNull(result.getType());
+    assertNull(invokeMethod(result, "getKeyword"));
+    assertNotNull(invokeMethod(result, "getType"));
   }
 
   public void test_parseFinalConstVarOrType_var() throws Exception {
-    Parser.FinalConstVarOrType result = parse(
+    Object result = parse(
         "parseFinalConstVarOrType",
         new Class[] {boolean.class},
         new Object[] {false},
         "var");
-    Token keyword = result.getKeyword();
+    Token keyword = invokeMethod(result, "getKeyword");
     assertNotNull(keyword);
     assertEquals(TokenType.KEYWORD, keyword.getType());
     assertEquals(Keyword.VAR, ((KeywordToken) keyword).getKeyword());
-    assertNull(result.getType());
+    assertNull(invokeMethod(result, "getType"));
   }
 
   public void test_parseFormalParameter_final_withType() throws Exception {

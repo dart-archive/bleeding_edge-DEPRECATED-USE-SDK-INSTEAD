@@ -105,6 +105,11 @@ public class PropertyAccess extends Expression {
     return target;
   }
 
+  @Override
+  public boolean isAssignable() {
+    return true;
+  }
+
   /**
    * Return {@code true} if this expression is cascaded. If it is, then the target of this
    * expression is not stored locally but is stored in the nearest ancestor that is a

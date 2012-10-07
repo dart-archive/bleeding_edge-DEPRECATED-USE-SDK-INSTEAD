@@ -24,4 +24,11 @@ package com.google.dart.engine.ast;
  * </pre>
  */
 public abstract class Expression extends ASTNode {
+
+  /**
+   * Return <code>true</code> if the expression is valid for the LHS of an assignment
+   */
+  public boolean isAssignable() {
+    return false;
+  }
 }

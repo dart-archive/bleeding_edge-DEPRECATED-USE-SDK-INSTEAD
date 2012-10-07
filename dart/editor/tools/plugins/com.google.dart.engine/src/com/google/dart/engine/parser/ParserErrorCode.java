@@ -86,7 +86,7 @@ public enum ParserErrorCode implements ErrorCode {
 //  FUNCTION_TYPED_PARAMETER_IS_FINAL("Formal parameter with a function type cannot be const"),
 //  FUNCTION_TYPED_PARAMETER_IS_VAR("Formal parameter with a function type cannot be var"),
 //  FUNCTION_NAME_EXPECTED_IDENTIFIER("Function name expected to be an identifier"),
-//  ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
+  ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
 //  ILLEGAL_NUMBER_OF_PARAMETERS("Illegal number of parameters"),
 //  INCOMPLETE_STRING_LITERAL("Incomplete string literal"),
 //  INVALID_FIELD_DECLARATION("Wrong syntax for field declaration"),

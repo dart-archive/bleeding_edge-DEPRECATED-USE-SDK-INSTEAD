@@ -22,6 +22,7 @@ import com.google.dart.engine.utilities.io.PrintStringWriter;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
@@ -180,5 +181,32 @@ public class EngineTestCase extends TestCase {
       writer.println(line);
     }
     return writer.toString();
+  }
+
+  /**
+   * Invoke a method on the specified object.
+   * 
+   * @param receiver the object on which the method is invoked
+   * @param methodName the name of the method that should be invoked
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   */
+  @SuppressWarnings("unchecked")
+  protected static <E> E invokeMethod(Object receiver, String methodName) throws Exception {
+    Class<? extends Object> receiverClass = receiver.getClass();
+    Method method = null;
+    while (method == null) {
+      try {
+        method = receiverClass.getDeclaredMethod(methodName, new Class[] {});
+      } catch (NoSuchMethodException e) {
+        if (receiverClass == Object.class) {
+          throw new NoSuchMethodException(receiverClass.getName() + "." + methodName);
+        }
+        receiverClass = receiverClass.getSuperclass();
+      }
+    }
+    method.setAccessible(true);
+    Object result = method.invoke(receiver, new Object[] {});
+    return (E) result;
   }
 }

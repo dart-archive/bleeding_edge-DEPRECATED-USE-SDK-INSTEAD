@@ -15,14 +15,17 @@ package com.google.dart.engine.parser;
 
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.ArrayAccess;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
+import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PrefixExpression;
+import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -89,10 +92,28 @@ public class ComplexParserTest extends ParserTestCase {
     assertSize(1, argumentList4.getArguments());
   }
 
+  public void test_assignmentExpression_arrayAccess() throws Exception {
+    AssignmentExpression expression = parseExpression("x[1] = 0");
+    assertInstanceOf(ArrayAccess.class, expression.getLeftHandSide());
+    assertInstanceOf(IntegerLiteral.class, expression.getRightHandSide());
+  }
+
   public void test_assignmentExpression_compound() throws Exception {
     AssignmentExpression expression = parseExpression("x = y = 0");
     assertInstanceOf(SimpleIdentifier.class, expression.getLeftHandSide());
     assertInstanceOf(AssignmentExpression.class, expression.getRightHandSide());
+  }
+
+  public void test_assignmentExpression_prefixedIdentifier() throws Exception {
+    AssignmentExpression expression = parseExpression("x.y = 0");
+    assertInstanceOf(PrefixedIdentifier.class, expression.getLeftHandSide());
+    assertInstanceOf(IntegerLiteral.class, expression.getRightHandSide());
+  }
+
+  public void test_assignmentExpression_propertyAccess() throws Exception {
+    AssignmentExpression expression = parseExpression("super.y = 0");
+    assertInstanceOf(PropertyAccess.class, expression.getLeftHandSide());
+    assertInstanceOf(IntegerLiteral.class, expression.getRightHandSide());
   }
 
   public void test_bitwiseAndExpression_normal() throws Exception {

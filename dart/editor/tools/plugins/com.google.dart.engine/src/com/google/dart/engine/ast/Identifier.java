@@ -41,4 +41,9 @@ public abstract class Identifier extends Expression {
    * @return the lexical representation of the identifier
    */
   public abstract String getName();
+
+  @Override
+  public boolean isAssignable() {
+    return true;
+  }
 }

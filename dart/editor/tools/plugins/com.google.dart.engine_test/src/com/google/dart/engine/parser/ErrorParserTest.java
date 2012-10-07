@@ -251,7 +251,12 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_missingAssignableSelector_superAssigned() throws Exception {
-    parse("parseExpression", "super = x;", ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
+    // TODO (danrubel): For review... could we reduce the error count here by 1 ?
+    parse(
+        "parseExpression",
+        "super = x;",
+        ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
+        ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
   }
 
   public void test_missingAssignableSelector_superPrimaryExpression() throws Exception {

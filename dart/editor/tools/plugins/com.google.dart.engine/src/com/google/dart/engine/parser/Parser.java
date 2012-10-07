@@ -276,8 +276,9 @@ public class Parser {
    * @param expression the expression being checked
    */
   private void ensureAssignable(Expression expression) {
-    // Implement this.
-    // reportError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
+    if (expression != null && !expression.isAssignable()) {
+      reportError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
+    }
   }
 
   /**
