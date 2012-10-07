@@ -122,11 +122,15 @@ public class CodeFormatEditFactory {
 
   private static boolean inMultilineString(IDocument document, int offset)
       throws BadLocationException, BadPartitioningException {
-    ITypedRegion partitionInfo = ((IDocumentExtension3) document).getPartition(
-        DartPartitions.DART_PARTITIONING,
-        offset,
-        true);
-    return (partitionInfo.getType().equals(DartPartitions.DART_MULTI_LINE_STRING));
+    try {
+      ITypedRegion partitionInfo = ((IDocumentExtension3) document).getPartition(
+          DartPartitions.DART_PARTITIONING,
+          offset,
+          true);
+      return (partitionInfo.getType().equals(DartPartitions.DART_MULTI_LINE_STRING));
+    } catch (BadPartitioningException ex) {
+      return false;
+    }
   }
 
 }

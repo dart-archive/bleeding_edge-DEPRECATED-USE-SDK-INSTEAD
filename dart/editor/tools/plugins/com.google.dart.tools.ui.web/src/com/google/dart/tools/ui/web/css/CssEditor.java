@@ -21,6 +21,7 @@ import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.ICharacterPairMatcher;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
@@ -38,6 +39,12 @@ public class CssEditor extends WebEditor {
     setRulerContextMenuId("#DartCssEditorRulerContext");
     setSourceViewerConfiguration(new CssSourceViewerConfiguration(this));
     setDocumentProvider(new CssDocumentProvider());
+  }
+
+  @Override
+  public void createPartControl(Composite parent) {
+    super.createPartControl(parent);
+    installTabsToSpacesConverter();
   }
 
   @SuppressWarnings("rawtypes")

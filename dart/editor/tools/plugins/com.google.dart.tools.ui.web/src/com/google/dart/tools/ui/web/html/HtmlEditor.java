@@ -18,6 +18,7 @@ import com.google.dart.tools.ui.web.xml.model.XmlDocument;
 import com.google.dart.tools.ui.web.xml.model.XmlParser;
 
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 /**
@@ -34,6 +35,12 @@ public class HtmlEditor extends WebEditor {
     setRulerContextMenuId("#DartHtmlEditorRulerContext");
     setSourceViewerConfiguration(new HtmlSourceViewerConfiguration(this));
     setDocumentProvider(new HtmlDocumentProvider());
+  }
+
+  @Override
+  public void createPartControl(Composite parent) {
+    super.createPartControl(parent);
+    installTabsToSpacesConverter();
   }
 
   @SuppressWarnings("rawtypes")

@@ -58,11 +58,13 @@ Export-Package: com.google.dart.tools.internal.corext.codemanipulation;x-friends
   x-friends:="com.google.dart.tools.ui_test,
    com.google.dart.tools.debug.ui,
    com.google.dart.tools.ui.swtbot_test,
-   com.google.dart.tools.deploy",
+   com.google.dart.tools.deploy,
+   com.google.dart.tools.ui.web",
+ com.google.dart.tools.ui.internal.text.editor.saveactions;x-friends:="com.google.dart.tools.ui.web",
  com.google.dart.tools.ui.internal.text.functions;x-friends:="com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.internal.util;x-friends:="com.google.dart.tools.deploy",
  com.google.dart.tools.ui.internal.viewsupport,
- com.google.dart.tools.ui.text;x-friends:="com.google.dart.tools.ui_test",
- com.google.dart.tools.ui.text.dart;x-friends:="com.google.dart.tools.ui_test",
+ com.google.dart.tools.ui.text,
+ com.google.dart.tools.ui.text.dart,
  com.google.dart.tools.ui.themes
 Bundle-ActivationPolicy: lazy

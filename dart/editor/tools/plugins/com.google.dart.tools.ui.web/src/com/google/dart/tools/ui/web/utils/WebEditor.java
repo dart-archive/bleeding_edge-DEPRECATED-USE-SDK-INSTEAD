@@ -13,6 +13,11 @@
  */
 package com.google.dart.tools.ui.web.utils;
 
+import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.PreferenceConstants;
+import com.google.dart.tools.ui.internal.text.editor.saveactions.RemoveTrailingWhitespaceAction;
+
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.DocumentEvent;
@@ -24,6 +29,8 @@ import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * The abstract superclass of the html and css editors.
  */
@@ -31,6 +38,11 @@ public abstract class WebEditor extends TextEditor {
 
   public final static String MATCHING_BRACKETS = "matchingBrackets";
   public final static String MATCHING_BRACKETS_COLOR = "matchingBracketsColor";
+
+  /**
+   * Removes trailing whitespace on editor saves.
+   */
+  private RemoveTrailingWhitespaceAction removeTrailingWhitespaceAction;
 
   public WebEditor() {
     // Enable bracket highlighting in the preference store.
@@ -87,16 +99,22 @@ public abstract class WebEditor extends TextEditor {
   }
 
   @Override
+  protected void createActions() {
+    super.createActions();
+    removeTrailingWhitespaceAction = new RemoveTrailingWhitespaceAction(getSourceViewer());
+  }
+
+  @Override
   protected void editorContextMenuAboutToShow(IMenuManager menu) {
     // Cut/Copy/Paste actions..
     addAction(menu, ITextEditorActionConstants.UNDO);
     addAction(menu, ITextEditorActionConstants.CUT);
     addAction(menu, ITextEditorActionConstants.COPY);
     addAction(menu, ITextEditorActionConstants.PASTE);
+    addAction(menu, ITextEditorActionConstants.REVERT_TO_SAVED);
   }
 
   protected void handleDocumentModified() {
-
   }
 
   protected abstract void handleReconcilation(IRegion partition);
@@ -104,6 +122,27 @@ public abstract class WebEditor extends TextEditor {
   @Override
   protected void initializeKeyBindingScopes() {
     setKeyBindingScopes(new String[] {"com.google.dart.tools.ui.dartViewScope"}); //$NON-NLS-1$
+  }
+
+  protected boolean isRemoveTrailingWhitespaceEnabled() {
+    return PreferenceConstants.getPreferenceStore().getBoolean(
+        PreferenceConstants.EDITOR_REMOVE_TRAILING_WS);
+  }
+
+  @Override
+  protected void performSave(boolean overwrite, IProgressMonitor progressMonitor) {
+    performSaveActions();
+    super.performSave(overwrite, progressMonitor);
+  }
+
+  protected void performSaveActions() {
+    if (isRemoveTrailingWhitespaceEnabled()) {
+      try {
+        removeTrailingWhitespaceAction.run();
+      } catch (InvocationTargetException e) {
+        DartToolsPlugin.log(e);
+      }
+    }
   }
 
   @Override

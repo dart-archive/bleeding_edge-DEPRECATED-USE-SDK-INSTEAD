@@ -77,6 +77,17 @@ public class XmlSourceViewerConfiguration extends SourceViewerConfiguration {
     return reconciler;
   }
 
+  /**
+   * Returns the visual width of the tab character. This implementation always returns 2.
+   * 
+   * @param sourceViewer the source viewer to be configured by this configuration
+   * @return the tab width
+   */
+  @Override
+  public int getTabWidth(ISourceViewer sourceViewer) {
+    return 2; // TODO Read from preferences so users can change it
+  }
+
   protected XmlScanner getXMLScanner() {
     if (scanner == null) {
       scanner = new XmlScanner();
