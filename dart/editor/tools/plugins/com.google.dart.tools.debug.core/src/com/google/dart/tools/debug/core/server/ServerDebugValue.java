@@ -162,18 +162,22 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
 
   protected void fillInStaticFields(int classId, final List<IVariable> tempFields,
       final CountDownLatch latch) {
-    try {
-      getConnection().getClassProperties(classId, new VmCallback<VmClass>() {
-        @Override
-        public void handleResult(VmResult<VmClass> result) {
-          if (!result.isError()) {
-            tempFields.addAll(convert(result.getResult()));
-          }
-          latch.countDown();
-        }
-      });
-    } catch (IOException e) {
+    if (classId == -1) {
       latch.countDown();
+    } else {
+      try {
+        getConnection().getClassProperties(classId, new VmCallback<VmClass>() {
+          @Override
+          public void handleResult(VmResult<VmClass> result) {
+            if (!result.isError()) {
+              tempFields.addAll(convert(result.getResult()));
+            }
+            latch.countDown();
+          }
+        });
+      } catch (IOException e) {
+        latch.countDown();
+      }
     }
   }
 

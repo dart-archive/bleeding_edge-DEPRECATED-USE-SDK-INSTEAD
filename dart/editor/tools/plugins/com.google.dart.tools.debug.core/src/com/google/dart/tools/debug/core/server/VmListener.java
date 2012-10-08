@@ -24,6 +24,7 @@ public interface VmListener {
   public static enum PausedReason {
     breakpoint,
     exception,
+    interrupted,
     unknown;
 
     public static PausedReason parse(String str) {
@@ -39,14 +40,30 @@ public interface VmListener {
    * Handle the debugger paused event.
    * 
    * @param reason possible values are "breakpoint" and "exception"
+   * @param isolate
    * @param frames
    * @param exception can be null
    */
-  public void debuggerPaused(PausedReason reason, List<VmCallFrame> frames, VmValue exception);
+  public void debuggerPaused(PausedReason reason, VmIsolate isolate, List<VmCallFrame> frames,
+      VmValue exception);
 
   /**
    * Handle the debugger resumed event.
    */
   public void debuggerResumed();
+
+  /**
+   * Handle the isolate created event.
+   * 
+   * @param isolate
+   */
+  public void isolateCreated(VmIsolate isolate);
+
+  /**
+   * Handle the isolate shutdown event.
+   * 
+   * @param isolate
+   */
+  public void isolateShutdown(VmIsolate isolate);
 
 }

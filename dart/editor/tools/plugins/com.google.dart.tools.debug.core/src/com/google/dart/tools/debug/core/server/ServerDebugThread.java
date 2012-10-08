@@ -45,6 +45,8 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
   private int expectedSuspendReason = DebugEvent.UNSPECIFIED;
   private int expectedResumeReason = DebugEvent.UNSPECIFIED;
 
+  private VmIsolate vmIsolate;
+
   /**
    * @param target
    */
@@ -89,9 +91,9 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
 
   @Override
   public String getName() throws DebugException {
-    // TODO(devoncarew): we need to be able to retrieve the list of isolates from the VM.
+    String name = vmIsolate == null ? "isolate-0" : vmIsolate.getName();
 
-    return "isolate-0" + (isSuspended() ? " [suspended]" : "");
+    return name + (isSuspended() ? " [suspended]" : "");
   }
 
   @Override
@@ -192,7 +194,11 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
 
   @Override
   public void suspend() throws DebugException {
-    getTarget().suspend();
+    try {
+      getConnection().interrupt(getIsolateId());
+    } catch (IOException ioe) {
+      throw createDebugException(ioe);
+    }
   }
 
   @Override
@@ -200,8 +206,11 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
     getTarget().terminate();
   }
 
-  protected void handleDebuggerPaused(PausedReason dbgReason, List<VmCallFrame> frames,
-      VmValue exception) {
+  protected void handleDebuggerPaused(PausedReason dbgReason, VmIsolate isolate,
+      List<VmCallFrame> frames, VmValue exception) {
+    // TODO(devoncarew): we won't change the isolate value when we have real isolate support
+    this.vmIsolate = isolate;
+
     int reason = DebugEvent.BREAKPOINT;
 
     if (expectedSuspendReason != DebugEvent.UNSPECIFIED) {
@@ -256,6 +265,14 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
     }
 
     return result;
+  }
+
+  private int getIsolateId() {
+    if (vmIsolate != null) {
+      return vmIsolate.getId();
+    }
+
+    return -1;
   }
 
   private boolean isDisconnected() {

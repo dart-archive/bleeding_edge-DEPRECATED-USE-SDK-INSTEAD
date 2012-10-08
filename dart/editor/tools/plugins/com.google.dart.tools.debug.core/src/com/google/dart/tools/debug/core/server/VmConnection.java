@@ -60,6 +60,7 @@ public class VmConnection {
     public void handleResult(JSONObject result) throws JSONException;
   }
 
+  private static final String EVENT_ISOLATE = "isolate";
   private static final String EVENT_PAUSED = "paused";
   private static final String EVENT_BREAKPOINTRESOLVED = "breakpointResolved";
 
@@ -88,6 +89,8 @@ public class VmConnection {
   protected Map<Integer, BreakpointResolvedCallback> breakpointCallbackMap = new HashMap<Integer, VmConnection.BreakpointResolvedCallback>();
 
   private Map<Integer, String> classNameMap = new HashMap<Integer, String>();
+
+  private Map<Integer, VmIsolate> isolateMap = new HashMap<Integer, VmIsolate>();
 
   public VmConnection(int port) {
     this.port = port;
@@ -169,6 +172,10 @@ public class VmConnection {
   }
 
   public String getClassNameSync(VmObject obj) {
+    if (obj.getClassId() == -1) {
+      return "";
+    }
+
     if (!classNameMap.containsKey(obj.getClassId())) {
       populateClassName(obj.getClassId());
     }
@@ -466,12 +473,21 @@ public class VmConnection {
     });
   }
 
-  public boolean isConnected() {
-    return socket != null;
+  public void interrupt(int isolateId) throws IOException {
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "interrupt");
+      request.put("params", new JSONObject().put("isolateId", isolateId));
+
+      sendRequest(request, null);
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
   }
 
-  public void pause() throws IOException {
-    sendSimpleCommand("pause");
+  public boolean isConnected() {
+    return socket != null;
   }
 
   public void removeBreakpoint(final VmBreakpoint breakpoint) throws IOException {
@@ -643,22 +659,6 @@ public class VmConnection {
     sendSimpleCommand(command, null);
   }
 
-//  void resolveSuperClass(final VmClass vmClass, final VmCallback<VmClass> callback)
-//      throws IOException {
-//    getClassProperties(object.getClassId(), new VmCallback<VmClass>() {
-//      @Override
-//      public void handleResult(VmResult<VmClass> result) {
-//        if (!result.isError()) {
-//          object.setClassObject(result.getResult());
-//        }
-//
-//        if (callback != null) {
-//          callback.handleResult(result);
-//        }
-//      }
-//    });
-//  }
-
   protected void sendSimpleCommand(String command, Callback callback) throws IOException {
     try {
       sendRequest(new JSONObject().put("command", command), callback);
@@ -808,6 +808,18 @@ public class VmConnection {
     return result;
   }
 
+  private VmIsolate getCreateIsolate(int isolateId) {
+    if (isolateId == -1) {
+      return null;
+    }
+
+    if (isolateMap.get(isolateId) == null) {
+      isolateMap.put(isolateId, new VmIsolate(isolateId));
+    }
+
+    return isolateMap.get(isolateId);
+  }
+
   private void handleBreakpointResolved(int breakpointId, String url, int line) {
     VmBreakpoint breakpoint = null;
 
@@ -880,11 +892,14 @@ public class VmConnection {
         // { "event": "paused", "params": { "callFrames" : [  { "functionName": "main" , "location": { "url": "file:///Users/devoncarew/tools/eclipse_37/eclipse/samples/time/time_server.dart", "lineNumber": 15 }}]}}
 
         String reason = params.optString("reason", null);
+        int isolateId = params.optInt("id", -1);
         VmValue exception = VmValue.createFrom(params.optJSONObject("exception"));
         List<VmCallFrame> frames = VmCallFrame.createFrom(params.getJSONArray("callFrames"));
 
+        VmIsolate isolate = getCreateIsolate(isolateId);
+
         for (VmListener listener : listeners) {
-          listener.debuggerPaused(PausedReason.parse(reason), frames, exception);
+          listener.debuggerPaused(PausedReason.parse(reason), isolate, frames, exception);
         }
       } else if (eventName.equals(EVENT_BREAKPOINTRESOLVED)) {
         // { "event": "breakpointResolved", "params": {"breakpointId": 2, "url": "file:///Users/devoncarew/tools/eclipse_37/eclipse/samples/time/time_server.dart", "line": 19 }}
@@ -894,6 +909,26 @@ public class VmConnection {
         int line = params.optInt("line");
 
         handleBreakpointResolved(breakpointId, url, line);
+      } else if (eventName.equals(EVENT_ISOLATE)) {
+        // "{" event ":" isolate "," params ":" "{" reason ":" created "," id ":" Integer "}" "}"
+        // "{" event ":" isolate "," params ":" "{" reason ":" shutdown "," id ":" Integer "}" "}"
+
+        String reason = params.optString("reason", null);
+        int isolateId = params.optInt("id", -1);
+
+        VmIsolate isolate = getCreateIsolate(isolateId);
+
+        if ("created".equals(reason)) {
+          for (VmListener listener : listeners) {
+            listener.isolateCreated(isolate);
+          }
+        } else if ("shutdown".equals(reason)) {
+          for (VmListener listener : listeners) {
+            listener.isolateShutdown(isolate);
+          }
+
+          isolateMap.remove(isolate.getId());
+        }
       } else {
         DartDebugCorePlugin.logInfo("no handler for notification: " + eventName);
       }

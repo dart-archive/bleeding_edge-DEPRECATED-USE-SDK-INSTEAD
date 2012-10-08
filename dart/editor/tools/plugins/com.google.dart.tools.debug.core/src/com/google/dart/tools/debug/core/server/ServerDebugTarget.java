@@ -155,7 +155,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public boolean canSuspend() {
-    return debugThread == null ? false : debugThread.canSuspend();
+    return false;
   }
 
   @Override
@@ -242,7 +242,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   }
 
   @Override
-  public void debuggerPaused(PausedReason reason, List<VmCallFrame> frames, VmValue exception) {
+  public void debuggerPaused(PausedReason reason, VmIsolate isolate, List<VmCallFrame> frames,
+      VmValue exception) {
     boolean resumed = false;
 
     if (firstBreak) {
@@ -260,7 +261,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     }
 
     if (!resumed) {
-      debugThread.handleDebuggerPaused(reason, frames, exception);
+      debugThread.handleDebuggerPaused(reason, isolate, frames, exception);
     }
   }
 
@@ -336,6 +337,18 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   }
 
   @Override
+  public void isolateCreated(VmIsolate isolate) {
+    // TODO(devoncarew): implement
+
+  }
+
+  @Override
+  public void isolateShutdown(VmIsolate isolate) {
+    // TODO(devoncarew): implement
+
+  }
+
+  @Override
   public boolean isSuspended() {
     return debugThread == null ? false : debugThread.isSuspended();
   }
@@ -366,11 +379,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public void suspend() throws DebugException {
-    try {
-      connection.pause();
-    } catch (IOException exception) {
-      throw createDebugException(exception);
-    }
+
   }
 
   @Override
