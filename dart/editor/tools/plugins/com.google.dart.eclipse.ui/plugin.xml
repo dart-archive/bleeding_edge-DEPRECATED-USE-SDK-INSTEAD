@@ -264,9 +264,48 @@
                 style="push">
           </command>
           <separator
+                name="com.google.dart.eclipse.ui.separator.generate"
+                visible="true">
+          </separator>
+          <separator
                 name="com.google.dart.eclipse.ui.separator.pub"
                 visible="true">
           </separator>
+          <command
+                commandId="com.google.dart.tools.ui.generateJavascript"
+                label="Generate Javascript"
+                style="push"
+                tooltip="Generate Javascript">
+             <visibleWhen
+                   checkEnabled="false">
+                <with
+                      variable="selection">
+                   <iterate>
+                      <adapt
+                            type="org.eclipse.core.resources.IResource">
+                      </adapt>
+                   </iterate>
+                </with>
+             </visibleWhen>
+          </command>
+          <command
+                commandId="com.google.dart.tools.ui.generateDartdoc"
+                label="Generate Dartdoc"
+                style="push"
+                tooltip="Generate Dartdoc">
+             <visibleWhen
+                   checkEnabled="false">
+                <with
+                      variable="selection">
+                   <iterate>
+                      <adapt
+                            type="org.eclipse.core.resources.IResource">
+                      </adapt>
+                   </iterate>
+                </with>
+             </visibleWhen>
+          </command>
+          
           <command
                 commandId="com.google.dart.tools.ui.commands.pubInstall"
                 label="Pub Install"
