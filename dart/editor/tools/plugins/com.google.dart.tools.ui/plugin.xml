@@ -2775,6 +2775,11 @@
             commandId="com.google.dart.tools.ui.edit.text.dart.show.outline"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
       <key
+            sequence="M1+T"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.open.hierarchy"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
             commandId="org.eclipse.ui.edit.text.delete.line"
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"

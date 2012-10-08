@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.text;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.text.comment.CommentFormattingStrategy;
@@ -46,6 +47,7 @@ import com.google.dart.tools.ui.internal.text.functions.DartReconciler;
 import com.google.dart.tools.ui.internal.text.functions.HTMLAnnotationHover;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.text.functions.SingleTokenDartScanner;
+import com.google.dart.tools.ui.internal.typehierarchy.HierarchyInformationControl;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
 import org.eclipse.core.runtime.Assert;
@@ -409,32 +411,25 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
    */
   public IInformationPresenter getHierarchyPresenter(ISourceViewer sourceViewer,
       boolean doCodeResolve) {
-    return null;
-    // // Do not create hierarchy presenter if there's no CU.
-    // if (getEditor() != null
-    // && getEditor().getEditorInput() != null
-    // && DartUI.getEditorInputJavaElement(getEditor().getEditorInput())
-    // == null)
-    // return null;
-    //
-    // InformationPresenter presenter = new InformationPresenter(
-    // getHierarchyPresenterControlCreator(sourceViewer));
-    // presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
-    // presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
-    // IInformationProvider provider = new DartElementProvider(getEditor(),
-    // doCodeResolve);
-    // presenter.setInformationProvider(provider,
-    // IDocument.DEFAULT_CONTENT_TYPE);
-    // presenter.setInformationProvider(provider, DartPartitions.DART_DOC);
-    // presenter.setInformationProvider(provider,
-    // DartPartitions.DART_MULTI_LINE_COMMENT);
-    // presenter.setInformationProvider(provider,
-    // DartPartitions.DART_SINGLE_LINE_COMMENT);
-    // presenter.setInformationProvider(provider, DartPartitions.DART_STRING);
-    // presenter.setInformationProvider(provider,
-    // DartPartitions.DART_MULTI_LINE_STRING);
-    // presenter.setSizeConstraints(50, 20, true, false);
-    // return presenter;
+    // Do not create hierarchy presenter if there's no CU.
+    if (getEditor() != null && getEditor().getEditorInput() != null
+        && DartUI.getEditorInputDartElement(getEditor().getEditorInput()) == null) {
+      return null;
+    }
+
+    InformationPresenter presenter = new InformationPresenter(
+        getHierarchyPresenterControlCreator(sourceViewer));
+    presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
+    presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
+    IInformationProvider provider = new DartElementProvider(getEditor(), doCodeResolve);
+    presenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
+    presenter.setInformationProvider(provider, DartPartitions.DART_DOC);
+    presenter.setInformationProvider(provider, DartPartitions.DART_MULTI_LINE_COMMENT);
+    presenter.setInformationProvider(provider, DartPartitions.DART_SINGLE_LINE_COMMENT);
+    presenter.setInformationProvider(provider, DartPartitions.DART_STRING);
+    presenter.setInformationProvider(provider, DartPartitions.DART_MULTI_LINE_STRING);
+    presenter.setSizeConstraints(50, 20, true, false);
+    return presenter;
   }
 
   @Override
@@ -763,16 +758,16 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     return fStringScanner;
   }
 
-  // private IInformationControlCreator getHierarchyPresenterControlCreator(
-  // ISourceViewer sourceViewer) {
-  // return new IInformationControlCreator() {
-  // public IInformationControl createInformationControl(Shell parent) {
-  // int shellStyle = SWT.RESIZE;
-  // int treeStyle = SWT.V_SCROLL | SWT.H_SCROLL;
-  // return new HierarchyInformationControl(parent, shellStyle, treeStyle);
-  // }
-  // };
-  // }
+  private IInformationControlCreator getHierarchyPresenterControlCreator(ISourceViewer sourceViewer) {
+    return new IInformationControlCreator() {
+      @Override
+      public IInformationControl createInformationControl(Shell parent) {
+        int shellStyle = SWT.RESIZE;
+        int treeStyle = SWT.V_SCROLL | SWT.H_SCROLL;
+        return new HierarchyInformationControl(parent, shellStyle, treeStyle);
+      }
+    };
+  }
 
   /**
    * Computes and returns the indent prefixes for space indentation and the given

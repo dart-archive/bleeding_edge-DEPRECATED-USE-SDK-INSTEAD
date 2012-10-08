@@ -1931,6 +1931,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
     }
 
+    // Quick Type Hierarchy
+    {
+      IAction action = getAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
+      menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
+    }
+
     // Cut/Copy/Paste actions
     addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.UNDO);
     addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.CUT);

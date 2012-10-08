@@ -317,6 +317,36 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
     }
   }
 
+  /**
+   * Test for {@link RenameAnalyzeUtil#getSuperClasses(Type)}.
+   */
+  public void test_getSuperClasses() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "class B extends A {}",
+        "class C extends B {}",
+        "");
+    Type typeA = getTopLevelElementNamed("A");
+    Type typeB = getTopLevelElementNamed("B");
+    Type typeC = getTopLevelElementNamed("C");
+    // A
+    {
+      List<Type> superTypes = RenameAnalyzeUtil.getSuperClasses(typeA);
+      assertThat(superTypes).isEmpty();
+    }
+    // B
+    {
+      List<Type> superTypes = RenameAnalyzeUtil.getSuperClasses(typeB);
+      assertThat(superTypes).containsExactly(typeA);
+    }
+    // C
+    {
+      List<Type> superTypes = RenameAnalyzeUtil.getSuperClasses(typeC);
+      assertThat(superTypes).containsExactly(typeA, typeB);
+    }
+  }
+
   public void test_getSuperTypes_classesOnly() throws Exception {
     setUnitContent(
         "Lib.dart",

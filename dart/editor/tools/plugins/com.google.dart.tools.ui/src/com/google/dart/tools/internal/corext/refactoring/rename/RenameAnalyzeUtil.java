@@ -204,6 +204,13 @@ public class RenameAnalyzeUtil {
   }
 
   /**
+   * @return all direct subtypes of the given {@link Type}.
+   */
+  public static List<Type> getDirectSubTypes(Type type) throws CoreException {
+    return getSubTypes0(type, false);
+  }
+
+  /**
    * @return the localized name of the {@link DartElement}.
    */
   public static String getElementTypeName(DartElement element) {
@@ -360,26 +367,30 @@ public class RenameAnalyzeUtil {
   /**
    * @return all direct and indirect subtypes of the given {@link Type}.
    */
-  public static List<Type> getSubTypes(final Type type) throws CoreException {
-    List<Type> subTypes = Lists.newArrayList();
-    // find direct references
-    List<SearchMatch> matches = ExecutionUtils.runObjectCore(new RunnableObjectEx<List<SearchMatch>>() {
-      @Override
-      public List<SearchMatch> runObject() throws Exception {
-        SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
-        return searchEngine.searchSubtypes(type, null, null, null);
-      }
-    });
-    // add references from Types, find indirect subtypes
-    for (SearchMatch match : matches) {
-      if (match.getElement() instanceof Type) {
-        Type subType = (Type) match.getElement();
-        subTypes.add(subType);
-        subTypes.addAll(getSubTypes(subType));
+  public static List<Type> getSubTypes(Type type) throws CoreException {
+    return getSubTypes0(type, true);
+  }
+
+  /**
+   * @return list of super classes from the <code>Object</code> to the given {@link Type}.
+   */
+  public static List<Type> getSuperClasses(Type type) throws DartModelException {
+    LinkedList<Type> superClasses = Lists.newLinkedList();
+    DartLibrary library = type.getLibrary();
+    if (library != null) {
+      while (type != null) {
+        String superName = type.getSuperclassName();
+        if (superName == null) {
+          break;
+        }
+        Type superClass = library.findTypeInScope(superName);
+        if (superClass != null) {
+          superClasses.addFirst(superClass);
+          type = superClass;
+        }
       }
     }
-    // done
-    return subTypes;
+    return superClasses;
   }
 
   /**
@@ -490,6 +501,33 @@ public class RenameAnalyzeUtil {
         existingCompositeChange.add(newChange);
       }
     }
+  }
+
+  /**
+   * @return all direct and may be indirect subtypes of the given {@link Type}.
+   */
+  private static List<Type> getSubTypes0(final Type type, boolean indirect) throws CoreException {
+    List<Type> subTypes = Lists.newArrayList();
+    // find direct references
+    List<SearchMatch> matches = ExecutionUtils.runObjectCore(new RunnableObjectEx<List<SearchMatch>>() {
+      @Override
+      public List<SearchMatch> runObject() throws Exception {
+        SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
+        return searchEngine.searchSubtypes(type, null, null, null);
+      }
+    });
+    // add references from Types, find indirect subtypes
+    for (SearchMatch match : matches) {
+      if (match.getElement() instanceof Type) {
+        Type subType = (Type) match.getElement();
+        subTypes.add(subType);
+        if (indirect) {
+          subTypes.addAll(getSubTypes(subType));
+        }
+      }
+    }
+    // done
+    return subTypes;
   }
 
   private RenameAnalyzeUtil() {
