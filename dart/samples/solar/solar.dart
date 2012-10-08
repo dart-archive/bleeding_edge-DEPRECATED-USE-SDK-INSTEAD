@@ -111,7 +111,7 @@ class SolarSystem {
     requestRedraw();
   }
 
-  bool draw(int time) {
+  void draw(int time) {
     if (time == null) {
       // time can be null for some implementations of requestAnimationFrame
       time = new Date.now().millisecondsSinceEpoch;
