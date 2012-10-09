@@ -38,11 +38,9 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IEditorInput;
@@ -50,9 +48,9 @@ import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
-import org.eclipse.ui.forms.events.IHyperlinkListener;
 import org.eclipse.ui.forms.widgets.FormText;
 import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.eclipse.ui.forms.widgets.Hyperlink;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.forms.widgets.TableWrapData;
@@ -67,7 +65,7 @@ import java.util.Map;
 /**
  * A "fake" editor for showing intro content to first time users.
  */
-public class IntroEditor extends EditorPart implements IHyperlinkListener {
+public class IntroEditor extends EditorPart {
   public static final String ID = "com.google.dart.tools.ui.intro.editor"; //$NON-NLS-1$
 
   public static final IEditorInput INPUT = new IEditorInput() {
@@ -114,23 +112,7 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
 
   @Override
   public void createPartControl(Composite parent) {
-    toolkit = new FormToolkit(parent.getDisplay()) {
-      @Override
-      public void adapt(Control control, boolean trackFocus, boolean trackKeyboard) {
-        super.adapt(control, trackFocus, trackKeyboard);
-
-        emBiggen(control);
-      }
-
-      @Override
-      public Section createSection(Composite parent, int sectionStyle) {
-        Section section = super.createSection(parent, sectionStyle);
-
-        emBiggen(section);
-
-        return section;
-      }
-    };
+    toolkit = new FormToolkit(parent.getDisplay());
 
     // Create the form and header.
     form = toolkit.createScrolledForm(parent);
@@ -146,17 +128,16 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
     form.getBody().setLayout(layout);
 
     // Create the actions area.
-    Section section = toolkit.createSection(form.getBody(), Section.TITLE_BAR);
+    Section section = toolkit.createSection(form.getBody(), Section.TITLE_BAR | Section.DESCRIPTION);
     section.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.TOP, 1, 1));
     section.setText("Getting Started");
+    section.setDescription("Get started using the editor!");
     Composite client = toolkit.createComposite(section);
     GridLayoutFactory.swtDefaults().spacing(0, 0).applyTo(client);
-    toolkit.createLabel(client, "Get started using the editor!");
-    toolkit.createLabel(client, "");
 
     Button createButton = new Button(client, SWT.PUSH);
     createButton.setText("Create an application...");
-    createButton.setImage(DartToolsPlugin.getImage("icons/full/dart16/library_new.png"));
+    createButton.setImage(DartToolsPlugin.getImage("icons/full/dart16/package_obj_new.png"));
     createButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
@@ -165,6 +146,7 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
         action.run();
       }
     });
+    GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).applyTo(createButton);
 
     Button openButton = new Button(client, SWT.PUSH | SWT.LEFT);
     openButton.setText("Open existing code...");
@@ -177,28 +159,50 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
         action.run();
       }
     });
-    GridDataFactory.fillDefaults().hint(createButton.getSize().x, -1).applyTo(openButton);
+    GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).applyTo(openButton);
 
     section.setClient(client);
 
     // Create the info area.
-    section = toolkit.createSection(form.getBody(), Section.TITLE_BAR);
+    section = toolkit.createSection(form.getBody(), Section.TITLE_BAR | Section.DESCRIPTION);
     section.setLayoutData(new TableWrapData(TableWrapData.FILL, TableWrapData.TOP, 1, 1));
     section.setText("About Dart");
+    section.setDescription("Build HTML5 apps for the modern web! Dart brings structure to web app engineering with a new language, libraries, and tools.");
     client = toolkit.createComposite(section);
     client.setLayout(new TableWrapLayout());
-    StringBuffer buf = new StringBuffer();
-    buf.append("<form><p>Build HTML5 apps for the modern web! Dart brings structure to web app engineering with a new language, libraries, and tools.</p>");
-    buf.append("<li style=\"image\" value=\"image\"><a href=\"http://www.dartlang.org\">Visit dartlang.org</a></li>");
-    buf.append("<li style=\"image\" value=\"image\"><a href=\"http://www.dartlang.org/editor\">View Editor documentation</a></li>");
-    buf.append("<li style=\"image\" value=\"image\"><a href=\"https://github.com/dart-lang/dart-html5-samples\">View additional HTML5 samples</a></li>");
-    buf.append("<li style=\"image\" value=\"image\"><a href=\"http://blog.dartwatch.com/p/community-dart-packages-and-examples.html\">See community Dart packages and examples</a></li>");
-    buf.append("</form>");
-    FormText formText = toolkit.createFormText(client, true);
-    formText.setWhitespaceNormalized(true);
-    formText.setImage("image", DartToolsPlugin.getImage("icons/full/dart16/globe_dark.png"));
-    formText.setText(buf.toString(), true, false);
-    formText.addHyperlinkListener(this);
+
+    Hyperlink link = toolkit.createHyperlink(client, "Visit dartlang.org", SWT.NONE);
+    link.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      public void linkActivated(HyperlinkEvent e) {
+        Program.launch("http://www.dartlang.org/");
+      }
+    });
+
+    link = toolkit.createHyperlink(client, "View Editor documentation", SWT.NONE);
+    link.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      public void linkActivated(HyperlinkEvent e) {
+        Program.launch("http://www.dartlang.org/editor/");
+      }
+    });
+
+    link = toolkit.createHyperlink(client, "View additional HTML5 samples", SWT.NONE);
+    link.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      public void linkActivated(HyperlinkEvent e) {
+        Program.launch("https://github.com/dart-lang/dart-html5-samples/");
+      }
+    });
+
+    link = toolkit.createHyperlink(client, "See community Dart packages and examples", SWT.NONE);
+    link.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      public void linkActivated(HyperlinkEvent e) {
+        Program.launch("http://blog.dartwatch.com/p/community-dart-packages-and-examples.html");
+      }
+    });
+
     section.setClient(client);
 
     // Create the samples area.
@@ -223,7 +227,7 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
         }
       });
 
-      formText = toolkit.createFormText(client, true);
+      FormText formText = toolkit.createFormText(client, true);
       formText.setText("<form><p><a href=\"open:woot\">" + description.name + "</a><br></br>"
           + description.description + "</p></form>", true, false);
       formText.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.TOP, 1, 1));
@@ -281,25 +285,6 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
   }
 
   @Override
-  public void linkActivated(HyperlinkEvent event) {
-    if (event.getHref() instanceof String) {
-      String link = (String) event.getHref();
-
-      Program.launch(link);
-    }
-  }
-
-  @Override
-  public void linkEntered(HyperlinkEvent e) {
-
-  }
-
-  @Override
-  public void linkExited(HyperlinkEvent e) {
-
-  }
-
-  @Override
   public void setFocus() {
 
   }
@@ -318,33 +303,6 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
     } catch (InterruptedException e) {
       DartToolsPlugin.log(e);
     }
-  }
-
-  private void emBiggen(Control control) {
-    Font font = emBiggen(control.getFont());
-
-    if (font != null) {
-      control.setFont(font);
-    }
-  }
-
-  private Font emBiggen(Font font) {
-    if (font == null) {
-      return null;
-    }
-
-    if (!fontMap.containsKey(font)) {
-      FontData data = font.getFontData()[0];
-
-      Font newFont = new Font(font.getDevice(), new FontData(
-          data.getName(),
-          (int) Math.round(data.getHeight() * 1.2),
-          data.getStyle()));
-
-      fontMap.put(font, newFont);
-    }
-
-    return fontMap.get(font);
   }
 
   private File getDirectory(File file) {
