@@ -965,12 +965,14 @@ public class CompletionEngine {
         } else {
           typeTarget = completionNode;
         }
-        Type type = typeTarget.getElement().getType();
-        if (type != null) {
-          if (type instanceof FunctionType) {
-            type = ((FunctionType) type).getReturnType();
+        if (typeTarget != null && typeTarget.getElement() != null) {
+          Type type = typeTarget.getElement().getType();
+          if (type != null) {
+            if (type instanceof FunctionType) {
+              type = ((FunctionType) type).getReturnType();
+            }
+            createCompletionsForQualifiedMemberAccess(functionName, type, false, false);
           }
-          createCompletionsForQualifiedMemberAccess(functionName, type, false, false);
         }
       } else {
         // { methodWithCallback(!) }
