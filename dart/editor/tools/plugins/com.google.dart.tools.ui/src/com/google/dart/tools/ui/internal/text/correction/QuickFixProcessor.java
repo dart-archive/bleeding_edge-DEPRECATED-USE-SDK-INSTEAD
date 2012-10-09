@@ -26,6 +26,7 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.ASTNodes;
+import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
 import com.google.dart.compiler.ast.DartDirective;
@@ -37,6 +38,7 @@ import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
@@ -155,10 +157,6 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 //  private static ReplaceEdit createInsertEdit(int offset, String text) {
 //    return new ReplaceEdit(offset, 0, text);
 //  }
-//
-//  private static ReplaceEdit createRemoveEdit(SourceRange range) {
-//    return createReplaceEdit(range, "");
-//  }
 
   private static final Image OBJ_CONSTRUCTOR_IMG = DartToolsPlugin.getImageDescriptorRegistry().get(
       OBJ_CONSTRUCTOR_DESC);
@@ -175,6 +173,10 @@ public class QuickFixProcessor implements IQuickFixProcessor {
         addSuperTypeProposals(sb, alreadyAdded, interfaceType);
       }
     }
+  }
+
+  private static ReplaceEdit createRemoveEdit(SourceRange range) {
+    return createReplaceEdit(range, "");
   }
 
   private static ReplaceEdit createReplaceEdit(SourceRange range, String text) {
@@ -266,6 +268,9 @@ public class QuickFixProcessor implements IQuickFixProcessor {
             if (errorCode == ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR) {
               addFix_createConstructor();
             }
+            if (errorCode == TypeErrorCode.USE_INTEGER_DIVISION) {
+              addFix_useEffectiveIntegerDivision(location);
+            }
           }
         });
       }
@@ -282,7 +287,8 @@ public class QuickFixProcessor implements IQuickFixProcessor {
         || errorCode == TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED
         || errorCode == TypeErrorCode.IS_STATIC_METHOD_IN
         || errorCode == TypeErrorCode.NO_SUCH_TYPE
-        || errorCode == ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR;
+        || errorCode == ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR
+        || errorCode == TypeErrorCode.USE_INTEGER_DIVISION;
   }
 
   private void addFix_createConstructor() {
@@ -724,6 +730,34 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     }
   }
 
+  private void addFix_useEffectiveIntegerDivision(IProblemLocation location) throws Exception {
+    for (DartNode n = node; n != null; n = n.getParent()) {
+      if (n instanceof DartMethodInvocation
+          && n.getSourceInfo().getOffset() == location.getOffset()
+          && n.getSourceInfo().getLength() == location.getLength()) {
+        DartMethodInvocation invocation = (DartMethodInvocation) n;
+        DartExpression target = invocation.getTarget();
+        while (target instanceof DartParenthesizedExpression) {
+          target = ((DartParenthesizedExpression) target).getExpression();
+        }
+        // replace "/" with "~/"
+        DartBinaryExpression binary = (DartBinaryExpression) target;
+        addReplaceEdit(
+            SourceRangeFactory.forStartLength(binary.getOperatorOffset(), "/".length()),
+            "~/");
+        // remove everything before and after
+        addRemoveEdit(SourceRangeFactory.forStartStart(invocation, binary.getArg1()));
+        addRemoveEdit(SourceRangeFactory.forEndEnd(binary.getArg2(), invocation));
+        // add proposal
+        addUnitCorrectionProposal(
+            CorrectionMessages.QuickFixProcessor_useEffectiveIntegerDivision,
+            DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+        // done
+        break;
+      }
+    }
+  }
+
   private void addFix_useStaticAccess_method(IProblemLocation location) throws Exception {
     if (getLocationInParent(node) == DART_METHOD_INVOCATION_FUNCTION_NAME) {
       DartMethodInvocation invocation = (DartMethodInvocation) node.getParent();
@@ -827,9 +861,9 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     }
   }
 
-//  private void addRemoveEdit(SourceRange range) {
-//    textEdits.add(createRemoveEdit(range));
-//  }
+  private void addRemoveEdit(SourceRange range) {
+    textEdits.add(createRemoveEdit(range));
+  }
 
   private void addReplaceEdit(SourceRange range, String text) {
     textEdits.add(createReplaceEdit(range, text));

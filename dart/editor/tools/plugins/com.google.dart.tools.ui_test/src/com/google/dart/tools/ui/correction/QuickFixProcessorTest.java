@@ -693,6 +693,22 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "");
   }
 
+  public void test_useEffectiveIntegerDivision() throws Exception {
+    proposalNamePrefix = "Use effective integer division ~/";
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print( (7 / 2).toInt() );",
+        "}",
+        "");
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print( 7 ~/ 2 );",
+        "}",
+        "");
+  }
+
   public void test_useStaticAccess_method() throws Exception {
     proposalNamePrefix = "Change access to static using 'A'";
     setTestUnitContent(
