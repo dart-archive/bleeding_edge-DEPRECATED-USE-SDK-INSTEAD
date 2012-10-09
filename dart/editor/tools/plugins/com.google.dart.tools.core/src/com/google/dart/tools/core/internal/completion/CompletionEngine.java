@@ -1636,10 +1636,6 @@ public class CompletionEngine {
       return;
     }
     Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
-    if (parsedUnit.getLibrary() != null) {
-      // completion tests do not have a library
-      currentLib = parsedUnit.getLibrary().getElement();
-    }
 
     NodeFinder finder = NodeFinder.find(parsedUnit, completionPosition, 0);
     DartNode resolvedNode = finder.selectNode();
@@ -1665,6 +1661,10 @@ public class CompletionEngine {
       if (metrics != null) {
         metrics.resolveLibraryTime(System.currentTimeMillis() - resolutionStartTime);
       }
+    }
+    if (parsedUnit.getLibrary() != null) {
+      // completion tests do not have a library
+      currentLib = parsedUnit.getLibrary().getElement();
     }
     if (analyzedNode == null) {
       if (metrics != null) {
