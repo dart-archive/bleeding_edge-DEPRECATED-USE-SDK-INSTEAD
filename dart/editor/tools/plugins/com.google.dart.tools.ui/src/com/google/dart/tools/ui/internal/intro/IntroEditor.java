@@ -17,10 +17,12 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
@@ -29,6 +31,7 @@ import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -375,7 +378,12 @@ public class IntroEditor extends EditorPart implements IHyperlinkListener {
 
   private void openSample(File file, IProgressMonitor monitor) {
     try {
-      IProjectUtilities.createOrOpenProject(getDirectory(file), monitor);
+      IProject project = IProjectUtilities.createOrOpenProject(getDirectory(file), monitor).getProject();
+
+      if (project.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
+        RunPubAction runPubAction = RunPubAction.createPubInstallAction(getSite().getWorkbenchWindow());
+        runPubAction.run(new StructuredSelection(project));
+      }
 
       openInEditor(file);
     } catch (Throwable e) {
