@@ -54,10 +54,6 @@ public final class ActionMessages extends NLS {
   public static String AddUnimplementedConstructorsAction_template_link_tooltip;
   public static String GenerateConstructorUsingFieldsSelectionDialog_template_link_message;
 
-  public static String CloseLibraryAction_label;
-  public static String CloseLibraryAction_error_title;
-  public static String CloseLibraryAction_error_message;
-  public static String CloseLibraryAction_jobTitle;
   public static String GenerateConstructorUsingFieldsSelectionDialog_template_link_tooltip;
   public static String CopyQualifiedNameAction_ActionName;
   public static String CopyQualifiedNameAction_ErrorDescription;

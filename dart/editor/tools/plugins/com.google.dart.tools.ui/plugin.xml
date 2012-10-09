@@ -3178,18 +3178,7 @@
    <extension point="org.eclipse.ui.startup">
       <startup class="com.google.dart.tools.ui.DartUIStartup"/>
    </extension>
-
-   <extension
-         point="org.eclipse.ui.services">
-      <sourceProvider
-            provider="com.google.dart.tools.ui.internal.handlers.NewFileCommandState">
-         <variable
-               name="com.google.dart.tools.ui.newFile.active"
-               priorityLevel="workbench">
-         </variable>
-      </sourceProvider>
-   </extension>
-
+   
    <extension
        id="DartSearchResultPage"
         point="com.google.dart.tools.search.searchResultViewPages">
