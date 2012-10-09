@@ -1256,15 +1256,16 @@ public class Parser {
           errorGenerated = true;
         }
         Directive directive = parseDirective();
-        if (declarations.size() > 0) {
-          reportError(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
-        }
         if (directive instanceof LibraryDirective) {
           if (libraryDirectiveFound) {
             reportError(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
+          } else if (directives.size() > 0 || declarations.size() > 0) {
+            reportError(ParserErrorCode.LIBRARY_DIRECTIVE_FIRST);
           } else {
             libraryDirectiveFound = true;
           }
+        } else if (declarations.size() > 0) {
+          reportError(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
         }
         directives.add(directive);
       } else {

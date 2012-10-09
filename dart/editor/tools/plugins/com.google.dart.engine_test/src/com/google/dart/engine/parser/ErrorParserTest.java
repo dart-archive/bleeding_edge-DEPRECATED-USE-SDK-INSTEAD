@@ -187,7 +187,7 @@ public class ErrorParserTest extends ParserTestCase {
     CompilationUnit unit = parse(
         "parseCompilationUnit",
         "class Foo{} library l;",
-        ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
+        ParserErrorCode.LIBRARY_DIRECTIVE_FIRST);
     assertNotNull(unit);
   }
 
@@ -196,6 +196,14 @@ public class ErrorParserTest extends ParserTestCase {
         "parseCompilationUnit",
         "library l;\nclass Foo{}\npart 'a.dart';",
         ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
+    assertNotNull(unit);
+  }
+
+  public void test_directiveOrder_libraryNotFirst() throws Exception {
+    CompilationUnit unit = parse(
+        "parseCompilationUnit",
+        "part 'a.dart';\nlibrary l;",
+        ParserErrorCode.LIBRARY_DIRECTIVE_FIRST);
     assertNotNull(unit);
   }
 
