@@ -656,6 +656,20 @@ public class CompletionEngineTest extends TestCase {
     test(source, "1+p");
   }
 
+  public void testCommentSnippets073() throws Exception {
+    String source = Joiner.on("\n").join(
+        "class X {",
+        "  m() {",
+        "    JSON.stri!1",
+        "    X f = null;",
+        "  }",
+        "}",
+        "class JSON {",
+        "  static stringify() {}",
+        "}");
+    test(source, "1+stringify");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test

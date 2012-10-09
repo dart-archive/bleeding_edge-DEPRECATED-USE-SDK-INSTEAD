@@ -366,6 +366,34 @@ public class CompletionEngine {
                 } else {
                   boolean allowDynamic = false;
                   switch (ElementKind.of(element)) {
+                    case DYNAMIC:
+                      SyntheticIdentifier synth = new SyntheticIdentifier(
+                          qualNode.getName(),
+                          qualNode.getSourceInfo().getOffset(),
+                          qualNode.getSourceInfo().getLength());
+                      List<SearchMatch> matches = findTypesWithPrefix(synth);
+                      SearchMatch result = null,
+                      some = null;
+                      for (SearchMatch match : matches) {
+                        if (match.getElement().getElementName().equals(qualNode.getName())) {
+                          CompilationUnit unit = (CompilationUnit) match.getElement().getParent();
+                          if (unit.isWorkingCopy()) {
+                            result = match;
+                            break;
+                          }
+                          some = match;
+                        }
+                      }
+                      if (result == null && some == null) {
+                        allowDynamic = true;
+                        break;
+                      }
+                      if (result == null) {
+                        result = some;
+                      }
+                      String prefix = extractFilterPrefix(identifier);
+                      createTypeCompletionsForConstructor(qualNode, null, result, prefix);
+                      return null;
                     case CONSTRUCTOR:
                     case FIELD:
                     case METHOD:
@@ -2246,20 +2274,10 @@ public class CompletionEngine {
     if (disallowPrivate && name.startsWith("_")) {
       return;
     }
-//    if (!isCompletionAfterDot && false) {
-//      InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-//          CompletionProposal.TYPE_REF, actualCompletionPosition - offset);
-//      char[] nameChars = name.toCharArray();
-//      proposal.setCompletion(nameChars);
-//      proposal.setSignature(nameChars);
-//      setSourceLoc(proposal, node, prefix);
-//      proposal.setRelevance(1);
-//      requestor.accept(proposal);
-//    } else {
     try {
       for (com.google.dart.tools.core.model.Method method : type.getMethods()) {
-        if (method.isConstructor()) {
-          if (newExpr.isConst() && !method.getModifiers().isConstant()) {
+        if ((newExpr != null && method.isConstructor()) || (newExpr == null && method.isStatic())) {
+          if (newExpr != null && newExpr.isConst() && !method.getModifiers().isConstant()) {
             continue;
           }
           name = method.getElementName(); // insert named constructors, too
@@ -2282,10 +2300,12 @@ public class CompletionEngine {
           proposal.setDeclarationTypeName(declaringTypeName);
           setSourceLoc(proposal, node, prefix);
           proposal.setRelevance(1);
-          requestor.setAllowsRequiredProposals(
-              CompletionProposal.CONSTRUCTOR_INVOCATION,
-              CompletionProposal.TYPE_REF,
-              true);
+          if (newExpr != null) {
+            requestor.setAllowsRequiredProposals(
+                CompletionProposal.CONSTRUCTOR_INVOCATION,
+                CompletionProposal.TYPE_REF,
+                true);
+          }
           requestor.accept(proposal);
         }
       }
