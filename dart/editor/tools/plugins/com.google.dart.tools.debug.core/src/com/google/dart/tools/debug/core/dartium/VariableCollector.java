@@ -48,10 +48,18 @@ class VariableCollector {
             new WebkitCallback<WebkitPropertyDescriptor[]>() {
               @Override
               public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
-                collector.collectFields(result);
+                try {
+                  collector.collectFields(result);
+                } catch (Throwable t) {
+                  DartDebugCorePlugin.logError(t);
+
+                  collector.worked();
+                }
               }
             });
-      } catch (IOException e) {
+      } catch (Throwable e) {
+        DartDebugCorePlugin.logError(e);
+
         collector.worked();
       }
     }
@@ -84,10 +92,18 @@ class VariableCollector {
             new WebkitCallback<WebkitPropertyDescriptor[]>() {
               @Override
               public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
-                collector.collectFields(result);
+                try {
+                  collector.collectFields(result);
+                } catch (Throwable t) {
+                  DartDebugCorePlugin.logError(t);
+
+                  collector.worked();
+                }
               }
             });
-      } catch (IOException e) {
+      } catch (Throwable e) {
+        DartDebugCorePlugin.logError(e);
+
         collector.worked();
       }
     }
@@ -121,38 +137,6 @@ class VariableCollector {
 
     return variables.toArray(new IVariable[variables.size()]);
   }
-
-//  private boolean collectClassInfo(final WebkitRemoteObject classInfo, final CountDownLatch latch) {
-//    try {
-//      target.getConnection().getRuntime().getProperties(
-//          classInfo.getObjectId(),
-//          true,
-//          new WebkitCallback<WebkitPropertyDescriptor[]>() {
-//            @Override
-//            public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
-//              collectClassInfoResults(result, latch);
-//            }
-//          });
-//
-//      return true;
-//    } catch (IOException e) {
-//      return false;
-//    }
-//  }
-//
-//  private void collectClassInfoResults(WebkitResult<WebkitPropertyDescriptor[]> result,
-//      final CountDownLatch latch) {
-//    if (!result.isError()) {
-//      // library, class
-//      for (WebkitPropertyDescriptor descriptor : result.getResult()) {
-//        if ("class".equals(descriptor.getName())) {
-//          parentVariable.setClassName(descriptor.getValue().getValue());
-//        }
-//      }
-//    }
-//
-//    latch.countDown();
-//  }
 
   private void collectFields(WebkitResult<WebkitPropertyDescriptor[]> results) {
     boolean gettingStaticFields = false;
@@ -210,25 +194,27 @@ class VariableCollector {
 
   private void collectStaticFieldsResults(WebkitResult<WebkitPropertyDescriptor[]> results,
       CountDownLatch latch) {
-    if (results.isError()) {
-      DartDebugCorePlugin.logError("Error retrieving webkit properties: " + results);
-    } else {
-      for (WebkitPropertyDescriptor descriptor : results.getResult()) {
-        if (descriptor.isEnumerable()) {
-          DartiumDebugVariable variable = new DartiumDebugVariable(target, descriptor);
+    try {
+      if (results.isError()) {
+        DartDebugCorePlugin.logError("Error retrieving webkit properties: " + results);
+      } else {
+        for (WebkitPropertyDescriptor descriptor : results.getResult()) {
+          if (descriptor.isEnumerable()) {
+            DartiumDebugVariable variable = new DartiumDebugVariable(target, descriptor);
 
-          variable.setIsStatic(true);
+            variable.setIsStatic(true);
 
-          if (parentVariable != null) {
-            variable.setParent(parentVariable);
+            if (parentVariable != null) {
+              variable.setParent(parentVariable);
+            }
+
+            variables.add(variable);
           }
-
-          variables.add(variable);
         }
       }
+    } finally {
+      latch.countDown();
     }
-
-    latch.countDown();
   }
 
   private void createExceptionVariable(WebkitRemoteObject thisObject) {
