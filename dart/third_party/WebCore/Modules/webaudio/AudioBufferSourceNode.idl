@@ -45,7 +45,6 @@ module audio {
         attribute boolean looping; // This is an alias for the .loop attribute for backwards compatibility.
 
         [V8MeasureAs=WebAudioStart] void start(in double when);
-        // FIXME: unfork
         [V8MeasureAs=WebAudioStart, ImplementedAs=startGrain] void start(in double when, in double grainOffset, in double grainDuration);
         void stop(in double when);
 
