@@ -485,17 +485,8 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
   }
 
   private static class FixCalculationException extends RuntimeException {
-
-    private static final long serialVersionUID = 3807273310144726165L;
-
-    private final CoreException fException;
-
     public FixCalculationException(CoreException exception) {
-      fException = exception;
-    }
-
-    public CoreException getException() {
-      return fException;
+      super(exception);
     }
   }
 
