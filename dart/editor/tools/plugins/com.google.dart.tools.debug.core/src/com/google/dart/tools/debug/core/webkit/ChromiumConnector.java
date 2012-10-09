@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Retrieve Webkit inspection protocol debugging information from a Chronium instance.
+ * Retrieve Webkit inspection protocol debugging information from a Chromium instance.
  */
 public class ChromiumConnector {
   public static final String LOCALHOST_ADDRESS = "127.0.0.1";

@@ -76,7 +76,7 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
 
   @Override
   public boolean canSuspend() {
-    return DartDebugCorePlugin.VM_SUPPORTS_PAUSING && !isTerminated() && !isSuspended();
+    return !isTerminated() && !isSuspended();
   }
 
   @Override

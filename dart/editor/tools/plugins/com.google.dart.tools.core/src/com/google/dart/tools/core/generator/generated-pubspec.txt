@@ -1,5 +1,5 @@
 name:  %className%
 description:  A sample application
-#dependencies: 
-#  unittest: { sdk: unittest }
 
+#dependencies:
+#  unittest: { sdk: unittest }
