@@ -6,10 +6,10 @@
  * A solar system visualization.
  */
 
-#library("solar");
+library solar;
 
-#import("dart:html");
-#import("dart:math");
+import 'dart:html';
+import 'dart:math';
 
 /**
  * The entry point to the application.
@@ -33,6 +33,13 @@ void showFps(num fps) {
   fpsAverage = fps * 0.05 + fpsAverage * 0.95;
 
   query("#notes").text = "${fpsAverage.round().toInt()} fps";
+}
+
+// TODO: remove this once dart:html Point works cross-platform
+class Point {
+  num x, y;
+
+  Point(this.x, this.y);
 }
 
 /**

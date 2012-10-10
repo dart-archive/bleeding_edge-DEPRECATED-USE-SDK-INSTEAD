@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('spirodraw');
+library spirodraw;
 
-#import('dart:html');
-#import('dart:math', prefix: 'Math');
+import 'dart:html';
+import 'dart:math' as Math;
 
-#source("ColorPicker.dart");
+part "ColorPicker.dart";
 
 void main() {
   new Spirodraw().go();
@@ -19,8 +19,8 @@ class Spirodraw {
   // Scale factor used to scale wheel radius from 1-10 to pixels
   int RUnits, rUnits, dUnits;
   // Fixed radius, wheel radius, pen distance in pixels
-  double R, r, d; 
-  InputElement fixedRadiusSlider, wheelRadiusSlider, 
+  double R, r, d;
+  InputElement fixedRadiusSlider, wheelRadiusSlider,
     penRadiusSlider, penWidthSlider, speedSlider;
   SelectElement inOrOut;
   LabelElement numTurns;
@@ -30,7 +30,7 @@ class Spirodraw {
   int maxTurns;
   CanvasElement frontCanvas, backCanvas;
   CanvasRenderingContext2D front, back;
-  CanvasElement paletteElement; 
+  CanvasElement paletteElement;
   ColorPicker colorPicker;
   String penColor = "red";
   int penWidth;
@@ -40,7 +40,7 @@ class Spirodraw {
   int numPoints;
   double speed;
   bool run;
-  
+
   Spirodraw() {
     doc = window.document;
     inOrOut = doc.query("#in_out");
@@ -63,7 +63,7 @@ class Spirodraw {
   void go() {
     onResize();
   }
-  
+
   void onResize() {
     height = window.innerHeight;
     width = window.innerWidth - 270;
@@ -75,7 +75,7 @@ class Spirodraw {
     backCanvas.width = width;
     clear();
   }
-  
+
   void initControlPanel() {
     inOrOut.on.change.add((event) => refresh(), true);
     fixedRadiusSlider.on.change.add((event) => refresh(), true);
@@ -90,7 +90,7 @@ class Spirodraw {
     doc.query("#clear").on.click.add((event) => clear(), true);
     doc.query("#lucky").on.click.add((event) => lucky(), true);
   }
-  
+
   void onColorChange(String color) {
     penColor = color;
     drawFrame(rad);
@@ -100,12 +100,12 @@ class Spirodraw {
     speed = speedSlider.valueAsNumber;
     stepSize = calcStepSize();
   }
-  
+
   void onPenWidthChange() {
     penWidth = penWidthSlider.valueAsNumber.toInt();
     drawFrame(rad);
   }
-  
+
   void refresh() {
     stop();
     // Reset
@@ -118,7 +118,7 @@ class Spirodraw {
     R = RUnits * pixelsPerUnit;
     // Scale inner radius and pen distance in units of fixed radius
     rUnits = wheelRadiusSlider.valueAsNumber.toInt();
-    r = rUnits * R/RUnits * Math.parseInt(inOrOut.value);
+    r = rUnits * R/RUnits * int.parse(inOrOut.value);
     dUnits = penRadiusSlider.valueAsNumber.toInt();
     d = dUnits * R/RUnits;
     numPoints = calcNumPoints();
@@ -130,19 +130,21 @@ class Spirodraw {
   }
 
   int calcNumPoints() {
-    if ((dUnits==0) || (rUnits==0))
+    if ((dUnits==0) || (rUnits==0)) {
       // Empirically, treat it like an oval
       return 2;
+    }
     int gcf_ = gcf(RUnits, rUnits);
     int n = RUnits ~/ gcf_;
     int d_ = rUnits ~/ gcf_;
-    if (n % 2 == 1)
+    if (n % 2 == 1) {
       // odd
       return n;
-    else if (d_ %2 == 1)
+    } else if (d_ %2 == 1) {
       return n;
-    else
+    } else {
       return n~/2;
+    }
   }
 
   // TODO return optimum step size in radians
@@ -157,29 +159,30 @@ class Spirodraw {
     drawWheel(theta);
   }
 
-  bool animate(int time) {
+  void animate(int time) {
     if (run && rad <= maxTurns * PI2) {
       rad+=stepSize;
       drawFrame(rad);
       int nTurns = (rad / PI2).toInt();
       numTurns.text = '${nTurns}/$maxTurns';
-      window.webkitRequestAnimationFrame(animate);
+      window.requestAnimationFrame(animate);
     } else {
       stop();
     }
   }
-  
+
   void start() {
     refresh();
     rad = 0.0;
     run = true;
-    window.webkitRequestAnimationFrame(animate);
+    window.requestAnimationFrame(animate);
   }
 
   int calcTurns() {
     // compute ratio of wheel radius to big R then find LCM
-    if ((dUnits==0) || (rUnits==0))
+    if ((dUnits==0) || (rUnits==0)) {
       return 1;
+    }
     int ru = rUnits.abs();
     int wrUnits = RUnits + rUnits;
     int g = gcf (wrUnits, ru);
@@ -229,7 +232,7 @@ class Spirodraw {
   /**
    * Draw the wheel with its center at angle theta
    * with respect to the fixed wheel
-   * 
+   *
    * @param theta
    */
   void drawWheel(double theta) {
@@ -258,7 +261,7 @@ class Spirodraw {
   /**
    * Draw a rotating line that shows the wheel rolling and leaves
    * the pen trace
-   * 
+   *
    * @param wx X coordinate of wheel center
    * @param wy Y coordinate of wheel center
    * @param theta Angle of wheel center with respect to fixed circle
@@ -296,15 +299,17 @@ class Spirodraw {
     lastX = tx;
     lastY = ty;
   }
-  
+
 }
 
 int gcf(int n, int d) {
-  if (n==d)
+  if (n==d) {
     return n;
+  }
   int max = Math.max(n, d);
   for (int i = max ~/ 2; i > 1; i--)
-    if ((n % i == 0) && (d % i == 0))
+    if ((n % i == 0) && (d % i == 0)) {
       return i;
+    }
   return 1;
 }

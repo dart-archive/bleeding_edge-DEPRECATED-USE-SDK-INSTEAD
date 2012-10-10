@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('slider_sample');
+library slider_sample;
 
-#import('dart:html');
-#import('../ui_lib/view/view.dart');
+import 'dart:html';
+import '../ui_lib/view/view.dart';
 
 const menuItems = const["Apple", "Banana", "Cherry", "Durian"];
 
@@ -33,10 +33,10 @@ main() {
         break;
     }
   });
-  
+
   sliderMenu.enterDocument();
 }
 
 void displaySelection(String selectedText) {
-  query("#notes").text = "Selection: ${selectedText}";  
+  query("#notes").text = "Selection: ${selectedText}";
 }

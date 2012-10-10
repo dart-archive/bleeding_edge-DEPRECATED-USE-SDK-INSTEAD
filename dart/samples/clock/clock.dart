@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("clock");
+library clock;
 
-#import('dart:html');
-#import('dart:math');
+import 'dart:html';
+import 'dart:math';
 
-#source('balls.dart');
-#source('numbers.dart');
+part 'balls.dart';
+part 'numbers.dart';
 
 void main() {
   new CountDownClock();

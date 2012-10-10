@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("swipe");
+library swipe;
 
-#import('dart:html');
-#import('dart:math');
+import 'dart:html';
+import 'dart:math';
 
 Element target;
 
@@ -38,10 +38,10 @@ void main() {
       int newTouchX = event.touches[0].pageX;
 
       if (newTouchX > touchStartX) {
-        spinFigure(target, ((newTouchX - touchStartX) / 20).toInt() + 1);
+        spinFigure(target, (newTouchX - touchStartX) ~/ 20 + 1);
         touchStartX = null;
       } else if (newTouchX < touchStartX) {
-        spinFigure(target, ((newTouchX - touchStartX) / 20).toInt() - 1);
+        spinFigure(target, (newTouchX - touchStartX) ~/ 20 - 1);
         touchStartX = null;
       }
     }
@@ -75,7 +75,7 @@ void initialize3D() {
 
   query("#target").rect.then((ElementRect r) {
     num width = r.client.width;
-    figureWidth = ((width / 2) / tan(PI / childCount)).toInt();
+    figureWidth = (width / 2) ~/ tan(PI / childCount);
 
     target.style.transform = "translateZ(-${figureWidth}px)";
 

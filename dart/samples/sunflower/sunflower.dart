@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('sunflower');
+library sunflower;
 
-#import('dart:html');
-#import('dart:math');
+import 'dart:html';
+import 'dart:math';
 
 const SEED_RADIUS = 2;
 const SCALE_FACTOR = 4;
@@ -28,11 +28,11 @@ main() {
 
   InputElement slider = query("#slider");
   slider.on.change.add((Event e) {
-    seeds = parseInt(slider.value);
+    seeds = int.parse(slider.value);
     drawFrame(context);
   }, true);
 
-  seeds = parseInt(slider.value);
+  seeds = int.parse(slider.value);
 
   drawFrame(context);
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of clock;
+
 class ClockNumber {
   static const int WIDTH = 4;
   static const int HEIGHT = 7;
@@ -44,7 +46,7 @@ class ClockNumber {
             img.rect.then((ElementRect r) {
               double absx = r.bounding.left;
               double absy = r.bounding.top;
-              
+
               app.balls.add(absx, absy, ballColor);
             });
           }
@@ -53,7 +55,7 @@ class ClockNumber {
         img.src = px[y][x] != 0 ? Balls.PNGS[ballColor] : Balls.PNGS[6];
       }
     }
-    
+
     pixels = px;
   }
 }
