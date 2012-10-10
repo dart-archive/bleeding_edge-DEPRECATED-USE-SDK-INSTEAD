@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+
+
+To run this code, launch `_main.html.html` in the Editor.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <link rel="components" href="footer.html">
+  <link rel="components" href="newform.html">
+  <link rel="components" href="toggleall.html">
+  <link rel="components" href="item.html">
+  <link rel="stylesheet" href="base.css">
+  <title>dart - TodoMVC</title>
+</head>
+<body>
+  <section id="todoapp">
+    <header id="header">
+      <h1 class='title'>todos</h1>
+      <div is="x-todo-form"></div>
+    </header>
+    <section id="main">
+      <div is="x-toggle-all"></div>
+      <ul id="todo-list">
+        <template iterate="x in app.todos">
+          <template instantiate="if viewModel.isVisible(x)">
+            <li is="x-todo-row" data-value="todo:x"></li>
+          </template>
+        </template>
+      </ul>
+    </section>
+    <template instantiate="if viewModel.hasElements">
+      <footer is="x-todo-footer" id="footer"></footer>
+    </template>
+  </section>
+  <footer id="info">
+    <p>Double-click to edit a todo.</p>
+    <p>Credits: the <a href="http://www.dartlang.org">Dart</a> team.</p>
+    <p>Part of <a href="http://todomvc.com">TodoMVC</a>.</p>
+  </footer>
+  <script type="application/dart">
+import 'dart:html';
+import 'model.dart';
+import 'package:web_components/watcher.dart';
+
+main() {
+  // listen on changes to #hash in the URL
+  // Note: listen on both popState and hashChange, because IE9 doens't support
+  // history API, and it doesn't work properly on Opera 12.
+  // See http://dartbug.com/5483
+  updateFilters(e) {
+    viewModel.showIncomplete = window.location.hash != '#/completed';
+    viewModel.showDone = window.location.hash != '#/active';
+    dispatch();
+  }
+  window.on.hashChange.add(updateFilters);
+  window.on.popState.add(updateFilters);
+}
+  </script>
+</body>
+</html>

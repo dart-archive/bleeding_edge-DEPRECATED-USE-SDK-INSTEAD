@@ -186,6 +186,9 @@ build system.  The PDE build system has to run under Eclipse.
                 <!-- the READMEs are out of date -->
                 <exclude name="**/README"/>
             </fileset>
+            <fileset dir="${build.source.root}/samples/third_party">
+                <include name="todomvc/**"/>
+            </fileset>
         </copy>
 
         <!-- download and setup the html5 examples -->
