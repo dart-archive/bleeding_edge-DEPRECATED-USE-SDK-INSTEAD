@@ -115,6 +115,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionContext;
 import org.eclipse.ui.actions.ActionGroup;
 import org.eclipse.ui.dialogs.PreferencesUtil;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IAbstractTextEditorHelpContextIds;
 import org.eclipse.ui.texteditor.IDocumentProvider;
@@ -1542,7 +1543,11 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     configureToggleCommentAction();
     if (fJavaEditorErrorTickUpdater != null) {
       checkEditableState();
-      fJavaEditorErrorTickUpdater.updateEditorImage(getInputDartElement());
+      if (input instanceof FileStoreEditorInput) {
+        fJavaEditorErrorTickUpdater.updateEditorImage(input);
+      } else {
+        fJavaEditorErrorTickUpdater.updateEditorImage(getInputDartElement());
+      }
     }
   }
 

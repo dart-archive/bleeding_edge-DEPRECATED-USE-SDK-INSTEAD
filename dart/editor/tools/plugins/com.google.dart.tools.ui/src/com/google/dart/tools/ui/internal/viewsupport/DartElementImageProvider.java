@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.viewsupport;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
@@ -40,8 +41,11 @@ import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.model.IWorkbenchAdapter;
+
+import java.io.File;
 
 /**
  * Default strategy of the Java plugin for the construction of Java element icons.
@@ -361,6 +365,14 @@ public class DartElementImageProvider {
       } else {
         return imageDescriptor;
       }
+    } else if (element instanceof FileStoreEditorInput) {
+      ImageDescriptor imageDescriptor = DartPluginImages.DESC_DART_COMP_UNIT;
+      File file = new File(((FileStoreEditorInput) element).getURI());
+        imageDescriptor = DartPluginImages.DESC_DART_COMP_UNIT;
+      if (!file.canWrite()) {
+        return decorateReadOnly(imageDescriptor);
+      }
+      return imageDescriptor;
     } else if (element instanceof IAdaptable) {
       return getWorkbenchImageDescriptor((IAdaptable) element, flags);
     } else if (element instanceof ImportedDartLibraryContainer

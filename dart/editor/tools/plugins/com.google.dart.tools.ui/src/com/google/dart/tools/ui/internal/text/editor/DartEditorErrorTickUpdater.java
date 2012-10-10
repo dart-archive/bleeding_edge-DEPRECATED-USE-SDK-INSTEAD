@@ -77,7 +77,7 @@ public class DartEditorErrorTickUpdater implements IProblemChangedListener {
     }
   }
 
-  public void updateEditorImage(DartElement jelement) {
+  public void updateEditorImage(Object jelement) {
     Image titleImage = fJavaEditor.getTitleImage();
     if (titleImage == null) {
       return;
@@ -91,7 +91,7 @@ public class DartEditorErrorTickUpdater implements IProblemChangedListener {
       if (jelement instanceof ExternalCompilationUnitImpl) {
         newImage = fLabelProvider.getImage(jelement);
       } else {
-        newImage = fLabelProvider.getImage(jelement.getResource());
+        newImage = fLabelProvider.getImage(((CompilationUnit) jelement).getResource());
       }
     } else {
       newImage = fLabelProvider.getImage(jelement);

@@ -114,6 +114,7 @@ import org.eclipse.ui.texteditor.MarkerAnnotation;
 import org.eclipse.ui.texteditor.ResourceMarkerAnnotationModel;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -1001,7 +1002,8 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       ExternalCompilationUnitEditorInput input = (ExternalCompilationUnitEditorInput) element;
       return input.isModifiable();
     } else if (element instanceof FileStoreEditorInput) {
-      return false;
+      File file = new File(((FileStoreEditorInput) element).getURI());
+      return file.canWrite();
     } else {
       return super.isModifiable(element);
     }
@@ -1013,7 +1015,8 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       ExternalCompilationUnitEditorInput input = (ExternalCompilationUnitEditorInput) element;
       return !input.isModifiable();
     } else if (element instanceof FileStoreEditorInput) {
-      return true;
+      File file = new File(((FileStoreEditorInput) element).getURI());
+      return !file.canWrite();
     } else {
       return super.isReadOnly(element);
     }
