@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+<body>
+<element name="x-toggle-all" extends="div" constructor="ToggleComponent"
+         apply-author-styles="">
+  <template>
+    <input id="toggle-all" type="checkbox"
+           checked="{{allChecked}}" data-action="click:markAll">
+    <label for="x-toggle-all"></label>
+  </template>
+  <script type="application/dart">
+  import 'model.dart';
+  import 'package:web_components/web_component.dart';
+
+  class ToggleComponent extends WebComponent {
+    bool get allChecked => app.todos.length > 0 &&
+        app.todos.every((t) => t.done);
+
+    void markAll(e) => app.todos.forEach((t) { t.done = _toggleAll.checked; });
+  }
+  </script>
+</element>
+</body>
+</html>
