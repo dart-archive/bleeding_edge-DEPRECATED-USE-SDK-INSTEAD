@@ -278,27 +278,7 @@
          point="org.eclipse.core.contenttype.contentTypes">
       <file-association
             content-type="org.eclipse.core.runtime.text"
-            file-extensions="map">
-      </file-association>
-      <file-association
-            content-type="org.eclipse.core.runtime.text"
-            file-extensions="css">
-      </file-association>
-      <file-association
-            content-type="org.eclipse.core.runtime.text"
-            file-extensions="js">
-      </file-association>
-      <file-association
-            content-type="org.eclipse.core.runtime.text"
-            file-extensions="json">
-      </file-association>
-      <file-association
-            content-type="org.eclipse.core.runtime.text"
-            file-extensions="py">
-      </file-association>
-      <file-association
-            content-type="org.eclipse.core.runtime.text"
-            file-extensions="yaml">
+            file-extensions="css,js,json,map,md,py,yaml">
       </file-association>      
    </extension>
    
