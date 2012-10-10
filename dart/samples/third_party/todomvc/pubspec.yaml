@@ -1,5 +1,0 @@
-name: todomvc
-description: TodoMVC built with Web Components
-version: 0.0.1
-dependencies:
-  web_components: 0.0.2
