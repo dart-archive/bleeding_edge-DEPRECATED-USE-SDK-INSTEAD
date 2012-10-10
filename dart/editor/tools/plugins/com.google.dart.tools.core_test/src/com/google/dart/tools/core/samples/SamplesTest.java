@@ -241,6 +241,11 @@ public class SamplesTest extends TestCase {
   }
 
   private void visitDirectory(File dir) {
+    // Don't try and analyze samples that depend on pub.
+    if (dir.isDirectory() && new File(dir, "pubspec.yaml").exists()) {
+      return;
+    }
+
     for (File file : dir.listFiles()) {
       if (file.isDirectory()) {
         visitDirectory(file);
