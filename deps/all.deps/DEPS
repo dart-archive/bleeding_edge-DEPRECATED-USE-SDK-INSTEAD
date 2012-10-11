@@ -59,5 +59,10 @@ hooks = [
   {
     "pattern": ".",
     "action": ["python", "dart/tools/gyp_dart.py"],
-  }
+  },
+  {
+    # A change to any file causes an updated modification time for VERSION.
+    "pattern": ".",
+    "action": ["python", "tools/touch_version.py"],
+  },
 ]
