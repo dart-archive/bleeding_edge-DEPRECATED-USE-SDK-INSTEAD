@@ -195,6 +195,11 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String PUBSPEC_FILE_NAME = "pubspec.yaml";
 
   /**
+   * Name of special pubspec lock file
+   */
+  public static final String PUBSPEC_LOCK_FILE_NAME = "pubspec.lock";
+
+  /**
    * The name of the build.dart special file.
    */
   public static final String BUILD_DART_FILE_NAME = "build.dart";
@@ -266,6 +271,13 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static boolean containsPackagesDirectory(File file) {
     return new File(file, PACKAGES_DIRECTORY_NAME).isDirectory();
+  }
+
+  /**
+   * Return <code>true</code> if the directory contains a "pubspec.yaml" file
+   */
+  public static boolean containsPubspecFile(File directory) {
+    return new File(directory, PUBSPEC_FILE_NAME).isFile();
   }
 
   /**
@@ -589,7 +601,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * Return true if directory contains a "packages" directory and a "pubspec.yaml" file
    */
   public static boolean isApplicationDirectory(File directory) {
-    return new File(directory, PUBSPEC_FILE_NAME).isFile() && containsPackagesDirectory(directory);
+    return containsPubspecFile(directory) && containsPackagesDirectory(directory);
   }
 
   /**

@@ -59,11 +59,12 @@ public class FilesViewerComparator extends ViewerComparator {
       IResource resource = (IResource) element;
 
       if (resource.getParent() instanceof IProject) {
-        // At the top level of a project, check for pubspec.yaml and build.dart.
+        // At the top level of a project, check for pubspec.yaml, pubspec.lock, and build.dart.
         if (resource.getType() == IResource.FILE) {
           String name = resource.getName();
 
-          if (name.equals(DartCore.PUBSPEC_FILE_NAME)) {
+          if (name.equals(DartCore.PUBSPEC_FILE_NAME)
+              || name.equals(DartCore.PUBSPEC_LOCK_FILE_NAME)) {
             return SPECIAL_RESOURCE_SORT;
           }
         }
