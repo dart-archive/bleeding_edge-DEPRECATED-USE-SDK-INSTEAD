@@ -19,6 +19,8 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.resolver.TypeErrorCode;
+import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
@@ -68,12 +70,27 @@ import java.util.List;
 public class ReconcileWorkingCopyOperation extends DartModelOperation {
   public static boolean PERF = false;
 
+  /**
+   * TODO(scheglov) we need to find better solution, may be always compile in one context.
+   * 
+   * @return <code>true</code> if "X is not assignable to X" problem given.
+   */
+  private static boolean isAnalysisAsYouTypeNotAssignableProblem(DartCompilationError error) {
+    if (error.getErrorCode() == TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE) {
+      String msg = error.getMessage();
+      String typeName = StringUtils.substringBefore(msg.substring(1), "'");
+      return msg.endsWith("'" + typeName + "'");
+    }
+    return false;
+  }
+
   public boolean resolveBindings;
   public HashMap<String, CategorizedProblem[]> problems;
   public boolean forceProblemDetection;
   WorkingCopyOwner workingCopyOwner;
   public DartUnit ast;
   public DartElementDeltaBuilder deltaBuilder;
+
   public boolean requestorIsActive;
 
   public ReconcileWorkingCopyOperation(DartElement workingCopy, boolean forceProblemDetection,
@@ -143,6 +160,9 @@ public class ReconcileWorkingCopyOperation extends DartModelOperation {
         IResource unitResource = workingCopy.getResource();
         for (Iterator<DartCompilationError> I = parseErrors.iterator(); I.hasNext();) {
           DartCompilationError error = I.next();
+          if (isAnalysisAsYouTypeNotAssignableProblem(error)) {
+            I.remove();
+          }
           IResource errorResource = ResourceUtil.getResource(error.getSource());
           if (!Objects.equal(errorResource, unitResource)) {
             I.remove();
