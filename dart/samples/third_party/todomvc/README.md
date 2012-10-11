@@ -1,6 +1,8 @@
 TodoMVC sample application written with web-components and templates bound to
-models. To run this code, launch `_main.html.html`. If this file does not exist
-yet, right click on "build.dart" and select "Run".
+models.
+
+To run this code, launch `_main.html.html`. If this file does not exist yet,
+right click on "build.dart" and select "Run".
 
 Generated code will start with an underscore. Any time you edit and save a
 source file, the necessary files will be regenerated automatically. Look at
