@@ -3,6 +3,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:web_components/build_utils.dart';
+import 'dart:io';
+import 'package:web_components/component_build.dart';
 
-void main() => build(['web/main.html']);
+void main() => build(new Options().arguments, ['web/main.html']);
