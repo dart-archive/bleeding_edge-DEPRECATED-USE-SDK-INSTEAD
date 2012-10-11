@@ -194,14 +194,23 @@ public class UpdateCore extends Plugin {
 
   /**
    * Get the root URL for update checks. Custom URLs can be set via the
-   * "com.dart.tools.update.core.url" environment variable. If the is no custom URL defined, lookup
-   * will default to a URL defined in plugin .options.
+   * "com.dart.tools.update.core.url" property. This property can be set in two ways:
+   * <ol>
+   * <li>via an environment variable (checked first), or</li>
+   * <li>via a user-defined property in the "editor.properties" file
+   * </ol>
+   * If the is no custom URL defined, lookup will default to a URL defined in plugin .options.
    * 
    * @return the URL (or <code>null</code> if unset).
    */
   public static String getUpdateUrl() {
 
     String userSpecifiedURL = System.getProperty(UPDATE_URL_ENV_VAR);
+    if (userSpecifiedURL != null) {
+      return userSpecifiedURL;
+    }
+
+    userSpecifiedURL = DartCore.getUserDefinedProperty(UPDATE_URL_ENV_VAR);
     if (userSpecifiedURL != null) {
       return userSpecifiedURL;
     }

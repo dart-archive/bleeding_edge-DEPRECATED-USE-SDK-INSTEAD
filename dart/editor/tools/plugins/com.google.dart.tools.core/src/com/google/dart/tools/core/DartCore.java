@@ -68,6 +68,9 @@ import org.osgi.framework.Version;
 import org.osgi.service.prefs.BackingStoreException;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
@@ -77,6 +80,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * The class <code>DartCore</code> is used to access the elements modeling projects that have a Dart
@@ -574,6 +578,37 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * Returns the current value of the string-valued user-defined property with the given name.
+   * Returns <code>null</code> if there is no user-defined property with the given name.
+   * <p>
+   * User-defined properties are defined in the <code>editor.properties</code> file located in the
+   * eclipse installation directory.
+   * 
+   * @see DartCore#getEclipseInstallationDirectory()
+   * @param name the name of the property
+   * @return the string-valued property
+   */
+  public static String getUserDefinedProperty(String key) {
+
+    Properties properties = new Properties();
+
+    File installDirectory = getEclipseInstallationDirectory();
+    File file = new File(installDirectory, "editor.properties");
+
+    if (file.exists()) {
+      try {
+        properties.load(new FileReader(file));
+      } catch (FileNotFoundException e) {
+        logError(e);
+      } catch (IOException e) {
+        logError(e);
+      }
+    }
+
+    return properties.getProperty(key);
+  }
+
+  /**
    * @return the version text for this plugin (i.e. 1.1.0)
    */
   public static String getVersion() {
@@ -969,6 +1004,10 @@ public class DartCore extends Plugin implements DartSdkListener {
     ILog oldLog = PLUGIN_LOG;
     PLUGIN_LOG = log;
     return oldLog;
+  }
+
+  private static File getEclipseInstallationDirectory() {
+    return new File(Platform.getInstallLocation().getURL().getFile());
   }
 
   /**

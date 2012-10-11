@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.update.core.internal.jobs;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.update.core.UpdateCore;
 import com.google.dart.tools.update.core.UpdateManager;
@@ -71,14 +72,14 @@ public class InstallUpdateAction extends Action {
         return true;
       }
 
-      //com.google.dart.tools.deploy/splash.bmp
-      if (name.equals("splash.bmp")) { //$NON-NLS-1$
-        return true;
-      }
-
       // DartEditor.app/Contents/MacOS/DartEditor.ini
-      if (name.equals("DartEditor.ini")) {
-        return true;
+      if (name.equals("DartEditor.ini")) { //$NON-NLS-1$
+        //mac INI files need to be overwritten since they're signed
+        if (DartCore.isMac()) {
+          return true;
+        }
+        //on linux and windows, we handle a merge post-copy
+        return false;
       }
 
       return false;
@@ -217,8 +218,8 @@ public class InstallUpdateAction extends Action {
     }
 
     monitor.setTaskName(UpdateJobMessages.InstallUpdateAction_preparing_task);
-    File sdkDir = new File(installTarget, "dart-sdk");
-    UpdateUtils.deleteDirectory(sdkDir, mon.newChild(4)); //$NON-NLS-1$
+    File sdkDir = new File(installTarget, "dart-sdk"); //$NON-NLS-1$
+    UpdateUtils.deleteDirectory(sdkDir, mon.newChild(4));
     UpdateUtils.deleteDirectory(new File(installTarget, "samples"), mon.newChild(4)); //$NON-NLS-1$
 
     terminateRunningDartLaunches();
@@ -232,15 +233,29 @@ public class InstallUpdateAction extends Action {
     }
 
     monitor.setTaskName(UpdateJobMessages.InstallUpdateAction_install_task);
-    File installDir = new File(tmpDir, "dart");
+    File installDir = new File(tmpDir, "dart"); //$NON-NLS-1$
     int fileCount = UpdateUtils.countFiles(installDir);
-    UpdateUtils.copyDirectory(installDir, installTarget, UPDATE_OVERRIDE_FILTER, //$NON-NLS-1$
+    UpdateUtils.copyDirectory(
+        installDir,
+        installTarget,
+        UPDATE_OVERRIDE_FILTER,
         mon.newChild(67).setWorkRemaining(fileCount));
 
+    //update/merge DartEditor.ini
+    if (!DartCore.isMac()) {
+      //mac INI files are not merged since that would throw off signing
+      mergeIniFile(installDir, installTarget);
+    }
+
     //ensure executables (such as the analyzer, pub and VM) have the exec bit set 
-    UpdateUtils.ensureExecutable(new File(sdkDir, "bin").listFiles());
+    UpdateUtils.ensureExecutable(new File(sdkDir, "bin").listFiles()); //$NON-NLS-1$
     UpdateUtils.ensureExecutable(DartSdkManager.getManager().getSdk().getDartiumExecutable());
 
+  }
+
+  private File getIni(File dir) {
+    //NOTE: only used for Windows and Linux
+    return new File(dir, "DartEditor.ini"); //$NON-NLS-1$
   }
 
   private Shell getShell() {
@@ -249,11 +264,26 @@ public class InstallUpdateAction extends Action {
 
   private boolean isDartLaunch(ILaunch launch) {
     try {
-      return launch.getLaunchConfiguration().getType().getIdentifier().startsWith("com.google");
+      return launch.getLaunchConfiguration().getType().getIdentifier().startsWith("com.google"); //$NON-NLS-1$
     } catch (CoreException e) {
       UpdateCore.logError(e);
     }
     return false;
+  }
+
+  private void mergeIniFile(File installDir, File installTarget) {
+
+    File latestIni = getIni(installDir);
+    File currentIni = getIni(installTarget);
+
+    try {
+
+      INIRewriter.mergeAndWrite(currentIni, latestIni);
+
+    } catch (IOException e) {
+      UpdateCore.logError(e);
+    }
+
   }
 
   private boolean resourcesNeedSaving() {
