@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Localization: plugin
 Bundle-Name: %pluginName
 Bundle-SymbolicName: com.google.dart.tools.debug.ui;singleton:=true
-Bundle-Version: 0.1.0.qualifier
+Bundle-Version: 0.0.0.qualifier
 Bundle-Activator: com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui,

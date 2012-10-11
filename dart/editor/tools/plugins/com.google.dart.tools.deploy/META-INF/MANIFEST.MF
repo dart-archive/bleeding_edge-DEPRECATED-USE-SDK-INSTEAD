@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Dart Editor Deploy
 Bundle-Localization: plugin
 Bundle-SymbolicName: com.google.dart.tools.deploy; singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 0.0.0.qualifier
 Bundle-Activator: com.google.dart.tools.deploy.Activator
 Bundle-Vendor: Dart project authors
 Require-Bundle: org.eclipse.core.runtime,

@@ -47,8 +47,8 @@
    </plugins>
 
    <features>
-      <feature id="com.google.dart.tools.eclipse.platform.feature" version="0.1.0.qualifier"/>
-      <feature id="com.google.dart.tools.deploy.feature" version="0.1.0.qualifier"/>
+      <feature id="com.google.dart.tools.eclipse.platform.feature"/>
+      <feature id="com.google.dart.tools.deploy.feature"/>
    </features>
 
    <configurations>

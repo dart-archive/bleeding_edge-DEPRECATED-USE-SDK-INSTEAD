@@ -530,6 +530,7 @@
                 <arg value="-Dbuild.osgi.os=${build.osgi.os}" />
                 <arg value="-Dbuild.osgi.ws=${build.osgi.ws}" />
                 <arg value="-Dbuild.osgi.arch=${build.osgi.arch}" />
+            	  <arg value="-Dbuild.revision=${build.revision}" />
                 <!-- arg value="-verbose" / -->
                 <arg value="-noinput" />
                 <arg value="-vmargs" />

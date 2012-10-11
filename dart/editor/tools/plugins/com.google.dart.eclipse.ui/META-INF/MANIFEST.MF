@@ -5,7 +5,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: com.google.dart.eclipse.ui;singleton:=true
-Bundle-Version: 0.1.0.qualifier
+Bundle-Version: 0.0.0.qualifier
 Bundle-Vendor: %providerName
 Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.ide,

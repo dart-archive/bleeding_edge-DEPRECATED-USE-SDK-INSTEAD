@@ -16,6 +16,17 @@
             <format property="build.date" pattern="yyyy-MM-dd" />
         </tstamp>
 
+        <!-- parse the tools/VERSION file into an ant property -->
+        <!-- the format is "MAJOR x\nMINOR x\nBUILD x\nPATCH n" -->
+        <loadproperties srcFile="${build.source}/../tools/VERSION">
+            <filterchain>
+                <replaceregex pattern=" " replace="="/>
+             </filterchain>
+        </loadproperties>
+        <property name="dart.version" value="${MAJOR}.${MINOR}.${BUILD}" />
+        <property name="dart.version_revision" value="${dart.version}_${build.revision}" />
+        <echo message="Dart version is ${dart.version} (${dart.version_revision})"></echo>
+
         <fail unless="build.dir" message="build.dir property is required"/>
         <mkdir dir="${build.dir}"/>
         
@@ -47,7 +58,8 @@
       <!-- plugin and feature source -->
 
       <property name="build.dir.plugins" location="${build.dir}/plugins" />
-                	
+      <property name="build.dir.features" location="${build.dir}/features" />
+	
     	<copy todir="${build.dir}/plugins/">
           <fileset dir="${source.dir}/plugins">
               <exclude name="*_test/**" />
@@ -114,6 +126,16 @@
           <replacefilter token="@REVISION@" value="${build.revision}" />
           <replacefilter token="@BUILDDATE@" value="${build.date}" />
       </replace>
+    	<replace dir="${build.dir.features}">
+    		<include name="**/feature.xml"/>
+    	  <replacefilter token="0.0.1.qualifier" value="${dart.version}.qualifier" />
+    		<replacefilter token="0.0.0.qualifier" value="${dart.version}.qualifier" />
+      </replace>
+      <replace dir="${build.dir.plugins}">
+        <include name="**/MANIFEST.MF"/>
+        <replacefilter token="0.0.1.qualifier" value="${dart.version}.qualifier" />
+        <replacefilter token="0.0.0.qualifier" value="${dart.version}.qualifier" />
+      </replace>
     </target>
     
     <!-- build -->
@@ -174,6 +196,7 @@
                 <arg value="-DbuildDirectory=${build.dir}" />
                 <arg value="-DbaseLocation=${eclipse.dir}" />
                 <arg value="-Dbase=${build.dir}/base" />
+            	  <arg value="-Dbuild.revision=${build.revision}" />
                 <arg value="-noinput" />
                 <arg value="-vmargs" />
                 <arg value="-Xms256M" />
