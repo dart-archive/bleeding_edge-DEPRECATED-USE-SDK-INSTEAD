@@ -566,8 +566,7 @@ public final class DartModelUtil {
   public static CompilationUnit[] getNotPackageCompilationUnits(CompilationUnit[] units) {
     List<CompilationUnit> filteredUnits = Lists.newArrayList();
     for (CompilationUnit unit : units) {
-      IResource resource = unit.getResource();
-      if (!DartCore.isPackagesResource(resource)) {
+      if (!DartCore.isPackagesUnit(unit)) {
         filteredUnits.add(unit);
       }
     }

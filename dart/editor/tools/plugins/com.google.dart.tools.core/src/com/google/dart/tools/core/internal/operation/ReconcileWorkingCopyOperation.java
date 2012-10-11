@@ -120,7 +120,7 @@ public class ReconcileWorkingCopyOperation extends DartModelOperation {
       CompilationUnitImpl source = workingCopy.cloneCachingContents();
       // find problems if needed
       if (DartProjectNature.hasDartNature(workingCopy.getDartProject().getProject())
-          && forceProblemDetection) {
+          && forceProblemDetection && !DartCore.isPackagesUnit(workingCopy)) {
         resolveBindings = requestorIsActive;
         if (problems == null) {
           problems = new HashMap<String, CategorizedProblem[]>();

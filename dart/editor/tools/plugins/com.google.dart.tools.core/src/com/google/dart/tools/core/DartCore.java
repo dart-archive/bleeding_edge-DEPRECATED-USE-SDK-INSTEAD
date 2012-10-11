@@ -26,6 +26,7 @@ import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.jobs.CleanLibrariesJob;
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModel;
@@ -712,6 +713,14 @@ public class DartCore extends Plugin implements DartSdkListener {
       return isPackagesResource(parentFolder);
     }
     return false;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link CompilationUnit} is declared in "packages".
+   */
+  public static boolean isPackagesUnit(CompilationUnit unit) {
+    IResource resource = unit.getResource();
+    return DartCore.isPackagesResource(resource);
   }
 
   /**
