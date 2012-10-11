@@ -46,8 +46,13 @@ deps_os = {
 
 hooks = [
   {
-    # A change to a .gyp, .gypi, or to GYP itself should run the generator.
+    # A change to any file runs the generator.
     "pattern": ".",
     "action": ["python", "tools/generate_projects.py", "runtime"],
+  },
+  {
+    # A change to any file causes the script to be run.
+    "pattern": ".",
+    "action": ["python", "tools/touch_version.py"],
   },
 ]
