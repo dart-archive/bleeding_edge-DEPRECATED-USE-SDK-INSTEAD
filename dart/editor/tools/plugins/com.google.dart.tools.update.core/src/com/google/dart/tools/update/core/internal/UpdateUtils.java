@@ -16,6 +16,10 @@ package com.google.dart.tools.update.core.internal;
 import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateCore;
 
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileInfo;
+import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.util.Util;
@@ -197,7 +201,12 @@ public class UpdateUtils {
     }
     for (File file : dir.listFiles()) {
       if (file.isDirectory()) {
-        deleteDirectory(file, monitor);
+        // If it's symlinked, just delete the link - do not follow the linked dir.
+        if (isLinkedFile(file)) {
+          file.delete();
+        } else {
+          deleteDirectory(file, monitor);
+        }
       } else {
         file.delete();
         monitor.worked(1);
@@ -512,6 +521,18 @@ public class UpdateUtils {
     Field is64 = swtLibraryClass.getDeclaredField("IS_64");
     is64.setAccessible(true);
     return is64.getBoolean(swtLibraryClass);
+  }
+
+  private static boolean isLinkedFile(File file) {
+    try {
+      IFileStore fileStore = EFS.getStore(file.toURI());
+
+      IFileInfo info = fileStore.fetchInfo();
+
+      return info.getAttribute(EFS.ATTRIBUTE_SYMLINK);
+    } catch (CoreException ce) {
+      return false;
+    }
   }
 
   private static boolean isNumeric(String str) {
