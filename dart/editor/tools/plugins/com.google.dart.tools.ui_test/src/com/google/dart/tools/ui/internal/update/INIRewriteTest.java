@@ -29,11 +29,7 @@ public class INIRewriteTest extends TestCase {
 
   public void testInsert() throws Exception {
 
-    List<String> list = Lists.newArrayList(
-        "-consoleLog",
-        "-data",
-        "workspace",
-        "-vmargs",
+    List<String> list = Lists.newArrayList("-consoleLog", "-data", "workspace", "-vmargs",
         "-Dosgi.requiredJavaVersion=1.6");
 
     INIRewriter.insertBefore(list, "-vmargs", "-vm");
@@ -43,6 +39,17 @@ public class INIRewriteTest extends TestCase {
         "-consoleLog", "-data", "workspace", "-vm", "/usr/local/buildtools/java/jdk-64/bin/java",
         "-vmargs", "-Dosgi.requiredJavaVersion=1.6"}, list.toArray());
 
+  }
+
+  public void testMergeAgentFlag() throws Exception {
+    String[] orig = {
+        "-consoleLog", "-data", "workspace", "-vmargs", "-Dosgi.requiredJavaVersion=1.6",
+        "-XX:-GoogleAgent"};
+    String[] latest = {
+        "-consoleLog", "-data", "workspace", "-vmargs", "-Dosgi.requiredJavaVersion=1.6"};
+    String[] merged = INIRewriter.merge(orig, latest);
+
+    assertArrayEquals(orig, merged);
   }
 
   public void testMergeIdentity() throws Exception {

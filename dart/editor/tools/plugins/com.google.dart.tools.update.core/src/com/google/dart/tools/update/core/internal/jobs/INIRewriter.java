@@ -31,8 +31,14 @@ public class INIRewriter {
 
   private static final String VM_FLAG = "-vm";
 
+  private static final String AGENT_FLAG = "-XX:-GoogleAgent";
+
   private static final String VM_ARGS_FLAG = "-vmargs";
   private static String[] EMPTY = new String[0];
+
+  public static void insert(List<String> list, String value) {
+    list.add(value);
+  }
 
   public static void insertAfter(List<String> list, String key, String value) {
     int index = list.indexOf(key);
@@ -51,6 +57,10 @@ public class INIRewriter {
     if (orig.contains(VM_FLAG) && !latest.contains(VM_FLAG)) {
       insertBefore(merged, VM_ARGS_FLAG, VM_FLAG);
       insertAfter(merged, VM_FLAG, orig.get(orig.indexOf(VM_FLAG) + 1));
+    }
+
+    if (orig.contains(AGENT_FLAG) && !latest.contains(AGENT_FLAG)) {
+      insert(merged, AGENT_FLAG);
     }
 
     return merged;
