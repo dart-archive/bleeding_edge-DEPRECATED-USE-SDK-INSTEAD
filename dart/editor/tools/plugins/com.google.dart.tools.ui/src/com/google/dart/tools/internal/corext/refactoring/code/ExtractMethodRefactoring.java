@@ -139,10 +139,10 @@ public class ExtractMethodRefactoring extends Refactoring {
   }
 
   private final CompilationUnit unit;
-  private final int selectionStart;
-  private final int selectionLength;
+  private int selectionStart;
+  private int selectionLength;
+  private SourceRange selectionRange;
 
-  private final SourceRange selectionRange;
   private final CompilationUnitChange change;
   private ExtractUtils utils;
   private DartUnit unitNode;
@@ -485,9 +485,7 @@ public class ExtractMethodRefactoring extends Refactoring {
    * {@link DartStatement}s which can be extracted, and location in AST allows extracting.
    */
   private RefactoringStatus checkSelection(IProgressMonitor pm) throws CoreException {
-    Selection selection = Selection.createFromStartLength(
-        selectionRange.getOffset(),
-        selectionRange.getLength());
+    Selection selection = Selection.createFromStartLength(selectionStart, selectionLength);
     selectionAnalyzer = new ExtractMethodAnalyzer(unit, selection);
     unitNode.accept(selectionAnalyzer);
     // may be fatal error
@@ -497,6 +495,9 @@ public class ExtractMethodRefactoring extends Refactoring {
         return status;
       }
     }
+    // update selection
+    selectionLength = selectionAnalyzer.getSelectionExclusiveEnd() - selectionStart;
+    selectionRange = SourceRangeFactory.forStartLength(selectionStart, selectionLength);
     // check selected nodes
     DartNode[] selectedNodes = selectionAnalyzer.getSelectedNodes();
     if (selectedNodes.length > 0) {

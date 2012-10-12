@@ -876,6 +876,26 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
     }
   }
 
+  public void test_bad_switchCase() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  switch (1) { ",
+        "// start",
+        "    case 0: break;",
+        "// end",
+        "  }",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    assertTrue(refactoringStatus.hasFatalError());
+    {
+      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+      assertEquals(RefactoringCoreMessages.StatementAnalyzer_switch_statement, msg);
+    }
+  }
+
   public void test_bad_tokensBetweenLastNodeAndSelectionEnd() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1443,6 +1463,28 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  int b2 = 2;",
         "  int b = res(b1, b2);",
         "}",
+        "");
+  }
+
+  /**
+   * We should be smart enough and ignore trailing semicolon.
+   */
+  public void test_singleExpression_withSemicolon() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = 1 + 2;",
+        "}",
+        "");
+    selectionStart = findOffset("1");
+    selectionEnd = findOffset("2;") + "2;".length();
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = res();",
+        "}",
+        "int res() => 1 + 2;",
         "");
   }
 

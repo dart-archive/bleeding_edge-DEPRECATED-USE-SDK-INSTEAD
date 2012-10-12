@@ -30,6 +30,7 @@ import java.util.List;
  * @coverage dart.editor.ui.refactoring.core
  */
 public class TokenUtils {
+
   /**
    * @return the first {@link KeywordToken} with given {@link Keyword}, may be <code>null</code> if
    *         not found.
@@ -79,5 +80,13 @@ public class TokenUtils {
       }
     });
     return tokens;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link Token}s contain only single {@link Token} with given
+   *         {@link TokenType}.
+   */
+  public static boolean hasOnly(List<Token> tokens, TokenType type) {
+    return tokens.size() == 1 && tokens.get(0).getType() == type;
   }
 }

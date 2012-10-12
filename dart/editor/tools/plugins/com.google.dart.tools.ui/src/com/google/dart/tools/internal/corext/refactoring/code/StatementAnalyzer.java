@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.code;
 
+import com.google.common.collect.ImmutableList;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
@@ -24,6 +25,7 @@ import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -66,6 +68,7 @@ public class StatementAnalyzer extends SelectionAnalyzer {
 
   protected CompilationUnit fCUnit;
   private RefactoringStatus fStatus;
+  private int selectionEnd;
 
   public StatementAnalyzer(CompilationUnit cunit, Selection selection, boolean traverseSelectedNode)
       throws CoreException {
@@ -73,6 +76,14 @@ public class StatementAnalyzer extends SelectionAnalyzer {
     Assert.isNotNull(cunit);
     fCUnit = cunit;
     fStatus = new RefactoringStatus();
+    selectionEnd = selection.getExclusiveEnd();
+  }
+
+  /**
+   * @return the (may be) updated selection exclusive end.
+   */
+  public int getSelectionExclusiveEnd() {
+    return selectionEnd;
   }
 
   public RefactoringStatus getStatus() {
@@ -112,8 +123,8 @@ public class StatementAnalyzer extends SelectionAnalyzer {
     super.visitSwitchStatement(node);
     DartNode[] selectedNodes = getSelectedNodes();
     List<DartSwitchMember> switchMembers = node.getMembers();
-    for (DartNode topNode : selectedNodes) {
-      if (switchMembers.contains(topNode)) {
+    for (DartNode selectedNode : selectedNodes) {
+      if (switchMembers.contains(selectedNode)) {
         invalidSelection(RefactoringCoreMessages.StatementAnalyzer_switch_statement);
         break;
       }
@@ -193,10 +204,18 @@ public class StatementAnalyzer extends SelectionAnalyzer {
     }
     // some tokens after last selected node
     {
-      int selectionEnd = getSelection().getExclusiveEnd();
       DartNode lastNode = nodes[nodes.length - 1];
       int lastNodeEnd = lastNode.getSourceInfo().getEnd();
       if (hasTokens(lastNodeEnd, selectionEnd)) {
+        // may be only ";" selected at the end, ignore it
+        {
+          List<Token> tokens = getTokens(lastNodeEnd, selectionEnd);
+          if (TokenUtils.hasOnly(tokens, TokenType.SEMICOLON)) {
+            selectionEnd = lastNodeEnd + tokens.get(0).getOffset();
+            return;
+          }
+        }
+        // report problem
         SourceRange range = SourceRangeFactory.forStartEnd(lastNodeEnd, selectionEnd);
         invalidSelection(
             RefactoringCoreMessages.StatementAnalyzer_end_of_selection,
@@ -213,6 +232,19 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   protected final void invalidSelection(String message, RefactoringStatusContext context) {
     fStatus.addFatalError(message, context);
     reset();
+  }
+
+  /**
+   * @return <code>true</code> if there are tokens in the given source range.
+   */
+  private List<Token> getTokens(final int start, final int end) {
+    return ExecutionUtils.runObjectIgnore(new RunnableObjectEx<List<Token>>() {
+      @Override
+      public List<Token> runObject() throws Exception {
+        String text = fCUnit.getBuffer().getText(start, end - start);
+        return TokenUtils.getTokens(text);
+      }
+    }, ImmutableList.<Token> of());
   }
 
   /**
