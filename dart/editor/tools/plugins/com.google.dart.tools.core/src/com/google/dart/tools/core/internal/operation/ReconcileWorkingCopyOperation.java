@@ -156,16 +156,20 @@ public class ReconcileWorkingCopyOperation extends DartModelOperation {
           DartCore.logInformation("Could not reconcile \""
               + source.getCorrespondingResource().getLocation() + "\"", exception);
         }
-        // keep only errors from current unit
+        // filter out some problems
         IResource unitResource = workingCopy.getResource();
         for (Iterator<DartCompilationError> I = parseErrors.iterator(); I.hasNext();) {
           DartCompilationError error = I.next();
+          // TODO(scheglov) hack to skip for now, remove later
           if (isAnalysisAsYouTypeNotAssignableProblem(error)) {
             I.remove();
+            continue;
           }
+          // keep only errors from current unit
           IResource errorResource = ResourceUtil.getResource(error.getSource());
           if (!Objects.equal(errorResource, unitResource)) {
             I.remove();
+            continue;
           }
         }
         // convert DartCompilationError-s to Problem-s
