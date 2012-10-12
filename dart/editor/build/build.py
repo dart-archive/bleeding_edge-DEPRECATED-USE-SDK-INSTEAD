@@ -9,7 +9,6 @@ import optparse
 import os
 import re
 import shutil
-import string
 import subprocess
 import sys
 import tempfile
@@ -17,7 +16,7 @@ import gsutil
 import ziputils
 import hashlib
 
-from os.path import join, basename
+from os.path import join
 
 BUILD_OS = None
 DART_PATH = None
@@ -91,7 +90,6 @@ class AntWrapper(object):
     print 'cwd = {0}'.format(os.getcwd())
     print 'ant path = {0}'.format(self._antpath)
     # run the ant file given
-    local_env = os.environ
     args = []
     if not is_windows:
       args.append(os_shell)
@@ -340,7 +338,7 @@ def main():
       CreateApiDocs(buildout)
 
     if builder_name == 'dart-editor':
-      BuildUpdateSite(gsu, ant, revision, options.name, buildroot, buildout,
+      BuildUpdateSite(ant, revision, options.name, buildroot, buildout,
               editorpath, buildos)
       return 0
 
@@ -395,15 +393,6 @@ def main():
           #if there is a build.runtime and the status is not
           #zero see if there are any *.log entries
           PrintErrorLog(properties['build.runtime'])
-
-        #
-        # Uncomment this section to prevent tests from failing the build
-        #        
-        # PrintSeparator('JUnit test failures')
-        # print('https://gsdview.appspot.com/dart-editor-archive-continuous/%s/tests/%s/index.html'
-        #       % (revision, buildos))
-        # 
-        # junit_status = 0;
     else:
       junit_status = 0
 
@@ -411,7 +400,7 @@ def main():
       _InstallArtifacts(buildout, buildos, extra_artifacts)
       
       # dart-editor-linux.gtk.x86.zip --> darteditor-linux-32.zip
-      RenameRcpZipFiles(buildout);
+      RenameRcpZipFiles(buildout)
       
       PostProcessEditorBuilds(buildout)
       
@@ -557,7 +546,7 @@ def _FindVersionFile(out_dir):
   out_dir = os.path.normpath(os.path.normcase(out_dir))
   print '_FindVersionFile({0})'.format(out_dir)
 
-  version_file = os.path.join(out_dir, 'VERSION');
+  version_file = os.path.join(out_dir, 'VERSION')
   return version_file if os.path.exists(version_file) else None
 
 def InstallSdk(buildroot, buildout, buildos, sdk_dir):
@@ -581,9 +570,11 @@ def InstallSdk(buildroot, buildout, buildos, sdk_dir):
   if not os.path.exists(unzip_dir_64):
     os.makedirs(unzip_dir_64)
   
-  sdk_zip = ziputils.ZipUtil(join(sdk_dir, "dartsdk-%s-32.zip" % buildos), buildos)
+  sdk_zip = ziputils.ZipUtil(join(sdk_dir, "dartsdk-%s-32.zip" % buildos),
+                             buildos)
   sdk_zip.UnZip(unzip_dir_32)
-  sdk_zip = ziputils.ZipUtil(join(sdk_dir, "dartsdk-%s-64.zip" % buildos), buildos)
+  sdk_zip = ziputils.ZipUtil(join(sdk_dir, "dartsdk-%s-64.zip" % buildos),
+                             buildos)
   sdk_zip.UnZip(unzip_dir_64)
   
   files = _FindRcpZipFiles(buildout)
@@ -637,7 +628,7 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
 
   
   for rcpZipFile in rcpZipFiles:
-    searchString = None;
+    searchString = None
     
     # dart-editor-linux.gtk.x86.zip
     # dart-editor-linux.gtk.x86_64.zip
@@ -647,13 +638,13 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
     # dart-editor-win32.win32.x86_64.zip
 
     if '-linux.gtk.x86.zip' in rcpZipFile:
-      searchString = 'dartium-lucid32-full-';
+      searchString = 'dartium-lucid32-full-'
     if '-linux.gtk.x86_64.zip' in rcpZipFile:
-      searchString = 'dartium-lucid64-full-';
+      searchString = 'dartium-lucid64-full-'
     if 'macosx' in rcpZipFile:
-      searchString = 'dartium-mac-full-';
+      searchString = 'dartium-mac-full-'
     if 'win32' in rcpZipFile:
-      searchString = 'dartium-win-full-';
+      searchString = 'dartium-win-full-'
     
     for dartiumFile in dartiumFiles:
       if searchString in dartiumFile:
@@ -666,7 +657,7 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
         if not os.path.exists(tmp_zip_file):
           gsu.Copy(dartiumFile, tmp_zip_file, False)
           
-          # Dartium is unzipped into something like unzip_dir/dartium-win-inc-7665.7665
+          # Dartium is unzipped into ~ unzip_dir/dartium-win-inc-7665.7665
           dartium_zip = ziputils.ZipUtil(tmp_zip_file, buildos)
           dartium_zip.UnZip(unzip_dir)
         else:
@@ -704,7 +695,7 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
 # to:
 #   gs://dartium-archive/dartium-lucid32-full/dartium-lucid32-full-9420.9420.zip  
 def RemapDartiumUrl(url):
-  name = basename(url)
+  name = os.path.basename(url)
 
   reResult = re.search('(\S*-\S*-full)-.*', name)
 
@@ -725,7 +716,8 @@ def _InstallArtifacts(buildout, buildos, extra_artifacts):
     buildos: the OS the build is running under
     extra_artifacts: the directory containing the extra artifacts
   """
-  print '_InstallArtifacts({%s}, {%s}, {%s})' % (buildout, buildos, extra_artifacts)
+  print '_InstallArtifacts({%s}, {%s}, {%s})' % (buildout, buildos,
+                                                 extra_artifacts)
   files = _FindRcpZipFiles(buildout)
   for f in files:
     dart_zip_path = os.path.join(buildout, f)
@@ -734,7 +726,7 @@ def _InstallArtifacts(buildout, buildos, extra_artifacts):
 
 
 def RenameRcpZipFiles(out_dir):
-  """Rename the RCP output files to be more consistent with the Dart SDK names"""
+  """Rename the RCP files to be more consistent with the Dart SDK names"""
   renameMap = {
     "dart-editor-linux.gtk.x86.zip"       : "darteditor-linux-32.zip",
     "dart-editor-linux.gtk.x86_64.zip"    : "darteditor-linux-64.zip",
@@ -776,11 +768,11 @@ def CalculateChecksum(filename):
 
   md5 = hashlib.md5()
   
-  with open(filename, 'rb') as file:
-    data = file.read(65536)
+  with open(filename, 'rb') as f:
+    data = f.read(65536)
     while len(data) > 0:
       md5.update(data)
-      data = file.read(65536)
+      data = f.read(65536)
       
   return md5.hexdigest()
 
@@ -791,8 +783,8 @@ def CreateChecksumFile(filename):
   checksum = CalculateChecksum(filename)
   checksum_filename = '%s.md5sum' % filename
   
-  with open(checksum_filename, 'w') as file:
-    file.write('%s *%s' % (checksum, os.path.basename(filename)))
+  with open(checksum_filename, 'w') as f:
+    f.write('%s *%s' % (checksum, os.path.basename(filename)))
     
   return checksum_filename
 
@@ -809,28 +801,28 @@ def ReplaceInFiles(paths, subs):
     dest.close()
 
 
-def ExecuteCommand(cmd, dir=None):
+def ExecuteCommand(cmd, directory=None):
   """Execute the given command."""
-  if dir is not None:
+  if directory is not None:
     cwd = os.getcwd()
-    os.chdir(dir)
+    os.chdir(directory)
   status = subprocess.call(cmd, env=os.environ)
-  if dir is not None:
+  if directory is not None:
     os.chdir(cwd)
   return status
 
 
-def BuildUpdateSite(gsu, ant, revision, name, buildroot, buildout,
+def BuildUpdateSite(ant, revision, name, buildroot, buildout,
               editorpath, buildos):
   ant.RunAnt('../com.google.dart.eclipse.feature_releng',
              'build.xml', revision, name, buildroot, buildout,
               editorpath, buildos, ['-Dbuild.dir=%s' % buildout])
   #TODO(pquitslund): migrate to a bucket copy (rather than serial uploads)
-  UploadSite(gsu, buildout, "%s/%s" % (GSU_PATH_REV, 'eclipse-update'))
-  UploadSite(gsu, buildout, "%s/%s" % (GSU_PATH_LATEST, 'eclipse-update'))
+  UploadSite(buildout, "%s/%s" % (GSU_PATH_REV, 'eclipse-update'))
+  UploadSite(buildout, "%s/%s" % (GSU_PATH_LATEST, 'eclipse-update'))
   
   
-def UploadSite(gsu, buildout, gsPath) :
+def UploadSite(buildout, gsPath) :
   # remove any old artifacts
   Gsutil(['rm', '-R', join(gsPath, '*')])
   # create eclipse-update/index.html first to ensure eclipse-update prefix
@@ -884,7 +876,8 @@ def CreateLinuxSDK(sdkpath):
   CallBuildScript('release', 'x64', 'runtime')
   shutil.rmtree(sdkdir64, True)
   shutil.copytree(sdkdir32, sdkdir64)
-  shutil.copy(join(DART_PATH, utils.GetBuildRoot('linux', 'release', 'x64'), 'dart'),
+  shutil.copy(join(DART_PATH, utils.GetBuildRoot('linux', 'release', 'x64'),
+                   'dart'),
               join(sdkdir64, 'bin'))
   
   sdk32_zip = join(sdkpath, 'dartsdk-linux-32.zip')
@@ -928,7 +921,7 @@ def CreateMacosSDK(sdkpath):
   UploadFile(sdk32_tgz)
   UploadFile(sdk64_tgz)
 
-  return sdk32_zip;
+  return sdk32_zip
 
 
 def CreateWin32SDK(sdkpath):
@@ -938,61 +931,66 @@ def CreateWin32SDK(sdkpath):
   sdk32_zip = join(sdkpath, 'dartsdk-win32-32.zip')
   sdk64_zip = join(sdkpath, 'dartsdk-win32-64.zip')
 
-  CreateZipWindows(join(DART_PATH, utils.GetBuildRoot('win32', 'release', 'ia32'),
+  CreateZipWindows(join(DART_PATH,
+                        utils.GetBuildRoot('win32', 'release', 'ia32'),
                         'dart-sdk'), sdk32_zip)
-  CreateZipWindows(join(DART_PATH, utils.GetBuildRoot('win32', 'release', 'x64'),
+  CreateZipWindows(join(DART_PATH,
+                        utils.GetBuildRoot('win32', 'release', 'x64'),
                         'dart-sdk'), sdk64_zip)
 
   UploadFile(sdk32_zip)
   UploadFile(sdk64_zip)
 
-  return sdk32_zip;
+  return sdk32_zip
 
 
 def CallBuildScript(mode, arch, target):
   """ invoke tools/build.py """
   buildScript = join(TOOLS_PATH, 'build.py')
-  cmd = [sys.executable, buildScript, '--mode=%s' % mode, '--arch=%s' % arch, target]
+  cmd = [sys.executable, buildScript, '--mode=%s' % mode, '--arch=%s' % arch,
+         target]
   status = ExecuteCommand(cmd, DART_PATH)
   if status:
     PrintError('SDK build failed: %s' % status)
     raise Exception('SDK build failed')
 
 
-def CreateZip(directory, file):
+def CreateZip(directory, targetFile):
   """zip the given directory into the file"""
-  EnsureDirectoryExists(file)
-  ExecuteCommand(['zip', '-yrq', file, os.path.basename(directory)],
+  EnsureDirectoryExists(targetFile)
+  ExecuteCommand(['zip', '-yrq', targetFile, os.path.basename(directory)],
                  os.path.dirname(directory))
 
 
-def CreateZipWindows(directory, file):
+def CreateZipWindows(directory, targetFile):
   """zip the given directory into the file - win32 specific"""
-  EnsureDirectoryExists(file)
+  EnsureDirectoryExists(targetFile)
   ExecuteCommand([join(DART_PATH, 'third_party', '7zip', '7za'), 'a', '-tzip',
-                  file, os.path.basename(directory)], os.path.dirname(directory))
+                  targetFile,
+                  os.path.basename(directory)],
+                  os.path.dirname(directory))
   
   
-def CreateTgz(directory, file):
+def CreateTgz(directory, targetFile):
   """tar gzip the given directory into the file"""
-  EnsureDirectoryExists(file)
-  ExecuteCommand(['tar', 'czf', file, os.path.basename(directory)],
+  EnsureDirectoryExists(targetFile)
+  ExecuteCommand(['tar', 'czf', targetFile, os.path.basename(directory)],
                  os.path.dirname(directory))
 
 
-def UploadFile(file, createChecksum=True):
+def UploadFile(targetFile, createChecksum=True):
   """Upload the given file to google storage."""
   
-  filePathRev = "%s/%s" % (GSU_PATH_REV, os.path.basename(file))
-  filePathLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(file))
+  filePathRev = "%s/%s" % (GSU_PATH_REV, os.path.basename(targetFile))
+  filePathLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(targetFile))
   
   if (createChecksum):
-    checksum = CreateChecksumFile(file)
+    checksum = CreateChecksumFile(targetFile)
     
     checksumRev = "%s/%s" % (GSU_PATH_REV, os.path.basename(checksum))
     checksumLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(checksum))
   
-  Gsutil(['cp', '-a', 'public-read', r'file://' + file, filePathRev])
+  Gsutil(['cp', '-a', 'public-read', r'file://' + targetFile, filePathRev])
   if (createChecksum):
     Gsutil(['cp', '-a', 'public-read', r'file://' + checksum, checksumRev])
     
@@ -1026,7 +1024,8 @@ def UploadApiDocs(dirName):
       f.write(REVISION)
 
     # overwrite dartlang-api-docs/latest.txt to contain REVISION
-    Gsutil(['cp', '-a', 'public-read', localLatestRevFilename, destLatestRevFile])
+    Gsutil(['cp', '-a', 'public-read', localLatestRevFilename,
+            destLatestRevFile])
 
 
 def Gsutil(cmd):
@@ -1063,13 +1062,13 @@ def PrintError(text):
   sys.stderr.flush()
 
 
-def FileDelete(file):
+def FileDelete(f):
   """delete the given file - do not re-throw any exceptions that occur"""
-  if os.path.exists(file):
+  if os.path.exists(f):
     try:
-      os.remove(file)
+      os.remove(f)
     except:
-      print 'error deleting %s' % file
+      print 'error deleting %s' % f
 
 
 if __name__ == '__main__':

@@ -4,7 +4,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Dart Editor Google Storage Utilities.
+# Dart Editor promote and google storage cleanup tools.
 
 import gsutil
 import optparse
@@ -19,7 +19,7 @@ TESTING = 'gs://dart-editor-archive-testing'
 INTEGRATION = 'gs://dart-editor-archive-integration'
 RELEASE = 'gs://dart-editor-archive-release'
 
-DART_PATH = os.path.join('..', '..', '..', 'dart');
+DART_PATH = os.path.join('..', '..', '..', 'dart')
 
 def _BuildOptions():
   """Setup the argument processing for this program.
@@ -39,20 +39,14 @@ def _BuildOptions():
     search your path for gsutil
 
     Examples:
-      cleanup Google Storage saving the last 1000 (default value) revision
-        python gsTool.py cleanup
-
       cleanup saving the last 150 revisions
         python gsTool.py cleanup --keepcount=150
 
       promote revision 567 from continuous to integration
-        python gsTool.py promote --revision=567 --continuous
+        python gsTool.py promote --continuous --revision=567
 
       promote revision 567 from integration to release
-        python gsTool.py promote --revision=567 --integration
-
-      promote revision 11480 from continuous to testing
-        python gsTool.py promote --revision 11480 --continuous --testing"""
+        python gsTool.py promote --integration --revision=567"""
 
 
   result = optparse.OptionParser(usage=usage)
@@ -235,54 +229,46 @@ def _PromoteBuild(revision, from_bucket, to_bucket):
     to_bucket: the bucket to promote to
   """
   
-  src = '{0}/{1}/*'.format(from_bucket, revision);
-  integ_rev = '{0}/{1}/'.format(to_bucket, revision);
-  integ_latest = '{0}/{1}/'.format(to_bucket, 'latest');
+  src = '{0}/{1}/*'.format(from_bucket, revision)
+  integ_rev = '{0}/{1}/'.format(to_bucket, revision)
+  integ_latest = '{0}/{1}/'.format(to_bucket, 'latest')
 
   # copy from continuous/REVISION to integration/REVISION
-  print 'copying: {0} -> {1}'.format(src, integ_rev);
-  _Gsutil(['cp', '-R', '-a', 'public-read', src, integ_rev]);
-  _Gsutil(['rm', '-R', '{0}tests'.format(integ_rev)]);
+  print 'copying: {0} -> {1}'.format(src, integ_rev)
+  _Gsutil(['cp', '-R', '-a', 'public-read', src, integ_rev])
+  _Gsutil(['rm', '-R', '{0}tests'.format(integ_rev)])
 
   # copy from continuous/REVISION to integration/latest
-  print 'copying: {0} -> {1}'.format(src, integ_latest);
-  _Gsutil(['cp', '-R', '-a', 'public-read', src, integ_latest]);
-  _Gsutil(['rm', '-R', '{0}tests'.format(integ_latest)]);
+  print 'copying: {0} -> {1}'.format(src, integ_latest)
+  _Gsutil(['cp', '-R', '-a', 'public-read', src, integ_latest])
+  _Gsutil(['rm', '-R', '{0}tests'.format(integ_latest)])
 
 
 def _PrintSeparator(text):
-  """Print a separator for the build steps."""
-  #used to print separators during the build process
-  tag_line_seperator = '================================'
-  tag_line_text = '= {0}'
-
-  print tag_line_seperator
-  print tag_line_text.format(text)
+  print '================================'
+  print '== %s' % text
 
 
 def _PrintFailure(text):
-  """Print a failure message."""
-  error_line_seperator = '*****************************'
-  error_line_text = '{0}'
+  print '*****************************'
+  print '** %s' % text
+  print '*****************************'
 
-  print error_line_seperator
-  print error_line_seperator
-  print error_line_text.format(text)
-  print error_line_seperator
-  print error_line_seperator
 
 def _Gsutil(cmd):
   gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
   return _ExecuteCommand([sys.executable, gsutilTool] + cmd)
 
-def _ExecuteCommand(cmd, dir=None):
+
+def _ExecuteCommand(cmd, directory=None):
   """Execute the given command."""
-  if dir is not None:
+  if directory is not None:
     cwd = os.getcwd()
-    os.chdir(dir)
-  status = subprocess.call(cmd, env=os.environ)
-  if dir is not None:
+    os.chdir(directory)
+  subprocess.call(cmd, env=os.environ)
+  if directory is not None:
     os.chdir(cwd)
+
 
 if __name__ == '__main__':
   sys.exit(main())
