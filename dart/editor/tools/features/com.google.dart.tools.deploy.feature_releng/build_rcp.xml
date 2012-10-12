@@ -101,21 +101,23 @@ build system.  The PDE build system has to run under Eclipse.
             </condition>
         </fail>
         
-    	  <!-- parse the tools/VERSION file into an ant property -->
-    	  <!-- the format is "MAJOR x\nMINOR x\nBUILD x\nPATCH n" -->
-    	  <loadproperties srcFile="${build.source}/../tools/VERSION">
-    	      <filterchain>
-    	          <replaceregex pattern=" " replace="="/>
-    	      </filterchain>
-    	  </loadproperties>
-    	  <property name="dart.version" value="${MAJOR}.${MINOR}.${BUILD}" />
-
+        <!-- parse the tools/VERSION file into an ant property -->
+        <!-- the format is "MAJOR x\nMINOR x\nBUILD x\nPATCH n" -->
+        <loadproperties srcFile="${build.source}/../tools/VERSION">
+            <filterchain>
+                <replaceregex pattern=" " replace="="/>
+            </filterchain>
+        </loadproperties>
+        <property name="dart.version" value="${MAJOR}.${MINOR}.${BUILD}" />
+        
         <condition property="build.revision" value="${env.BUILDBOT_GOT_REVISION}">
             <isset property="env.BUILDBOT_GOT_REVISION" />
         </condition>
         <property name="build.revision" value="unknown" />
-    	  <property name="dart.version_revision" value="${dart.version}_${build.revision}" />
-    	
+        <property name="dart.version_revision" value="${dart.version}_${build.revision}" />
+        <!-- TODO(devoncarew): we should pull this info from tools/version.dart -->
+        <property name="dart.version.full" value="${MAJOR}.${MINOR}.${BUILD}.${PATCH}_r${build.revision}" />
+
         <dirname file="${build.source}" property="build.source.root"/>
 
         <property name="build.thirdparty" location="${build.source.root}/third_party" />
@@ -466,15 +468,14 @@ build system.  The PDE build system has to run under Eclipse.
         <!--
           {
             "revision" : "9826",
-            "version"  : "0.0.1_v2012070961811",
+            "version"  : "0.1.2.0_r13602",
             "date"     : "2012-07-09"
           }
         -->
         <echo message="creating build VERSION file"/>
-        <!-- TODO(pquitslund): add version string info -->
         <echo file="${build.out}/VERSION">{ 
   "revision": "${build.revision}",
-  "version" : "",
+  "version" : "${dart.version.full}",
   "date"    : "${build.date}"
 }</echo>
     </target>
