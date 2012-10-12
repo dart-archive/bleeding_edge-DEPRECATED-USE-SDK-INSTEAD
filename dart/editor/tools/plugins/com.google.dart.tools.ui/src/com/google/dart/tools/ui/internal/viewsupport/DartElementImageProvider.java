@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.viewsupport;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
@@ -368,7 +367,7 @@ public class DartElementImageProvider {
     } else if (element instanceof FileStoreEditorInput) {
       ImageDescriptor imageDescriptor = DartPluginImages.DESC_DART_COMP_UNIT;
       File file = new File(((FileStoreEditorInput) element).getURI());
-        imageDescriptor = DartPluginImages.DESC_DART_COMP_UNIT;
+      imageDescriptor = DartPluginImages.DESC_DART_COMP_UNIT;
       if (!file.canWrite()) {
         return decorateReadOnly(imageDescriptor);
       }
