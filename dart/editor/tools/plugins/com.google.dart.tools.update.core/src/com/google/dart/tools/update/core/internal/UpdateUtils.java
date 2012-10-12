@@ -16,6 +16,9 @@ package com.google.dart.tools.update.core.internal;
 import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateCore;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.compress.utils.IOUtils;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileInfo;
 import org.eclipse.core.filesystem.IFileStore;
@@ -27,8 +30,6 @@ import org.eclipse.swt.internal.Library;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -44,13 +45,11 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 /**
  * Update utilities.
@@ -85,6 +84,8 @@ public class UpdateUtils {
 
   private static final Arch ARCH = getArch();
   private static final OS OS = getOS();
+
+  private static int EXEC_MASK = 0111;
 
   /**
    * Copy the contents of one directory to another directory recursively.
@@ -142,6 +143,9 @@ public class UpdateUtils {
     out.close();
 
     toFile.setLastModified(fromFile.lastModified());
+    if (fromFile.canExecute()) {
+      toFile.setExecutable(true);
+    }
 
     monitor.worked(1);
 
@@ -347,9 +351,9 @@ public class UpdateUtils {
    * @return <code>true</code> if it's valid, <code>false</code> otherwise.
    */
   public static boolean isZipValid(final File zip) {
-    ZipFile zipfile = null;
+    java.util.zip.ZipFile zipfile = null;
     try {
-      zipfile = new ZipFile(zip);
+      zipfile = new java.util.zip.ZipFile(zip);
       return true;
     } catch (ZipException e) {
       return false;
@@ -427,44 +431,51 @@ public class UpdateUtils {
   public static void unzip(File zipFile, File destination, String taskName, IProgressMonitor monitor)
       throws IOException {
 
-    monitor.beginTask(taskName, (int) zipFile.length());
+    ZipFile zip = new ZipFile(zipFile);
 
-    final int BUFFER_SIZE = 4096;
+    //TODO (pquitslund): add real progress units
+    if (monitor != null) {
+      monitor.beginTask(taskName, 1);
+    }
 
-    ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(zipFile)));
-    ZipEntry entry;
-
-    while ((entry = zis.getNextEntry()) != null) {
-      int count;
-      byte data[] = new byte[BUFFER_SIZE];
-
-      File outFile = new File(destination, entry.getName());
-
+    Enumeration<ZipArchiveEntry> e = zip.getEntries();
+    while (e.hasMoreElements()) {
+      ZipArchiveEntry entry = e.nextElement();
+      File file = new File(destination, entry.getName());
       if (entry.isDirectory()) {
-        if (!outFile.exists()) {
-          outFile.mkdirs();
-        }
+        file.mkdirs();
       } else {
-        if (!outFile.getParentFile().exists()) {
-          outFile.getParentFile().mkdirs();
+        InputStream is = zip.getInputStream(entry);
+
+        File parent = file.getParentFile();
+        if (parent != null && parent.exists() == false) {
+          parent.mkdirs();
         }
 
-        OutputStream out = new BufferedOutputStream(new FileOutputStream(outFile));
+        FileOutputStream os = new FileOutputStream(file);
+        try {
+          IOUtils.copy(is, os);
+        } finally {
+          os.close();
+          is.close();
+        }
+        file.setLastModified(entry.getTime());
 
-        while ((count = zis.read(data, 0, BUFFER_SIZE)) != -1) {
-          out.write(data, 0, count);
+        int mode = entry.getUnixMode();
 
-          monitor.worked(count);
+        if ((mode & EXEC_MASK) != 0) {
+          file.setExecutable(true);
         }
 
-        out.flush();
-        out.close();
       }
     }
 
-    zis.close();
+    //TODO (pquitslund): fix progress units
+    if (monitor != null) {
+      monitor.worked(1);
+      monitor.done();
+    }
 
-    monitor.done();
   }
 
   private static void copyStream(InputStream in, FileOutputStream out, IProgressMonitor monitor,
