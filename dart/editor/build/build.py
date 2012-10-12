@@ -21,11 +21,15 @@ from os.path import join
 BUILD_OS = None
 DART_PATH = None
 TOOLS_PATH = None
+
 GSU_PATH_REV = None
+GSU_PATH_LATEST = None
 GSU_API_DOCS_PATH = None
 GSU_API_DOCS_BUCKET = 'gs://dartlang-api-docs'
-GSU_PATH_LATEST = None
+
 REVISION = None
+TRUNK_BUILD = None
+PLUGINS_BUILD = None
 
 utils = None
 
@@ -192,6 +196,8 @@ def main():
   global GSU_API_DOCS_PATH
   global GSU_PATH_LATEST
   global REVISION
+  global TRUNK_BUILD
+  global PLUGINS_BUILD
   global utils
   
   if not sys.argv:
@@ -305,10 +311,20 @@ def main():
       PrintError('Could not find username')
       return 6
     
+    # dart-editor[-trunk], dart-editor-(win/mac/linux)[-trunk]
+    builder_name = str(options.name)
+
+    TRUNK_BUILD = builder_name.endswith("-trunk")
+    PLUGINS_BUILD = (builder_name == 'dart-editor' or
+                     builder_name == 'dart-editor-trunk')
+
     build_skip_tests = os.environ.get('DART_SKIP_RUNNING_TESTS')
     sdk_environment = os.environ
     if username.startswith('chrome'):
-      to_bucket = 'gs://dart-editor-archive-continuous'
+      if TRUNK_BUILD:
+        to_bucket = 'gs://dart-editor-archive-trunk'
+      else:
+        to_bucket = 'gs://dart-editor-archive-continuous'  
       running_on_buildbot = True
     else:
       to_bucket = 'gs://dart-editor-archive-testing'
@@ -326,18 +342,17 @@ def main():
     print '@@@BUILD_STEP dart-ide dart clients: %s@@@' % options.name
     if sdk_environment.has_key('JAVA_HOME'):
       print 'JAVA_HOME = {0}'.format(str(sdk_environment['JAVA_HOME']))
-    builder_name = str(options.name)
 
-    if (builder_name != 'dart-editor'):
+    if not PLUGINS_BUILD:
       PrintSeparator('running the build of the Dart SDK')
       
       EnsureDirectoryExists(buildout)
       sdk_zip = CreateSDK(buildout)
 
-    if (BUILD_OS == 'linux' and builder_name != 'dart-editor'):
+    if builder_name.startswith('dart-editor-linux'):
       CreateApiDocs(buildout)
 
-    if builder_name == 'dart-editor':
+    if PLUGINS_BUILD:
       BuildUpdateSite(ant, revision, options.name, buildroot, buildout,
               editorpath, buildos)
       return 0
@@ -371,7 +386,7 @@ def main():
     #This is an override for local testing
     force_run_install = os.environ.get('FORCE_RUN_INSTALL')
 
-    if (force_run_install or (builder_name != 'dart-editor')):
+    if force_run_install or (not PLUGINS_BUILD):
       InstallSdk(buildroot, buildout, buildos, buildout)
       InstallDartium(buildroot, buildout, buildos, gsu)
 

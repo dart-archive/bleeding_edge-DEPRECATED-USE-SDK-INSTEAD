@@ -15,6 +15,7 @@ import sys
 from os.path import join
 
 CONTINUOUS = 'gs://dart-editor-archive-continuous'
+TRUNK = 'gs://dart-editor-archive-trunk'
 TESTING = 'gs://dart-editor-archive-testing'
 INTEGRATION = 'gs://dart-editor-archive-integration'
 RELEASE = 'gs://dart-editor-archive-release'
@@ -54,6 +55,7 @@ def _BuildOptions():
   result.set_default('keepcount', 1000)
   result.set_default('dryrun', False)
   result.set_default('continuous', False)
+  result.set_default('trunk', False)
   result.set_default('integration', False)
   result.set_default('testing', False)
   group = optparse.OptionGroup(result, 'Cleanup',
@@ -71,6 +73,9 @@ def _BuildOptions():
                    action='store')
   group.add_option('--continuous',
                    help='Promote from continuous',
+                   action='store_true')
+  group.add_option('--trunk',
+                   help='Promote from trunk',
                    action='store_true')
   group.add_option('--integration',
                    help='Promote from integration',
@@ -112,8 +117,9 @@ def main():
       print 'You must specify a --revision to specify which revision to promote'
       parser.print_help()
       sys.exit(3)
-    if not (options.continuous or options.integration or options.testing):
-      print 'You must specify one of --continuous or --integration or --testing'
+    if not (options.continuous or options.integration or 
+            options.testing or options.trunk):
+      print 'You must specify --continuous, --integration, --testing, or --trunk'
       parser.print_help()
       sys.exit(4)
     if options.continuous and options.integration:
@@ -145,6 +151,9 @@ def main():
     raw_input('Press Enter to continue')
   elif options.continuous:
     bucket_from = CONTINUOUS
+    bucket_to = INTEGRATION
+  elif options.trunk:
+    bucket_from = TRUNK
     bucket_to = INTEGRATION
   elif options.integration:
     bucket_from = INTEGRATION
