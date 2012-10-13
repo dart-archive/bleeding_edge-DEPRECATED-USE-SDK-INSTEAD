@@ -503,11 +503,7 @@ def UploadTestHtml(buildout, bucket, svnid, buildos, gsu):
     buildos: the os the build is running on
     gsu: the gsutil object
   """
-  print 'UploadTestHtml({0}, {1}, {2}, {3}, gsu)'.format(buildout,
-                                                          bucket,
-                                                          svnid,
-                                                          buildos)
-  gs_dir = '{0}/{1}'.format(bucket, svnid)
+  print 'UploadTestHtml(%s, %s, %s, %s)' % (buildout, bucket, svnid, buildos)
   local_dir = '{0}'.format(svnid)
   html_dir = os.path.join(buildout, 'html')
   cwd = os.getcwd()
@@ -522,9 +518,6 @@ def UploadTestHtml(buildout, bucket, svnid, buildos, gsu):
       shutil.copytree(html_dir, os.path.join(local_path, gs_test_dir_name,
                                              buildos))
       gsu.Copy(svnid, bucket, recursive_flag=True)
-      gs_elements = gsu.ReadBucket('{0}/{1}/{2}/*'.format(gs_dir,
-                                                          gs_test_dir_name,
-                                                          buildos))
   finally:
     os.chdir(cwd)
     if tmp_dir is not None and os.path.exists(tmp_dir):
@@ -622,25 +615,43 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
   
   for rcpZipFile in rcpZipFiles:
     print '  found rcp: %s' % rcpZipFile
-    
-  # dartium-lucid32-full-9420.9420.zip
-  # dartium-lucid64-full-9420.9420.zip
-  # dartium-mac-full-9420.9420.zip
-  # dartium-win-full-9420.9420.zip
-  # exclude dartium-lucid64-full-trunk-9571.9571.zip
-  dartiumFiles = gsu.ReadBucket('gs://dartium-archive/latest/dartium-*-full-[0-9]*.zip')
-
-  if not dartiumFiles:
-    raise Exception("could not find any dartium files")
-
-  tempList = []
   
-  for dartiumFile in dartiumFiles:
-    print '  found dartium: %s' % dartiumFile
-    tempList.append(RemapDartiumUrl(dartiumFile))
+  if TRUNK_BUILD:
+    # we look for Dartium artifacts differently for trunk vs continuous builds
+    gsPrefix = "gs://dartium-archive"
 
-  dartiumFiles = tempList
+    dartiumFiles = []
+    dartiumFiles.append(
+      "%s/dartium-mac-full-trunk/dartium-mac-full-trunk-%s.0.zip"
+      % (gsPrefix, REVISION))
+    dartiumFiles.append(
+      "%s/dartium-lucid32-full-trunk/dartium-lucid32-full-trunk-%s.0.zip"
+      % (gsPrefix, REVISION))
+    dartiumFiles.append(
+      "%s/dartium-lucid64-full-trunk/dartium-lucid64-full-trunk-%s.0.zip"
+      % (gsPrefix, REVISION))
+    dartiumFiles.append(
+      "%s/dartium-win-full-trunk/dartium-win-full-trunk-%s.0.zip"
+      % (gsPrefix, REVISION))
+  else:
+    # dartium-lucid32-full-9420.9420.zip
+    # dartium-lucid64-full-9420.9420.zip
+    # dartium-mac-full-9420.9420.zip
+    # dartium-win-full-9420.9420.zip
+    # exclude dartium-lucid64-full-trunk-9571.9571.zip
+    dartiumFiles = gsu.ReadBucket(
+      'gs://dartium-archive/latest/dartium-*-full-[0-9]*.zip')
 
+    if not dartiumFiles:
+      raise Exception("could not find any dartium files")
+
+    tempList = []
+    
+    for dartiumFile in dartiumFiles:
+      print '  found dartium: %s' % dartiumFile
+      tempList.append(RemapDartiumUrl(dartiumFile))
+
+    dartiumFiles = tempList
   
   for rcpZipFile in rcpZipFiles:
     searchString = None
@@ -672,7 +683,7 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
         if not os.path.exists(tmp_zip_file):
           gsu.Copy(dartiumFile, tmp_zip_file, False)
           
-          # Dartium is unzipped into ~ unzip_dir/dartium-win-inc-7665.7665
+          # Dartium is unzipped into ~ unzip_dir/dartium-win-full-7665.7665
           dartium_zip = ziputils.ZipUtil(tmp_zip_file, buildos)
           dartium_zip.UnZip(unzip_dir)
         else:
