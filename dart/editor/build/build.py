@@ -278,7 +278,7 @@ def main():
     print 'revision(in)   = |{0}|'.format(options.revision)
     #this code handles getting the revision on the developer machine
     #where it can be 123, 123M 123:125M
-    print 'revision(in)   = {0}|'.format(options.revision)
+    print 'revision(in)   = |{0}|'.format(options.revision)
     revision = options.revision.rstrip()
     lastc = revision[-1]
     if lastc.isalpha():
@@ -331,10 +331,10 @@ def main():
       running_on_buildbot = False
       sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
 
-    REVISION = options.revision
-    GSU_PATH_REV = '%s/%s' % (to_bucket, options.revision)
+    REVISION = revision
+    GSU_PATH_REV = '%s/%s' % (to_bucket, REVISION)
     GSU_PATH_LATEST = '%s/%s' % (to_bucket, 'latest')
-    GSU_API_DOCS_PATH = '%s/%s' % (GSU_API_DOCS_BUCKET, options.revision)
+    GSU_API_DOCS_PATH = '%s/%s' % (GSU_API_DOCS_BUCKET, REVISION)
 
     homegsutil = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
     gsu = gsutil.GsUtil(False, homegsutil, running_on_buildbot=running_on_buildbot)
