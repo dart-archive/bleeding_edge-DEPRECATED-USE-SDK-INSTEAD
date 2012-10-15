@@ -17,7 +17,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
-import com.google.dart.tools.debug.core.server.ServerDebugTarget;
 import com.google.dart.tools.debug.core.util.NetUtils;
 
 import org.eclipse.core.resources.IResource;
@@ -115,9 +114,11 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     commandsList.add(vmExecPath);
     commandsList.addAll(Arrays.asList(launchConfig.getVmArgumentsAsArray()));
 
-    if (enableDebugging && !DartCore.isWindows()) {
-      commandsList.add("--debug:" + connectionPort);
-    }
+    // BUG(5883) Debugging of standalone programs is disabled
+    // because it sometimes leads to program crashes.
+//    if (enableDebugging && !DartCore.isWindows()) {
+//      commandsList.add("--debug:" + connectionPort);
+//    }
 
     String packageRoot = DartCore.getPlugin().getPackageRootPref();
     if (packageRoot != null) {
@@ -176,20 +177,22 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
     eclipseProcess.setAttribute(IProcess.ATTR_CMDLINE, generateCommandLine(commands));
 
-    if (enableDebugging && !DartCore.isWindows()) {
-      ServerDebugTarget debugTarget = new ServerDebugTarget(launch, eclipseProcess, connectionPort);
-
-      try {
-        debugTarget.connect();
-
-        launch.addDebugTarget(debugTarget);
-      } catch (DebugException ex) {
-        // We don't throw an exception if the process died before we could connect.
-        if (!isProcessDead(runtimeProcess)) {
-          throw ex;
-        }
-      }
-    }
+    // BUG(5883) Debugging of standalone programs is disabled
+    // because it sometimes leads to program crashes.
+//    if (enableDebugging && !DartCore.isWindows()) {
+//      ServerDebugTarget debugTarget = new ServerDebugTarget(launch, eclipseProcess, connectionPort);
+//
+//      try {
+//        debugTarget.connect();
+//
+//        launch.addDebugTarget(debugTarget);
+//      } catch (DebugException ex) {
+//        // We don't throw an exception if the process died before we could connect.
+//        if (!isProcessDead(runtimeProcess)) {
+//          throw ex;
+//        }
+//      }
+//    }
 
     monitor.done();
   }
