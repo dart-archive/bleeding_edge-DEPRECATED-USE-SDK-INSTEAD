@@ -11,6 +11,6 @@ void main() {
 void rotateText(Event event) {
   rotatePos += 360;
   query("#text").style
-   ..transition = "1s"
-   ..transform = "rotate(${rotatePos}deg)";
+    ..transition = "1s"
+    ..transform = "rotate(${rotatePos}deg)";
 }
