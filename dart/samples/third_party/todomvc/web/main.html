@@ -3,9 +3,6 @@
 Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 for details. All rights reserved. Use of this source code is governed by a
 BSD-style license that can be found in the LICENSE file.
-
-
-To run this code, launch `_main.html.html` in the Editor.
 -->
 <html lang="en">
 <head>
@@ -22,20 +19,20 @@ To run this code, launch `_main.html.html` in the Editor.
   <section id="todoapp">
     <header id="header">
       <h1 class='title'>todos</h1>
-      <div is="x-todo-form"></div>
+      <x-todo-form></x-todo-form>
     </header>
     <section id="main">
-      <div is="x-toggle-all"></div>
+      <x-toggle-all></x-toggle-all>
       <ul id="todo-list">
         <template iterate="x in app.todos">
           <template instantiate="if viewModel.isVisible(x)">
-            <li is="x-todo-row" data-value="todo:x"></li>
+            <x-todo-row data-value="todo:x"></x-todo-row>
           </template>
         </template>
       </ul>
     </section>
     <template instantiate="if viewModel.hasElements">
-      <footer is="x-todo-footer" id="footer"></footer>
+      <x-todo-footer id="footer"></x-todo-footer>
     </template>
   </section>
   <footer id="info">
