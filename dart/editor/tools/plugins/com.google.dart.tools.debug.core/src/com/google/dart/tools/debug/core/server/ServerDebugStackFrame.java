@@ -278,7 +278,10 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
       List<ServerDebugVariable> variables = new ArrayList<ServerDebugVariable>();
 
       // create a synthetic globals variable
-      variables.add(ServerDebugVariable.createLibraryVariable(getTarget(), vmFrame.getLibraryId()));
+      variables.add(ServerDebugVariable.createLibraryVariable(
+          getTarget(),
+          frame.getIsolate(),
+          vmFrame.getLibraryId()));
 
       for (VmVariable var : frame.getLocals()) {
         ServerDebugVariable serverVariable = new ServerDebugVariable(getTarget(), var);

@@ -22,14 +22,14 @@ import java.util.List;
 /**
  * A representation of a VM object.
  */
-public class VmObject {
+public class VmObject extends VmRef {
 
-  static VmObject createFrom(JSONObject obj) throws JSONException {
-    VmObject vmObject = new VmObject();
+  static VmObject createFrom(VmIsolate isolate, JSONObject obj) throws JSONException {
+    VmObject vmObject = new VmObject(isolate);
 
     // { classId : Integer , fields : FieldList }
     vmObject.classId = obj.optInt("classId");
-    vmObject.fields = VmVariable.createFrom(obj.optJSONArray("fields"));
+    vmObject.fields = VmVariable.createFrom(isolate, obj.optJSONArray("fields"));
 
     return vmObject;
   }
@@ -40,8 +40,8 @@ public class VmObject {
 
   private List<VmVariable> fields;
 
-  private VmObject() {
-
+  private VmObject(VmIsolate isolate) {
+    super(isolate);
   }
 
   public int getClassId() {

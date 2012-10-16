@@ -14,11 +14,16 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * The representation of a VM isolate.
  */
 public class VmIsolate {
   private int id;
+
+  private Map<Integer, String> classNameMap = new HashMap<Integer, String>();
 
   protected VmIsolate(int isolateId) {
     this.id = isolateId;
@@ -35,12 +40,20 @@ public class VmIsolate {
     return false;
   }
 
+  public String getClassName(int classId) {
+    return classNameMap.get(classId);
+  }
+
   public int getId() {
     return id;
   }
 
   public String getName() {
     return "isolate-" + getId();
+  }
+
+  public boolean hasClassName(int classId) {
+    return classNameMap.containsKey(classId);
   }
 
   @Override
@@ -51,6 +64,14 @@ public class VmIsolate {
   @Override
   public String toString() {
     return "VmIsolate " + getId();
+  }
+
+  protected void clearClassNameMap() {
+    classNameMap.clear();
+  }
+
+  protected void setClassName(int classId, String className) {
+    classNameMap.put(classId, className);
   }
 
 }

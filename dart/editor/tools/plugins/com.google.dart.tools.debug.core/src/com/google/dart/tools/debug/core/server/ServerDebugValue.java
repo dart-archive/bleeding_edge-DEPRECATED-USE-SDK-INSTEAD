@@ -135,18 +135,25 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
     final List<IVariable> tempFields = new ArrayList<IVariable>();
 
     try {
-      getConnection().getObjectProperties(value.getObjectId(), new VmCallback<VmObject>() {
-        @Override
-        public void handleResult(VmResult<VmObject> result) {
-          if (!result.isError()) {
-            value.setVmObject(result.getResult());
+      getConnection().getObjectProperties(
+          value.getIsolate(),
+          value.getObjectId(),
+          new VmCallback<VmObject>() {
+            @Override
+            public void handleResult(VmResult<VmObject> result) {
+              if (!result.isError()) {
+                value.setVmObject(result.getResult());
 
-            tempFields.addAll(convert(result.getResult()));
-          }
+                tempFields.addAll(convert(result.getResult()));
+              }
 
-          fillInStaticFields(result.getResult().getClassId(), tempFields, latch);
-        }
-      });
+              fillInStaticFields(
+                  value.getIsolate(),
+                  result.getResult().getClassId(),
+                  tempFields,
+                  latch);
+            }
+          });
     } catch (Exception e) {
       latch.countDown();
     }
@@ -160,13 +167,13 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
     }
   }
 
-  protected void fillInStaticFields(int classId, final List<IVariable> tempFields,
-      final CountDownLatch latch) {
+  protected void fillInStaticFields(VmIsolate isolate, int classId,
+      final List<IVariable> tempFields, final CountDownLatch latch) {
     if (classId == -1) {
       latch.countDown();
     } else {
       try {
-        getConnection().getClassProperties(classId, new VmCallback<VmClass>() {
+        getConnection().getClassProperties(isolate, classId, new VmCallback<VmClass>() {
           @Override
           public void handleResult(VmResult<VmClass> result) {
             if (!result.isError()) {

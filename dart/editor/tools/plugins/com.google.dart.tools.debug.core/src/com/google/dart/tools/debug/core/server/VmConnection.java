@@ -88,8 +88,6 @@ public class VmConnection {
 
   protected Map<Integer, BreakpointResolvedCallback> breakpointCallbackMap = new HashMap<Integer, VmConnection.BreakpointResolvedCallback>();
 
-  private Map<Integer, String> classNameMap = new HashMap<Integer, String>();
-
   private Map<Integer, VmIsolate> isolateMap = new HashMap<Integer, VmIsolate>();
 
   public VmConnection(int port) {
@@ -147,8 +145,8 @@ public class VmConnection {
    * 
    * @throws IOException
    */
-  public void enableAllStepping() throws IOException {
-    getLibraries(new VmCallback<List<VmLibraryRef>>() {
+  public void enableAllStepping(final VmIsolate isolate) throws IOException {
+    getLibraries(isolate, new VmCallback<List<VmLibraryRef>>() {
       @Override
       public void handleResult(VmResult<List<VmLibraryRef>> result) {
         if (!result.isError()) {
@@ -156,7 +154,7 @@ public class VmConnection {
             try {
               //if (ref.getUrl().startsWith("dart:")) {
               if (!CORE_IMPL_LIBRARIES.contains(ref.getUrl())) {
-                setLibraryProperties(ref.getId(), true);
+                setLibraryProperties(isolate, ref.getId(), true);
               }
             } catch (IOException e) {
 
@@ -176,15 +174,17 @@ public class VmConnection {
       return "";
     }
 
-    if (!classNameMap.containsKey(obj.getClassId())) {
-      populateClassName(obj.getClassId());
+    VmIsolate isolate = obj.getIsolate();
+
+    if (!isolate.hasClassName(obj.getClassId())) {
+      populateClassName(isolate, obj.getClassId());
     }
 
-    return classNameMap.get(obj.getClassId());
+    return isolate.getClassName(obj.getClassId());
   }
 
-  public void getClassProperties(final int classId, final VmCallback<VmClass> callback)
-      throws IOException {
+  public void getClassProperties(final VmIsolate isolate, final int classId,
+      final VmCallback<VmClass> callback) throws IOException {
     if (callback == null) {
       throw new IllegalArgumentException("a callback is required");
     }
@@ -195,10 +195,13 @@ public class VmConnection {
       request.put("command", "getClassProperties");
       request.put("params", new JSONObject().put("classId", classId));
 
-      sendRequest(request, new Callback() {
+      sendRequest(request, isolate.getId(), new Callback() {
         @Override
         public void handleResult(JSONObject result) throws JSONException {
-          VmResult<VmClass> vmClassResult = convertGetClassPropertiesResult(classId, result);
+          VmResult<VmClass> vmClassResult = convertGetClassPropertiesResult(
+              isolate,
+              classId,
+              result);
 
           callback.handleResult(vmClassResult);
         }
@@ -208,8 +211,8 @@ public class VmConnection {
     }
   }
 
-  public void getGlobalVariables(final int libraryId, final VmCallback<List<VmVariable>> callback)
-      throws IOException {
+  public void getGlobalVariables(final VmIsolate isolate, final int libraryId,
+      final VmCallback<List<VmVariable>> callback) throws IOException {
     if (callback == null) {
       throw new IllegalArgumentException("a callback is required");
     }
@@ -220,10 +223,10 @@ public class VmConnection {
       request.put("command", "getGlobalVariables");
       request.put("params", new JSONObject().put("libraryId", libraryId));
 
-      sendRequest(request, new Callback() {
+      sendRequest(request, isolate.getId(), new Callback() {
         @Override
         public void handleResult(JSONObject result) throws JSONException {
-          VmResult<List<VmVariable>> retValue = convertGetGlobalVariablesResult(result);
+          VmResult<List<VmVariable>> retValue = convertGetGlobalVariablesResult(isolate, result);
 
           callback.handleResult(retValue);
         }
@@ -233,8 +236,9 @@ public class VmConnection {
     }
   }
 
-  public void getLibraries(final VmCallback<List<VmLibraryRef>> callback) throws IOException {
-    sendSimpleCommand("getLibraries", new Callback() {
+  public void getLibraries(VmIsolate isolate, final VmCallback<List<VmLibraryRef>> callback)
+      throws IOException {
+    sendSimpleCommand("getLibraries", isolate.getId(), new Callback() {
       @Override
       public void handleResult(JSONObject result) throws JSONException {
         callback.handleResult(convertGetLibrariesResult(result));
@@ -242,8 +246,8 @@ public class VmConnection {
     });
   }
 
-  public void getLibraryProperties(final int libraryId, final VmCallback<VmLibrary> callback)
-      throws IOException {
+  public void getLibraryProperties(final VmIsolate isolate, final int libraryId,
+      final VmCallback<VmLibrary> callback) throws IOException {
     if (callback == null) {
       throw new IllegalArgumentException("a callback is required");
     }
@@ -254,10 +258,13 @@ public class VmConnection {
       request.put("command", "getLibraryProperties");
       request.put("params", new JSONObject().put("libraryId", libraryId));
 
-      sendRequest(request, new Callback() {
+      sendRequest(request, isolate.getId(), new Callback() {
         @Override
         public void handleResult(JSONObject result) throws JSONException {
-          VmResult<VmLibrary> retValue = convertGetLibraryPropertiesResult(libraryId, result);
+          VmResult<VmLibrary> retValue = convertGetLibraryPropertiesResult(
+              isolate,
+              libraryId,
+              result);
 
           callback.handleResult(retValue);
         }
@@ -267,8 +274,8 @@ public class VmConnection {
     }
   }
 
-  public void getListElements(int listObjectId, int index, final VmCallback<VmValue> callback)
-      throws IOException {
+  public void getListElements(final VmIsolate isolate, int listObjectId, int index,
+      final VmCallback<VmValue> callback) throws IOException {
     if (callback == null) {
       throw new IllegalArgumentException("a callback is required");
     }
@@ -279,10 +286,10 @@ public class VmConnection {
       request.put("command", "getListElements");
       request.put("params", new JSONObject().put("objectId", listObjectId).put("index", index));
 
-      sendRequest(request, new Callback() {
+      sendRequest(request, isolate.getId(), new Callback() {
         @Override
         public void handleResult(JSONObject result) throws JSONException {
-          VmResult<VmValue> vmObjectResult = convertGetListElementsResult(result);
+          VmResult<VmValue> vmObjectResult = convertGetListElementsResult(isolate, result);
 
           callback.handleResult(vmObjectResult);
         }
@@ -292,8 +299,8 @@ public class VmConnection {
     }
   }
 
-  public void getObjectProperties(final int objectId, final VmCallback<VmObject> callback)
-      throws IOException {
+  public void getObjectProperties(final VmIsolate isolate, final int objectId,
+      final VmCallback<VmObject> callback) throws IOException {
     if (callback == null) {
       throw new IllegalArgumentException("a callback is required");
     }
@@ -304,10 +311,13 @@ public class VmConnection {
       request.put("command", "getObjectProperties");
       request.put("params", new JSONObject().put("objectId", objectId));
 
-      sendRequest(request, new Callback() {
+      sendRequest(request, isolate.getId(), new Callback() {
         @Override
         public void handleResult(JSONObject result) throws JSONException {
-          VmResult<VmObject> vmObjectResult = convertGetObjectPropertiesResult(objectId, result);
+          VmResult<VmObject> vmObjectResult = convertGetObjectPropertiesResult(
+              isolate,
+              objectId,
+              result);
 
           callback.handleResult(vmObjectResult);
         }
@@ -317,14 +327,14 @@ public class VmConnection {
     }
   }
 
-  public String getScriptSource(final int libraryId, String url) {
+  public String getScriptSource(VmIsolate isolate, final int libraryId, String url) {
     final String cacheKey = libraryId + ":" + url;
 
     if (!sourceCache.containsKey(cacheKey)) {
       final CountDownLatch latch = new CountDownLatch(1);
 
       try {
-        getScriptSourceAsync(libraryId, url, new VmCallback<String>() {
+        getScriptSourceAsync(isolate, libraryId, url, new VmCallback<String>() {
           @Override
           public void handleResult(VmResult<String> result) {
             if (result.isError()) {
@@ -358,12 +368,12 @@ public class VmConnection {
    * @param url
    * @return
    */
-  public String getScriptSource(final String url) {
+  public String getScriptSource(final VmIsolate isolate, final String url) {
     if (!sourceCache.containsKey(url)) {
       try {
         final CountDownLatch latch = new CountDownLatch(1);
 
-        getLibraries(new VmCallback<List<VmLibraryRef>>() {
+        getLibraries(isolate, new VmCallback<List<VmLibraryRef>>() {
           @Override
           public void handleResult(VmResult<List<VmLibraryRef>> result) {
             if (result.isError()) {
@@ -373,7 +383,7 @@ public class VmConnection {
               for (VmLibraryRef library : result.getResult()) {
                 if (url.equals(library.getUrl())) {
                   try {
-                    getScriptSourceAsync(library.getId(), url, new VmCallback<String>() {
+                    getScriptSourceAsync(isolate, library.getId(), url, new VmCallback<String>() {
                       @Override
                       public void handleResult(VmResult<String> result) {
                         if (result.isError()) {
@@ -414,8 +424,8 @@ public class VmConnection {
     return sourceCache.get(url);
   }
 
-  public void getScriptSourceAsync(int libraryId, String url, final VmCallback<String> callback)
-      throws IOException {
+  public void getScriptSourceAsync(VmIsolate isolate, int libraryId, String url,
+      final VmCallback<String> callback) throws IOException {
     if (callback == null) {
       throw new IllegalArgumentException("a callback is required");
     }
@@ -426,7 +436,7 @@ public class VmConnection {
       request.put("command", "getScriptSource");
       request.put("params", new JSONObject().put("libraryId", libraryId).put("url", url));
 
-      sendRequest(request, new Callback() {
+      sendRequest(request, isolate.getId(), new Callback() {
         @Override
         public void handleResult(JSONObject result) throws JSONException {
           callback.handleResult(convertGetScriptSourceResult(result));
@@ -437,8 +447,8 @@ public class VmConnection {
     }
   }
 
-  public void getScriptURLs(int libraryId, final VmCallback<List<String>> callback)
-      throws IOException {
+  public void getScriptURLs(VmIsolate isolate, int libraryId,
+      final VmCallback<List<String>> callback) throws IOException {
     if (callback == null) {
       throw new IllegalArgumentException("a callback is required");
     }
@@ -449,7 +459,7 @@ public class VmConnection {
       request.put("command", "getScriptURLs");
       request.put("params", new JSONObject().put("libraryId", libraryId));
 
-      sendRequest(request, new Callback() {
+      sendRequest(request, isolate.getId(), new Callback() {
         @Override
         public void handleResult(JSONObject result) throws JSONException {
           callback.handleResult(convertGetScriptURLsResult(result));
@@ -460,44 +470,22 @@ public class VmConnection {
     }
   }
 
-  public void getStackTrace(final VmCallback<List<VmCallFrame>> callback) throws IOException {
-    if (callback == null) {
-      throw new IllegalArgumentException("a callback is required");
-    }
-
-    sendSimpleCommand("getStackTrace", new Callback() {
-      @Override
-      public void handleResult(JSONObject result) throws JSONException {
-        callback.handleResult(convertGetStackTraceResult(result));
-      }
-    });
-  }
-
-  public void interrupt(int isolateId) throws IOException {
-    try {
-      JSONObject request = new JSONObject();
-
-      request.put("command", "interrupt");
-      request.put("params", new JSONObject().put("isolateId", isolateId));
-
-      sendRequest(request, null);
-    } catch (JSONException exception) {
-      throw new IOException(exception);
-    }
+  public void interrupt(VmIsolate isolate) throws IOException {
+    sendSimpleCommand("interrupt", isolate.getId());
   }
 
   public boolean isConnected() {
     return socket != null;
   }
 
-  public void removeBreakpoint(final VmBreakpoint breakpoint) throws IOException {
+  public void removeBreakpoint(VmIsolate isolate, final VmBreakpoint breakpoint) throws IOException {
     try {
       JSONObject request = new JSONObject();
 
       request.put("command", "removeBreakpoint");
       request.put("params", new JSONObject().put("breakpointId", breakpoint.getBreakpointId()));
 
-      sendRequest(request, new Callback() {
+      sendRequest(request, isolate.getId(), new Callback() {
         @Override
         public void handleResult(JSONObject object) throws JSONException {
           // Update the list of breakpoints based on the result code.
@@ -522,18 +510,18 @@ public class VmConnection {
    * 
    * @throws IOException
    */
-  public void removeSystemBreakpoint() throws IOException {
+  public void removeSystemBreakpoint(VmIsolate isolate) throws IOException {
     // TODO(devoncarew): This code will need to be updated if the VM no longer uses a user
     // breakpoint to stop on the first line of main().
 
-    removeBreakpoint(new VmBreakpoint("", -1, 1));
+    removeBreakpoint(isolate, new VmBreakpoint("", -1, 1));
   }
 
-  public void resume() throws IOException {
-    sendSimpleCommand("resume", resumeOnSuccess());
+  public void resume(VmIsolate isolate) throws IOException {
+    sendSimpleCommand("resume", isolate.getId(), resumeOnSuccess(isolate));
   }
 
-  public void setBreakpoint(final String url, final int line,
+  public void setBreakpoint(VmIsolate isolate, final String url, final int line,
       final BreakpointResolvedCallback callback) throws IOException {
     try {
       JSONObject request = new JSONObject();
@@ -543,7 +531,7 @@ public class VmConnection {
           "params",
           new JSONObject().put("url", VmUtils.eclipseUrlToVm(url)).put("line", line));
 
-      sendRequest(request, new Callback() {
+      sendRequest(request, isolate.getId(), new Callback() {
         @Override
         public void handleResult(JSONObject object) throws JSONException {
           if (object.has("error")) {
@@ -579,7 +567,8 @@ public class VmConnection {
    * @param debuggingEnabled
    * @throws IOException
    */
-  public void setLibraryProperties(int libraryId, boolean debuggingEnabled) throws IOException {
+  public void setLibraryProperties(VmIsolate isolate, int libraryId, boolean debuggingEnabled)
+      throws IOException {
     try {
       JSONObject request = new JSONObject();
 
@@ -590,7 +579,7 @@ public class VmConnection {
               "debuggingEnabled",
               Boolean.toString(debuggingEnabled)));
 
-      sendRequest(request, null);
+      sendRequest(request, isolate.getId(), null);
     } catch (JSONException exception) {
       throw new IOException(exception);
     }
@@ -602,7 +591,7 @@ public class VmConnection {
    * @param kind
    * @throws IOException
    */
-  public void setPauseOnException(BreakOnExceptionsType kind) throws IOException {
+  public void setPauseOnException(VmIsolate isolate, BreakOnExceptionsType kind) throws IOException {
     // pauseOnException
     try {
       JSONObject request = new JSONObject();
@@ -610,22 +599,22 @@ public class VmConnection {
       request.put("command", "setPauseOnException");
       request.put("params", new JSONObject().put("exceptions", kind.toString()));
 
-      sendRequest(request, null);
+      sendRequest(request, isolate.getId(), null);
     } catch (JSONException exception) {
       throw new IOException(exception);
     }
   }
 
-  public void stepInto() throws IOException {
-    sendSimpleCommand("stepInto", resumeOnSuccess());
+  public void stepInto(VmIsolate isolate) throws IOException {
+    sendSimpleCommand("stepInto", isolate.getId(), resumeOnSuccess(isolate));
   }
 
-  public void stepOut() throws IOException {
-    sendSimpleCommand("stepOut", resumeOnSuccess());
+  public void stepOut(VmIsolate isolate) throws IOException {
+    sendSimpleCommand("stepOut", isolate.getId(), resumeOnSuccess(isolate));
   }
 
-  public void stepOver() throws IOException {
-    sendSimpleCommand("stepOver", resumeOnSuccess());
+  public void stepOver(VmIsolate isolate) throws IOException {
+    sendSimpleCommand("stepOver", isolate.getId(), resumeOnSuccess(isolate));
   }
 
   protected void handleTerminated() {
@@ -655,20 +644,39 @@ public class VmConnection {
     }
   }
 
-  protected void sendSimpleCommand(String command) throws IOException {
-    sendSimpleCommand(command, null);
+  protected void sendSimpleCommand(String command, int isolateId) throws IOException {
+    sendSimpleCommand(command, isolateId, null);
   }
 
-  protected void sendSimpleCommand(String command, Callback callback) throws IOException {
+  protected void sendSimpleCommand(String command, int isolateId, Callback callback)
+      throws IOException {
     try {
-      sendRequest(new JSONObject().put("command", command), callback);
+      JSONObject request = new JSONObject();
+
+      request.put("command", command);
+
+      sendRequest(request, isolateId, callback);
     } catch (JSONException exception) {
       throw new IOException(exception);
     }
   }
 
-  void sendRequest(JSONObject request, Callback callback) throws IOException {
+  void sendRequest(JSONObject request, int isolateId, Callback callback) throws IOException {
     int id = 0;
+
+    try {
+      if (!request.has("params")) {
+        request.put("params", new JSONObject());
+      }
+
+      JSONObject params = request.getJSONObject("params");
+
+      if (!params.has("isolateId")) {
+        params.put("isolateId", isolateId);
+      }
+    } catch (JSONException jse) {
+      throw new IOException(jse);
+    }
 
     synchronized (this) {
       id = nextCommandId++;
@@ -697,26 +705,26 @@ public class VmConnection {
     }
   }
 
-  private VmResult<VmClass> convertGetClassPropertiesResult(int classId, JSONObject object)
-      throws JSONException {
+  private VmResult<VmClass> convertGetClassPropertiesResult(VmIsolate isolate, int classId,
+      JSONObject object) throws JSONException {
     VmResult<VmClass> result = VmResult.createFrom(object);
 
     if (object.has("result")) {
-      result.setResult(VmClass.createFrom(object.getJSONObject("result")));
+      result.setResult(VmClass.createFrom(isolate, object.getJSONObject("result")));
       result.getResult().setClassId(classId);
     }
 
     return result;
   }
 
-  private VmResult<List<VmVariable>> convertGetGlobalVariablesResult(JSONObject object)
-      throws JSONException {
+  private VmResult<List<VmVariable>> convertGetGlobalVariablesResult(VmIsolate isolate,
+      JSONObject object) throws JSONException {
     VmResult<List<VmVariable>> result = VmResult.createFrom(object);
 
     if (object.has("result")) {
       JSONObject jsonResult = object.getJSONObject("result");
 
-      result.setResult(VmVariable.createFrom(jsonResult.optJSONArray("globals")));
+      result.setResult(VmVariable.createFrom(isolate, jsonResult.optJSONArray("globals")));
     }
 
     return result;
@@ -734,33 +742,34 @@ public class VmConnection {
     return result;
   }
 
-  private VmResult<VmLibrary> convertGetLibraryPropertiesResult(int libraryId, JSONObject object)
-      throws JSONException {
+  private VmResult<VmLibrary> convertGetLibraryPropertiesResult(VmIsolate isolate, int libraryId,
+      JSONObject object) throws JSONException {
     VmResult<VmLibrary> result = VmResult.createFrom(object);
 
     if (object.has("result")) {
-      result.setResult(VmLibrary.createFrom(libraryId, object.getJSONObject("result")));
+      result.setResult(VmLibrary.createFrom(isolate, libraryId, object.getJSONObject("result")));
     }
 
     return result;
   }
 
-  private VmResult<VmValue> convertGetListElementsResult(JSONObject object) throws JSONException {
+  private VmResult<VmValue> convertGetListElementsResult(VmIsolate isolate, JSONObject object)
+      throws JSONException {
     VmResult<VmValue> result = VmResult.createFrom(object);
 
     if (object.has("result")) {
-      result.setResult(VmValue.createFrom(object.getJSONObject("result")));
+      result.setResult(VmValue.createFrom(isolate, object.getJSONObject("result")));
     }
 
     return result;
   }
 
-  private VmResult<VmObject> convertGetObjectPropertiesResult(int objectId, JSONObject object)
-      throws JSONException {
+  private VmResult<VmObject> convertGetObjectPropertiesResult(VmIsolate isolate, int objectId,
+      JSONObject object) throws JSONException {
     VmResult<VmObject> result = VmResult.createFrom(object);
 
     if (object.has("result")) {
-      result.setResult(VmObject.createFrom(object.getJSONObject("result")));
+      result.setResult(VmObject.createFrom(isolate, object.getJSONObject("result")));
       result.getResult().setObjectId(objectId);
     }
 
@@ -790,19 +799,6 @@ public class VmConnection {
       }
 
       result.setResult(libUrls);
-    }
-
-    return result;
-  }
-
-  private VmResult<List<VmCallFrame>> convertGetStackTraceResult(JSONObject object)
-      throws JSONException {
-    VmResult<List<VmCallFrame>> result = VmResult.createFrom(object);
-
-    if (object.has("result")) {
-      List<VmCallFrame> frames = VmCallFrame.createFrom(object.getJSONArray("result"));
-
-      result.setResult(frames);
     }
 
     return result;
@@ -850,23 +846,23 @@ public class VmConnection {
     }
   }
 
-  private void notifyDebuggerResumed() {
-    classNameMap.clear();
+  private void notifyDebuggerResumed(VmIsolate isolate) {
+    isolate.clearClassNameMap();
 
     for (VmListener listener : listeners) {
-      listener.debuggerResumed();
+      listener.debuggerResumed(isolate);
     }
   }
 
-  private void populateClassName(final int classId) {
+  private void populateClassName(final VmIsolate isolate, final int classId) {
     final CountDownLatch latch = new CountDownLatch(1);
 
     try {
-      getClassProperties(classId, new VmCallback<VmClass>() {
+      getClassProperties(isolate, classId, new VmCallback<VmClass>() {
         @Override
         public void handleResult(VmResult<VmClass> result) {
           if (!result.isError()) {
-            classNameMap.put(classId, result.getResult().getName());
+            isolate.setClassName(classId, result.getResult().getName());
           }
 
           latch.countDown();
@@ -893,10 +889,12 @@ public class VmConnection {
 
         String reason = params.optString("reason", null);
         int isolateId = params.optInt("id", -1);
-        VmValue exception = VmValue.createFrom(params.optJSONObject("exception"));
-        List<VmCallFrame> frames = VmCallFrame.createFrom(params.getJSONArray("callFrames"));
-
         VmIsolate isolate = getCreateIsolate(isolateId);
+
+        VmValue exception = VmValue.createFrom(isolate, params.optJSONObject("exception"));
+        List<VmCallFrame> frames = VmCallFrame.createFrom(
+            isolate,
+            params.getJSONArray("callFrames"));
 
         for (VmListener listener : listeners) {
           listener.debuggerPaused(PausedReason.parse(reason), isolate, frames, exception);
@@ -1028,14 +1026,14 @@ public class VmConnection {
     }
   }
 
-  private Callback resumeOnSuccess() {
+  private Callback resumeOnSuccess(final VmIsolate isolate) {
     return new Callback() {
       @Override
       public void handleResult(JSONObject result) throws JSONException {
         VmResult<String> response = VmResult.createFrom(result);
 
         if (!response.isError()) {
-          notifyDebuggerResumed();
+          notifyDebuggerResumed(isolate);
         }
       }
     };

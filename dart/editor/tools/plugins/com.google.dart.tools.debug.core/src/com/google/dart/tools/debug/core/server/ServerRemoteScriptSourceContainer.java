@@ -61,7 +61,10 @@ public class ServerRemoteScriptSourceContainer extends AbstractSourceContainer {
           int libraryId = Integer.parseInt(strs[1]);
           String url = strs[2];
 
-          String source = target.getConnection().getScriptSource(libraryId, url);
+          String source = target.getConnection().getScriptSource(
+              target.getMainIsolate(),
+              libraryId,
+              url);
 
           if (source != null) {
             try {
@@ -81,7 +84,7 @@ public class ServerRemoteScriptSourceContainer extends AbstractSourceContainer {
         ServerDebugTarget target = ServerDebugTarget.getActiveTarget();
 
         if (target != null) {
-          String source = target.getConnection().getScriptSource(name);
+          String source = target.getConnection().getScriptSource(target.getMainIsolate(), name);
 
           if (source != null) {
             try {

@@ -22,16 +22,16 @@ import java.util.List;
 /**
  * A representation of a VM class.
  */
-public class VmClass {
+public class VmClass extends VmRef {
 
-  static VmClass createFrom(JSONObject obj) throws JSONException {
-    VmClass clazz = new VmClass();
+  static VmClass createFrom(VmIsolate isolate, JSONObject obj) throws JSONException {
+    VmClass clazz = new VmClass(isolate);
 
     // { name : String , superclassId : Integer , libraryId : Integer , fields : FieldList } 
     clazz.name = obj.optString("name");
     clazz.superclassId = obj.optInt("superclassId");
     clazz.libraryId = obj.optInt("libraryId");
-    clazz.fields = VmVariable.createFrom(obj.optJSONArray("fields"));
+    clazz.fields = VmVariable.createFrom(isolate, obj.optJSONArray("fields"));
 
     return clazz;
   }
@@ -46,8 +46,8 @@ public class VmClass {
 
   private List<VmVariable> fields;
 
-  private VmClass() {
-
+  private VmClass(VmIsolate isolate) {
+    super(isolate);
   }
 
   public int getClassId() {

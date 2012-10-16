@@ -26,8 +26,9 @@ import java.util.List;
  */
 public class VmLibrary {
 
-  static VmLibrary createFrom(int libraryId, JSONObject obj) throws JSONException {
-    VmLibrary lib = new VmLibrary();
+  static VmLibrary createFrom(VmIsolate isolate, int libraryId, JSONObject obj)
+      throws JSONException {
+    VmLibrary lib = new VmLibrary(isolate);
 
     // url
     // imports
@@ -50,7 +51,7 @@ public class VmLibrary {
     }
 
     // globals
-    lib.globals = VmVariable.createFrom(obj.optJSONArray("globals"));
+    lib.globals = VmVariable.createFrom(isolate, obj.optJSONArray("globals"));
 
     return lib;
   }
@@ -63,8 +64,10 @@ public class VmLibrary {
 
   private List<VmVariable> globals;
 
-  private VmLibrary() {
+  private VmIsolate isolate;
 
+  private VmLibrary(VmIsolate isolate) {
+    this.isolate = isolate;
   }
 
   public List<VmVariable> getGlobals() {
@@ -73,6 +76,10 @@ public class VmLibrary {
 
   public List<Integer> getImportedLibraryIds() {
     return importedLibraryIds;
+  }
+
+  public VmIsolate getIsolate() {
+    return isolate;
   }
 
   public int getLibraryId() {

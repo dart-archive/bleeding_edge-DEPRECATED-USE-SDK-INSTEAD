@@ -19,16 +19,16 @@ import org.json.JSONObject;
 /**
  * This class represents a VM value.
  */
-public class VmValue {
+public class VmValue extends VmRef {
 
-  static VmValue createFrom(JSONObject obj) {
+  static VmValue createFrom(VmIsolate isolate, JSONObject obj) {
     if (obj == null) {
       return null;
     }
 
     // {"objectId":4,"kind":"object","text":"Instance of '_HttpServer@14117cc4'"}
 
-    VmValue value = new VmValue();
+    VmValue value = new VmValue(isolate);
 
     value.objectId = obj.optInt("objectId");
     value.kind = obj.optString("kind");
@@ -48,8 +48,8 @@ public class VmValue {
 
   private VmObject vmObject;
 
-  private VmValue() {
-
+  private VmValue(VmIsolate isolate) {
+    super(isolate);
   }
 
   /**

@@ -26,25 +26,25 @@ import java.util.List;
 /**
  * A VM frame object.
  */
-public class VmCallFrame {
+public class VmCallFrame extends VmRef {
 
-  static List<VmCallFrame> createFrom(JSONArray arr) throws JSONException {
+  static List<VmCallFrame> createFrom(VmIsolate isolate, JSONArray arr) throws JSONException {
     List<VmCallFrame> frames = new ArrayList<VmCallFrame>();
 
     for (int i = 0; i < arr.length(); i++) {
-      frames.add(createFrom(arr.getJSONObject(i)));
+      frames.add(createFrom(isolate, arr.getJSONObject(i)));
     }
 
     return frames;
   }
 
-  private static VmCallFrame createFrom(JSONObject object) throws JSONException {
-    VmCallFrame frame = new VmCallFrame();
+  private static VmCallFrame createFrom(VmIsolate isolate, JSONObject object) throws JSONException {
+    VmCallFrame frame = new VmCallFrame(isolate);
 
     frame.functionName = JsonUtils.getString(object, "functionName");
     frame.libraryId = object.optInt("libraryId");
     frame.location = VmLocation.createFrom(object.getJSONObject("location"));
-    frame.locals = VmVariable.createFrom(object.optJSONArray("locals"));
+    frame.locals = VmVariable.createFrom(isolate, object.optJSONArray("locals"));
 
     return frame;
   }
@@ -56,6 +56,10 @@ public class VmCallFrame {
   private VmLocation location;
 
   private List<VmVariable> locals;
+
+  private VmCallFrame(VmIsolate isolate) {
+    super(isolate);
+  }
 
   /**
    * Name of the Dart function called on this call frame.

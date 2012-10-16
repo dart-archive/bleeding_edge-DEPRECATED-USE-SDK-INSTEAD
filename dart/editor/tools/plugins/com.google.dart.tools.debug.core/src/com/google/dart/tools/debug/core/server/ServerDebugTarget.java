@@ -86,13 +86,17 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private VmConnection connection;
 
-  private ServerDebugThread debugThread = new ServerDebugThread(this);
+  private List<ServerDebugThread> threads = new ArrayList<ServerDebugThread>();
 
   private boolean firstBreak = true;
 
   private int resumeCount = 0;
 
   private List<IBreakpoint> ignoredBreakpoints = new ArrayList<IBreakpoint>();
+
+  // TODO(devoncarew): this "main" isolate is temporary, until the VM allows us to 
+  // set wildcard breakpoints across all isolates.
+  private VmIsolate mainIsolate;
 
   public ServerDebugTarget(ILaunch launch, IProcess process, int connectionPort) {
     super(null);
@@ -109,7 +113,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   @Override
   public void breakpointAdded(IBreakpoint breakpoint) {
     if (supportsBreakpoint(breakpoint)) {
-      addBreakpoint((DartBreakpoint) breakpoint);
+      addBreakpoint(mainIsolate, (DartBreakpoint) breakpoint);
     }
   }
 
@@ -133,10 +137,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
       if (vmBreakpoint != null) {
         try {
-          getConnection().removeBreakpoint(vmBreakpoint);
+          getConnection().removeBreakpoint(mainIsolate, vmBreakpoint);
         } catch (IOException exception) {
-          // TODO(devoncarew): display to the user
-
           DartDebugCorePlugin.logError(exception);
         }
       }
@@ -150,7 +152,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public boolean canResume() {
-    return debugThread == null ? false : debugThread.canResume();
+    return false;
   }
 
   @Override
@@ -202,43 +204,6 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
           DartDebugCorePlugin.PLUGIN_ID,
           "Unable to connect debugger to the Dart VM: " + ioe.getMessage()));
     }
-
-    try {
-      // We need to remove this before any other breakpoints are set.
-      connection.removeSystemBreakpoint();
-    } catch (IOException e) {
-      DartDebugCorePlugin.logError(e);
-    }
-
-    // TODO(devoncarew): listen for changes to DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS
-    // Turn on break-on-exceptions.
-    if (DartDebugCorePlugin.getPlugin().getBreakOnExceptions()) {
-      try {
-        connection.setPauseOnException(BreakOnExceptionsType.unhandled);
-      } catch (IOException e) {
-        DartDebugCorePlugin.logError(e);
-      }
-    }
-
-    // Set up the existing breakpoints.
-    IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(
-        DartDebugCorePlugin.DEBUG_MODEL_ID);
-
-    for (IBreakpoint breakpoint : breakpoints) {
-      if (supportsBreakpoint(breakpoint)) {
-        addBreakpoint((DartBreakpoint) breakpoint);
-      }
-    }
-
-    DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
-
-    try {
-      connection.enableAllStepping();
-    } catch (IOException e) {
-      DartDebugCorePlugin.logError(e);
-    }
-
-    maybeResume();
   }
 
   @Override
@@ -255,20 +220,26 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
         // If this is our first break, and there is no user breakpoint here, and the stop is on the
         // main() method, then resume.
         if (breakpoint == null && frames.size() > 0 && frames.get(0).isMain()) {
-          resumed = maybeResume();
+          resumed = maybeResume(isolate);
         }
       }
     }
 
     if (!resumed) {
-      debugThread.handleDebuggerPaused(reason, isolate, frames, exception);
+      ServerDebugThread thread = findThread(isolate);
+
+      if (thread != null) {
+        thread.handleDebuggerPaused(reason, frames, exception);
+      }
     }
   }
 
   @Override
-  public void debuggerResumed() {
-    if (debugThread != null) {
-      debugThread.handleDebuggerResumed();
+  public void debuggerResumed(VmIsolate isolate) {
+    ServerDebugThread thread = findThread(isolate);
+
+    if (thread != null) {
+      thread.handleDebuggerResumed();
     }
   }
 
@@ -283,7 +254,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
     dispose();
 
-    debugThread = null;
+    threads.clear();
 
     super.fireTerminateEvent();
   }
@@ -315,11 +286,13 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public IThread[] getThreads() throws DebugException {
-    if (debugThread == null) {
-      return new IThread[0];
-    } else {
-      return new IThread[] {debugThread};
-    }
+    return threads.toArray(new IThread[threads.size()]);
+
+//    if (debugThread == null) {
+//      return new IThread[0];
+//    } else {
+//      return new IThread[] {debugThread};
+//    }
   }
 
   public VmConnection getVmConnection() {
@@ -338,19 +311,30 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public void isolateCreated(VmIsolate isolate) {
-    // TODO(devoncarew): implement
+    if (mainIsolate == null) {
+      mainIsolate = isolate;
 
+      // init everything
+      firstIsolateInit(isolate);
+    }
+
+    addThread(new ServerDebugThread(this, isolate));
   }
 
   @Override
   public void isolateShutdown(VmIsolate isolate) {
-    // TODO(devoncarew): implement
-
+    removeThread(findThread(isolate));
   }
 
   @Override
   public boolean isSuspended() {
-    return debugThread == null ? false : debugThread.isSuspended();
+    for (IThread thread : threads) {
+      if (thread.isSuspended()) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   @Override
@@ -360,11 +344,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public void resume() throws DebugException {
-    try {
-      connection.resume();
-    } catch (IOException exception) {
-      throw createDebugException(exception);
-    }
+
   }
 
   @Override
@@ -387,6 +367,16 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     process.terminate();
   }
 
+  protected ServerDebugThread findThread(VmIsolate isolate) {
+    for (ServerDebugThread thread : threads) {
+      if (thread.getIsolate().getId() == isolate.getId()) {
+        return thread;
+      }
+    }
+
+    return null;
+  }
+
   protected DartBreakpoint getBreakpointFor(List<VmCallFrame> frames) {
     if (frames.size() == 0) {
       return null;
@@ -399,32 +389,33 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     return getBreakpointFor(frame.getLocation());
   }
 
+  // TODO(devoncarew): the concept of a main isolate needs to go away
+  protected VmIsolate getMainIsolate() {
+    return mainIsolate;
+  }
+
   @Override
   protected ServerDebugTarget getTarget() {
     return this;
   }
 
-  private void addBreakpoint(DartBreakpoint breakpoint) {
+  private void addBreakpoint(VmIsolate isolate, DartBreakpoint breakpoint) {
     if (breakpoint.isBreakpointEnabled()) {
       String url = getUrlForResource(breakpoint.getFile());
       int line = breakpoint.getLine();
 
       try {
-        getConnection().setBreakpoint(url, line, new BreakpointCallback(breakpoint));
+        getConnection().setBreakpoint(isolate, url, line, new BreakpointCallback(breakpoint));
       } catch (IOException exception) {
-        // TODO(devoncarew): display to the user
-
         DartDebugCorePlugin.logError(exception);
       }
     }
   }
 
-  private DebugException createDebugException(IOException exception) {
-    return new DebugException(new Status(
-        IStatus.ERROR,
-        DartDebugCorePlugin.PLUGIN_ID,
-        exception.getMessage(),
-        exception));
+  private void addThread(ServerDebugThread thread) {
+    threads.add(thread);
+
+    thread.fireCreationEvent();
   }
 
   private void dispose() {
@@ -449,6 +440,45 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     }
 
     return null;
+  }
+
+  private void firstIsolateInit(VmIsolate isolate) {
+    try {
+      // We need to remove this before any other breakpoints are set.
+      connection.removeSystemBreakpoint(isolate);
+    } catch (IOException e) {
+      DartDebugCorePlugin.logError(e);
+    }
+
+    // TODO(devoncarew): listen for changes to DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS
+    // Turn on break-on-exceptions.
+    if (DartDebugCorePlugin.getPlugin().getBreakOnExceptions()) {
+      try {
+        connection.setPauseOnException(isolate, BreakOnExceptionsType.unhandled);
+      } catch (IOException e) {
+        DartDebugCorePlugin.logError(e);
+      }
+    }
+
+    // Set up the existing breakpoints.
+    IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(
+        DartDebugCorePlugin.DEBUG_MODEL_ID);
+
+    for (IBreakpoint breakpoint : breakpoints) {
+      if (supportsBreakpoint(breakpoint)) {
+        addBreakpoint(isolate, (DartBreakpoint) breakpoint);
+      }
+    }
+
+    DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
+
+    try {
+      connection.enableAllStepping(isolate);
+    } catch (IOException e) {
+      DartDebugCorePlugin.logError(e);
+    }
+
+    maybeResume(isolate);
   }
 
   private DartBreakpoint getBreakpointFor(VmLocation location) {
@@ -487,12 +517,12 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     return locationUrl;
   }
 
-  private synchronized boolean maybeResume() {
+  private synchronized boolean maybeResume(VmIsolate isolate) {
     resumeCount++;
 
     if (resumeCount >= 2) {
       try {
-        getVmConnection().resume();
+        getVmConnection().resume(isolate);
 
         return resumeCount == 2;
       } catch (IOException ioe) {
@@ -529,6 +559,14 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     });
 
     t.start();
+  }
+
+  private void removeThread(ServerDebugThread thread) {
+    if (thread != null) {
+      threads.remove(thread);
+
+      thread.fireTerminateEvent();
+    }
   }
 
   private void sleep(int millis) {

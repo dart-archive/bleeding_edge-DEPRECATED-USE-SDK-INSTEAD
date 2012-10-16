@@ -26,7 +26,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * This class represents a VM variable.
  */
-public class VmVariable {
+public class VmVariable extends VmRef {
 
   static class LazyValue {
     private VmConnection connection;
@@ -40,20 +40,24 @@ public class VmVariable {
       this.index = index;
     }
 
-    public VmValue evaluate() {
+    public VmValue evaluate(VmIsolate isolate) {
       final VmValue[] result = new VmValue[1];
 
       final CountDownLatch latch = new CountDownLatch(1);
 
       try {
-        connection.getListElements(listValue.getObjectId(), index, new VmCallback<VmValue>() {
-          @Override
-          public void handleResult(VmResult<VmValue> r) {
-            result[0] = r.getResult();
+        connection.getListElements(
+            isolate,
+            listValue.getObjectId(),
+            index,
+            new VmCallback<VmValue>() {
+              @Override
+              public void handleResult(VmResult<VmValue> r) {
+                result[0] = r.getResult();
 
-            latch.countDown();
-          }
-        });
+                latch.countDown();
+              }
+            });
       } catch (IOException e) {
         latch.countDown();
       }
@@ -69,7 +73,7 @@ public class VmVariable {
   }
 
   static VmVariable createArrayEntry(VmConnection connection, VmValue listValue, int index) {
-    VmVariable var = new VmVariable();
+    VmVariable var = new VmVariable(listValue.getIsolate());
 
     var.name = "[" + Integer.toString(index) + "]";
     // var.value is lazyily populated
@@ -78,7 +82,7 @@ public class VmVariable {
     return var;
   }
 
-  static List<VmVariable> createFrom(JSONArray arr) throws JSONException {
+  static List<VmVariable> createFrom(VmIsolate isolate, JSONArray arr) throws JSONException {
     if (arr == null) {
       return null;
     }
@@ -86,24 +90,24 @@ public class VmVariable {
     List<VmVariable> variables = new ArrayList<VmVariable>();
 
     for (int i = 0; i < arr.length(); i++) {
-      variables.add(createFrom(arr.getJSONObject(i)));
+      variables.add(createFrom(isolate, arr.getJSONObject(i)));
     }
 
     return variables;
   }
 
-  static VmVariable createFrom(JSONObject obj) {
+  static VmVariable createFrom(VmIsolate isolate, JSONObject obj) {
     // {"name":"server","value":{"objectId":4,"kind":"object","text":"Instance of '_HttpServer@14117cc4'"}}
-    VmVariable var = new VmVariable();
+    VmVariable var = new VmVariable(isolate);
 
     var.name = obj.optString("name");
-    var.value = VmValue.createFrom(obj.optJSONObject("value"));
+    var.value = VmValue.createFrom(isolate, obj.optJSONObject("value"));
 
     return var;
   }
 
   static VmVariable createFromException(VmValue exception) {
-    VmVariable variable = new VmVariable();
+    VmVariable variable = new VmVariable(exception.getIsolate());
 
     variable.name = "exception";
     variable.value = exception;
@@ -120,8 +124,8 @@ public class VmVariable {
 
   private LazyValue lazyValue;
 
-  private VmVariable() {
-
+  private VmVariable(VmIsolate isolate) {
+    super(isolate);
   }
 
   public boolean getIsException() {
@@ -134,7 +138,7 @@ public class VmVariable {
 
   public VmValue getValue() {
     if (lazyValue != null) {
-      value = lazyValue.evaluate();
+      value = lazyValue.evaluate(getIsolate());
       lazyValue = null;
     }
 
@@ -143,6 +147,7 @@ public class VmVariable {
 
   @Override
   public String toString() {
-    return "[" + getName() + "," + getValue() + "]";
+    return "[" + getName() + "]";
   }
+
 }

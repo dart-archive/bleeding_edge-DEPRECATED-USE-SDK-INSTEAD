@@ -50,7 +50,7 @@ public interface VmListener {
   /**
    * Handle the debugger resumed event.
    */
-  public void debuggerResumed();
+  public void debuggerResumed(VmIsolate isolate);
 
   /**
    * Handle the isolate created event.

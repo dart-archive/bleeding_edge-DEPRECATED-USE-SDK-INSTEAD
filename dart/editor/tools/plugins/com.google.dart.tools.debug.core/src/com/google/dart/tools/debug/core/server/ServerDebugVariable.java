@@ -39,7 +39,7 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
   }
 
   public static ServerDebugVariable createLibraryVariable(final ServerDebugTarget target,
-      final int libraryId) {
+      final VmIsolate isolate, final int libraryId) {
     return new ServerDebugVariable(target, DebuggerUtils.TOP_LEVEL_NAME, new IValueRetriever() {
       @Override
       public String getDisplayName() {
@@ -48,32 +48,35 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
 
       @Override
       public List<IVariable> getVariables() {
-        return createLibraryVariables(target, libraryId);
+        return createLibraryVariables(target, isolate, libraryId);
       }
     });
   }
 
   protected static List<IVariable> createLibraryVariables(final ServerDebugTarget target,
-      int libraryId) {
+      final VmIsolate isolate, int libraryId) {
     final List<IVariable> variables = new ArrayList<IVariable>();
 
     final CountDownLatch latch = new CountDownLatch(1);
 
     try {
-      target.getConnection().getGlobalVariables(libraryId, new VmCallback<List<VmVariable>>() {
-        @Override
-        public void handleResult(VmResult<List<VmVariable>> result) {
-          if (!result.isError()) {
-            List<VmVariable> globals = result.getResult();
+      target.getConnection().getGlobalVariables(
+          isolate,
+          libraryId,
+          new VmCallback<List<VmVariable>>() {
+            @Override
+            public void handleResult(VmResult<List<VmVariable>> result) {
+              if (!result.isError()) {
+                List<VmVariable> globals = result.getResult();
 
-            for (VmVariable variable : globals) {
-              variables.add(new ServerDebugVariable(target, variable));
+                for (VmVariable variable : globals) {
+                  variables.add(new ServerDebugVariable(target, variable));
+                }
+              }
+
+              latch.countDown();
             }
-          }
-
-          latch.countDown();
-        }
-      });
+          });
     } catch (IOException e) {
       latch.countDown();
     }

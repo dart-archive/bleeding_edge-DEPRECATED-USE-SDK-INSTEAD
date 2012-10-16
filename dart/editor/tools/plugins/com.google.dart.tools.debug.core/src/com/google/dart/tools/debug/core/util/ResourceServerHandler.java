@@ -299,6 +299,7 @@ class ResourceServerHandler implements Runnable {
       safeClose(socket);
 
       // ignore java.net.SocketException: Connection reset
+      // ignore java.net.SocketException: Broken pipe
       if (!(ioe instanceof ConnectException) && !isConnectionReset(ioe)) {
         DartDebugCorePlugin.logError(ioe);
       }
@@ -606,9 +607,10 @@ class ResourceServerHandler implements Runnable {
 
   private boolean isConnectionReset(IOException ioe) {
     // ignore java.net.SocketException: Connection reset
+    // ignore java.net.SocketException: Broken pipe
 
     if (ioe instanceof SocketException) {
-      return "Connection reset".equals(ioe.getMessage());
+      return "Connection reset".equals(ioe.getMessage()) || "Broken pipe".equals(ioe.getMessage());
     }
 
     return false;

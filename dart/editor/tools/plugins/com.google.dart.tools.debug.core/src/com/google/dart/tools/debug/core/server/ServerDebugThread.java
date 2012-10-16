@@ -50,8 +50,10 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
   /**
    * @param target
    */
-  public ServerDebugThread(IDebugTarget target) {
+  public ServerDebugThread(IDebugTarget target, VmIsolate vmIsolate) {
     super(target);
+
+    this.vmIsolate = vmIsolate;
   }
 
   @Override
@@ -81,7 +83,7 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
 
   @Override
   public boolean canTerminate() {
-    return getTarget().canTerminate();
+    return true;
   }
 
   @Override
@@ -141,7 +143,7 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
     try {
       expectedResumeReason = DebugEvent.UNSPECIFIED;
 
-      getConnection().resume();
+      getConnection().resume(vmIsolate);
     } catch (IOException exception) {
       throw createDebugException(exception);
     }
@@ -153,7 +155,7 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
     expectedSuspendReason = DebugEvent.STEP_INTO;
 
     try {
-      getConnection().stepInto();
+      getConnection().stepInto(vmIsolate);
     } catch (IOException exception) {
       expectedResumeReason = DebugEvent.UNSPECIFIED;
       expectedSuspendReason = DebugEvent.UNSPECIFIED;
@@ -168,7 +170,7 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
     expectedSuspendReason = DebugEvent.STEP_OVER;
 
     try {
-      getConnection().stepOver();
+      getConnection().stepOver(vmIsolate);
     } catch (IOException exception) {
       expectedResumeReason = DebugEvent.UNSPECIFIED;
       expectedSuspendReason = DebugEvent.UNSPECIFIED;
@@ -183,7 +185,7 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
     expectedSuspendReason = DebugEvent.STEP_RETURN;
 
     try {
-      getConnection().stepOut();
+      getConnection().stepOut(vmIsolate);
     } catch (IOException exception) {
       expectedResumeReason = DebugEvent.UNSPECIFIED;
       expectedSuspendReason = DebugEvent.UNSPECIFIED;
@@ -195,7 +197,7 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
   @Override
   public void suspend() throws DebugException {
     try {
-      getConnection().interrupt(getIsolateId());
+      getConnection().interrupt(vmIsolate);
     } catch (IOException ioe) {
       throw createDebugException(ioe);
     }
@@ -206,11 +208,12 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
     getTarget().terminate();
   }
 
-  protected void handleDebuggerPaused(PausedReason dbgReason, VmIsolate isolate,
-      List<VmCallFrame> frames, VmValue exception) {
-    // TODO(devoncarew): we won't change the isolate value when we have real isolate support
-    this.vmIsolate = isolate;
+  protected VmIsolate getIsolate() {
+    return vmIsolate;
+  }
 
+  protected void handleDebuggerPaused(PausedReason dbgReason, List<VmCallFrame> frames,
+      VmValue exception) {
     int reason = DebugEvent.BREAKPOINT;
 
     if (expectedSuspendReason != DebugEvent.UNSPECIFIED) {
@@ -265,14 +268,6 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
     }
 
     return result;
-  }
-
-  private int getIsolateId() {
-    if (vmIsolate != null) {
-      return vmIsolate.getId();
-    }
-
-    return -1;
   }
 
   private boolean isDisconnected() {
