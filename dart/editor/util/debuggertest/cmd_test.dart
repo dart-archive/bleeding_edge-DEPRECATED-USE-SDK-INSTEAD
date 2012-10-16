@@ -11,6 +11,11 @@ num petCount = 0;
 void main() {
   print("starting debuggertest");
 
+  // Spawn some isolates...
+  pets.spawnAnimalsIsolate();
+  pets.spawnAnimalsIsolate();
+  pets.spawnAnimalsIsolate();
+
   var cat = pets.SPARKY;
 
   print("my ${cat} says:");

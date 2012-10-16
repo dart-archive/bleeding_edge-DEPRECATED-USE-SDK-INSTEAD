@@ -2,6 +2,7 @@
 #library("pets");
 
 #import('dart:math');
+#import('dart:isolate');
 
 final num MAX_CATS = 10;
 
@@ -136,7 +137,7 @@ Map<String, Animal> getMapOfAnimals() {
   }
 
   map["and then"] = SPARKY;
-  
+
   return map;
 }
 
@@ -144,4 +145,16 @@ void testInfinity() {
   var infTest = 1 / 0;
 
   print(infTest); // Infinity
+}
+
+void spawnAnimalsIsolate() {
+  spawnFunction(_spawnAnimals);
+}
+
+void _spawnAnimals() {
+  int count = new Random().nextInt(100);
+
+  for (num i = 0; i < count * 1000; i++) {
+    getLotsOfAnimals();
+  }
 }
