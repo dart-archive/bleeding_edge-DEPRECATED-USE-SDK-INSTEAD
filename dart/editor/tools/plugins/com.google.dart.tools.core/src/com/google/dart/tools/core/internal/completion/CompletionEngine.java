@@ -99,6 +99,7 @@ import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.internal.util.Messages;
 import com.google.dart.tools.core.internal.util.TypeUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -106,7 +107,7 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
-import com.google.dart.tools.core.model.Method;
+import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.search.MatchKind;
 import com.google.dart.tools.core.search.MatchQuality;
 import com.google.dart.tools.core.search.SearchEngine;
@@ -306,8 +307,9 @@ public class CompletionEngine {
       // { new x! }
       List<SearchMatch> matches = findTypesWithPrefix(identifier);
       String prefix = extractFilterPrefix(identifier);
+      Set<String> previousNames = new HashSet<String>(matches.size());
       for (SearchMatch match : matches) {
-        createTypeCompletionsForConstructor(identifier, node, match, prefix);
+        createTypeCompletionsForConstructor(identifier, node, match, prefix, previousNames);
       }
       if (!isCompletionAfterDot) {
         createCompletionsForIdentifierPrefix(identifier, prefix);
@@ -392,7 +394,12 @@ public class CompletionEngine {
                         result = some;
                       }
                       String prefix = extractFilterPrefix(identifier);
-                      createTypeCompletionsForConstructor(qualNode, null, result, prefix);
+                      createTypeCompletionsForConstructor(
+                          qualNode,
+                          null,
+                          result,
+                          prefix,
+                          new HashSet<String>());
                       return null;
                     case CONSTRUCTOR:
                     case FIELD:
@@ -488,6 +495,10 @@ public class CompletionEngine {
         if (s.peek() == Mark.ConstructorName) {
           // { new x! }
           typeCompleter.getParent().accept(this);
+        } else if (isTypeAnnotationInConstructor(s)) {
+          // { new Map<Li!> }
+          proposeGenericTypeCompletions(typeCompleter, true);
+          proposeTypesForPrefix(identifier);
         } else {
           Mark m = s.elementAt(s.size() - 2);
           switch (m) {
@@ -587,6 +598,20 @@ public class CompletionEngine {
       return null;
     }
 
+    private boolean isTypeAnnotationInConstructor(Stack<Mark> s) {
+      for (int n = s.size() - 2; n >= 0; n--) {
+        switch (s.elementAt(n)) {
+          case TypeAnnotation:
+            continue;
+          case ConstructorName:
+            return true;
+          default:
+            return false;
+        }
+      }
+      return false;
+    }
+
     private void proposeIdentifierPrefixCompletions(DartNode node) {
       // Complete an unqualified identifier prefix.
       // We know there is a prefix, otherwise the parser would not produce a DartIdentifier.
@@ -600,7 +625,7 @@ public class CompletionEngine {
         createCompletionsForMethodInvocation(identifier, type, false, false, isStatic);
         proposeTypesForPrefix(identifier, false);
       } else {
-        // TODO top-level element
+        proposeTopLevelElementsForPrefix(identifier);
         proposeTypesForPrefix(identifier, false);
       }
     }
@@ -1010,8 +1035,9 @@ public class CompletionEngine {
         if (matches == null || matches.size() == 0) {
           return null;
         }
+        Set<String> previousNames = new HashSet<String>(matches.size());
         for (SearchMatch match : matches) {
-          createTypeCompletionsForConstructor(null, node, match, ""); //$NON-NLS-1$
+          createTypeCompletionsForConstructor(null, node, match, "", previousNames); //$NON-NLS-1$
         }
         createCompletionsForIdentifierPrefix(null, null);
       }
@@ -1191,7 +1217,6 @@ public class CompletionEngine {
           }
         }
       }
-      // TODO(zundel): This should not recurse
       node.visitChildren(this);
       return null;
     }
@@ -1258,8 +1283,142 @@ public class CompletionEngine {
         createCompletionsForMethodInvocation(null, type, false, false, isStatic);
         proposeTypesForPrefix(null, false);
       } else {
-        // TODO top-level element
+        proposeTopLevelElementsForPrefix(null);
         proposeTypesForPrefix(null, false);
+      }
+    }
+  }
+
+  // TODO(messick) Once the search engine starts finding top-level elements, check all visitor
+  // call sites to be sure the searches are appropriate
+  private class SearchDriver {
+
+    private DartIdentifier id;
+    private SearchEngine engine;
+    private SearchScope scope;
+    private SearchPattern pattern;
+    private String prefix;
+    private Collection<DartLibrary> libs;
+
+    SearchDriver(DartIdentifier id) {
+      this.id = id;
+      this.libs = findLibrariesForQualifier(id);
+      this.engine = SearchEngineFactory.createSearchEngine();
+    }
+
+    List<SearchMatch> findElements(int... elementTypes) {
+      try {
+        makeScope();
+        makePattern();
+        return doSearch(elementTypes);
+      } catch (SearchException x) {
+        // makeScope() found no libraries; return empty result (fall-thru)
+      } catch (DartModelException ex) {
+        // no one cares (fall-thru)
+      }
+      return new ArrayList<SearchMatch>(0);
+    }
+
+    private List<SearchMatch> doSearch(int[] elementTypes) throws DartModelException,
+        SearchException {
+      boolean searchedTypes = false;
+      SearchFilter filter = null;
+      List<SearchMatch> matches = null;
+      for (int elementType : elementTypes) {
+        List<SearchMatch> result = null;
+        IProgressMonitor mon = new NullProgressMonitor();
+        switch (elementType) {
+          case DartElement.FUNCTION:
+            result = engine.searchFunctionDeclarations(scope, pattern, filter, mon);
+            break;
+          case DartElement.FUNCTION_TYPE_ALIAS:
+            // fall-thru
+          case DartElement.TYPE:
+            if (searchedTypes) {
+              continue;
+            }
+            result = engine.searchTypeDeclarations(scope, pattern, filter, mon);
+            searchedTypes = true; // use one search for both aliases and types
+            break;
+          case DartElement.VARIABLE:
+            result = engine.searchVariableDeclarations(scope, pattern, filter, mon);
+            break;
+        }
+        if (matches == null) {
+          matches = result;
+        } else {
+          matches.addAll(result);
+        }
+      }
+      CompilationUnit cu = getCurrentCompilationUnit();
+      if (cu == null) {
+        return matches; // this happens during unit tests
+      }
+      for (int elementType : elementTypes) {
+        CompilationUnitElement[] elements = null;
+        switch (elementType) {
+          case DartElement.FUNCTION:
+            elements = cu.getChildrenOfType(com.google.dart.tools.core.model.DartFunction.class).toArray(
+                new CompilationUnitElement[0]);
+          case DartElement.FUNCTION_TYPE_ALIAS:
+            elements = cu.getFunctionTypeAliases();
+          case DartElement.TYPE:
+            elements = cu.getTypes();
+            break;
+          case DartElement.VARIABLE:
+            elements = cu.getChildrenOfType(
+                com.google.dart.tools.core.model.DartVariableDeclaration.class).toArray(
+                new CompilationUnitElement[0]);
+        }
+        int idx = 0;
+        for (CompilationUnitElement localType : elements) {
+          String typeName = localType.getElementName();
+          if (typeName.startsWith(prefix)) { // this test is case sensitive
+            SearchMatch match = new SearchMatch(
+                MatchQuality.EXACT,
+                MatchKind.NOT_A_REFERENCE,
+                localType,
+                ((SourceReference) localType).getSourceRange());
+            boolean found = false;
+            for (SearchMatch foundMatch : matches) {
+              if (foundMatch.getElement().getElementName().equals(typeName)) {
+                found = true;
+                break;
+              }
+            }
+            if (!found) {
+              matches.add(idx++, match);
+            }
+          }
+        }
+      }
+      return matches;
+    }
+
+    private void makePattern() {
+      prefix = extractFilterPrefix(id);
+      if (prefix == null) {
+        prefix = ""; //$NON-NLS-1$
+      }
+      pattern = SearchPatternFactory.createPrefixPattern(prefix, true);
+    }
+
+    private void makeScope() throws SearchException {
+      if (libs == null) {
+//      if (currentCompilationUnit == null) {
+        // completion search should never use workspace scope, but tests don't set CU
+        scope = SearchScopeFactory.createWorkspaceScope();
+        // apparently, library scope does not include core lib so use workspace for now
+        // TODO figure out how to make the default search use core lib
+        // TODO should ALL searches use core lib?
+//      } else {
+//        scope = SearchScopeFactory.createLibraryScope(currentCompilationUnit.getLibrary());
+//      }
+      } else {
+        if (libs.isEmpty()) {
+          throw new SearchException();
+        }
+        scope = SearchScopeFactory.createLibraryScope(libs);
       }
     }
   }
@@ -1285,7 +1444,8 @@ public class CompletionEngine {
     return names;
   }
 
-  static private int countPositionalParameters(Method method) throws DartModelException {
+  static private int countPositionalParameters(com.google.dart.tools.core.model.DartFunction method)
+      throws DartModelException {
     List<DartVariableDeclaration> params = method.getChildrenOfType(DartVariableDeclaration.class);
     int posParamCount = 0;
     for (DartVariableDeclaration param : params) {
@@ -1356,6 +1516,20 @@ public class CompletionEngine {
     return list;
   }
 
+  static private char[][] getParameterNames(com.google.dart.tools.core.model.DartFunction method) {
+    try {
+      String[] paramNames = method.getParameterNames();
+      int count = paramNames.length;
+      char[][] names = new char[count][];
+      for (int i = 0; i < count; i++) {
+        names[i] = paramNames[i].toCharArray();
+      }
+      return names;
+    } catch (DartModelException exception) {
+      return CharOperation.NO_CHAR_CHAR;
+    }
+  }
+
   static private char[][] getParameterNames(FunctionAliasElement alias) {
     FunctionType type = alias.getFunctionType();
     return getParameterNames(type);
@@ -1391,9 +1565,19 @@ public class CompletionEngine {
     return names;
   }
 
-  static private char[][] getParameterNames(Method method) {
+  static private char[][] getParameterNames(MethodElement method) {
+    List<VariableElement> params = method.getParameters();
+    int posParamCount = params.size();
+    char[][] names = new char[posParamCount][];
+    for (int i = 0; i < posParamCount; i++) {
+      names[i] = params.get(i).getName().toCharArray();
+    }
+    return names;
+  }
+
+  static private char[][] getParameterTypeNames(com.google.dart.tools.core.model.DartFunction method) {
     try {
-      String[] paramNames = method.getParameterNames();
+      String[] paramNames = method.getParameterTypeNames();
       int count = paramNames.length;
       char[][] names = new char[count][];
       for (int i = 0; i < count; i++) {
@@ -1403,16 +1587,6 @@ public class CompletionEngine {
     } catch (DartModelException exception) {
       return CharOperation.NO_CHAR_CHAR;
     }
-  }
-
-  static private char[][] getParameterNames(MethodElement method) {
-    List<VariableElement> params = method.getParameters();
-    int posParamCount = params.size();
-    char[][] names = new char[posParamCount][];
-    for (int i = 0; i < posParamCount; i++) {
-      names[i] = params.get(i).getName().toCharArray();
-    }
-    return names;
   }
 
   static private char[][] getParameterTypeNames(FunctionAliasElement alias) {
@@ -1432,20 +1606,6 @@ public class CompletionEngine {
       }
     }
     return names;
-  }
-
-  static private char[][] getParameterTypeNames(Method method) {
-    try {
-      String[] paramNames = method.getParameterTypeNames();
-      int count = paramNames.length;
-      char[][] names = new char[count][];
-      for (int i = 0; i < count; i++) {
-        names[i] = paramNames[i].toCharArray();
-      }
-      return names;
-    } catch (DartModelException exception) {
-      return CharOperation.NO_CHAR_CHAR;
-    }
   }
 
   static private char[][] getParameterTypeNames(MethodElement method) {
@@ -2243,6 +2403,65 @@ public class CompletionEngine {
     createCompletionsForPropertyAccess(identifier, type, false, false, true);
   }
 
+  private void createCompletionsForTopLevelElement(DartNode node, SearchMatch match, String prefix) {
+    CompilationUnitElement element = (CompilationUnitElement) match.getElement();
+    if (!(element instanceof com.google.dart.tools.core.model.Type)) {
+      return;
+    }
+    boolean disallowPrivate = true;
+    if (prefix != null) {
+      disallowPrivate = !prefix.startsWith("_");
+      if (prefix.length() == 0) {
+        prefix = null;
+      }
+    }
+    String name = element.getElementName();
+    if (disallowPrivate && name.startsWith("_")) {
+      return;
+    }
+    try {
+      com.google.dart.tools.core.model.DartFunction method = null;
+//      DartVariableDeclaration variable = null;
+      int kind = -1;
+      switch (element.getElementType()) {
+        case DartElement.FUNCTION:
+          kind = CompletionProposal.METHOD_REF;
+          method = (com.google.dart.tools.core.model.DartFunction) element;
+          break;
+        case DartElement.VARIABLE:
+          kind = CompletionProposal.FIELD_REF;
+//          variable = (DartVariableDeclaration) element;
+          break;
+        default:
+          return;
+      }
+      name = element.getElementName();
+      InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
+          kind,
+          actualCompletionPosition - offset);
+//          char[] declaringTypeName = method.getDeclaringType().getElementName().toCharArray();
+      char[] methodName = name.toCharArray();
+//          proposal.setDeclarationSignature(declaringTypeName);
+      proposal.setSignature(methodName);
+      proposal.setCompletion(methodName);
+      proposal.setName(methodName);
+      proposal.setIsContructor(false);
+      proposal.setIsGetter(false);
+      proposal.setIsSetter(false);
+      if (method != null) {
+        proposal.setParameterNames(getParameterNames(method));
+        proposal.setParameterTypeNames(getParameterTypeNames(method));
+        proposal.setPositionalParameterCount(countPositionalParameters(method));
+        proposal.setTypeName(CharOperation.toCharArray(method.getReturnTypeName()));
+      }
+//          proposal.setDeclarationTypeName(declaringTypeName);
+      setSourceLoc(proposal, node, prefix);
+      proposal.setRelevance(1);
+      requestor.accept(proposal);
+    } catch (DartModelException exception) {
+    }
+  }
+
   private void createProposalsForLiterals(DartNode node, String... names) {
     String prefix = extractFilterPrefix(node);
     for (String name : names) {
@@ -2259,7 +2478,7 @@ public class CompletionEngine {
   }
 
   private void createTypeCompletionsForConstructor(DartNode node, DartNewExpression newExpr,
-      SearchMatch match, String prefix) {
+      SearchMatch match, String prefix, Set<String> previousNames) {
     DartElement element = match.getElement();
     if (!(element instanceof com.google.dart.tools.core.model.Type)) {
       return;
@@ -2282,7 +2501,20 @@ public class CompletionEngine {
           if (newExpr != null && newExpr.isConst() && !method.getModifiers().isConstant()) {
             continue;
           }
+          if (method.isImplicit()) {
+            continue;
+          }
           name = method.getElementName(); // insert named constructors, too
+          if (disallowPrivate && name.startsWith("_") || name.contains("._")) {
+            // have to check for ._ because constructor element names include type (!)
+            return;
+          }
+          char[][] paramTypeNames = getParameterTypeNames(method);
+          String sig = makeSig(name, paramTypeNames);
+          if (previousNames.contains(sig)) {
+            continue;
+          }
+          previousNames.add(sig);
           InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
               CompletionProposal.METHOD_REF,
               actualCompletionPosition - offset);
@@ -2296,7 +2528,7 @@ public class CompletionEngine {
           proposal.setIsGetter(false);
           proposal.setIsSetter(false);
           proposal.setParameterNames(getParameterNames(method));
-          proposal.setParameterTypeNames(getParameterTypeNames(method));
+          proposal.setParameterTypeNames(paramTypeNames);
           proposal.setPositionalParameterCount(countPositionalParameters(method));
           proposal.setTypeName(CharOperation.toCharArray(method.getReturnTypeName()));
           proposal.setDeclarationTypeName(declaringTypeName);
@@ -2547,91 +2779,14 @@ public class CompletionEngine {
     return idx;
   }
 
+  private List<SearchMatch> findTopLevelElementsWithPrefix(DartIdentifier id) {
+    SearchDriver driver = new SearchDriver(id);
+    return driver.findElements(DartElement.FUNCTION, DartElement.VARIABLE);
+  }
+
   private List<SearchMatch> findTypesWithPrefix(DartIdentifier id) {
-    SearchEngine engine = SearchEngineFactory.createSearchEngine();
-    SearchScope scope;
-    Collection<DartLibrary> libs = findLibrariesForQualifier(id);
-    if (libs == null) {
-//      if (currentCompilationUnit == null) {
-      // completion search should never use workspace scope, but tests don't set CU
-      scope = SearchScopeFactory.createWorkspaceScope();
-      // apparently, library scope does not include core lib so use workspace for now
-      // TODO figure out how to make the default search use core lib
-      // TODO should ALL searches use core lib?
-//      } else {
-//        scope = SearchScopeFactory.createLibraryScope(currentCompilationUnit.getLibrary());
-//      }
-    } else {
-      if (libs.isEmpty()) {
-        return new ArrayList<SearchMatch>(0);
-      }
-      scope = SearchScopeFactory.createLibraryScope(libs);
-    }
-    String prefix = extractFilterPrefix(id);
-    if (prefix == null) {
-      prefix = ""; //$NON-NLS-1$
-    }
-    SearchPattern pattern = SearchPatternFactory.createPrefixPattern(prefix, true);
-    List<SearchMatch> matches;
-    try {
-      matches = engine.searchTypeDeclarations(
-          scope,
-          pattern,
-          (SearchFilter) null,
-          new NullProgressMonitor());
-    } catch (SearchException ex) {
-      return null;
-    }
-    if (libs == null) { // no prefix specified (vs undefined prefix)
-      try {
-        int idx = 0;
-        for (com.google.dart.tools.core.model.Type localType : getCurrentCompilationUnit().getTypes()) {
-          String typeName = localType.getElementName();
-          if (typeName.startsWith(prefix)) { // this test is case sensitive
-            SearchMatch match = new SearchMatch(
-                MatchQuality.EXACT,
-                MatchKind.NOT_A_REFERENCE,
-                localType,
-                localType.getSourceRange());
-            boolean found = false;
-            for (SearchMatch foundMatch : matches) {
-              if (foundMatch.getElement().getElementName().equals(typeName)) {
-                found = true;
-                break;
-              }
-            }
-            if (!found) {
-              matches.add(idx++, match);
-            }
-          }
-        }
-        for (com.google.dart.tools.core.model.DartFunctionTypeAlias localType : getCurrentCompilationUnit().getFunctionTypeAliases()) {
-          String typeName = localType.getElementName();
-          if (typeName.startsWith(prefix)) { // this test is case sensitive
-            SearchMatch match = new SearchMatch(
-                MatchQuality.EXACT,
-                MatchKind.NOT_A_REFERENCE,
-                localType,
-                localType.getSourceRange());
-            boolean found = false;
-            for (SearchMatch foundMatch : matches) {
-              if (foundMatch.getElement().getElementName().equals(typeName)) {
-                found = true;
-                break;
-              }
-            }
-            if (!found) {
-              matches.add(idx++, match);
-            }
-          }
-        }
-      } catch (DartModelException ex) {
-        // no one cares
-      } catch (NullPointerException ex) {
-        // happens during tests because currentCompilationUnit is null
-      }
-    }
-    return matches;
+    SearchDriver driver = new SearchDriver(id);
+    return driver.findElements(DartElement.TYPE, DartElement.FUNCTION_TYPE_ALIAS);
   }
 
   private CompilationUnit getCurrentCompilationUnit() {
@@ -2745,7 +2900,9 @@ public class CompletionEngine {
       createCompletionsForIdentifierPrefix(node, prefix);
     }
     if (classElement == null) {
-      // TODO Handle top-level functions
+      if (node instanceof DartIdentifier) {
+        proposeTopLevelElementsForPrefix((DartIdentifier) node);
+      }
       return;
     }
     List<? extends Type> typeParams = classElement.getTypeParameters();
@@ -2794,6 +2951,23 @@ public class CompletionEngine {
             break;
         }
       }
+    }
+  }
+
+  private void proposeTopLevelElementsForPrefix(DartIdentifier identifier) {
+    List<SearchMatch> matches = findTopLevelElementsWithPrefix(identifier);
+    if (matches == null || matches.size() == 0) {
+      return;
+    }
+    String prefix = extractFilterPrefix(identifier);
+    Set<String> uniques = new HashSet<String>(matches.size()); // indexer returns duplicates
+    for (SearchMatch match : matches) {
+      String matchName = match.getElement().getElementName();
+      if (uniques.contains(matchName)) {
+        continue;
+      }
+      uniques.add(matchName);
+      createCompletionsForTopLevelElement(identifier, match, prefix);
     }
   }
 

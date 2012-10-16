@@ -1127,7 +1127,7 @@ public class SearchEngineImpl implements SearchEngine {
     for (Element element : elements) {
       index.getRelationships(
           element,
-          IndexConstants.DEFINES_FUNCTION,
+          IndexConstants.DEFINES_VARIABLE,
           new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, filteredListener));
     }
   }

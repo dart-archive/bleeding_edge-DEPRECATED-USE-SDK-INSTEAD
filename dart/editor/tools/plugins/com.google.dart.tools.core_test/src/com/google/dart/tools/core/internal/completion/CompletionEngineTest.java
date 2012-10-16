@@ -270,9 +270,6 @@ public class CompletionEngineTest extends TestCase {
     test("class L{var k;void.!1}", "1-k");
   }
 
-  /**
-   * XXX Disabled by scheglov because fails after r9514.
-   */
   public void testCommentSnippets044() throws Exception {
     // see testCompletion_alias_field for reason to not check for XXX in completion list
     test("class XXX {XXX.fisk();}main() {main(); new !1}}", "1+List");
@@ -679,6 +676,23 @@ public class CompletionEngineTest extends TestCase {
         "  _x1(){}",
         "}");
     test(source, "1+_x1");
+  }
+
+  public void testCommentSnippets075() throws Exception {
+    // TODO(messick) Enable this test after the indexer starts recording functions and variables
+//    test("p(x)=>0;var E;f()=>!1p(!2E);", "1+p", "2+E");
+  }
+
+  public void testCommentSnippets076() throws Exception {
+    test(
+        "main() {var m=new Map<Lis!1t<Map<int,in!2t>>,List<!3int>>();}",
+        "1+List",
+        "2+int",
+        "3+int");
+  }
+
+  public void testCommentSnippets077() throws Exception {
+    test("import 'dart:io';f() => new Fil!1", "1+File", "1-FileMode._internal");
   }
 
   public void testCompletion_alias_field() throws Exception {
