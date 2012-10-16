@@ -447,6 +447,31 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
         "");
   }
 
+  public void test_method_singleStatement() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {",
+        "    print(0);",
+        "  }",
+        "  foo() {",
+        "    test();",
+        "  }",
+        "}",
+        "");
+    selection = findOffset("test() {");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {",
+        "    print(0);",
+        "  }",
+        "}",
+        "");
+  }
+
   public void test_method_unqualifiedUnvocation() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

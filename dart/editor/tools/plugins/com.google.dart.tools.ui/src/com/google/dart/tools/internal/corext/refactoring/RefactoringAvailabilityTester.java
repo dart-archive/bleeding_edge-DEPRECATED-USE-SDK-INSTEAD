@@ -393,13 +393,7 @@ public class RefactoringAvailabilityTester {
 
   public static boolean isConvertMethodToGetterAvailable(DartFunction function)
       throws DartModelException {
-    if (function == null) {
-      return false;
-    }
-    if (!function.exists()) {
-      return false;
-    }
-    if (!function.isStructureKnown()) {
+    if (!Checks.isAvailable(function)) {
       return false;
     }
     if (function instanceof Method && ((Method) function).isConstructor()) {
@@ -787,18 +781,9 @@ public class RefactoringAvailabilityTester {
   }
 
   public static boolean isInlineMethodAvailable(Method method) throws DartModelException {
-    if (method == null) {
+    if (!Checks.isAvailable(method)) {
       return false;
     }
-    if (!method.exists()) {
-      return false;
-    }
-    if (!method.isStructureKnown()) {
-      return false;
-    }
-//    if (!method.isBinary()) {
-//      return true;
-//    }
     if (method.isConstructor()) {
       return false;
     }

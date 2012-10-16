@@ -491,17 +491,20 @@ public class Checks {
 //  	return null;
 //  }
 
-  public static boolean isAvailable(DartElement dartElement) throws DartModelException {
-    if (dartElement == null) {
+  public static boolean isAvailable(DartElement element) throws DartModelException {
+    if (element == null) {
       return false;
     }
-    if (!dartElement.exists()) {
+    if (!element.exists()) {
       return false;
     }
-    if (dartElement.isReadOnly()) {
+    if (element.isReadOnly()) {
       return false;
     }
-    if (isInReadOnlyUnit(dartElement)) {
+    if (isInReadOnlyUnit(element)) {
+      return false;
+    }
+    if (!element.isStructureKnown()) {
       return false;
     }
     return true;

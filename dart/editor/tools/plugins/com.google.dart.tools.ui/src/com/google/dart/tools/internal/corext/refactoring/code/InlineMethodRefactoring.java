@@ -327,7 +327,7 @@ public class InlineMethodRefactoring extends Refactoring {
             statements = ImmutableList.copyOf(statements).subList(0, statements.size() - 1);
           }
           // if there are statements, process them
-          if (statements.size() > 1) {
+          if (!statements.isEmpty()) {
             SourceRange statementsRange = methodUtils.getLinesRange(statements);
             methodStatementsPart = createSourcePart(statementsRange);
           }
