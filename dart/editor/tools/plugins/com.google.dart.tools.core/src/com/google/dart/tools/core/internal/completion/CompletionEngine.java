@@ -430,7 +430,17 @@ public class CompletionEngine {
                   completionNode,
                   (InterfaceType) type);
             } else {
-              createCompletionsForQualifiedMemberAccess(identifier, type, false, false);
+              if (q.getElement() instanceof ClassElement) {
+                // { io.File.! } or { Map.! }
+                createCompletionsForPropertyAccess(identifier, type, false, false, true);
+                createCompletionsForMethodInvocation(identifier, type, false, false, true);
+                createCompletionsForFactoryInvocation(
+                    identifier,
+                    completionNode,
+                    (InterfaceType) type);
+              } else {
+                createCompletionsForQualifiedMemberAccess(identifier, type, false, false);
+              }
             }
           } else {
             // { a.! } or { a.x! }
@@ -822,6 +832,10 @@ public class CompletionEngine {
         }
         proposeClassOrInterfaceNamesForPrefix(null, isClassDef);
       } else {
+        if (isCompletionAfterDot && classSrc.length() > 5
+            && classSrc.substring(classSrc.length() - 5).equals("this.")) {
+          return null;
+        }
         // for top-level elements, try type names
         proposeTypesForNewParam();
         createProposalsForLiterals(node, C_VOID);
@@ -1884,6 +1898,13 @@ public class CompletionEngine {
     Type type = target.getType();
     if (type != null) {
       return type;
+    }
+    Element element = target.getElement();
+    if (element != null) {
+      type = element.getType();
+      if (type != null) {
+        return type;
+      }
     }
     return Types.newDynamicType();
   }

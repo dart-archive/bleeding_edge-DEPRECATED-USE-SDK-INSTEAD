@@ -695,6 +695,22 @@ public class CompletionEngineTest extends TestCase {
     test("import 'dart:io';f() => new Fil!1", "1+File", "1-FileMode._internal");
   }
 
+  public void testCommentSnippets078() throws Exception {
+    test("void main() { Map.!1 }", "1+from", "1-clear"); // static method, instance method
+  }
+
+  public void testCommentSnippets079() throws Exception {
+    test("void main() { Map s; s.!1 }", "1-from", "1+clear"); // static method, instance method
+  }
+
+  public void testCommentSnippets080() throws Exception {
+    test("void main() { RuntimeError.!1 }", "1-message"); // field
+  }
+
+  public void testCommentSnippets081() throws Exception {
+    test("class Foo {this.!1}", "1-Object");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test
