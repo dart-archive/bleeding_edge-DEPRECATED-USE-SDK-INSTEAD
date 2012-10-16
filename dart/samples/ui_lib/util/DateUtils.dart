@@ -55,8 +55,7 @@ class DateUtils {
     int zoneOffset = int.parse(parts[5]) ~/ 100;
 
     // Pretend it's a UTC time
-    Date result = new Date(
-        year, month, day, hours, minutes, seconds, 0, isUtc: true);
+    Date result = new Date.utc(year, month, day, hours, minutes, seconds, 0);
     // Shift it to the proper zone, but it's still a UTC time
     result = result.subtract(new Duration(hours: zoneOffset));
     // Then render it as a local time
