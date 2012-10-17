@@ -160,7 +160,7 @@ class ObservableList<T>
     recordGlobalChange();
   }
 
-  void sort(int compare(Object a, Object b)) {
+  void sort([Comparator compare = Comparable.compare]) {
     _internal.sort(compare);
     recordGlobalChange();
   }
