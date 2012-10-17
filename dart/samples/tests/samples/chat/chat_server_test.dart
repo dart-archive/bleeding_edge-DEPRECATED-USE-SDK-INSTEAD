@@ -229,7 +229,7 @@ class ChatTestClient {
 
 
 class TestMain {
-  TestMain.start(int this.clientCount, int this.messageCount)
+  TestMain.run(int this.clientCount, int this.messageCount)
       : serverStatusPort = new ReceivePort(),
         serverPort = null,
         finishedClients = 0 {
@@ -312,22 +312,22 @@ class TestMain {
 
 
 void testOneClient() {
-  TestMain testMain = new TestMain.start(1, 5);
+  TestMain testMain = new TestMain.run(1, 5);
 }
 
 
 void testTwoClients() {
-  TestMain testMain = new TestMain.start(2, 5);
+  TestMain testMain = new TestMain.run(2, 5);
 }
 
 
 void testTwoClientsMoreMessages() {
-  TestMain testMain = new TestMain.start(2, 10);
+  TestMain testMain = new TestMain.run(2, 10);
 }
 
 
 void testTenClients() {
-  TestMain testMain = new TestMain.start(10, 2);
+  TestMain testMain = new TestMain.run(10, 2);
 }
 
 
