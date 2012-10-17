@@ -224,8 +224,8 @@ class ChatServerCommand {
 
   ChatServerCommand.start(String this._host,
                           int this._port,
-                          [int backlog = 5,
-                           bool logging = false])
+                          {int backlog: 5,
+                           bool logging: false})
       : _command = START, _backlog = backlog, _logging = logging;
   ChatServerCommand.stop() : _command = STOP;
 
