@@ -301,6 +301,7 @@ public class ApplicationGenerator extends AbstractGenerator {
     // 1) The file is non-empty;
     // 2) The file does not contain any whitespace;
     // 3) The file does not exist yet.
+    // 4) That the file is a valid Dart identifier.
     if (applicationName == null || applicationName.isEmpty()) {
       return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, DESCRIPTION);
     } else if (containsWhitespace(applicationName)) {

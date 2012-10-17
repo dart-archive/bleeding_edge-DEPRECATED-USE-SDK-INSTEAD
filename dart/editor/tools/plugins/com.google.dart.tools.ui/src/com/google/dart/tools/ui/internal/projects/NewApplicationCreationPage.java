@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.ui.internal.projects;
 
+import com.google.dart.tools.core.generator.DartIdentifierUtil;
 import com.google.dart.tools.core.internal.util.StatusUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.DirectoryVerification;
@@ -339,7 +340,9 @@ public class NewApplicationCreationPage extends WizardPage {
   }
 
   private IStatus validate() {
-    return StatusUtil.getMoreSevere(Status.OK_STATUS, validateLocation());
+    IStatus status = StatusUtil.getMoreSevere(Status.OK_STATUS, validateLocation());
+    status = StatusUtil.getMoreSevere(status, validateName());
+    return status;
   }
 
   private IStatus validateLocation() {
@@ -365,6 +368,10 @@ public class NewApplicationCreationPage extends WizardPage {
     }
 
     return Status.OK_STATUS;
+  }
+
+  private IStatus validateName() {
+    return DartIdentifierUtil.validateIdentifier(projectNameField.getText());
   }
 
 }
