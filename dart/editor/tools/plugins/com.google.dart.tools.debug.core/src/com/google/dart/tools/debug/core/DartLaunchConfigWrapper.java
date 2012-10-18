@@ -39,7 +39,6 @@ public class DartLaunchConfigWrapper {
   private static final String APPLICATION_NAME = "applicationName";
   private static final String VM_CHECKED_MODE = "vmCheckedMode";
   private static final String VM_ENABLE_DEBUGGING = "vmEnableDebugging";
-  private static final String VM_HEAP_MB = "vmHeapMB";
   private static final String SHOW_LAUNCH_OUTPUT = "showLaunchOutput";
 
   // --enable-experimental-webkit-features and --enable-devtools-experiments
@@ -182,16 +181,6 @@ public class DartLaunchConfigWrapper {
     }
   }
 
-  public String getHeapMB() {
-    try {
-      return launchConfig.getAttribute(VM_HEAP_MB, "");
-    } catch (CoreException e) {
-      DartDebugCorePlugin.logError(e);
-
-      return "";
-    }
-  }
-
   /**
    * @return the last time this config was launched, or 0 or no such
    */
@@ -301,16 +290,6 @@ public class DartLaunchConfigWrapper {
       args.add("--enable-checked-mode");
     }
 
-    try {
-      int heap = Integer.parseInt(getHeapMB());
-
-      if (heap > 0) {
-        args.add("--new_gen_heap_size=" + heap);
-      }
-    } catch (NumberFormatException ex) {
-
-    }
-
     return args.toArray(new String[args.size()]);
   }
 
@@ -374,10 +353,6 @@ public class DartLaunchConfigWrapper {
 
   public void setEnableDebugging(boolean value) {
     getWorkingCopy().setAttribute(VM_ENABLE_DEBUGGING, value);
-  }
-
-  public void setHeapMB(String value) {
-    getWorkingCopy().setAttribute(VM_HEAP_MB, value);
   }
 
   /**

@@ -80,7 +80,6 @@ public class RunPubAction extends SelectionDispatchAction {
         List<String> args = new ArrayList<String>();
 
         args.add(sdk.getVmExecutable().getPath());
-        args.add("--new_gen_heap_size=256"); //$NON-NLS-1$
         args.addAll(getPubCommand());
 
         builder.command(args);

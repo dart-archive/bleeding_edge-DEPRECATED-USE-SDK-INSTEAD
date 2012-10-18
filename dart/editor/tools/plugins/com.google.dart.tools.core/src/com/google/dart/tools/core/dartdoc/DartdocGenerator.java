@@ -218,7 +218,6 @@ public class DartdocGenerator {
     List<String> args = new ArrayList<String>();
 
     args.add(DartSdkManager.getManager().getSdk().getVmExecutable().getPath());
-    args.add("--new_gen_heap_size=256");
     args.addAll(getCompilerArguments(inputPath, outputPath));
 
     builder.command(args);

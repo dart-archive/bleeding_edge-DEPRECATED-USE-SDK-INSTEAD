@@ -53,7 +53,6 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
   private Text scriptText;
   private Text argsText;
 
-  private Text heapText;
   private Button checkedModeButton;
   private Button enableDebuggingButton;
   private Label workingDirText;
@@ -84,7 +83,6 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     Label label = new Label(group, SWT.NONE);
     label.setText("Working directory:");
     label.pack();
-    int labelWidth = label.getSize().x;
     workingDirText = new Label(group, SWT.NONE);
     GridDataFactory.swtDefaults().span(2, 1).align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(
         workingDirText);
@@ -155,18 +153,6 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
       enableDebuggingButton.setText(enableDebuggingButton.getText() + " (" + message + ")");
     }
 
-    label = new Label(group, SWT.NONE);
-    label.setText("Max heap (MB):");
-    GridDataFactory.swtDefaults().hint(labelWidth, -1).applyTo(label);
-
-    heapText = new Text(group, SWT.BORDER | SWT.SINGLE);
-    //heapText.setTextLimit(5);
-    heapText.addModifyListener(textModifyListener);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(heapText);
-
-    Label spacer = new Label(group, SWT.NONE);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).hint(widthHint, -1).applyTo(spacer);
-
     setControl(composite);
   }
 
@@ -208,7 +194,6 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     argsText.setText(dartLauncher.getArguments());
 
     checkedModeButton.setSelection(dartLauncher.getCheckedMode());
-    heapText.setText(dartLauncher.getHeapMB());
     if (enableDebuggingButton != null) {
       enableDebuggingButton.setSelection(dartLauncher.getEnableDebugging());
     }
@@ -227,7 +212,6 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     dartLauncher.setArguments(argsText.getText());
 
     dartLauncher.setCheckedMode(checkedModeButton.getSelection());
-    dartLauncher.setHeapMB(heapText.getText());
 
     if (enableDebuggingButton != null) {
       dartLauncher.setEnableDebugging(enableDebuggingButton.getSelection());
@@ -242,7 +226,6 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     dartLauncher.setArguments("");
 
     dartLauncher.setCheckedMode(false);
-    dartLauncher.setHeapMB("");
   }
 
   protected void handleScriptBrowseButton() {

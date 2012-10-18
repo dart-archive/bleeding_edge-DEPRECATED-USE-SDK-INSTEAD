@@ -82,10 +82,8 @@ public class JsonServerProcess {
 
     ProcessBuilder builder = new ProcessBuilder();
 
-    // Set the heap size to 128MB.
     builder.command(
         JsonServerManager.getDartVmExecutablePath(),
-        "--new_gen_heap_size=128",
         SERVER_PATH,
         JsonServerManager.LOCALHOST_ADDRESS,
         Integer.toString(getPort()));
