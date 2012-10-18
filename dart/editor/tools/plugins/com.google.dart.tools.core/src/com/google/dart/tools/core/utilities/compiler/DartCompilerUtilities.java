@@ -857,7 +857,7 @@ public class DartCompilerUtilities {
           listener,
           false);
     }
-    return libMap.get(librarySourceUri);
+    return libMap != null ? libMap.get(librarySourceUri) : null;
 
   }
 
