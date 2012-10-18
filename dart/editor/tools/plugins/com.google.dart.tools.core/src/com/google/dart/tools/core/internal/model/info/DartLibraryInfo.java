@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.model.info;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartImport;
+import com.google.dart.tools.core.model.DartPart;
 
 /**
  * Instances of the class <code>DartLibraryInfo</code> maintain the cached data shared by all equal
@@ -37,6 +38,11 @@ public class DartLibraryInfo extends OpenableElementInfo {
   private DartImport[] imports = DartImport.EMPTY_ARRAY;
 
   /**
+   * All "part" declarations of this library.
+   */
+  private DartPart[] parts = DartPart.EMPTY_ARRAY;
+
+  /**
    * Adds the given {@link DartImport}. If the library was already added with same the prefix, then
    * request will be ignored.
    */
@@ -51,6 +57,22 @@ public class DartLibraryInfo extends OpenableElementInfo {
     int length = imports.length;
     System.arraycopy(imports, 0, imports = new DartImport[length + 1], 0, length);
     imports[length] = newImport;
+  }
+
+  /**
+   * Adds the given {@link DartPart}.
+   */
+  public void addPart(DartPart newPart) {
+    // may be already added
+    for (DartPart part : parts) {
+      if (part.equals(newPart)) {
+        return;
+      }
+    }
+    // do add
+    int length = parts.length;
+    System.arraycopy(parts, 0, parts = new DartPart[length + 1], 0, length);
+    parts[length] = newPart;
   }
 
   /**
@@ -76,6 +98,10 @@ public class DartLibraryInfo extends OpenableElementInfo {
    */
   public String getName() {
     return name;
+  }
+
+  public DartPart[] getParts() {
+    return parts;
   }
 
   /**

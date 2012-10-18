@@ -132,6 +132,10 @@ public class DartToolsPlugin extends AbstractUIPlugin {
 //  @Deprecated
 //  private static final String DEPRECATED_CODEASSIST_ORDER_PROPOSALS = PreferenceConstants.CODEASSIST_ORDER_PROPOSALS;
 
+  public static IStatus createErrorStatus(String message, Throwable e) {
+    return new Status(IStatus.ERROR, getPluginId(), DartStatusConstants.INTERNAL_ERROR, message, e);
+  }
+
   /**
    * Creates the Java plug-in's standard groups for view context menus.
    * 
@@ -319,7 +323,7 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   }
 
   public static void log(String message, Throwable e) {
-    log(new Status(IStatus.ERROR, getPluginId(), DartStatusConstants.INTERNAL_ERROR, message, e));
+    log(createErrorStatus(message, e));
   }
 
   public static void log(Throwable e) {
@@ -603,6 +607,16 @@ public class DartToolsPlugin extends AbstractUIPlugin {
     return contentAssistHistory;
   }
 
+  @SuppressWarnings("deprecation")
+  public synchronized DartTextTools getDartTextTools() {
+    if (dartTextTools == null) {
+      dartTextTools = new DartTextTools(
+          getPreferenceStore(),
+          DartCore.getPlugin().getPluginPreferences());
+    }
+    return dartTextTools;
+  }
+
   /**
    * Returns a section in the Java plugin's dialog settings. If the section doesn't exist yet, it is
    * created.
@@ -683,16 +697,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
     // }
     //
     // return fJavaEditorTextHoverDescriptors;
-  }
-
-  @SuppressWarnings("deprecation")
-  public synchronized DartTextTools getDartTextTools() {
-    if (dartTextTools == null) {
-      dartTextTools = new DartTextTools(
-          getPreferenceStore(),
-          DartCore.getPlugin().getPluginPreferences());
-    }
-    return dartTextTools;
   }
 
   public synchronized MembersOrderPreferenceCache getMemberOrderPreferenceCache() {

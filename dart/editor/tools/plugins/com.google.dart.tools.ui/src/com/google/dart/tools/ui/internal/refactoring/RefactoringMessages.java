@@ -69,6 +69,8 @@ public final class RefactoringMessages extends NLS {
   public static String RenameProjectParticipant_name;
   // RenameResourceParticipant
   public static String RenameResourceParticipant_name;
+  // MoveResourceParticipant
+  public static String MoveResourceParticipant_name;
   // DeleteResourceParticipant
   public static String DeleteResourceParticipant_name;
   public static String DeleteResourceParticipant_remove_reference;

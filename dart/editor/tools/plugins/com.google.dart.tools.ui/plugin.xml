@@ -3216,6 +3216,21 @@
       </renameParticipant>
    </extension>
    <extension
+         point="org.eclipse.ltk.core.refactoring.moveParticipants">
+      <moveParticipant
+            class="com.google.dart.tools.internal.corext.refactoring.rename.MoveResourceParticipant"
+            id="com.google.dart.tools.internal.corext.refactoring.rename.MoveResourceParticipant"
+            name="Update resource references in Dart source">
+            <enablement>
+              <with variable="affectedNatures">
+                <iterate operator="or">
+                  <equals value="com.google.dart.tools.core.dartNature"/>
+                </iterate>
+              </with>
+            </enablement>
+      </moveParticipant>
+   </extension>
+   <extension
          point="org.eclipse.ltk.core.refactoring.deleteParticipants">
       <deleteParticipant
             class="com.google.dart.tools.internal.corext.refactoring.rename.DeleteResourceParticipant"

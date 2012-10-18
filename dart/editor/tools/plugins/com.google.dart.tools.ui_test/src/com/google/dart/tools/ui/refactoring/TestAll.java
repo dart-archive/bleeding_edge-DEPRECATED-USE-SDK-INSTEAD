@@ -36,6 +36,7 @@ public class TestAll {
     // participants
     suite.addTestSuite(DeleteResourceParticipantTest.class);
     suite.addTestSuite(RenameResourceParticipantTest.class);
+    suite.addTestSuite(MoveResourceParticipantTest.class);
     // extract
     suite.addTestSuite(ExtractUtilsTest.class);
     suite.addTestSuite(ExtractLocalRefactoringTest.class);

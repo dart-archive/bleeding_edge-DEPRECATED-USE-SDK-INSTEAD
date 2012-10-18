@@ -85,11 +85,13 @@ public class ExecutionUtils {
   /**
    * Runs given {@link RunnableEx} and logs exception.
    */
-  public static void runLog(RunnableEx runnable) {
+  public static boolean runLog(RunnableEx runnable) {
     try {
       runnable.run();
+      return true;
     } catch (Throwable e) {
       DartCore.logError(e);
+      return false;
     }
   }
 

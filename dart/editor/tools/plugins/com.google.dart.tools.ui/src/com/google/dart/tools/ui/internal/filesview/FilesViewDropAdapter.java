@@ -13,13 +13,20 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
+import com.google.dart.tools.ui.internal.refactoring.MoveSupport;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
@@ -50,8 +57,34 @@ public class FilesViewDropAdapter extends NavigatorDropAdapter {
       IStatus status = performProjectDrop(data);
       return status.isOK();
     }
-
-    return super.performDrop(data);
+    // move IResource(s) to IContainer
+    if (target instanceof IContainer && data instanceof IStructuredSelection) {
+      final IContainer destination = (IContainer) target;
+      // prepare resources
+      final IResource[] resources;
+      {
+        Object[] selectionObjects = ((IStructuredSelection) data).toArray();
+        resources = new IResource[selectionObjects.length];
+        for (int i = 0; i < selectionObjects.length; i++) {
+          Object o = selectionObjects[i];
+          if (o instanceof IResource) {
+            resources[i] = (IResource) o;
+          } else {
+            return false;
+          }
+        }
+      }
+      // execute MoveRefactoring
+      return ExecutionUtils.runLog(new RunnableEx() {
+        @Override
+        public void run() throws Exception {
+          RefactoringStatus status = new RefactoringStatus();
+          MoveSupport.performMove(status, resources, destination);
+        }
+      });
+    }
+    // we don't know how to move this
+    return false;
   }
 
   @Override

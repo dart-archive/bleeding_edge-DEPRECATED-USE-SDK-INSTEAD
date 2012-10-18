@@ -15,6 +15,7 @@
 package com.google.dart.tools.core.test.util;
 
 import com.google.common.io.CharStreams;
+import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
@@ -24,7 +25,9 @@ import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IWorkspace;
@@ -145,6 +148,19 @@ public class TestProject {
     TestUtilities.deleteProject(project);
   }
 
+  public IFolder createFolder(String path) throws Exception {
+    String[] parts = StringUtils.split(path, "/");
+    IContainer container = project;
+    for (String part : parts) {
+      IFolder folder = container.getFolder(new Path(part));
+      if (!folder.exists()) {
+        folder.create(true, true, null);
+      }
+      container = folder;
+    }
+    return (IFolder) container;
+  }
+
   /**
    * @return the {@link DartProject}.
    */
@@ -203,7 +219,6 @@ public class TestProject {
     {
       AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
       File javaFile = file.getLocation().toFile();
-//      server.analyze(javaFile);
       server.scan(javaFile, 5000);
       server.changed(javaFile);
     }

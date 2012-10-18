@@ -45,12 +45,14 @@ import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartPart;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.core.utilities.general.SourceUtilities;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
@@ -502,6 +504,16 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   @Override
+  public DartPart[] getParts() throws DartModelException {
+    DartLibraryInfo info = (DartLibraryInfo) getElementInfo();
+    if (info != null) {
+      return info.getParts();
+    } else {
+      return DartPart.EMPTY_ARRAY;
+    }
+  }
+
+  @Override
   public List<DartLibrary> getReferencingLibraries() throws DartModelException {
     List<DartLibrary> libraries = new ArrayList<DartLibrary>();
     for (DartProject project : DartModelManager.getInstance().getDartModel().getDartProjects()) {
@@ -604,8 +616,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   /**
-   * Answer <code>true</code> if the receiver directly or indirectly imports the
-   * dart:html libraries.
+   * Answer <code>true</code> if the receiver directly or indirectly imports the dart:html
+   * libraries.
    */
   public boolean isOrImportsBrowserLibrary() {
     List<DartLibrary> visited = new ArrayList<DartLibrary>(10);
@@ -854,7 +866,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 
       @Override
       public Void visitSourceDirective(DartSourceDirective node) {
-        String relativePath = getRelativePath(node.getSourceUri());
+        DartStringLiteral sourceUri = node.getSourceUri();
+        String relativePath = getRelativePath(sourceUri);
         if (relativePath == null || relativePath.length() == 0) {
           return null;
         }
@@ -867,10 +880,15 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
             && compilationUnitFiles[0] instanceof IFile) {
           IFile unitFile = (IFile) compilationUnitFiles[0];
           if (unitFile.isAccessible()) {
-            children.add(new CompilationUnitImpl(
+            CompilationUnitImpl sourceUnit = new CompilationUnitImpl(
                 DartLibraryImpl.this,
                 unitFile,
-                DefaultWorkingCopyOwner.getInstance()));
+                DefaultWorkingCopyOwner.getInstance());
+            children.add(sourceUnit);
+            libraryInfo.addPart(new DartPartImpl(
+                sourceUnit,
+                SourceRangeFactory.create(node),
+                SourceRangeFactory.create(sourceUri)));
             return null;
           }
         }
