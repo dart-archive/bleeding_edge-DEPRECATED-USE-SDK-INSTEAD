@@ -40,7 +40,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -79,7 +78,7 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_RAW_STRING, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_PARSE_NUM, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_IDENTICAL, true);
-      settings.setDefault(ID_MIGRATE_SYNTAX_1M1_LIBRARY, false);
+      settings.setDefault(ID_MIGRATE_SYNTAX_1M1_LIBRARY, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED, false);
       // style
       CLEAN_UPS.put(ID_STYLE_TRAILING_WHITESPACE, new Style_trailingSpace_CleanUp());
@@ -145,14 +144,14 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 "Replace === with == or identical(x,y). Replace !== with != or !identical(x,y).");
             createCheckButton(
                 syntaxComposite,
-                ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED,
-                "Migrate [param = value] to {param: value} when only named arguments are used");
-            new Label(syntaxComposite, SWT.NONE);
-            new Label(syntaxComposite, SWT.NONE).setText("Work in progress... not fully implemented:");
-            createCheckButton(
-                syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M1_LIBRARY,
                 "Migrate library/import/source");
+            createCheckButton(
+                syntaxComposite,
+                ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED,
+                "Migrate [param = value] to {param: value} when only named arguments are used");
+//            new Label(syntaxComposite, SWT.NONE);
+//            new Label(syntaxComposite, SWT.NONE).setText("Work in progress... not fully implemented:");
           }
         }
         // Code Style
