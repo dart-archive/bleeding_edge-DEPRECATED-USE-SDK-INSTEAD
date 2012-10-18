@@ -27,10 +27,12 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
@@ -39,6 +41,89 @@ import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
  * Contributes the Settings/Update button control to the main dart editor toolbar.
  */
 public class SettingsControlContribution extends UpdateAdapter implements DisposeListener {
+
+  final class LinuxControl extends SettingsControl<Button> {
+
+    LinuxControl(Composite composite) {
+      super(new Button(composite, SWT.NO_FOCUS));
+      GridDataFactory.fillDefaults().indent(0, 0).grab(true, true).applyTo(control);
+    }
+
+    @Override
+    void addSelectionListener(SelectionAdapter listener) {
+      control.addSelectionListener(listener);
+    }
+
+    @Override
+    void setImage(Image image) {
+      control.setImage(image);
+    }
+
+    @Override
+    void setToolTipText(String tooltipText) {
+      control.setToolTipText(tooltipText);
+    }
+
+  }
+
+  final class StandardControl extends SettingsControl<ToolItem> {
+
+    StandardControl(Composite composite) {
+      super(new ToolItem(new ToolBar(composite, SWT.NONE), SWT.DROP_DOWN | SWT.NO_TRIM));
+    }
+
+    @Override
+    void addSelectionListener(SelectionAdapter listener) {
+      control.addSelectionListener(listener);
+    }
+
+    @Override
+    void setImage(Image image) {
+      control.setImage(image);
+    }
+
+    @Override
+    void setToolTipText(String tooltipText) {
+      control.setToolTipText(tooltipText);
+    }
+
+  }
+
+  private abstract class SettingsControl<T extends Widget> {
+
+    final T control;
+
+    SettingsControl(T settingsButton) {
+
+      this.control = settingsButton;
+
+      refresh();
+
+      addSelectionListener(new SelectionAdapter() {
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+          updateState.performAction(controlContribution.getWorkbenchWindow());
+        }
+      });
+
+    }
+
+    abstract void addSelectionListener(SelectionAdapter listener);
+
+    boolean isDisposed() {
+      return control.isDisposed();
+    }
+
+    void refresh() {
+      setImage(updateState.getButtonImage());
+      setToolTipText(updateState.getTooltipText());
+    }
+
+    abstract void setImage(Image image);
+
+    abstract void setToolTipText(String tooltipText);
+
+  }
 
   private static enum UpdateState {
     UNKNOWN("icons/full/obj16/wrench.gif", "Preferences") {
@@ -89,7 +174,7 @@ public class SettingsControlContribution extends UpdateAdapter implements Dispos
 
   private final WorkbenchWindowControlContribution controlContribution;
 
-  private ToolItem settingsButton;
+  private SettingsControl<? extends Widget> settingsButton;
 
   private UpdateState updateState = UpdateState.UNKNOWN;
 
@@ -98,20 +183,8 @@ public class SettingsControlContribution extends UpdateAdapter implements Dispos
   }
 
   public void createControl(Composite composite) {
-    ToolBar toolBar = new ToolBar(composite, SWT.NONE);
-    settingsButton = new ToolItem(toolBar, SWT.DROP_DOWN | SWT.NO_TRIM);
-    settingsButton.setImage(updateState.getButtonImage());
-    settingsButton.setToolTipText(updateState.getTooltipText());
-    settingsButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        updateState.performAction(controlContribution.getWorkbenchWindow());
-      }
-    });
 
-    if (Util.isLinux()) {
-      GridDataFactory.fillDefaults().indent(0, 1).grab(true, true).applyTo(toolBar);
-    }
+    settingsButton = createSettingsControl(composite);
 
     composite.addDisposeListener(this);
 
@@ -131,13 +204,19 @@ public class SettingsControlContribution extends UpdateAdapter implements Dispos
     UpdateCore.getUpdateManager().removeListener(this);
   }
 
+  private SettingsControl<? extends Widget> createSettingsControl(Composite composite) {
+    if (Util.isLinux()) {
+      return new LinuxControl(composite);
+    }
+    return new StandardControl(composite);
+  }
+
   private void refreshButton() {
     asyncExec(new Runnable() {
       @Override
       public void run() {
         if (!settingsButton.isDisposed()) {
-          settingsButton.setImage(updateState.getButtonImage());
-          settingsButton.setToolTipText(updateState.getTooltipText());
+          settingsButton.refresh();
         }
       }
     });
