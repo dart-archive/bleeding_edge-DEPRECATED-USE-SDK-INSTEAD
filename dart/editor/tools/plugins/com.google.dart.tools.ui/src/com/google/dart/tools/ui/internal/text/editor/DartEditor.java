@@ -34,6 +34,7 @@ import com.google.dart.tools.ui.IContextMenuConstants;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.DartSearchActionGroup;
+import com.google.dart.tools.ui.actions.DartdocActionGroup;
 import com.google.dart.tools.ui.actions.OpenEditorActionGroup;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
 import com.google.dart.tools.ui.callhierarchy.OpenCallHierarchyAction;
@@ -2436,11 +2437,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     DartX.todo("actions");
     ActionGroup oeg, ovg;
-    ActionGroup jsg;
+    ActionGroup dsg, ddg;
     fActionGroups = new CompositeActionGroup(new ActionGroup[] {
         oeg = new OpenEditorActionGroup(this), ovg = new OpenViewActionGroup(this),
-        jsg = new DartSearchActionGroup(this)});
-    fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, jsg});
+        dsg = new DartSearchActionGroup(this), ddg = new DartdocActionGroup(this)});
+    fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg, ddg});
 
     // Registers the folding actions with the editor
     fFoldingGroup = new FoldingActionGroup(this, getViewer());

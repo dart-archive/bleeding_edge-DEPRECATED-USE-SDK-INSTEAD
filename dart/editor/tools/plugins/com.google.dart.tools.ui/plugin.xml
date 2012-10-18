@@ -1959,10 +1959,10 @@
             id="org.eclipse.wst.jsdt.ui.edit.text.java.open.super.implementation">
       </command>
       <command
-            name="%ActionDefinition.openExternalJavadoc.name"
-            description="%ActionDefinition.openExternalJavadoc.description"
+            name="%ActionDefinition.openExternalDartdoc.name"
+            description="%ActionDefinition.openExternalDartdoc.description"
             categoryId="org.eclipse.ui.category.navigate"
-            id="org.eclipse.wst.jsdt.ui.edit.text.java.open.external.javadoc">
+            id="com.google.dart.tools.ui.edit.text.dart.open.external.dartdoc">
       </command>
       <command
             name="%ActionDefinition.openTypeHierarchy.name"
@@ -1982,7 +1982,6 @@
             categoryId="org.eclipse.ui.category.navigate"
             id="com.google.dart.tools.ui.edit.text.analyze.call.hierarchy">
       </command>
-      
       <command
             name="%ActionDefinition.gotoPackage.name"
             description="%ActionDefinition.gotoPackage.description"

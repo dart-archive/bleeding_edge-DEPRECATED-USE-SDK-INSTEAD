@@ -369,7 +369,7 @@ public interface DartEditorActionDefinitionIds extends ITextEditorActionDefiniti
    * Action definition ID of the navigate -> open external dartdoc action (value
    * <code>"com.google.dart.tools.ui.edit.text.dart.open.external.dartdoc"</code> ).
    */
-  public static final String OPEN_EXTERNAL_JAVADOC = "com.google.dart.tools.ui.edit.text.dart.open.external.dartdoc"; //$NON-NLS-1$
+  public static final String OPEN_EXTERNAL_DARTDOC = "com.google.dart.tools.ui.edit.text.dart.open.external.dartdoc"; //$NON-NLS-1$
 
   /**
    * Action definition ID of the navigate -> open type hierarchy action (value

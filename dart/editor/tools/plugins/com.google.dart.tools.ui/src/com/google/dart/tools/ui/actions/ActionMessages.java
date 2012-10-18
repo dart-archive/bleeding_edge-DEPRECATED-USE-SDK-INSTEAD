@@ -226,15 +226,9 @@ public final class ActionMessages extends NLS {
   public static String FindStringsToExternalizeAction_button_label;
   public static String FindStringsToExternalizeAction_find_strings;
 
-  public static String OpenExternalJavadocAction_label;
-  public static String OpenExternalJavadocAction_description;
-  public static String OpenExternalJavadocAction_tooltip;
-  public static String OpenExternalJavadocAction_select_element;
-  public static String OpenExternalJavadocAction_libraries_no_location;
-  public static String OpenExternalJavadocAction_source_no_location;
-  public static String OpenExternalJavadocAction_opening_failed;
-  public static String OpenExternalJavadocAction_dialog_title;
-  public static String OpenExternalJavadocAction_code_resolve_failed;
+  public static String OpenExternalDartdocAction_label;
+  public static String OpenExternalDartdocAction_description;
+  public static String OpenExternalDartdocAction_tooltip;
 
   public static String GenerateJavascriptAction_Compiling;
   public static String GenerateJavascriptAction_title;
