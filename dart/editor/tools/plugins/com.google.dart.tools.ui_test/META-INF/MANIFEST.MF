@@ -20,6 +20,5 @@ Require-Bundle: org.eclipse.core.runtime,
  com.google.dart.tools.update.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
-Bundle-Activator: com.google.dart.tools.ui.Activator
 Bundle-ClassPath: .
 Export-Package: com.google.dart.tools.ui.refactoring
