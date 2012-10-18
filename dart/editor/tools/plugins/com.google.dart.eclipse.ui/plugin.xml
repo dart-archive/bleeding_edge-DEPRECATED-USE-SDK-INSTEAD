@@ -66,11 +66,6 @@
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+M2+G"/>
       <key
-            commandId="com.google.dart.tools.debug.ui.run.selection"
-            contextId="com.google.dart.tools.ui.dartEditorScope"
-            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+R"/>
-      <key
             sequence="M1+/"
             contextId="com.google.dart.tools.ui.dartEditorScope"
             commandId="com.google.dart.tools.ui.edit.text.dart.toggle.comment"
