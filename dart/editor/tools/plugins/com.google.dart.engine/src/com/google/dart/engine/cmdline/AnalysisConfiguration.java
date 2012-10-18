@@ -23,10 +23,10 @@ import java.io.File;
 public interface AnalysisConfiguration {
 
   /**
-   * Returns the {@link AnalysisMetrics} instance or <code>null</code> if metrics should not be
+   * Returns the {@link AnalysisMetrics} instance or {@code null} if metrics should not be
    * recorded.
    * 
-   * @return the metrics instance, <code>null</code> if metrics should not be recorded
+   * @return the metrics instance, {@code null} if metrics should not be recorded
    */
   AnalysisMetrics analyzerMetrics();
 
@@ -44,7 +44,7 @@ public interface AnalysisConfiguration {
 
   /**
    * Returns a comma-separated string list of options for displaying JVM metrics. Returns
-   * <code>null</code> if JVM metrics are not enabled.
+   * {@code null} if JVM metrics are not enabled.
    */
   String jvmMetricOptions();
 
@@ -54,7 +54,7 @@ public interface AnalysisConfiguration {
   String platformName();
 
   /**
-   * Returns <code>true</code> if warnings in the SDK should not be forwarded to the error listener.
+   * Returns {@code true} if warnings in the SDK should not be forwarded to the error listener.
    */
   boolean showSdkWarnings();
 }

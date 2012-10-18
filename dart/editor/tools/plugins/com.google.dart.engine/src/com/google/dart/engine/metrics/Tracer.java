@@ -613,8 +613,8 @@ public final class Tracer {
 
   /**
    * Create a new global instance. Force the zero time to be recorded and the log to be opened if
-   * the default logging is turned on with the <code>
-   * -Ddart.speedtracerlog</code> VM property. This method is only intended to be called once.
+   * the default logging is turned on with the {@code 
+   * -Ddart.speedtracerlog} VM property. This method is only intended to be called once.
    */
   public static void init() {
     get();

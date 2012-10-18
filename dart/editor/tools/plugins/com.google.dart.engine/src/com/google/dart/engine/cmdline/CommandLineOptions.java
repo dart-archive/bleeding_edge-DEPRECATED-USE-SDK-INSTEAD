@@ -133,7 +133,7 @@ public class CommandLineOptions {
     }
 
     /**
-     * Returns <code>true</code> to indicate printing the help message.
+     * Returns {@code true} to indicate printing the help message.
      */
     public boolean showHelp() {
       return showHelp;

@@ -100,12 +100,12 @@ public class Parser {
   private Token currentToken;
 
   /**
-   * <code>true</code> if the parser is currently in a loop.
+   * {@code true} if the parser is currently in a loop.
    */
   private boolean inLoop = false;
 
   /**
-   * <code>true</code> if the parser is currently in a switch statement.
+   * {@code true} if the parser is currently in a switch statement.
    */
   private boolean inSwitch = false;
 

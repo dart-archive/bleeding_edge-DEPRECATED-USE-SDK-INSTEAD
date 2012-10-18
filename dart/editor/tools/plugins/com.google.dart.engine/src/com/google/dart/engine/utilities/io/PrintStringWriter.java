@@ -17,7 +17,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 /**
- * Instances of the class <code>PrintStringWriter</code> are a {@link PrintWriter} that stores the
+ * Instances of the class {@code PrintStringWriter} are a {@link PrintWriter} that stores the
  * text written to it in such a way that it can be returned as a {@link String}.
  */
 public class PrintStringWriter extends PrintWriter {

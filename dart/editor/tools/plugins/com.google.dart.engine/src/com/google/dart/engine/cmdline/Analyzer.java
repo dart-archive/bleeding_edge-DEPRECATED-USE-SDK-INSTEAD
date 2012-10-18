@@ -92,13 +92,13 @@ public class Analyzer {
   }
 
   /**
-   * Treats the <code>sourceFile</code> as the top level library and analyzes the unit for warnings
+   * Treats the {@code sourceFile} as the top level library and analyzes the unit for warnings
    * and errors.
    * 
    * @param sourceFile file to analyze
    * @param config configuration for this analysis pass
    * @param listener error listener
-   * @return <code> true</code> on success, <code>false</code> on failure.
+   * @return {@code  true} on success, {@code false} on failure.
    */
   public String analyze(File sourceFile, AnalysisConfiguration config,
       AnalysisErrorListener listener) throws IOException {

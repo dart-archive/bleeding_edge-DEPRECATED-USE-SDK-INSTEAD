@@ -36,7 +36,7 @@ public class AnalyzerMain {
    * Invoke the compiler to build all of the files passed on the command line
    * 
    * @param analyzerOptions parsed command line arguments
-   * @return <code> true</code> on success, <code>false</code> on failure.
+   * @return {@code  true} on success, {@code false} on failure.
    */
   public static boolean analyzerMain(AnalyzerOptions analyzerOptions) throws IOException {
     List<String> sourceFiles = analyzerOptions.getSourceFiles();
