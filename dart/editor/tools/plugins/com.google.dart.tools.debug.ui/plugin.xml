@@ -519,6 +519,22 @@
             </enablement>
       </deleteParticipant>
    </extension>
+    
+   <extension
+         point="org.eclipse.ltk.core.refactoring.renameParticipants">
+      <renameParticipant
+            class="com.google.dart.tools.debug.ui.launch.LaunchesRenameResourceParticipant"
+            id="com.google.dart.tools.debug.ui.launch.LaunchesRenameResourceParticipant"
+            name="Update HTML file in Dart launches">
+            <enablement>
+              <with variable="affectedNatures">
+                <iterate operator="or">
+                  <equals value="com.google.dart.tools.core.dartNature"/>
+                </iterate>
+              </with>
+            </enablement>
+      </renameParticipant>
+   </extension>
    
    <extension
          point="com.google.dart.tools.debug.core.debugUIHelper">
