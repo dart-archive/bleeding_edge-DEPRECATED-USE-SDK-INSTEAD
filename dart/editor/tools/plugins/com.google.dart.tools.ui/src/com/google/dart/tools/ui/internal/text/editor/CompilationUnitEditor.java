@@ -15,6 +15,8 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.analysis.IdleListener;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
@@ -40,6 +42,7 @@ import com.google.dart.tools.ui.internal.text.comment.CommentFormattingContext;
 import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
 import com.google.dart.tools.ui.internal.text.functions.ContentAssistPreference;
 import com.google.dart.tools.ui.internal.text.functions.DartHeuristicScanner;
+import com.google.dart.tools.ui.internal.text.functions.DartReconciler;
 import com.google.dart.tools.ui.internal.text.functions.SmartBackspaceManager;
 import com.google.dart.tools.ui.internal.text.functions.Symbols;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
@@ -88,6 +91,8 @@ import org.eclipse.jface.text.link.LinkedModeUI.ExitFlags;
 import org.eclipse.jface.text.link.LinkedModeUI.IExitPolicy;
 import org.eclipse.jface.text.link.LinkedPosition;
 import org.eclipse.jface.text.link.LinkedPositionGroup;
+import org.eclipse.jface.text.reconciler.IReconciler;
+import org.eclipse.jface.text.reconciler.IReconcilingStrategy;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
@@ -115,6 +120,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionContext;
 import org.eclipse.ui.actions.ActionGroup;
 import org.eclipse.ui.dialogs.PreferencesUtil;
+import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IAbstractTextEditorHelpContextIds;
@@ -1809,6 +1815,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
         checkEditableState();
       }
       notifyAnalysisServerAboutFileChange();
+      scheduleReconcileAfterSaveAnalyze();
     }
   }
 
@@ -1915,5 +1922,24 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
         PackageLibraryManagerProvider.getDefaultAnalysisServer().changed(javaFile);
       }
     }
+  }
+
+  /**
+   * We need to wait until {@link AnalysisServer} will become idle and force reconcile to allow live
+   * problems to use imports from save unit.
+   */
+  private void scheduleReconcileAfterSaveAnalyze() {
+    final AnalysisServer analysisServer = PackageLibraryManagerProvider.getDefaultAnalysisServer();
+    analysisServer.addIdleListener(new IdleListener() {
+      @Override
+      public void idle(boolean idle) {
+        if (idle) {
+          IReconciler reconciler = ((TextSourceViewerConfiguration) getSourceViewerConfiguration()).getReconciler(getSourceViewer());
+          IReconcilingStrategy reconcilingStrategy = ((DartReconciler) reconciler).getReconcilingStrategy(IDocument.DEFAULT_CONTENT_TYPE);
+          reconcilingStrategy.reconcile(null);
+          analysisServer.removeIdleListener(this);
+        }
+      }
+    });
   }
 }

@@ -25,6 +25,7 @@ import org.eclipse.core.runtime.Status;
  * @coverage dart.editor.ui.refactoring.core
  */
 public class ExecutionUtils {
+
   /**
    * Helper class used in {@link #propagate(Throwable)}.
    */
@@ -155,6 +156,18 @@ public class ExecutionUtils {
     } catch (Throwable e) {
       throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, e.getMessage(), e));
     }
+  }
+
+  /**
+   * Sleeps given number of milliseconds, ignoring exceptions.
+   */
+  public static void sleep(final int millis) {
+    runIgnore(new RunnableEx() {
+      @Override
+      public void run() throws Exception {
+        Thread.sleep(millis);
+      }
+    });
   }
 
 }
