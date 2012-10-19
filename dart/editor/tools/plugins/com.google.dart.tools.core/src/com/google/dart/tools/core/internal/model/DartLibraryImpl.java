@@ -72,6 +72,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1149,11 +1150,17 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     String fileName = null;
     try {
       if (sourceFile != null) {
-        fileName = sourceFile.getName();
-        return DartCompilerUtilities.parseSource(
-            fileName,
-            FileUtilities.getContents(sourceFile.getSourceReader()),
-            null);
+        try {
+          fileName = sourceFile.getName();
+          return DartCompilerUtilities.parseSource(
+              fileName,
+              FileUtilities.getContents(sourceFile.getSourceReader()),
+              null);
+        } catch (FileNotFoundException exception) {
+          // Fall through to try to read from the library file. This is really ugly, but necessary
+          // because the sourceFile has already cached it's properties and therefore can't tell that
+          // it no longer exists (until a FileNotFoundException is thrown).
+        }
       }
       if (libraryFile != null && libraryFile.exists()) {
         fileName = libraryFile.getName();
