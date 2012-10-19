@@ -51,6 +51,15 @@ public class DartSdk {
   }
 
   /**
+   * @return the path to the dart2js script in the bin/ directory
+   */
+  public File getDart2JsExecutable() {
+    String dart2jsName = "dart2js" + (DartCore.isWindows() ? ".bat" : "");
+
+    return new File(new File(sdkPath, "bin"), dart2jsName);
+  }
+
+  /**
    * Answer the OS-specific dartium directory.
    * 
    * @param installDir the installation directory
@@ -62,7 +71,6 @@ public class DartSdk {
       // Window and Linux
       return new File(installDir, "chromium");
     }
-
   }
 
   /**
@@ -185,7 +193,9 @@ public class DartSdk {
    * Answer the VM executable or <code>null</code> if it does not exist
    */
   public File getVmExecutable() {
-    return new File(new File(sdkPath, "bin"), getBinaryName());
+    String vmName = "dart" + (DartCore.isWindows() ? ".exe" : "");
+
+    return new File(new File(sdkPath, "bin"), vmName);
   }
 
   /**
@@ -229,14 +239,6 @@ public class DartSdk {
 
         DartCore.logError(dartVm.getPath() + " was not executable");
       }
-    }
-  }
-
-  private String getBinaryName() {
-    if (DartCore.isWindows()) {
-      return "dart.exe";
-    } else {
-      return "dart";
     }
   }
 
