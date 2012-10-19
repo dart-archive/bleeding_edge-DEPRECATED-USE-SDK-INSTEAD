@@ -135,7 +135,7 @@ class Ball {
   double age;
 
   Ball(this.root, this.x, this.y, int color) {
-    elem = new ImageElement(Balls.PNGS[color]);
+    elem = new ImageElement(src: Balls.PNGS[color]);
     makeAbsolute(elem);
     setElementPosition(elem, x, y);
     root.nodes.add(elem);

@@ -68,12 +68,12 @@ class Colon {
     makeAbsolute(root);
     setElementPosition(root, xpos, ypos);
 
-    ImageElement dot = new ImageElement(Balls.PNGS[Balls.DK_GRAY_BALL_INDEX]);
+    ImageElement dot = new ImageElement(src: Balls.PNGS[Balls.DK_GRAY_BALL_INDEX]);
     root.nodes.add(dot);
     makeAbsolute(dot);
     setElementPosition(dot, 0.0, 2.0 * CountDownClock.BALL_HEIGHT);
 
-    dot = new ImageElement(Balls.PNGS[Balls.DK_GRAY_BALL_INDEX]);
+    dot = new ImageElement(src: Balls.PNGS[Balls.DK_GRAY_BALL_INDEX]);
     root.nodes.add(dot);
     makeAbsolute(dot);
     setElementPosition(dot, 0.0, 4.0 * CountDownClock.BALL_HEIGHT);
