@@ -158,7 +158,7 @@ doMouseEvent(String type, var targetCell) {
       new Point(5, 5));
 
   MouseEvent e = new MouseEvent(type, window, 0, 0, 0, point.x, point.y, 0,
-      relatedTarget: targetCell);
+      true, true, false, false, false, false, targetCell);
   targetCell.on[type].dispatch(e);
 }
 
