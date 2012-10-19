@@ -16,20 +16,9 @@
             <format property="build.date" pattern="yyyy-MM-dd" />
         </tstamp>
 
-        <!-- parse the tools/VERSION file into an ant property -->
-        <!-- the format is "MAJOR x\nMINOR x\nBUILD x\nPATCH n" -->
-        <loadproperties srcFile="${build.source}/../tools/VERSION">
-            <filterchain>
-                <replaceregex pattern=" " replace="="/>
-             </filterchain>
-        </loadproperties>
-        <property name="dart.version" value="${MAJOR}.${MINOR}.${BUILD}" />
-        <property name="dart.version_revision" value="${dart.version}_${build.revision}" />
-        <echo message="Dart version is ${dart.version} (${dart.version_revision})"></echo>
-
         <fail unless="build.dir" message="build.dir property is required"/>
         <mkdir dir="${build.dir}"/>
-        
+
         <fail unless="source.dir" message="source.dir property is required"/>
         <fail message="source.dir does not exist: ${source.dir}">
             <condition>
@@ -38,6 +27,17 @@
                 </not>
             </condition>
         </fail>
+
+        <!-- parse the tools/VERSION file into an ant property -->
+        <!-- the format is "MAJOR x\nMINOR x\nBUILD x\nPATCH n" -->
+        <loadproperties srcFile="${source.dir}/../../tools/VERSION">
+            <filterchain>
+                <replaceregex pattern=" " replace="="/>
+             </filterchain>
+        </loadproperties>
+        <property name="dart.version" value="${MAJOR}.${MINOR}.${BUILD}" />
+        <property name="dart.version_revision" value="${dart.version}_${build.revision}" />
+        <echo message="Dart version is ${dart.version} (${dart.version_revision})"></echo>
     </target>
 
     <!-- clean -->
