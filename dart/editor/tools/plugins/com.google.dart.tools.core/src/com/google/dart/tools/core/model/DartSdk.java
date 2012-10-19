@@ -222,7 +222,8 @@ public class DartSdk {
 
   protected void initializeSdk() {
     if (!DartCore.isWindows()) {
-      ensureVmIsExecutable();
+      ensureExecutable(getVmExecutable());
+      ensureExecutable(getDart2JsExecutable());
     }
   }
 
@@ -230,20 +231,17 @@ public class DartSdk {
    * Ensure that the dart vm is executable. If it is not, make it executable and log that it was
    * necessary for us to do so.
    */
-  private void ensureVmIsExecutable() {
-    File dartVm = getVmExecutable();
+  private void ensureExecutable(File binary) {
+    if (binary != null && binary.exists()) {
+      if (!binary.canExecute()) {
+        makeExecutable(binary);
 
-    if (dartVm != null && dartVm.exists()) {
-      if (!dartVm.canExecute()) {
-        makeExecutable(dartVm);
-
-        DartCore.logError(dartVm.getPath() + " was not executable");
+        DartCore.logError(binary.getPath() + " was not executable");
       }
     }
   }
 
   private File getDartiumBinary(File installDir) {
-
     File dartiumDir = getDartiumDir(installDir);
 
     if (DartCore.isWindows()) {
