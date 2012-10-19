@@ -171,37 +171,28 @@ public class IntroEditor extends EditorPart {
     client = toolkit.createComposite(section);
     client.setLayout(new TableWrapLayout());
 
-    Hyperlink link = toolkit.createHyperlink(client, "Visit dartlang.org", SWT.NONE);
-    link.addHyperlinkListener(new HyperlinkAdapter() {
-      @Override
-      public void linkActivated(HyperlinkEvent e) {
-        Program.launch("http://www.dartlang.org/");
-      }
-    });
+    Composite links = new Composite(client, SWT.NONE);
 
-    link = toolkit.createHyperlink(client, "View Editor documentation", SWT.NONE);
-    link.addHyperlinkListener(new HyperlinkAdapter() {
-      @Override
-      public void linkActivated(HyperlinkEvent e) {
-        Program.launch("http://www.dartlang.org/editor/");
-      }
-    });
+    GridLayoutFactory.fillDefaults().numColumns(2).spacing(15, 0).applyTo(links);
 
-    link = toolkit.createHyperlink(client, "View additional HTML5 samples", SWT.NONE);
-    link.addHyperlinkListener(new HyperlinkAdapter() {
-      @Override
-      public void linkActivated(HyperlinkEvent e) {
-        Program.launch("https://github.com/dart-lang/dart-html5-samples/");
-      }
-    });
+    createExternalLink(links, "Visit dartlang.org", "http://www.dartlang.org/");
 
-    link = toolkit.createHyperlink(client, "See community Dart packages and examples", SWT.NONE);
-    link.addHyperlinkListener(new HyperlinkAdapter() {
-      @Override
-      public void linkActivated(HyperlinkEvent e) {
-        Program.launch("http://blog.dartwatch.com/p/community-dart-packages-and-examples.html");
-      }
-    });
+    createExternalLink(
+        links,
+        "Additional HTML5 samples",
+        "https://github.com/dart-lang/dart-html5-samples/");
+
+    createExternalLink(links, "View Editor documentation", "http://www.dartlang.org/editor/");
+
+    createExternalLink(
+        links,
+        "Community packages and examples",
+        "http://blog.dartwatch.com/p/community-dart-packages-and-examples.html");
+
+    createExternalLink(
+        links,
+        "Read the O'Reilly book",
+        "http://www.dartlang.org/docs/dart-up-and-running/");
 
     section.setClient(client);
 
@@ -303,6 +294,18 @@ public class IntroEditor extends EditorPart {
     } catch (InterruptedException e) {
       DartToolsPlugin.log(e);
     }
+  }
+
+  private void createExternalLink(Composite client, String text, final String href) {
+
+    Hyperlink link = toolkit.createHyperlink(client, text, SWT.NONE);
+    link.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      public void linkActivated(HyperlinkEvent e) {
+        Program.launch(href);
+      }
+    });
+
   }
 
   private File getDirectory(File file) {
