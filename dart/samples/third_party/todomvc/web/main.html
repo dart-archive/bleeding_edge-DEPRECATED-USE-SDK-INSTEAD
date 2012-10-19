@@ -38,12 +38,18 @@ BSD-style license that can be found in the LICENSE file.
   <footer id="info">
     <p>Double-click to edit a todo.</p>
     <p>Credits: the <a href="http://www.dartlang.org">Dart</a> team.</p>
+    <p>
+      Learn more about
+      <a href="https://www.dartlang.org/articles/dart-web-components/">Dart + Web Components</a>
+      or
+      <a href="https://github.com/dart-lang/dart-web-components/tree/master/example/todomvc">view the source</a>.
+    </p>
     <p>Part of <a href="http://todomvc.com">TodoMVC</a>.</p>
   </footer>
   <script type="application/dart">
 import 'dart:html';
 import 'model.dart';
-import 'package:web_components/watcher.dart';
+import 'package:web_components/web_components.dart';
 
 main() {
   // listen on changes to #hash in the URL

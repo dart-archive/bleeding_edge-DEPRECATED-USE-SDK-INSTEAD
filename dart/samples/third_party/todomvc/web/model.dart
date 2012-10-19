@@ -28,9 +28,7 @@ MainComponent get viewModel {
 // The real model:
 
 class App {
-  List<Todo> todos;
-
-  App() : todos = <Todo>[];
+  List<Todo> todos = <Todo>[];
 }
 
 class Todo {
