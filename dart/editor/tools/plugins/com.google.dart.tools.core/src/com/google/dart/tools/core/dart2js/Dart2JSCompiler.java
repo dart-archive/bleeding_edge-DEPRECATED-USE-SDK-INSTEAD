@@ -231,7 +231,7 @@ public class Dart2JSCompiler {
 
     List<String> args = new ArrayList<String>();
 
-    args.add(DartSdkManager.getManager().getSdk().getDart2JsExecutable().getPath());
+    args.add(DartSdkManager.getManager().getSdk().getVmExecutable().getPath());
     args.addAll(getCompilerArguments(inputPath, outputPath));
 
     builder.command(args);
@@ -258,6 +258,7 @@ public class Dart2JSCompiler {
   protected List<String> getCompilerArguments(IPath inputPath, IPath outputPath) {
     List<String> args = new ArrayList<String>();
 
+    args.add("compiler/implementation/dart2js.dart");
     args.add("--suppress-warnings");
 
     String packageRoot = DartCore.getPlugin().getPackageRootPref();
