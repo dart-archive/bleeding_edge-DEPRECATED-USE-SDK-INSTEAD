@@ -23,6 +23,7 @@ import com.google.dart.tools.ui.actions.DeleteAction;
 import com.google.dart.tools.ui.actions.OpenAsTextAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
+import com.google.dart.tools.ui.actions.OrganizeImportsAction;
 import com.google.dart.tools.ui.internal.actions.CleanUpAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
@@ -135,6 +136,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private MoveResourceAction moveAction;
   private RenameResourceAction renameAction;
   private CleanUpAction cleanUpAction;
+  private OrganizeImportsAction organizeImportsAction;
   private DeleteAction deleteAction;
   private OpenNewFileWizardAction createFileAction;
   private OpenNewFolderWizardAction createFolderAction;
@@ -375,6 +377,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         manager.add(moveAction);
       }
       manager.add(cleanUpAction);
+      manager.add(organizeImportsAction);
       manager.add(new Separator());
       ignoreResourceAction.updateLabel();
       manager.add(ignoreResourceAction);
@@ -514,7 +517,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     renameAction = new RenameResourceAction(getShell(), treeViewer.getTree());
     treeViewer.addSelectionChangedListener(renameAction);
     cleanUpAction = new CleanUpAction(getViewSite());
+    organizeImportsAction = new OrganizeImportsAction(getViewSite());
     treeViewer.addSelectionChangedListener(cleanUpAction);
+    treeViewer.addSelectionChangedListener(organizeImportsAction);
     moveAction = new MoveResourceAction(getShell());
     treeViewer.addSelectionChangedListener(moveAction);
 

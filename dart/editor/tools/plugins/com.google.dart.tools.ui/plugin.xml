@@ -810,6 +810,13 @@
                 menubarPath="edit/endEdit"
                 id="com.google.dart.tools.ui.actions.Rename">
             </action>
+            <action
+                definitionId="com.google.dart.tools.ui.edit.text.organize.imports"
+                label="%OrganizeImportsAction.label"
+                retarget="true"
+                menubarPath="edit/endEdit"
+                id="com.google.dart.tools.ui.actions.OrganizeImports">
+            </action>
         </actionSet>
     </extension>
 
@@ -1740,6 +1747,12 @@
             description="%ActionDefinition.refactorQuickMenu.description"
             categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.refactor.quickMenu">
+      </command>
+      <command
+            name="%ActionDefinition.organizeImports.name"
+            description="%ActionDefinition.organizeImports.description"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
+            id="com.google.dart.tools.ui.edit.text.organize.imports">
       </command>
       <command
             name="%ActionDefinition.renameElement.name"
@@ -2873,6 +2886,15 @@
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+M3+J"/>
+       <key
+           sequence="M2+M3+O"
+           commandId="com.google.dart.tools.ui.edit.text.organize.imports"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+       <key
+           platform="carbon"
+           sequence="COMMAND+ALT+O"
+           commandId="com.google.dart.tools.ui.edit.text.organize.imports"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
        <key
            sequence="M2+M3+R"
            commandId="com.google.dart.tools.ui.edit.text.dart.rename.element"

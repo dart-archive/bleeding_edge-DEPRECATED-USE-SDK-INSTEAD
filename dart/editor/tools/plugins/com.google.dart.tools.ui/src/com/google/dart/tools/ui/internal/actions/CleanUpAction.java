@@ -25,7 +25,7 @@ import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.ActionMessages;
 import com.google.dart.tools.ui.actions.SelectionDispatchAction;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_get_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoringWizard;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 import com.google.dart.tools.ui.internal.util.ElementValidator;
@@ -122,29 +122,33 @@ public class CleanUpAction extends SelectionDispatchAction {
    * @return the name of this action, not <b>null</b>
    */
   protected String getActionName() {
-    // TODO(scheglov)
     return "Clean Up...";
   }
 
   /**
-   * @param units the units to clean up
-   * @return the clean ups to be performed or <b>null</b> if none to be performed
+   * @return the {@link ICleanUp}s to be performed.
    */
   protected ICleanUp[] getCleanUps(CompilationUnit[] units) {
-    // TODO(scheglov)
-    return new ICleanUp[] {new Migrate_1M1_get_CleanUp()};
+    return new ICleanUp[] {};
   }
 
   protected void performRefactoring(CompilationUnit[] units, ICleanUp[] cleanUps)
       throws InvocationTargetException {
-    // TODO(scheglov)
     RefactoringExecutionStarter.startCleanupRefactoring(
         units,
         cleanUps,
         false,
         getShell(),
-        true,
+        showWizard(),
         getActionName());
+  }
+
+  /**
+   * @return <code>true</code> if this instance of {@link CleanUpAction} should show
+   *         {@link CleanUpRefactoringWizard} to choose set of {@link ICleanUp}s to run.
+   */
+  protected boolean showWizard() {
+    return true;
   }
 
 //  private void collectCompilationUnits(IPackageFragment pack, Collection<DartElement> result)
@@ -174,6 +178,9 @@ public class CleanUpAction extends SelectionDispatchAction {
       }
       // may be some DartElement
       DartElement elem = null;
+      if (element instanceof DartElement) {
+        elem = (DartElement) element;
+      }
       if (element instanceof IFile) {
         IFile file = (IFile) element;
         elem = DartCore.create(file);
@@ -203,8 +210,8 @@ public class CleanUpAction extends SelectionDispatchAction {
 
   private boolean isEnabled(IStructuredSelection selection) {
     // TODO(scheglov) always enabled?
-    return true;
-//    Object[] selected = selection.toArray();
+    CompilationUnit[] cus = getCompilationUnits(selection);
+    return cus.length != 0;
 //    for (int i = 0; i < selected.length; i++) {
 //      try {
 //        if (selected[i] instanceof DartElement) {

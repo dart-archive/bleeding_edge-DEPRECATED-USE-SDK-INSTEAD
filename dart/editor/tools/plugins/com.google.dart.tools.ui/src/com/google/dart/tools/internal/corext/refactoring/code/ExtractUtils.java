@@ -252,6 +252,7 @@ public class ExtractUtils {
   }
 
   private final CompilationUnit unit;
+
   private final Buffer buffer;
   private final DartUnit unitNode;
 
@@ -444,6 +445,20 @@ public class ExtractUtils {
    */
   public String getText(SourceRange range) {
     return getText(range.getOffset(), range.getLength());
+  }
+
+  /**
+   * @return the offset of the token on the right from given "offset" on the same line or offset of
+   *         the next line.
+   */
+  public int getTokenOrNextLineOffset(int offset) {
+    int nextOffset = getLineNextIndex(offset);
+    String sourceToNext = getText(offset, nextOffset - offset);
+    List<com.google.dart.engine.scanner.Token> tokens = TokenUtils.getTokens(sourceToNext);
+    if (tokens.isEmpty()) {
+      return nextOffset;
+    }
+    return tokens.get(0).getOffset();
   }
 
   public CompilationUnit getUnit() {

@@ -120,6 +120,9 @@ public final class DartModelUtil {
         } else {
           new RewriteSessionEditProcessor(document, edit, TextEdit.UPDATE_REGIONS).performEdits();
         }
+        if (save) {
+          cu.save(new SubProgressMonitor(monitor, 1), true);
+        }
       } catch (BadLocationException e) {
         throw new CoreException(new Status(
             IStatus.ERROR,
