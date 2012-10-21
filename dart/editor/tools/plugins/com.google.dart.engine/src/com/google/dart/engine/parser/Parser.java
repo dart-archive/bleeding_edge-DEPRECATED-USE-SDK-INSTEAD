@@ -1260,7 +1260,7 @@ public class Parser {
           if (libraryDirectiveFound) {
             reportError(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
           } else if (directives.size() > 0 || declarations.size() > 0) {
-            reportError(ParserErrorCode.LIBRARY_DIRECTIVE_FIRST);
+            reportError(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
           } else {
             libraryDirectiveFound = true;
           }

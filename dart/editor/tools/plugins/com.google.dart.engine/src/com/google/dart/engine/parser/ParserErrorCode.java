@@ -93,7 +93,7 @@ public enum ParserErrorCode implements ErrorCode {
 //  INVALID_IDENTIFIER("The token '%s' cannot be used as an identifier"),
 //  INVALID_OPERATOR_CHAINING("Cannot chain '%s'"),
 //  LABEL_NOT_FOLLOWED_BY_CASE_OR_DEFAULT("Label not followed by 'case', 'default', or statement"),
-  LIBRARY_DIRECTIVE_FIRST(
+  LIBRARY_DIRECTIVE_NOT_FIRST(
       "Library directive must appear before all other directives and all declarations"),
 //  LOCAL_CANNOT_BE_STATIC("Local function can not be static"),
 //  MISSING_FUNCTION_NAME("a function name is required for a declaration"),

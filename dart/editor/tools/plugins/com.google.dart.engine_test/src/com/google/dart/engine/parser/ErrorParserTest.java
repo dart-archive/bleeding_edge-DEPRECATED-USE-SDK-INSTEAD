@@ -36,6 +36,13 @@ public class ErrorParserTest extends ParserTestCase {
     assertTrue(literal.isSynthetic());
   }
 
+  public void fail_missingAssignableSelector_superAssigned() throws Exception {
+    // TODO (danrubel): Collapse 2 related errors into 1
+    parse("parseExpression", "super = x;",
+    //ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
+        ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
+  }
+
   public void fail_multiplePartOfDirectives() throws Exception {
     parse(
         "parseCompilationUnit",
@@ -187,7 +194,7 @@ public class ErrorParserTest extends ParserTestCase {
     CompilationUnit unit = parse(
         "parseCompilationUnit",
         "class Foo{} library l;",
-        ParserErrorCode.LIBRARY_DIRECTIVE_FIRST);
+        ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
     assertNotNull(unit);
   }
 
@@ -196,14 +203,6 @@ public class ErrorParserTest extends ParserTestCase {
         "parseCompilationUnit",
         "library l;\nclass Foo{}\npart 'a.dart';",
         ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
-    assertNotNull(unit);
-  }
-
-  public void test_directiveOrder_libraryNotFirst() throws Exception {
-    CompilationUnit unit = parse(
-        "parseCompilationUnit",
-        "part 'a.dart';\nlibrary l;",
-        ParserErrorCode.LIBRARY_DIRECTIVE_FIRST);
     assertNotNull(unit);
   }
 
@@ -246,6 +245,14 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseStatement", "do {} (x);", ParserErrorCode.EXPECTED_TOKEN);
   }
 
+  public void test_libraryDirectiveNotFirst_afterPart() throws Exception {
+    CompilationUnit unit = parse(
+        "parseCompilationUnit",
+        "part 'a.dart';\nlibrary l;",
+        ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
+    assertNotNull(unit);
+  }
+
   public void test_missingAssignableSelector_identifiersAssigned() throws Exception {
     parse("parseExpression", "x.y = y;");
   }
@@ -259,7 +266,7 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_missingAssignableSelector_superAssigned() throws Exception {
-    // TODO (danrubel): For review... could we reduce the error count here by 1 ?
+    // TODO (danrubel): Collapse 2 related errors into 1
     parse(
         "parseExpression",
         "super = x;",
