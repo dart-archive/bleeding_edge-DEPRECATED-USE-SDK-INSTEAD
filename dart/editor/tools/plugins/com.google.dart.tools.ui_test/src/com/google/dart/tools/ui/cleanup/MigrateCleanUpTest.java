@@ -21,6 +21,8 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_C
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalNamed_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_parseNum_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_rawString_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameExceptions_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_toGetters_CleanUp;
 
 /**
  * Test for {@link AbstractMigrateCleanUp}.
@@ -612,6 +614,111 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     String expected = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "foo() native r'abc';",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M2_methodsToGetters() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int hashCode() => 0;",
+        "  int foo() => 0;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  print(a.hashCode());",
+        "  print(a.foo());",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int get hashCode => 0;",
+        "  int foo() => 0;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  print(a.hashCode);",
+        "  print(a.foo());",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M2_methodsToGetters_interface() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class _JustForInternalTest {",
+        "  int foo() => 0;",
+        "}",
+        "class A implements _JustForInternalTest {",
+        "  int foo() => 1;",
+        "  int bar() => 2;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  print(a.foo());",
+        "  print(a.bar());",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class _JustForInternalTest {",
+        "  int get foo => 0;",
+        "}",
+        "class A implements _JustForInternalTest {",
+        "  int get foo => 1;",
+        "  int bar() => 2;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  print(a.foo);",
+        "  print(a.bar());",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M2_renameExceptions() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_renameExceptions_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  throw new InvalidArgumentException();",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  throw new ArgumentError();",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M2_renameExceptions_qualifiedName() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_renameExceptions_CleanUp();
+    setUnitContent("MyLib.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library myLib;",
+        "class InvalidArgumentException() {}",
+        ""});
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'MyLib.dart' as pref;",
+        "main() {",
+        "  throw new pref.InvalidArgumentException();",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'MyLib.dart' as pref;",
+        "main() {",
+        "  throw new pref.ArgumentError();",
+        "}",
         "");
     assertCleanUp(cleanUp, initial, expected);
   }

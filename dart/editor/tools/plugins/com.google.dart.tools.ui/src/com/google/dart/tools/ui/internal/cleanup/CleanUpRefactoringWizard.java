@@ -27,6 +27,8 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_C
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalNamed_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_parseNum_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_rawString_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameExceptions_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_toGetters_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_trailingSpace_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_useBlocks_CleanUp;
 import com.google.dart.tools.ui.internal.util.GridDataFactory;
@@ -55,11 +57,13 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
 
     private static final String ID_MIGRATE_SYNTAX_1M1_CATCH = "migrateSyntax-1M1-catch";
     private static final String ID_MIGRATE_SYNTAX_1M1_GET = "migrateSyntax-1M1-get";
-    private static final String ID_MIGRATE_SYNTAX_1M1_LIBRARY = "migrateSyntax-1M1-library";
-    private static final String ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED = "migrateSyntax-1M1-optionalNamed-whereSure";
     private static final String ID_MIGRATE_SYNTAX_1M1_RAW_STRING = "migrateSyntax-1M1-rawString";
     private static final String ID_MIGRATE_SYNTAX_1M1_PARSE_NUM = "migrateSyntax-1M1-parseNum";
     private static final String ID_MIGRATE_SYNTAX_1M1_IDENTICAL = "migrateSyntax-1M1-identical";
+    private static final String ID_MIGRATE_SYNTAX_1M1_LIBRARY = "migrateSyntax-1M1-library";
+    private static final String ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED = "migrateSyntax-1M1-optionalNamed-whereSure";
+    private static final String ID_MIGRATE_SYNTAX_1M2_GETTERS = "migrateSyntax-1M2-getters";
+    private static final String ID_MIGRATE_SYNTAX_1M2_RENAME_EXCEPTIONS = "migrateSyntax-1M2-renameExceptions";
 
     private static final String ID_STYLE_TRAILING_WHITESPACE = "style-trailingWhitespace";
     private static final String ID_STYLE_USE_BLOCKS = "style-useBlocks";
@@ -71,8 +75,13 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_RAW_STRING, new Migrate_1M1_rawString_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_PARSE_NUM, new Migrate_1M1_parseNum_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_IDENTICAL, new Migrate_1M1_identical_CleanUp());
+      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_GET, new Migrate_1M1_get_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_LIBRARY, new Migrate_1M1_library_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED, new Migrate_1M1_optionalNamed_CleanUp());
+      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M2_GETTERS, new Migrate_1M2_toGetters_CleanUp());
+      CLEAN_UPS.put(
+          ID_MIGRATE_SYNTAX_1M2_RENAME_EXCEPTIONS,
+          new Migrate_1M2_renameExceptions_CleanUp());
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_CATCH, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_GET, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_RAW_STRING, true);
@@ -80,6 +89,8 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_IDENTICAL, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_LIBRARY, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED, false);
+      settings.setDefault(ID_MIGRATE_SYNTAX_1M2_GETTERS, false);
+      settings.setDefault(ID_MIGRATE_SYNTAX_1M2_RENAME_EXCEPTIONS, false);
       // style
       CLEAN_UPS.put(ID_STYLE_TRAILING_WHITESPACE, new Style_trailingSpace_CleanUp());
       CLEAN_UPS.put(ID_STYLE_USE_BLOCKS, new Style_useBlocks_CleanUp());
@@ -150,6 +161,14 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED,
                 "Migrate [param = value] to {param: value} when only named arguments are used");
+            createCheckButton(
+                syntaxComposite,
+                ID_MIGRATE_SYNTAX_1M2_GETTERS,
+                "Migrate some 1.0 M2 methods to getters");
+            createCheckButton(
+                syntaxComposite,
+                ID_MIGRATE_SYNTAX_1M2_RENAME_EXCEPTIONS,
+                "Migrate to 1.0 M2 type names");
 //            new Label(syntaxComposite, SWT.NONE);
 //            new Label(syntaxComposite, SWT.NONE).setText("Work in progress... not fully implemented:");
           }
