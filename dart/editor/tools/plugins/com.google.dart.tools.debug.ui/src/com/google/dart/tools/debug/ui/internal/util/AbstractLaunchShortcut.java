@@ -15,14 +15,13 @@ package com.google.dart.tools.debug.ui.internal.util;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
+import com.google.dart.tools.core.internal.model.HTMLFileImpl;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -325,36 +324,19 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
    * @return the html file used to launch the given library
    */
   private IResource getHtmlFileFor(DartLibrary library) throws DartModelException {
-    // TODO(devoncarew): we currently return the first html file in the containing folder, or
-    // parent folder. We need to make this a bit more rigorous.
+    List<HTMLFileImpl> htmlFiles = library.getChildrenOfType(HTMLFileImpl.class);
 
-    IResource libraryResource = library.getCorrespondingResource();
-
-    return getHtmlFileFor(libraryResource.getParent());
-  }
-
-  /**
-   * Returns the first html file in this container or parent container. The search terminates after
-   * a project container.
-   * 
-   * @return the first html file in this container or parent container
-   */
-  private IResource getHtmlFileFor(IContainer container) throws DartModelException {
-    try {
-      for (IResource resource : container.members()) {
-        if (DartUtil.isWebPage(resource)) {
-          return resource;
-        }
-      }
-    } catch (CoreException ce) {
-      DartUtil.logError(ce);
-    }
-
-    if (container instanceof IProject) {
+    if (htmlFiles.isEmpty()) {
+      // no html file associated with library
+      MessageDialog.openError(
+          PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+          "Launch Error",
+          "Could not find the HTML file for " + library.getCorrespondingResource().getName());
       return null;
-    } else {
-      return getHtmlFileFor(container.getParent());
     }
+
+    // TODO(keertip): need to handle the case of mutliple html files 
+    return htmlFiles.get(0).getCorrespondingResource();
   }
 
 }
