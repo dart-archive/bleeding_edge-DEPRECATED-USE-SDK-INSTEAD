@@ -158,8 +158,6 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
   }
 
   protected void handleDebugTargetTerminated(IDebugTarget target) {
-    removeDebugTarget(target);
-
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
@@ -256,10 +254,6 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
     } catch (PartInitException e) {
       DartUtil.logError(e);
     }
-  }
-
-  private void removeDebugTarget(IDebugTarget target) {
-    target.getLaunch().removeDebugTarget(target);
   }
 
 }
