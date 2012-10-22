@@ -4,9 +4,9 @@
 
 part of clock;
 
-int clientWidth() => window.innerWidth;
+int get clientWidth => window.innerWidth;
 
-int clientHeight() => window.innerHeight;
+int get clientHeight => window.innerHeight;
 
 class Balls {
   static const double RADIUS2 = Ball.RADIUS * Ball.RADIUS;
@@ -157,14 +157,14 @@ class Ball {
     y += vy * delta;
 
     // Handle falling off the edge.
-    if ((x < RADIUS) || (x > clientWidth())) {
+    if ((x < RADIUS) || (x > clientWidth)) {
       elem.remove();
       return false;
     }
 
     // Handle ground collisions.
-    if (y > clientHeight()) {
-      y = clientHeight().toDouble();
+    if (y > clientHeight) {
+      y = clientHeight.toDouble();
       vy *= -RESTITUTION;
     }
 

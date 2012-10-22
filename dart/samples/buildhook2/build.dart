@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("dart:io");
-#import("package:args/args.dart");
+import "dart:io";
+import "package:args/args.dart";
 
 bool cleanBuild;
 bool fullBuild;
@@ -62,7 +62,7 @@ void processArgs() {
  */
 void handleCleanCommand() {
   Directory current = new Directory.current();
-  current.list(true).onFile = _maybeClean;
+  current.list(recursive: true).onFile = _maybeClean;
 }
 
 /**
@@ -70,7 +70,7 @@ void handleCleanCommand() {
  */
 void handleFullBuild() {
   var files = <String>[];
-  var lister = new Directory.current().list(true);
+  var lister = new Directory.current().list(recursive: true);
 
   lister.onFile = (file) => files.add(file);
   lister.onDone = (_) => handleChangedFiles(files);
