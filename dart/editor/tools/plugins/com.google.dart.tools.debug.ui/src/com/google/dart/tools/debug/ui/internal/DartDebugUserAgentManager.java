@@ -19,6 +19,7 @@ import com.google.dart.tools.debug.core.IUserAgentManager;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 
 import java.io.BufferedReader;
@@ -100,8 +101,13 @@ public class DartDebugUserAgentManager implements IUserAgentManager {
     Display.getDefault().syncExec(new Runnable() {
       @Override
       public void run() {
+        Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+
+        // Move the app to the foreground. Otherwise the dialog can be missed.
+        shell.forceActive();
+
         result[0] = MessageDialog.openConfirm(
-            PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+            shell,
             "Allow Remote Device Connection",
             "Allow a remote device from " + remoteAddress.getHostAddress()
                 + " to connect to and run your Dart applications?\n\n" + agent);
