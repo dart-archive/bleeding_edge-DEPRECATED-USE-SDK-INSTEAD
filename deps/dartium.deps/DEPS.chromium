@@ -8,17 +8,17 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "130680",
+  "webkit_revision": "131397",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "9944",
+  "nacl_revision": "10001",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "9330",  # native_client/DEPS: tools_rev
   "gtm_revision": "578",
 
-  "libjingle_revision": "199",
+  "libjingle_revision": "204",
   "libphonenumber_revision": "456",
   "libvpx_revision": "152423",
   "lss_revision": "13",
@@ -29,25 +29,25 @@ vars = {
   "ffmpeg_hash": "3a9bce0eec65d13e2cf071e51757b7e90d082a4f",
 
   "sfntly_revision": "134",
-  "skia_revision": "5850",
+  "skia_revision": "5950",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "12669",
+  "v8_revision": "12732",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "2718",
+  "webrtc_revision": "2918",
   "jsoncpp_revision": "248",
   "nss_revision": "158129",
 }
 
 deps = {
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1052",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1069",
 
   "src/googleurl":
-    (Var("googlecode_url") % "google-url") + "/trunk@179",
+    (Var("googlecode_url") % "google-url") + "/trunk@180",
 
   "src/sandbox/linux/seccomp-legacy":
     (Var("googlecode_url") % "seccompsandbox") + "/trunk@187",
@@ -65,7 +65,7 @@ deps = {
     (Var("googlecode_url") % "angleproject") + "/trunk@1289",
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@168",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@176",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -75,7 +75,7 @@ deps = {
     "/trunk/deps/third_party/WebKit@76115",
 
   "src/third_party/icu":
-    "/trunk/deps/third_party/icu46@158118",
+    "/trunk/deps/third_party/icu46@161442",
 
   "src/third_party/libexif/sources":
     "/trunk/deps/third_party/libexif/sources@146817",
@@ -89,24 +89,24 @@ deps = {
   "src/third_party/safe_browsing/testing":
     (Var("googlecode_url") % "google-safe-browsing") + "/trunk/testing@112",
 
-  "src/third_party/cacheinvalidation/files/src/google":
+  "src/third_party/cacheinvalidation/src":
     (Var("googlecode_url") % "google-cache-invalidation-api") +
-    "/trunk/src/google@220",
+    "/trunk/src@220",
 
   "src/third_party/leveldatabase/src":
-    (Var("googlecode_url") % "leveldb") + "/trunk@67",
+    (Var("googlecode_url") % "leveldb") + "/trunk@68",
 
   "src/third_party/snappy/src":
     (Var("googlecode_url") % "snappy") + "/trunk@63",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@73",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@76",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1514",
+    (Var("googlecode_url") % "gyp") + "/trunk@1519",
 
   "src/tools/swarm_client":
-    "/trunk/tools/swarm_client@160586",
+    "/trunk/tools/swarm_client@160845",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -165,7 +165,7 @@ deps = {
     (Var("googlecode_url") % "bidichecker") + "/trunk/lib@4",
 
   "src/third_party/v8-i18n":
-    (Var("googlecode_url") % "v8-i18n") + "/trunk@150",
+    (Var("googlecode_url") % "v8-i18n") + "/trunk@151",
 
   # When roll to another webgl conformance tests revision, please goto
   # chrome/test/gpu and run generate_webgl_conformance_test_list.py.
@@ -265,7 +265,7 @@ deps = {
     "/trunk/deps/third_party/libjpeg_turbo@149334",
 
   "src/third_party/flac":
-    "/trunk/deps/third_party/flac@149334",
+    "/trunk/deps/third_party/flac@160844",
 
   "src/third_party/pyftpdlib/src":
     (Var("googlecode_url") % "pyftpdlib") + "/trunk@977",
@@ -314,10 +314,10 @@ deps = {
     "/trunk/tools/deps2git@157441",
 
   "src/third_party/webpagereplay":
-    (Var("googlecode_url") % "web-page-replay") + "/trunk@494",
+    (Var("googlecode_url") % "web-page-replay") + "/trunk@495",
 
   "src/third_party/pywebsocket/src":
-    (Var("googlecode_url") % "pywebsocket") + "/trunk/src@661",
+    (Var("googlecode_url") % "pywebsocket") + "/trunk/src@662",
 }
 
 
@@ -525,10 +525,10 @@ deps_os = {
     "src/third_party/libmtp":
       "/trunk/deps/third_party/libmtp@160216",
 
-    # For Chromium OS.
+    # For Linux and Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@94ed6fa5e9c8d55d183260a41856899502af0459",
+      "@572f3ee95be807777dced75795eb916ce53ac3b9",
   },
   "android": {
     "src/third_party/freetype":
