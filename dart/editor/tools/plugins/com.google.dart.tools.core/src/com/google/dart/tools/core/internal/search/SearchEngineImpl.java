@@ -24,6 +24,7 @@ import com.google.dart.tools.core.internal.index.contributor.IndexConstants;
 import com.google.dart.tools.core.internal.index.util.ElementFactory;
 import com.google.dart.tools.core.internal.index.util.ResourceFactory;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
+import com.google.dart.tools.core.internal.model.DartElementImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
@@ -176,7 +177,8 @@ public class SearchEngineImpl implements SearchEngine {
 
     private DartElement findElement(DartElement parentElement, String component) {
       if (!(parentElement instanceof ParentElement)) {
-        DartCore.logError("Cannot find " + component + " as a child of " + parentElement
+        DartCore.logError("Cannot find " + component + " as a child of "
+            + ((DartElementImpl) parentElement).toStringWithAncestors()
             + " because it has no children");
         return null;
       } else if (component.length() == 0) {
@@ -197,7 +199,8 @@ public class SearchEngineImpl implements SearchEngine {
               }
             }
           } catch (NumberFormatException exception) {
-            DartCore.logError("Cannot find " + component + " as a child of " + parentElement
+            DartCore.logError("Cannot find " + component + " as a child of "
+                + ((DartElementImpl) parentElement).toStringWithAncestors()
                 + " because it is an invalid name");
             return null;
           }
@@ -212,7 +215,8 @@ public class SearchEngineImpl implements SearchEngine {
         DartCore.logError("Cannot find children of " + parentElement);
         return null;
       }
-      DartCore.logError("Cannot find " + component + " as a child of " + parentElement);
+      DartCore.logError("Cannot find " + component + " as a child of "
+          + ((DartElementImpl) parentElement).toStringWithAncestors());
       return null;
     }
 
