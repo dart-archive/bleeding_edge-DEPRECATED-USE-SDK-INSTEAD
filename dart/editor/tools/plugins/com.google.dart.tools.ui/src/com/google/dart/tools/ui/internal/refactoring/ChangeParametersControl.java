@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
+import com.google.dart.tools.internal.corext.refactoring.StubTypeContext;
 import com.google.dart.tools.internal.corext.refactoring.code.ParameterInfo;
 import com.google.dart.tools.ui.internal.dialogs.TableTextCellEditor;
 import com.google.dart.tools.ui.internal.dialogs.TextFieldNavigationHandler;
@@ -88,7 +89,7 @@ public class ChangeParametersControl extends Composite {
     }
 
     public boolean canChangeTypes() {
-      return this == CHANGE_METHOD_SIGNATURE;
+      return this == EXTRACT_METHOD || this == CHANGE_METHOD_SIGNATURE;
     }
 
     @Override
@@ -221,10 +222,6 @@ public class ChangeParametersControl extends Composite {
     }
   }
 
-  // TODO(scheglov) Should be top-level and have some functions
-  private static class StubTypeContext {
-  }
-
   private static final String[] PROPERTIES = {"type", "new", "default"}; //$NON-NLS-2$ //$NON-NLS-1$ //$NON-NLS-3$
   private static final int TYPE_PROP = 0;
   private static final int NEWNAME_PROP = 1;
@@ -263,7 +260,7 @@ public class ChangeParametersControl extends Composite {
   private final Mode fMode;
   private final IParameterListChangeListener fListener;
   private List<ParameterInfo> fParameterInfos;
-//  private final StubTypeContext fTypeContext;
+  private final StubTypeContext fTypeContext;
 
   private final String[] fParamNameProposals;
   private ContentAssistHandler fNameContentAssistHandler;
@@ -302,7 +299,7 @@ public class ChangeParametersControl extends Composite {
     Assert.isNotNull(listener);
     fListener = listener;
     fMode = mode;
-//    fTypeContext = typeContext;
+    fTypeContext = typeContext;
     fParamNameProposals = paramNameProposals;
 
     GridLayout layout = new GridLayout();
@@ -552,28 +549,27 @@ public class ChangeParametersControl extends Composite {
     button.setText(RefactoringMessages.ChangeParametersControl_buttons_edit);
     button.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     SWTUtil.setButtonDimensionHint(button);
-    // TODO(scheglov)
-//    button.addSelectionListener(new SelectionAdapter() {
-//      @Override
-//      public void widgetSelected(SelectionEvent e) {
-//        try {
-//          ParameterInfo[] selected = getSelectedElements();
-//          Assert.isTrue(selected.length == 1);
-//          ParameterInfo parameterInfo = selected[0];
-//          ParameterEditDialog dialog = new ParameterEditDialog(
-//              getShell(),
-//              parameterInfo,
-//              fMode.canChangeTypes(),
-//              fMode.canChangeDefault(),
-//              fTypeContext);
-//          dialog.open();
-//          fListener.parameterChanged(parameterInfo);
-//          fTableViewer.update(parameterInfo, PROPERTIES);
-//        } finally {
-//          fTableViewer.getControl().setFocus();
-//        }
-//      }
-//    });
+    button.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        try {
+          ParameterInfo[] selected = getSelectedElements();
+          Assert.isTrue(selected.length == 1);
+          ParameterInfo parameterInfo = selected[0];
+          ParameterEditDialog dialog = new ParameterEditDialog(
+              getShell(),
+              parameterInfo,
+              fMode.canChangeTypes(),
+              fMode.canChangeDefault(),
+              fTypeContext);
+          dialog.open();
+          fListener.parameterChanged(parameterInfo);
+          fTableViewer.update(parameterInfo, PROPERTIES);
+        } finally {
+          fTableViewer.getControl().setFocus();
+        }
+      }
+    });
     return button;
   }
 

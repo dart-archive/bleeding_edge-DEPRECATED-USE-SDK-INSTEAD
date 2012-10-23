@@ -313,7 +313,10 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     }
     // try to find in imported libraries, non-transitively
     if (!typeName.startsWith("_")) {
-      for (DartLibrary library : getImportedLibraries()) {
+      List<DartLibrary> librariesToSearch = Lists.newArrayList();
+      Collections.addAll(librariesToSearch, getImportedLibraries());
+      librariesToSearch.add(getDartModel().getCoreLibrary());
+      for (DartLibrary library : librariesToSearch) {
         type = library.findType(typeName);
         if (type != null) {
           return type;

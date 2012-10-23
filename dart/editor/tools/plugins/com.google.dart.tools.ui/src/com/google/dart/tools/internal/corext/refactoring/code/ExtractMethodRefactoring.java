@@ -428,7 +428,7 @@ public class ExtractMethodRefactoring extends Refactoring {
       // type
       {
         String typeSource = parameter.getNewTypeName();
-        if (!"dynamic".equals(typeSource)) {
+        if (!"dynamic".equals(typeSource) && !"".equals(typeSource)) {
           sb.append(typeSource);
           sb.append(" ");
         }
@@ -439,6 +439,10 @@ public class ExtractMethodRefactoring extends Refactoring {
     // done
     sb.append(")");
     return sb.toString();
+  }
+
+  public CompilationUnit getUnit() {
+    return unit;
   }
 
   /**

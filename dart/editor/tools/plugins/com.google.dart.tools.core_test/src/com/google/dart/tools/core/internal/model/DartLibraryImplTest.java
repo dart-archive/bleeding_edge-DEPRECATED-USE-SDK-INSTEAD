@@ -285,6 +285,12 @@ public class DartLibraryImplTest extends TestCase {
         assertNotNull(libraryB.findTypeInScope("A1"));
         assertNull(libraryB.findTypeInScope("_A2"));
       }
+      // from dart:core
+      {
+        DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
+        assertNotNull(libraryA.findTypeInScope("num"));
+        assertNotNull(libraryA.findTypeInScope("String"));
+      }
     } finally {
       testProject.dispose();
     }

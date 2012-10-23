@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
+import com.google.dart.tools.internal.corext.refactoring.StubTypeContext;
+import com.google.dart.tools.internal.corext.refactoring.TypeContextChecker;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractMethodRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.ParameterInfo;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
@@ -108,7 +110,8 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
               parameterModified();
             }
           },
-          ChangeParametersControl.Mode.EXTRACT_METHOD);
+          ChangeParametersControl.Mode.EXTRACT_METHOD,
+          new StubTypeContext(fRefactoring.getUnit(), "", ""));
       gd = new GridData(GridData.FILL_BOTH);
       gd.horizontalSpan = 2;
       cp.setLayoutData(gd);
@@ -317,6 +320,9 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
         result.addFatalError(RefactoringMessages.ExtractMethodInputPage_validation_emptyParameterName);
         return result;
       }
+      result.merge(TypeContextChecker.checkParameterTypeSyntax(
+          parameter.getNewTypeName(),
+          fRefactoring.getUnit()));
     }
     result.merge(fRefactoring.checkParameterNames());
     return result;

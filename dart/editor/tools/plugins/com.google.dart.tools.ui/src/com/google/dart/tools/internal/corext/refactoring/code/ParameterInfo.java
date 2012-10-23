@@ -23,13 +23,15 @@ import com.google.dart.compiler.resolver.VariableElement;
 public class ParameterInfo {
   private final String oldName;
   private String newName;
+  private String oldTypeName;
   private String newTypeName;
   private String defaultValue;
 
   public ParameterInfo(VariableElement variable) {
     oldName = variable.getName();
     newName = oldName;
-    newTypeName = ExtractUtils.getTypeSource(variable.getType());
+    oldTypeName = ExtractUtils.getTypeSource(variable.getType());
+    newTypeName = oldTypeName;
     defaultValue = "null";
   }
 
@@ -61,6 +63,10 @@ public class ParameterInfo {
 
   public boolean isRenamed() {
     return !oldName.equals(newName);
+  }
+
+  public boolean isTypeNameChanged() {
+    return !oldTypeName.equals(newTypeName);
   }
 
   public void setDefaultValue(String defaultValue) {
