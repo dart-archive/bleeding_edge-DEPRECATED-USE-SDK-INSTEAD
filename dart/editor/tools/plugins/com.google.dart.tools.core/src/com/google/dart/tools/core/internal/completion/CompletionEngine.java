@@ -1128,13 +1128,15 @@ public class CompletionEngine {
         } else if (qualifier instanceof DartMethodInvocation) {
           name = ((DartMethodInvocation) qualifier).getFunctionName();
         }
-        Element element = name.getElement();
-        ScopedNameFinder vars = new ScopedNameFinder(actualCompletionPosition);
-        completionNode.accept(vars);
-        ScopedName varName = vars.getLocals().get(name.getName());
-        if (varName != null) {
-          element = varName.getSymbol();
-          type = element.getType();
+        if (name != null) {
+          Element element = name.getElement();
+          ScopedNameFinder vars = new ScopedNameFinder(actualCompletionPosition);
+          completionNode.accept(vars);
+          ScopedName varName = vars.getLocals().get(name.getName());
+          if (varName != null) {
+            element = varName.getSymbol();
+            type = element.getType();
+          }
         }
       }
       createCompletionsForQualifiedMemberAccess(propertyName, type, true, false);
