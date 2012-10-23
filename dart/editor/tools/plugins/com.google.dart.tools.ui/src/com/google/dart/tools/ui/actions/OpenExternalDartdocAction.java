@@ -36,7 +36,6 @@ import org.eclipse.ui.actions.ActionContext;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 
-import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -148,11 +147,14 @@ public class OpenExternalDartdocAction extends SelectionDispatchAction {
    */
   private DartElement getDartElementToOpen(ITextSelection selection) {
     CompilationUnit input = SelectionConverter.getInputAsCompilationUnit(editor);
+    if (input == null || selection == null) {
+      return null;
+    }
     if (!ActionUtil.isProcessable(getShell(), input)) {
       return null;
     }
     try {
-      DartElement[] elements = SelectionConverter.codeResolveOrInputForked(editor);
+      DartElement[] elements = SelectionConverter.codeResolve(editor);
       if (elements == null) {
         return null;
       }
@@ -176,9 +178,7 @@ public class OpenExternalDartdocAction extends SelectionDispatchAction {
           return dartElement;
         }
       }
-    } catch (InvocationTargetException e) {
-      DartToolsPlugin.log(e);
-    } catch (InterruptedException e) {
+    } catch (DartModelException e) {
       DartToolsPlugin.log(e);
     }
     return null;
