@@ -271,10 +271,15 @@ public class ExtractMethodRefactoring extends Refactoring {
           StringBuilder sb = new StringBuilder();
           // may be returns value
           if (returnVariable != null) {
+            String varTypeName = ExtractUtils.getTypeSource(returnVariable.getType());
             String originalName = returnVariable.getName();
             String occurrenceName = occurence.parameterOldToOccurrenceName.get(originalName);
-            sb.append(ExtractUtils.getTypeSource(returnVariable.getType()));
-            sb.append(" ");
+            if (varTypeName.equals("dynamic")) {
+              sb.append("var ");
+            } else {
+              sb.append(varTypeName);
+              sb.append(" ");
+            }
             sb.append(occurrenceName);
             sb.append(" = ");
           }
@@ -332,7 +337,7 @@ public class ExtractMethodRefactoring extends Refactoring {
           if (selectionExpression != null) {
             // add return type
             String returnTypeName = ExtractUtils.getTypeSource(selectionExpression);
-            if (returnTypeName != null && !returnTypeName.equals("Dynamic")) {
+            if (returnTypeName != null && !returnTypeName.equals("dynamic")) {
               annotations += returnTypeName + " ";
             }
             // just return expression
@@ -342,7 +347,10 @@ public class ExtractMethodRefactoring extends Refactoring {
           // statements
           if (selectionStatements != null) {
             if (returnVariable != null) {
-              annotations += ExtractUtils.getTypeSource(returnVariable.getType()) + " ";
+              String returnTypeName = ExtractUtils.getTypeSource(returnVariable.getType());
+              if (returnTypeName != null && !returnTypeName.equals("dynamic")) {
+                annotations += returnTypeName + " ";
+              }
             } else {
               annotations += "void ";
             }
@@ -351,13 +359,13 @@ public class ExtractMethodRefactoring extends Refactoring {
             if (returnVariable != null) {
               declarationSource += prefix + "  return " + returnVariable.getName() + ";" + eol;
             }
-            declarationSource += "}";
+            declarationSource += prefix + "}";
           }
         }
         // insert declaration
         if (declarationSource != null) {
           int offset = parentMember.getSourceInfo().getEnd();
-          TextEdit edit = new ReplaceEdit(offset, 0, eol + prefix + declarationSource);
+          TextEdit edit = new ReplaceEdit(offset, 0, eol + eol + prefix + declarationSource);
           change.addEdit(edit);
           change.addTextEditGroup(new TextEditGroup(Messages.format(selectionExpression != null
               ? RefactoringCoreMessages.ExtractMethodRefactoring_add_method_expression
@@ -420,7 +428,7 @@ public class ExtractMethodRefactoring extends Refactoring {
       // type
       {
         String typeSource = parameter.getNewTypeName();
-        if (!"Dynamic".equals(typeSource)) {
+        if (!"dynamic".equals(typeSource)) {
           sb.append(typeSource);
           sb.append(" ");
         }

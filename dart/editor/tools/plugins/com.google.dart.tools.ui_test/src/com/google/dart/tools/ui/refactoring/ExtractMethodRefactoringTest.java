@@ -1121,6 +1121,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "main() {",
         "  int a = res();",
         "}",
+        "",
         "int res() => 1 + 2;",
         "");
   }
@@ -1142,6 +1143,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "main() {",
         "  int a = res(); // marker",
         "}",
+        "",
         "res() => dynaFunction();",
         "");
   }
@@ -1181,6 +1183,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  int negC = v1 + 2;",
         "  int negD = v1 * v2;",
         "}",
+        "",
         "int res(int v1, int v2) => v1 + v2;",
         "");
   }
@@ -1209,6 +1212,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  int a = res(v1, v2); // marker",
         "  int b = v2 + v3;",
         "}",
+        "",
         "int res(int v1, int v2) => v1 + v2;",
         "");
   }
@@ -1240,6 +1244,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "    int v2 = 2;",
         "    int positiveA = res(v1, v2); // marker",
         "  }",
+        "",
         "  int res(int v1, int v2) => v1 + v2;",
         "}",
         "main() {",
@@ -1276,6 +1281,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  int v2 = 2;",
         "  int positiveA = res(v1, v2); // marker",
         "}",
+        "",
         "int res(int v1, int v2) => v1 + v2;",
         "class A {",
         "  myMethod() {",
@@ -1307,6 +1313,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "}",
         "class B extends A {",
         "  B() : super(res()) {}",
+        "",
         "  static int res() => 1 + 2;",
         "}",
         "");
@@ -1344,6 +1351,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "    int v2 = 2;",
         "    int positiveA = res(v1, v2); // marker",
         "  }",
+        "",
         "  static int res(int v1, int v2) => v1 + v2;",
         "  instanceMethodB() {",
         "    int v1 = 1;",
@@ -1391,6 +1399,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "    int v2 = 2;",
         "    int positiveA = res(v1, v2); // marker",
         "  }",
+        "",
         "  static int res(int v1, int v2) => v1 + v2;",
         "  static staticMethodB() {",
         "    int v1 = 1;",
@@ -1432,6 +1441,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  foo() {",
         "    print(res()); // marker",
         "  }",
+        "",
         "  static int res() => 1 + 2;",
         "}",
         "");
@@ -1458,6 +1468,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  int a2 = 2;",
         "  int a = res(a1, a2); // marker",
         "}",
+        "",
         "int res(int a1, int a2) => a1 + a2;",
         "fooB(int b1) {",
         "  int b2 = 2;",
@@ -1484,6 +1495,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "main() {",
         "  int a = res();",
         "}",
+        "",
         "int res() => 1 + 2;",
         "");
   }
@@ -1507,6 +1519,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  int v2 = 2;",
         "  int a = res(v1, v2); // marker",
         "}",
+        "",
         "int res(int v1, int v2) => v1 + v2 + v1;",
         "");
   }
@@ -1544,6 +1557,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  int a = res(v1, v2); // marker",
         "  int b = res(v2, v3);",
         "}",
+        "",
         "int res(int par1, int param2) => par1 + param2 + par1;",
         "");
   }
@@ -1581,6 +1595,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  int a = res(v2, v1); // marker",
         "  int b = res(v3, v2);",
         "}",
+        "",
         "int res(int v2, int v1) => v1 + v2;",
         "");
   }
@@ -1609,6 +1624,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "// end",
         "  }",
         "}",
+        "",
         "void res() {",
         "  if (true) {",
         "    print(0);",
@@ -1640,6 +1656,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  res(a, b);",
         "// end",
         "}",
+        "",
         "void res(int a, int b) {",
         "  int v = a + b;",
         "  print(v);",
@@ -1674,6 +1691,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "// end",
         "  print(a);",
         "}",
+        "",
         "int res(int a) {",
         "  a += 10;",
         "  return a;",
@@ -1716,6 +1734,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "// end",
         "  print(v1);",
         "}",
+        "",
         "int res(int a, int b) {",
         "  int v1 = a + b;",
         "  return v1;",
@@ -1777,6 +1796,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  res();",
         "// end",
         "}",
+        "",
         "void res() {",
         "  print(0);",
         "  print(1);",
@@ -1814,9 +1834,42 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  res();",
         "// end",
         "}",
+        "",
         "void res() {",
         "  int varB = 1;",
         "  print(varB);",
+        "}",
+        "");
+  }
+
+  public void test_statements_Dynamic() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "dynaFunction(p) => 0;",
+        "main() {",
+        "// start",
+        "  var a = 1;",
+        "  var v = dynaFunction(a);",
+        "// end",
+        "  print(v);",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "dynaFunction(p) => 0;",
+        "main() {",
+        "// start",
+        "  var v = res();",
+        "// end",
+        "  print(v);",
+        "}",
+        "",
+        "res() {",
+        "  var a = 1;",
+        "  var v = dynaFunction(a);",
+        "  return v;",
         "}",
         "");
   }
@@ -1844,8 +1897,38 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  res();",
         "// end",
         "}",
+        "",
         "void res() {",
         "  if (true) {",
+        "    print(0);",
+        "  }",
+        "}",
+        "");
+  }
+
+  public void test_statements_method() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {",
+        "// start",
+        "    print(0);",
+        "// end",
+        "  }",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {",
+        "// start",
+        "    res();",
+        "// end",
+        "  }",
+        "",
+        "  void res() {",
         "    print(0);",
         "  }",
         "}",
@@ -1875,6 +1958,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "  res(a);",
         "// end",
         "}",
+        "",
         "void res(int a) {",
         "  print(a);",
         "}",
@@ -1905,6 +1989,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "// end",
         "  print(0);",
         "}",
+        "",
         "void res() {",
         "  print(0);",
         "  print(0);",
