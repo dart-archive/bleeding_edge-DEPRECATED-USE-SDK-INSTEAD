@@ -501,7 +501,8 @@ public class TextSearchExecutor {
 
   private boolean processFile(IFile file, Map<IFile, IDocument> documentsInEditors) {
     try {
-      if (!collector.acceptFile(file) || matcher == null) {
+
+      if (!file.exists() || !collector.acceptFile(file) || matcher == null) {
         return true;
       }
 
