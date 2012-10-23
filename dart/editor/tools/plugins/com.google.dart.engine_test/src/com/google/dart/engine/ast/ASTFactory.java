@@ -160,6 +160,7 @@ public final class ASTFactory {
       ImplementsClause implementsClause, ClassMember... members) {
     return new ClassDeclaration(
         null,
+        null,
         abstractKeyword == null ? null : token(abstractKeyword),
         token(Keyword.CLASS),
         identifier(name),
@@ -221,7 +222,7 @@ public final class ASTFactory {
   public static ConstructorDeclaration constructorDeclaration(Keyword keyword,
       Identifier returnType, String name, FormalParameterList parameters,
       List<ConstructorInitializer> initializers) {
-    return new ConstructorDeclaration(null, token(Keyword.EXTERNAL), keyword == null ? null
+    return new ConstructorDeclaration(null, null, token(Keyword.EXTERNAL), keyword == null ? null
         : token(keyword), returnType, name == null ? null : token(TokenType.PERIOD), name == null
         ? null : identifier(name), parameters, initializers == null || initializers.isEmpty()
         ? null : token(TokenType.PERIOD), initializers == null
@@ -232,6 +233,7 @@ public final class ASTFactory {
       Identifier returnType, String name, FormalParameterList parameters,
       List<ConstructorInitializer> initializers, FunctionBody body) {
     return new ConstructorDeclaration(
+        null,
         null,
         null,
         keyword == null ? null : token(keyword),
@@ -288,12 +290,18 @@ public final class ASTFactory {
     return new EmptyStatement(token(TokenType.SEMICOLON));
   }
 
-  public static ExportDirective exportDirective(String uri, List<ImportCombinator> combinators) {
+  public static ExportDirective exportDirective(List<Annotation> metadata, String uri,
+      List<ImportCombinator> combinators) {
     return new ExportDirective(
+        metadata,
         token(Keyword.EXPORT),
         string(uri),
         combinators,
         token(TokenType.SEMICOLON));
+  }
+
+  public static ExportDirective exportDirective(String uri, List<ImportCombinator> combinators) {
+    return exportDirective(new ArrayList<Annotation>(), uri, combinators);
   }
 
   public static ExpressionFunctionBody expressionFunctionBody(Expression expression) {
@@ -314,6 +322,7 @@ public final class ASTFactory {
   public static FieldDeclaration fieldDeclaration(boolean isStatic, Keyword keyword, TypeName type,
       VariableDeclaration... variables) {
     return new FieldDeclaration(
+        null,
         null,
         isStatic ? token(Keyword.STATIC) : null,
         variableDeclarationList(keyword, type, variables),
@@ -390,6 +399,7 @@ public final class ASTFactory {
       FunctionExpression functionExpression) {
     return new FunctionDeclaration(
         null,
+        null,
         keyword == null ? null : token(keyword),
         functionExpression);
   }
@@ -456,15 +466,21 @@ public final class ASTFactory {
     return new ImplementsClause(token(Keyword.IMPLEMENTS), list(types));
   }
 
-  public static ImportDirective importDirective(String uri, String prefix,
-      List<ImportCombinator> combinators) {
+  public static ImportDirective importDirective(List<Annotation> metadata, String uri,
+      String prefix, List<ImportCombinator> combinators) {
     return new ImportDirective(
+        metadata,
         token(Keyword.IMPORT),
         string(uri),
         prefix == null ? null : token(Keyword.AS),
         prefix == null ? null : identifier(prefix),
         combinators,
         token(TokenType.SEMICOLON));
+  }
+
+  public static ImportDirective importDirective(String uri, String prefix,
+      List<ImportCombinator> combinators) {
+    return importDirective(new ArrayList<Annotation>(), uri, prefix, combinators);
   }
 
   public static ImportHideCombinator importHideCombinator(Identifier... identifiers) {
@@ -528,11 +544,16 @@ public final class ASTFactory {
     return new LabeledStatement(labels, statement);
   }
 
-  public static LibraryDirective libraryDirective(String libraryName) {
+  public static LibraryDirective libraryDirective(List<Annotation> metadata, String libraryName) {
     return new LibraryDirective(
+        metadata,
         token(Keyword.LIBRARY),
         identifier(libraryName),
         token(TokenType.SEMICOLON));
+  }
+
+  public static LibraryDirective libraryDirective(String libraryName) {
+    return libraryDirective(new ArrayList<Annotation>(), libraryName);
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
@@ -578,7 +599,7 @@ public final class ASTFactory {
 
   public static MethodDeclaration methodDeclaration(Keyword modifier, TypeName returnType,
       Keyword property, Keyword operator, Identifier name, FormalParameterList parameters) {
-    return new MethodDeclaration(null, token(Keyword.EXTERNAL), modifier == null ? null
+    return new MethodDeclaration(null, null, token(Keyword.EXTERNAL), modifier == null ? null
         : token(modifier), returnType, property == null ? null : token(property), operator == null
         ? null : token(operator), name, parameters, emptyFunctionBody());
   }
@@ -587,6 +608,7 @@ public final class ASTFactory {
       Keyword property, Keyword operator, Identifier name, FormalParameterList parameters,
       FunctionBody body) {
     return new MethodDeclaration(
+        null,
         null,
         null,
         modifier == null ? null : token(modifier),
@@ -631,16 +653,26 @@ public final class ASTFactory {
         token(TokenType.CLOSE_PAREN));
   }
 
-  public static PartDirective partDirective(String url) {
-    return new PartDirective(token(Keyword.PART), string(url), token(TokenType.SEMICOLON));
+  public static PartDirective partDirective(List<Annotation> metadata, String url) {
+    return new PartDirective(metadata, token(Keyword.PART), string(url), token(TokenType.SEMICOLON));
   }
 
-  public static PartOfDirective partOfDirective(Identifier libraryName) {
+  public static PartDirective partDirective(String url) {
+    return partDirective(new ArrayList<Annotation>(), url);
+  }
+
+  public static PartOfDirective partOfDirective(List<Annotation> metadata,
+      SimpleIdentifier libraryName) {
     return new PartOfDirective(
+        metadata,
         token(Keyword.PART),
         token("of"),
         libraryName,
         token(TokenType.SEMICOLON));
+  }
+
+  public static PartOfDirective partOfDirective(SimpleIdentifier libraryName) {
+    return partOfDirective(new ArrayList<Annotation>(), libraryName);
   }
 
   public static PostfixExpression postfixExpression(Expression expression, TokenType operator) {
@@ -774,18 +806,18 @@ public final class ASTFactory {
 
   public static TopLevelVariableDeclaration topLevelVariableDeclaration(Keyword keyword,
       TypeName type, VariableDeclaration... variables) {
-    return new TopLevelVariableDeclaration(
-        null,
-        variableDeclarationList(keyword, type, variables),
-        token(TokenType.SEMICOLON));
+    return new TopLevelVariableDeclaration(null, null, variableDeclarationList(
+        keyword,
+        type,
+        variables), token(TokenType.SEMICOLON));
   }
 
   public static TopLevelVariableDeclaration topLevelVariableDeclaration(Keyword keyword,
       VariableDeclaration... variables) {
-    return new TopLevelVariableDeclaration(
+    return new TopLevelVariableDeclaration(null, null, variableDeclarationList(
+        keyword,
         null,
-        variableDeclarationList(keyword, null, variables),
-        token(TokenType.SEMICOLON));
+        variables), token(TokenType.SEMICOLON));
   }
 
   public static TryStatement tryStatement(Block body, Block finallyClause) {
@@ -805,6 +837,7 @@ public final class ASTFactory {
   public static TypeAlias typeAlias(TypeName returnType, String name,
       TypeParameterList typeParameters, FormalParameterList parameters) {
     return new TypeAlias(
+        null,
         null,
         token(Keyword.TYPEDEF),
         returnType,
@@ -826,11 +859,11 @@ public final class ASTFactory {
   }
 
   public static TypeParameter typeParameter(String name) {
-    return new TypeParameter(identifier(name), null, null);
+    return new TypeParameter(null, null, identifier(name), null, null);
   }
 
   public static TypeParameter typeParameter(String name, TypeName bound) {
-    return new TypeParameter(identifier(name), token(Keyword.EXTENDS), bound);
+    return new TypeParameter(null, null, identifier(name), token(Keyword.EXTENDS), bound);
   }
 
   public static TypeParameterList typeParameterList(String... typeNames) {
@@ -842,11 +875,11 @@ public final class ASTFactory {
   }
 
   public static VariableDeclaration variableDeclaration(String name) {
-    return new VariableDeclaration(null, identifier(name), null, null);
+    return new VariableDeclaration(null, null, identifier(name), null, null);
   }
 
   public static VariableDeclaration variableDeclaration(String name, Expression initializer) {
-    return new VariableDeclaration(null, identifier(name), token(TokenType.EQ), initializer);
+    return new VariableDeclaration(null, null, identifier(name), token(TokenType.EQ), initializer);
   }
 
   public static VariableDeclarationList variableDeclarationList(Keyword keyword, TypeName type,

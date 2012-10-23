@@ -22,7 +22,7 @@ import java.util.List;
  * 
  * <pre>
  * exportDirective ::=
- *     'export' {@link StringLiteral libraryUri} {@link ImportCombinator combinator}* ';'
+ *     {@link Annotation metadata} 'export' {@link StringLiteral libraryUri} {@link ImportCombinator combinator}* ';'
  * </pre>
  */
 public class ExportDirective extends Directive {
@@ -55,13 +55,15 @@ public class ExportDirective extends Directive {
   /**
    * Initialize a newly created export directive.
    * 
+   * @param metadata the annotations associated with the directive
    * @param exportToken the token representing the 'export' token
    * @param libraryUri the URI of the library being exported
    * @param combinators the combinators used to control which names are exported
    * @param semicolon the semicolon terminating the statement
    */
-  public ExportDirective(Token exportToken, StringLiteral libraryUri,
+  public ExportDirective(List<Annotation> metadata, Token exportToken, StringLiteral libraryUri,
       List<ImportCombinator> combinators, Token semicolon) {
+    super(metadata);
     this.exportToken = exportToken;
     this.libraryUri = becomeParentOf(libraryUri);
     this.combinators.addAll(combinators);
@@ -148,6 +150,7 @@ public class ExportDirective extends Directive {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(libraryUri, visitor);
     combinators.accept(visitor);
   }

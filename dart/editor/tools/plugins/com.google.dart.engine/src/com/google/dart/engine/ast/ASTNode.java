@@ -17,6 +17,8 @@ import com.google.dart.engine.ast.visitor.ToSourceVisitor;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
+import java.util.Comparator;
+
 /**
  * The abstract class {@code ASTNode} defines the behavior common to all nodes in the AST structure
  * for a Dart program.
@@ -26,6 +28,19 @@ public abstract class ASTNode {
    * The parent of the node, or {@code null} if the node is the root of an AST structure.
    */
   private ASTNode parent;
+
+  /**
+   * A comparator that can be used to sort AST nodes in lexical order. In other words,
+   * {@code compare} will return a negative value if the offset of the first node is less than the
+   * offset of the second node, zero (0) if the nodes have the same offset, and a positive value if
+   * if the offset of the first node is greater than the offset of the second node.
+   */
+  public static final Comparator<ASTNode> LEXICAL_ORDER = new Comparator<ASTNode>() {
+    @Override
+    public int compare(ASTNode first, ASTNode second) {
+      return second.getOffset() - first.getOffset();
+    }
+  };
 
   /**
    * Use the given visitor to visit this node.

@@ -99,6 +99,7 @@ public class ConstructorDeclaration extends ClassMember {
    * 
    * @param externalKeyword the token for the 'external' keyword
    * @param comment the documentation comment associated with this constructor
+   * @param metadata the annotations associated with this constructor
    * @param keyword the token for the 'factory' or 'const' keyword
    * @param returnType the return type of the constructor
    * @param period the token for the period before the constructor name
@@ -108,10 +109,11 @@ public class ConstructorDeclaration extends ClassMember {
    * @param initializers the initializers associated with the constructor
    * @param body the body of the constructor
    */
-  public ConstructorDeclaration(Comment comment, Token externalKeyword, Token keyword,
-      Identifier returnType, Token period, SimpleIdentifier name, FormalParameterList parameters,
-      Token colon, List<ConstructorInitializer> initializers, FunctionBody body) {
-    super(comment);
+  public ConstructorDeclaration(Comment comment, List<Annotation> metadata, Token externalKeyword,
+      Token keyword, Identifier returnType, Token period, SimpleIdentifier name,
+      FormalParameterList parameters, Token colon, List<ConstructorInitializer> initializers,
+      FunctionBody body) {
+    super(comment, metadata);
     this.externalKeyword = externalKeyword;
     this.keyword = keyword;
     this.returnType = becomeParentOf(returnType);

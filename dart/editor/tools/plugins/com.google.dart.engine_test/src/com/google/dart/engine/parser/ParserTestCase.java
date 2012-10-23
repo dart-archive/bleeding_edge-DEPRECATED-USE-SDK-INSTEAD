@@ -14,6 +14,8 @@
 package com.google.dart.engine.parser;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.Annotation;
+import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.Statement;
@@ -28,6 +30,7 @@ import junit.framework.AssertionFailedError;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 public class ParserTestCase extends EngineTestCase {
   /**
@@ -261,5 +264,29 @@ public class ParserTestCase extends EngineTestCase {
   protected static <E> E invokeParserMethod(String methodName, String source,
       GatheringErrorListener listener) throws Exception {
     return invokeParserMethod(methodName, EMPTY_PARAMETERS, EMPTY_ARGUMENTS, source, listener);
+  }
+
+  /**
+   * Return a CommentAndMetadata object with the given values that can be used for testing.
+   * 
+   * @param comment the comment to be wrapped in the object
+   * @param annotations the annotations to be wrapped in the object
+   * @return a CommentAndMetadata object that can be used for testing
+   */
+  protected Parser.CommentAndMetadata commentAndMetadata(Comment comment, Annotation... annotations) {
+    ArrayList<Annotation> metadata = new ArrayList<Annotation>();
+    for (Annotation annotation : annotations) {
+      metadata.add(annotation);
+    }
+    return new Parser.CommentAndMetadata(comment, metadata);
+  }
+
+  /**
+   * Return an empty CommentAndMetadata object that can be used for testing.
+   * 
+   * @return an empty CommentAndMetadata object that can be used for testing
+   */
+  protected Parser.CommentAndMetadata emptyCommentAndMetadata() {
+    return new Parser.CommentAndMetadata(null, new ArrayList<Annotation>());
   }
 }

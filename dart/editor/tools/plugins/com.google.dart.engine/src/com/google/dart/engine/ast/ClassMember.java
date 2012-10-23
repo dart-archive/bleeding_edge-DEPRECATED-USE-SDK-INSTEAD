@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.ast;
 
+import java.util.List;
+
 /**
  * The abstract class {@code ClassMember} defines the behavior common to nodes that declare a name
  * within the scope of a class.
@@ -28,8 +30,9 @@ public abstract class ClassMember extends Declaration {
    * Initialize a newly created member of a class.
    * 
    * @param comment the documentation comment associated with this member
+   * @param metadata the annotations associated with this member
    */
-  public ClassMember(Comment comment) {
-    super(comment);
+  public ClassMember(Comment comment, List<Annotation> metadata) {
+    super(comment, metadata);
   }
 }

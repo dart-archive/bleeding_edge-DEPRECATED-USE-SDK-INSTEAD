@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.ast;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code CompilationUnitMember} defines the behavior common to nodes that
  * declare a name within the scope of a compilation unit.
@@ -38,8 +40,9 @@ public abstract class CompilationUnitMember extends Declaration {
    * Initialize a newly created generic compilation unit member.
    * 
    * @param comment the documentation comment associated with this member
+   * @param metadata the annotations associated with this member
    */
-  public CompilationUnitMember(Comment comment) {
-    super(comment);
+  public CompilationUnitMember(Comment comment, List<Annotation> metadata) {
+    super(comment, metadata);
   }
 }

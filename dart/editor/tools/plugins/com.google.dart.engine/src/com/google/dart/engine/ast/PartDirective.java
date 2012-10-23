@@ -15,12 +15,14 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code PartDirective} represent a part directive.
  * 
  * <pre>
  * partDirective ::=
- *     'part' {@link StringLiteral partUri} ';'
+ *     {@link Annotation metadata} 'part' {@link StringLiteral partUri} ';'
  * </pre>
  */
 public class PartDirective extends Directive {
@@ -48,11 +50,14 @@ public class PartDirective extends Directive {
   /**
    * Initialize a newly created part directive.
    * 
+   * @param metadata the annotations associated with the directive
    * @param partToken the token representing the 'part' token
    * @param partUri the URI of the part being included
    * @param semicolon the semicolon terminating the directive
    */
-  public PartDirective(Token partToken, StringLiteral partUri, Token semicolon) {
+  public PartDirective(List<Annotation> metadata, Token partToken, StringLiteral partUri,
+      Token semicolon) {
+    super(metadata);
     this.partToken = partToken;
     this.partUri = becomeParentOf(partUri);
     this.semicolon = semicolon;
@@ -129,6 +134,7 @@ public class PartDirective extends Directive {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(partUri, visitor);
   }
 }

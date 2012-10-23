@@ -15,6 +15,8 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code FunctionDeclaration} wrap a {@link FunctionExpression function
  * expression} as a top-level declaration.
@@ -48,13 +50,14 @@ public class FunctionDeclaration extends CompilationUnitMember {
   /**
    * Initialize a newly created function declaration.
    * 
-   * @param comment the documentation comment associated with this member
+   * @param comment the documentation comment associated with this function
+   * @param metadata the annotations associated with this function
    * @param propertyKeyword the token representing the 'get' or 'set' keyword
    * @param functionExpression the function expression being wrapped
    */
-  public FunctionDeclaration(Comment comment, Token propertyKeyword,
+  public FunctionDeclaration(Comment comment, List<Annotation> metadata, Token propertyKeyword,
       FunctionExpression functionExpression) {
-    super(comment);
+    super(comment, metadata);
     this.propertyKeyword = propertyKeyword;
     this.functionExpression = becomeParentOf(functionExpression);
   }
@@ -113,6 +116,7 @@ public class FunctionDeclaration extends CompilationUnitMember {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(functionExpression, visitor);
   }
 }

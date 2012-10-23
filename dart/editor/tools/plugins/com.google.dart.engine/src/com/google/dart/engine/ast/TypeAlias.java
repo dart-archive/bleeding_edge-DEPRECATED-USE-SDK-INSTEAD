@@ -15,6 +15,8 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code TypeAlias} represent a type alias.
  * 
@@ -65,7 +67,8 @@ public class TypeAlias extends CompilationUnitMember {
   /**
    * Initialize a newly created type alias.
    * 
-   * @param comment the documentation comment associated with this member
+   * @param comment the documentation comment associated with this type alias
+   * @param metadata the annotations associated with this type alias
    * @param keyword the token representing the 'typedef' keyword
    * @param returnType the name of the return type of the function type being defined
    * @param name the name of the type being declared
@@ -73,9 +76,10 @@ public class TypeAlias extends CompilationUnitMember {
    * @param parameters the parameters associated with the function
    * @param semicolon the semicolon terminating the declaration
    */
-  public TypeAlias(Comment comment, Token keyword, TypeName returnType, SimpleIdentifier name,
-      TypeParameterList typeParameters, FormalParameterList parameters, Token semicolon) {
-    super(comment);
+  public TypeAlias(Comment comment, List<Annotation> metadata, Token keyword, TypeName returnType,
+      SimpleIdentifier name, TypeParameterList typeParameters, FormalParameterList parameters,
+      Token semicolon) {
+    super(comment, metadata);
     this.keyword = keyword;
     this.returnType = becomeParentOf(returnType);
     this.name = becomeParentOf(name);
@@ -210,7 +214,7 @@ public class TypeAlias extends CompilationUnitMember {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(getDocumentationComment(), visitor);
+    super.visitChildren(visitor);
     safelyVisitChild(returnType, visitor);
     safelyVisitChild(name, visitor);
     safelyVisitChild(typeParameters, visitor);

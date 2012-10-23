@@ -40,6 +40,51 @@ public class Parser {
    */
 
   /**
+   * Instances of the class {@code CommentAndMetadata} implement a simple data-holder for a method
+   * that needs to return multiple values.
+   */
+  static class CommentAndMetadata {
+    /**
+     * The documentation comment that was parsed, or {@code null} if none was given.
+     */
+    private Comment comment;
+
+    /**
+     * The metadata that was parsed.
+     */
+    private List<Annotation> metadata;
+
+    /**
+     * Initialize a newly created holder with the given data.
+     * 
+     * @param comment the documentation comment that was parsed
+     * @param metadata the metadata that was parsed
+     */
+    public CommentAndMetadata(Comment comment, List<Annotation> metadata) {
+      this.comment = comment;
+      this.metadata = metadata;
+    }
+
+    /**
+     * Return the documentation comment that was parsed, or {@code null} if none was given.
+     * 
+     * @return the documentation comment that was parsed
+     */
+    public Comment getComment() {
+      return comment;
+    }
+
+    /**
+     * Return the metadata that was parsed. If there was no metadata, then the list will be empty.
+     * 
+     * @return the metadata that was parsed
+     */
+    public List<Annotation> getMetadata() {
+      return metadata;
+    }
+  }
+
+  /**
    * Instances of the class {@code FinalConstVarOrType} implement a simple data-holder for a method
    * that needs to return multiple values.
    */
@@ -100,12 +145,12 @@ public class Parser {
   private Token currentToken;
 
   /**
-   * {@code true} if the parser is currently in a loop.
+   * A flag indicating whether the parser is currently in the body of a loop.
    */
   private boolean inLoop = false;
 
   /**
-   * {@code true} if the parser is currently in a switch statement.
+   * A flag indicating whether the parser is currently in a switch statement.
    */
   private boolean inSwitch = false;
 
@@ -389,14 +434,15 @@ public class Parser {
 
   /**
    * Return {@code true} if the current token is the first token in an initialized variable
-   * declaration rather than an expression.
+   * declaration rather than an expression. This method assumes that we have already skipped past
+   * any metadata that might be associated with the declaration.
    * 
    * <pre>
    * initializedVariableDeclaration ::=
    *     declaredIdentifier ('=' expression)? (',' initializedIdentifier)*
    * 
    * declaredIdentifier ::=
-   *     finalConstVarOrType identifier
+   *     metadata finalConstVarOrType identifier
    * 
    * finalConstVarOrType ::=
    *     'final' type?
@@ -416,7 +462,7 @@ public class Parser {
    */
   private boolean isInitializedVariableDeclaration() {
     if (matches(Keyword.FINAL) || matches(Keyword.CONST) || matches(Keyword.VAR)) {
-      // An expression cannot start with a keyword.
+      // An expression cannot start with a keyword other than 'throw'.
       return true;
     }
     // We know that we have an identifier, and need to see whether it might be a type name.
@@ -436,7 +482,7 @@ public class Parser {
    */
   private boolean isSwitchMember() {
     Token token = currentToken;
-    while (token.getType() == TokenType.IDENTIFIER && token.getNext().getType() == TokenType.COLON) {
+    while (matches(token, TokenType.IDENTIFIER) && matches(token.getNext(), TokenType.COLON)) {
       token = token.getNext().getNext();
     }
     if (token.getType() == TokenType.KEYWORD) {
@@ -453,8 +499,7 @@ public class Parser {
    * @return {@code true} if the current token matches the given keyword
    */
   private boolean matches(Keyword keyword) {
-    return currentToken.getType() == TokenType.KEYWORD
-        && ((KeywordToken) currentToken).getKeyword() == keyword;
+    return matches(currentToken, keyword);
   }
 
   /**
@@ -469,7 +514,32 @@ public class Parser {
   }
 
   /**
-   * Return {@code true} if the current token has the given type.
+   * Return {@code true} if the given token matches the given keyword.
+   * 
+   * @param token the token being tested
+   * @param keyword the keyword that is being tested for
+   * @return {@code true} if the given token matches the given keyword
+   */
+  private boolean matches(Token token, Keyword keyword) {
+    return token.getType() == TokenType.KEYWORD && ((KeywordToken) token).getKeyword() == keyword;
+  }
+
+  /**
+   * Return {@code true} if the given token has the given type.
+   * 
+   * @param token the token being tested
+   * @param type the type of token that is being tested for
+   * @return {@code true} if the given token has the given type
+   */
+  private boolean matches(Token token, TokenType type) {
+    return token.getType() == type;
+  }
+
+  /**
+   * Return {@code true} if the current token has the given type. Note that this method, unlike
+   * other variants, will modify the token stream if possible to match a wider range of tokens. In
+   * particular, if we are attempting to match a '>' and the next token is either a '>>' or '>>>',
+   * the token stream will be re-written and {@code true} will be returned.
    * 
    * @param type the type of token that can optionally appear in the current location
    * @return {@code true} if the current token has the given type
@@ -560,17 +630,12 @@ public class Parser {
    * Parse an annotation.
    * 
    * <pre>
-   * metadata ::=
-   *     annotation*
-   * 
    * annotation ::=
-   *     '@' {@link Identifier qualified} (‘.’ {@link SimpleIdentifier identifier})? {@link ArgumentList arguments}?
+   *     '@' qualified (‘.’ identifier)? arguments?
    * </pre>
    * 
    * @return the annotation that was parsed
    */
-  // TODO (jwren) have this method called by the parser and remove the SuppressWarnings annotation
-  @SuppressWarnings("unused")
   private Annotation parseAnnotation() {
     Token atSign = expect(TokenType.AT);
     Identifier name = parsePrefixedIdentifier();
@@ -674,6 +739,25 @@ public class Parser {
     }
     Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
     return new ArgumentList(leftParenthesis, arguments, rightParenthesis);
+  }
+
+  /**
+   * Parse an assert statement.
+   * 
+   * <pre>
+   * assertStatement ::=
+   *     'assert' '(' conditionalExpression ')' ';'
+   * </pre>
+   * 
+   * @return the assert statement
+   */
+  private AssertStatement parseAssertStatement() {
+    Token keyword = expect(Keyword.ASSERT);
+    Token leftParen = expect(TokenType.OPEN_PAREN);
+    Expression expression = parseConditionalExpression();
+    Token rightParen = expect(TokenType.CLOSE_PAREN);
+    Token semicolon = expect(TokenType.SEMICOLON);
+    return new AssertStatement(keyword, leftParen, expression, rightParen, semicolon);
   }
 
   /**
@@ -974,13 +1058,13 @@ public class Parser {
    * 
    * <pre>
    * classDeclaration ::=
-   *     'abstract'? 'class' name typeParameterList? extendsClause? implementsClause? '{' memberDefinition* '}'
+   *     metadata 'abstract'? 'class' name typeParameterList? extendsClause? implementsClause? '{' (metadata memberDefinition)* '}'
    * </pre>
    * 
    * @return the class declaration that was parsed
    */
   private ClassDeclaration parseClassDeclaration() {
-    Comment comment = parseDocumentationComment();
+    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     Token abstractKeyword = null;
     if (matches(Keyword.ABSTRACT)) {
       abstractKeyword = getAndAdvance();
@@ -1013,7 +1097,8 @@ public class Parser {
     }
     Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
     return new ClassDeclaration(
-        comment,
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
         abstractKeyword,
         keyword,
         name,
@@ -1037,7 +1122,7 @@ public class Parser {
    * @return the class member that was parsed
    */
   private ClassMember parseClassMember() {
-    Comment comment = parseDocumentationComment();
+    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     // TODO(brianwilkerson) The following condition exists for backward compatibility and might want
     // to be removed before shipping.
     if (matches(Keyword.ABSTRACT)) {
@@ -1051,27 +1136,29 @@ public class Parser {
     if (matches(Keyword.CONST)) {
       if (peekMatchesIdentifier()) {
         if (peekMatches(2, TokenType.OPEN_PAREN)) {
-          return parseConstantConstructor(comment, externalKeyword);
+          return parseConstantConstructor(commentAndMetadata, externalKeyword);
         } else if (peekMatches(2, TokenType.PERIOD) && peekMatches(4, TokenType.OPEN_PAREN)) {
-          return parseConstantConstructor(comment, externalKeyword);
+          return parseConstantConstructor(commentAndMetadata, externalKeyword);
         }
       }
       if (externalKeyword != null) {
         // reportError(ParserErrorCode.?);
       }
       return new FieldDeclaration(
-          comment,
+          commentAndMetadata.getComment(),
+          commentAndMetadata.getMetadata(),
           null,
           parseVariableDeclarationList(),
           expect(TokenType.SEMICOLON));
     } else if (matches(Keyword.FACTORY)) {
-      return parseFactoryConstructor(comment, externalKeyword);
+      return parseFactoryConstructor(commentAndMetadata, externalKeyword);
     } else if (matches(Keyword.FINAL)) {
       if (externalKeyword != null) {
         // reportError(ParserErrorCode.?);
       }
       return new FieldDeclaration(
-          comment,
+          commentAndMetadata.getComment(),
+          commentAndMetadata.getMetadata(),
           null,
           parseVariableDeclarationList(),
           expect(TokenType.SEMICOLON));
@@ -1083,7 +1170,8 @@ public class Parser {
           // reportError(ParserErrorCode.?);
         }
         return new FieldDeclaration(
-            comment,
+            commentAndMetadata.getComment(),
+            commentAndMetadata.getMetadata(),
             getAndAdvance(),
             parseVariableDeclarationList(),
             expect(TokenType.SEMICOLON));
@@ -1094,28 +1182,32 @@ public class Parser {
       if (externalKeyword != null) {
         // reportError(ParserErrorCode.?);
       }
-      return parseInitializedIdentifierList(comment, staticKeyword, getAndAdvance(), null);
+      return parseInitializedIdentifierList(
+          commentAndMetadata,
+          staticKeyword,
+          getAndAdvance(),
+          null);
     } else if (matches(Keyword.GET)) {
-      return parseGetter(comment, externalKeyword, staticKeyword, null);
+      return parseGetter(commentAndMetadata, externalKeyword, staticKeyword, null);
     } else if (matches(Keyword.SET)) {
-      return parseSetter(comment, externalKeyword, staticKeyword, null);
+      return parseSetter(commentAndMetadata, externalKeyword, staticKeyword, null);
     } else if (matches(Keyword.OPERATOR)) {
       if (staticKeyword != null) {
         reportError(ParserErrorCode.STATIC_OPERATOR, staticKeyword);
       }
-      return parseOperator(comment, externalKeyword, null);
+      return parseOperator(commentAndMetadata, externalKeyword, null);
     } else if (matchesIdentifier()) {
       if (peekMatches(TokenType.OPEN_PAREN)) {
         if (staticKeyword != null) {
-          return parseMethodDeclaration(comment, externalKeyword, staticKeyword);
+          return parseMethodDeclaration(commentAndMetadata, externalKeyword, staticKeyword);
         }
-        return parseMethodOrConstructor(comment, externalKeyword, staticKeyword, null);
+        return parseMethodOrConstructor(commentAndMetadata, externalKeyword, staticKeyword, null);
       } else if (peekMatches(TokenType.PERIOD) && peekMatches(3, TokenType.OPEN_PAREN)) {
         SimpleIdentifier returnType = parseSimpleIdentifier();
         Token period = getAndAdvance();
         SimpleIdentifier name = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
         return parseConstructor(
-            comment,
+            commentAndMetadata,
             externalKeyword,
             staticKeyword,
             returnType,
@@ -1126,22 +1218,77 @@ public class Parser {
     }
     TypeName returnType = parseReturnType();
     if (matches(Keyword.GET)) {
-      return parseGetter(comment, externalKeyword, staticKeyword, returnType);
+      return parseGetter(commentAndMetadata, externalKeyword, staticKeyword, returnType);
     } else if (matches(Keyword.SET)) {
-      return parseSetter(comment, externalKeyword, staticKeyword, returnType);
+      return parseSetter(commentAndMetadata, externalKeyword, staticKeyword, returnType);
     } else if (matches(Keyword.OPERATOR)) {
       if (staticKeyword != null) {
         reportError(ParserErrorCode.STATIC_OPERATOR, staticKeyword);
       }
-      return parseOperator(comment, externalKeyword, returnType);
+      return parseOperator(commentAndMetadata, externalKeyword, returnType);
     }
     if (peekMatches(TokenType.PERIOD) || peekMatches(TokenType.OPEN_PAREN)) {
-      return parseMethodOrConstructor(comment, externalKeyword, staticKeyword, returnType);
+      return parseMethodOrConstructor(
+          commentAndMetadata,
+          externalKeyword,
+          staticKeyword,
+          returnType);
     }
     if (externalKeyword != null) {
       // reportError(ParserErrorCode.?);
     }
-    return parseInitializedIdentifierList(comment, staticKeyword, null, returnType);
+    return parseInitializedIdentifierList(commentAndMetadata, staticKeyword, null, returnType);
+  }
+
+  /**
+   * Parse a list of combinators in a directive.
+   * 
+   * <pre>
+   * combinator ::=
+   *     'show' identifier (',' identifier)*
+   *   | 'hide' identifier (',' identifier)*
+   * </pre>
+   * 
+   * @return the combinators that were parsed
+   */
+  private List<ImportCombinator> parseCombinators() {
+    List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
+    while (matches(SHOW) || matches(HIDE)) {
+      Token kind = expect(TokenType.IDENTIFIER);
+      if (kind.getLexeme().equals(SHOW)) {
+        List<Identifier> shownNames = parseIdentifierList();
+        combinators.add(new ImportShowCombinator(kind, shownNames));
+      } else {
+        List<Identifier> hiddenNames = parseIdentifierList();
+        combinators.add(new ImportHideCombinator(kind, hiddenNames));
+      }
+    }
+    return combinators;
+  }
+
+  /**
+   * Parse the documentation comment and metadata preceeding a declaration. This method allows any
+   * number of documentation comments to occur before, after or between the metadata, but only
+   * returns the last (right-most) documentation comment that is found.
+   * 
+   * <pre>
+   * metadata ::=
+   *     annotation*
+   * </pre>
+   * 
+   * @return the documentation comment and metadata that were parsed
+   */
+  private CommentAndMetadata parseCommentAndMetadata() {
+    Comment comment = parseDocumentationComment();
+    List<Annotation> metadata = new ArrayList<Annotation>();
+    while (matches(TokenType.AT)) {
+      metadata.add(parseAnnotation());
+      Comment optionalComment = parseDocumentationComment();
+      if (optionalComment != null) {
+        comment = optionalComment;
+      }
+    }
+    return new CommentAndMetadata(comment, metadata);
   }
 
   /**
@@ -1149,7 +1296,7 @@ public class Parser {
    * 
    * <pre>
    * commentReference ::=
-   *     prefixedIdentifier
+   *     'new'? prefixedIdentifier
    * </pre>
    * 
    * @param referenceSource the source occurring between the square brackets within a documentation
@@ -1168,29 +1315,33 @@ public class Parser {
       };
       StringScanner scanner = new StringScanner(null, referenceSource, listener);
       Token firstToken = scanner.tokenize();
-      if (!errorFound[0] && firstToken.getType() == TokenType.IDENTIFIER) {
-        firstToken.setOffset(firstToken.getOffset() + sourceOffset);
-        Token secondToken = firstToken.getNext();
-        Token thirdToken = secondToken.getNext();
-        Token nextToken;
-        Identifier identifier;
-        if (secondToken.getType() == TokenType.PERIOD
-            && thirdToken.getType() == TokenType.IDENTIFIER) {
-          secondToken.setOffset(secondToken.getOffset() + sourceOffset);
-          thirdToken.setOffset(thirdToken.getOffset() + sourceOffset);
-          identifier = new PrefixedIdentifier(
-              new SimpleIdentifier(firstToken),
-              secondToken,
-              new SimpleIdentifier(thirdToken));
-          nextToken = thirdToken.getNext();
-        } else {
-          identifier = new SimpleIdentifier(firstToken);
-          nextToken = firstToken.getNext();
+      if (!errorFound[0]) {
+        if (firstToken.getType() == TokenType.IDENTIFIER) {
+          firstToken.setOffset(firstToken.getOffset() + sourceOffset);
+          Token secondToken = firstToken.getNext();
+          Token thirdToken = secondToken.getNext();
+          Token nextToken;
+          Identifier identifier;
+          if (secondToken.getType() == TokenType.PERIOD
+              && thirdToken.getType() == TokenType.IDENTIFIER) {
+            secondToken.setOffset(secondToken.getOffset() + sourceOffset);
+            thirdToken.setOffset(thirdToken.getOffset() + sourceOffset);
+            identifier = new PrefixedIdentifier(
+                new SimpleIdentifier(firstToken),
+                secondToken,
+                new SimpleIdentifier(thirdToken));
+            nextToken = thirdToken.getNext();
+          } else {
+            identifier = new SimpleIdentifier(firstToken);
+            nextToken = firstToken.getNext();
+          }
+          if (nextToken.getType() != TokenType.EOF) {
+            // reportError(ParserErrorCode.?);
+          }
+          return new CommentReference(identifier);
         }
-        if (nextToken.getType() != TokenType.EOF) {
-          // reportError(ParserErrorCode.?);
-        }
-        return new CommentReference(identifier);
+      } else if (matches(firstToken, Keyword.NEW)) {
+        // TODO(brianwilkerson) Implement this form of reference
       }
     } catch (Exception exception) {
       // reportError(ParserErrorCode.?);
@@ -1200,6 +1351,14 @@ public class Parser {
 
   /**
    * Parse all of the comment references occurring in the given array of documentation comments.
+   * 
+   * <pre>
+   * commentReference ::=
+   *     '[' 'new'? qualified ']' libraryReference?
+   * 
+   * libraryReference ::=
+   *      '(' stringLiteral ')'
+   * </pre>
    * 
    * @param tokens the comment tokens representing the documentation comments to be parsed
    * @return the comment references that were parsed
@@ -1212,11 +1371,15 @@ public class Parser {
       while (leftIndex >= 0) {
         int rightIndex = comment.indexOf(']', leftIndex);
         if (rightIndex >= 0) {
-          CommentReference reference = parseCommentReference(
-              comment.substring(leftIndex + 1, rightIndex),
-              token.getOffset() + leftIndex + 1);
-          if (reference != null) {
-            references.add(reference);
+          char firstChar = comment.charAt(leftIndex + 1);
+          if (firstChar != '\'' && firstChar != '"' && firstChar != ':') {
+            // TODO(brianwilkerson) Handle the case where there's a library reference
+            CommentReference reference = parseCommentReference(
+                comment.substring(leftIndex + 1, rightIndex),
+                token.getOffset() + leftIndex + 1);
+            if (reference != null) {
+              references.add(reference);
+            }
           }
         } else {
           rightIndex = leftIndex + 1;
@@ -1243,19 +1406,19 @@ public class Parser {
       scriptTag = new ScriptTag(getAndAdvance());
     }
     boolean libraryDirectiveFound = false;
-    boolean declarationFound = false;
     boolean errorGenerated = false;
     List<Directive> directives = new ArrayList<Directive>();
     List<CompilationUnitMember> declarations = new ArrayList<CompilationUnitMember>();
     Token memberStart = currentToken;
     while (!matches(TokenType.EOF)) {
+      CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
       if (matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY)
           || matches(Keyword.PART)) {
-        if (declarationFound && !errorGenerated) {
-          // reportError(ParserErrorCode.?);
+        Directive directive = parseDirective(commentAndMetadata);
+        if (declarations.size() > 0 && !errorGenerated) {
+          reportError(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
           errorGenerated = true;
         }
-        Directive directive = parseDirective();
         if (directive instanceof LibraryDirective) {
           if (libraryDirectiveFound) {
             reportError(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
@@ -1264,15 +1427,12 @@ public class Parser {
           } else {
             libraryDirectiveFound = true;
           }
-        } else if (declarations.size() > 0) {
-          reportError(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
         }
         directives.add(directive);
       } else {
-        CompilationUnitMember member = parseCompilationUnitMember();
+        CompilationUnitMember member = parseCompilationUnitMember(commentAndMetadata);
         if (member != null) {
           declarations.add(member);
-          declarationFound = true;
         }
       }
       if (currentToken == memberStart) {
@@ -1281,7 +1441,7 @@ public class Parser {
       }
       memberStart = currentToken;
     }
-    // Check the order of the directives.
+    // TODO(brianwilkerson) Check the order of the directives.
     // reportError(ParserErrorCode.?);
     return new CompilationUnit(scriptTag, directives, declarations);
   }
@@ -1293,15 +1453,19 @@ public class Parser {
    * compilationUnitMember ::=
    *     classDefinition
    *   | functionTypeAlias
+   *   | external functionSignature
+   *   | external getterSignature
+   *   | external setterSignature
    *   | functionSignature functionBody
    *   | returnType? getOrSet identifier formalParameterList functionBody
    *   | (final | const) type? staticFinalDeclarationList ';'
    *   | variableDeclaration ';'
    * </pre>
    * 
+   * @param commentAndMetadata the metadata to be associated with the member
    * @return the compilation unit member that was parsed
    */
-  private CompilationUnitMember parseCompilationUnitMember() {
+  private CompilationUnitMember parseCompilationUnitMember(CommentAndMetadata commentAndMetadata) {
     if (matches(Keyword.STATIC)) {
       reportError(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
       advance();
@@ -1311,25 +1475,28 @@ public class Parser {
     } else if (matches(Keyword.TYPEDEF)) {
       return parseTypeAlias();
     }
-    Comment comment = parseDocumentationComment();
-    if (matches(Keyword.CONST) || matches(Keyword.FINAL) || matches(Keyword.VAR)) {
+    if (matches(Keyword.EXTERNAL)) {
+      // TODO(brianwilkerson) Handle external declarations
+    } else if (matches(Keyword.CONST) || matches(Keyword.FINAL) || matches(Keyword.VAR)) {
       return new TopLevelVariableDeclaration(
-          comment,
+          commentAndMetadata.getComment(),
+          commentAndMetadata.getMetadata(),
           parseVariableDeclarationList(),
           expect(TokenType.SEMICOLON));
     } else if (matches(Keyword.GET) || matches(Keyword.SET)) {
-      return parseFunctionDeclaration(comment, null);
+      return parseFunctionDeclaration(commentAndMetadata, null);
     } else if (matchesIdentifier() && peekMatches(TokenType.OPEN_PAREN)) {
-      return parseFunctionDeclaration(comment, null);
+      return parseFunctionDeclaration(commentAndMetadata, null);
     }
     TypeName returnType = parseReturnType();
     if (matches(Keyword.GET) || matches(Keyword.SET)) {
-      return parseFunctionDeclaration(comment, returnType);
+      return parseFunctionDeclaration(commentAndMetadata, returnType);
     } else if (matchesIdentifier() && peekMatches(TokenType.OPEN_PAREN)) {
-      return parseFunctionDeclaration(comment, returnType);
+      return parseFunctionDeclaration(commentAndMetadata, returnType);
     }
     return new TopLevelVariableDeclaration(
-        comment,
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
         parseVariableDeclarationList(returnType),
         expect(TokenType.SEMICOLON));
   }
@@ -1377,11 +1544,13 @@ public class Parser {
    *     ':' redirectingConstructorInvocation
    * </pre>
    * 
-   * @param comment the documentation comment to be associated with the declaration
+   * @param commentAndMetadata the documentation comment and metadata to be associated with the
+   *          declaration
    * @param externalKeyword the 'external' token
    * @return the constant constructor that was parsed
    */
-  private ConstructorDeclaration parseConstantConstructor(Comment comment, Token externalKeyword) {
+  private ConstructorDeclaration parseConstantConstructor(CommentAndMetadata commentAndMetadata,
+      Token externalKeyword) {
     Token keyword = expect(Keyword.CONST);
     SimpleIdentifier returnType = parseSimpleIdentifier();
     // TODO(brianwilkerson) Validate that the return type is the same name as the class in which
@@ -1393,7 +1562,7 @@ public class Parser {
       name = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
     }
     return parseConstructor(
-        comment,
+        commentAndMetadata,
         externalKeyword,
         keyword,
         returnType,
@@ -1426,9 +1595,9 @@ public class Parser {
     return parseInstanceCreationExpression(keyword);
   }
 
-  private ConstructorDeclaration parseConstructor(Comment comment, Token externalKeyword,
-      Token keyword, SimpleIdentifier returnType, Token period, SimpleIdentifier name,
-      FormalParameterList parameters) {
+  private ConstructorDeclaration parseConstructor(CommentAndMetadata commentAndMetadata,
+      Token externalKeyword, Token keyword, SimpleIdentifier returnType, Token period,
+      SimpleIdentifier name, FormalParameterList parameters) {
     boolean bodyAllowed = externalKeyword == null;
     Token colon = null;
     List<ConstructorInitializer> initializers = new ArrayList<ConstructorInitializer>();
@@ -1457,7 +1626,8 @@ public class Parser {
       // reportError(ParserErrorCode.?);
     }
     return new ConstructorDeclaration(
-        comment,
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
         externalKeyword,
         keyword,
         returnType,
@@ -1529,17 +1699,18 @@ public class Parser {
    *   | partDirective
    * </pre>
    * 
+   * @param commentAndMetadata the metadata to be associated with the directive
    * @return the directive that was parsed
    */
-  private Directive parseDirective() {
+  private Directive parseDirective(CommentAndMetadata commentAndMetadata) {
     if (matches(Keyword.IMPORT)) {
-      return parseImportDirective();
+      return parseImportDirective(commentAndMetadata);
     } else if (matches(Keyword.EXPORT)) {
-      return parseExportDirective();
+      return parseExportDirective(commentAndMetadata);
     } else if (matches(Keyword.LIBRARY)) {
-      return parseLibraryDirective();
+      return parseLibraryDirective(commentAndMetadata);
     } else if (matches(Keyword.PART)) {
-      return parsePartDirective();
+      return parsePartDirective(commentAndMetadata);
     } else {
       // Internal error
       return null;
@@ -1662,31 +1833,23 @@ public class Parser {
    * 
    * <pre>
    * exportDirective ::=
-   *     'export' stringLiteral combinator*';'
-   * 
-   * combinator ::=
-   *     'show' identifier (',' identifier)*
-   *   | 'hide' identifier (',' identifier)*
+   *     metadata 'export' stringLiteral combinator*';'
    * </pre>
    * 
+   * @param commentAndMetadata the metadata to be associated with the directive
    * @return the export directive that was parsed
    */
-  private ExportDirective parseExportDirective() {
+  private ExportDirective parseExportDirective(CommentAndMetadata commentAndMetadata) {
     Token exportKeyword = expect(Keyword.EXPORT);
     StringLiteral libraryUri = parseStringLiteral();
-    List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
-    while (matches(SHOW) || matches(HIDE)) {
-      Token kind = expect(TokenType.IDENTIFIER);
-      if (kind.getLexeme().equals(SHOW)) {
-        List<Identifier> shownNames = parseIdentifierList();
-        combinators.add(new ImportShowCombinator(kind, shownNames));
-      } else {
-        List<Identifier> hiddenNames = parseIdentifierList();
-        combinators.add(new ImportHideCombinator(kind, hiddenNames));
-      }
-    }
+    List<ImportCombinator> combinators = parseCombinators();
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new ExportDirective(exportKeyword, libraryUri, combinators, semicolon);
+    return new ExportDirective(
+        commentAndMetadata.getMetadata(),
+        exportKeyword,
+        libraryUri,
+        combinators,
+        semicolon);
   }
 
   /**
@@ -1803,14 +1966,16 @@ public class Parser {
    *     factoryConstructorSignature functionBody
    * 
    * factoryConstructorSignature ::=
-   *     'external'? 'factory' qualified  ('.' identifier)? formalParameterList
+   *     'external'? 'factory' identifier  ('.' identifier)? formalParameterList
    * </pre>
    * 
-   * @param comment the documentation comment to be associated with the declaration
+   * @param commentAndMetadata the documentation comment and metadata to be associated with the
+   *          declaration
    * @param externalKeyword the 'external' token
    * @return the factory constructor that was parsed
    */
-  private ConstructorDeclaration parseFactoryConstructor(Comment comment, Token externalKeyword) {
+  private ConstructorDeclaration parseFactoryConstructor(CommentAndMetadata commentAndMetadata,
+      Token externalKeyword) {
     Token keyword = expect(Keyword.FACTORY);
     Identifier returnType = parseSimpleIdentifier();
     Token period = null;
@@ -1818,21 +1983,17 @@ public class Parser {
     if (matches(TokenType.PERIOD)) {
       period = getAndAdvance();
       name = parseSimpleIdentifier();
-      if (matches(TokenType.PERIOD)) {
-        returnType = new PrefixedIdentifier((SimpleIdentifier) returnType, period, name);
-        period = getAndAdvance();
-        name = parseSimpleIdentifier();
-      }
     }
     FormalParameterList parameters = parseFormalParameterList();
     Token colon = null;
     List<ConstructorInitializer> initializers = new ArrayList<ConstructorInitializer>();
     FunctionBody body = parseFunctionBody(true, false);
     if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
-      // reportError(ParserErrorCode.?);
+      reportError(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, body);
     }
     return new ConstructorDeclaration(
-        comment,
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
         externalKeyword,
         keyword,
         returnType,
@@ -1882,20 +2043,31 @@ public class Parser {
    * Parse a formal parameter.
    * 
    * <pre>
-   * defaultFormalParameter:
+   * defaultFormalParameter ::=
    *     normalFormalParameter ('=' expression)?
+   * 
+   * defaultNamedParameter ::=
+   *     normalFormalParameter (':' expression)?
    * </pre>
    * 
    * @return the formal parameter that was parsed
    */
   private FormalParameter parseFormalParameter() {
     NormalFormalParameter parameter = parseNormalFormalParameter();
+    // TODO(brianwilkerson) Handle both kinds of formal parameters
     if (matches(TokenType.EQ)) {
-      // Validate that these are only used for optional parameters.
+      // Validate that these are only used for default formal parameters.
       // reportError(ParserErrorCode.?);
       Token equals = getAndAdvance();
       Expression defaultValue = parseExpression();
+      // TODO(brianwilkerson) Rename to DefaultNamedParameter
       return new NamedFormalParameter(parameter, equals, defaultValue);
+    } else if (matches(TokenType.COLON)) {
+      // Validate that these are only used for default named parameters.
+      // reportError(ParserErrorCode.?);
+      // Token colon = getAndAdvance();
+      // Expression defaultValue = parseExpression();
+      //return new DefaultNamedParameter(parameter, colon, defaultValue);
     }
     return parameter;
   }
@@ -1906,19 +2078,27 @@ public class Parser {
    * <pre>
    * formalParameterList ::=
    *     '(' ')'
-   *   | '(' normalFormalParameters (',' namedFormalParameters)? ')'
-   *   | '(' namedFormalParameters ')'
+   *   | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
+   *   | '(' optionalFormalParameters ')'
    *
    * normalFormalParameters ::=
    *     normalFormalParameter (',' normalFormalParameter)*
    *
-   * namedFormalParameters ::=
+   * optionalFormalParameters ::=
+   *     optionalPositionalFormalParameters
+   *   | namedFormalParameters
+   *
+   * optionalPositionalFormalParameters ::=
    *     '[' defaultFormalParameter (',' defaultFormalParameter)* ']'
+   *
+   * namedFormalParameters ::=
+   *     '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
    * </pre>
    * 
    * @return the formal parameters that were parsed
    */
   private FormalParameterList parseFormalParameterList() {
+    // TODO(brianwilkerson) Handle both kinds of formal parameters
     Token leftParenthesis = expect(TokenType.OPEN_PAREN);
     List<FormalParameter> parameters = new ArrayList<FormalParameter>();
     if (matches(TokenType.CLOSE_PAREN)) {
@@ -1989,7 +2169,7 @@ public class Parser {
         if (matchesIdentifier() && peekMatches(Keyword.IN)) {
           List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
           SimpleIdentifier variableName = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_VARIABLE_NAME);
-          variables.add(new VariableDeclaration(null, variableName, null, null));
+          variables.add(new VariableDeclaration(null, null, variableName, null, null));
           variableList = new VariableDeclarationList(null, null, variables);
         } else if (isInitializedVariableDeclaration()) {
           variableList = parseVariableDeclarationList();
@@ -2113,11 +2293,13 @@ public class Parser {
    *   | returnType? getOrSet identifier formalParameterList functionBody
    * </pre>
    * 
-   * @param comment the documentation comment to be associated with the declaration
+   * @param commentAndMetadata the documentation comment and metadata to be associated with the
+   *          declaration
    * @param returnType the return type, or {@code null} if there is no return type
    * @return the function declaration that was parsed
    */
-  private FunctionDeclaration parseFunctionDeclaration(Comment comment, TypeName returnType) {
+  private FunctionDeclaration parseFunctionDeclaration(CommentAndMetadata commentAndMetadata,
+      TypeName returnType) {
     Token keyword = null;
     boolean isGetter = false;
     if (matches(Keyword.GET)) {
@@ -2132,11 +2314,11 @@ public class Parser {
       parameters = parseFormalParameterList();
     }
     FunctionBody body = parseFunctionBody(false, false);
-    return new FunctionDeclaration(comment, keyword, new FunctionExpression(
-        returnType,
-        name,
-        parameters,
-        body));
+    return new FunctionDeclaration(
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
+        keyword,
+        new FunctionExpression(returnType, name, parameters, body));
   }
 
   /**
@@ -2151,7 +2333,7 @@ public class Parser {
    */
   private Statement parseFunctionDeclarationStatement() {
     return new FunctionDeclarationStatement(parseFunctionDeclaration(
-        parseDocumentationComment(),
+        parseCommentAndMetadata(),
         parseReturnType()));
   }
 
@@ -2195,15 +2377,16 @@ public class Parser {
    *     'external'? 'static'? returnType? 'get' identifier
    * </pre>
    * 
-   * @param comment the documentation comment to be associated with the declaration
+   * @param commentAndMetadata the documentation comment and metadata to be associated with the
+   *          declaration
    * @param externalKeyword the 'external' token
    * @param staticKeyword the static keyword, or {@code null} if the getter is not static
    * @param the return type that has already been parsed, or {@code null} if there was no return
    *          type
    * @return the getter that was parsed
    */
-  private MethodDeclaration parseGetter(Comment comment, Token externalKeyword,
-      Token staticKeyword, TypeName returnType) {
+  private MethodDeclaration parseGetter(CommentAndMetadata commentAndMetadata,
+      Token externalKeyword, Token staticKeyword, TypeName returnType) {
     Token propertyKeyword = expect(Keyword.GET);
     SimpleIdentifier name = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
     if (matches(TokenType.OPEN_PAREN) && peekMatches(TokenType.CLOSE_PAREN)) {
@@ -2216,7 +2399,8 @@ public class Parser {
       // reportError(ParserErrorCode.?);
     }
     return new MethodDeclaration(
-        comment,
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
         externalKeyword,
         staticKeyword,
         returnType,
@@ -2304,16 +2488,13 @@ public class Parser {
    * 
    * <pre>
    * importDirective ::=
-   *     'import' stringLiteral ('as' identifier)? combinator*';'
-   * 
-   * combinator ::=
-   *     'show' identifier (',' identifier)*
-   *   | 'hide' identifier (',' identifier)*
+   *     metadata 'import' stringLiteral ('as' identifier)? combinator*';'
    * </pre>
    * 
+   * @param commentAndMetadata the metadata to be associated with the directive
    * @return the import directive that was parsed
    */
-  private ImportDirective parseImportDirective() {
+  private ImportDirective parseImportDirective(CommentAndMetadata commentAndMetadata) {
     Token importKeyword = expect(Keyword.IMPORT);
     StringLiteral libraryUri = parseStringLiteral();
     Token asToken = null;
@@ -2322,19 +2503,16 @@ public class Parser {
       asToken = getAndAdvance();
       prefix = parseSimpleIdentifier();
     }
-    List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
-    while (matches(SHOW) || matches(HIDE)) {
-      Token kind = expect(TokenType.IDENTIFIER);
-      if (kind.getLexeme().equals(SHOW)) {
-        List<Identifier> shownNames = parseIdentifierList();
-        combinators.add(new ImportShowCombinator(kind, shownNames));
-      } else {
-        List<Identifier> hiddenNames = parseIdentifierList();
-        combinators.add(new ImportHideCombinator(kind, hiddenNames));
-      }
-    }
+    List<ImportCombinator> combinators = parseCombinators();
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new ImportDirective(importKeyword, libraryUri, asToken, prefix, combinators, semicolon);
+    return new ImportDirective(
+        commentAndMetadata.getMetadata(),
+        importKeyword,
+        libraryUri,
+        asToken,
+        prefix,
+        combinators,
+        semicolon);
   }
 
   /**
@@ -2352,16 +2530,22 @@ public class Parser {
    *     identifier ('=' expression)?
    * </pre>
    * 
-   * @param comment the documentation comment to be associated with the declaration
+   * @param commentAndMetadata the documentation comment and metadata to be associated with the
+   *          declaration
    * @param staticKeyword the static keyword, or {@code null} if the getter is not static
    * @param the 'var' keyword, or {@code null} if a type was provided
    * @param type the type that has already been parsed, or {@code null} if 'var' was provided
    * @return the getter that was parsed
    */
-  private FieldDeclaration parseInitializedIdentifierList(Comment comment, Token staticKeyword,
-      Token varKeyword, TypeName type) {
+  private FieldDeclaration parseInitializedIdentifierList(CommentAndMetadata commentAndMetadata,
+      Token staticKeyword, Token varKeyword, TypeName type) {
     VariableDeclarationList fieldList = parseVariableDeclarationList(varKeyword, type);
-    return new FieldDeclaration(comment, staticKeyword, fieldList, expect(TokenType.SEMICOLON));
+    return new FieldDeclaration(
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
+        staticKeyword,
+        fieldList,
+        expect(TokenType.SEMICOLON));
   }
 
   /**
@@ -2392,16 +2576,17 @@ public class Parser {
    * 
    * <pre>
    * libraryDirective ::=
-   *     'library' qualified ';'
+   *     metadata 'library' identifier ';'
    * </pre>
    * 
+   * @param commentAndMetadata the metadata to be associated with the directive
    * @return the library directive that was parsed
    */
-  private LibraryDirective parseLibraryDirective() {
+  private LibraryDirective parseLibraryDirective(CommentAndMetadata commentAndMetadata) {
     Token keyword = expect(Keyword.LIBRARY);
-    Identifier libraryName = parsePrefixedIdentifier();
+    SimpleIdentifier libraryName = parseSimpleIdentifier();
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new LibraryDirective(keyword, libraryName, semicolon);
+    return new LibraryDirective(commentAndMetadata.getMetadata(), keyword, libraryName, semicolon);
   }
 
   /**
@@ -2577,13 +2762,14 @@ public class Parser {
    *   | 'external'? functionSignature ';'
    * </pre>
    * 
-   * @param comment the documentation comment to be associated with the declaration
+   * @param commentAndMetadata the documentation comment and metadata to be associated with the
+   *          declaration
    * @param externalKeyword the 'external' token
    * @param staticKeyword the static keyword, or {@code null} if the getter is not static
    * @return the method declaration that was parsed
    */
-  private MethodDeclaration parseMethodDeclaration(Comment comment, Token externalKeyword,
-      Token staticKeyword) {
+  private MethodDeclaration parseMethodDeclaration(CommentAndMetadata commentAndMetadata,
+      Token externalKeyword, Token staticKeyword) {
     TypeName returnType = null;
     if (!peekMatches(TokenType.OPEN_PAREN)) {
       returnType = parseReturnType();
@@ -2592,10 +2778,11 @@ public class Parser {
     FormalParameterList parameters = parseFormalParameterList();
     FunctionBody body = parseFunctionBody(staticKeyword == null, false);
     if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
-      // reportError(ParserErrorCode.?);
+      reportError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, body);
     }
     return new MethodDeclaration(
-        comment,
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
         externalKeyword,
         staticKeyword,
         returnType,
@@ -2617,19 +2804,19 @@ public class Parser {
    *   | constructorSignature initializers? functionBody
    * </pre>
    * 
-   * @param comment the documentation comment to be associated with the declaration
+   * @param commentAndMetadata the documentation comment and metadata to be associated with the
+   *          declaration
    * @param externalKeyword the 'external' token
    * @param staticKeyword the static keyword, or {@code null} if the getter is not static
    * @param returnType the return type that was declared, or {@code null} if no return type was
    *          declared
    * @return the method or constructor declaration that was parsed
    */
-  private ClassMember parseMethodOrConstructor(Comment comment, Token externalKeyword,
-      Token staticKeyword, TypeName returnType) {
+  private ClassMember parseMethodOrConstructor(CommentAndMetadata commentAndMetadata,
+      Token externalKeyword, Token staticKeyword, TypeName returnType) {
     if (matches(TokenType.PERIOD)) {
       if (staticKeyword != null) {
-        // Constructors cannot be static
-        // reportError(ParserErrorCode.?);
+        reportError(ParserErrorCode.STATIC_CONSTRUCTOR, staticKeyword);
       }
       SimpleIdentifier realReturnType = null;
       if (returnType != null && returnType.getName() instanceof SimpleIdentifier) {
@@ -2641,7 +2828,7 @@ public class Parser {
       SimpleIdentifier name = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
       FormalParameterList parameters = parseFormalParameterList();
       return parseConstructor(
-          comment,
+          commentAndMetadata,
           externalKeyword,
           null,
           realReturnType,
@@ -2653,8 +2840,7 @@ public class Parser {
     FormalParameterList parameters = parseFormalParameterList();
     if (matches(TokenType.COLON)) {
       if (staticKeyword != null) {
-        // Constructors cannot be static
-        // reportError(ParserErrorCode.?);
+        reportError(ParserErrorCode.STATIC_CONSTRUCTOR, staticKeyword);
       }
       SimpleIdentifier realReturnType = null;
       if (returnType == null) {
@@ -2666,7 +2852,7 @@ public class Parser {
         // reportError(ParserErrorCode.?);
       }
       return parseConstructor(
-          comment,
+          commentAndMetadata,
           externalKeyword,
           null,
           realReturnType,
@@ -2679,7 +2865,8 @@ public class Parser {
       // reportError(ParserErrorCode.?);
     }
     return new MethodDeclaration(
-        comment,
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
         externalKeyword,
         staticKeyword,
         returnType,
@@ -2743,7 +2930,6 @@ public class Parser {
    *   | ifStatement
    *   | returnStatement
    *   | switchStatement
-   *   | throwStatement
    *   | tryStatement
    *   | whileStatement
    *   | variableDeclarationList ';'
@@ -2764,7 +2950,9 @@ public class Parser {
       return parseBlock();
     } else if (matches(TokenType.KEYWORD)) {
       Keyword keyword = ((KeywordToken) currentToken).getKeyword();
-      if (keyword == Keyword.BREAK) {
+      if (keyword == Keyword.ASSERT) {
+        return parseAssertStatement();
+      } else if (keyword == Keyword.BREAK) {
         return parseBreakStatement();
       } else if (keyword == Keyword.CONTINUE) {
         return parseContinueStatement();
@@ -2878,14 +3066,15 @@ public class Parser {
    *     'external'? returnType? 'operator' operator formalParameterList
    * </pre>
    * 
-   * @param comment the documentation comment to be associated with the declaration
+   * @param commentAndMetadata the documentation comment and metadata to be associated with the
+   *          declaration
    * @param externalKeyword the 'external' token
    * @param the return type that has already been parsed, or {@code null} if there was no return
    *          type
    * @return the operator declaration that was parsed
    */
-  private MethodDeclaration parseOperator(Comment comment, Token externalKeyword,
-      TypeName returnType) {
+  private MethodDeclaration parseOperator(CommentAndMetadata commentAndMetadata,
+      Token externalKeyword, TypeName returnType) {
     Token operatorKeyword = expect(Keyword.OPERATOR);
     if (!currentToken.isUserDefinableOperator()) {
       reportError(ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, currentToken.getLexeme());
@@ -2897,7 +3086,8 @@ public class Parser {
       // reportError(ParserErrorCode.?);
     }
     return new MethodDeclaration(
-        comment,
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
         externalKeyword,
         null,
         returnType,
@@ -2913,25 +3103,31 @@ public class Parser {
    * 
    * <pre>
    * partDirective ::=
-   *     'part' stringLiteral ';'
+   *     metadata 'part' stringLiteral ';'
    * 
    * partOfDirective ::=
-   *     'part' 'of' qualified ';'
+   *     metadata 'part' 'of' identifier ';'
    * </pre>
    * 
+   * @param commentAndMetadata the metadata to be associated with the directive
    * @return the part or part-of directive that was parsed
    */
-  private Directive parsePartDirective() {
+  private Directive parsePartDirective(CommentAndMetadata commentAndMetadata) {
     Token partKeyword = expect(Keyword.PART);
     if (matches(OF)) {
       Token ofKeyword = getAndAdvance();
-      Identifier libraryName = parsePrefixedIdentifier();
+      SimpleIdentifier libraryName = parseSimpleIdentifier();
       Token semicolon = expect(TokenType.SEMICOLON);
-      return new PartOfDirective(partKeyword, ofKeyword, libraryName, semicolon);
+      return new PartOfDirective(
+          commentAndMetadata.getMetadata(),
+          partKeyword,
+          ofKeyword,
+          libraryName,
+          semicolon);
     }
     StringLiteral partUri = parseStringLiteral();
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new PartDirective(partKeyword, partUri, semicolon);
+    return new PartDirective(commentAndMetadata.getMetadata(), partKeyword, partUri, semicolon);
   }
 
   /**
@@ -2994,6 +3190,7 @@ public class Parser {
    *   | newExpression
    *   | constObjectExpression
    *   | '(' expression ')'
+   *   | argumentDefinitionTest
    * 
    * literal ::=
    *     nullLiteral
@@ -3182,18 +3379,19 @@ public class Parser {
    *     setterSignature functionBody?
    *
    * setterSignature ::=
-   *     'external'? 'static'? returnType? 'set' identifier '=' formalParameterList
+   *     'external'? 'static'? returnType? 'set' identifier formalParameterList
    * </pre>
    * 
-   * @param comment the documentation comment to be associated with the declaration
+   * @param commentAndMetadata the documentation comment and metadata to be associated with the
+   *          declaration
    * @param externalKeyword the 'external' token
    * @param staticKeyword the static keyword, or {@code null} if the setter is not static
    * @param the return type that has already been parsed, or {@code null} if there was no return
    *          type
    * @return the setter that was parsed
    */
-  private MethodDeclaration parseSetter(Comment comment, Token externalKeyword,
-      Token staticKeyword, TypeName returnType) {
+  private MethodDeclaration parseSetter(CommentAndMetadata commentAndMetadata,
+      Token externalKeyword, Token staticKeyword, TypeName returnType) {
     Token propertyKeyword = expect(Keyword.SET);
     SimpleIdentifier name = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
     FormalParameterList parameters = parseFormalParameterList();
@@ -3202,7 +3400,8 @@ public class Parser {
       // reportError(ParserErrorCode.?);
     }
     return new MethodDeclaration(
-        comment,
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
         externalKeyword,
         staticKeyword,
         returnType,
@@ -3603,7 +3802,7 @@ public class Parser {
    * @return the type alias that was parsed
    */
   private TypeAlias parseTypeAlias() {
-    Comment comment = parseDocumentationComment();
+    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     Token keyword = expect(Keyword.TYPEDEF);
     TypeName returnType = null;
     if (!peekMatches(TokenType.OPEN_PAREN) && !peekMatches(TokenType.LT)) {
@@ -3616,7 +3815,15 @@ public class Parser {
     }
     FormalParameterList parameters = parseFormalParameterList();
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new TypeAlias(comment, keyword, returnType, name, typeParameters, parameters, semicolon);
+    return new TypeAlias(
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
+        keyword,
+        returnType,
+        name,
+        typeParameters,
+        parameters,
+        semicolon);
   }
 
 /**
@@ -3667,19 +3874,30 @@ public class Parser {
    * 
    * <pre>
    * typeParameter ::=
-   *     name ('extends' bound)?
+   *     metadata name ('extends' bound)?
    * </pre>
    * 
    * @return the type parameter that was parsed
    */
   private TypeParameter parseTypeParameter() {
+    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     SimpleIdentifier name = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
     if (matches(Keyword.EXTENDS)) {
       Token keyword = getAndAdvance();
       TypeName bound = parseTypeName();
-      return new TypeParameter(name, keyword, bound);
+      return new TypeParameter(
+          commentAndMetadata.getComment(),
+          commentAndMetadata.getMetadata(),
+          name,
+          keyword,
+          bound);
     }
-    return new TypeParameter(name, null, null);
+    return new TypeParameter(
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
+        name,
+        null,
+        null);
   }
 
 /**
@@ -3778,7 +3996,7 @@ public class Parser {
    * @return the variable declaration that was parsed
    */
   private VariableDeclaration parseVariableDeclaration() {
-    Comment localComment = parseDocumentationComment();
+    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     SimpleIdentifier name = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_VARIABLE_NAME);
     Token equals = null;
     Expression initializer = null;
@@ -3786,7 +4004,12 @@ public class Parser {
       equals = getAndAdvance();
       initializer = parseExpression();
     }
-    return new VariableDeclaration(localComment, name, equals, initializer);
+    return new VariableDeclaration(
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
+        name,
+        equals,
+        initializer);
   }
 
   /**
@@ -3917,8 +4140,7 @@ public class Parser {
    * @return {@code true} if the token following the current token matches the given keyword
    */
   private boolean peekMatches(Keyword keyword) {
-    return currentToken.getNext().getType() == TokenType.KEYWORD
-        && ((KeywordToken) currentToken.getNext()).getKeyword() == keyword;
+    return matches(currentToken.getNext(), keyword);
   }
 
   /**
@@ -3928,7 +4150,7 @@ public class Parser {
    * @return {@code true} if the token following the current token has the given type
    */
   private boolean peekMatches(TokenType type) {
-    return currentToken.getNext().getType() == type;
+    return matches(currentToken.getNext(), type);
   }
 
   /**
@@ -3940,6 +4162,22 @@ public class Parser {
   private boolean peekMatchesIdentifier() {
     return peekMatches(TokenType.IDENTIFIER)
         || (peekMatches(TokenType.KEYWORD) && ((KeywordToken) currentToken.getNext()).getKeyword().isPseudoKeyword());
+  }
+
+  /**
+   * Report an error with the given error code and arguments.
+   * 
+   * @param errorCode the error code of the error to be reported
+   * @param node the node specifying the location of the error
+   * @param arguments the arguments to the error, used to compose the error message
+   */
+  private void reportError(ParserErrorCode errorCode, ASTNode node, Object... arguments) {
+    errorListener.onError(new AnalysisError(
+        source,
+        node.getOffset(),
+        node.getLength(),
+        errorCode,
+        arguments));
   }
 
   /**
@@ -3988,7 +4226,7 @@ public class Parser {
     Token token = skipSimpleIdentifier(startToken);
     if (token == null) {
       return null;
-    } else if (token.getType() != TokenType.PERIOD) {
+    } else if (!matches(token, TokenType.PERIOD)) {
       return token;
     }
     return skipSimpleIdentifier(token.getNext());
@@ -4011,8 +4249,7 @@ public class Parser {
    * @return the token following the return type that was parsed
    */
   private Token skipReturnType(Token startToken) {
-    if (startToken.getType() == TokenType.KEYWORD
-        && ((KeywordToken) startToken).getKeyword() == Keyword.VOID) {
+    if (matches(startToken, Keyword.VOID)) {
       return startToken.getNext();
     } else {
       return skipTypeName(startToken);
@@ -4036,8 +4273,8 @@ public class Parser {
    * @return the token following the simple identifier that was parsed
    */
   private Token skipSimpleIdentifier(Token startToken) {
-    if (startToken.getType() == TokenType.IDENTIFIER || (startToken.getType() == TokenType.KEYWORD)
-        && ((KeywordToken) startToken).getKeyword().isPseudoKeyword()) {
+    if (matches(startToken, TokenType.IDENTIFIER)
+        || (matches(startToken, TokenType.KEYWORD) && ((KeywordToken) startToken).getKeyword().isPseudoKeyword())) {
       return startToken.getNext();
     }
     return null;
@@ -4121,7 +4358,7 @@ public class Parser {
    */
   private Token skipStringLiteral(Token startToken) {
     Token token = startToken;
-    while (token != null && token.getType() == TokenType.STRING) {
+    while (token != null && matches(token, TokenType.STRING)) {
       token = token.getNext();
       TokenType type = token.getType();
       if (type == TokenType.STRING_INTERPOLATION_EXPRESSION
@@ -4155,14 +4392,14 @@ public class Parser {
    */
   private Token skipTypeArgumentList(Token startToken) {
     Token token = startToken;
-    if (token.getType() != TokenType.LT) {
+    if (!matches(token, TokenType.LT)) {
       return null;
     }
     token = skipTypeName(token.getNext());
     if (token == null) {
       return null;
     }
-    while (token.getType() == TokenType.COMMA) {
+    while (matches(token, TokenType.COMMA)) {
       token = skipTypeName(token.getNext());
       if (token == null) {
         return null;
@@ -4204,7 +4441,7 @@ public class Parser {
     if (token == null) {
       return null;
     }
-    if (token.getType() == TokenType.LT) {
+    if (matches(token, TokenType.LT)) {
       token = skipTypeArgumentList(token);
     }
     return token;

@@ -17,6 +17,8 @@ import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code MethodDeclaration} represent a method declaration.
  * 
@@ -88,6 +90,7 @@ public class MethodDeclaration extends ClassMember {
    * 
    * @param externalKeyword the token for the 'external' keyword
    * @param comment the documentation comment associated with this method
+   * @param metadata the annotations associated with this method
    * @param modifierKeyword the token representing the 'abstract' or 'static' keyword
    * @param returnType the return type of the method
    * @param propertyKeyword the token representing the 'get' or 'set' keyword
@@ -97,10 +100,10 @@ public class MethodDeclaration extends ClassMember {
    *          declares a getter
    * @param body the body of the method
    */
-  public MethodDeclaration(Comment comment, Token externalKeyword, Token modifierKeyword,
-      TypeName returnType, Token propertyKeyword, Token operatorKeyword, Identifier name,
-      FormalParameterList parameters, FunctionBody body) {
-    super(comment);
+  public MethodDeclaration(Comment comment, List<Annotation> metadata, Token externalKeyword,
+      Token modifierKeyword, TypeName returnType, Token propertyKeyword, Token operatorKeyword,
+      Identifier name, FormalParameterList parameters, FunctionBody body) {
+    super(comment, metadata);
     this.externalKeyword = externalKeyword;
     this.modifierKeyword = modifierKeyword;
     this.returnType = becomeParentOf(returnType);

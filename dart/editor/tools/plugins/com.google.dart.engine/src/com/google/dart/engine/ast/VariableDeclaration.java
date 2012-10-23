@@ -15,6 +15,8 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code VariableDeclaration} represent an identifier that has an initial
  * value associated with it. Instances of this class are always children of the class
@@ -53,13 +55,14 @@ public class VariableDeclaration extends Declaration {
    * Initialize a newly created variable declaration.
    * 
    * @param comment the documentation comment associated with this declaration
+   * @param metadata the annotations associated with this member
    * @param name the name of the variable being declared
    * @param equals the equal sign separating the variable name from the initial value
    * @param initializer the expression used to compute the initial value for the variable
    */
-  public VariableDeclaration(Comment comment, SimpleIdentifier name, Token equals,
-      Expression initializer) {
-    super(comment);
+  public VariableDeclaration(Comment comment, List<Annotation> metadata, SimpleIdentifier name,
+      Token equals, Expression initializer) {
+    super(comment, metadata);
     this.name = becomeParentOf(name);
     this.equals = equals;
     this.initializer = becomeParentOf(initializer);

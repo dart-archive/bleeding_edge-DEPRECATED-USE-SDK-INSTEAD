@@ -28,6 +28,8 @@ public interface ASTVisitor<R> {
 
   public R visitArrayAccess(ArrayAccess node);
 
+  public R visitAssertStatement(AssertStatement assertStatement);
+
   public R visitAssignmentExpression(AssignmentExpression node);
 
   public R visitBinaryExpression(BinaryExpression node);

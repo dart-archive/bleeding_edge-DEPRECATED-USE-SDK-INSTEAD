@@ -15,6 +15,8 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -147,7 +149,43 @@ public class CompilationUnit extends ASTNode {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(scriptTag, visitor);
-    directives.accept(visitor);
-    declarations.accept(visitor);
+    if (directivesAreBeforeDeclarations()) {
+      directives.accept(visitor);
+      declarations.accept(visitor);
+    } else {
+      for (ASTNode child : getSortedDirectivesAndDeclarations()) {
+        child.accept(visitor);
+      }
+    }
+  }
+
+  /**
+   * Return {@code true} if all of the directives are lexically before any declarations.
+   * 
+   * @return {@code true} if all of the directives are lexically before any declarations
+   */
+  private boolean directivesAreBeforeDeclarations() {
+    if (directives.isEmpty() || declarations.isEmpty()) {
+      return true;
+    }
+    Directive lastDirective = directives.get(directives.size() - 1);
+    CompilationUnitMember firstDeclaration = declarations.get(0);
+    return lastDirective.getOffset() < firstDeclaration.getOffset();
+  }
+
+  /**
+   * Return an array containing all of the directives and declarations in this compilation unit,
+   * sorted in lexical order.
+   * 
+   * @return the directives and declarations in this compilation unit in the order in which they
+   *         appeared in the original source
+   */
+  private ASTNode[] getSortedDirectivesAndDeclarations() {
+    ArrayList<ASTNode> childList = new ArrayList<ASTNode>();
+    childList.addAll(directives);
+    childList.addAll(declarations);
+    ASTNode[] children = childList.toArray(new ASTNode[childList.size()]);
+    Arrays.sort(children, ASTNode.LEXICAL_ORDER);
+    return children;
   }
 }

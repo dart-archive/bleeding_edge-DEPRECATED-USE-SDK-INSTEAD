@@ -22,7 +22,7 @@ import java.util.List;
  * 
  * <pre>
  * importDirective ::=
- *     'import' {@link StringLiteral libraryUri} ('as' identifier)? {@link ImportCombinator combinator}* ';'
+ *     {@link Annotation metadata} 'import' {@link StringLiteral libraryUri} ('as' identifier)? {@link ImportCombinator combinator}* ';'
  * </pre>
  */
 public class ImportDirective extends Directive {
@@ -66,6 +66,7 @@ public class ImportDirective extends Directive {
   /**
    * Initialize a newly created import directive.
    * 
+   * @param metadata the annotations associated with the directive
    * @param importToken the token representing the 'import' token
    * @param libraryUri the URI of the library being imported
    * @param asToken the token representing the 'as' token
@@ -73,8 +74,9 @@ public class ImportDirective extends Directive {
    * @param combinators the combinators used to control how names are imported
    * @param semicolon the semicolon terminating the statement
    */
-  public ImportDirective(Token importToken, StringLiteral libraryUri, Token asToken,
-      SimpleIdentifier prefix, List<ImportCombinator> combinators, Token semicolon) {
+  public ImportDirective(List<Annotation> metadata, Token importToken, StringLiteral libraryUri,
+      Token asToken, SimpleIdentifier prefix, List<ImportCombinator> combinators, Token semicolon) {
+    super(metadata);
     this.importToken = importToken;
     this.libraryUri = becomeParentOf(libraryUri);
     this.asToken = asToken;
@@ -201,6 +203,7 @@ public class ImportDirective extends Directive {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(libraryUri, visitor);
     safelyVisitChild(prefix, visitor);
     combinators.accept(visitor);

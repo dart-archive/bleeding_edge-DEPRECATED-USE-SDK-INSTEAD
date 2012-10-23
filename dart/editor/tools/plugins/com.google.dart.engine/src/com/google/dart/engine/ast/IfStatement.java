@@ -20,7 +20,7 @@ import com.google.dart.engine.scanner.Token;
  * 
  * <pre>
  * ifStatement ::=
- *     'if' '(' expression ')' thenStatement ('else' elseStatement)?
+ *     'if' '(' {@link Expression expression} ')' {@link Statement thenStatement} ('else' {@link Statement elseStatement})?
  * </pre>
  */
 public class IfStatement extends Statement {

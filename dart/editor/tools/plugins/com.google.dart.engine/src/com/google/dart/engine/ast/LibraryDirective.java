@@ -15,12 +15,14 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code LibraryDirective} represent a library directive.
  * 
  * <pre>
  * libraryDirective ::=
- *     'library' {@link Identifier name} ';'
+ *     {@link Annotation metadata} 'library' {@link Identifier name} ';'
  * </pre>
  */
 public class LibraryDirective extends Directive {
@@ -32,7 +34,7 @@ public class LibraryDirective extends Directive {
   /**
    * The name of the library being defined.
    */
-  private Identifier name;
+  private SimpleIdentifier name;
 
   /**
    * The semicolon terminating the directive.
@@ -48,11 +50,14 @@ public class LibraryDirective extends Directive {
   /**
    * Initialize a newly created library directive.
    * 
+   * @param metadata the annotations associated with the directive
    * @param libraryToken the token representing the 'library' token
    * @param name the name of the library being defined
    * @param semicolon the semicolon terminating the directive
    */
-  public LibraryDirective(Token libraryToken, Identifier name, Token semicolon) {
+  public LibraryDirective(List<Annotation> metadata, Token libraryToken, SimpleIdentifier name,
+      Token semicolon) {
+    super(metadata);
     this.libraryToken = libraryToken;
     this.name = becomeParentOf(name);
     this.semicolon = semicolon;
@@ -87,7 +92,7 @@ public class LibraryDirective extends Directive {
    * 
    * @return the name of the library being defined
    */
-  public Identifier getName() {
+  public SimpleIdentifier getName() {
     return name;
   }
 
@@ -114,7 +119,7 @@ public class LibraryDirective extends Directive {
    * 
    * @param name the name of the library being defined
    */
-  public void setName(Identifier name) {
+  public void setName(SimpleIdentifier name) {
     this.name = becomeParentOf(name);
   }
 
@@ -129,6 +134,7 @@ public class LibraryDirective extends Directive {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(name, visitor);
   }
 }

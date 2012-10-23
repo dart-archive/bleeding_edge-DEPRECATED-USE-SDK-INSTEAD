@@ -74,6 +74,8 @@ public enum ParserErrorCode implements ErrorCode {
   EXPECTED_TOKEN("Expected to find: %s"),
 //  EXPECTED_TOKEN("Unexpected token '%s' (expected '%s')"),
 //  EXPECTED_VAR_FINAL_OR_TYPE("Expected 'var', 'final' or type"),
+  EXTERNAL_CONSTRUCTOR_WITH_BODY("External constructors cannot have a body"),
+  EXTERNAL_METHOD_WITH_BODY("External methods cannot have a body"),
 //  NATIVE_ONLY_CLASS("Native keyword can be specified only for classes"),
 //  NATIVE_ONLY_CORE_LIB("Native keyword can be used only in corelib"),
 //  FACTORY_CANNOT_BE_ABSTRACT("A factory cannot be abstract"),
@@ -94,7 +96,7 @@ public enum ParserErrorCode implements ErrorCode {
 //  INVALID_OPERATOR_CHAINING("Cannot chain '%s'"),
 //  LABEL_NOT_FOLLOWED_BY_CASE_OR_DEFAULT("Label not followed by 'case', 'default', or statement"),
   LIBRARY_DIRECTIVE_NOT_FIRST(
-      "Library directive must appear before all other directives and all declarations"),
+      "The library directive must appear before all other directives and declarations"),
 //  LOCAL_CANNOT_BE_STATIC("Local function can not be static"),
 //  MISSING_FUNCTION_NAME("a function name is required for a declaration"),
   // TODO(brianwilkerson) Improve this message. We probably need to know the context in which we are
@@ -113,6 +115,7 @@ public enum ParserErrorCode implements ErrorCode {
 //  REDIRECTING_CONSTRUCTOR_ITSELF("Redirecting constructor can not have initializers"),
 //  REDIRECTING_CONSTRUCTOR_MULTIPLE("Multiple redirecting constructor invocations"),
 //  REDIRECTING_CONSTRUCTOR_OTHER("Redirecting constructor can not have initializers"),
+  STATIC_CONSTRUCTOR("Constructors cannot be static"),
 //  STATIC_MEMBERS_CANNOT_BE_ABSTRACT("Static members cannot be abstract"),
   STATIC_OPERATOR("Operators cannot be static"),
   STATIC_TOP_LEVEL_DECLARATION("Top-level fields and methods cannot be static"),

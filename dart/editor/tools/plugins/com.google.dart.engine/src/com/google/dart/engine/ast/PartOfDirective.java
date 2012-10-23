@@ -15,12 +15,14 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code PartOfDirective} represent a part-of directive.
  * 
  * <pre>
  * partOfDirective ::=
- *     'part' 'of' {@link Identifier libraryName} ';'
+ *     {@link Annotation metadata} 'part' 'of' {@link Identifier libraryName} ';'
  * </pre>
  */
 public class PartOfDirective extends Directive {
@@ -37,7 +39,7 @@ public class PartOfDirective extends Directive {
   /**
    * The name of the library that the containing compilation unit is part of.
    */
-  private Identifier libraryName;
+  private SimpleIdentifier libraryName;
 
   /**
    * The semicolon terminating the directive.
@@ -53,12 +55,15 @@ public class PartOfDirective extends Directive {
   /**
    * Initialize a newly created part-of directive.
    * 
+   * @param metadata the annotations associated with the directive
    * @param partToken the token representing the 'part' token
    * @param ofToken the token representing the 'of' token
    * @param libraryName the name of the library that the containing compilation unit is part of
    * @param semicolon the semicolon terminating the directive
    */
-  public PartOfDirective(Token partToken, Token ofToken, Identifier libraryName, Token semicolon) {
+  public PartOfDirective(List<Annotation> metadata, Token partToken, Token ofToken,
+      SimpleIdentifier libraryName, Token semicolon) {
+    super(metadata);
     this.partToken = partToken;
     this.ofToken = ofToken;
     this.libraryName = becomeParentOf(libraryName);
@@ -85,7 +90,7 @@ public class PartOfDirective extends Directive {
    * 
    * @return the name of the library that the containing compilation unit is part of
    */
-  public Identifier getLibraryName() {
+  public SimpleIdentifier getLibraryName() {
     return libraryName;
   }
 
@@ -117,6 +122,15 @@ public class PartOfDirective extends Directive {
   }
 
   /**
+   * Set the name of the library that the containing compilation unit is part of to the given name.
+   * 
+   * @param libraryName the name of the library that the containing compilation unit is part of
+   */
+  public void setLibraryName(SimpleIdentifier libraryName) {
+    this.libraryName = becomeParentOf(libraryName);
+  }
+
+  /**
    * Set the token representing the 'of' token to the given token.
    * 
    * @param ofToken the token representing the 'of' token
@@ -135,15 +149,6 @@ public class PartOfDirective extends Directive {
   }
 
   /**
-   * Set the name of the library that the containing compilation unit is part of to the given name.
-   * 
-   * @param libraryName the name of the library that the containing compilation unit is part of
-   */
-  public void setPartUri(Identifier libraryName) {
-    this.libraryName = becomeParentOf(libraryName);
-  }
-
-  /**
    * Set the semicolon terminating the directive to the given token.
    * 
    * @param semicolon the semicolon terminating the directive
@@ -154,6 +159,7 @@ public class PartOfDirective extends Directive {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(libraryName, visitor);
   }
 }

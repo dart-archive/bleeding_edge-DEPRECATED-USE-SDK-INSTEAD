@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.ArrayAccess;
+import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
@@ -143,6 +144,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitArrayAccess(ArrayAccess node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public R visitAssertStatement(AssertStatement node) {
     node.visitChildren(this);
     return null;
   }

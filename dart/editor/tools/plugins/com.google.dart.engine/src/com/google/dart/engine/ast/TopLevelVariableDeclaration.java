@@ -15,6 +15,8 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code TopLevelVariableDeclaration} represent the declaration of one or
  * more top-level variables of the same type.
@@ -45,13 +47,14 @@ public class TopLevelVariableDeclaration extends CompilationUnitMember {
   /**
    * Initialize a newly created top-level variable declaration.
    * 
-   * @param comment the documentation comment associated with this member
+   * @param comment the documentation comment associated with this variable
+   * @param metadata the annotations associated with this variable
    * @param variableList the top-level variables being declared
    * @param semicolon the semicolon terminating the declaration
    */
-  public TopLevelVariableDeclaration(Comment comment, VariableDeclarationList variableList,
-      Token semicolon) {
-    super(comment);
+  public TopLevelVariableDeclaration(Comment comment, List<Annotation> metadata,
+      VariableDeclarationList variableList, Token semicolon) {
+    super(comment, metadata);
     this.variableList = becomeParentOf(variableList);
     this.semicolon = semicolon;
   }

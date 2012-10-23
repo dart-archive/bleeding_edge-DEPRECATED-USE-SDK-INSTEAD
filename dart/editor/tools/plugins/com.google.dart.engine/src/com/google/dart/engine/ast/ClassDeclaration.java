@@ -85,7 +85,8 @@ public class ClassDeclaration extends CompilationUnitMember {
   /**
    * Initialize a newly created class declaration.
    * 
-   * @param comment the documentation comment associated with this member
+   * @param comment the documentation comment associated with this class
+   * @param metadata the annotations associated with this class
    * @param abstractKeyword the 'abstract' keyword, or {@code null} if the keyword was absent
    * @param classKeyword the token representing the 'class' keyword
    * @param name the name of the class being declared
@@ -96,11 +97,11 @@ public class ClassDeclaration extends CompilationUnitMember {
    * @param members the members defined by the class
    * @param rightBracket the right curly bracket
    */
-  public ClassDeclaration(Comment comment, Token abstractKeyword, Token classKeyword,
-      SimpleIdentifier name, TypeParameterList typeParameters, ExtendsClause extendsClause,
-      ImplementsClause implementsClause, Token leftBracket, List<ClassMember> members,
-      Token rightBracket) {
-    super(comment);
+  public ClassDeclaration(Comment comment, List<Annotation> metadata, Token abstractKeyword,
+      Token classKeyword, SimpleIdentifier name, TypeParameterList typeParameters,
+      ExtendsClause extendsClause, ImplementsClause implementsClause, Token leftBracket,
+      List<ClassMember> members, Token rightBracket) {
+    super(comment, metadata);
     this.abstractKeyword = abstractKeyword;
     this.classKeyword = classKeyword;
     this.name = becomeParentOf(name);

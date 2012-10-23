@@ -58,6 +58,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitAssertStatement(AssertStatement node) {
+    return visitStatement(node);
+  }
+
+  @Override
   public R visitAssignmentExpression(AssignmentExpression node) {
     return visitExpression(node);
   }

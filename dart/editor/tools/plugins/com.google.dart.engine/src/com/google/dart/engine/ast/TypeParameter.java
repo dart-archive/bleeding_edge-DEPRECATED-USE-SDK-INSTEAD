@@ -15,6 +15,8 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code TypeParameter} represent a type parameter.
  * 
@@ -23,7 +25,7 @@ import com.google.dart.engine.scanner.Token;
  *     {@link SimpleIdentifier name} ('extends' {@link TypeName bound})?
  * </pre>
  */
-public class TypeParameter extends ASTNode {
+public class TypeParameter extends Declaration {
   /**
    * The name of the type parameter.
    */
@@ -50,11 +52,15 @@ public class TypeParameter extends ASTNode {
   /**
    * Initialize a newly created type parameter.
    * 
+   * @param comment the documentation comment associated with the type parameter
+   * @param metadata the annotations associated with the type parameter
    * @param name the name of the type parameter
    * @param keyword the token representing the 'extends' keyword
    * @param bound the name of the upper bound for legal arguments
    */
-  public TypeParameter(SimpleIdentifier name, Token keyword, TypeName bound) {
+  public TypeParameter(Comment comment, List<Annotation> metadata, SimpleIdentifier name,
+      Token keyword, TypeName bound) {
+    super(comment, metadata);
     this.name = becomeParentOf(name);
     this.keyword = keyword;
     this.bound = becomeParentOf(bound);
@@ -135,6 +141,7 @@ public class TypeParameter extends ASTNode {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(name, visitor);
     safelyVisitChild(bound, visitor);
   }

@@ -36,11 +36,10 @@ public class ErrorParserTest extends ParserTestCase {
     assertTrue(literal.isSynthetic());
   }
 
-  public void fail_missingAssignableSelector_superAssigned() throws Exception {
-    // TODO (danrubel): Collapse 2 related errors into 1
-    parse("parseExpression", "super = x;",
-    //ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
-        ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
+  public void fail_illegalAssignmentToNonAssignable_superAssigned() throws Exception {
+    // TODO(brianwilkerson) When this test starts to pass, remove the test
+    // test_illegalAssignmentToNonAssignable_superAssigned.
+    parse("parseExpression", "super = x;", ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
   }
 
   public void fail_multiplePartOfDirectives() throws Exception {
@@ -194,6 +193,7 @@ public class ErrorParserTest extends ParserTestCase {
     CompilationUnit unit = parse(
         "parseCompilationUnit",
         "class Foo{} library l;",
+        ParserErrorCode.DIRECTIVE_AFTER_DECLARATION,
         ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
     assertNotNull(unit);
   }
@@ -245,6 +245,17 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseStatement", "do {} (x);", ParserErrorCode.EXPECTED_TOKEN);
   }
 
+  public void test_illegalAssignmentToNonAssignable_superAssigned() throws Exception {
+    // TODO(brianwilkerson) When the test fail_illegalAssignmentToNonAssignable_superAssigned starts
+    // to pass, remove this test (there should only be one error generated, but we're keeping this
+    // test until that time so that we can catch other forms of regressions.
+    parse(
+        "parseExpression",
+        "super = x;",
+        ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
+        ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
+  }
+
   public void test_libraryDirectiveNotFirst_afterPart() throws Exception {
     CompilationUnit unit = parse(
         "parseCompilationUnit",
@@ -263,15 +274,6 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_missingAssignableSelector_selector() throws Exception {
     parse("parseExpression", "x(y)(z).a++");
-  }
-
-  public void test_missingAssignableSelector_superAssigned() throws Exception {
-    // TODO (danrubel): Collapse 2 related errors into 1
-    parse(
-        "parseExpression",
-        "super = x;",
-        ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
-        ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
   }
 
   public void test_missingAssignableSelector_superPrimaryExpression() throws Exception {
@@ -326,6 +328,8 @@ public class ErrorParserTest extends ParserTestCase {
   public void test_staticTopLevelDeclaration() throws Exception {
     parse(
         "parseCompilationUnitMember",
+        new Class[] {Parser.CommentAndMetadata.class},
+        new Object[] {emptyCommentAndMetadata()},
         "static var x;",
         ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
   }

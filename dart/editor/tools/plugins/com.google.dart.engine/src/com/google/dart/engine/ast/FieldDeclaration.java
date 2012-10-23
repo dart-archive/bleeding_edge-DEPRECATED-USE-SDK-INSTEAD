@@ -15,6 +15,8 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code FieldDeclaration} represent the declaration of one or more fields
  * of the same type.
@@ -49,14 +51,15 @@ public class FieldDeclaration extends ClassMember {
   /**
    * Initialize a newly created field declaration.
    * 
-   * @param comment the documentation comment associated with this member
+   * @param comment the documentation comment associated with this field
+   * @param metadata the annotations associated with this field
    * @param keyword the token representing the 'static' keyword
    * @param fieldList the fields being declared
    * @param semicolon the semicolon terminating the declaration
    */
-  public FieldDeclaration(Comment comment, Token keyword, VariableDeclarationList fieldList,
-      Token semicolon) {
-    super(comment);
+  public FieldDeclaration(Comment comment, List<Annotation> metadata, Token keyword,
+      VariableDeclarationList fieldList, Token semicolon) {
+    super(comment, metadata);
     this.keyword = keyword;
     this.fieldList = becomeParentOf(fieldList);
     this.semicolon = semicolon;
