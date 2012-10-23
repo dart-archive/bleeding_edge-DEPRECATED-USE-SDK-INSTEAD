@@ -353,10 +353,10 @@ class Scroller implements Draggable, MomentumDelegate {
     int y = end.y.toInt();
     // If we are throwing in the opposite direction of the existing momentum,
     // cancel the current momentum.
-    if (deltaX != 0 && deltaX.isNegative() != (end.x - start.x).isNegative()) {
+    if (deltaX != 0 && deltaX.isNegative != (end.x - start.x).isNegative) {
       x = start.x;
     }
-    if (deltaY != 0 && deltaY.isNegative() != (end.y - start.y).isNegative()) {
+    if (deltaY != 0 && deltaY.isNegative != (end.y - start.y).isNegative) {
       y = start.y;
     }
     x += deltaX.toInt();
