@@ -101,21 +101,21 @@ public final class RenameFunctionTypeAliasProcessorTest extends RefactoringTest 
   }
 
   public void test_OK_multipleUnits_onReference() throws Exception {
-    setUnitContent("Test1.dart", new String[] {
+    setUnitContent(
+        "Test1.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
         "typedef Test();",
-        ""});
-    setUnitContent("Test2.dart", new String[] {
+        "");
+    setUnitContent(
+        "Test2.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
         "f(Test test) {",
-        "}"});
+        "}");
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "library test;",
-        "part 'Test1.dart';",
-        "part 'Test2.dart';");
+        "#library('test');",
+        "#source('Test1.dart');",
+        "#source('Test2.dart');");
     // get units, because they have not library
     CompilationUnit unit1 = testProject.getUnit("Test1.dart");
     CompilationUnit unit2 = testProject.getUnit("Test2.dart");
@@ -123,16 +123,16 @@ public final class RenameFunctionTypeAliasProcessorTest extends RefactoringTest 
     DartFunctionTypeAlias functionTypeAlias = findElement(unit2, "Test test");
     // do rename
     renameType(functionTypeAlias, "NewName");
-    assertUnitContent(unit1, new String[] {
+    assertUnitContent(
+        unit1,
         "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
         "typedef NewName();",
-        ""});
-    assertUnitContent(unit2, new String[] {
+        "");
+    assertUnitContent(
+        unit2,
         "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
         "f(NewName test) {",
-        "}"});
+        "}");
   }
 
   public void test_OK_singleUnit_onDeclaration() throws Exception {
@@ -504,11 +504,8 @@ public final class RenameFunctionTypeAliasProcessorTest extends RefactoringTest 
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
-    assertEquals("File 'Test/"
-        + unitName
-        + "' in library 'Test' already declares top-level "
-        + shadowName
-        + " 'NewName'", showStatusMessages.get(0));
+    assertEquals("File 'Test/" + unitName + "' in library 'Test' already declares top-level "
+        + shadowName + " 'NewName'", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
   }

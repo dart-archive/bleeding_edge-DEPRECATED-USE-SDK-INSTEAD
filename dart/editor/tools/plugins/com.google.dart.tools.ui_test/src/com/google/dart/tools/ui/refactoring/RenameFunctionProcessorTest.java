@@ -150,22 +150,22 @@ public final class RenameFunctionProcessorTest extends RefactoringTest {
   }
 
   public void test_OK_multipleUnits_onReference() throws Exception {
-    setUnitContent("Test1.dart", new String[] {
+    setUnitContent(
+        "Test1.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
         "test() {}",
-        ""});
-    setUnitContent("Test2.dart", new String[] {
+        "");
+    setUnitContent(
+        "Test2.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
         "f() {",
         "  test();",
-        "}"});
+        "}");
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "library test;",
-        "part 'Test1.dart';",
-        "part 'Test2.dart';");
+        "#library('test');",
+        "#source('Test1.dart');",
+        "#source('Test2.dart');");
     // get units, because they have not library
     CompilationUnit unit1 = testProject.getUnit("Test1.dart");
     CompilationUnit unit2 = testProject.getUnit("Test2.dart");
@@ -173,17 +173,17 @@ public final class RenameFunctionProcessorTest extends RefactoringTest {
     DartFunction function = findElement(unit2, "test();");
     // do rename
     renameFunction(function, "newName");
-    assertUnitContent(unit1, new String[] {
+    assertUnitContent(
+        unit1,
         "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
         "newName() {}",
-        ""});
-    assertUnitContent(unit2, new String[] {
+        "");
+    assertUnitContent(
+        unit2,
         "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
         "f() {",
         "  newName();",
-        "}"});
+        "}");
   }
 
   public void test_OK_setter() throws Exception {

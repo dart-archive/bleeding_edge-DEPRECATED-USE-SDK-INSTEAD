@@ -13,13 +13,6 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertCachedLibraries;
-import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertPackageContexts;
-import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertQueuedTasks;
-import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTrackedLibraryFiles;
-import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.getServerTaskQueue;
-import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.getTrackedLibraryFiles;
-
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.DartUnit;
@@ -28,6 +21,13 @@ import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.test.util.FileOperation;
 import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
+
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertCachedLibraries;
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertPackageContexts;
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertQueuedTasks;
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTrackedLibraryFiles;
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.getServerTaskQueue;
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.getTrackedLibraryFiles;
 
 import junit.framework.TestCase;
 
@@ -347,7 +347,7 @@ public class AnalysisServerTest extends TestCase {
         assertTrackedLibraryFiles(server);
 
         String contents = FileUtilities.getContents(libFile);
-        String libraryDirective = "library Money;";
+        String libraryDirective = "#library(\"Money\");";
         int start = contents.indexOf(libraryDirective);
         assertTrue(start >= 0);
         contents = Joiner.on("\n").join(
