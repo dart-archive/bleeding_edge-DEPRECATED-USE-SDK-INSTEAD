@@ -13,18 +13,18 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.common.collect.Lists;
-import com.google.dart.compiler.PackageLibraryManager;
-import com.google.dart.engine.utilities.io.PrintStringWriter;
-import com.google.dart.tools.core.analysis.ScanTask.DartFileType;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
-
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertCachedLibraries;
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertPackageContexts;
 import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTrackedLibraryFiles;
 import static com.google.dart.tools.core.analysis.ScanTask.DartFileType.Library;
 import static com.google.dart.tools.core.analysis.ScanTask.DartFileType.PartOf;
 import static com.google.dart.tools.core.analysis.ScanTask.DartFileType.Unknown;
+
+import com.google.common.collect.Lists;
+import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
+import com.google.dart.tools.core.analysis.ScanTask.DartFileType;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -51,6 +51,30 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
 
   private AnalysisServerAdapter server;
   private Listener listener;
+
+  /**
+   * TODO(scheglov) disabled because now 'part of' directive required
+   */
+  public void _test_scan_source() throws Exception {
+    assertTrackedLibraryFiles(server);
+    server.scan(simpleMoneySrcFile, null);
+    server.start();
+    listener.waitForIdle(1, FIVE_MINUTES_MS);
+    assertTrackedLibraryFiles(server, simpleMoneySrcFile);
+    server.assertAnalyzeContext(true);
+  }
+
+  /**
+   * TODO(scheglov) disabled because now 'part of' directive required
+   */
+  public void _test_scan_sourceThenLibrary() throws Exception {
+    _test_scan_source();
+    server.resetAnalyzeContext();
+    server.scan(moneyLibFile, null);
+    listener.waitForIdle(2, FIVE_MINUTES_MS);
+    assertTrackedLibraryFiles(server, moneyLibFile);
+    server.assertAnalyzeContext(true);
+  }
 
   public void test_packages_preference() throws Exception {
     PackageLibraryManager libMgr = PackageLibraryManagerProvider.getAnyLibraryManager();
@@ -123,24 +147,6 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
     listener.waitForIdle(2, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server, moneyLibFile);
     server.assertAnalyzeContext(false);
-  }
-
-  public void test_scan_source() throws Exception {
-    assertTrackedLibraryFiles(server);
-    server.scan(simpleMoneySrcFile, null);
-    server.start();
-    listener.waitForIdle(1, FIVE_MINUTES_MS);
-    assertTrackedLibraryFiles(server, simpleMoneySrcFile);
-    server.assertAnalyzeContext(true);
-  }
-
-  public void test_scan_sourceThenLibrary() throws Exception {
-    test_scan_source();
-    server.resetAnalyzeContext();
-    server.scan(moneyLibFile, null);
-    listener.waitForIdle(2, FIVE_MINUTES_MS);
-    assertTrackedLibraryFiles(server, moneyLibFile);
-    server.assertAnalyzeContext(true);
   }
 
   public void test_scanContent_import() throws Exception {

@@ -2,26 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('touch');
+library touch;
 
-#import('dart:coreimpl');
-#import('dart:html');
-#import('dart:math', prefix: 'Math');
+import 'dart:coreimpl';
+import 'dart:html';
+import 'dart:math' as Math;
 
-#import('../base/base.dart');
-#import('../util/utilslib.dart');
+import '../base/base.dart';
+import '../util/utilslib.dart';
 
-#source('BezierPhysics.dart');
-#source('FxUtil.dart');
-#source('InfiniteScroller.dart');
-#source('Momentum.dart');
-#source('Scroller.dart');
-#source('TouchHandler.dart');
-#source('ClickBuster.dart');
-#source('EventUtil.dart');
-#source('Geometry.dart');
-#source('Math.dart');
-#source('Scrollbar.dart');
-#source('ScrollWatcher.dart');
-#source('TimeUtil.dart');
-#source('TouchUtil.dart');
+part 'BezierPhysics.dart';
+part 'FxUtil.dart';
+part 'InfiniteScroller.dart';
+part 'Momentum.dart';
+part 'Scroller.dart';
+part 'TouchHandler.dart';
+part 'ClickBuster.dart';
+part 'EventUtil.dart';
+part 'Geometry.dart';
+part 'Math.dart';
+part 'Scrollbar.dart';
+part 'ScrollWatcher.dart';
+part 'TimeUtil.dart';
+part 'TouchUtil.dart';

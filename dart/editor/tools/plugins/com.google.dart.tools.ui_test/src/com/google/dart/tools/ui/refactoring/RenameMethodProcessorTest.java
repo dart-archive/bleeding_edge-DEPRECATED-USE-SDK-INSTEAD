@@ -204,10 +204,40 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "");
   }
 
-  public void test_OK_multipleUnits_onReference() throws Exception {
-    setUnitContent(
-        "Test1.dart",
+  public void test_OK_inexactReferences() throws Exception {
+    setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {}",
+        "}",
+        "f1(A a) {",
+        "  a.test();",
+        "}",
+        "f2(a) {",
+        "  a.test();",
+        "}",
+        "");
+    Method method = findElement("test() {}");
+    // do rename
+    renameMethod(method, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  newName() {}",
+        "}",
+        "f1(A a) {",
+        "  a.newName();",
+        "}",
+        "f2(a) {",
+        "  a.newName();",
+        "}",
+        "");
+  }
+
+  public void test_OK_multipleUnits_onReference() throws Exception {
+    setUnitContent("Test1.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "part of test;",
         "class A {",
         "  test(var p) {}",
         "  int bar = 2;",
@@ -215,28 +245,28 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "    test(3);",
         "    bar = 4;",
         "  }",
-        "}");
-    setUnitContent(
-        "Test2.dart",
+        "}"});
+    setUnitContent("Test2.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
+        "part of test;",
         "f2() {",
         "  A a = new A();",
         "  a.test(5);",
-        "}");
-    setUnitContent(
-        "Test3.dart",
+        "}"});
+    setUnitContent("Test3.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
+        "part of test;",
         "class B extends A {",
         "  f3() {",
         "    test(6);",
         "  }",
-        "}");
+        "}"});
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('test');",
-        "#source('Test1.dart');",
-        "#source('Test2.dart');",
-        "#source('Test3.dart');");
+        "library test;",
+        "part 'Test1.dart';",
+        "part 'Test2.dart';",
+        "part 'Test3.dart';");
     // get units, because they have not library
     CompilationUnit unit1 = testProject.getUnit("Test1.dart");
     CompilationUnit unit2 = testProject.getUnit("Test2.dart");
@@ -245,9 +275,9 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     Method method = findElement(unit2, "test(5);");
     // do rename
     renameMethod(method, "newName");
-    assertUnitContent(
-        unit1,
+    assertUnitContent(unit1, new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
+        "part of test;",
         "class A {",
         "  newName(var p) {}",
         "  int bar = 2;",
@@ -255,22 +285,22 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "    newName(3);",
         "    bar = 4;",
         "  }",
-        "}");
-    assertUnitContent(
-        unit2,
+        "}"});
+    assertUnitContent(unit2, new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
+        "part of test;",
         "f2() {",
         "  A a = new A();",
         "  a.newName(5);",
-        "}");
-    assertUnitContent(
-        unit3,
+        "}"});
+    assertUnitContent(unit3, new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
+        "part of test;",
         "class B extends A {",
         "  f3() {",
         "    newName(6);",
         "  }",
-        "}");
+        "}"});
   }
 
   public void test_OK_namedConstructor_newName() throws Exception {
@@ -459,36 +489,6 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "    newName(6);",
         "  }",
         "}");
-  }
-  
-  public void test_OK_inexactReferences() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  test() {}",
-        "}",
-        "f1(A a) {",
-        "  a.test();",
-        "}",
-        "f2(a) {",
-        "  a.test();",
-        "}",
-        "");
-    Method method = findElement("test() {}");
-    // do rename
-    renameMethod(method, "newName");
-    assertTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  newName() {}",
-        "}",
-        "f1(A a) {",
-        "  a.newName();",
-        "}",
-        "f2(a) {",
-        "  a.newName();",
-        "}",
-        "");
   }
 
   public void test_OK_singleUnit_onReference() throws Exception {

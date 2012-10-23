@@ -2,19 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('layout_tests');
+library layout_tests;
 
-#import('dart:html');
-#import('../../../../ui_lib/base/base.dart');
-#import('../../../../ui_lib/layout/layout.dart');
-#import('../../../../ui_lib/view/view.dart');
-#import('../../../../ui_lib/util/utilslib.dart');
-#import('../../../../../pkg/unittest/unittest.dart');
-#import('../../../../../pkg/unittest/html_config.dart');
+import 'dart:html';
+import '../../../../ui_lib/base/base.dart';
+import '../../../../ui_lib/layout/layout.dart';
+import '../../../../ui_lib/view/view.dart';
+import '../../../../ui_lib/util/utilslib.dart';
+import '../../../../../pkg/unittest/unittest.dart';
+import '../../../../../pkg/unittest/html_config.dart';
 
-#source('grid_layout_demo.dart');
-#source('grid_examples.dart');
-#source('css.dart');
+part 'grid_layout_demo.dart';
+part 'grid_examples.dart';
+part 'css.dart';
 
 // TODO(jmesserly): these tests would be easier to work with if they were WebKit
 // layout tests. The way DumpRenderTree works is exactly what we want for

@@ -28,6 +28,15 @@ import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
  * @coverage dart.editor.ui.cleanup
  */
 public class Migrate_1M1_library_CleanUp extends AbstractMigrateCleanUp {
+  private static String mapLibraryName(String name) {
+    name = StringUtils.removeEnd(name, ".dart");
+    name = StringUtils.replace(name, ".", "_");
+    name = StringUtils.replace(name, ":", "_");
+    name = StringUtils.replace(name, "-", "_");
+    name = StringUtils.removeEnd(name, ".dart");
+    return name;
+  }
+
   @Override
   protected void createFix() throws Exception {
     ensurePartOfDirective();
@@ -52,8 +61,7 @@ public class Migrate_1M1_library_CleanUp extends AbstractMigrateCleanUp {
       public Void visitLibraryDirective(DartLibraryDirective node) {
         if (node.isObsoleteFormat()) {
           String name = node.getLibraryName();
-          name = StringUtils.removeEnd(name, ".dart");
-          name = StringUtils.replace(name, ".", "_");
+          name = mapLibraryName(name);
           addReplaceEdit(SourceRangeFactory.create(node), "library " + name + ";");
         }
         return super.visitLibraryDirective(node);
@@ -68,6 +76,7 @@ public class Migrate_1M1_library_CleanUp extends AbstractMigrateCleanUp {
         }
         return super.visitSourceDirective(node);
       }
+
     });
   }
 
@@ -82,7 +91,7 @@ public class Migrate_1M1_library_CleanUp extends AbstractMigrateCleanUp {
       String libraryName = library.getLibraryDirectiveName();
       if (libraryName != null) {
         String eol = utils.getEndOfLine();
-        String source = "part of " + libraryName + ";" + eol + eol;
+        String source = "part of " + mapLibraryName(libraryName) + ";" + eol + eol;
         addReplaceEdit(SourceRangeFactory.forStartLength(0, 0), source);
       }
     }
