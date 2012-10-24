@@ -64,7 +64,7 @@ public class FeedbackUtils {
     } catch (Exception e) {
       binaryDetails = "- <unable to detect binary type>";
     }
-    return DartToolsPlugin.getBuildId() + " (" + getBuildDate() + ") " + binaryDetails;
+    return DartToolsPlugin.getVersionString() + " (" + getBuildDate() + ") " + binaryDetails;
   }
 
   /**

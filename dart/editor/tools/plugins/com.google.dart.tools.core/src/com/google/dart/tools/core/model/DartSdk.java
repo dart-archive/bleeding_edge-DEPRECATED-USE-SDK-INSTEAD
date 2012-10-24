@@ -174,7 +174,7 @@ public class DartSdk {
    * @return the revision number of the SDK
    */
   public String getSdkVersion() {
-    File revisionFile = new File(getDirectory(), "revision");
+    File revisionFile = new File(getDirectory(), "version");
 
     try {
       String revision = readFully(revisionFile);
