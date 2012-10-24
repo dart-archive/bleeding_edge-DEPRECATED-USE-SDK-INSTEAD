@@ -80,7 +80,7 @@ public class NewApplicationCreationPage extends WizardPage {
     setPageComplete(false);
     setTitle(ProjectMessages.OpenNewApplicationWizardAction_text);
     setDescription(ProjectMessages.OpenNewApplicationWizardAction_desc);
-    setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/wizban/newprj_wiz.png")); //$NON-NLS-1$
+    setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/wizban/newpack_wiz.png")); //$NON-NLS-1$
 
     defaultLocation = getParentDirectory();
   }
