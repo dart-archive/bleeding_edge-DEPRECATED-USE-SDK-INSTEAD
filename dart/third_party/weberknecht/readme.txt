@@ -1,5 +1,5 @@
 weberknecht - Java WebSocket Client Library
 
-http://code.google.com/p/weberknecht/
+https://github.com/rbaier/weberknecht
 
 Apache License 2.0

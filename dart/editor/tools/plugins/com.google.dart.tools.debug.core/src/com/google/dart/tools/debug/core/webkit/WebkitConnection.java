@@ -17,7 +17,6 @@ package com.google.dart.tools.debug.core.webkit;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
 import de.roderick.weberknecht.WebSocket;
-import de.roderick.weberknecht.WebSocketConnection;
 import de.roderick.weberknecht.WebSocketEventHandler;
 import de.roderick.weberknecht.WebSocketException;
 import de.roderick.weberknecht.WebSocketMessage;
@@ -127,7 +126,7 @@ public class WebkitConnection {
 
   public void connect() throws IOException {
     try {
-      websocket = new WebSocketConnection(webSocketUri);
+      websocket = new WebSocket(webSocketUri);
 
       // Register Event Handlers
       websocket.setEventHandler(new WebSocketEventHandler() {
@@ -147,14 +146,25 @@ public class WebkitConnection {
         public void onOpen() {
           connected = true;
         }
+
+        @Override
+        public void onPing() {
+          // nothing to do
+
+        }
+
+        @Override
+        public void onPong() {
+          // nothing to do
+
+        }
       });
 
       websocket.connect();
     } catch (WebSocketException exception) {
       throw new IOException(exception);
     } catch (Throwable exception) {
-      // The websocket library can occasionally throw an ArrayIndexOutOfBoundsException.
-      // Tracked here: http://code.google.com/p/weberknecht/issues/detail?id=17
+      // Defensively catch any programming errors from the weberknecht library.
       throw new IOException(exception);
     }
   }
