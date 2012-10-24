@@ -19,7 +19,6 @@ import com.google.dart.tools.search.internal.ui.Messages;
 import com.google.dart.tools.search.internal.ui.SearchMessages;
 import com.google.dart.tools.search.internal.ui.WorkingSetComparator;
 import com.google.dart.tools.search.internal.ui.text.BasicElementLabels;
-import com.google.dart.tools.search.internal.ui.text.TextSearchScopeFilter;
 import com.google.dart.tools.search.internal.ui.util.FileTypeEditor;
 
 import org.eclipse.core.resources.IResource;
@@ -269,6 +268,7 @@ public final class FileTextSearchScope extends TextSearchScope {
 
   @Override
   public boolean contains(IResourceProxy proxy) {
+
     if (!fVisitDerived && proxy.isDerived()) {
       return false; // all resources in a derived folder are considered to be derived, see bug 103576
     }
@@ -281,6 +281,7 @@ public final class FileTextSearchScope extends TextSearchScope {
       String name = proxy.getName();
       return matchesFileName(name);
     }
+
     return true;
   }
 

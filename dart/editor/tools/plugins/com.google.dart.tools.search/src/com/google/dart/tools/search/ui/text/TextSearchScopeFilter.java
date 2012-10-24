@@ -11,11 +11,17 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.search.internal.ui.text;
+package com.google.dart.tools.search.ui.text;
 
 import com.google.dart.tools.core.DartCore;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceProxy;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 
 import java.io.File;
 
@@ -47,7 +53,37 @@ public class TextSearchScopeFilter {
    * @return <code>true</code> if the file should be excluded, <code>false</code> otherwise
    */
   public static boolean isFiltered(IResourceProxy file) {
-    return isWorkspaceFileNameFiltered(file.getName());
+    return isWorkspaceFileNameFiltered(file.getName())
+        || isSelfLinkedPackageResource(file.requestResource());
+  }
+
+  /**
+   * Test for files that are in the packages directory and linked to another resource in the
+   * workspace.
+   */
+  public static boolean isSelfLinkedPackageResource(IResource resource) {
+
+    IPath relativePath = resource.getProjectRelativePath();
+
+    if ("packages".equals(relativePath.segment(0))) {
+
+      try {
+
+        File canonicalFile = resource.getLocation().toFile().getCanonicalFile();
+        IWorkspace workspace = ResourcesPlugin.getWorkspace();
+        IPath loc = Path.fromOSString(canonicalFile.getAbsolutePath());
+        IFile wsFile = workspace.getRoot().getFileForLocation(loc);
+
+        if (wsFile != null && wsFile.exists()) {
+          return true;
+        }
+
+      } catch (Exception e) {
+        //ignore exceptions
+      }
+    }
+
+    return false;
   }
 
   /**

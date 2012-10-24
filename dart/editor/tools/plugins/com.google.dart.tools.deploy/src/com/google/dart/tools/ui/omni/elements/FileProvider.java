@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.omni.elements;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.search.ui.text.TextSearchScopeFilter;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.omni.OmniBoxMessages;
 import com.google.dart.tools.ui.omni.OmniElement;
@@ -24,15 +25,12 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceProxy;
 import org.eclipse.core.resources.IResourceProxyVisitor;
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.ui.dialogs.SearchPattern;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -153,36 +151,8 @@ public class FileProvider extends OmniProposalProvider {
 
     private boolean isFiltered(IFile resource) {
       return !DartCore.isAnalyzed(resource) || (!this.showDerived && resource.isDerived())
-          || ((this.filterTypeMask & resource.getType()) == 0) || isLinkedPackageResource(resource);
-    }
-
-    /**
-     * Test for files that are in the packages directory and linked to another resource in the
-     * workspace.
-     */
-    private boolean isLinkedPackageResource(IFile resource) {
-
-      IPath relativePath = resource.getProjectRelativePath();
-
-      if (relativePath.segment(0).equals("packages")) {
-
-        try {
-
-          File canonicalFile = resource.getLocation().toFile().getCanonicalFile();
-          IWorkspace workspace = ResourcesPlugin.getWorkspace();
-          IPath loc = Path.fromOSString(canonicalFile.getAbsolutePath());
-          IFile wsFile = workspace.getRoot().getFileForLocation(loc);
-
-          if (wsFile != null && wsFile.exists()) {
-            return true;
-          }
-
-        } catch (Exception e) {
-          //ignore exceptions
-        }
-      }
-
-      return false;
+          || ((this.filterTypeMask & resource.getType()) == 0)
+          || TextSearchScopeFilter.isSelfLinkedPackageResource(resource);
     }
 
     private boolean nameMatches(String name) {
