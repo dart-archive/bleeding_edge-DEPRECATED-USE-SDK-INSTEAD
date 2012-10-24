@@ -13,9 +13,11 @@
  */
 package com.google.dart.tools.debug.ui.internal.view;
 
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchesListener;
@@ -64,6 +66,8 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
   private static Image NOT_CONNECTED_IMAGE;
 
   private ShowBreakpointsAction showBreakpointsAction;
+
+  private ShowExpressionsAction showExpressionsAction;
 
   /**
    * Create a new DebuggerView instance.
@@ -181,7 +185,7 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     manager.removeAll();
 
     manager.add(showBreakpointsAction);
-    manager.add(new ShowExpressionsAction());
+    manager.add(showExpressionsAction);
     manager.add(new Separator());
     manager.add(new ToggleLogicalStructureAction(variablesView));
 
@@ -194,6 +198,8 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
 
     showBreakpointsAction = new ShowBreakpointsAction();
     setAction("showBreakpointsAction", showBreakpointsAction);
+
+    showExpressionsAction = new ShowExpressionsAction();
   }
 
   /**
@@ -208,6 +214,21 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     for (IDebugTarget debugTarget : DebugPlugin.getDefault().getLaunchManager().getDebugTargets()) {
       if (!debugTarget.isTerminated()) {
         return true;
+      }
+    }
+
+    return false;
+  }
+
+  private boolean isDartiumLaunch() {
+    for (IDebugTarget debugTarget : DebugPlugin.getDefault().getLaunchManager().getDebugTargets()) {
+      try {
+        if (debugTarget.getLaunch().getLaunchConfiguration().getType().getIdentifier().equals(
+            DartDebugCorePlugin.DARTIUM_LAUNCH_CONFIG_ID)) {
+          return true;
+        }
+      } catch (CoreException e) {
+        return false;
       }
     }
 
@@ -237,6 +258,7 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     } else {
       setTitleImage(NOT_CONNECTED_IMAGE);
     }
+    showExpressionsAction.setEnabled(isDartiumLaunch());
   }
 
   private void updateConnectionStatusAsync() {
