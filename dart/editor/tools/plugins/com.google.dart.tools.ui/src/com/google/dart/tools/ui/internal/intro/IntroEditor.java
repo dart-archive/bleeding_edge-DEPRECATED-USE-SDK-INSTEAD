@@ -38,7 +38,6 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -46,6 +45,10 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IPersistableElement;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.browser.IWebBrowser;
+import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.FormText;
@@ -59,6 +62,8 @@ import org.eclipse.ui.part.EditorPart;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -302,7 +307,7 @@ public class IntroEditor extends EditorPart {
     link.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       public void linkActivated(HyperlinkEvent e) {
-        Program.launch(href);
+        openDocsInBrowser(href);
       }
     });
 
@@ -320,6 +325,23 @@ public class IntroEditor extends EditorPart {
     // get directory to depth samples + 1
     Path p = (Path) path.removeLastSegments((segments.length - i) - 2);
     return new File(p.toString());
+  }
+
+  //TODO(jwren) Open in Browser functionality should be a shared utility in the product
+  // note: method copied over from OpenExternalDartdocAction
+  private void openDocsInBrowser(String url) {
+    if (url == null || url.isEmpty()) {
+      return;
+    }
+    IWorkbenchBrowserSupport support = PlatformUI.getWorkbench().getBrowserSupport();
+    try {
+      IWebBrowser browser = support.getExternalBrowser();
+      browser.openURL(new URL(url));
+    } catch (MalformedURLException e) {
+      DartToolsPlugin.log(e);
+    } catch (PartInitException e) {
+      DartToolsPlugin.log(e);
+    }
   }
 
   private void openInEditor(final File file) {
