@@ -171,6 +171,26 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_convertOptionalParametersToNamedRefactoring(source, offsetPattern, false);
   }
 
+  public void test_convertToBlockBody_OK_closure() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "setup(x) {}",
+        "main() {",
+        "  setup(() => print('done'));",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "setup(x) {}",
+        "main() {",
+        "  setup(() {",
+        "    return print('done');",
+        "  });",
+        "}",
+        "");
+    assert_convertToBlockBody(initial, "() => print", expected);
+  }
+
   public void test_convertToBlockBody_OK_onMethodName() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",

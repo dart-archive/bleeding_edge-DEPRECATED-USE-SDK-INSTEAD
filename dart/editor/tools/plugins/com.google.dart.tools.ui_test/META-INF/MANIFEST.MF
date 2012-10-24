@@ -22,3 +22,4 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Export-Package: com.google.dart.tools.ui.refactoring
+Bundle-Activator: com.google.dart.tools.ui.Activator

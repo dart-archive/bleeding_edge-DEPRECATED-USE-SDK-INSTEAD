@@ -18,6 +18,8 @@ import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartExpression;
+import com.google.dart.compiler.ast.DartFunction;
+import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
@@ -370,6 +372,26 @@ public class ExtractUtils {
   }
 
   /**
+   * @return the whitespace prefix of the line which contains given offset.
+   */
+  public String getLinePrefix(int index) {
+    int lineStart = getLineStart(index);
+    int length = buffer.getLength();
+    int lineNonWhitespace = lineStart;
+    while (lineNonWhitespace < length) {
+      char c = buffer.getChar(lineNonWhitespace);
+      if (c == '\r' || c == '\n') {
+        break;
+      }
+      if (!Character.isWhitespace(c)) {
+        break;
+      }
+      lineNonWhitespace++;
+    }
+    return getText(lineStart, lineNonWhitespace - lineStart);
+  }
+
+  /**
    * @return the {@link #getLinesRange(SourceRange)} for given {@link DartStatement}s.
    */
   public SourceRange getLinesRange(List<DartStatement> statements) {
@@ -394,6 +416,20 @@ public class ExtractUtils {
   }
 
   /**
+   * @return the start index of the line which contains given index.
+   */
+  public int getLineStart(int index) {
+    while (index > 0) {
+      char c = buffer.getChar(index - 1);
+      if (c == '\r' || c == '\n') {
+        break;
+      }
+      index--;
+    }
+    return index;
+  }
+
+  /**
    * @return the index of the last space or tab on the left from the given one, if form statement or
    *         method start, then this is in most cases start of the line.
    */
@@ -413,8 +449,13 @@ public class ExtractUtils {
    *         {@link DartNode}.
    */
   public String getNodePrefix(DartNode node) {
-    int endIndex = node.getSourceInfo().getOffset();
-    return getPrefix(endIndex);
+    int offset = node.getSourceInfo().getOffset();
+    // function literal is special, it uses offset of enclosing line
+    if (node instanceof DartFunction && node.getParent() instanceof DartFunctionExpression) {
+      return getLinePrefix(offset);
+    }
+    // use just prefix directly before node
+    return getPrefix(offset);
   }
 
   /**

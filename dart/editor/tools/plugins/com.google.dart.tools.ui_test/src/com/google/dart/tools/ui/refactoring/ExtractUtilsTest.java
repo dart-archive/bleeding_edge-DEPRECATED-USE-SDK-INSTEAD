@@ -74,6 +74,53 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   /**
+   * Test for {@link ExtractUtils#getLinePrefix(int)}.
+   */
+  public void test_getLinePrefix() throws Exception {
+    setTestUnitContent("000\n  111\n   \n  ");
+    ExtractUtils utils = new ExtractUtils(testUnit);
+    // 0
+    assertEquals("", utils.getLinePrefix(0));
+    assertEquals("", utils.getLinePrefix(1));
+    assertEquals("", utils.getLinePrefix(2));
+    // 1
+    assertEquals("  ", utils.getLinePrefix(4));
+    assertEquals("  ", utils.getLinePrefix(5));
+    assertEquals("  ", utils.getLinePrefix(6));
+    assertEquals("  ", utils.getLinePrefix(7));
+    assertEquals("  ", utils.getLinePrefix(8));
+    // 2
+    assertEquals("   ", utils.getLinePrefix(10));
+    assertEquals("   ", utils.getLinePrefix(11));
+    assertEquals("   ", utils.getLinePrefix(12));
+    // 3
+    assertEquals("  ", utils.getLinePrefix(15));
+  }
+
+  /**
+   * Test for {@link ExtractUtils#getLineStart(int)}.
+   */
+  public void test_getLineStart() throws Exception {
+    setTestUnitContent("aaa\r\nbbbb\r\nccccc");
+    ExtractUtils utils = new ExtractUtils(testUnit);
+    // 0
+    assertEquals(0, utils.getLineStart(0));
+    assertEquals(0, utils.getLineStart(1));
+    assertEquals(0, utils.getLineStart(2));
+    // 5
+    assertEquals(5, utils.getLineStart(5));
+    assertEquals(5, utils.getLineStart(6));
+    assertEquals(5, utils.getLineStart(7));
+    assertEquals(5, utils.getLineStart(8));
+    // 11
+    assertEquals(11, utils.getLineStart(11));
+    assertEquals(11, utils.getLineStart(12));
+    assertEquals(11, utils.getLineStart(13));
+    assertEquals(11, utils.getLineStart(14));
+    assertEquals(11, utils.getLineStart(15));
+  }
+
+  /**
    * Test for {@link ExtractUtils#getNodePrefix(DartNode)}.
    */
   public void test_getNodePrefix_block_noPrefix() throws Exception {

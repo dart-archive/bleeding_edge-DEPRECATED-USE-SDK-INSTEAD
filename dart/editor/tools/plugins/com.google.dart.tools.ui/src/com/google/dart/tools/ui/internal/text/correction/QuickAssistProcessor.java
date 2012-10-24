@@ -312,9 +312,10 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     DartExpression returnValue = returnBlock.getValue();
     // add change
     String eol = utils.getEndOfLine();
-    String prefix = utils.getNodePrefix(function) + utils.getIndent(1);
-    String newBodySource = "{" + eol + prefix + "return " + getSource(returnValue) + ";" + eol
-        + "}";
+    String indent = utils.getIndent(1);
+    String prefix = utils.getNodePrefix(function);
+    String newBodySource = "{" + eol + prefix + indent + "return " + getSource(returnValue) + ";"
+        + eol + prefix + "}";
     addReplaceEdit(SourceRangeFactory.create(returnBlock), newBodySource);
     // add proposal
     addUnitCorrectionProposal(
