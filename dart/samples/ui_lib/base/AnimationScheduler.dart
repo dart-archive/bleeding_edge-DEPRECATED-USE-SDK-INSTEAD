@@ -110,7 +110,7 @@ class AnimationScheduler {
   }
 
   void _step() {
-    if (_callbacks.isEmpty()) {
+    if (_callbacks.isEmpty) {
       // Cancel the interval on the first frame where there aren't actually
       // any available callbacks.
       assert(_intervalId != null);

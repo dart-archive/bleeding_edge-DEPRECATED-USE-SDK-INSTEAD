@@ -76,7 +76,7 @@ void main() {
     .test('getElementsByTagName (not in document)', () {
       for (int i = 0; i < num; i++) {
         List<Element> elems = document.queryAll('strong');
-        ret = elems.isEmpty();
+        ret = elems.isEmpty;
       }
     })
     .test('getElementsByName', () {

@@ -83,7 +83,7 @@ class Size {
    * Returns true if the size has zero area, false if both dimensions
    *     are non-zero numbers.
    */
-  bool isEmpty() {
+  bool get isEmpty {
     return area() == 0;
   }
 

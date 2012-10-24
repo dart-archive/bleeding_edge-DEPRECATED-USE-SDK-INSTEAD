@@ -54,7 +54,7 @@ void processArgs() {
   changedFiles = args["changed"];
   removedFiles = args["removed"];
   cleanBuild = args["clean"];
-  fullBuild = changedFiles.isEmpty() && removedFiles.isEmpty() && !cleanBuild;
+  fullBuild = changedFiles.isEmpty && removedFiles.isEmpty && !cleanBuild;
 }
 
 /**

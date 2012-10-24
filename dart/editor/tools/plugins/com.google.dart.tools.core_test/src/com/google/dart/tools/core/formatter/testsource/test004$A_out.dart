@@ -90,7 +90,7 @@ class BasicBlock {
     Out.write("BB#");
     Out.write(getName());
     Out.write(": ");
-    if (!inEdges.isEmpty()) {
+    if (!inEdges.isEmpty) {
       Out.write("in: ");
       inEdges.forEach(
         function f(BasicBlock bb) {
@@ -99,7 +99,7 @@ class BasicBlock {
           Out.write(" ");
         });
     }
-    if (!outEdges.isEmpty()) {
+    if (!outEdges.isEmpty) {
       Out.write("out: ");
       outEdges.forEach(
         function f(BasicBlock bb) {
@@ -442,7 +442,7 @@ class HavlakLoopFinder {
         type[w] = BB.REDUCIBLE;
       }
       // work the list...
-      while (!workList.isEmpty()) {
+      while (!workList.isEmpty) {
         UnionFindNode x = workList.getFirst();
         workList.removeFirst();
         // Step e:
@@ -737,7 +737,7 @@ class SimpleLoop {
     Out.write(depthLevel);
     if (isReducible)
       Out.write(" (Irrudicible)");
-    if (!getChildren().isEmpty()) {
+    if (!getChildren().isEmpty) {
       Out.write("Children:");
       getChildren.forEach(
         Function f(SimpleLoop loop) {
@@ -746,7 +746,7 @@ class SimpleLoop {
           Out.write(" ");
         });
     }
-    if (!basicBlocks.isEmpty()) {
+    if (!basicBlocks.isEmpty) {
       Out.write("(");
       basicBlocks.forEach(
         function f(BasicBlock bb) {

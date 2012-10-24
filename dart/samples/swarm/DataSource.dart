@@ -99,7 +99,7 @@ class Sections implements Collection<Section> {
   void forEach(void f(Section element)) { Collections.forEach(this, f); }
 
   // TODO(jmesserly): this should be a property
-  bool isEmpty() => length == 0;
+  bool get isEmpty => length == 0;
 }
 
 

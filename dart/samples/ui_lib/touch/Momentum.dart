@@ -455,7 +455,7 @@ class TimeoutMomentum implements Momentum {
                        _customDecelerationFactor, velocity.y);
     if (!physicsX.isDone() || !physicsY.isDone()) {
       _calculateMoves();
-      if (!_moves.isEmpty()) {
+      if (!_moves.isEmpty) {
         num firstTime = _moves.first().time;
         _stepTimeout = Env.requestAnimationFrame(
             _step, null, firstTime);
@@ -490,15 +490,15 @@ class TimeoutMomentum implements Momentum {
     // Prune moves that are more than 1 frame behind when we have more
     // available moves.
     num lastEpoch = timestamp - SingleDimensionPhysics._MS_PER_FRAME;
-    while (!_moves.isEmpty() && _moves.first() !== _moves.last()
+    while (!_moves.isEmpty && _moves.first() !== _moves.last()
         && _moves.first().time < lastEpoch) {
       _moves.removeFirst();
     }
 
-    if (!_moves.isEmpty()) {
+    if (!_moves.isEmpty) {
       final move = _moves.removeFirst();
       _delegate.onDecelerate(move.x, move.y);
-      if (!_moves.isEmpty()) {
+      if (!_moves.isEmpty) {
         num nextTime = _moves.first().time;
         assert(_stepTimeout === null);
         _stepTimeout = Env.requestAnimationFrame(_step, null, nextTime);
@@ -521,7 +521,7 @@ class TimeoutMomentum implements Momentum {
     final wasDecelerating = _decelerating;
     _decelerating = false;
     Coordinate velocity;
-    if (!_moves.isEmpty()) {
+    if (!_moves.isEmpty) {
       final move = _moves.first();
       // This is a workaround for the ugly hacks that get applied when a user
       // passed a velocity in to this Momentum implementation.
@@ -544,7 +544,7 @@ class TimeoutMomentum implements Momentum {
   }
 
   Coordinate get destination {
-    if (!_moves.isEmpty()) {
+    if (!_moves.isEmpty) {
       final lastMove = _moves.last();
       return new Coordinate(lastMove.x, lastMove.y);
     } else {

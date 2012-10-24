@@ -267,7 +267,7 @@ class ObservableList<T>
   bool every(bool f(T element)) => _internal.every(f);
   bool some(bool f(T element)) => _internal.some(f);
   void forEach(void f(T element)) { _internal.forEach(f); }
-  bool isEmpty() => length == 0;
+  bool get isEmpty => length == 0;
 }
 
 // TODO(jmesserly): is this too granular? Other similar systems make whole

@@ -72,7 +72,7 @@ class EventSummary {
 
   /** Notify listeners of [target] and parents of [target] about all changes. */
   void notify() {
-    if (!events.isEmpty()) {
+    if (!events.isEmpty) {
       for (Observable obj = target; obj != null; obj = obj.parent) {
         for (final listener in obj.listeners) {
           listener(this);
