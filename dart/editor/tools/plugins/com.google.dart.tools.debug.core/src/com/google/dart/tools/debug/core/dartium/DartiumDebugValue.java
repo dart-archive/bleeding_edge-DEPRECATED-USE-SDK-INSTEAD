@@ -60,6 +60,11 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
       return;
     }
 
+    if (value.isNull()) {
+      callback.detailComputed(null);
+      return;
+    }
+
     // Otherwise try and call the toString() method of the object.
     try {
       getConnection().getRuntime().callToString(value.getObjectId(), new WebkitCallback<String>() {
@@ -86,6 +91,10 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
   public String getDisplayString() {
     if (variable != null && variable.isLibraryObject()) {
       return "";
+    }
+
+    if (value.isNull()) {
+      return "null";
     }
 
     if (isPrimitive() && value.isString()) {

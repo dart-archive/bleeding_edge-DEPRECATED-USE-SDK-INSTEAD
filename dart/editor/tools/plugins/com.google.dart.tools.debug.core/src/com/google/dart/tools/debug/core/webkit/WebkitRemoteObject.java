@@ -130,6 +130,10 @@ public class WebkitRemoteObject {
   }
 
   public boolean isNull() {
+    if (isObject() && "null".equals(subtype)) {
+      return true;
+    }
+
     return isObject() && (value == null || "null".equals(value));
   }
 

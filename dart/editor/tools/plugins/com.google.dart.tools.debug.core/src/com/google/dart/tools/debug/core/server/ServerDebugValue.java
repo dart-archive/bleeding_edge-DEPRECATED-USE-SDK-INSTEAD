@@ -54,9 +54,9 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
     if (value == null) {
       return null;
     } else if (value.isString()) {
-      return getValueString();
+      return printNull(getValueString());
     } else {
-      return value.getText();
+      return printNull(value.getText());
     }
   }
 
@@ -68,6 +68,10 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
   public String getReferenceTypeName() throws DebugException {
     if (value == null) {
       return null;
+    }
+
+    if (value.isObject() && value.isNull()) {
+      return "null";
     }
 
     if (value.isObject()) {
@@ -251,6 +255,14 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
     } else {
       return value.getText();
     }
+  }
+
+  private String printNull(String str) {
+    if (str == null) {
+      return "null";
+    }
+
+    return str;
   }
 
 }

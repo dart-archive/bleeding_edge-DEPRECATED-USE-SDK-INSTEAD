@@ -85,6 +85,10 @@ public class VmValue extends VmRef {
   }
 
   public boolean isNull() {
+    if (isObject() && objectId == 0 && text == null) {
+      return true;
+    }
+
     return isObject() && (text == null || "null".equals(text));
   }
 
