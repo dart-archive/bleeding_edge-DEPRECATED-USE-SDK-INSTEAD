@@ -74,7 +74,7 @@ class GridItemAlignment {
       case 'start': case 'end': case 'center': case 'stretch':
         break;
       default:
-        throw new UnsupportedOperationException(
+        throw new UnsupportedError(
             'invalid row/column alignment "$value"');
     }
   }
@@ -137,12 +137,12 @@ class GridTemplate {
    */
   _GridTemplateRect lookupCell(String cell) {
     if (cell.length != 1) {
-      throw new UnsupportedOperationException(
+      throw new UnsupportedError(
           'grid-cell "$cell" must be a one character string');
     }
     final rect = _rects[cell.charCodeAt(0)];
     if (rect == null) {
-      throw new UnsupportedOperationException(
+      throw new UnsupportedError(
         'grid-cell "$cell" not found in parent\'s grid-template');
     }
     return rect;
@@ -168,7 +168,7 @@ class _GridTemplateRect {
       // TODO(jmesserly): not sure if we should throw here, due to CSS's
       // permissiveness. At the moment we're noisy about errors.
       String cell = new String.fromCharCodes([_char]);
-      throw new UnsupportedOperationException('grid-template "$cell"'
+      throw new UnsupportedError('grid-template "$cell"'
           ' is not square, expected $expected cells but got $_count');
     }
   }

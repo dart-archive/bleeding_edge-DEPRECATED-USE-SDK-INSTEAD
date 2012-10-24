@@ -213,7 +213,7 @@ class ViewLayout {
       return int.parse(style.substring(0, style.length - 2));
     } else {
       // TODO(jmesserly): other size units
-      throw new UnsupportedOperationException(
+      throw new UnsupportedError(
           'Unknown min/max content size format: "$style"');
     }
   }

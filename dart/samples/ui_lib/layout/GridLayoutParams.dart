@@ -44,7 +44,7 @@ class GridLayoutParams extends LayoutParams {
       row = line.start;
       if (line.length != null) {
         if (rowSpan != null) {
-          throw new UnsupportedOperationException(
+          throw new UnsupportedError(
             'grid-row-span cannot be with grid-row that defines an end');
         }
         rowSpan = line.length;
@@ -58,7 +58,7 @@ class GridLayoutParams extends LayoutParams {
       column = line.start;
       if (line.length != null) {
         if (columnSpan != null) {
-          throw new UnsupportedOperationException(
+          throw new UnsupportedError(
             'grid-column-span cannot be with grid-column that defines an end');
         }
         columnSpan = line.length;
@@ -73,12 +73,12 @@ class GridLayoutParams extends LayoutParams {
       // better and resolve conflicts more intelligently.
       if (row != null || column != null ||
           rowSpan != null || columnSpan != null) {
-        throw new UnsupportedOperationException(
+        throw new UnsupportedError(
             'grid-cell cannot be used with grid-row and grid-column');
       }
 
       if (layout.template == null) {
-        throw new UnsupportedOperationException(
+        throw new UnsupportedError(
             'grid-cell requires that grid-template is set on the parent');
       }
 
@@ -94,7 +94,7 @@ class GridLayoutParams extends LayoutParams {
       if (columnSpan == null) columnSpan = 1;
 
       if (row == null && column == null) {
-        throw new  UnsupportedOperationException('grid-flow is not implemented'
+        throw new  UnsupportedError('grid-flow is not implemented'
             + ' so at least one row or one column must be defined');
       }
 

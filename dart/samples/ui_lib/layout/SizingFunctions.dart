@@ -44,7 +44,7 @@ class FixedSizing extends SizingFunction {
       _contentSized = false {
     if (units != 'px' && units != '%') {
       // TODO(jmesserly): support other unit types
-      throw new UnsupportedOperationException('Units other than px and %');
+      throw new UnsupportedError('Units other than px and %');
     }
   }
 
