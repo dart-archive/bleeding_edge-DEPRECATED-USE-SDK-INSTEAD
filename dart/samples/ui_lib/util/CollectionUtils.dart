@@ -71,11 +71,11 @@ class CollectionUtils {
   /** Compute the minimum of an iterable. Returns null if empty. */
   static num min(Iterable source) {
     final iter = source.iterator();
-    if (!iter.hasNext()) {
+    if (!iter.hasNext) {
       return null;
     }
     num best = iter.next();
-    while (iter.hasNext()) {
+    while (iter.hasNext) {
       best = Math.min(best, iter.next());
     }
     return best;
@@ -84,11 +84,11 @@ class CollectionUtils {
   /** Compute the maximum of an iterable. Returns null if empty. */
   static num max(Iterable source) {
     final iter = source.iterator();
-    if (!iter.hasNext()) {
+    if (!iter.hasNext) {
       return null;
     }
     num best = iter.next();
-    while (iter.hasNext()) {
+    while (iter.hasNext) {
       best = Math.max(best, iter.next());
     }
     return best;
@@ -120,11 +120,11 @@ class CollectionUtils {
     if (selector != null) {
       do {
         total += selector(iter.next());
-      } while (iter.hasNext());
+      } while (iter.hasNext);
     } else {
       do {
         total += iter.next();
-      } while (iter.hasNext());
+      } while (iter.hasNext);
     }
     return total;
   }
