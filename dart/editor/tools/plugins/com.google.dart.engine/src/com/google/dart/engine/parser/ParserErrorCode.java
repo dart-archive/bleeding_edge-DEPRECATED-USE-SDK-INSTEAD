@@ -95,21 +95,29 @@ public enum ParserErrorCode implements ErrorCode {
 //  INVALID_IDENTIFIER("The token '%s' cannot be used as an identifier"),
 //  INVALID_OPERATOR_CHAINING("Cannot chain '%s'"),
 //  LABEL_NOT_FOLLOWED_BY_CASE_OR_DEFAULT("Label not followed by 'case', 'default', or statement"),
-  LIBRARY_DIRECTIVE_NOT_FIRST(
-      "The library directive must appear before all other directives and declarations"),
+  LIBRARY_DIRECTIVE_NOT_FIRST("The library directive must appear before all other directives"),
 //  LOCAL_CANNOT_BE_STATIC("Local function can not be static"),
 //  MISSING_FUNCTION_NAME("a function name is required for a declaration"),
   // TODO(brianwilkerson) Improve this message. We probably need to know the context in which we are
   // parsing the assignable selector in order to get decent messages.
   MISSING_ASSIGNABLE_SELECTOR("Missing selector such as \".<identifier>\" or \"[0]\""),
   MISSING_CATCH_OR_FINALLY("A try statement must have either a catch or finally clause"),
+  MIXED_PARAMETER_GROUPS(
+      "Cannot have both positional and named parameters in a single parameter list"),
   MULTIPLE_LIBRARY_DIRECTIVES("Only one library directive may be declared in a file"),
+  MULTIPLE_NAMED_PARAMETER_GROUPS(
+      "Cannot have multiple groups of named parameters in a single parameter list"),
   MULTIPLE_PART_OF_DIRECTIVES("Only one part-of directive may be declared in a file"),
+  MULTIPLE_POSITIONAL_PARAMETER_GROUPS(
+      "Cannot have multiple groups of positional parameters in a single parameter list"),
+  NAMED_PARAMETER_OUTSIDE_GROUP("Named parameters must be enclosed in curly braces ('{' and '}')"),
 //  NAMED_PARAMETER_NOT_ALLOWED("Named parameter is not allowed for operator or setter method"),
 //  NO_SPACE_AFTER_PLUS("Cannot have space between plus and numeric literal"),
 //  NO_SOUP_FOR_YOU("Too many errors"),
   NON_USER_DEFINABLE_OPERATOR("The operator '%s' is not user definable"),
   POSITIONAL_AFTER_NAMED_ARGUMENT("Positional arguments must occur before named arguments"),
+  POSITIONAL_PARAMETER_OUTSIDE_GROUP(
+      "Positional parameters must be enclosed in square brackets ('[' and ']')"),
 //  REDIRECTING_CONSTRUCTOR_CANNOT_HAVE_A_BODY("Redirecting constructor cannot have a body"),
 //  REDIRECTING_CONSTRUCTOR_PARAM("Redirecting constructor can not have initializers"),
 //  REDIRECTING_CONSTRUCTOR_ITSELF("Redirecting constructor can not have initializers"),
@@ -128,10 +136,14 @@ public enum ParserErrorCode implements ErrorCode {
 //  UNREACHABLE_CODE_IN_CASE(ErrorSeverity.WARNING, "Unreachable code in case statement"),
   UNEXPECTED_TOKEN("Unexpected token '%s'"),
 //  UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION("Unexpected token in string interpolation: %s"),
-  USE_OF_UNARY_PLUS_OPERATOR("There is no unary plus operator in Dart");
+  USE_OF_UNARY_PLUS_OPERATOR("There is no unary plus operator in Dart"),
 //  VAR_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION("'var' is not allowed on a method definition"),
 //  VOID_FIELD("Field cannot be of type void"),
-//  VOID_PARAMETER("Parameter cannot be of type void");
+//  VOID_PARAMETER("Parameter cannot be of type void"),
+  WRONG_SEPARATOR_FOR_NAMED_PARAMETER(
+      "The default value of a named parameter should be preceeded by ':'"),
+  WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER(
+      "The default value of a positional parameter should be preceeded by '='");
 
   /**
    * The severity of this error.

@@ -14,26 +14,30 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.scanner.TokenType;
 
 /**
- * Instances of the class {@code NamedFormalParameter} represent a formal parameter with a default
+ * Instances of the class {@code DefaultFormalParameter} represent a formal parameter with a default
  * value.
  * 
  * <pre>
- * namedFormalParameter ::=
+ * defaultFormalParameter ::=
  *     {@link NormalFormalParameter parameter} '=' {@link Expression defaultValue}
+ *
+ * defaultNamedParameter ::=
+ *     {@link NormalFormalParameter parameter} ':' {@link Expression defaultValue}
  * </pre>
  */
-public class NamedFormalParameter extends FormalParameter {
+public class DefaultFormalParameter extends FormalParameter {
   /**
    * The formal parameter with which the default value is associated.
    */
   private NormalFormalParameter parameter;
 
   /**
-   * The equal sign separating the parameter from the default value.
+   * The token separating the parameter from the default value.
    */
-  private Token equals;
+  private Token separator;
 
   /**
    * The expression computing the default value for the parameter.
@@ -41,27 +45,28 @@ public class NamedFormalParameter extends FormalParameter {
   private Expression defaultValue;
 
   /**
-   * Initialize a newly created named formal parameter.
+   * Initialize a newly created default formal parameter.
    */
-  public NamedFormalParameter() {
+  public DefaultFormalParameter() {
   }
 
   /**
-   * Initialize a newly created named formal parameter.
+   * Initialize a newly created default formal parameter.
    * 
    * @param parameter the formal parameter with which the default value is associated
-   * @param equals the equal sign separating the parameter from the default value
+   * @param separator the token separating the parameter from the default value
    * @param defaultValue the expression computing the default value for the parameter
    */
-  public NamedFormalParameter(NormalFormalParameter parameter, Token equals, Expression defaultValue) {
+  public DefaultFormalParameter(NormalFormalParameter parameter, Token separator,
+      Expression defaultValue) {
     this.parameter = becomeParentOf(parameter);
-    this.equals = equals;
+    this.separator = separator;
     this.defaultValue = becomeParentOf(defaultValue);
   }
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
-    return visitor.visitNamedFormalParameter(this);
+    return visitor.visitDefaultFormalParameter(this);
   }
 
   @Override
@@ -84,21 +89,30 @@ public class NamedFormalParameter extends FormalParameter {
   }
 
   /**
-   * Return the equal sign separating the parameter from the default value.
-   * 
-   * @return the equal sign separating the parameter from the default value
-   */
-  public Token getEquals() {
-    return equals;
-  }
-
-  /**
    * Return the formal parameter with which the default value is associated.
    * 
    * @return the formal parameter with which the default value is associated
    */
   public NormalFormalParameter getParameter() {
     return parameter;
+  }
+
+  /**
+   * Return the token separating the parameter from the default value.
+   * 
+   * @return the token separating the parameter from the default value
+   */
+  public Token getSeparator() {
+    return separator;
+  }
+
+  /**
+   * Return {@code true} if this parameter represents a named parameter.
+   * 
+   * @return {@code true} if the separator is a colon
+   */
+  public boolean isNamed() {
+    return separator != null && separator.getType() == TokenType.COLON;
   }
 
   /**
@@ -111,21 +125,21 @@ public class NamedFormalParameter extends FormalParameter {
   }
 
   /**
-   * Set the equal sign separating the parameter from the default value to the given token.
-   * 
-   * @param equals the equal sign separating the parameter from the default value
-   */
-  public void setEquals(Token equals) {
-    this.equals = equals;
-  }
-
-  /**
    * Set the formal parameter with which the default value is associated to the given parameter.
    * 
    * @param formalParameter the formal parameter with which the default value is associated
    */
   public void setParameter(NormalFormalParameter formalParameter) {
     parameter = becomeParentOf(formalParameter);
+  }
+
+  /**
+   * Set the token separating the parameter from the default value to the given token.
+   * 
+   * @param separator the token separating the parameter from the default value
+   */
+  public void setSeparator(Token separator) {
+    this.separator = separator;
   }
 
   @Override

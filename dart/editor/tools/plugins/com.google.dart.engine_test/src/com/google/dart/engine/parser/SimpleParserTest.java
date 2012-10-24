@@ -68,7 +68,7 @@ import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
-import com.google.dart.engine.ast.NamedFormalParameter;
+import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.ParenthesizedExpression;
@@ -1371,12 +1371,12 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFormalParameter_final_withType_optional() throws Exception {
-    NamedFormalParameter namedParameter = parse("parseFormalParameter", "final A a = null");
+    DefaultFormalParameter namedParameter = parse("parseFormalParameter", "final A a = null");
     SimpleFormalParameter simpleParameter = (SimpleFormalParameter) namedParameter.getParameter();
     assertNotNull(simpleParameter.getIdentifier());
     assertNotNull(simpleParameter.getKeyword());
     assertNotNull(simpleParameter.getType());
-    assertNotNull(namedParameter.getEquals());
+    assertNotNull(namedParameter.getSeparator());
     assertNotNull(namedParameter.getDefaultValue());
   }
 
@@ -1388,12 +1388,12 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFormalParameter_nonFinal_withType_optional() throws Exception {
-    NamedFormalParameter namedParameter = parse("parseFormalParameter", "A a = null");
+    DefaultFormalParameter namedParameter = parse("parseFormalParameter", "A a = null");
     SimpleFormalParameter simpleParameter = (SimpleFormalParameter) namedParameter.getParameter();
     assertNotNull(simpleParameter.getIdentifier());
     assertNull(simpleParameter.getKeyword());
     assertNotNull(simpleParameter.getType());
-    assertNotNull(namedParameter.getEquals());
+    assertNotNull(namedParameter.getSeparator());
     assertNotNull(namedParameter.getDefaultValue());
   }
 
@@ -1405,12 +1405,12 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFormalParameter_var_optional() throws Exception {
-    NamedFormalParameter namedParameter = parse("parseFormalParameter", "var a = null");
+    DefaultFormalParameter namedParameter = parse("parseFormalParameter", "var a = null");
     SimpleFormalParameter simpleParameter = (SimpleFormalParameter) namedParameter.getParameter();
     assertNotNull(simpleParameter.getIdentifier());
     assertNotNull(simpleParameter.getKeyword());
     assertNull(simpleParameter.getType());
-    assertNotNull(namedParameter.getEquals());
+    assertNotNull(namedParameter.getSeparator());
     assertNotNull(namedParameter.getDefaultValue());
   }
 

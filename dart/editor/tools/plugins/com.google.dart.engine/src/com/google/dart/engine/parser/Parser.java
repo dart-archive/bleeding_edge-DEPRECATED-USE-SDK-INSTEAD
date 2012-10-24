@@ -285,23 +285,30 @@ public class Parser {
   }
 
   /**
-   * Create and return a new synthetic SimpleIdentifier.
+   * Create a synthetic identifier.
    * 
-   * @return a new synthetic SimpleIdentifier
+   * @return the synthetic identifier that was created
    */
-  private SimpleIdentifier createSyntheticSimpleIdentifier() {
-    return new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, "", currentToken.getOffset()));
+  private SimpleIdentifier createSyntheticIdentifier() {
+    return new SimpleIdentifier(createSyntheticToken(TokenType.IDENTIFIER));
   }
 
   /**
-   * Create and return a new synthetic SimpleStringLiteral.
+   * Create a synthetic string literal.
    * 
-   * @return a new synthetic SimpleStringLiteral
+   * @return the synthetic string literal that was created
    */
-  private SimpleStringLiteral createSyntheticSimpleStringLiteral() {
-    return new SimpleStringLiteral(
-        new StringToken(TokenType.STRING, "", currentToken.getOffset()),
-        "");
+  private SimpleStringLiteral createSyntheticStringLiteral() {
+    return new SimpleStringLiteral(createSyntheticToken(TokenType.STRING), "");
+  }
+
+  /**
+   * Create a synthetic token with the given type.
+   * 
+   * @return the synthetic token that was created
+   */
+  private Token createSyntheticToken(TokenType type) {
+    return new StringToken(type, "", currentToken.getOffset());
   }
 
   /**
@@ -326,23 +333,6 @@ public class Parser {
     }
   }
 
-  /**
-   * If the current token is a keyword matching the given string, return it after advancing to the
-   * next token. Otherwise report an error and return the current token without advancing.
-   * 
-   * @param keyword the keyword that is expected
-   * @return the token that matched the given type
-   */
-  private Token expect(Keyword keyword) {
-    if (matches(keyword)) {
-      return getAndAdvance();
-    }
-    // Remove uses of this method in favor of matches?
-    // Pass in the error code to use to report the error?
-    reportError(ParserErrorCode.EXPECTED_TOKEN, keyword.getSyntax());
-    return currentToken;
-  }
-
 //  /**
 //   * If the current token is an identifier matching the given identifier, return it after advancing
 //   * to the next token. Otherwise report an error and return the current token without advancing.
@@ -359,6 +349,23 @@ public class Parser {
 //    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
 //    return currentToken;
 //  }
+
+  /**
+   * If the current token is a keyword matching the given string, return it after advancing to the
+   * next token. Otherwise report an error and return the current token without advancing.
+   * 
+   * @param keyword the keyword that is expected
+   * @return the token that matched the given type
+   */
+  private Token expect(Keyword keyword) {
+    if (matches(keyword)) {
+      return getAndAdvance();
+    }
+    // Remove uses of this method in favor of matches?
+    // Pass in the error code to use to report the error?
+    reportError(ParserErrorCode.EXPECTED_TOKEN, keyword.getSyntax());
+    return currentToken;
+  }
 
   /**
    * If the current token has the expected type, return it after advancing to the next token.
@@ -1203,13 +1210,16 @@ public class Parser {
         }
         return parseMethodOrConstructor(commentAndMetadata, externalKeyword, staticKeyword, null);
       } else if (peekMatches(TokenType.PERIOD) && peekMatches(3, TokenType.OPEN_PAREN)) {
+        if (staticKeyword != null) {
+          reportError(ParserErrorCode.STATIC_CONSTRUCTOR, staticKeyword);
+        }
         SimpleIdentifier returnType = parseSimpleIdentifier();
         Token period = getAndAdvance();
         SimpleIdentifier name = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
         return parseConstructor(
             commentAndMetadata,
             externalKeyword,
-            staticKeyword,
+            null,
             returnType,
             period,
             name,
@@ -1251,16 +1261,16 @@ public class Parser {
    * 
    * @return the combinators that were parsed
    */
-  private List<ImportCombinator> parseCombinators() {
-    List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
+  private List<Combinator> parseCombinators() {
+    List<Combinator> combinators = new ArrayList<Combinator>();
     while (matches(SHOW) || matches(HIDE)) {
       Token kind = expect(TokenType.IDENTIFIER);
       if (kind.getLexeme().equals(SHOW)) {
         List<Identifier> shownNames = parseIdentifierList();
-        combinators.add(new ImportShowCombinator(kind, shownNames));
+        combinators.add(new ShowCombinator(kind, shownNames));
       } else {
         List<Identifier> hiddenNames = parseIdentifierList();
-        combinators.add(new ImportHideCombinator(kind, hiddenNames));
+        combinators.add(new HideCombinator(kind, hiddenNames));
       }
     }
     return combinators;
@@ -1405,6 +1415,10 @@ public class Parser {
     if (matches(TokenType.SCRIPT_TAG)) {
       scriptTag = new ScriptTag(getAndAdvance());
     }
+    //
+    // Even though all directives must appear before declarations and must occur in a given order,
+    // we allow directives and declarations to occur in any order so that we can recover better.
+    //
     boolean libraryDirectiveFound = false;
     boolean errorGenerated = false;
     List<Directive> directives = new ArrayList<Directive>();
@@ -1422,7 +1436,7 @@ public class Parser {
         if (directive instanceof LibraryDirective) {
           if (libraryDirectiveFound) {
             reportError(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
-          } else if (directives.size() > 0 || declarations.size() > 0) {
+          } else if (directives.size() > 0) {
             reportError(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
           } else {
             libraryDirectiveFound = true;
@@ -1842,7 +1856,7 @@ public class Parser {
   private ExportDirective parseExportDirective(CommentAndMetadata commentAndMetadata) {
     Token exportKeyword = expect(Keyword.EXPORT);
     StringLiteral libraryUri = parseStringLiteral();
-    List<ImportCombinator> combinators = parseCombinators();
+    List<Combinator> combinators = parseCombinators();
     Token semicolon = expect(TokenType.SEMICOLON);
     return new ExportDirective(
         commentAndMetadata.getMetadata(),
@@ -2054,20 +2068,10 @@ public class Parser {
    */
   private FormalParameter parseFormalParameter() {
     NormalFormalParameter parameter = parseNormalFormalParameter();
-    // TODO(brianwilkerson) Handle both kinds of formal parameters
-    if (matches(TokenType.EQ)) {
-      // Validate that these are only used for default formal parameters.
-      // reportError(ParserErrorCode.?);
+    if (matches(TokenType.EQ) || matches(TokenType.COLON)) {
       Token equals = getAndAdvance();
       Expression defaultValue = parseExpression();
-      // TODO(brianwilkerson) Rename to DefaultNamedParameter
-      return new NamedFormalParameter(parameter, equals, defaultValue);
-    } else if (matches(TokenType.COLON)) {
-      // Validate that these are only used for default named parameters.
-      // reportError(ParserErrorCode.?);
-      // Token colon = getAndAdvance();
-      // Expression defaultValue = parseExpression();
-      //return new DefaultNamedParameter(parameter, colon, defaultValue);
+      return new DefaultFormalParameter(parameter, equals, defaultValue);
     }
     return parameter;
   }
@@ -2098,43 +2102,141 @@ public class Parser {
    * @return the formal parameters that were parsed
    */
   private FormalParameterList parseFormalParameterList() {
-    // TODO(brianwilkerson) Handle both kinds of formal parameters
     Token leftParenthesis = expect(TokenType.OPEN_PAREN);
     List<FormalParameter> parameters = new ArrayList<FormalParameter>();
     if (matches(TokenType.CLOSE_PAREN)) {
       return new FormalParameterList(leftParenthesis, parameters, null, null, getAndAdvance());
     }
     //
-    // Even though it is invalid to have named parameters outside the square brackets, or unnamed
-    // parameters inside the square brackets, we allow both in order to recover better.
+    // Even though it is invalid to have default parameters outside of brackets, required parameters
+    // inside of brackets, or multiple groups of default and named parameters, we allow all of these
+    // cases so that we can recover better.
     //
-    Token leftBracket = null;
+    List<FormalParameter> normalParameters = new ArrayList<FormalParameter>();
+    List<FormalParameter> positionalParameters = new ArrayList<FormalParameter>();
+    List<FormalParameter> namedParameters = new ArrayList<FormalParameter>();
+    List<FormalParameter> currentParameters = normalParameters;
+
+    Token leftSquareBracket = null;
+    Token rightSquareBracket = null;
+    Token leftCurlyBracket = null;
+    Token rightCurlyBracket = null;
+
+    boolean firstParameter = true;
+    boolean reportedMuliplePositionalGroups = false;
+    boolean reportedMulipleNamedGroups = false;
+    boolean reportedMixedGroups = false;
     do {
+      if (firstParameter) {
+        firstParameter = false;
+      } else if (!optional(TokenType.COMMA)) {
+        // reportError(ParserErrorCode.MISSING_CLOSING_PARENTHESIS);
+        break;
+      }
+      //
+      // Handle the beginning of parameter groups.
+      //
       if (matches(TokenType.OPEN_SQUARE_BRACKET)) {
-        if (leftBracket != null) {
-          // reportError(ParserErrorCode.?);
+        if (leftSquareBracket != null && !reportedMuliplePositionalGroups) {
+          reportError(ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS);
+          reportedMuliplePositionalGroups = true;
         }
-        leftBracket = getAndAdvance();
+        if (leftCurlyBracket != null && !reportedMixedGroups) {
+          reportError(ParserErrorCode.MIXED_PARAMETER_GROUPS);
+          reportedMixedGroups = true;
+        }
+        leftSquareBracket = getAndAdvance();
+        currentParameters = positionalParameters;
+      } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
+        if (leftCurlyBracket != null && !reportedMulipleNamedGroups) {
+          reportError(ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS);
+          reportedMulipleNamedGroups = true;
+        }
+        if (leftSquareBracket != null && !reportedMixedGroups) {
+          reportError(ParserErrorCode.MIXED_PARAMETER_GROUPS);
+          reportedMixedGroups = true;
+        }
+        leftCurlyBracket = getAndAdvance();
+        currentParameters = namedParameters;
       }
+      //
+      // Parse and record the parameter.
+      //
       FormalParameter parameter = parseFormalParameter();
-      if (leftBracket == null) {
-        if (parameter instanceof NamedFormalParameter) {
-          // reportError(ParserErrorCode.?);
+      parameters.add(parameter);
+      currentParameters.add(parameter);
+      //
+      // Handle the end of parameter groups.
+      //
+      // TODO(brianwilkerson) Improve the detection and reporting of missing and mismatched delimiters.
+      if (matches(TokenType.CLOSE_SQUARE_BRACKET)) {
+        rightSquareBracket = getAndAdvance();
+        currentParameters = normalParameters;
+        if (leftSquareBracket == null) {
+          // reportError(ParserErrorCode.);
         }
-      } else {
-        if (!(parameter instanceof NamedFormalParameter)) {
-          // reportError(ParserErrorCode.?);
+      } else if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
+        rightCurlyBracket = getAndAdvance();
+        currentParameters = normalParameters;
+        if (leftCurlyBracket == null) {
+          // reportError(ParserErrorCode.);
         }
       }
-      parameters.add(parameter);
-    } while (optional(TokenType.COMMA));
-    Token rightBracket = leftBracket == null ? null : expect(TokenType.CLOSE_SQUARE_BRACKET);
+    } while (!matches(TokenType.CLOSE_PAREN));
     Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
+    //
+    // Check that the different kinds of parameters appeared in the right places.
+    //
+    // TODO(brianwilkerson) NormalFormalParameters don't currently know whether they are positional
+    // or named when they occur inside of the brackets.
+    for (FormalParameter parameter : normalParameters) {
+      if (parameter instanceof DefaultFormalParameter) {
+        if (((DefaultFormalParameter) parameter).isNamed()) {
+          reportError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP);
+        } else {
+          reportError(ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP);
+        }
+      }
+    }
+    for (FormalParameter parameter : positionalParameters) {
+      if ((parameter instanceof DefaultFormalParameter)
+          && ((DefaultFormalParameter) parameter).isNamed()) {
+        reportError(
+            ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
+            ((DefaultFormalParameter) parameter).getSeparator());
+      }
+    }
+    for (FormalParameter parameter : namedParameters) {
+      if ((parameter instanceof DefaultFormalParameter)
+          && !((DefaultFormalParameter) parameter).isNamed()) {
+        reportError(
+            ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER,
+            ((DefaultFormalParameter) parameter).getSeparator());
+      }
+    }
+    //
+    // Check that the groups were closed correctly.
+    //
+    if (leftSquareBracket != null && rightSquareBracket == null) {
+      // reportError(ParserErrorCode.?);
+    }
+    if (leftCurlyBracket != null && rightCurlyBracket == null) {
+      // reportError(ParserErrorCode.?);
+    }
+    //
+    // Build the parameter list.
+    //
+    if (leftSquareBracket == null) {
+      leftSquareBracket = leftCurlyBracket;
+    }
+    if (rightSquareBracket == null) {
+      rightSquareBracket = rightCurlyBracket;
+    }
     return new FormalParameterList(
         leftParenthesis,
         parameters,
-        leftBracket,
-        rightBracket,
+        leftSquareBracket,
+        rightSquareBracket,
         rightParenthesis);
   }
 
@@ -2503,7 +2605,7 @@ public class Parser {
       asToken = getAndAdvance();
       prefix = parseSimpleIdentifier();
     }
-    List<ImportCombinator> combinators = parseCombinators();
+    List<Combinator> combinators = parseCombinators();
     Token semicolon = expect(TokenType.SEMICOLON);
     return new ImportDirective(
         commentAndMetadata.getMetadata(),
@@ -2663,8 +2765,12 @@ public class Parser {
       return parseListLiteral(modifier, typeArguments);
     }
     reportError(ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL);
-    // TODO (jwren) return a synthetic node?
-    return null;
+    return new ListLiteral(
+        modifier,
+        typeArguments,
+        createSyntheticToken(TokenType.OPEN_SQUARE_BRACKET),
+        null,
+        createSyntheticToken(TokenType.CLOSE_SQUARE_BRACKET));
   }
 
   /**
@@ -2862,7 +2968,7 @@ public class Parser {
     }
     FunctionBody body = parseFunctionBody(staticKeyword == null, false);
     if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
-      // reportError(ParserErrorCode.?);
+      reportError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, body);
     }
     return new MethodDeclaration(
         commentAndMetadata.getComment(),
@@ -3266,7 +3372,7 @@ public class Parser {
     } else if (matches(TokenType.QUESTION)) {
       return parseArgumentDefinitionTest();
     } else {
-      return createSyntheticSimpleIdentifier();
+      return createSyntheticIdentifier();
     }
   }
 
@@ -3452,7 +3558,7 @@ public class Parser {
       return new SimpleIdentifier(getAndAdvance());
     }
     reportError(ParserErrorCode.EXPECTED_IDENTIFIER);
-    return createSyntheticSimpleIdentifier();
+    return createSyntheticIdentifier();
   }
 
   /**
@@ -3475,7 +3581,7 @@ public class Parser {
       return new SimpleIdentifier(token);
     }
     reportError(ParserErrorCode.EXPECTED_IDENTIFIER);
-    return createSyntheticSimpleIdentifier();
+    return createSyntheticIdentifier();
   }
 
   /**
@@ -3578,7 +3684,7 @@ public class Parser {
     }
     if (strings.size() < 1) {
       reportError(ParserErrorCode.EXPECTED_STRING_LITERAL);
-      return createSyntheticSimpleStringLiteral();
+      return createSyntheticStringLiteral();
     } else if (strings.size() == 1) {
       return strings.get(0);
     } else {

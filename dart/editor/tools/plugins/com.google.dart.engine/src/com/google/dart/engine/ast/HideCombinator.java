@@ -18,24 +18,24 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class {@code ImportShowCombinator} represent a combinator that restricts the
- * names being imported to those in a given list.
+ * Instances of the class {@code HideCombinator} represent a combinator that restricts the names
+ * being imported to those that are not in a given list.
  * 
  * <pre>
- * importShowCombinator ::=
- *     'show' {@link SimpleIdentifier identifier} (',' {@link SimpleIdentifier identifier})*
+ * hideCombinator ::=
+ *     'hide' {@link SimpleIdentifier identifier} (',' {@link SimpleIdentifier identifier})*
  * </pre>
  */
-public class ImportShowCombinator extends ImportCombinator {
+public class HideCombinator extends Combinator {
   /**
-   * The list of names from the library that are made visible by this combinator.
+   * The list of names from the library that are hidden by this combinator.
    */
-  private NodeList<Identifier> shownNames = new NodeList<Identifier>(this);
+  private NodeList<Identifier> hiddenNames = new NodeList<Identifier>(this);
 
   /**
    * Initialize a newly created import show combinator.
    */
-  public ImportShowCombinator() {
+  public HideCombinator() {
     super();
   }
 
@@ -43,34 +43,34 @@ public class ImportShowCombinator extends ImportCombinator {
    * Initialize a newly created import show combinator.
    * 
    * @param keyword the comma introducing the combinator
-   * @param shownNames the list of names from the library that are made visible by this combinator
+   * @param hiddenNames the list of names from the library that are hidden by this combinator
    */
-  public ImportShowCombinator(Token keyword, List<Identifier> shownNames) {
+  public HideCombinator(Token keyword, List<Identifier> hiddenNames) {
     super(keyword);
-    this.shownNames.addAll(shownNames);
+    this.hiddenNames.addAll(hiddenNames);
   }
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
-    return visitor.visitImportShowCombinator(this);
+    return visitor.visitHideCombinator(this);
   }
 
   @Override
   public Token getEndToken() {
-    return shownNames.getEndToken();
+    return hiddenNames.getEndToken();
   }
 
   /**
-   * Return the list of names from the library that are made visible by this combinator.
+   * Return the list of names from the library that are hidden by this combinator.
    * 
-   * @return the list of names from the library that are made visible by this combinator
+   * @return the list of names from the library that are hidden by this combinator
    */
-  public NodeList<Identifier> getShownNames() {
-    return shownNames;
+  public NodeList<Identifier> getHiddenNames() {
+    return hiddenNames;
   }
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    shownNames.accept(visitor);
+    hiddenNames.accept(visitor);
   }
 }

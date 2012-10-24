@@ -25,7 +25,7 @@ import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
-import com.google.dart.engine.ast.NamedFormalParameter;
+import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.TypeAlias;
 import com.google.dart.engine.ast.TypeParameter;
@@ -650,7 +650,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder, new HashMap<ASTNode, Element>());
     String parameterName = "p";
-    NamedFormalParameter formalParameter = namedFormalParameter(
+    DefaultFormalParameter formalParameter = namedFormalParameter(
         simpleFormalParameter(parameterName),
         identifier("b"));
     formalParameter.accept(builder);

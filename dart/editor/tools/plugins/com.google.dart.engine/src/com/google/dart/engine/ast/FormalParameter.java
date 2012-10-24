@@ -20,7 +20,7 @@ package com.google.dart.engine.ast;
  * <pre>
  * formalParameter ::=
  *     {@link NormalFormalParameter normalFormalParameter}
- *   | {@link NamedFormalParameter namedFormalParameter}
+ *   | {@link DefaultFormalParameter namedFormalParameter}
  * </pre>
  */
 public abstract class FormalParameter extends ASTNode {

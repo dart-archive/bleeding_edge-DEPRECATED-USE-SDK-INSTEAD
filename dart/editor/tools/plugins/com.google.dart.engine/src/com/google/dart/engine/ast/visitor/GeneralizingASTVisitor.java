@@ -111,6 +111,10 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
     return visitDeclaration(node);
   }
 
+  public R visitCombinator(Combinator node) {
+    return visitNode(node);
+  }
+
   @Override
   public R visitComment(Comment node) {
     return visitNode(node);
@@ -156,6 +160,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
 
   public R visitDeclaration(Declaration node) {
     return visitNode(node);
+  }
+
+  @Override
+  public R visitDefaultFormalParameter(DefaultFormalParameter node) {
+    return visitFormalParameter(node);
   }
 
   public R visitDirective(Directive node) {
@@ -264,6 +273,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
     return visitNormalFormalParameter(node);
   }
 
+  @Override
+  public R visitHideCombinator(HideCombinator node) {
+    return visitCombinator(node);
+  }
+
   public R visitIdentifier(Identifier node) {
     return visitExpression(node);
   }
@@ -278,23 +292,9 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
     return visitNode(node);
   }
 
-  public R visitImportCombinator(ImportCombinator node) {
-    return visitNode(node);
-  }
-
   @Override
   public R visitImportDirective(ImportDirective node) {
     return visitDirective(node);
-  }
-
-  @Override
-  public R visitImportHideCombinator(ImportHideCombinator node) {
-    return visitImportCombinator(node);
-  }
-
-  @Override
-  public R visitImportShowCombinator(ImportShowCombinator node) {
-    return visitImportCombinator(node);
   }
 
   @Override
@@ -375,11 +375,6 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
     return visitExpression(node);
   }
 
-  @Override
-  public R visitNamedFormalParameter(NamedFormalParameter node) {
-    return visitFormalParameter(node);
-  }
-
   public R visitNode(ASTNode node) {
     node.visitChildren(this);
     return null;
@@ -442,6 +437,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   @Override
   public R visitScriptTag(ScriptTag scriptTag) {
     return visitNode(scriptTag);
+  }
+
+  @Override
+  public R visitShowCombinator(ShowCombinator node) {
+    return visitCombinator(node);
   }
 
   @Override

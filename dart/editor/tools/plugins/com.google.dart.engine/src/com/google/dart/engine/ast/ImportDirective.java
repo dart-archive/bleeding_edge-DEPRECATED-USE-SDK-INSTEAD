@@ -22,7 +22,7 @@ import java.util.List;
  * 
  * <pre>
  * importDirective ::=
- *     {@link Annotation metadata} 'import' {@link StringLiteral libraryUri} ('as' identifier)? {@link ImportCombinator combinator}* ';'
+ *     {@link Annotation metadata} 'import' {@link StringLiteral libraryUri} ('as' identifier)? {@link Combinator combinator}* ';'
  * </pre>
  */
 public class ImportDirective extends Directive {
@@ -50,7 +50,7 @@ public class ImportDirective extends Directive {
   /**
    * The combinators used to control how names are imported.
    */
-  private NodeList<ImportCombinator> combinators = new NodeList<ImportCombinator>(this);
+  private NodeList<Combinator> combinators = new NodeList<Combinator>(this);
 
   /**
    * The semicolon terminating the statement.
@@ -75,7 +75,7 @@ public class ImportDirective extends Directive {
    * @param semicolon the semicolon terminating the statement
    */
   public ImportDirective(List<Annotation> metadata, Token importToken, StringLiteral libraryUri,
-      Token asToken, SimpleIdentifier prefix, List<ImportCombinator> combinators, Token semicolon) {
+      Token asToken, SimpleIdentifier prefix, List<Combinator> combinators, Token semicolon) {
     super(metadata);
     this.importToken = importToken;
     this.libraryUri = becomeParentOf(libraryUri);
@@ -110,7 +110,7 @@ public class ImportDirective extends Directive {
    * 
    * @return the combinators used to control how names are imported
    */
-  public NodeList<ImportCombinator> getCombinators() {
+  public NodeList<Combinator> getCombinators() {
     return combinators;
   }
 

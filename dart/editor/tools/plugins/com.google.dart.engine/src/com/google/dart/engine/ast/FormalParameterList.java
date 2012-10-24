@@ -31,7 +31,7 @@ import java.util.List;
  *     {@link NormalFormalParameter normalFormalParameter} (',' {@link NormalFormalParameter normalFormalParameter})*
  *
  * namedFormalParameters ::=
- *     '[' {@link NamedFormalParameter namedFormalParameter} (',' {@link NamedFormalParameter namedFormalParameter})* ']'
+ *     '[' {@link DefaultFormalParameter namedFormalParameter} (',' {@link DefaultFormalParameter namedFormalParameter})* ']'
  * </pre>
  */
 public class FormalParameterList extends ASTNode {

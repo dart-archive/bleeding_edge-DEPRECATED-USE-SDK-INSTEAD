@@ -62,6 +62,8 @@ public interface ASTVisitor<R> {
 
   public R visitContinueStatement(ContinueStatement node);
 
+  public R visitDefaultFormalParameter(DefaultFormalParameter node);
+
   public R visitDoStatement(DoStatement node);
 
   public R visitDoubleLiteral(DoubleLiteral node);
@@ -98,15 +100,13 @@ public interface ASTVisitor<R> {
 
   public R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node);
 
+  public R visitHideCombinator(HideCombinator node);
+
   public R visitIfStatement(IfStatement node);
 
   public R visitImplementsClause(ImplementsClause node);
 
   public R visitImportDirective(ImportDirective node);
-
-  public R visitImportHideCombinator(ImportHideCombinator node);
-
-  public R visitImportShowCombinator(ImportShowCombinator node);
 
   public R visitInstanceCreationExpression(InstanceCreationExpression node);
 
@@ -136,8 +136,6 @@ public interface ASTVisitor<R> {
 
   public R visitNamedExpression(NamedExpression node);
 
-  public R visitNamedFormalParameter(NamedFormalParameter node);
-
   public R visitNullLiteral(NullLiteral node);
 
   public R visitParenthesizedExpression(ParenthesizedExpression node);
@@ -159,6 +157,8 @@ public interface ASTVisitor<R> {
   public R visitReturnStatement(ReturnStatement node);
 
   public R visitScriptTag(ScriptTag node);
+
+  public R visitShowCombinator(ShowCombinator node);
 
   public R visitSimpleFormalParameter(SimpleFormalParameter node);
 

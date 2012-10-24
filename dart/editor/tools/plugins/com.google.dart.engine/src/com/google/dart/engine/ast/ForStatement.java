@@ -28,7 +28,7 @@ import java.util.List;
  *     forInitializerStatement ';' {@link Expression expression}? ';' {@link Expression expressionList}?
  *
  * forInitializerStatement ::=
- *     {@link NamedFormalParameter initializedVariableDeclaration}
+ *     {@link DefaultFormalParameter initializedVariableDeclaration}
  *   | {@link Expression expression}?
  * </pre>
  */

@@ -36,6 +36,7 @@ import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ContinueStatement;
+import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.EmptyFunctionBody;
@@ -54,11 +55,10 @@ import com.google.dart.engine.ast.FunctionDeclarationStatement;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
+import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
-import com.google.dart.engine.ast.ImportHideCombinator;
-import com.google.dart.engine.ast.ImportShowCombinator;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.InterpolationExpression;
@@ -73,7 +73,6 @@ import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
-import com.google.dart.engine.ast.NamedFormalParameter;
 import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PartDirective;
@@ -85,6 +84,7 @@ import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.ScriptTag;
+import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
@@ -251,6 +251,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitDefaultFormalParameter(DefaultFormalParameter node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
   public R visitDoStatement(DoStatement node) {
     node.visitChildren(this);
     return null;
@@ -359,6 +365,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitHideCombinator(HideCombinator node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
   public R visitIfStatement(IfStatement node) {
     node.visitChildren(this);
     return null;
@@ -372,18 +384,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitImportDirective(ImportDirective node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public R visitImportHideCombinator(ImportHideCombinator node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public R visitImportShowCombinator(ImportShowCombinator node) {
     node.visitChildren(this);
     return null;
   }
@@ -473,12 +473,6 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitNamedFormalParameter(NamedFormalParameter node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
   public R visitNullLiteral(NullLiteral node) {
     node.visitChildren(this);
     return null;
@@ -540,6 +534,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitScriptTag(ScriptTag node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public R visitShowCombinator(ShowCombinator node) {
     node.visitChildren(this);
     return null;
   }

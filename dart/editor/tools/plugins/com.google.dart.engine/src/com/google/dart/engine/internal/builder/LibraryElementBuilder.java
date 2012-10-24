@@ -19,8 +19,8 @@ import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
-import com.google.dart.engine.ast.ImportHideCombinator;
-import com.google.dart.engine.ast.ImportShowCombinator;
+import com.google.dart.engine.ast.HideCombinator;
+import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PartDirective;
@@ -100,14 +100,14 @@ public class LibraryElementBuilder {
         Source source = getSource(librarySource, importDirective.getLibraryUri());
         ImportSpecificationImpl specification = new ImportSpecificationImpl();
         ArrayList<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
-        for (com.google.dart.engine.ast.ImportCombinator combinator : importDirective.getCombinators()) {
-          if (combinator instanceof ImportHideCombinator) {
+        for (com.google.dart.engine.ast.Combinator combinator : importDirective.getCombinators()) {
+          if (combinator instanceof HideCombinator) {
             HideCombinatorImpl hide = new HideCombinatorImpl();
-            hide.setHiddenNames(getIdentifiers(((ImportHideCombinator) combinator).getHiddenNames()));
+            hide.setHiddenNames(getIdentifiers(((HideCombinator) combinator).getHiddenNames()));
             combinators.add(hide);
           } else {
             ShowCombinatorImpl show = new ShowCombinatorImpl();
-            show.setShownNames(getIdentifiers(((ImportShowCombinator) combinator).getShownNames()));
+            show.setShownNames(getIdentifiers(((ShowCombinator) combinator).getShownNames()));
             combinators.add(show);
           }
         }

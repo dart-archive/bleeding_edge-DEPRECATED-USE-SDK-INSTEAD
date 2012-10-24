@@ -26,7 +26,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
-import com.google.dart.engine.ast.NamedFormalParameter;
+import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SwitchCase;
@@ -267,7 +267,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   }
 
   @Override
-  public Void visitNamedFormalParameter(NamedFormalParameter node) {
+  public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
     ElementHolder holder = new ElementHolder();
     visitChildren(holder, node.getDefaultValue());
 

@@ -19,7 +19,7 @@ import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.ast.ImportCombinator;
+import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 
@@ -480,7 +480,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitExportDirective_combinator() {
     assertSource(
         "export 'a.dart' show A;",
-        exportDirective("a.dart", list((ImportCombinator) importShowCombinator(identifier("A")))));
+        exportDirective("a.dart", list((Combinator) importShowCombinator(identifier("A")))));
   }
 
   public void test_visitExportDirective_combinators() {
@@ -492,7 +492,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   }
 
   public void test_visitExportDirective_minimal() {
-    assertSource("export 'a.dart';", exportDirective("a.dart", new ArrayList<ImportCombinator>()));
+    assertSource("export 'a.dart';", exportDirective("a.dart", new ArrayList<Combinator>()));
   }
 
   public void test_visitExpressionFunctionBody() {
@@ -737,7 +737,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
         importDirective(
             "a.dart",
             null,
-            list((ImportCombinator) importShowCombinator(identifier("A")))));
+            list((Combinator) importShowCombinator(identifier("A")))));
   }
 
   public void test_visitImportDirective_combinators() {
@@ -752,13 +752,13 @@ public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitImportDirective_minimal() {
     assertSource(
         "import 'a.dart';",
-        importDirective("a.dart", null, new ArrayList<ImportCombinator>()));
+        importDirective("a.dart", null, new ArrayList<Combinator>()));
   }
 
   public void test_visitImportDirective_prefix() {
     assertSource(
         "import 'a.dart' as p;",
-        importDirective("a.dart", "p", new ArrayList<ImportCombinator>()));
+        importDirective("a.dart", "p", new ArrayList<Combinator>()));
   }
 
   public void test_visitImportDirective_prefix_combinator() {
@@ -767,7 +767,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
         importDirective(
             "a.dart",
             "p",
-            list((ImportCombinator) importShowCombinator(identifier("A")))));
+            list((Combinator) importShowCombinator(identifier("A")))));
   }
 
   public void test_visitImportDirective_prefix_combinators() {

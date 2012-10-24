@@ -26,7 +26,21 @@ import com.google.dart.engine.scanner.Token;
  * that errors are correctly reported, and in some cases, not reported.
  */
 public class ErrorParserTest extends ParserTestCase {
+  // TODO(brianwilkerson) Add tests for the following error codes:
+  // LIBRARY_DIRECTIVE_NOT_FIRST
+  // MIXED_PARAMETER_GROUPS
+  // MULTIPLE_NAMED_PARAMETER_GROUPS
+  // MULTIPLE_POSITIONAL_PARAMETER_GROUPS
+  // NAMED_PARAMETER_OUTSIDE_GROUP
+  // POSITIONAL_PARAMETER_OUTSIDE_GROUP
+  // WRONG_SEPARATOR_FOR_NAMED_PARAMETER
+  // WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER
+
   public void fail_expectedListOrMapLiteral() throws Exception {
+    // It isn't clear that this test can ever pass. The parser is currently create a synthetic list
+    // literal in this case, but isSynthetic() isn't overridden for ListLiteral. The problem is that
+    // the synthetic list literals that are being created are not always zero length (because they
+    // could have type parameters), which violates the contract of isSynthetic().
     TypedLiteral literal = parse(
         "parseListOrMapLiteral",
         new Class[] {Token.class},
@@ -193,8 +207,7 @@ public class ErrorParserTest extends ParserTestCase {
     CompilationUnit unit = parse(
         "parseCompilationUnit",
         "class Foo{} library l;",
-        ParserErrorCode.DIRECTIVE_AFTER_DECLARATION,
-        ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
+        ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
     assertNotNull(unit);
   }
 
@@ -243,6 +256,17 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_expectedToken_whileMissingInDoStatement() throws Exception {
     parse("parseStatement", "do {} (x);", ParserErrorCode.EXPECTED_TOKEN);
+  }
+
+  public void test_externalConstructorWithBody() throws Exception {
+    parse(
+        "parseClassMember",
+        "external factory A() {}",
+        ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY);
+  }
+
+  public void test_externalMethodWithBody() throws Exception {
+    parse("parseClassMember", "external m() {}", ParserErrorCode.EXTERNAL_METHOD_WITH_BODY);
   }
 
   public void test_illegalAssignmentToNonAssignable_superAssigned() throws Exception {
@@ -312,6 +336,10 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_positionalAfterNamedArgument() throws Exception {
     parse("parseArgumentList", "(x: 1, 2)", ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
+  }
+
+  public void test_staticConstructor() throws Exception {
+    parse("parseClassMember", "static C.m() {}", ParserErrorCode.STATIC_CONSTRUCTOR);
   }
 
   public void test_staticOperator_noReturnType() throws Exception {

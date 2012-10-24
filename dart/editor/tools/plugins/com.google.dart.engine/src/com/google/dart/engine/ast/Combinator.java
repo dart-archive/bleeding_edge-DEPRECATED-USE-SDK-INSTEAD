@@ -16,16 +16,16 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class {@code ImportCombinator} represent the combinator associated with an
- * import directive.
+ * Instances of the class {@code Combinator} represent the combinator associated with an import
+ * directive.
  * 
  * <pre>
  * combinator ::=
- *     {@link ImportHideCombinator importHideCombinator}
- *   | {@link ImportShowCombinator importShowCombinator}
+ *     {@link HideCombinator hideCombinator}
+ *   | {@link ShowCombinator showCombinator}
  * </pre>
  */
-public abstract class ImportCombinator extends ASTNode {
+public abstract class Combinator extends ASTNode {
   /**
    * The keyword specifying what kind of processing is to be done on the imported names.
    */
@@ -34,7 +34,7 @@ public abstract class ImportCombinator extends ASTNode {
   /**
    * Initialize a newly created import combinator.
    */
-  public ImportCombinator() {
+  public Combinator() {
     super();
   }
 
@@ -44,7 +44,7 @@ public abstract class ImportCombinator extends ASTNode {
    * @param keyword the keyword specifying what kind of processing is to be done on the imported
    *          names
    */
-  public ImportCombinator(Token keyword) {
+  public Combinator(Token keyword) {
     this.keyword = keyword;
   }
 

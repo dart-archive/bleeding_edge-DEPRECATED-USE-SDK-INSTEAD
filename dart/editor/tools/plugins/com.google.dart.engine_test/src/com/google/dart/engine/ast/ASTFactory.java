@@ -291,7 +291,7 @@ public final class ASTFactory {
   }
 
   public static ExportDirective exportDirective(List<Annotation> metadata, String uri,
-      List<ImportCombinator> combinators) {
+      List<Combinator> combinators) {
     return new ExportDirective(
         metadata,
         token(Keyword.EXPORT),
@@ -300,7 +300,7 @@ public final class ASTFactory {
         token(TokenType.SEMICOLON));
   }
 
-  public static ExportDirective exportDirective(String uri, List<ImportCombinator> combinators) {
+  public static ExportDirective exportDirective(String uri, List<Combinator> combinators) {
     return exportDirective(new ArrayList<Annotation>(), uri, combinators);
   }
 
@@ -467,7 +467,7 @@ public final class ASTFactory {
   }
 
   public static ImportDirective importDirective(List<Annotation> metadata, String uri,
-      String prefix, List<ImportCombinator> combinators) {
+      String prefix, List<Combinator> combinators) {
     return new ImportDirective(
         metadata,
         token(Keyword.IMPORT),
@@ -479,16 +479,16 @@ public final class ASTFactory {
   }
 
   public static ImportDirective importDirective(String uri, String prefix,
-      List<ImportCombinator> combinators) {
+      List<Combinator> combinators) {
     return importDirective(new ArrayList<Annotation>(), uri, prefix, combinators);
   }
 
-  public static ImportHideCombinator importHideCombinator(Identifier... identifiers) {
-    return new ImportHideCombinator(token("hide"), list(identifiers));
+  public static HideCombinator importHideCombinator(Identifier... identifiers) {
+    return new HideCombinator(token("hide"), list(identifiers));
   }
 
-  public static ImportShowCombinator importShowCombinator(Identifier... identifiers) {
-    return new ImportShowCombinator(token("show"), list(identifiers));
+  public static ShowCombinator importShowCombinator(Identifier... identifiers) {
+    return new ShowCombinator(token("show"), list(identifiers));
   }
 
   public static InstanceCreationExpression instanceCreationExpression(Keyword keyword,
@@ -637,9 +637,9 @@ public final class ASTFactory {
     return new NamedExpression(label(label), expression);
   }
 
-  public static NamedFormalParameter namedFormalParameter(NormalFormalParameter parameter,
+  public static DefaultFormalParameter namedFormalParameter(NormalFormalParameter parameter,
       Expression expression) {
-    return new NamedFormalParameter(parameter, token(TokenType.EQ), expression);
+    return new DefaultFormalParameter(parameter, token(TokenType.EQ), expression);
   }
 
   public static NullLiteral nullLiteral() {

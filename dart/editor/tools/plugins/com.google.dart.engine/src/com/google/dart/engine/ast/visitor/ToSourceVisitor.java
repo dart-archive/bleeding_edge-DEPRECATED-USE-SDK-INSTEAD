@@ -240,6 +240,15 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    visit(node.getParameter());
+    writer.print(" ");
+    writer.print(node.getSeparator().getLexeme());
+    visit(" ", node.getDefaultValue());
+    return null;
+  }
+
+  @Override
   public Void visitDoStatement(DoStatement node) {
     writer.print("do ");
     visit(node.getBody());
@@ -330,7 +339,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
 
   @Override
   public Void visitFormalParameterList(FormalParameterList node) {
-    boolean inNamed = false;
+    String groupEnd = null;
     writer.print('(');
     NodeList<FormalParameter> parameters = node.getParameters();
     int size = parameters.size();
@@ -339,14 +348,19 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
       if (i > 0) {
         writer.print(", ");
       }
-      if (!inNamed && parameter instanceof NamedFormalParameter) {
-        inNamed = true;
-        writer.print('[');
+      if (groupEnd == null && parameter instanceof DefaultFormalParameter) {
+        if (((DefaultFormalParameter) parameter).isNamed()) {
+          groupEnd = "}";
+          writer.print('{');
+        } else {
+          groupEnd = "]";
+          writer.print('[');
+        }
       }
       parameter.accept(this);
     }
-    if (inNamed) {
-      writer.print(']');
+    if (groupEnd != null) {
+      writer.print(groupEnd);
     }
     writer.print(')');
     return null;
@@ -410,6 +424,13 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitHideCombinator(HideCombinator node) {
+    writer.print("hide ");
+    visitList(node.getHiddenNames(), ", ");
+    return null;
+  }
+
+  @Override
   public Void visitIfStatement(IfStatement node) {
     writer.print("if (");
     visit(node.getCondition());
@@ -433,20 +454,6 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
     visit(" as ", node.getPrefix());
     visitList(" ", node.getCombinators(), " ");
     writer.print(';');
-    return null;
-  }
-
-  @Override
-  public Void visitImportHideCombinator(ImportHideCombinator node) {
-    writer.print("hide ");
-    visitList(node.getHiddenNames(), ", ");
-    return null;
-  }
-
-  @Override
-  public Void visitImportShowCombinator(ImportShowCombinator node) {
-    writer.print("show ");
-    visitList(node.getShownNames(), ", ");
     return null;
   }
 
@@ -588,13 +595,6 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
-  public Void visitNamedFormalParameter(NamedFormalParameter node) {
-    visit(node.getParameter());
-    visit(" = ", node.getDefaultValue());
-    return null;
-  }
-
-  @Override
   public Void visitNullLiteral(NullLiteral node) {
     writer.print("null");
     return null;
@@ -682,6 +682,13 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   @Override
   public Void visitScriptTag(ScriptTag node) {
     writer.print(node.getScriptTag().getLexeme());
+    return null;
+  }
+
+  @Override
+  public Void visitShowCombinator(ShowCombinator node) {
+    writer.print("show ");
+    visitList(node.getShownNames(), ", ");
     return null;
   }
 
