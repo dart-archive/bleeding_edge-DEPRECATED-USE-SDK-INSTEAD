@@ -74,7 +74,7 @@ public class FeedbackControlContribution {
     label = new CLabel(parent, SWT.NONE);
     label.setAlignment(SWT.CENTER);
     label.setText(FeedbackMessages.FeedbackButtonControl_Text);
-    label.setBackground(label.getDisplay().getSystemColor(SWT.COLOR_GRAY));
+    label.setBackground(label.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
     label.setFont(Fonts.getBoldFont(label.getFont()));
     label.setForeground(label.getDisplay().getSystemColor(SWT.COLOR_WHITE));
     label.setToolTipText(FeedbackMessages.FeedbackControlContribution_control_tootip);
