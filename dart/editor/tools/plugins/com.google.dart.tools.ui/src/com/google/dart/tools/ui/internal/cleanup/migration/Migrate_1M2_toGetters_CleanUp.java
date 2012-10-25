@@ -50,6 +50,11 @@ public class Migrate_1M2_toGetters_CleanUp extends AbstractMigrateCleanUp {
       new MethodSpec("dart://core/core.dart", "Map", "isEmpty"),
       new MethodSpec("dart://core/core.dart", "String", "isEmpty"),
       new MethodSpec("dart://core/core.dart", "StringBuffer", "isEmpty"),
+      new MethodSpec("dart://core/core.dart", "num", "isNaN"),
+      new MethodSpec("dart://core/core.dart", "num", "isInfinite"),
+      new MethodSpec("dart://core/core.dart", "num", "isNegative"),
+      new MethodSpec("dart://core/core.dart", "int", "isEven"),
+      new MethodSpec("dart://core/core.dart", "int", "isOdd"),
       new MethodSpec(null, "_JustForInternalTest", "foo"),};
 
   /**

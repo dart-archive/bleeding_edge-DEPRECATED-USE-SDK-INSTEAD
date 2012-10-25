@@ -739,6 +739,45 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
+  public void test_1M2_methodsToGetters_num() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  num v = 0;",
+        "  v.isNaN();",
+        "  v.isInfinite();",
+        "  v.isNegative();",
+        "  v.abs();",
+        "",
+        "  int i = 0;",
+        "  i.isEven();",
+        "  i.isOdd();",
+        "",
+        "  double d = 0.0;",
+        "  d.isNaN();",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  num v = 0;",
+        "  v.isNaN;",
+        "  v.isInfinite;",
+        "  v.isNegative;",
+        "  v.abs();",
+        "",
+        "  int i = 0;",
+        "  i.isEven;",
+        "  i.isOdd;",
+        "",
+        "  double d = 0.0;",
+        "  d.isNaN;",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
   public void test_1M2_methodsToGetters_Object_hashCode() throws Exception {
     ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
     String initial = makeSource(
