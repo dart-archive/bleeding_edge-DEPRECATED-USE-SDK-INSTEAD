@@ -586,7 +586,8 @@ public class InlineMethodRefactoring extends Refactoring {
    *         {@link #methodClassElement} or one of its super-classes.
    */
   private boolean isMethodClassField(FieldElement field) {
-    return field != null && Elements.hasClassMember(methodClassElement, field.getName());
+    return methodClassElement != null && field != null
+        && Elements.hasClassMember(methodClassElement, field.getName());
   }
 
 }

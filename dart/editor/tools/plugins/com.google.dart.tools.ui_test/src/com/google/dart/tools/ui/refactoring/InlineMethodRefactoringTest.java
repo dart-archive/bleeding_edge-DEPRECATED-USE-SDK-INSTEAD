@@ -335,6 +335,29 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
         "}");
   }
 
+  public void test_function_singleStatement() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var topLevelField = 0;",
+        "test() {",
+        "  print(topLevelField);",
+        "}",
+        "main() {",
+        "  test();",
+        "}",
+        "");
+    selection = findOffset("test() {");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var topLevelField = 0;",
+        "main() {",
+        "  print(topLevelField);",
+        "}",
+        "");
+  }
+
   /**
    * Test for {@link InlineMethodRefactoring#getInitialMode()}
    */
