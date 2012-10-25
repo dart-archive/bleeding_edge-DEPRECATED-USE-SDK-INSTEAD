@@ -20,8 +20,11 @@ import com.google.dart.tools.update.core.UpdateCore;
 import com.google.dart.tools.update.core.UpdateManager;
 
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.window.Window;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -42,29 +45,51 @@ import org.eclipse.swt.widgets.Display;
  */
 public class UpdateStatusControl extends UpdateAdapter implements DisposeListener {
 
+  private class UpdateAction extends Action {
+    public UpdateAction(String text) {
+      super(text);
+    }
+
+    public void runWithSelectionEvent(SelectionEvent event) {
+      run();
+    };
+  }
+
   private CLabel updateStatusLabel;
   private Button updateStatusButton;
 
-  private Action updateAction;
+  private UpdateAction updateAction;
 
   private Font regularFont;
   private Font italicFont;
 
-  private Action applyUpdateAction = new Action("Apply Update...") {
+  private UpdateAction applyUpdateAction = new UpdateAction("Apply Update...") {
     @Override
     public void run() {
       UpdateCore.getUpdateManager().scheduleInstall();
     }
   };
 
-  private Action downloadUpdateAction = new Action("Download Update...") {
+  private UpdateAction downloadUpdateAction = new UpdateAction("Download Update...") {
     @Override
     public void run() {
       UpdateCore.getUpdateManager().scheduleDownload(latestAvailableRevision);
     }
+
+    @Override
+    public void runWithSelectionEvent(SelectionEvent event) {
+      if (event.stateMask == SWT.SHIFT) {
+        Revision revision = promptForRevision(latestAvailableRevision);
+        if (revision == null) {
+          return;
+        }
+        latestAvailableRevision = revision;
+      }
+      super.runWithSelectionEvent(event);
+    };
   };
 
-  private Action checkFordUpdatesAction = new Action("Check for Update...") {
+  private UpdateAction checkFordUpdatesAction = new UpdateAction("Check for Update...") {
     @Override
     public void run() {
       UpdateCore.getUpdateManager().scheduleUpdateCheck();
@@ -247,34 +272,61 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
 
       @Override
       public void widgetDefaultSelected(SelectionEvent e) {
-        performAction();
+        performAction(e);
       }
 
       @Override
       public void widgetSelected(SelectionEvent e) {
-        performAction();
+        performAction(e);
       }
     });
   }
 
-  private void performAction() {
+  private void performAction(SelectionEvent e) {
     if (updateAction != null) {
-      updateAction.run();
+      updateAction.runWithSelectionEvent(e);
     }
   }
 
-  private void setAction(Action action, boolean enabled) {
+  private Revision promptForRevision(Revision originalRevision) {
+    InputDialog inputDialog = new InputDialog(
+        null,
+        "Download Revision",
+        "FOR DEVELOPMENT USE ONLY" + System.getProperty("line.separator")
+            + "    Enter the revision to be downloaded and installed",
+        originalRevision.toString(),
+        new IInputValidator() {
+          @Override
+          public String isValid(String newText) {
+            if (newText == null || newText.length() == 0) {
+              return "Enter a revision # or click Cancel";
+            }
+            try {
+              Integer.valueOf(newText);
+            } catch (NumberFormatException e) {
+              return "Invalid revision #";
+            }
+            return null;
+          }
+        });
+    if (inputDialog.open() != Window.OK) {
+      return null;
+    }
+    return new Revision(Integer.valueOf(inputDialog.getValue()));
+  }
+
+  private void setAction(UpdateAction action, boolean enabled) {
     this.updateAction = action;
     updateStatusButton.setText(action.getText());
     updateStatusButton.setEnabled(enabled);
     updateStatusButton.getParent().layout();
   }
 
-  private void setActionDisabled(Action action) {
+  private void setActionDisabled(UpdateAction action) {
     setAction(action, false);
   }
 
-  private void setActionEnabled(Action action) {
+  private void setActionEnabled(UpdateAction action) {
     setAction(action, true);
   }
 
