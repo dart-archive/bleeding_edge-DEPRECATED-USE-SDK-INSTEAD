@@ -618,35 +618,6 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
-  public void test_1M2_methodsToGetters() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  int hashCode() => 0;",
-        "  int foo() => 0;",
-        "}",
-        "main() {",
-        "  A a = new A();",
-        "  print(a.hashCode());",
-        "  print(a.foo());",
-        "}",
-        "");
-    String expected = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  int get hashCode => 0;",
-        "  int foo() => 0;",
-        "}",
-        "main() {",
-        "  A a = new A();",
-        "  print(a.hashCode);",
-        "  print(a.foo());",
-        "}",
-        "");
-    assertCleanUp(cleanUp, initial, expected);
-  }
-
   public void test_1M2_methodsToGetters_interface() throws Exception {
     ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
     String initial = makeSource(
@@ -677,6 +648,121 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "  A a = new A();",
         "  print(a.foo);",
         "  print(a.bar());",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M2_methodsToGetters_isEmpty() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A_Collection implements Collection {",
+        "  bool isEmpty() => false;",
+        "}",
+        "class A_SequenceCollection implements Collection {",
+        "  bool isEmpty() => false;",
+        "}",
+        "main() {",
+        "  {",
+        "    Collection v = null;",
+        "    v.isEmpty();",
+        "  }",
+        "  {",
+        "    Map v = null;",
+        "    v.isEmpty();",
+        "  }",
+        "  {",
+        "    SequenceCollection v = null;",
+        "    v.isEmpty();",
+        "  }",
+        "  {",
+        "    String v = null;",
+        "    v.isEmpty();",
+        "  }",
+        "  {",
+        "    StringBuffer v = null;",
+        "    v.isEmpty();",
+        "  }",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A_Collection implements Collection {",
+        "  bool get isEmpty => false;",
+        "}",
+        "class A_SequenceCollection implements Collection {",
+        "  bool get isEmpty => false;",
+        "}",
+        "main() {",
+        "  {",
+        "    Collection v = null;",
+        "    v.isEmpty;",
+        "  }",
+        "  {",
+        "    Map v = null;",
+        "    v.isEmpty;",
+        "  }",
+        "  {",
+        "    SequenceCollection v = null;",
+        "    v.isEmpty;",
+        "  }",
+        "  {",
+        "    String v = null;",
+        "    v.isEmpty;",
+        "  }",
+        "  {",
+        "    StringBuffer v = null;",
+        "    v.isEmpty;",
+        "  }",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M2_methodsToGetters_Iterator_hasNext() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Iterator v = null;",
+        "  v.hasNext();",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Iterator v = null;",
+        "  v.hasNext;",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M2_methodsToGetters_Object_hashCode() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int hashCode() => 0;",
+        "  int foo() => 0;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  print(a.hashCode());",
+        "  print(a.foo());",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int get hashCode => 0;",
+        "  int foo() => 0;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  print(a.hashCode);",
+        "  print(a.foo());",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);

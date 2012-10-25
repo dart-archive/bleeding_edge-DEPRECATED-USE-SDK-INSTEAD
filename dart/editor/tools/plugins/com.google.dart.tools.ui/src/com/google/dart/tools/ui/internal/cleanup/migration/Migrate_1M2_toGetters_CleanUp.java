@@ -45,7 +45,12 @@ public class Migrate_1M2_toGetters_CleanUp extends AbstractMigrateCleanUp {
 
   private static final MethodSpec[] METHODS = new MethodSpec[] {
       new MethodSpec("dart://core/core.dart", "Object", "hashCode"),
-      new MethodSpec(null, "_JustForInternalTest", "foo")};
+      new MethodSpec("dart://core/core.dart", "Iterator", "hasNext"),
+      new MethodSpec("dart://core/core.dart", "Collection", "isEmpty"),
+      new MethodSpec("dart://core/core.dart", "Map", "isEmpty"),
+      new MethodSpec("dart://core/core.dart", "String", "isEmpty"),
+      new MethodSpec("dart://core/core.dart", "StringBuffer", "isEmpty"),
+      new MethodSpec(null, "_JustForInternalTest", "foo"),};
 
   /**
    * @return <code>true</code> if given {@link InterfaceType} is sub type of required type from
@@ -98,10 +103,10 @@ public class Migrate_1M2_toGetters_CleanUp extends AbstractMigrateCleanUp {
 
       @Override
       public Void visitMethodInvocation(DartMethodInvocation node) {
-        for (MethodSpec spec : METHODS) {
-          DartIdentifier nameNode = node.getFunctionName();
-          if (node.getArguments().isEmpty() && Elements.isIdentifierName(nameNode, spec.methodName)) {
-            if (node.getTarget() != null) {
+        DartIdentifier nameNode = node.getFunctionName();
+        if (node.getArguments().isEmpty() && node.getTarget() != null) {
+          for (MethodSpec spec : METHODS) {
+            if (Elements.isIdentifierName(nameNode, spec.methodName)) {
               Type targetType = node.getTarget().getType();
               if (targetType instanceof InterfaceType) {
                 if (isSubType((InterfaceType) targetType, spec.className, spec.libUri)) {

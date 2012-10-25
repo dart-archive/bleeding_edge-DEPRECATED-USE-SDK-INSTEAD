@@ -40,7 +40,9 @@ public class Migrate_1M2_renameExceptions_CleanUp extends AbstractMigrateCleanUp
   private static final TypeRenameSpec[] SPECS = new TypeRenameSpec[] {
       new TypeRenameSpec("InvalidArgumentException", "ArgumentError"),
       new TypeRenameSpec("OutOfMemoryException", "OutOfMemoryError"),
-      new TypeRenameSpec("StackOverflowException", "StackOverflowError"),};
+      new TypeRenameSpec("StackOverflowException", "StackOverflowError"),
+      new TypeRenameSpec("UnsupportedOperationException", "UnsupportedError"),
+      new TypeRenameSpec("InvalidAccessException", "UnsupportedError"),};
 
   @Override
   protected void createFix() {
