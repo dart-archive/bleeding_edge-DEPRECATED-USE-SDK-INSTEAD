@@ -64,6 +64,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * The class <code>DartCompilerUtilities</code> defines utility methods for parsing, resolving, and
@@ -225,11 +226,8 @@ public class DartCompilerUtilities {
 
       // Try to find the core library in the enclosing set of libraries, otherwise the typeAnalyzer
       // will be void of core types.
-      LibraryUnit coreUnit;
-      // All calls to DartC must be synchronized
-      synchronized (compilerLock) {
-        coreUnit = DartCompiler.getCoreLib(enclosingLibrary.getLibraryUnit());
-      }
+      warmUpWait();
+      LibraryUnit coreUnit = DartCompiler.getCoreLib(enclosingLibrary.getLibraryUnit());
       if (coreUnit == null) {
         throw new RuntimeException("Unable to locate core library");
       }
@@ -282,18 +280,16 @@ public class DartCompilerUtilities {
           return false;
         }
       };
-      // All calls to DartC must be synchronized
-      synchronized (compilerLock) {
-        analyzedNode = DartCompiler.analyzeDelta(
-            delta,
-            enclosingLibrary,
-            coreLibrary,
-            completionNode,
-            completionLocation,
-            0,
-            config,
-            this);
-      }
+      warmUpWait();
+      analyzedNode = DartCompiler.analyzeDelta(
+          delta,
+          enclosingLibrary,
+          coreLibrary,
+          completionNode,
+          completionLocation,
+          0,
+          config,
+          this);
     }
   }
 
@@ -478,6 +474,9 @@ public class DartCompilerUtilities {
     }
   }
 
+  private static Thread warmupThread;
+  private static CountDownLatch warmupLatch = new CountDownLatch(1);
+
   public static final CompilerOptions COMPILER_OPTIONS = new CompilerOptions() {
     @Override
     public boolean reportNoMemberWhenHasInterceptor() {
@@ -493,11 +492,6 @@ public class DartCompilerUtilities {
           true);
     }
   };
-
-  /**
-   * Synchronize against this field when calling the compiler and passing an artifact provider
-   */
-  private static final Object compilerLock = new Object();
 
   private static Map<LibrarySource, LibraryUnit> cachedLibraries = new MapMaker().maximumSize(10).softValues().makeMap();
 
@@ -782,17 +776,15 @@ public class DartCompilerUtilities {
    */
   public static Map<URI, LibraryUnit> secureAnalyzeLibraries(LibrarySource librarySource,
       SelectiveCache selectiveCache, CompilerConfiguration config, DartArtifactProvider provider,
-      DartCompilerListener listener, boolean resolveAllNewLibs) throws IOException {
-    // All calls to DartC must be synchronized
-    synchronized (compilerLock) {
-      return DartCompiler.analyzeLibraries(
-          librarySource,
-          selectiveCache,
-          config,
-          provider,
-          listener,
-          resolveAllNewLibs);
-    }
+      DartCompilerListener listener, boolean resolveAllNewLibs) throws Exception {
+    warmUpWait();
+    return DartCompiler.analyzeLibraries(
+        librarySource,
+        selectiveCache,
+        config,
+        provider,
+        listener,
+        resolveAllNewLibs);
   }
 
   /**
@@ -800,7 +792,7 @@ public class DartCompilerUtilities {
    */
   public static LibraryUnit secureAnalyzeLibrary(LibrarySource librarySource,
       final Map<URI, DartUnit> parsedUnits, final CompilerConfiguration config,
-      DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
+      DartArtifactProvider provider, DartCompilerListener listener) throws Exception {
 
     if (!DartSdkManager.getManager().hasSdk()) {
       return null;
@@ -825,6 +817,7 @@ public class DartCompilerUtilities {
     resolvedLibs.remove(librarySourceUri);
 
     // Construct the selective cache
+    warmUpWait();
     SelectiveCache selectiveCache = new DartCompiler.SelectiveCache() {
       @Override
       public Map<URI, LibraryUnit> getResolvedLibraries() {
@@ -846,17 +839,14 @@ public class DartCompilerUtilities {
       }
     };
 
-    Map<URI, LibraryUnit> libMap;
-    // All calls to DartC must be synchronized
-    synchronized (compilerLock) {
-      libMap = DartCompiler.analyzeLibraries(
-          librarySource,
-          selectiveCache,
-          config,
-          provider,
-          listener,
-          false);
-    }
+    warmUpWait();
+    Map<URI, LibraryUnit> libMap = DartCompiler.analyzeLibraries(
+        librarySource,
+        selectiveCache,
+        config,
+        provider,
+        listener,
+        false);
     return libMap != null ? libMap.get(librarySourceUri) : null;
 
   }
@@ -866,27 +856,49 @@ public class DartCompilerUtilities {
    * {@link DartCompiler#compileLib(LibrarySource, CompilerConfiguration, DartArtifactProvider, DartCompilerListener)}
    */
   public static void secureCompileLib(LibrarySource libSource, CompilerConfiguration config,
-      DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
+      DartArtifactProvider provider, DartCompilerListener listener) throws Exception {
 
     if (!DartSdkManager.getManager().hasSdk()) {
       return;
     }
 
+    warmUpWait();
     List<LibrarySource> embeddedLibraries = new ArrayList<LibrarySource>();
-    // All calls to DartC must be synchronized
-    synchronized (compilerLock) {
-      DartCompiler.compileLib(libSource, embeddedLibraries, config, provider, listener);
-    }
+    DartCompiler.compileLib(libSource, embeddedLibraries, config, provider, listener);
   }
 
   /**
    * A synchronized call to {@link DartParser#parseUnit(DartSource)}
    */
   public static DartUnit secureParseUnit(DartParser parser, DartSource sourceRef) {
-    // All calls to DartC must be synchronized
-    synchronized (compilerLock) {
-      return parser.parseUnit();
+    return parser.parseUnit();
+  }
+
+  /**
+   * Notifies that warm up was done, so it is possible to use {@link DartCompiler} for other users.
+   */
+  static void warmUpDone() {
+    warmupLatch.countDown();
+    warmupThread = null;
+  }
+
+  /**
+   * Notifiers that this {@link Thread} is going to perform warm up.
+   */
+  static void warmUpStart() {
+    warmupThread = Thread.currentThread();
+  }
+
+  /**
+   * Waits until warm up will be done.
+   */
+  static void warmUpWait() throws InterruptedException {
+    // don't wait in warm up thread itself
+    if (Thread.currentThread() == warmupThread) {
+      return;
     }
+    // do wait
+    warmupLatch.await();
   }
 
   private static Map<URI, DartUnit> createMap(Collection<DartUnit> suppliedUnits) {
