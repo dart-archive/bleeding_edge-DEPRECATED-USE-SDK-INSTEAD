@@ -52,7 +52,7 @@ class Color {
 
   // This should be in the core library. Issue #233
   static int _parseHex(String hex) {
-    final codes = hex.charCodes();
+    final codes = hex.charCodes;
     var number = 0;
     for (var i = 0; i < codes.length; i++) {
       final code = codes[i];

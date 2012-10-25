@@ -42,6 +42,6 @@ String readFile(String path) {
 void writeFile(String path, String text) {
   final file = new File(path);
   final stream = file.openOutputStream();
-  stream.write(text.charCodes());
+  stream.write(text.charCodes);
   stream.close();
 }

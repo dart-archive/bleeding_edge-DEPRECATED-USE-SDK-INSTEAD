@@ -316,7 +316,7 @@ class IsolatedServer {
                            HttpResponse response,
                            String redirectPath) {
     if (_redirectPage == null) {
-      _redirectPage = redirectPageHtml.charCodes();
+      _redirectPage = redirectPageHtml.charCodes;
     }
     response.statusCode = HttpStatus.FOUND;
     response.headers.set(
@@ -360,7 +360,7 @@ class IsolatedServer {
   // Serve the not found page.
   void _notFoundHandler(HttpRequest request, HttpResponse response) {
     if (_notFoundPage == null) {
-      _notFoundPage = notFoundPageHtml.charCodes();
+      _notFoundPage = notFoundPageHtml.charCodes;
     }
     response.statusCode = HttpStatus.NOT_FOUND;
     response.headers.set("Content-Type", "text/html; charset=UTF-8");
