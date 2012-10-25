@@ -28,7 +28,7 @@ public class Style_trailingSpace_CleanUp extends AbstractMigrateCleanUp {
   protected void createFix() throws Exception {
     String eol = utils.getEndOfLine();
     String source = unit.getSource();
-    String[] lines = StringUtils.splitPreserveAllTokens(source, eol);
+    String[] lines = StringUtils.splitByWholeSeparatorPreserveAllTokens(source, eol);
     int offset = 0;
     for (String line : lines) {
       int lastWhitespace = CharMatcher.WHITESPACE.negate().lastIndexIn(line) + 1;

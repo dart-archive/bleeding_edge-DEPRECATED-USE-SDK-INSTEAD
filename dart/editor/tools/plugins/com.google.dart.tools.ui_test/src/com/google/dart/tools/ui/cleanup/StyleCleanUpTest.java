@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.cleanup;
 
+import com.google.common.base.Joiner;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_trailingSpace_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_useBlocks_CleanUp;
 
@@ -33,6 +34,29 @@ public final class StyleCleanUpTest extends AbstractCleanUpTest {
         "}",
         "");
     String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "",
+        "",
+        "  //",
+        "  //",
+        "class A {",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_trailingSpace_windows() throws Exception {
+    ICleanUp cleanUp = new Style_trailingSpace_CleanUp();
+    String initial = Joiner.on("\r\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "",
+        "  ",
+        "  //",
+        "  //  ",
+        "class A { ",
+        "}",
+        "");
+    String expected = Joiner.on("\r\n").join(
         "// filler filler filler filler filler filler filler filler filler filler",
         "",
         "",
