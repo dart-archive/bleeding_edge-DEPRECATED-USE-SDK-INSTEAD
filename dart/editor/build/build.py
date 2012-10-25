@@ -695,6 +695,8 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
           paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
           add_path = paths[0]
           zip_rel_path = 'dart/chromium'
+          # remove extra files
+          FileDelete(os.path.join(add_path, 'chrome.packed.7z'))
         if 'win' in buildos:
           paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
           add_path = paths[0]
