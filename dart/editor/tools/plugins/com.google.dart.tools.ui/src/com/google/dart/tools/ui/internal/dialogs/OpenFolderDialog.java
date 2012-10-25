@@ -58,6 +58,10 @@ public class OpenFolderDialog extends TitleAreaDialog {
   }
 
   public String getFolderLocation() {
+    if (folderLocation.startsWith("~")) {
+      String home = System.getProperty("user.home");
+      return new File(new File(home), folderLocation.substring(1)).toString();
+    }
     return folderLocation;
   }
 
