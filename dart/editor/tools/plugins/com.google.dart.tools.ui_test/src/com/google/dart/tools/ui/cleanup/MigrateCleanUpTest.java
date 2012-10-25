@@ -21,7 +21,7 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_C
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalNamed_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_parseNum_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_rawString_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameExceptions_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameTypes_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_toGetters_CleanUp;
 
 /**
@@ -841,7 +841,7 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
   }
 
   public void test_1M2_renameExceptions() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M2_renameExceptions_CleanUp();
+    ICleanUp cleanUp = new Migrate_1M2_renameTypes_CleanUp();
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -858,7 +858,7 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
   }
 
   public void test_1M2_renameExceptions_qualifiedName() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M2_renameExceptions_CleanUp();
+    ICleanUp cleanUp = new Migrate_1M2_renameTypes_CleanUp();
     setUnitContent("MyLib.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
         "library myLib;",

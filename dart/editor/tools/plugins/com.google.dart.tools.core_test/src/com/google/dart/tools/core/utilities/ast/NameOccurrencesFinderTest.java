@@ -154,7 +154,7 @@ public class NameOccurrencesFinderTest extends TestCase {
             "  R.a() : this.!1b();",
             "  R.b() : super.s!2(1);",
             "  var q = new Map<St!5ring, Object!3>();",
-            "  var w = new Map<String, !4Dynamic>();",
+            "  var w = new Map<String, !4dynamic>();",
             "  var zz = t!8f(y);",
             "  var z2 = tf((xx!9) => 11);",
             "}"),
@@ -166,11 +166,11 @@ public class NameOccurrencesFinderTest extends TestCase {
         "2+s(1);",
         // 3 terminal generic type ref
         "3+Object>",
-        // 4 explicit Dynamic ref
-        "4+Dynamic>",
+        // 4 explicit dynamic ref
+        "4+dynamic>",
         // 5 multiple generic type ref
         "5+String, O",
-        "5+String, D",
+        "5+String, d",
         // 6 top-level function def
         "6+tf(var",
         "6+tf(xx",

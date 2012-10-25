@@ -29,14 +29,14 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   private Type[] typeArguments;
 
   /**
-   * The instance representing the type "Dynamic".
+   * The instance representing the type "dynamic".
    */
-  private static final InterfaceTypeImpl DYNAMIC_TYPE = new InterfaceTypeImpl("Dynamic");
+  private static final InterfaceTypeImpl DYNAMIC_TYPE = new InterfaceTypeImpl("dynamic");
 
   /**
-   * Return a shared instance of this class representing the type {@code Dynamic}.
+   * Return a shared instance of this class representing the type {@code dynamic}.
    * 
-   * @return an instance of this class representing the type {@code Dynamic}
+   * @return an instance of this class representing the type {@code dynamic}
    */
   public static InterfaceTypeImpl getDynamic() {
     return DYNAMIC_TYPE;

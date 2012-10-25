@@ -26,7 +26,7 @@ import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
  * 
  * @coverage dart.editor.ui.cleanup
  */
-public class Migrate_1M2_renameExceptions_CleanUp extends AbstractMigrateCleanUp {
+public class Migrate_1M2_renameTypes_CleanUp extends AbstractMigrateCleanUp {
   private static class TypeRenameSpec {
     private final String oldName;
     private final String newName;
@@ -42,7 +42,8 @@ public class Migrate_1M2_renameExceptions_CleanUp extends AbstractMigrateCleanUp
       new TypeRenameSpec("OutOfMemoryException", "OutOfMemoryError"),
       new TypeRenameSpec("StackOverflowException", "StackOverflowError"),
       new TypeRenameSpec("UnsupportedOperationException", "UnsupportedError"),
-      new TypeRenameSpec("InvalidAccessException", "UnsupportedError"),};
+      new TypeRenameSpec("InvalidAccessException", "UnsupportedError"),
+      new TypeRenameSpec("Dynamic", "dynamic"),};
 
   @Override
   protected void createFix() {

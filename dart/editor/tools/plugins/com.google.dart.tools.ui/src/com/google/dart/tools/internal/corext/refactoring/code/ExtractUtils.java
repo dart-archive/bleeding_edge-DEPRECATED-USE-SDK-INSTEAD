@@ -25,7 +25,6 @@ import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
-import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartScanner;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.type.Type;
@@ -114,9 +113,6 @@ public class ExtractUtils {
     if ("dynamic".equals(typeSource)) {
       return null;
     }
-    if (DartParser.DYNAMIC_KEYWORD_DEPRECATED.equals(typeSource)) {
-      return null;
-    }
     return typeSource;
   }
 
@@ -127,12 +123,6 @@ public class ExtractUtils {
     String typeSource = type.toString();
     typeSource = StringUtils.replace(typeSource, "<dynamic>", "");
     typeSource = StringUtils.replace(typeSource, "<dynamic, dynamic>", "");
-    typeSource = StringUtils.replace(
-        typeSource,
-        "<" + DartParser.DYNAMIC_KEYWORD_DEPRECATED + ">",
-        "");
-    typeSource = StringUtils.replace(typeSource, "<" + DartParser.DYNAMIC_KEYWORD_DEPRECATED + ", "
-        + DartParser.DYNAMIC_KEYWORD_DEPRECATED + ">", "");
     return typeSource;
   }
 

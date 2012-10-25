@@ -27,7 +27,7 @@ public interface InterfaceType extends Type {
    * Return an array containing the actual types of the type arguments. If this type's element does
    * not have type parameters, then the array should be empty (although it is possible for type
    * arguments to be erroneously declared). If the element has type parameters and the actual type
-   * does not explicitly include argument values, then the type "Dynamic" will be automatically
+   * does not explicitly include argument values, then the type "dynamic" will be automatically
    * provided.
    * 
    * @return the actual types of the type arguments
@@ -56,7 +56,7 @@ public interface InterfaceType extends Type {
    * <ul>
    * <li>Reflexivity: <i>T</i> is <i>S</i>.
    * <li><i>T</i> is bottom.
-   * <li><i>S</i> is Dynamic.
+   * <li><i>S</i> is dynamic.
    * <li>Direct supertype: <i>S</i> is a direct supertype of <i>T</i>.
    * <li><i>T</i> is a type variable and <i>S</i> is the upper bound of <i>T</i>.
    * <li>Covariance: <i>T</i> is of the form <i>I&lt;T<sub>1</sub>, &hellip;, T<sub>n</sub>&gt;</i>
@@ -73,7 +73,7 @@ public interface InterfaceType extends Type {
   /**
    * Return {@code true} if this type is a subtype of the given type. An interface type <i>T</i> is
    * a subtype of an interface type <i>S</i>, written <i>T</i> <: <i>S</i>, iff
-   * <i>[bottom/Dynamic]T</i> &laquo; <i>S</i> (<i>T</i> is more specific than <i>S</i>). If an
+   * <i>[bottom/dynamic]T</i> &laquo; <i>S</i> (<i>T</i> is more specific than <i>S</i>). If an
    * interface type <i>I</i> includes a method named <i>call()</i>, and the type of <i>call()</i> is
    * the function type <i>F</i>, then <i>I</i> is considered to be a subtype of <i>F</i>.
    * 

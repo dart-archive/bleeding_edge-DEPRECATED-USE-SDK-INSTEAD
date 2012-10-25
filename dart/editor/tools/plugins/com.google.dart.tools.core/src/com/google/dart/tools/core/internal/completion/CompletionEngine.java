@@ -1685,7 +1685,7 @@ public class CompletionEngine {
 
   private static final String C_EXTENDS = "extends";
   private static final String C_IMPLEMENTS = "implements";
-  private static final char[] DYNAMIC_CA = "Dynamic".toCharArray();
+  private static final char[] DYNAMIC_CA = "dynamic".toCharArray();
   private static final boolean DEBUG = "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.ui/debug/CompletionEngine"));
   private static final String C_VOID = "void";
   private static final String CORELIB_NAME = "dart:core";
