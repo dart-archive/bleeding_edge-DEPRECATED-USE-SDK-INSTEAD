@@ -34,6 +34,10 @@ lib/layout/layout_test: Fail # http://darbug.com/5132
 [ $runtime == safari ]
 promise_based_test: Skip
 
+[ $runtime == opera ]
+lib/touch/touch_test: Fail
+swarm/swarm_test: Fail
+
 [ $runtime == vm ]
 dartcombat/dartcombat_test: Skip
 dartcombat_test: Skip
@@ -69,9 +73,6 @@ lib/layout/layout_test: Slow, Pass # Occasionally times out.
 swarm/swarm_test: Slow, Pass # Occasionally times out.
 lib/view/view_test: Slow, Pass # Occasionally times out.
 dartcombat/dartcombat_test: Slow, Pass # Occasionally times out.
-
-[ $runtime == opera ]
-*: Skip
 
 [ $compiler == dart2js && $runtime == ie9 ]
 swarm/swarm_test: Fail # BUG(5633)
