@@ -19,6 +19,7 @@ import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
@@ -194,6 +195,11 @@ public class DartBasedBuilder {
           if (resource.getName().startsWith(".")) {
             return false;
           }
+
+          // Don't trigger builds from packages directories.
+          if (DartCore.isPackagesDirectory((IFolder) resource)) {
+            return false;
+          }
         }
 
         return true;
@@ -261,8 +267,11 @@ public class DartBasedBuilder {
     // messages? This convention would let us mark such files as derived resources.
 
     if (result != 0) {
-      DartCore.getConsole().println(builderFile.getFullPath().toString() + " " + commandSummary);
-      DartCore.getConsole().println("Failed with error code " + result);
+      DartCore.getConsole().println(
+          builderFile.getName() + " failed for project " + project.getName());
+      DartCore.getConsole().println(
+          "error code " + result
+              + (commandSummary.length() > 0 ? " (called with " + commandSummary + ")" : ""));
       String stdout = runner.getStdOut().trim();
       if (stdout.length() > 0) {
         DartCore.getConsole().println(indent(stdout));
