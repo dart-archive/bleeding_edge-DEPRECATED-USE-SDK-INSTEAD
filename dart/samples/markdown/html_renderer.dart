@@ -34,7 +34,7 @@ class HtmlRenderer implements NodeVisitor {
 
     buffer.add('<${element.tag}');
 
-    for (final name in element.attributes.getKeys()) {
+    for (final name in element.attributes.keys) {
       buffer.add(' $name="${element.attributes[name]}"');
     }
 

@@ -97,7 +97,7 @@ class EventBatch {
   void _notify() {
     assert(!sealed);
     sealed = true;
-    for (final summary in summaries.getValues()) {
+    for (final summary in summaries.values) {
       summary.notify();
     }
   }

@@ -132,7 +132,7 @@ class CollectionUtils {
   // TODO(jmesserly): something like should exist on Map, either a method or a
   // constructor, see bug #5340679
   static void copyMap(Map dest, Map source) {
-    for (final k in source.getKeys()) {
+    for (final k in source.keys) {
       dest[k] = source[k];
     }
   }

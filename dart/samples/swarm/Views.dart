@@ -169,7 +169,7 @@ class GenericListView<D> extends View {
   }
 
   Collection<View> get childViews {
-    return _itemViews.getValues();
+    return _itemViews.values;
   }
 
   void _onClick(MouseEvent e) {

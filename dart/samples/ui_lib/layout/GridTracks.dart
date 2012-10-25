@@ -127,7 +127,7 @@ class GridTemplate {
     }
 
     // Finally, check that each rectangle is valid (i.e. all spaces filled)
-    for (final rect in _rects.getValues()) {
+    for (final rect in _rects.values) {
       rect.checkValid();
     }
   }

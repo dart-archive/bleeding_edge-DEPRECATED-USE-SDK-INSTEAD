@@ -168,7 +168,7 @@ verifyGrid(String example, [Map expected = null]) {
     return;
   }
 
-  for (String name in expected.getKeys()) {
+  for (String name in expected.keys) {
     final values = expected[name];
     final node = document.body.query('#$name');
     Expect.isNotNull(node);

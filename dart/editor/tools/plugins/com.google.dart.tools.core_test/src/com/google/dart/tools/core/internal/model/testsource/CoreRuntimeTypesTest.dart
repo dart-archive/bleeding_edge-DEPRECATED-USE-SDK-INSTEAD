@@ -212,20 +212,20 @@ class CoreRuntimeTypesTest {
     assertEquals(d.containsValue(3), false);
     assertEquals(d.containsKey('a'), true);
     assertEquals(d.containsKey('c'), false);
-    assertEquals(d.getKeys().length, 2);
-    assertEquals(d.getValues().length, 2);
+    assertEquals(d.keys.length, 2);
+    assertEquals(d.values.length, 2);
 
     assertEquals(d.remove('c'), null);
     assertEquals(d.remove('b'), 2);
-    assertEquals(d.getKeys(), ['a']);
-    assertEquals(d.getValues(), [1]);
+    assertEquals(d.keys, ['a']);
+    assertEquals(d.values, [1]);
 
     d['c'] = 3;
     d['f'] = 4;
-    assertEquals(d.getKeys().length, 3);
-    assertEquals(d.getValues().length, 3);
-    assertEquals(d.getKeys(), ['a', 'c', 'f']);
-    assertEquals(d.getValues(), [1, 3, 4]);
+    assertEquals(d.keys.length, 3);
+    assertEquals(d.values.length, 3);
+    assertEquals(d.keys, ['a', 'c', 'f']);
+    assertEquals(d.values, [1, 3, 4]);
 
     var count = 0;
     d.forEach(function(key, value) {
@@ -239,8 +239,8 @@ class CoreRuntimeTypesTest {
     assertEquals(d.containsValue(3), false);
     assertEquals(d.containsKey('a'), true);
     assertEquals(d.containsKey('c'), false);
-    assertEquals(d.getKeys().length, 2);
-    assertEquals(d.getValues().length, 2);
+    assertEquals(d.keys.length, 2);
+    assertEquals(d.values.length, 2);
 
     d['g'] = null;
     assertEquals(d.containsKey('g'), true);

@@ -11,7 +11,7 @@ View createGrid(Map<String, Map<String, String>> styles) {
   final gridStyle = styles['#grid'];
 
   final children = new List<MockView>();
-  for (final String id in styles.getKeys()) {
+  for (final String id in styles.keys) {
     // All selectors in this test are id selectors string the # prefix.
     assert(id.startsWith('#'));
     String elemId = id.substring(1);
@@ -34,7 +34,7 @@ void _onLoad() {
     printMetrics(query);
   } else {
     final html = new StringBuffer();
-    for (String ex in GridExamples.styles.getKeys()) {
+    for (String ex in GridExamples.styles.keys) {
       html.add('<div><a href="?q=$ex">Grid Example $ex</a></div>');
     }
     document.body.innerHTML = html.toString();
