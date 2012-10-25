@@ -141,6 +141,27 @@ public final class InlineLocalRefactoringTest extends RefactoringTest {
     assert_fatalError_selection();
   }
 
+  public void test_OK_intoStringInterpolation() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int test = 1 + 2;",
+        "  print('test = $test');",
+        "  print('test = ${test}');",
+        "  print('test = ${process(test)}');",
+        "}");
+    selection = findOffset("test = ");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print('test = ${1 + 2}');",
+        "  print('test = ${1 + 2}');",
+        "  print('test = ${process(1 + 2)}');",
+        "}");
+  }
+
   public void test_OK_noUsages_1() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

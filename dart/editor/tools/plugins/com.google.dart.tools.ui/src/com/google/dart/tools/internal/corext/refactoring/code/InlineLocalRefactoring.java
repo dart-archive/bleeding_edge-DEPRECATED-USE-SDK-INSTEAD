@@ -21,6 +21,7 @@ import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStatement;
+import com.google.dart.compiler.ast.DartStringInterpolation;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
@@ -29,6 +30,7 @@ import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
@@ -141,13 +143,17 @@ public class InlineLocalRefactoring extends Refactoring {
           change.addEdit(createReplaceEdit(SourceRangeFactory.forStartEnd(start, end), ""));
         }
       }
+      // prepare source
+      String initializerSource;
+      {
+        SourceInfo sourceInfo = variableNode.getValue().getSourceInfo();
+        initializerSource = unit.getSource().substring(sourceInfo.getOffset(), sourceInfo.getEnd());
+      }
       // replace references
-      String initializerSource = unit.getSource().substring(
-          variableNode.getValue().getSourceInfo().getOffset(),
-          variableNode.getValue().getSourceInfo().getEnd());
       for (DartIdentifier reference : getReferences()) {
         SourceRange range = SourceRangeFactory.create(reference);
-        change.addEdit(createReplaceEdit(range, initializerSource));
+        String sourceForReference = getSourceForReference(range, initializerSource);
+        change.addEdit(createReplaceEdit(range, sourceForReference));
       }
       return change;
     } finally {
@@ -211,6 +217,17 @@ public class InlineLocalRefactoring extends Refactoring {
     return new RefactoringStatus();
   }
 
+  /**
+   * @return the source which should be used to replace reference with given {@link SourceRange}.
+   */
+  private String getSourceForReference(SourceRange range, String source) throws DartModelException {
+    if (isIdentifierInStringInterpolation(range.getOffset())) {
+      return "{" + source + "}";
+    } else {
+      return source;
+    }
+  }
+
   private void initAST() {
     ExecutionUtils.runLog(new RunnableEx() {
       @Override
@@ -242,5 +259,22 @@ public class InlineLocalRefactoring extends Refactoring {
         }
       }
     });
+  }
+
+  /**
+   * @return <code>true</code> if given offset of the reference is identifier in
+   *         {@link DartStringInterpolation}, so we should wrap inlined expression with
+   *         <code>${}</code>.
+   */
+  private boolean isIdentifierInStringInterpolation(int offset) throws DartModelException {
+    DartNode node = NodeFinder.find(unitNode, offset, 0).getCoveringNode();
+    if (node instanceof DartIdentifier) {
+      DartNode parent = node.getParent();
+      if (parent instanceof DartStringInterpolation) {
+        return ((DartStringInterpolation) parent).getExpressions().contains(node)
+            && unit.getSource().substring(offset - 1, offset).equals("$");
+      }
+    }
+    return false;
   }
 }
