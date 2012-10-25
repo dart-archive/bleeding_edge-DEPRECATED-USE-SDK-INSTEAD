@@ -297,6 +297,39 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
+  public void test_1M1_library_specialCharacters_lib() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M1_library_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('dart:my-lib.new.dart');",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library dart_my_lib_new;",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M1_library_specialCharacters_part() throws Exception {
+    setUnitContent("Main.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('dart:my-lib.new.dart');",
+        "#source('Test.dart');",
+        ""});
+    ICleanUp cleanUp = new Migrate_1M1_library_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "");
+    String expected = makeSource(
+        "part of dart_my_lib_new;",
+        "",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
   public void test_1M1_optionalNamed_noOp_alreadyNewSyntax() throws Exception {
     ICleanUp cleanUp = new Migrate_1M1_optionalNamed_CleanUp();
     String initial = makeSource(

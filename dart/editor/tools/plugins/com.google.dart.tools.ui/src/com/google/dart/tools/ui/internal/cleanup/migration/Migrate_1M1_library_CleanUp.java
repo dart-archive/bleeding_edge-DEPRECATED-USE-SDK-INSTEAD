@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.cleanup.migration;
 
+import com.google.common.base.CharMatcher;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartLibraryDirective;
@@ -28,6 +29,15 @@ import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
  * @coverage dart.editor.ui.cleanup
  */
 public class Migrate_1M1_library_CleanUp extends AbstractMigrateCleanUp {
+  /**
+   * Converts string literal version of library name into identifier named.
+   */
+  private static String mapLibraryName(String name) {
+    name = StringUtils.removeEnd(name, ".dart");
+    name = CharMatcher.JAVA_LETTER_OR_DIGIT.negate().replaceFrom(name, '_');
+    return name;
+  }
+
   @Override
   protected void createFix() throws Exception {
     ensurePartOfDirective();
@@ -52,8 +62,7 @@ public class Migrate_1M1_library_CleanUp extends AbstractMigrateCleanUp {
       public Void visitLibraryDirective(DartLibraryDirective node) {
         if (node.isObsoleteFormat()) {
           String name = node.getLibraryName();
-          name = StringUtils.removeEnd(name, ".dart");
-          name = StringUtils.replace(name, ".", "_");
+          name = mapLibraryName(name);
           addReplaceEdit(SourceRangeFactory.create(node), "library " + name + ";");
         }
         return super.visitLibraryDirective(node);
@@ -81,6 +90,7 @@ public class Migrate_1M1_library_CleanUp extends AbstractMigrateCleanUp {
     if (library != null) {
       String libraryName = library.getLibraryDirectiveName();
       if (libraryName != null) {
+        libraryName = mapLibraryName(libraryName);
         String eol = utils.getEndOfLine();
         String source = "part of " + libraryName + ";" + eol + eol;
         addReplaceEdit(SourceRangeFactory.forStartLength(0, 0), source);
