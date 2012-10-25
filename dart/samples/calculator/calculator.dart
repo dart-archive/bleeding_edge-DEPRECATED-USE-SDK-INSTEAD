@@ -79,7 +79,7 @@ void setupEvents() {
     // If settings dialog is open close it.
     mySettings.close(e);
 
-    renderPad(document.body.elements.last());
+    renderPad(document.body.elements.last);
     if (wasOpened) {
       removePadEvents();
       addPadEvents();
@@ -153,7 +153,7 @@ void renderPad(Element parentElement) {
 
     // Remove previous pad UI
     if (parentElement.elements.length > 1) {
-      parentElement.elements.last().remove();
+      parentElement.elements.last.remove();
     }
 
     // Add new pad UI.

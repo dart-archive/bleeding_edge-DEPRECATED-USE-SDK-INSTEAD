@@ -52,25 +52,25 @@ void main() {
     .test('getElementsByTagName(div)', () {
       for (int i = 0; i < num; i++) {
         List<Element> elems = document.queryAll('div');
-        ret = elems.last().$dom_nodeType;
+        ret = elems.last.$dom_nodeType;
       }
     })
     .test('getElementsByTagName(p)', () {
       for (int i = 0; i < num; i++) {
         List<Element> elems = document.queryAll('p');
-        ret = elems.last().$dom_nodeType;
+        ret = elems.last.$dom_nodeType;
       }
     })
     .test('getElementsByTagName(a)', () {
       for (int i = 0; i < num; i++) {
         List<Element> elems = document.queryAll('a');
-        ret = elems.last().$dom_nodeType;
+        ret = elems.last.$dom_nodeType;
       }
     })
     .test('getElementsByTagName(*)', () {
       for (int i = 0; i < num; i++) {
         List<Element> elems = document.queryAll('*');
-        ret = elems.last().$dom_nodeType;
+        ret = elems.last.$dom_nodeType;
       }
     })
     .test('getElementsByTagName (not in document)', () {
@@ -82,13 +82,13 @@ void main() {
     .test('getElementsByName', () {
       for (int i = 0; i < num * 20; i++) {
         List<Element> elems = document.queryAll('[name="test$num"]');
-        ret = elems.last().$dom_nodeType;
+        ret = elems.last.$dom_nodeType;
         elems = document.queryAll('[name="test$num"]');
-        ret = elems.last().$dom_nodeType;
+        ret = elems.last.$dom_nodeType;
         elems = document.queryAll('[name="test$num"]');
-        ret = elems.last().$dom_nodeType;
+        ret = elems.last.$dom_nodeType;
         elems = document.queryAll('[name="test$num"]');
-        ret = elems.last().$dom_nodeType;
+        ret = elems.last.$dom_nodeType;
       }
     })
     .test('getElementsByName (not in document)', () {

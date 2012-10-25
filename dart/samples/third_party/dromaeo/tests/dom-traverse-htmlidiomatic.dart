@@ -52,7 +52,7 @@ void main() {
         for (int j = 0; j < nl; j++) {
           Node cur = nodes[j];
           while (cur !== null) {
-            cur = cur.nodes.last();
+            cur = cur.nodes.last;
           }
           ret = cur;
         }
@@ -69,7 +69,7 @@ void main() {
     })
     .test('previousSibling', () {
       for (int i = 0; i < num * 2; i++) {
-        Node cur = document.body.nodes.last();
+        Node cur = document.body.nodes.last;
         while (cur !== null) {
           cur = cur.previousNode;
         }

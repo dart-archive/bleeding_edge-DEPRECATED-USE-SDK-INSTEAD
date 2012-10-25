@@ -186,7 +186,7 @@ class ObservableList<T>
     return _internal.length;
   }
 
-  T last() => _internal.last();
+  T get last => _internal.last;
 
   T removeLast() {
     final result = _internal.removeLast();

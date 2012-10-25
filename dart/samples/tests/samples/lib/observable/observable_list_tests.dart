@@ -36,7 +36,7 @@ testObservableList() {
       expect(arr.indexOf(1, 1), equals(3));
       // TODO(rnystrom): Get rid of second arg when lastIndexOf has default.
       expect(arr.lastIndexOf(1, arr.length - 1), equals(3));
-      expect(arr.last(), equals(4));
+      expect(arr.last, equals(4));
       final copy = new List<int>();
       arr.forEach(f(i) {
         copy.add(i);

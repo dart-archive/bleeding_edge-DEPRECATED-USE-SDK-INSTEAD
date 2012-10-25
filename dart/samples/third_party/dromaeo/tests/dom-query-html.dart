@@ -52,25 +52,25 @@ void main() {
     .test('getElementsByTagName(div)', () {
       for (int i = 0; i < num; i++) {
         List<Element> elems = document.$dom_getElementsByTagName('div');
-        ret = elems.last().$dom_nodeType;
+        ret = elems.last.$dom_nodeType;
       }
     })
     .test('getElementsByTagName(p)', () {
       for (int i = 0; i < num; i++) {
         List<Element> elems = document.$dom_getElementsByTagName('p');
-        ret = elems.last().$dom_nodeType;
+        ret = elems.last.$dom_nodeType;
       }
     })
     .test('getElementsByTagName(a)', () {
       for (int i = 0; i < num; i++) {
         List<Element> elems = document.$dom_getElementsByTagName('a');
-        ret = elems.last().$dom_nodeType;
+        ret = elems.last.$dom_nodeType;
       }
     })
     .test('getElementsByTagName(*)', () {
       for (int i = 0; i < num; i++) {
         List<Element> elems = document.$dom_getElementsByTagName('*');
-        ret = elems.last().$dom_nodeType;
+        ret = elems.last.$dom_nodeType;
       }
     })
     .test('getElementsByTagName (not in document)', () {

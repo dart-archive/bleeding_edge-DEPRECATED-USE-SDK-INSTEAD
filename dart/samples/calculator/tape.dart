@@ -221,7 +221,7 @@ class Tape {
   }
 
   bool get isClear {
-    return tapeUI.tape.elements.last().classes.contains(TapeUI.clearCalc);
+    return tapeUI.tape.elements.last.classes.contains(TapeUI.clearCalc);
   }
 
   void clearTape() {
