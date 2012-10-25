@@ -1935,7 +1935,15 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       @Override
       public void idle(boolean idle) {
         if (idle) {
-          IReconciler reconciler = ((TextSourceViewerConfiguration) getSourceViewerConfiguration()).getReconciler(getSourceViewer());
+          TextSourceViewerConfiguration configuration = (TextSourceViewerConfiguration) getSourceViewerConfiguration();
+          // may be editor is disposed
+          if (configuration == null) {
+            analysisServer.removeIdleListener(this);
+            return;
+          }
+          // kick reconciler
+          ISourceViewer sourceViewer = getSourceViewer();
+          IReconciler reconciler = configuration.getReconciler(sourceViewer);
           IReconcilingStrategy reconcilingStrategy = ((DartReconciler) reconciler).getReconcilingStrategy(IDocument.DEFAULT_CONTENT_TYPE);
           reconcilingStrategy.reconcile(null);
           analysisServer.removeIdleListener(this);

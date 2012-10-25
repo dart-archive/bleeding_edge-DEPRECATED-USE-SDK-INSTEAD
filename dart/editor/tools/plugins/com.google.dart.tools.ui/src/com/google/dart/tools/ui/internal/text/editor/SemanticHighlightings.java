@@ -60,6 +60,14 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       DartIdentifier node = token.getNodeIdentifier();
+      // ignore "void" and "dynamic" - they are reserved word and built-in identifier
+      {
+        String name = node.getName();
+        if ("void".equals(name) || "dynamic".equals(name)) {
+          return false;
+        }
+      }
+      // highlight type name in declaration and use
       if (node.getParent() instanceof DartClass) {
         DartClass parentClass = (DartClass) node.getParent();
         return parentClass.getName() == node;
@@ -67,6 +75,7 @@ public class SemanticHighlightings {
       if (node.getParent() instanceof DartTypeNode) {
         return true;
       }
+      // no
       return false;
     }
 
