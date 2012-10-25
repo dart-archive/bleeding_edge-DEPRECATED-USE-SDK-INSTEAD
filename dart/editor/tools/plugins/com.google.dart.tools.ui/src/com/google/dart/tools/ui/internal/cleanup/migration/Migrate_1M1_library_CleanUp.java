@@ -85,15 +85,43 @@ public class Migrate_1M1_library_CleanUp extends AbstractMigrateCleanUp {
     if (!unitNode.getDirectives().isEmpty()) {
       return;
     }
-    // do insert
+    // insert
     DartLibrary library = unit.getLibrary();
     if (library != null) {
       String libraryName = library.getLibraryDirectiveName();
       if (libraryName != null) {
+        // prepare position of "part of"
+        int insertOffset = 0;
+        boolean insertEmptyLineBefore = false;
+        boolean insertEmptyLineAfter = false;
+        {
+          String source = utils.getText();
+          while (insertOffset < source.length() - 2) {
+            if (utils.getText(insertOffset, 2).equals("//")) {
+              insertEmptyLineBefore = true;
+              insertOffset = utils.getLineNext(insertOffset);
+            } else {
+              break;
+            }
+          }
+          // determine if empty line required
+          int nextLineOffset = utils.getLineNext(insertOffset);
+          String insertLine = source.substring(insertOffset, nextLineOffset);
+          if (!insertLine.trim().isEmpty()) {
+            insertEmptyLineAfter = true;
+          }
+        }
+        // do insert
         libraryName = mapLibraryName(libraryName);
         String eol = utils.getEndOfLine();
-        String source = "part of " + libraryName + ";" + eol + eol;
-        addReplaceEdit(SourceRangeFactory.forStartLength(0, 0), source);
+        String source = "part of " + libraryName + ";" + eol;
+        if (insertEmptyLineBefore) {
+          source = eol + source;
+        }
+        if (insertEmptyLineAfter) {
+          source += eol;
+        }
+        addReplaceEdit(SourceRangeFactory.forStartLength(insertOffset, 0), source);
       }
     }
   }

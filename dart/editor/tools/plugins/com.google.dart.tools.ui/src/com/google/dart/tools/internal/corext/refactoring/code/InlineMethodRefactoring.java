@@ -277,8 +277,8 @@ public class InlineMethodRefactoring extends Refactoring {
     // delete method
     if (deleteSource && currentMode == Mode.INLINE_ALL) {
       SourceInfo methodSI = methodNode.getSourceInfo();
-      int lineThisIndex = methodUtils.getLineThisIndex(methodSI.getOffset());
-      int lineNextIndex = methodUtils.getLineNextIndex(methodSI.getEnd());
+      int lineThisIndex = methodUtils.getLineContentStart(methodSI.getOffset());
+      int lineNextIndex = methodUtils.getLineContentEnd(methodSI.getEnd());
       TextChange change = changeManager.get(methodUnit);
       TextChangeCompatibility.addTextEdit(
           change,

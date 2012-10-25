@@ -98,26 +98,26 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   /**
-   * Test for {@link ExtractUtils#getLineStart(int)}.
+   * Test for {@link ExtractUtils#getLineThis(int)}.
    */
-  public void test_getLineStart() throws Exception {
+  public void test_getLineThis() throws Exception {
     setTestUnitContent("aaa\r\nbbbb\r\nccccc");
     ExtractUtils utils = new ExtractUtils(testUnit);
     // 0
-    assertEquals(0, utils.getLineStart(0));
-    assertEquals(0, utils.getLineStart(1));
-    assertEquals(0, utils.getLineStart(2));
+    assertEquals(0, utils.getLineThis(0));
+    assertEquals(0, utils.getLineThis(1));
+    assertEquals(0, utils.getLineThis(2));
     // 5
-    assertEquals(5, utils.getLineStart(5));
-    assertEquals(5, utils.getLineStart(6));
-    assertEquals(5, utils.getLineStart(7));
-    assertEquals(5, utils.getLineStart(8));
+    assertEquals(5, utils.getLineThis(5));
+    assertEquals(5, utils.getLineThis(6));
+    assertEquals(5, utils.getLineThis(7));
+    assertEquals(5, utils.getLineThis(8));
     // 11
-    assertEquals(11, utils.getLineStart(11));
-    assertEquals(11, utils.getLineStart(12));
-    assertEquals(11, utils.getLineStart(13));
-    assertEquals(11, utils.getLineStart(14));
-    assertEquals(11, utils.getLineStart(15));
+    assertEquals(11, utils.getLineThis(11));
+    assertEquals(11, utils.getLineThis(12));
+    assertEquals(11, utils.getLineThis(13));
+    assertEquals(11, utils.getLineThis(14));
+    assertEquals(11, utils.getLineThis(15));
   }
 
   /**

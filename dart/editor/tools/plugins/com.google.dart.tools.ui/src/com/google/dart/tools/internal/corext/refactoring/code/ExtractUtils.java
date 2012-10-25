@@ -339,7 +339,7 @@ public class ExtractUtils {
    * @return the index of the first not space or tab on the right from the given one, if form
    *         statement or method end, then this is in most cases start of the next line.
    */
-  public int getLineNextIndex(int index) {
+  public int getLineContentEnd(int index) {
     int length = buffer.getLength();
     // skip whitespace characters
     while (index < length) {
@@ -362,10 +362,50 @@ public class ExtractUtils {
   }
 
   /**
+   * @return the index of the last space or tab on the left from the given one, if from statement or
+   *         method start, then this is in most cases start of the line.
+   */
+  public int getLineContentStart(int index) {
+    while (index > 0) {
+      char c = buffer.getChar(index - 1);
+      if (c != ' ' && c != '\t') {
+        break;
+      }
+      index--;
+    }
+    return index;
+  }
+
+  /**
+   * @return the start index of the line which contains given index.
+   */
+  public int getLineNext(int index) {
+    int length = buffer.getLength();
+    // skip whitespace characters
+    while (index < length) {
+      char c = buffer.getChar(index);
+      if (c == '\r' || c == '\n') {
+        break;
+      }
+      index++;
+    }
+    // skip single \r
+    if (index < length && buffer.getChar(index) == '\r') {
+      index++;
+    }
+    // skip single \n
+    if (index < length && buffer.getChar(index) == '\n') {
+      index++;
+    }
+    // done
+    return index;
+  }
+
+  /**
    * @return the whitespace prefix of the line which contains given offset.
    */
   public String getLinePrefix(int index) {
-    int lineStart = getLineStart(index);
+    int lineStart = getLineThis(index);
     int length = buffer.getLength();
     int lineNonWhitespace = lineStart;
     while (lineNonWhitespace < length) {
@@ -397,10 +437,10 @@ public class ExtractUtils {
   public SourceRange getLinesRange(SourceRange range) {
     // start
     int startOffset = range.getOffset();
-    int startLineOffset = getLineThisIndex(startOffset);
+    int startLineOffset = getLineContentStart(startOffset);
     // end
     int endOffset = SourceRangeUtils.getEnd(range);
-    int afterEndLineOffset = getLineNextIndex(endOffset);
+    int afterEndLineOffset = getLineContentEnd(endOffset);
     // range
     return SourceRangeFactory.forStartEnd(startLineOffset, afterEndLineOffset);
   }
@@ -408,25 +448,10 @@ public class ExtractUtils {
   /**
    * @return the start index of the line which contains given index.
    */
-  public int getLineStart(int index) {
+  public int getLineThis(int index) {
     while (index > 0) {
       char c = buffer.getChar(index - 1);
       if (c == '\r' || c == '\n') {
-        break;
-      }
-      index--;
-    }
-    return index;
-  }
-
-  /**
-   * @return the index of the last space or tab on the left from the given one, if form statement or
-   *         method start, then this is in most cases start of the line.
-   */
-  public int getLineThisIndex(int index) {
-    while (index > 0) {
-      char c = buffer.getChar(index - 1);
-      if (c != ' ' && c != '\t') {
         break;
       }
       index--;
@@ -452,8 +477,15 @@ public class ExtractUtils {
    * @return the line prefix consisting of spaces and tabs on the left from the given offset.
    */
   public String getPrefix(int endIndex) {
-    int startIndex = getLineThisIndex(endIndex);
+    int startIndex = getLineContentStart(endIndex);
     return buffer.getText(startIndex, endIndex - startIndex);
+  }
+
+  /**
+   * @return the full text from {@link Buffer}.
+   */
+  public String getText() {
+    return buffer.getContents();
   }
 
   /**
@@ -483,7 +515,7 @@ public class ExtractUtils {
    *         the next line.
    */
   public int getTokenOrNextLineOffset(int offset) {
-    int nextOffset = getLineNextIndex(offset);
+    int nextOffset = getLineContentEnd(offset);
     String sourceToNext = getText(offset, nextOffset - offset);
     List<com.google.dart.engine.scanner.Token> tokens = TokenUtils.getTokens(sourceToNext);
     if (tokens.isEmpty()) {
