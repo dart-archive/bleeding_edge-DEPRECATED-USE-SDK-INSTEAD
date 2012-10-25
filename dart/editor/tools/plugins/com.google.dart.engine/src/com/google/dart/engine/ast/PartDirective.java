@@ -50,14 +50,15 @@ public class PartDirective extends Directive {
   /**
    * Initialize a newly created part directive.
    * 
+   * @param comment the documentation comment associated with this directive
    * @param metadata the annotations associated with the directive
    * @param partToken the token representing the 'part' token
    * @param partUri the URI of the part being included
    * @param semicolon the semicolon terminating the directive
    */
-  public PartDirective(List<Annotation> metadata, Token partToken, StringLiteral partUri,
-      Token semicolon) {
-    super(metadata);
+  public PartDirective(Comment comment, List<Annotation> metadata, Token partToken,
+      StringLiteral partUri, Token semicolon) {
+    super(comment, metadata);
     this.partToken = partToken;
     this.partUri = becomeParentOf(partUri);
     this.semicolon = semicolon;

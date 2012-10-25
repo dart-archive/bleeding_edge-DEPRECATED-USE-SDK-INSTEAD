@@ -26,16 +26,6 @@ import com.google.dart.engine.scanner.Token;
  * that errors are correctly reported, and in some cases, not reported.
  */
 public class ErrorParserTest extends ParserTestCase {
-  // TODO(brianwilkerson) Add tests for the following error codes:
-  // LIBRARY_DIRECTIVE_NOT_FIRST
-  // MIXED_PARAMETER_GROUPS
-  // MULTIPLE_NAMED_PARAMETER_GROUPS
-  // MULTIPLE_POSITIONAL_PARAMETER_GROUPS
-  // NAMED_PARAMETER_OUTSIDE_GROUP
-  // POSITIONAL_PARAMETER_OUTSIDE_GROUP
-  // WRONG_SEPARATOR_FOR_NAMED_PARAMETER
-  // WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER
-
   public void fail_expectedListOrMapLiteral() throws Exception {
     // It isn't clear that this test can ever pass. The parser is currently create a synthetic list
     // literal in this case, but isSynthetic() isn't overridden for ListLiteral. The problem is that
@@ -280,6 +270,13 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
   }
 
+  public void test_libraryDirectiveNotFirst() throws Exception {
+    parse(
+        "parseCompilationUnit",
+        "import 'x.dart'; library l;",
+        ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
+  }
+
   public void test_libraryDirectiveNotFirst_afterPart() throws Exception {
     CompilationUnit unit = parse(
         "parseCompilationUnit",
@@ -320,11 +317,37 @@ public class ErrorParserTest extends ParserTestCase {
     assertNotNull(statement);
   }
 
+  public void test_mixedParameterGroups_namedPositional() throws Exception {
+    parse("parseFormalParameterList", "(a, {b}, [c])", ParserErrorCode.MIXED_PARAMETER_GROUPS);
+  }
+
+  public void test_mixedParameterGroups_positionalNamed() throws Exception {
+    parse("parseFormalParameterList", "(a, [b], {c})", ParserErrorCode.MIXED_PARAMETER_GROUPS);
+  }
+
   public void test_multipleLibraryDirectives() throws Exception {
     parse(
         "parseCompilationUnit",
         "library l; library m;",
         ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
+  }
+
+  public void test_multipleNamedParameterGroups() throws Exception {
+    parse(
+        "parseFormalParameterList",
+        "(a, {b}, {c})",
+        ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS);
+  }
+
+  public void test_multiplePositionalParameterGroups() throws Exception {
+    parse(
+        "parseFormalParameterList",
+        "(a, [b], [c])",
+        ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS);
+  }
+
+  public void test_namedParameterOutsideGroup() throws Exception {
+    parse("parseFormalParameterList", "(a, b : 0)", ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP);
   }
 
   public void test_nonUserDefinableOperator() throws Exception {
@@ -336,6 +359,13 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_positionalAfterNamedArgument() throws Exception {
     parse("parseArgumentList", "(x: 1, 2)", ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
+  }
+
+  public void test_positionalParameterOutsideGroup() throws Exception {
+    parse(
+        "parseFormalParameterList",
+        "(a, b = 0)",
+        ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP);
   }
 
   public void test_staticConstructor() throws Exception {
@@ -364,5 +394,19 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_useOfUnaryPlusOperator() throws Exception {
     parse("parseUnaryExpression", "+x", ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR);
+  }
+
+  public void test_wrongSeparatorForNamedParameter() throws Exception {
+    parse(
+        "parseFormalParameterList",
+        "(a, {b = 0})",
+        ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER);
+  }
+
+  public void test_wrongSeparatorForPositionalParameter() throws Exception {
+    parse(
+        "parseFormalParameterList",
+        "(a, [b : 0])",
+        ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER);
   }
 }

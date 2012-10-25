@@ -97,9 +97,34 @@ public class PropertyAccess extends Expression {
   }
 
   /**
-   * Return the expression computing the object defining the property being accessed.
+   * Return the expression used to compute the receiver of the invocation. If this invocation is not
+   * part of a cascade expression, then this is the same as {@link #getTarget()}. If this invocation
+   * is part of a cascade expression, then the target stored with the cascade expression is
+   * returned.
+   * 
+   * @return the expression used to compute the receiver of the invocation
+   * @see #getTarget()
+   */
+  public Expression getRealTarget() {
+    if (isCascaded()) {
+      ASTNode ancestor = getParent();
+      while (!(ancestor instanceof CascadeExpression)) {
+        if (ancestor == null) {
+          return target;
+        }
+        ancestor = ancestor.getParent();
+      }
+      return ((CascadeExpression) ancestor).getTarget();
+    }
+    return target;
+  }
+
+  /**
+   * Return the expression computing the object defining the property being accessed, or
+   * {@code null} if this property access is part of a cascade expression.
    * 
    * @return the expression computing the object defining the property being accessed
+   * @see #getRealTarget()
    */
   public Expression getTarget() {
     return target;

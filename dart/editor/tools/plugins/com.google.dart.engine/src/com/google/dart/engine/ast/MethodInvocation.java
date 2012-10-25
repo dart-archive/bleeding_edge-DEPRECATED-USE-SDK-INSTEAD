@@ -120,10 +120,35 @@ public class MethodInvocation extends Expression {
   }
 
   /**
+   * Return the expression used to compute the receiver of the invocation. If this invocation is not
+   * part of a cascade expression, then this is the same as {@link #getTarget()}. If this invocation
+   * is part of a cascade expression, then the target stored with the cascade expression is
+   * returned.
+   * 
+   * @return the expression used to compute the receiver of the invocation
+   * @see #getTarget()
+   */
+  public Expression getRealTarget() {
+    if (isCascaded()) {
+      ASTNode ancestor = getParent();
+      while (!(ancestor instanceof CascadeExpression)) {
+        if (ancestor == null) {
+          return target;
+        }
+        ancestor = ancestor.getParent();
+      }
+      return ((CascadeExpression) ancestor).getTarget();
+    }
+    return target;
+  }
+
+  /**
    * Return the expression producing the object on which the method is defined, or {@code null} if
-   * there is no target (that is, the target is implicitly {@code this}).
+   * there is no target (that is, the target is implicitly {@code this}) or if this method
+   * invocation is part of a cascade expression.
    * 
    * @return the expression producing the object on which the method is defined
+   * @see #getRealTarget()
    */
   public Expression getTarget() {
     return target;

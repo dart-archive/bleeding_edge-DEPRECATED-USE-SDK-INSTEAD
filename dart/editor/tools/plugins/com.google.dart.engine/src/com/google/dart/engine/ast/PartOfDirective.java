@@ -55,15 +55,16 @@ public class PartOfDirective extends Directive {
   /**
    * Initialize a newly created part-of directive.
    * 
+   * @param comment the documentation comment associated with this directive
    * @param metadata the annotations associated with the directive
    * @param partToken the token representing the 'part' token
    * @param ofToken the token representing the 'of' token
    * @param libraryName the name of the library that the containing compilation unit is part of
    * @param semicolon the semicolon terminating the directive
    */
-  public PartOfDirective(List<Annotation> metadata, Token partToken, Token ofToken,
-      SimpleIdentifier libraryName, Token semicolon) {
-    super(metadata);
+  public PartOfDirective(Comment comment, List<Annotation> metadata, Token partToken,
+      Token ofToken, SimpleIdentifier libraryName, Token semicolon) {
+    super(comment, metadata);
     this.partToken = partToken;
     this.ofToken = ofToken;
     this.libraryName = becomeParentOf(libraryName);

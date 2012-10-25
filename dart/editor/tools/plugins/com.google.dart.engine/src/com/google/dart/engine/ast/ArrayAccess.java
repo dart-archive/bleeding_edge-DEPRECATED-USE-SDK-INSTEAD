@@ -97,6 +97,7 @@ public class ArrayAccess extends Expression {
    * access is part of a cascade expression.
    * 
    * @return the expression used to compute the array being indexed
+   * @see #getRealTarget()
    */
   public Expression getArray() {
     return array;
@@ -141,6 +142,28 @@ public class ArrayAccess extends Expression {
    */
   public Token getPeriod() {
     return period;
+  }
+
+  /**
+   * Return the expression used to compute the array being accessed. If this access is not part of a
+   * cascade expression, then this is the same as {@link #getArray()}. If this access is part of a
+   * cascade expression, then the array expression stored with the cascade expression is returned.
+   * 
+   * @return the expression used to compute the array being accessed
+   * @see #getArray()
+   */
+  public Expression getRealTarget() {
+    if (isCascaded()) {
+      ASTNode ancestor = getParent();
+      while (!(ancestor instanceof CascadeExpression)) {
+        if (ancestor == null) {
+          return array;
+        }
+        ancestor = ancestor.getParent();
+      }
+      return ((CascadeExpression) ancestor).getTarget();
+    }
+    return array;
   }
 
   /**

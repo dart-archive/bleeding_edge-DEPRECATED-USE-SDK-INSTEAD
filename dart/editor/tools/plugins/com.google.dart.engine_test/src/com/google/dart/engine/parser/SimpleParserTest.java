@@ -35,6 +35,7 @@ import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.ContinueStatement;
+import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.EmptyFunctionBody;
@@ -68,7 +69,6 @@ import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
-import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.ParenthesizedExpression;
@@ -1289,127 +1289,172 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFinalConstVarOrType_const_noType() throws Exception {
-    Object result = parse(
+    Parser.FinalConstVarOrType result = parse(
         "parseFinalConstVarOrType",
         new Class[] {boolean.class},
         new Object[] {false},
         "const");
-    Token keyword = invokeMethod(result, "getKeyword");
+    Token keyword = result.getKeyword();
     assertNotNull(keyword);
     assertEquals(TokenType.KEYWORD, keyword.getType());
     assertEquals(Keyword.CONST, ((KeywordToken) keyword).getKeyword());
-    assertNull(invokeMethod(result, "getType"));
+    assertNull(result.getType());
   }
 
   public void test_parseFinalConstVarOrType_const_type() throws Exception {
-    Object result = parse(
+    Parser.FinalConstVarOrType result = parse(
         "parseFinalConstVarOrType",
         new Class[] {boolean.class},
         new Object[] {false},
         "const A a");
-    Token keyword = invokeMethod(result, "getKeyword");
+    Token keyword = result.getKeyword();
     assertNotNull(keyword);
     assertEquals(TokenType.KEYWORD, keyword.getType());
     assertEquals(Keyword.CONST, ((KeywordToken) keyword).getKeyword());
-    assertNotNull(invokeMethod(result, "getType"));
+    assertNotNull(result.getType());
   }
 
   public void test_parseFinalConstVarOrType_final_noType() throws Exception {
-    Object result = parse(
+    Parser.FinalConstVarOrType result = parse(
         "parseFinalConstVarOrType",
         new Class[] {boolean.class},
         new Object[] {false},
         "final");
-    Token keyword = invokeMethod(result, "getKeyword");
+    Token keyword = result.getKeyword();
     assertNotNull(keyword);
     assertEquals(TokenType.KEYWORD, keyword.getType());
     assertEquals(Keyword.FINAL, ((KeywordToken) keyword).getKeyword());
-    assertNull(invokeMethod(result, "getType"));
+    assertNull(result.getType());
   }
 
   public void test_parseFinalConstVarOrType_final_type() throws Exception {
-    Object result = parse(
+    Parser.FinalConstVarOrType result = parse(
         "parseFinalConstVarOrType",
         new Class[] {boolean.class},
         new Object[] {false},
         "final A a");
-    Token keyword = invokeMethod(result, "getKeyword");
+    Token keyword = result.getKeyword();
     assertNotNull(keyword);
     assertEquals(TokenType.KEYWORD, keyword.getType());
     assertEquals(Keyword.FINAL, ((KeywordToken) keyword).getKeyword());
-    assertNotNull(invokeMethod(result, "getType"));
+    assertNotNull(result.getType());
   }
 
   public void test_parseFinalConstVarOrType_type() throws Exception {
-    Object result = parse(
+    Parser.FinalConstVarOrType result = parse(
         "parseFinalConstVarOrType",
         new Class[] {boolean.class},
         new Object[] {false},
         "A a");
-    assertNull(invokeMethod(result, "getKeyword"));
-    assertNotNull(invokeMethod(result, "getType"));
+    assertNull(result.getKeyword());
+    assertNotNull(result.getType());
   }
 
   public void test_parseFinalConstVarOrType_var() throws Exception {
-    Object result = parse(
+    Parser.FinalConstVarOrType result = parse(
         "parseFinalConstVarOrType",
         new Class[] {boolean.class},
         new Object[] {false},
         "var");
-    Token keyword = invokeMethod(result, "getKeyword");
+    Token keyword = result.getKeyword();
     assertNotNull(keyword);
     assertEquals(TokenType.KEYWORD, keyword.getType());
     assertEquals(Keyword.VAR, ((KeywordToken) keyword).getKeyword());
-    assertNull(invokeMethod(result, "getType"));
+    assertNull(result.getType());
   }
 
   public void test_parseFormalParameter_final_withType() throws Exception {
-    SimpleFormalParameter parameter = parse("parseFormalParameter", "final A a");
+    SimpleFormalParameter parameter = parse("parseFormalParameter", new Class[] {
+        boolean.class, boolean.class}, new Object[] {false, false}, "final A a");
     assertNotNull(parameter.getIdentifier());
     assertNotNull(parameter.getKeyword());
     assertNotNull(parameter.getType());
   }
 
-  public void test_parseFormalParameter_final_withType_optional() throws Exception {
-    DefaultFormalParameter namedParameter = parse("parseFormalParameter", "final A a = null");
+  public void test_parseFormalParameter_final_withType_named() throws Exception {
+    DefaultFormalParameter namedParameter = parse("parseFormalParameter", new Class[] {
+        boolean.class, boolean.class}, new Object[] {false, true}, "final A a : null");
     SimpleFormalParameter simpleParameter = (SimpleFormalParameter) namedParameter.getParameter();
     assertNotNull(simpleParameter.getIdentifier());
     assertNotNull(simpleParameter.getKeyword());
     assertNotNull(simpleParameter.getType());
+    assertTrue(namedParameter.isNamed());
+    assertNotNull(namedParameter.getSeparator());
+    assertNotNull(namedParameter.getDefaultValue());
+  }
+
+  public void test_parseFormalParameter_final_withType_positional() throws Exception {
+    DefaultFormalParameter namedParameter = parse("parseFormalParameter", new Class[] {
+        boolean.class, boolean.class}, new Object[] {true, false}, "final A a = null");
+    SimpleFormalParameter simpleParameter = (SimpleFormalParameter) namedParameter.getParameter();
+    assertNotNull(simpleParameter.getIdentifier());
+    assertNotNull(simpleParameter.getKeyword());
+    assertNotNull(simpleParameter.getType());
+    assertFalse(namedParameter.isNamed());
     assertNotNull(namedParameter.getSeparator());
     assertNotNull(namedParameter.getDefaultValue());
   }
 
   public void test_parseFormalParameter_nonFinal_withType() throws Exception {
-    SimpleFormalParameter parameter = parse("parseFormalParameter", "A a");
+    SimpleFormalParameter parameter = parse("parseFormalParameter", new Class[] {
+        boolean.class, boolean.class}, new Object[] {false, false}, "A a");
     assertNotNull(parameter.getIdentifier());
     assertNull(parameter.getKeyword());
     assertNotNull(parameter.getType());
   }
 
-  public void test_parseFormalParameter_nonFinal_withType_optional() throws Exception {
-    DefaultFormalParameter namedParameter = parse("parseFormalParameter", "A a = null");
+  public void test_parseFormalParameter_nonFinal_withType_named() throws Exception {
+    DefaultFormalParameter namedParameter = parse("parseFormalParameter", new Class[] {
+        boolean.class, boolean.class}, new Object[] {false, true}, "A a : null");
     SimpleFormalParameter simpleParameter = (SimpleFormalParameter) namedParameter.getParameter();
     assertNotNull(simpleParameter.getIdentifier());
     assertNull(simpleParameter.getKeyword());
     assertNotNull(simpleParameter.getType());
+    assertTrue(namedParameter.isNamed());
+    assertNotNull(namedParameter.getSeparator());
+    assertNotNull(namedParameter.getDefaultValue());
+  }
+
+  public void test_parseFormalParameter_nonFinal_withType_positional() throws Exception {
+    DefaultFormalParameter namedParameter = parse("parseFormalParameter", new Class[] {
+        boolean.class, boolean.class}, new Object[] {true, false}, "A a = null");
+    SimpleFormalParameter simpleParameter = (SimpleFormalParameter) namedParameter.getParameter();
+    assertNotNull(simpleParameter.getIdentifier());
+    assertNull(simpleParameter.getKeyword());
+    assertNotNull(simpleParameter.getType());
+    assertFalse(namedParameter.isNamed());
     assertNotNull(namedParameter.getSeparator());
     assertNotNull(namedParameter.getDefaultValue());
   }
 
   public void test_parseFormalParameter_var() throws Exception {
-    SimpleFormalParameter parameter = parse("parseFormalParameter", "var a");
+    SimpleFormalParameter parameter = parse("parseFormalParameter", new Class[] {
+        boolean.class, boolean.class}, new Object[] {false, false}, "var a");
     assertNotNull(parameter.getIdentifier());
     assertNotNull(parameter.getKeyword());
     assertNull(parameter.getType());
   }
 
-  public void test_parseFormalParameter_var_optional() throws Exception {
-    DefaultFormalParameter namedParameter = parse("parseFormalParameter", "var a = null");
+  public void test_parseFormalParameter_var_named() throws Exception {
+    DefaultFormalParameter namedParameter = parse("parseFormalParameter", new Class[] {
+        boolean.class, boolean.class}, new Object[] {false, true}, "var a : null");
     SimpleFormalParameter simpleParameter = (SimpleFormalParameter) namedParameter.getParameter();
     assertNotNull(simpleParameter.getIdentifier());
     assertNotNull(simpleParameter.getKeyword());
     assertNull(simpleParameter.getType());
+    assertTrue(namedParameter.isNamed());
+    assertNotNull(namedParameter.getSeparator());
+    assertNotNull(namedParameter.getDefaultValue());
+  }
+
+  public void test_parseFormalParameter_var_positional() throws Exception {
+    DefaultFormalParameter namedParameter = parse("parseFormalParameter", new Class[] {
+        boolean.class, boolean.class}, new Object[] {true, false}, "var a = null");
+    SimpleFormalParameter simpleParameter = (SimpleFormalParameter) namedParameter.getParameter();
+    assertNotNull(simpleParameter.getIdentifier());
+    assertNotNull(simpleParameter.getKeyword());
+    assertNull(simpleParameter.getType());
+    assertFalse(namedParameter.isNamed());
     assertNotNull(namedParameter.getSeparator());
     assertNotNull(namedParameter.getDefaultValue());
   }
@@ -1850,7 +1895,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Class[] {Parser.CommentAndMetadata.class},
         new Object[] {emptyCommentAndMetadata()},
         "import 'lib/lib.dart' as a hide A show B;");
-    assertNotNull(directive.getImportToken());
+    assertNotNull(directive.getKeyword());
     assertNotNull(directive.getLibraryUri());
     assertNotNull(directive.getAsToken());
     assertNotNull(directive.getPrefix());
@@ -1864,7 +1909,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Class[] {Parser.CommentAndMetadata.class},
         new Object[] {emptyCommentAndMetadata()},
         "import 'lib/lib.dart' hide A, B;");
-    assertNotNull(directive.getImportToken());
+    assertNotNull(directive.getKeyword());
     assertNotNull(directive.getLibraryUri());
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
@@ -1878,7 +1923,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Class[] {Parser.CommentAndMetadata.class},
         new Object[] {emptyCommentAndMetadata()},
         "import 'lib/lib.dart';");
-    assertNotNull(directive.getImportToken());
+    assertNotNull(directive.getKeyword());
     assertNotNull(directive.getLibraryUri());
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
@@ -1892,7 +1937,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Class[] {Parser.CommentAndMetadata.class},
         new Object[] {emptyCommentAndMetadata()},
         "import 'lib/lib.dart' as a;");
-    assertNotNull(directive.getImportToken());
+    assertNotNull(directive.getKeyword());
     assertNotNull(directive.getLibraryUri());
     assertNotNull(directive.getAsToken());
     assertNotNull(directive.getPrefix());
@@ -1906,7 +1951,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Class[] {Parser.CommentAndMetadata.class},
         new Object[] {emptyCommentAndMetadata()},
         "import 'lib/lib.dart' show A, B;");
-    assertNotNull(directive.getImportToken());
+    assertNotNull(directive.getKeyword());
     assertNotNull(directive.getLibraryUri());
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());

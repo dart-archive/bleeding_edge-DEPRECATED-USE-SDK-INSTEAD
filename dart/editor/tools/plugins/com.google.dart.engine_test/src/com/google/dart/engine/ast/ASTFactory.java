@@ -293,6 +293,7 @@ public final class ASTFactory {
   public static ExportDirective exportDirective(List<Annotation> metadata, String uri,
       List<Combinator> combinators) {
     return new ExportDirective(
+        null,
         metadata,
         token(Keyword.EXPORT),
         string(uri),
@@ -337,6 +338,8 @@ public final class ASTFactory {
   public static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type,
       String identifier) {
     return new FieldFormalParameter(
+        null,
+        null,
         keyword == null ? null : token(keyword),
         type,
         token(Keyword.THIS),
@@ -430,6 +433,8 @@ public final class ASTFactory {
   public static FunctionTypedFormalParameter functionTypedFormalParameter(TypeName returnType,
       String identifier, FormalParameter... parameters) {
     return new FunctionTypedFormalParameter(
+        null,
+        null,
         returnType,
         identifier(identifier),
         formalParameterList(parameters));
@@ -469,6 +474,7 @@ public final class ASTFactory {
   public static ImportDirective importDirective(List<Annotation> metadata, String uri,
       String prefix, List<Combinator> combinators) {
     return new ImportDirective(
+        null,
         metadata,
         token(Keyword.IMPORT),
         string(uri),
@@ -546,6 +552,7 @@ public final class ASTFactory {
 
   public static LibraryDirective libraryDirective(List<Annotation> metadata, String libraryName) {
     return new LibraryDirective(
+        null,
         metadata,
         token(Keyword.LIBRARY),
         identifier(libraryName),
@@ -639,7 +646,7 @@ public final class ASTFactory {
 
   public static DefaultFormalParameter namedFormalParameter(NormalFormalParameter parameter,
       Expression expression) {
-    return new DefaultFormalParameter(parameter, token(TokenType.EQ), expression);
+    return new DefaultFormalParameter(parameter, true, token(TokenType.COLON), expression);
   }
 
   public static NullLiteral nullLiteral() {
@@ -654,7 +661,12 @@ public final class ASTFactory {
   }
 
   public static PartDirective partDirective(List<Annotation> metadata, String url) {
-    return new PartDirective(metadata, token(Keyword.PART), string(url), token(TokenType.SEMICOLON));
+    return new PartDirective(
+        null,
+        metadata,
+        token(Keyword.PART),
+        string(url),
+        token(TokenType.SEMICOLON));
   }
 
   public static PartDirective partDirective(String url) {
@@ -664,6 +676,7 @@ public final class ASTFactory {
   public static PartOfDirective partOfDirective(List<Annotation> metadata,
       SimpleIdentifier libraryName) {
     return new PartOfDirective(
+        null,
         metadata,
         token(Keyword.PART),
         token("of"),
@@ -673,6 +686,11 @@ public final class ASTFactory {
 
   public static PartOfDirective partOfDirective(SimpleIdentifier libraryName) {
     return partOfDirective(new ArrayList<Annotation>(), libraryName);
+  }
+
+  public static DefaultFormalParameter positionalFormalParameter(NormalFormalParameter parameter,
+      Expression expression) {
+    return new DefaultFormalParameter(parameter, false, token(TokenType.EQ), expression);
   }
 
   public static PostfixExpression postfixExpression(Expression expression, TokenType operator) {
@@ -720,6 +738,8 @@ public final class ASTFactory {
   public static SimpleFormalParameter simpleFormalParameter(Keyword keyword, TypeName type,
       String parameterName) {
     return new SimpleFormalParameter(
+        null,
+        null,
         keyword == null ? null : token(keyword),
         type,
         identifier(parameterName));

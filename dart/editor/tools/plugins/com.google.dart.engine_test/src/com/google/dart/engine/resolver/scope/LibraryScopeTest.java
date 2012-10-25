@@ -50,13 +50,13 @@ public class LibraryScopeTest extends ResolverTestCase {
     LibraryElement definingLibrary = createTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope scope = new LibraryScope(definingLibrary, errorListener);
-    assertEquals(definingLibrary, invokeMethod(scope, "getDefiningLibrary"));
+    assertEquals(definingLibrary, scope.getDefiningLibrary());
   }
 
   public void test_getErrorListener() throws Exception {
     LibraryElement definingLibrary = createTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope scope = new LibraryScope(definingLibrary, errorListener);
-    assertEquals(errorListener, invokeMethod(scope, "getErrorListener"));
+    assertEquals(errorListener, scope.getErrorListener());
   }
 }

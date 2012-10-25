@@ -16,23 +16,19 @@ package com.google.dart.engine.ast;
 import java.util.List;
 
 /**
- * Instances of the class {@code Directive} defines the behavior common to nodes that represent a
+ * The abstract class {@code Directive} defines the behavior common to nodes that represent a
  * directive.
  * 
  * <pre>
  * directive ::=
- *     {@link ImportDirective importDirective}
+ *     {@link ExportDirective exportDirective}
+ *   | {@link ImportDirective importDirective}
  *   | {@link LibraryDirective libraryDirective}
  *   | {@link PartDirective partDirective}
  *   | {@link PartOfDirective partOfDirective}
  * </pre>
  */
-public abstract class Directive extends ASTNode {
-  /**
-   * The annotations associated with the directive.
-   */
-  private NodeList<Annotation> metadata = new NodeList<Annotation>(this);
-
+public abstract class Directive extends AnnotatedNode {
   /**
    * Initialize a newly create directive.
    */
@@ -43,23 +39,10 @@ public abstract class Directive extends ASTNode {
   /**
    * Initialize a newly create directive.
    * 
+   * @param comment the documentation comment associated with this directive
    * @param metadata the annotations associated with the directive
    */
-  public Directive(List<Annotation> metadata) {
-    this.metadata.addAll(metadata);
-  }
-
-  /**
-   * Return the annotations associated with the directive.
-   * 
-   * @return the annotations associated with the directive
-   */
-  public NodeList<Annotation> getMetadata() {
-    return metadata;
-  }
-
-  @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
-    metadata.accept(visitor);
+  public Directive(Comment comment, List<Annotation> metadata) {
+    super(comment, metadata);
   }
 }

@@ -21,10 +21,15 @@ import com.google.dart.engine.scanner.Token;
  * 
  * <pre>
  * commentReference ::=
- *     '[' {@link Identifier identifier} ']'
+ *     '[' 'new'? {@link Identifier identifier} ']'
  * </pre>
  */
 public class CommentReference extends ASTNode {
+  /**
+   * The token representing the 'new' keyword, or {@code null} if there was no 'new' keyword.
+   */
+  private Token newKeyword;
+
   /**
    * The identifier being referenced.
    */
@@ -39,9 +44,11 @@ public class CommentReference extends ASTNode {
   /**
    * Initialize a newly created reference to a Dart element.
    * 
+   * @param newKeyword the token representing the 'new' keyword
    * @param identifier the identifier being referenced
    */
-  public CommentReference(Identifier identifier) {
+  public CommentReference(Token newKeyword, Identifier identifier) {
+    this.newKeyword = newKeyword;
     this.identifier = becomeParentOf(identifier);
   }
 
@@ -70,12 +77,30 @@ public class CommentReference extends ASTNode {
   }
 
   /**
+   * Return the token representing the 'new' keyword, or {@code null} if there was no 'new' keyword.
+   * 
+   * @return the token representing the 'new' keyword
+   */
+  public Token getNewKeyword() {
+    return newKeyword;
+  }
+
+  /**
    * Set the identifier being referenced to the given identifier.
    * 
    * @param identifier the identifier being referenced
    */
   public void setIdentifier(Identifier identifier) {
     identifier = becomeParentOf(identifier);
+  }
+
+  /**
+   * Set the token representing the 'new' keyword to the given token.
+   * 
+   * @param newKeyword the token representing the 'new' keyword
+   */
+  public void setNewKeyword(Token newKeyword) {
+    this.newKeyword = newKeyword;
   }
 
   @Override

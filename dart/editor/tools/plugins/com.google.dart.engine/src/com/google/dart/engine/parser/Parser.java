@@ -589,8 +589,18 @@ public class Parser {
    * @return {@code true} if the current token is a valid identifier
    */
   private boolean matchesIdentifier() {
-    return matches(TokenType.IDENTIFIER)
-        || (matches(TokenType.KEYWORD) && ((KeywordToken) currentToken).getKeyword().isPseudoKeyword());
+    return matchesIdentifier(currentToken);
+  }
+
+  /**
+   * Return {@code true} if the given token is a valid identifier. Valid identifiers include
+   * built-in identifiers (pseudo-keywords).
+   * 
+   * @return {@code true} if the given token is a valid identifier
+   */
+  private boolean matchesIdentifier(Token token) {
+    return matches(token, TokenType.IDENTIFIER)
+        || (matches(token, TokenType.KEYWORD) && ((KeywordToken) token).getKeyword().isPseudoKeyword());
   }
 
   /**
@@ -1326,14 +1336,18 @@ public class Parser {
       StringScanner scanner = new StringScanner(null, referenceSource, listener);
       Token firstToken = scanner.tokenize();
       if (!errorFound[0]) {
-        if (firstToken.getType() == TokenType.IDENTIFIER) {
+        Token newKeyword = null;
+        if (matches(firstToken, Keyword.NEW)) {
+          newKeyword = firstToken;
+          firstToken = firstToken.getNext();
+        }
+        if (matchesIdentifier(firstToken)) {
           firstToken.setOffset(firstToken.getOffset() + sourceOffset);
           Token secondToken = firstToken.getNext();
           Token thirdToken = secondToken.getNext();
           Token nextToken;
           Identifier identifier;
-          if (secondToken.getType() == TokenType.PERIOD
-              && thirdToken.getType() == TokenType.IDENTIFIER) {
+          if (matches(secondToken, TokenType.PERIOD) && matchesIdentifier(thirdToken)) {
             secondToken.setOffset(secondToken.getOffset() + sourceOffset);
             thirdToken.setOffset(thirdToken.getOffset() + sourceOffset);
             identifier = new PrefixedIdentifier(
@@ -1348,10 +1362,10 @@ public class Parser {
           if (nextToken.getType() != TokenType.EOF) {
             // reportError(ParserErrorCode.?);
           }
-          return new CommentReference(identifier);
+          return new CommentReference(newKeyword, identifier);
+        } else {
+          // reportError(ParserErrorCode.?);
         }
-      } else if (matches(firstToken, Keyword.NEW)) {
-        // TODO(brianwilkerson) Implement this form of reference
       }
     } catch (Exception exception) {
       // reportError(ParserErrorCode.?);
@@ -1859,6 +1873,7 @@ public class Parser {
     List<Combinator> combinators = parseCombinators();
     Token semicolon = expect(TokenType.SEMICOLON);
     return new ExportDirective(
+        commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
         exportKeyword,
         libraryUri,
@@ -2054,7 +2069,8 @@ public class Parser {
   }
 
   /**
-   * Parse a formal parameter.
+   * Parse a formal parameter. At most one of {@code isOptional} and {@code isNamed} can be
+   * {@code true}.
    * 
    * <pre>
    * defaultFormalParameter ::=
@@ -2064,14 +2080,33 @@ public class Parser {
    *     normalFormalParameter (':' expression)?
    * </pre>
    * 
+   * @param isOptional {@code true} if the parameter is expected to be an optional positional
+   *          parameter
+   * @param isNamed {@code true} if the parameter is expected to be a named parameter
    * @return the formal parameter that was parsed
    */
-  private FormalParameter parseFormalParameter() {
+  private FormalParameter parseFormalParameter(boolean isOptional, boolean isNamed) {
     NormalFormalParameter parameter = parseNormalFormalParameter();
-    if (matches(TokenType.EQ) || matches(TokenType.COLON)) {
-      Token equals = getAndAdvance();
+    if (matches(TokenType.EQ)) {
+      Token seperator = getAndAdvance();
       Expression defaultValue = parseExpression();
-      return new DefaultFormalParameter(parameter, equals, defaultValue);
+      if (isNamed) {
+        reportError(ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER, seperator);
+      } else if (!isOptional) {
+        reportError(ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter);
+      }
+      return new DefaultFormalParameter(parameter, isNamed, seperator, defaultValue);
+    } else if (matches(TokenType.COLON)) {
+      Token seperator = getAndAdvance();
+      Expression defaultValue = parseExpression();
+      if (isOptional) {
+        reportError(ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, seperator);
+      } else if (!isNamed) {
+        reportError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter);
+      }
+      return new DefaultFormalParameter(parameter, isNamed, seperator, defaultValue);
+    } else if (isOptional || isNamed) {
+      return new DefaultFormalParameter(parameter, isNamed, null, null);
     }
     return parameter;
   }
@@ -2122,6 +2157,8 @@ public class Parser {
     Token leftCurlyBracket = null;
     Token rightCurlyBracket = null;
 
+    boolean isOptional = false;
+    boolean isNamed = false;
     boolean firstParameter = true;
     boolean reportedMuliplePositionalGroups = false;
     boolean reportedMulipleNamedGroups = false;
@@ -2147,6 +2184,7 @@ public class Parser {
         }
         leftSquareBracket = getAndAdvance();
         currentParameters = positionalParameters;
+        isOptional = true;
       } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
         if (leftCurlyBracket != null && !reportedMulipleNamedGroups) {
           reportError(ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS);
@@ -2158,11 +2196,12 @@ public class Parser {
         }
         leftCurlyBracket = getAndAdvance();
         currentParameters = namedParameters;
+        isNamed = true;
       }
       //
       // Parse and record the parameter.
       //
-      FormalParameter parameter = parseFormalParameter();
+      FormalParameter parameter = parseFormalParameter(isOptional, isNamed);
       parameters.add(parameter);
       currentParameters.add(parameter);
       //
@@ -2175,45 +2214,19 @@ public class Parser {
         if (leftSquareBracket == null) {
           // reportError(ParserErrorCode.);
         }
+        isOptional = false;
+        isNamed = false;
       } else if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
         rightCurlyBracket = getAndAdvance();
         currentParameters = normalParameters;
         if (leftCurlyBracket == null) {
           // reportError(ParserErrorCode.);
         }
+        isOptional = false;
+        isNamed = false;
       }
     } while (!matches(TokenType.CLOSE_PAREN));
     Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
-    //
-    // Check that the different kinds of parameters appeared in the right places.
-    //
-    // TODO(brianwilkerson) NormalFormalParameters don't currently know whether they are positional
-    // or named when they occur inside of the brackets.
-    for (FormalParameter parameter : normalParameters) {
-      if (parameter instanceof DefaultFormalParameter) {
-        if (((DefaultFormalParameter) parameter).isNamed()) {
-          reportError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP);
-        } else {
-          reportError(ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP);
-        }
-      }
-    }
-    for (FormalParameter parameter : positionalParameters) {
-      if ((parameter instanceof DefaultFormalParameter)
-          && ((DefaultFormalParameter) parameter).isNamed()) {
-        reportError(
-            ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
-            ((DefaultFormalParameter) parameter).getSeparator());
-      }
-    }
-    for (FormalParameter parameter : namedParameters) {
-      if ((parameter instanceof DefaultFormalParameter)
-          && !((DefaultFormalParameter) parameter).isNamed()) {
-        reportError(
-            ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER,
-            ((DefaultFormalParameter) parameter).getSeparator());
-      }
-    }
     //
     // Check that the groups were closed correctly.
     //
@@ -2293,6 +2306,8 @@ public class Parser {
               // reportError(ParserErrorCode.?);
             }
             loopParameter = new SimpleFormalParameter(
+                null,
+                null,
                 variableList.getKeyword(),
                 variableList.getType(),
                 variable.getName());
@@ -2608,6 +2623,7 @@ public class Parser {
     List<Combinator> combinators = parseCombinators();
     Token semicolon = expect(TokenType.SEMICOLON);
     return new ImportDirective(
+        commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
         importKeyword,
         libraryUri,
@@ -2688,7 +2704,12 @@ public class Parser {
     Token keyword = expect(Keyword.LIBRARY);
     SimpleIdentifier libraryName = parseSimpleIdentifier();
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new LibraryDirective(commentAndMetadata.getMetadata(), keyword, libraryName, semicolon);
+    return new LibraryDirective(
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
+        keyword,
+        libraryName,
+        semicolon);
   }
 
   /**
@@ -3121,15 +3142,20 @@ public class Parser {
    *   | simpleFormalParameter
    * 
    * functionSignature:
-   *     returnType? identifier formalParameterList
+   *     metadata returnType? identifier formalParameterList
    * 
    * fieldFormalParameter ::=
-   *     finalConstVarOrType? 'this' '.' identifier
+   *     metadata finalConstVarOrType? 'this' '.' identifier
+   * 
+   * simpleFormalParameter ::=
+   *     declaredIdentifier
+   *   | metadata identifier
    * </pre>
    * 
    * @return the normal formal parameter that was parsed
    */
   private NormalFormalParameter parseNormalFormalParameter() {
+    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     FinalConstVarOrType holder = parseFinalConstVarOrType(true);
     Token thisKeyword = null;
     Token period = null;
@@ -3146,19 +3172,31 @@ public class Parser {
         // reportError(ParserErrorCode.?);
       }
       FormalParameterList parameters = parseFormalParameterList();
-      return new FunctionTypedFormalParameter(holder.getType(), identifier, parameters);
+      return new FunctionTypedFormalParameter(
+          commentAndMetadata.getComment(),
+          commentAndMetadata.getMetadata(),
+          holder.getType(),
+          identifier,
+          parameters);
     }
     // Validate that the type is not void because this is not a function signature.
     // reportError(ParserErrorCode.?);
     if (thisKeyword != null) {
       return new FieldFormalParameter(
+          commentAndMetadata.getComment(),
+          commentAndMetadata.getMetadata(),
           holder.getKeyword(),
           holder.getType(),
           thisKeyword,
           period,
           identifier);
     }
-    return new SimpleFormalParameter(holder.getKeyword(), holder.getType(), identifier);
+    return new SimpleFormalParameter(
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
+        holder.getKeyword(),
+        holder.getType(),
+        identifier);
   }
 
   /**
@@ -3225,6 +3263,7 @@ public class Parser {
       SimpleIdentifier libraryName = parseSimpleIdentifier();
       Token semicolon = expect(TokenType.SEMICOLON);
       return new PartOfDirective(
+          commentAndMetadata.getComment(),
           commentAndMetadata.getMetadata(),
           partKeyword,
           ofKeyword,
@@ -3233,7 +3272,12 @@ public class Parser {
     }
     StringLiteral partUri = parseStringLiteral();
     Token semicolon = expect(TokenType.SEMICOLON);
-    return new PartDirective(commentAndMetadata.getMetadata(), partKeyword, partUri, semicolon);
+    return new PartDirective(
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
+        partKeyword,
+        partUri,
+        semicolon);
   }
 
   /**

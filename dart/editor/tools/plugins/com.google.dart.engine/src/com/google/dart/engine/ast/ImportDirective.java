@@ -25,17 +25,7 @@ import java.util.List;
  *     {@link Annotation metadata} 'import' {@link StringLiteral libraryUri} ('as' identifier)? {@link Combinator combinator}* ';'
  * </pre>
  */
-public class ImportDirective extends Directive {
-  /**
-   * The token representing the 'import' token.
-   */
-  private Token importToken;
-
-  /**
-   * The URI of the library being imported.
-   */
-  private StringLiteral libraryUri;
-
+public class ImportDirective extends NamespaceDirective {
   /**
    * The token representing the 'as' token, or {@code null} if the imported names are not prefixed.
    */
@@ -48,16 +38,6 @@ public class ImportDirective extends Directive {
   private SimpleIdentifier prefix;
 
   /**
-   * The combinators used to control how names are imported.
-   */
-  private NodeList<Combinator> combinators = new NodeList<Combinator>(this);
-
-  /**
-   * The semicolon terminating the statement.
-   */
-  private Token semicolon;
-
-  /**
    * Initialize a newly created import directive.
    */
   public ImportDirective() {
@@ -66,23 +46,21 @@ public class ImportDirective extends Directive {
   /**
    * Initialize a newly created import directive.
    * 
+   * @param comment the documentation comment associated with this directive
    * @param metadata the annotations associated with the directive
-   * @param importToken the token representing the 'import' token
+   * @param keyword the token representing the 'import' keyword
    * @param libraryUri the URI of the library being imported
    * @param asToken the token representing the 'as' token
    * @param prefix the prefix to be used with the imported names
    * @param combinators the combinators used to control how names are imported
-   * @param semicolon the semicolon terminating the statement
+   * @param semicolon the semicolon terminating the directive
    */
-  public ImportDirective(List<Annotation> metadata, Token importToken, StringLiteral libraryUri,
-      Token asToken, SimpleIdentifier prefix, List<Combinator> combinators, Token semicolon) {
-    super(metadata);
-    this.importToken = importToken;
-    this.libraryUri = becomeParentOf(libraryUri);
+  public ImportDirective(Comment comment, List<Annotation> metadata, Token keyword,
+      StringLiteral libraryUri, Token asToken, SimpleIdentifier prefix,
+      List<Combinator> combinators, Token semicolon) {
+    super(comment, metadata, keyword, libraryUri, combinators, semicolon);
     this.asToken = asToken;
     this.prefix = becomeParentOf(prefix);
-    this.combinators.addAll(combinators);
-    this.semicolon = semicolon;
   }
 
   @Override
@@ -100,43 +78,6 @@ public class ImportDirective extends Directive {
     return asToken;
   }
 
-  @Override
-  public Token getBeginToken() {
-    return importToken;
-  }
-
-  /**
-   * Return the combinators used to control how names are imported.
-   * 
-   * @return the combinators used to control how names are imported
-   */
-  public NodeList<Combinator> getCombinators() {
-    return combinators;
-  }
-
-  @Override
-  public Token getEndToken() {
-    return semicolon;
-  }
-
-  /**
-   * Return the token representing the 'import' token.
-   * 
-   * @return the token representing the 'import' token
-   */
-  public Token getImportToken() {
-    return importToken;
-  }
-
-  /**
-   * Return the URI of the library being imported.
-   * 
-   * @return the URI of the library being imported
-   */
-  public StringLiteral getLibraryUri() {
-    return libraryUri;
-  }
-
   /**
    * Return the prefix to be used with the imported names, or {@code null} if the imported names are
    * not prefixed.
@@ -145,15 +86,6 @@ public class ImportDirective extends Directive {
    */
   public SimpleIdentifier getPrefix() {
     return prefix;
-  }
-
-  /**
-   * Return the semicolon terminating the statement.
-   * 
-   * @return the semicolon terminating the statement
-   */
-  public Token getSemicolon() {
-    return semicolon;
   }
 
   /**
@@ -166,24 +98,6 @@ public class ImportDirective extends Directive {
   }
 
   /**
-   * Set the token representing the 'import' token to the given token.
-   * 
-   * @param importToken the token representing the 'import' token
-   */
-  public void setImportToken(Token importToken) {
-    this.importToken = importToken;
-  }
-
-  /**
-   * Set the URI of the library being imported to the given literal.
-   * 
-   * @param literal the URI of the library being imported
-   */
-  public void setLibraryUri(StringLiteral literal) {
-    libraryUri = becomeParentOf(literal);
-  }
-
-  /**
    * Set the prefix to be used with the imported names to the given identifier.
    * 
    * @param prefix the prefix to be used with the imported names
@@ -192,20 +106,11 @@ public class ImportDirective extends Directive {
     this.prefix = becomeParentOf(prefix);
   }
 
-  /**
-   * Set the semicolon terminating the statement to the given token.
-   * 
-   * @param semicolon the semicolon terminating the statement
-   */
-  public void setSemicolon(Token semicolon) {
-    this.semicolon = semicolon;
-  }
-
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
-    safelyVisitChild(libraryUri, visitor);
+    safelyVisitChild(getLibraryUri(), visitor);
     safelyVisitChild(prefix, visitor);
-    combinators.accept(visitor);
+    getCombinators().accept(visitor);
   }
 }

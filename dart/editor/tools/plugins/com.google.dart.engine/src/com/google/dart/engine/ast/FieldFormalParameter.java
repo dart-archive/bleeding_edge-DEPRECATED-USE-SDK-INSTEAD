@@ -15,6 +15,8 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code FieldFormalParameter} represent a field formal parameter.
  * 
@@ -55,15 +57,17 @@ public class FieldFormalParameter extends NormalFormalParameter {
   /**
    * Initialize a newly created formal parameter.
    * 
+   * @param comment the documentation comment associated with this parameter
+   * @param metadata the annotations associated with this parameter
    * @param keyword the token representing either the 'final', 'const' or 'var' keyword
    * @param type the name of the declared type of the parameter
    * @param thisToken the token representing the 'this' keyword
    * @param period the token representing the period
    * @param identifier the name of the parameter being declared
    */
-  public FieldFormalParameter(Token keyword, TypeName type, Token thisToken, Token period,
-      SimpleIdentifier identifier) {
-    super(identifier);
+  public FieldFormalParameter(Comment comment, List<Annotation> metadata, Token keyword,
+      TypeName type, Token thisToken, Token period, SimpleIdentifier identifier) {
+    super(comment, metadata, identifier);
     this.keyword = keyword;
     this.type = becomeParentOf(type);
     this.thisToken = thisToken;
@@ -165,6 +169,7 @@ public class FieldFormalParameter extends NormalFormalParameter {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(type, visitor);
     safelyVisitChild(getIdentifier(), visitor);
   }

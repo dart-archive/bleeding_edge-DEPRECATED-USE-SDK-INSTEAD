@@ -110,14 +110,14 @@ public class ScopeTest extends ResolverTestCase {
   public void test_getDefiningLibrary() throws Exception {
     LibraryElement definingLibrary = createTestLibrary();
     Scope scope = new TestScope(definingLibrary, null);
-    assertEquals(definingLibrary, invokeMethod(scope, "getDefiningLibrary"));
+    assertEquals(definingLibrary, scope.getDefiningLibrary());
   }
 
   public void test_getErrorListener() throws Exception {
     LibraryElement definingLibrary = new LibraryElementImpl(identifier("test"));
     GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope scope = new TestScope(definingLibrary, errorListener);
-    assertEquals(errorListener, invokeMethod(scope, "getErrorListener"));
+    assertEquals(errorListener, scope.getErrorListener());
   }
 
   public void test_isPrivateName_nonPrivate() {

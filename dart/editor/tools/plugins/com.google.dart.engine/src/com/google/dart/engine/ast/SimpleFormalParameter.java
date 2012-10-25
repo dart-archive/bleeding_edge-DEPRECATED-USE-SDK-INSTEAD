@@ -15,6 +15,8 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class {@code SimpleFormalParameter} represent a simple formal parameter.
  * 
@@ -45,12 +47,15 @@ public class SimpleFormalParameter extends NormalFormalParameter {
   /**
    * Initialize a newly created formal parameter.
    * 
+   * @param comment the documentation comment associated with this parameter
+   * @param metadata the annotations associated with this parameter
    * @param keyword the token representing either the 'final', 'const' or 'var' keyword
    * @param type the name of the declared type of the parameter
    * @param identifier the name of the parameter being declared
    */
-  public SimpleFormalParameter(Token keyword, TypeName type, SimpleIdentifier identifier) {
-    super(identifier);
+  public SimpleFormalParameter(Comment comment, List<Annotation> metadata, Token keyword,
+      TypeName type, SimpleIdentifier identifier) {
+    super(comment, metadata, identifier);
     this.keyword = keyword;
     this.type = becomeParentOf(type);
   }
@@ -114,6 +119,7 @@ public class SimpleFormalParameter extends NormalFormalParameter {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(type, visitor);
     safelyVisitChild(getIdentifier(), visitor);
   }

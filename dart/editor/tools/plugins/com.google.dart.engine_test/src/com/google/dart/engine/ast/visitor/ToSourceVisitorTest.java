@@ -15,11 +15,11 @@ package com.google.dart.engine.ast.visitor;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 
@@ -89,6 +89,7 @@ import static com.google.dart.engine.ast.ASTFactory.nullLiteral;
 import static com.google.dart.engine.ast.ASTFactory.parenthesizedExpression;
 import static com.google.dart.engine.ast.ASTFactory.partDirective;
 import static com.google.dart.engine.ast.ASTFactory.partOfDirective;
+import static com.google.dart.engine.ast.ASTFactory.positionalFormalParameter;
 import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
 import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
 import static com.google.dart.engine.ast.ASTFactory.propertyAccess;
@@ -537,9 +538,90 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("()", formalParameterList());
   }
 
-  public void test_visitFormalParameterList_multiplePositional_multipleOptional() {
+  public void test_visitFormalParameterList_n() {
     assertSource(
-        "(a, b, [c = 3, d = 4])",
+        "({a : 0})",
+        formalParameterList(namedFormalParameter(simpleFormalParameter("a"), integer(0L))));
+  }
+
+  public void test_visitFormalParameterList_nn() {
+    assertSource(
+        "({a : 0, b : 1})",
+        formalParameterList(
+            namedFormalParameter(simpleFormalParameter("a"), integer(0L)),
+            namedFormalParameter(simpleFormalParameter("b"), integer(1L))));
+  }
+
+  public void test_visitFormalParameterList_p() {
+    assertSource(
+        "([a = 0])",
+        formalParameterList(positionalFormalParameter(simpleFormalParameter("a"), integer(0L))));
+  }
+
+  public void test_visitFormalParameterList_pp() {
+    assertSource(
+        "([a = 0, b = 1])",
+        formalParameterList(
+            positionalFormalParameter(simpleFormalParameter("a"), integer(0L)),
+            positionalFormalParameter(simpleFormalParameter("b"), integer(1L))));
+  }
+
+  public void test_visitFormalParameterList_r() {
+    assertSource("(a)", formalParameterList(simpleFormalParameter("a")));
+  }
+
+  public void test_visitFormalParameterList_rn() {
+    assertSource(
+        "(a, {b : 1})",
+        formalParameterList(
+            simpleFormalParameter("a"),
+            namedFormalParameter(simpleFormalParameter("b"), integer(1L))));
+  }
+
+  public void test_visitFormalParameterList_rnn() {
+    assertSource(
+        "(a, {b : 1, c : 2})",
+        formalParameterList(
+            simpleFormalParameter("a"),
+            namedFormalParameter(simpleFormalParameter("b"), integer(1L)),
+            namedFormalParameter(simpleFormalParameter("c"), integer(2L))));
+  }
+
+  public void test_visitFormalParameterList_rp() {
+    assertSource(
+        "(a, [b = 1])",
+        formalParameterList(
+            simpleFormalParameter("a"),
+            positionalFormalParameter(simpleFormalParameter("b"), integer(1L))));
+  }
+
+  public void test_visitFormalParameterList_rpp() {
+    assertSource(
+        "(a, [b = 1, c = 2])",
+        formalParameterList(
+            simpleFormalParameter("a"),
+            positionalFormalParameter(simpleFormalParameter("b"), integer(1L)),
+            positionalFormalParameter(simpleFormalParameter("c"), integer(2L))));
+  }
+
+  public void test_visitFormalParameterList_rr() {
+    assertSource(
+        "(a, b)",
+        formalParameterList(simpleFormalParameter("a"), simpleFormalParameter("b")));
+  }
+
+  public void test_visitFormalParameterList_rrn() {
+    assertSource(
+        "(a, b, {c : 3})",
+        formalParameterList(
+            simpleFormalParameter("a"),
+            simpleFormalParameter("b"),
+            namedFormalParameter(simpleFormalParameter("c"), integer(3L))));
+  }
+
+  public void test_visitFormalParameterList_rrnn() {
+    assertSource(
+        "(a, b, {c : 3, d : 4})",
         formalParameterList(
             simpleFormalParameter("a"),
             simpleFormalParameter("b"),
@@ -547,54 +629,23 @@ public class ToSourceVisitorTest extends EngineTestCase {
             namedFormalParameter(simpleFormalParameter("d"), integer(4L))));
   }
 
-  public void test_visitFormalParameterList_multiplePositional_noOptional() {
-    assertSource(
-        "(a, b)",
-        formalParameterList(simpleFormalParameter("a"), simpleFormalParameter("b")));
-  }
-
-  public void test_visitFormalParameterList_multiplePositional_singleOptional() {
+  public void test_visitFormalParameterList_rrp() {
     assertSource(
         "(a, b, [c = 3])",
         formalParameterList(
             simpleFormalParameter("a"),
             simpleFormalParameter("b"),
-            namedFormalParameter(simpleFormalParameter("c"), integer(3L))));
+            positionalFormalParameter(simpleFormalParameter("c"), integer(3L))));
   }
 
-  public void test_visitFormalParameterList_noPositional_multipleOptional() {
+  public void test_visitFormalParameterList_rrpp() {
     assertSource(
-        "([a = 0, b = 1])",
-        formalParameterList(
-            namedFormalParameter(simpleFormalParameter("a"), integer(0L)),
-            namedFormalParameter(simpleFormalParameter("b"), integer(1L))));
-  }
-
-  public void test_visitFormalParameterList_noPositional_singleOptional() {
-    assertSource(
-        "([a = 0])",
-        formalParameterList(namedFormalParameter(simpleFormalParameter("a"), integer(0L))));
-  }
-
-  public void test_visitFormalParameterList_singlePositional_multipleOptional() {
-    assertSource(
-        "(a, [b = 1, c = 2])",
+        "(a, b, [c = 3, d = 4])",
         formalParameterList(
             simpleFormalParameter("a"),
-            namedFormalParameter(simpleFormalParameter("b"), integer(1L)),
-            namedFormalParameter(simpleFormalParameter("c"), integer(2L))));
-  }
-
-  public void test_visitFormalParameterList_singlePositional_noOptional() {
-    assertSource("(a)", formalParameterList(simpleFormalParameter("a")));
-  }
-
-  public void test_visitFormalParameterList_singlePositional_singleOptional() {
-    assertSource(
-        "(a, [b = 1])",
-        formalParameterList(
-            simpleFormalParameter("a"),
-            namedFormalParameter(simpleFormalParameter("b"), integer(1L))));
+            simpleFormalParameter("b"),
+            positionalFormalParameter(simpleFormalParameter("c"), integer(3L)),
+            positionalFormalParameter(simpleFormalParameter("d"), integer(4L))));
   }
 
   public void test_visitForStatement_c() {
@@ -734,10 +785,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitImportDirective_combinator() {
     assertSource(
         "import 'a.dart' show A;",
-        importDirective(
-            "a.dart",
-            null,
-            list((Combinator) importShowCombinator(identifier("A")))));
+        importDirective("a.dart", null, list((Combinator) importShowCombinator(identifier("A")))));
   }
 
   public void test_visitImportDirective_combinators() {
@@ -750,9 +798,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   }
 
   public void test_visitImportDirective_minimal() {
-    assertSource(
-        "import 'a.dart';",
-        importDirective("a.dart", null, new ArrayList<Combinator>()));
+    assertSource("import 'a.dart';", importDirective("a.dart", null, new ArrayList<Combinator>()));
   }
 
   public void test_visitImportDirective_prefix() {
@@ -764,10 +810,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitImportDirective_prefix_combinator() {
     assertSource(
         "import 'a.dart' as p show A;",
-        importDirective(
-            "a.dart",
-            "p",
-            list((Combinator) importShowCombinator(identifier("A")))));
+        importDirective("a.dart", "p", list((Combinator) importShowCombinator(identifier("A")))));
   }
 
   public void test_visitImportDirective_prefix_combinators() {
@@ -1040,7 +1083,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitNamedFormalParameter() {
     assertSource(
-        "var a = 0",
+        "var a : 0",
         namedFormalParameter(simpleFormalParameter(Keyword.VAR, "a"), integer(0L)));
   }
 
@@ -1058,6 +1101,12 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitPartOfDirective() {
     assertSource("part of l;", partOfDirective(identifier("l")));
+  }
+
+  public void test_visitPositionalFormalParameter() {
+    assertSource(
+        "var a = 0",
+        positionalFormalParameter(simpleFormalParameter(Keyword.VAR, "a"), integer(0L)));
   }
 
   public void test_visitPostfixExpression() {

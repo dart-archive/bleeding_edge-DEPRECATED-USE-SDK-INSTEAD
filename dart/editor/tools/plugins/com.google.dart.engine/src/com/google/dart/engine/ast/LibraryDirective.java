@@ -50,14 +50,15 @@ public class LibraryDirective extends Directive {
   /**
    * Initialize a newly created library directive.
    * 
+   * @param comment the documentation comment associated with this directive
    * @param metadata the annotations associated with the directive
    * @param libraryToken the token representing the 'library' token
    * @param name the name of the library being defined
    * @param semicolon the semicolon terminating the directive
    */
-  public LibraryDirective(List<Annotation> metadata, Token libraryToken, SimpleIdentifier name,
-      Token semicolon) {
-    super(metadata);
+  public LibraryDirective(Comment comment, List<Annotation> metadata, Token libraryToken,
+      SimpleIdentifier name, Token semicolon) {
+    super(comment, metadata);
     this.libraryToken = libraryToken;
     this.name = becomeParentOf(name);
     this.semicolon = semicolon;

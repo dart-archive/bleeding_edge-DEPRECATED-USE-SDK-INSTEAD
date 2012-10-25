@@ -37,6 +37,10 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
     return visitStringLiteral(node);
   }
 
+  public R visitAnnotatedNode(AnnotatedNode node) {
+    return visitNode(node);
+  }
+
   @Override
   public R visitAnnotation(Annotation node) {
     return visitNode(node);
@@ -159,7 +163,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   public R visitDeclaration(Declaration node) {
-    return visitNode(node);
+    return visitAnnotatedNode(node);
   }
 
   @Override
@@ -168,7 +172,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   public R visitDirective(Directive node) {
-    return visitNode(node);
+    return visitAnnotatedNode(node);
   }
 
   @Override
@@ -193,7 +197,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitExportDirective(ExportDirective node) {
-    return visitDirective(node);
+    return visitNamespaceDirective(node);
   }
 
   public R visitExpression(Expression node) {
@@ -294,7 +298,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitImportDirective(ImportDirective node) {
-    return visitDirective(node);
+    return visitNamespaceDirective(node);
   }
 
   @Override
@@ -373,6 +377,10 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   @Override
   public R visitNamedExpression(NamedExpression node) {
     return visitExpression(node);
+  }
+
+  public R visitNamespaceDirective(NamespaceDirective node) {
+    return visitDirective(node);
   }
 
   public R visitNode(ASTNode node) {

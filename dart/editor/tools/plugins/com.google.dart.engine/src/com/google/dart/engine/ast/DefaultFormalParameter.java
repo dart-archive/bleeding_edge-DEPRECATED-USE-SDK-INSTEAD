@@ -14,7 +14,6 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
-import com.google.dart.engine.scanner.TokenType;
 
 /**
  * Instances of the class {@code DefaultFormalParameter} represent a formal parameter with a default
@@ -22,10 +21,10 @@ import com.google.dart.engine.scanner.TokenType;
  * 
  * <pre>
  * defaultFormalParameter ::=
- *     {@link NormalFormalParameter parameter} '=' {@link Expression defaultValue}
+ *     {@link NormalFormalParameter normalFormalParameter} ('=' {@link Expression defaultValue})?
  *
  * defaultNamedParameter ::=
- *     {@link NormalFormalParameter parameter} ':' {@link Expression defaultValue}
+ *     {@link NormalFormalParameter normalFormalParameter} (':' {@link Expression defaultValue})?
  * </pre>
  */
 public class DefaultFormalParameter extends FormalParameter {
@@ -35,12 +34,20 @@ public class DefaultFormalParameter extends FormalParameter {
   private NormalFormalParameter parameter;
 
   /**
-   * The token separating the parameter from the default value.
+   * A flag indicating whether this parameter represents a named parameter (as opposed to an
+   * optional positional parameter).
+   */
+  private boolean isNamed;
+
+  /**
+   * The token separating the parameter from the default value, or {@code null} if there is no
+   * default value.
    */
   private Token separator;
 
   /**
-   * The expression computing the default value for the parameter.
+   * The expression computing the default value for the parameter, or {@code null} if there is no
+   * default value.
    */
   private Expression defaultValue;
 
@@ -54,12 +61,14 @@ public class DefaultFormalParameter extends FormalParameter {
    * Initialize a newly created default formal parameter.
    * 
    * @param parameter the formal parameter with which the default value is associated
+   * @param isNamed {@code true} if this parameter represents a named parameter
    * @param separator the token separating the parameter from the default value
    * @param defaultValue the expression computing the default value for the parameter
    */
-  public DefaultFormalParameter(NormalFormalParameter parameter, Token separator,
+  public DefaultFormalParameter(NormalFormalParameter parameter, boolean isNamed, Token separator,
       Expression defaultValue) {
     this.parameter = becomeParentOf(parameter);
+    this.isNamed = isNamed;
     this.separator = separator;
     this.defaultValue = becomeParentOf(defaultValue);
   }
@@ -75,7 +84,8 @@ public class DefaultFormalParameter extends FormalParameter {
   }
 
   /**
-   * Return the expression computing the default value for the parameter.
+   * Return the expression computing the default value for the parameter, or {@code null} if there
+   * is no default value.
    * 
    * @return the expression computing the default value for the parameter
    */
@@ -98,7 +108,8 @@ public class DefaultFormalParameter extends FormalParameter {
   }
 
   /**
-   * Return the token separating the parameter from the default value.
+   * Return the token separating the parameter from the default value, or {@code null} if there is
+   * no default value.
    * 
    * @return the token separating the parameter from the default value
    */
@@ -107,12 +118,13 @@ public class DefaultFormalParameter extends FormalParameter {
   }
 
   /**
-   * Return {@code true} if this parameter represents a named parameter.
+   * Return {@code true} if this parameter represents a named parameter (as opposed to an optional
+   * positional parameter).
    * 
-   * @return {@code true} if the separator is a colon
+   * @return {@code true} if this parameter represents a named parameter
    */
   public boolean isNamed() {
-    return separator != null && separator.getType() == TokenType.COLON;
+    return isNamed;
   }
 
   /**

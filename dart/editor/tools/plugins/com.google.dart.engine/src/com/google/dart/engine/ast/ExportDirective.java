@@ -25,27 +25,7 @@ import java.util.List;
  *     {@link Annotation metadata} 'export' {@link StringLiteral libraryUri} {@link Combinator combinator}* ';'
  * </pre>
  */
-public class ExportDirective extends Directive {
-  /**
-   * The token representing the 'export' token.
-   */
-  private Token exportToken;
-
-  /**
-   * The URI of the library being exported.
-   */
-  private StringLiteral libraryUri;
-
-  /**
-   * The combinators used to control which names are exported.
-   */
-  private NodeList<Combinator> combinators = new NodeList<Combinator>(this);
-
-  /**
-   * The semicolon terminating the statement.
-   */
-  private Token semicolon;
-
+public class ExportDirective extends NamespaceDirective {
   /**
    * Initialize a newly created export directive.
    */
@@ -55,19 +35,16 @@ public class ExportDirective extends Directive {
   /**
    * Initialize a newly created export directive.
    * 
+   * @param comment the documentation comment associated with this directive
    * @param metadata the annotations associated with the directive
-   * @param exportToken the token representing the 'export' token
+   * @param keyword the token representing the 'export' keyword
    * @param libraryUri the URI of the library being exported
    * @param combinators the combinators used to control which names are exported
-   * @param semicolon the semicolon terminating the statement
+   * @param semicolon the semicolon terminating the directive
    */
-  public ExportDirective(List<Annotation> metadata, Token exportToken, StringLiteral libraryUri,
-      List<Combinator> combinators, Token semicolon) {
-    super(metadata);
-    this.exportToken = exportToken;
-    this.libraryUri = becomeParentOf(libraryUri);
-    this.combinators.addAll(combinators);
-    this.semicolon = semicolon;
+  public ExportDirective(Comment comment, List<Annotation> metadata, Token keyword,
+      StringLiteral libraryUri, List<Combinator> combinators, Token semicolon) {
+    super(comment, metadata, keyword, libraryUri, combinators, semicolon);
   }
 
   @Override
@@ -76,82 +53,9 @@ public class ExportDirective extends Directive {
   }
 
   @Override
-  public Token getBeginToken() {
-    return exportToken;
-  }
-
-  /**
-   * Return the combinators used to control how names are imported.
-   * 
-   * @return the combinators used to control how names are imported
-   */
-  public NodeList<Combinator> getCombinators() {
-    return combinators;
-  }
-
-  @Override
-  public Token getEndToken() {
-    return semicolon;
-  }
-
-  /**
-   * Return the token representing the 'export' token.
-   * 
-   * @return the token representing the 'export' token
-   */
-  public Token getExportToken() {
-    return exportToken;
-  }
-
-  /**
-   * Return the URI of the library being exported.
-   * 
-   * @return the URI of the library being exported
-   */
-  public StringLiteral getLibraryUri() {
-    return libraryUri;
-  }
-
-  /**
-   * Return the semicolon terminating the statement.
-   * 
-   * @return the semicolon terminating the statement
-   */
-  public Token getSemicolon() {
-    return semicolon;
-  }
-
-  /**
-   * Set the token representing the 'export' token to the given token.
-   * 
-   * @param exportToken the token representing the 'export' token
-   */
-  public void setExportToken(Token exportToken) {
-    this.exportToken = exportToken;
-  }
-
-  /**
-   * Set the URI of the library being exported to the given literal.
-   * 
-   * @param literal the URI of the library being exported
-   */
-  public void setLibraryUri(StringLiteral literal) {
-    libraryUri = becomeParentOf(literal);
-  }
-
-  /**
-   * Set the semicolon terminating the statement to the given token.
-   * 
-   * @param semicolon the semicolon terminating the statement
-   */
-  public void setSemicolon(Token semicolon) {
-    this.semicolon = semicolon;
-  }
-
-  @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
-    safelyVisitChild(libraryUri, visitor);
-    combinators.accept(visitor);
+    safelyVisitChild(getLibraryUri(), visitor);
+    getCombinators().accept(visitor);
   }
 }
