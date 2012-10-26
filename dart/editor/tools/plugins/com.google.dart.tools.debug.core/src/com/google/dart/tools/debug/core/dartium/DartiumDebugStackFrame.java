@@ -242,14 +242,14 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
 
       if (script.isSystemScript()) {
         return url;
-      } else {
-        try {
-          return URI.create(url).getPath();
-        } catch (IllegalArgumentException iae) {
-          // Dartium can send us bad paths:
-          // e:\b\build\slave\dartium-win-full\build\src\build\Relea ... rt\dart\CanvasRenderingContext2DImpl.dart
-          DartDebugCorePlugin.logInfo("Illegal path from Dartium: " + url);
-        }
+      }
+
+      try {
+        return URI.create(url).getPath();
+      } catch (IllegalArgumentException iae) {
+        // Dartium can send us bad paths:
+        // e:\b\build\slave\dartium-win-full\build ... rt\dart\CanvasRenderingContext2DImpl.dart
+        DartDebugCorePlugin.logInfo("Illegal path from Dartium: " + url);
       }
     }
 

@@ -38,14 +38,16 @@ public class DebuggerEditorInput extends FileStoreEditorInput {
 
   @Override
   public String getName() {
-    // Convert dart_foo$123456.dart to dart:foo.
-    String name = super.getName().replaceFirst("\\$", ":");
+    // Convert dart_foo$$123456.dart to dart:foo.
+    String name = super.getName();
 
     int index = name.indexOf("$$");
 
     if (index != -1) {
       name = name.substring(0, index);
     }
+
+    name = name.replaceFirst("~", ":");
 
     return name;
   }

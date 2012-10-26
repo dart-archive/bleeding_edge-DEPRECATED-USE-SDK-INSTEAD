@@ -39,35 +39,25 @@ public class DartiumRemoteScriptSourceContainer extends AbstractSourceContainer 
   public static final String TYPE_ID = DebugPlugin.getUniqueIdentifier()
       + ".containerType.workspace"; //$NON-NLS-1$
 
-  private static final Object[] EMPTY_COLLECTION = new Object[0];
-
   public DartiumRemoteScriptSourceContainer() {
 
   }
 
   @Override
   public Object[] findSourceElements(String name) throws CoreException {
-    if (name != null && name.startsWith("dart:")) {
-      DartiumDebugTarget target = DartiumDebugTarget.getActiveTarget();
+    if (name == null) {
+      return EMPTY;
+    }
 
-      if (target != null) {
-        WebkitScript script = target.getConnection().getDebugger().getScriptByUrl(name);
+    DartiumDebugTarget target = DartiumDebugTarget.getActiveTarget();
 
-        if (script != null) {
-          if (!script.hasScriptSource()) {
-            try {
-              target.getConnection().getDebugger().populateScriptSource(script);
-            } catch (IOException e) {
-              throw new CoreException(new Status(
-                  IStatus.ERROR,
-                  DartDebugCorePlugin.PLUGIN_ID,
-                  e.toString(),
-                  e));
-            }
-          }
+    if (target != null) {
+      WebkitScript script = target.getConnection().getDebugger().getScriptByUrl(name);
 
+      if (script != null) {
+        if (!script.hasScriptSource()) {
           try {
-            return new Object[] {getCreateStorageFor(script)};
+            target.getConnection().getDebugger().populateScriptSource(script);
           } catch (IOException e) {
             throw new CoreException(new Status(
                 IStatus.ERROR,
@@ -76,10 +66,20 @@ public class DartiumRemoteScriptSourceContainer extends AbstractSourceContainer 
                 e));
           }
         }
+
+        try {
+          return new Object[] {getCreateStorageFor(script)};
+        } catch (IOException e) {
+          throw new CoreException(new Status(
+              IStatus.ERROR,
+              DartDebugCorePlugin.PLUGIN_ID,
+              e.toString(),
+              e));
+        }
       }
     }
 
-    return EMPTY_COLLECTION;
+    return EMPTY;
   }
 
   @Override
@@ -94,7 +94,17 @@ public class DartiumRemoteScriptSourceContainer extends AbstractSourceContainer 
 
   private LocalFileStorage getCreateStorageFor(WebkitScript script) throws IOException {
     if (script.getPrivateData() == null) {
-      File file = File.createTempFile(script.getUrl().replace(':', '_') + "$", ".dart");
+      String url = script.getUrl();
+
+      if (url.indexOf('/') != -1) {
+        url = url.substring(url.lastIndexOf('/') + 1);
+      } else if (url.indexOf('\\') != -1) {
+        url = url.substring(url.lastIndexOf('\\') + 1);
+      }
+
+      url = url.replace(':', '~') + "$$";
+
+      File file = File.createTempFile(url, ".dart");
       file.deleteOnExit();
 
       Writer out = new OutputStreamWriter(new FileOutputStream(file), Charset.forName("UTF8"));
@@ -110,5 +120,4 @@ public class DartiumRemoteScriptSourceContainer extends AbstractSourceContainer 
 
     return (LocalFileStorage) script.getPrivateData();
   }
-
 }

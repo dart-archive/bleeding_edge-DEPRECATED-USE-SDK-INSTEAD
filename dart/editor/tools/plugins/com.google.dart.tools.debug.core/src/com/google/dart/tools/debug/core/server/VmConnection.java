@@ -327,6 +327,15 @@ public class VmConnection {
     }
   }
 
+  /**
+   * This synchronous, potentially long-running call returns the cached source for the given
+   * libraryId and source url.
+   * 
+   * @param isolate
+   * @param libraryId
+   * @param url
+   * @return
+   */
   public String getScriptSource(VmIsolate isolate, final int libraryId, String url) {
     final String cacheKey = libraryId + ":" + url;
 
@@ -361,68 +370,68 @@ public class VmConnection {
     return sourceCache.get(cacheKey);
   }
 
-  /**
-   * This synchronous, potentially long-running call returns the cached source for the given script
-   * url, if any.
-   * 
-   * @param url
-   * @return
-   */
-  public String getScriptSource(final VmIsolate isolate, final String url) {
-    if (!sourceCache.containsKey(url)) {
-      try {
-        final CountDownLatch latch = new CountDownLatch(1);
-
-        getLibraries(isolate, new VmCallback<List<VmLibraryRef>>() {
-          @Override
-          public void handleResult(VmResult<List<VmLibraryRef>> result) {
-            if (result.isError()) {
-              sourceCache.put(url, null);
-              latch.countDown();
-            } else {
-              for (VmLibraryRef library : result.getResult()) {
-                if (url.equals(library.getUrl())) {
-                  try {
-                    getScriptSourceAsync(isolate, library.getId(), url, new VmCallback<String>() {
-                      @Override
-                      public void handleResult(VmResult<String> result) {
-                        if (result.isError()) {
-                          sourceCache.put(url, null);
-                        } else {
-                          sourceCache.put(url, result.getResult());
-                        }
-
-                        latch.countDown();
-                      }
-                    });
-                  } catch (IOException e) {
-                    sourceCache.put(url, null);
-                    latch.countDown();
-                  }
-
-                  return;
-                }
-              }
-
-              // No matches found.
-              sourceCache.put(url, null);
-              latch.countDown();
-            }
-          }
-        });
-
-        try {
-          latch.await();
-        } catch (InterruptedException e) {
-
-        }
-      } catch (IOException ioe) {
-        sourceCache.put(url, null);
-      }
-    }
-
-    return sourceCache.get(url);
-  }
+//  /**
+//   * This synchronous, potentially long-running call returns the cached source for the given script
+//   * url, if any.
+//   * 
+//   * @param url
+//   * @return
+//   */
+//  public String getScriptSource(final VmIsolate isolate, final String url) {
+//    if (!sourceCache.containsKey(url)) {
+//      try {
+//        final CountDownLatch latch = new CountDownLatch(1);
+//
+//        getLibraries(isolate, new VmCallback<List<VmLibraryRef>>() {
+//          @Override
+//          public void handleResult(VmResult<List<VmLibraryRef>> result) {
+//            if (result.isError()) {
+//              sourceCache.put(url, null);
+//              latch.countDown();
+//            } else {
+//              for (VmLibraryRef library : result.getResult()) {
+//                if (url.equals(library.getUrl())) {
+//                  try {
+//                    getScriptSourceAsync(isolate, library.getId(), url, new VmCallback<String>() {
+//                      @Override
+//                      public void handleResult(VmResult<String> result) {
+//                        if (result.isError()) {
+//                          sourceCache.put(url, null);
+//                        } else {
+//                          sourceCache.put(url, result.getResult());
+//                        }
+//
+//                        latch.countDown();
+//                      }
+//                    });
+//                  } catch (IOException e) {
+//                    sourceCache.put(url, null);
+//                    latch.countDown();
+//                  }
+//
+//                  return;
+//                }
+//              }
+//
+//              // No matches found.
+//              sourceCache.put(url, null);
+//              latch.countDown();
+//            }
+//          }
+//        });
+//
+//        try {
+//          latch.await();
+//        } catch (InterruptedException e) {
+//
+//        }
+//      } catch (IOException ioe) {
+//        sourceCache.put(url, null);
+//      }
+//    }
+//
+//    return sourceCache.get(url);
+//  }
 
   public void getScriptSourceAsync(VmIsolate isolate, int libraryId, String url,
       final VmCallback<String> callback) throws IOException {

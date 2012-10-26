@@ -176,8 +176,6 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 
     if ("file".equals(uri.getScheme())) {
       return uri.getPath();
-    } else if (PackageLibraryManager.isDartUri(uri)) {
-      return uri.toString();
     } else {
       return "builtin:" + vmFrame.getLibraryId() + ":" + vmFrame.getLocation().getUrl();
     }

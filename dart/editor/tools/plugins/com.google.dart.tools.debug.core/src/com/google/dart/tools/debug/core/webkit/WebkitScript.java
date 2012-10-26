@@ -128,7 +128,20 @@ public class WebkitScript {
   }
 
   public boolean isSystemScript() {
-    return url != null && url.startsWith("dart:");
+    if (url == null) {
+      return false;
+    }
+
+    if (url.startsWith("dart:")) {
+      return true;
+    }
+
+    // TODO(devoncarew): this hack has to do with how Dartium is built, and will go away at some point
+    if (url.startsWith("/Volumes/data/b/build/") || url.startsWith("e:\\b\\build\\slave")) {
+      return true;
+    }
+
+    return false;
   }
 
   public void setPrivateData(Object object) {

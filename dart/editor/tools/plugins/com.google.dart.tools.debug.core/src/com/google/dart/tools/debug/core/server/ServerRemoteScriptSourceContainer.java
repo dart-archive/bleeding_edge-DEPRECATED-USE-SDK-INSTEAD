@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.debug.core.server;
 
-import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
 import org.eclipse.core.runtime.CoreException;
@@ -41,8 +40,6 @@ public class ServerRemoteScriptSourceContainer extends AbstractSourceContainer {
   public static final String TYPE_ID = DebugPlugin.getUniqueIdentifier()
       + ".containerType.workspace"; //$NON-NLS-1$
 
-  private static final Object[] EMPTY_COLLECTION = new Object[0];
-
   private Map<String, LocalFileStorage> cachedSourceMap = new HashMap<String, LocalFileStorage>();
 
   public ServerRemoteScriptSourceContainer() {
@@ -51,57 +48,42 @@ public class ServerRemoteScriptSourceContainer extends AbstractSourceContainer {
 
   @Override
   public Object[] findSourceElements(String name) throws CoreException {
-    if (name != null) {
-      if (name.startsWith("builtin:")) {
-        ServerDebugTarget target = ServerDebugTarget.getActiveTarget();
+    if (name == null) {
+      return EMPTY;
+    }
 
-        if (target != null) {
-          String[] strs = name.split(":");
+    if (name.startsWith("builtin:")) {
+      ServerDebugTarget target = ServerDebugTarget.getActiveTarget();
 
-          int libraryId = Integer.parseInt(strs[1]);
-          String url = strs[2];
+      if (target != null) {
+        // builtin:id:url
+        name = name.substring("builtin:".length());
+        int index = name.indexOf(':');
+        String url = name.substring(index + 1);
+        int libraryId = Integer.parseInt(name.substring(0, index));
 
-          String source = target.getConnection().getScriptSource(
-              target.getMainIsolate(),
-              libraryId,
-              url);
+        // TODO(devoncarew): change the buildin: format to an opaque token into a map; this will
+        // let us eliminate the call to target.getMainIsolate(). 
+        String source = target.getConnection().getScriptSource(
+            target.getMainIsolate(),
+            libraryId,
+            url);
 
-          if (source != null) {
-            try {
-              return new Object[] {getCreateStorageFor(url, source)};
-            } catch (IOException e) {
-              throw new CoreException(new Status(
-                  IStatus.ERROR,
-                  DartDebugCorePlugin.PLUGIN_ID,
-                  e.toString(),
-                  e));
-            }
-          }
-        }
-      }
-
-      if (PackageLibraryManager.isDartSpec(name)) {
-        ServerDebugTarget target = ServerDebugTarget.getActiveTarget();
-
-        if (target != null) {
-          String source = target.getConnection().getScriptSource(target.getMainIsolate(), name);
-
-          if (source != null) {
-            try {
-              return new Object[] {getCreateStorageFor(name, source)};
-            } catch (IOException e) {
-              throw new CoreException(new Status(
-                  IStatus.ERROR,
-                  DartDebugCorePlugin.PLUGIN_ID,
-                  e.toString(),
-                  e));
-            }
+        if (source != null) {
+          try {
+            return new Object[] {getCreateStorageFor(url, source)};
+          } catch (IOException e) {
+            throw new CoreException(new Status(
+                IStatus.ERROR,
+                DartDebugCorePlugin.PLUGIN_ID,
+                e.toString(),
+                e));
           }
         }
       }
     }
 
-    return EMPTY_COLLECTION;
+    return EMPTY;
   }
 
   @Override
@@ -122,7 +104,7 @@ public class ServerRemoteScriptSourceContainer extends AbstractSourceContainer {
         fileName = "dart:" + fileName;
       }
 
-      File file = File.createTempFile(fileName.replace(':', '$') + "$$", ".dart");
+      File file = File.createTempFile(fileName.replace(':', '~') + "$$", ".dart");
       file.deleteOnExit();
 
       Writer out = new OutputStreamWriter(new FileOutputStream(file), Charset.forName("UTF8"));
