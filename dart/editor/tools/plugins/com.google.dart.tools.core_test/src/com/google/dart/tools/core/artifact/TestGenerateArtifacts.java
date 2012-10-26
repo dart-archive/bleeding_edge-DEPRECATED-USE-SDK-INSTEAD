@@ -43,7 +43,8 @@ public class TestGenerateArtifacts extends TestCase {
 
     InMemoryIndex index = InMemoryIndex.getInstance();
     index.initializeIndex();
-    AnalysisTestUtilities.waitForAnalysis();
+//    AnalysisTestUtilities.waitForAnalysis();
+    AnalysisTestUtilities.waitForIdle(60000 * 3);
     final CountDownLatch latch = new CountDownLatch(1);
     index.notify(new NotifyCallback() {
       @Override
