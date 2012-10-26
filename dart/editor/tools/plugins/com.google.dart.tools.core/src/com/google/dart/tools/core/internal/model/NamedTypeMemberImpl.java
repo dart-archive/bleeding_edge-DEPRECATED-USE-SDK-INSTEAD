@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.info.DeclarationElementInfo;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModifiers;
@@ -49,8 +50,12 @@ public abstract class NamedTypeMemberImpl extends DartTypeMemberImpl {
     DeclarationElementInfo info;
     try {
       info = (DeclarationElementInfo) getElementInfo();
-    } catch (DartModelException e) {
-      throw new IllegalStateException(); // not reached, exception not thrown
+    } catch (DartModelException exception) {
+      // TODO(brianwilkerson) It was originally believed that this exception could not be thrown and
+      // that this catch block was unreachable, but we now know that this is not true and need to
+      // understand when this occurs and how to handle the exception.
+      DartCore.logError("Could not get modifiers for " + toStringWithAncestors(), exception);
+      throw new IllegalStateException(exception);
     }
     return new DartModifiers(info.getModifiers());
   }
