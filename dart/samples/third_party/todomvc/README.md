@@ -1,7 +1,7 @@
 TodoMVC sample application written with web-components and templates bound to
 models.
 
-To run this code, launch `web/_main.html.html`. If this file does not exist
+To run this code, launch `web/out/_main.html.html`. If this file does not exist
 yet, right click on "build.dart" and select "Run".
 
 Generated code will start with an underscore. Any time you edit and save a
