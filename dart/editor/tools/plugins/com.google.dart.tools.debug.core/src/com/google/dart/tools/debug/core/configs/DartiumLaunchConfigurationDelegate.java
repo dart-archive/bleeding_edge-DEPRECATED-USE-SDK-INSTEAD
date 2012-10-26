@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.core.configs;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.util.BrowserManager;
 
 import org.eclipse.core.resources.IFile;
@@ -26,7 +27,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 
 import java.util.concurrent.Semaphore;
 
@@ -34,7 +34,7 @@ import java.util.concurrent.Semaphore;
  * The launch configuration delegate for the com.google.dart.tools.debug.core.dartiumLaunchConfig
  * launch config.
  */
-public class DartiumLaunchConfigurationDelegate extends LaunchConfigurationDelegate {
+public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationDelegate {
   private static Semaphore launchSemaphore = new Semaphore(1);
 
   /**

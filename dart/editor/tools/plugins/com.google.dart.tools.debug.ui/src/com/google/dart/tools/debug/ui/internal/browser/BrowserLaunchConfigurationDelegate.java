@@ -22,6 +22,7 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.util.ResourceServer;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
@@ -37,7 +38,6 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -56,7 +56,7 @@ import java.util.List;
 /**
  * Launches the Dart application (compiled to js) in the browser.
  */
-public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDelegate {
+public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationDelegate {
 
   public static void openBrowser(String url) throws CoreException {
     IWebBrowser browser = null;

@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.server.ServerDebugTarget;
 import com.google.dart.tools.debug.core.util.NetUtils;
 
@@ -33,7 +34,6 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IProcess;
-import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -50,7 +50,7 @@ import java.util.Map;
 /**
  * The Dart Server Application launch configuration.
  */
-public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDelegate {
+public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurationDelegate {
   private static final int DEFAULT_PORT_NUMBER = 5858;
 
   /**
