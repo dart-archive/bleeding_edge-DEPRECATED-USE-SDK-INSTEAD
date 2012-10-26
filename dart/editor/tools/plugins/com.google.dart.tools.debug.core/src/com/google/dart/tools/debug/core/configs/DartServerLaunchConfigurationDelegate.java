@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.core.configs;
 
+import com.google.dart.compiler.util.apache.ObjectUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
@@ -275,7 +276,9 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     boolean launchTerminated = false;
 
     for (ILaunch launch : manager.getLaunches()) {
-      if (launch.getLaunchConfiguration().equals(currentLaunch.getLaunchConfiguration())) {
+      if (ObjectUtils.equals(
+          launch.getLaunchConfiguration(),
+          currentLaunch.getLaunchConfiguration())) {
         try {
           launchTerminated = true;
           launch.terminate();
