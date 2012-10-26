@@ -27,7 +27,7 @@ class Balls {
   ];
 
   DivElement root;
-  int lastTime;
+  num lastTime;
   List<Ball> balls;
 
   Balls() :
@@ -39,7 +39,7 @@ class Balls {
     setElementSize(root, 0.0, 0.0, 0.0, 0.0);
   }
 
-  void tick(int now) {
+  void tick(num now) {
     showFps(1000.0 / (now - lastTime + 0.01));
 
     double delta = min((now - lastTime) / 1000.0, 0.1);

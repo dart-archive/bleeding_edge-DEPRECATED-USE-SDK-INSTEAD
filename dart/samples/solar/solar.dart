@@ -118,11 +118,8 @@ class SolarSystem {
     requestRedraw();
   }
 
-  void draw(int time) {
-    if (time == null) {
-      // time can be null for some implementations of requestAnimationFrame
-      time = new Date.now().millisecondsSinceEpoch;
-    }
+  void draw(num _) {
+    num time = new Date.now().millisecondsSinceEpoch;
 
     if (renderTime != null) {
       showFps((1000 / (time - renderTime)).round());
