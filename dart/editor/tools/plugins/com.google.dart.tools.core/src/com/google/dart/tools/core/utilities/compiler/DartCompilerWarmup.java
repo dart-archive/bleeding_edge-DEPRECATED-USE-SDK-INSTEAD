@@ -20,8 +20,8 @@ import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
-import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.UrlSource;
 import com.google.dart.compiler.metrics.CompilerMetrics;
@@ -211,12 +211,9 @@ public class DartCompilerWarmup {
           return metrics;
         }
       };
-      DartCompilerUtilities.warmUpStart();
       DartCompilerUtilities.secureCompileLib(libSrc, config, provider, listener);
-    } catch (Exception e) {
+    } catch (IOException e) {
       DartCore.logError(e);
-    } finally {
-      DartCompilerUtilities.warmUpDone();
     }
     if (DartCoreDebug.WARMUP) {
       ByteArrayOutputStream out = new ByteArrayOutputStream(400);
