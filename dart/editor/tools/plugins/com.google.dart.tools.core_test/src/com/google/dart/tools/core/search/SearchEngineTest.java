@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.search;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.dart.compiler.DartCompilationError;
@@ -41,8 +43,6 @@ import junit.framework.TestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.NullProgressMonitor;
-
-import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -273,7 +273,7 @@ public class SearchEngineTest extends TestCase {
     try {
       String source = buildSource(
           "// filler filler filler filler filler filler filler filler filler filler",
-          "int get test() {",
+          "int get test {",
           "  return 42;",
           "}",
           "f() {",
@@ -758,7 +758,7 @@ public class SearchEngineTest extends TestCase {
       String source = buildSource(
           "// filler filler filler filler filler filler filler filler filler filler",
           "class A {",
-          "  int get test() {",
+          "  int get test {",
           "    return 42;",
           "  }",
           "}",

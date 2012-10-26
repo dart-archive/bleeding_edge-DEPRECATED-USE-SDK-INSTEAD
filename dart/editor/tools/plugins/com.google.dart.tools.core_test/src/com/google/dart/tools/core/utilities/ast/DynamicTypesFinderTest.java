@@ -13,6 +13,11 @@
  */
 package com.google.dart.tools.core.utilities.ast;
 
+import java.util.Collection;
+import java.util.List;
+
+import junit.framework.TestCase;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
@@ -23,47 +28,10 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
-import junit.framework.TestCase;
-
-import java.util.Collection;
-import java.util.List;
-
 /**
  * Test for {@link DynamicTypesFinder}.
  */
 public class DynamicTypesFinderTest extends TestCase {
-
-  public void testGetterSetter() throws Exception {
-    assertMatches(
-        join(
-            "class Foo {",
-            "    String _foo;",
-            "    String get !1fooBar() => _foo == null ? 'none' : _foo;",
-            "           set !2fooBar(String foo) => _foo = foo;",
-            "}"),
-        "1-fooBar",
-        "2-fooBar");
-  }
-
-  public void testLocals() throws Exception {
-    assertMatches(
-        join(
-            "class Foo {",
-            "  main() {",
-            "    new Foo().foo();",
-            "  }",
-            "  void foo(){",
-            "    var !1x;",
-            //"    !2x = 3;",
-            "    int !3y = 3;",
-            "    var !4z = 'foo';",
-            "  }",
-            "}"),
-        "1+x",
-        //"2+x",
-        "3-y",
-        "4-z");
-  }
 
   /**
    * Assert that the given source has the expected matches (indicating refinable types).
@@ -106,6 +74,38 @@ public class DynamicTypesFinderTest extends TestCase {
     //source locations are flagged using !n (e.g., var !1x = 3) and this strips out the !n
     //in order to make the source parseable
     return src.replaceAll("![\\d]", "");
+  }
+
+  public void testGetterSetter() throws Exception {
+    assertMatches(
+        join(
+            "class Foo {",
+            "    String _foo;",
+            "    String get !1fooBar => _foo == null ? 'none' : _foo;",
+            "           set !2fooBar(String foo) => _foo = foo;",
+            "}"),
+        "1-fooBar",
+        "2-fooBar");
+  }
+
+  public void testLocals() throws Exception {
+    assertMatches(
+        join(
+            "class Foo {",
+            "  main() {",
+            "    new Foo().foo();",
+            "  }",
+            "  void foo(){",
+            "    var !1x;",
+            //"    !2x = 3;",
+            "    int !3y = 3;",
+            "    var !4z = 'foo';",
+            "  }",
+            "}"),
+        "1+x",
+        //"2+x",
+        "3-y",
+        "4-z");
   }
 
   private void verifyLocations(LocationSpec test, Iterable<DartIdentifier> matches) {

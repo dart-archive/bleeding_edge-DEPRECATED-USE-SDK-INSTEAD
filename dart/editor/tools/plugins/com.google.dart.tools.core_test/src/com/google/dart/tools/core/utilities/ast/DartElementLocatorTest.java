@@ -15,6 +15,12 @@ package com.google.dart.tools.core.utilities.ast;
 
 import static org.fest.assertions.Assertions.assertThat;
 
+import java.util.List;
+
+import junit.framework.TestCase;
+
+import org.eclipse.core.resources.IResource;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
@@ -31,12 +37,6 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
-
-import junit.framework.TestCase;
-
-import org.eclipse.core.resources.IResource;
-
-import java.util.List;
 
 /**
  * Test for {@link DartElementLocator}.
@@ -513,13 +513,13 @@ public class DartElementLocatorTest extends TestCase {
             "// filler filler filler filler filler filler filler filler filler filler filler",
             "process(x) {}",
             "class A {",
-            "  get test() {}",
+            "  get test {}",
             "  set test(x) {}",
             "}",
             ""),
-        "est() {",
+        "est {",
         Method.class,
-        "test() {",
+        "test {",
         4);
   }
 
@@ -529,7 +529,7 @@ public class DartElementLocatorTest extends TestCase {
             "// filler filler filler filler filler filler filler filler filler filler filler",
             "process(x) {}",
             "class A {",
-            "  get test() {}",
+            "  get test {}",
             "  set test(x) {}",
             "}",
             "f() {",
@@ -539,7 +539,7 @@ public class DartElementLocatorTest extends TestCase {
             ""),
         "test);",
         Method.class,
-        "test() {",
+        "test {",
         4);
   }
 
@@ -625,7 +625,7 @@ public class DartElementLocatorTest extends TestCase {
             "// filler filler filler filler filler filler filler filler filler filler filler",
             "process(x) {}",
             "class A {",
-            "  get test() {}",
+            "  get test {}",
             "  set test(x) {}",
             "}",
             ""),
@@ -640,7 +640,7 @@ public class DartElementLocatorTest extends TestCase {
         formatLines(
             "// filler filler filler filler filler filler filler filler filler filler filler",
             "class A {",
-            "  get test() {}",
+            "  get test {}",
             "  set test(x) {}",
             "}",
             "f() {",

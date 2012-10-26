@@ -178,7 +178,7 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int get test() {",
+        "  int get test {",
         "    return 42;",
         "  }",
         "}",
@@ -187,19 +187,49 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "  print(a.test);",
         "}",
         "");
-    Method method = findElement("test() {");
+    Method method = findElement("test {");
     // do rename
     renameMethod(method, "newName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int get newName() {",
+        "  int get newName {",
         "    return 42;",
         "  }",
         "}",
         "f() {",
         "  A a = new A();",
         "  print(a.newName);",
+        "}",
+        "");
+  }
+
+  public void test_OK_inexactReferences() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {}",
+        "}",
+        "f1(A a) {",
+        "  a.test();",
+        "}",
+        "f2(a) {",
+        "  a.test();",
+        "}",
+        "");
+    Method method = findElement("test() {}");
+    // do rename
+    renameMethod(method, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  newName() {}",
+        "}",
+        "f1(A a) {",
+        "  a.newName();",
+        "}",
+        "f2(a) {",
+        "  a.newName();",
         "}",
         "");
   }
@@ -459,36 +489,6 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "    newName(6);",
         "  }",
         "}");
-  }
-  
-  public void test_OK_inexactReferences() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  test() {}",
-        "}",
-        "f1(A a) {",
-        "  a.test();",
-        "}",
-        "f2(a) {",
-        "  a.test();",
-        "}",
-        "");
-    Method method = findElement("test() {}");
-    // do rename
-    renameMethod(method, "newName");
-    assertTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  newName() {}",
-        "}",
-        "f1(A a) {",
-        "  a.newName();",
-        "}",
-        "f2(a) {",
-        "  a.newName();",
-        "}",
-        "");
   }
 
   public void test_OK_singleUnit_onReference() throws Exception {
