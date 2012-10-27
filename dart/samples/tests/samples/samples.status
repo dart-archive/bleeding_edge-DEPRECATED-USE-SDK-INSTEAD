@@ -4,6 +4,14 @@
 
 [ $compiler == dartc ]
 chat/*: Skip
+# samples issue 6332
+dartcombat/dartcombat_test: Fail, OK
+lib/touch/touch_test: Fail, OK
+lib/layout/layout_test: Fail, OK
+lib/view/view_test: Fail, OK
+swarm/swarm_test: Fail, OK
+
+
 
 [ $arch == x64 ]
 *: Skip
