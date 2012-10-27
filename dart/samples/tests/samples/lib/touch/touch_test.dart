@@ -13,18 +13,18 @@
 main() {
   useHtmlConfiguration();
   test('Solver', () {
-    expect(Solver.solve((x) => x * x, 81, 10)).approxEquals(9);
-    expect(Solver.solve((x) => x * x, 0, 10)).approxEquals(0);
-    expect(Solver.solve((x) => x * x, 1.5625, 10)).approxEquals(1.25);
-    expect(Solver.solve((x) => 1 / x, 10, 1)).approxEquals(0.1);
+    expect(Solver.solve((x) => x * x, 81, 10), isCloseTo(9, 0.1));
+    expect(Solver.solve((x) => x * x, 0, 10), isCloseTo(0, 0.1));
+    expect(Solver.solve((x) => x * x, 1.5625, 10), isCloseTo(1.25, 0.1));
+    expect(Solver.solve((x) => 1 / x, 10, 1), isCloseTo(0.1, 0.1));
   });
 
   group('Momentum', () {
     test('SingleDimensionPhysics', () {
-      expect(new SingleDimensionPhysics().solve(0, 0, 1)).equals(0);
-      expect(new SingleDimensionPhysics().solve(0, 5, 1)).equals(0);
-      expect(new SingleDimensionPhysics().solve(0, 100, 1)).equals(0);
-      expect(new SingleDimensionPhysics().solve(0, 100, 0.5)).equals(0);
+      expect(new SingleDimensionPhysics().solve(0, 0, 1), equals(0));
+      expect(new SingleDimensionPhysics().solve(0, 5, 1), equals(0));
+      expect(new SingleDimensionPhysics().solve(0, 100, 1), equals(0));
+      expect(new SingleDimensionPhysics().solve(0, 100, 0.5), equals(0));
     });
 
     test('TimeoutMomentum()', () {
