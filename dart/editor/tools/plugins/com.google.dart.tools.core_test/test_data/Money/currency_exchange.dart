@@ -6,7 +6,7 @@
  * The interface [CurrencyExchange] defines the behavior of classes that can
  * convert from one currency to another.
  */
-interface CurrencyExchange {
+abstract class CurrencyExchange {
   int convert(int amount, String sourceCurrency, String targetCurrency);
 }
 

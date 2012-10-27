@@ -13,7 +13,7 @@
  * The interface [Money] defines the behavior of objects representing a monitary
  * quantity.
  */
-interface Money {
+abstract class Money {
   Money operator +(Money money);
 
   Money addComplexMoney(ComplexMoney money);

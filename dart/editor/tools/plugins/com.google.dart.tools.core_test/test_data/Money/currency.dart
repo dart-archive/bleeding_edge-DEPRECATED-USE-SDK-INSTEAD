@@ -6,7 +6,7 @@
  * The interface [Currency] defines constants used to represent various
  * currencies. These constants conform to the ISO 4217 currency names.
  */
-interface Currency {
+abstract class Currency {
   static final String CAD = "CAD";
   static final String DKK = "DKK";
   static final String EUR = "EUR";

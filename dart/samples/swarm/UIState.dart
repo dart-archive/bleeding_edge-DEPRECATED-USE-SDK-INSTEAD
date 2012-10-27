@@ -5,7 +5,7 @@
 /**
  * The base class for UI state that intends to support browser history.
  */
-class UIState {
+abstract class UIState {
   /**
    * The event listener we hook to the window's "popstate" event.
    * This event is triggered by the back button or by the first page load.
@@ -64,10 +64,10 @@ class UIState {
   /**
    * Serialize the state to a form suitable for storing in browser history.
    */
-  abstract Map<String, String> toHistory();
+  Map<String, String> toHistory();
 
   /**
    * Load the UI state from the given [values].
    */
-  abstract void loadFromHistory(Map<String, String> values);
+  void loadFromHistory(Map<String, String> values);
 }
