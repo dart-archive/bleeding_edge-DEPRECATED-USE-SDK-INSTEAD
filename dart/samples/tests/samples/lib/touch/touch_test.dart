@@ -13,10 +13,10 @@
 main() {
   useHtmlConfiguration();
   test('Solver', () {
-    expect(Solver.solve((x) => x * x, 81, 10), isCloseTo(9, 0.1));
-    expect(Solver.solve((x) => x * x, 0, 10), isCloseTo(0, 0.1));
-    expect(Solver.solve((x) => x * x, 1.5625, 10), isCloseTo(1.25, 0.1));
-    expect(Solver.solve((x) => 1 / x, 10, 1), isCloseTo(0.1, 0.1));
+    expect(Solver.solve((x) => x * x, 81, 10), closeTo(9, 0.1));
+    expect(Solver.solve((x) => x * x, 0, 10), closeTo(0, 0.1));
+    expect(Solver.solve((x) => x * x, 1.5625, 10), closeTo(1.25, 0.1));
+    expect(Solver.solve((x) => 1 / x, 10, 1), closeTo(0.1, 0.1));
   });
 
   group('Momentum', () {
