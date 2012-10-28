@@ -247,6 +247,13 @@ public class ExtractLocalRefactoring extends Refactoring {
         selectionRange.getLength());
     selectionAnalyzer = new SelectionAnalyzer(selection, false);
     unitNode.accept(selectionAnalyzer);
+    // XXX
+    {
+      DartNode coveringNode = selectionAnalyzer.getLastCoveringNode();
+      if (ASTNodes.getAncestor(coveringNode, DartBlock.class) == null) {
+        return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.ExtractLocalRefactoring_select_in_function);
+      }
+    }
     // single node selected
     if (selectionAnalyzer.getSelectedNodes().length == 1
         && !utils.rangeIncludesNonWhitespaceOutsideNode(

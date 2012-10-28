@@ -91,6 +91,7 @@ public final class RefactoringCoreMessages extends NLS {
   ///////////////////////////////////////////////////////////////////////////////////////
   public static String ExtractLocalRefactoring_name;
   public static String ExtractLocalRefactoring_select_expression;
+  public static String ExtractLocalRefactoring_select_in_function;
   public static String ExtractLocalRefactoring_checking_preconditions;
   public static String ExtractLocalRefactoring_declare_local_variable;
   public static String ExtractLocalRefactoring_replace;

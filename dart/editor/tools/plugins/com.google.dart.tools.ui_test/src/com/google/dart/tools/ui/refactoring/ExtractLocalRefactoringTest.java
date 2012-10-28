@@ -39,62 +39,27 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
   private ExtractLocalRefactoring refactoring;
   private RefactoringStatus refactoringStatus;
 
-  /**
-   * Asserts that {@link refactoringStatus} has fatal error caused by selection.
-   */
-  private void assert_fatalError_selection() {
-    assertTrue(refactoringStatus.hasFatalError());
-    assertEquals(
-        "An expression must be selected to activate this refactoring.",
-        refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL));
-  }
-
-  private void assert_warning_alreadyDefined() {
-    assertTrue(refactoringStatus.hasWarning());
-    assertEquals(
-        "A variable with name 'res' is already defined in the visible scope.",
-        refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.WARNING));
-  }
-
-  /**
-   * Creates refactoring and checks all conditions.
-   */
-  private void createRefactoring(String name) throws Exception {
-    int selectionLength = selectionEnd - selectionStart;
-    refactoring = new ExtractLocalRefactoring(testUnit, selectionStart, selectionLength);
-    refactoring.setLocalName(name);
-    refactoring.setReplaceAllOccurrences(replaceAllOccurences);
-    refactoringStatus = refactoring.checkAllConditions(pm);
-  }
-
-  private void doSuccessfullRefactoring() throws Exception {
-    // create refactoring
-    createRefactoring("res");
-    // OK status
-    if (!refactoringStatus.isOK()) {
-      fail(refactoringStatus.toString());
-    }
-    // perform change
-    performRefactoringChange();
-  }
-
-  private void performRefactoringChange() throws Exception {
-    ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-      @Override
-      public void run(IProgressMonitor monitor) throws CoreException {
-        Change change = refactoring.createChange(pm);
-        change.initializeValidationData(pm);
-        new PerformChangeOperation(change).run(pm);
-      }
-    }, null);
-  }
-
   public void test_access() throws Exception {
     setTestUnitContent();
     createRefactoring("res");
     assertEquals("Extract Local Variable", refactoring.getName());
     assertThat(refactoring.guessNames()).isEmpty();
     assertEquals(true, refactoring.replaceAllOccurrences());
+  }
+
+  public void test_bad_notPartOfFunction() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int a = 1 + 2;",
+        "");
+    selectionStart = findOffset("1 + 2");
+    selectionEnd = findOffset(";");
+    // check conditions
+    createRefactoring("res");
+    assertTrue(refactoringStatus.hasFatalError());
+    assertEquals(
+        "An expression inside of function must be selected to activate this refactoring.",
+        refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL));
   }
 
   public void test_bad_sameVariable_after() throws Exception {
@@ -584,5 +549,55 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
         "  int res = 1 + 2 ;",
         "  int a = res; // marker",
         "}");
+  }
+
+  /**
+   * Asserts that {@link refactoringStatus} has fatal error caused by selection.
+   */
+  private void assert_fatalError_selection() {
+    assertTrue(refactoringStatus.hasFatalError());
+    assertEquals(
+        "An expression must be selected to activate this refactoring.",
+        refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL));
+  }
+
+  private void assert_warning_alreadyDefined() {
+    assertTrue(refactoringStatus.hasWarning());
+    assertEquals(
+        "A variable with name 'res' is already defined in the visible scope.",
+        refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.WARNING));
+  }
+
+  /**
+   * Creates refactoring and checks all conditions.
+   */
+  private void createRefactoring(String name) throws Exception {
+    int selectionLength = selectionEnd - selectionStart;
+    refactoring = new ExtractLocalRefactoring(testUnit, selectionStart, selectionLength);
+    refactoring.setLocalName(name);
+    refactoring.setReplaceAllOccurrences(replaceAllOccurences);
+    refactoringStatus = refactoring.checkAllConditions(pm);
+  }
+
+  private void doSuccessfullRefactoring() throws Exception {
+    // create refactoring
+    createRefactoring("res");
+    // OK status
+    if (!refactoringStatus.isOK()) {
+      fail(refactoringStatus.toString());
+    }
+    // perform change
+    performRefactoringChange();
+  }
+
+  private void performRefactoringChange() throws Exception {
+    ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+      @Override
+      public void run(IProgressMonitor monitor) throws CoreException {
+        Change change = refactoring.createChange(pm);
+        change.initializeValidationData(pm);
+        new PerformChangeOperation(change).run(pm);
+      }
+    }, null);
   }
 }
