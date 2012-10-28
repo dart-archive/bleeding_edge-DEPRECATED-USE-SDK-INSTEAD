@@ -38,11 +38,13 @@ public class Migrate_1M2_renameTypes_CleanUp extends AbstractMigrateCleanUp {
   }
 
   private static final TypeRenameSpec[] SPECS = new TypeRenameSpec[] {
+      new TypeRenameSpec("EmptyQueueException", "StateError"),
+      new TypeRenameSpec("InvalidAccessException", "UnsupportedError"),
       new TypeRenameSpec("InvalidArgumentException", "ArgumentError"),
+      new TypeRenameSpec("NoMoreElementsException", "StateError"),
       new TypeRenameSpec("OutOfMemoryException", "OutOfMemoryError"),
       new TypeRenameSpec("StackOverflowException", "StackOverflowError"),
       new TypeRenameSpec("UnsupportedOperationException", "UnsupportedError"),
-      new TypeRenameSpec("InvalidAccessException", "UnsupportedError"),
       new TypeRenameSpec("Dynamic", "dynamic"),};
 
   @Override

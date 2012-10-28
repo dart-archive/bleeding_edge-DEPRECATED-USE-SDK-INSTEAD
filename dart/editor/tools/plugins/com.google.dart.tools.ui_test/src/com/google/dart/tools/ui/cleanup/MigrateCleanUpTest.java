@@ -693,6 +693,41 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
+  public void test_1M2_methodsToGetters_collections() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  List list;",
+        "  list.last();",
+        "",
+        "  Queue queue;",
+        "  queue.first();",
+        "  queue.last();",
+        "",
+        "  Map map;",
+        "  map.getKeys();",
+        "  map.getValues();",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  List list;",
+        "  list.last;",
+        "",
+        "  Queue queue;",
+        "  queue.first;",
+        "  queue.last;",
+        "",
+        "  Map map;",
+        "  map.keys;",
+        "  map.values;",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
   public void test_1M2_methodsToGetters_interface() throws Exception {
     ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
     String initial = makeSource(
@@ -877,6 +912,31 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "  A a = new A();",
         "  print(a.hashCode);",
         "  print(a.foo());",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M2_methodsToGetters_Stopwatch() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Stopwatch sw = new Stopwatch();",
+        "  sw.frequency();",
+        "  sw.elapsedInMs();",
+        "  sw.elapsedInUs();",
+        "  sw.elapsed();",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Stopwatch sw = new Stopwatch();",
+        "  sw.frequency;",
+        "  sw.elapsedMilliseconds;",
+        "  sw.elapsedMicroseconds;",
+        "  sw.elapsedTicks;",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);

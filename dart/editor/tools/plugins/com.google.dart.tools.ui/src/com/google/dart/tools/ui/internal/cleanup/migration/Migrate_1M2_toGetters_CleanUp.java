@@ -35,11 +35,17 @@ public class Migrate_1M2_toGetters_CleanUp extends AbstractMigrateCleanUp {
     private final String libUri;
     private final String className;
     private final String methodName;
+    private final String newName;
 
     public MethodSpec(String libUri, String className, String methodName) {
+      this(libUri, className, methodName, null);
+    }
+
+    public MethodSpec(String libUri, String className, String methodName, String newName) {
       this.libUri = libUri;
       this.className = className;
       this.methodName = methodName;
+      this.newName = newName;
     }
   }
 
@@ -48,6 +54,15 @@ public class Migrate_1M2_toGetters_CleanUp extends AbstractMigrateCleanUp {
       new MethodSpec("dart://core/core.dart", "Iterator", "hasNext"),
       new MethodSpec("dart://core/core.dart", "Collection", "isEmpty"),
       new MethodSpec("dart://core/core.dart", "Map", "isEmpty"),
+      new MethodSpec("dart://core/core.dart", "Map", "getKeys", "keys"),
+      new MethodSpec("dart://core/core.dart", "Map", "getValues", "values"),
+      new MethodSpec("dart://core/core.dart", "Match", "start"),
+      new MethodSpec("dart://core/core.dart", "Match", "end"),
+      new MethodSpec("dart://core/core.dart", "Match", "groupCount"),
+      new MethodSpec("dart://core/core.dart", "List", "last"),
+      new MethodSpec("dart://core/core.dart", "Queue", "first"),
+      new MethodSpec("dart://core/core.dart", "Queue", "last"),
+      new MethodSpec("dart://core/core.dart", "String", "charCodes"),
       new MethodSpec("dart://core/core.dart", "String", "isEmpty"),
       new MethodSpec("dart://core/core.dart", "StringBuffer", "isEmpty"),
       new MethodSpec("dart://core/core.dart", "num", "isNaN"),
@@ -55,6 +70,10 @@ public class Migrate_1M2_toGetters_CleanUp extends AbstractMigrateCleanUp {
       new MethodSpec("dart://core/core.dart", "num", "isNegative"),
       new MethodSpec("dart://core/core.dart", "int", "isEven"),
       new MethodSpec("dart://core/core.dart", "int", "isOdd"),
+      new MethodSpec("dart://core/core.dart", "Stopwatch", "frequency"),
+      new MethodSpec("dart://core/core.dart", "Stopwatch", "elapsedInMs", "elapsedMilliseconds"),
+      new MethodSpec("dart://core/core.dart", "Stopwatch", "elapsedInUs", "elapsedMicroseconds"),
+      new MethodSpec("dart://core/core.dart", "Stopwatch", "elapsed", "elapsedTicks"),
       new MethodSpec(null, "_JustForInternalTest", "foo"),};
 
   /**
@@ -116,6 +135,10 @@ public class Migrate_1M2_toGetters_CleanUp extends AbstractMigrateCleanUp {
               if (targetType instanceof InterfaceType) {
                 if (isSubType((InterfaceType) targetType, spec.className, spec.libUri)) {
                   addReplaceEdit(SourceRangeFactory.forEndEnd(nameNode, node), "");
+                  // may be also rename
+                  if (spec.newName != null) {
+                    addReplaceEdit(SourceRangeFactory.create(nameNode), spec.newName);
+                  }
                 }
               }
             }
