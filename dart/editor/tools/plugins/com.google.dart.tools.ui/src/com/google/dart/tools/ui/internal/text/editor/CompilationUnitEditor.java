@@ -13,13 +13,17 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.common.base.Objects;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.AnalysisEvent;
+import com.google.dart.tools.core.analysis.AnalysisListener;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.IdleListener;
+import com.google.dart.tools.core.analysis.SavedContext;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -51,6 +55,7 @@ import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -1078,6 +1083,8 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
    */
   private final Object fReconcilerLock = new Object();
 
+  private AnalysisListener savedContextListener;
+
   /**
    * Creates a new compilation unit editor.
    */
@@ -1087,6 +1094,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     setEditorContextMenuId("#DartEditorContext"); //$NON-NLS-1$
     setRulerContextMenuId("#DartRulerContext"); //$NON-NLS-1$
     setOutlinerContextMenuId("#JavaScriptOutlinerContext"); //$NON-NLS-1$
+    scheduleReconcileAfterBuild();
     // don't set help contextId, we install our own help context
     fSavePolicy = null;
 
@@ -1140,6 +1148,8 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
   @Override
   public void dispose() {
+    SavedContext context = PackageLibraryManagerProvider.getDefaultAnalysisServer().getSavedContext();
+    context.removeAnalysisListener(savedContextListener);
 
     ISourceViewer sourceViewer = getSourceViewer();
     if (sourceViewer instanceof ITextViewerExtension) {
@@ -1816,7 +1826,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
         checkEditableState();
       }
       notifyAnalysisServerAboutFileChange();
-      scheduleReconcileAfterSaveAnalyze();
     }
   }
 
@@ -1926,29 +1935,52 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   }
 
   /**
-   * We need to wait until {@link AnalysisServer} will become idle and force reconcile to allow live
-   * problems to use imports from save unit.
+   * We need to force reconcile each time when {@link AnalysisServer} recompiles underlying file.
+   * For example: use imports from saved unit; update problems-as-you-type after external change,
+   * such as reanalyze all.
    */
-  private void scheduleReconcileAfterSaveAnalyze() {
-    final AnalysisServer analysisServer = PackageLibraryManagerProvider.getDefaultAnalysisServer();
-    analysisServer.addIdleListener(new IdleListener() {
+  private void scheduleReconcileAfterBuild() {
+    final SavedContext context = PackageLibraryManagerProvider.getDefaultAnalysisServer().getSavedContext();
+    savedContextListener = new AnalysisListener() {
       @Override
-      public void idle(boolean idle) {
-        if (idle) {
-          TextSourceViewerConfiguration configuration = (TextSourceViewerConfiguration) getSourceViewerConfiguration();
-          // may be editor is disposed
-          if (configuration == null) {
-            analysisServer.removeIdleListener(this);
-            return;
+      public void discarded(AnalysisEvent event) {
+        reconcileIfOurFile(event);
+      }
+
+      @Override
+      public void parsed(AnalysisEvent event) {
+        reconcileIfOurFile(event);
+      }
+
+      @Override
+      public void resolved(AnalysisEvent event) {
+        reconcileIfOurFile(event);
+      }
+
+      private void reconcileIfOurFile(AnalysisEvent event) {
+        IEditorInput input = getEditorInput();
+        if (input instanceof IFileEditorInput) {
+          IFile inputFile = ((IFileEditorInput) input).getFile();
+          for (File file : event.getFiles()) {
+            IResource resource = ResourceUtil.getResource(file);
+            if (Objects.equal(resource, inputFile)) {
+              TextSourceViewerConfiguration configuration = (TextSourceViewerConfiguration) getSourceViewerConfiguration();
+              // may be editor is disposed
+              if (configuration == null) {
+                context.removeAnalysisListener(this);
+                return;
+              }
+              // kick reconciler
+              ISourceViewer sourceViewer = getSourceViewer();
+              IReconciler reconciler = configuration.getReconciler(sourceViewer);
+              IReconcilingStrategy reconcilingStrategy = ((DartReconciler) reconciler).getReconcilingStrategy(IDocument.DEFAULT_CONTENT_TYPE);
+              reconcilingStrategy.reconcile(null);
+              System.out.println("reconcile: " + resource);
+            }
           }
-          // kick reconciler
-          ISourceViewer sourceViewer = getSourceViewer();
-          IReconciler reconciler = configuration.getReconciler(sourceViewer);
-          IReconcilingStrategy reconcilingStrategy = ((DartReconciler) reconciler).getReconcilingStrategy(IDocument.DEFAULT_CONTENT_TYPE);
-          reconcilingStrategy.reconcile(null);
-          analysisServer.removeIdleListener(this);
         }
       }
-    });
+    };
+    context.addAnalysisListener(savedContextListener);
   }
 }
