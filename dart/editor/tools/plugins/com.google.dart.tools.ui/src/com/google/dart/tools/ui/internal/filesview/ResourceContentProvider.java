@@ -74,9 +74,7 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
         IFileStore fileStore = (IFileStore) element;
         return fileStore.childStores(EFS.NONE, null);
       } else if (element instanceof DartSdkNode) {
-        return ((DartSdkNode) element).getChildDirectories();
-      } else if (element instanceof DartDirectoryNode) {
-        return ((DartDirectoryNode) element).getLibraries();
+        return ((DartSdkNode) element).getLibraries();
       } else if (element instanceof DartLibraryNode) {
         return ((DartLibraryNode) element).getFiles();
       }
@@ -136,14 +134,11 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
   private Map<IFileStore, DartLibraryNode> createSdkChildMap() {
     Map<IFileStore, DartLibraryNode> map = new HashMap<IFileStore, DartLibraryNode>();
 
-    for (DartDirectoryNode directoryNode : sdkNode.getChildDirectories()) {
-      for (DartLibraryNode library : directoryNode.getLibraries()) {
-        for (IFileStore child : library.getFiles()) {
-          map.put(child, library);
-        }
+    for (DartLibraryNode library : sdkNode.getLibraries()) {
+      for (IFileStore child : library.getFiles()) {
+        map.put(child, library);
       }
     }
-
     return map;
   }
 

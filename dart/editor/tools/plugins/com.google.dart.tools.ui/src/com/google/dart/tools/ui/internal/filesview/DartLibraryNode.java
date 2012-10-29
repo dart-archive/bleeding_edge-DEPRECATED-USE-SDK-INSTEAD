@@ -26,21 +26,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A representation of a sdk library (e.g. dart:core, dart:io, package:logging/logging.dart, ...).
+ * A representation of a sdk library (e.g. dart:core, dart:io, ...).
  */
 class DartLibraryNode implements IDartNode {
-  private DartDirectoryNode parent;
+  private DartSdkNode parent;
   private IFileStore root;
   private String name;
   private String category;
 
-  public DartLibraryNode(DartDirectoryNode parent, IFileStore root, String name) {
+  public DartLibraryNode(DartSdkNode parent, IFileStore root, String name) {
     this.parent = parent;
     this.root = root;
     this.name = name;
   }
 
-  public DartLibraryNode(DartDirectoryNode parent, IFileStore root, String name, String category) {
+  public DartLibraryNode(DartSdkNode parent, IFileStore root, String name, String category) {
     this.parent = parent;
     this.root = root;
     this.name = name;
@@ -68,11 +68,7 @@ class DartLibraryNode implements IDartNode {
 
   @Override
   public String getLabel() {
-    if (isPkgNode()) {
-      return "package:" + root.getName() + "/" + root.getName() + ".dart";
-    } else {
       return "dart:" + name;
-    }
   }
 
   @Override
@@ -96,10 +92,6 @@ class DartLibraryNode implements IDartNode {
     }
 
     return children;
-  }
-
-  private boolean isPkgNode() {
-    return root.getParent().getName().equals("pkg");
   }
 
 }
