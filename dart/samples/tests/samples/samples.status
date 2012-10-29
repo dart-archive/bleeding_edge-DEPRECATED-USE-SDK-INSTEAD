@@ -34,7 +34,6 @@ swarm/swarm_test: Pass, Fail # Issue 3977
 
 [ $runtime == chrome || $runtime == ff || $runtime == safari ]
 dartcombat/dartcombat_test: Skip # passes locally but timeout on bot?
-dartcombat_test: Skip
 
 [ $runtime == chrome || $runtime == ff || $runtime == safari || $runtime == ie9 ]
 lib/layout/layout_test: Fail # http://darbug.com/5132
@@ -48,8 +47,6 @@ swarm/swarm_test: Fail
 
 [ $runtime == vm ]
 dartcombat/dartcombat_test: Skip
-dartcombat_test: Skip
-swarm_test: Skip
 swarm/swarm_test: Skip
 lib/layout/layout_test: Skip
 lib/touch/touch_test: Skip
