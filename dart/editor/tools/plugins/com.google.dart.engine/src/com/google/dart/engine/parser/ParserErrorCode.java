@@ -74,6 +74,7 @@ public enum ParserErrorCode implements ErrorCode {
   EXPECTED_TOKEN("Expected to find: %s"),
 //  EXPECTED_TOKEN("Unexpected token '%s' (expected '%s')"),
 //  EXPECTED_VAR_FINAL_OR_TYPE("Expected 'var', 'final' or type"),
+  EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE("Export directives must preceed part directives"),
   EXTERNAL_CONSTRUCTOR_WITH_BODY("External constructors cannot have a body"),
   EXTERNAL_METHOD_WITH_BODY("External methods cannot have a body"),
 //  NATIVE_ONLY_CLASS("Native keyword can be specified only for classes"),
@@ -90,6 +91,7 @@ public enum ParserErrorCode implements ErrorCode {
 //  FUNCTION_NAME_EXPECTED_IDENTIFIER("Function name expected to be an identifier"),
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
 //  ILLEGAL_NUMBER_OF_PARAMETERS("Illegal number of parameters"),
+  IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE("Import directives must preceed part directives"),
 //  INCOMPLETE_STRING_LITERAL("Incomplete string literal"),
 //  INVALID_FIELD_DECLARATION("Wrong syntax for field declaration"),
 //  INVALID_IDENTIFIER("The token '%s' cannot be used as an identifier"),
@@ -114,6 +116,7 @@ public enum ParserErrorCode implements ErrorCode {
 //  NAMED_PARAMETER_NOT_ALLOWED("Named parameter is not allowed for operator or setter method"),
 //  NO_SPACE_AFTER_PLUS("Cannot have space between plus and numeric literal"),
 //  NO_SOUP_FOR_YOU("Too many errors"),
+  NON_PART_OF_DIRECTIVE_IN_PART("The part-of directive must be the only directive in a part"),
   NON_USER_DEFINABLE_OPERATOR("The operator '%s' is not user definable"),
   POSITIONAL_AFTER_NAMED_ARGUMENT("Positional arguments must occur before named arguments"),
   POSITIONAL_PARAMETER_OUTSIDE_GROUP(

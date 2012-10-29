@@ -46,13 +46,6 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseExpression", "super = x;", ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
   }
 
-  public void fail_multiplePartOfDirectives() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "part of l; part of m;",
-        ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES);
-  }
-
   public void fail_unexpectedToken_invalidPostfixExpression() throws Exception {
     // Note: this might not be the right error to produce, but some error should be produced
     parse("parseExpression", "f()++", ParserErrorCode.UNEXPECTED_TOKEN);
@@ -248,6 +241,12 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseStatement", "do {} (x);", ParserErrorCode.EXPECTED_TOKEN);
   }
 
+  public void test_exportDirectiveAfterPartDirective() throws Exception {
+    parseCompilationUnit(
+        "part 'a.dart'; export 'b.dart';",
+        ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE);
+  }
+
   public void test_externalConstructorWithBody() throws Exception {
     parse(
         "parseClassMember",
@@ -268,6 +267,12 @@ public class ErrorParserTest extends ParserTestCase {
         "super = x;",
         ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
         ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
+  }
+
+  public void test_importDirectiveAfterPartDirective() throws Exception {
+    parseCompilationUnit(
+        "part 'a.dart'; import 'b.dart';",
+        ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE);
   }
 
   public void test_libraryDirectiveNotFirst() throws Exception {
@@ -339,6 +344,13 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS);
   }
 
+  public void test_multiplePartOfDirectives() throws Exception {
+    parse(
+        "parseCompilationUnit",
+        "part of l; part of m;",
+        ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES);
+  }
+
   public void test_multiplePositionalParameterGroups() throws Exception {
     parse(
         "parseFormalParameterList",
@@ -348,6 +360,20 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_namedParameterOutsideGroup() throws Exception {
     parse("parseFormalParameterList", "(a, b : 0)", ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP);
+  }
+
+  public void test_nonPartOfDirectiveInPart_after() throws Exception {
+    parse(
+        "parseCompilationUnit",
+        "part of l; part 'f.dart';",
+        ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART);
+  }
+
+  public void test_nonPartOfDirectiveInPart_before() throws Exception {
+    parse(
+        "parseCompilationUnit",
+        "part 'f.dart'; part of m;",
+        ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART);
   }
 
   public void test_nonUserDefinableOperator() throws Exception {

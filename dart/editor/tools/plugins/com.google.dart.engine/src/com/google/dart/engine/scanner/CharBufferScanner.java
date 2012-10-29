@@ -46,7 +46,7 @@ public class CharBufferScanner extends AbstractScanner {
    * @param errorListener the error listener that will be informed of any errors that are found
    */
   public CharBufferScanner(Source source, CharBuffer buffer, AnalysisErrorListener errorListener) {
-    super(source, errorListener);
+    super(source, 0, errorListener);
     this.buffer = buffer;
     this.bufferLength = buffer.length();
     this.charOffset = -1;

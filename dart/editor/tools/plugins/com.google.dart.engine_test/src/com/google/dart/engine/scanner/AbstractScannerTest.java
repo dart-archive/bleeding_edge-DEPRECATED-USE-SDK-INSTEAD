@@ -119,10 +119,6 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.DOUBLE, "0.123E4");
   }
 
-  public void test_double_both_e_plus() throws Exception {
-    assertToken(TokenType.DOUBLE, "+0.123e4");
-  }
-
   public void test_double_fraction() throws Exception {
     assertToken(TokenType.DOUBLE, ".123");
   }
@@ -149,10 +145,6 @@ public abstract class AbstractScannerTest extends TestCase {
 
   public void test_double_fraction_Ed() throws Exception {
     assertToken(TokenType.DOUBLE, ".123E4d");
-  }
-
-  public void test_double_fraction_plus() throws Exception {
-    assertToken(TokenType.DOUBLE, "+.123");
   }
 
   public void test_double_missingDigitInExponent() throws Exception {
@@ -253,10 +245,6 @@ public abstract class AbstractScannerTest extends TestCase {
 
   public void test_int_initialZero() throws Exception {
     assertToken(TokenType.INT, "0123");
-  }
-
-  public void test_int_plus() throws Exception {
-    assertToken(TokenType.INT, "+123");
   }
 
   public void test_keyword_abstract() throws Exception {

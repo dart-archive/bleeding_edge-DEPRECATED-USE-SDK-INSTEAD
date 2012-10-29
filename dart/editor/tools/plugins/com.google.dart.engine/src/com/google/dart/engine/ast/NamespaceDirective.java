@@ -92,11 +92,7 @@ public abstract class NamespaceDirective extends Directive {
     return semicolon;
   }
 
-  /**
-   * Return the token representing the 'import' or 'export' keyword.
-   * 
-   * @return the token representing the 'import' or 'export' keyword
-   */
+  @Override
   public Token getKeyword() {
     return keyword;
   }

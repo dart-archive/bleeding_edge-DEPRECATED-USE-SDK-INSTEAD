@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.scanner.Token;
+
 import java.util.List;
 
 /**
@@ -45,4 +47,12 @@ public abstract class Directive extends AnnotatedNode {
   public Directive(Comment comment, List<Annotation> metadata) {
     super(comment, metadata);
   }
+
+  /**
+   * Return the token representing the keyword that introduces this directive ('import', 'export',
+   * 'library' or 'part').
+   * 
+   * @return the token representing the keyword that introduces this directive
+   */
+  public abstract Token getKeyword();
 }

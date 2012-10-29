@@ -1416,10 +1416,22 @@ public class Parser {
 
   /**
    * Parse a compilation unit.
+   * <p>
+   * Specified:
    * 
    * <pre>
    * compilationUnit ::=
-   *     scriptTag? directives* topLevelDeclaration*
+   *     scriptTag? directive* topLevelDeclaration*
+   * </pre>
+   * Actual:
+   * 
+   * <pre>
+   * compilationUnit ::=
+   *     scriptTag? topLevelElement*
+   * 
+   * topLevelElement ::=
+   *     directive
+   *   | topLevelDeclaration
    * </pre>
    * 
    * @return the compilation unit that was parsed
@@ -1434,7 +1446,9 @@ public class Parser {
     // we allow directives and declarations to occur in any order so that we can recover better.
     //
     boolean libraryDirectiveFound = false;
-    boolean errorGenerated = false;
+    boolean partOfDirectiveFound = false;
+    boolean partDirectiveFound = false;
+    boolean directiveFoundAfterDeclaration = false;
     List<Directive> directives = new ArrayList<Directive>();
     List<CompilationUnitMember> declarations = new ArrayList<CompilationUnitMember>();
     Token memberStart = currentToken;
@@ -1443,17 +1457,42 @@ public class Parser {
       if (matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY)
           || matches(Keyword.PART)) {
         Directive directive = parseDirective(commentAndMetadata);
-        if (declarations.size() > 0 && !errorGenerated) {
+        if (declarations.size() > 0 && !directiveFoundAfterDeclaration) {
           reportError(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
-          errorGenerated = true;
+          directiveFoundAfterDeclaration = true;
         }
         if (directive instanceof LibraryDirective) {
           if (libraryDirectiveFound) {
             reportError(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
-          } else if (directives.size() > 0) {
-            reportError(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
           } else {
+            if (directives.size() > 0) {
+              reportError(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
+            }
             libraryDirectiveFound = true;
+          }
+        } else if (directive instanceof PartDirective) {
+          partDirectiveFound = true;
+        } else if (partDirectiveFound) {
+          if (directive instanceof ExportDirective) {
+            reportError(ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE);
+          } else if (directive instanceof ImportDirective) {
+            reportError(ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE);
+          }
+        }
+        if (directive instanceof PartOfDirective) {
+          if (partOfDirectiveFound) {
+            reportError(ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES);
+          } else {
+            for (Directive preceedingDirective : directives) {
+              reportError(
+                  ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART,
+                  preceedingDirective.getKeyword());
+            }
+            partOfDirectiveFound = true;
+          }
+        } else {
+          if (partOfDirectiveFound) {
+            reportError(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directive.getKeyword());
           }
         }
         directives.add(directive);
@@ -1469,8 +1508,6 @@ public class Parser {
       }
       memberStart = currentToken;
     }
-    // TODO(brianwilkerson) Check the order of the directives.
-    // reportError(ParserErrorCode.?);
     return new CompilationUnit(scriptTag, directives, declarations);
   }
 
@@ -2393,7 +2430,7 @@ public class Parser {
       } else {
         // Invalid function body
         // reportError(ParserErrorCode.?);
-        return null;
+        return null; //new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON));
       }
     } finally {
       inLoop = wasInLoop;
@@ -3114,7 +3151,7 @@ public class Parser {
         }
         return parseVariableDeclarationStatement();
       } else if (keyword == Keyword.NEW || keyword == Keyword.TRUE || keyword == Keyword.FALSE
-          || keyword == Keyword.NULL) {
+          || keyword == Keyword.NULL || keyword == Keyword.SUPER) {
         return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
       } else {
         // Expected a statement
@@ -3297,6 +3334,28 @@ public class Parser {
    */
   private Expression parsePostfixExpression() {
     Expression operand = parseAssignableExpression(true);
+    if (matches(TokenType.OPEN_SQUARE_BRACKET) || matches(TokenType.PERIOD)
+        || matches(TokenType.OPEN_PAREN)) {
+      do {
+        if (matches(TokenType.OPEN_PAREN)) {
+          ArgumentList argumentList = parseArgumentList();
+          if (operand instanceof PropertyAccess) {
+            PropertyAccess access = (PropertyAccess) operand;
+            operand = new MethodInvocation(
+                access.getTarget(),
+                access.getOperator(),
+                access.getPropertyName(),
+                argumentList);
+          } else {
+            operand = new FunctionExpressionInvocation(operand, argumentList);
+          }
+        } else {
+          operand = parseAssignableSelector(operand, true);
+        }
+      } while (matches(TokenType.OPEN_SQUARE_BRACKET) || matches(TokenType.PERIOD)
+          || matches(TokenType.OPEN_PAREN));
+      return operand;
+    }
     if (!currentToken.getType().isIncrementOperator()) {
       return operand;
     }

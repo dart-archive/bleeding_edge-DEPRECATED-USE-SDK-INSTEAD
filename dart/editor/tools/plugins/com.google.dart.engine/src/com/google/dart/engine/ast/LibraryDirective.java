@@ -79,6 +79,11 @@ public class LibraryDirective extends Directive {
     return semicolon;
   }
 
+  @Override
+  public Token getKeyword() {
+    return libraryToken;
+  }
+
   /**
    * Return the token representing the 'library' token.
    * 

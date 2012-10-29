@@ -40,14 +40,28 @@ public class StringScanner extends AbstractScanner {
    * Initialize a newly created scanner to scan the characters in the given string.
    * 
    * @param source the source being scanned
+   * @param offsetDelta the offset from the beginning of the file to the beginning of the source
+   *          being scanned
+   * @param string the string from which characters will be read
+   * @param errorListener the error listener that will be informed of any errors that are found
+   */
+  public StringScanner(Source source, int offsetDelta, String string,
+      AnalysisErrorListener errorListener) {
+    super(source, offsetDelta, errorListener);
+    this.string = string;
+    this.stringLength = string.length();
+    this.charOffset = -1;
+  }
+
+  /**
+   * Initialize a newly created scanner to scan the characters in the given string.
+   * 
+   * @param source the source being scanned
    * @param string the string from which characters will be read
    * @param errorListener the error listener that will be informed of any errors that are found
    */
   public StringScanner(Source source, String string, AnalysisErrorListener errorListener) {
-    super(source, errorListener);
-    this.string = string;
-    this.stringLength = string.length();
-    this.charOffset = -1;
+    this(source, 0, string, errorListener);
   }
 
   @Override

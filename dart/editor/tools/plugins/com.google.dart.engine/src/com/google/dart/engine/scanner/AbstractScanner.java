@@ -38,6 +38,13 @@ public abstract class AbstractScanner {
   private final Source source;
 
   /**
+   * The offset from the beginning of the file to the beginning of the source being scanned. This
+   * will normally be zero (0) except in cases where the source is embedded in a larger context,
+   * such as Dart scripts within an HTML document.
+   */
+  private int offsetDelta;
+
+  /**
    * The error listener that will be informed of any errors that are found during the scan.
    */
   private AnalysisErrorListener errorListener;
@@ -87,10 +94,13 @@ public abstract class AbstractScanner {
    * Initialize a newly created scanner.
    * 
    * @param source the source being scanned
+   * @param offsetDelta the offset from the beginning of the file to the beginning of the source
+   *          being scanned
    * @param errorListener the error listener that will be informed of any errors that are found
    */
-  public AbstractScanner(Source source, AnalysisErrorListener errorListener) {
+  public AbstractScanner(Source source, int offsetDelta, AnalysisErrorListener errorListener) {
     this.source = source;
+    this.offsetDelta = offsetDelta;
     this.errorListener = errorListener;
     tokens = new Token(TokenType.EOF, -1);
     tokens.setNext(tokens);
@@ -246,7 +256,7 @@ public abstract class AbstractScanner {
   }
 
   private void beginToken() {
-    tokenStart = getOffset();
+    tokenStart = offsetDelta + getOffset();
   }
 
   private int bigSwitch(int next) {
@@ -299,10 +309,6 @@ public abstract class AbstractScanner {
     }
 
     if (next == '+') {
-      int peek = peek();
-      if (('0' <= peek && peek <= '9') || peek == '.') {
-        return tokenizeNumber(next);
-      }
       return tokenizePlus(next);
     }
 

@@ -86,6 +86,11 @@ public class PartOfDirective extends Directive {
     return semicolon;
   }
 
+  @Override
+  public Token getKeyword() {
+    return partToken;
+  }
+
   /**
    * Return the name of the library that the containing compilation unit is part of.
    * 

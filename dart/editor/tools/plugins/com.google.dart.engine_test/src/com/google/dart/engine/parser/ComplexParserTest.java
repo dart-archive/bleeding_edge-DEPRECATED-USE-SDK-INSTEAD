@@ -43,6 +43,12 @@ public class ComplexParserTest extends ParserTestCase {
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
+  public void test_additiveExpression_noSpaces() throws Exception {
+    BinaryExpression expression = parseExpression("i+1");
+    assertInstanceOf(SimpleIdentifier.class, expression.getLeftOperand());
+    assertInstanceOf(IntegerLiteral.class, expression.getRightOperand());
+  }
+
   public void test_additiveExpression_precedence_multiplicative_left() throws Exception {
     BinaryExpression expression = parseExpression("x * y + z");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());

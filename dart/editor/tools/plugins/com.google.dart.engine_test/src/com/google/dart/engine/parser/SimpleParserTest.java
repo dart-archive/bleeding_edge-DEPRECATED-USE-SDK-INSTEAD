@@ -161,13 +161,6 @@ public class SimpleParserTest extends ParserTestCase {
     return (Token) skipMethod.invoke(parser, new Object[] {tokenStream});
   }
 
-  public void fail_parseExpression_superMethodInvocation() throws Exception {
-    MethodInvocation invocation = parse("parseExpression", "super.m()");
-    assertNotNull(invocation.getTarget());
-    assertNotNull(invocation.getMethodName());
-    assertNotNull(invocation.getArgumentList());
-  }
-
   public void test_computeStringValue_emptyInterpolationPrefix() throws Exception {
     assertEquals("", computeStringValue("'''"));
   }
@@ -1253,6 +1246,13 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getOperator());
     assertEquals(TokenType.EQ_EQ, expression.getOperator().getType());
     assertNotNull(expression.getRightOperand());
+  }
+
+  public void test_parseExpression_superMethodInvocation() throws Exception {
+    MethodInvocation invocation = parse("parseExpression", "super.m()");
+    assertNotNull(invocation.getTarget());
+    assertNotNull(invocation.getMethodName());
+    assertNotNull(invocation.getArgumentList());
   }
 
   public void test_parseExpressionList_multiple() throws Exception {

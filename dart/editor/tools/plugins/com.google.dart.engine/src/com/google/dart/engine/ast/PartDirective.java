@@ -79,6 +79,11 @@ public class PartDirective extends Directive {
     return semicolon;
   }
 
+  @Override
+  public Token getKeyword() {
+    return partToken;
+  }
+
   /**
    * Return the token representing the 'part' token.
    * 

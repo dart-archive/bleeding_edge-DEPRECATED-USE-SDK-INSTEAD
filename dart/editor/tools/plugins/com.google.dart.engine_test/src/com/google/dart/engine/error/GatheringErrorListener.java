@@ -32,6 +32,18 @@ import java.util.Map;
  */
 public class GatheringErrorListener implements AnalysisErrorListener {
   /**
+   * The source being parsed.
+   */
+  private String rawSource;
+
+  /**
+   * The source being parsed after inserting a marker at the beginning and end of the range of the
+   * most recent error.
+   */
+  @SuppressWarnings("unused")
+  private String markedSource;
+
+  /**
    * A list containing the errors that were collected.
    */
   private List<AnalysisError> errors = new ArrayList<AnalysisError>();
@@ -51,6 +63,14 @@ public class GatheringErrorListener implements AnalysisErrorListener {
    */
   public GatheringErrorListener() {
     super();
+  }
+
+  /**
+   * Initialize a newly created error listener to collect errors.
+   */
+  public GatheringErrorListener(String rawSource) {
+    this.rawSource = rawSource;
+    this.markedSource = rawSource;
   }
 
   /**
@@ -145,7 +165,8 @@ public class GatheringErrorListener implements AnalysisErrorListener {
     //
     for (Map.Entry<ErrorCode, ArrayList<AnalysisError>> entry : errorsByCode.entrySet()) {
       ErrorCode code = entry.getKey();
-      int actualCount = entry.getValue().size();
+      ArrayList<AnalysisError> actualErrors = entry.getValue();
+      int actualCount = actualErrors.size();
       if (builder.length() == 0) {
         builder.append("Expected ");
       } else {
@@ -155,6 +176,15 @@ public class GatheringErrorListener implements AnalysisErrorListener {
       builder.append(code);
       builder.append(", found ");
       builder.append(actualCount);
+      builder.append(" (");
+      for (int i = 0; i < actualErrors.size(); i++) {
+        AnalysisError error = actualErrors.get(i);
+        if (i > 0) {
+          builder.append(", ");
+        }
+        builder.append(error.getOffset());
+      }
+      builder.append(")");
     }
     if (builder.length() > 0) {
       Assert.fail(builder.toString());
@@ -231,6 +261,12 @@ public class GatheringErrorListener implements AnalysisErrorListener {
 
   @Override
   public void onError(AnalysisError error) {
+    if (rawSource != null) {
+      int left = error.getOffset();
+      int right = left + error.getLength() - 1;
+      markedSource = rawSource.substring(0, left) + "^" + rawSource.substring(left, right) + "^"
+          + rawSource.substring(right);
+    }
     errors.add(error);
   }
 
