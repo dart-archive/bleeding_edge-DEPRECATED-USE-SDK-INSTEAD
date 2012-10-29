@@ -178,6 +178,12 @@ public class DartBuilder extends IncrementalProjectBuilder {
                 return false;
             }
             return false;
+          } else {
+            try {
+              resource.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_ZERO);
+            } catch (CoreException e) {
+              // do nothing
+            }
           }
 
           return false;
