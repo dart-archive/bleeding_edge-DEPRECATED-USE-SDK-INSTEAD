@@ -22,6 +22,7 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalN
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_parseNum_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_rawString_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeAbstract_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeInterface_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameTypes_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_toGetters_CleanUp;
 
@@ -959,6 +960,39 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "  foo();",
         "  void bar();",
         "  baz();",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M2_removeInterface() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_removeInterface_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface I default B {",
+        "  I();",
+        "  I.name();",
+        "  foo();",
+        "}",
+        "",
+        "class B implements I {",
+        "  B() {}",
+        "  B.name() {}",
+        "  foo() {}",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class I {",
+        "  factory I() = B;",
+        "  factory I.name() = B.name;",
+        "  foo();",
+        "}",
+        "",
+        "class B implements I {",
+        "  B() {}",
+        "  B.name() {}",
+        "  foo() {}",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);

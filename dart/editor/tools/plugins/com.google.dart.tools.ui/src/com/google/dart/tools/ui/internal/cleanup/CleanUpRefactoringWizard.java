@@ -28,6 +28,7 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalN
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_parseNum_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_rawString_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeAbstract_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeInterface_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameTypes_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_toGetters_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_trailingSpace_CleanUp;
@@ -43,6 +44,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -66,6 +68,7 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
     private static final String ID_MIGRATE_SYNTAX_1M2_GETTERS = "migrateSyntax-1M2-getters";
     private static final String ID_MIGRATE_SYNTAX_1M2_RENAME_TYPES = "migrateSyntax-1M2-renameExceptions";
     private static final String ID_MIGRATE_SYNTAX_1M2_REMOVE_ABSTRACT = "migrateSyntax-1M2-removeAbstract";
+    private static final String ID_MIGRATE_SYNTAX_1M2_REMOVE_INTERFACE = "migrateSyntax-1M2-removeInterface";
 
     private static final String ID_STYLE_TRAILING_WHITESPACE = "style-trailingWhitespace";
     private static final String ID_STYLE_USE_BLOCKS = "style-useBlocks";
@@ -83,6 +86,9 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M2_GETTERS, new Migrate_1M2_toGetters_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M2_RENAME_TYPES, new Migrate_1M2_renameTypes_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M2_REMOVE_ABSTRACT, new Migrate_1M2_removeAbstract_CleanUp());
+      CLEAN_UPS.put(
+          ID_MIGRATE_SYNTAX_1M2_REMOVE_INTERFACE,
+          new Migrate_1M2_removeInterface_CleanUp());
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_CATCH, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_GET, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_RAW_STRING, true);
@@ -93,6 +99,7 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       settings.setDefault(ID_MIGRATE_SYNTAX_1M2_GETTERS, false);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M2_RENAME_TYPES, false);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M2_REMOVE_ABSTRACT, true);
+      settings.setDefault(ID_MIGRATE_SYNTAX_1M2_REMOVE_INTERFACE, false);
       // style
       CLEAN_UPS.put(ID_STYLE_TRAILING_WHITESPACE, new Style_trailingSpace_CleanUp());
       CLEAN_UPS.put(ID_STYLE_USE_BLOCKS, new Style_useBlocks_CleanUp());
@@ -175,8 +182,12 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M2_REMOVE_ABSTRACT,
                 "Remove not required 'abstract' modifier for methods without body");
-//            new Label(syntaxComposite, SWT.NONE);
-//            new Label(syntaxComposite, SWT.NONE).setText("Work in progress... not fully implemented:");
+            new Label(syntaxComposite, SWT.NONE);
+            new Label(syntaxComposite, SWT.NONE).setText("Work in progress... not fully implemented:");
+            createCheckButton(
+                syntaxComposite,
+                ID_MIGRATE_SYNTAX_1M2_REMOVE_INTERFACE,
+                "Replace 'interface' with 'abstract class'");
           }
         }
         // Code Style

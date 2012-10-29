@@ -108,10 +108,13 @@ public class AST {
       return (N) new DartCatchBlock(null, null, null);
     } else if (nodeClass == DartClass.class) {
       return (N) new DartClass(
+          -1,
+          0,
           null,
           null,
           null,
           new ArrayList<DartTypeNode>(),
+          -1,
           -1,
           -1,
           new ArrayList<DartNode>(),

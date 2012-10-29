@@ -57,6 +57,13 @@ public class SourceRangeUtils {
   }
 
   /**
+   * @return the instance of {@link SourceRange} with end moved on "delta".
+   */
+  public static SourceRange getMoveEnd(SourceRange s, int delta) {
+    return new SourceRangeImpl(s.getOffset(), s.getLength() + delta);
+  }
+
+  /**
    * @return <code>true</code> if two given {@link SourceRange}s are intersecting.
    */
   public static boolean intersects(SourceRange a, SourceRange b) {

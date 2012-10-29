@@ -30,33 +30,38 @@ public class ClassCompleter extends DartClass implements CompletionNode {
   static final long serialVersionUID = 1L;
 
   public static ClassCompleter from(DartClass type) {
-    return CompletionUtil.init(
-        new ClassCompleter(
-            type.getName(),
-            type.getNativeName(),
-            type.getSuperclass(),
-            type.getInterfaces(),
-            type.getOpenBraceOffset(),
-            type.getCloseBraceOffset(),
-            type.getMembers(),
-            type.getTypeParameters(),
-            type.getDefaultClass(),
-            type.isInterface(),
-            type.getModifiers()),
-        type);
+    return CompletionUtil.init(new ClassCompleter(
+        type.getTokenOffset(),
+        type.getTokenLength(),
+        type.getName(),
+        type.getNativeName(),
+        type.getSuperclass(),
+        type.getInterfaces(),
+        type.getDefaultTokenOffset(),
+        type.getOpenBraceOffset(),
+        type.getCloseBraceOffset(),
+        type.getMembers(),
+        type.getTypeParameters(),
+        type.getDefaultClass(),
+        type.isInterface(),
+        type.getModifiers()), type);
   }
 
   private Stack<Mark> stack;
 
-  public ClassCompleter(DartIdentifier name, DartStringLiteral nativeName, DartTypeNode superclass,
-      List<DartTypeNode> interfaces, int openBraceOffset, int closeBraceOffset,
-      List<DartNode> members, List<DartTypeParameter> typeParameters,
-      DartParameterizedTypeNode defaultClass, boolean isInterface, Modifiers modifiers) {
+  public ClassCompleter(int tokenOffset, int tokenLength, DartIdentifier name,
+      DartStringLiteral nativeName, DartTypeNode superclass, List<DartTypeNode> interfaces,
+      int defaultTokenOffset, int openBraceOffset, int closeBraceOffset, List<DartNode> members,
+      List<DartTypeParameter> typeParameters, DartParameterizedTypeNode defaultClass,
+      boolean isInterface, Modifiers modifiers) {
     super(
+        tokenOffset,
+        tokenLength,
         name,
         nativeName,
         superclass,
         interfaces,
+        defaultTokenOffset,
         openBraceOffset,
         closeBraceOffset,
         members,

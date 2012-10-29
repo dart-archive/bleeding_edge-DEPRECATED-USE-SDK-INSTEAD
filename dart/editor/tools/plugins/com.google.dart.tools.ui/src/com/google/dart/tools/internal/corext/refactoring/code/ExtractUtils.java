@@ -474,6 +474,23 @@ public class ExtractUtils {
   }
 
   /**
+   * @return the index of the first non-whitespace character after given index.
+   */
+  public int getNonWhitespaceForward(int index) {
+    int length = buffer.getLength();
+    // skip whitespace characters
+    while (index < length) {
+      char c = buffer.getChar(index);
+      if (!Character.isWhitespace(c)) {
+        break;
+      }
+      index++;
+    }
+    // done
+    return index;
+  }
+
+  /**
    * @return the line prefix consisting of spaces and tabs on the left from the given offset.
    */
   public String getPrefix(int endIndex) {
