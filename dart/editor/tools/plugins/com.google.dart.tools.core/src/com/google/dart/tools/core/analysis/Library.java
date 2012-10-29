@@ -13,18 +13,19 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
+import static com.google.dart.tools.core.analysis.AnalysisUtility.toLibrarySource;
+
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartImportDirective;
+import com.google.dart.compiler.ast.DartPartOfDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
-
-import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
-import static com.google.dart.tools.core.analysis.AnalysisUtility.toLibrarySource;
 
 import java.io.File;
 import java.io.IOException;
@@ -106,7 +107,8 @@ class Library {
       }
     }
 
-    boolean hasDirectives = directives.size() > 0;
+    boolean hasDirectives = !directives.isEmpty()
+        && !(directives.iterator().next() instanceof DartPartOfDirective);
     return new Library(context, libFile, libSrc, prefixes, hasDirectives, imports, sources, true);
   }
 

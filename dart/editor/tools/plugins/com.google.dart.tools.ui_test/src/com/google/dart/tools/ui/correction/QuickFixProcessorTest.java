@@ -474,6 +474,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         ""});
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "part of App;",
         "main() {",
         "  AAA a = null;",
         "}",
@@ -489,6 +490,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
     // unit itself is not changed
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "part of App;",
         "main() {",
         "  AAA a = null;",
         "}",

@@ -183,28 +183,28 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   }
 
   public void test_OK_multipleUnits_onReference() throws Exception {
-    setUnitContent(
-        "Test1.dart",
+    setUnitContent("Test1.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
+        "part of test;",
         "class Test {",
-        "}");
-    setUnitContent(
-        "Test2.dart",
+        "}"});
+    setUnitContent("Test2.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
+        "part of test;",
         "f() {",
         "  Test test = new Test();",
-        "}");
-    setUnitContent(
-        "Test3.dart",
+        "}"});
+    setUnitContent("Test3.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
+        "part of test;",
         "class B extends Test {",
-        "}");
+        "}"});
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('test');",
-        "#source('Test1.dart');",
-        "#source('Test2.dart');",
-        "#source('Test3.dart');");
+        "library test;",
+        "part 'Test1.dart';",
+        "part 'Test2.dart';",
+        "part 'Test3.dart';");
     // get units, because they have not library
     CompilationUnit unit1 = testProject.getUnit("Test1.dart");
     CompilationUnit unit2 = testProject.getUnit("Test2.dart");
@@ -213,22 +213,22 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     Type type = findElement(unit2, "Test test =");
     // do rename
     renameType(type, "NewName");
-    assertUnitContent(
-        unit1,
+    assertUnitContent(unit1, new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
+        "part of test;",
         "class NewName {",
-        "}");
-    assertUnitContent(
-        unit2,
+        "}"});
+    assertUnitContent(unit2, new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
+        "part of test;",
         "f() {",
         "  NewName test = new NewName();",
-        "}");
-    assertUnitContent(
-        unit3,
+        "}"});
+    assertUnitContent(unit3, new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
+        "part of test;",
         "class B extends NewName {",
-        "}");
+        "}"});
   }
 
   /**

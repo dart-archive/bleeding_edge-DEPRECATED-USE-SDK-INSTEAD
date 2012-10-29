@@ -6,12 +6,17 @@ markdown_test: Fail # TODO(erikcorry): Erik has a CL to fix this.
 
 [ $compiler == dartc ]
 chat/*: Skip
+
 # samples issue 6332
 dartcombat/dartcombat_test: Fail, OK
 lib/touch/touch_test: Fail, OK
 lib/layout/layout_test: Fail, OK
 lib/view/view_test: Fail, OK
 swarm/swarm_test: Fail, OK
+
+# samples issue 6339
+lib/util/util_test: Fail, OK
+lib/observable/observable_test: Fail, OK
 
 
 
