@@ -652,7 +652,7 @@ public class DartLibraryImplTest extends TestCase {
 
   public void test_DartLibraryImpl_getImportedLibraries_libCoreImpl() throws Exception {
     DartLibrary[] importedLibraries = getDartLibCoreImpl().getImportedLibraries();
-    assertEquals(0, importedLibraries.length);
+    assertEquals(1, importedLibraries.length);
   }
 
   public void test_DartLibraryImpl_getImportedLibraries_libEmpty() throws Exception {
