@@ -21,6 +21,7 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_C
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalNamed_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_parseNum_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_rawString_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeAbstract_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameTypes_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_toGetters_CleanUp;
 
@@ -937,6 +938,27 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "  sw.elapsedMilliseconds;",
         "  sw.elapsedMicroseconds;",
         "  sw.elapsedTicks;",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M2_removeAbstract() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_removeAbstract_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  abstract foo();",
+        "  abstract void bar();",
+        "  baz();",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  foo();",
+        "  void bar();",
+        "  baz();",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);

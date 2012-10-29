@@ -1975,7 +1975,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
               IReconciler reconciler = configuration.getReconciler(sourceViewer);
               IReconcilingStrategy reconcilingStrategy = ((DartReconciler) reconciler).getReconcilingStrategy(IDocument.DEFAULT_CONTENT_TYPE);
               reconcilingStrategy.reconcile(null);
-              System.out.println("reconcile: " + resource);
             }
           }
         }
