@@ -1,0 +1,5 @@
+name:  simplegl
+description:  A sample Dart GL application
+
+#dependencies:
+#  unittest: { sdk: unittest }
