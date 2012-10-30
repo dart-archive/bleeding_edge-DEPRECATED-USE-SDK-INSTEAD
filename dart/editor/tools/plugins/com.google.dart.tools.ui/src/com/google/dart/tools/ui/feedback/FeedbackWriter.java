@@ -13,6 +13,12 @@
  */
 package com.google.dart.tools.ui.feedback;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
+
+import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
@@ -25,7 +31,9 @@ public class FeedbackWriter {
 
   private final FeedbackReport feedback;
 
-  private final boolean sendAdditionData;
+  private final boolean sendLogData;
+
+  private final boolean sendScreenshotData;
 
   /**
    * Create a writer for this report. The default is to not send additional editor data.
@@ -33,7 +41,7 @@ public class FeedbackWriter {
    * @param feedback the report
    */
   public FeedbackWriter(FeedbackReport feedback) {
-    this(feedback, false);
+    this(feedback, false, false);
   }
 
   /**
@@ -42,9 +50,10 @@ public class FeedbackWriter {
    * @param feedback the report
    * @param sendAdditionData whether to send additional editor log data
    */
-  public FeedbackWriter(FeedbackReport feedback, boolean sendAdditionData) {
+  public FeedbackWriter(FeedbackReport feedback, boolean sendLogData, boolean sendScreenshotData) {
     this.feedback = feedback;
-    this.sendAdditionData = sendAdditionData;
+    this.sendLogData = sendLogData;
+    this.sendScreenshotData = sendScreenshotData;
   }
 
   /**
@@ -56,6 +65,24 @@ public class FeedbackWriter {
     PrintWriter writer = new PrintWriter(out);
     doWrite(writer);
     writer.flush();
+  }
+
+  byte[] getImageByteArray() {
+    Image swtImage = feedback.getImage();
+    if (swtImage != null) {
+      ByteArrayOutputStream outs = new ByteArrayOutputStream();
+      ImageLoader loader = new ImageLoader();
+      loader.data = new ImageData[] {feedback.getImage().getImageData()};
+      loader.save(outs, SWT.IMAGE_JPEG);
+      byte[] data = outs.toByteArray();
+      return data;
+    } else {
+      return null;
+    }
+  }
+
+  boolean sendScreenshotData() {
+    return this.sendScreenshotData;
   }
 
   /**
@@ -70,7 +97,7 @@ public class FeedbackWriter {
     writer.println("JVM: " + System.getProperties().getProperty("java.version")); //$NON-NLS-1$
     writer.println();
     writer.println(feedback.getOptionsText());
-    if (sendAdditionData) {
+    if (sendLogData) {
       writeGroupDelim(writer);
       writer.println(feedback.getLogContents());
     }
@@ -94,5 +121,4 @@ public class FeedbackWriter {
   private void writeGroupDelim(PrintWriter writer) {
     writer.println(GROUP_DELIMETER);
   }
-
 }

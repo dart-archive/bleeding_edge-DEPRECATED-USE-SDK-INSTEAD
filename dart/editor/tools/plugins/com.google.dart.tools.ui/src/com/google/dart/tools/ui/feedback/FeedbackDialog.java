@@ -65,6 +65,8 @@ public class FeedbackDialog extends Dialog implements IRunnableContext, DisposeL
   private Text feedbackText;
   private Button sendAdditionalDataButton;
   private Link previewDataLink;
+  private Button sendScreenshotButton;
+  private Link previewScreenshotLink;
 
   private ProgressMonitorPart progressMonitorPart;
 
@@ -79,14 +81,20 @@ public class FeedbackDialog extends Dialog implements IRunnableContext, DisposeL
   private Image feedbackImage;
 
   /**
+   * The screenshot of the Editor/ Editor Plug-in just before the Send Feedback button was pressed.
+   */
+  private Image screenshot;
+
+  /**
    * Create the feedback dialog.
    * 
    * @param parentShell the parent shell
    * @param productName the name of the installed product (e.g., "Editor" vs. "Editor Plugin")
    */
-  public FeedbackDialog(Shell parentShell, String productName) {
+  public FeedbackDialog(Shell parentShell, String productName, Image screenshot) {
     super(parentShell);
-    feedbackReport = new FeedbackReport(productName);
+    feedbackReport = new FeedbackReport(productName, screenshot);
+    this.screenshot = screenshot;
   }
 
   @Override
@@ -199,6 +207,17 @@ public class FeedbackDialog extends Dialog implements IRunnableContext, DisposeL
     previewDataLink.setLayoutData(gd_1);
     previewDataLink.setText(FeedbackMessages.FeedbackDialog_link_text);
 
+    if (OpenFeedbackDialogAction.SCREEN_CAPTURE_ENABLED) {
+      sendScreenshotButton = new Button(logOptinComposite, SWT.CHECK);
+      sendScreenshotButton.setText(FeedbackMessages.FeedbackDialog_send_screenshot_optin_Text);
+
+      previewScreenshotLink = new Link(logOptinComposite, SWT.NONE);
+      GridData gd_2 = new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1);
+      gd_2.verticalIndent = 2;
+      previewScreenshotLink.setLayoutData(gd_2);
+      previewScreenshotLink.setText(FeedbackMessages.FeedbackDialog_link_screenshot_text);
+    }
+
     //spacer
     new Label(composite, SWT.NONE);
 
@@ -290,7 +309,7 @@ public class FeedbackDialog extends Dialog implements IRunnableContext, DisposeL
         try {
           LogViewer logViewer = new LogViewer(
               getShell(),
-              feedbackReport.getDetailString(sendAdditionData()));
+              feedbackReport.getDetailString(sendLogData()));
 
           logViewer.open();
         } catch (Throwable th) {
@@ -307,6 +326,34 @@ public class FeedbackDialog extends Dialog implements IRunnableContext, DisposeL
         updateEnablement();
       }
     });
+    if (OpenFeedbackDialogAction.SCREEN_CAPTURE_ENABLED) {
+      previewScreenshotLink.addSelectionListener(new SelectionAdapter() {
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+          if (screenshot == null) {
+            MessageDialog.openError(
+                getParentShell(),
+                FeedbackMessages.FeedbackDialog_error_opening_screenshot_label,
+                FeedbackMessages.FeedbackDialog_error_opening_screenshot_detail);
+          }
+          try {
+            ScreenshotViewer screenshotViewer = new ScreenshotViewer(getShell(), screenshot);
+            screenshotViewer.open();
+          } catch (Throwable t) {
+            MessageDialog.openError(
+                getParentShell(),
+                FeedbackMessages.FeedbackDialog_error_opening_screenshot_label,
+                FeedbackMessages.FeedbackDialog_error_opening_screenshot_detail);
+          }
+        }
+      });
+      sendScreenshotButton.addSelectionListener(new SelectionAdapter() {
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+          updateEnablement();
+        }
+      });
+    }
   }
 
   private void restoreSettings() {
@@ -314,11 +361,22 @@ public class FeedbackDialog extends Dialog implements IRunnableContext, DisposeL
   }
 
   private void saveSettings() {
-    getDialogSettings().put(OPT_IN_SETTING_KEY, sendAdditionData());
+    getDialogSettings().put(OPT_IN_SETTING_KEY, sendLogData());
   }
 
-  private boolean sendAdditionData() {
+  private boolean sendLogData() {
     return sendAdditionalDataButton.getSelection();
+  }
+
+  private boolean sendScreenshot() {
+    // TODO (jwren) remove this check.  This is currently needed when
+    // OpenFeedbackDialogAction.SCREEN_CAPTURE_ENABLED is false.
+    if (sendScreenshotButton == null) {
+      return false;
+    } else {
+      return sendScreenshotButton.getSelection();
+    }
+
   }
 
   private IStatus submitFeedback() {
@@ -331,7 +389,8 @@ public class FeedbackDialog extends Dialog implements IRunnableContext, DisposeL
             InterruptedException {
           status[0] = new FeedbackSubmissionJob(new FeedbackWriter(
               feedbackReport,
-              sendAdditionData())).run(monitor);
+              sendLogData(),
+              sendScreenshot())).run(monitor);
         }
       });
     } catch (InvocationTargetException e) {

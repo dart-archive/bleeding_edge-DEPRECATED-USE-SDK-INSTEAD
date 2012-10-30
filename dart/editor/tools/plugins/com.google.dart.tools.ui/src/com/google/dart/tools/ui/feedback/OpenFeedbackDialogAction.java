@@ -16,12 +16,18 @@ package com.google.dart.tools.ui.feedback;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 /**
  * An action to open the {@link FeedbackDialog}.
  */
 public class OpenFeedbackDialogAction extends Action implements IShellProvider {
+
+  public static boolean SCREEN_CAPTURE_ENABLED = false;
 
   private IShellProvider shellProvider;
 
@@ -53,7 +59,11 @@ public class OpenFeedbackDialogAction extends Action implements IShellProvider {
 
   @Override
   public void run() {
-    new FeedbackDialog(getShell(), productName) {
+    Image screenshot = null;
+    if (SCREEN_CAPTURE_ENABLED) {
+      screenshot = captureScreen();
+    }
+    new FeedbackDialog(getShell(), productName, screenshot) {
 
       @Override
       public void create() {
@@ -81,6 +91,33 @@ public class OpenFeedbackDialogAction extends Action implements IShellProvider {
    */
   public void setShellProvider(IShellProvider shellProvider) {
     this.shellProvider = shellProvider;
+  }
+
+  /**
+   * Creates screen shot of entire Dart Editor.
+   * 
+   * @return the created screen capture
+   */
+  private Image captureScreen() {
+    GC gc = null;
+    try {
+      Shell shell = getShell();
+      shell.redraw();
+      shell.update();
+      final Rectangle shellBounds = shell.getBounds();
+      final Display standardDisplay = getShell().getDisplay();
+      standardDisplay.update();
+      Image image = new Image(standardDisplay, shellBounds.width, shellBounds.height);
+      gc = new GC(standardDisplay);
+      gc.copyArea(image, shellBounds.x, shellBounds.y);
+      return image;
+    } catch (Throwable ex) {
+      return null;
+    } finally {
+      if (gc != null) {
+        gc.dispose();
+      }
+    }
   }
 
 }

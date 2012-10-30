@@ -54,7 +54,6 @@ public class FeedbackSubmissionJob extends Job {
 
   public String[] getFeedbackSubmissionUrls() {
     String urls = getResourceString("feedbackURLs"); //$NON-NLS-1$
-
     return FeedbackUtils.splitString(urls, ",", true); //$NON-NLS-1$
   }
 
@@ -147,11 +146,72 @@ public class FeedbackSubmissionJob extends Job {
     try {
       out.close();
     } catch (IOException exception) {
-
     }
   }
 
-  private int submitFeedback(URL serverURL, IProgressMonitor monitor) throws IOException {
+  private void submitFeedback(URL serverURL, IProgressMonitor monitor) throws IOException {
+    submitFeedback_text(serverURL, monitor);
+    if (OpenFeedbackDialogAction.SCREEN_CAPTURE_ENABLED) {
+      submitFeedback_jpeg(serverURL, monitor);
+    }
+  }
+
+  private int submitFeedback_jpeg(URL serverURL, IProgressMonitor monitor) throws IOException {
+    if (!writer.sendScreenshotData()) {
+      return 0;
+    }
+    byte[] data = writer.getImageByteArray();
+
+    monitor.beginTask(
+        FeedbackMessages.FeedbackSubmissionJob_job_starting_progress_text_jpeg,
+        data.length);
+
+    HttpURLConnection connection = (HttpURLConnection) serverURL.openConnection();
+
+    connection.setInstanceFollowRedirects(false);
+    connection.setDoOutput(true);
+    connection.setDoInput(true);
+    connection.setRequestMethod("POST"); //$NON-NLS-1$
+    connection.setFixedLengthStreamingMode(data.length);
+    connection.setUseCaches(false);
+    connection.setAllowUserInteraction(false);
+    connection.setRequestProperty("Connection", "close"); //$NON-NLS-1$ //$NON-NLS-2$
+    connection.setRequestProperty("Content-Type", "image/jpeg"); //$NON-NLS-1$ //$NON-NLS-2$
+
+    DataOutputStream out = new DataOutputStream(connection.getOutputStream());
+
+    final int packetSize = 1500;
+
+    for (int i = 0; i < data.length; i += packetSize) {
+      int writeSize = Math.min(data.length - i, packetSize);
+
+      out.write(data, i, writeSize);
+
+      monitor.worked(writeSize);
+    }
+
+    out.flush();
+    safeClose(out);
+
+    InputStream in = connection.getInputStream();
+    byte[] temp = new byte[8192];
+    String str = null;
+    int len = in.read(temp);
+    if (len > 0) {
+      str = new String(temp, 0, len);
+    }
+    safeClose(in);
+
+    if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+      DartToolsPlugin.log("Error sending feedback:" + connection.getResponseMessage() + "\n" + str);//$NON-NLS-1$ //$NON-NLS-2$
+    }
+
+    connection.disconnect();
+
+    return data.length;
+  }
+
+  private int submitFeedback_text(URL serverURL, IProgressMonitor monitor) throws IOException {
     ByteArrayOutputStream bout = new ByteArrayOutputStream(4096);
 
     writer.writeFeedback(bout);
@@ -160,7 +220,7 @@ public class FeedbackSubmissionJob extends Job {
     String crc32Hash = FeedbackUtils.calculateCRC32(data);
 
     monitor.beginTask(
-        FeedbackMessages.FeedbackSubmissionJob_job_starting_progress_text,
+        FeedbackMessages.FeedbackSubmissionJob_job_starting_progress_text_text,
         data.length);
 
     HttpURLConnection connection = (HttpURLConnection) serverURL.openConnection();

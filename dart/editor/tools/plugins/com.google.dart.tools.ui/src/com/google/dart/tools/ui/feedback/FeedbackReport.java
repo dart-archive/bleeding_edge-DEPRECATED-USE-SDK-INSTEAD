@@ -16,6 +16,8 @@ package com.google.dart.tools.ui.feedback;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.model.DartSdkManager;
 
+import org.eclipse.swt.graphics.Image;
+
 /**
  * An object representing a user feedback report.
  */
@@ -26,17 +28,19 @@ public class FeedbackReport {
   private final String ideVersion;
   private final String logContents;
   private final String productName;
+  private final Image screenshotImage;
 
   /**
    * Create a new feedback instance with default values.
    */
-  public FeedbackReport(String productName) {
+  public FeedbackReport(String productName, Image screenshotImage) {
     this(
         "",
         productName,
         FeedbackUtils.getOSName(),
         FeedbackUtils.getEditorVersionDetails(),
-        LogReader.readLogSafely());
+        LogReader.readLogSafely(),
+        screenshotImage);
   }
 
   /**
@@ -48,12 +52,13 @@ public class FeedbackReport {
    * @param logContents system log contents
    */
   public FeedbackReport(String feedbackText, String productName, String osDetails,
-      String ideVersion, String logContents) {
+      String ideVersion, String logContents, Image screenshotImage) {
     this.feedbackText = feedbackText;
     this.productName = productName;
     this.osDetails = osDetails;
     this.ideVersion = ideVersion;
     this.logContents = logContents;
+    this.screenshotImage = screenshotImage;
   }
 
   /**
@@ -62,9 +67,9 @@ public class FeedbackReport {
    * 
    * @return a detail string suitable for preview
    */
-  public String getDetailString(boolean sendAdditionalData) {
+  public String getDetailString(boolean sendLogData) {
     PrintStringWriter writer = new PrintStringWriter();
-    new FeedbackWriter(this, sendAdditionalData).writeDetails(writer);
+    new FeedbackWriter(this, sendLogData, false).writeDetails(writer);
     writer.flush();
     return writer.toString();
   }
@@ -106,6 +111,10 @@ public class FeedbackReport {
 
   String getFeedbackText() {
     return feedbackText;
+  }
+
+  Image getImage() {
+    return screenshotImage;
   }
 
   String getLogContents() {
