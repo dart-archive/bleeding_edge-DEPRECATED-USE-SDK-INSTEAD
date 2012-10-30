@@ -16,8 +16,6 @@ package com.google.dart.tools.core.artifact;
 import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.index.NotifyCallback;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
-import com.google.dart.tools.core.model.DartSdk;
-import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.test.util.FileUtilities;
 
 import junit.framework.TestCase;
@@ -34,8 +32,8 @@ public class TestGenerateArtifacts extends TestCase {
    */
   public void test_generate_SDK_index() throws Exception {
 
-    DartSdk sdk = DartSdkManager.getManager().getSdk();
-    File sdkIndexFile = sdk.getLibraryIndexFile();
+    File sdkIndexFile = InMemoryIndex.getSdkIndexFile();
+    sdkIndexFile.getParentFile().mkdirs();
     sdkIndexFile.delete();
     assertFalse(sdkIndexFile.exists());
 
@@ -75,9 +73,10 @@ public class TestGenerateArtifacts extends TestCase {
     }
 
     // Copy the index file to a location that can be picked up by the build
-    File baseDir = sdk.getDirectory().getParentFile();
+    File baseDir = sdkIndexFile.getParentFile().getParentFile();
     String relPath = sdkIndexFile.getPath().substring(baseDir.getPath().length() + 1);
-    File outputFile = new File(getOutputDir(), relPath);
+    File configDir = new File(getOutputDir(), "configuration");
+    File outputFile = new File(configDir, relPath);
     outputFile.getParentFile().mkdirs();
     outputFile.delete();
     assertFalse(outputFile.exists());

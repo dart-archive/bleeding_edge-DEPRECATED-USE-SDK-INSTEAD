@@ -53,13 +53,14 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.osgi.service.datalocation.Location;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -69,6 +70,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 
 /**
@@ -78,6 +80,25 @@ import java.util.ArrayList;
  * written to disk when it is shut down.
  */
 public class InMemoryIndex implements Index {
+
+  /**
+   * Answer the file generated at build time that holds the index for the SDK
+   * 
+   * @return the file (not {@code null})
+   */
+  public static File getSdkIndexFile() {
+    Location location = Platform.getConfigurationLocation();
+    if (location != null) {
+      URL configURL = location.getURL();
+      if (configURL != null && configURL.getProtocol().startsWith("file")) {
+        File pluginConfigDir = new File(configURL.getFile(), DartCore.PLUGIN_ID);
+        return new File(pluginConfigDir, INDEX_FILE);
+      }
+    }
+    // TODO (danrubel): Remove old location once new location is confirmed
+    return DartSdkManager.getManager().getSdk().getLibraryIndexFile();
+  }
+
   /**
    * The index store used to hold the data in the index.
    */
@@ -446,11 +467,9 @@ public class InMemoryIndex implements Index {
 
   /**
    * Write the current index to the SDK directory.
-   * 
-   * @see DartSdk#getLibraryIndexFile()
    */
   public void writeIndexToSdk() {
-    writeIndexTo(DartSdkManager.getManager().getSdk().getLibraryIndexFile());
+    writeIndexTo(getSdkIndexFile());
   }
 
   /**
@@ -485,7 +504,7 @@ public class InMemoryIndex implements Index {
     // return new File(DartCore.getPlugin().getStateLocation().toFile(), INITIAL_INDEX_FILE);
     DartSdkManager sdkManager = DartSdkManager.getManager();
     if (sdkManager.hasSdk()) {
-      return sdkManager.getSdk().getLibraryIndexFile();
+      return getSdkIndexFile();
     }
     return null;
   }
