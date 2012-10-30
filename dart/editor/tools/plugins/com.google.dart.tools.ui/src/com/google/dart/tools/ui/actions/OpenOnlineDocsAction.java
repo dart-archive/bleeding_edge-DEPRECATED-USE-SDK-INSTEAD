@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,18 +13,11 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
-import org.eclipse.ui.browser.IWebBrowser;
-import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
-
-import java.net.MalformedURLException;
-import java.net.URL;
 
 /**
  * Opens the online guide.
@@ -47,15 +40,7 @@ public class OpenOnlineDocsAction extends AbstractInstrumentedAction implements 
   @Override
   public void run() {
     EmitInstrumentationCommand();
-    IWorkbenchBrowserSupport support = PlatformUI.getWorkbench().getBrowserSupport();
-    try {
-      IWebBrowser browser = support.getExternalBrowser();
-      browser.openURL(new URL(ActionMessages.OpenOnlineDocsAction_href));
-    } catch (MalformedURLException e) {
-      DartToolsPlugin.log(e);
-    } catch (PartInitException e) {
-      DartToolsPlugin.log(e);
-    }
+    ExternalBrowserUtil.openInExternalBrowser(ActionMessages.OpenOnlineDocsAction_href);
   }
 
   @Override

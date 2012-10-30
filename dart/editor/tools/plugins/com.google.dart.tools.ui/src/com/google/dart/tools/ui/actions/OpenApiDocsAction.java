@@ -14,18 +14,11 @@
 
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
-import org.eclipse.ui.browser.IWebBrowser;
-import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
-
-import java.net.MalformedURLException;
-import java.net.URL;
 
 /**
  * Opens the API reference.
@@ -49,16 +42,7 @@ public class OpenApiDocsAction extends AbstractInstrumentedAction implements IWo
   public void run() {
     EmitInstrumentationCommand();
 
-    IWorkbenchBrowserSupport support = PlatformUI.getWorkbench().getBrowserSupport();
-
-    try {
-      IWebBrowser browser = support.getExternalBrowser();
-      browser.openURL(new URL(ActionMessages.OpenApiDocsAction_href));
-    } catch (MalformedURLException e) {
-      DartToolsPlugin.log(e);
-    } catch (PartInitException e) {
-      DartToolsPlugin.log(e);
-    }
+    ExternalBrowserUtil.openInExternalBrowser(ActionMessages.OpenApiDocsAction_href);
   }
 
   @Override

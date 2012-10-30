@@ -21,6 +21,7 @@ import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
+import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
@@ -45,10 +46,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IPersistableElement;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.browser.IWebBrowser;
-import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.FormText;
@@ -62,8 +59,6 @@ import org.eclipse.ui.part.EditorPart;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -309,7 +304,7 @@ public class IntroEditor extends EditorPart {
     link.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       public void linkActivated(HyperlinkEvent e) {
-        openDocsInBrowser(href);
+        ExternalBrowserUtil.openInExternalBrowser(href);
       }
     });
 
@@ -327,23 +322,6 @@ public class IntroEditor extends EditorPart {
     // get directory to depth samples + 1
     Path p = (Path) path.removeLastSegments((segments.length - i) - 2);
     return new File(p.toString());
-  }
-
-  //TODO(jwren) Open in Browser functionality should be a shared utility in the product
-  // note: method copied over from OpenExternalDartdocAction
-  private void openDocsInBrowser(String url) {
-    if (url == null || url.isEmpty()) {
-      return;
-    }
-    IWorkbenchBrowserSupport support = PlatformUI.getWorkbench().getBrowserSupport();
-    try {
-      IWebBrowser browser = support.getExternalBrowser();
-      browser.openURL(new URL(url));
-    } catch (MalformedURLException e) {
-      DartToolsPlugin.log(e);
-    } catch (PartInitException e) {
-      DartToolsPlugin.log(e);
-    }
   }
 
   private void openInEditor(final File file) {

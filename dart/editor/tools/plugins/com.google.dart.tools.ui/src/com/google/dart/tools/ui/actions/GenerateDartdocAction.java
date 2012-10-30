@@ -19,8 +19,8 @@ import com.google.dart.tools.core.dartdoc.DartdocGenerator;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
+import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -42,14 +42,7 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
-import org.eclipse.ui.browser.IWebBrowser;
-import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
-
-import java.net.MalformedURLException;
-import java.net.URL;
 
 /**
  * An action to create Dart documentation for some library.
@@ -97,8 +90,9 @@ public class GenerateDartdocAction extends AbstractInstrumentedAction implements
       } finally {
         if (OPEN_BROWSER_AFTER_GENERATION) {
           try {
-            openDocsInBrowser(DartdocGenerator.getDocsIndexPath(
-                library.getCorrespondingResource().getLocation()).toOSString());
+            ExternalBrowserUtil.openInExternalBrowser("file://"
+                + DartdocGenerator.getDocsIndexPath(
+                    library.getCorrespondingResource().getLocation()).toOSString());
           } catch (DartModelException e) {
             e.printStackTrace();
           }
@@ -260,18 +254,6 @@ public class GenerateDartdocAction extends AbstractInstrumentedAction implements
       }
     }
     return false;
-  }
-
-  private void openDocsInBrowser(String file) {
-    IWorkbenchBrowserSupport support = PlatformUI.getWorkbench().getBrowserSupport();
-    try {
-      IWebBrowser browser = support.getExternalBrowser();
-      browser.openURL(new URL("file://" + file));
-    } catch (MalformedURLException e) {
-      DartToolsPlugin.log(e);
-    } catch (PartInitException e) {
-      DartToolsPlugin.log(e);
-    }
   }
 
   private boolean saveDirtyEditors(IWorkbenchPage page) {

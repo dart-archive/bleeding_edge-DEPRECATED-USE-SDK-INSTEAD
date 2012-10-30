@@ -26,18 +26,13 @@ import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.callhierarchy.CallHierarchy;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchSite;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionContext;
-import org.eclipse.ui.browser.IWebBrowser;
-import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,10 +85,11 @@ public class OpenExternalDartdocAction extends SelectionDispatchAction {
     if (type != null) {
       String classNameHTML = type.getElementName();
       classNameHTML = classNameHTML.substring(0, classNameHTML.length()) + ".html";
-      openDocsInBrowser("http://api.dartlang.org/docs/continuous/" + libraryName + '/'
-          + classNameHTML);
+      ExternalBrowserUtil.openInExternalBrowser("http://api.dartlang.org/docs/continuous/"
+          + libraryName + '/' + classNameHTML);
     } else {
-      openDocsInBrowser("http://api.dartlang.org/docs/continuous/" + libraryName + ".html");
+      ExternalBrowserUtil.openInExternalBrowser("http://api.dartlang.org/docs/continuous/"
+          + libraryName + ".html");
     }
 
   }
@@ -232,22 +228,6 @@ public class OpenExternalDartdocAction extends SelectionDispatchAction {
       return null;
     } else {
       return (Type) parent;
-    }
-  }
-
-  //TODO(jwren) Open in Browser functionality should be a shared utility in the product
-  private void openDocsInBrowser(String url) {
-    if (url == null || url.isEmpty()) {
-      return;
-    }
-    IWorkbenchBrowserSupport support = PlatformUI.getWorkbench().getBrowserSupport();
-    try {
-      IWebBrowser browser = support.getExternalBrowser();
-      browser.openURL(new URL(url));
-    } catch (MalformedURLException e) {
-      DartToolsPlugin.log(e);
-    } catch (PartInitException e) {
-      DartToolsPlugin.log(e);
     }
   }
 
