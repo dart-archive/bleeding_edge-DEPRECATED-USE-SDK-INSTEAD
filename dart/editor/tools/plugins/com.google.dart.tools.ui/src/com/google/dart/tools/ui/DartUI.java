@@ -15,7 +15,6 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.search.SearchScope;
 import com.google.dart.tools.core.search.SearchScopeFactory;
@@ -28,12 +27,19 @@ import com.google.dart.tools.ui.text.IColorManager;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.operation.IRunnableContext;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.dialogs.SelectionDialog;
+import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
 import java.net.URL;
@@ -49,24 +55,18 @@ import java.net.URL;
  * <p>
  * This class provides static methods and fields only; it is not intended to be instantiated or
  * subclassed by clients.
- * </p>
- * * Provisional API: This class/interface is part of an interim API that is still under development
- * and expected to change significantly before reaching stability. It is being made available at
- * this early stage to solicit feedback from pioneering adopters on the understanding that any code
- * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  */
 public final class DartUI {
 
   private static ISharedImages fgSharedImages = null;
 
   /**
-   * The id of the JavaScript plug-in (value <code>"com.google.dart.tools.ui"</code>).
+   * The id of the Dart UI plug-in (value <code>"com.google.dart.tools.ui"</code>).
    */
   public static final String ID_PLUGIN = "com.google.dart.tools.ui"; //$NON-NLS-1$
 
   /**
-   * The id of the JavaScript perspective (value
-   * <code>"com.google.dart.tools.ui.JavaPerspective"</code>).
+   * The id of the Dart perspective (value <code>"com.google.dart.tools.ui.JavaPerspective"</code>).
    */
   public static final String ID_PERSPECTIVE = "com.google.dart.tools.ui.JavaPerspective"; //$NON-NLS-1$
 
@@ -225,101 +225,13 @@ public final class DartUI {
   public static String ID_MEMBERS_VIEW = "com.google.dart.tools.ui.MembersView"; //$NON-NLS-1$
 
   /**
-   * Creates a selection dialog that lists all packages of the given JavaScript project. The caller
-   * is responsible for opening the dialog with <code>Window.open</code>, and subsequently
-   * extracting the selected package (of type <code>IPackageFragment</code>) via
-   * <code>SelectionDialog.getResult</code>.
-   * 
-   * @param parent the parent shell of the dialog to be created
-   * @param project the JavaScript project
-   * @param style flags defining the style of the dialog; the valid flags are:
-   *          <code>IDartElementSearchConstants.CONSIDER_BINARIES</code>, indicating that packages
-   *          from binary package fragment roots should be included in addition to those from source
-   *          package fragment roots;
-   *          <code>IDartElementSearchConstants.CONSIDER_REQUIRED_PROJECTS</code> , indicating that
-   *          packages from required projects should be included as well.
-   * @return a new selection dialog
-   * @exception DartModelException if the selection dialog could not be opened
-   */
-  public static SelectionDialog createPackageDialog(Shell parent, DartProject project, int style)
-      throws DartModelException {
-    return createPackageDialog(parent, project, style, ""); //$NON-NLS-1$
-  }
-
-  /**
-   * Creates a selection dialog that lists all packages of the given JavaScript project. The caller
-   * is responsible for opening the dialog with <code>Window.open</code>, and subsequently
-   * extracting the selected package (of type <code>IPackageFragment</code>) via
-   * <code>SelectionDialog.getResult</code>.
-   * 
-   * @param parent the parent shell of the dialog to be created
-   * @param project the JavaScript project
-   * @param style flags defining the style of the dialog; the valid flags are:
-   *          <code>IDartElementSearchConstants.CONSIDER_BINARIES</code>, indicating that packages
-   *          from binary package fragment roots should be included in addition to those from source
-   *          package fragment roots;
-   *          <code>IDartElementSearchConstants.CONSIDER_REQUIRED_PROJECTS</code> , indicating that
-   *          packages from required projects should be included as well.
-   * @param filter the initial pattern to filter the set of packages. For example "com" shows all
-   *          packages starting with "com". The meta character '?' representing any character and
-   *          '*' representing any string are supported. Clients can pass an empty string if no
-   *          filtering is required.
-   * @return a new selection dialog
-   * @exception DartModelException if the selection dialog could not be opened
-   */
-  public static SelectionDialog createPackageDialog(Shell parent, DartProject project, int style,
-      String filter) throws DartModelException {
-    DartX.notYet();
-    return null;
-    // Assert.isTrue((style | IDartElementSearchConstants.CONSIDER_BINARIES |
-    // IDartElementSearchConstants.CONSIDER_REQUIRED_PROJECTS) ==
-    // (IDartElementSearchConstants.CONSIDER_BINARIES |
-    // IDartElementSearchConstants.CONSIDER_REQUIRED_PROJECTS));
-    //
-    // IPackageFragmentRoot[] roots = null;
-    // if ((style & IDartElementSearchConstants.CONSIDER_REQUIRED_PROJECTS) !=
-    // 0) {
-    // roots = project.getAllPackageFragmentRoots();
-    // } else {
-    // roots = project.getPackageFragmentRoots();
-    // }
-    //
-    // List consideredRoots = null;
-    // if ((style & IDartElementSearchConstants.CONSIDER_BINARIES) != 0) {
-    // consideredRoots = Arrays.asList(roots);
-    // } else {
-    // consideredRoots = new ArrayList(roots.length);
-    // for (int i = 0; i < roots.length; i++) {
-    // IPackageFragmentRoot root = roots[i];
-    // if (root.getKind() != IPackageFragmentRoot.K_BINARY)
-    // consideredRoots.add(root);
-    //
-    // }
-    // }
-    //
-    // IJavaScriptSearchScope searchScope =
-    // SearchEngine.createJavaSearchScope((DartElement[])
-    // consideredRoots.toArray(new DartElement[consideredRoots.size()]));
-    // BusyIndicatorRunnableContext context = new
-    // BusyIndicatorRunnableContext();
-    // if (style == 0
-    // || style == IDartElementSearchConstants.CONSIDER_REQUIRED_PROJECTS) {
-    // return createPackageDialog(parent, context, searchScope, false, true,
-    // filter);
-    // } else {
-    // return createPackageDialog(parent, context, searchScope, false, false,
-    // filter);
-    // }
-  }
-
-  /**
    * Creates a selection dialog that lists all types in the given project. The caller is responsible
    * for opening the dialog with <code>Window.open</code>, and subsequently extracting the selected
    * type(s) (of type <code>Type</code> ) via <code>SelectionDialog.getResult</code>.
    * 
    * @param parent the parent shell of the dialog to be created
    * @param context the runnable context used to show progress when the dialog is being populated
-   * @param project the JavaScript project
+   * @param project the project
    * @param style flags defining the style of the dialog; the only valid values are
    *          <code>IDartElementSearchConstants.CONSIDER_CLASSES</code>,
    *          <code>IDartElementSearchConstants.CONSIDER_INTERFACES</code>,
@@ -341,76 +253,6 @@ public final class DartUI {
     SearchScope scope = SearchScopeFactory.createWorkspaceScope();
     return createTypeDialog(parent, context, scope, style, multipleSelection);
   }
-
-  /**
-   * Creates a selection dialog that lists all packages under the given package fragment root. The
-   * caller is responsible for opening the dialog with <code>Window.open</code>, and subsequently
-   * extracting the selected package (of type <code>IPackageFragment</code>) via
-   * <code>SelectionDialog.getResult</code>.
-   * 
-   * @param parent the parent shell of the dialog to be created
-   * @param root the package fragment root
-   * @return a new selection dialog
-   * @exception DartModelException if the selection dialog could not be opened
-   */
-  // public static SelectionDialog createPackageDialog(Shell parent,
-  // IPackageFragmentRoot root) throws DartModelException {
-  //    return createPackageDialog(parent, root, ""); //$NON-NLS-1$
-  // }
-
-  /**
-   * Creates a selection dialog that lists all packages under the given package fragment root. The
-   * caller is responsible for opening the dialog with <code>Window.open</code>, and subsequently
-   * extracting the selected package (of type <code>IPackageFragment</code>) via
-   * <code>SelectionDialog.getResult</code>.
-   * 
-   * @param parent the parent shell of the dialog to be created
-   * @param root the package fragment root
-   * @param filter the initial pattern to filter the set of packages. For example "com" shows all
-   *          packages starting with "com". The meta character '?' representing any character and
-   *          '*' representing any string are supported. Clients can pass an empty string if no
-   *          filtering is required.
-   * @return a new selection dialog
-   * @exception DartModelException if the selection dialog could not be opened
-   */
-  // public static SelectionDialog createPackageDialog(Shell parent,
-  // IPackageFragmentRoot root, String filter) throws DartModelException {
-  // IJavaScriptSearchScope scope = SearchEngine.createJavaSearchScope(new
-  // DartElement[]{root});
-  // BusyIndicatorRunnableContext context = new BusyIndicatorRunnableContext();
-  // return createPackageDialog(parent, context, scope, false, true, filter);
-  // }
-
-  /**
-   * Creates a selection dialog that lists all packages of the given JavaScript search scope. The
-   * caller is responsible for opening the dialog with <code>Window.open</code>, and subsequently
-   * extracting the selected package (of type <code>IPackageFragment</code>) via
-   * <code>SelectionDialog.getResult</code>.
-   * 
-   * @param parent the parent shell of the dialog to be created
-   * @param context the runnable context to run the search in
-   * @param scope the scope defining the available packages.
-   * @param multipleSelection true if multiple selection is allowed
-   * @param removeDuplicates true if only one package is shown per package name
-   * @param filter the initial pattern to filter the set of packages. For example "com" shows all
-   *          packages starting with "com". The meta character '?' representing any character and
-   *          '*' representing any string are supported. Clients can pass an empty string if no
-   *          filtering is required.
-   * @return a new selection dialog
-   */
-  // public static SelectionDialog createPackageDialog(Shell parent,
-  // IRunnableContext context, IJavaScriptSearchScope scope,
-  // boolean multipleSelection, boolean removeDuplicates, String filter) {
-  //
-  // int flag = removeDuplicates ? PackageSelectionDialog.F_REMOVE_DUPLICATES
-  // : 0;
-  // PackageSelectionDialog dialog = new PackageSelectionDialog(parent, context,
-  // flag, scope);
-  // dialog.setFilter(filter);
-  // dialog.setIgnoreCase(false);
-  // dialog.setMultipleSelection(multipleSelection);
-  // return dialog;
-  // }
 
   /**
    * Creates a selection dialog that lists all types in the given scope. The caller is responsible
@@ -521,10 +363,10 @@ public final class DartUI {
   }
 
   /**
-   * Returns the color manager the JavaScript UI plug-in which is used to manage any Java-specific
-   * colors needed for such things like syntax highlighting.
+   * Returns the color manager the Dart UI plug-in which is used to manage any Dart-specific colors
+   * needed for such things like syntax highlighting.
    * 
-   * @return the color manager to be used for JavaScript text viewers
+   * @return the color manager to be used for Dart text viewers
    */
   public static IColorManager getColorManager() {
     return DartToolsPlugin.getDefault().getDartTextTools().getColorManager();
@@ -542,12 +384,11 @@ public final class DartUI {
   public static URL getDartDocLocation(DartElement element, boolean includeAnchor)
       throws DartModelException {
     // TODO(devoncarew):
-
     return null;
   }
 
   /**
-   * Returns the transfer instance used to copy/paste JavaScript elements to and from the clipboard.
+   * Returns the transfer instance used to copy/paste Dart elements to and from the clipboard.
    * Objects managed by this transfer instance are of type <code>DartElement[]</code>. So to access
    * data from the clipboard clients should use the following code snippet:
    * 
@@ -573,13 +414,23 @@ public final class DartUI {
   }
 
   /**
-   * Returns the DocumentProvider used for JavaScript compilation units.
+   * Returns the DocumentProvider used for Dart compilation units.
    * 
-   * @return the DocumentProvider for JavaScript compilation units.
+   * @return the DocumentProvider for Dart compilation units.
    * @see IDocumentProvider
    */
   public static IDocumentProvider getDocumentProvider() {
     return DartToolsPlugin.getDefault().getCompilationUnitDocumentProvider();
+  }
+
+  public static Color getEditorBackground(IPreferenceStore prefs, Display display) {
+    return prefs.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND_SYSTEM_DEFAULT) ? null
+        : createColor(prefs, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND, display);
+  }
+
+  public static Color getEditorForeground(IPreferenceStore prefs, Display display) {
+    return prefs.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND_SYSTEM_DEFAULT) ? null
+        : createColor(prefs, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND, display);
   }
 
   /**
@@ -599,6 +450,64 @@ public final class DartUI {
       return de;
     }
     return (DartElement) editorInput.getAdapter(DartElement.class);
+  }
+
+  public static Color getEditorSelectionBackground(IPreferenceStore prefs, Display display) {
+    return prefs.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_DEFAULT_COLOR)
+        ? null : createColor(
+            prefs,
+            AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_COLOR,
+            display);
+  }
+
+  public static Color getEditorSelectionForeground(IPreferenceStore prefs, Display display) {
+    return prefs.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_FOREGROUND_DEFAULT_COLOR)
+        ? null : createColor(
+            prefs,
+            AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_FOREGROUND_COLOR,
+            display);
+  }
+
+  /**
+   * Returns the shared images for the Dart UI.
+   * 
+   * @return the shared images manager
+   */
+  public static ISharedImages getSharedImages() {
+    if (fgSharedImages == null) {
+      fgSharedImages = new SharedImages();
+    }
+    return fgSharedImages;
+  }
+
+  public static Color getViewerBackground(IPreferenceStore prefs, Display display) {
+    // TODO(messick) Use a color identifier distinct from the editor.
+    return prefs.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND_SYSTEM_DEFAULT) ? null
+        : createColor(prefs, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND, display);
+  }
+
+  public static Color getViewerForeground(IPreferenceStore prefs, Display display) {
+    // TODO(messick) Use a color identifier distinct from the editor.
+    return prefs.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND_SYSTEM_DEFAULT) ? null
+        : createColor(prefs, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND, display);
+  }
+
+  public static Color getViewerSelectionBackground(IPreferenceStore prefs, Display display) {
+    // TODO(messick) Use a color identifier distinct from the editor.
+    return prefs.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_DEFAULT_COLOR)
+        ? null : createColor(
+            prefs,
+            AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_COLOR,
+            display);
+  }
+
+  public static Color getViewerSelectionForeground(IPreferenceStore prefs, Display display) {
+    // TODO(messick) Use a color identifier distinct from the editor.
+    return prefs.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_FOREGROUND_DEFAULT_COLOR)
+        ? null : createColor(
+            prefs,
+            AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_FOREGROUND_COLOR,
+            display);
   }
 
 //TODO (pquitslund): implement when we have dart doc
@@ -682,32 +591,19 @@ public final class DartUI {
 //  }
 
   /**
-   * Returns the shared images for the JavaScript UI.
+   * Returns the working copy manager for the Dart UI plug-in.
    * 
-   * @return the shared images manager
-   */
-  public static ISharedImages getSharedImages() {
-    if (fgSharedImages == null) {
-      fgSharedImages = new SharedImages();
-    }
-
-    return fgSharedImages;
-  }
-
-  /**
-   * Returns the working copy manager for the JavaScript UI plug-in.
-   * 
-   * @return the working copy manager for the JavaScript UI plug-in
+   * @return the working copy manager for the Dart UI plug-in
    */
   public static IWorkingCopyManager getWorkingCopyManager() {
     return DartToolsPlugin.getDefault().getWorkingCopyManager();
   }
 
   /**
-   * Opens an editor on the given JavaScript element in the active page. Valid elements are all
-   * JavaScript elements that are {@link SourceReference}. For elements inside a compilation unit or
-   * class file, the parent is opened in the editor is opened and the element revealed. If there
-   * already is an open JavaScript editor for the given element, it is returned.
+   * Opens an editor on the given Dart element in the active page. Valid elements are all Dart
+   * elements that are {@link SourceReference}. For elements inside a compilation unit, the parent
+   * is opened in the editor is opened and the element revealed. If there already is an open Dart
+   * editor for the given element, it is returned.
    * 
    * @param element the input element; either a compilation unit ( <code>CompilationUnit</code>) or
    *          a class file ( <code>IClassFile</code>) or source references inside.
@@ -724,10 +620,10 @@ public final class DartUI {
   }
 
   /**
-   * Opens an editor on the given JavaScript element in the active page. Valid elements are all
-   * JavaScript elements that are {@link SourceReference}. For elements inside a compilation unit or
-   * class file, the parent is opened in the editor is opened. If there already is an open
-   * JavaScript editor for the given element, it is returned.
+   * Opens an editor on the given Dart element in the active page. Valid elements are all Dart
+   * elements that are {@link SourceReference}. For elements inside a compilation unit, the parent
+   * is opened in the editor is opened. If there already is an open Dart editor for the given
+   * element, it is returned.
    * 
    * @param element the input element; either a compilation unit ( <code>CompilationUnit</code>) or
    *          a class file ( <code>IClassFile</code>) or source references inside.
@@ -753,7 +649,7 @@ public final class DartUI {
   }
 
   /**
-   * Reveals the given JavaScript element in the given editor. If the element is not an instance of
+   * Reveals the given Dart element in the given editor. If the element is not an instance of
    * <code>SourceReference</code> this method result in a NOP. If it is a source reference no
    * checking is done if the editor displays a compilation unit or class file that contains the
    * source reference element. The editor simply reveals the source range denoted by the given
@@ -764,6 +660,21 @@ public final class DartUI {
    */
   public static void revealInEditor(IEditorPart part, DartElement element) {
     EditorUtility.revealInEditor(part, element);
+  }
+
+  private static Color createColor(IPreferenceStore store, String key, Display display) {
+    RGB rgb = null;
+    if (store.contains(key)) {
+      if (store.isDefault(key)) {
+        rgb = PreferenceConverter.getDefaultColor(store, key);
+      } else {
+        rgb = PreferenceConverter.getColor(store, key);
+      }
+      if (rgb != null) {
+        return getColorManager().getColor(rgb);
+      }
+    }
+    return null;
   }
 
   private DartUI() {

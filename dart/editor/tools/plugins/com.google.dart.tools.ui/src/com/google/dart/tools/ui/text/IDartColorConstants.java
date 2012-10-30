@@ -115,19 +115,19 @@ public interface IDartColorConstants {
    * The color key for JavaDoc keywords (<code>@foo</code>) in JavaDoc comments (value
    * <code>"dart_doc_keyword"</code>).
    */
-  String JAVADOC_KEYWORD = "java_doc_keyword"; //$NON-NLS-1$
+  String JAVADOC_KEYWORD = "dart_doc_keyword"; //$NON-NLS-1$
 
   /**
    * The color key for HTML tags (<code>&lt;foo&gt;</code>) in JavaDoc comments (value
    * <code>"java_doc_tag"</code>).
    */
-  String JAVADOC_TAG = "java_doc_tag"; //$NON-NLS-1$
+  String JAVADOC_TAG = "dart_doc_tag"; //$NON-NLS-1$
 
   /**
    * The color key for JavaDoc links (<code>{foo}</code>) in JavaDoc comments (value
    * <code>"java_doc_link"</code>).
    */
-  String JAVADOC_LINK = "java_doc_link"; //$NON-NLS-1$
+  String JAVADOC_LINK = "dart_doc_link"; //$NON-NLS-1$
 
   /**
    * The color key for everything in DartDoc comments for which no other color is specified (value

@@ -2099,6 +2099,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return SWT.LEFT_TO_RIGHT; // Dart editors are always left to right by default
   }
 
+  public IPreferenceStore getPreferences() {
+    return super.getPreferenceStore();
+  }
+
   @Override
   public String getTitleToolTip() {
     if (getEditorInput() instanceof IFileEditorInput) {

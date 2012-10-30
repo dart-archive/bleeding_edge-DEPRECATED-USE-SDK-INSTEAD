@@ -8,6 +8,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.resources,
  org.eclipse.jface.text,
  org.eclipse.ui,
+ org.eclipse.ui.ide,
  org.eclipse.ui.editors,
  org.eclipse.ui.workbench.texteditor,
  org.eclipse.ltk.core.refactoring,
@@ -21,5 +22,6 @@ Require-Bundle: org.eclipse.core.runtime,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
-Export-Package: com.google.dart.tools.ui.refactoring
+Export-Package: com.google.dart.tools.ui,
+ com.google.dart.tools.ui.refactoring
 Bundle-Activator: com.google.dart.tools.ui.Activator
