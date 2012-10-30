@@ -26,6 +26,7 @@ public final class FixMessages extends NLS {
   public static String CleanUpPostSaveListener_SlowCleanUpWarningDialog_explain;
   public static String CleanUpPostSaveListener_unknown_profile_error_message;
   public static String CleanUpRefactoring_checkingPostConditions_message;
+  public static String CleanUpRefactoring_unableToResolve;
 
   public static String CleanUpRefactoring_clean_up_multi_chang_name;
   public static String CleanUpRefactoring_could_not_retrive_profile;

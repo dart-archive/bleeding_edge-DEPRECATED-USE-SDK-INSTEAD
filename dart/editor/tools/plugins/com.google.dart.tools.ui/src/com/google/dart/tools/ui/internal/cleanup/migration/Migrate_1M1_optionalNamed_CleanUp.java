@@ -75,6 +75,10 @@ public class Migrate_1M1_optionalNamed_CleanUp extends AbstractMigrateCleanUp {
         for (SearchMatch reference : references) {
           CompilationUnit refUnit = reference.getElement().getAncestor(CompilationUnit.class);
           ExtractUtils utils = new ExtractUtils(refUnit);
+          // ignore if cannot resolve unit
+          if (utils.getUnitNode() == null) {
+            continue;
+          }
           // prepare invocation
           DartNode coveringNode = NodeFinder.find(
               utils.getUnitNode(),

@@ -322,7 +322,8 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
       return !fParseList.isEmpty();
     }
 
-    public void next(IProgressMonitor monitor) throws CoreException {
+    public void next(RefactoringStatus refactoringStatus, IProgressMonitor monitor)
+        throws CoreException {
       List<CompilationUnit> parseList = new ArrayList<CompilationUnit>();
       List<CompilationUnit> sourceList = new ArrayList<CompilationUnit>();
 
@@ -359,6 +360,12 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
           // TODO(scheglov) batch parsing?
           for (CompilationUnit cu : parseList) {
             DartUnit unitNode = DartCompilerUtilities.resolveUnit(cu);
+            if (unitNode == null) {
+              refactoringStatus.addFatalError(Messages.format(
+                  FixMessages.CleanUpRefactoring_unableToResolve,
+                  cu.getResource().getFullPath()));
+              continue;
+            }
             requestor.acceptAST(cu, unitNode);
             monitor.worked(1);
           }
@@ -710,7 +717,7 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
           return result;
         }
 
-        Change[] changes = cleanUpProject(project, targets, cleanUps, pm);
+        Change[] changes = cleanUpProject(project, targets, cleanUps, result, pm);
 
         result.merge(checkPostConditions(new SubProgressMonitor(pm, cleanUps.length)));
         if (result.hasFatalError()) {
@@ -860,7 +867,8 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
   }
 
   private Change[] cleanUpProject(DartProject project, CleanUpTarget[] targets,
-      ICleanUp[] cleanUps, IProgressMonitor monitor) throws CoreException {
+      ICleanUp[] cleanUps, RefactoringStatus refactoringStatus, IProgressMonitor monitor)
+      throws CoreException {
     CleanUpFixpointIterator iter = new CleanUpFixpointIterator(targets, cleanUps);
 
     SubProgressMonitor subMonitor = new SubProgressMonitor(monitor, 2 * targets.length
@@ -871,7 +879,7 @@ public class CleanUpRefactoring extends Refactoring {//implements IScheduledRefa
         BasicElementLabels.getResourceName(project.getProject())));
     try {
       while (iter.hasNext()) {
-        iter.next(subMonitor);
+        iter.next(refactoringStatus, subMonitor);
       }
 
       return iter.getResult();
