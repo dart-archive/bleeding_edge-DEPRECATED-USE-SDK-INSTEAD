@@ -232,10 +232,6 @@ public class DartNavigatorContentProvider implements ICommonContentProvider,
   private Object[] getProjectChildren(IProject project) throws CoreException {
     List<Object> children = new ArrayList<Object>();
 
-    for (IResource resource : filteredMembers(project)) {
-      children.add(resource);
-    }
-
     if (DartProjectNature.hasDartNature(project)) {
       DartProject dartProject = DartCore.create(project);
       if (DartSdkManager.getManager().hasSdk()) {
