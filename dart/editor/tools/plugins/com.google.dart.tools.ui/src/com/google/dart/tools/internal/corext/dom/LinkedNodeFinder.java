@@ -16,8 +16,10 @@ package com.google.dart.tools.internal.corext.dom;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.ElementKind;
 
 import java.util.List;
 
@@ -63,11 +65,21 @@ public class LinkedNodeFinder {
       }
       binding = getDeclaration(binding);
 
+      // Normal case - same element.
       if (fBinding == binding) {
         fResult.add(node);
-      } else if (binding.getKind() != fBinding.getKind()) {
-        return null;
       }
+
+      if (ElementKind.of(fBinding) == ElementKind.CLASS
+          && ElementKind.of(binding) == ElementKind.CONSTRUCTOR
+          && binding.getEnclosingElement() == fBinding
+          && node.getParent() instanceof DartMethodDefinition) {
+        fResult.add(node);
+      }
+
+//      else if (binding.getKind() != fBinding.getKind()) {
+//        return null;
+//      }
       // TODO(scheglov) restore later
 //      else if (binding.getKind() == IBinding.METHOD) {
 //        IMethodBinding curr = (IMethodBinding) binding;
