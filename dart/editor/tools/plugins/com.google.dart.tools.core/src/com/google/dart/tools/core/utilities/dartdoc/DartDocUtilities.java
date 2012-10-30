@@ -23,6 +23,7 @@ import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
+import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.ast.DartElementLocator;
@@ -219,12 +220,12 @@ public final class DartDocUtilities {
           return type.getElementName();
         }
       } else if (documentable instanceof DartFunction) {
-        DartFunction method = (DartFunction) documentable;
+        DartFunction function = (DartFunction) documentable;
 
         StringBuffer buf = new StringBuffer();
 
-        String[] typeNames = method.getFullParameterTypeNames();
-        String[] parameterNames = method.getParameterNames();
+        String[] typeNames = function.getFullParameterTypeNames();
+        String[] parameterNames = function.getParameterNames();
 
         for (int i = 0; i < parameterNames.length; i++) {
           if (i > 0) {
@@ -247,10 +248,25 @@ public final class DartDocUtilities {
           }
         }
 
-        if (method.getReturnTypeName() != null) {
-          return method.getReturnTypeName() + " " + method.getElementName() + "(" + buf + ")";
+        String returnTypeName = function.getReturnTypeName();
+
+        //special handling for getters
+        if (function instanceof Method) {
+          Method method = (Method) function;
+          if (method.isGetter()) {
+            StringBuilder sb = new StringBuilder();
+            if (returnTypeName != null) {
+              sb.append(returnTypeName).append(' ');
+            }
+            sb.append("get ").append(function.getElementName());
+            return sb.toString();
+          }
+        }
+
+        if (returnTypeName != null) {
+          return returnTypeName + " " + function.getElementName() + "(" + buf + ")";
         } else {
-          return method.getElementName() + "(" + buf + ")";
+          return function.getElementName() + "(" + buf + ")";
         }
       } else {
         return documentable.getElementName();
