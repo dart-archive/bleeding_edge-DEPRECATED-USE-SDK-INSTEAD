@@ -13,18 +13,27 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
+import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.internal.model.DartProjectNature;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.CoreUtility;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.actions.GlobalBuildAction;
+
+import java.io.File;
 
 /**
  * Helper to save dirty editors prior to starting a refactoring. Saving happens with automatic build
@@ -47,6 +56,26 @@ public class RefactoringSaveHelper {
    * Save mode to not save any editors.
    */
   public static final int SAVE_NOTHING = 3;
+
+  /**
+   * Notifies {@link AnalysisServer} about a change so it will put on hold requests to the search
+   * engine until the changed file gets indexed. We need this because without it the builder may not
+   * notice changes prior to the refactoring processors making search queries.
+   */
+  private static void notifyAnalysisServerAboutFileChange(IEditorPart editor) {
+    IEditorInput input = editor.getEditorInput();
+    if (input instanceof IFileEditorInput) {
+      IFile file = ((IFileEditorInput) input).getFile();
+      if (!DartProjectNature.hasDartNature(file)) {
+        return;
+      }
+      IPath fileLocation = file.getLocation();
+      if (fileLocation != null) {
+        File javaFile = fileLocation.toFile();
+        PackageLibraryManagerProvider.getDefaultAnalysisServer().changed(javaFile);
+      }
+    }
+  }
 
   public RefactoringSaveHelper(int saveMode) {
     Assert.isLegal(saveMode == SAVE_ALL || saveMode == SAVE_NOTHING);
@@ -72,9 +101,15 @@ public class RefactoringSaveHelper {
     try {
       boolean autoBuild = CoreUtility.setAutoBuilding(false);
       try {
+        // do save
         if (!DartToolsPlugin.getActiveWorkbenchWindow().getWorkbench().saveAllEditors(false)) {
           return false;
         }
+        // notify AnalysisServer
+        for (IEditorPart editor : dirtyEditors) {
+          notifyAnalysisServerAboutFileChange(editor);
+        }
+        // done
         filesSaved = true;
       } finally {
         CoreUtility.setAutoBuilding(autoBuild);
