@@ -21,6 +21,7 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Elements;
+import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
@@ -85,16 +86,23 @@ public class Migrate_1M2_toGetters_CleanUp extends AbstractMigrateCleanUp {
       return false;
     }
     ClassElement element = type.getElement();
-    if (element.getName().equals(requiredName)
-        && (requiredLib == null || element.getLibrary().getName().equals(requiredLib))) {
-      return true;
-    }
-    if (isSubType(element.getSupertype(), requiredName, requiredLib)) {
-      return true;
-    }
-    for (InterfaceType intf : element.getInterfaces()) {
-      if (isSubType(intf, requiredName, requiredLib)) {
+    if (element != null) {
+      if (requiredName.equals(element.getName())) {
+        if (requiredLib == null) {
+          return true;
+        }
+        LibraryElement library = element.getLibrary();
+        if (library != null && requiredLib.equals(library.getName())) {
+          return true;
+        }
+      }
+      if (isSubType(element.getSupertype(), requiredName, requiredLib)) {
         return true;
+      }
+      for (InterfaceType intf : element.getInterfaces()) {
+        if (isSubType(intf, requiredName, requiredLib)) {
+          return true;
+        }
       }
     }
     return false;
