@@ -133,7 +133,7 @@ public class InMemoryIndex implements Index {
   /**
    * The name of the file containing the index.
    */
-  private static final String INDEX_FILE = "index.idx";
+  public static final String INDEX_FILE = "index.idx";
 
   /**
    * The name of the file containing the initial state of the index.
