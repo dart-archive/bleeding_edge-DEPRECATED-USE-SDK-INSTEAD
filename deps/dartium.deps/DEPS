@@ -55,4 +55,11 @@ hooks[-1:-1] = [{
   {
     "pattern": "dart",
     "action": ["python", "src/dartium_tools/generate_dart_vm_version.py"],
+  },
+  {
+    # A change to any file causes an updated modification time for VERSION
+    # so that the Dart VM version reported through the Dart C API will be
+    # properly setup.
+    "pattern": "dart",
+    "action": ["python", "src/dart/tools/touch_version.py"],
   }]
