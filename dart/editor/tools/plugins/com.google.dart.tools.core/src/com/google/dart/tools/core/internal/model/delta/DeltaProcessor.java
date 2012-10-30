@@ -266,18 +266,13 @@ public class DeltaProcessor {
         if (VERBOSE) {
           System.out.println("DeltaProcessor.resourceChanged() " + "CLOSE");
         }
-        try {
-          if (resource.getType() == IResource.PROJECT) {
-            IProject project = (IProject) resource;
-            if (project.hasNature(DartCore.DART_PROJECT_NATURE)) {
-              File projDir = project.getLocation().toFile();
-              PackageLibraryManagerProvider.getDefaultAnalysisServer().discard(projDir);
-              DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(project);
-              dartProject.clearLibraryInfo();
-            }
-          }
-        } catch (CoreException e) {
-          // project doesn't exist or is not open: ignore
+
+        if (resource.getType() == IResource.PROJECT) {
+          IProject project = (IProject) resource;
+          File projDir = project.getLocation().toFile();
+          PackageLibraryManagerProvider.getDefaultAnalysisServer().discard(projDir);
+          DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(project);
+          dartProject.clearLibraryInfo();
         }
         return;
 
@@ -290,11 +285,9 @@ public class DeltaProcessor {
             IProject project = (IProject) resource;
             File projDir = project.getLocation().toFile();
             PackageLibraryManagerProvider.getDefaultAnalysisServer().discard(projDir);
-            if (project.hasNature(DartCore.DART_PROJECT_NATURE)) {
-              DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(project);
-              dartProject.close();
-              removeFromParentInfo(dartProject);
-            }
+            DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(project);
+            dartProject.close();
+            removeFromParentInfo(dartProject);
           }
         } catch (CoreException ce) {
           // project doesn't exist or is not open: ignore
@@ -340,7 +333,7 @@ public class DeltaProcessor {
         if (VERBOSE) {
           System.out.println("DeltaProcessor.resourceChanged() " + "POST_BUILD");
         }
-        // DartBuilder.buildFinished();
+
         return;
     }
   }

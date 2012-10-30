@@ -339,6 +339,8 @@ public class DeltaProcessingState implements IResourceChangeListener {
             && children[0].getResource().getProject().hasNature(DartCore.DART_PROJECT_NATURE)) {
           getDeltaProcessor().resourceChanged(event);
         }
+      } else if (event.getResource().getProject().hasNature(DartCore.DART_PROJECT_NATURE)) {
+        getDeltaProcessor().resourceChanged(event);
       }
     } catch (CoreException e) {
       //ignore
