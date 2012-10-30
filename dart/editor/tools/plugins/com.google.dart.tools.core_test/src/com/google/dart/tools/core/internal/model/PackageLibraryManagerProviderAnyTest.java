@@ -32,7 +32,7 @@ public class PackageLibraryManagerProviderAnyTest extends PackageLibraryManagerP
   }
 
   public void test_PackageLibraryManagerProvider_io() throws Exception {
-    testLibrary("io", "io_runtime.dart");
+    testLibrary("io", "io.dart");
   }
 
   public void test_PackageLibraryManagerProvider_isolate() throws Exception {
