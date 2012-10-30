@@ -711,6 +711,16 @@ public class CompletionEngineTest extends TestCase {
     test("class Foo {this.!1}", "1-Object");
   }
 
+  public void testCommentSnippets082() throws Exception {
+    String source = Joiner.on("\n").join(
+        "class HttpRequest {}",
+        "class HttpResponse {}",
+        "main() {",
+        "  var v = (HttpRequest req, HttpResp!1)",
+        "}");
+    test(source, "1+HttpResponse");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test
