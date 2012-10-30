@@ -897,16 +897,8 @@ def CreateLinuxSDK(sdkpath):
   sdkdir64 = join(DART_PATH, utils.GetBuildRoot('linux', 'release', 'x64'),
                   'dart-sdk')
 
-  # Build the SDK. On Linux, building the 64 bit SDK runs into issues w/ trying
-  # to build V8 in 64 bit. Sooo, we build the 32 bit SDK, build the 64 bit VM,
-  # and synthesize a 64 bit SDK from the two.
-  CallBuildScript('release', 'ia32', 'create_sdk')
-  CallBuildScript('release', 'x64', 'runtime')
-  shutil.rmtree(sdkdir64, True)
-  shutil.copytree(sdkdir32, sdkdir64)
-  shutil.copy(join(DART_PATH, utils.GetBuildRoot('linux', 'release', 'x64'),
-                   'dart'),
-              join(sdkdir64, 'bin'))
+  # Build the SDK
+  CallBuildScript('release', 'ia32,x64', 'create_sdk')
   
   sdk32_zip = join(sdkpath, 'dartsdk-linux-32.zip')
   sdk32_tgz = join(sdkpath, 'dartsdk-linux-32.tar.gz')
