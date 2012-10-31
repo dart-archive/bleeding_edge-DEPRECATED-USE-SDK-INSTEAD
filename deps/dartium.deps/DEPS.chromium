@@ -8,28 +8,28 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "132013",
+  "webkit_revision": "132834",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "10059",
+  "nacl_revision": "10116",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "10001",  # native_client/DEPS: tools_rev
   "gtm_revision": "578",
 
-  "libjingle_revision": "209",
+  "libjingle_revision": "220",
   "libphonenumber_revision": "456",
   "libvpx_revision": "163000",
   "lss_revision": "13",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "163218",
-  "ffmpeg_hash": "ff0d22abf29332410489dc567c70b3e6f23ffa60",
+  "ffmpeg_revision": "164413",
+  "ffmpeg_hash": "f1b9c50b8b14c6a5299c022a3a677a5c9941427a",
 
   "sfntly_revision": "134",
-  "skia_revision": "6023",
+  "skia_revision": "6161",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -37,9 +37,9 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "2961",
+  "webrtc_revision": "3016",
   "jsoncpp_revision": "248",
-  "nss_revision": "163113",
+  "nss_revision": "164196",
 }
 
 deps = {
@@ -50,7 +50,7 @@ deps = {
     (Var("googlecode_url") % "google-url") + "/trunk@180",
 
   "src/sandbox/linux/seccomp-legacy":
-    (Var("googlecode_url") % "seccompsandbox") + "/trunk@187",
+    (Var("googlecode_url") % "seccompsandbox") + "/trunk@188",
 
   "src/sdch/open-vcdiff":
     (Var("googlecode_url") % "open-vcdiff") + "/trunk@42",
@@ -62,7 +62,7 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@405",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@1289",
+    (Var("googlecode_url") % "angleproject") + "/trunk@1320",
 
   "src/third_party/trace-viewer":
     (Var("googlecode_url") % "trace-viewer") + "/trunk@179",
@@ -103,7 +103,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@82",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1521",
+    (Var("googlecode_url") % "gyp") + "/trunk@1525",
 
   "src/tools/swarm_client":
     "/trunk/tools/swarm_client@163381",
@@ -165,7 +165,7 @@ deps = {
     (Var("googlecode_url") % "bidichecker") + "/trunk/lib@4",
 
   "src/third_party/v8-i18n":
-    (Var("googlecode_url") % "v8-i18n") + "/trunk@153",
+    (Var("googlecode_url") % "v8-i18n") + "/trunk@155",
 
   # When roll to another webgl conformance tests revision, please goto
   # chrome/test/gpu and run generate_webgl_conformance_test_list.py.
@@ -275,7 +275,7 @@ deps = {
         Var("nacl_tools_revision"),
 
   "src/third_party/webrtc":
-    (Var("googlecode_url") % "webrtc") + "/stable/src@" + Var("webrtc_revision"),
+    (Var("googlecode_url") % "webrtc") + "/stable/webrtc@" + Var("webrtc_revision"),
 
   "src/third_party/jsoncpp/source/include":
     (Var("sourceforge_url") % {"repo": "jsoncpp"}) +
@@ -311,16 +311,16 @@ deps = {
     "/trunk/deps/third_party/undoview@119694",
 
   "src/tools/deps2git":
-    "/trunk/tools/deps2git@157441",
+    "/trunk/tools/deps2git@163971",
 
   "src/third_party/webpagereplay":
-    (Var("googlecode_url") % "web-page-replay") + "/trunk@497",
+    (Var("googlecode_url") % "web-page-replay") + "/trunk@501",
 
   "src/third_party/pywebsocket/src":
     (Var("googlecode_url") % "pywebsocket") + "/trunk/src@662",
 
   "src/third_party/opus/src":
-    "/trunk/deps/third_party/opus@162558",
+    "/trunk/deps/third_party/opus@164159",
 }
 
 
@@ -541,7 +541,7 @@ deps_os = {
     # For Linux and Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@c8e074febccd2e86b5c64231d657bc49c0e53c3d",
+      "@880d8d3d6c5c6e4b10bbf7461a8f84a1e599a471",
   },
   "android": {
     "src/third_party/freetype":
