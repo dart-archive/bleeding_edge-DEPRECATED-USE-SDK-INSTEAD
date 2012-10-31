@@ -78,7 +78,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     @Override
     public Void visitDoubleLiteral(DartDoubleLiteral node) {
       processNode(token, node);
-      return super.visitDoubleLiteral(node);
+      return null;
     }
 
     @Override
@@ -108,7 +108,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     @Override
     public Void visitIdentifier(DartIdentifier node) {
       processNode(token, node);
-      return super.visitIdentifier(node);
+      return null;
     }
 
     @Override
@@ -120,7 +120,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     @Override
     public Void visitIntegerLiteral(DartIntegerLiteral node) {
       processNode(token, node);
-      return super.visitIntegerLiteral(node);
+      return null;
     }
 
     @Override
@@ -166,32 +166,87 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
      * @param length The range length
      * @param highlighting The highlighting
      */
-    private void addPosition(int offset, int length, Highlighting highlighting) {
+    // Note: final added for performance reasons. It may not be necessary however; this method is
+    // fairly big to be considered for inlining.
+    private final void addPosition(int offset, int length, Highlighting highlighting) {
       boolean isExisting = false;
-      // TODO: use binary search
-      for (int i = 0, n = fRemovedPositions.size(); i < n; i++) {
-        HighlightedPosition position = (HighlightedPosition) fRemovedPositions.get(i);
-        if (position == null) {
-          continue;
+
+      int left = 0;
+      int right = removedPositions.length - 1;
+
+      // Do a binary search through the removedPositions array, looking for the given offset.
+      while (left <= right) {
+        int mid;
+
+        // Choose a mid.
+        if (removedPositions[left].getOffset() == offset) {
+          mid = left;
+        } else if (removedPositions[right].getOffset() == offset) {
+          mid = right;
+        } else {
+          mid = (left + right) / 2;
         }
-        if (position.isEqual(offset, length, highlighting)) {
-          isExisting = true;
-          fRemovedPositions.set(i, null);
-          fNOfRemovedPositions--;
+
+        if (offset > removedPositions[mid].getOffset()) {
+          if (left + 1 == right) {
+            break;
+          }
+
+          left = mid;
+        } else if (offset < removedPositions[mid].getOffset()) {
+          right = mid;
+        } else {
+          int index = mid;
+
+          // We found offset. Back up until we reach the first instance of that offset.
+          while (index > 0 && removedPositions[index - 1].getOffset() == offset) {
+            index--;
+          }
+
+          // Check to see if we want to keep all the positions which equal offset.
+          while (index < removedPositions.length && removedPositions[index].getOffset() == offset) {
+            if (!removedPositionsDeleted[index]) {
+              HighlightedPosition position = (HighlightedPosition) removedPositions[index];
+
+              if (position.isEqual(offset, length, highlighting)) {
+                isExisting = true;
+                removedPositionsDeleted[index] = true;
+                fNOfRemovedPositions--;
+                break;
+              }
+            }
+
+            index++;
+          }
+
           break;
         }
       }
 
+      // Older (and much simpler) O(n^2) algorithm for updating removedPositions.
+//      for (int i = 0, n = removedPositions.length; i < n; i++) {
+//        if (removedPositionsDeleted[i]) {
+//          continue;
+//        }
+//
+//        HighlightedPosition position = (HighlightedPosition) removedPositions[i];
+//
+//        if (position.isEqual(offset, length, highlighting)) {
+//          isExisting = true;
+//          removedPositionsDeleted[i] = true;
+//          fNOfRemovedPositions--;
+//          break;
+//        }
+//      }
+
       if (!isExisting) {
-        Position position = fJobPresenter.createHighlightedPosition(offset, length, highlighting);
-        fAddedPositions.add(position);
+        fAddedPositions.add(fJobPresenter.createHighlightedPosition(offset, length, highlighting));
       }
     }
-
   }
 
   /** Position collector */
-  private PositionCollector fCollector = new PositionCollector();
+  private final PositionCollector fCollector = new PositionCollector();
 
   /** The Dart editor on which this semantic highlighting reconciler is installed */
   private DartEditor fEditor;
@@ -209,10 +264,12 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
   private Highlighting[] fHighlightings;
 
   /** Background job's added highlighted positions */
-  private List<Position> fAddedPositions = new ArrayList<Position>();
+  private final List<Position> fAddedPositions = new ArrayList<Position>();
 
   /** Background job's removed highlighted positions */
   private List<Position> fRemovedPositions = new ArrayList<Position>();
+  private Position[] removedPositions;
+  private boolean[] removedPositionsDeleted;
 
   /** Number of removed positions */
   private int fNOfRemovedPositions;
@@ -397,7 +454,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     return new DartNode[] {node};
   }
 
-  private void processNode(SemanticToken token, DartNode node) {
+  private final void processNode(SemanticToken token, DartNode node) {
     token.update(node);
     token.attachSource(fSourceViewer.getDocument());
     for (int i = 0, n = fJobSemanticHighlightings.length; i < n; i++) {
@@ -443,11 +500,24 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
    * @param subtrees the AST subtrees
    */
   private void reconcilePositions(DartNode[] subtrees) {
+    // copy fRemovedPositions into removedPositions and removedPositionsDeleted
+    removedPositions = fRemovedPositions.toArray(new Position[fRemovedPositions.size()]);
+    removedPositionsDeleted = new boolean[removedPositions.length];
+
     // FIXME: remove positions not covered by subtrees
     for (int i = 0, n = subtrees.length; i < n; i++) {
       // subtrees[i].accept(fCollector);
       subtrees[i].accept(fCollector);
     }
+
+    // copy removedPositions and removedPositionsDeleted into fRemovedPositions
+    fRemovedPositions = new ArrayList<Position>(removedPositions.length);
+    for (int i = 0; i < removedPositions.length; i++) {
+      if (!removedPositionsDeleted[i]) {
+        fRemovedPositions.add(removedPositions[i]);
+      }
+    }
+
     List<Position> oldPositions = fRemovedPositions;
     List<Position> newPositions = new ArrayList<Position>(fNOfRemovedPositions);
     for (int i = 0, n = oldPositions.size(); i < n; i++) {

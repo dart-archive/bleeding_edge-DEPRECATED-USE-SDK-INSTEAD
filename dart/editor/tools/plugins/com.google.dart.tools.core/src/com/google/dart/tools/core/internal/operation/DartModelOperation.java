@@ -490,7 +490,11 @@ public abstract class DartModelOperation implements IWorkspaceRunnable, IProgres
   public void worked(int work) {
     if (progressMonitor != null) {
       progressMonitor.worked(work);
-      checkCanceled();
+
+      if (progressMonitor.isCanceled()) {
+        // Throw an OperationCanceledException.
+        checkCanceled();
+      }
     }
   }
 

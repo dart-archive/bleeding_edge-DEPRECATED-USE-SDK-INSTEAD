@@ -1203,22 +1203,12 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       }
 
     } else {
-
       setStatusLineErrorMessage(null);
 
       updateState(getEditorInput());
       validateState(getEditorInput());
 
-      IWorkingCopyManager manager = DartToolsPlugin.getDefault().getWorkingCopyManager();
-      CompilationUnit unit = manager.getWorkingCopy(getEditorInput());
-
-      if (unit != null) {
-        synchronized (unit) {
-          performSave(false, progressMonitor);
-        }
-      } else {
-        performSave(false, progressMonitor);
-      }
+      performSave(false, progressMonitor);
     }
   }
 

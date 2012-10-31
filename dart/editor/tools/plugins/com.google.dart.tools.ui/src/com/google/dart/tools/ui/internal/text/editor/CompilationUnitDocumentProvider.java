@@ -67,7 +67,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
@@ -1065,39 +1064,9 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       monitor = new NullProgressMonitor();
     }
 
-    monitor.beginTask("", 120); //$NON-NLS-1$
+    monitor.beginTask("", 70); //$NON-NLS-1$
 
     try {
-      final IProgressMonitor subMonitor1 = getSubProgressMonitor(monitor, 50);
-
-      try {
-        SafeRunner.run(new ISafeRunnable() {
-          @Override
-          public void handleException(Throwable ex) {
-            IStatus status = new Status(
-                IStatus.ERROR,
-                DartUI.ID_PLUGIN,
-                IStatus.OK,
-                "Error in Dart Core during reconcile while saving", ex); //$NON-NLS-1$
-            DartToolsPlugin.getDefault().getLog().log(status);
-          }
-
-          @Override
-          public void run() {
-            try {
-              DartX.todo();
-              ((CompilationUnitImpl) info.fCopy).reconcile(false, subMonitor1);
-            } catch (DartModelException ex) {
-              handleException(ex);
-            } catch (OperationCanceledException ex) {
-              // do not log this
-            }
-          }
-        });
-      } finally {
-        subMonitor1.done();
-      }
-
       IDocument document = info.fTextFileBuffer.getDocument();
       DartX.todo();
       boolean isSynchronized = true;

@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.info.DeclarationElementInfo;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModifiers;
 
@@ -41,7 +42,8 @@ public abstract class NamedTypeMemberImpl extends DartTypeMemberImpl {
   }
 
   @Override
-  public String getElementName() {
+  // Note: final added for performance reasons.
+  public final String getElementName() {
     return name;
   }
 
@@ -58,6 +60,21 @@ public abstract class NamedTypeMemberImpl extends DartTypeMemberImpl {
       throw new IllegalStateException(exception);
     }
     return new DartModifiers(info.getModifiers());
+  }
+
+  /**
+   * Inlined from DartElementImpl.hashCode().
+   */
+  @Override
+  public int hashCode() {
+    DartElement parent = getParent();
+
+    if (parent == null) {
+      return super.hashCode();
+    } else {
+      // Inlined from Util.combineHashCodes()
+      return name.hashCode() * 17 + parent.hashCode();
+    }
   }
 
   @Override

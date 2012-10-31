@@ -18,7 +18,6 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
-import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartElementVisitor;
@@ -373,7 +372,7 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
   }
 
   @Override
-  public DartElement getParent() {
+  public final DartElement getParent() {
     return parent;
   }
 
@@ -452,12 +451,15 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
     return elementInfo.getChildren().length > 0;
   }
 
+  // This hashCode method is called _a lot_.
   @Override
   public int hashCode() {
     if (parent == null) {
       return super.hashCode();
+    } else {
+      // Inlined from Util.combineHashCodes()
+      return getElementName().hashCode() * 17 + parent.hashCode();
     }
-    return Util.combineHashCodes(getElementName().hashCode(), parent.hashCode());
   }
 
   @Deprecated
