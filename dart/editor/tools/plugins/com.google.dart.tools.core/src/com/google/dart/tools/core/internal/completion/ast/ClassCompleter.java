@@ -36,6 +36,7 @@ public class ClassCompleter extends DartClass implements CompletionNode {
         type.getName(),
         type.getNativeName(),
         type.getSuperclass(),
+        type.getImplementsOffset(),
         type.getInterfaces(),
         type.getDefaultTokenOffset(),
         type.getOpenBraceOffset(),
@@ -50,16 +51,17 @@ public class ClassCompleter extends DartClass implements CompletionNode {
   private Stack<Mark> stack;
 
   public ClassCompleter(int tokenOffset, int tokenLength, DartIdentifier name,
-      DartStringLiteral nativeName, DartTypeNode superclass, List<DartTypeNode> interfaces,
-      int defaultTokenOffset, int openBraceOffset, int closeBraceOffset, List<DartNode> members,
-      List<DartTypeParameter> typeParameters, DartParameterizedTypeNode defaultClass,
-      boolean isInterface, Modifiers modifiers) {
+      DartStringLiteral nativeName, DartTypeNode superclass, int implementsOffset,
+      List<DartTypeNode> interfaces, int defaultTokenOffset, int openBraceOffset,
+      int closeBraceOffset, List<DartNode> members, List<DartTypeParameter> typeParameters,
+      DartParameterizedTypeNode defaultClass, boolean isInterface, Modifiers modifiers) {
     super(
         tokenOffset,
         tokenLength,
         name,
         nativeName,
         superclass,
+        implementsOffset,
         interfaces,
         defaultTokenOffset,
         openBraceOffset,

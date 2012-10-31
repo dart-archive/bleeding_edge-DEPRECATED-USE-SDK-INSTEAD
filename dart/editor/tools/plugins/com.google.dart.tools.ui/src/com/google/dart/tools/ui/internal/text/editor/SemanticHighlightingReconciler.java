@@ -14,15 +14,22 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
+import com.google.dart.compiler.ast.DartExportDirective;
+import com.google.dart.compiler.ast.DartExpression;
+import com.google.dart.compiler.ast.DartFieldDefinition;
+import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartLibraryDirective;
+import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPartOfDirective;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartSourceDirective;
+import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.SourceRange;
@@ -63,9 +70,39 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     private final SemanticToken token = new SemanticToken();
 
     @Override
+    public Void visitClass(DartClass node) {
+      processNode(token, node);
+      return super.visitClass(node);
+    }
+
+    @Override
     public Void visitDoubleLiteral(DartDoubleLiteral node) {
       processNode(token, node);
       return super.visitDoubleLiteral(node);
+    }
+
+    @Override
+    public Void visitExportDirective(DartExportDirective node) {
+      processNode(token, node);
+      return super.visitExportDirective(node);
+    }
+
+    @Override
+    public Void visitExpression(DartExpression node) {
+      processNode(token, node);
+      return super.visitExpression(node);
+    }
+
+    @Override
+    public Void visitFieldDefinition(DartFieldDefinition node) {
+      processNode(token, node);
+      return super.visitFieldDefinition(node);
+    }
+
+    @Override
+    public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
+      processNode(token, node);
+      return super.visitFunctionTypeAlias(node);
     }
 
     @Override
@@ -93,6 +130,12 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     }
 
     @Override
+    public Void visitMethodDefinition(DartMethodDefinition node) {
+      processNode(token, node);
+      return super.visitMethodDefinition(node);
+    }
+
+    @Override
     public Void visitPartOfDirective(DartPartOfDirective node) {
       processNode(token, node);
       return super.visitPartOfDirective(node);
@@ -108,6 +151,12 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     public Void visitSourceDirective(DartSourceDirective node) {
       processNode(token, node);
       return super.visitSourceDirective(node);
+    }
+
+    @Override
+    public Void visitStatement(DartStatement node) {
+      processNode(token, node);
+      return super.visitStatement(node);
     }
 
     /**

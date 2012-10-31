@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.compiler.parser.DartParser;
+import com.google.dart.tools.ui.DartUiDebug;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightings;
@@ -27,7 +28,6 @@ import com.google.dart.tools.ui.text.IDartColorConstants;
 
 import static com.google.dart.compiler.parser.Token.AS;
 import static com.google.dart.compiler.parser.Token.BREAK;
-import static com.google.dart.compiler.parser.Token.ELLIPSIS;
 import static com.google.dart.compiler.parser.Token.IS;
 import static com.google.dart.compiler.parser.Token.LIBRARY;
 import static com.google.dart.compiler.parser.Token.NATIVE;
@@ -239,18 +239,21 @@ public final class DartCodeScanner extends AbstractDartScanner {
       if ((BREAK.ordinal() <= token.ordinal() && token.ordinal() <= WHILE.ordinal())
           || token.ordinal() == AS.ordinal() || token.ordinal() == IS.ordinal()) {
         keywords.add(token.getSyntax());
-      } else if ((LIBRARY.ordinal() <= token.ordinal()) && (token.ordinal() <= NATIVE.ordinal())) {
-        String name = token.getSyntax();
-        directives.add(name.substring(1));
       }
-      if (token.isBinaryOperator() || token.isUnaryOperator()
-          || token.ordinal() == ELLIPSIS.ordinal() && token.ordinal() != AS.ordinal()
-          && token.ordinal() != IS.ordinal()) {
+      if (!DartUiDebug.USE_ONLY_SEMANTIC_HIGHLIGHTER) {
+        if ((LIBRARY.ordinal() <= token.ordinal()) && (token.ordinal() <= NATIVE.ordinal())) {
+          String name = token.getSyntax();
+          directives.add(name.substring(1));
+        }
+      }
+      if (token.isBinaryOperator() || token.isUnaryOperator()) {
         operators.add(token.getSyntax());
       }
     }
-    for (String kw : DartParser.PSEUDO_KEYWORDS) {
-      keywords.add(kw);
+    if (!DartUiDebug.USE_ONLY_SEMANTIC_HIGHLIGHTER) {
+      for (String kw : DartParser.PSEUDO_KEYWORDS) {
+        keywords.add(kw);
+      }
     }
     DIRECTIVES = directives.toArray(new String[directives.size()]);
     KEYWORDS = keywords.toArray(new String[keywords.size()]);
@@ -298,10 +301,13 @@ public final class DartCodeScanner extends AbstractDartScanner {
   protected List<IRule> createRules() {
 
     List<IRule> rules = new ArrayList<IRule>();
+    Token token;
 
     // Add rule for character constants.
-    Token token = getToken(IDartColorConstants.JAVA_STRING);
-    rules.add(new SingleLineRule("'", "'", token, '\\')); //$NON-NLS-2$ //$NON-NLS-1$
+    if (!DartUiDebug.USE_ONLY_SEMANTIC_HIGHLIGHTER) {
+      token = getToken(IDartColorConstants.JAVA_STRING);
+      rules.add(new SingleLineRule("'", "'", token, '\\')); //$NON-NLS-2$ //$NON-NLS-1$
+    }
 
     // Add generic whitespace rule.
     rules.add(new WhitespaceRule(new DartWhitespaceDetector()));
@@ -320,10 +326,12 @@ public final class DartCodeScanner extends AbstractDartScanner {
     rules.add(new BracketRule(token));
 
     // Add word rule for keyword 'return'.
-    CombinedWordRule.WordMatcher returnWordRule = new CombinedWordRule.WordMatcher();
-    token = getToken(IDartColorConstants.JAVA_KEYWORD_RETURN);
-    returnWordRule.addWord(RETURN, token);
-    combinedWordRule.addWordMatcher(returnWordRule);
+    if (!DartUiDebug.USE_ONLY_SEMANTIC_HIGHLIGHTER) {
+      CombinedWordRule.WordMatcher returnWordRule = new CombinedWordRule.WordMatcher();
+      token = getToken(IDartColorConstants.JAVA_KEYWORD_RETURN);
+      returnWordRule.addWord(RETURN, token);
+      combinedWordRule.addWordMatcher(returnWordRule);
+    }
 
     // Add word rule for keywords and constants.
     CombinedWordRule.WordMatcher wordRule = new CombinedWordRule.WordMatcher();
@@ -334,10 +342,12 @@ public final class DartCodeScanner extends AbstractDartScanner {
     for (int i = 0; i < fgConstants.length; i++) {
       wordRule.addWord(fgConstants[i], token);
     }
-    for (int i = 0; i < DIRECTIVES.length; i++) {
-      rules.add(new DirectiveRule(DIRECTIVES[i], token));
+    if (!DartUiDebug.USE_ONLY_SEMANTIC_HIGHLIGHTER) {
+      for (int i = 0; i < DIRECTIVES.length; i++) {
+        rules.add(new DirectiveRule(DIRECTIVES[i], token));
+      }
+      rules.add(new DirectiveRule("!", token));
     }
-    rules.add(new DirectiveRule("!", token));
 
     combinedWordRule.addWordMatcher(wordRule);
 

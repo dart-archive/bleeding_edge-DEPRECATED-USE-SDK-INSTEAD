@@ -15,6 +15,7 @@ package com.google.dart.tools.internal.corext.refactoring.util;
 
 import org.eclipse.core.runtime.Assert;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -29,7 +30,49 @@ public class ReflectionUtils {
    * @return the name of the {@link Class} for signature.
    */
   public static String getClassName(Class<?> clazz) {
+    if (clazz.isArray()) {
+      return getClassName(clazz.getComponentType()) + "[]";
+    }
     return clazz.getName();
+  }
+
+  /**
+   * @return the declared {@link Field} with given name, may be private.
+   */
+  public static Field getField(Object target, String name) {
+    Assert.isNotNull(target);
+    Assert.isNotNull(name);
+    Class<?> targetClass = getTargetClass(target);
+    while (targetClass != null) {
+      Field[] declaredFields = targetClass.getDeclaredFields();
+      for (Field field : declaredFields) {
+        if (field.getName().equals(name)) {
+          field.setAccessible(true);
+          return field;
+        }
+      }
+      targetClass = targetClass.getSuperclass();
+    }
+    return null;
+  }
+
+  /**
+   * @return the value of the field with given name, may be even private.
+   */
+  @SuppressWarnings("unchecked")
+  public static <T> T getFieldObject(Object target, String name) {
+    Assert.isNotNull(target);
+    Assert.isNotNull(name);
+    Field field = getField(target, name);
+    if (field == null) {
+      Class<?> targetClass = getTargetClass(target);
+      throw new IllegalArgumentException(name + " in " + targetClass);
+    }
+    try {
+      return (T) field.get(target);
+    } catch (Throwable e) {
+      throw ExecutionUtils.propagate(e);
+    }
   }
 
   /**
@@ -70,6 +113,24 @@ public class ReflectionUtils {
       if (e instanceof InvocationTargetException) {
         e = e.getCause();
       }
+      throw ExecutionUtils.propagate(e);
+    }
+  }
+
+  /**
+   * Sets the new for field with given name.
+   */
+  public static void setField(Object target, String name, Object value) {
+    Assert.isNotNull(target);
+    Assert.isNotNull(name);
+    Field field = getField(target, name);
+    if (field == null) {
+      Class<?> targetClass = getTargetClass(target);
+      throw new IllegalArgumentException(name + " in " + targetClass);
+    }
+    try {
+      field.set(target, value);
+    } catch (Throwable e) {
       throw ExecutionUtils.propagate(e);
     }
   }

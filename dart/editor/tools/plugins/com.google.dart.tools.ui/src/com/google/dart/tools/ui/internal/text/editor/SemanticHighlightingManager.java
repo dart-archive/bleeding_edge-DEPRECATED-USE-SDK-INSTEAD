@@ -40,50 +40,9 @@ import java.util.List;
 public class SemanticHighlightingManager implements IPropertyChangeListener {
 
   /**
-   * Highlighted ranges.
-   */
-  public static class HighlightedRange extends Region {
-    /**
-     * The highlighting key as returned by {@link SemanticHighlighting#getPreferenceKey()}.
-     */
-    private String fKey;
-
-    /**
-     * Initialize with the given offset, length and highlighting key.
-     * 
-     * @param offset
-     * @param length
-     * @param key the highlighting key as returned by
-     *          {@link SemanticHighlighting#getPreferenceKey()}
-     */
-    public HighlightedRange(int offset, int length, String key) {
-      super(offset, length);
-      fKey = key;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      return super.equals(o) && o instanceof HighlightedRange
-          && fKey.equals(((HighlightedRange) o).getKey());
-    }
-
-    /**
-     * @return the highlighting key as returned by {@link SemanticHighlighting#getPreferenceKey()}
-     */
-    public String getKey() {
-      return fKey;
-    }
-
-    @Override
-    public int hashCode() {
-      return super.hashCode() | fKey.hashCode();
-    }
-  }
-
-  /**
    * Highlighted Positions.
    */
-  static class HighlightedPosition extends Position {
+  public static class HighlightedPosition extends Position {
 
     /** Highlighting of the position */
     private Highlighting fStyle;
@@ -201,9 +160,50 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
   }
 
   /**
+   * Highlighted ranges.
+   */
+  public static class HighlightedRange extends Region {
+    /**
+     * The highlighting key as returned by {@link SemanticHighlighting#getPreferenceKey()}.
+     */
+    private String fKey;
+
+    /**
+     * Initialize with the given offset, length and highlighting key.
+     * 
+     * @param offset
+     * @param length
+     * @param key the highlighting key as returned by
+     *          {@link SemanticHighlighting#getPreferenceKey()}
+     */
+    public HighlightedRange(int offset, int length, String key) {
+      super(offset, length);
+      fKey = key;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      return super.equals(o) && o instanceof HighlightedRange
+          && fKey.equals(((HighlightedRange) o).getKey());
+    }
+
+    /**
+     * @return the highlighting key as returned by {@link SemanticHighlighting#getPreferenceKey()}
+     */
+    public String getKey() {
+      return fKey;
+    }
+
+    @Override
+    public int hashCode() {
+      return super.hashCode() | fKey.hashCode();
+    }
+  }
+
+  /**
    * Highlighting.
    */
-  static class Highlighting { // TODO: rename to HighlightingStyle
+  public static class Highlighting { // TODO: rename to HighlightingStyle
 
     /** Text attribute */
     private TextAttribute fTextAttribute;

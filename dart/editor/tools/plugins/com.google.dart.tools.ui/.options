@@ -1,0 +1,10 @@
+#
+# Internal options for the Dart UI
+#
+# To run Dart Editor with custom options,
+# copy one or more of these settings to an options file
+# then launch Dart Editor from the command line with 
+#
+#     -debug /path/to/options/file
+#
+com.google.dart.tools.ui/experimental/useOnlySemanticHighlighter = false
