@@ -19,12 +19,12 @@ import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartField;
-import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.Element;
@@ -44,6 +44,7 @@ import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
@@ -52,6 +53,7 @@ import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
+import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 
@@ -96,7 +98,7 @@ public class BindingUtils {
     /**
      * A table mapping function names to a list of top-level functions defined with that name.
      */
-    private HashMap<String, List<com.google.dart.tools.core.model.DartFunction>> functionMap = new HashMap<String, List<com.google.dart.tools.core.model.DartFunction>>();
+    private HashMap<String, List<DartFunction>> functionMap = new HashMap<String, List<DartFunction>>();
 
     /**
      * Initialize a newly created cache entry to have the given modification stamp.
@@ -157,6 +159,56 @@ public class BindingUtils {
     return null;
   }
 
+  public static DartFunction getDartElement(CompilationUnit unit,
+      com.google.dart.compiler.ast.DartFunction node) {
+    if (node == null) {
+      return null;
+    }
+    DartNode parent = node.getParent();
+    if (parent instanceof DartMethodDefinition) {
+      // This function is essentially the body of the method.
+      return getDartElement(unit, (DartMethodDefinition) parent);
+    }
+    while (parent != null) {
+      if (parent instanceof DartUnit) {
+        try {
+          return findFunction(node, unit.getChildren());
+        } catch (DartModelException exception) {
+          DartCore.logError("Could not get children of " + unit.getElementName(), exception);
+        }
+        return null;
+      } else if (parent instanceof DartMethodDefinition) {
+        DartFunction method = getDartElement(unit, (DartMethodDefinition) parent);
+        if (method != null) {
+          try {
+            return findFunction(node, method.getChildren());
+          } catch (DartModelException exception) {
+            DartCore.logError("Could not get children of " + method.getElementName(), exception);
+          }
+        }
+        return null;
+      } else if (parent instanceof com.google.dart.compiler.ast.DartFunction
+          && !(parent.getParent() instanceof com.google.dart.compiler.ast.DartFunction)) {
+        DartFunction function = getDartElement(
+            unit,
+            (com.google.dart.compiler.ast.DartFunction) parent);
+        if (function != null) {
+          try {
+            return findFunction(node, function.getChildren());
+          } catch (DartModelException exception) {
+            DartCore.logError("Could not get children of " + function.getElementName(), exception);
+          }
+        }
+        return null;
+      }
+      // TODO(brianwilkerson) There are other places that can contain functions that are not yet
+      // being handled, such as field declarations.
+      DartCore.notYetImplemented();
+      parent = parent.getParent();
+    }
+    return null;
+  }
+
   public static DartFunctionTypeAlias getDartElement(CompilationUnit unit,
       com.google.dart.compiler.ast.DartFunctionTypeAlias node) {
     if (node == null) {
@@ -164,7 +216,7 @@ public class BindingUtils {
     }
     String typeName = node.getName().getName();
     try {
-      for (com.google.dart.tools.core.model.DartFunctionTypeAlias alias : unit.getFunctionTypeAliases()) {
+      for (DartFunctionTypeAlias alias : unit.getFunctionTypeAliases()) {
         if (alias.getElementName().equals(typeName)) {
           return alias;
         }
@@ -217,60 +269,7 @@ public class BindingUtils {
     return null;
   }
 
-  public static com.google.dart.tools.core.model.DartFunction getDartElement(CompilationUnit unit,
-      DartFunction node) {
-    if (node == null) {
-      return null;
-    }
-    DartNode parent = node.getParent();
-    if (parent instanceof DartMethodDefinition) {
-      // This function is essentially the body of the method.
-      return getDartElement(unit, (DartMethodDefinition) parent);
-    }
-    while (parent != null) {
-      if (parent instanceof DartUnit) {
-        try {
-          return findFunction(node, unit.getChildren());
-        } catch (DartModelException exception) {
-          DartCore.logError("Could not get children of " + unit.getElementName(), exception);
-        }
-        return null;
-      } else if (parent instanceof DartMethodDefinition) {
-        com.google.dart.tools.core.model.DartFunction method = getDartElement(
-            unit,
-            (DartMethodDefinition) parent);
-        if (method != null) {
-          try {
-            return findFunction(node, method.getChildren());
-          } catch (DartModelException exception) {
-            DartCore.logError("Could not get children of " + method.getElementName(), exception);
-          }
-        }
-        return null;
-      } else if (parent instanceof DartFunction
-          && !(parent.getParent() instanceof DartMethodDefinition)) {
-        com.google.dart.tools.core.model.DartFunction function = getDartElement(
-            unit,
-            (DartFunction) parent);
-        if (function != null) {
-          try {
-            return findFunction(node, function.getChildren());
-          } catch (DartModelException exception) {
-            DartCore.logError("Could not get children of " + function.getElementName(), exception);
-          }
-        }
-        return null;
-      }
-      // TODO(brianwilkerson) There are other places that can contain functions that are not yet
-      // being handled, such as field declarations.
-      DartCore.notYetImplemented();
-      parent = parent.getParent();
-    }
-    return null;
-  }
-
-  public static com.google.dart.tools.core.model.DartFunction getDartElement(CompilationUnit unit,
-      DartMethodDefinition node) {
+  public static DartFunction getDartElement(CompilationUnit unit, DartMethodDefinition node) {
     if (node == null) {
       return null;
     }
@@ -283,9 +282,9 @@ public class BindingUtils {
     if (enclosingType == null) {
       try {
         for (DartElement element : unit.getChildren()) {
-          if (element instanceof com.google.dart.tools.core.model.DartFunction) {
+          if (element instanceof DartFunction) {
             if (element.getElementName().equals(methodName)) {
-              return (com.google.dart.tools.core.model.DartFunction) element;
+              return (DartFunction) element;
             }
           }
         }
@@ -412,8 +411,8 @@ public class BindingUtils {
               if (globalVariable.getElementName().equals(fieldName)) {
                 return globalVariable;
               }
-            } else if (child instanceof com.google.dart.tools.core.model.DartFunction) {
-              com.google.dart.tools.core.model.DartFunction function = (com.google.dart.tools.core.model.DartFunction) child;
+            } else if (child instanceof DartFunction) {
+              DartFunction function = (DartFunction) child;
               if (function.getElementName().equals(fieldName)) {
                 return function;
               }
@@ -549,8 +548,7 @@ public class BindingUtils {
    * @param methodBinding the resolved method used to locate the model element
    * @return the Dart model element corresponding to the resolved method
    */
-  public static com.google.dart.tools.core.model.DartFunction getDartElement(DartLibrary library,
-      MethodElement methodBinding) {
+  public static DartFunction getDartElement(DartLibrary library, MethodElement methodBinding) {
     if (methodBinding == null) {
       return null;
     }
@@ -569,11 +567,11 @@ public class BindingUtils {
       if (definingLibrary == null) {
         definingLibrary = library;
       }
-      List<com.google.dart.tools.core.model.DartFunction> matchingFunctions = getImmediateFunctions(
+      List<DartFunction> matchingFunctions = getImmediateFunctions(
           definingLibrary,
           methodBinding.getName());
       try {
-        for (com.google.dart.tools.core.model.DartFunction function : matchingFunctions) {
+        for (DartFunction function : matchingFunctions) {
           if (Objects.equal(methodName, function.getElementName())
               && function.getParameterNames().length == methodNumParameters) {
             return function;
@@ -587,10 +585,8 @@ public class BindingUtils {
       DartCore.notYetImplemented();
       return null;
     } else if (enclosingElement instanceof MethodElement) {
-      com.google.dart.tools.core.model.DartFunction method = getDartElement(
-          library,
-          (MethodElement) enclosingElement);
-      return getFunction(method, methodName);
+      DartFunction method = getDartElement(library, (MethodElement) enclosingElement);
+      return getFunction(method, methodBinding);
     }
     com.google.dart.compiler.type.Type enclosingType = enclosingElement.getType();
     if (!(enclosingType instanceof InterfaceType)) {
@@ -695,9 +691,7 @@ public class BindingUtils {
     }
     if (variableBinding.getEnclosingElement() instanceof MethodElement) {
       MethodElement methodElement = (MethodElement) variableBinding.getEnclosingElement();
-      com.google.dart.tools.core.model.DartFunction functionElement = getDartElement(
-          library,
-          methodElement);
+      DartFunction functionElement = getDartElement(library, methodElement);
       if (functionElement != null) {
         try {
           for (DartVariableDeclaration variable : functionElement.getLocalVariables()) {
@@ -749,8 +743,7 @@ public class BindingUtils {
    * @param methodBinding the resolved method used to locate the model element
    * @return the Dart model element corresponding to the resolved method
    */
-  public static com.google.dart.tools.core.model.DartFunction getDartElement(
-      MethodElement methodBinding) {
+  public static DartFunction getDartElement(MethodElement methodBinding) {
     return getDartElement(null, methodBinding);
   }
 
@@ -785,14 +778,14 @@ public class BindingUtils {
    * @param node the node from which the search will begin
    * @return the nearest function that is a parent of the given node
    */
-  public static DartFunction getEnclosingFunction(DartNode node) {
+  public static com.google.dart.compiler.ast.DartFunction getEnclosingFunction(DartNode node) {
     if (node == null) {
       return null;
     }
     DartNode parent = node.getParent();
     while (parent != null) {
-      if (parent instanceof DartFunction) {
-        return (DartFunction) parent;
+      if (parent instanceof com.google.dart.compiler.ast.DartFunction) {
+        return (com.google.dart.compiler.ast.DartFunction) parent;
       }
       parent = parent.getParent();
     }
@@ -1071,7 +1064,7 @@ public class BindingUtils {
     }
   }
 
-  private static com.google.dart.tools.core.model.DartFunction findFunction(DartFunction node,
+  private static DartFunction findFunction(com.google.dart.compiler.ast.DartFunction node,
       DartElement[] elements) {
     String targetName = null;
     Element binding = node.getElement();
@@ -1088,8 +1081,8 @@ public class BindingUtils {
       return null;
     }
     for (DartElement element : elements) {
-      if (element instanceof com.google.dart.tools.core.model.DartFunction) {
-        com.google.dart.tools.core.model.DartFunction function = (com.google.dart.tools.core.model.DartFunction) element;
+      if (element instanceof DartFunction) {
+        DartFunction function = (DartFunction) element;
         String functionName = function.getElementName();
         if (functionName != null && functionName.equals(targetName)) {
           return function;
@@ -1228,31 +1221,25 @@ public class BindingUtils {
   }
 
   /**
-   * Return the function within the given function with the given name, or <code>null</code> if
-   * there is no such function.
+   * Return the function within the given function with the given {@link MethodElement}, or
+   * <code>null</code> if there is no such function.
    * 
    * @param parent the function within which to search
    * @param functionName the name of the function to be returned
    * @return the function within the given function with the given name
    */
-  private static com.google.dart.tools.core.model.DartFunction getFunction(
-      com.google.dart.tools.core.model.DartFunction parent, String functionName) {
-    if (parent == null || functionName == null) {
+  private static DartFunction getFunction(DartFunction parent, MethodElement binding) {
+    if (parent == null || binding == null) {
       return null;
     }
     try {
-      for (DartElement child : parent.getChildren()) {
-        if (child instanceof com.google.dart.tools.core.model.DartFunction) {
-          if (functionName.equals(child.getElementName())) {
-            return (com.google.dart.tools.core.model.DartFunction) child;
-          } else if (child.getElementName().length() == 0) {
-            com.google.dart.tools.core.model.DartFunction grandchild = getFunction(
-                (com.google.dart.tools.core.model.DartFunction) child,
-                functionName);
-            if (grandchild != null) {
-              return grandchild;
-            }
-          }
+      SourceInfo bindingInfo = binding.getSourceInfo();
+      List<DartFunction> children = parent.getChildrenOfType(DartFunction.class);
+      for (DartFunction child : children) {
+        SourceRange childRange = child.getSourceRange();
+        if (childRange.getOffset() == bindingInfo.getOffset()
+            && childRange.getLength() == bindingInfo.getLength()) {
+          return child;
         }
       }
     } catch (DartModelException exception) {
@@ -1296,23 +1283,22 @@ public class BindingUtils {
    * @param functionName the name of the functions to be returned
    * @throws DartModelException if some portion of the workspace cannot be traversed
    */
-  private static List<com.google.dart.tools.core.model.DartFunction> getImmediateFunctions(
-      DartLibrary library, String functionName) {
+  private static List<DartFunction> getImmediateFunctions(DartLibrary library, String functionName) {
     if (library == null) {
-      return new ArrayList<com.google.dart.tools.core.model.DartFunction>();
+      return new ArrayList<DartFunction>();
     }
     CacheEntry entry = getLibraryCache(library);
     if (entry == null) {
-      return new ArrayList<com.google.dart.tools.core.model.DartFunction>();
+      return new ArrayList<DartFunction>();
     }
-    HashMap<String, List<com.google.dart.tools.core.model.DartFunction>> functionMap = entry.functionMap;
+    HashMap<String, List<DartFunction>> functionMap = entry.functionMap;
     if (functionMap != null) {
-      List<com.google.dart.tools.core.model.DartFunction> functionList = functionMap.get(functionName);
+      List<DartFunction> functionList = functionMap.get(functionName);
       if (functionList != null) {
         return functionList;
       }
     }
-    List<com.google.dart.tools.core.model.DartFunction> matchingFunctions = new ArrayList<com.google.dart.tools.core.model.DartFunction>();
+    List<DartFunction> matchingFunctions = new ArrayList<DartFunction>();
 //    addImmediateFunctionsUncached(matchingFunctions, library, functionName);
     return matchingFunctions;
   }
@@ -1396,12 +1382,12 @@ public class BindingUtils {
                   entry.functionTypeAliasMap.put(aliasName, aliasList);
                 }
                 aliasList.add(alias);
-              } else if (child instanceof com.google.dart.tools.core.model.DartFunction) {
-                com.google.dart.tools.core.model.DartFunction function = (com.google.dart.tools.core.model.DartFunction) child;
+              } else if (child instanceof DartFunction) {
+                DartFunction function = (DartFunction) child;
                 String functionName = function.getElementName();
-                List<com.google.dart.tools.core.model.DartFunction> functionList = entry.functionMap.get(functionName);
+                List<DartFunction> functionList = entry.functionMap.get(functionName);
                 if (functionList == null) {
-                  functionList = new ArrayList<com.google.dart.tools.core.model.DartFunction>();
+                  functionList = new ArrayList<DartFunction>();
                   entry.functionMap.put(functionName, functionList);
                 }
                 functionList.add(function);

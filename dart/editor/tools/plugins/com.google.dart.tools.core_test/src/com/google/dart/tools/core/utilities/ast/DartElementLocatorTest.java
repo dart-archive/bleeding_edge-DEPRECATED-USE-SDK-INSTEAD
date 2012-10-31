@@ -13,14 +13,6 @@
  */
 package com.google.dart.tools.core.utilities.ast;
 
-import static org.fest.assertions.Assertions.assertThat;
-
-import java.util.List;
-
-import junit.framework.TestCase;
-
-import org.eclipse.core.resources.IResource;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
@@ -37,6 +29,14 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
+
+import junit.framework.TestCase;
+
+import org.eclipse.core.resources.IResource;
+
+import static org.fest.assertions.Assertions.assertThat;
+
+import java.util.List;
 
 /**
  * Test for {@link DartElementLocator}.
@@ -731,6 +731,22 @@ public class DartElementLocatorTest extends TestCase {
         DartVariableDeclaration.class,
         "bb, ",
         2);
+  }
+
+  public void test_VariableElement_parameter_inClosure() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "process(x) {}",
+            "main() {",
+            "  process((aaa, bbb) {",
+            "    process(bbb);",
+            "  });",
+            "}"),
+        "bbb);",
+        DartVariableDeclaration.class,
+        "bbb) {",
+        3);
   }
 
   public void test_VariableElement_parameter_namedInInvocation() throws Exception {
