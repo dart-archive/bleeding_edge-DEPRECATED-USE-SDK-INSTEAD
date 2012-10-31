@@ -27,7 +27,7 @@ import org.eclipse.swt.widgets.Shell;
  */
 public class OpenFeedbackDialogAction extends Action implements IShellProvider {
 
-  public static boolean SCREEN_CAPTURE_ENABLED = true;
+  public static boolean SCREEN_CAPTURE_ENABLED = false;
 
   private IShellProvider shellProvider;
 
