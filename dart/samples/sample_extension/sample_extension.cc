@@ -116,7 +116,7 @@ FunctionLookup function_list[] = {
     {NULL, NULL}};
 
 Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {
-  if (!Dart_IsString8(name)) return NULL;
+  if (!Dart_IsString(name)) return NULL;
   Dart_NativeFunction result = NULL;
   Dart_EnterScope();
   const char* cname;
