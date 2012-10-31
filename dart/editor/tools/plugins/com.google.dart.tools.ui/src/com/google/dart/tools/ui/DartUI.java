@@ -663,6 +663,7 @@ public final class DartUI {
   }
 
   private static Color createColor(IPreferenceStore store, String key, Display display) {
+    // TODO(messick) Remove display or use it instead of color manager
     RGB rgb = null;
     if (store.contains(key)) {
       if (store.isDefault(key)) {

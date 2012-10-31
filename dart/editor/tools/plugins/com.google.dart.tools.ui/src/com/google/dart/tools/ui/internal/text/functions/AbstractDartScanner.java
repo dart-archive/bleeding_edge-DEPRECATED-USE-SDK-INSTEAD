@@ -237,7 +237,11 @@ public abstract class AbstractDartScanner extends BufferedRuleBasedScanner {
     if (value instanceof RGB) {
       rgb = (RGB) value;
     } else if (value instanceof String) {
-      rgb = StringConverter.asRGB((String) value);
+      String val = (String) value;
+      if (!val.isEmpty()) {
+        // ScopedPreferenceStore changes null to ""
+        rgb = StringConverter.asRGB(val);
+      }
     }
 
     if (rgb != null) {

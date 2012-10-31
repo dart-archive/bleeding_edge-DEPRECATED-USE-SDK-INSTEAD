@@ -23,4 +23,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Import-Package: com.google.dart.tools.search.ui.actions,
  com.google.dart.tools.search.ui.text
-Export-Package: com.google.dart.tools.ui.dialogs
+Export-Package: com.google.dart.tools.ui.dialogs,
+ com.google.dart.tools.ui.theme,
+ com.google.dart.tools.ui.theme.mapper,
+ com.google.dart.tools.ui.theme.preferences

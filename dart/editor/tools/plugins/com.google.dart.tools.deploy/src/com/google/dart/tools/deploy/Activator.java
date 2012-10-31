@@ -33,6 +33,8 @@ import java.util.Map;
 public class Activator extends AbstractUIPlugin {
   // The plug-in ID
   public static final String PLUGIN_ID = "com.google.dart.tools.deploy"; //$NON-NLS-1$
+  public static final String EXTENSION_POINT_ID_MAPPER = "com.google.dart.tools.ui.theme.mapper";
+  public static final String EXTENSION_POINT_ID_THEME = "com.google.dart.tools.ui.theme.theme";
 
   // The shared instance
   private static Activator plugin;

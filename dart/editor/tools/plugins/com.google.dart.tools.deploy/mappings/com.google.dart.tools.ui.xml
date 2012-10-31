@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<eclipseColorThemeMapping plugin="com.google.dart.tools.ui" created="2012-10-23 15:36:11"> 
+    <mappings> <!-- IDartColorConstants, PreferenceConstants, IJavaThemeConstants -->
+        <mapping pluginKey="dart_default" themeKey="foreground" /> 
+        <mapping pluginKey="dart_single_line_comment" themeKey="singleLineComment" /> 
+        <mapping pluginKey="dart_multi_line_comment" themeKey="multiLineComment" /> 
+        <mapping pluginKey="dart_comment_task_tag" themeKey="commentTaskTag" /> 
+        <mapping pluginKey="sourceHoverBackgroundColor" themeKey="sourceHoverBackground" /> 
+        <mapping pluginKey="dart_string" themeKey="string" /> 
+        <mapping pluginKey="dart_multiline_string" themeKey="multiLineString" /> <!-- new -->
+        <mapping pluginKey="dart_bracket" themeKey="bracket" /> 
+        <mapping pluginKey="dart_operator" themeKey="operator" /> 
+        <mapping pluginKey="dart_keyword_return" themeKey="keyword" /> 
+        <mapping pluginKey="dart_keyword" themeKey="keyword" /> 
+        <mapping pluginKey="dart_doc_default" themeKey="javadoc" /> 
+        <mapping pluginKey="dart_doc_link" themeKey="javadocLink" /> 
+        <mapping pluginKey="dart_doc_keyword" themeKey="javadocKeyword" /> 
+        <mapping pluginKey="dart_doc_tag" themeKey="javadocTag" /> 
+        <mapping pluginKey="pf_coloring_comment" themeKey="singleLineComment" /> 
+        <mapping pluginKey="pf_coloring_key" themeKey="foreground" /> 
+        <mapping pluginKey="pf_coloring_assignment" themeKey="foreground" /> 
+        <mapping pluginKey="pf_coloring_value" themeKey="string" /> 
+        <mapping pluginKey="pf_coloring_argument" themeKey="keyword" /> 
+        <mapping pluginKey="matchingBracketsColor" themeKey="occurenceIndication" />
+        <mapping pluginKey="content_assist_parameters_foreground" themeKey="foreground" />
+        <mapping pluginKey="content_assist_parameters_background" themeKey="background" />
+        <mapping pluginKey="content_assist_proposals_foreground" themeKey="foreground" />
+        <mapping pluginKey="content_assist_proposals_background" themeKey="background" />
+        <mapping pluginKey="content_assist_completion_replacement_foreground" themeKey="foreground" />
+        <mapping pluginKey="content_assist_completion_replacement_background" themeKey="background" />
+    </mappings> 
+    <semanticHighlightingMappings> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.number" themeKey="number" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.class" themeKey="class" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.interface" themeKey="interface" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.enum" themeKey="enum" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.method" themeKey="method" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.methodDeclarationName" themeKey="methodDeclaration" />
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.staticMethodInvocation" themeKey="staticMethod" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.annotation" themeKey="annotation" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.localVariable" themeKey="localVariable" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.inheritedMethodInvocation" themeKey="inheritedMethod" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.abstractMethodInvocation" themeKey="abstractMethod" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.localVariableDeclaration" themeKey="localVariableDeclaration" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.typeArgument" themeKey="typeArgument" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.typeParameter" themeKey="typeParameter" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.parameterVariable" themeKey="parameterVariable" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.field" themeKey="field" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.staticField" themeKey="staticField" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.staticFinalField" themeKey="staticFinalField" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.deprecatedMember" themeKey="deprecatedMember" /> 
+    </semanticHighlightingMappings> 
+</eclipseColorThemeMapping> 

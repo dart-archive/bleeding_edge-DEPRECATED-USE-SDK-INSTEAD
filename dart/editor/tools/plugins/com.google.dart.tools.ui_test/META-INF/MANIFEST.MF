@@ -18,7 +18,8 @@ Require-Bundle: org.eclipse.core.runtime,
  com.google.dart.tools.core,
  com.google.dart.tools.ui,
  com.google.dart.tools.core_test,
- com.google.dart.tools.update.core
+ com.google.dart.tools.update.core,
+ com.google.dart.tools.deploy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
