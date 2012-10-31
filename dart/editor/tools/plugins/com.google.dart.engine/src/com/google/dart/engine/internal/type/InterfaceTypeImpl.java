@@ -29,7 +29,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   private Type[] typeArguments;
 
   /**
-   * The instance representing the type "dynamic".
+   * The instance representing the type {@code dynamic}.
    */
   private static final InterfaceTypeImpl DYNAMIC_TYPE = new InterfaceTypeImpl("dynamic");
 
@@ -110,7 +110,10 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return false;
     }
     InterfaceType s = (InterfaceType) type;
-    // TODO(brianwilkerson) Implement this.
+    //
+    // A type T is more specific than a type S, written T << S,  if one of the following conditions
+    // is met:
+    //
     //
     // Reflexivity: T is S.
     //
@@ -120,8 +123,9 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     // T is bottom.
     //
+    // This case is handled by the class BottomTypeImpl.
     //
-    // S is Dynamic.
+    // S is dynamic.
     //
     if (s.equals(DYNAMIC_TYPE)) {
       return true;
@@ -135,6 +139,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     // Covariance: T is of the form I<T1, ..., Tn> and S is of the form I<S1, ..., Sn> and Ti << Si, 1 <= i <= n.
     //
+    // TODO(brianwilkerson) Implement this.
 //    TypeElement tElement = getElement();
 //    TypeElement sElement = s.getElement();
 //    if (tElement.equals(sElement)) {
@@ -152,7 +157,23 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     // Transitivity: <i>T &laquo; U</i> and <i>U &laquo; S</i>.
     //
+    // TODO(brianwilkerson) Implement this.
     return false;
+  }
+
+  @Override
+  public boolean isSubtypeOf(Type type) {
+    //
+    // T is a subtype of S, written T <: S, iff [bottom/dynamic]T << S
+    //
+    // TODO(brianwilkerson) This is an approximation that needs to be fixed once the type
+    // substitution operation is implemented.
+    if (!(type instanceof InterfaceType)) {
+      return false;
+    } else if (this.equals(type)) {
+      return true;
+    }
+    return getElement().getSupertype().isSubtypeOf(type);
   }
 
   /**

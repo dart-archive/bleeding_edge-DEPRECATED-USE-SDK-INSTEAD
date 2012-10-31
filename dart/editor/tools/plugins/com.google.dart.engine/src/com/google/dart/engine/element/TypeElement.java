@@ -16,66 +16,72 @@ package com.google.dart.engine.element;
 import com.google.dart.engine.type.Type;
 
 /**
- * The interface {@code TypeElement} defines the behavior of elements that represent a type (either
- * a class or an interface).
+ * The interface {@code TypeElement} defines the behavior of elements that represent a class.
  */
 public interface TypeElement extends Element {
   /**
-   * Return an array containing all of the accessors (getters and setters) contained in this type.
+   * Return an array containing all of the accessors (getters and setters) contained in this class.
    * 
-   * @return the accessors contained in this type
+   * @return the accessors contained in this class
    */
   public PropertyAccessorElement[] getAccessors();
 
   /**
-   * Return an array containing all of the constructors contained in this type.
+   * Return an array containing all of the constructors contained in this class.
    * 
-   * @return the constructors contained in this type
+   * @return the constructors contained in this class
    */
   public ConstructorElement[] getConstructors();
 
   /**
-   * Return an array containing all of the fields contained in this type.
+   * Return an array containing all of the fields contained in this class.
    * 
-   * @return the fields contained in this type
+   * @return the fields contained in this class
    */
   public FieldElement[] getFields();
 
   /**
-   * Return an array containing all of the interfaces that are implemented by this type.
+   * Return an array containing all of the interfaces that are implemented by this class.
    * 
-   * @return the interfaces that are implemented by this type
+   * @return the interfaces that are implemented by this class
    */
   public Type[] getInterfaces();
 
   /**
-   * Return an array containing all of the methods contained in this type.
+   * Return an array containing all of the methods contained in this class.
    * 
-   * @return the methods contained in this type
+   * @return the methods contained in this class
    */
   public MethodElement[] getMethods();
 
   /**
-   * Return the superclass of the class. Return {@code null} if the class does not have an explicit
+   * Return the superclass of this class. Return {@code null} if the class does not have an explicit
    * superclass.
    * 
-   * @return the superclass of this type
+   * @return the superclass of this class
    */
   public Type getSupertype();
 
   /**
-   * Return an array containing all of the type variables defined for this type.
+   * Return the type defined by the class.
    * 
-   * @return the type variables defined for this type
+   * @return the type defined by the class
+   */
+  public Type getType();
+
+  /**
+   * Return an array containing all of the type variables defined for this class.
+   * 
+   * @return the type variables defined for this class
    */
   public TypeVariableElement[] getTypeVariables();
 
   /**
-   * Return {@code true} if this type is abstract. A type is abstract if it has an explicit
-   * {@code abstract} modifier or it explicitly defines at least one abstract method. Note, that
-   * this definition of <i>abstract</i> is different from <i>has unimplemented members</i>.
+   * Return {@code true} if this class is abstract. A class is abstract if it has an explicit
+   * {@code abstract} modifier. Note, that this definition of <i>abstract</i> is different from
+   * <i>has unimplemented members</i>.
    * 
-   * @return {@code true} if this type is abstract
+   * @return {@code true} if this class is abstract
    */
   public boolean isAbstract();
 }

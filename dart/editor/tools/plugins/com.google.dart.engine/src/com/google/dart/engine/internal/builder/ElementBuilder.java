@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
@@ -26,7 +27,6 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
-import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SwitchCase;
@@ -39,6 +39,7 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.FieldElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
@@ -49,10 +50,13 @@ import com.google.dart.engine.internal.element.TypeAliasElementImpl;
 import com.google.dart.engine.internal.element.TypeElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.internal.type.InterfaceTypeImpl;
+import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.type.Type;
 
 import java.util.HashMap;
 
@@ -69,7 +73,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   /**
    * A table mapping the identifiers of declared elements to the element that was declared.
    */
-  private HashMap<ASTNode, Element> declaredElementMap = new HashMap<ASTNode, Element>();
+  private HashMap<ASTNode, Element> declaredElementMap;
 
   /**
    * A flag indicating whether a variable declaration is in the context of a field declaration.
@@ -120,7 +124,21 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setConstructors(holder.getConstructors());
     element.setFields(holder.getFields());
     element.setMethods(methods);
-    element.setTypeVariables(holder.getTypeVariables());
+    TypeVariableElement[] typeVariables = holder.getTypeVariables();
+    element.setTypeVariables(typeVariables);
+
+    InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
+    int typeVariableCount = typeVariables.length;
+    Type[] typeArguments = new Type[typeVariableCount];
+    for (int i = 0; i < typeVariableCount; i++) {
+      TypeVariableElementImpl typeVariable = (TypeVariableElementImpl) typeVariables[i];
+      TypeVariableTypeImpl typeArgument = new TypeVariableTypeImpl(typeVariable);
+      typeVariable.setType(typeArgument);
+      typeArguments[i] = typeArgument;
+    }
+    interfaceType.setTypeArguments(typeArguments);
+    element.setType(interfaceType);
+
     currentHolder.addType(element);
     declaredElementMap.put(className, element);
     return null;
@@ -145,6 +163,27 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     }
     currentHolder.addConstructor(element);
     declaredElementMap.put(constructorName, element);
+    return null;
+  }
+
+  @Override
+  public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    ElementHolder holder = new ElementHolder();
+    visitChildren(holder, node.getDefaultValue());
+
+    FunctionElementImpl initializer = new FunctionElementImpl();
+    initializer.setFunctions(holder.getFunctions());
+    initializer.setLabels(holder.getLabels());
+    initializer.setLocalVariables(holder.getVariables());
+    if (holder.getParameters() != null) {
+      initializer.setParameters(holder.getParameters());
+    }
+
+    SimpleIdentifier parameterName = node.getParameter().getIdentifier();
+    VariableElementImpl parameter = new VariableElementImpl(parameterName);
+    parameter.setInitializer(initializer);
+    currentHolder.addVariable(parameter);
+    declaredElementMap.put(parameterName, parameter);
     return null;
   }
 
@@ -267,27 +306,6 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   }
 
   @Override
-  public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    ElementHolder holder = new ElementHolder();
-    visitChildren(holder, node.getDefaultValue());
-
-    FunctionElementImpl initializer = new FunctionElementImpl();
-    initializer.setFunctions(holder.getFunctions());
-    initializer.setLabels(holder.getLabels());
-    initializer.setLocalVariables(holder.getVariables());
-    if (holder.getParameters() != null) {
-      initializer.setParameters(holder.getParameters());
-    }
-
-    SimpleIdentifier parameterName = node.getParameter().getIdentifier();
-    VariableElementImpl parameter = new VariableElementImpl(parameterName);
-    parameter.setInitializer(initializer);
-    currentHolder.addVariable(parameter);
-    declaredElementMap.put(parameterName, parameter);
-    return null;
-  }
-
-  @Override
   public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
     SimpleIdentifier parameterName = node.getIdentifier();
     VariableElementImpl parameter = new VariableElementImpl(parameterName);
@@ -329,6 +347,15 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       element.setParameters(holder.getParameters());
     }
     element.setTypeVariables(holder.getTypeVariables());
+
+    // TODO(brianwilkerson) Build the type defined by the alias.
+//    FunctionTypeImpl functionType = new FunctionTypeImpl(element);
+//    functionType.setNamedParameterTypes(namedParameterTypes);
+//    functionType.setNormalParameterTypes(normalParameterTypes);
+//    functionType.setOptionalParameterTypes(optionalParameterTypes);
+//    functionType.setReturnType(returnType);
+//    element.setType(functionType);
+
     currentHolder.addTypeAlias(element);
     declaredElementMap.put(aliasName, element);
     return null;
@@ -415,12 +442,14 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   }
 
   private Void visitChildren(ElementHolder holder, ASTNode node) {
-    ElementHolder previousBuilder = currentHolder;
-    currentHolder = holder;
-    try {
-      node.visitChildren(this);
-    } finally {
-      currentHolder = previousBuilder;
+    if (node != null) {
+      ElementHolder previousBuilder = currentHolder;
+      currentHolder = holder;
+      try {
+        node.visitChildren(this);
+      } finally {
+        currentHolder = previousBuilder;
+      }
     }
     return null;
   }

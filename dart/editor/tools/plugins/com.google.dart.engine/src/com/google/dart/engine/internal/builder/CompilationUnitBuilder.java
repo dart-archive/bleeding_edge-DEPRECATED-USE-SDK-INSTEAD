@@ -35,7 +35,7 @@ public class CompilationUnitBuilder {
   /**
    * A table mapping the identifiers of declared elements to the element that was declared.
    */
-  private HashMap<ASTNode, Element> declaredElementMap = new HashMap<ASTNode, Element>();
+  private HashMap<ASTNode, Element> declaredElementMap;
 
   /**
    * Initialize a newly created compilation unit element builder.

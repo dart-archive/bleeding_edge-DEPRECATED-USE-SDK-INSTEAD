@@ -29,38 +29,42 @@ import com.google.dart.engine.type.Type;
  */
 public class TypeElementImpl extends ElementImpl implements TypeElement {
   /**
-   * An array containing all of the accessors (getters and setters) contained in this type.
+   * An array containing all of the accessors (getters and setters) contained in this class.
    */
   private PropertyAccessorElement[] accessors = PropertyAccessorElementImpl.EMPTY_ARRAY;
 
   /**
-   * An array containing all of the constructors contained in this type.
+   * An array containing all of the constructors contained in this class.
    */
   private ConstructorElement[] constructors = ConstructorElementImpl.EMPTY_ARRAY;
 
   /**
-   * An array containing all of the fields contained in this type.
+   * An array containing all of the fields contained in this class.
    */
   private FieldElement[] fields = FieldElementImpl.EMPTY_ARRAY;
 
   /**
-   * An array containing all of the interfaces that are implemented or extended by this type.
+   * An array containing all of the interfaces that are implemented by this class.
    */
   private Type[] interfaces = TypeImpl.EMPTY_ARRAY;
 
   /**
-   * An array containing all of the methods contained in this type.
+   * An array containing all of the methods contained in this class.
    */
   private MethodElement[] methods = MethodElementImpl.EMPTY_ARRAY;
 
   /**
-   * The superclass of the class, or {@code null} if either the class does not have an explicit
-   * superclass or if this type represents an interface.
+   * The superclass of the class, or {@code null} if the class does not have an explicit superclass.
    */
   private Type supertype;
 
   /**
-   * An array containing all of the type variables defined for this type.
+   * The type defined by the class.
+   */
+  private Type type;
+
+  /**
+   * An array containing all of the type variables defined for this class.
    */
   private TypeVariableElement[] typeVariables = TypeVariableElementImpl.EMPTY_ARRAY;
 
@@ -70,7 +74,7 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
   public static final TypeElement[] EMPTY_ARRAY = new TypeElement[0];
 
   /**
-   * Initialize a newly created type element to have the given name.
+   * Initialize a newly created class element to have the given name.
    * 
    * @param name the name of this element
    */
@@ -114,35 +118,33 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
   }
 
   @Override
+  public Type getType() {
+    return type;
+  }
+
+  @Override
   public TypeVariableElement[] getTypeVariables() {
     return typeVariables;
   }
 
-  /**
-   * Return {@code true} if this type is abstract. A type is abstract if it is an interface, it has
-   * an explicit {@code abstract} modifier, or it has an abstract method. Note, that this definition
-   * of <i>abstract</i> is different from <i>has unimplemented members</i>.
-   * 
-   * @return {@code true} if this type is abstract
-   */
   @Override
   public boolean isAbstract() {
     return hasModifier(Modifier.ABSTRACT);
   }
 
   /**
-   * Set whether this type is abstract to correspond to the given value.
+   * Set whether this class is abstract to correspond to the given value.
    * 
-   * @param isAbstract {@code true} if the type is abstract
+   * @param isAbstract {@code true} if the class is abstract
    */
   public void setAbstract(boolean isAbstract) {
     setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
   /**
-   * Set the accessors contained in this type to the given accessors.
+   * Set the accessors contained in this class to the given accessors.
    * 
-   * @param accessors the accessors contained in this type
+   * @param accessors the accessors contained in this class
    */
   public void setAccessors(PropertyAccessorElement[] accessors) {
     for (PropertyAccessorElement accessor : accessors) {
@@ -152,9 +154,9 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
   }
 
   /**
-   * Set the constructors contained in this type to the given constructors.
+   * Set the constructors contained in this class to the given constructors.
    * 
-   * @param constructors the constructors contained in this type
+   * @param constructors the constructors contained in this class
    */
   public void setConstructors(ConstructorElement[] constructors) {
     for (ConstructorElement constructor : constructors) {
@@ -164,9 +166,9 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
   }
 
   /**
-   * Set the fields contained in this type to the given fields.
+   * Set the fields contained in this class to the given fields.
    * 
-   * @param fields the fields contained in this type
+   * @param fields the fields contained in this class
    */
   public void setFields(FieldElement[] fields) {
     for (FieldElement field : fields) {
@@ -176,18 +178,18 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
   }
 
   /**
-   * Set the interfaces that are implemented or extended by this type to the given types.
+   * Set the interfaces that are implemented by this class to the given types.
    * 
-   * @param the interfaces that are implemented or extended by this type
+   * @param the interfaces that are implemented by this class
    */
   public void setInterfaces(Type[] interfaces) {
     this.interfaces = interfaces;
   }
 
   /**
-   * Set the methods contained in this type to the given methods.
+   * Set the methods contained in this class to the given methods.
    * 
-   * @param methods the methods contained in this type
+   * @param methods the methods contained in this class
    */
   public void setMethods(MethodElement[] methods) {
     for (MethodElement method : methods) {
@@ -206,9 +208,18 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
   }
 
   /**
-   * Set the type variables defined for this type to the given type variables.
+   * Set the type defined by the class to the given type.
    * 
-   * @param typeVariables the type variables defined for this type
+   * @param type the type defined by the class
+   */
+  public void setType(Type type) {
+    this.type = type;
+  }
+
+  /**
+   * Set the type variables defined for this class to the given type variables.
+   * 
+   * @param typeVariables the type variables defined for this class
    */
   public void setTypeVariables(TypeVariableElement[] typeVariables) {
     for (TypeVariableElement typeVariable : typeVariables) {

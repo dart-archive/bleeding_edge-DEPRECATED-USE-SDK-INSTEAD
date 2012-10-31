@@ -65,10 +65,9 @@ public interface CompilationUnitElement extends Element {
   public TypeAliasElement[] getTypeAliases();
 
   /**
-   * Return an array containing all of the types (classes and interfaces) contained in this
-   * compilation unit.
+   * Return an array containing all of the classes contained in this compilation unit.
    * 
-   * @return the types contained in this compilation unit
+   * @return the classes contained in this compilation unit
    */
   public TypeElement[] getTypes();
 }

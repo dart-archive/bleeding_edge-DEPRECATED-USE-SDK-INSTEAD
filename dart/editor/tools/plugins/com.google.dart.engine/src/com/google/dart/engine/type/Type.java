@@ -48,6 +48,14 @@ public interface Type {
   public boolean isAssignableTo(Type type);
 
   /**
+   * Return {@code true} if this type is more specific than the given type.
+   * 
+   * @param type the type being compared with this type
+   * @return {@code true} if this type is more specific than the given type
+   */
+  public boolean isMoreSpecificThan(Type type);
+
+  /**
    * Return {@code true} if this type is a subtype of the given type.
    * 
    * @param type the type being compared with this type

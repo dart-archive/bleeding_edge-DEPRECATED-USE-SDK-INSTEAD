@@ -17,11 +17,17 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.type.TypeVariableType;
 
 /**
  * Instances of the class {@code TypeVariableElementImpl} implement a {@code TypeVariableElement}.
  */
 public class TypeVariableElementImpl extends ElementImpl implements TypeVariableElement {
+  /**
+   * The type defined by this type variable.
+   */
+  private TypeVariableType type;
+
   /**
    * The type representing the bound associated with this variable, or {@code null} if this variable
    * does not have an explicit bound.
@@ -52,6 +58,11 @@ public class TypeVariableElementImpl extends ElementImpl implements TypeVariable
     return ElementKind.TYPE_VARIABLE;
   }
 
+  @Override
+  public TypeVariableType getType() {
+    return type;
+  }
+
   /**
    * Set the type representing the bound associated with this variable to the given type.
    * 
@@ -59,5 +70,14 @@ public class TypeVariableElementImpl extends ElementImpl implements TypeVariable
    */
   public void setBound(Type bound) {
     this.bound = bound;
+  }
+
+  /**
+   * Set the type defined by this type variable to the given type
+   * 
+   * @param type the type defined by this type variable
+   */
+  public void setType(TypeVariableType type) {
+    this.type = type;
   }
 }

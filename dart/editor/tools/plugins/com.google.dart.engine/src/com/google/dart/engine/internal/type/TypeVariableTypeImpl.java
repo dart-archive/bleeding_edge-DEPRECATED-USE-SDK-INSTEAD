@@ -37,12 +37,17 @@ public class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
     return (TypeVariableElement) super.getElement();
   }
 
-  //@Override
+  @Override
   public boolean isMoreSpecificThan(Type type) {
     //
     // T is a type variable and S is the upper bound of T.
     //
     Type upperBound = getElement().getBound();
     return type.equals(upperBound);
+  }
+
+  @Override
+  public boolean isSubtypeOf(Type type) {
+    return false;
   }
 }

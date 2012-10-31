@@ -70,7 +70,10 @@ public class PropertyAccess extends Expression {
 
   @Override
   public Token getBeginToken() {
-    return target.getBeginToken();
+    if (target != null) {
+      return target.getBeginToken();
+    }
+    return operator;
   }
 
   @Override

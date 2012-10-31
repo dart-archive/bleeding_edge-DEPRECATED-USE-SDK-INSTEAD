@@ -48,9 +48,10 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   private ImportSpecification[] imports = ImportSpecification.EMPTY_ARRAY;
 
   /**
-   * An array containing all of the compilation units that are {@code #source}'d into this library.
+   * An array containing all of the compilation units that are included in this library using a
+   * {@code part} directive.
    */
-  private CompilationUnitElement[] sourcedCompilationUnits = CompilationUnitElementImpl.EMPTY_ARRAY;
+  private CompilationUnitElement[] parts = CompilationUnitElementImpl.EMPTY_ARRAY;
 
   /**
    * Initialize a newly created library element to have the given name.
@@ -98,6 +99,11 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @Override
+  public CompilationUnitElement[] getParts() {
+    return parts;
+  }
+
+  @Override
   public PrefixElement[] getPrefixes() {
     HashSet<PrefixElement> prefixes = new HashSet<PrefixElement>(imports.length);
     for (ImportSpecification specification : imports) {
@@ -107,11 +113,6 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
     }
     return prefixes.toArray(new PrefixElement[prefixes.size()]);
-  }
-
-  @Override
-  public CompilationUnitElement[] getSourcedCompilationUnits() {
-    return sourcedCompilationUnits;
   }
 
   @Override
@@ -149,16 +150,15 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   /**
-   * Set the compilation units that are {@code #source}'d into this library to the given compilation
-   * units.
+   * Set the compilation units that are included in this library using a {@code part} directive.
    * 
-   * @param sourcedCompilationUnits the compilation units that are {@code #source}'d into this
-   *          library
+   * @param parts the compilation units that are included in this library using a {@code part}
+   *          directive
    */
-  public void setSourcedCompilationUnits(CompilationUnitElement[] sourcedCompilationUnits) {
-    for (CompilationUnitElement compilationUnit : sourcedCompilationUnits) {
+  public void setParts(CompilationUnitElement[] parts) {
+    for (CompilationUnitElement compilationUnit : parts) {
       ((CompilationUnitElementImpl) compilationUnit).setEnclosingElement(this);
     }
-    this.sourcedCompilationUnits = sourcedCompilationUnits;
+    this.parts = parts;
   }
 }

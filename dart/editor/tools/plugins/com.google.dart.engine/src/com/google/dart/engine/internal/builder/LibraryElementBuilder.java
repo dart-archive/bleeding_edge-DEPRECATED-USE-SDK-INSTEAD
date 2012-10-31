@@ -14,16 +14,17 @@
 package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.ExportDirective;
+import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
-import com.google.dart.engine.ast.HideCombinator;
-import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringLiteral;
@@ -100,7 +101,7 @@ public class LibraryElementBuilder {
         Source source = getSource(librarySource, importDirective.getLibraryUri());
         ImportSpecificationImpl specification = new ImportSpecificationImpl();
         ArrayList<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
-        for (com.google.dart.engine.ast.Combinator combinator : importDirective.getCombinators()) {
+        for (Combinator combinator : importDirective.getCombinators()) {
           if (combinator instanceof HideCombinator) {
             HideCombinatorImpl hide = new HideCombinatorImpl();
             hide.setHiddenNames(getIdentifiers(((HideCombinator) combinator).getHiddenNames()));
@@ -131,7 +132,25 @@ public class LibraryElementBuilder {
         }
         imports.add(specification);
       } else if (directive instanceof ExportDirective) {
-        // TODO(brianwilkerson) Implement this
+        ExportDirective exportDirective = (ExportDirective) directive;
+        Source source = getSource(librarySource, exportDirective.getLibraryUri());
+        ImportSpecificationImpl specification = new ImportSpecificationImpl();
+        ArrayList<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
+        for (Combinator combinator : exportDirective.getCombinators()) {
+          if (combinator instanceof HideCombinator) {
+            HideCombinatorImpl hide = new HideCombinatorImpl();
+            hide.setHiddenNames(getIdentifiers(((HideCombinator) combinator).getHiddenNames()));
+            combinators.add(hide);
+          } else {
+            ShowCombinatorImpl show = new ShowCombinatorImpl();
+            show.setShownNames(getIdentifiers(((ShowCombinator) combinator).getShownNames()));
+            combinators.add(show);
+          }
+        }
+        specification.setCombinators(combinators.toArray(new ImportCombinator[combinators.size()]));
+        specification.setExported(true);
+        specification.setImportedLibrary(buildLibrary(source));
+        imports.add(specification);
       } else if (directive instanceof PartDirective) {
         StringLiteral partUri = ((PartDirective) directive).getPartUri();
         Source source = getSource(librarySource, partUri);
@@ -150,7 +169,7 @@ public class LibraryElementBuilder {
       libraryElement.setEntryPoint(entryPoint);
     }
     libraryElement.setImports(imports.toArray(new ImportSpecification[imports.size()]));
-    libraryElement.setSourcedCompilationUnits(sourcedCompilationUnits.toArray(new CompilationUnitElementImpl[sourcedCompilationUnits.size()]));
+    libraryElement.setParts(sourcedCompilationUnits.toArray(new CompilationUnitElementImpl[sourcedCompilationUnits.size()]));
 
     return libraryElement;
   }

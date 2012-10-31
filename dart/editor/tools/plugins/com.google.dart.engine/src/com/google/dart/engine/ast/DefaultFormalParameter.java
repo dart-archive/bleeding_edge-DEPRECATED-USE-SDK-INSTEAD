@@ -95,7 +95,10 @@ public class DefaultFormalParameter extends FormalParameter {
 
   @Override
   public Token getEndToken() {
-    return defaultValue.getEndToken();
+    if (defaultValue != null) {
+      return defaultValue.getEndToken();
+    }
+    return parameter.getEndToken();
   }
 
   /**

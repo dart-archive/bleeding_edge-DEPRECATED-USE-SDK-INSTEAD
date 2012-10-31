@@ -50,19 +50,19 @@ public interface LibraryElement extends Element {
   public ImportSpecification[] getImports();
 
   /**
+   * Return an array containing all of the compilation units that are included in this library using
+   * a {@code part} directive. This does not include the defining compilation unit that contains the
+   * {@code part} directives.
+   * 
+   * @return the compilation units that are included in this library
+   */
+  public CompilationUnitElement[] getParts();
+
+  /**
    * Return an array containing elements for each of the prefixes used to {@code #import} libraries
    * into this library. Each prefix can be used in more than one {@code #import} directive.
    * 
    * @return the prefixes used to {@code #import} libraries into this library
    */
   public PrefixElement[] getPrefixes();
-
-  /**
-   * Return an array containing all of the compilation units that are {@code #source}'d into this
-   * library. This does not include the defining compilation unit that contains the {@code #source}
-   * directives.
-   * 
-   * @return the compilation units that are {@code #source}'d into this library
-   */
-  public CompilationUnitElement[] getSourcedCompilationUnits();
 }

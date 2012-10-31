@@ -14,39 +14,40 @@
 package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.type.VoidType;
 
 /**
- * The unique instance of the class {@code VoidTypeImpl} implements the type {@code void}.
+ * The unique instance of the class {@code BottomTypeImpl} implements the type {@code bottom}.
  */
-public class VoidTypeImpl extends TypeImpl implements VoidType {
+public class BottomTypeImpl extends TypeImpl {
   /**
    * The unique instance of this class.
    */
-  private static VoidTypeImpl INSTANCE = new VoidTypeImpl();
+  private static BottomTypeImpl INSTANCE = new BottomTypeImpl(); //$NON-NLS-1$
 
   /**
    * Return the unique instance of this class.
    * 
    * @return the unique instance of this class
    */
-  public static VoidTypeImpl getInstance() {
+  public static BottomTypeImpl getInstance() {
     return INSTANCE;
   }
 
   /**
    * Prevent the creation of instances of this class.
    */
-  private VoidTypeImpl() {
-    super(null, "void"); //$NON-NLS-1$
+  private BottomTypeImpl() {
+    super(null, "bottom");
+  }
+
+  @Override
+  public boolean isMoreSpecificThan(Type type) {
+    return true;
   }
 
   @Override
   public boolean isSubtypeOf(Type type) {
-    // The only subtype relations that pertain to void are therefore:
-    // void <: void(by reflexivity)
-    // bottom <: void (as bottom is a subtype of all types).
-    // void <: dynamic (as dynamic is a supertype of all types)
-    return this.equals(type) || type.equals(InterfaceTypeImpl.getDynamic());
+    // bottom is a subtype of all types
+    return true;
   }
 }

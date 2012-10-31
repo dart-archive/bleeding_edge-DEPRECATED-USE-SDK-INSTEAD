@@ -14,6 +14,7 @@
 package com.google.dart.engine.element;
 
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.type.TypeVariableType;
 
 /**
  * The interface {@code TypeVariableElement} defines the behavior of elements representing a type
@@ -27,4 +28,11 @@ public interface TypeVariableElement extends Element {
    * @return the type representing the bound associated with this variable
    */
   public Type getBound();
+
+  /**
+   * Return the type defined by this type variable.
+   * 
+   * @return the type defined by this type variable
+   */
+  public TypeVariableType getType();
 }

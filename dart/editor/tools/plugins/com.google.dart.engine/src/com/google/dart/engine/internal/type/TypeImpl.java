@@ -64,8 +64,7 @@ public abstract class TypeImpl implements Type {
   }
 
   @Override
-  public boolean isSubtypeOf(Type type) {
-    // TODO(brianwilkerson) Implement this
+  public boolean isMoreSpecificThan(Type type) {
     return false;
   }
 

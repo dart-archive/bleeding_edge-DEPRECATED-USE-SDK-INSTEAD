@@ -54,7 +54,7 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     assertLength(0, element.getImports());
     assertNull(element.getLibrary());
     assertLength(0, element.getPrefixes());
-    assertLength(0, element.getSourcedCompilationUnits());
+    assertLength(0, element.getParts());
 
     CompilationUnitElement unit = element.getDefiningCompilationUnit();
     assertNotNull(unit);
@@ -85,7 +85,7 @@ public class LibraryElementBuilderTest extends EngineTestCase {
         "class C {}"));
     LibraryElement element = buildLibrary(librarySource);
     assertNotNull(element);
-    CompilationUnitElement[] sourcedUnits = element.getSourcedCompilationUnits();
+    CompilationUnitElement[] sourcedUnits = element.getParts();
     assertLength(2, sourcedUnits);
 
     assertTypes(element.getDefiningCompilationUnit(), "A");

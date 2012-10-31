@@ -136,7 +136,7 @@ public class ResolverTestCase extends EngineTestCase {
 
     LibraryElementImpl library = new LibraryElementImpl(identifier(libraryName));
     library.setDefiningCompilationUnit(compilationUnit);
-    library.setSourcedCompilationUnits(sourcedCompilationUnits);
+    library.setParts(sourcedCompilationUnits);
     return library;
   }
 

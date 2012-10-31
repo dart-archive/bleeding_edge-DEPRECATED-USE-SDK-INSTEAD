@@ -75,7 +75,7 @@ public class LibraryScope extends EnclosedScope {
       define(prefix);
     }
     defineLocalNames(definingLibrary.getDefiningCompilationUnit());
-    for (CompilationUnitElement compilationUnit : definingLibrary.getSourcedCompilationUnits()) {
+    for (CompilationUnitElement compilationUnit : definingLibrary.getParts()) {
       defineLocalNames(compilationUnit);
     }
   }

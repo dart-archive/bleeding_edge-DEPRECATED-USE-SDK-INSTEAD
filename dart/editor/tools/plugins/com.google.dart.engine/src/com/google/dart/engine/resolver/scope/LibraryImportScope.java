@@ -119,7 +119,7 @@ public class LibraryImportScope extends Scope {
     for (LibraryElement importedLibrary : definingLibrary.getImportedLibraries()) {
       if (!prefixedLibraries.contains(importedLibrary)) {
         defineImportedNames(importedLibrary.getDefiningCompilationUnit());
-        for (CompilationUnitElement compilationUnit : importedLibrary.getSourcedCompilationUnits()) {
+        for (CompilationUnitElement compilationUnit : importedLibrary.getParts()) {
           defineImportedNames(compilationUnit);
         }
       }
