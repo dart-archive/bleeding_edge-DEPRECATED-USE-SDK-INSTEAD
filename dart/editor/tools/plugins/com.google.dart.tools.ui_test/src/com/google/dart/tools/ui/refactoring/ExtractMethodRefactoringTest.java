@@ -878,6 +878,30 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
         "");
   }
 
+  public void test_singleExpression_cascade() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "dynaFunction() {}",
+        "main() {",
+        "  String s = '';",
+        "  var v = s..length; // marker",
+        "}",
+        "");
+    selectionStart = findOffset("s..");
+    selectionEnd = findOffset("; // marker");
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "dynaFunction() {}",
+        "main() {",
+        "  String s = '';",
+        "  var v = res(s); // marker",
+        "}",
+        "",
+        "String res(String s) => s..length;",
+        "");
+  }
+
   public void test_singleExpression_Dynamic() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

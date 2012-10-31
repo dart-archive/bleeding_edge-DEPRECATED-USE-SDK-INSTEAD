@@ -441,8 +441,8 @@ public class TypeContextChecker {
   public static RefactoringStatus checkParameterTypeSyntax(String newTypeName, CompilationUnit unit) {
     newTypeName = newTypeName.trim();
 
-    // empty == Dynamic
-    if (newTypeName.isEmpty()) {
+    // empty or dynamic == no type
+    if (newTypeName.isEmpty() || "dynamic".equals(newTypeName)) {
       return new RefactoringStatus();
 //      String msg = Messages.format(
 //          RefactoringCoreMessages.TypeContextChecker_parameter_type,
