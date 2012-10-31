@@ -313,14 +313,15 @@ public class InMemoryIndex implements Index {
   /**
    * Initialize this index, assuming that it has not already been initialized.
    */
-  public void initializeIndex() {
+  public void initializeIndex(boolean noIndexFile) {
     synchronized (indexStore) {
       if (hasBeenInitialized) {
         return;
       }
       hasBeenInitialized = true;
       indexStore.clear();
-      if (!initializeIndexFrom(getIndexFile())) {
+
+      if (noIndexFile || !initializeIndexFrom(getIndexFile())) {
         if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
           logIndexStats("Clearing index after failing to read from index file");
         }

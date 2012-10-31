@@ -24,7 +24,6 @@ import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartPreferenceConstants;
-import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.generator.DartProjectGenerator;
 import com.google.dart.tools.core.internal.model.delta.DartElementDeltaBuilder;
@@ -1813,10 +1812,6 @@ public class DartModelManager {
               | IResourceChangeEvent.PRE_CLOSE
 //       | IResourceChangeEvent.PRE_REFRESH
       );
-
-      if (DartSdkManager.getManager().hasSdk()) {
-        AnalysisIndexManager.startIndexing();
-      }
 
       ResourceUtil.startup();
       DartCore.notYetImplemented();

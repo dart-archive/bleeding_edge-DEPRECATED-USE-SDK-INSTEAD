@@ -139,6 +139,11 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String AUXILIARY_DIR_PREFERENCE = "external resources";
 
   /**
+   * Flag for clearing index cache and analyzing open folders
+   */
+  public static final String CLEAR_OLD_CONTENTS_FLAG = "clear old contents";
+
+  /**
    * Preference to control if "not a member" warnings should be reported for inferred types.
    */
   public static final String TYPE_CHECKS_FOR_INFERRED_TYPES = "typeChecksForInferredTypes";

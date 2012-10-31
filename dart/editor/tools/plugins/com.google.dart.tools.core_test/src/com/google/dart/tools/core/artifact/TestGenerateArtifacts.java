@@ -40,7 +40,7 @@ public class TestGenerateArtifacts extends TestCase {
     long start = System.currentTimeMillis();
 
     InMemoryIndex index = InMemoryIndex.getInstance();
-    index.initializeIndex();
+    index.initializeIndex(false);
     AnalysisTestUtilities.waitForAnalysis();
     final CountDownLatch latch = new CountDownLatch(1);
     index.notify(new NotifyCallback() {
