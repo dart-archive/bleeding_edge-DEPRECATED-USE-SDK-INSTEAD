@@ -561,6 +561,30 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "");
   }
 
+  public void test_removeParentheses_inGetterInvocation() throws Exception {
+    proposalNamePrefix = "Remove parentheses in getter invocation";
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int get foo => 0;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.foo();",
+        "}",
+        "");
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int get foo => 0;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.foo;",
+        "}",
+        "");
+  }
+
   public void test_unresolvedClass_useSimilar() throws Exception {
     proposalNamePrefix = "Change to 'Person'";
     setTestUnitContent(

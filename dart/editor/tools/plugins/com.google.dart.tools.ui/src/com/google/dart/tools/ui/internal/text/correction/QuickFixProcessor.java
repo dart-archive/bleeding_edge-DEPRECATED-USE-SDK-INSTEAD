@@ -13,11 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_FUNCTION_NAME;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_TARGET;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
-
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -91,6 +86,11 @@ import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
 import com.google.dart.tools.ui.text.dart.IQuickFixProcessor;
+
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_FUNCTION_NAME;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_TARGET;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -271,6 +271,9 @@ public class QuickFixProcessor implements IQuickFixProcessor {
             if (errorCode == TypeErrorCode.USE_INTEGER_DIVISION) {
               addFix_useEffectiveIntegerDivision(location);
             }
+            if (errorCode == TypeErrorCode.NOT_A_FUNCTION_TYPE_FIELD) {
+              addFix_removeParentheses_inGetterInvocation();
+            }
           }
         });
       }
@@ -288,7 +291,8 @@ public class QuickFixProcessor implements IQuickFixProcessor {
         || errorCode == TypeErrorCode.IS_STATIC_METHOD_IN
         || errorCode == TypeErrorCode.NO_SUCH_TYPE
         || errorCode == ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR
-        || errorCode == TypeErrorCode.USE_INTEGER_DIVISION;
+        || errorCode == TypeErrorCode.USE_INTEGER_DIVISION
+        || errorCode == TypeErrorCode.NOT_A_FUNCTION_TYPE_FIELD;
   }
 
   private void addFix_createConstructor() {
@@ -476,6 +480,17 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     if (mayBeTypeIdentifier(node)) {
       String typeName = ((DartIdentifier) node).getName();
       addFix_importLibrary_withElement(typeName);
+    }
+  }
+
+  private void addFix_removeParentheses_inGetterInvocation() throws Exception {
+    if (getLocationInParent(node) == DART_METHOD_INVOCATION_FUNCTION_NAME) {
+      DartNode invocation = node.getParent();
+      addRemoveEdit(SourceRangeFactory.forEndEnd(node, invocation));
+      // add proposal
+      addUnitCorrectionProposal(
+          CorrectionMessages.QuickFixProcessor_removeParentheses_inGetterInvocation,
+          DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
     }
   }
 
