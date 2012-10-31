@@ -689,6 +689,24 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * Return <code>true</code> if file is in the dart sdk lib directory
+   * 
+   * @param file
+   * @return <code>true</code> if file is in dart-sdk/lib
+   */
+  public static boolean isDartSdkLibraryFile(File file) {
+    File sdkLibrary = DartSdkManager.getManager().getSdk().getLibraryDirectory();
+    File parentFile = file.getParentFile();
+    while (parentFile != null) {
+      if (parentFile.equals(sdkLibrary)) {
+        return true;
+      }
+      parentFile = parentFile.getParentFile();
+    }
+    return false;
+  }
+
+  /**
    * Return <code>true</code> if the given file name's extension is an HTML-like extension.
    * 
    * @param fileName the file name being tested

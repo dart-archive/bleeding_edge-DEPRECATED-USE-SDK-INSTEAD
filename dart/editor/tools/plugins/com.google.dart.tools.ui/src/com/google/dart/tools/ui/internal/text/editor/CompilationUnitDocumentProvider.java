@@ -1003,6 +1003,9 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       return input.isModifiable();
     } else if (element instanceof FileStoreEditorInput) {
       File file = new File(((FileStoreEditorInput) element).getURI());
+      if (DartCore.isDartSdkLibraryFile(file)) {
+        return false;
+      }
       return file.canWrite();
     } else {
       return super.isModifiable(element);
@@ -1016,6 +1019,9 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       return !input.isModifiable();
     } else if (element instanceof FileStoreEditorInput) {
       File file = new File(((FileStoreEditorInput) element).getURI());
+      if (DartCore.isDartSdkLibraryFile(file)) {
+        return true;
+      }
       return !file.canWrite();
     } else {
       return super.isReadOnly(element);
