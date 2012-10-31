@@ -360,6 +360,11 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
 
   @Override
   public void reconciled(DartUnit ast, boolean forced, IProgressMonitor progressMonitor) {
+    // don't update semantic highlighting if there are parsing problems to avoid "flashing"
+    if (ast.hasParseErrors()) {
+      return;
+    }
+
     // ensure at most one thread can be reconciling at any time
     synchronized (fReconcileLock) {
       if (fIsReconciling) {
