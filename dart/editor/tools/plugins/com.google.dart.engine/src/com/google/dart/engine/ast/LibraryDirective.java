@@ -70,11 +70,6 @@ public class LibraryDirective extends Directive {
   }
 
   @Override
-  public Token getBeginToken() {
-    return libraryToken;
-  }
-
-  @Override
   public Token getEndToken() {
     return semicolon;
   }
@@ -142,5 +137,10 @@ public class LibraryDirective extends Directive {
   public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(name, visitor);
+  }
+
+  @Override
+  protected Token getFirstTokenAfterCommentAndMetadata() {
+    return libraryToken;
   }
 }

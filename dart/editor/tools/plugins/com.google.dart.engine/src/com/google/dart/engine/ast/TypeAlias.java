@@ -94,11 +94,6 @@ public class TypeAlias extends CompilationUnitMember {
   }
 
   @Override
-  public Token getBeginToken() {
-    return keyword;
-  }
-
-  @Override
   public Token getEndToken() {
     return semicolon;
   }
@@ -219,5 +214,10 @@ public class TypeAlias extends CompilationUnitMember {
     safelyVisitChild(name, visitor);
     safelyVisitChild(typeParameters, visitor);
     safelyVisitChild(parameters, visitor);
+  }
+
+  @Override
+  protected Token getFirstTokenAfterCommentAndMetadata() {
+    return keyword;
   }
 }

@@ -65,15 +65,6 @@ public class TopLevelVariableDeclaration extends CompilationUnitMember {
   }
 
   @Override
-  public Token getBeginToken() {
-    Comment comment = getDocumentationComment();
-    if (comment != null) {
-      return comment.getBeginToken();
-    }
-    return variableList.getBeginToken();
-  }
-
-  @Override
   public Token getEndToken() {
     return semicolon;
   }
@@ -118,5 +109,10 @@ public class TopLevelVariableDeclaration extends CompilationUnitMember {
   public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(variableList, visitor);
+  }
+
+  @Override
+  protected Token getFirstTokenAfterCommentAndMetadata() {
+    return variableList.getBeginToken();
   }
 }

@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.scanner.Token;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,6 +50,25 @@ public abstract class AnnotatedNode extends ASTNode {
   public AnnotatedNode(Comment comment, List<Annotation> metadata) {
     this.comment = becomeParentOf(comment);
     this.metadata.addAll(metadata);
+  }
+
+  @Override
+  public final Token getBeginToken() {
+    if (comment == null) {
+      if (metadata.isEmpty()) {
+        return getFirstTokenAfterCommentAndMetadata();
+      } else {
+        return metadata.getBeginToken();
+      }
+    } else if (metadata.isEmpty()) {
+      return comment.getBeginToken();
+    }
+    Token commentToken = comment.getBeginToken();
+    Token metadataToken = metadata.getBeginToken();
+    if (commentToken.getOffset() < metadataToken.getOffset()) {
+      return commentToken;
+    }
+    return metadataToken;
   }
 
   /**
@@ -89,6 +110,13 @@ public abstract class AnnotatedNode extends ASTNode {
       }
     }
   }
+
+  /**
+   * Return the first token following the comment and metadata.
+   * 
+   * @return the first token following the comment and metadata
+   */
+  protected abstract Token getFirstTokenAfterCommentAndMetadata();
 
   /**
    * Return {@code true} if the comment is lexically before any annotations.

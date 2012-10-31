@@ -35,7 +35,15 @@ import static com.google.dart.engine.scanner.TokenClass.SHIFT_OPERATOR;
  * scanner.
  */
 public enum TokenType {
-  EOF(null, ""), // marks the end of the input
+  /**
+   * The type of the token that marks the end of the input.
+   */
+  EOF(null, "") {
+    @Override
+    public String toString() {
+      return "-eof-";
+    }
+  },
 
   DOUBLE,
   HEXADECIMAL,

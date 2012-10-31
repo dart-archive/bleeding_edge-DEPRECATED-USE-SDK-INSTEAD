@@ -40,7 +40,7 @@ public class FunctionExpression extends Expression {
   private FormalParameterList parameters;
 
   /**
-   * The body of the function.
+   * The body of the function, or {@code null} if this is an external function.
    */
   private FunctionBody body;
 
@@ -79,12 +79,16 @@ public class FunctionExpression extends Expression {
       return name.getBeginToken();
     } else if (parameters != null) {
       return parameters.getBeginToken();
+    } else if (body != null) {
+      return body.getBeginToken();
     }
-    return body.getBeginToken();
+    // This should never be reached because external functions must be named, hence either the body
+    // or the name should be non-null.
+    throw new IllegalStateException("Non-external functions must have a body");
   }
 
   /**
-   * Return the body of the function.
+   * Return the body of the function, or {@code null} if this is an external function.
    * 
    * @return the body of the function
    */
@@ -94,7 +98,18 @@ public class FunctionExpression extends Expression {
 
   @Override
   public Token getEndToken() {
-    return body.getEndToken();
+    if (body != null) {
+      return body.getEndToken();
+    } else if (parameters != null) {
+      return parameters.getEndToken();
+    } else if (name != null) {
+      return name.getEndToken();
+    } else if (returnType != null) {
+      return returnType.getEndToken();
+    }
+    // This should never be reached because external functions must be named, hence either the body
+    // or the name should be non-null.
+    throw new IllegalStateException("Non-external functions must have a body");
   }
 
   /**

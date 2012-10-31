@@ -73,11 +73,6 @@ public abstract class NamespaceDirective extends Directive {
     this.semicolon = semicolon;
   }
 
-  @Override
-  public Token getBeginToken() {
-    return keyword;
-  }
-
   /**
    * Return the combinators used to control how names are imported or exported.
    * 
@@ -140,5 +135,10 @@ public abstract class NamespaceDirective extends Directive {
    */
   public void setSemicolon(Token semicolon) {
     this.semicolon = semicolon;
+  }
+
+  @Override
+  protected Token getFirstTokenAfterCommentAndMetadata() {
+    return keyword;
   }
 }

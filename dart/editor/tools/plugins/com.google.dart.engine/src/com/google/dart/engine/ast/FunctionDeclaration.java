@@ -31,6 +31,12 @@ import java.util.List;
  */
 public class FunctionDeclaration extends CompilationUnitMember {
   /**
+   * The token representing the 'external' keyword, or {@code null} if this is not an external
+   * function.
+   */
+  private Token externalKeyword;
+
+  /**
    * The token representing the 'get' or 'set' keyword, or {@code null} if this is a function
    * declaration rather than a property declaration.
    */
@@ -52,12 +58,14 @@ public class FunctionDeclaration extends CompilationUnitMember {
    * 
    * @param comment the documentation comment associated with this function
    * @param metadata the annotations associated with this function
+   * @param externalKeyword the token representing the 'external' keyword
    * @param propertyKeyword the token representing the 'get' or 'set' keyword
    * @param functionExpression the function expression being wrapped
    */
-  public FunctionDeclaration(Comment comment, List<Annotation> metadata, Token propertyKeyword,
-      FunctionExpression functionExpression) {
+  public FunctionDeclaration(Comment comment, List<Annotation> metadata, Token externalKeyword,
+      Token propertyKeyword, FunctionExpression functionExpression) {
     super(comment, metadata);
+    this.externalKeyword = externalKeyword;
     this.propertyKeyword = propertyKeyword;
     this.functionExpression = becomeParentOf(functionExpression);
   }
@@ -68,13 +76,18 @@ public class FunctionDeclaration extends CompilationUnitMember {
   }
 
   @Override
-  public Token getBeginToken() {
-    return functionExpression.getBeginToken();
-  }
-
-  @Override
   public Token getEndToken() {
     return functionExpression.getEndToken();
+  }
+
+  /**
+   * Return the token representing the 'external' keyword, or {@code null} if this is not an
+   * external function.
+   * 
+   * @return the token representing the 'external' keyword
+   */
+  public Token getExternalKeyword() {
+    return externalKeyword;
   }
 
   /**
@@ -94,6 +107,15 @@ public class FunctionDeclaration extends CompilationUnitMember {
    */
   public Token getPropertyKeyword() {
     return propertyKeyword;
+  }
+
+  /**
+   * Set the token representing the 'external' keyword to the given token.
+   * 
+   * @param externalKeyword the token representing the 'external' keyword
+   */
+  public void setExternalKeyword(Token externalKeyword) {
+    this.externalKeyword = externalKeyword;
   }
 
   /**
@@ -118,5 +140,15 @@ public class FunctionDeclaration extends CompilationUnitMember {
   public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(functionExpression, visitor);
+  }
+
+  @Override
+  protected Token getFirstTokenAfterCommentAndMetadata() {
+    if (externalKeyword != null) {
+      return externalKeyword;
+    } else if (propertyKeyword != null) {
+      return propertyKeyword;
+    }
+    return functionExpression.getBeginToken();
   }
 }

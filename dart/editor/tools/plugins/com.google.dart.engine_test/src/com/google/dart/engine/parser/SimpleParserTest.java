@@ -161,6 +161,11 @@ public class SimpleParserTest extends ParserTestCase {
     return (Token) skipMethod.invoke(parser, new Object[] {tokenStream});
   }
 
+  public void fail_parseNonLabeledStatement_functionDeclaration() throws Exception {
+    // We are currently expecting a semicolon where one is not required
+    parse("parseNonLabeledStatement", "f() {}");
+  }
+
   public void test_computeStringValue_emptyInterpolationPrefix() throws Exception {
     assertEquals("", computeStringValue("'''"));
   }
@@ -992,7 +997,7 @@ public class SimpleParserTest extends ParserTestCase {
         "parseCompilationUnitMember",
         new Class[] {Parser.CommentAndMetadata.class},
         new Object[] {emptyCommentAndMetadata()},
-        "get p() => 0;");
+        "get p => 0;");
     assertNotNull(declaration.getFunctionExpression());
     assertNotNull(declaration.getPropertyKeyword());
   }
@@ -1002,7 +1007,7 @@ public class SimpleParserTest extends ParserTestCase {
         "parseCompilationUnitMember",
         new Class[] {Parser.CommentAndMetadata.class},
         new Object[] {emptyCommentAndMetadata()},
-        "int get p() => 0;");
+        "int get p => 0;");
     assertNotNull(declaration.getFunctionExpression());
     assertNotNull(declaration.getPropertyKeyword());
   }
@@ -1276,7 +1281,7 @@ public class SimpleParserTest extends ParserTestCase {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     ConstructorDeclaration constructor = parse("parseFactoryConstructor", new Class[] {
         Parser.CommentAndMetadata.class, Token.class}, new Object[] {
-        commentAndMetadata(comment), null}, "factory A()");
+        commentAndMetadata(comment), null}, "factory A() {}");
     assertNull(constructor.getColon());
     assertEquals(comment, constructor.getDocumentationComment());
     assertNull(constructor.getExternalKeyword());
@@ -1728,8 +1733,8 @@ public class SimpleParserTest extends ParserTestCase {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     FunctionDeclaration declaration = parse("parseFunctionDeclaration", new Class[] {
-        Parser.CommentAndMetadata.class, TypeName.class}, new Object[] {
-        commentAndMetadata(comment), returnType}, "f() {}");
+        Parser.CommentAndMetadata.class, Token.class, TypeName.class}, new Object[] {
+        commentAndMetadata(comment), null, returnType}, "f() {}");
     assertEquals(comment, declaration.getDocumentationComment());
     FunctionExpression expression = declaration.getFunctionExpression();
     assertNotNull(expression);
@@ -1744,8 +1749,8 @@ public class SimpleParserTest extends ParserTestCase {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     FunctionDeclaration declaration = parse("parseFunctionDeclaration", new Class[] {
-        Parser.CommentAndMetadata.class, TypeName.class}, new Object[] {
-        commentAndMetadata(comment), returnType}, "get p => 0;");
+        Parser.CommentAndMetadata.class, Token.class, TypeName.class}, new Object[] {
+        commentAndMetadata(comment), null, returnType}, "get p => 0;");
     assertEquals(comment, declaration.getDocumentationComment());
     FunctionExpression expression = declaration.getFunctionExpression();
     assertNotNull(expression);
@@ -1760,8 +1765,8 @@ public class SimpleParserTest extends ParserTestCase {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     FunctionDeclaration declaration = parse("parseFunctionDeclaration", new Class[] {
-        Parser.CommentAndMetadata.class, TypeName.class}, new Object[] {
-        commentAndMetadata(comment), returnType}, "set p(v) {}");
+        Parser.CommentAndMetadata.class, Token.class, TypeName.class}, new Object[] {
+        commentAndMetadata(comment), null, returnType}, "set p(v) {}");
     assertEquals(comment, declaration.getDocumentationComment());
     FunctionExpression expression = declaration.getFunctionExpression();
     assertNotNull(expression);

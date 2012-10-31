@@ -1541,7 +1541,11 @@ public class Parser {
       return parseTypeAlias();
     }
     if (matches(Keyword.EXTERNAL)) {
-      // TODO(brianwilkerson) Handle external declarations
+      Token externalKeyword = expect(Keyword.EXTERNAL);
+      return parseFunctionDeclaration(
+          commentAndMetadata,
+          externalKeyword,
+          parseOptionalReturnType());
     } else if (matches(Keyword.CONST) || matches(Keyword.FINAL) || matches(Keyword.VAR)) {
       return new TopLevelVariableDeclaration(
           commentAndMetadata.getComment(),
@@ -1549,15 +1553,15 @@ public class Parser {
           parseVariableDeclarationList(),
           expect(TokenType.SEMICOLON));
     } else if (matches(Keyword.GET) || matches(Keyword.SET)) {
-      return parseFunctionDeclaration(commentAndMetadata, null);
+      return parseFunctionDeclaration(commentAndMetadata, null, null);
     } else if (matchesIdentifier() && peekMatches(TokenType.OPEN_PAREN)) {
-      return parseFunctionDeclaration(commentAndMetadata, null);
+      return parseFunctionDeclaration(commentAndMetadata, null, null);
     }
     TypeName returnType = parseReturnType();
     if (matches(Keyword.GET) || matches(Keyword.SET)) {
-      return parseFunctionDeclaration(commentAndMetadata, returnType);
+      return parseFunctionDeclaration(commentAndMetadata, null, returnType);
     } else if (matchesIdentifier() && peekMatches(TokenType.OPEN_PAREN)) {
-      return parseFunctionDeclaration(commentAndMetadata, returnType);
+      return parseFunctionDeclaration(commentAndMetadata, null, returnType);
     }
     return new TopLevelVariableDeclaration(
         commentAndMetadata.getComment(),
@@ -2449,11 +2453,12 @@ public class Parser {
    * 
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
    *          declaration
+   * @param externalKeyword the 'external' keyword, or {@code null} if the function is not external
    * @param returnType the return type, or {@code null} if there is no return type
    * @return the function declaration that was parsed
    */
   private FunctionDeclaration parseFunctionDeclaration(CommentAndMetadata commentAndMetadata,
-      TypeName returnType) {
+      Token externalKeyword, TypeName returnType) {
     Token keyword = null;
     boolean isGetter = false;
     if (matches(Keyword.GET)) {
@@ -2467,10 +2472,14 @@ public class Parser {
     if (!isGetter) {
       parameters = parseFormalParameterList();
     }
-    FunctionBody body = parseFunctionBody(false, false);
+    FunctionBody body = null;
+    if (externalKeyword == null) {
+      body = parseFunctionBody(false, false);
+    }
     return new FunctionDeclaration(
         commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
+        externalKeyword,
         keyword,
         new FunctionExpression(returnType, name, parameters, body));
   }
@@ -2488,6 +2497,7 @@ public class Parser {
   private Statement parseFunctionDeclarationStatement() {
     return new FunctionDeclarationStatement(parseFunctionDeclaration(
         parseCommentAndMetadata(),
+        null,
         parseReturnType()));
   }
 
@@ -2506,11 +2516,7 @@ public class Parser {
    * @return the function expression that was parsed
    */
   private FunctionExpression parseFunctionExpression() {
-    TypeName returnType = null;
-    if (matches(Keyword.VOID)
-        || (matchesIdentifier() && (peekMatchesIdentifier() || peekMatches(TokenType.LT)))) {
-      returnType = parseReturnType();
-    }
+    TypeName returnType = parseOptionalReturnType();
     SimpleIdentifier name = null;
     if (matchesIdentifier()) {
       name = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
@@ -3277,6 +3283,19 @@ public class Parser {
         name,
         parameters,
         body);
+  }
+
+  /**
+   * Parse a return type if one is given, otherwise return {@code null} without advancing.
+   * 
+   * @return the return type that was parsed
+   */
+  private TypeName parseOptionalReturnType() {
+    if (matches(Keyword.VOID)
+        || (matchesIdentifier() && (peekMatchesIdentifier() || peekMatches(TokenType.LT)))) {
+      return parseReturnType();
+    }
+    return null;
   }
 
   /**

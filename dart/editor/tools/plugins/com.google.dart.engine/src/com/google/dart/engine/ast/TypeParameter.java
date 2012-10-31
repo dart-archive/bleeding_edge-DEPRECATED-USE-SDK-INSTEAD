@@ -71,11 +71,6 @@ public class TypeParameter extends Declaration {
     return visitor.visitTypeParameter(this);
   }
 
-  @Override
-  public Token getBeginToken() {
-    return name.getBeginToken();
-  }
-
   /**
    * Return the name of the upper bound for legal arguments, or {@code null} if there was no
    * explicit upper bound.
@@ -144,5 +139,10 @@ public class TypeParameter extends Declaration {
     super.visitChildren(visitor);
     safelyVisitChild(name, visitor);
     safelyVisitChild(bound, visitor);
+  }
+
+  @Override
+  protected Token getFirstTokenAfterCommentAndMetadata() {
+    return name.getBeginToken();
   }
 }

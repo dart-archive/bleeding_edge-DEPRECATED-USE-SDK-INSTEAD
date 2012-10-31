@@ -77,11 +77,6 @@ public class PartOfDirective extends Directive {
   }
 
   @Override
-  public Token getBeginToken() {
-    return partToken;
-  }
-
-  @Override
   public Token getEndToken() {
     return semicolon;
   }
@@ -167,5 +162,10 @@ public class PartOfDirective extends Directive {
   public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(libraryName, visitor);
+  }
+
+  @Override
+  protected Token getFirstTokenAfterCommentAndMetadata() {
+    return partToken;
   }
 }

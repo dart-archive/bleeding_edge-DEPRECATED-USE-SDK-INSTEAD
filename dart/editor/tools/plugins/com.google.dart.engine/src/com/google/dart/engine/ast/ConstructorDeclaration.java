@@ -130,14 +130,6 @@ public class ConstructorDeclaration extends ClassMember {
     return visitor.visitConstructorDeclaration(this);
   }
 
-  @Override
-  public Token getBeginToken() {
-    if (keyword != null) {
-      return keyword;
-    }
-    return returnType.getBeginToken();
-  }
-
   /**
    * Return the body of the constructor, or {@code null} if the constructor does not have a body.
    * 
@@ -315,5 +307,13 @@ public class ConstructorDeclaration extends ClassMember {
     safelyVisitChild(parameters, visitor);
     initializers.accept(visitor);
     safelyVisitChild(body, visitor);
+  }
+
+  @Override
+  protected Token getFirstTokenAfterCommentAndMetadata() {
+    if (keyword != null) {
+      return keyword;
+    }
+    return returnType.getBeginToken();
   }
 }

@@ -71,17 +71,6 @@ public class FieldDeclaration extends ClassMember {
   }
 
   @Override
-  public Token getBeginToken() {
-    Comment comment = getDocumentationComment();
-    if (comment != null) {
-      return comment.getBeginToken();
-    } else if (keyword != null) {
-      return keyword;
-    }
-    return fieldList.getBeginToken();
-  }
-
-  @Override
   public Token getEndToken() {
     return semicolon;
   }
@@ -145,5 +134,13 @@ public class FieldDeclaration extends ClassMember {
   public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(fieldList, visitor);
+  }
+
+  @Override
+  protected Token getFirstTokenAfterCommentAndMetadata() {
+    if (keyword != null) {
+      return keyword;
+    }
+    return fieldList.getBeginToken();
   }
 }

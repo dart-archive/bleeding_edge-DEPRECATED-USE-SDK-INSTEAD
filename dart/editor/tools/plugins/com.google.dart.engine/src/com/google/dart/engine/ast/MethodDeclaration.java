@@ -119,23 +119,6 @@ public class MethodDeclaration extends ClassMember {
     return visitor.visitMethodDeclaration(this);
   }
 
-  @Override
-  public Token getBeginToken() {
-    Comment comment = getDocumentationComment();
-    if (comment != null) {
-      return comment.getBeginToken();
-    } else if (modifierKeyword != null) {
-      return modifierKeyword;
-    } else if (returnType != null) {
-      return returnType.getBeginToken();
-    } else if (propertyKeyword != null) {
-      return propertyKeyword;
-    } else if (operatorKeyword != null) {
-      return operatorKeyword;
-    }
-    return name.getBeginToken();
-  }
-
   /**
    * Return the body of the method.
    * 
@@ -324,5 +307,19 @@ public class MethodDeclaration extends ClassMember {
     safelyVisitChild(name, visitor);
     safelyVisitChild(parameters, visitor);
     safelyVisitChild(body, visitor);
+  }
+
+  @Override
+  protected Token getFirstTokenAfterCommentAndMetadata() {
+    if (modifierKeyword != null) {
+      return modifierKeyword;
+    } else if (returnType != null) {
+      return returnType.getBeginToken();
+    } else if (propertyKeyword != null) {
+      return propertyKeyword;
+    } else if (operatorKeyword != null) {
+      return operatorKeyword;
+    }
+    return name.getBeginToken();
   }
 }

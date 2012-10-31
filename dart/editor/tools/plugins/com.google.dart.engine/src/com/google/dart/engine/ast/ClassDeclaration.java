@@ -127,17 +127,6 @@ public class ClassDeclaration extends CompilationUnitMember {
     return abstractKeyword;
   }
 
-  @Override
-  public Token getBeginToken() {
-    Comment comment = getDocumentationComment();
-    if (comment != null) {
-      return comment.getBeginToken();
-    } else if (abstractKeyword != null) {
-      return abstractKeyword;
-    }
-    return classKeyword;
-  }
-
   /**
    * Return the token representing the 'class' keyword.
    * 
@@ -298,5 +287,13 @@ public class ClassDeclaration extends CompilationUnitMember {
     safelyVisitChild(extendsClause, visitor);
     safelyVisitChild(implementsClause, visitor);
     getMembers().accept(visitor);
+  }
+
+  @Override
+  protected Token getFirstTokenAfterCommentAndMetadata() {
+    if (abstractKeyword != null) {
+      return abstractKeyword;
+    }
+    return classKeyword;
   }
 }

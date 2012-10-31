@@ -74,11 +74,6 @@ public class VariableDeclaration extends Declaration {
   }
 
   @Override
-  public Token getBeginToken() {
-    return name.getBeginToken();
-  }
-
-  @Override
   public Token getEndToken() {
     if (initializer != null) {
       return initializer.getEndToken();
@@ -147,5 +142,10 @@ public class VariableDeclaration extends Declaration {
     super.visitChildren(visitor);
     safelyVisitChild(name, visitor);
     safelyVisitChild(initializer, visitor);
+  }
+
+  @Override
+  protected Token getFirstTokenAfterCommentAndMetadata() {
+    return name.getBeginToken();
   }
 }

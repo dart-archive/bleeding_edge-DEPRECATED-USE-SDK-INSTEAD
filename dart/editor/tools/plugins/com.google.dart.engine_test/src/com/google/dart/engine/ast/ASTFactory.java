@@ -403,6 +403,7 @@ public final class ASTFactory {
     return new FunctionDeclaration(
         null,
         null,
+        null,
         keyword == null ? null : token(keyword),
         functionExpression);
   }
