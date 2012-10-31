@@ -130,7 +130,7 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
 
   @Override
   public boolean isNull() {
-    return value.isNull();
+    return value != null && value.isNull();
   }
 
   protected void fillInFieldsSync() {
