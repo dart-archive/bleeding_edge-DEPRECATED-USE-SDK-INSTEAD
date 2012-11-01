@@ -132,7 +132,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
     if (delta == null) {
       IPath location = getProject().getLocation();
       if (location != null) {
-        ScanCallbackProvider provider = ScanCallbackProvider.getProvider();
+        ScanCallbackProvider provider = ScanCallbackProvider.getProvider(getProject().getName());
         ScanCallback callback = provider != null ? provider.newCallback() : null;
         server.scan(location.toFile(), callback);
       }

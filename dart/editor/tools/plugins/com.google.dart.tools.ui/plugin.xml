@@ -3366,6 +3366,13 @@
             contentMergeViewerId="com.google.dart.tools.ui.internal.compare.DartContentViewerCreator">
         </contentTypeBinding>
     </extension>
+    <extension
+          point="com.google.dart.tools.core.buildParticipant">
+       <buildParticipant
+             class="com.google.dart.tools.ui.internal.build.PubBuildParticipant"
+             id="com.google.dart.tools.ui.buildParticipant.pub">
+       </buildParticipant>
+    </extension>
     
 
 </plugin>

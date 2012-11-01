@@ -22,8 +22,20 @@ import com.google.dart.tools.core.analysis.ScanCallback;
 public abstract class ScanCallbackProvider {
   private static ScanCallbackProvider provider;
 
-  public static ScanCallbackProvider getProvider() {
-    return provider;
+  private static final String EMPTY_STRING = "";
+  private static String PROJECT_NAME = EMPTY_STRING;
+
+  public static ScanCallbackProvider getProvider(String projectName) {
+
+    if (PROJECT_NAME.equals(projectName)) {
+      PROJECT_NAME = EMPTY_STRING;
+      return provider;
+    }
+    return null;
+  }
+
+  public static void setNewProjectName(String name) {
+    PROJECT_NAME = name;
   }
 
   public static void setProvider(ScanCallbackProvider provider) {

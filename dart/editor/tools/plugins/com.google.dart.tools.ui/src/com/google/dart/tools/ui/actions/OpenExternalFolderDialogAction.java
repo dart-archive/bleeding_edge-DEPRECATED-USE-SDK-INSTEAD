@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.builder.ScanCallbackProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.dialogs.OpenFolderDialog;
 import com.google.dart.tools.ui.internal.util.DirectoryVerification;
@@ -73,9 +74,12 @@ public class OpenExternalFolderDialogAction extends AbstractInstrumentedAction i
             window,
             directory);
         createAction.run();
+        IProject project = createAction.getProject();
+        
+        // show analysis progress dialog for open folder
+        ScanCallbackProvider.setNewProjectName(project.getName());
 
         if (openFolderDialog.isRunpub()) {
-          IProject project = createAction.getProject();
           if (project != null && project.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
             RunPubAction runPubAction = RunPubAction.createPubInstallAction(window);
             runPubAction.run(new StructuredSelection(project));
