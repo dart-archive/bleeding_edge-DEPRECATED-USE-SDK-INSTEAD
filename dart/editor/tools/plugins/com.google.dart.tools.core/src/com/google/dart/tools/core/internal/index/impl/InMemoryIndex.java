@@ -579,7 +579,7 @@ public class InMemoryIndex implements Index {
             continue;
           }
           IResource libraryResource = compilationUnit.getResource();
-          if (libraryResource == null) {
+          if (libraryResource == null || !DartCore.isAnalyzed(libraryResource)) {
             continue;
           }
           IPath libraryLocation = libraryResource.getLocation();
