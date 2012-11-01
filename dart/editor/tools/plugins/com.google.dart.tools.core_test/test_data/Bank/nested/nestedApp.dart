@@ -1,5 +1,5 @@
 
-#import('package:customer/customer.dart');
+import 'package:customer/customer.dart';
 
 void main() {
   print("nestedApp");

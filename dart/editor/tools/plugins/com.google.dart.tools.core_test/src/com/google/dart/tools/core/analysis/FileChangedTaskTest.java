@@ -42,58 +42,6 @@ public class FileChangedTaskTest extends AbstractDartAnalysisTest {
   private Listener listener;
 
   /**
-   * Assert removing #source directive causes sourced file to become analyzed as library
-   * <p>
-   * TODO(scheglov) disabled because now 'part of' directive required
-   */
-  public void _test_changed_library() throws Exception {
-    final String directive = "#source(\"simple_money.dart\");";
-    final String oldContent = FileUtilities.getContents(moneyLibFile);
-    int index = oldContent.indexOf(directive);
-    assertTrue(index > 0);
-    final String newContent = oldContent.substring(0, index)
-        + oldContent.substring(index + directive.length());
-
-    server.scan(moneyLibFile, null);
-    server.start();
-    listener.waitForIdle(1, FIVE_MINUTES_MS);
-    assertTrackedLibraryFiles(server, moneyLibFile);
-    Object lib1 = getCachedLibrary(savedContext, moneyLibFile);
-    assertNotNull(lib1);
-    assertNull(getCachedLibrary(savedContext, simpleMoneySrcFile));
-
-    server.resetAnalyzeContext();
-    final long oldLastModified = moneyLibFile.lastModified();
-    FileUtilities.setContents(moneyLibFile, newContent);
-    // Ensure marked as modified... lastModified is only accurate to the second
-    moneyLibFile.setLastModified(oldLastModified + 1000);
-    try {
-      server.changed(moneyLibFile);
-      listener.waitForIdle(2, FIVE_MINUTES_MS);
-      assertTrackedLibraryFiles(server, moneyLibFile, simpleMoneySrcFile);
-      server.assertAnalyzeContext(true);
-      Object lib2 = getCachedLibrary(savedContext, moneyLibFile);
-      assertNotNull(lib2);
-      assertNotSame(lib1, lib2);
-      lib1 = lib2;
-      assertNotNull(getCachedLibrary(savedContext, simpleMoneySrcFile));
-    } finally {
-      FileUtilities.setContents(moneyLibFile, oldContent);
-      moneyLibFile.setLastModified(oldLastModified);
-    }
-
-    server.resetAnalyzeContext();
-    server.changed(moneyLibFile);
-    listener.waitForIdle(3, FIVE_MINUTES_MS);
-    assertTrackedLibraryFiles(server, moneyLibFile);
-    server.assertAnalyzeContext(true);
-    Object lib2 = getCachedLibrary(savedContext, moneyLibFile);
-    assertNotNull(lib2);
-    assertNotSame(lib1, lib2);
-    assertNull(getCachedLibrary(savedContext, simpleMoneySrcFile));
-  }
-
-  /**
    * Assert cache discarded only if file has changed on disk
    */
   public void test_changed() {
@@ -117,6 +65,60 @@ public class FileChangedTaskTest extends AbstractDartAnalysisTest {
     assertNotSame(parse1.getDartUnit(), parse4.getDartUnit());
     server.assertAnalyzeContext(true);
     listener.assertDiscarded(moneyLibFile);
+  }
+
+  /**
+   * Assert adding and removing import in application does not change context of imported nested
+   * library because that library is in the application directory hierarchy.
+   */
+  public void test_changed_application_importNested() throws Exception {
+    final String directive = "import 'nested/nestedLib.dart';";
+    final String oldContent = FileUtilities.getContents(bankLibFile);
+    int index = oldContent.indexOf(directive);
+    assertTrue(index > 0);
+    final String newContent = oldContent.substring(0, index)
+        + oldContent.substring(index + directive.length());
+
+    server.scan(bankDir, null);
+    server.start();
+    listener.waitForIdle(1, FIVE_MINUTES_MS);
+    assertPackageContexts(server, bankDir);
+    assertCachedLibraries(server, null);
+    assertCachedLibraries(server, bankDir, bankLibFile, nestedLibFile, nestedAppFile);
+    ParseResult parse1 = savedContext.parse(bankLibFile, bankLibFile, FIVE_MINUTES_MS);
+    assertNotNull(parse1.getDartUnit());
+    listener.waitForIdle(2, FIVE_MINUTES_MS);
+
+    final long oldLastModified = bankLibFile.lastModified();
+    FileUtilities.setContents(bankLibFile, newContent);
+    // Ensure marked as modified... lastModified is only accurate to the second
+    bankLibFile.setLastModified(oldLastModified + 1000);
+    ParseResult parse2;
+    try {
+      server.changed(bankLibFile);
+      listener.waitForIdle(3, FIVE_MINUTES_MS);
+
+      assertPackageContexts(server, bankDir);
+      assertCachedLibraries(server, null);
+      assertCachedLibraries(server, bankDir, bankLibFile, nestedLibFile, nestedAppFile);
+      parse2 = savedContext.parse(bankLibFile, bankLibFile, FIVE_MINUTES_MS);
+      listener.waitForIdle(4, FIVE_MINUTES_MS);
+
+      assertNotNull(parse2.getDartUnit());
+      assertNotSame(parse2.getDartUnit(), parse1.getDartUnit());
+    } finally {
+      FileUtilities.setContents(bankLibFile, oldContent);
+      bankLibFile.setLastModified(oldLastModified);
+    }
+    server.changed(bankLibFile);
+    listener.waitForIdle(5, FIVE_MINUTES_MS);
+    assertPackageContexts(server, bankDir);
+    assertCachedLibraries(server, null);
+    assertCachedLibraries(server, bankDir, bankLibFile, nestedLibFile, nestedAppFile);
+    ParseResult parse3 = savedContext.parse(bankLibFile, bankLibFile, FIVE_MINUTES_MS);
+    assertNotNull(parse3.getDartUnit());
+    assertNotSame(parse3.getDartUnit(), parse1.getDartUnit());
+    assertNotSame(parse3.getDartUnit(), parse2.getDartUnit());
   }
 
   /**
@@ -172,57 +174,54 @@ public class FileChangedTaskTest extends AbstractDartAnalysisTest {
 //  }
 
   /**
-   * Assert adding and removing import in application does not change context of imported nested
-   * library because that library is in the application directory hierarchy.
+   * Assert removing #source directive causes sourced file to become analyzed as library
    */
-  public void test_changed_application_importNested() throws Exception {
-    final String directive = "#import('nested/nestedLib.dart');";
-    final String oldContent = FileUtilities.getContents(bankLibFile);
+  public void test_changed_library() throws Exception {
+    final String directive = "part \"simple_money.dart\";";
+    final String oldContent = FileUtilities.getContents(moneyLibFile);
     int index = oldContent.indexOf(directive);
     assertTrue(index > 0);
     final String newContent = oldContent.substring(0, index)
         + oldContent.substring(index + directive.length());
 
-    server.scan(bankDir, null);
+    server.scan(moneyLibFile, null);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
-    assertPackageContexts(server, bankDir);
-    assertCachedLibraries(server, null);
-    assertCachedLibraries(server, bankDir, bankLibFile, nestedLibFile, nestedAppFile);
-    ParseResult parse1 = savedContext.parse(bankLibFile, bankLibFile, FIVE_MINUTES_MS);
-    assertNotNull(parse1.getDartUnit());
-    listener.waitForIdle(2, FIVE_MINUTES_MS);
+    assertTrackedLibraryFiles(server, moneyLibFile);
+    Object lib1 = getCachedLibrary(savedContext, moneyLibFile);
+    assertNotNull(lib1);
+    assertNull(getCachedLibrary(savedContext, simpleMoneySrcFile));
 
-    final long oldLastModified = bankLibFile.lastModified();
-    FileUtilities.setContents(bankLibFile, newContent);
+    server.resetAnalyzeContext();
+    final long oldLastModified = moneyLibFile.lastModified();
+    FileUtilities.setContents(moneyLibFile, newContent);
     // Ensure marked as modified... lastModified is only accurate to the second
-    bankLibFile.setLastModified(oldLastModified + 1000);
-    ParseResult parse2;
+    moneyLibFile.setLastModified(oldLastModified + 1000);
     try {
-      server.changed(bankLibFile);
-      listener.waitForIdle(3, FIVE_MINUTES_MS);
-
-      assertPackageContexts(server, bankDir);
-      assertCachedLibraries(server, null);
-      assertCachedLibraries(server, bankDir, bankLibFile, nestedLibFile, nestedAppFile);
-      parse2 = savedContext.parse(bankLibFile, bankLibFile, FIVE_MINUTES_MS);
-      listener.waitForIdle(4, FIVE_MINUTES_MS);
-
-      assertNotNull(parse2.getDartUnit());
-      assertNotSame(parse2.getDartUnit(), parse1.getDartUnit());
+      server.changed(moneyLibFile);
+      listener.waitForIdle(2, FIVE_MINUTES_MS);
+      assertTrackedLibraryFiles(server, moneyLibFile);
+      server.assertAnalyzeContext(true);
+      Object lib2 = getCachedLibrary(savedContext, moneyLibFile);
+      assertNotNull(lib2);
+      assertNotSame(lib1, lib2);
+      lib1 = lib2;
+      // Files with "part of" are never considered libraries
+      assertNull(getCachedLibrary(savedContext, simpleMoneySrcFile));
     } finally {
-      FileUtilities.setContents(bankLibFile, oldContent);
-      bankLibFile.setLastModified(oldLastModified);
+      FileUtilities.setContents(moneyLibFile, oldContent);
+      moneyLibFile.setLastModified(oldLastModified);
     }
-    server.changed(bankLibFile);
-    listener.waitForIdle(5, FIVE_MINUTES_MS);
-    assertPackageContexts(server, bankDir);
-    assertCachedLibraries(server, null);
-    assertCachedLibraries(server, bankDir, bankLibFile, nestedLibFile, nestedAppFile);
-    ParseResult parse3 = savedContext.parse(bankLibFile, bankLibFile, FIVE_MINUTES_MS);
-    assertNotNull(parse3.getDartUnit());
-    assertNotSame(parse3.getDartUnit(), parse1.getDartUnit());
-    assertNotSame(parse3.getDartUnit(), parse2.getDartUnit());
+
+    server.resetAnalyzeContext();
+    server.changed(moneyLibFile);
+    listener.waitForIdle(3, FIVE_MINUTES_MS);
+    assertTrackedLibraryFiles(server, moneyLibFile);
+    server.assertAnalyzeContext(true);
+    Object lib2 = getCachedLibrary(savedContext, moneyLibFile);
+    assertNotNull(lib2);
+    assertNotSame(lib1, lib2);
+    assertNull(getCachedLibrary(savedContext, simpleMoneySrcFile));
   }
 
   /**

@@ -52,30 +52,6 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
   private AnalysisServerAdapter server;
   private Listener listener;
 
-  /**
-   * TODO(scheglov) disabled because now 'part of' directive required
-   */
-  public void _test_scan_source() throws Exception {
-    assertTrackedLibraryFiles(server);
-    server.scan(simpleMoneySrcFile, null);
-    server.start();
-    listener.waitForIdle(1, FIVE_MINUTES_MS);
-    assertTrackedLibraryFiles(server, simpleMoneySrcFile);
-    server.assertAnalyzeContext(true);
-  }
-
-  /**
-   * TODO(scheglov) disabled because now 'part of' directive required
-   */
-  public void _test_scan_sourceThenLibrary() throws Exception {
-    _test_scan_source();
-    server.resetAnalyzeContext();
-    server.scan(moneyLibFile, null);
-    listener.waitForIdle(2, FIVE_MINUTES_MS);
-    assertTrackedLibraryFiles(server, moneyLibFile);
-    server.assertAnalyzeContext(true);
-  }
-
   public void test_packages_preference() throws Exception {
     PackageLibraryManager libMgr = PackageLibraryManagerProvider.getAnyLibraryManager();
     assertTrackedLibraryFiles(server);
@@ -147,6 +123,25 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
     listener.waitForIdle(2, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server, moneyLibFile);
     server.assertAnalyzeContext(false);
+  }
+
+  public void test_scan_source() throws Exception {
+    assertTrackedLibraryFiles(server);
+    server.scan(simpleMoneySrcFile, null);
+    server.start();
+    listener.waitForIdle(1, FIVE_MINUTES_MS);
+    // Files with "part of" are never considered libraries
+    assertTrackedLibraryFiles(server);
+    server.assertAnalyzeContext(false);
+  }
+
+  public void test_scan_sourceThenLibrary() throws Exception {
+    test_scan_source();
+    server.resetAnalyzeContext();
+    server.scan(moneyLibFile, null);
+    listener.waitForIdle(2, FIVE_MINUTES_MS);
+    assertTrackedLibraryFiles(server, moneyLibFile);
+    server.assertAnalyzeContext(true);
   }
 
   public void test_scanContent_import() throws Exception {

@@ -4,10 +4,10 @@
 
 library Money;
 
-#source("complex_money.dart");
-#source("currency_exchange.dart");
-#source("currency.dart");
-#source("simple_money.dart");
+part "complex_money.dart";
+part "currency_exchange.dart";
+part "currency.dart";
+part "simple_money.dart";
 
 /**
  * The interface [Money] defines the behavior of objects representing a monitary
