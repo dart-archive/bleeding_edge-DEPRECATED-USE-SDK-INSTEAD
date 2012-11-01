@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.feedback;
 
+import com.google.dart.tools.core.DartCore;
+
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.swt.SWT;
@@ -24,10 +26,19 @@ import org.eclipse.swt.widgets.Shell;
 
 /**
  * An action to open the {@link FeedbackDialog}.
+ * <p>
+ * TODO list
+ * <li>Currently the screenshot capture doesn't work on the MacOS- dartbug.com/6458
+ * <li>Currently the text and jpeg image are sent as separate requests by
+ * {@link FeedbackSubmissionJob}, it would be awesome if we sent them all together so that we could
+ * have a single email with attachments, and be smarter about how the information is put together as
+ * it is sent out by the AppEngine server
+ * 
+ * @see FeedbackSubmissionJob
  */
 public class OpenFeedbackDialogAction extends Action implements IShellProvider {
 
-  public static boolean SCREEN_CAPTURE_ENABLED = false;
+  public static boolean SCREEN_CAPTURE_ENABLED = !DartCore.isMac();
 
   private IShellProvider shellProvider;
 
