@@ -396,6 +396,7 @@ public final class CorrectionMessages extends NLS {
   public static String QuickFixProcessor_createMethod;
   public static String QuickFixProcessor_useEffectiveIntegerDivision;
   public static String QuickFixProcessor_removeParentheses_inGetterInvocation;
+  public static String QuickFixProcessor_addPartOf;
 
   private CorrectionMessages() {
     // Do not instantiate

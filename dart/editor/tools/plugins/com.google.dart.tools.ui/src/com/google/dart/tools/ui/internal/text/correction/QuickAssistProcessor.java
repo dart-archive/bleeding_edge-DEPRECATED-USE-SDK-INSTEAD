@@ -13,13 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_BINARY_EXPRESSION_LEFT_OPERAND;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_BINARY_EXPRESSION_RIGHT_OPERAND;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_RETURN_STATEMENT_VALUE;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_NAME;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
-
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.DartBinaryExpression;
@@ -72,6 +65,13 @@ import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
 import com.google.dart.tools.ui.text.dart.IQuickAssistProcessor;
+
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_BINARY_EXPRESSION_LEFT_OPERAND;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_BINARY_EXPRESSION_RIGHT_OPERAND;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_RETURN_STATEMENT_VALUE;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_NAME;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
@@ -168,20 +168,22 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     selectionLength = context.getSelectionLength();
     selectionFunction = DartModelUtil.findFunction(unit, selectionOffset);
     node = context.getCoveringNode();
-    utils = new ExtractUtils(unit, (DartUnit) node.getRoot());
     if (node != null) {
-      boolean noErrorsAtLocation = noErrorsAtLocation(locations);
-      if (noErrorsAtLocation) {
-        // invoke each "addProposal_" method
-        for (final Method method : QuickAssistProcessor.class.getDeclaredMethods()) {
-          if (method.getName().startsWith("addProposal_")) {
-            ExecutionUtils.runIgnore(new RunnableEx() {
-              @Override
-              public void run() throws Exception {
-                method.invoke(QuickAssistProcessor.this);
-              }
-            });
-            resetProposalElements();
+      utils = new ExtractUtils(unit, (DartUnit) node.getRoot());
+      if (node != null) {
+        boolean noErrorsAtLocation = noErrorsAtLocation(locations);
+        if (noErrorsAtLocation) {
+          // invoke each "addProposal_" method
+          for (final Method method : QuickAssistProcessor.class.getDeclaredMethods()) {
+            if (method.getName().startsWith("addProposal_")) {
+              ExecutionUtils.runIgnore(new RunnableEx() {
+                @Override
+                public void run() throws Exception {
+                  method.invoke(QuickAssistProcessor.this);
+                }
+              });
+              resetProposalElements();
+            }
           }
         }
       }

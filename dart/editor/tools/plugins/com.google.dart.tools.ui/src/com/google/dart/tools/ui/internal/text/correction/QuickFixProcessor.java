@@ -17,6 +17,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.Source;
@@ -76,6 +77,7 @@ import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.ISharedImages;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.SourceBuilder;
@@ -154,10 +156,6 @@ public class QuickFixProcessor implements IQuickFixProcessor {
       DartElementImageDescriptor.CONSTRUCTOR,
       DartElementImageProvider.SMALL_SIZE);
 
-//  private static ReplaceEdit createInsertEdit(int offset, String text) {
-//    return new ReplaceEdit(offset, 0, text);
-//  }
-
   private static final Image OBJ_CONSTRUCTOR_IMG = DartToolsPlugin.getImageDescriptorRegistry().get(
       OBJ_CONSTRUCTOR_DESC);
 
@@ -174,6 +172,10 @@ public class QuickFixProcessor implements IQuickFixProcessor {
       }
     }
   }
+
+//  private static ReplaceEdit createInsertEdit(int offset, String text) {
+//    return new ReplaceEdit(offset, 0, text);
+//  }
 
   private static ReplaceEdit createRemoveEdit(SourceRange range) {
     return createReplaceEdit(range, "");
@@ -238,12 +240,22 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     utils = new ExtractUtils(unit, context.getASTRoot());
     for (final IProblemLocation location : locations) {
       resetProposalElements();
+      final ErrorCode errorCode = location.getProblemId();
+      // proposals without node
+      ExecutionUtils.runIgnore(new RunnableEx() {
+        @Override
+        public void run() throws Exception {
+          if (errorCode == DartCompilerErrorCode.MISSING_PART_OF_DIRECTIVE) {
+            addFix_addPartOf();
+          }
+        }
+      });
+      // prepare and use node
       node = location.getCoveringNode(utils.getUnitNode());
       if (node != null) {
         ExecutionUtils.runIgnore(new RunnableEx() {
           @Override
           public void run() throws Exception {
-            ErrorCode errorCode = location.getProblemId();
             if (errorCode == ResolverErrorCode.CANNOT_RESOLVE_METHOD
                 || errorCode == ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_CLASS
                 || errorCode == TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED) {
@@ -292,7 +304,17 @@ public class QuickFixProcessor implements IQuickFixProcessor {
         || errorCode == TypeErrorCode.NO_SUCH_TYPE
         || errorCode == ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR
         || errorCode == TypeErrorCode.USE_INTEGER_DIVISION
-        || errorCode == TypeErrorCode.NOT_A_FUNCTION_TYPE_FIELD;
+        || errorCode == TypeErrorCode.NOT_A_FUNCTION_TYPE_FIELD
+        || errorCode == DartCompilerErrorCode.MISSING_PART_OF_DIRECTIVE;
+  }
+
+  private void addFix_addPartOf() throws Exception {
+    TextEdit textEdit = Migrate_1M1_library_CleanUp.createEditInsertPartOf(utils);
+    textEdits.add(textEdit);
+    // add proposal
+    addUnitCorrectionProposal(
+        CorrectionMessages.QuickFixProcessor_addPartOf,
+        DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
   }
 
   private void addFix_createConstructor() {

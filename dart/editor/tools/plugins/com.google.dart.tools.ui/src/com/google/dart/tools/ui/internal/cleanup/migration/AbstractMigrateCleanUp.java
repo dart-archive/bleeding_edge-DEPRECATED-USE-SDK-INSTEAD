@@ -39,10 +39,15 @@ import org.eclipse.text.edits.TextEdit;
  * @coverage dart.editor.ui.cleanup
  */
 public abstract class AbstractMigrateCleanUp extends AbstractCleanUp {
+  protected static ReplaceEdit createReplaceEdit(SourceRange range, String text) {
+    return new ReplaceEdit(range.getOffset(), range.getLength(), text);
+  }
+
   protected CompilationUnit unit;
   protected DartUnit unitNode;
   protected ExtractUtils utils;
   protected CompilationUnitChange change;
+
   private MultiTextEdit rootEdit;
 
   @Override
@@ -76,7 +81,7 @@ public abstract class AbstractMigrateCleanUp extends AbstractCleanUp {
   }
 
   protected final void addReplaceEdit(SourceRange range, String text) {
-    change.addEdit(new ReplaceEdit(range.getOffset(), range.getLength(), text));
+    change.addEdit(createReplaceEdit(range, text));
   }
 
   /**

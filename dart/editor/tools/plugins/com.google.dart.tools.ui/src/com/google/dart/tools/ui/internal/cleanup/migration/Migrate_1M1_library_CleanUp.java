@@ -22,6 +22,9 @@ import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
+import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
+
+import org.eclipse.text.edits.TextEdit;
 
 /**
  * In specification 1.0 M1 new library/import/source syntax is defined.
@@ -30,9 +33,56 @@ import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
  */
 public class Migrate_1M1_library_CleanUp extends AbstractMigrateCleanUp {
   /**
+   * @return the {@link TextEdit} to insert missing "part of" directive, may be <code>null</code>.
+   *         Note that this method does not change if there is already "part of" directive in unit.
+   */
+  public static TextEdit createEditInsertPartOf(ExtractUtils utils) throws Exception {
+    TextEdit edit = null;
+    DartLibrary library = utils.getUnit().getLibrary();
+    if (library != null) {
+      String libraryName = library.getLibraryDirectiveName();
+      if (libraryName != null) {
+        // prepare position of "part of"
+        int insertOffset = 0;
+        boolean insertEmptyLineBefore = false;
+        boolean insertEmptyLineAfter = false;
+        {
+          String source = utils.getText();
+          while (insertOffset < source.length() - 2) {
+            if (utils.getText(insertOffset, 2).equals("//")) {
+              insertEmptyLineBefore = true;
+              insertOffset = utils.getLineNext(insertOffset);
+            } else {
+              break;
+            }
+          }
+          // determine if empty line required
+          int nextLineOffset = utils.getLineNext(insertOffset);
+          String insertLine = source.substring(insertOffset, nextLineOffset);
+          if (!insertLine.trim().isEmpty()) {
+            insertEmptyLineAfter = true;
+          }
+        }
+        // do insert
+        libraryName = mapLibraryName(libraryName);
+        String eol = utils.getEndOfLine();
+        String source = "part of " + libraryName + ";" + eol;
+        if (insertEmptyLineBefore) {
+          source = eol + source;
+        }
+        if (insertEmptyLineAfter) {
+          source += eol;
+        }
+        edit = createReplaceEdit(SourceRangeFactory.forStartLength(insertOffset, 0), source);
+      }
+    }
+    return edit;
+  }
+
+  /**
    * Converts string literal version of library name into identifier named.
    */
-  private static String mapLibraryName(String name) {
+  public static String mapLibraryName(String name) {
     name = StringUtils.removeEnd(name, ".dart");
     name = CharMatcher.JAVA_LETTER_OR_DIGIT.negate().replaceFrom(name, '_');
     return name;
@@ -87,43 +137,9 @@ public class Migrate_1M1_library_CleanUp extends AbstractMigrateCleanUp {
       return;
     }
     // insert
-    DartLibrary library = unit.getLibrary();
-    if (library != null) {
-      String libraryName = library.getLibraryDirectiveName();
-      if (libraryName != null) {
-        // prepare position of "part of"
-        int insertOffset = 0;
-        boolean insertEmptyLineBefore = false;
-        boolean insertEmptyLineAfter = false;
-        {
-          String source = utils.getText();
-          while (insertOffset < source.length() - 2) {
-            if (utils.getText(insertOffset, 2).equals("//")) {
-              insertEmptyLineBefore = true;
-              insertOffset = utils.getLineNext(insertOffset);
-            } else {
-              break;
-            }
-          }
-          // determine if empty line required
-          int nextLineOffset = utils.getLineNext(insertOffset);
-          String insertLine = source.substring(insertOffset, nextLineOffset);
-          if (!insertLine.trim().isEmpty()) {
-            insertEmptyLineAfter = true;
-          }
-        }
-        // do insert
-        libraryName = mapLibraryName(libraryName);
-        String eol = utils.getEndOfLine();
-        String source = "part of " + libraryName + ";" + eol;
-        if (insertEmptyLineBefore) {
-          source = eol + source;
-        }
-        if (insertEmptyLineAfter) {
-          source += eol;
-        }
-        addReplaceEdit(SourceRangeFactory.forStartLength(insertOffset, 0), source);
-      }
+    TextEdit textEdit = createEditInsertPartOf(utils);
+    if (textEdit != null) {
+      change.addEdit(textEdit);
     }
   }
 }

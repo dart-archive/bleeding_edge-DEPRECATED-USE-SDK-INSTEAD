@@ -42,6 +42,28 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
 
   private String proposalNamePrefix;
 
+  public void test_addPartOf() throws Exception {
+    proposalNamePrefix = "Add \"part of\" directive";
+    setUnitContent("Lib.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library MyApp;",
+        "part 'Test.dart';",
+        ""});
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "}",
+        "");
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "",
+        "part of MyApp;",
+        "",
+        "main() {",
+        "}",
+        "");
+  }
+
   public void test_createClass() throws Exception {
     proposalNamePrefix = "Create class";
     setTestUnitContent(
@@ -603,7 +625,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "");
   }
 
-  // XXX
   public void test_unresolvedFunction_useSimilar_qualified_fromClass() throws Exception {
     proposalNamePrefix = "Change to";
     setTestUnitContent(
