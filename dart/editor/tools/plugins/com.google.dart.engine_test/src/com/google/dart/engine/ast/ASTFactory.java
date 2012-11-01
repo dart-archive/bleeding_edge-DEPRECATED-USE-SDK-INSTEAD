@@ -490,11 +490,11 @@ public final class ASTFactory {
     return importDirective(new ArrayList<Annotation>(), uri, prefix, combinators);
   }
 
-  public static HideCombinator importHideCombinator(Identifier... identifiers) {
+  public static HideCombinator importHideCombinator(SimpleIdentifier... identifiers) {
     return new HideCombinator(token("hide"), list(identifiers));
   }
 
-  public static ShowCombinator importShowCombinator(Identifier... identifiers) {
+  public static ShowCombinator importShowCombinator(SimpleIdentifier... identifiers) {
     return new ShowCombinator(token("show"), list(identifiers));
   }
 

@@ -30,7 +30,7 @@ public class ShowCombinator extends Combinator {
   /**
    * The list of names from the library that are made visible by this combinator.
    */
-  private NodeList<Identifier> shownNames = new NodeList<Identifier>(this);
+  private NodeList<SimpleIdentifier> shownNames = new NodeList<SimpleIdentifier>(this);
 
   /**
    * Initialize a newly created import show combinator.
@@ -45,7 +45,7 @@ public class ShowCombinator extends Combinator {
    * @param keyword the comma introducing the combinator
    * @param shownNames the list of names from the library that are made visible by this combinator
    */
-  public ShowCombinator(Token keyword, List<Identifier> shownNames) {
+  public ShowCombinator(Token keyword, List<SimpleIdentifier> shownNames) {
     super(keyword);
     this.shownNames.addAll(shownNames);
   }
@@ -65,7 +65,7 @@ public class ShowCombinator extends Combinator {
    * 
    * @return the list of names from the library that are made visible by this combinator
    */
-  public NodeList<Identifier> getShownNames() {
+  public NodeList<SimpleIdentifier> getShownNames() {
     return shownNames;
   }
 

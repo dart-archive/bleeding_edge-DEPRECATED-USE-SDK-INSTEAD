@@ -30,7 +30,7 @@ public class HideCombinator extends Combinator {
   /**
    * The list of names from the library that are hidden by this combinator.
    */
-  private NodeList<Identifier> hiddenNames = new NodeList<Identifier>(this);
+  private NodeList<SimpleIdentifier> hiddenNames = new NodeList<SimpleIdentifier>(this);
 
   /**
    * Initialize a newly created import show combinator.
@@ -45,7 +45,7 @@ public class HideCombinator extends Combinator {
    * @param keyword the comma introducing the combinator
    * @param hiddenNames the list of names from the library that are hidden by this combinator
    */
-  public HideCombinator(Token keyword, List<Identifier> hiddenNames) {
+  public HideCombinator(Token keyword, List<SimpleIdentifier> hiddenNames) {
     super(keyword);
     this.hiddenNames.addAll(hiddenNames);
   }
@@ -65,7 +65,7 @@ public class HideCombinator extends Combinator {
    * 
    * @return the list of names from the library that are hidden by this combinator
    */
-  public NodeList<Identifier> getHiddenNames() {
+  public NodeList<SimpleIdentifier> getHiddenNames() {
     return hiddenNames;
   }
 

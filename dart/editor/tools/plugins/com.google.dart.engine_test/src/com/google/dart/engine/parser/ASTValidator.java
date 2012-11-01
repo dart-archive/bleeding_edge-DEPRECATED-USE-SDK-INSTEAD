@@ -14,7 +14,6 @@
 package com.google.dart.engine.parser;
 
 import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 
@@ -71,15 +70,20 @@ public class ASTValidator extends GeneralizingASTVisitor<Void> {
       }
     }
 
+    if (node.getBeginToken() == null) {
+      errors.add("No begin token for " + node.getClass().getName());
+    }
+    if (node.getEndToken() == null) {
+      errors.add("No end token for " + node.getClass().getName());
+    }
+
     int nodeStart = node.getOffset();
     int nodeLength = node.getLength();
     if (nodeStart < 0 || nodeLength < 0) {
       errors.add("No source info for " + node.getClass().getName());
     }
 
-    if (parent != null && !(node instanceof Comment)) {
-      // TODO(brianwilkerson) Declarations do not currently include documentation comments in their
-      // source range. Should they?
+    if (parent != null) {
       int nodeEnd = nodeStart + nodeLength;
       int parentStart = parent.getOffset();
       int parentEnd = parentStart + parent.getLength();

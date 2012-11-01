@@ -205,7 +205,7 @@ public class LibraryElementBuilder {
    * @param names the AST nodes representing the identifiers
    * @return the lexical identifiers associated with the nodes in the list
    */
-  private String[] getIdentifiers(NodeList<Identifier> names) {
+  private String[] getIdentifiers(NodeList<SimpleIdentifier> names) {
     int count = names.size();
     String[] identifiers = new String[count];
     for (int i = 0; i < count; i++) {

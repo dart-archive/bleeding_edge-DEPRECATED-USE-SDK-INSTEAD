@@ -54,6 +54,11 @@ public class ComplexParserTest extends ParserTestCase {
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
+  public void test_additiveExpression_precedence_multiplicative_left_withSuper() throws Exception {
+    BinaryExpression expression = parseExpression("super * y - z");
+    assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
   public void test_additiveExpression_precedence_multiplicative_right() throws Exception {
     BinaryExpression expression = parseExpression("x + y * z");
     assertInstanceOf(BinaryExpression.class, expression.getRightOperand());
@@ -254,7 +259,7 @@ public class ComplexParserTest extends ParserTestCase {
     assertInstanceOf(BinaryExpression.class, expression.getRightOperand());
   }
 
-  public void test_multipleLabels() throws Exception {
+  public void test_multipleLabels_statement() throws Exception {
     LabeledStatement statement = parseStatement("a: b: c: return x;");
     assertSize(3, statement.getLabels());
     assertInstanceOf(ReturnStatement.class, statement.getStatement());

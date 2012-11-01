@@ -121,11 +121,21 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_builtInIdentifierAsTypeDefName() throws Exception {
-    parse("parseTypeAlias", "typedef as();", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    parse(
+        "parseTypeAlias",
+        new Class[] {Parser.CommentAndMetadata.class},
+        new Object[] {emptyCommentAndMetadata()},
+        "typedef as();",
+        ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
   }
 
   public void test_builtInIdentifierAsTypeName() throws Exception {
-    parse("parseClassDeclaration", "class as {}", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+    parse(
+        "parseClassDeclaration",
+        new Class[] {Parser.CommentAndMetadata.class},
+        new Object[] {emptyCommentAndMetadata()},
+        "class as {}",
+        ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
   }
 
   public void test_builtInIdentifierAsTypeVariableName() throws Exception {

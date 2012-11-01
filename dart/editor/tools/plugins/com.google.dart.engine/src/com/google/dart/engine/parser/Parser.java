@@ -787,9 +787,11 @@ public class Parser {
    *   | identifier
    * </pre>
    * 
+   * @param primaryAllowed {@code true} if the expression is allowed to be a primary without any
+   *          assignable selector
    * @return the assignable expression that was parsed
    */
-  private Expression parseAssignableExpression(boolean orPrimaryWithSelectors) {
+  private Expression parseAssignableExpression(boolean primaryAllowed) {
     if (matches(Keyword.SUPER)) {
       return parseAssignableSelector(new SuperExpression(getAndAdvance()), false);
     }
@@ -799,7 +801,7 @@ public class Parser {
     // assignableSelector.
     //
     Expression expression = parsePrimaryExpression();
-    boolean isOptional = orPrimaryWithSelectors || expression instanceof SimpleIdentifier;
+    boolean isOptional = primaryAllowed || expression instanceof SimpleIdentifier;
     while (true) {
       while (matches(TokenType.OPEN_PAREN)) {
         ArgumentList argumentList = parseArgumentList();
@@ -822,7 +824,7 @@ public class Parser {
         } else {
           expression = new FunctionExpressionInvocation(expression, argumentList);
         }
-        if (!orPrimaryWithSelectors) {
+        if (!primaryAllowed) {
           isOptional = false;
         }
       }
@@ -969,6 +971,7 @@ public class Parser {
         statements.add(statement);
       }
       if (currentToken == statementStart) {
+        // Ensure that we are making progress and report an error if we're not.
         reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
         advance();
       }
@@ -1078,10 +1081,10 @@ public class Parser {
    *     metadata 'abstract'? 'class' name typeParameterList? extendsClause? implementsClause? '{' (metadata memberDefinition)* '}'
    * </pre>
    * 
+   * @param commentAndMetadata the metadata to be associated with the member
    * @return the class declaration that was parsed
    */
-  private ClassDeclaration parseClassDeclaration() {
-    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
+  private ClassDeclaration parseClassDeclaration(CommentAndMetadata commentAndMetadata) {
     Token abstractKeyword = null;
     if (matches(Keyword.ABSTRACT)) {
       abstractKeyword = getAndAdvance();
@@ -1236,7 +1239,7 @@ public class Parser {
             parseFormalParameterList());
       }
     }
-    TypeName returnType = parseReturnType();
+    TypeName returnType = parseOptionalReturnType();
     if (matches(Keyword.GET)) {
       return parseGetter(commentAndMetadata, externalKeyword, staticKeyword, returnType);
     } else if (matches(Keyword.SET)) {
@@ -1274,13 +1277,13 @@ public class Parser {
   private List<Combinator> parseCombinators() {
     List<Combinator> combinators = new ArrayList<Combinator>();
     while (matches(SHOW) || matches(HIDE)) {
-      Token kind = expect(TokenType.IDENTIFIER);
-      if (kind.getLexeme().equals(SHOW)) {
-        List<Identifier> shownNames = parseIdentifierList();
-        combinators.add(new ShowCombinator(kind, shownNames));
+      Token keyword = expect(TokenType.IDENTIFIER);
+      if (keyword.getLexeme().equals(SHOW)) {
+        List<SimpleIdentifier> shownNames = parseIdentifierList();
+        combinators.add(new ShowCombinator(keyword, shownNames));
       } else {
-        List<Identifier> hiddenNames = parseIdentifierList();
-        combinators.add(new HideCombinator(kind, hiddenNames));
+        List<SimpleIdentifier> hiddenNames = parseIdentifierList();
+        combinators.add(new HideCombinator(keyword, hiddenNames));
       }
     }
     return combinators;
@@ -1536,9 +1539,9 @@ public class Parser {
       advance();
     }
     if (matches(Keyword.ABSTRACT) || matches(Keyword.CLASS)) {
-      return parseClassDeclaration();
+      return parseClassDeclaration(commentAndMetadata);
     } else if (matches(Keyword.TYPEDEF)) {
-      return parseTypeAlias();
+      return parseTypeAlias(commentAndMetadata);
     }
     if (matches(Keyword.EXTERNAL)) {
       Token externalKeyword = expect(Keyword.EXTERNAL);
@@ -2034,9 +2037,10 @@ public class Parser {
    * <pre>
    * factoryConstructor ::=
    *     factoryConstructorSignature functionBody
+   *   | 'external' factoryConstructorSignature
    * 
    * factoryConstructorSignature ::=
-   *     'external'? 'factory' identifier  ('.' identifier)? formalParameterList
+   *     'factory' identifier  ('.' identifier)? formalParameterList
    * </pre>
    * 
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
@@ -2404,10 +2408,15 @@ public class Parser {
    * functionBody ::=
    *     '=>' expression ';'
    *   | block
+   * 
+   * functionExpressionBody ::=
+   *     '=>' expression
+   *   | block
    * </pre>
    * 
    * @param mayBeEmpty {@code true} if the function body is allowed to be empty
    * @param inExpression {@code true} if the function body is being parsed as part of an expression
+   *          and therefore does not have a terminating semicolon
    * @return the function body that was parsed
    */
   private FunctionBody parseFunctionBody(boolean mayBeEmpty, boolean inExpression) {
@@ -2507,10 +2516,6 @@ public class Parser {
    * <pre>
    * functionExpression ::=
    *     (returnType? identifier)? formalParameterList functionExpressionBody
-   * 
-   * functionExpressionBody ::=
-   *     '=>' expression
-   *   | block
    * </pre>
    * 
    * @return the function expression that was parsed
@@ -2581,8 +2586,8 @@ public class Parser {
    * 
    * @return the list of identifiers that were parsed
    */
-  private List<Identifier> parseIdentifierList() {
-    List<Identifier> identifiers = new ArrayList<Identifier>();
+  private List<SimpleIdentifier> parseIdentifierList() {
+    List<SimpleIdentifier> identifiers = new ArrayList<SimpleIdentifier>();
     identifiers.add(parseSimpleIdentifier());
     while (matches(TokenType.COMMA)) {
       advance();
@@ -3169,7 +3174,12 @@ public class Parser {
     } else if (isInitializedVariableDeclaration()) {
       return parseVariableDeclarationStatement();
     } else if (isFunctionExpression()) {
-      return new ExpressionStatement(parseFunctionExpression(), expect(TokenType.SEMICOLON));
+      FunctionExpression functionExpression = parseFunctionExpression();
+      Token semicolon = null;
+      if (functionExpression.getName() == null || matches(TokenType.SEMICOLON)) {
+        semicolon = expect(TokenType.SEMICOLON);
+      }
+      return new ExpressionStatement(functionExpression, semicolon);
     } else {
       return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
     }
@@ -3292,7 +3302,8 @@ public class Parser {
    */
   private TypeName parseOptionalReturnType() {
     if (matches(Keyword.VOID)
-        || (matchesIdentifier() && (peekMatchesIdentifier() || peekMatches(TokenType.LT)))) {
+        || (matchesIdentifier() && !matches(Keyword.GET) && !matches(Keyword.SET)
+            && !matches(Keyword.OPERATOR) && (peekMatchesIdentifier() || peekMatches(TokenType.LT)))) {
       return parseReturnType();
     }
     return null;
@@ -4024,13 +4035,13 @@ public class Parser {
    * 
    * <pre>
    * typeAlias ::=
-   *     'typedef' returnType? name typeParameterList? formalParameterList ';'
+   *     metadata 'typedef' returnType? name typeParameterList? formalParameterList ';'
    * </pre>
    * 
+   * @param commentAndMetadata the metadata to be associated with the member
    * @return the type alias that was parsed
    */
-  private TypeAlias parseTypeAlias() {
-    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
+  private TypeAlias parseTypeAlias(CommentAndMetadata commentAndMetadata) {
     Token keyword = expect(Keyword.TYPEDEF);
     TypeName returnType = null;
     if (!peekMatches(TokenType.OPEN_PAREN) && !peekMatches(TokenType.LT)) {
@@ -4252,13 +4263,7 @@ public class Parser {
    */
   private VariableDeclarationList parseVariableDeclarationList() {
     FinalConstVarOrType holder = parseFinalConstVarOrType(false);
-    List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
-    variables.add(parseVariableDeclaration());
-    while (matches(TokenType.COMMA)) {
-      getAndAdvance();
-      variables.add(parseVariableDeclaration());
-    }
-    return new VariableDeclarationList(holder.getKeyword(), holder.getType(), variables);
+    return parseVariableDeclarationList(holder.getKeyword(), holder.getType());
   }
 
   /**
@@ -4295,13 +4300,7 @@ public class Parser {
    * @return the variable declaration list that was parsed
    */
   private VariableDeclarationList parseVariableDeclarationList(TypeName type) {
-    List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
-    variables.add(parseVariableDeclaration());
-    while (matches(TokenType.COMMA)) {
-      getAndAdvance();
-      variables.add(parseVariableDeclaration());
-    }
-    return new VariableDeclarationList(null, type, variables);
+    return parseVariableDeclarationList(null, type);
   }
 
   /**
