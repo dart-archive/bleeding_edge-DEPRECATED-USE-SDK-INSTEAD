@@ -5,6 +5,7 @@
 library time_server;
 
 import "dart:io";
+import "dart:utf";
 
 const HOST = "127.0.0.1";
 const PORT = 8080;
@@ -27,9 +28,11 @@ void requestReceivedHandler(HttpRequest request, HttpResponse response) {
   }
 
   String htmlResponse = createHtmlResponse();
+  List<int> encodedHtmlResponse = encodeUtf8(htmlResponse);
 
   response.headers.set(HttpHeaders.CONTENT_TYPE, "text/html; charset=UTF-8");
-  response.outputStream.writeString(htmlResponse);
+  response.contentLength = encodedHtmlResponse.length;
+  response.outputStream.write(encodedHtmlResponse);
   response.outputStream.close();
 }
 
