@@ -52,6 +52,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPartSite;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -166,47 +168,50 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
      * @param length The range length
      * @param highlighting The highlighting
      */
-    // Note: final added for performance reasons. It may not be necessary however; this method is
-    // fairly big to be considered for inlining.
-    private final void addPosition(int offset, int length, Highlighting highlighting) {
+    private void addPosition(int offset, int length, Highlighting highlighting) {
       boolean isExisting = false;
 
+      Position[] positions = removedPositions;
       int left = 0;
-      int right = removedPositions.length - 1;
+      int right = positions.length - 1;
+      int oldMid = -1;
 
-      // Do a binary search through the removedPositions array, looking for the given offset.
+      // Do a binary search through the positions array, looking for the given offset.
       while (left <= right) {
         int mid;
 
         // Choose a mid.
-        if (removedPositions[left].getOffset() == offset) {
+        if (positions[left].getOffset() == offset) {
           mid = left;
-        } else if (removedPositions[right].getOffset() == offset) {
+        } else if (positions[right].getOffset() == offset) {
           mid = right;
         } else {
           mid = (left + right) / 2;
         }
 
-        if (offset > removedPositions[mid].getOffset()) {
-          if (left + 1 == right) {
-            break;
-          }
+        if (oldMid == mid) {
+          // If we didn't make any progress, exit the search.
+          break;
+        } else {
+          oldMid = mid;
+        }
 
+        if (offset > positions[mid].getOffset()) {
           left = mid;
-        } else if (offset < removedPositions[mid].getOffset()) {
+        } else if (offset < positions[mid].getOffset()) {
           right = mid;
         } else {
           int index = mid;
 
           // We found offset. Back up until we reach the first instance of that offset.
-          while (index > 0 && removedPositions[index - 1].getOffset() == offset) {
+          while (index > 0 && positions[index - 1].getOffset() == offset) {
             index--;
           }
 
           // Check to see if we want to keep all the positions which equal offset.
-          while (index < removedPositions.length && removedPositions[index].getOffset() == offset) {
+          while (index < positions.length && positions[index].getOffset() == offset) {
             if (!removedPositionsDeleted[index]) {
-              HighlightedPosition position = (HighlightedPosition) removedPositions[index];
+              HighlightedPosition position = (HighlightedPosition) positions[index];
 
               if (position.isEqual(offset, length, highlighting)) {
                 isExisting = true;
@@ -247,6 +252,13 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
 
   /** Position collector */
   private final PositionCollector fCollector = new PositionCollector();
+
+  private Comparator<Position> positionsComparator = new Comparator<Position>() {
+    @Override
+    public int compare(Position position1, Position position2) {
+      return position1.offset - position2.offset;
+    }
+  };
 
   /** The Dart editor on which this semantic highlighting reconciler is installed */
   private DartEditor fEditor;
@@ -507,6 +519,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
   private void reconcilePositions(DartNode[] subtrees) {
     // copy fRemovedPositions into removedPositions and removedPositionsDeleted
     removedPositions = fRemovedPositions.toArray(new Position[fRemovedPositions.size()]);
+    Arrays.sort(removedPositions, positionsComparator);
     removedPositionsDeleted = new boolean[removedPositions.length];
 
     // FIXME: remove positions not covered by subtrees
