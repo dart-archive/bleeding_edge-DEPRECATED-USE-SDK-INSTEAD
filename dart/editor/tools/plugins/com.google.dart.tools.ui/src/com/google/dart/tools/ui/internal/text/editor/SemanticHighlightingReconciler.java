@@ -361,7 +361,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
   @Override
   public void reconciled(DartUnit ast, boolean forced, IProgressMonitor progressMonitor) {
     // don't update semantic highlighting if there are parsing problems to avoid "flashing"
-    if (ast.hasParseErrors()) {
+    if (ast != null && ast.hasParseErrors()) {
       return;
     }
 
