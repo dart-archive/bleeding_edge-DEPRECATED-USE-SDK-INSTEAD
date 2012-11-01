@@ -24,6 +24,7 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Resource;
+import com.google.dart.tools.core.internal.model.SourceReferenceImpl;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
@@ -250,6 +251,9 @@ public final class ElementFactory {
     String methodName = element.getName();
     if (element instanceof ConstructorElement) {
       methodName = ((ConstructorElement) element).getRawName();
+    }
+    if (methodName == null && method instanceof SourceReferenceImpl) {
+      methodName = "#" + ((SourceReferenceImpl) method).getOccurrenceCount();
     }
     EnclosingElement parentElement = element.getEnclosingElement();
     if (parentElement instanceof LibraryElement) {
