@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-#library('dartcombat_tests');
+library dartcombat_tests;
 
-#import('dart:html');
-#import('dart:isolate');
-#import('../../../../pkg/unittest/unittest.dart');
-#import('../../../../pkg/unittest/html_config.dart');
-#import('../../../dartcombat/dartcombatlib.dart');
+import 'dart:html';
+import 'dart:isolate';
+import '../../../../pkg/unittest/lib/unittest.dart';
+import '../../../../pkg/unittest/lib/html_config.dart';
+import '../../../dartcombat/dartcombatlib.dart';
 
 ReceivePort testPort;
 
