@@ -243,19 +243,19 @@ class ObservableList<T>
   }
 
   void setRange(int start, int length, List from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    throw new UnimplementedError();
   }
 
   void removeRange(int start, int length) {
-    throw const NotImplementedException();
+    throw new UnimplementedError();
   }
 
   void insertRange(int start, int length, [initialValue = null]) {
-    throw const NotImplementedException();
+    throw new UnimplementedError();
   }
 
   List getRange(int start, int length) {
-    throw const NotImplementedException();
+    throw new UnimplementedError();
   }
 
   // Iterable<T>:

@@ -166,10 +166,10 @@ class MockTouch implements Touch {
 
   EventTarget get target => wrapped.target;
 
-  num get webkitForce { throw new NotImplementedException(); }
-  int get webkitRadiusX { throw new NotImplementedException(); }
-  int get webkitRadiusY { throw new NotImplementedException(); }
-  num get webkitRotationAngle { throw new NotImplementedException(); }
+  num get webkitForce { throw new UnimplementedError(); }
+  int get webkitRadiusX { throw new UnimplementedError(); }
+  int get webkitRadiusY { throw new UnimplementedError(); }
+  num get webkitRotationAngle { throw new UnimplementedError(); }
 }
 
 class MockTouchEvent implements TouchEvent {
