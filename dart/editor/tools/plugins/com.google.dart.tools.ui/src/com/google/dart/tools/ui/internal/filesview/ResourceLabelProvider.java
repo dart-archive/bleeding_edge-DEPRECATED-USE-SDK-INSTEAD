@@ -17,6 +17,8 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.ElementChangedEvent;
+import com.google.dart.tools.core.model.ElementChangedListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IFile;
@@ -26,14 +28,20 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Label provider for resources in the {@link FilesView}.
  */
-public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvider {
+public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvider,
+    ElementChangedListener {
   private static final String IGNORE_FILE_ICON = "icons/full/dart16/dart_excl.png";
   private static final String IGNORE_FOLDER_ICON = "icons/full/dart16/flder_obj_excl.png";
 
@@ -45,14 +53,30 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
 
   private final WorkbenchLabelProvider workbenchLabelProvider = new WorkbenchLabelProvider();
 
+  private List<ILabelProviderListener> listeners = new ArrayList<ILabelProviderListener>();
+
   @Override
   public void addListener(ILabelProviderListener listener) {
-    workbenchLabelProvider.addListener(listener);
+    listeners.add(listener);
+
+    if (listeners.size() == 1) {
+      DartCore.addElementChangedListener(this);
+    }
   }
 
   @Override
   public void dispose() {
     workbenchLabelProvider.dispose();
+  }
+
+  @Override
+  public void elementChanged(ElementChangedEvent event) {
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        notifyListeners();
+      }
+    });
   }
 
   @Override
@@ -145,7 +169,22 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
 
   @Override
   public void removeListener(ILabelProviderListener listener) {
-    workbenchLabelProvider.removeListener(listener);
+    listeners.remove(listener);
+
+    if (listeners.isEmpty()) {
+      DartCore.removeElementChangedListener(this);
+    }
+
+  }
+
+  private void notifyListeners() {
+    try {
+      for (ILabelProviderListener listener : listeners) {
+        listener.labelProviderChanged(new LabelProviderChangedEvent(this));
+      }
+    } catch (Throwable t) {
+      DartToolsPlugin.log(t);
+    }
   }
 
 }
