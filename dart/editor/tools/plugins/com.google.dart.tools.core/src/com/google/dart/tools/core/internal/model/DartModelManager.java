@@ -28,7 +28,7 @@ import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.generator.DartProjectGenerator;
 import com.google.dart.tools.core.internal.model.delta.DartElementDeltaBuilder;
 import com.google.dart.tools.core.internal.model.delta.DeltaProcessingState;
-import com.google.dart.tools.core.internal.model.delta.IDeltaProcessor;
+import com.google.dart.tools.core.internal.model.delta.DeltaProcessor;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartProjectInfo;
 import com.google.dart.tools.core.internal.util.Extensions;
@@ -55,6 +55,8 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -276,7 +278,7 @@ public class DartModelManager {
   /**
    * Holds the state used for delta processing.
    */
-  private DeltaProcessingState deltaState;
+  private DeltaProcessingState deltaState = new DeltaProcessingState();
 
   private HashSet<String> optionNames = new HashSet<String>(20);
 
@@ -648,7 +650,7 @@ public class DartModelManager {
     return preferencesLookup[PREF_DEFAULT];
   }
 
-  public IDeltaProcessor getDeltaProcessor() {
+  public DeltaProcessor getDeltaProcessor() {
     return deltaState.getDeltaProcessor();
   }
 
@@ -1717,10 +1719,10 @@ public class DartModelManager {
     } catch (BackingStoreException e) {
       DartCore.logError("Could not save DartCore preferences", e); //$NON-NLS-1$
     }
+    IWorkspace workspace = ResourcesPlugin.getWorkspace();
+    workspace.removeResourceChangeListener(deltaState);
 
-    deltaState.dispose();
-
-    ResourcesPlugin.getWorkspace().removeSaveParticipant(DartCore.PLUGIN_ID);
+    workspace.removeSaveParticipant(DartCore.PLUGIN_ID);
 
     // // Stop listening to content-type changes
     // Platform.getContentTypeManager().removeContentTypeChangeListener(this);
@@ -1797,7 +1799,19 @@ public class DartModelManager {
 
       // listen for resource changes
       // deltaState.initializeRootsWithPreviousSession();
-      deltaState = new DeltaProcessingState();
+      final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+      workspace.addResourceChangeListener(deltaState,
+      /*
+       * update spec in DartCore#addPreProcessingResourceChangedListener(...) if adding more event
+       * types
+       */
+//       IResourceChangeEvent.PRE_BUILD
+//       | IResourceChangeEvent.POST_BUILD
+//       |
+          IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_DELETE
+              | IResourceChangeEvent.PRE_CLOSE
+//       | IResourceChangeEvent.PRE_REFRESH
+      );
 
       ResourceUtil.startup();
       DartCore.notYetImplemented();

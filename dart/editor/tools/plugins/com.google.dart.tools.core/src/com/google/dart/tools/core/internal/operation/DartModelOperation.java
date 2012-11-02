@@ -21,7 +21,6 @@ import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.DartModelStatusImpl;
 import com.google.dart.tools.core.internal.model.delta.DartElementDeltaImpl;
 import com.google.dart.tools.core.internal.model.delta.DeltaProcessor;
-import com.google.dart.tools.core.internal.model.delta.IDeltaProcessor;
 import com.google.dart.tools.core.internal.util.Messages;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -360,8 +359,8 @@ public abstract class DartModelOperation implements IWorkspaceRunnable, IProgres
   public void run(IProgressMonitor monitor) throws CoreException {
     DartCore.notYetImplemented();
     DartModelManager manager = DartModelManager.getInstance();
-    IDeltaProcessor deltaProcessor = manager.getDeltaProcessor();
-    int previousDeltaCount = deltaProcessor.getDartModelDeltas().size();
+    DeltaProcessor deltaProcessor = manager.getDeltaProcessor();
+    int previousDeltaCount = deltaProcessor.dartModelDeltas.size();
     try {
       progressMonitor = monitor;
       pushOperation(this);
@@ -386,8 +385,8 @@ public abstract class DartModelOperation implements IWorkspaceRunnable, IProgres
 
         // update DartModel using deltas that were recorded during this
         // operation
-        for (int i = previousDeltaCount, size = deltaProcessor.getDartModelDeltas().size(); i < size; i++) {
-          deltaProcessor.updateDartModel(deltaProcessor.getDartModelDeltas().get(i));
+        for (int i = previousDeltaCount, size = deltaProcessor.dartModelDeltas.size(); i < size; i++) {
+          deltaProcessor.updateDartModel(deltaProcessor.dartModelDeltas.get(i));
         }
 
         // // close the parents of the created elements and reset their
@@ -417,7 +416,7 @@ public abstract class DartModelOperation implements IWorkspaceRunnable, IProgres
         // - the operation did produce some delta(s)
         // - but the operation has not modified any resource
         if (isTopLevelOperation()) {
-          if ((deltaProcessor.getDartModelDeltas().size() > previousDeltaCount || !deltaProcessor.getReconcileDeltas().isEmpty())
+          if ((deltaProcessor.dartModelDeltas.size() > previousDeltaCount || !deltaProcessor.reconcileDeltas.isEmpty())
               && !hasModifiedResource()) {
             deltaProcessor.fire(null, DeltaProcessor.DEFAULT_CHANGE_EVENT);
           } // else deltas are fired while processing the resource delta
@@ -524,7 +523,7 @@ public abstract class DartModelOperation implements IWorkspaceRunnable, IProgres
    * @param delta the delta to be added
    */
   protected void addReconcileDelta(CompilationUnit workingCopy, DartElementDeltaImpl delta) {
-    HashMap<CompilationUnit, DartElementDelta> reconcileDeltas = DartModelManager.getInstance().getDeltaProcessor().getReconcileDeltas();
+    HashMap<CompilationUnit, DartElementDelta> reconcileDeltas = DartModelManager.getInstance().getDeltaProcessor().reconcileDeltas;
     DartElementDeltaImpl previousDelta = (DartElementDeltaImpl) reconcileDeltas.get(workingCopy);
     if (previousDelta != null) {
       DartElementDelta[] children = delta.getAffectedChildren();
