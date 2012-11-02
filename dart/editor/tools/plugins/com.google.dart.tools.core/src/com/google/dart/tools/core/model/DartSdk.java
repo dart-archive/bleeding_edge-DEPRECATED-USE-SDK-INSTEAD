@@ -228,8 +228,10 @@ public class DartSdk {
 
   protected void initializeSdk() {
     if (!DartCore.isWindows()) {
+      // TODO(devoncarew): these changes need to be moved into the create_sdk.py script.
       ensureExecutable(getVmExecutable());
       ensureExecutable(getDart2JsExecutable());
+      ensureExecutable(getDartDocExecutable());
     }
   }
 
