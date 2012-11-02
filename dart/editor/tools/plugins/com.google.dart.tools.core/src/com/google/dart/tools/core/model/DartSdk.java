@@ -59,6 +59,12 @@ public class DartSdk {
     return new File(new File(sdkPath, "bin"), dart2jsName);
   }
 
+  public File getDartDocExecutable() {
+    String dartDocName = "dartdoc" + (DartCore.isWindows() ? ".bat" : "");
+
+    return new File(new File(sdkPath, "bin"), dartDocName);
+  }
+
   /**
    * Answer the OS-specific dartium directory.
    * 

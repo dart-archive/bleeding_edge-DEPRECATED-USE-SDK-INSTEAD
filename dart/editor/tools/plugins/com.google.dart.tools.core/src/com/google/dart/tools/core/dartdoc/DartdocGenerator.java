@@ -217,7 +217,7 @@ public class DartdocGenerator {
 
     List<String> args = new ArrayList<String>();
 
-    args.add(DartSdkManager.getManager().getSdk().getVmExecutable().getPath());
+    args.add(DartSdkManager.getManager().getSdk().getDartDocExecutable().getPath());
     args.addAll(getCompilerArguments(inputPath, outputPath));
 
     builder.command(args);
@@ -241,8 +241,6 @@ public class DartdocGenerator {
 
   private List<String> getCompilerArguments(IPath inputPath, IPath outputPath) {
     List<String> args = new ArrayList<String>();
-
-    args.add("dartdoc/bin/dartdoc.dart");
 
     args.add("--mode=static");
     args.add("--link-api");
