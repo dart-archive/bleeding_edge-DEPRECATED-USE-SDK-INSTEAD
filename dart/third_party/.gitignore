@@ -1,5 +1,9 @@
-/gyp
-/v8
-/cygwin
-/java
 /android_tools
+/cygwin
+/gyp
+/java
+/net_nss
+/nss
+/sqlite
+/v8
+/zlib
