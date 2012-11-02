@@ -14,13 +14,21 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
+
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * {@link AnalysisServer} subclass that intercepts requests to analyze context
  */
 class AnalysisServerAdapter extends AnalysisServer {
   private boolean analyzeContext = false;
+  private HashSet<File> analyzeFiles = new HashSet<File>();
 
   public AnalysisServerAdapter() {
     this(PackageLibraryManagerProvider.getAnyLibraryManager());
@@ -30,11 +38,24 @@ class AnalysisServerAdapter extends AnalysisServer {
     super(libraryManager);
   }
 
+  public void assertAnalyze(boolean expected, File... expectedFiles) {
+    if (analyzeContext != expected) {
+      fail("Expected analyze context " + expected + " but found " + analyzeContext);
+    }
+    if (!wasAnalyzed(expectedFiles)) {
+      failAnalyzed(expectedFiles);
+    }
+  }
+
   public void assertAnalyzeContext(boolean expectedState) {
     if (analyzeContext != expectedState) {
-      AnalyzeLibraryTaskTest.fail(
-          "Expected background analysis " + expectedState + " but found " + analyzeContext);
+      fail("Expected background analysis " + expectedState + " but found " + analyzeContext);
     }
+  }
+
+  public void resetAnalyze() {
+    analyzeContext = false;
+    analyzeFiles.clear();
   }
 
   public void resetAnalyzeContext() {
@@ -44,5 +65,41 @@ class AnalysisServerAdapter extends AnalysisServer {
   @Override
   protected void queueAnalyzeContext() {
     analyzeContext = true;
+  }
+
+  @Override
+  protected void queueAnalyzeSubTasks(Collection<File> libraryFiles) {
+    analyzeFiles.addAll(libraryFiles);
+  }
+
+  private void failAnalyzed(File... expectedFiles) {
+    PrintStringWriter psw = new PrintStringWriter();
+    psw.println("Expected " + expectedFiles.length + " library files analyzed, but found "
+        + analyzeFiles.size());
+    if (expectedFiles.length > 0) {
+      psw.println("  expected:");
+      for (File file : expectedFiles) {
+        psw.println("    " + file.getPath());
+      }
+    }
+    if (analyzeFiles.size() > 0) {
+      psw.println("  found:");
+      for (File file : analyzeFiles) {
+        psw.println("    " + file);
+      }
+    }
+    fail(psw.toString().trim());
+  }
+
+  private boolean wasAnalyzed(File... expectedFiles) {
+    if (expectedFiles.length != analyzeFiles.size()) {
+      return false;
+    }
+    for (File file : expectedFiles) {
+      if (!analyzeFiles.contains(file)) {
+        return false;
+      }
+    }
+    return true;
   }
 }

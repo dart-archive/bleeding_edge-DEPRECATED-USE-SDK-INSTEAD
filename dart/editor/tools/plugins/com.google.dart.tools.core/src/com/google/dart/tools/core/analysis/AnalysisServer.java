@@ -30,6 +30,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -351,6 +352,15 @@ public class AnalysisServer {
     if (!processor.addLastTaskAndWaitUntilRunning(savedContextAnalysisTask, 50)) {
       DartCore.logInformation("Gave up waiting for " + getClass().getSimpleName()
           + " to start analysis");
+    }
+  }
+
+  /**
+   * Queue sub tasks to analyze the specified libraries.
+   */
+  protected void queueAnalyzeSubTasks(Collection<File> libraryFiles) {
+    for (File libraryFile : libraryFiles) {
+      queueSubTask(new AnalyzeLibraryTask(this, libraryFile, null));
     }
   }
 

@@ -15,6 +15,7 @@ package com.google.dart.tools.core.analysis;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * Update the model given that that specified file has changed
@@ -43,6 +44,7 @@ class FileChangedTask extends Task {
   public void perform() {
     SavedContext savedContext = server.getSavedContext();
     ScanTask task = null;
+    HashSet<File> reanalyze = new HashSet<File>();
 
     // Discard and scan cached libraries
     for (Library library : savedContext.getCachedLibraries(rootFile)) {
@@ -56,11 +58,16 @@ class FileChangedTask extends Task {
         Collection<File> sourceFiles = library.getSourceFiles();
         task.addFilesToScan(sourceFiles);
         for (File sourceFile : sourceFiles) {
-          context.discardLibrary(sourceFile);
+          Library sourcedLibrary = context.discardLibrary(sourceFile);
+          if (sourcedLibrary != null) {
+            reanalyze.add(sourcedLibrary.getFile());
+          }
         }
 
-        // Discard the library and any downstream libraries
-        context.discardLibraries(library.getFile());
+        // Discard and reanalyze the library and any downstream libraries
+        for (Library discarded : context.discardLibraries(library.getFile())) {
+          reanalyze.add(discarded.getFile());
+        }
       }
     }
 
@@ -76,14 +83,17 @@ class FileChangedTask extends Task {
         }
         task.addFilesToScan(otherLibrary.getFile());
 
-        // Discard the library and any downstream libraries
-        context.discardLibraries(otherLibrary.getFile());
+        // Discard and reanalyze the library and any downstream libraries
+        for (Library discarded : context.discardLibraries(otherLibrary.getFile())) {
+          reanalyze.add(discarded.getFile());
+        }
       }
     }
 
     if (task != null) {
       server.queueSubTask(task);
-      server.queueAnalyzeContext();
+      //server.queueAnalyzeContext();
+      server.queueAnalyzeSubTasks(reanalyze);
     }
   }
 }
