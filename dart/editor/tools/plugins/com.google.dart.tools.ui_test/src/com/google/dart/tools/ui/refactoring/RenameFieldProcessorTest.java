@@ -158,7 +158,7 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
    */
   public void test_OK_addUnderscore_otherLibrary() throws Exception {
     setTestUnitContent(
-        "#library('Test');",
+        "library Test;",
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  int test = 1;",
@@ -169,8 +169,8 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "}",
         "");
     setUnitContent("User.dart", new String[] {
-        "#library('User');",
-        "#import('Test.dart');",
+        "library User;",
+        "import 'Test.dart';",
         "// filler filler filler filler filler filler filler filler filler filler",
         "f2() {",
         "  A a = new A();",
@@ -190,7 +190,7 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "Renamed field will become private, so will be not visible in library 'Test/User.dart'",
         showStatusMessages.get(0));
     assertTestUnitContent(
-        "#library('Test');",
+        "library Test;",
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  int _newName = 1;",
@@ -201,8 +201,8 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "}",
         "");
     assertUnitContent(userUnit, new String[] {
-        "#library('User');",
-        "#import('Test.dart');",
+        "library User;",
+        "import 'Test.dart';",
         "// filler filler filler filler filler filler filler filler filler filler",
         "f2() {",
         "  A a = new A();",

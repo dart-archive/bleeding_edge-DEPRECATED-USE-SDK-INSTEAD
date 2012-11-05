@@ -119,18 +119,18 @@ public class RenameImportProcessor extends RenameTopLevelProcessor {
     CompilationUnit cu = imprt.getCompilationUnit();
     String editName = RefactoringCoreMessages.RenameProcessor_update_declaration;
     if (hasPrefix && willHavePrefix) {
-      SourceRange nameRange = SourceRangeUtils.getExpanded(imprt.getNameRange(), -1);
+      SourceRange nameRange = imprt.getNameRange();
       addTextEdit(cu, editName, createTextChange(nameRange));
     } else if (!hasPrefix) {
       SourceRange uriRange = imprt.getUriRange();
       int uriEnd = SourceRangeUtils.getEnd(uriRange);
-      addTextEdit(cu, editName, new ReplaceEdit(uriEnd, 0, ", prefix: '" + newName + "'"));
+      addTextEdit(cu, editName, new ReplaceEdit(uriEnd, 0, " as " + newName));
     } else if (!willHavePrefix) {
       SourceRange uriRange = imprt.getUriRange();
       SourceRange sourceRange = imprt.getSourceRange();
       int uriEnd = SourceRangeUtils.getEnd(uriRange);
       int sourceEnd = SourceRangeUtils.getEnd(sourceRange);
-      addTextEdit(cu, editName, new ReplaceEdit(uriEnd, sourceEnd - uriEnd, ");"));
+      addTextEdit(cu, editName, new ReplaceEdit(uriEnd, sourceEnd - uriEnd, ";"));
     }
   }
 

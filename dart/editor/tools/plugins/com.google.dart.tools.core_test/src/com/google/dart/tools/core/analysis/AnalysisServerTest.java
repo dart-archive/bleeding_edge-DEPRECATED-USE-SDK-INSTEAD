@@ -13,13 +13,6 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertCachedLibraries;
-import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertPackageContexts;
-import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertQueuedTasks;
-import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTrackedLibraryFiles;
-import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.getServerTaskQueue;
-import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.getTrackedLibraryFiles;
-
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.DartUnit;
@@ -28,6 +21,13 @@ import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.test.util.FileOperation;
 import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
+
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertCachedLibraries;
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertPackageContexts;
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertQueuedTasks;
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.assertTrackedLibraryFiles;
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.getServerTaskQueue;
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.getTrackedLibraryFiles;
 
 import junit.framework.TestCase;
 
@@ -83,7 +83,7 @@ public class AnalysisServerTest extends TestCase {
       public void run(File tempDir) throws Exception {
         File aFile = new File(tempDir, "a.dart");
         PrintStringWriter writer = new PrintStringWriter();
-        writer.println("#source('b.dart');");
+        writer.println("part 'b.dart';");
         writer.println("class A extends C { foo() { x } }");
         FileUtilities.setContents(aFile, writer.toString());
         File bFile = new File(tempDir, "b.dart");

@@ -122,24 +122,24 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library Test;",
-        "#import('LibA.dart', prefix: 'test');",
-        "#import('LibB.dart', prefix: 'test');",
-        "#source('Test1.dart');",
-        "#source('Test2.dart');",
+        "import 'LibA.dart' as test;",
+        "import 'LibB.dart' as test;",
+        "part 'Test1.dart';",
+        "part 'Test2.dart';",
         "");
     // get units, because they have not library
     CompilationUnit unit1 = testProject.getUnit("Test1.dart");
     CompilationUnit unit2 = testProject.getUnit("Test2.dart");
-    DartImport imprt = findElement("#import('LibA.dart");
+    DartImport imprt = findElement("import 'LibA.dart");
     // do rename
     renameImport(imprt, "newName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library Test;",
-        "#import('LibA.dart', prefix: 'newName');",
-        "#import('LibB.dart', prefix: 'test');",
-        "#source('Test1.dart');",
-        "#source('Test2.dart');",
+        "import 'LibA.dart' as newName;",
+        "import 'LibB.dart' as test;",
+        "part 'Test1.dart';",
+        "part 'Test2.dart';",
         "");
     assertUnitContent(unit1, new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -163,20 +163,20 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     prepareUniqueLibraries();
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'test');",
-        "#import('LibB.dart', prefix: 'test');",
+        "import 'LibA.dart' as test;",
+        "import 'LibB.dart' as test;",
         "f() {",
         "  test.A a;",
         "  test.B b;",
         "}",
         "");
-    DartImport imprt = findElement("#import('LibA.dart");
+    DartImport imprt = findElement("import 'LibA.dart");
     // do rename
     renameImport(imprt, "newName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'newName');",
-        "#import('LibB.dart', prefix: 'test');",
+        "import 'LibA.dart' as newName;",
+        "import 'LibB.dart' as test;",
         "f() {",
         "  newName.A a;",
         "  test.B b;",
@@ -188,8 +188,8 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     prepareUniqueLibraries();
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'test');",
-        "#import('LibB.dart', prefix: 'test');",
+        "import 'LibA.dart' as test;",
+        "import 'LibB.dart' as test;",
         "f() {",
         "  test.A a;",
         "  test.B b;",
@@ -200,8 +200,8 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     renameImport(imprt, "newName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'newName');",
-        "#import('LibB.dart', prefix: 'test');",
+        "import 'LibA.dart' as newName;",
+        "import 'LibB.dart' as test;",
         "f() {",
         "  newName.A a;",
         "  test.B b;",
@@ -213,20 +213,20 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     prepareUniqueLibraries();
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart');",
-        "#import('LibB.dart');",
+        "import 'LibA.dart';",
+        "import 'LibB.dart';",
         "f() {",
         "  A a;",
         "  B b;",
         "}",
         "");
-    DartImport imprt = findElement("#import('LibA.dart");
+    DartImport imprt = findElement("import 'LibA.dart");
     // do rename
     renameImport(imprt, "newName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'newName');",
-        "#import('LibB.dart');",
+        "import 'LibA.dart' as newName;",
+        "import 'LibB.dart';",
         "f() {",
         "  newName.A a;",
         "  B b;",
@@ -238,20 +238,20 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     prepareUniqueLibraries();
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'test');",
-        "#import('LibB.dart', prefix: 'test');",
+        "import 'LibA.dart' as test;",
+        "import 'LibB.dart' as test;",
         "f() {",
         "  test.A a;",
         "  test.B b;",
         "}",
         "");
-    DartImport imprt = findElement("#import('LibA.dart");
+    DartImport imprt = findElement("import 'LibA.dart");
     // do rename
     renameImport(imprt, "");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart');",
-        "#import('LibB.dart', prefix: 'test');",
+        "import 'LibA.dart';",
+        "import 'LibB.dart' as test;",
         "f() {",
         "  A a;",
         "  test.B b;",
@@ -350,7 +350,7 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     prepareUniqueLibraries();
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'test');",
+        "import 'LibA.dart' as test;",
         "class A {",
         "  var newName;",
         "  foo() {",
@@ -359,7 +359,7 @@ public final class RenameImportProcessorTest extends RefactoringTest {
         "  }",
         "}",
         "");
-    DartImport imprt = findElement("#import('LibA.dart");
+    DartImport imprt = findElement("import 'LibA.dart");
     // try to rename
     String source = testUnit.getSource();
     try {
@@ -390,7 +390,7 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     prepareUniqueLibraries();
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'test');",
+        "import 'LibA.dart' as test;",
         "class A {",
         "  f() {",
         "    var newName;",
@@ -398,7 +398,7 @@ public final class RenameImportProcessorTest extends RefactoringTest {
         "  }",
         "}",
         "");
-    DartImport imprt = findElement("#import('LibA.dart");
+    DartImport imprt = findElement("import 'LibA.dart");
     // try to rename
     String source = testUnit.getSource();
     try {
@@ -429,13 +429,13 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     prepareUniqueLibraries();
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'test');",
+        "import 'LibA.dart' as test;",
         "f() {",
         "  var newName;",
         "  new test.A();",
         "}",
         "");
-    DartImport imprt = findElement("#import('LibA.dart");
+    DartImport imprt = findElement("import 'LibA.dart");
     // try to rename
     String source = testUnit.getSource();
     try {
@@ -469,7 +469,7 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     prepareUniqueLibraries();
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'test');",
+        "import 'LibA.dart' as test;",
         "class A {",
         "  newName() {}",
         "}",
@@ -479,7 +479,7 @@ public final class RenameImportProcessorTest extends RefactoringTest {
         "  }",
         "}",
         "");
-    DartImport imprt = findElement("#import('LibA.dart");
+    DartImport imprt = findElement("import 'LibA.dart");
     // try to rename
     String source = testUnit.getSource();
     try {
@@ -510,7 +510,7 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     prepareUniqueLibraries();
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'test');",
+        "import 'LibA.dart' as test;",
         "class A {",
         "  newName() {}",
         "  foo() {",
@@ -519,7 +519,7 @@ public final class RenameImportProcessorTest extends RefactoringTest {
         "  }",
         "}",
         "");
-    DartImport imprt = findElement("#import('LibA.dart");
+    DartImport imprt = findElement("import 'LibA.dart");
     // try to rename
     String source = testUnit.getSource();
     try {
@@ -550,7 +550,7 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     prepareUniqueLibraries();
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'test');",
+        "import 'LibA.dart' as test;",
         "class newName {",
         "}",
         "");
@@ -561,7 +561,7 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     prepareUniqueLibraries();
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'test');",
+        "import 'LibA.dart' as test;",
         "newName() {}",
         "");
     check_postCondition_topLevel("function");
@@ -571,7 +571,7 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     prepareUniqueLibraries();
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'test');",
+        "import 'LibA.dart' as test;",
         "typedef newName(int p);",
         "");
     check_postCondition_topLevel("function type alias");
@@ -582,13 +582,13 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     setUnitContent(
         "Lib.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('Lib');",
+        "library Lib;",
         "var newName;");
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('Test');",
-        "#import('LibA.dart', prefix: 'test');",
-        "#import('Lib.dart');",
+        "library Test;",
+        "import 'LibA.dart';",
+        "import 'Lib.dart';",
         "");
     check_postCondition_topLevel("Lib.dart", "variable");
   }
@@ -597,7 +597,7 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     prepareUniqueLibraries();
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'test');",
+        "import 'LibA.dart' as test;",
         "var newName;",
         "");
     check_postCondition_topLevel("variable");
@@ -607,12 +607,12 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     prepareUniqueLibraries();
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'test');",
+        "import 'LibA.dart' as test;",
         "class A<newName> {",
         "  test.A a;",
         "}",
         "");
-    DartImport imprt = findElement("#import('LibA.dart");
+    DartImport imprt = findElement("import 'LibA.dart");
     // try to rename
     String source = testUnit.getSource();
     try {
@@ -643,8 +643,8 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     prepareUniqueLibraries();
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'test');",
-        "#import('LibB.dart', prefix: 'test');",
+        "import 'LibA.dart' as test;",
+        "import 'LibB.dart' as test;",
         "f() {",
         "  test.A a;",
         "  test.B b;",
@@ -652,7 +652,7 @@ public final class RenameImportProcessorTest extends RefactoringTest {
         "something bad",
         "");
     waitForErrorMarker(testUnit);
-    DartImport imprt = findElement("#import('LibA.dart");
+    DartImport imprt = findElement("import 'LibA.dart");
     // try to rename
     showStatusCancel = false;
     renameImport(imprt, "newName");
@@ -666,8 +666,8 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     // status was warning, so rename was done
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#import('LibA.dart', prefix: 'newName');",
-        "#import('LibB.dart', prefix: 'test');",
+        "import 'LibA.dart' as newName;",
+        "import 'LibB.dart' as test;",
         "f() {",
         "  newName.A a;",
         "  test.B b;",
@@ -681,7 +681,7 @@ public final class RenameImportProcessorTest extends RefactoringTest {
   }
 
   private void check_postCondition_topLevel(String unitName, String shadowName) throws Exception {
-    DartImport imprt = findElement("#import('LibA.dart");
+    DartImport imprt = findElement("import 'LibA.dart");
     // try to rename
     String source = testUnit.getSource();
     try {

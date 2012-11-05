@@ -121,15 +121,15 @@ public class DartElementLocatorTest extends TestCase {
           "LibA.dart",
           Joiner.on("\n").join(
               "// filler filler filler filler filler filler filler filler filler filler",
-              "#library('libA');",
+              "library libA;",
               "class A {}",
               "")).getResource();
       IResource resourceTest = testProject.setUnitContent(
           "TestC.dart",
           Joiner.on("\n").join(
               "// filler filler filler filler filler filler filler filler filler filler",
-              "#library('Test');",
-              "#import('LibA.dart', prefix: 'aaa');",
+              "library Test;",
+              "import 'LibA.dart' as aaa;",
               "f() {",
               "  aaa.A a;",
               "}",
@@ -138,10 +138,10 @@ public class DartElementLocatorTest extends TestCase {
       DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
       // should be DartImport of 'aaa' prefix
       {
-        String importSource = "#import('LibA.dart', prefix: 'aaa');";
+        String importSource = "import 'LibA.dart' as aaa;";
         DartImport imprt = assertLocation(
             libraryTest.getDefiningCompilationUnit(),
-            "aaa');",
+            "aaa;",
             DartImport.class,
             importSource,
             importSource.length());
@@ -150,10 +150,10 @@ public class DartElementLocatorTest extends TestCase {
       }
       // should be DartImport of any place of DartImport except of URI
       {
-        String importSource = "#import('LibA.dart', prefix: 'aaa');";
+        String importSource = "import 'LibA.dart' as aaa;";
         DartImport imprt = assertLocation(
             libraryTest.getDefiningCompilationUnit(),
-            "#import('LibA",
+            "import 'LibA",
             DartImport.class,
             importSource,
             importSource.length());
@@ -175,15 +175,15 @@ public class DartElementLocatorTest extends TestCase {
           "LibA.dart",
           Joiner.on("\n").join(
               "// filler filler filler filler filler filler filler filler filler filler",
-              "#library('libA');",
+              "library libA;",
               "class A {}",
               "")).getResource();
       IResource resourceTest = testProject.setUnitContent(
           "TestC.dart",
           Joiner.on("\n").join(
               "// filler filler filler filler filler filler filler filler filler filler",
-              "#library('Test');",
-              "#import('LibA.dart', prefix: 'aaa');",
+              "library Test;",
+              "import 'LibA.dart' as aaa;",
               "f() {",
               "  aaa.A a;",
               "}",
@@ -196,8 +196,8 @@ public class DartElementLocatorTest extends TestCase {
             libraryTest.getDefiningCompilationUnit(),
             "aaa.A",
             DartImport.class,
-            "'aaa');",
-            5);
+            "aaa;",
+            3);
         assertEquals(libraryA, imprt.getLibrary());
         assertEquals("aaa", imprt.getPrefix());
       }
@@ -216,15 +216,15 @@ public class DartElementLocatorTest extends TestCase {
           "LibB.dart",
           Joiner.on("\n").join(
               "// filler filler filler filler filler filler filler filler filler filler",
-              "#library('libB');",
+              "library libB;",
               "var field;",
               "")).getResource();
       IResource resourceTest = testProject.setUnitContent(
           "TestC.dart",
           Joiner.on("\n").join(
               "// filler filler filler filler filler filler filler filler filler filler",
-              "#library('Test');",
-              "#import('LibB.dart', prefix: 'bbb');",
+              "library Test;",
+              "import 'LibB.dart' as bbb;",
               "f() {",
               "  bbb.field = 0;",
               "}",
@@ -237,8 +237,8 @@ public class DartElementLocatorTest extends TestCase {
             libraryTest.getDefiningCompilationUnit(),
             "bbb.field",
             DartImport.class,
-            "'bbb');",
-            5);
+            "bbb;",
+            3);
         assertEquals(libraryA, imprt.getLibrary());
         assertEquals("bbb", imprt.getPrefix());
       }
@@ -257,15 +257,15 @@ public class DartElementLocatorTest extends TestCase {
           "LibC.dart",
           Joiner.on("\n").join(
               "// filler filler filler filler filler filler filler filler filler filler",
-              "#library('libC');",
+              "library libC;",
               "f() {}",
               "")).getResource();
       IResource resourceTest = testProject.setUnitContent(
           "TestC.dart",
           Joiner.on("\n").join(
               "// filler filler filler filler filler filler filler filler filler filler",
-              "#library('Test');",
-              "#import('LibC.dart', prefix: 'ccc');",
+              "library Test;",
+              "import 'LibC.dart' as ccc;",
               "f() {",
               "  ccc.f();",
               "}",
@@ -278,8 +278,8 @@ public class DartElementLocatorTest extends TestCase {
             libraryTest.getDefiningCompilationUnit(),
             "ccc.f();",
             DartImport.class,
-            "'ccc');",
-            5);
+            "ccc;",
+            3);
         assertEquals(libraryA, imprt.getLibrary());
         assertEquals("ccc", imprt.getPrefix());
       }
@@ -295,15 +295,15 @@ public class DartElementLocatorTest extends TestCase {
           "LibA.dart",
           Joiner.on("\n").join(
               "// filler filler filler filler filler filler filler filler filler filler",
-              "#library('libA');",
+              "library libA;",
               "class A {}",
               "")).getResource();
       IResource resourceTest = testProject.setUnitContent(
           "TestC.dart",
           Joiner.on("\n").join(
               "// filler filler filler filler filler filler filler filler filler filler",
-              "#library('Test');",
-              "#import('LibA.dart', prefix: 'aaa');",
+              "library Test;",
+              "import 'LibA.dart' as aaa;",
               "f() {",
               "  aaa.A a;",
               "}",

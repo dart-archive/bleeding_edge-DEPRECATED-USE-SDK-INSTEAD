@@ -113,7 +113,7 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
    */
   public void test_OK_addUnderscore_otherLibrary() throws Exception {
     setTestUnitContent(
-        "#library('Test');",
+        "library Test;",
         "// filler filler filler filler filler filler filler filler filler filler",
         "class Test {",
         "}",
@@ -122,8 +122,8 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "}",
         "");
     setUnitContent("User.dart", new String[] {
-        "#library('User');",
-        "#import('Test.dart');",
+        "library User;",
+        "import 'Test.dart';",
         "// filler filler filler filler filler filler filler filler filler filler",
         "f2() {",
         "  new Test();",
@@ -142,7 +142,7 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "Renamed type will become private, so will be not visible in library 'Test/User.dart'",
         showStatusMessages.get(0));
     assertTestUnitContent(
-        "#library('Test');",
+        "library Test;",
         "// filler filler filler filler filler filler filler filler filler filler",
         "class _NewName {",
         "}",
@@ -151,8 +151,8 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "}",
         "");
     assertUnitContent(userUnit, new String[] {
-        "#library('User');",
-        "#import('Test.dart');",
+        "library User;",
+        "import 'Test.dart';",
         "// filler filler filler filler filler filler filler filler filler filler",
         "f2() {",
         "  new _NewName();",
@@ -809,7 +809,7 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   public void test_postCondition_topLevel_withPrefixes_hasConflict() throws Exception {
     setUnitContent("LibA.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('LibA');",
+        "library LibA;",
         "class Test {",
         "}"});
     setUnitContent("LibB.dart", new String[] {
@@ -819,9 +819,9 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "}"});
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('test');",
-        "#import('LibA.dart', prefix: 'a');",
-        "#import('LibB.dart', prefix: 'a');",
+        "library test;",
+        "import 'LibA.dart' as a;",
+        "import 'LibB.dart' as a;",
         "main() {",
         "  a.Test test = null;",
         "}",
@@ -851,19 +851,19 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   public void test_postCondition_topLevel_withPrefixes_noConflict() throws Exception {
     setUnitContent("LibA.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('LibA');",
+        "library LibA;",
         "class Test {",
         "}"});
     setUnitContent("LibB.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('LibB');",
+        "library LibB;",
         "class NewName {",
         "}"});
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('test');",
-        "#import('LibA.dart', prefix: 'a');",
-        "#import('LibB.dart', prefix: 'b');",
+        "library test;",
+        "import 'LibA.dart' as a;",
+        "import 'LibB.dart' as b;",
         "main() {",
         "  a.Test test = null;",
         "}",
@@ -877,21 +877,21 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     renameType(type, "NewName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('test');",
-        "#import('LibA.dart', prefix: 'a');",
-        "#import('LibB.dart', prefix: 'b');",
+        "library test;",
+        "import 'LibA.dart' as a;",
+        "import 'LibB.dart' as b;",
         "main() {",
         "  a.NewName test = null;",
         "}",
         "");
     assertUnitContent(unitA, new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('LibA');",
+        "library LibA;",
         "class NewName {",
         "}"});
     assertUnitContent(unitB, new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('LibB');",
+        "library LibB;",
         "class NewName {",
         "}"});
   }
