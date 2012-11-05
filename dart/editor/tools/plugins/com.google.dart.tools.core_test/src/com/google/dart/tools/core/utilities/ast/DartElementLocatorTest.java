@@ -455,6 +455,67 @@ public class DartElementLocatorTest extends TestCase {
         4);
   }
 
+  public void test_identifierInComment_ofClass_field() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "/** Main field is [myField]. */",
+            "class A {",
+            "  var myField = 5;",
+            "}",
+            ""),
+        "myField]",
+        Field.class,
+        "myField = 5",
+        "myField".length());
+  }
+
+  public void test_identifierInComment_ofClass_method() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "/** Main method is [foo]. */",
+            "class A {",
+            "  foo() {}",
+            "}",
+            ""),
+        "foo]",
+        Method.class,
+        "foo() {}",
+        3);
+  }
+
+  public void test_identifierInComment_ofMethod_method() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  /** Call [bar] instead. */",
+            "  foo() {}",
+            "  bar() {}",
+            "}",
+            ""),
+        "bar]",
+        Method.class,
+        "bar() {}",
+        3);
+  }
+
+  public void test_identifierInComment_ofMethod_parameter() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  /** Draws point at [x] and [y]. */",
+            "  drawPoint(int x, int y) {}",
+            "}",
+            ""),
+        "x]",
+        DartVariableDeclaration.class,
+        "x, int y)",
+        "x".length());
+  }
+
   public void test_LibraryUnit_onPartOf() throws Exception {
     TestProject testProject = new TestProject("Test");
     try {

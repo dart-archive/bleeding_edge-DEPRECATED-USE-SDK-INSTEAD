@@ -618,6 +618,26 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "");
   }
 
+  public void test_OK_updateIdentifierInComment() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "/** After creation call [test]. */",
+        "class A {",
+        "  test() {}",
+        "}",
+        "");
+    Method method = findElement("test() {}");
+    // do rename
+    renameMethod(method, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "/** After creation call [newName]. */",
+        "class A {",
+        "  newName() {}",
+        "}",
+        "");
+  }
+
   public void test_postCondition_element_shadowedBy_localVariable() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

@@ -394,6 +394,28 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "}");
   }
 
+  public void test_OK_updateIdentifierInComment() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "/** Describe of [Test] here. */",
+        "class Test {",
+        "}",
+        "/** Creates new [Test] instance. Test as word. */",
+        "Test createTest() => null;",
+        "");
+    Type type = findElement("Test {");
+    // do rename
+    renameType(type, "NewName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "/** Describe of [NewName] here. */",
+        "class NewName {",
+        "}",
+        "/** Creates new [NewName] instance. Test as word. */",
+        "NewName createTest() => null;",
+        "");
+  }
+
   /**
    * http://code.google.com/p/dart/issues/detail?id=1180
    */
