@@ -89,7 +89,7 @@ public class DiscardTaskTest extends AbstractDartAnalysisTest {
     server.scan(moneyDir, null);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
-    server.assertAnalyzeContext(true);
+    server.assertAnalyze(false, moneyLibFile);
     assertTrackedLibraryFiles(server, moneyLibFile);
     assertPackageContexts(server);
     assertCachedLibraries(server, null, moneyLibFile);
@@ -109,7 +109,7 @@ public class DiscardTaskTest extends AbstractDartAnalysisTest {
     server.scan(moneyLibFile, null);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
-    server.assertAnalyzeContext(true);
+    server.assertAnalyze(false, moneyLibFile);
     assertTrackedLibraryFiles(server, moneyLibFile);
     assertPackageContexts(server);
     assertCachedLibraries(server, null, moneyLibFile);
@@ -168,7 +168,7 @@ public class DiscardTaskTest extends AbstractDartAnalysisTest {
     server.scan(bankDir, null);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
-    server.assertAnalyzeContext(true);
+    server.assertAnalyze(false, bankLibFile, nestedAppFile, nestedLibFile);
     assertTrackedLibraryFiles(server, bankLibFile, nestedAppFile, nestedLibFile);
     assertPackageContexts(server, bankDir);
     assertCachedLibraries(server, null);

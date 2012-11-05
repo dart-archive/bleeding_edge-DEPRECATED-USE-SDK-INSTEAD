@@ -244,7 +244,7 @@ public class FileChangedTaskTest extends AbstractDartAnalysisTest {
       server.changed(simpleMoneySrcFile);
       listener.waitForIdle(2, FIVE_MINUTES_MS);
       assertTrackedLibraryFiles(server, moneyLibFile, simpleMoneySrcFile);
-      server.assertAnalyze(true, moneyLibFile); // simpleMoneySrcFile
+      server.assertAnalyze(false, moneyLibFile, simpleMoneySrcFile);
       Object lib2 = getCachedLibrary(savedContext, moneyLibFile);
       assertNotNull(lib2);
       assertNotSame(lib1, lib2);

@@ -234,7 +234,7 @@ public class AnalyzeLibraryTaskTest extends AbstractDartAnalysisTest {
     assertPackageContexts(server, bankDir);
     assertCachedLibraries(server, null);
     assertCachedLibraries(server, bankDir, bankLibFile, nestedLibFile, nestedAppFile);
-    server.assertAnalyzeContext(true);
+    server.assertAnalyze(false, bankLibFile, nestedLibFile, nestedAppFile);
 
     AnalyzeLibraryTaskAdapter task = new AnalyzeLibraryTaskAdapter(bankLibFile);
     getServerTaskQueue(server).addNewTask(task);

@@ -30,7 +30,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -356,11 +355,20 @@ public class AnalysisServer {
   }
 
   /**
-   * Queue sub tasks to analyze the specified libraries.
+   * Queue sub task to analyze the specified library.
    */
-  protected void queueAnalyzeSubTasks(Collection<File> libraryFiles) {
-    for (File libraryFile : libraryFiles) {
-      queueSubTask(new AnalyzeLibraryTask(this, libraryFile, null));
+  protected void queueAnalyzeSubTask(File libraryFile) {
+    queueSubTask(new AnalyzeLibraryTask(this, libraryFile, null));
+  }
+
+  /**
+   * Queue sub task to analyze the specified library if it is not already analyzed.
+   */
+  protected void queueAnalyzeSubTaskIfNew(File libraryFile) {
+    synchronized (libraryFiles) {
+      if (libraryFiles.add(libraryFile)) {
+        queueAnalyzeSubTask(libraryFile);
+      }
     }
   }
 

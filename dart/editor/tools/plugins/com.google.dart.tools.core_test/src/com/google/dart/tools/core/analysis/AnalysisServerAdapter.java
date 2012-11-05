@@ -20,7 +20,6 @@ import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.HashSet;
 
 /**
@@ -68,8 +67,8 @@ class AnalysisServerAdapter extends AnalysisServer {
   }
 
   @Override
-  protected void queueAnalyzeSubTasks(Collection<File> libraryFiles) {
-    analyzeFiles.addAll(libraryFiles);
+  protected void queueAnalyzeSubTask(File libraryFile) {
+    analyzeFiles.add(libraryFile);
   }
 
   private void failAnalyzed(File... expectedFiles) {

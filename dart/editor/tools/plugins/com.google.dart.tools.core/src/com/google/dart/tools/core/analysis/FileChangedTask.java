@@ -93,7 +93,9 @@ class FileChangedTask extends Task {
     if (task != null) {
       server.queueSubTask(task);
       //server.queueAnalyzeContext();
-      server.queueAnalyzeSubTasks(reanalyze);
+      for (File libraryFile : reanalyze) {
+        server.queueAnalyzeSubTask(libraryFile);
+      }
     }
   }
 }

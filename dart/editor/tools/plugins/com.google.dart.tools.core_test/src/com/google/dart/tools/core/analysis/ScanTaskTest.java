@@ -55,7 +55,7 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
   public void test_packages_preference() throws Exception {
     PackageLibraryManager libMgr = PackageLibraryManagerProvider.getAnyLibraryManager();
     assertTrackedLibraryFiles(server);
-    server.assertAnalyzeContext(false);
+    server.assertAnalyze(false);
 
     List<File> packageRoots = Lists.newArrayList(packagesDir);
     libMgr.setPackageRoots(packageRoots);
@@ -65,11 +65,11 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
       listener.waitForIdle(1, FIVE_MINUTES_MS);
       assertTrackedLibraryFiles(server, bankLibFile, nestedAppFile, nestedLibFile);
       assertPackageContexts(server, bankDir);
-      server.assertAnalyzeContext(true);
+      server.assertAnalyze(false, bankLibFile, nestedAppFile, nestedLibFile);
     } finally {
       libMgr.setPackageRoots(null);
     }
-    server.resetAnalyzeContext();
+    server.resetAnalyze();
     server.scan(bankDir, null);
     listener.waitForIdle(2, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server, bankLibFile, nestedAppFile, nestedLibFile);
@@ -78,7 +78,7 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
 
   public void test_scan_application() throws Exception {
     assertTrackedLibraryFiles(server);
-    server.assertAnalyzeContext(false);
+    server.assertAnalyze(false);
     server.scan(bankDir, null);
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
@@ -86,7 +86,7 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
     assertPackageContexts(server, bankDir);
     assertCachedLibraries(server, null);
     assertCachedLibraries(server, bankDir, bankLibFile, nestedLibFile, nestedAppFile);
-    server.assertAnalyzeContext(true);
+    server.assertAnalyze(false, bankLibFile, nestedAppFile, nestedLibFile);
   }
 
   public void test_scan_directory() throws Exception {
@@ -95,7 +95,7 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server, moneyLibFile);
-    server.assertAnalyzeContext(true);
+    server.assertAnalyze(false, moneyLibFile);
   }
 
   public void test_scan_doesNotExist() throws Exception {
@@ -104,7 +104,7 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server);
-    server.assertAnalyzeContext(false);
+    server.assertAnalyze(false);
   }
 
   public void test_scan_library() throws Exception {
@@ -113,16 +113,16 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
     server.start();
     listener.waitForIdle(1, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server, moneyLibFile);
-    server.assertAnalyzeContext(true);
+    server.assertAnalyze(false, moneyLibFile);
   }
 
   public void test_scan_libraryThenSource() throws Exception {
     test_scan_library();
-    server.resetAnalyzeContext();
+    server.resetAnalyze();
     server.scan(simpleMoneySrcFile, null);
     listener.waitForIdle(2, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server, moneyLibFile);
-    server.assertAnalyzeContext(false);
+    server.assertAnalyze(false);
   }
 
   public void test_scan_source() throws Exception {
@@ -132,16 +132,16 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
     listener.waitForIdle(1, FIVE_MINUTES_MS);
     // Files with "part of" are never considered libraries
     assertTrackedLibraryFiles(server);
-    server.assertAnalyzeContext(false);
+    server.assertAnalyze(false);
   }
 
   public void test_scan_sourceThenLibrary() throws Exception {
     test_scan_source();
-    server.resetAnalyzeContext();
+    server.resetAnalyze();
     server.scan(moneyLibFile, null);
     listener.waitForIdle(2, FIVE_MINUTES_MS);
     assertTrackedLibraryFiles(server, moneyLibFile);
-    server.assertAnalyzeContext(true);
+    server.assertAnalyze(false, moneyLibFile);
   }
 
   public void test_scanContent_import() throws Exception {
@@ -153,7 +153,7 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
 
   public void test_scanContent_library() throws Exception {
     PrintStringWriter writer = new PrintStringWriter();
-    writer.println("library 'foo';");
+    writer.println("library foo;");
     writer.println("main() { }");
     assertScanContent(writer.toString(), Library);
   }
@@ -161,7 +161,7 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
   public void test_scanContent_library2() throws Exception {
     PrintStringWriter writer = new PrintStringWriter();
     writer.println("// filler filler filler");
-    writer.println("library 'foo';");
+    writer.println("library foo;");
     writer.println("main() { }");
     assertScanContent(writer.toString(), Library);
   }
@@ -169,7 +169,7 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
   public void test_scanContent_library3() throws Exception {
     PrintStringWriter writer = new PrintStringWriter();
     writer.println("/* filler filler filler");
-    writer.println("filler filler filler */ library 'foo';");
+    writer.println("filler filler filler */ library foo;");
     writer.println("main() { }");
     assertScanContent(writer.toString(), Library);
   }
@@ -183,7 +183,7 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
 
   public void test_scanContent_partOf() throws Exception {
     PrintStringWriter writer = new PrintStringWriter();
-    writer.println("part of 'foo';");
+    writer.println("part of foo;");
     writer.println("main() { }");
     assertScanContent(writer.toString(), PartOf);
   }
@@ -191,7 +191,7 @@ public class ScanTaskTest extends AbstractDartAnalysisTest {
   public void test_scanContent_partOf2() throws Exception {
     PrintStringWriter writer = new PrintStringWriter();
     writer.println("// filler filler filler");
-    writer.println("part of 'foo';");
+    writer.println("part of foo;");
     writer.println("main() { }");
     assertScanContent(writer.toString(), PartOf);
   }

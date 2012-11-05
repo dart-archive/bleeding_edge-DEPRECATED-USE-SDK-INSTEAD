@@ -304,12 +304,12 @@ public class ScanTask extends Task implements TaskListener {
     // Analyze libraries and remaining loose files
 
     for (Library lib : librariesToAnalyze) {
-      server.analyze(lib.getFile());
+      server.queueAnalyzeSubTaskIfNew(lib.getFile());
     }
     for (File file : looseFiles) {
       if (savedContext.getLibrariesSourcing(file).length == 0) {
         queueParseTask(file);
-        server.analyze(file);
+        server.queueAnalyzeSubTaskIfNew(file);
       }
     }
 
