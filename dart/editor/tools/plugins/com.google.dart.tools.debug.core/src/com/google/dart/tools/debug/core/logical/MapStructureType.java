@@ -33,9 +33,9 @@ import java.util.List;
  * view.
  */
 public class MapStructureType implements ILogicalStructureTypeDelegate {
-  // TODO(devoncarew): add a unit test to ensure that "HashMapImplementation" is available.
+  // TODO(devoncarew): add a unit test to ensure that "_HashMapImpl" is available.
   // That way we'll fast fail if the name changes or the class is removed.
-  private static final String MAP_IMPL_NAME = "HashMapImplementation";
+  private static final String MAP_IMPL_NAME = "_HashMapImpl";
 
   public MapStructureType() {
 
