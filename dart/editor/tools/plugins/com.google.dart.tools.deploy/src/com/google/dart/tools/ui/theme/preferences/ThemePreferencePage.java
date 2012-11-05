@@ -13,15 +13,19 @@
  */
 package com.google.dart.tools.ui.theme.preferences;
 
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.deploy.Activator;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.theme.ColorTheme;
 import com.google.dart.tools.ui.theme.ColorThemeManager;
 
-import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.preference.PreferencePage;
+import org.eclipse.jface.text.source.SourceViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -37,24 +41,25 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.internal.WorkbenchPage;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.ArrayList;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Set;
 
 // TODO(messick): Export strings.
@@ -64,11 +69,40 @@ import java.util.Set;
  * 
  * @see com.github.eclipsecolortheme.preferences.ColorThemePreferencePage
  */
+@SuppressWarnings("restriction")
 public class ThemePreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
+
+  private static final String SAMPLE_CODE_FILE_NAME = "DartSample.dart";
+
+  private static String loadPreviewContentFromFile(String filename) {
+    String line;
+    String separator = System.getProperty("line.separator"); //$NON-NLS-1$
+    StringBuffer buffer = new StringBuffer(512);
+    BufferedReader reader = null;
+    try {
+      reader = new BufferedReader(new InputStreamReader(
+          ThemePreferencePage.class.getResourceAsStream(filename)));
+      while ((line = reader.readLine()) != null) {
+        buffer.append(line);
+        buffer.append(separator);
+      }
+    } catch (IOException io) {
+      Activator.logError(io);
+    } finally {
+      if (reader != null) {
+        try {
+          reader.close();
+        } catch (IOException e) {
+        }
+      }
+    }
+    return buffer.toString();
+  }
+
   private static String readFile(File file) throws IOException {
     Reader in = new BufferedReader(new FileReader(file));
     StringBuilder sb = new StringBuilder();
-    char[] chars = new char[1 << 16];
+    char[] chars = new char[1 << 11];
     int length;
     while ((length = in.read(chars)) > 0) {
       sb.append(chars, 0, length);
@@ -85,14 +119,24 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
     });
   }
 
+  private static String viewerCode() {
+    String content = loadPreviewContentFromFile(SAMPLE_CODE_FILE_NAME);
+    return content;
+  }
+
   private ColorThemeManager colorThemeManager = new ColorThemeManager();
   private Composite container;
   private List themeSelectionList;
   private Composite themeSelection;
   private Composite themeDetails;
+  private SourceViewer previewViewer;
   private Label authorLabel;
   private Link websiteLink;
-  private Browser browser;
+  private TemporaryProject project;
+  private CompilationUnit unit;
+  private DartEditor editor;
+  private SourceViewer sourceViewer;
+  private WorkbenchPage page;
 
   /**
    * Creates a new color theme preference page.
@@ -106,42 +150,32 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
   }
 
   @Override
-  public boolean performOk() {
-    IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-
+  public boolean performCancel() {
+    if (!DartCoreDebug.ENABLE_THEMES) {
+      return true;
+    }
     try {
-      java.util.List<IEditorReference> editorsToClose = new ArrayList<IEditorReference>();
-      Map<IEditorInput, String> editorsToReopen = new HashMap<IEditorInput, String>();
-      for (IEditorReference editor : activePage.getEditorReferences()) {
-        String id = editor.getId();
-        editorsToClose.add(editor);
-        editorsToReopen.put(editor.getEditorInput(), id);
-      }
+      project.dispose();
+    } catch (CoreException ex) {
+      Activator.logError(ex);
+    }
+    return super.performCancel();
+  }
 
-      if (!editorsToClose.isEmpty()) {
-        // TODO(messick) Fix this awkward UX.
-        if (!MessageDialog.openConfirm(
-            getShell(),
-            "Reopen Editors",
-            "In order to change the color theme, some editors have to be closed and reopened.")) {
-          return false;
-        }
-
-        activePage.closeEditors(
-            editorsToClose.toArray(new IEditorReference[editorsToClose.size()]),
-            true);
-      }
-
+  @Override
+  public boolean performOk() {
+    if (!DartCoreDebug.ENABLE_THEMES) {
+      return true;
+    }
+    try {
       String selectedThemeName = themeSelectionList.getSelection()[0];
       getPreferenceStore().setValue("colorTheme", selectedThemeName); // $NON-NLS-1$
       colorThemeManager.applyTheme(selectedThemeName);
-
-      for (IEditorInput editorInput : editorsToReopen.keySet()) {
-        activePage.openEditor(editorInput, editorsToReopen.get(editorInput));
-      }
+      project.dispose();
     } catch (PartInitException e) {
-      // TODO(messick): Show a proper error message (StatusManager).
-      e.printStackTrace();
+      Activator.logError(e);
+    } catch (CoreException ex) {
+      Activator.logError(ex);
     }
 
     return super.performOk();
@@ -149,6 +183,9 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
 
   @Override
   protected void contributeButtons(Composite parent) {
+    if (!DartCoreDebug.ENABLE_THEMES) {
+      return;
+    }
     ((GridLayout) parent.getLayout()).numColumns++;
 
     Button button = new Button(parent, SWT.NONE);
@@ -158,6 +195,9 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
       public void widgetSelected(SelectionEvent event) {
         FileDialog dialog = new FileDialog(getShell());
         String file = dialog.open();
+        if (file == null) {
+          return;
+        }
         ColorTheme theme;
         try {
           String content = readFile(new File(file));
@@ -184,6 +224,9 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
     GridLayout containerLayout = new GridLayout(1, true);
     containerLayout.marginWidth = 0;
     container.setLayout(containerLayout);
+    if (!DartCoreDebug.ENABLE_THEMES) {
+      return container;
+    }
 
     gridData = new GridData(GridData.FILL_BOTH);
     themeSelection = new Composite(container, SWT.NONE);
@@ -200,19 +243,18 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
     fillThemeSelectionList();
 
     gridData = new GridData(GridData.FILL_BOTH);
-    gridData.widthHint = 400;
     gridData.verticalAlignment = SWT.TOP;
     GridLayout themeDetailsLayout = new GridLayout(1, true);
     themeDetailsLayout.marginWidth = 0;
     themeDetailsLayout.marginHeight = 0;
     themeDetails = new Composite(themeSelection, SWT.NONE);
+    try {
+      createPreviewer(themeDetails);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
     themeDetails.setLayoutData(gridData);
     themeDetails.setLayout(themeDetailsLayout);
-    gridData = new GridData(GridData.FILL_BOTH);
-    gridData.heightHint = 306;
-    browser = new Browser(themeDetails, SWT.BORDER);
-    browser.setLayoutData(gridData);
-    browser.setText("<html><body></body></html>"); // $NON-NLS-1$
     authorLabel = new Label(themeDetails, SWT.NONE);
     GridDataFactory.swtDefaults().grab(true, false).applyTo(authorLabel);
     websiteLink = new Link(themeDetails, SWT.NONE);
@@ -232,6 +274,7 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
     themeSelectionList.setSelection(new String[] {activeThemeName});
     updateDetails(colorThemeManager.getTheme(activeThemeName));
 
+    // TODO(messick): Need to think about including this web site.
     Link ectLink = new Link(container, SWT.NONE);
     ectLink.setText("Download more themes or create your own on "
         + "<a>eclipsecolorthemes.org</a>.");
@@ -247,6 +290,28 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
     super.performDefaults();
   }
 
+  private void createPreviewer(Composite parent) {
+    setup();
+    Composite previewComp = new Composite(parent, SWT.NONE);
+    previewComp.setEnabled(false); // After re-parenting, it is too inconsistent to allow mouse clicks
+    GridLayout layout = new GridLayout();
+    layout.marginHeight = layout.marginWidth = 0;
+    previewComp.setLayout(layout);
+    previewComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+    Label label = new Label(previewComp, SWT.NONE);
+    label.setText("Code Editor");
+    label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+    previewViewer = getSourceViewer(previewComp); //new SourceViewer(previewComp, null, SWT.BORDER | SWT.V_SCROLL /*| SWT.H_SCROLL */);
+    previewViewer.getTextWidget().setSelection(166, 195); // TODO(messick): This is fragile.
+    previewViewer.setEditable(false);
+
+    Control control = previewViewer.getControl();
+    GridData controlData = new GridData(GridData.FILL_BOTH);
+    control.setLayoutData(controlData);
+  }
+
   private void fillThemeSelectionList() {
     Set<ColorTheme> themes = colorThemeManager.getThemes();
     java.util.List<String> themeNames = new LinkedList<String>();
@@ -258,7 +323,16 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
     themeSelectionList.setItems(themeNames.toArray(new String[themeNames.size()]));
   }
 
+  private SourceViewer getSourceViewer(Composite parent) {
+    (sourceViewer.getTextWidget()).setParent(parent);
+    editor.close(false);
+    return sourceViewer;
+  }
+
   private void reloadThemeSelectionList() {
+    if (!DartCoreDebug.ENABLE_THEMES) {
+      return;
+    }
     themeSelectionList.removeAll();
     fillThemeSelectionList();
     themeSelectionList.setSelection(new String[] {"Default"});
@@ -266,8 +340,52 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
     container.pack();
   }
 
+  private void setup() {
+    Exception caughtException = null;
+    String sampleCode = viewerCode();
+    try {
+      page = (WorkbenchPage) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+      project = new TemporaryProject();
+      String name = "Temp.dart";
+      unit = project.setUnitContent(name, sampleCode);
+      editor = (DartEditor) IDE.openEditor(
+          PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(),
+          (IFile) unit.getResource());
+      project.getProject().setHidden(true);
+      name = editor.getPartName();
+      IEditorReference ref = null;
+      IEditorReference[] eds = page.getEditorManager().getEditors();
+      for (IEditorReference r : eds) {
+        if (r.getPartName() == name) { // intentional identity check
+          ref = r;
+          break;
+        }
+      }
+      if (ref != null) {
+        page.hideEditor(ref);
+      }
+      Method method = AbstractTextEditor.class.getDeclaredMethod("getSourceViewer");
+      method.setAccessible(true);
+      sourceViewer = (SourceViewer) method.invoke(editor);
+    } catch (CoreException ex) {
+      caughtException = ex;
+    } catch (IOException ex) {
+      caughtException = ex;
+    } catch (NoSuchMethodException ex) {
+      caughtException = ex;
+    } catch (InvocationTargetException ex) {
+      caughtException = ex;
+    } catch (IllegalAccessException ex) {
+      caughtException = ex;
+    }
+    if (caughtException != null) {
+      Activator.logError(caughtException);
+    }
+  }
+
   private void updateDetails(ColorTheme theme) {
     if (theme == null) {
+      // TODO(messick): Fix this awkward UX
       themeDetails.setVisible(false);
     } else {
       authorLabel.setText("Created by " + theme.getAuthor());
@@ -282,8 +400,7 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
         setLinkTarget(websiteLink, website);
         websiteLink.setVisible(true);
       }
-      String id = theme.getId();
-      browser.setUrl("http://www.eclipsecolorthemes.org/static/themes/java/" + id + ".html"); // $NON-NLS-2$ // $NON-NLS-2$
+      colorThemeManager.applyTheme(theme.getName()); // TODO(messick): Update only preview, not entire world!
       themeDetails.setVisible(true);
       authorLabel.pack();
       websiteLink.pack();

@@ -423,16 +423,16 @@
 
    <extension-point id="com.google.dart.tools.ui.theme.mapper" name="Editor Mapping" schema="schema/com.google.dart.tools.ui.theme.mapper.exsd"/>
    <extension-point id="com.google.dart.tools.ui.theme.theme" name="Color Theme" schema="schema/com.google.dart.tools.ui.theme.theme.exsd"/>
-<!--
+
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
             class="com.google.dart.tools.ui.theme.preferences.ThemePreferencePage"
             id="com.google.dart.tools.ui.theme.preferences.ThemePreferencePage"
-            name="Color Theme">
+            name="Visual Theme">
       </page>
    </extension>
--->
+
    <extension
          point="org.eclipse.core.runtime.preferences">
       <initializer
