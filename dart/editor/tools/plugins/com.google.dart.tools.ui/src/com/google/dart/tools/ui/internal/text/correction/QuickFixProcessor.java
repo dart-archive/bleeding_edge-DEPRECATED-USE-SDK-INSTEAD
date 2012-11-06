@@ -36,6 +36,7 @@ import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
+import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
@@ -79,6 +80,7 @@ import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.ISharedImages;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.CreateFileCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.SourceBuilder;
 import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedNodeProposal;
@@ -94,9 +96,12 @@ import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHO
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.MultiTextEdit;
@@ -286,7 +291,11 @@ public class QuickFixProcessor implements IQuickFixProcessor {
             if (errorCode == TypeErrorCode.NOT_A_FUNCTION_TYPE_FIELD) {
               addFix_removeParentheses_inGetterInvocation();
             }
+            if (errorCode == DartCompilerErrorCode.MISSING_SOURCE) {
+              addFix_createMissingPart();
+            }
           }
+
         });
       }
     }
@@ -305,7 +314,8 @@ public class QuickFixProcessor implements IQuickFixProcessor {
         || errorCode == ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR
         || errorCode == TypeErrorCode.USE_INTEGER_DIVISION
         || errorCode == TypeErrorCode.NOT_A_FUNCTION_TYPE_FIELD
-        || errorCode == DartCompilerErrorCode.MISSING_PART_OF_DIRECTIVE;
+        || errorCode == DartCompilerErrorCode.MISSING_PART_OF_DIRECTIVE
+        || errorCode == DartCompilerErrorCode.MISSING_SOURCE;
   }
 
   private void addFix_addPartOf() throws Exception {
@@ -386,6 +396,31 @@ public class QuickFixProcessor implements IQuickFixProcessor {
           CorrectionMessages.QuickFixProcessor_createConstructor,
           namePrefix + name);
       addUnitCorrectionProposal(targetUnit, TextFileChange.FORCE_SAVE, msg, OBJ_CONSTRUCTOR_IMG);
+    }
+  }
+
+  private void addFix_createMissingPart() throws Exception {
+    if (node instanceof DartSourceDirective) {
+      DartSourceDirective directive = (DartSourceDirective) node;
+      String uriString = directive.getSourceUri().getValue();
+      URI uri = URI.create(uriString);
+      if (uri.getScheme() == null) {
+        IContainer unitContainer = unit.getResource().getParent();
+        IFile newFile = unitContainer.getFile(new Path(uriString));
+        if (!newFile.exists()) {
+          // prepare new source
+          String source;
+          {
+            String eol = utils.getEndOfLine();
+            String libraryName = unit.getLibrary().getLibraryDirectiveName();
+            libraryName = Migrate_1M1_library_CleanUp.mapLibraryName(libraryName);
+            source = "part of " + libraryName + ";" + eol + eol;
+          }
+          // add proposal
+          String label = "Create file \"" + newFile.getFullPath() + "\"";
+          proposals.add(new CreateFileCorrectionProposal(proposalRelevance, label, newFile, source));
+        }
+      }
     }
   }
 

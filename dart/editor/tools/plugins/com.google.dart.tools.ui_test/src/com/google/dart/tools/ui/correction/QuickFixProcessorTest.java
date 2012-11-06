@@ -17,6 +17,7 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.util.apache.ArrayUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.internal.text.correction.AssistContext;
+import com.google.dart.tools.ui.internal.text.correction.ICommandAccess;
 import com.google.dart.tools.ui.internal.text.correction.ProblemLocation;
 import com.google.dart.tools.ui.internal.text.correction.QuickFixProcessor;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal;
@@ -25,6 +26,7 @@ import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
 import com.google.dart.tools.ui.text.dart.IQuickFixProcessor;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -366,6 +368,33 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  }",
         "}",
         "");
+  }
+
+  public void test_createMissingPart() throws Exception {
+    IFile file = testProject.getFile("parts/NewPart.dart");
+    // prepare library
+    proposalNamePrefix = "Create file \"/Test/parts/NewPart.dart\"";
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library MyApp;",
+        "part 'parts/NewPart.dart';",
+        "");
+    // file does not exist yet
+    assertFalse(file.exists());
+    // apply Quick Fix, no change for library
+    {
+      IDartCompletionProposal quickFix = prepareQuickFix();
+      quickFix.apply(null);
+      // just access
+      assertSame(null, quickFix.getContextInformation());
+      assertNotSame(null, quickFix.getImage());
+      assertNotSame(null, quickFix.getAdditionalProposalInfo());
+      assertSame(null, ((ICommandAccess) quickFix).getCommandId());
+      assertSame(null, quickFix.getSelection(null));
+      quickFix.getRelevance();
+    }
+    // file was created
+    assertTrue(file.exists());
   }
 
   public void test_importLibrary_withField_fromSDK() throws Exception {
@@ -825,17 +854,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
    * Runs single proposal created for {@link IProblemLocation} using "problem*" fields.
    */
   private void assertQuickFix(String... expectedLines) throws CoreException {
-    IDartCompletionProposal[] proposals = prepareQuickFixes();
-    // select proposal using name prefix
-    IDartCompletionProposal selectedProposal = null;
-    assertNotNull(proposalNamePrefix);
-    for (IDartCompletionProposal proposal : proposals) {
-      if (proposal.getDisplayString().startsWith(proposalNamePrefix)) {
-        assertNull(selectedProposal);
-        selectedProposal = proposal;
-      }
-    }
-    assertNotNull(selectedProposal);
+    IDartCompletionProposal selectedProposal = prepareQuickFix();
     // prepare result
     String result = ((CUCorrectionProposal) selectedProposal).getPreviewContent();
     // assert result
@@ -883,6 +902,25 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
     }
     fail("Could not find Dart problem in 5000 ms");
     return null;
+  }
+
+  /**
+   * @return the single not <code>null</code> proposal created for {@link IProblemLocation} using
+   *         "problem*" fields.
+   */
+  private IDartCompletionProposal prepareQuickFix() throws CoreException {
+    IDartCompletionProposal[] proposals = prepareQuickFixes();
+    // select proposal using name prefix
+    IDartCompletionProposal selectedProposal = null;
+    assertNotNull(proposalNamePrefix);
+    for (IDartCompletionProposal proposal : proposals) {
+      if (proposal.getDisplayString().startsWith(proposalNamePrefix)) {
+        assertNull(selectedProposal);
+        selectedProposal = proposal;
+      }
+    }
+    assertNotNull(selectedProposal);
+    return selectedProposal;
   }
 
   /**
