@@ -188,8 +188,14 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
           Color oldBG = gc.getBackground();
           // TODO(messick) Cache preferences and update cache when preferences change.
           IPreferenceStore prefs = fEditor.getPreferences();
-          gc.setForeground(DartUI.getViewerSelectionForeground(prefs, display));
-          gc.setBackground(DartUI.getViewerSelectionBackground(prefs, display));
+          Color fgColor = DartUI.getViewerSelectionForeground(prefs, display);
+          if (fgColor != null) {
+            gc.setForeground(fgColor);
+          }
+          Color bgColor = DartUI.getViewerSelectionBackground(prefs, display);
+          if (bgColor != null) {
+            gc.setBackground(bgColor);
+          }
           gc.fillRectangle(0, event.y, clientWidth, event.height);
           gc.setForeground(oldFG);
           gc.setBackground(oldBG);
