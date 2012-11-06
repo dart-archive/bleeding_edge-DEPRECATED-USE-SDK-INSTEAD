@@ -20,7 +20,7 @@ import java.io.File;
 /**
  * Appends information about analysis to the console
  */
-public class AnalysisDebug implements AnalysisListener, IdleListener {
+public class AnalysisDebug implements AnalysisListener, TaskListener {
 
   private final PrintStringWriter message = new PrintStringWriter();
   private final String prefix;
@@ -89,6 +89,11 @@ public class AnalysisDebug implements AnalysisListener, IdleListener {
       }
       message.notifyAll();
     }
+  }
+
+  @Override
+  public void processing(int toBeProcessed) {
+    // ignored
   }
 
   @Override

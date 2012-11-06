@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
 
-class Listener implements AnalysisListener, IdleListener {
+class Listener implements AnalysisListener, TaskListener {
   private final Object lock = new Object();
   private final HashMap<String, HashSet<String>> parsed = new HashMap<String, HashSet<String>>();
   private final HashSet<String> resolved = new HashSet<String>();
@@ -83,6 +83,11 @@ class Listener implements AnalysisListener, IdleListener {
       errors.addAll(event.getErrors());
       lock.notifyAll();
     }
+  }
+
+  @Override
+  public void processing(int toBeProcessed) {
+    // ignored
   }
 
   @Override

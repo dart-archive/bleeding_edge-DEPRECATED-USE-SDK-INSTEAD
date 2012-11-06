@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.swtbot.conditions;
 
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.IdleListener;
+import com.google.dart.tools.core.analysis.TaskListener;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 
@@ -34,11 +34,16 @@ public class AnalysisCompleteCondition implements ICondition {
    */
   public static void startListening() {
     AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
-    server.addIdleListener(new IdleListener() {
+    server.addIdleListener(new TaskListener() {
 
       @Override
       public void idle(boolean idle) {
         isIdle = idle;
+      }
+
+      @Override
+      public void processing(int toBeProcessed) {
+        // ignored
       }
     });
   }

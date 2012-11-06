@@ -17,7 +17,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisEvent;
 import com.google.dart.tools.core.analysis.AnalysisListener;
-import com.google.dart.tools.core.analysis.IdleListener;
+import com.google.dart.tools.core.analysis.TaskListener;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 
 import java.io.File;
@@ -26,7 +26,7 @@ import java.util.Map.Entry;
 /**
  * Forwards resolved units to the indexServer for processing
  */
-class AnalysisIndexListener implements AnalysisListener, IdleListener {
+class AnalysisIndexListener implements AnalysisListener, TaskListener {
   private final InMemoryIndex index;
 
   public AnalysisIndexListener() {
@@ -53,6 +53,11 @@ class AnalysisIndexListener implements AnalysisListener, IdleListener {
 
   @Override
   public void parsed(AnalysisEvent event) {
+    // ignored
+  }
+
+  @Override
+  public void processing(int toBeProcessed) {
     // ignored
   }
 

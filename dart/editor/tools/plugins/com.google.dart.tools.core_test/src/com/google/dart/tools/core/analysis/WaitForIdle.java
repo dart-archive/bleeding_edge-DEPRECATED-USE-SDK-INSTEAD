@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.analysis;
 
-final class WaitForIdle implements IdleListener {
+final class WaitForIdle implements TaskListener {
   private final Object lock = new Object();
   private final TaskQueue queue;
   private int idleCount;
@@ -54,6 +54,11 @@ final class WaitForIdle implements IdleListener {
     synchronized (lock) {
       return idle;
     }
+  }
+
+  @Override
+  public void processing(int toBeProcessed) {
+    // ignored
   }
 
   /**
