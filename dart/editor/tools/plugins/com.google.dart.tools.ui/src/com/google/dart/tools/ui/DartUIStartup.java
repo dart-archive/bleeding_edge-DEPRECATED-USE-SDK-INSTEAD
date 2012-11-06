@@ -26,6 +26,7 @@ import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerWarmup;
 import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
+import com.google.dart.tools.ui.internal.text.editor.AutoSaveHelper;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -78,6 +79,7 @@ public class DartUIStartup implements IStartup {
         if (!getThread().isInterrupted()) {
           printPerformanceNumbers();
         }
+        AutoSaveHelper.start();
       } catch (Throwable throwable) {
         // Catch any runtime exceptions that occur during warmup and log them.
         DartToolsPlugin.log("Exception occured during editor warmup", throwable);

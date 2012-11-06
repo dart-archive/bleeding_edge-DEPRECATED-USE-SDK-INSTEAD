@@ -18,6 +18,7 @@ import com.google.dart.tools.core.DartCore;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.swt.widgets.Display;
 
 /**
  * Utilities for executing actions, such as {@link RunnableObjectEx}.
@@ -137,6 +138,21 @@ public class ExecutionUtils {
   }
 
   /**
+   * Runs given {@link RunnableEx} inside of UI thread, using {@link Display#syncExec(Runnable)}.
+   */
+  @SuppressWarnings("unchecked")
+  public static <T> T runObjectUI(final RunnableObjectEx<T> runnable) {
+    final Object[] result = new Object[1];
+    runRethrowUI(new RunnableEx() {
+      @Override
+      public void run() throws Exception {
+        result[0] = runObject(runnable);
+      }
+    });
+    return (T) result[0];
+  }
+
+  /**
    * Runs given {@link RunnableEx} and re-throws any exceptions without declaring it.
    */
   public static void runRethrow(RunnableEx runnable) {
@@ -156,6 +172,18 @@ public class ExecutionUtils {
     } catch (Throwable e) {
       throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, e.getMessage(), e));
     }
+  }
+
+  /**
+   * Runs given {@link RunnableEx} inside of UI thread, using {@link Display#syncExec(Runnable)}.
+   */
+  public static void runRethrowUI(final RunnableEx runnable) {
+    Display.getDefault().syncExec(new Runnable() {
+      @Override
+      public void run() {
+        ExecutionUtils.runRethrow(runnable);
+      }
+    });
   }
 
   /**
