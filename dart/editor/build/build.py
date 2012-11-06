@@ -647,6 +647,8 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
 
     tempList = []
     
+    dartiumFiles = RemoveDuplicateDartiums(dartiumFiles)
+    
     for dartiumFile in dartiumFiles:
       print '  found dartium: %s' % dartiumFile
       tempList.append(RemapDartiumUrl(dartiumFile))
@@ -696,7 +698,8 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
           add_path = paths[0]
           zip_rel_path = 'dart/chromium'
           # remove extra files
-          FileDelete(os.path.join(add_path, 'chrome.packed.7z'))
+          FileDelete(os.path.join(add_path, 'DumpRenderTree'))
+          FileDelete(os.path.join(add_path, 'DumpRenderTree.pak'))
         if 'win' in buildos:
           paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
           add_path = paths[0]
@@ -716,6 +719,22 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
         dart_zip.AddDirectoryTree(add_path, zip_rel_path)
         
   shutil.rmtree(tmp_dir, True)
+
+def RemoveDuplicateDartiums(dartiumFiles):
+  result = []
+  found = []
+  
+  dartiumFiles.sort(reverse=True)
+  
+  # dartium-lucid64-full-9420.9420.zip
+  for f in dartiumFiles:
+    index = f.find('-full-')
+    prefix = f[:index]
+    if not prefix in found:
+      found.append(prefix)
+      result.append(f)
+
+  return result
 
 
 # convert:
@@ -1034,8 +1053,8 @@ def UploadApiDocs(dirName):
 
   # copy -R api_docs into dartlang-api-docs/REVISION
   filesToUpload = glob.glob(join(dirName, '*'))
-  result = Gsutil(['-m', 'cp', '-a', 'public-read', '-r'] + filesToUpload +
-                  [GSU_API_DOCS_PATH])
+  result = Gsutil(['-m', 'cp', '-q', '-a', 'public-read', '-r'] +
+                  filesToUpload + [GSU_API_DOCS_PATH])
 
   if result == 0:
     destLatestRevFile = GSU_API_DOCS_BUCKET + '/latest.txt'
