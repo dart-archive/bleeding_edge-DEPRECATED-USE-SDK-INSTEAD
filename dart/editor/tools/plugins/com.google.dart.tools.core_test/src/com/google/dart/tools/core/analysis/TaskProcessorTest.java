@@ -47,7 +47,7 @@ public class TaskProcessorTest extends AbstractDartCoreTest {
     }
   }
 
-  private static class BlockingIdleListener implements IdleListener {
+  private static class BlockingIdleListener implements TaskListener {
     private final Object lock = new Object();
     private boolean blocked = false;
 
@@ -64,6 +64,11 @@ public class TaskProcessorTest extends AbstractDartCoreTest {
           }
         }
       }
+    }
+
+    @Override
+    public void processing(int toBeProcessed) {
+      // ignored
     }
 
     void unblock() {
@@ -134,6 +139,43 @@ public class TaskProcessorTest extends AbstractDartCoreTest {
    */
   public void test_empty() throws Exception {
     waitAndAssertIdle(1);
+  }
+
+  /**
+   * Assert that the idle operation gets executed after all tasks and after listeners have been
+   * notified that the processor is idle.
+   */
+  public void test_idleTask() throws Exception {
+    BlockingTask blockingTask = new BlockingTask();
+    queue.addNewTask(blockingTask);
+    final BlockingIdleListener blockingListener = new BlockingIdleListener();
+    processor.addIdleListener(blockingListener);
+
+    final boolean[] complete = {false};
+    processor.setIdleOperation(new Runnable() {
+      @Override
+      public void run() {
+        synchronized (complete) {
+          complete[0] = true;
+          complete.notifyAll();
+        }
+      }
+    });
+
+    assertFalse(complete[0]);
+    assertTrue(blockingTask.waitUntilStarted(FIVE_MINUTES_MS));
+    assertFalse(complete[0]);
+    blockingTask.unblock();
+    assertTrue(blockingListener.waitUntilBlocked(FIVE_MINUTES_MS));
+    assertFalse(complete[0]);
+    processor.removeIdleListener(blockingListener);
+    blockingListener.unblock();
+    synchronized (complete) {
+      if (!complete[0]) {
+        complete.wait(100);
+      }
+    }
+    assertTrue(complete[0]);
   }
 
   /**

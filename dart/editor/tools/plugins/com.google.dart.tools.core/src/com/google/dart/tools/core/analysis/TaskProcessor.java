@@ -40,6 +40,12 @@ public class TaskProcessor {
   private boolean isIdle = false;
 
   /**
+   * An operation to be performed when the queue is empty and listeners have been notified that the
+   * receiver is idle. May be {@code null} if there is no idle operation.
+   */
+  private Runnable idleOperation;
+
+  /**
    * A collection of objects to be notified when the receiver is idle. Synchronize against
    * {@link #lock} before accessing this field.
    */
@@ -138,6 +144,16 @@ public class TaskProcessor {
   }
 
   /**
+   * Set the operation to be executed when the queue is empty and after all have been notified that
+   * the processor is idle. This operation should execute quickly to keep analysis responsive.
+   * 
+   * @param task the task or {@code null} if none
+   */
+  public void setIdleOperation(Runnable runnable) {
+    idleOperation = runnable;
+  }
+
+  /**
    * Start the background analysis process if it has not already been started. This background
    * thread will process tasks from the associated event queue until the
    * {@link TaskQueue#setAnalyzing(boolean)} method is called with a value of <code>false</code>.
@@ -173,6 +189,17 @@ public class TaskProcessor {
 
               // Notify :: Changing state from Running to Idle
               notifyIdle(true);
+
+              // Perform the idle operation if there is one
+              Runnable runnable = idleOperation;
+              if (runnable != null) {
+                try {
+                  runnable.run();
+                } catch (Throwable e) {
+                  idleOperation = null;
+                  DartCore.logError("Idle Operation Exception", e);
+                }
+              }
 
               // Idle :: Wait for new tasks on the queue... or analysis to be canceled
               if (!queue.waitForTask()) {
