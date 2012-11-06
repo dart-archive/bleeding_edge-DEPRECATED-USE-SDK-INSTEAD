@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('isolate_sample');
+library isolate_sample;
 
-#import('dart:html');
-#import('dart:isolate');
-#import('dart:math');
+import 'dart:html';
+import 'dart:isolate';
+import 'dart:math';
 
 /*
  * This is a simple sample application showing how to create two isolates
@@ -31,7 +31,7 @@ class MessageId {
 SendPort createIsolate(String name) {
   var sendPort = spawnDomFunction(isolateMain);
   var message = {
-    'id' : MessageId.INIT, 
+    'id' : MessageId.INIT,
     'args' : [name, port.toSendPort()]
   };
   sendPort.send(message, null);
@@ -45,7 +45,7 @@ bool isVm() => 1234567890123456789 % 2 > 0;
 /**
  * This function will run in a separate isolate, which shares almost
  * no state with the main isolate. They will both run in the main
- * UI thread, though, so that they can share DOM state. 
+ * UI thread, though, so that they can share DOM state.
  */
 void isolateMain() {
   Element div;
@@ -59,7 +59,7 @@ void isolateMain() {
       ..classes = ['isolate', 'isolate${isolateName}']
       ..innerHTML = query('#isolateTemplate').innerHTML
       ..query('.isolateName').text = isolateName
-      ..query('.chirpButton').on.click.add((event) { 
+      ..query('.chirpButton').on.click.add((event) {
           chirpPort.send(
             'this is a chirp message from isolate $isolateName', null);
         });
@@ -75,7 +75,7 @@ void isolateMain() {
       'received message: <span class="messageText">"${message}"</span>';
     if (div.query('input.replyCheckbox').checked) {
       InputElement element = div.query('.delayTextbox');
-      int millis = parseInt(element.value);
+      int millis = int.parse(element.value);
       // TODO(justinfagnani): use Timer when it works in isolates in dart2js
       // see: http://dartbug.com/4997
       window.setTimeout(() {
@@ -113,8 +113,8 @@ main() {
     element.on.click.add((Event e) {
       replyElement.text = 'waiting for reply...';
 
-      var isolateName = 
-          (e.currentTarget as Element).attributes['data-isolate-name']; 
+      var isolateName =
+          (e.currentTarget as Element).attributes['data-isolate-name'];
       var greeting = query('input#greetingText').value;
       var message = {'id': MessageId.GREETING, 'args': [greeting]};
       ports[isolateName].call(message).then((var msg) {

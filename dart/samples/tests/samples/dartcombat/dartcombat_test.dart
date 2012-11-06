@@ -113,7 +113,7 @@ main() {
           Constants.HIT,  8, 6,  // down
           Constants.SUNK, 8, 7]; // down  (sunk - done)
         _expectShotSequence(expectedShots, p2OwnBoard, 2, callback);
-  
+
         // hit the boat from the enemy side.
         var p1EnemyBoard = document.query("#p1enemy");
         var hitCell = p1EnemyBoard.nodes[0].nodes[4].nodes[8];

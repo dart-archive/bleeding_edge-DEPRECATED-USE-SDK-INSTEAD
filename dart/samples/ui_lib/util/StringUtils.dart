@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of utilslib;
+
 /**
  * General purpose string manipulation utilities.
  */
@@ -9,8 +11,8 @@ class StringUtils {
   /**
    * Returns either [str], or if [str] is null, the value of [defaultStr].
    */
-  static String defaultString(String str, [String defaultStr='']) {
-    return str === null ? defaultStr : str;
+  static String defaultString(String str, {String defaultStr: ''}) {
+    return str == null ? defaultStr : str;
   }
 
   /** Parse string to a double, and handle null intelligently */

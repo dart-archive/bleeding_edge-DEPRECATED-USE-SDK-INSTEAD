@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of observable;
+
 /** A change to an observable instance. */
 class ChangeEvent {
   // TODO(sigmund): capture language issues around enums & create a cannonical

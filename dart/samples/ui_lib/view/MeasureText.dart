@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of view;
+
 // TODO(jacobr): handle splitting lines on symbols such as '-' that aren't
 // whitespace but are valid word breaking points.
 /**
@@ -18,11 +20,11 @@ class MeasureText {
   static const String ELLIPSIS = '...';
 
   MeasureText(this.font) {
-    if (_context === null) {
+    if (_context == null) {
       CanvasElement canvas = new Element.tag('canvas');
       _context = canvas.getContext('2d');
     }
-    if (_spaceLength === null) {
+    if (_spaceLength == null) {
       _context.font = font;
       _spaceLength = _context.measureText(' ').width;
       _typicalCharLength = _context.measureText('k').width;
@@ -70,7 +72,7 @@ class MeasureText {
 
     // We can often avoid performing a full line break calculation when only
     // the number of lines and not the actual linebreaks is required.
-    if (sb === null) {
+    if (sb == null) {
       _context.font = font;
       int textWidth = _context.measureText(text).width.toInt();
       // By the pigeon hole principle, the resulting text will require at least
@@ -99,7 +101,7 @@ class MeasureText {
         // the first whitespace character encountered.
         end = Math.min(end + 50, text.length);
       }
-      if (sb !== null) {
+      if (sb != null) {
         if (lines > 1) {
           sb.add('<br>');
         }
@@ -136,7 +138,7 @@ class MeasureText {
           // Edge case:
           // It could be the very first word we ran into was too long for a
           // line in which case  we let it have its own line.
-          if (lastWordEndIndex !== null) {
+          if (lastWordEndIndex != null) {
             lines++;
             callback(startIndex, lastWordEndIndex, currentLength - wordLength);
           }
@@ -149,7 +151,7 @@ class MeasureText {
         lastWordEndIndex = i;
         currentLength += _spaceLength;
         wordStartIndex = null;
-      } else if (wordStartIndex === null && !whitespace) {
+      } else if (wordStartIndex == null && !whitespace) {
         wordStartIndex = i;
       }
       lastWhitespace = whitespace;

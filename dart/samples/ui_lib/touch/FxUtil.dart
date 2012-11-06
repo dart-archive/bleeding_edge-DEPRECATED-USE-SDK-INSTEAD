@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of touch;
+
 /**
  * Common effects related helpers.
  */
@@ -36,23 +38,23 @@ class FxUtil {
 
   /** Apply a -webkit-transform using translate3d to an HTML element. */
   static void setWebkitTransform(
-      Element el, num x, num y, [num z = 0,
-      num rotation = null, num scale = null,
-      num originX = null, num originY = null]) {
+      Element el, num x, num y, {num z: 0,
+      num rotation: null, num scale: null,
+      num originX: null, num originY: null}) {
     final style = el.style;
     // TODO(jacobr): create a helper class that simplifies building
     // transformation matricies that will be set as CSS styles. We should
     // consider using CSSMatrix although that may be overkill.
     String transform = '${TRANSLATE_3D}(${x}px,${y}px,${z}px)';
-    if (rotation !== null) {
+    if (rotation != null) {
       transform = transform.concat(' ${ROTATE}(${rotation}deg)');
     }
-    if (scale !== null) {
+    if (scale != null) {
       transform = transform.concat(' ${SCALE}(${scale})');
     }
     style.transform = transform;
-    if (originX !== null || originY !== null) {
-      assert(originX !== null && originY !== null);
+    if (originX != null || originY != null) {
+      assert(originX != null && originY != null);
       style.transformOrigin = '${originX}px ${originY}px';
     }
   }

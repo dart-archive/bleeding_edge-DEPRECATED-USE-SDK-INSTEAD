@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of markdown;
+
 /// Maintains the internal state needed to parse inline span elements in
 /// markdown.
 class InlineParser {
@@ -156,13 +158,13 @@ class InlineSyntax {
     return false;
   }
 
-  abstract bool onMatch(InlineParser parser, Match match);
+  bool onMatch(InlineParser parser, Match match);
 }
 
 /// Matches stuff that should just be passed through as straight text.
 class TextSyntax extends InlineSyntax {
   String substitute;
-  TextSyntax(String pattern, [String sub])
+  TextSyntax(String pattern, {String sub})
     : super(pattern),
       substitute = sub;
 
@@ -202,7 +204,7 @@ class TagSyntax extends InlineSyntax {
   final RegExp endPattern;
   final String tag;
 
-  TagSyntax(String pattern, [String tag, String end = null])
+  TagSyntax(String pattern, {String tag, String end: null})
     : super(pattern),
       endPattern = new RegExp((end != null) ? end : pattern, multiLine: true),
       tag = tag;

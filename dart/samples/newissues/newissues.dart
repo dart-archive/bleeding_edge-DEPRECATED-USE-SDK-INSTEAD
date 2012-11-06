@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('dart:html');
-#import('dart:json');
+import 'dart:html';
+import 'dart:json';
 
 /// Issue wraps JSON structure that describes a bug.
 class Issue {
@@ -19,7 +19,7 @@ class Issue {
 /// Decodes JSON into a list of Issues.
 List<Issue> getIssues(json) {
   var issues = json["feed"]["entry"];
-  if (issues == null) return null; 
+  if (issues == null) return null;
   return issues.map((data) => new Issue(data));
 }
 
@@ -35,8 +35,8 @@ void processJson(json) {
 }
 
 /// Sends a HTTPRequest and returns a future fo the date.
-Future<Dynamic> requestJson(String url) {
-  Completer c = new Completer<Dynamic>();
+Future<dynamic> requestJson(String url) {
+  Completer c = new Completer<dynamic>();
   void callback(HttpRequest req) {
     if (req.readyState == HttpRequest.DONE) {
       c.complete(JSON.parse(req.response));

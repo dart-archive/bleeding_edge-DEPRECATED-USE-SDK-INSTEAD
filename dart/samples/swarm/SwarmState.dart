@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of swarmlib;
+
 /**
  * The top-level class for the UI state. UI state is essentially a "model" from
  * the view's perspective but whose data just describes the UI itself. It

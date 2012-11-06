@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("chat_server");
-#import("dart:io");
-#import("dart:isolate");
-#import("dart:json");
-#import("dart:math");
+library chat_server;
+import "dart:io";
+import "dart:isolate";
+import "dart:json";
+import "dart:math";
 
 void startChatServer() {
   var server = new ChatServer();
@@ -21,7 +21,7 @@ class ServerMain {
   ServerMain.start(SendPort serverPort,
                    String hostAddress,
                    int tcpPort,
-                   [int listenBacklog = 5])
+                   {int listenBacklog: 5})
       : _statusPort = new ReceivePort(),
         _serverPort = serverPort {
     // We can only guess this is the right URL. At least it gives a
@@ -283,7 +283,7 @@ class ChatServerStatus {
   }
 
   int get port => _port;
-  Dynamic get error => _error;
+  dynamic get error => _error;
 
   int _state;
   String _message;

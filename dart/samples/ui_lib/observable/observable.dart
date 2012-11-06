@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('observable');
+library observable;
 
-#import('dart:coreimpl');
+import 'dart:coreimpl';
 
-#source('ChangeEvent.dart');
-#source('EventBatch.dart');
+part 'ChangeEvent.dart';
+part 'EventBatch.dart';
 
 /**
  * An object whose changes are tracked and who can issue events notifying how it
@@ -60,7 +60,7 @@ class AbstractObservable implements Observable {
     return false;
   }
 
-  AbstractObservable([Observable this.parent = null])
+  AbstractObservable({Observable this.parent: null})
     : uid = EventBatch.genUid(),
       listeners = new List<ChangeListener>();
 
@@ -138,7 +138,7 @@ class ObservableList<T>
   // TODO(rnystrom): Make this final if we get list.remove().
   List<T> _internal;
 
-  ObservableList([Observable parent = null])
+  ObservableList({Observable parent: null})
     : super(parent), _internal = new List<T>();
 
   T operator [](int index) => _internal[index];
@@ -215,7 +215,7 @@ class ObservableList<T>
   }
 
   int lastIndexOf(T element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _internal.lastIndexOf(element, start);
   }
 
@@ -278,7 +278,7 @@ class ObservableList<T>
 // "new ObservableValue<DataType>(myValue)".
 /** A wrapper around a single value whose change can be observed. */
 class ObservableValue<T> extends AbstractObservable {
-  ObservableValue(T value, [Observable parent = null])
+  ObservableValue(T value, {Observable parent: null})
     : super(parent), _value = value;
 
   T get value => _value;
@@ -288,7 +288,7 @@ class ObservableValue<T> extends AbstractObservable {
     // TODO(terry): An object identity test === is needed.  Each DataSource has
     //              its own operator == which does a value compare.  Which
     //              equality check should be done?
-    if (newValue !== _value) {
+    if (!identical(newValue, _value)) {
       final oldValue = _value;
       _value = newValue;
       recordPropertyUpdate("value", newValue, oldValue);

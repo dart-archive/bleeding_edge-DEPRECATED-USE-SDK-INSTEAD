@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of touch;
+
 /**
  * Represents a point in 2 dimensional space.
  */
@@ -37,7 +39,7 @@ class Coordinate {
   }
 
   bool operator ==(Coordinate other) {
-    return other !== null && x == other.x && y == other.y;
+    return other != null && x == other.x && y == other.y;
   }
 
   static num squaredDistance(Coordinate a, Coordinate b) {
@@ -73,7 +75,7 @@ class Interval {
   }
 
   bool operator ==(Interval other) {
-    return other !== null && other.start == start && other.end == end;
+    return other != null && other.start == start && other.end == end;
   }
 
   Interval union(Interval other) {

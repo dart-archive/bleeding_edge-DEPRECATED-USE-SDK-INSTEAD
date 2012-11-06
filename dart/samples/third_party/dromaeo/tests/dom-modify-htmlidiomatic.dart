@@ -1,9 +1,9 @@
-#library("dom_modify_html");
-#import("dart:html");
-#import("dart:json");
-#import("dart:math", prefix: "Math");
-#source("Common.dart");
-#source("RunnerSuite.dart");
+library dom_modify_html;
+import "dart:html";
+import "dart:json";
+import "dart:math" as Math;
+part "Common.dart";
+part "RunnerSuite.dart";
 
 void main() {
   final int num = 400;
@@ -58,12 +58,14 @@ void main() {
         }
     })
     .test('appendChild', () {
-      for (int i = 0; i < elems.length; i++)
+      for (int i = 0; i < elems.length; i++) {
         document.body.nodes.add(elems[i]);
+      }
     })
     .test('insertBefore', () {
-      for (int i = 0; i < elems.length; i++)
+      for (int i = 0; i < elems.length; i++) {
         document.body.insertBefore(elems[i], document.body.nodes.first);
+      }
     })
     .end();
 }

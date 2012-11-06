@@ -1,3 +1,5 @@
+part of swarmlib;
+
 /**
  * An iterator that allows the user to move forward and backward though
  * a set of items. (Bi-directional)
@@ -58,7 +60,7 @@ class BiIterator<E> {
    */
   void jumpToValue(E val) {
     for (int i = 0; i < list.length; i++) {
-      if (list[i] === val) {
+      if (identical(list[i], val)) {
         currentIndex.value = i;
         break;
       }

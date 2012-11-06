@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('dart:html');
-#import('dart:math', prefix: 'Math');
-#source('tape.dart');
-#source('settings.dart');
-#source('calcui.dart');
+import 'dart:html';
+import 'dart:math' as Math;
+part 'tape.dart';
+part 'settings.dart';
+part 'calcui.dart';
 
 var padUI;          // Calculator Pad UI.
 

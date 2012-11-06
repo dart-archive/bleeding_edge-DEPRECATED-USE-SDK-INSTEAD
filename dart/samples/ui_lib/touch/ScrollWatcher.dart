@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of touch;
+
 abstract class ScrollListener {
   /**
    * The callback invoked for a scroll event.
@@ -37,7 +39,7 @@ class ScrollWatcher {
    * [decelerating] is true if the offset is changing because of deceleration.
    */
   void _dispatchScroll(num scrollX, num scrollY,
-                       [bool decelerating = false]) {
+                       {bool decelerating: false}) {
     for (final listener in _listeners) {
       listener.onScrollerMoved(scrollX, scrollY, decelerating);
     }

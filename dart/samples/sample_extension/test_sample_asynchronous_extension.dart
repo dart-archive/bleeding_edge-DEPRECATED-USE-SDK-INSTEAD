@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("test_sample_extension");
+library test_sample_extension;
 
-#import("sample_asynchronous_extension.dart");
+import "sample_asynchronous_extension.dart";
 
 // TODO(3008): Run this test automatically on buildbot (dart:3008).
 void main() {

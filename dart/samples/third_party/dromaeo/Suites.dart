@@ -1,4 +1,4 @@
-#library('Suites.dart');
+library Suites;
 
 class Origin {
   final String author;
@@ -92,7 +92,7 @@ class Suites {
   static var _SUITE_DESCRIPTIONS;
 
   static List<SuiteDescription> get SUITE_DESCRIPTIONS {
-    if (null !== _SUITE_DESCRIPTIONS) {
+    if (null != _SUITE_DESCRIPTIONS) {
       return _SUITE_DESCRIPTIONS;
     }
     _SUITE_DESCRIPTIONS = <SuiteDescription>[];
@@ -113,7 +113,7 @@ class Suites {
             combined.add(lib);
             lib = ':$lib';
           }
-          final name = null === variant
+          final name = null == variant
               ? suite.name
               : '${suite.name} ($platform$lib)';
           _SUITE_DESCRIPTIONS.add(new SuiteDescription(

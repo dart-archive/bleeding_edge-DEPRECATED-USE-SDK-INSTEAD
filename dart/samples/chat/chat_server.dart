@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("chat_server.dart");
-#import("dart:io");
-#import("dart:isolate");
-#import("chat_server_lib.dart");
+library chat_server;
+import "dart:io";
+import "dart:isolate";
+import "chat_server_lib.dart";
 
 
 const DEFAULT_PORT = 8123;

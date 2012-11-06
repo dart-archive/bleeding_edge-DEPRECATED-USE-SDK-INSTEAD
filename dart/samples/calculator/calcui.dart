@@ -127,7 +127,7 @@ class FlatPadUI {
 
   // CSS for this template.
   static const String stylesheet = '''
-    
+
 .calc-pad {
   background-color: #222;
   width: 241px;
@@ -710,7 +710,7 @@ class ButtonPadUI {
 
   // CSS for this template.
   static const String stylesheet = '''
-    
+
 .button-pad {
   background-color: #F4F4F4;
   width: 241px;
@@ -1188,7 +1188,7 @@ class SettingsDialog {
 
   // CSS for this template.
   static const String stylesheet = '''
-    
+
 .setting-glyph {
   position: absolute;
   left: 239px;
@@ -1337,7 +1337,7 @@ class TapeUI {
 
   // CSS for this template.
   static const String stylesheet = '''
-    
+
 .calculator-tape {
   height: 7em;
   font-size: 18pt;

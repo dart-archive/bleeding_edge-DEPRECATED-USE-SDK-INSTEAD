@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of swarmlib;
+
 // TODO(jacobr): there is a lot of dead code in this class. Checking is as is
 // and then doing a large pass to remove functionality that doesn't make sense
 // given the UI layout.
@@ -781,11 +783,11 @@ class ArticleView extends View {
       }
     });
   }
- 
+
   /**
-   * Notify the view to jump to a different area if we are selecting an 
+   * Notify the view to jump to a different area if we are selecting an
    * article that is currently outside of the visible area.
-   */ 
+   */
   void _updateViewForSelectedArticle() {
     Article selArticle = swarm.state.selectedArticle.value;
     if (swarm.state.hasArticleSelected) {

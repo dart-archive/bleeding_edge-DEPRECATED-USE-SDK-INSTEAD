@@ -45,7 +45,7 @@ class Color {
     return new Color((h.round() % 360).toInt(), s, l);
   }
 
-  factory Color.hex(String hex) => new Color.rgb(
+  factory Color.fromHex(String hex) => new Color.rgb(
       _parseHex(hex.substring(1, 3))/255,
       _parseHex(hex.substring(3, 5))/255,
       _parseHex(hex.substring(5, 7))/255);
@@ -109,9 +109,9 @@ InputElement hue, saturation, lightness;
 Map<String, Color> defaultColors;
 
 onSliderChange(_) {
-  final hueDelta = Math.parseInt(hue.value) - 180;
-  final saturationMod = Math.parseInt(saturation.value)/100;
-  final lightnessMod = Math.parseInt(lightness.value)/100;
+  final hueDelta = int.parse(hue.value) - 180;
+  final saturationMod = int.parse(saturation.value)/100;
+  final lightnessMod = int.parse(lightness.value)/100;
 
   logo.queryAll("path").forEach((p) {
     final color = defaultColors[p.id].dup();
@@ -177,7 +177,7 @@ void main() {
 
   query("#icon").elements.add(logo);
   logo.queryAll("path").forEach((p) {
-    defaultColors[p.id] = new Color.hex(p.style.getPropertyValue('fill'));
+    defaultColors[p.id] = new Color.fromHex(p.style.getPropertyValue('fill'));
   });
 
   hue = document.query("input[name=hue]");

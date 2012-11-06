@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of touch;
+
 /**
  * Implementation of a custom scrolling behavior.
  * This behavior overrides native scrolling for an area. This area can be a
@@ -144,7 +146,7 @@ class Scroller implements Draggable, MomentumDelegate {
         _lookupContentSizeDelegate = lookupContentSizeDelegate,
         _element = scrollableElem,
         _frame = scrollableElem.parent,
-        _scrollTechnique = scrollTechnique !== null
+        _scrollTechnique = scrollTechnique != null
             ? scrollTechnique : ScrollerScrollTechnique.TRANSFORM_3D,
         _minPoint = new Coordinate(0, 0),
         _maxPoint = new Coordinate(0, 0),
@@ -240,35 +242,35 @@ class Scroller implements Draggable, MomentumDelegate {
   }
 
   EventListenerList get onScrollerStart {
-    if (_onScrollerStart === null) {
+    if (_onScrollerStart == null) {
       _onScrollerStart = new SimpleEventListenerList();
     }
     return _onScrollerStart;
   }
 
   EventListenerList get onScrollerEnd {
-    if (_onScrollerEnd === null) {
+    if (_onScrollerEnd == null) {
       _onScrollerEnd = new SimpleEventListenerList();
     }
     return _onScrollerEnd;
   }
 
   EventListenerList get onScrollerDragEnd {
-    if (_onScrollerDragEnd === null) {
+    if (_onScrollerDragEnd == null) {
       _onScrollerDragEnd = new SimpleEventListenerList();
     }
     return _onScrollerDragEnd;
   }
 
   EventListenerList get onContentMoved {
-    if (_onContentMoved === null) {
+    if (_onContentMoved == null) {
       _onContentMoved = new SimpleEventListenerList();
     }
     return _onContentMoved;
   }
 
   EventListenerList get onDecelStart {
-    if (_onDecelStart === null) {
+    if (_onDecelStart == null) {
       _onDecelStart = new SimpleEventListenerList();
     }
     return _onDecelStart;
@@ -280,7 +282,7 @@ class Scroller implements Draggable, MomentumDelegate {
    * notifications from this scroller.
    */
   void addScrollListener(ScrollListener listener) {
-    if (_scrollWatcher === null) {
+    if (_scrollWatcher == null) {
       _scrollWatcher = new ScrollWatcher(this);
       _scrollWatcher.initialize();
     }
@@ -310,7 +312,7 @@ class Scroller implements Draggable, MomentumDelegate {
    */
   Coordinate get currentTarget {
     Coordinate end = _momentum.destination;
-    if (end === null) {
+    if (end == null) {
       end = _contentOffset;
     }
     return end;
@@ -392,7 +394,7 @@ class Scroller implements Draggable, MomentumDelegate {
    * Returns the percent of the page scrolled horizontally.
    */
   num getHorizontalScrollPercent([num x = null]) {
-    x = x !== null ? x : _contentOffset.x;
+    x = x != null ? x : _contentOffset.x;
     return (x - _minPoint.x) / (_maxPoint.x - _minPoint.x);
   }
 
@@ -412,7 +414,7 @@ class Scroller implements Draggable, MomentumDelegate {
    * none is provided then the content's current y offset will be used.
    */
   num getVerticalScrollPercent([num y = null]) {
-    y = y !== null ? y : _contentOffset.y;
+    y = y != null ? y : _contentOffset.y;
     return (y - _minPoint.y) / Math.max(1, _maxPoint.y - _minPoint.y);
   }
 
@@ -544,7 +546,7 @@ class Scroller implements Draggable, MomentumDelegate {
     final frameRect = _frame.rect;
     Future contentSizeFuture;
 
-    if (_lookupContentSizeDelegate !== null) {
+    if (_lookupContentSizeDelegate != null) {
       contentSizeFuture = _lookupContentSizeDelegate();
       contentSizeFuture.then((Size size) {
         _contentSize = size;
