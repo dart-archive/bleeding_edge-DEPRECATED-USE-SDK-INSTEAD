@@ -133,6 +133,10 @@ import java.util.List;
  * More complex tests should be defined in the class {@link ComplexParserTest}.
  */
 public class SimpleParserTest extends ParserTestCase {
+  public void fail_isFunctionExpression_false_notParameters() throws Exception {
+    assertFalse(isFunctionExpression("(a + b) {"));
+  }
+
   public void test_computeStringValue_emptyInterpolationPrefix() throws Exception {
     assertEquals("", computeStringValue("'''"));
   }
@@ -186,18 +190,28 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_computeStringValue_raw_single() throws Exception {
-    assertEquals("text", computeStringValue("@'text'"));
+    assertEquals("text", computeStringValue("r'text'"));
   }
 
   public void test_computeStringValue_raw_triple() throws Exception {
-    assertEquals("text", computeStringValue("@'''text'''"));
+    assertEquals("text", computeStringValue("r'''text'''"));
   }
 
   public void test_computeStringValue_raw_withEscape() throws Exception {
-    assertEquals("two\\nlines", computeStringValue("@'two\\nlines'"));
+    assertEquals("two\\nlines", computeStringValue("r'two\\nlines'"));
   }
 
-  public void test_isFunctionExpression_false() throws Exception {
+  public void test_createSyntheticIdentifier() throws Exception {
+    SimpleIdentifier identifier = createSyntheticIdentifier();
+    assertTrue(identifier.isSynthetic());
+  }
+
+  public void test_createSyntheticStringLiteral() throws Exception {
+    SimpleStringLiteral literal = createSyntheticStringLiteral();
+    assertTrue(literal.isSynthetic());
+  }
+
+  public void test_isFunctionExpression_false_noBody() throws Exception {
     assertFalse(isFunctionExpression("f();"));
   }
 
@@ -253,12 +267,21 @@ public class SimpleParserTest extends ParserTestCase {
     assertTrue(isInitializedVariableDeclaration("const a;"));
   }
 
+  public void test_isInitializedVariableDeclaration_const_simpleType_uninitialized()
+      throws Exception {
+    assertTrue(isInitializedVariableDeclaration("const A a;"));
+  }
+
   public void test_isInitializedVariableDeclaration_final_noType_initialized() throws Exception {
     assertTrue(isInitializedVariableDeclaration("final a = 0;"));
   }
 
   public void test_isInitializedVariableDeclaration_final_noType_uninitialized() throws Exception {
     assertTrue(isInitializedVariableDeclaration("final a;"));
+  }
+
+  public void test_isInitializedVariableDeclaration_final_simpleType_initialized() throws Exception {
+    assertTrue(isInitializedVariableDeclaration("final A a = 0;"));
   }
 
   public void test_isInitializedVariableDeclaration_noType_initialized() throws Exception {
@@ -280,11 +303,11 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_isInitializedVariableDeclaration_simpleType_initialized() throws Exception {
-    assertTrue(isInitializedVariableDeclaration("int a = 0;"));
+    assertTrue(isInitializedVariableDeclaration("A a = 0;"));
   }
 
   public void test_isInitializedVariableDeclaration_simpleType_uninitialized() throws Exception {
-    assertTrue(isInitializedVariableDeclaration("int a;"));
+    assertTrue(isInitializedVariableDeclaration("A a;"));
   }
 
   public void test_isSwitchMember_case_labeled() throws Exception {
@@ -660,6 +683,13 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(section.getPropertyName());
   }
 
+  public void test_parseCascadeSection_p_builtIn() throws Exception {
+    PropertyAccess section = parse("parseCascadeSection", "..as");
+    assertNull(section.getTarget());
+    assertNotNull(section.getOperator());
+    assertNotNull(section.getPropertyName());
+  }
+
   public void test_parseCascadeSection_p_assign() throws Exception {
     AssignmentExpression section = parse("parseCascadeSection", "..a = 3");
     assertNotNull(section.getLeftHandSide());
@@ -825,6 +855,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseClassMember_constructor_withInitializers() throws Exception {
+    // TODO(brianwilkerson) Test other kinds of class members: fields, getters and setters.
     ConstructorDeclaration constructor = parse(
         "parseClassMember",
         "A(_, _$, this.__) : _a = _ + _$ {}");
@@ -867,7 +898,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(method.getReturnType());
   }
 
-  public void test_parseCombinators_hide() throws Exception {
+  public void test_parseCombinators_h() throws Exception {
     List<Combinator> combinators = parse("parseCombinators", "hide a;");
     assertSize(1, combinators);
     HideCombinator combinator = (HideCombinator) combinators.get(0);
@@ -876,7 +907,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertSize(1, combinator.getHiddenNames());
   }
 
-  public void test_parseCombinators_hideAndShow() throws Exception {
+  public void test_parseCombinators_hs() throws Exception {
     List<Combinator> combinators = parse("parseCombinators", "hide a show b;");
     assertSize(2, combinators);
     HideCombinator hideCombinator = (HideCombinator) combinators.get(0);
@@ -889,7 +920,12 @@ public class SimpleParserTest extends ParserTestCase {
     assertSize(1, showCombinator.getShownNames());
   }
 
-  public void test_parseCombinators_show() throws Exception {
+  public void test_parseCombinators_hshs() throws Exception {
+    List<Combinator> combinators = parse("parseCombinators", "hide a show b hide c show d;");
+    assertSize(4, combinators);
+  }
+
+  public void test_parseCombinators_s() throws Exception {
     List<Combinator> combinators = parse("parseCombinators", "show a;");
     assertSize(1, combinators);
     ShowCombinator combinator = (ShowCombinator) combinators.get(0);
@@ -1085,13 +1121,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(unit.getScriptTag());
     assertSize(0, unit.getDirectives());
     assertSize(0, unit.getDeclarations());
-  }
-
-  public void test_parseCompilationUnit_nonEmpty() throws Exception {
-    CompilationUnit unit = parse("parseCompilationUnit", "class Foo {}");
-    assertSize(1, unit.getDeclarations());
-    assertSize(0, unit.getDirectives());
-    assertNull(unit.getScriptTag());
   }
 
   public void test_parseCompilationUnit_script() throws Exception {
@@ -1294,6 +1323,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseConstantConstructor_initializers() throws Exception {
+    // TODO(brianwilkerson) Test more cases, such as external constructors.
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     ConstructorDeclaration constructor = parse("parseConstantConstructor", new Class[] {
         Parser.CommentAndMetadata.class, Token.class}, new Object[] {
@@ -1383,6 +1413,14 @@ public class SimpleParserTest extends ParserTestCase {
     assertSize(0, literal.getEntries());
     assertNotNull(literal.getRightBracket());
     assertNull(literal.getTypeArguments());
+  }
+
+  public void test_parseConstructor() throws Exception {
+    // TODO(brianwilkerson) Implement tests for this method.
+//    parse("parseConstructor", new Class[] {Parser.CommentAndMetadata.class,
+//        Token.class, Token.class, SimpleIdentifier.class, Token.class,
+//        SimpleIdentifier.class, FormalParameterList.class}, new Object[] {emptyCommentAndMetadata(),
+//        null, null, null, null, null, null}, "");
   }
 
   public void test_parseConstructorFieldInitializer_qualified() throws Exception {
@@ -1590,6 +1628,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseExpression_assign() throws Exception {
+    // TODO(brianwilkerson) Implement more tests for this method.
     AssignmentExpression expression = parse("parseExpression", "x = y");
     assertNotNull(expression.getLeftHandSide());
     assertNotNull(expression.getOperator());
@@ -1623,6 +1662,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseExpressionWithoutCascade_assign() throws Exception {
+    // TODO(brianwilkerson) Implement more tests for this method.
     AssignmentExpression expression = parse("parseExpressionWithoutCascade", "x = y");
     assertNotNull(expression.getLeftHandSide());
     assertNotNull(expression.getOperator());
@@ -1653,6 +1693,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFactoryConstructor_noName_noQualifier() throws Exception {
+    // TODO(brianwilkerson) Implement more tests for this method, such as named and external.
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     ConstructorDeclaration constructor = parse("parseFactoryConstructor", new Class[] {
         Parser.CommentAndMetadata.class, Token.class}, new Object[] {
@@ -1743,14 +1784,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(result.getType());
   }
 
-  public void test_parseFormalParameter_final_withType() throws Exception {
-    SimpleFormalParameter parameter = parse("parseFormalParameter", new Class[] {
-        boolean.class, boolean.class}, new Object[] {false, false}, "final A a");
-    assertNotNull(parameter.getIdentifier());
-    assertNotNull(parameter.getKeyword());
-    assertNotNull(parameter.getType());
-  }
-
   public void test_parseFormalParameter_final_withType_named() throws Exception {
     DefaultFormalParameter namedParameter = parse("parseFormalParameter", new Class[] {
         boolean.class, boolean.class}, new Object[] {false, true}, "final A a : null");
@@ -1761,6 +1794,14 @@ public class SimpleParserTest extends ParserTestCase {
     assertTrue(namedParameter.isNamed());
     assertNotNull(namedParameter.getSeparator());
     assertNotNull(namedParameter.getDefaultValue());
+  }
+
+  public void test_parseFormalParameter_final_withType_normal() throws Exception {
+    SimpleFormalParameter parameter = parse("parseFormalParameter", new Class[] {
+        boolean.class, boolean.class}, new Object[] {false, false}, "final A a");
+    assertNotNull(parameter.getIdentifier());
+    assertNotNull(parameter.getKeyword());
+    assertNotNull(parameter.getType());
   }
 
   public void test_parseFormalParameter_final_withType_positional() throws Exception {
@@ -1775,14 +1816,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(namedParameter.getDefaultValue());
   }
 
-  public void test_parseFormalParameter_nonFinal_withType() throws Exception {
-    SimpleFormalParameter parameter = parse("parseFormalParameter", new Class[] {
-        boolean.class, boolean.class}, new Object[] {false, false}, "A a");
-    assertNotNull(parameter.getIdentifier());
-    assertNull(parameter.getKeyword());
-    assertNotNull(parameter.getType());
-  }
-
   public void test_parseFormalParameter_nonFinal_withType_named() throws Exception {
     DefaultFormalParameter namedParameter = parse("parseFormalParameter", new Class[] {
         boolean.class, boolean.class}, new Object[] {false, true}, "A a : null");
@@ -1793,6 +1826,14 @@ public class SimpleParserTest extends ParserTestCase {
     assertTrue(namedParameter.isNamed());
     assertNotNull(namedParameter.getSeparator());
     assertNotNull(namedParameter.getDefaultValue());
+  }
+
+  public void test_parseFormalParameter_nonFinal_withType_normal() throws Exception {
+    SimpleFormalParameter parameter = parse("parseFormalParameter", new Class[] {
+        boolean.class, boolean.class}, new Object[] {false, false}, "A a");
+    assertNotNull(parameter.getIdentifier());
+    assertNull(parameter.getKeyword());
+    assertNotNull(parameter.getType());
   }
 
   public void test_parseFormalParameter_nonFinal_withType_positional() throws Exception {
@@ -2207,6 +2248,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFunctionExpression_returnType() throws Exception {
+    // TODO(brianwilkerson) This should fail because a return type is not allowed without a name.
     FunctionExpression expression = parse("parseFunctionExpression", "A<T> () {}");
     assertNotNull(expression.getBody());
     assertNull(expression.getName());
@@ -2267,7 +2309,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertSize(1, list);
   }
 
-  public void test_parseIfStatement_else() throws Exception {
+  public void test_parseIfStatement_else_block() throws Exception {
     IfStatement statement = parse("parseIfStatement", "if (x) {} else {}");
     assertNotNull(statement.getIfKeyword());
     assertNotNull(statement.getLeftParenthesis());
@@ -2278,8 +2320,30 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getElseStatement());
   }
 
-  public void test_parseIfStatement_noElse() throws Exception {
+  public void test_parseIfStatement_else_statement() throws Exception {
+    IfStatement statement = parse("parseIfStatement", "if (x) f(x); else f(y);");
+    assertNotNull(statement.getIfKeyword());
+    assertNotNull(statement.getLeftParenthesis());
+    assertNotNull(statement.getCondition());
+    assertNotNull(statement.getRightParenthesis());
+    assertNotNull(statement.getThenStatement());
+    assertNotNull(statement.getElseKeyword());
+    assertNotNull(statement.getElseStatement());
+  }
+
+  public void test_parseIfStatement_noElse_block() throws Exception {
     IfStatement statement = parse("parseIfStatement", "if (x) {}");
+    assertNotNull(statement.getIfKeyword());
+    assertNotNull(statement.getLeftParenthesis());
+    assertNotNull(statement.getCondition());
+    assertNotNull(statement.getRightParenthesis());
+    assertNotNull(statement.getThenStatement());
+    assertNull(statement.getElseKeyword());
+    assertNull(statement.getElseStatement());
+  }
+
+  public void test_parseIfStatement_noElse_statement() throws Exception {
+    IfStatement statement = parse("parseIfStatement", "if (x) f(x);");
     assertNotNull(statement.getIfKeyword());
     assertNotNull(statement.getLeftParenthesis());
     assertNotNull(statement.getCondition());
@@ -2433,7 +2497,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getArgumentList());
   }
 
-  public void test_parseInstanceCreationExpression_qualifiedTypeWithIdentifier() throws Exception {
+  public void test_parseInstanceCreationExpression_qualifiedType_named() throws Exception {
     Token token = new KeywordToken(Keyword.NEW, 0);
     InstanceCreationExpression expression = parse(
         "parseInstanceCreationExpression",
@@ -2461,7 +2525,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getArgumentList());
   }
 
-  public void test_parseInstanceCreationExpression_type_withArg() throws Exception {
+  public void test_parseInstanceCreationExpression_type_named() throws Exception {
     Token token = new KeywordToken(Keyword.NEW, 0);
     InstanceCreationExpression expression = parse(
         "parseInstanceCreationExpression",
@@ -2530,6 +2594,58 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(literal.getRightBracket());
   }
 
+  public void test_parseListOrMapLiteral_list_noType() throws Exception {
+    ListLiteral literal = parse(
+        "parseListOrMapLiteral",
+        new Class[] {Token.class},
+        new Object[] {null},
+        "[1]");
+    assertNull(literal.getModifier());
+    assertNull(literal.getTypeArguments());
+    assertNotNull(literal.getLeftBracket());
+    assertSize(1, literal.getElements());
+    assertNotNull(literal.getRightBracket());
+  }
+
+  public void test_parseListOrMapLiteral_list_type() throws Exception {
+    ListLiteral literal = parse(
+        "parseListOrMapLiteral",
+        new Class[] {Token.class},
+        new Object[] {null},
+        "<int> [1]");
+    assertNull(literal.getModifier());
+    assertNotNull(literal.getTypeArguments());
+    assertNotNull(literal.getLeftBracket());
+    assertSize(1, literal.getElements());
+    assertNotNull(literal.getRightBracket());
+  }
+
+  public void test_parseListOrMapLiteral_map_noType() throws Exception {
+    MapLiteral literal = parse(
+        "parseListOrMapLiteral",
+        new Class[] {Token.class},
+        new Object[] {null},
+        "{'1' : 1}");
+    assertNull(literal.getModifier());
+    assertNull(literal.getTypeArguments());
+    assertNotNull(literal.getLeftBracket());
+    assertSize(1, literal.getEntries());
+    assertNotNull(literal.getRightBracket());
+  }
+
+  public void test_parseListOrMapLiteral_map_type() throws Exception {
+    MapLiteral literal = parse(
+        "parseListOrMapLiteral",
+        new Class[] {Token.class},
+        new Object[] {null},
+        "<int> {'1' : 1}");
+    assertNull(literal.getModifier());
+    assertNotNull(literal.getTypeArguments());
+    assertNotNull(literal.getLeftBracket());
+    assertSize(1, literal.getEntries());
+    assertNotNull(literal.getRightBracket());
+  }
+
   public void test_parseLogicalAndExpression() throws Exception {
     BinaryExpression expression = parse("parseLogicalAndExpression", "x && y");
     assertNotNull(expression.getLeftOperand());
@@ -2591,6 +2707,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseMethodDeclaration_notStatic_returnType() throws Exception {
+    // TODO(brianwilkerson) Implement more tests for this method.
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     MethodDeclaration method = parse("parseMethodDeclaration", new Class[] {
         Parser.CommentAndMetadata.class, Token.class, Token.class}, new Object[] {
@@ -2624,7 +2741,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseMethodOrConstructor() throws Exception {
-    // TODO(brianwilkerson) Test other variations on this method.
+    // TODO(brianwilkerson) Implement more tests for this method.
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     Token staticKeyword = new KeywordToken(Keyword.STATIC, 0);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
@@ -2667,6 +2784,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseNonLabeledStatement_const_map() throws Exception {
+    // TODO(brianwilkerson) Implement more tests for this method.
     ExpressionStatement statement = parse("parseNonLabeledStatement", "const {'a' : 1};");
     assertNotNull(statement.getExpression());
   }
@@ -2818,6 +2936,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseOperator() throws Exception {
+    // TODO(brianwilkerson) Implement more tests for this method, such as with a body.
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = parse("parseOperator", new Class[] {
@@ -2832,6 +2951,10 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(method.getParameters());
     assertNull(method.getPropertyKeyword());
     assertEquals(returnType, method.getReturnType());
+  }
+
+  public void test_parseOptionalReturnType() throws Exception {
+    // TODO(brianwilkerson) Implement tests for this method.
   }
 
   public void test_parsePartDirective_part() throws Exception {
@@ -2858,7 +2981,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parsePostfixExpression_decrement() throws Exception {
-    // TODO(brianwilkerson) Need more tests of this method.
+    // TODO(brianwilkerson) Implement more tests for this method.
     PostfixExpression expression = parse("parsePostfixExpression", "i--");
     assertNotNull(expression.getOperand());
     assertNotNull(expression.getOperator());
@@ -3104,6 +3227,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseSetter_nonStatic() throws Exception {
+    // TODO(brianwilkerson) Implement more tests for this method, such as with a body.
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = parse("parseSetter", new Class[] {
@@ -3168,7 +3292,12 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(lexeme, identifier.getName());
   }
 
+  public void test_parseSimpleIdentifier1_normalIdentifier() throws Exception {
+    // TODO(brianwilkerson) Implement tests for this method.
+  }
+
   public void test_parseStatement_functionDeclaration() throws Exception {
+    // TODO(brianwilkerson) Implement more tests for this method.
     ExpressionStatement statement = parse("parseStatement", "int f(a, b) {};");
     assertInstanceOf(FunctionExpression.class, statement.getExpression());
   }
@@ -3189,9 +3318,14 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getStatement());
   }
 
-  public void test_parseStatements() throws Exception {
+  public void test_parseStatements_multiple() throws Exception {
     List<Statement> statements = parse("parseStatements", "return; return;");
     assertSize(2, statements);
+  }
+
+  public void test_parseStatements_single() throws Exception {
+    List<Statement> statements = parse("parseStatements", "return;");
+    assertSize(1, statements);
   }
 
   public void test_parseStringLiteral_adjacent() throws Exception {
@@ -3857,6 +3991,32 @@ public class SimpleParserTest extends ParserTestCase {
     Method method = Parser.class.getDeclaredMethod("computeStringValue", String.class);
     method.setAccessible(true);
     return (String) method.invoke(parser, lexeme);
+  }
+
+  /**
+   * Invoke the method {@link Parser#createSyntheticIdentifier()} with the parser set to the token
+   * stream produced by scanning the given source.
+   * 
+   * @param source the source to be scanned to produce the token stream being tested
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   */
+  private SimpleIdentifier createSyntheticIdentifier() throws Exception {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    return invokeParserMethod("createSyntheticIdentifier", "", listener);
+  }
+
+  /**
+   * Invoke the method {@link Parser#createSyntheticIdentifier()} with the parser set to the token
+   * stream produced by scanning the given source.
+   * 
+   * @param source the source to be scanned to produce the token stream being tested
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   */
+  private SimpleStringLiteral createSyntheticStringLiteral() throws Exception {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    return invokeParserMethod("createSyntheticStringLiteral", "", listener);
   }
 
   /**

@@ -77,8 +77,10 @@ public class VariableDeclarationList extends ASTNode {
   public Token getBeginToken() {
     if (keyword != null) {
       return keyword;
+    } else if (type != null) {
+      return type.getBeginToken();
     }
-    return type.getBeginToken();
+    return variables.getBeginToken();
   }
 
   @Override

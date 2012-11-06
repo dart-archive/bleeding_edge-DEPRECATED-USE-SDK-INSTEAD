@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.scanner.TokenType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +34,11 @@ import java.util.List;
  */
 public class CompilationUnit extends ASTNode {
   /**
+   * The first token in the token stream that was parsed to form this compilation unit.
+   */
+  private Token beginToken;
+
+  /**
    * The script tag at the beginning of the compilation unit, or {@code null} if there is no script
    * tag in this compilation unit.
    */
@@ -49,6 +55,12 @@ public class CompilationUnit extends ASTNode {
   private NodeList<CompilationUnitMember> declarations = new NodeList<CompilationUnitMember>(this);
 
   /**
+   * The last token in the token stream that was parsed to form this compilation unit. This token
+   * should always have a type of {@link TokenType.EOF}.
+   */
+  private Token endToken;
+
+  /**
    * Initialize a newly created compilation unit to have the given directives and declarations.
    */
   public CompilationUnit() {
@@ -57,15 +69,19 @@ public class CompilationUnit extends ASTNode {
   /**
    * Initialize a newly created compilation unit to have the given directives and declarations.
    * 
+   * @param beginToken the first token in the token stream
    * @param scriptTag the script tag at the beginning of the compilation unit
    * @param directives the directives contained in this compilation unit
    * @param declarations the declarations contained in this compilation unit
+   * @param endToken the last token in the token stream
    */
-  public CompilationUnit(ScriptTag scriptTag, List<Directive> directives,
-      List<CompilationUnitMember> declarations) {
+  public CompilationUnit(Token beginToken, ScriptTag scriptTag, List<Directive> directives,
+      List<CompilationUnitMember> declarations, Token endToken) {
+    this.beginToken = beginToken;
     this.scriptTag = becomeParentOf(scriptTag);
     this.directives.addAll(directives);
     this.declarations.addAll(declarations);
+    this.endToken = endToken;
   }
 
   @Override
@@ -75,15 +91,7 @@ public class CompilationUnit extends ASTNode {
 
   @Override
   public Token getBeginToken() {
-    // TODO(brianwilkerson) Consider keeping a pointer to the first and last tokens in the token
-    // stream. Doing so would resolve the issue of what to do if both directives and declarations
-    // are empty.
-    if (scriptTag != null) {
-      return scriptTag.getBeginToken();
-    } else if (!directives.isEmpty()) {
-      return directives.getBeginToken();
-    }
-    return declarations.getBeginToken();
+    return beginToken;
   }
 
   /**
@@ -106,7 +114,7 @@ public class CompilationUnit extends ASTNode {
 
   @Override
   public Token getEndToken() {
-    return declarations.getEndToken();
+    return endToken;
   }
 
   @Override

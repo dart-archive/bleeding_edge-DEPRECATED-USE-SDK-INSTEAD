@@ -204,9 +204,12 @@ public final class ASTFactory {
 
   public static CompilationUnit compilationUnit(String scriptTag, List<Directive> directives,
       List<CompilationUnitMember> declarations) {
-    return new CompilationUnit(scriptTag == null ? null : scriptTag(scriptTag), directives == null
-        ? new ArrayList<Directive>() : directives, declarations == null
-        ? new ArrayList<CompilationUnitMember>() : declarations);
+    return new CompilationUnit(
+        token(TokenType.EOF),
+        scriptTag == null ? null : scriptTag(scriptTag),
+        directives == null ? new ArrayList<Directive>() : directives,
+        declarations == null ? new ArrayList<CompilationUnitMember>() : declarations,
+        token(TokenType.EOF));
   }
 
   public static ConditionalExpression conditionalExpression(Expression condition,

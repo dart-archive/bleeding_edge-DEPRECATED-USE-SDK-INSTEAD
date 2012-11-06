@@ -30,7 +30,8 @@ public class ExpressionStatement extends Statement {
   private Expression expression;
 
   /**
-   * The semicolon terminating the statement.
+   * The semicolon terminating the statement, or {@code null} if the expression is a function
+   * expression and isn't followed by a semicolon.
    */
   private Token semicolon;
 
@@ -63,7 +64,10 @@ public class ExpressionStatement extends Statement {
 
   @Override
   public Token getEndToken() {
-    return semicolon;
+    if (semicolon != null) {
+      return semicolon;
+    }
+    return expression.getEndToken();
   }
 
   /**

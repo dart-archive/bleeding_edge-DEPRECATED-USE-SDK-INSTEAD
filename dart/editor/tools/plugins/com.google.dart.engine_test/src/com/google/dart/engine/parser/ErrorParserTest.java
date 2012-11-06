@@ -79,47 +79,6 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseStatement", "() {for (; x;) {break;}};");
   }
 
-  public void test_builtInIdentifierAsFunctionName_constConstructor() throws Exception {
-    parse(
-        "parseClassMember",
-        "const C.as() {}",
-        ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
-  }
-
-  public void test_builtInIdentifierAsFunctionName_constructor() throws Exception {
-    parse("parseClassMember", "C.as() {}", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
-  }
-
-  public void test_builtInIdentifierAsFunctionName_functionExpression() throws Exception {
-    parse(
-        "parseFunctionExpression",
-        "as() {}",
-        ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
-  }
-
-  public void test_builtInIdentifierAsFunctionName_getter() throws Exception {
-    parse("parseClassMember", "get as {}", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
-  }
-
-  public void test_builtInIdentifierAsFunctionName_method() throws Exception {
-    parse("parseClassMember", "void as() {}", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
-  }
-
-  public void test_builtInIdentifierAsFunctionName_setter() throws Exception {
-    parse("parseClassMember", "set as(v) {}", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME);
-  }
-
-  public void test_builtInIdentifierAsLabel_statement() throws Exception {
-    parse("parseStatement", "as: m();", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_LABEL);
-  }
-
-  public void test_builtInIdentifierAsLabel_switchMember() throws Exception {
-    parse(
-        "parseSwitchStatement",
-        "switch (e) {as: case 0: break;}",
-        ParserErrorCode.BUILT_IN_IDENTIFIER_AS_LABEL);
-  }
-
   public void test_builtInIdentifierAsTypeDefName() throws Exception {
     parse(
         "parseTypeAlias",
@@ -140,17 +99,6 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_builtInIdentifierAsTypeVariableName() throws Exception {
     parse("parseTypeParameter", "as", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
-  }
-
-  public void test_builtInIdentifierAsVariableName_for() throws Exception {
-    parse(
-        "parseForStatement",
-        "for (as in list) {}",
-        ParserErrorCode.BUILT_IN_IDENTIFIER_AS_VARIABLE_NAME);
-  }
-
-  public void test_builtInIdentifierAsVariableName_variable() throws Exception {
-    parse("parseVariableDeclaration", "as", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_VARIABLE_NAME);
   }
 
   public void test_continueOutsideOfLoop_continueInDoStatement() throws Exception {

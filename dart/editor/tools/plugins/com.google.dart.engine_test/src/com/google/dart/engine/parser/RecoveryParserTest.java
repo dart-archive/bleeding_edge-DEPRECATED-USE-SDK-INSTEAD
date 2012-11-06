@@ -16,9 +16,13 @@ package com.google.dart.engine.parser;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.IsExpression;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
@@ -31,7 +35,6 @@ import java.util.List;
  * sequences to ensure that the correct recovery steps are taken in the parser.
  */
 public class RecoveryParserTest extends ParserTestCase {
-
   public void test_additiveExpression_missing_LHS() throws Exception {
     BinaryExpression expression = parseExpression("+ y", ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR);
     assertInstanceOf(SimpleIdentifier.class, expression.getLeftOperand());
@@ -473,17 +476,31 @@ public class RecoveryParserTest extends ParserTestCase {
   }
 
   public void test_shiftExpression_precedence_unary_left() throws Exception {
-    BinaryExpression expression = parseExpression("+ <<", ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR);
+    BinaryExpression expression = parseExpression(
+        "+ <<",
+        ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR);
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
   public void test_shiftExpression_precedence_unary_right() throws Exception {
-    BinaryExpression expression = parseExpression("<< +", ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR);
+    BinaryExpression expression = parseExpression(
+        "<< +",
+        ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR);
     assertInstanceOf(BinaryExpression.class, expression.getRightOperand());
   }
 
   public void test_shiftExpression_super() throws Exception {
     BinaryExpression expression = parseExpression("super << <<");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_topLevelExternalFunction_extraSemicolon() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(
+        "external void f(A a);",
+        ParserErrorCode.UNEXPECTED_TOKEN);
+    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
+    assertSize(1, declarations);
+    FunctionDeclaration declaration = (FunctionDeclaration) declarations.get(0);
+    assertNotNull(declaration);
   }
 }

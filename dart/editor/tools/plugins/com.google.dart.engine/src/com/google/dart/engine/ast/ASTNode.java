@@ -70,8 +70,12 @@ public abstract class ASTNode {
    * @return the number of characters in the node's source range
    */
   public int getLength() {
+    Token beginToken = getBeginToken();
     Token endToken = getEndToken();
-    return endToken.getOffset() + endToken.getLength() - getBeginToken().getOffset();
+    if (beginToken == null || endToken == null) {
+      return -1;
+    }
+    return endToken.getOffset() + endToken.getLength() - beginToken.getOffset();
   }
 
   /**
@@ -82,6 +86,10 @@ public abstract class ASTNode {
    *         range
    */
   public int getOffset() {
+    Token beginToken = getBeginToken();
+    if (beginToken == null) {
+      return -1;
+    }
     return getBeginToken().getOffset();
   }
 

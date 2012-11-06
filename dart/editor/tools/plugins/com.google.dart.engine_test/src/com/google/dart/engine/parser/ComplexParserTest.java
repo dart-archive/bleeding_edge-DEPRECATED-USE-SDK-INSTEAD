@@ -18,12 +18,15 @@ import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.ArrayAccess;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
@@ -38,6 +41,20 @@ import com.google.dart.engine.ast.SimpleIdentifier;
  * Simpler tests should be defined in the class {@link SimpleParserTest}.
  */
 public class ComplexParserTest extends ParserTestCase {
+  public void fail_constructor_initializer_withParenthesizedExpression() throws Exception {
+    // The parser is currently getting to the left parenthesis inside the initializer and deciding
+    // that the parentheses are enclosing a parameter list and that the left brace is the body of a
+    // function expression.
+    CompilationUnit unit = parseCompilationUnit(createSource(
+        "class C {",
+        "  C() :",
+        "    this.a = (b == null ? c : d) {",
+        "  }",
+        "}"));
+    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
+    assertSize(1, declarations);
+  }
+
   public void test_additiveExpression_normal() throws Exception {
     BinaryExpression expression = parseExpression("x + y - z");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());

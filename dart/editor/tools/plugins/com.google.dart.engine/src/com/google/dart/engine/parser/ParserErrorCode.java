@@ -27,17 +27,11 @@ public enum ParserErrorCode implements ErrorCode {
 //  ABSTRACT_METHOD_WITH_BODY("Abstract method cannot have a body"),
 //  ABSTRACT_TOP_LEVEL_ELEMENT("Only class can be abstract top-level element"),
   BREAK_OUTSIDE_OF_LOOP("A break statement cannot be used outside of a loop or switch statement"),
-  BUILT_IN_IDENTIFIER_AS_FUNCTION_NAME(ErrorSeverity.WARNING,
-      "The built-in identifier '%s' cannot be used as a function name"),
-  BUILT_IN_IDENTIFIER_AS_LABEL(ErrorSeverity.WARNING,
-      "The built-in identifier '%s' cannot be used as a label"),
   BUILT_IN_IDENTIFIER_AS_TYPE_NAME("The built-in identifier '%s' cannot be used as a type name"),
   BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME(
       "The built-in identifier '%s' cannot be used as a type alias name"),
   BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME(
       "The built-in identifier '%s' cannot be used as a type variable name"),
-  BUILT_IN_IDENTIFIER_AS_VARIABLE_NAME(ErrorSeverity.WARNING,
-      "The built-in identifier '%s' cannot be used as a variable name"),
   CONTINUE_OUTSIDE_OF_LOOP(
       "A continue statement cannot be used outside of a loop or switch statement"),
   CONTINUE_WITHOUT_LABEL_IN_CASE(

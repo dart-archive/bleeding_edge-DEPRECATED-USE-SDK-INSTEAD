@@ -146,6 +146,10 @@ public class FunctionDeclaration extends CompilationUnitMember {
   protected Token getFirstTokenAfterCommentAndMetadata() {
     if (externalKeyword != null) {
       return externalKeyword;
+    }
+    TypeName returnType = functionExpression.getReturnType();
+    if (returnType != null) {
+      return returnType.getBeginToken();
     } else if (propertyKeyword != null) {
       return propertyKeyword;
     }
