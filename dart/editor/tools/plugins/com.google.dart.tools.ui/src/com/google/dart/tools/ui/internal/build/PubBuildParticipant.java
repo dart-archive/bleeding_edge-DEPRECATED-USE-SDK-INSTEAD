@@ -24,6 +24,8 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import java.util.Map;
@@ -51,8 +53,7 @@ public class PubBuildParticipant implements DartBuildParticipant {
           // TODO(keertip): optimize for just changes in dependencies
           if (resource.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
             if (PlatformUI.getWorkbench().getWorkbenchWindows().length > 0) {
-              RunPubAction runPubAction = RunPubAction.createPubInstallAction(PlatformUI.getWorkbench().getWorkbenchWindows()[0]);
-              runPubAction.run(new StructuredSelection(resource));
+              runPubAction(resource);
             }
             monitor.done();
           }
@@ -68,4 +69,15 @@ public class PubBuildParticipant implements DartBuildParticipant {
 
   }
 
+  protected void runPubAction(final IResource resource) {
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+
+        RunPubAction runPubAction = RunPubAction.createPubInstallAction(window);
+        runPubAction.run(new StructuredSelection(resource));
+      }
+    });
+  }
 }
