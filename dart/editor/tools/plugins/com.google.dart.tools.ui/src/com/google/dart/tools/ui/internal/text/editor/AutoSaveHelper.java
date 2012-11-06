@@ -25,6 +25,7 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
@@ -126,11 +127,14 @@ public class AutoSaveHelper {
 
   public static void reconciled(IEditorInput input, ISourceViewer viewer) {
     IFile file = getInputFile(input);
-    if (file != null) {
-      String content = viewer.getDocument().get();
-      Point selection = DartUI.getSelectionRange(viewer);
-      EditorInfo info = new EditorInfo(content, selection.x, selection.y);
-      instance.taskQueue.add(new SaveTask(file, info));
+    if (file != null && viewer != null) {
+      IDocument document = viewer.getDocument();
+      if (document != null) {
+        String content = document.get();
+        Point selection = DartUI.getSelectionRange(viewer);
+        EditorInfo info = new EditorInfo(content, selection.x, selection.y);
+        instance.taskQueue.add(new SaveTask(file, info));
+      }
     }
   }
 
@@ -241,11 +245,6 @@ public class AutoSaveHelper {
 
   private final Map<String, Integer> pathMap = new MapMaker().makeMap();
 
-  private File pathMapGetFile() {
-    File saveFolder = getSaveFolder();
-    return new File(saveFolder, "map");
-  }
-
   /**
    * Removes given {@link IFile} from the list of opened files.
    */
@@ -265,6 +264,11 @@ public class AutoSaveHelper {
       Files.deleteRecursively(saveFolder);
     } catch (Throwable e) {
     }
+  }
+
+  private File pathMapGetFile() {
+    File saveFolder = getSaveFolder();
+    return new File(saveFolder, "map");
   }
 
   /**
