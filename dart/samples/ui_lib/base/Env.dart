@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of base;
-
 /**
  * This class has static fields that hold objects that this isolate
  * uses to interact with the environment.  Which objects are available

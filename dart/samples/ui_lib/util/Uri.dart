@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of utilslib;
-
 /**
  * A parsed URI, inspired by:
  * http://closure-library.googlecode.com/svn/docs/class_goog_Uri.html
@@ -29,7 +27,7 @@ class Uri extends uri.Uri {
 
           // Create a list of values for this name if not yet done.
           List values = queryParams[name];
-          if (values == null) {
+          if (values === null) {
             values = new List();
             queryParams[name] = values;
           }

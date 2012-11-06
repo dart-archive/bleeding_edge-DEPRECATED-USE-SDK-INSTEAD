@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library common;
-import 'dart:math' as Math;
-part 'BenchUtil.dart';
-part 'Interval.dart';
-part 'JSON.dart';
-part 'Math2.dart';
+#library('common.dart');
+#import('dart:math', prefix: 'Math');
+#source('BenchUtil.dart');
+#source('Interval.dart');
+#source('JSON.dart');
+#source('Math2.dart');

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of common;
-
 // Pure Dart implementation of JSON protocol.
 
 /**
@@ -199,7 +197,7 @@ class JsonTokenizer {
                       _s.substring(_pos, _len);
                 }
                 final codeString = _s.substring(_pos + 1, _pos + 5);
-                c = int.parse('0x' + codeString);
+                c = Math.parseInt('0x' + codeString);
                 if (c >= 128) {
                   // TODO(jmessery): the VM doesn't support 2-byte strings yet
                   // see runtime/lib/string.cc:49
@@ -254,7 +252,7 @@ class JsonTokenizer {
 
         final String body = _s.substring(startPos, _pos);
         return new JsonToken.number(
-            isInteger ?  int.parse(body) : double.parse(body));
+            isInteger ?  Math.parseInt(body) : Math.parseDouble(body));
 
       case cur == LBRACE:
         _pos++;
@@ -346,14 +344,14 @@ class JsonParser {
     JsonToken token = _tokenizer.next();
     final result = _parseValue(token);
     token = _tokenizer.next();
-    if (token != null) {
+    if (token !== null) {
       throw 'Junk at the end';
     }
     return result;
   }
 
   _parseValue(final JsonToken token) {
-    if (token == null) {
+    if (token === null) {
       throw 'Nothing to parse';
     }
     switch (token.kind) {
@@ -416,7 +414,7 @@ class JsonParser {
 
   void _parseSequence(int endTokenKind, void parseElement(JsonToken token)) {
     JsonToken token = _tokenizer.next();
-    if (token == null) {
+    if (token === null) {
       throw 'Unexpected end of stream';
     }
     if (token.kind == endTokenKind) {
@@ -426,7 +424,7 @@ class JsonParser {
     parseElement(token);
 
     token = _tokenizer.next();
-    if (token == null) {
+    if (token === null) {
       throw 'Expected either comma or terminator';
     }
     while (token.kind != endTokenKind) {
@@ -440,7 +438,7 @@ class JsonParser {
   }
 
   void _assertTokenKind(JsonToken token, int kind) {
-    if (token == null || token.kind != kind) {
+    if (token === null || token.kind != kind) {
       throw 'Unexpected token kind: token = ${token}, expected kind = ${kind}';
     }
   }
@@ -508,7 +506,7 @@ class JsonStringifier {
   void _checkCycle(final object) {
     // TODO: use Iterables.
     for (int i = 0; i < _seen.length; i++) {
-      if (identical(_seen[i], object)) {
+      if (_seen[i] === object) {
         throw 'Cyclic structure';
       }
     }
@@ -520,13 +518,13 @@ class JsonStringifier {
       // TODO: use writeOn.
       _sb.add(_numberToString(object));
       return;
-    } else if (identical(object, true)) {
+    } else if (object === true) {
         _sb.add('true');
         return;
-    } else if (identical(object, false)) {
+    } else if (object === false) {
         _sb.add('false');
         return;
-    } else if (object == null) {
+    } else if (object === null) {
         _sb.add('null');
         return;
     } else if (object is String) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of touch;
-
 // TODO(jacobr): pick a better name. This was goog.math in Closure.
 /**
  * Math utility functions originally from the closure Math library.
@@ -24,7 +22,7 @@ class GoogleMath {
    * it should be greater than 0.
    * Returns whether [a] and [b] are nearly equal.
    */
-  static bool nearlyEquals(num a, num b, {num tolerance: 0.000001}) {
+  static bool nearlyEquals(num a, num b, [num tolerance = 0.000001]) {
     return (a - b).abs() <= tolerance;
   }
 }

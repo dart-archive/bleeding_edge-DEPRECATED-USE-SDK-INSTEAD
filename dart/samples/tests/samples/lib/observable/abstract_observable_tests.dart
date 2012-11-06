@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of observable_tests;
-
 testAbstractObservable() {
   group('addChangeListener()', () {
     test('adding the same listener twice returns false the second time', () {

@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library view;
+#library("view");
 
-import 'dart:html';
-import 'dart:math' as Math;
+#import('dart:html');
+#import('dart:math', prefix: 'Math');
 
-import '../base/base.dart';
-import '../observable/observable.dart';
-import '../touch/touch.dart';
-import '../layout/layout.dart';
+#import('../base/base.dart');
+#import('../observable/observable.dart');
+#import('../touch/touch.dart');
+#import('../layout/layout.dart');
 
-part 'CompositeView.dart';
-part 'ConveyorView.dart';
-part 'MeasureText.dart';
-part 'PagedViews.dart';
-part 'SliderMenu.dart';
+#source('CompositeView.dart');
+#source('ConveyorView.dart');
+#source('MeasureText.dart');
+#source('PagedViews.dart');
+#source('SliderMenu.dart');
 
 
 // TODO(rnystrom): Note! This class is undergoing heavy construction. It will
@@ -56,7 +56,7 @@ class View implements Positionable {
   // it.
   Element get node {
     // Lazy render.
-    if (_node == null) {
+    if (_node === null) {
       _render();
     }
 
@@ -102,7 +102,7 @@ class View implements Positionable {
 
   /** Gets whether this View has already been rendered or not. */
   bool get isRendered {
-    return _node != null;
+    return _node !== null;
   }
 
   /**
@@ -110,7 +110,7 @@ class View implements Positionable {
    * document or not.
    */
   bool get isInDocument {
-    return _node != null && node.document.body.contains(node);
+    return _node !== null && node.document.body.contains(node);
   }
 
   /**

@@ -1,9 +1,9 @@
-library dom_attr;
-import "dart:html";
-import "dart:json";
-import "dart:math" as Math;
-part "Common.dart";
-part "RunnerSuite.dart";
+#library("dom_attr");
+#import("dart:html");
+#import("dart:json");
+#import("dart:math", prefix: "Math");
+#source("Common.dart");
+#source("RunnerSuite.dart");
 
 void main() {
   final int num = 10240;
@@ -16,24 +16,20 @@ void main() {
 
   new Suite(window, 'dom-attr')
     .test('getAttribute', () {
-      for (int i = 0; i < num; i++) {
+      for (int i = 0; i < num; i++)
         ret = elem.$dom_getAttribute('id');
-      }
     })
     .test('element.property', () {
-      for (int i = 0; i < num * 2; i++) {
+      for (int i = 0; i < num * 2; i++)
         ret = elem.id;
-      }
     })
     .test('setAttribute', () {
-        for (int i = 0; i < num; i++) {
+        for (int i = 0; i < num; i++)
         a.$dom_setAttribute('id', 'foo');
-        }
     })
     .test('element.property = value', () {
-      for (int i = 0; i < num; i++) {
+      for (int i = 0; i < num; i++)
         a.id = 'foo';
-      }
     })
     .end();
 }

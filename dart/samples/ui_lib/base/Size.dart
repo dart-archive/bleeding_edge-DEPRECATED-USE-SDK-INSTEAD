@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of base;
-
 /**
  * A utility class for representing two-dimensional sizes.
  */
@@ -15,7 +13,7 @@ class Size {
   }
 
   bool operator ==(Size other) {
-    return other != null && width == other.width && height == other.height;
+    return other !== null && width == other.width && height == other.height;
   }
 
   /**

@@ -1,7 +1,7 @@
-import 'dart:html';
-import 'dart:json';
-import 'dart:math' as Math;
-import 'Suites.dart';
+#import('dart:html');
+#import('dart:json');
+#import('dart:math', prefix: 'Math');
+#import('Suites.dart');
 
 main() {
   new Dromaeo().run();
@@ -56,7 +56,7 @@ class SuiteController {
       info = '<span>${mean} runs/s</span>';
     }
     _element.innerHTML =
-        '<b>${suiteName}:</b>'
+        '<b>${suiteName}:</b>' 
         '<div class="bar"><div style="width:${percent}%;">${info}</div></div>';
   }
 

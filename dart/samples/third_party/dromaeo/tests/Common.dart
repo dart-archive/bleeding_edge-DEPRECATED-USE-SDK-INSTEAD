@@ -1,5 +1,3 @@
-part of dom_query_html;
-
 class Result {
   int get runs { return _sorted.length; }
 

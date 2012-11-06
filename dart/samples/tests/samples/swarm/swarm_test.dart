@@ -56,7 +56,7 @@ void main() {
         // transition end event before we can click a story.
         SectionView section = getView(swarm.sections[0]);
         section.showSources();
-      },
+      }, 
       () {
         final item = swarm.sections[0].feeds[2].articles[1];
         state.loadFromHistory(getHistory(item));

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of swarmlib;
-
 /**
  * The base class that should be extended by all HTML applications.
  *
@@ -66,7 +64,7 @@ class App {
     final splash = document.query("#appSplash");
     // Delete it if found, but it's okay for it not to be -- maybe
     // somebody just didn't want to use our splash mechanism.
-    if (splash != null) {
+    if (splash !== null) {
       splash.remove();
     }
   }
@@ -77,7 +75,7 @@ class App {
    */
   bool swapAndReloadCache() {
     DOMApplicationCache appCache = window.applicationCache;
-    if (!identical(appCache.status, DOMApplicationCache.UPDATEREADY)) {
+    if (appCache.status !== DOMApplicationCache.UPDATEREADY) {
       return false;
     }
 

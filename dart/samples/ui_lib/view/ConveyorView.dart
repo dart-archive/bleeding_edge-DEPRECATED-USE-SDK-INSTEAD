@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of view;
-
 /**
  * Holds a number of child views.  As you switch between views, the old
  * view is pushed off to the side and the new view slides in from the other
@@ -41,7 +39,7 @@ class ConveyorView extends CompositeView {
     return result;
   }
 
-  void selectView(View targetView_, {bool animate: true}) {
+  void selectView(View targetView_, [bool animate = true]) {
     selectedView = targetView_;
 
     // Only animate if we're actually in the document now.

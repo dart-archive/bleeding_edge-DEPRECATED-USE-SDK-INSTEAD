@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of touch;
-
 /**
  * Touch Handler. Class that handles all touch events and
  * uses them to interpret higher level gestures and behaviors. TouchEvent is a
@@ -235,7 +233,7 @@ class TouchHandler {
   void _onEnd(int timeStamp, [TouchEvent e = null]) {
     _touching = false;
     _touchable.onTouchEnd();
-    if (!_tracking || _draggable == null) {
+    if (!_tracking || _draggable === null) {
       return;
     }
     Touch touch = _getLastTouch();
@@ -248,7 +246,7 @@ class TouchHandler {
       _recentTouchesX = _removeOldTouches(_recentTouchesX, timeStamp);
       _recentTouchesY = _removeOldTouches(_recentTouchesY, timeStamp);
       _draggable.onDragEnd();
-      if (e != null) {
+      if (e !== null) {
         e.preventDefault();
       }
       ClickBuster.preventGhostClick(_startTouchX, _startTouchY);
@@ -260,7 +258,7 @@ class TouchHandler {
    * Touch move handler.
    */
   void _onMove(TouchEvent e) {
-    if (!_tracking || _draggable == null) {
+    if (!_tracking || _draggable === null) {
       return;
     }
     final touch = e.touches[0];
@@ -312,7 +310,7 @@ class TouchHandler {
       return;
     }
     _touching = true;
-    if (!_touchable.onTouchStart(e) || _draggable == null) {
+    if (!_touchable.onTouchStart(e) || _draggable === null) {
       return;
     }
     final touch = e.touches[0];
@@ -373,7 +371,7 @@ class TouchHandler {
 
   // TODO(jacobr): why doesn't bool implement the xor operator directly?
   static bool _xor(bool a, bool b) {
-    return (identical(a, true) || identical(b, true)) && !(identical(a, true) && identical(b, true));
+    return (a === true || b === true) && !(a === true && b === true);
   }
 
   /**

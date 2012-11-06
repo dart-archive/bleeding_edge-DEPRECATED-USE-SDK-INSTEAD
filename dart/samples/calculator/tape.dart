@@ -21,7 +21,7 @@ class Tape {
 
     if (number != "." && number != "-" && number != "-.") {
       try {
-        numberAsValue = double.parse(number.length == 0 ? "0" : number);
+        numberAsValue = Math.parseDouble(number.length == 0 ? "0" : number);
       } on FormatException catch (e) {
         displayError(e.toString());
         return;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of swarmlib;
-
 /** The top-level collection of all sections for a user. */
 // TODO(jimhug): This is known as UserData in the server model.
 class Sections implements Collection<Section> {
@@ -220,7 +218,7 @@ class Article {
   // TODO(jimhug): need to return a lazy Observable<String> and also
   //   add support for preloading.
   void _ensureLoaded() {
-    if (_htmlBody != null) return;
+    if (_htmlBody !== null) return;
 
     var name = '$dataUri.html';
     if (Sections.runningFromFile) {

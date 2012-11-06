@@ -159,7 +159,7 @@ usingGrid(String example, void test_(View grid)) {
   window.setTimeout(() {
     test_(grid);
     window.setTimeout(expectAsync0(() { grid.removeFromDocument(); }), 0);
-  }, 0);
+  }, 0); 
 }
 
 verifyGrid(String example, [Map expected = null]) {

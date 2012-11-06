@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of touch;
-
 /**
  * Implementations can be used to simulate the deceleration of an element within
  * a certain region. To use this behavior you need to provide an initial
@@ -113,7 +111,7 @@ class _Move {
 class Solver {
 
   static num solve(num fn(num), num targetY, num startX,
-                   {int maxIterations: 50}) {
+                   [int maxIterations = 50]) {
     num lastX = 0;
     num lastY = fn(lastX);
     num deltaX;
@@ -281,11 +279,11 @@ class SingleDimensionPhysics {
     velocity = v * _MS_PER_FRAME * _INITIAL_VELOCITY_BOOST_FACTOR;
 
     if (velocity.abs() < _MIN_VELOCITY) {
-      if (_minCoord != null && _currentOffset < _minCoord) {
+      if (_minCoord !== null && _currentOffset < _minCoord) {
         velocity = (_minCoord - _currentOffset) * _POST_BOUNCE_COEFFICIENT;
         velocity = Math.max(velocity, _MIN_STEP_VELOCITY);
         _bouncingState = BouncingState.BOUNCING_BACK;
-      } else if (_maxCoord != null && _currentOffset > _maxCoord) {
+      } else if (_maxCoord !== null && _currentOffset > _maxCoord) {
         velocity = (_currentOffset - _maxCoord) * _POST_BOUNCE_COEFFICIENT;
         velocity = -Math.max(velocity, _MIN_STEP_VELOCITY);
         _bouncingState = BouncingState.BOUNCING_BACK;
@@ -309,10 +307,10 @@ class SingleDimensionPhysics {
     }
 
     num stretchDistance;
-    if (_minCoord != null && _currentOffset < _minCoord) {
+    if (_minCoord !== null && _currentOffset < _minCoord) {
       stretchDistance = _minCoord - _currentOffset;
     } else {
-      if (_maxCoord != null && _currentOffset > _maxCoord) {
+      if (_maxCoord !== null && _currentOffset > _maxCoord) {
         stretchDistance = _maxCoord - _currentOffset;
       }
     }
@@ -337,7 +335,7 @@ class SingleDimensionPhysics {
   void step() {
     // It is common for scrolling to be disabled so in these cases we want to
     // avoid needless calculations.
-    if (velocity != null) {
+    if (velocity !== null) {
       _currentOffset += velocity;
       _adjustVelocity();
     }
@@ -383,7 +381,7 @@ class TimeoutMomentum implements Momentum {
   num _customDecelerationFactor;
   num _defaultDecelerationFactor;
 
-  TimeoutMomentum(this._delegate, {num defaultDecelerationFactor: 1})
+  TimeoutMomentum(this._delegate, [num defaultDecelerationFactor = 1])
     : _defaultDecelerationFactor = defaultDecelerationFactor,
       _decelerating = false,
       _moves = new Queue<_Move>(),
@@ -439,16 +437,16 @@ class TimeoutMomentum implements Momentum {
   bool start(Coordinate velocity, Coordinate minCoord, Coordinate maxCoord,
              Coordinate initialOffset, [num decelerationFactor = null]) {
     _customDecelerationFactor = _defaultDecelerationFactor;
-    if (decelerationFactor != null) {
+    if (decelerationFactor !== null) {
       _customDecelerationFactor = decelerationFactor;
     }
 
-    if (_stepTimeout != null) {
+    if (_stepTimeout !== null) {
       Env.cancelRequestAnimationFrame(_stepTimeout);
       _stepTimeout = null;
     }
 
-    assert (_stepTimeout == null);
+    assert (_stepTimeout === null);
     assert(minCoord.x <= maxCoord.x);
     assert(minCoord.y <= maxCoord.y);
     _previousOffset = initialOffset.clone();
@@ -493,7 +491,7 @@ class TimeoutMomentum implements Momentum {
     // Prune moves that are more than 1 frame behind when we have more
     // available moves.
     num lastEpoch = timestamp - SingleDimensionPhysics._MS_PER_FRAME;
-    while (!_moves.isEmpty && !identical(_moves.first, _moves.last)
+    while (!_moves.isEmpty && _moves.first !== _moves.last
         && _moves.first.time < lastEpoch) {
       _moves.removeFirst();
     }
@@ -503,7 +501,7 @@ class TimeoutMomentum implements Momentum {
       _delegate.onDecelerate(move.x, move.y);
       if (!_moves.isEmpty) {
         num nextTime = _moves.first.time;
-        assert(_stepTimeout == null);
+        assert(_stepTimeout === null);
         _stepTimeout = Env.requestAnimationFrame(_step, null, nextTime);
       } else {
         stop();
@@ -514,7 +512,7 @@ class TimeoutMomentum implements Momentum {
   void abort() {
     _decelerating = false;
     _moves.clear();
-    if (_stepTimeout != null) {
+    if (_stepTimeout !== null) {
       Env.cancelRequestAnimationFrame(_stepTimeout);
       _stepTimeout = null;
     }
@@ -536,7 +534,7 @@ class TimeoutMomentum implements Momentum {
       velocity = new Coordinate(0, 0);
     }
     _moves.clear();
-    if (_stepTimeout != null) {
+    if (_stepTimeout !== null) {
       Env.cancelRequestAnimationFrame(_stepTimeout);
       _stepTimeout = null;
     }
