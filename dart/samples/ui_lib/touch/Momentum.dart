@@ -25,9 +25,10 @@ part of touch;
  * accelerated method such as using 'translate3d' on the element's
  * -webkit-transform style property.
  */
-interface Momentum default TimeoutMomentum {
+abstract class Momentum {
 
-  Momentum(MomentumDelegate delegate, [num defaultDecelerationFactor]);
+  factory Momentum(MomentumDelegate delegate, [num defaultDecelerationFactor]) =
+      TimeoutMomentum;
 
   bool get decelerating;
 
