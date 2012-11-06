@@ -632,6 +632,23 @@ public abstract class AbstractScannerTest extends TestCase {
         new StringToken(TokenType.STRING, "!'", 14));
   }
 
+  public void test_string_simple_interpolation_blockWithNestedMap() throws Exception {
+    assertTokens(
+        "'a ${f({'b' : 'c'})} d'",
+        new StringToken(TokenType.STRING, "'a ", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "${", 3),
+        new StringToken(TokenType.IDENTIFIER, "f", 5),
+        new Token(TokenType.OPEN_PAREN, 6),
+        new Token(TokenType.OPEN_CURLY_BRACKET, 7),
+        new StringToken(TokenType.STRING, "'b'", 8),
+        new Token(TokenType.COLON, 12),
+        new StringToken(TokenType.STRING, "'c'", 14),
+        new Token(TokenType.CLOSE_CURLY_BRACKET, 17),
+        new Token(TokenType.CLOSE_PAREN, 18),
+        new Token(TokenType.CLOSE_CURLY_BRACKET, 19),
+        new StringToken(TokenType.STRING, " d'", 20));
+  }
+
   public void test_string_simple_interpolation_firstAndLast() throws Exception {
     assertTokens( //
         "'$greeting $name'",

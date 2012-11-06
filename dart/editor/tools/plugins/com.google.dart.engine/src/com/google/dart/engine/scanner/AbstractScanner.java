@@ -191,9 +191,9 @@ public abstract class AbstractScanner {
   private void appendEofToken() {
     Token eofToken;
     if (firstComment == null) {
-      eofToken = new Token(TokenType.EOF, getOffset());
+      eofToken = new Token(TokenType.EOF, getOffset() + 1);
     } else {
-      eofToken = new TokenWithComment(TokenType.EOF, getOffset(), firstComment);
+      eofToken = new TokenWithComment(TokenType.EOF, getOffset() + 1, firstComment);
       firstComment = null;
       lastComment = null;
     }
@@ -674,15 +674,23 @@ public abstract class AbstractScanner {
   }
 
   private int tokenizeInterpolatedExpression(int next, int start) {
-    appendStringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "${", 0);
+    appendBeginToken(TokenType.STRING_INTERPOLATION_EXPRESSION);
     next = advance();
     while (next != -1) {
       if (next == '}') {
-        beginToken();
-        appendToken(TokenType.CLOSE_CURLY_BRACKET);
-        next = advance();
-        beginToken();
-        return next;
+        BeginToken begin = groupingStack.get(groupingStack.size() - 1);
+        if (begin.getType() == TokenType.OPEN_CURLY_BRACKET) {
+          beginToken();
+          appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
+          next = advance();
+          beginToken();
+        } else if (begin.getType() == TokenType.STRING_INTERPOLATION_EXPRESSION) {
+          beginToken();
+          appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.STRING_INTERPOLATION_EXPRESSION);
+          next = advance();
+          beginToken();
+          return next;
+        }
       } else {
         next = bigSwitch(next);
       }
