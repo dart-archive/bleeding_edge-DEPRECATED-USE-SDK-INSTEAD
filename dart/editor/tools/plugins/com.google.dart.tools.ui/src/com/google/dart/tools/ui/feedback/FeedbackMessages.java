@@ -43,7 +43,7 @@ public class FeedbackMessages extends NLS {
   public static String FeedbackDialog_link_screenshot_text;
 
   public static String FeedbackSubmissionJob_job_starting_progress_text_text;
-  public static String FeedbackSubmissionJob_job_starting_progress_text_jpeg;
+  public static String FeedbackSubmissionJob_job_starting_progress_text_png;
   public static String FeedbackSubmissionJob_sending_feedback_job_label;
   public static String FeedbackSubmissionJob_unreachable_server_error_text;
 

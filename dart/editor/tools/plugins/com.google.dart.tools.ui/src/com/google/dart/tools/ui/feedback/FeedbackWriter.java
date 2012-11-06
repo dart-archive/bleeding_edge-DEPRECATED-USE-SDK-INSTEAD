@@ -73,7 +73,7 @@ public class FeedbackWriter {
       ByteArrayOutputStream outs = new ByteArrayOutputStream();
       ImageLoader loader = new ImageLoader();
       loader.data = new ImageData[] {feedback.getImage().getImageData()};
-      loader.save(outs, SWT.IMAGE_JPEG);
+      loader.save(outs, SWT.IMAGE_PNG);
       byte[] data = outs.toByteArray();
       return data;
     } else {

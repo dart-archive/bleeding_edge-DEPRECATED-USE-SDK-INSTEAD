@@ -152,18 +152,17 @@ public class FeedbackSubmissionJob extends Job {
   private void submitFeedback(URL serverURL, IProgressMonitor monitor) throws IOException {
     submitFeedback_text(serverURL, monitor);
     if (OpenFeedbackDialogAction.SCREEN_CAPTURE_ENABLED) {
-      submitFeedback_jpeg(serverURL, monitor);
+      if (writer.sendScreenshotData()) {
+        submitFeedback_png(serverURL, monitor);
+      }
     }
   }
 
-  private int submitFeedback_jpeg(URL serverURL, IProgressMonitor monitor) throws IOException {
-    if (!writer.sendScreenshotData()) {
-      return 0;
-    }
+  private int submitFeedback_png(URL serverURL, IProgressMonitor monitor) throws IOException {
     byte[] data = writer.getImageByteArray();
 
     monitor.beginTask(
-        FeedbackMessages.FeedbackSubmissionJob_job_starting_progress_text_jpeg,
+        FeedbackMessages.FeedbackSubmissionJob_job_starting_progress_text_png,
         data.length);
 
     HttpURLConnection connection = (HttpURLConnection) serverURL.openConnection();
@@ -176,7 +175,7 @@ public class FeedbackSubmissionJob extends Job {
     connection.setUseCaches(false);
     connection.setAllowUserInteraction(false);
     connection.setRequestProperty("Connection", "close"); //$NON-NLS-1$ //$NON-NLS-2$
-    connection.setRequestProperty("Content-Type", "image/jpeg"); //$NON-NLS-1$ //$NON-NLS-2$
+    connection.setRequestProperty("Content-Type", "image/png"); //$NON-NLS-1$ //$NON-NLS-2$
 
     DataOutputStream out = new DataOutputStream(connection.getOutputStream());
 
