@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** A local player (API known to the main isolate when creating players). */
-abstract class Player {
+interface Player default PlayerImpl {
 
-  factory Player() = PlayerImpl;
+  Player();
 
   final Future<SendPort> portToPlayer;
 
@@ -17,8 +17,8 @@ abstract class Player {
 }
 
 /** A remote enemy (API visible to a player to communicate with the enemy). */
-abstract class Enemy {
-  factory Enemy(SendPort port) = EnemyImpl;
+interface Enemy default EnemyImpl {
+  Enemy(SendPort port);
 
   /** tell the enemy that we are ready, receive confirmation asynchronously. */
   Future<int> ready();
