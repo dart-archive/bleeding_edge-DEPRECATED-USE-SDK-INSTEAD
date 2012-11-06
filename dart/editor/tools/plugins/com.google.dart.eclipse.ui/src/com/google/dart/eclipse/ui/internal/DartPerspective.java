@@ -37,6 +37,8 @@ public class DartPerspective implements IPerspectiveFactory {
   private static final String WIZARD_NEW_FILE = "com.google.dart.eclipse.wizards.newFile"; //$NON-NLS-1$
   private static final String WIZARD_NEW_FOLDER = "org.eclipse.ui.wizards.new.folder"; //$NON-NLS-1$
 
+  public static final String ID = "com.google.dart.tools.ui.DartPerspective"; //$NON-NLS-1$
+
   public DartPerspective() {
 
   }
@@ -52,8 +54,11 @@ public class DartPerspective implements IPerspectiveFactory {
     topLeft.addPlaceholder(DartUI.ID_APPS_VIEW);
 
     // Bottom left: Property Sheet view
-    IPlaceholderFolderLayout propertiesfolder = layout.createPlaceholderFolder(BL,
-        IPageLayout.BOTTOM, 0.50f, TL);
+    IPlaceholderFolderLayout propertiesfolder = layout.createPlaceholderFolder(
+        BL,
+        IPageLayout.BOTTOM,
+        0.50f,
+        TL);
     propertiesfolder.addPlaceholder(IPageLayout.ID_PROP_SHEET);
     propertiesfolder.addPlaceholder(DartUI.ID_DARTUNIT_VIEW);
 
