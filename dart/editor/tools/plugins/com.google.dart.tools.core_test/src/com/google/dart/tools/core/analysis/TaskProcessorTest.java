@@ -145,11 +145,9 @@ public class TaskProcessorTest extends AbstractDartCoreTest {
    * Assert that the idle operation gets executed after all tasks and after listeners have been
    * notified that the processor is idle.
    */
-  public void test_idleTask() throws Exception {
+  public void test_idleOperation() throws Exception {
     BlockingTask blockingTask = new BlockingTask();
     queue.addNewTask(blockingTask);
-    final BlockingIdleListener blockingListener = new BlockingIdleListener();
-    processor.addIdleListener(blockingListener);
 
     final boolean[] complete = {false};
     processor.setIdleOperation(new Runnable() {
@@ -165,11 +163,14 @@ public class TaskProcessorTest extends AbstractDartCoreTest {
     assertFalse(complete[0]);
     assertTrue(blockingTask.waitUntilStarted(FIVE_MINUTES_MS));
     assertFalse(complete[0]);
+    final BlockingIdleListener blockingListener = new BlockingIdleListener();
+    processor.addIdleListener(blockingListener);
     blockingTask.unblock();
     assertTrue(blockingListener.waitUntilBlocked(FIVE_MINUTES_MS));
     assertFalse(complete[0]);
     processor.removeIdleListener(blockingListener);
     blockingListener.unblock();
+
     synchronized (complete) {
       if (!complete[0]) {
         complete.wait(100);
