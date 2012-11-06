@@ -30,6 +30,7 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
@@ -71,12 +72,22 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
 
   @Override
   public void elementChanged(ElementChangedEvent event) {
-    Display.getDefault().asyncExec(new Runnable() {
-      @Override
-      public void run() {
-        notifyListeners();
-      }
-    });
+    Display defaultDisplay = null;
+
+    try {
+      defaultDisplay = Display.getDefault();
+    } catch (SWTException ex) {
+      // We can get a SWTException here if the display is not yet created.
+    }
+
+    if (defaultDisplay != null) {
+      defaultDisplay.asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          notifyListeners();
+        }
+      });
+    }
   }
 
   @Override
