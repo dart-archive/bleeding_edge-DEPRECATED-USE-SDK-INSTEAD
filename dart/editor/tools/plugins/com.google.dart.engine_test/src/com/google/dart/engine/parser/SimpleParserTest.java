@@ -683,18 +683,18 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(section.getPropertyName());
   }
 
-  public void test_parseCascadeSection_p_builtIn() throws Exception {
-    PropertyAccess section = parse("parseCascadeSection", "..as");
-    assertNull(section.getTarget());
-    assertNotNull(section.getOperator());
-    assertNotNull(section.getPropertyName());
-  }
-
   public void test_parseCascadeSection_p_assign() throws Exception {
     AssignmentExpression section = parse("parseCascadeSection", "..a = 3");
     assertNotNull(section.getLeftHandSide());
     assertNotNull(section.getOperator());
     assertNotNull(section.getRightHandSide());
+  }
+
+  public void test_parseCascadeSection_p_builtIn() throws Exception {
+    PropertyAccess section = parse("parseCascadeSection", "..as");
+    assertNull(section.getTarget());
+    assertNotNull(section.getOperator());
+    assertNotNull(section.getPropertyName());
   }
 
   public void test_parseCascadeSection_pa() throws Exception {
@@ -2936,7 +2936,6 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseOperator() throws Exception {
-    // TODO(brianwilkerson) Implement more tests for this method, such as with a body.
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = parse("parseOperator", new Class[] {
@@ -2981,7 +2980,6 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parsePostfixExpression_decrement() throws Exception {
-    // TODO(brianwilkerson) Implement more tests for this method.
     PostfixExpression expression = parse("parsePostfixExpression", "i--");
     assertNotNull(expression.getOperand());
     assertNotNull(expression.getOperator());
@@ -2993,6 +2991,25 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getOperand());
     assertNotNull(expression.getOperator());
     assertEquals(TokenType.PLUS_PLUS, expression.getOperator().getType());
+  }
+
+  public void test_parsePostfixExpression_none_arrayAccess() throws Exception {
+    ArrayAccess expression = parse("parsePostfixExpression", "a[0]");
+    assertNotNull(expression.getArray());
+    assertNotNull(expression.getIndex());
+  }
+
+  public void test_parsePostfixExpression_none_methodInvocation() throws Exception {
+    MethodInvocation expression = parse("parsePostfixExpression", "a.m()");
+    assertNotNull(expression.getTarget());
+    assertNotNull(expression.getMethodName());
+    assertNotNull(expression.getArgumentList());
+  }
+
+  public void test_parsePostfixExpression_none_propertyAccess() throws Exception {
+    PrefixedIdentifier expression = parse("parsePostfixExpression", "a.b");
+    assertNotNull(expression.getPrefix());
+    assertNotNull(expression.getIdentifier());
   }
 
   public void test_parsePrefixedIdentifier_noPrefix() throws Exception {

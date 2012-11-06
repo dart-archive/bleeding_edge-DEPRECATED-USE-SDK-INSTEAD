@@ -46,9 +46,49 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseExpression", "super = x;", ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
   }
 
+  public void fail_invalidCommentReference__new_nonIdentifier() throws Exception {
+    // This test fails because the parse method returns null.
+    parse(
+        "parseCommentReference",
+        new Class[] {String.class, int.class},
+        new Object[] {"new 42", 0},
+        "",
+        ParserErrorCode.INVALID_COMMENT_REFERENCE);
+  }
+
+  public void fail_invalidCommentReference__nonNew_nonIdentifier() throws Exception {
+    // This test fails because the parse method returns null.
+    parse(
+        "parseCommentReference",
+        new Class[] {String.class, int.class},
+        new Object[] {"42", 0},
+        "",
+        ParserErrorCode.INVALID_COMMENT_REFERENCE);
+  }
+
   public void fail_unexpectedToken_invalidPostfixExpression() throws Exception {
     // Note: this might not be the right error to produce, but some error should be produced
     parse("parseExpression", "f()++", ParserErrorCode.UNEXPECTED_TOKEN);
+  }
+
+  public void test_abstractClassMember_constructor() throws Exception {
+    parse("parseClassMember", "abstract C.c();", ParserErrorCode.ABSTRACT_CLASS_MEMBER);
+  }
+
+  public void test_abstractClassMember_field() throws Exception {
+    parse("parseClassMember", "abstract C f;", ParserErrorCode.ABSTRACT_CLASS_MEMBER);
+  }
+
+  public void test_abstractClassMember_getter() throws Exception {
+    parse("parseClassMember", "abstract get m;", ParserErrorCode.ABSTRACT_CLASS_MEMBER);
+  }
+
+  public void test_abstractClassMember_method() throws Exception {
+    parse("parseClassMember", "abstract m();", ParserErrorCode.ABSTRACT_CLASS_MEMBER);
+  }
+
+  public void test_abstractClassMember_setter() throws Exception {
+    parse("parseClassMember", "abstract set m(v);", ParserErrorCode.ABSTRACT_CLASS_MEMBER);
   }
 
   public void test_breakOutsideOfLoop_breakInDoStatement() throws Exception {
@@ -200,20 +240,67 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_exportDirectiveAfterPartDirective() throws Exception {
-    parseCompilationUnit(
+    parse(
+        "parseCompilationUnit",
         "part 'a.dart'; export 'b.dart';",
         ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE);
   }
 
-  public void test_externalConstructorWithBody() throws Exception {
+  public void test_externalConstructorWithBody_factory() throws Exception {
     parse(
         "parseClassMember",
         "external factory A() {}",
         ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY);
   }
 
+  public void test_externalConstructorWithBody_named() throws Exception {
+    parse("parseClassMember", "external A.c() {}", ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY);
+  }
+
+  public void test_externalField_const() throws Exception {
+    parse("parseClassMember", "external const C f;", ParserErrorCode.EXTERNAL_FIELD);
+  }
+
+  public void test_externalField_final() throws Exception {
+    parse("parseClassMember", "external final C f;", ParserErrorCode.EXTERNAL_FIELD);
+  }
+
+  public void test_externalField_static() throws Exception {
+    parse("parseClassMember", "external static C f;", ParserErrorCode.EXTERNAL_FIELD);
+  }
+
+  public void test_externalField_typed() throws Exception {
+    parse("parseClassMember", "external A f;", ParserErrorCode.EXTERNAL_FIELD);
+  }
+
+  public void test_externalField_untyped() throws Exception {
+    parse("parseClassMember", "external var f;", ParserErrorCode.EXTERNAL_FIELD);
+  }
+
+  public void test_externalGetterWithBody() throws Exception {
+    parse("parseClassMember", "external int get x {}", ParserErrorCode.EXTERNAL_GETTER_WITH_BODY);
+  }
+
   public void test_externalMethodWithBody() throws Exception {
     parse("parseClassMember", "external m() {}", ParserErrorCode.EXTERNAL_METHOD_WITH_BODY);
+  }
+
+  public void test_externalOperatorWithBody() throws Exception {
+    parse(
+        "parseClassMember",
+        "external operator +(int value) {}",
+        ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY);
+  }
+
+  public void test_externalSetterWithBody() throws Exception {
+    parse(
+        "parseClassMember",
+        "external set x(int value) {}",
+        ParserErrorCode.EXTERNAL_SETTER_WITH_BODY);
+  }
+
+  public void test_getterWithParameters() throws Exception {
+    parse("parseClassMember", "int get x() {}", ParserErrorCode.GETTER_WITH_PARAMETERS);
   }
 
   public void test_illegalAssignmentToNonAssignable_superAssigned() throws Exception {
@@ -228,9 +315,71 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_importDirectiveAfterPartDirective() throws Exception {
-    parseCompilationUnit(
+    parse(
+        "parseCompilationUnit",
         "part 'a.dart'; import 'b.dart';",
         ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE);
+  }
+
+  public void test_initializedVariableInForEach() throws Exception {
+    parse(
+        "parseForStatement",
+        "for (int a = 0 in foo) {}",
+        ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH);
+  }
+
+  public void test_invalidCodePoint() throws Exception {
+    parse("parseStringLiteral", "'\\uD900'", ParserErrorCode.INVALID_CODE_POINT);
+  }
+
+  public void test_invalidCommentReference__new_tooMuch() throws Exception {
+    parse("parseCommentReference", new Class[] {String.class, int.class}, new Object[] {
+        "new a.b.c.d", 0}, "", ParserErrorCode.INVALID_COMMENT_REFERENCE);
+  }
+
+  public void test_invalidCommentReference__nonNew_tooMuch() throws Exception {
+    parse("parseCommentReference", new Class[] {String.class, int.class}, new Object[] {
+        "a.b.c.d", 0}, "", ParserErrorCode.INVALID_COMMENT_REFERENCE);
+  }
+
+  public void test_invalidHexEscape_invalidDigit() throws Exception {
+    parse("parseStringLiteral", "'\\x0 a'", ParserErrorCode.INVALID_HEX_ESCAPE);
+  }
+
+  public void test_invalidHexEscape_tooFewDigits() throws Exception {
+    parse("parseStringLiteral", "'\\x0'", ParserErrorCode.INVALID_HEX_ESCAPE);
+  }
+
+  public void test_invalidOperatorForSuper() throws Exception {
+    parse("parseUnaryExpression", "++super", ParserErrorCode.INVALID_OPERATOR_FOR_SUPER);
+  }
+
+  public void test_invalidUnicodeEscape_incomplete_noDigits() throws Exception {
+    parse("parseStringLiteral", "'\\u{'", ParserErrorCode.INVALID_UNICODE_ESCAPE);
+  }
+
+  public void test_invalidUnicodeEscape_incomplete_someDigits() throws Exception {
+    parse("parseStringLiteral", "'\\u{0A'", ParserErrorCode.INVALID_UNICODE_ESCAPE);
+  }
+
+  public void test_invalidUnicodeEscape_invalidDigit() throws Exception {
+    parse("parseStringLiteral", "'\\u0 a'", ParserErrorCode.INVALID_UNICODE_ESCAPE);
+  }
+
+  public void test_invalidUnicodeEscape_tooFewDigits_fixed() throws Exception {
+    parse("parseStringLiteral", "'\\u04'", ParserErrorCode.INVALID_UNICODE_ESCAPE);
+  }
+
+  public void test_invalidUnicodeEscape_tooFewDigits_variable() throws Exception {
+    parse("parseStringLiteral", "'\\u{}'", ParserErrorCode.INVALID_UNICODE_ESCAPE);
+  }
+
+  public void test_invalidUnicodeEscape_tooManyDigits_variable() throws Exception {
+    parse(
+        "parseStringLiteral",
+        "'\\u{12345678}'",
+        ParserErrorCode.INVALID_UNICODE_ESCAPE,
+        ParserErrorCode.INVALID_CODE_POINT);
   }
 
   public void test_libraryDirectiveNotFirst() throws Exception {
@@ -280,6 +429,32 @@ public class ErrorParserTest extends ParserTestCase {
     assertNotNull(statement);
   }
 
+  public void test_missingConstFinalVarOrType() throws Exception {
+    parse(
+        "parseFinalConstVarOrType",
+        new Class[] {boolean.class},
+        new Object[] {false},
+        "a;",
+        ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
+  }
+
+  public void test_missingFunctionBody_emptyNotAllowed() throws Exception {
+    parse("parseFunctionBody", new Class[] {boolean.class, boolean.class}, new Object[] {
+        false, false}, ";", ParserErrorCode.MISSING_FUNCTION_BODY);
+  }
+
+  public void test_missingFunctionBody_invalid() throws Exception {
+    parse("parseFunctionBody", new Class[] {boolean.class, boolean.class}, new Object[] {
+        false, false}, "return 0;", ParserErrorCode.MISSING_FUNCTION_BODY);
+  }
+
+  public void test_missingVariableInForEach() throws Exception {
+    parse(
+        "parseForStatement",
+        "for (a < b in foo) {}",
+        ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH);
+  }
+
   public void test_mixedParameterGroups_namedPositional() throws Exception {
     parse("parseFormalParameterList", "(a, {b}, [c])", ParserErrorCode.MIXED_PARAMETER_GROUPS);
   }
@@ -314,6 +489,13 @@ public class ErrorParserTest extends ParserTestCase {
         "parseFormalParameterList",
         "(a, [b], [c])",
         ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS);
+  }
+
+  public void test_multipleVariablesInForEach() throws Exception {
+    parse(
+        "parseForStatement",
+        "for (int a, b in foo) {}",
+        ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH);
   }
 
   public void test_namedParameterOutsideGroup() throws Exception {

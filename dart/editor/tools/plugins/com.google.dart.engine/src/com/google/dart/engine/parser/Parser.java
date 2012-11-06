@@ -231,16 +231,16 @@ public class Parser {
    * value is invalid.
    * 
    * @param builder the builder to which the scalar value is to be appended
+   * @param escapeSequence the escape sequence that was parsed to produce the scalar value
    * @param scalarValue the value to be appended
    * @param startIndex the index of the first character representing the scalar value
    * @param endIndex the index of the last character representing the scalar value
    */
-  private void appendScalarValue(StringBuilder builder, int scalarValue, int startIndex,
-      int endIndex) {
+  private void appendScalarValue(StringBuilder builder, String escapeSequence, int scalarValue,
+      int startIndex, int endIndex) {
     if (scalarValue < 0 || scalarValue > Character.MAX_CODE_POINT
         || (scalarValue >= 0xD800 && scalarValue <= 0xDFFF)) {
-      // Illegal escape sequence: invalid code point
-      // reportError(ParserErrorCode.INVALID_CODE_POINT));
+      reportError(ParserErrorCode.INVALID_CODE_POINT, escapeSequence);
       return;
     }
     if (scalarValue < Character.MAX_VALUE) {
@@ -1153,7 +1153,7 @@ public class Parser {
     // TODO(brianwilkerson) The following condition exists for backward compatibility and might want
     // to be removed before shipping.
     if (matches(Keyword.ABSTRACT)) {
-      // reportError(ParserErrorCode.?);
+      reportError(ParserErrorCode.ABSTRACT_CLASS_MEMBER);
       advance();
     }
     Token externalKeyword = null;
@@ -1169,7 +1169,7 @@ public class Parser {
         }
       }
       if (externalKeyword != null) {
-        // reportError(ParserErrorCode.?);
+        reportError(ParserErrorCode.EXTERNAL_FIELD);
       }
       return new FieldDeclaration(
           commentAndMetadata.getComment(),
@@ -1181,7 +1181,7 @@ public class Parser {
       return parseFactoryConstructor(commentAndMetadata, externalKeyword);
     } else if (matches(Keyword.FINAL)) {
       if (externalKeyword != null) {
-        // reportError(ParserErrorCode.?);
+        reportError(ParserErrorCode.EXTERNAL_FIELD);
       }
       return new FieldDeclaration(
           commentAndMetadata.getComment(),
@@ -1194,7 +1194,7 @@ public class Parser {
     if (matches(Keyword.STATIC)) {
       if (peekMatches(Keyword.FINAL) || peekMatches(Keyword.CONST)) {
         if (externalKeyword != null) {
-          // reportError(ParserErrorCode.?);
+          reportError(ParserErrorCode.EXTERNAL_FIELD);
         }
         return new FieldDeclaration(
             commentAndMetadata.getComment(),
@@ -1207,7 +1207,7 @@ public class Parser {
     }
     if (matches(Keyword.VAR)) {
       if (externalKeyword != null) {
-        // reportError(ParserErrorCode.?);
+        reportError(ParserErrorCode.EXTERNAL_FIELD);
       }
       return parseInitializedIdentifierList(
           commentAndMetadata,
@@ -1265,7 +1265,7 @@ public class Parser {
           returnType);
     }
     if (externalKeyword != null) {
-      // reportError(ParserErrorCode.?);
+      reportError(ParserErrorCode.EXTERNAL_FIELD);
     }
     return parseInitializedIdentifierList(commentAndMetadata, staticKeyword, null, returnType);
   }
@@ -1370,15 +1370,15 @@ public class Parser {
             nextToken = firstToken.getNext();
           }
           if (nextToken.getType() != TokenType.EOF) {
-            // reportError(ParserErrorCode.?);
+            reportError(ParserErrorCode.INVALID_COMMENT_REFERENCE);
           }
           return new CommentReference(newKeyword, identifier);
         } else {
-          // reportError(ParserErrorCode.?);
+          reportError(ParserErrorCode.INVALID_COMMENT_REFERENCE);
         }
       }
     } catch (Exception exception) {
-      // reportError(ParserErrorCode.?);
+      reportError(ParserErrorCode.INVALID_COMMENT_REFERENCE);
     }
     return null;
   }
@@ -1707,7 +1707,7 @@ public class Parser {
     }
     FunctionBody body = parseFunctionBody(true, false);
     if (!bodyAllowed && !(body instanceof EmptyFunctionBody)) {
-      // reportError(ParserErrorCode.?);
+      reportError(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY);
     }
     return new ConstructorDeclaration(
         commentAndMetadata.getComment(),
@@ -2118,7 +2118,7 @@ public class Parser {
       if (peekMatchesIdentifier() || peekMatches(TokenType.LT) || peekMatches(Keyword.THIS)) {
         type = parseReturnType();
       } else if (!optional) {
-        // reportError(ParserErrorCode.?);
+        reportError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
       }
     }
     return new FinalConstVarOrType(keyword, type);
@@ -2350,16 +2350,18 @@ public class Parser {
         if (matches(Keyword.IN)) {
           SimpleFormalParameter loopParameter = null;
           if (variableList == null) {
-            // We found: expression 'in'
-            // reportError(ParserErrorCode.?);
+            // We found: <expression> 'in'
+            reportError(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH);
           } else {
             NodeList<VariableDeclaration> variables = variableList.getVariables();
             if (variables.size() > 1) {
-              // reportError(ParserErrorCode.?);
+              reportError(
+                  ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH,
+                  Integer.toString(variables.size()));
             }
             VariableDeclaration variable = variables.get(0);
             if (variable.getInitializer() != null) {
-              // reportError(ParserErrorCode.?);
+              reportError(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH);
             }
             loopParameter = new SimpleFormalParameter(
                 null,
@@ -2381,7 +2383,7 @@ public class Parser {
               rightParenthesis,
               body);
         }
-        // Ensure that the loop parameter is not final.
+        // TODO(brianwilkerson) Ensure that the loop parameter is not final.
         // reportError(ParserErrorCode.?);
       }
       Token leftSeparator = expect(TokenType.SEMICOLON);
@@ -2438,7 +2440,7 @@ public class Parser {
     try {
       if (matches(TokenType.SEMICOLON)) {
         if (!mayBeEmpty) {
-          // reportError(ParserErrorCode.?);
+          reportError(ParserErrorCode.MISSING_FUNCTION_BODY);
         }
         return new EmptyFunctionBody(getAndAdvance());
       } else if (matches(TokenType.FUNCTION)) {
@@ -2453,8 +2455,8 @@ public class Parser {
         return new BlockFunctionBody(parseBlock());
       } else {
         // Invalid function body
-        // reportError(ParserErrorCode.?);
-        return null; //new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON));
+        reportError(ParserErrorCode.MISSING_FUNCTION_BODY);
+        return new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON));
       }
     } finally {
       inLoop = wasInLoop;
@@ -2571,13 +2573,13 @@ public class Parser {
     Token propertyKeyword = expect(Keyword.GET);
     SimpleIdentifier name = parseSimpleIdentifier();
     if (matches(TokenType.OPEN_PAREN) && peekMatches(TokenType.CLOSE_PAREN)) {
-      // reportError(ParserErrorCode.GETTER_WITH_PARAMETERS);
+      reportError(ParserErrorCode.GETTER_WITH_PARAMETERS);
       advance();
       advance();
     }
     FunctionBody body = parseFunctionBody(true, false);
     if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
-      // reportError(ParserErrorCode.?);
+      reportError(ParserErrorCode.EXTERNAL_GETTER_WITH_BODY);
     }
     return new MethodDeclaration(
         commentAndMetadata.getComment(),
@@ -3219,15 +3221,15 @@ public class Parser {
     Token thisKeyword = null;
     Token period = null;
     if (matches(Keyword.THIS)) {
-      // Validate that field initializers are only used in constructors.
-      // reportError(ParserErrorCode.?);
+      // TODO(brianwilkerson) Validate that field initializers are only used in constructors.
+      // reportError(ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR);
       thisKeyword = getAndAdvance();
       period = expect(TokenType.PERIOD);
     }
     SimpleIdentifier identifier = parseSimpleIdentifier();
     if (matches(TokenType.OPEN_PAREN)) {
       if (thisKeyword != null) {
-        // Decide how to recover from this error.
+        // TODO(brianwilkerson) Decide how to recover from this error.
         // reportError(ParserErrorCode.?);
       }
       FormalParameterList parameters = parseFormalParameterList();
@@ -3238,7 +3240,7 @@ public class Parser {
           identifier,
           parameters);
     }
-    // Validate that the type is not void because this is not a function signature.
+    // TODO(brianwilkerson) Validate that the type is not void because this is not a function signature.
     // reportError(ParserErrorCode.?);
     if (thisKeyword != null) {
       return new FieldFormalParameter(
@@ -3286,7 +3288,7 @@ public class Parser {
     FormalParameterList parameters = parseFormalParameterList();
     FunctionBody body = parseFunctionBody(true, false);
     if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
-      // reportError(ParserErrorCode.?);
+      reportError(ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY);
     }
     return new MethodDeclaration(
         commentAndMetadata.getComment(),
@@ -3648,7 +3650,7 @@ public class Parser {
     FormalParameterList parameters = parseFormalParameterList();
     FunctionBody body = parseFunctionBody(true, false);
     if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
-      // reportError(ParserErrorCode.?);
+      reportError(ParserErrorCode.EXTERNAL_SETTER_WITH_BODY);
     }
     return new MethodDeclaration(
         commentAndMetadata.getComment(),
@@ -4225,7 +4227,7 @@ public class Parser {
               new SuperExpression(getAndAdvance())));
         } else {
           // Invalid operator before 'super'
-          // reportError(ParserErrorCode.?);
+          reportError(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, operator.getLexeme());
           return new PrefixExpression(operator, new SuperExpression(getAndAdvance()));
         }
       }
@@ -4709,7 +4711,10 @@ public class Parser {
     int currentIndex = index + 1;
     if (currentIndex >= length) {
       // Illegal escape sequence: no char after escape
-      // reportError(ParserErrorCode.?);
+      // This cannot actually happen because it would require the escape character to be the last
+      // character in the string, but if it were it would escape the closing quote, leaving the
+      // string unclosed.
+      // reportError(ParserErrorCode.MISSING_CHAR_IN_ESCAPE_SEQUENCE);
       return length;
     }
     currentChar = lexeme.charAt(currentIndex);
@@ -4728,14 +4733,14 @@ public class Parser {
     } else if (currentChar == 'x') {
       if (currentIndex + 2 >= length) {
         // Illegal escape sequence: not enough hex digits
-        // reportError(ParserErrorCode.?);
+        reportError(ParserErrorCode.INVALID_HEX_ESCAPE);
         return length;
       }
       char firstDigit = lexeme.charAt(currentIndex + 1);
       char secondDigit = lexeme.charAt(currentIndex + 2);
       if (!isHexDigit(firstDigit) || !isHexDigit(secondDigit)) {
         // Illegal escape sequence: invalid hex digit
-        // reportError(ParserErrorCode.?);
+        reportError(ParserErrorCode.INVALID_HEX_ESCAPE);
       } else {
         builder.append((char) ((Character.digit(firstDigit, 16) << 4) + Character.digit(
             secondDigit,
@@ -4746,7 +4751,7 @@ public class Parser {
       currentIndex++;
       if (currentIndex >= length) {
         // Illegal escape sequence: not enough hex digits
-        // reportError(ParserErrorCode.?);
+        reportError(ParserErrorCode.INVALID_UNICODE_ESCAPE);
         return length;
       }
       currentChar = lexeme.charAt(currentIndex);
@@ -4754,7 +4759,7 @@ public class Parser {
         currentIndex++;
         if (currentIndex >= length) {
           // Illegal escape sequence: incomplete escape
-          // reportError(ParserErrorCode.?);
+          reportError(ParserErrorCode.INVALID_UNICODE_ESCAPE);
           return length;
         }
         currentChar = lexeme.charAt(currentIndex);
@@ -4763,7 +4768,7 @@ public class Parser {
         while (currentChar != '}') {
           if (!isHexDigit(currentChar)) {
             // Illegal escape sequence: invalid hex digit
-            // reportError(ParserErrorCode.?);
+            reportError(ParserErrorCode.INVALID_UNICODE_ESCAPE);
             currentIndex++;
             while (currentIndex < length && lexeme.charAt(currentIndex) != '}') {
               currentIndex++;
@@ -4775,21 +4780,26 @@ public class Parser {
           currentIndex++;
           if (currentIndex >= length) {
             // Illegal escape sequence: incomplete escape
-            // reportError(ParserErrorCode.?);
+            reportError(ParserErrorCode.INVALID_UNICODE_ESCAPE);
             return length;
           }
           currentChar = lexeme.charAt(currentIndex);
         }
         if (digitCount < 1 || digitCount > 6) {
           // Illegal escape sequence: not enough or too many hex digits
-          // reportError(ParserErrorCode.?);
+          reportError(ParserErrorCode.INVALID_UNICODE_ESCAPE);
         }
-        appendScalarValue(builder, value, index, currentIndex);
+        appendScalarValue(
+            builder,
+            lexeme.substring(index, currentIndex + 1),
+            value,
+            index,
+            currentIndex);
         return currentIndex + 1;
       } else {
         if (currentIndex + 3 >= length) {
           // Illegal escape sequence: not enough hex digits
-          // reportError(ParserErrorCode.?);
+          reportError(ParserErrorCode.INVALID_UNICODE_ESCAPE);
           return length;
         }
         char firstDigit = currentChar;
@@ -4799,10 +4809,11 @@ public class Parser {
         if (!isHexDigit(firstDigit) || !isHexDigit(secondDigit) || !isHexDigit(thirdDigit)
             || !isHexDigit(fourthDigit)) {
           // Illegal escape sequence: invalid hex digits
-          // reportError(ParserErrorCode.?);
+          reportError(ParserErrorCode.INVALID_UNICODE_ESCAPE);
         } else {
           appendScalarValue(
               builder,
+              lexeme.substring(index, currentIndex + 1),
               ((((((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)) << 4) + Character.digit(
                   thirdDigit,
                   16)) << 4) + Character.digit(fourthDigit, 16)),

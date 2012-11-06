@@ -24,7 +24,7 @@ import com.google.dart.engine.error.SubSystem;
  * when appropriate, how the problem can be corrected.
  */
 public enum ParserErrorCode implements ErrorCode {
-//  ABSTRACT_METHOD_WITH_BODY("Abstract method cannot have a body"),
+  ABSTRACT_CLASS_MEMBER("Members of classes cannot be marked as 'abstract'"),
 //  ABSTRACT_TOP_LEVEL_ELEMENT("Only class can be abstract top-level element"),
   BREAK_OUTSIDE_OF_LOOP("A break statement cannot be used outside of a loop or switch statement"),
   BUILT_IN_IDENTIFIER_AS_TYPE_NAME("The built-in identifier '%s' cannot be used as a type name"),
@@ -70,7 +70,11 @@ public enum ParserErrorCode implements ErrorCode {
 //  EXPECTED_VAR_FINAL_OR_TYPE("Expected 'var', 'final' or type"),
   EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE("Export directives must preceed part directives"),
   EXTERNAL_CONSTRUCTOR_WITH_BODY("External constructors cannot have a body"),
+  EXTERNAL_FIELD("Fields cannot be declared 'external'"),
+  EXTERNAL_GETTER_WITH_BODY("External getters cannot have a body"),
   EXTERNAL_METHOD_WITH_BODY("External methods cannot have a body"),
+  EXTERNAL_OPERATOR_WITH_BODY("External operators cannot have a body"),
+  EXTERNAL_SETTER_WITH_BODY("External setters cannot have a body"),
 //  NATIVE_ONLY_CLASS("Native keyword can be specified only for classes"),
 //  NATIVE_ONLY_CORE_LIB("Native keyword can be used only in corelib"),
 //  FACTORY_CANNOT_BE_ABSTRACT("A factory cannot be abstract"),
@@ -83,13 +87,23 @@ public enum ParserErrorCode implements ErrorCode {
 //  FUNCTION_TYPED_PARAMETER_IS_FINAL("Formal parameter with a function type cannot be const"),
 //  FUNCTION_TYPED_PARAMETER_IS_VAR("Formal parameter with a function type cannot be var"),
 //  FUNCTION_NAME_EXPECTED_IDENTIFIER("Function name expected to be an identifier"),
+  GETTER_WITH_PARAMETERS("Getter should be declared without a parameter list"),
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
 //  ILLEGAL_NUMBER_OF_PARAMETERS("Illegal number of parameters"),
   IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE("Import directives must preceed part directives"),
 //  INCOMPLETE_STRING_LITERAL("Incomplete string literal"),
+  INITIALIZED_VARIABLE_IN_FOR_EACH("The loop variable in a for-each loop cannot be initialized"),
+  INVALID_CODE_POINT("The escape sequence '%s' is not a valid code point"),
+  INVALID_COMMENT_REFERENCE(
+      "Comment references should contain a possibly prefixed identifier and can start with 'new', but should not contain anything else"),
 //  INVALID_FIELD_DECLARATION("Wrong syntax for field declaration"),
 //  INVALID_IDENTIFIER("The token '%s' cannot be used as an identifier"),
 //  INVALID_OPERATOR_CHAINING("Cannot chain '%s'"),
+  INVALID_HEX_ESCAPE(
+      "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits"),
+  INVALID_OPERATOR_FOR_SUPER("The operator '%s' cannot be used with 'super'"),
+  INVALID_UNICODE_ESCAPE(
+      "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'"),
 //  LABEL_NOT_FOLLOWED_BY_CASE_OR_DEFAULT("Label not followed by 'case', 'default', or statement"),
   LIBRARY_DIRECTIVE_NOT_FIRST("The library directive must appear before all other directives"),
 //  LOCAL_CANNOT_BE_STATIC("Local function can not be static"),
@@ -98,6 +112,11 @@ public enum ParserErrorCode implements ErrorCode {
   // parsing the assignable selector in order to get decent messages.
   MISSING_ASSIGNABLE_SELECTOR("Missing selector such as \".<identifier>\" or \"[0]\""),
   MISSING_CATCH_OR_FINALLY("A try statement must have either a catch or finally clause"),
+  MISSING_CONST_FINAL_VAR_OR_TYPE(
+      "Variables must be declared using the keywords 'const', 'final', 'var' or a type name"),
+  MISSING_FUNCTION_BODY("A function body must be provided"),
+  MISSING_VARIABLE_IN_FOR_EACH(
+      "A loop variable must be declared in a for-each loop before the 'in', but none were found"),
   MIXED_PARAMETER_GROUPS(
       "Cannot have both positional and named parameters in a single parameter list"),
   MULTIPLE_LIBRARY_DIRECTIVES("Only one library directive may be declared in a file"),
@@ -106,6 +125,8 @@ public enum ParserErrorCode implements ErrorCode {
   MULTIPLE_PART_OF_DIRECTIVES("Only one part-of directive may be declared in a file"),
   MULTIPLE_POSITIONAL_PARAMETER_GROUPS(
       "Cannot have multiple groups of positional parameters in a single parameter list"),
+  MULTIPLE_VARIABLES_IN_FOR_EACH(
+      "A single loop variable must be declared in a for-each loop before the 'in', but %s were found"),
   NAMED_PARAMETER_OUTSIDE_GROUP("Named parameters must be enclosed in curly braces ('{' and '}')"),
 //  NAMED_PARAMETER_NOT_ALLOWED("Named parameter is not allowed for operator or setter method"),
 //  NO_SPACE_AFTER_PLUS("Cannot have space between plus and numeric literal"),
