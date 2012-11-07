@@ -1162,6 +1162,7 @@ public class DartLibraryImplTest extends TestCase {
         return (DartLibraryImpl) elem;
       }
     }
+    TestUtilities.processAllDeltaChanges();
     return (DartLibraryImpl) DartCore.openLibrary(libFile, new NullProgressMonitor());
   }
 
