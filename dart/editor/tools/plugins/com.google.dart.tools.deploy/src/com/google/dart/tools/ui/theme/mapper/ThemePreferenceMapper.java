@@ -13,10 +13,13 @@
  */
 package com.google.dart.tools.ui.theme.mapper;
 
+import com.google.dart.tools.deploy.Activator;
 import com.google.dart.tools.ui.theme.ColorThemeSetting;
+import com.google.dart.tools.ui.theme.preferences.PreviewPreferences;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.ui.preferences.WorkingCopyManager;
 import org.osgi.service.prefs.BackingStoreException;
 
 import java.util.Map;
@@ -27,22 +30,17 @@ import java.util.Map;
  * @see com.github.eclipsecolortheme.mapper.ThemePreferenceMapper
  */
 public abstract class ThemePreferenceMapper {
+
   /** The associated Eclipse preferences. */
   protected IEclipsePreferences preferences;
+
+  /** Copy of the preferences used to update the preview. */
+  private IEclipsePreferences previewPreferences;
 
   /**
    * Creates a new mapper.
    */
   public ThemePreferenceMapper() {
-  }
-
-  /**
-   * Creates a new mapper.
-   * 
-   * @param plugin The ID of the Eclipse plugin whose preferences should be altered.
-   */
-  public ThemePreferenceMapper(String plugin) {
-    setPluginId(plugin);
   }
 
   /**
@@ -59,6 +57,10 @@ public abstract class ThemePreferenceMapper {
     preferences.flush();
   }
 
+  public IEclipsePreferences getPreviewPreferences() {
+    return previewPreferences;
+  }
+
   /**
    * Maps the {@code theme} to the associated Eclipse preferences.
    * 
@@ -66,13 +68,36 @@ public abstract class ThemePreferenceMapper {
    */
   public abstract void map(Map<String, ColorThemeSetting> theme);
 
+  public void previewRun(Runnable runnable) {
+    IEclipsePreferences prefs = preferences;
+    try {
+      preferences = previewPreferences;
+      runnable.run();
+    } catch (Throwable ex) {
+    // TODO(messick): Add proper error handling.
+      ex.printStackTrace();
+    } finally {
+      preferences = prefs;
+    }
+  }
+
   /**
    * Sets the plugin ID and loads preferences.
    * 
    * @param plugin The ID of the Eclipse plugin whose preferences should be altered.
    */
-  public void setPluginId(String plugin) {
+  public void setPluginId(String plugin, WorkingCopyManager manager) {
     preferences = InstanceScope.INSTANCE.getNode(plugin);
+    previewPreferences = new PreviewPreferences();
+    try {
+      String[] keys = preferences.keys();
+      for (String key : keys) {
+        previewPreferences.put(key, preferences.get(key, null));
+      }
+    } catch (BackingStoreException ex) {
+      Activator.logError(ex);
+    }
+    preferences = manager.getWorkingCopy(preferences);
   }
 
   /**

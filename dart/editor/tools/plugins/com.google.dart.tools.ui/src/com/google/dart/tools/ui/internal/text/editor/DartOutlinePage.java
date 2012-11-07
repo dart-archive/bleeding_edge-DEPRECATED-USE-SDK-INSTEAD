@@ -178,7 +178,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
       tree.addListener(SWT.EraseItem, new Listener() {
         @Override
         public void handleEvent(Event event) {
-          event.detail &= ~SWT.HOT;
+          event.detail &= ~SWT.HOT; // do not draw hover background natively
           if ((event.detail & SWT.SELECTED) == 0) {
             return; // item not selected
           }

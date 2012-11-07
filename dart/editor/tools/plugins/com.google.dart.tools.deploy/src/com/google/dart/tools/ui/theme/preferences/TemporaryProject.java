@@ -36,7 +36,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -48,7 +47,6 @@ import java.io.Reader;
  */
 public class TemporaryProject {
 
-  // Note that this name is embedded in a string in DeltaProcessingState.
   private static final String DEFAULT_NAME = "CodeColoringSample";
 
   static void deleteProject(IProject project) throws CoreException {
@@ -198,12 +196,6 @@ public class TemporaryProject {
       file.create(stream, true, null);
       file.setCharset("UTF-8", null);
     }
-    // Notify AnalysisServer.
-    // TODO(messick): Verify that this is needed. 
-    AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
-    File dartFile = file.getLocation().toFile();
-    server.scan(dartFile, 5000);
-    server.changed(dartFile);
     return file;
   }
 
@@ -222,7 +214,8 @@ public class TemporaryProject {
   public CompilationUnit setUnitContent(String path, String content) throws IOException,
       CoreException {
     IFile file = setFileContent(path, content);
-    return (CompilationUnit) DartCore.create(file);
+    CompilationUnit unit = (CompilationUnit) DartCore.create(file);
+    return unit;
   }
 
   private String findUniqueName(IWorkspaceRoot root, String initialName) {

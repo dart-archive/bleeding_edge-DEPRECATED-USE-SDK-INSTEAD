@@ -16,13 +16,17 @@ package com.google.dart.tools.ui.theme.preferences;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.deploy.Activator;
-import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
+import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
+import com.google.dart.tools.ui.internal.text.editor.DartSourceViewer;
 import com.google.dart.tools.ui.theme.ColorTheme;
 import com.google.dart.tools.ui.theme.ColorThemeManager;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.text.source.SourceViewer;
 import org.eclipse.swt.SWT;
@@ -48,7 +52,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.internal.WorkbenchPage;
-import org.eclipse.ui.texteditor.AbstractTextEditor;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -56,8 +59,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Set;
@@ -73,6 +74,10 @@ import java.util.Set;
 public class ThemePreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
   private static final String SAMPLE_CODE_FILE_NAME = "DartSample.dart";
+
+  public static IPreferenceStore globalPreferences() {
+    return Activator/*DartToolsPlugin*/.getDefault().getPreferenceStore();
+  }
 
   private static String loadPreviewContentFromFile(String filename) {
     String line;
@@ -134,15 +139,15 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
   private Link websiteLink;
   private TemporaryProject project;
   private CompilationUnit unit;
-  private DartEditor editor;
-  private SourceViewer sourceViewer;
+  private CompilationUnitEditor editor;
+  private DartSourceViewer sourceViewer;
   private WorkbenchPage page;
 
   /**
    * Creates a new color theme preference page.
    */
   public ThemePreferencePage() {
-    setPreferenceStore(Activator.getDefault().getPreferenceStore());
+    setPreferenceStore(globalPreferences());
   }
 
   @Override
@@ -155,6 +160,7 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
       return true;
     }
     try {
+      editor.close(false);
       project.dispose();
     } catch (CoreException ex) {
       Activator.logError(ex);
@@ -171,6 +177,7 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
       String selectedThemeName = themeSelectionList.getSelection()[0];
       getPreferenceStore().setValue("colorTheme", selectedThemeName); // $NON-NLS-1$
       colorThemeManager.applyTheme(selectedThemeName);
+      editor.close(false);
       project.dispose();
     } catch (PartInitException e) {
       Activator.logError(e);
@@ -325,7 +332,6 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
 
   private SourceViewer getSourceViewer(Composite parent) {
     (sourceViewer.getTextWidget()).setParent(parent);
-    editor.close(false);
     return sourceViewer;
   }
 
@@ -348,7 +354,7 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
       project = new TemporaryProject();
       String name = "Temp.dart";
       unit = project.setUnitContent(name, sampleCode);
-      editor = (DartEditor) IDE.openEditor(
+      editor = (CompilationUnitEditor) IDE.openEditor(
           PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(),
           (IFile) unit.getResource());
       project.getProject().setHidden(true);
@@ -364,18 +370,13 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
       if (ref != null) {
         page.hideEditor(ref);
       }
-      Method method = AbstractTextEditor.class.getDeclaredMethod("getSourceViewer");
-      method.setAccessible(true);
-      sourceViewer = (SourceViewer) method.invoke(editor);
+      IPreferenceStore store = colorThemeManager.createCombinedPreferenceStore();
+      editor.setPreferences(store);
+      sourceViewer = ReflectionUtils.invokeMethod(editor, "getSourceViewer()");
+      sourceViewer.setPreferenceStore(store);
     } catch (CoreException ex) {
       caughtException = ex;
     } catch (IOException ex) {
-      caughtException = ex;
-    } catch (NoSuchMethodException ex) {
-      caughtException = ex;
-    } catch (InvocationTargetException ex) {
-      caughtException = ex;
-    } catch (IllegalAccessException ex) {
       caughtException = ex;
     }
     if (caughtException != null) {
@@ -400,8 +401,9 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
         setLinkTarget(websiteLink, website);
         websiteLink.setVisible(true);
       }
-      colorThemeManager.applyTheme(theme.getName()); // TODO(messick): Update only preview, not entire world!
       themeDetails.setVisible(true);
+      colorThemeManager.previewTheme(theme.getName()); // TODO(messick): Update only preview, not entire world!
+      editor.reconciled(editor.getAST(), true, new NullProgressMonitor());
       authorLabel.pack();
       websiteLink.pack();
     }

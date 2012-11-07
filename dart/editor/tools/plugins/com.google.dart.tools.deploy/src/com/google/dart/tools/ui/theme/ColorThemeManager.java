@@ -14,8 +14,10 @@
 package com.google.dart.tools.ui.theme;
 
 import com.google.dart.tools.deploy.Activator;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.theme.mapper.GenericMapper;
 import com.google.dart.tools.ui.theme.mapper.ThemePreferenceMapper;
+import com.google.dart.tools.ui.theme.preferences.ThemePreferencePage;
 
 import static com.google.dart.tools.ui.theme.ColorThemeKeys.BACKGROUND;
 import static com.google.dart.tools.ui.theme.ColorThemeKeys.CURRENT_LINE;
@@ -35,7 +37,12 @@ import static com.google.dart.tools.ui.theme.ColorThemeKeys.WRITE_OCCURRENCE_IND
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences.IPreferenceChangeListener;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences.PreferenceChangeEvent;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.ui.preferences.WorkingCopyManager;
+import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 import org.osgi.framework.Bundle;
 import org.osgi.service.prefs.BackingStoreException;
 import org.w3c.dom.Document;
@@ -62,6 +69,20 @@ import javax.xml.parsers.ParserConfigurationException;
  * @see com.github.eclipsecolortheme.ColorThemeManager
  */
 public class ColorThemeManager {
+
+  private static class IEclipsePreferencesAdapter extends DartEditor.EclipsePreferencesAdapter {
+    private IEclipsePreferences store;
+
+    IEclipsePreferencesAdapter(IEclipsePreferences prefs) {
+      super(null, null);
+      store = prefs;
+    }
+
+    @Override
+    protected IEclipsePreferences getNode() {
+      return store;
+    }
+  }
 
   public static ColorTheme parseTheme(InputStream input) throws ParserConfigurationException,
       SAXException, IOException {
@@ -128,7 +149,7 @@ public class ColorThemeManager {
   }
 
   private static IPreferenceStore getPreferenceStore() {
-    return Activator.getDefault().getPreferenceStore();
+    return ThemePreferencePage.globalPreferences();
   }
 
   private static void readImportedThemes(Map<String, ColorTheme> themes) {
@@ -170,11 +191,12 @@ public class ColorThemeManager {
   }
 
   private Map<String, ColorTheme> themes;
-
   private Set<ThemePreferenceMapper> editors;
+  private WorkingCopyManager preferenceManager;
 
   /** Creates a new color theme manager. */
   public ColorThemeManager() {
+    preferenceManager = new WorkingCopyManager();
     themes = new HashMap<String, ColorTheme>();
     readStockThemes(themes);
     readImportedThemes(themes);
@@ -188,7 +210,7 @@ public class ColorThemeManager {
         if (o instanceof ThemePreferenceMapper) {
           String pluginId = e.getAttribute("pluginId"); // $NON-NLS-1$
           ThemePreferenceMapper mapper = (ThemePreferenceMapper) o;
-          mapper.setPluginId(pluginId);
+          mapper.setPluginId(pluginId, preferenceManager);
           if (o instanceof GenericMapper) {
             String xml = e.getAttribute("xml"); // $NON-NLS-1$
             String contributorPluginId = e.getContributor().getName();
@@ -211,17 +233,7 @@ public class ColorThemeManager {
    */
   public void applyTheme(String theme) {
     for (ThemePreferenceMapper editor : editors) {
-      editor.clear();
-      if (themes.get(theme) != null) {
-        editor.map(themes.get(theme).getEntries());
-      }
-
-      try {
-        editor.flush();
-      } catch (BackingStoreException e) {
-        // TODO(messick): Show a proper error message.
-        e.printStackTrace();
-      }
+      applyThemeIn(theme, editor);
     }
   }
 
@@ -232,6 +244,26 @@ public class ColorThemeManager {
     }
     themes.clear();
     readStockThemes(themes);
+  }
+
+  public IPreferenceStore createCombinedPreferenceStore() {
+    IPreferenceStore[] prefs = new IPreferenceStore[editors.size()];
+    int i = 0;
+    for (ThemePreferenceMapper editor : editors) {
+      IEclipsePreferences pref = editor.getPreviewPreferences();
+      prefs[i++] = new IEclipsePreferencesAdapter(pref);
+    }
+    final ChainedPreferenceStore chain = new ChainedPreferenceStore(prefs);
+    for (ThemePreferenceMapper editor : editors) {
+      IEclipsePreferences pref = editor.getPreviewPreferences();
+      pref.addPreferenceChangeListener(new IPreferenceChangeListener() {
+        @Override
+        public void preferenceChange(PreferenceChangeEvent event) {
+          chain.firePropertyChangeEvent(event.getKey(), event.getOldValue(), event.getNewValue());
+        }
+      });
+    }
+    return chain;
   }
 
   /**
@@ -251,6 +283,22 @@ public class ColorThemeManager {
    */
   public Set<ColorTheme> getThemes() {
     return new HashSet<ColorTheme>(themes.values());
+  }
+
+  /**
+   * Changes the preferences of the preview to apply the color theme.
+   * 
+   * @param theme The name of the color theme to apply.
+   */
+  public void previewTheme(final String theme) {
+    for (final ThemePreferenceMapper editor : editors) {
+      editor.previewRun(new Runnable() {
+        @Override
+        public void run() {
+          applyThemeIn(theme, editor);
+        }
+      });
+    }
   }
 
   /**
@@ -276,6 +324,19 @@ public class ColorThemeManager {
       return theme;
     } catch (Exception e) {
       return null;
+    }
+  }
+
+  private void applyThemeIn(String theme, ThemePreferenceMapper editor) {
+    editor.clear();
+    if (themes.get(theme) != null) {
+      editor.map(themes.get(theme).getEntries());
+    }
+    try {
+      editor.flush();
+    } catch (BackingStoreException e) {
+      // TODO(messick): Show a proper error message.
+      e.printStackTrace();
     }
   }
 }
