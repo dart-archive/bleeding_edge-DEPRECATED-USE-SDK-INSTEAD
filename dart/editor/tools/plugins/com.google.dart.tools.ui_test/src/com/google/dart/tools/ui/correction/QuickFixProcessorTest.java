@@ -66,6 +66,20 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "");
   }
 
+  /**
+   * Library without "library" directive uses "part". But we cannot create fix, we don't know
+   * library name.
+   */
+  public void test_addPartOf_libraryWithoutDirective() throws Exception {
+    proposalNamePrefix = "Add \"part of\" directive";
+    setUnitContent("Lib.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "part 'Test.dart';",
+        ""});
+    setTestUnitContent("", "");
+    assertNoQuickFix();
+  }
+
   public void test_createClass() throws Exception {
     proposalNamePrefix = "Create class";
     setTestUnitContent(
@@ -844,7 +858,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   /**
    * Asserts that there are no quick fixes for {@link IProblemLocation} using "problem*" fields.
    */
-  @SuppressWarnings("unused")
   private void assertNoQuickFix() throws CoreException {
     IDartCompletionProposal[] proposals = prepareQuickFixes();
     assertThat(proposals).isEmpty();

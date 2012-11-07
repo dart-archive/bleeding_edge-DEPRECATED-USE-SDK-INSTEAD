@@ -320,11 +320,13 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 
   private void addFix_addPartOf() throws Exception {
     TextEdit textEdit = Migrate_1M1_library_CleanUp.createEditInsertPartOf(utils);
-    textEdits.add(textEdit);
-    // add proposal
-    addUnitCorrectionProposal(
-        CorrectionMessages.QuickFixProcessor_addPartOf,
-        DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    if (textEdit != null) {
+      textEdits.add(textEdit);
+      // add proposal
+      addUnitCorrectionProposal(
+          CorrectionMessages.QuickFixProcessor_addPartOf,
+          DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    }
   }
 
   private void addFix_createConstructor() {
