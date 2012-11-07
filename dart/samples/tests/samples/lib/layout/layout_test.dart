@@ -5,10 +5,10 @@
 library layout_tests;
 
 import 'dart:html';
-import '../../../../ui_lib/base/base.dart';
-import '../../../../ui_lib/layout/layout.dart';
-import '../../../../ui_lib/view/view.dart';
-import '../../../../ui_lib/util/utilslib.dart';
+import '../../../../swarm/swarm_ui_lib/base/base.dart';
+import '../../../../swarm/swarm_ui_lib/layout/layout.dart';
+import '../../../../swarm/swarm_ui_lib/view/view.dart';
+import '../../../../swarm/swarm_ui_lib/util/utilslib.dart';
 import '../../../../../pkg/unittest/lib/unittest.dart';
 import '../../../../../pkg/unittest/lib/html_config.dart';
 

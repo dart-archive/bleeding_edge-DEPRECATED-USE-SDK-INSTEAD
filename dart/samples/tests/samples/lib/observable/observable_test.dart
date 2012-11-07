@@ -5,7 +5,7 @@
 library observable_tests;
 
 import 'dart:html';
-import '../../../../ui_lib/observable/observable.dart';
+import '../../../../swarm/swarm_ui_lib/observable/observable.dart';
 import '../../../../../pkg/unittest/lib/unittest.dart';
 import '../../../../../pkg/unittest/lib/html_config.dart';
 

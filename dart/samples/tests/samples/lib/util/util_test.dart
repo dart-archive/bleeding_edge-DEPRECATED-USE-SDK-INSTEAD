@@ -7,7 +7,7 @@ library util_tests;
 import 'dart:html';
 import '../../../../../pkg/unittest/lib/unittest.dart';
 import '../../../../../pkg/unittest/lib/html_config.dart';
-import '../../../../ui_lib/util/utilslib.dart';
+import '../../../../swarm/swarm_ui_lib/util/utilslib.dart';
 
 main() {
   useHtmlConfiguration();
