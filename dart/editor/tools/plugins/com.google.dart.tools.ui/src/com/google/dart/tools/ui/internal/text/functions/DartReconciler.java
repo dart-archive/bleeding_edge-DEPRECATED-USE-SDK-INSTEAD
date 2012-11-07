@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartElementDelta;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.ElementChangedListener;
+import com.google.dart.tools.core.utilities.general.Timer;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 
@@ -380,11 +381,15 @@ public class DartReconciler extends MonoReconciler {
    */
   @Override
   protected void process(DirtyRegion dirtyRegion) {
+    Timer timer = new Timer("reconcile");
+
     synchronized (fMutex) {
       fIsReconciling = true;
       super.process(dirtyRegion);
       fIsReconciling = false;
     }
+
+    timer.stop();
   }
 
   /*

@@ -28,6 +28,7 @@ import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.core.utilities.ast.NameOccurrencesFinder;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
+import com.google.dart.tools.core.utilities.general.Timer;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.IContextMenuConstants;
@@ -3427,8 +3428,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   @Override
   protected void performSave(boolean overwrite, IProgressMonitor progressMonitor) {
+    Timer timer = new Timer("save");
+
     performSaveActions();
     super.performSave(overwrite, progressMonitor);
+
+    timer.stop();
   }
 
   @Override

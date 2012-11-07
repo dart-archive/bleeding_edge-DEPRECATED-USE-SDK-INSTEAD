@@ -40,6 +40,7 @@ public class DartCoreDebug {
 
   // Performance measurement and reporting options.
 
+  public static final boolean PERF_TIMER = isOptionTrue("perf/timer");
   public static final boolean PERF_INDEX = isOptionTrue("perf/index");
   public static final boolean PERF_OS_RESOURCES = isOptionTrue("perf/osResources");
 
