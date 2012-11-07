@@ -8,11 +8,11 @@ import 'dart:coreimpl';
 import 'dart:json';
 import 'dart:html';
 import 'dart:math' as Math;
-import '../ui_lib/base/base.dart';
-import '../ui_lib/view/view.dart';
-import '../ui_lib/observable/observable.dart';
-import '../ui_lib/touch/touch.dart';
-import '../ui_lib/util/utilslib.dart';
+import 'swarm_ui_lib/base/base.dart';
+import 'swarm_ui_lib/view/view.dart';
+import 'swarm_ui_lib/observable/observable.dart';
+import 'swarm_ui_lib/touch/touch.dart';
+import 'swarm_ui_lib/util/utilslib.dart';
 
 part 'App.dart';
 part 'BiIterator.dart';
