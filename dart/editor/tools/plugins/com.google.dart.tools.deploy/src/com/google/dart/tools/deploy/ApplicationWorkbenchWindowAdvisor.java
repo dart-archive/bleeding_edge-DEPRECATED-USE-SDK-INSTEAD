@@ -14,6 +14,7 @@
 package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
@@ -171,6 +172,10 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 
   private boolean isBlacklisted(IPreferenceNode node) {
     String nodeId = node.getId();
+    if (nodeId.matches("com.google.dart.tools.ui.theme.preferences.ThemePreferencePage")
+        && !DartCoreDebug.ENABLE_THEMES) {
+      return true;
+    }
     for (String blacklistedId : PREF_BLACKLIST) {
       if (nodeId.matches(blacklistedId)) {
         return true;
