@@ -16,6 +16,7 @@ package com.google.dart.tools.core.test.util;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
+import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartProject;
 
 import junit.framework.Assert;
@@ -457,6 +458,17 @@ public class TestUtilities {
    */
   public static boolean logFileIsEmpty() {
     return !getLogFile().exists();
+  }
+
+  /**
+   * Wait until all delta processor changes have been processed.
+   */
+  public static void processAllDeltaChanges() {
+    try {
+      DartModelManager.getInstance().processAllDeltaChanges(30 * 1000);
+    } catch (InterruptedException e) {
+
+    }
   }
 
   /**

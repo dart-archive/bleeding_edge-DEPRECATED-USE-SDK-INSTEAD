@@ -124,6 +124,19 @@ public class TestProject {
     dartProject = DartCore.create(project);
   }
 
+  public IFolder createFolder(String path) throws Exception {
+    String[] parts = StringUtils.split(path, "/");
+    IContainer container = project;
+    for (String part : parts) {
+      IFolder folder = container.getFolder(new Path(part));
+      if (!folder.exists()) {
+        folder.create(true, true, null);
+      }
+      container = folder;
+    }
+    return (IFolder) container;
+  }
+
   /**
    * Disposes allocated resources and deletes project.
    */
@@ -146,19 +159,6 @@ public class TestProject {
     }
     // do dispose
     TestUtilities.deleteProject(project);
-  }
-
-  public IFolder createFolder(String path) throws Exception {
-    String[] parts = StringUtils.split(path, "/");
-    IContainer container = project;
-    for (String part : parts) {
-      IFolder folder = container.getFolder(new Path(part));
-      if (!folder.exists()) {
-        folder.create(true, true, null);
-      }
-      container = folder;
-    }
-    return (IFolder) container;
   }
 
   /**
@@ -215,6 +215,7 @@ public class TestProject {
       file.create(stream, true, null);
       file.setCharset("UTF-8", null);
     }
+
     // notify AnalysisServer
     {
       AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
@@ -222,6 +223,9 @@ public class TestProject {
       server.scan(javaFile, 5000);
       server.changed(javaFile);
     }
+
+    TestUtilities.processAllDeltaChanges();
+
     // done
     return file;
   }

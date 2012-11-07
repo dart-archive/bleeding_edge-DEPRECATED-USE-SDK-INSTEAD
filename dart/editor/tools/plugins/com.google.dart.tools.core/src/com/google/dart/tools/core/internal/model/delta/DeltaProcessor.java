@@ -41,7 +41,6 @@ import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import com.google.dart.tools.core.utilities.resource.IResourceUtilities;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -80,20 +79,14 @@ import java.util.Set;
  * <p>
  * TODO(jwren) Remove the DEBUG flag and replace with Eclipse-tracing
  */
-public class DeltaProcessor {
-  public enum DirectiveType {
-    IMPORT,
-    SRC,
-    RES
-  }
-
-  private final static int NON_DART_RESOURCE = -1;
-  public static boolean DEBUG = false;
-
-  public static boolean VERBOSE = false;
-
+public class DeltaProcessor implements IDeltaProcessor {
   // must not collide with ElementChangedEvent event masks
   public static final int DEFAULT_CHANGE_EVENT = 0;
+
+  public static boolean DEBUG = false;
+  public static boolean VERBOSE = false;
+
+  private final static int NON_DART_RESOURCE = -1;
 
   /**
    * The global state of delta processing.
@@ -120,13 +113,13 @@ public class DeltaProcessor {
   /**
    * Queue of deltas created explicitly by the Dart Model that have yet to be fired.
    */
-  public ArrayList<DartElementDelta> dartModelDeltas = new ArrayList<DartElementDelta>();
+  private List<DartElementDelta> dartModelDeltas = new ArrayList<DartElementDelta>();
 
   /**
-   * Queue of reconcile deltas on working copies that have yet to be fired. This is a table form
+   * Queue of reconcile deltas on working copies that have yet to be fired. This is a mapping from
    * IWorkingCopy to DartElementDelta
    */
-  public HashMap<CompilationUnit, DartElementDelta> reconcileDeltas = new HashMap<CompilationUnit, DartElementDelta>();
+  private HashMap<CompilationUnit, DartElementDelta> reconcileDeltas = new HashMap<CompilationUnit, DartElementDelta>();
 
   /**
    * Turns delta firing on/off. By default it is on.
@@ -155,11 +148,6 @@ public class DeltaProcessor {
   public HashSet<DartProjectImpl> projectCachesToReset = new HashSet<DartProjectImpl>();
 
   /**
-   * Type of event that should be processed no matter what the real event type is.
-   */
-  public int overridenEventType = -1;
-
-  /**
    * The only constructor for this class.
    */
   public DeltaProcessor(DeltaProcessingState state, DartModelManager manager) {
@@ -171,6 +159,7 @@ public class DeltaProcessor {
    * Fire Dart Model delta, flushing them after the fact after post_change notification. If the
    * firing mode has been turned off, this has no effect.
    */
+  @Override
   public void fire(DartElementDelta customDelta, int eventType) {
     if (!isFiring) {
       return;
@@ -211,16 +200,20 @@ public class DeltaProcessor {
     }
   }
 
-  /**
-   * Flushes all deltas without firing them.
-   */
-  public void flush() {
-    dartModelDeltas = new ArrayList<DartElementDelta>();
+  @Override
+  public List<DartElementDelta> getDartModelDeltas() {
+    return dartModelDeltas;
+  }
+
+  @Override
+  public HashMap<CompilationUnit, DartElementDelta> getReconcileDeltas() {
+    return reconcileDeltas;
   }
 
   /**
    * Registers the given delta with this delta processor.
    */
+  @Override
   public void registerDartModelDelta(DartElementDelta delta) {
     dartModelDeltas.add(delta);
   }
@@ -229,6 +222,7 @@ public class DeltaProcessor {
    * Traverse the set of projects which have changed namespace, and reset their caches and their
    * dependents
    */
+  @Override
   public void resetProjectCaches() {
     if (projectCachesToReset.isEmpty()) {
       return;
@@ -240,24 +234,37 @@ public class DeltaProcessor {
   }
 
   /**
+   * Update Dart Model given some delta
+   */
+  @Override
+  public void updateDartModel(DartElementDelta customDelta) {
+    if (customDelta == null) {
+      for (int i = 0, length = dartModelDeltas.size(); i < length; i++) {
+        DartElementDelta delta = dartModelDeltas.get(i);
+        modelUpdater.processDartDelta(delta);
+      }
+    } else {
+      modelUpdater.processDartDelta(customDelta);
+    }
+  }
+
+  /**
+   * Flushes all deltas without firing them.
+   */
+  protected void flush() {
+    dartModelDeltas = new ArrayList<DartElementDelta>();
+  }
+
+  /**
    * Notification that some resource changes have happened on the platform, and that the Dart Model
    * should update any required internal structures such that its elements remain consistent.
    * Translates <code>IResourceDeltas</code> into <code>DartElementDeltas</code>.
    * <p>
-   * This method is only called from
-   * {@link DeltaProcessingState#resourceChanged(IResourceChangeEvent)}
+   * This method is only called from {@link DeltaProcessingState}
    * 
    * @see DeltaProcessingState
-   * @see IResource
-   * @see IResourceDelta
-   * @see IResourceChangeEvent
    */
-  public void resourceChanged(IResourceChangeEvent event) {
-
-    int eventType = overridenEventType == -1 ? event.getType() : overridenEventType;
-    IResource resource = event.getResource();
-    IResourceDelta delta = event.getDelta();
-
+  protected void handleResourceChanged(int eventType, IResource resource, DeltaProcessorDelta delta) {
     // reset the contents projectHasRecomputedLibrarySet set
     projectHasRecomputedLibrarySet = new HashSet<String>(1);
 
@@ -304,23 +311,22 @@ public class DeltaProcessor {
         if (VERBOSE) {
           System.out.println("DeltaProcessor.resourceChanged() " + "POST_CHANGE");
         }
+
         try {
-          try {
-            // by calling stopDeltas, isFiring is set to false which prevents the firing of Dart model deltas
-            stopDeltas();
-            DartElementDelta translatedDelta = processResourceDelta(delta);
-            if (translatedDelta != null) {
-              registerDartModelDelta(translatedDelta);
-            }
-          } finally {
-            // call startDeltas to allow the firing of Dart model deltas
-            startDeltas();
+          // by calling stopDeltas, isFiring is set to false which prevents the firing of Dart model deltas
+          stopDeltas();
+          DartElementDelta translatedDelta = processResourceDelta(delta);
+          if (translatedDelta != null) {
+            registerDartModelDelta(translatedDelta);
           }
-          // fire the delta change events to the listeners
-          fire(null, ElementChangedEvent.POST_CHANGE);
         } finally {
-          this.state.resetOldDartProjectNames();
+          // call startDeltas to allow the firing of Dart model deltas
+          startDeltas();
         }
+
+        // fire the delta change events to the listeners
+        fire(null, ElementChangedEvent.POST_CHANGE);
+
         return;
 
       case IResourceChangeEvent.PRE_BUILD:
@@ -335,20 +341,6 @@ public class DeltaProcessor {
         }
 
         return;
-    }
-  }
-
-  /**
-   * Update Dart Model given some delta
-   */
-  public void updateDartModel(DartElementDelta customDelta) {
-    if (customDelta == null) {
-      for (int i = 0, length = dartModelDeltas.size(); i < length; i++) {
-        DartElementDelta delta = dartModelDeltas.get(i);
-        modelUpdater.processDartDelta(delta);
-      }
-    } else {
-      modelUpdater.processDartDelta(customDelta);
     }
   }
 
@@ -390,8 +382,8 @@ public class DeltaProcessor {
   }
 
   /**
-   * Called by {@link #updateCurrentDelta(IResourceDelta, int)}, the {@link DartElement} generated
-   * by this method is used when the creating the {@link DartElementDelta} elements.
+   * Called by {@link #updateCurrentDelta(DeltaProcessorDelta, int)}, the {@link DartElement}
+   * generated by this method is used when the creating the {@link DartElementDelta} elements.
    * <p>
    * Creates the {@link DartElement} openable corresponding to this resource. Returns
    * <code>null</code> if none was found.
@@ -470,7 +462,7 @@ public class DeltaProcessor {
    * <li>If the element is not a project, process it as added (see <code>basicElementAdded</code>.
    * </ul>
    */
-  private void elementAdded(OpenableElementImpl element, IResourceDelta delta) {
+  private void elementAdded(OpenableElementImpl element, DeltaProcessorDelta delta) {
     int elementType = element.getElementType();
     // if a project element
     if (elementType == DartElement.DART_PROJECT) {
@@ -488,7 +480,7 @@ public class DeltaProcessor {
         //}
         //////////
         addToParentInfo(element);
-        if ((delta.getFlags() & IResourceDelta.MOVED_FROM) != 0) {
+        if ((delta.getFlags() & DeltaProcessorDelta.MOVED_FROM) != 0) {
           DartElementImpl movedFromElement = (DartElementImpl) element.getDartModel().getDartProject(
               delta.getMovedFromPath().lastSegment());
           currentDelta().movedTo(element, movedFromElement);
@@ -515,7 +507,7 @@ public class DeltaProcessor {
     } else {
       // else, not a project
       // if a regular, (non-move) add
-      if (delta == null || (delta.getFlags() & IResourceDelta.MOVED_FROM) == 0) {
+      if (delta == null || (delta.getFlags() & DeltaProcessorDelta.MOVED_FROM) == 0) {
         // regular element addition
         if (isPrimaryWorkingCopy(element, elementType)) {
           // filter out changes to primary compilation unit in working copy mode
@@ -590,9 +582,9 @@ public class DeltaProcessor {
    * </ul>
    * Delta argument could be null if processing an external JAR change
    */
-  private void elementRemoved(OpenableElementImpl element, IResourceDelta delta) {
+  private void elementRemoved(OpenableElementImpl element, DeltaProcessorDelta delta) {
     int elementType = element.getElementType();
-    if (delta == null || (delta.getFlags() & IResourceDelta.MOVED_TO) == 0) {
+    if (delta == null || (delta.getFlags() & DeltaProcessorDelta.MOVED_TO) == 0) {
       // regular element removal
       if (isPrimaryWorkingCopy(element, elementType)) {
         // filter out changes to primary compilation unit in working copy mode
@@ -837,19 +829,16 @@ public class DeltaProcessor {
    * corresponding set of <code>DartElementDelta</code>, rooted in the relevant
    * <code>DartModelImpl</code>s.
    */
-  private DartElementDelta processResourceDelta(IResourceDelta changes) {
-
+  private DartElementDelta processResourceDelta(DeltaProcessorDelta parentDelta) {
     try {
       currentElement = null;
 
       // get the workspace delta, and start processing there.
-      // TODO(jwren) Can we remove the INCLUDE_HIDDEN flag? it should be tested and then removed
-      IResourceDelta[] deltas = changes.getAffectedChildren(IResourceDelta.ADDED
-          | IResourceDelta.REMOVED | IResourceDelta.CHANGED, IContainer.INCLUDE_HIDDEN);
+      DeltaProcessorDelta[] children = parentDelta.getAffectedChildren();
 
       // traverse each delta
-      for (int i = 0; i < deltas.length; i++) {
-        traverseDelta(deltas[i], DartElement.DART_PROJECT);
+      for (DeltaProcessorDelta child : children) {
+        traverseDelta(child, DartElement.DART_PROJECT);
       }
       resetProjectCaches();
 
@@ -895,7 +884,6 @@ public class DeltaProcessor {
    * @return true if project cache reset, false otherwise
    */
   private boolean requiresProjectCacheReset(DartElement dartElement) {
-
     try {
       CompilationUnitImpl cu = (CompilationUnitImpl) dartElement;
       DartUnit unit = DartCompilerUtilities.parseSource(cu.getElementName(), cu.getSource());
@@ -984,8 +972,7 @@ public class DeltaProcessor {
    * Converts an <code>IResourceDelta</code> and its children into the corresponding
    * <code>DartElementDelta</code>s.
    */
-  private void traverseDelta(IResourceDelta delta, int elementType) {
-
+  private void traverseDelta(DeltaProcessorDelta delta, int elementType) {
     if (DEBUG) {
       System.out.println("DeltaProcessor.traverseDelta() type = " + delta.getResource().getClass()
           + ", delta.getResource().getName() = \"" + delta.getResource().getFullPath().toOSString()
@@ -996,11 +983,10 @@ public class DeltaProcessor {
 
     // process children if needed
     if (processChildren) {
-      IResourceDelta[] children = delta.getAffectedChildren();
-      int length = children.length;
+      DeltaProcessorDelta[] children = delta.getAffectedChildren();
+
       // for each of the children, also update the current delta, by calling this method recursively
-      for (int i = 0; i < length; i++) {
-        IResourceDelta child = children[i];
+      for (DeltaProcessorDelta child : children) {
         IResource childRes = child.getResource();
         ////////
         // Optimization: if a generated dart file, then don't process delta
@@ -1039,16 +1025,16 @@ public class DeltaProcessor {
    * @throws a DartModelException if the delta doesn't correspond to a Dart element of the given
    *           type.
    */
-  private boolean updateCurrentDelta(IResourceDelta delta, int elementType) {
+  private boolean updateCurrentDelta(DeltaProcessorDelta delta, int elementType) {
     IResource deltaRes = delta.getResource();
     boolean buildStructure = false;
     if (DEBUG) {
       String kindStr;
-      if (delta.getKind() == IResourceDelta.ADDED) {
+      if (delta.getKind() == DeltaProcessorDelta.ADDED) {
         kindStr = "ADD";
-      } else if (delta.getKind() == IResourceDelta.REMOVED) {
+      } else if (delta.getKind() == DeltaProcessorDelta.REMOVED) {
         kindStr = "REMOVE";
-      } else if (delta.getKind() == IResourceDelta.CHANGED) {
+      } else if (delta.getKind() == DeltaProcessorDelta.CHANGED) {
         kindStr = "CHANGED";
       } else {
         kindStr = "OTHER delta.getKind() = " + Integer.toString(delta.getKind());
@@ -1061,7 +1047,7 @@ public class DeltaProcessor {
     checkForPackageChanges(deltaRes);
 
     switch (delta.getKind()) {
-      case IResourceDelta.ADDED:
+      case DeltaProcessorDelta.ADDED:
         element = createElement(deltaRes, elementType);
         if (DartCore.isHTMLLikeFileName(deltaRes.getName())) {
           buildStructure = updateHtmlMapping(deltaRes);
@@ -1084,7 +1070,7 @@ public class DeltaProcessor {
 //          }
 //        }
         return false;
-      case IResourceDelta.REMOVED:
+      case DeltaProcessorDelta.REMOVED:
         element = createElement(deltaRes, elementType);
         if (element == null) {
           return true;
@@ -1111,9 +1097,10 @@ public class DeltaProcessor {
         //}
         return false;
 
-      case IResourceDelta.CHANGED:
+      case DeltaProcessorDelta.CHANGED:
         int flags = delta.getFlags();
-        if ((flags & IResourceDelta.CONTENT) != 0 || (flags & IResourceDelta.ENCODING) != 0) {
+        if ((flags & DeltaProcessorDelta.CONTENT) != 0
+            || (flags & DeltaProcessorDelta.ENCODING) != 0) {
           // content or encoding has changed
           if (DartCore.isHTMLLikeFileName(deltaRes.getName())) {
             buildStructure = updateHtmlMapping(deltaRes);
@@ -1209,13 +1196,18 @@ public class DeltaProcessor {
 
   private boolean updateHtmlMapping(IResource htmlFile) {
     try {
-      List<String> libraryNames = LibraryReferenceFinder.findInHTML(IFileUtilities.getContents((IFile) htmlFile));
+      if (htmlFile.exists()) {
+        String contents = IFileUtilities.getContents((IFile) htmlFile);
+        List<String> libraryNames = LibraryReferenceFinder.findInHTML(contents);
 
-      if (!libraryNames.isEmpty()) {
-        List<String> libraryPaths = IResourceUtilities.getResolvedFilePaths(htmlFile, libraryNames);
-        String key = htmlFile.getLocation().toPortableString();
-        DartCore.create(htmlFile.getProject()).updateHtmlMapping(key, libraryPaths, true);
-        return true;
+        if (!libraryNames.isEmpty()) {
+          List<String> libraryPaths = IResourceUtilities.getResolvedFilePaths(
+              htmlFile,
+              libraryNames);
+          String key = htmlFile.getLocation().toPortableString();
+          DartCore.create(htmlFile.getProject()).updateHtmlMapping(key, libraryPaths, true);
+          return true;
+        }
       }
     } catch (DartModelException e) {
       DartCore.logError(e);
@@ -1223,6 +1215,7 @@ public class DeltaProcessor {
     } catch (Exception e) {
       DartCore.logError(e);
     }
+
     return false;
   }
 

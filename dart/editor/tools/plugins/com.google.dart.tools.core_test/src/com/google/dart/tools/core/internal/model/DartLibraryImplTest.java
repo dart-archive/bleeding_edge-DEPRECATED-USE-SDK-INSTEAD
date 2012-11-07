@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-import static org.fest.assertions.Assertions.assertThat;
-
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
@@ -44,6 +42,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -68,6 +68,7 @@ public class DartLibraryImplTest extends TestCase {
       }
     }, file);
     file.deleteOnExit();
+    TestUtilities.processAllDeltaChanges();
   }
 
   private static File getTempDir() throws IOException {
