@@ -66,7 +66,7 @@ public class AutoSaveHelper {
     }
 
     @Override
-    void execute() {
+    void execute() throws Exception {
       instance.pathMapCloseFile(file);
     }
   }
@@ -90,7 +90,7 @@ public class AutoSaveHelper {
     }
 
     @Override
-    void execute() {
+    void execute() throws Exception {
       instance.pathMapOpenFile(file);
     }
   }
@@ -105,22 +105,18 @@ public class AutoSaveHelper {
     }
 
     @Override
-    void execute() {
+    void execute() throws Exception {
       String path = getStringPath(file);
       Integer id = instance.pathMap.get(path);
       if (id != null) {
-        try {
-          editorInfoWrite(id, info);
-        } catch (Throwable e) {
-          DartToolsPlugin.log(e);
-        }
+        editorInfoWrite(id, info);
       }
     }
 
   }
 
   private abstract static class Task {
-    abstract void execute();
+    abstract void execute() throws Exception;
   }
 
   private static final AutoSaveHelper instance = new AutoSaveHelper();
@@ -248,11 +244,13 @@ public class AutoSaveHelper {
   /**
    * Removes given {@link IFile} from the list of opened files.
    */
-  private void pathMapCloseFile(IFile file) {
+  private void pathMapCloseFile(IFile file) throws Exception {
     String path = getStringPath(file);
     Integer id = pathMap.remove(path);
-    pathMapWrite();
-    editorInfoDelete(id);
+    if (id != null) {
+      pathMapWrite();
+      editorInfoDelete(id);
+    }
   }
 
   /**
@@ -274,7 +272,7 @@ public class AutoSaveHelper {
   /**
    * Remembers in {@link #pathMap} that given {@link IFile} was opened.
    */
-  private void pathMapOpenFile(IFile file) {
+  private void pathMapOpenFile(IFile file) throws Exception {
     String path = getStringPath(file);
     if (!pathMap.containsKey(path)) {
       int id = lastId.getAndIncrement();
@@ -286,19 +284,15 @@ public class AutoSaveHelper {
   /**
    * Writes {@link #pathMap}.
    */
-  private void pathMapWrite() {
+  private void pathMapWrite() throws Exception {
+    File saveFile = pathMapGetFile();
+    saveFile.getParentFile().mkdirs();
+    saveFile.delete();
+    ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(saveFile));
     try {
-      File saveFile = pathMapGetFile();
-      saveFile.getParentFile().mkdirs();
-      saveFile.delete();
-      ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(saveFile));
-      try {
-        oos.writeObject(pathMap);
-      } finally {
-        oos.close();
-      }
-    } catch (Throwable e) {
-      DartToolsPlugin.log(e);
+      oos.writeObject(pathMap);
+    } finally {
+      oos.close();
     }
   }
 
@@ -349,7 +343,11 @@ public class AutoSaveHelper {
     while (true) {
       try {
         Task task = taskQueue.take();
-        task.execute();
+        try {
+          task.execute();
+        } catch (Throwable e) {
+          DartToolsPlugin.log(e);
+        }
       } catch (InterruptedException e) {
       }
     }
