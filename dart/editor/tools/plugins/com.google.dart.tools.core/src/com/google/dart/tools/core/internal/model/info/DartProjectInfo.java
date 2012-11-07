@@ -40,6 +40,12 @@ public class DartProjectInfo extends OpenableElementInfo {
   private HashMap<String, List<String>> htmlMapping;
 
   /**
+   * The name of the directory in packages that is the self reference to the "lib" folder in the
+   * project
+   */
+  private String linkedPackageDirName;
+
+  /**
    * Return a list containing the project-relative paths to all children in the project.
    * 
    * @return a list containing the project-relative paths to all children in the project
@@ -68,6 +74,10 @@ public class DartProjectInfo extends OpenableElementInfo {
     return libraries.toArray(new DartLibraryImpl[libraries.size()]);
   }
 
+  public String getLinkedPackageDirName() {
+    return linkedPackageDirName;
+  }
+
   public IResource[] getNonDartResources(DartProjectImpl project) {
     DartCore.notYetImplemented();
     return new IResource[0];
@@ -93,6 +103,13 @@ public class DartProjectInfo extends OpenableElementInfo {
    */
   public void setHtmlMapping(HashMap<String, List<String>> mapping) {
     htmlMapping = mapping;
+  }
+
+  /**
+   * set the name for the self linked package directory
+   */
+  public void setLinkedPackageDirName(String packageDirectoryName) {
+    this.linkedPackageDirName = packageDirectoryName;
   }
 
   /**

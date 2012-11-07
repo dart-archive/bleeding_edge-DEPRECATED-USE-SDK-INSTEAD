@@ -35,6 +35,7 @@ import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -514,6 +515,16 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
           + locationUrl.substring(index + DartCore.PACKAGES_DIRECTORY_PATH.length());
 
     }
+
+    index = locationUrl.indexOf(DartCore.LIB_DIRECTORY_PATH);
+    if (index != -1) {
+      String packageName = DartCore.getSelfLinkedPackageName(file.getProject());
+      if (packageName != null) {
+        locationUrl = PackageLibraryManager.PACKAGE_SCHEME_SPEC + packageName + File.separator
+            + locationUrl.substring(index + DartCore.LIB_DIRECTORY_PATH.length());
+      }
+    }
+
     return locationUrl;
   }
 

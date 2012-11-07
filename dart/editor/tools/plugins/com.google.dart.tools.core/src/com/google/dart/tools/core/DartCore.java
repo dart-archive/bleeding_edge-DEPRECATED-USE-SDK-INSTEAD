@@ -20,6 +20,7 @@ import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.directoryset.DirectorySetManager;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.internal.operation.BatchOperation;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
@@ -41,6 +42,7 @@ import com.google.dart.tools.core.utilities.general.StringUtilities;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -197,6 +199,11 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static final String PACKAGES_DIRECTORY_PATH = File.separator + PACKAGES_DIRECTORY_NAME
       + File.separator;
+
+  /**
+   * Path string for lib directory
+   */
+  public static final String LIB_DIRECTORY_PATH = File.separator + "lib" + File.separator;
 
   /**
    * Name of pubspec file
@@ -583,6 +590,18 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * Returns the name of the directory in packages that is linked to the "lib" folder in the project
+   * 
+   * @param project
+   * @return the name of the directory, <code>null</code> if there is no self linked packages folder
+   */
+  public static String getSelfLinkedPackageName(IProject project) {
+
+    DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(project);
+    return dartProject.getSelfLinkedPackageDirName();
+  }
+
+  /**
    * Returns the current value of the string-valued user-defined property with the given name.
    * Returns <code>null</code> if there is no user-defined property with the given name.
    * <p>
@@ -805,6 +824,28 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static boolean isPluginsBuild() {
     return Platform.getBundle("com.google.dart.eclipse.core") != null;
+  }
+
+  /**
+   * Checks if the given linkedResource points to a file in the container. This is used to check for
+   * the self link in the packages directory
+   * 
+   * @param resource
+   * @param linkedResource
+   * @return <code>true</code> if the linked resource points to a file/folder in the project
+   */
+  public static boolean isSelfLinkedResource(IContainer resource, IResource linkedResource) {
+
+    try {
+      String resourcePath = resource.getLocation().toFile().getCanonicalPath();
+      String linkPath = linkedResource.getLocation().toFile().getCanonicalPath();
+      if (linkPath.startsWith(resourcePath)) {
+        return true;
+      }
+    } catch (IOException e) {
+      return false;
+    }
+    return false;
   }
 
   /**

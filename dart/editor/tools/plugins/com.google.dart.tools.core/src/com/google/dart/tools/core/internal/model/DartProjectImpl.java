@@ -532,6 +532,18 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     return project;
   }
 
+  /**
+   * Returns the directory name in the packages folder that is linked to the "lib" folder in the
+   * project
+   */
+  public String getSelfLinkedPackageDirName() {
+    try {
+      return ((DartProjectInfo) getElementInfo()).getLinkedPackageDirName();
+    } catch (DartModelException e) {
+      return null;
+    }
+  }
+
   @Override
   public IResource getUnderlyingResource() throws DartModelException {
     if (!exists()) {
@@ -581,6 +593,42 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     } catch (DartModelException exception) {
       DartCore.logError("Unable to recompute the set of top-level libraries in the project:" //$NON-NLS-1$
           + getElementName(), exception);
+    }
+  }
+
+  /**
+   * This should be called when the packages folder is created, deleted or changed so that the self
+   * link to source can be verified and updated.
+   */
+  public void recomputePackageInfo() {
+    try {
+      ((DartProjectInfo) getElementInfo()).setLinkedPackageDirName(null);
+      IResource packagesDirectory = project.findMember(DartCore.PACKAGES_DIRECTORY_NAME);
+      if (packagesDirectory != null && packagesDirectory.exists()) {
+        packagesDirectory.accept(new IResourceProxyVisitor() {
+
+          @Override
+          public boolean visit(IResourceProxy proxy) throws CoreException {
+
+            if (proxy.getType() == IResource.FOLDER) {
+              if (proxy.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
+                return true;
+              }
+              IResource resource = proxy.requestResource();
+              if (DartCore.isSelfLinkedResource(resource.getProject(), resource)) {
+                ((DartProjectInfo) getElementInfo()).setLinkedPackageDirName(resource.getName());
+                return false;
+              }
+            }
+            return false;
+          }
+        }, 0);
+      }
+
+    } catch (Exception exception) {
+      DartCore.logError(
+          "Could not traverse resource structure in project " + project.getLocation(),
+          exception);
     }
   }
 
@@ -754,6 +802,9 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
         }
       }
       projectInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
+      // check for package self link
+      recomputePackageInfo();
+
       return true;
     }
     // TODO(brianwilkerson) Remove the code below. It only exists for backward compatibility.

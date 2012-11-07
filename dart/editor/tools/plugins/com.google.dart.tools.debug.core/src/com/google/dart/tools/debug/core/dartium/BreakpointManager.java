@@ -39,6 +39,10 @@ import java.util.Map;
  * Handle adding a removing breakpoints to the WebKit connection for the DartiumDebugTarget class.
  */
 class BreakpointManager implements IBreakpointListener {
+
+  private static String PACKAGES_DIRECTORY_PATH = "/packages/";
+  private static String LIB_DIRECTORY_PATH = "/lib/";
+
   private DartiumDebugTarget debugTarget;
   private IResourceResolver resourceResolver;
 
@@ -191,9 +195,20 @@ class BreakpointManager implements IBreakpointListener {
       // String url = resourceResolver.getUrlForResource(breakpoint.getFile());
       String regex = breakpoint.getFile().getFullPath().toPortableString();
 
-      int index = regex.indexOf(DartCore.PACKAGES_DIRECTORY_PATH);
+      int index = regex.indexOf(PACKAGES_DIRECTORY_PATH);
       if (index != -1) {
         regex = regex.substring(index);
+      }
+
+      // check if source is located in the "lib" directory and if there is a link to it from the 
+      // packages directory breakpoint should be /packages/...
+      index = regex.indexOf(LIB_DIRECTORY_PATH);
+      if (index != -1) {
+        String packageName = DartCore.getSelfLinkedPackageName(breakpoint.getFile().getProject());
+        if (packageName != null) {
+          regex = PACKAGES_DIRECTORY_PATH + packageName + "/"
+              + regex.substring(index + LIB_DIRECTORY_PATH.length());
+        }
       }
 
       int line = WebkitLocation.eclipseToWebkitLine(breakpoint.getLine());

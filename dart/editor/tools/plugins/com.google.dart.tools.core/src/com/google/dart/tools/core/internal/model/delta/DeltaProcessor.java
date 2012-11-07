@@ -370,6 +370,15 @@ public class DeltaProcessor {
   }
 
   /**
+   * Check if contents of packages directory has changed, if so update project info
+   */
+  private void checkForPackageChanges(IResource deltaRes) {
+    if (deltaRes instanceof IFolder && DartCore.isPackagesDirectory((IFolder) deltaRes)) {
+      ((DartProjectImpl) DartCore.create(deltaRes.getProject())).recomputePackageInfo();
+    }
+  }
+
+  /**
    * Closes the given element, which removes it from the cache of open elements.
    */
   private void close(DartElementImpl element) {
@@ -696,17 +705,6 @@ public class DeltaProcessor {
   }
 
   /**
-   * Returns whether the given element is a primary compilation unit in working copy mode.
-   */
-  private boolean isPrimaryWorkingCopy(DartElement element, int elementType) {
-    if (elementType == DartElement.COMPILATION_UNIT) {
-      CompilationUnit cu = (CompilationUnit) element;
-      return cu.isPrimary() && cu.isWorkingCopy();
-    }
-    return false;
-  }
-
-  /**
    * This method is used by the JDT, it is left here commented out, for possible future work in this
    * file regarding non-Dart resource change events.
    * <p>
@@ -733,6 +731,17 @@ public class DeltaProcessor {
 //      elementDelta = current.changed(element, DartElementDelta.F_CONTENT);
 //    }
 //  }
+
+  /**
+   * Returns whether the given element is a primary compilation unit in working copy mode.
+   */
+  private boolean isPrimaryWorkingCopy(DartElement element, int elementType) {
+    if (elementType == DartElement.COMPILATION_UNIT) {
+      CompilationUnit cu = (CompilationUnit) element;
+      return cu.isPrimary() && cu.isWorkingCopy();
+    }
+    return false;
+  }
 
   /**
    * Merges all awaiting deltas, and returns the merged {@link DartElementDelta}.
@@ -1048,6 +1057,9 @@ public class DeltaProcessor {
           + deltaRes.getFullPath().toOSString() + "\" - " + kindStr);
     }
     OpenableElementImpl element;
+
+    checkForPackageChanges(deltaRes);
+
     switch (delta.getKind()) {
       case IResourceDelta.ADDED:
         element = createElement(deltaRes, elementType);

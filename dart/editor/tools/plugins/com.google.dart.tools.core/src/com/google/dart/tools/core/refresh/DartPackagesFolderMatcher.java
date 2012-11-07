@@ -42,7 +42,17 @@ public class DartPackagesFolderMatcher extends AbstractFileInfoMatcher {
 
   @Override
   public boolean matches(IContainer parent, IFileInfo fileInfo) throws CoreException {
-    // Check that the folder's name is "packages".
+
+    // suppress self link
+    if (parent.getParent() != null
+        && parent.getParent().getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
+      if (DartCore.isSelfLinkedResource(parent.getProject(), parent)) {
+        return true;
+      }
+      return false;
+    }
+
+    // Check that the folder's name is "packages" 
     if (!parent.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
       return false;
     }
