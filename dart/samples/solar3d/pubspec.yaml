@@ -1,0 +1,11 @@
+name: solar3d
+description: 3D Solar System Demo
+version: 0.0.1
+authors:
+- John McCutchan <john@johnmccutchan.com>
+homepage: https://github.com/johnmccutchan/solar3d
+dependencies:
+  unittest:
+    sdk: unittest
+  vector_math:
+    git: https://github.com/johnmccutchan/DartVectorMath.git

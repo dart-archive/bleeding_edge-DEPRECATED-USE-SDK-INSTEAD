@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Solar System Demo</title>
+    <link type="text/css" rel="stylesheet" href="solar.css">
+  </head>
+  <body>
+    <h1>Solar System 3D</h1>
+    <div>
+      <canvas id="container"></canvas>
+    </div>
+    <p>Click canvas to activate controls:</p>
+    <p>Navigate Planets: Left or Right keys, "S" - Sun, "J" - Jupiter, "E" - Earth.</p>
+    <p>Activate fullscreen: "F"</p>
+    <p>Mouse move to zoom in and out of planet</p>
+    <p>Scroll wheel to rotate view around planet</p>
+    <footer>
+      <p id="summary"> </p>
+      <p id="notes"> </p>
+    </footer>
+
+    <script type="application/dart" src="solar.dart"></script>
+    <script src="https://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js"></script>
+  </body>
+</html>
