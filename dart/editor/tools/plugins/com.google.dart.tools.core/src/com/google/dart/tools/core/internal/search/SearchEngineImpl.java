@@ -719,7 +719,7 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    SearchListener filteredListener = new CountingSearchListener(5, applyFilter(filter, listener));
+    SearchListener filteredListener = new CountingSearchListener(6, applyFilter(filter, listener));
     // exact matches
     Element exactElement = createElement(method);
     index.getRelationships(
@@ -737,6 +737,10 @@ public class SearchEngineImpl implements SearchEngine {
     index.getRelationships(
         exactElement,
         IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+        new RelationshipCallbackImpl(MatchKind.METHOD_REFERENCE, filteredListener));
+    index.getRelationships(
+        exactElement,
+        IndexConstants.IS_REFERENCED_BY,
         new RelationshipCallbackImpl(MatchKind.METHOD_REFERENCE, filteredListener));
     // inexact matches
     index.getRelationships(

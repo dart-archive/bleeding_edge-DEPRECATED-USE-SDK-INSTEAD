@@ -15,6 +15,8 @@ package com.google.dart.tools.core.dom;
 
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartComment;
+import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFunction;
@@ -189,7 +191,8 @@ public class NodeFinder extends ASTVisitor<Void> {
   @Override
   public Void visitClass(DartClass node) {
     classDef = node;
-    visitNode(node);
+    super.visitClass(node);
+//    visitNode(node);
     classDef = null;
     return null;
   }
@@ -215,9 +218,12 @@ public class NodeFinder extends ASTVisitor<Void> {
     int nodeStart = node.getSourceInfo().getOffset();
     int nodeEnd = node.getSourceInfo().getEnd();
     if (nodeEnd < fStart || fEnd < nodeStart) {
-      if (nodeEnd == -2) {
-        // TODO Remove this workaround for a parser bug: no source positions set
-        node.visitChildren(this);
+      // we don't include comment into node source range
+      if (node instanceof DartDeclaration<?>) {
+        DartComment comment = ((DartDeclaration<?>) node).getDartDoc();
+        if (comment != null) {
+          visitNode(comment);
+        }
       }
       return null;
     }

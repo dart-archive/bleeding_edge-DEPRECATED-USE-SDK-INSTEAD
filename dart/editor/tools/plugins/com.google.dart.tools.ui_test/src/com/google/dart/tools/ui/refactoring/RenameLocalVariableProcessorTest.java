@@ -274,7 +274,7 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
         "}");
   }
 
-  public void test_OK_parameter_updateIdentifierInComment() throws Exception {
+  public void test_OK_parameter_updateInComment() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "/** Describe [test] here */",

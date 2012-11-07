@@ -18,6 +18,8 @@ import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
+import com.google.dart.compiler.ast.DartCommentNewName;
+import com.google.dart.compiler.ast.DartCommentRefName;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartImportDirective;
@@ -272,6 +274,42 @@ public class DartElementLocator extends ASTVisitor<Void> {
       }
     }
     return null;
+  }
+
+  @Override
+  public Void visitCommentNewName(DartCommentNewName node) {
+    if (foundElement == null) {
+      int start = node.getSourceInfo().getOffset();
+      int length = node.getSourceInfo().getLength();
+      int end = start + length;
+      if (start <= startOffset && endOffset <= end) {
+        wordRegion = new Region(start, length);
+        Element targetElement = node.getConstructorElement();
+        if (targetElement != null) {
+          resolvedElement = targetElement;
+          findElementFor(targetElement);
+        }
+      }
+    }
+    return super.visitCommentNewName(node);
+  }
+
+  @Override
+  public Void visitCommentRefName(DartCommentRefName node) {
+    if (foundElement == null) {
+      int start = node.getSourceInfo().getOffset();
+      int length = node.getSourceInfo().getLength();
+      int end = start + length;
+      if (start <= startOffset && endOffset <= end) {
+        wordRegion = new Region(start, length);
+        Element targetElement = node.getElement();
+        if (targetElement != null) {
+          resolvedElement = targetElement;
+          findElementFor(targetElement);
+        }
+      }
+    }
+    return super.visitCommentRefName(node);
   }
 
   @Override

@@ -394,13 +394,15 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "}");
   }
 
-  public void test_OK_updateIdentifierInComment() throws Exception {
+  public void test_OK_updateInComment() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "/** Describe of [Test] here. */",
         "class Test {",
+        "  Test() {}",
+        "  Test.named() {}",
         "}",
-        "/** Creates new [Test] instance. Test as word. */",
+        "/** Creates new [Test] using [new Test] or [new Test.named]. */",
         "Test createTest() => null;",
         "");
     Type type = findElement("Test {");
@@ -410,8 +412,10 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "/** Describe of [NewName] here. */",
         "class NewName {",
+        "  NewName() {}",
+        "  NewName.named() {}",
         "}",
-        "/** Creates new [NewName] instance. Test as word. */",
+        "/** Creates new [NewName] using [new NewName] or [new NewName.named]. */",
         "NewName createTest() => null;",
         "");
   }

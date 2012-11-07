@@ -14,6 +14,8 @@
 package com.google.dart.tools.core.utilities.ast;
 
 import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartCommentNewName;
+import com.google.dart.compiler.ast.DartCommentRefName;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartInvocation;
@@ -47,6 +49,22 @@ public class NameOccurrencesFinder extends ASTVisitor<Void> {
 
   public void searchWithin(DartNode ast) {
     ast.accept(this);
+  }
+
+  @Override
+  public Void visitCommentNewName(DartCommentNewName node) {
+    if (node.getElement() == target) {
+      addMatch(node);
+    }
+    return super.visitCommentNewName(node);
+  }
+
+  @Override
+  public Void visitCommentRefName(DartCommentRefName node) {
+    if (node.getElement() == target) {
+      addMatch(node);
+    }
+    return super.visitCommentRefName(node);
   }
 
   @Override

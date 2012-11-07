@@ -735,6 +735,36 @@ public class DartElementLocatorTest extends TestCase {
         4);
   }
 
+  public void test_newNameInComment_defaultConstructor() throws Exception {
+    String[] lines = formatLines(
+        "// filler filler filler filler filler filler filler filler filler filler filler",
+        "/** Create using [new A] constructor. */",
+        "class A {",
+        "  A() {}",
+        "  A.named() {}",
+        "}",
+        "");
+    testElementLocator(lines, "[new A]", Method.class, "A() {}", "A".length());
+    testElementLocator(lines, "new A]", Method.class, "A() {}", "A".length());
+    testElementLocator(lines, "] constructor", Method.class, "A() {}", "A".length());
+    testElementLocator(lines, " constructor", Method.class, "A() {}", "A".length());
+  }
+
+  public void test_newNameInComment_namedConstructor() throws Exception {
+    String[] lines = formatLines(
+        "// filler filler filler filler filler filler filler filler filler filler filler",
+        "/** Create using [new A.named] constructor. */",
+        "class A {",
+        "  A() {}",
+        "  A.named() {}",
+        "}",
+        "");
+    testElementLocator(lines, "[new A.named]", Method.class, "A.named() {}", "A.named".length());
+    testElementLocator(lines, "new A.named]", Method.class, "A.named() {}", "A.named".length());
+    testElementLocator(lines, "] constructor", Method.class, "A.named() {}", "A.named".length());
+    testElementLocator(lines, " constructor", Method.class, "A.named() {}", "A.named".length());
+  }
+
   public void test_type_newExpression() throws Exception {
     testElementLocator(
         formatLines(

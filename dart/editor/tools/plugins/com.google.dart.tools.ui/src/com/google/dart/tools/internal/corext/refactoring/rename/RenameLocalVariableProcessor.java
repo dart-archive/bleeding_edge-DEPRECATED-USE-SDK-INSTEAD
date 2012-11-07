@@ -17,6 +17,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartCommentRefName;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
@@ -366,6 +367,16 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
     final List<TextEdit> edits = Lists.newArrayList();
     DartNode enclosingMethod = ASTNodes.getParent(variableNode, DartMethodDefinition.class);
     enclosingMethod.accept(new ASTVisitor<Void>() {
+      @Override
+      public Void visitCommentRefName(DartCommentRefName node) {
+        if (node.getElement() == variableElement) {
+          int offset = node.getSourceInfo().getOffset() + "[".length();
+          TextEdit edit = createRenameEdit(offset);
+          edits.add(edit);
+        }
+        return null;
+      }
+
       @Override
       public Void visitIdentifier(DartIdentifier node) {
         if (node.getElement() == variableElement) {

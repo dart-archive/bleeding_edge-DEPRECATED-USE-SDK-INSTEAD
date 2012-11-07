@@ -618,7 +618,27 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "");
   }
 
-  public void test_OK_updateIdentifierInComment() throws Exception {
+  public void test_OK_updateComment_constructor() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "/** Create using [new A.test] constructor. */",
+        "class A {",
+        "  A.test() {}",
+        "}",
+        "");
+    Method method = findElement("test() {}");
+    // do rename
+    renameMethod(method, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "/** Create using [new A.newName] constructor. */",
+        "class A {",
+        "  A.newName() {}",
+        "}",
+        "");
+  }
+
+  public void test_OK_updateInComment_method() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "/** After creation call [test]. */",
