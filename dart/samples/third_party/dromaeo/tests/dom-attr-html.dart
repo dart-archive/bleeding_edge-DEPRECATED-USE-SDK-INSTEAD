@@ -1,9 +1,9 @@
-#library("dom_attr");
-#import("dart:html");
-#import("dart:json");
-#import("dart:math", prefix: "Math");
-#source("Common.dart");
-#source("RunnerSuite.dart");
+library dom_attr;
+import 'dart:html';
+import 'dart:json';
+import 'dart:math' as Math;
+part 'Common.dart';
+part 'RunnerSuite.dart';
 
 void main() {
   final int num = 10240;

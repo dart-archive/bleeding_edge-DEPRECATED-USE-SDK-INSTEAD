@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("chat_server");
-#import("dart:io");
-#import("dart:isolate");
-#import("dart:json");
-#import("dart:math");
+library chat_server;
+import 'dart:io';
+import 'dart:isolate';
+import 'dart:json';
+import 'dart:math';
 
 void startChatServer() {
   var server = new ChatServer();

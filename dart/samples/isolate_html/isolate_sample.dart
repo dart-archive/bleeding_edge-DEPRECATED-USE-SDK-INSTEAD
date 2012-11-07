@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('isolate_sample');
+library isolate_sample;
 
-#import('dart:html');
-#import('dart:isolate');
-#import('dart:math');
+import 'dart:html';
+import 'dart:isolate';
+import 'dart:math';
 
 /*
  * This is a simple sample application showing how to create two isolates

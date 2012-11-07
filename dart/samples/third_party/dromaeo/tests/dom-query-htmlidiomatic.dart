@@ -1,9 +1,9 @@
-#library("dom_query_html");
-#import("dart:html");
-#import('../common/common.dart');
-#import("dart:math", prefix: "Math");
-#source("Common.dart");
-#source("RunnerSuite.dart");
+library dom_query_html;
+import 'dart:html';
+import '../common/common.dart';
+import 'dart:math' as Math;
+part 'Common.dart';
+part 'RunnerSuite.dart';
 
 void main() {
   final int num = 40;

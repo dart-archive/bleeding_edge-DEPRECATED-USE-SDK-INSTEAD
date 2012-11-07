@@ -5,12 +5,12 @@
 /// Parses text in markdown format. Use this entrypoint if you want to parse
 /// markdown from your own Dart code. To parse markdown by running the script
 /// directly from the command line, see markdown.dart.
-#library('markdown');
+library markdown;
 
-#source('ast.dart');
-#source('block_parser.dart');
-#source('html_renderer.dart');
-#source('inline_parser.dart');
+part 'ast.dart';
+part 'block_parser.dart';
+part 'html_renderer.dart';
+part 'inline_parser.dart';
 
 /// Converts the given string of markdown to HTML.
 String markdownToHtml(String markdown) {

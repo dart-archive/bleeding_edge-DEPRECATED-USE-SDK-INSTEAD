@@ -1,4 +1,4 @@
-#library('Suites.dart');
+library Suites;
 
 class Origin {
   final String author;

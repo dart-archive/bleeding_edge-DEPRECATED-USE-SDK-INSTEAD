@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('utilslib');
+library utilslib;
 
-#import('dart:math', prefix: 'Math');
+import 'dart:math' as Math;
 
-#import('../observable/observable.dart');
-#import('dart:uri', prefix: 'uri');
+import '../observable/observable.dart';
+import 'dart:uri' as uri;
 
-#source('CollectionUtils.dart');
-#source('DateUtils.dart');
-#source('StringUtils.dart');
-#source('Uri.dart');
+part 'CollectionUtils.dart';
+part 'DateUtils.dart';
+part 'StringUtils.dart';
+part 'Uri.dart';
