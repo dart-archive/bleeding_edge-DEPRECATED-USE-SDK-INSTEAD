@@ -14,6 +14,7 @@
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.common.base.Objects;
+import com.google.dart.compiler.util.apache.FilenameUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -50,7 +51,6 @@ import org.eclipse.ltk.core.refactoring.participants.MoveParticipant;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 
-import java.io.File;
 import java.net.URI;
 import java.util.List;
 
@@ -109,8 +109,9 @@ public class MoveResourceParticipant extends MoveParticipant {
       URI sourceUri = cu.getResource().getParent().getLocationURI();
       namePrefix = sourceUri.relativize(destUri).toString();
       if (namePrefix.length() != 0) {
-        namePrefix += File.separator;
+        namePrefix += "/";
       }
+      namePrefix = FilenameUtils.separatorsToUnix(namePrefix);
     }
     // prepare "old name" range
     SourceRange matchRange = match.getSourceRange();
@@ -123,7 +124,6 @@ public class MoveResourceParticipant extends MoveParticipant {
 
   private void addTextEdit(CompilationUnit unit, String groupName, TextEdit textEdit) {
     if (unit.getResource() != null) {
-//      TextChange change = changeManager.get(unit);
       TextChange change = getTextChange(unit);
       if (change == null) {
         change = changeManager.get(unit);
@@ -142,8 +142,12 @@ public class MoveResourceParticipant extends MoveParticipant {
     if (targetResource != null) {
       if (URIUtilities.isFileUri(sourceUri) && URIUtilities.isFileUri(targetUri)) {
         URI relative = URIUtilities.relativize(sourceUri, targetUri);
-        ReplaceEdit textEdit = new ReplaceEdit(uriRange.getOffset(), uriRange.getLength(), "'"
-            + relative + "'");
+        String relativeStr = FilenameUtils.separatorsToUnix(relative.toString());
+        String relativeSource = "'" + relativeStr + "'";
+        ReplaceEdit textEdit = new ReplaceEdit(
+            uriRange.getOffset(),
+            uriRange.getLength(),
+            relativeSource);
         String msg = RefactoringCoreMessages.RenameProcessor_update_reference;
         addTextEdit(sourceUnit, msg, textEdit);
       }
