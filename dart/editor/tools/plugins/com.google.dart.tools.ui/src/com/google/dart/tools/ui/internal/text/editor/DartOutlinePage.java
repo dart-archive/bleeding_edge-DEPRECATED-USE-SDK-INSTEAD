@@ -28,7 +28,6 @@ import com.google.dart.tools.ui.DartElementComparator;
 import com.google.dart.tools.ui.DartElementLabelProvider;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.ProblemsLabelDecorator.ProblemsLabelChangedEvent;
@@ -57,8 +56,6 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -76,10 +73,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -103,7 +97,6 @@ import org.eclipse.ui.part.IShowInTarget;
 import org.eclipse.ui.part.IShowInTargetList;
 import org.eclipse.ui.part.Page;
 import org.eclipse.ui.part.ShowInContext;
-import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.IUpdate;
@@ -173,33 +166,11 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
       super(tree);
       setAutoExpandLevel(ALL_LEVELS);
       setUseHashlookup(true);
-      final Display display = tree.getDisplay();
       tree.setBackgroundMode(SWT.INHERIT_FORCE);
       tree.addListener(SWT.EraseItem, new Listener() {
         @Override
         public void handleEvent(Event event) {
-          event.detail &= ~SWT.HOT; // do not draw hover background natively
-          if ((event.detail & SWT.SELECTED) == 0) {
-            return; // item not selected
-          }
-          int clientWidth = tree.getClientArea().width;
-          GC gc = event.gc;
-          Color oldFG = gc.getForeground();
-          Color oldBG = gc.getBackground();
-          // TODO(messick) Cache preferences and update cache when preferences change.
-          IPreferenceStore prefs = fEditor.getPreferences();
-          Color fgColor = DartUI.getViewerSelectionForeground(prefs, display);
-          if (fgColor != null) {
-            gc.setForeground(fgColor);
-          }
-          Color bgColor = DartUI.getViewerSelectionBackground(prefs, display);
-          if (bgColor != null) {
-            gc.setBackground(bgColor);
-          }
-          gc.fillRectangle(0, event.y, clientWidth, event.height);
-          gc.setForeground(oldFG);
-          gc.setBackground(oldBG);
-          event.detail &= ~SWT.SELECTED;
+          SWTUtil.eraseSelection(event, tree, fEditor.getPreferences());
         }
       });
       updateColors();
@@ -584,11 +555,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     }
 
     protected void updateColors() {
-      IPreferenceStore store = DartOutlinePage.this.fEditor.getPreferences();
-      RGB rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND);
-      getTree().setForeground(DartUI.getColorManager().getColor(rgb));
-      rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
-      getTree().setBackground(DartUI.getColorManager().getColor(rgb));
+      SWTUtil.setColors(getTree(), DartOutlinePage.this.fEditor.getPreferences());
     }
 
     protected void updateTreeFont() {
@@ -903,8 +870,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
         doPropertyChange(event);
       }
     };
-    DartToolsPlugin.getDefault().getPreferenceStore().addPropertyChangeListener(
-        fPropertyChangeListener);
+    DartOutlinePage.this.fEditor.getPreferences().addPropertyChangeListener(fPropertyChangeListener);
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
   }
 

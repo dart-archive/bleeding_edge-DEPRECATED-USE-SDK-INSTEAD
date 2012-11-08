@@ -11,9 +11,9 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package com.google.dart.tools.ui.internal.filesview;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -30,6 +30,7 @@ import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
+import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.commands.operations.IUndoContext;
@@ -45,6 +46,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -55,12 +57,15 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionBars;
@@ -72,12 +77,14 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.MoveResourceAction;
 import org.eclipse.ui.actions.RenameResourceAction;
+import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.operations.UndoRedoActionGroup;
 import org.eclipse.ui.part.ISetSelectionTarget;
 import org.eclipse.ui.part.PluginTransfer;
 import org.eclipse.ui.part.ResourceTransfer;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 import org.eclipse.ui.views.navigator.LocalSelectionTransfer;
 
 import java.util.ArrayList;
@@ -108,6 +115,12 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
    * A constant for the Link with Editor memento.
    */
   private static final String LINK_WITH_EDITOR_ID = "linkWithEditor";
+
+  //persistence tags
+  private static final String TAG_ELEMENT = "element"; //$NON-NLS-1$
+  private static final String TAG_EXPANDED = "expanded"; //$NON-NLS-1$
+  private static final String TAG_PATH = "path"; //$NON-NLS-1$
+  private static final String TAG_SELECTION = "selection"; //$NON-NLS-1$
 
   private static boolean allElementsAreProjects(IStructuredSelection selection) {
     for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
@@ -151,13 +164,14 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private UndoRedoActionGroup undoRedoActionGroup;
 
+  private IPreferenceStore preferences;
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
-
-  //persistence tags
-  private static final String TAG_ELEMENT = "element"; //$NON-NLS-1$
-  private static final String TAG_EXPANDED = "expanded"; //$NON-NLS-1$
-  private static final String TAG_PATH = "path"; //$NON-NLS-1$
-  private static final String TAG_SELECTION = "selection"; //$NON-NLS-1$
+  private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      doPropertyChange(event);
+    }
+  };
 
   private RefreshAction refreshAction;
 
@@ -178,6 +192,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   @Override
   public void createPartControl(Composite parent) {
+    preferences = createCombinedPreferences();
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new ResourceContentProvider());
     resourceLabelProvider = new ResourceLabelProvider();
@@ -193,6 +208,13 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
     });
     treeViewer.setInput(ResourcesPlugin.getWorkspace().getRoot());
+    treeViewer.getTree().setBackgroundMode(SWT.INHERIT_FORCE);
+    treeViewer.getTree().addListener(SWT.EraseItem, new Listener() {
+      @Override
+      public void handleEvent(Event event) {
+        SWTUtil.eraseSelection(event, treeViewer.getTree(), getPreferences());
+      }
+    });
 
     initDragAndDrop();
 
@@ -215,6 +237,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
     updateTreeFont();
+    getPreferences().addPropertyChangeListener(propertyChangeListener);
+    updateColors();
 
     restoreState();
   }
@@ -237,6 +261,14 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     if (dartIgnoreListener != null) {
       DartModelManager.getInstance().removeIgnoreListener(dartIgnoreListener);
+    }
+    if (propertyChangeListener != null) {
+      getPreferences().removePropertyChangeListener(propertyChangeListener);
+      propertyChangeListener = null;
+    }
+    if (fontPropertyChangeListener != null) {
+      JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
+      fontPropertyChangeListener = null;
     }
 
     super.dispose();
@@ -468,6 +500,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     }
   }
 
+  protected void updateColors() {
+    SWTUtil.setColors(getViewer().getTree(), getPreferences());
+  }
+
   protected void updateTreeFont() {
     Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
     Font oldFont = treeViewer.getTree().getFont();
@@ -483,6 +519,19 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     return treeViewer;
   }
 
+  private IPreferenceStore createCombinedPreferences() {
+    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
+    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
+    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
+    stores.add(EditorsUI.getPreferenceStore());
+    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
+  }
+
+  private void doPropertyChange(PropertyChangeEvent event) {
+    updateColors();
+    treeViewer.refresh(false);
+  }
+
   private void fillInActionBars() {
 
     IActionBars actionBars = getViewSite().getActionBars();
@@ -495,6 +544,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     actionBars.setGlobalActionHandler(ActionFactory.PASTE.getId(), pasteAction);
     actionBars.setGlobalActionHandler(ActionFactory.REFRESH.getId(), refreshAction);
 
+  }
+
+  private IPreferenceStore getPreferences() {
+    return preferences;
   }
 
   private void initDragAndDrop() {

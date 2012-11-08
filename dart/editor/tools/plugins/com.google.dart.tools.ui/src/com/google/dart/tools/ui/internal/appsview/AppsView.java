@@ -13,11 +13,14 @@
  */
 package com.google.dart.tools.ui.internal.appsview;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.ElementChangedEvent;
+import com.google.dart.tools.core.model.ElementChangedListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.DeleteAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
@@ -27,6 +30,7 @@ import com.google.dart.tools.ui.internal.filesview.LinkWithEditorAction;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
+import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.commands.operations.IUndoContext;
@@ -39,6 +43,7 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.LocalSelectionTransfer;
@@ -49,12 +54,16 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionBars;
@@ -63,12 +72,14 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.operations.UndoRedoActionGroup;
 import org.eclipse.ui.part.ISetSelectionTarget;
 import org.eclipse.ui.part.PluginTransfer;
 import org.eclipse.ui.part.ResourceTransfer;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -111,20 +122,46 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
   private IMemento memento;
   private Clipboard clipboard;
   private LinkWithEditorAction linkWithEditorAction;
-  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
   private OpenNewApplicationWizardAction createApplicationAction;
   private DeleteAction deleteAction;
   private UndoRedoActionGroup undoRedoActionGroup;
 
+  private IPreferenceStore preferences;
+  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
+  private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      doPropertyChange(event);
+    }
+  };
+
   private DartIgnoreListener ignoreListener = new DartIgnoreListener() {
     @Override
     public void ignoresChanged() {
-      treeViewer.refresh();
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          treeViewer.refresh();
+        };
+      });
+    }
+  };
+
+  private ElementChangedListener listener = new ElementChangedListener() {
+    @Override
+    public void elementChanged(ElementChangedEvent event) {
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          treeViewer.refresh();
+        };
+      });
     }
   };
 
   @Override
   public void createPartControl(Composite parent) {
+    preferences = createCombinedPreferences();
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new AppsViewContentProvider());
     appLabelProvider = new AppLabelProvider(treeViewer.getTree().getFont());
@@ -140,6 +177,13 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
       }
     });
     treeViewer.setInput(ResourcesPlugin.getWorkspace().getRoot());
+    treeViewer.getTree().setBackgroundMode(SWT.INHERIT_FORCE);
+    treeViewer.getTree().addListener(SWT.EraseItem, new Listener() {
+      @Override
+      public void handleEvent(Event event) {
+        SWTUtil.eraseSelection(event, treeViewer.getTree(), getPreferences());
+      }
+    });
 
     initDragAndDrop();
     getSite().setSelectionProvider(treeViewer);
@@ -159,8 +203,12 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
 
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
     updateTreeFont();
+    getPreferences().addPropertyChangeListener(propertyChangeListener);
+    updateColors();
 
     restoreState();
+    int eventMask = ElementChangedEvent.POST_RECONCILE;
+    DartModelManager.getInstance().addElementChangedListener(listener, eventMask);
   }
 
   @Override
@@ -176,6 +224,14 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
 
     if (ignoreListener != null) {
       DartModelManager.getInstance().removeIgnoreListener(ignoreListener);
+    }
+    if (propertyChangeListener != null) {
+      getPreferences().removePropertyChangeListener(propertyChangeListener);
+      propertyChangeListener = null;
+    }
+    if (fontPropertyChangeListener != null) {
+      JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
+      fontPropertyChangeListener = null;
     }
 
     super.dispose();
@@ -350,6 +406,10 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     }
   }
 
+  protected void updateColors() {
+    SWTUtil.setColors(getViewer().getTree(), getPreferences());
+  }
+
   protected void updateTreeFont() {
     Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
     Font oldFont = treeViewer.getTree().getFont();
@@ -366,12 +426,30 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     return treeViewer;
   }
 
+  @SuppressWarnings("deprecation")
+  private IPreferenceStore createCombinedPreferences() {
+    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
+    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
+    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
+    stores.add(EditorsUI.getPreferenceStore());
+    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
+  }
+
+  private void doPropertyChange(PropertyChangeEvent event) {
+    updateColors();
+    treeViewer.refresh(false);
+  }
+
   private void fillInActionBars() {
     IActionBars actionBars = getViewSite().getActionBars();
     IUndoContext workspaceContext = (IUndoContext) ResourcesPlugin.getWorkspace().getAdapter(
         IUndoContext.class);
     undoRedoActionGroup = new UndoRedoActionGroup(getViewSite(), workspaceContext, true);
     undoRedoActionGroup.fillActionBars(actionBars);
+  }
+
+  private IPreferenceStore getPreferences() {
+    return preferences;
   }
 
   private void initDragAndDrop() {

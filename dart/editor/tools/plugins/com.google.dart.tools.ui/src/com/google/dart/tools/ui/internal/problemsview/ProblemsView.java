@@ -13,8 +13,10 @@
  */
 package com.google.dart.tools.ui.internal.problemsview;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
+import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.resources.IFile;
@@ -36,6 +38,7 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
@@ -77,6 +80,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -98,11 +103,13 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.SelectionProviderAction;
+import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
+import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -736,7 +743,14 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   private Display swtDisplay;
 
+  private IPreferenceStore preferences;
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
+  private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      doPropertyChange(event);
+    }
+  };
 
   public ProblemsView() {
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
@@ -744,6 +758,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   @Override
   public void createPartControl(Composite parent) {
+    preferences = createCombinedPreferences();
     swtDisplay = parent.getDisplay();
 
     clipboard = new Clipboard(parent.getDisplay());
@@ -766,6 +781,14 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
         }
       }
     });
+    final Table table = tableViewer.getTable();
+    table.setBackgroundMode(SWT.INHERIT_FORCE);
+    table.addListener(SWT.EraseItem, new Listener() {
+      @Override
+      public void handleEvent(Event event) {
+        SWTUtil.eraseSelection(event, table, getPreferences());
+      }
+    });
 
     // Create actions; must be done after the construction of the tableViewer
     goToMarkerAction = new GoToMarkerAction();
@@ -778,8 +801,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     tableSorter.setColumn(1);
     tableViewer.setComparator(tableSorter);
     tableViewer.getTable().setSortDirection(SWT.UP);
-
-    Table table = tableViewer.getTable();
 
     TableViewerColumn descriptionColumn = new TableViewerColumn(tableViewer, SWT.LEFT);
     descriptionColumn.setLabelProvider(new DescriptionLabelProvider());
@@ -809,6 +830,8 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     table.setLayoutData(new GridData(GridData.FILL_BOTH));
 //    table.setFont(parent.getFont());
     updateTableFont();
+    getPreferences().addPropertyChangeListener(propertyChangeListener);
+    updateColors();
 
     table.setLinesVisible(true);
     table.setHeaderVisible(true);
@@ -853,6 +876,10 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     if (fontPropertyChangeListener != null) {
       JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
       fontPropertyChangeListener = null;
+    }
+    if (propertyChangeListener != null) {
+      getPreferences().removePropertyChangeListener(propertyChangeListener);
+      propertyChangeListener = null;
     }
 
     MarkersChangeService.getService().removeListener(this);
@@ -1023,6 +1050,10 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   // private static Color BK_COLOR = null;
 
+  protected void updateColors() {
+    SWTUtil.setColors(getViewer().getTable(), getPreferences());
+  }
+
   protected void updateContentDescription(List<IMarker> markers) {
     if (markers == null) {
       markers = new ArrayList<IMarker>();
@@ -1074,6 +1105,20 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
         menuManager.add(action);
       }
     }
+  }
+
+  @SuppressWarnings("deprecation")
+  private IPreferenceStore createCombinedPreferences() {
+    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
+    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
+    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
+    stores.add(EditorsUI.getPreferenceStore());
+    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
+  }
+
+  private void doPropertyChange(PropertyChangeEvent event) {
+    updateColors();
+    getViewer().refresh(false);
   }
 
   private void enableSorting(final TableColumn column, final int index) {
@@ -1153,6 +1198,10 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
 
     return null;
+  }
+
+  private IPreferenceStore getPreferences() {
+    return preferences;
   }
 
   private void openSelectedMarker() {

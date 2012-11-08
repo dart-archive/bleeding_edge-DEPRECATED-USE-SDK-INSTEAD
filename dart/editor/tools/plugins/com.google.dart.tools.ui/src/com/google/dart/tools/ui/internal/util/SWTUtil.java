@@ -13,26 +13,38 @@
  */
 package com.google.dart.tools.ui.internal.util;
 
+import com.google.dart.tools.ui.DartUI;
+
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Caret;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.ScrollBar;
+import org.eclipse.swt.widgets.Scrollable;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.Widget;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 
 import java.util.WeakHashMap;
 
@@ -105,6 +117,29 @@ public class SWTUtil {
   public static FontData[] changeFontSize(FontData[] data, int height) {
     FontData newData = new FontData(data[0].getName(), height, data[0].getStyle());
     return new FontData[] {newData};
+  }
+
+  public static void eraseSelection(Event event, Scrollable control, IPreferenceStore prefs) {
+    event.detail &= ~SWT.HOT; // do not draw hover background natively
+    if ((event.detail & SWT.SELECTED) == 0) {
+      return; // item not selected
+    }
+    int clientWidth = control.getClientArea().width;
+    GC gc = event.gc;
+    Color oldFG = gc.getForeground();
+    Color oldBG = gc.getBackground();
+    Color fgColor = DartUI.getViewerSelectionForeground(prefs, control.getDisplay());
+    if (fgColor != null) {
+      gc.setForeground(fgColor);
+    }
+    Color bgColor = DartUI.getViewerSelectionBackground(prefs, control.getDisplay());
+    if (bgColor != null) {
+      gc.setBackground(bgColor);
+    }
+    gc.fillRectangle(0, event.y, clientWidth, event.height);
+    gc.setForeground(oldFG);
+    gc.setBackground(oldBG);
+    event.detail &= ~SWT.SELECTED;
   }
 
   /**
@@ -212,6 +247,27 @@ public class SWTUtil {
       ((GridData) gd).widthHint = getButtonWidthHint(button);
       ((GridData) gd).horizontalAlignment = GridData.FILL;
     }
+  }
+
+  public static void setColors(List ctl, IPreferenceStore store) {
+    RGB rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND);
+    ctl.setForeground(DartUI.getColorManager().getColor(rgb));
+    rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
+    ctl.setBackground(DartUI.getColorManager().getColor(rgb));
+  }
+
+  public static void setColors(Table ctl, IPreferenceStore store) {
+    RGB rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND);
+    ctl.setForeground(DartUI.getColorManager().getColor(rgb));
+    rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
+    ctl.setBackground(DartUI.getColorManager().getColor(rgb));
+  }
+
+  public static void setColors(Tree ctl, IPreferenceStore store) {
+    RGB rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND);
+    ctl.setForeground(DartUI.getColorManager().getColor(rgb));
+    rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
+    ctl.setBackground(DartUI.getColorManager().getColor(rgb));
   }
 
   /**

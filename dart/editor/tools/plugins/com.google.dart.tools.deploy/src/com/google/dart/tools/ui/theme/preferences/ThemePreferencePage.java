@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.deploy.Activator;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSourceViewer;
 import com.google.dart.tools.ui.theme.ColorTheme;
@@ -76,7 +77,7 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
   private static final String SAMPLE_CODE_FILE_NAME = "DartSample.dart";
 
   public static IPreferenceStore globalPreferences() {
-    return Activator/*DartToolsPlugin*/.getDefault().getPreferenceStore();
+    return /*Activator*/DartToolsPlugin.getDefault().getPreferenceStore();
   }
 
   private static String loadPreviewContentFromFile(String filename) {

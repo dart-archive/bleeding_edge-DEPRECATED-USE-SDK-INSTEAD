@@ -1270,9 +1270,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
   @Override
   public void reconciled(DartUnit ast, boolean forced, IProgressMonitor progressMonitor) {
-    if (getSourceViewer() != null) {
-      AutoSaveHelper.reconciled(getEditorInput(), getSourceViewer());
-    }
+    AutoSaveHelper.reconciled(getEditorInput(), getSourceViewer());
 
     // see: https://bugs.eclipse.org/bugs/show_bug.cgi?id=58245
     DartToolsPlugin dartPlugin = DartToolsPlugin.getDefault();
