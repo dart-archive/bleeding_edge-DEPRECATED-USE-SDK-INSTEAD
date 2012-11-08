@@ -1,4 +1,4 @@
 
-#library("Geometry");
+library Geometry;
 
-#source("point.dart");
+part 'point.dart';

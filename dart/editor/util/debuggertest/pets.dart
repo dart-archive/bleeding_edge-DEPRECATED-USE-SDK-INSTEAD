@@ -1,8 +1,8 @@
 
-#library("pets");
+library pets;
 
-#import('dart:math');
-#import('dart:isolate');
+import 'dart:math';
+import 'dart:isolate';
 
 final num MAX_CATS = 10;
 

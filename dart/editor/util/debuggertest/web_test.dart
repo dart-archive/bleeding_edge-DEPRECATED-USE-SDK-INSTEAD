@@ -2,10 +2,10 @@
 /**
  * A web application used to exercise the debugger.
  */
-#library("web_test");
+library web_test;
 
-#import("dart:html");
-#import("pets.dart");
+import 'dart:html';
+import 'pets.dart';
 
 num rotatePos = 0;
 

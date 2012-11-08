@@ -1,1 +1,1 @@
-#source('point.dart');
+part 'point.dart';

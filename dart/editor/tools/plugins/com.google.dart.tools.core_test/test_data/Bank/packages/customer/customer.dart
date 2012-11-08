@@ -1,4 +1,4 @@
-#library('customer');
+library customer;
 
 class Customer {
   String firstName;

@@ -1,4 +1,4 @@
-#library("Sample Code");
+library Sample Code;
 
 typedef int FunctionTypeAlias(int a, int b, int c);
 

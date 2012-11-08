@@ -2,9 +2,9 @@
 /**
  * A command-line application used to exercise the debugger.
  */
-#library("cmd_test");
+library cmd_test;
 
-#import('pets.dart', prefix: 'pets');
+import 'pets.dart' as pets;
 
 num petCount = 0;
 
