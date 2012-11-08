@@ -191,7 +191,30 @@ public class DartModelManagerTest extends TestCase {
     }
   }
 
-  public void test_DartModelManager_openLibrary_nonLibrary() throws Exception {
+  public void test_DartModelManager_parseLibraryFile_valid() throws Exception {
+    File libraryFile = TestUtilities.getPluginRelativePath(
+        "com.google.dart.tools.core_test",
+        new Path("test_data/Geometry/geometry.dart")).toFile();
+    DartUnit libraryUnit = parseLibraryFile(libraryFile);
+    assertNotNull(libraryUnit);
+  }
+
+//  public void test_DartModelManager_parseLibraryFile_invalid() throws Exception {
+//    File libraryFile = TestUtilities.getPluginRelativePath("com.google.dart.tools.core_test",
+//        new Path("test_data/Geometry/point.dart")).toFile();
+//    DartUnit libraryUnit = parseLibraryFile(libraryFile);
+//    assertNull(libraryUnit);
+//  }
+
+  public void test_DartModelManager_parseLibraryFile_valid2() throws Exception {
+    File libraryFile = TestUtilities.getPluginRelativePath(
+        "com.google.dart.tools.core_test",
+        new Path("test_data/UserLibrary/userLib.dart")).toFile();
+    DartUnit libraryUnit = parseLibraryFile(libraryFile);
+    assertNotNull(libraryUnit);
+  }
+
+  public void xtest_DartModelManager_openLibrary_nonLibrary() throws Exception {
     final File nonLibraryFile = TestUtilities.getPluginRelativePath(
         "com.google.dart.tools.core_test",
         new Path("test_data/Geometry/point.dart")).toFile();
@@ -210,29 +233,6 @@ public class DartModelManagerTest extends TestCase {
     } finally {
       TestUtilities.deleteProject((DartProject) parent);
     }
-  }
-
-//  public void test_DartModelManager_parseLibraryFile_invalid() throws Exception {
-//    File libraryFile = TestUtilities.getPluginRelativePath("com.google.dart.tools.core_test",
-//        new Path("test_data/Geometry/point.dart")).toFile();
-//    DartUnit libraryUnit = parseLibraryFile(libraryFile);
-//    assertNull(libraryUnit);
-//  }
-
-  public void test_DartModelManager_parseLibraryFile_valid() throws Exception {
-    File libraryFile = TestUtilities.getPluginRelativePath(
-        "com.google.dart.tools.core_test",
-        new Path("test_data/Geometry/geometry.dart")).toFile();
-    DartUnit libraryUnit = parseLibraryFile(libraryFile);
-    assertNotNull(libraryUnit);
-  }
-
-  public void test_DartModelManager_parseLibraryFile_valid2() throws Exception {
-    File libraryFile = TestUtilities.getPluginRelativePath(
-        "com.google.dart.tools.core_test",
-        new Path("test_data/UserLibrary/userLib.dart")).toFile();
-    DartUnit libraryUnit = parseLibraryFile(libraryFile);
-    assertNotNull(libraryUnit);
   }
 
   /**
