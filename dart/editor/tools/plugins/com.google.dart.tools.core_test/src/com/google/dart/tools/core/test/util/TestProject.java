@@ -201,6 +201,7 @@ public class TestProject {
    */
   public CompilationUnit getUnit(String path) throws Exception {
     IFile file = getFile(path);
+    TestUtilities.processAllDeltaChanges();
     return (CompilationUnit) DartCore.create(file);
   }
 
@@ -215,7 +216,6 @@ public class TestProject {
       file.create(stream, true, null);
       file.setCharset("UTF-8", null);
     }
-
     // notify AnalysisServer
     {
       AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
@@ -223,9 +223,8 @@ public class TestProject {
       server.scan(javaFile, 5000);
       server.changed(javaFile);
     }
-
+    // wait for changes
     TestUtilities.processAllDeltaChanges();
-
     // done
     return file;
   }

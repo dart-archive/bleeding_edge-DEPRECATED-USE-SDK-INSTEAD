@@ -85,7 +85,7 @@ public final class DeleteResourceParticipantTest extends RefactoringTest {
         "#import('target.dart');",
         "");
     assertTrue(targetFile.exists());
-    // do rename
+    // do delete
     deleteFile(targetFile);
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -102,7 +102,7 @@ public final class DeleteResourceParticipantTest extends RefactoringTest {
         "#source('target.dart');",
         "");
     assertTrue(targetFile.exists());
-    // do rename
+    // do delete
     deleteFile(targetFile);
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -121,7 +121,7 @@ public final class DeleteResourceParticipantTest extends RefactoringTest {
             "// trailing comment",
             ""}));
     assertTrue(targetFile.exists());
-    // do rename
+    // do delete
     deleteFile(targetFile);
     assertTestUnitContent(Joiner.on("\r\n").join(
         new String[] {
@@ -139,7 +139,7 @@ public final class DeleteResourceParticipantTest extends RefactoringTest {
         "#library('Test');",
         "");
     assertTrue(targetFile.exists());
-    // do rename
+    // do delete
     deleteFile(targetFile);
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
