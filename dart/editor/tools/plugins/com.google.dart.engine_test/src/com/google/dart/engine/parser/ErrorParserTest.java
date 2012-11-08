@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypedLiteral;
+import com.google.dart.engine.internal.parser.CommentAndMetadata;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -122,7 +123,7 @@ public class ErrorParserTest extends ParserTestCase {
   public void test_builtInIdentifierAsTypeDefName() throws Exception {
     parse(
         "parseTypeAlias",
-        new Class[] {Parser.CommentAndMetadata.class},
+        new Class[] {CommentAndMetadata.class},
         new Object[] {emptyCommentAndMetadata()},
         "typedef as();",
         ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
@@ -131,7 +132,7 @@ public class ErrorParserTest extends ParserTestCase {
   public void test_builtInIdentifierAsTypeName() throws Exception {
     parse(
         "parseClassDeclaration",
-        new Class[] {Parser.CommentAndMetadata.class},
+        new Class[] {CommentAndMetadata.class},
         new Object[] {emptyCommentAndMetadata()},
         "class as {}",
         ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
@@ -200,6 +201,30 @@ public class ErrorParserTest extends ParserTestCase {
     assertNotNull(unit);
   }
 
+  public void test_duplicatedModifier_const() throws Exception {
+    parse("parseClassMember", "const const m;", ParserErrorCode.DUPLICATED_MODIFIER);
+  }
+
+  public void test_duplicatedModifier_external() throws Exception {
+    parse("parseClassMember", "external external f();", ParserErrorCode.DUPLICATED_MODIFIER);
+  }
+
+  public void test_duplicatedModifier_factory() throws Exception {
+    parse("parseClassMember", "factory factory m;", ParserErrorCode.DUPLICATED_MODIFIER);
+  }
+
+  public void test_duplicatedModifier_final() throws Exception {
+    parse("parseClassMember", "final final m;", ParserErrorCode.DUPLICATED_MODIFIER);
+  }
+
+  public void test_duplicatedModifier_static() throws Exception {
+    parse("parseClassMember", "static static m;", ParserErrorCode.DUPLICATED_MODIFIER);
+  }
+
+  public void test_duplicatedModifier_var() throws Exception {
+    parse("parseClassMember", "var var m;", ParserErrorCode.DUPLICATED_MODIFIER);
+  }
+
   public void test_duplicateLabelInSwitchStatement() throws Exception {
     parse(
         "parseSwitchStatement",
@@ -209,14 +234,6 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_expectedCaseOrDefault() throws Exception {
     parse("parseSwitchStatement", "switch (e) {break;}", ParserErrorCode.EXPECTED_CASE_OR_DEFAULT);
-  }
-
-  public void test_expectedIdentifier_number() throws Exception {
-    SimpleIdentifier expression = parse(
-        "parseSimpleIdentifier",
-        "1",
-        ParserErrorCode.EXPECTED_IDENTIFIER);
-    assertTrue(expression.isSynthetic());
   }
 
   public void test_expectedStringLiteral() throws Exception {
@@ -297,6 +314,10 @@ public class ErrorParserTest extends ParserTestCase {
         "parseClassMember",
         "external set x(int value) {}",
         ParserErrorCode.EXTERNAL_SETTER_WITH_BODY);
+  }
+
+  public void test_finalLoopParameter() throws Exception {
+    parse("parseStatement", "for (final x in y) {}", ParserErrorCode.FINAL_LOOP_PARAMETER);
   }
 
   public void test_getterWithParameters() throws Exception {
@@ -448,6 +469,14 @@ public class ErrorParserTest extends ParserTestCase {
         false, false}, "return 0;", ParserErrorCode.MISSING_FUNCTION_BODY);
   }
 
+  public void test_missingIdentifier_number() throws Exception {
+    SimpleIdentifier expression = parse(
+        "parseSimpleIdentifier",
+        "1",
+        ParserErrorCode.MISSING_IDENTIFIER);
+    assertTrue(expression.isSynthetic());
+  }
+
   public void test_missingVariableInForEach() throws Exception {
     parse(
         "parseForStatement",
@@ -552,7 +581,7 @@ public class ErrorParserTest extends ParserTestCase {
   public void test_staticTopLevelDeclaration() throws Exception {
     parse(
         "parseCompilationUnitMember",
-        new Class[] {Parser.CommentAndMetadata.class},
+        new Class[] {CommentAndMetadata.class},
         new Object[] {emptyCommentAndMetadata()},
         "static var x;",
         ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);

@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
+import com.google.dart.engine.internal.parser.CommentAndMetadata;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.TestSource;
@@ -273,12 +274,12 @@ public class ParserTestCase extends EngineTestCase {
    * @param annotations the annotations to be wrapped in the object
    * @return a CommentAndMetadata object that can be used for testing
    */
-  protected Parser.CommentAndMetadata commentAndMetadata(Comment comment, Annotation... annotations) {
+  protected CommentAndMetadata commentAndMetadata(Comment comment, Annotation... annotations) {
     ArrayList<Annotation> metadata = new ArrayList<Annotation>();
     for (Annotation annotation : annotations) {
       metadata.add(annotation);
     }
-    return new Parser.CommentAndMetadata(comment, metadata);
+    return new CommentAndMetadata(comment, metadata);
   }
 
   /**
@@ -286,7 +287,7 @@ public class ParserTestCase extends EngineTestCase {
    * 
    * @return an empty CommentAndMetadata object that can be used for testing
    */
-  protected Parser.CommentAndMetadata emptyCommentAndMetadata() {
-    return new Parser.CommentAndMetadata(null, new ArrayList<Annotation>());
+  protected CommentAndMetadata emptyCommentAndMetadata() {
+    return new CommentAndMetadata(null, new ArrayList<Annotation>());
   }
 }
