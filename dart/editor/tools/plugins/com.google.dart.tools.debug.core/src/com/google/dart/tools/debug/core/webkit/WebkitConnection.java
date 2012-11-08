@@ -334,7 +334,7 @@ public class WebkitConnection {
 
   private void processResponse(JSONObject result) throws JSONException {
     try {
-      int id = result.getInt("id");
+      int id = result.optInt("id", -1);
 
       Callback callback;
 

@@ -15,9 +15,9 @@ document.documentElement.appendChild(_d_remoteFrame);
 
 _d_remoteFrame.onload = function () {
   _d_remoteWindow = _d_remoteFrame.contentWindow;
-  _d_remoteWindow.postMessage(
-    JSON.stringify({ message: 'Connection from ' + window.location.toString() }),
-    _d_origin);
+//  _d_remoteWindow.postMessage(
+//    JSON.stringify({ message: 'Connection from ' + window.location.toString() }),
+//    _d_origin);
 };
 
 // replace the dartPrint function with our own definition

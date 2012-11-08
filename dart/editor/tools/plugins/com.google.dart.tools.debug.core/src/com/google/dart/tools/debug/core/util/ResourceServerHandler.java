@@ -70,6 +70,7 @@ import java.util.Map;
  * Handles an incoming http request, serving files from the workspace (or error pages) as necessary.
  */
 class ResourceServerHandler implements Runnable {
+
   private static class HttpHeader {
     public static final String METHOD_GET = "GET";
     public static final String METHOD_HEAD = "HEAD";
@@ -509,7 +510,7 @@ class ResourceServerHandler implements Runnable {
   private String decodeWebChars(String line) {
     // GET /dart/test%C3%BCuuuu/swipe.html HTTP/1.1
     //   ==>
-    // // GET /dart/testüuuuu/swipe.html HTTP/1.1
+    // GET /dart/testüuuuu/swipe.html HTTP/1.1
 
     byte[] bytes = line.getBytes();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -714,13 +715,11 @@ class ResourceServerHandler implements Runnable {
     }
 
     // GET /index.html HTTP/1.1
-    line = decodeWebChars(line);
-
     String[] strs = line.split(" ");
 
     if (strs.length > 2) {
       header.method = strs[0];
-      header.file = strs[1];
+      header.file = decodeWebChars(strs[1]);
       header.version = strs[2];
 
       if (header.file != null) {

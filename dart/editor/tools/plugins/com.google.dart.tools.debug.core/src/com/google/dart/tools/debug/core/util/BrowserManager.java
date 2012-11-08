@@ -57,10 +57,10 @@ public class BrowserManager {
   private static IResourceResolver resourceResolver;
 
   /** The initial page to navigate to. */
-  private static final String INITIAL_PAGE = "http://www.dartlang.org/";
+  private static final String INITIAL_PAGE = "chrome://version/";
 
   /** A fragment of the initial page, used to search for it in a list of open tabs. */
-  private static final String INITIAL_PAGE_FRAGMENT = "dartlang.org/";
+  private static final String INITIAL_PAGE_FRAGMENT = "chrome://version";
 
   public static BrowserManager getManager() {
     return manager;
