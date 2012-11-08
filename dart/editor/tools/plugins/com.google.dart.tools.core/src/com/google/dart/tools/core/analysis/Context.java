@@ -58,6 +58,36 @@ public abstract class Context {
     this.libraryManager = libraryManager;
   }
 
+  /**
+   * Answer a non-essential task to be performed during periods of inactivity. This method should
+   * return quickly so as not to delay requested analysis.
+   * 
+   * @return the task or {@code null} if none.
+   */
+  public Task getIdleTask() {
+
+    // Find libraries that have not been parsed
+    for (Library library : libraryCache.values()) {
+      File libraryFile = library.getFile();
+      if (library.getDartUnit(libraryFile) == null) {
+        return new ParseTask(server, this, libraryFile);
+      }
+    }
+
+    // Find sourced files that have not been parsed
+    for (Library library : libraryCache.values()) {
+      for (Entry<String, File> entry : library.getRelativeSourcePathsAndFiles()) {
+        File dartFile = entry.getValue();
+        if (library.getDartUnit(dartFile) == null) {
+          String relPath = entry.getKey();
+          return new ParseTask(server, this, library.getFile(), relPath, dartFile);
+        }
+      }
+    }
+
+    return null;
+  }
+
   public PackageLibraryManager getLibraryManager() {
     return libraryManager;
   }
@@ -345,5 +375,4 @@ public abstract class Context {
     }
     writer.writeString(END_CACHE_TAG);
   }
-
 }

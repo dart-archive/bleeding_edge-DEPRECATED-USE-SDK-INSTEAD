@@ -21,7 +21,14 @@ import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
+import static com.google.dart.tools.core.analysis.AnalysisTestUtilities.getCachedLibrary;
+
 import java.io.File;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URI;
 
 public class ContextTest extends AbstractDartCoreTest {
 
@@ -54,6 +61,52 @@ public class ContextTest extends AbstractDartCoreTest {
   private AnalysisServer server;
   private SavedContext context;
   private Listener listener;
+
+  public void test_getIdleTask() throws Exception {
+    PackageLibraryManager libMgr = PackageLibraryManagerProvider.getAnyLibraryManager();
+    URI coreLibUri = libMgr.resolveDartUri(new URI("dart:core"));
+    assertTrue(coreLibUri.getScheme() == null || "file".equals(coreLibUri.getScheme()));
+    File coreLibFile = new File(coreLibUri.getPath());
+    assertTrue(coreLibFile.isAbsolute());
+    assertTrue(coreLibFile.exists());
+
+    assertNull(context.getIdleTask());
+    context.resolve(coreLibFile, FIVE_MINUTES_MS);
+    assertNull(context.getIdleTask());
+    StringWriter writer = new StringWriter(100);
+    writeCache(new CacheWriter(writer));
+    String cacheContent = writer.toString();
+
+    tearDown();
+    setUp();
+
+    assertNull(getCachedLibrary(context, coreLibFile));
+    assertNull(context.getIdleTask());
+    CacheReader reader = new CacheReader(new StringReader(cacheContent));
+    readCache(reader, reader.readInt());
+    Object coreLib = getCachedLibrary(context, coreLibFile);
+    assertNotNull(coreLib);
+
+    assertLibraryParsed(coreLib, coreLibFile, false);
+    assertLibraryResolved(coreLib, false);
+
+    context.getIdleTask().perform();
+    context.getIdleTask().perform();
+
+    assertLibraryParsed(coreLib, coreLibFile, true);
+    assertLibraryResolved(coreLib, false);
+
+    long end = System.currentTimeMillis() + FIVE_MINUTES_MS;
+    Task idleTask = context.getIdleTask();
+    while (idleTask != null && System.currentTimeMillis() < end) {
+      idleTask.perform();
+      idleTask = context.getIdleTask();
+    }
+    assertNull(idleTask);
+
+    assertLibraryParsed(coreLib, coreLibFile, true);
+    assertLibraryResolved(coreLib, false);
+  }
 
   public void test_parse_library() throws Exception {
     ParseResult result1 = context.parse(libraryFile, libraryFile, FIVE_MINUTES_MS);
@@ -161,11 +214,67 @@ public class ContextTest extends AbstractDartCoreTest {
     server.stop();
   }
 
+  private void assertLibraryParsed(Object cachedLib, File libraryFile, boolean expected)
+      throws Exception {
+    // Library.getDartUnit(libraryFile) != null
+    Method method = cachedLib.getClass().getDeclaredMethod("getDartUnit", File.class);
+    method.setAccessible(true);
+    try {
+      boolean isParsed = method.invoke(cachedLib, libraryFile) != null;
+      if (isParsed == expected) {
+        return;
+      }
+    } catch (InvocationTargetException e) {
+      throw (Exception) e.getCause();
+    }
+    fail("Expected cached library to be parsed");
+  }
+
+  private void assertLibraryResolved(Object cachedLib, boolean expected) throws Exception {
+    // Library.getLibraryUnit() != null
+    Method method = cachedLib.getClass().getDeclaredMethod("getLibraryUnit");
+    method.setAccessible(true);
+    try {
+      boolean isResolved = method.invoke(cachedLib) != null;
+      if (isResolved == expected) {
+        return;
+      }
+    } catch (InvocationTargetException e) {
+      throw (Exception) e.getCause();
+    }
+    fail("Expected cached library to be resolved");
+  }
+
   private void assertParsed(int expectedParseCount, int expectedErrorCount) {
     listener.assertParsedCount(expectedParseCount);
     listener.assertResolvedCount(0);
     listener.assertErrorCount(expectedErrorCount);
     listener.assertNoDuplicates();
     listener.assertNoDiscards();
+  }
+
+  private void readCache(CacheReader reader, int packageContextCount) throws Exception {
+    // context.readCache(cacheReader, packageContextCount);
+    Method method = context.getClass().getDeclaredMethod(
+        "readCache",
+        CacheReader.class,
+        Integer.TYPE);
+    method.setAccessible(true);
+    try {
+      method.invoke(context, reader, packageContextCount);
+    } catch (InvocationTargetException e) {
+      throw (Exception) e.getCause();
+    }
+  }
+
+  private void writeCache(CacheWriter writer) throws Exception {
+    // context.writeCache(writer);
+    Method method = context.getClass().getDeclaredMethod("writeCache", CacheWriter.class);
+    method.setAccessible(true);
+    try {
+      method.invoke(context, writer);
+    } catch (InvocationTargetException e) {
+      throw (Exception) e.getCause();
+    }
   }
 }
