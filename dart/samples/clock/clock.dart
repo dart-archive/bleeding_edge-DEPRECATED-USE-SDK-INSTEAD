@@ -34,18 +34,15 @@ class CountDownClock {
   static const double BALL_WIDTH = 19.0;
   static const double BALL_HEIGHT = 19.0;
 
-  List<ClockNumber> hours, minutes, seconds;
-  int displayedHour, displayedMinute, displayedSecond;
-  Balls balls;
+  List<ClockNumber> hours = new List<ClockNumber>(2);
+  List<ClockNumber> minutes = new List<ClockNumber>(2);
+  List<ClockNumber> seconds = new List<ClockNumber>(2);
+  int displayedHour = 0;
+  int displayedMinute = 0;
+  int displayedSecond = 0;
+  Balls balls = new Balls();
 
-  CountDownClock() :
-      hours = new List<ClockNumber>(2),
-      minutes = new List<ClockNumber>(2),
-      seconds = new List<ClockNumber>(2),
-      displayedHour = 0,
-      displayedMinute = 0,
-      displayedSecond = 0,
-      balls = new Balls() {
+  CountDownClock() {
     var parent = query("#canvas-content");
 
     parent.rect.then((ElementRect r) {
