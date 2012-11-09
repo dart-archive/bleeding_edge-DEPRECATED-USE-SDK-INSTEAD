@@ -51,7 +51,7 @@ import org.eclipse.ui.views.navigator.NavigatorDragAdapter;
 import java.io.File;
 import java.util.Set;
 
-@SuppressWarnings("deprecation")
+@SuppressWarnings({"deprecation", "restriction"})
 public class FileSearchPage extends AbstractTextSearchViewPage implements IAdaptable {
 
   public static class DecoratorIgnoringViewerSorter extends ViewerComparator {

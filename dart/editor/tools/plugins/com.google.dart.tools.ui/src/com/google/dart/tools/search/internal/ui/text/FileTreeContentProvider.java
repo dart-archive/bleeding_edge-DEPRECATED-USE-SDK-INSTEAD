@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+@SuppressWarnings("restriction")
 public class FileTreeContentProvider implements ITreeContentProvider, IFileSearchContentProvider {
 
   private final Object[] EMPTY_ARR = new Object[0];

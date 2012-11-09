@@ -19,6 +19,7 @@ import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 
+@SuppressWarnings("restriction")
 public class FileTableContentProvider implements IStructuredContentProvider,
     IFileSearchContentProvider {
 
@@ -31,10 +32,37 @@ public class FileTableContentProvider implements IStructuredContentProvider,
     fPage = page;
   }
 
+  @Override
+  public void clear() {
+    getViewer().refresh();
+  }
+
+  @Override
   public void dispose() {
     // nothing to do
   }
 
+  @Override
+  public void elementsChanged(Object[] updatedElements) {
+    TableViewer viewer = getViewer();
+    int elementLimit = getElementLimit();
+    boolean tableLimited = elementLimit != -1;
+    for (int i = 0; i < updatedElements.length; i++) {
+      if (fResult.getMatchCount(updatedElements[i]) > 0) {
+        if (viewer.testFindItem(updatedElements[i]) != null) {
+          viewer.update(updatedElements[i], null);
+        } else {
+          if (!tableLimited || viewer.getTable().getItemCount() < elementLimit) {
+            viewer.add(updatedElements[i]);
+          }
+        }
+      } else {
+        viewer.remove(updatedElements[i]);
+      }
+    }
+  }
+
+  @Override
   public Object[] getElements(Object inputElement) {
     if (inputElement instanceof FileSearchResult) {
       int elementLimit = getElementLimit();
@@ -49,26 +77,10 @@ public class FileTableContentProvider implements IStructuredContentProvider,
     return EMPTY_ARR;
   }
 
+  @Override
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
     if (newInput instanceof FileSearchResult) {
       fResult = (FileSearchResult) newInput;
-    }
-  }
-
-  public void elementsChanged(Object[] updatedElements) {
-    TableViewer viewer = getViewer();
-    int elementLimit = getElementLimit();
-    boolean tableLimited = elementLimit != -1;
-    for (int i = 0; i < updatedElements.length; i++) {
-      if (fResult.getMatchCount(updatedElements[i]) > 0) {
-        if (viewer.testFindItem(updatedElements[i]) != null)
-          viewer.update(updatedElements[i], null);
-        else {
-          if (!tableLimited || viewer.getTable().getItemCount() < elementLimit)
-            viewer.add(updatedElements[i]);
-        }
-      } else
-        viewer.remove(updatedElements[i]);
     }
   }
 
@@ -78,9 +90,5 @@ public class FileTableContentProvider implements IStructuredContentProvider,
 
   private TableViewer getViewer() {
     return (TableViewer) fPage.getViewer();
-  }
-
-  public void clear() {
-    getViewer().refresh();
   }
 }

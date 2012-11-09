@@ -3209,6 +3209,17 @@
          class="com.google.dart.tools.ui.internal.search.DartSearchResultPage">
       </viewPage>
    </extension>
+   <extension
+      id="FileSearchPage"
+        point="com.google.dart.tools.search.searchResultViewPages">
+    <viewPage
+      id="com.google.dart.tools.search.text.FileSearchResultPage"
+      searchResultClass="com.google.dart.tools.search.internal.ui.text.FileSearchResult"
+      helpContextId="com.google.dart.tools.search.file_search_result_page"
+      class="com.google.dart.tools.search.internal.ui.text.FileSearchPage">
+    </viewPage>
+  </extension>
+ 
 
    <extension
          point="org.eclipse.ltk.core.refactoring.renameParticipants">
