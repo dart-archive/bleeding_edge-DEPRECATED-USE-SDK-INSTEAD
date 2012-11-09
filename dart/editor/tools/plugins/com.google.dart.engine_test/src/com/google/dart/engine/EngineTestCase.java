@@ -19,6 +19,7 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
+import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
@@ -29,6 +30,9 @@ import java.util.Map;
  * The class {@code EngineTestCase} defines utility methods for making assertions.
  */
 public class EngineTestCase extends TestCase {
+
+  private static final int PRINT_RANGE = 6;
+
   /**
    * Assert that the tokens in the actual stream of tokens have the same types and lexemes as the
    * tokens in the expected stream of tokens. Note that this does not assert anything about the
@@ -77,6 +81,43 @@ public class EngineTestCase extends TestCase {
         fail("The actual value " + actualValue + " was not expected");
       }
     }
+  }
+
+  /**
+   * Assert that a given String is equal to an expected value.
+   * 
+   * @param expected the expected String value
+   * @param actualValues the actual String value
+   */
+  public static void assertEqualString(String expected, String actual) {
+
+    if (actual == null || expected == null) {
+      if (actual == expected) {
+        return;
+      }
+      if (actual == null) {
+        Assert.assertTrue("Content not as expected: is 'null' expected: " + expected, false);
+      } else {
+        Assert.assertTrue("Content not as expected: expected 'null' is: " + actual, false);
+      }
+    }
+
+    int diffPos = getDiffPos(actual, expected);
+
+    if (diffPos != -1) {
+
+      int diffAhead = Math.max(0, diffPos - PRINT_RANGE);
+      int diffAfter = Math.min(actual.length(), diffPos + PRINT_RANGE);
+
+      String diffStr = actual.substring(diffAhead, diffPos) + '^'
+          + actual.substring(diffPos, diffAfter);
+
+      // use detailed message
+      String message = "Content not as expected: is\n" + actual + "\nDiffers at pos " + diffPos + ": " + diffStr + "\nexpected:\n" + expected; //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+
+      assertEquals(message, expected, actual);
+    }
+
   }
 
   /**
@@ -180,5 +221,31 @@ public class EngineTestCase extends TestCase {
       writer.println(line);
     }
     return writer.toString();
+  }
+
+  /**
+   * Calculate the offset where the given strings differ.
+   * 
+   * @param str1 the first String to compare
+   * @param str2 the second String to compare
+   * @return the offset at which the strings differ (or <code>-1</code> if they do not)
+   */
+  private static int getDiffPos(String str1, String str2) {
+
+    int len1 = Math.min(str1.length(), str2.length());
+
+    int diffPos = -1;
+    for (int i = 0; i < len1; i++) {
+      if (str1.charAt(i) != str2.charAt(i)) {
+        diffPos = i;
+        break;
+      }
+    }
+
+    if (diffPos == -1 && str1.length() != str2.length()) {
+      diffPos = len1;
+    }
+
+    return diffPos;
   }
 }
