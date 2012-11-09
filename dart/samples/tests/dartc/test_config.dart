@@ -47,5 +47,5 @@ class SamplesDartcTestSuite extends DartcCompilationTestSuite {
         ["containsLeadingHash"];
   }
 
-  bool listRecursively() => true;
+  bool get listRecursively => true;
 }
