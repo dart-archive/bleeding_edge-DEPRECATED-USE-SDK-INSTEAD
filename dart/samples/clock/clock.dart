@@ -53,7 +53,7 @@ class CountDownClock {
   }
 
   void tick(num time) {
-    updateTime(new Date.fromMillisecondsSinceEpoch(time.toInt()));
+    updateTime(new Date.now());
     balls.tick(time);
     window.requestAnimationFrame(tick);
   }

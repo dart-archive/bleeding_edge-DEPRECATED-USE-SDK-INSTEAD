@@ -12,6 +12,7 @@ import 'dart:html';
 import 'dart:scalarlist';
 import 'dart:json';
 import 'dart:math' as Math;
+
 import 'package:vector_math/vector_math_browser.dart';
 
 part 'sphere_model_data.dart';
@@ -179,10 +180,13 @@ class Solar3DApplication {
       // We don't rotate the view if we don't own the mouse
       return;
     }
-    controller.mouseSensitivity = 720.0;
-    controller.accumDX -= event.$dom_wheelDeltaX;
-    controller.accumDY += event.$dom_wheelDeltaY;
-    //controller.accumScroll += event.$dom_wheelDeltaY;
+    if (event is WheelEvent) {
+      WheelEvent e = event;
+      controller.mouseSensitivity = 720.0;
+      controller.accumDX -= e.$dom_wheelDeltaX;
+      controller.accumDY += e.$dom_wheelDeltaY;
+      //controller.accumScroll += e.$dom_wheelDeltaY;
+    }
     event.preventDefault();
   }
 
