@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Dart Dev"
+            id="com.google.dart.dev.util.view.ast">
+      </category>
+      <view
+            name="AST"
+            icon="icons/class_hi.gif"
+            category="com.google.dart.dev.util.view.ast"
+            class="com.google.dart.dev.util.ast.ASTExplorer"
+            id="com.google.dart.dev.util.ast.ASTExplorer">
+      </view>
+   </extension>
+
+</plugin>
