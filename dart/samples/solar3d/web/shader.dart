@@ -18,13 +18,13 @@ class Shader {
     gl.shaderSource(vertexShader, vertexShaderSource);
     gl.compileShader(vertexShader);
     // Print compile log
-    print(gl.getShaderInfoLog(vertexShader));
+    printLog(gl.getShaderInfoLog(vertexShader));
 
     fragmentShader = gl.createShader(WebGLRenderingContext.FRAGMENT_SHADER);
     gl.shaderSource(fragmentShader, fragmentShaderSource);
     gl.compileShader(fragmentShader);
     // Print compile log
-    print(gl.getShaderInfoLog(fragmentShader));
+    printLog(gl.getShaderInfoLog(fragmentShader));
   }
 
   void link(WebGLRenderingContext gl) {
@@ -32,7 +32,7 @@ class Shader {
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
-    print(gl.getProgramInfoLog(program));
+    printLog(gl.getProgramInfoLog(program));
     dumpUniforms(gl);
     dumpAttributes(gl);
   }

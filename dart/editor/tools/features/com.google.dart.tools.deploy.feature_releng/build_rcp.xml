@@ -190,6 +190,8 @@ build system.  The PDE build system has to run under Eclipse.
 
                 <include name="solar/**"/>
 
+                <include name="solar3d/**"/>
+                
                 <include name="sunflower/**"/>
 
                 <include name="swipe/**"/>
@@ -198,6 +200,9 @@ build system.  The PDE build system has to run under Eclipse.
 
                 <!-- the READMEs are out of date -->
                 <exclude name="**/README"/>
+                
+                <!-- the included samples aren't under revision control -->
+                <exclude name="**/.gitignore"/>
             </fileset>
             <fileset dir="${build.source.root}/samples/third_party">
                 <include name="todomvc/**"/>

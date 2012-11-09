@@ -42,7 +42,7 @@ class Solar3DApplication {
 
   String getBaseUrl() {
     var location = window.location.href;
-    return "${location.substring(0,location.length - "solar.html".length)}";
+    return "${location.substring(0, location.length - "solar.html".length)}";
   }
 
   void startup(String canvasId) {
@@ -55,14 +55,14 @@ class Solar3DApplication {
     skyBox = new Skybox(glContext);
     orbitPath = new OrbitPath(glContext);
     // Measure the canvas element.
-    canvas.parent.rect.then((ElementRect rect) {
-      canvas.width = rect.client.width;
+    window.requestLayoutFrame(() {
+      canvas.width = (canvas.parent as Element).clientWidth;
       canvas.height = 400;
 
       Future f = setupAssets();
       f.then((_) {
         bind();
-        camera.aspectRatio = canvas.width/canvas.height;
+        camera.aspectRatio = canvas.width / canvas.height;
         // Initialize the planets and start the simulation.
         solarSystem.start();
         requestRedraw();
@@ -77,7 +77,6 @@ class Solar3DApplication {
     SphereModel.bindToProgram(glContext, planetShader.program);
     return loadTextures();
   }
-
 
   Future loadTextures() {
     List<Future> futures = new List<Future>();
@@ -132,7 +131,7 @@ class Solar3DApplication {
   const keyCodeJ = 74;
   const keyCodeS = 83;
 
-  void keydown(KeyboardEvent  event) {
+  void keydown(KeyboardEvent event) {
     if (!ownMouse) {
       // We don't respond to keyboard commands if we don't own the mouse
       return;
@@ -192,12 +191,10 @@ class Solar3DApplication {
       // Resize the canvas to fill the screen
       canvas.width = window.screen.width;
       canvas.height = window.screen.height;
-      print('in fullscreen');
     } else {
       // Resize the canvas to the default size.
       canvas.height = 512;
       canvas.width = 512;
-      print('out of fullscreen');
     }
     camera.aspectRatio = canvas.width/canvas.height;
   }
@@ -257,6 +254,7 @@ class Solar3DApplication {
 Solar3DApplication application = new Solar3DApplication();
 
 double fpsAverage;
+
 /**
  * Display the animation's FPS in a div.
  */
@@ -285,7 +283,6 @@ class SolarSystem {
 
   int selectedPlanet = 0;
   List<PlanetaryBody> planets = new List<PlanetaryBody>();
-
 
   start() {
     _start();
@@ -521,6 +518,12 @@ class PlanetaryBody {
       return new vec2(orbitRadius * Math.cos(angle) + x,
                       orbitRadius * Math.sin(angle) + y);
     }
+  }
+}
+
+void printLog(String log) {
+  if (log != null && !log.isEmpty) {
+    print(log);
   }
 }
 
