@@ -73,23 +73,48 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_abstractClassMember_constructor() throws Exception {
-    parse("parseClassMember", "abstract C.c();", ParserErrorCode.ABSTRACT_CLASS_MEMBER);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "abstract C.c();",
+        ParserErrorCode.ABSTRACT_CLASS_MEMBER);
   }
 
   public void test_abstractClassMember_field() throws Exception {
-    parse("parseClassMember", "abstract C f;", ParserErrorCode.ABSTRACT_CLASS_MEMBER);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "abstract C f;",
+        ParserErrorCode.ABSTRACT_CLASS_MEMBER);
   }
 
   public void test_abstractClassMember_getter() throws Exception {
-    parse("parseClassMember", "abstract get m;", ParserErrorCode.ABSTRACT_CLASS_MEMBER);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "abstract get m;",
+        ParserErrorCode.ABSTRACT_CLASS_MEMBER);
   }
 
   public void test_abstractClassMember_method() throws Exception {
-    parse("parseClassMember", "abstract m();", ParserErrorCode.ABSTRACT_CLASS_MEMBER);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "abstract m();",
+        ParserErrorCode.ABSTRACT_CLASS_MEMBER);
   }
 
   public void test_abstractClassMember_setter() throws Exception {
-    parse("parseClassMember", "abstract set m(v);", ParserErrorCode.ABSTRACT_CLASS_MEMBER);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "abstract set m(v);",
+        ParserErrorCode.ABSTRACT_CLASS_MEMBER);
   }
 
   public void test_breakOutsideOfLoop_breakInDoStatement() throws Exception {
@@ -140,6 +165,42 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_builtInIdentifierAsTypeVariableName() throws Exception {
     parse("parseTypeParameter", "as", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
+  }
+
+  public void test_constAndFactory() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "const factory C() {}",
+        ParserErrorCode.CONST_AND_FACTORY);
+  }
+
+  public void test_constAndFinal() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "const final int x;",
+        ParserErrorCode.CONST_AND_FINAL);
+  }
+
+  public void test_constAndVar() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "const var x;",
+        ParserErrorCode.CONST_AND_VAR);
+  }
+
+  public void test_constMethod() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "const int m() {}",
+        ParserErrorCode.CONST_METHOD);
   }
 
   public void test_continueOutsideOfLoop_continueInDoStatement() throws Exception {
@@ -202,27 +263,57 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_duplicatedModifier_const() throws Exception {
-    parse("parseClassMember", "const const m;", ParserErrorCode.DUPLICATED_MODIFIER);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "const const m;",
+        ParserErrorCode.DUPLICATED_MODIFIER);
   }
 
   public void test_duplicatedModifier_external() throws Exception {
-    parse("parseClassMember", "external external f();", ParserErrorCode.DUPLICATED_MODIFIER);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "external external f();",
+        ParserErrorCode.DUPLICATED_MODIFIER);
   }
 
   public void test_duplicatedModifier_factory() throws Exception {
-    parse("parseClassMember", "factory factory m;", ParserErrorCode.DUPLICATED_MODIFIER);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "factory factory C() {}",
+        ParserErrorCode.DUPLICATED_MODIFIER);
   }
 
   public void test_duplicatedModifier_final() throws Exception {
-    parse("parseClassMember", "final final m;", ParserErrorCode.DUPLICATED_MODIFIER);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "final final m;",
+        ParserErrorCode.DUPLICATED_MODIFIER);
   }
 
   public void test_duplicatedModifier_static() throws Exception {
-    parse("parseClassMember", "static static m;", ParserErrorCode.DUPLICATED_MODIFIER);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "static static m;",
+        ParserErrorCode.DUPLICATED_MODIFIER);
   }
 
   public void test_duplicatedModifier_var() throws Exception {
-    parse("parseClassMember", "var var m;", ParserErrorCode.DUPLICATED_MODIFIER);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "var var m;",
+        ParserErrorCode.DUPLICATED_MODIFIER);
   }
 
   public void test_duplicateLabelInSwitchStatement() throws Exception {
@@ -263,48 +354,119 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE);
   }
 
+  public void test_externalAfterConst() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "const external C();",
+        ParserErrorCode.EXTERNAL_AFTER_CONST);
+  }
+
+  public void test_externalAfterFactory() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "factory external C();",
+        ParserErrorCode.EXTERNAL_AFTER_FACTORY);
+  }
+
+  public void test_externalAfterStatic() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "static external int m();",
+        ParserErrorCode.EXTERNAL_AFTER_STATIC);
+  }
+
   public void test_externalConstructorWithBody_factory() throws Exception {
     parse(
         "parseClassMember",
-        "external factory A() {}",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "external factory C() {}",
         ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY);
   }
 
   public void test_externalConstructorWithBody_named() throws Exception {
-    parse("parseClassMember", "external A.c() {}", ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "external C.c() {}",
+        ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY);
   }
 
   public void test_externalField_const() throws Exception {
-    parse("parseClassMember", "external const C f;", ParserErrorCode.EXTERNAL_FIELD);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "external const A f;",
+        ParserErrorCode.EXTERNAL_FIELD);
   }
 
   public void test_externalField_final() throws Exception {
-    parse("parseClassMember", "external final C f;", ParserErrorCode.EXTERNAL_FIELD);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "external final A f;",
+        ParserErrorCode.EXTERNAL_FIELD);
   }
 
   public void test_externalField_static() throws Exception {
-    parse("parseClassMember", "external static C f;", ParserErrorCode.EXTERNAL_FIELD);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "external static A f;",
+        ParserErrorCode.EXTERNAL_FIELD);
   }
 
   public void test_externalField_typed() throws Exception {
-    parse("parseClassMember", "external A f;", ParserErrorCode.EXTERNAL_FIELD);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "external A f;",
+        ParserErrorCode.EXTERNAL_FIELD);
   }
 
   public void test_externalField_untyped() throws Exception {
-    parse("parseClassMember", "external var f;", ParserErrorCode.EXTERNAL_FIELD);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "external var f;",
+        ParserErrorCode.EXTERNAL_FIELD);
   }
 
   public void test_externalGetterWithBody() throws Exception {
-    parse("parseClassMember", "external int get x {}", ParserErrorCode.EXTERNAL_GETTER_WITH_BODY);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "external int get x {}",
+        ParserErrorCode.EXTERNAL_GETTER_WITH_BODY);
   }
 
   public void test_externalMethodWithBody() throws Exception {
-    parse("parseClassMember", "external m() {}", ParserErrorCode.EXTERNAL_METHOD_WITH_BODY);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "external m() {}",
+        ParserErrorCode.EXTERNAL_METHOD_WITH_BODY);
   }
 
   public void test_externalOperatorWithBody() throws Exception {
     parse(
         "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
         "external operator +(int value) {}",
         ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY);
   }
@@ -312,16 +474,46 @@ public class ErrorParserTest extends ParserTestCase {
   public void test_externalSetterWithBody() throws Exception {
     parse(
         "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
         "external set x(int value) {}",
         ParserErrorCode.EXTERNAL_SETTER_WITH_BODY);
   }
 
-  public void test_finalLoopParameter() throws Exception {
-    parse("parseStatement", "for (final x in y) {}", ParserErrorCode.FINAL_LOOP_PARAMETER);
+  public void test_finalAndVar() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "final var x;",
+        ParserErrorCode.FINAL_AND_VAR);
+  }
+
+  public void test_finalConstructor() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "final C() {}",
+        ParserErrorCode.FINAL_CONSTRUCTOR);
+  }
+
+  public void test_finalMethod() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "final int m() {}",
+        ParserErrorCode.FINAL_METHOD);
   }
 
   public void test_getterWithParameters() throws Exception {
-    parse("parseClassMember", "int get x() {}", ParserErrorCode.GETTER_WITH_PARAMETERS);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "int get x() {}",
+        ParserErrorCode.GETTER_WITH_PARAMETERS);
   }
 
   public void test_illegalAssignmentToNonAssignable_superAssigned() throws Exception {
@@ -531,6 +723,24 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseFormalParameterList", "(a, b : 0)", ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP);
   }
 
+  public void test_nonConstructorFactory_field() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "factory int x;",
+        ParserErrorCode.NON_CONSTRUCTOR_FACTORY);
+  }
+
+  public void test_nonConstructorFactory_method() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "factory int m() {}",
+        ParserErrorCode.NON_CONSTRUCTOR_FACTORY);
+  }
+
   public void test_nonPartOfDirectiveInPart_after() throws Exception {
     parse(
         "parseCompilationUnit",
@@ -548,6 +758,8 @@ public class ErrorParserTest extends ParserTestCase {
   public void test_nonUserDefinableOperator() throws Exception {
     parse(
         "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
         "operator +=(int x) => x + 1;",
         ParserErrorCode.NON_USER_DEFINABLE_OPERATOR);
   }
@@ -563,17 +775,56 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP);
   }
 
+  public void test_staticAfterConst() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "final static int f;",
+        ParserErrorCode.STATIC_AFTER_FINAL);
+  }
+
+  public void test_staticAfterFinal() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "const static int f;",
+        ParserErrorCode.STATIC_AFTER_CONST);
+  }
+
+  public void test_staticAfterVar() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "var static f;",
+        ParserErrorCode.STATIC_AFTER_VAR);
+  }
+
   public void test_staticConstructor() throws Exception {
-    parse("parseClassMember", "static C.m() {}", ParserErrorCode.STATIC_CONSTRUCTOR);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "static C.m() {}",
+        ParserErrorCode.STATIC_CONSTRUCTOR);
   }
 
   public void test_staticOperator_noReturnType() throws Exception {
-    parse("parseClassMember", "static operator +(int x) => x + 1;", ParserErrorCode.STATIC_OPERATOR);
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "static operator +(int x) => x + 1;",
+        ParserErrorCode.STATIC_OPERATOR);
   }
 
   public void test_staticOperator_returnType() throws Exception {
     parse(
         "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
         "static int operator +(int x) => x + 1;",
         ParserErrorCode.STATIC_OPERATOR);
   }
@@ -589,6 +840,28 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_useOfUnaryPlusOperator() throws Exception {
     parse("parseUnaryExpression", "+x", ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR);
+  }
+
+  public void test_varConstructor() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "var C() {}",
+        ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE);
+  }
+
+  public void test_varReturnType() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "var m() {}",
+        ParserErrorCode.VAR_RETURN_TYPE);
+  }
+
+  public void test_voidParameter() throws Exception {
+    parse("parseNormalFormalParameter", "void a)", ParserErrorCode.VOID_PARAMETER);
   }
 
   public void test_wrongSeparatorForNamedParameter() throws Exception {

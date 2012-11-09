@@ -136,10 +136,6 @@ import java.util.List;
  * More complex tests should be defined in the class {@link ComplexParserTest}.
  */
 public class SimpleParserTest extends ParserTestCase {
-  public void fail_isFunctionExpression_false_notParameters() throws Exception {
-    assertFalse(isFunctionExpression("(a + b) {"));
-  }
-
   public void fail_parseCommentReference_this() throws Exception {
     // This fails because we are returning null from the method and asserting that the return value
     // is not null.
@@ -231,6 +227,10 @@ public class SimpleParserTest extends ParserTestCase {
     assertFalse(isFunctionExpression("f();"));
   }
 
+  public void test_isFunctionExpression_false_notParameters() throws Exception {
+    assertFalse(isFunctionExpression("(a + b) {"));
+  }
+
   public void test_isFunctionExpression_nameButNoReturn_block() throws Exception {
     assertTrue(isFunctionExpression("f() {}"));
   }
@@ -253,6 +253,18 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_isFunctionExpression_normalReturn_expression() throws Exception {
     assertTrue(isFunctionExpression("C f() => e"));
+  }
+
+  public void test_isFunctionExpression_parameter_multiple() throws Exception {
+    assertTrue(isFunctionExpression("(a, b) {}"));
+  }
+
+  public void test_isFunctionExpression_parameter_single() throws Exception {
+    assertTrue(isFunctionExpression("(a) {}"));
+  }
+
+  public void test_isFunctionExpression_parameter_typed() throws Exception {
+    assertTrue(isFunctionExpression("(int a, int b) {}"));
   }
 
   public void test_isFunctionExpression_voidReturn_block() throws Exception {
@@ -874,7 +886,9 @@ public class SimpleParserTest extends ParserTestCase {
     // TODO(brianwilkerson) Test other kinds of class members: fields, getters and setters.
     ConstructorDeclaration constructor = parse(
         "parseClassMember",
-        "A(_, _$, this.__) : _a = _ + _$ {}");
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "C(_, _$, this.__) : _a = _ + _$ {}");
     assertNotNull(constructor.getBody());
     assertNotNull(constructor.getColon());
     assertNull(constructor.getExternalKeyword());
@@ -889,7 +903,11 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseClassMember_field_instance_prefixedType() throws Exception {
-    FieldDeclaration field = parse("parseClassMember", "p.C f;");
+    FieldDeclaration field = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "p.A f;");
     assertNull(field.getDocumentationComment());
     assertSize(0, field.getMetadata());
     assertNull(field.getKeyword());
@@ -902,7 +920,11 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseClassMember_method_external() throws Exception {
-    MethodDeclaration method = parse("parseClassMember", "external m();");
+    MethodDeclaration method = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "external m();");
     assertNotNull(method.getBody());
     assertNull(method.getDocumentationComment());
     assertNotNull(method.getExternalKeyword());
@@ -915,7 +937,11 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseClassMember_method_external_withTypeAndArgs() throws Exception {
-    MethodDeclaration method = parse("parseClassMember", "external int m(int a);");
+    MethodDeclaration method = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "external int m(int a);");
     assertNotNull(method.getBody());
     assertNull(method.getDocumentationComment());
     assertNotNull(method.getExternalKeyword());
@@ -928,7 +954,11 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseClassMember_method_returnType_parameterized() throws Exception {
-    MethodDeclaration method = parse("parseClassMember", "p.C m() {}");
+    MethodDeclaration method = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "p.A m() {}");
     assertNull(method.getDocumentationComment());
     assertNull(method.getExternalKeyword());
     assertNull(method.getModifierKeyword());
@@ -1545,6 +1575,18 @@ public class SimpleParserTest extends ParserTestCase {
     assertFalse(comment.isEndOfLine());
   }
 
+  public void test_parseDocumentationComment_block_withReference() throws Exception {
+    Comment comment = parse("parseDocumentationComment", "/** [a] */ class");
+    assertFalse(comment.isBlock());
+    assertTrue(comment.isDocumentation());
+    assertFalse(comment.isEndOfLine());
+    NodeList<CommentReference> references = comment.getReferences();
+    assertSize(1, references);
+    CommentReference reference = references.get(0);
+    assertNotNull(reference);
+    assertEquals(5, reference.getOffset());
+  }
+
   public void test_parseDocumentationComment_endOfLine() throws Exception {
     Comment comment = parse("parseDocumentationComment", "/// \n/// \n class");
     assertFalse(comment.isBlock());
@@ -1659,6 +1701,18 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getOperator());
     assertEquals(TokenType.EQ_EQ, expression.getOperator().getType());
     assertNotNull(expression.getRightOperand());
+  }
+
+  public void test_parseExpression_invokeFunctionExpression() throws Exception {
+    FunctionExpressionInvocation invocation = parse("parseExpression", "(a) {return a + a;} (3)");
+    assertInstanceOf(FunctionExpression.class, invocation.getFunction());
+    FunctionExpression expression = (FunctionExpression) invocation.getFunction();
+    assertNotNull(expression.getParameters());
+    assertNotNull(expression.getBody());
+
+    ArgumentList list = invocation.getArgumentList();
+    assertNotNull(list);
+    assertSize(1, list.getArguments());
   }
 
   public void test_parseExpression_superMethodInvocation() throws Exception {
@@ -2804,6 +2858,20 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseNonLabeledStatement_functionInvocation() throws Exception {
     ExpressionStatement statement = parse("parseNonLabeledStatement", "f();");
     assertNotNull(statement.getExpression());
+  }
+
+  public void test_parseNonLabeledStatement_invokeFunctionExpression() throws Exception {
+    ExpressionStatement statement = parse("parseNonLabeledStatement", "(a) {return a + a;} (3);");
+    assertInstanceOf(FunctionExpressionInvocation.class, statement.getExpression());
+    FunctionExpressionInvocation invocation = (FunctionExpressionInvocation) statement.getExpression();
+    assertInstanceOf(FunctionExpression.class, invocation.getFunction());
+    FunctionExpression expression = (FunctionExpression) invocation.getFunction();
+    assertNotNull(expression.getParameters());
+    assertNotNull(expression.getBody());
+
+    ArgumentList list = invocation.getArgumentList();
+    assertNotNull(list);
+    assertSize(1, list.getArguments());
   }
 
   public void test_parseNonLabeledStatement_null() throws Exception {

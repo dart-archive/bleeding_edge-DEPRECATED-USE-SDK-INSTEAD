@@ -32,6 +32,11 @@ public enum ParserErrorCode implements ErrorCode {
       "The built-in identifier '%s' cannot be used as a type alias name"),
   BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME(
       "The built-in identifier '%s' cannot be used as a type variable name"),
+  CONST_AND_FACTORY("Constructors cannot be declared to be both 'const' and 'factory'"),
+  CONST_AND_FINAL("Members cannot be declared to be both 'const' and 'final'"),
+  CONST_AND_VAR("Members cannot be declared to be both 'const' and 'var'"),
+  CONST_METHOD("Getters, setters and methods cannot be declared to be 'const'"),
+  CONSTRUCTOR_WITH_RETURN_TYPE("Constructors cannot have a return type"),
   CONTINUE_OUTSIDE_OF_LOOP(
       "A continue statement cannot be used outside of a loop or switch statement"),
   CONTINUE_WITHOUT_LABEL_IN_CASE(
@@ -44,13 +49,18 @@ public enum ParserErrorCode implements ErrorCode {
   EXPECTED_STRING_LITERAL("Expected a string literal"),
   EXPECTED_TOKEN("Expected to find: %s"),
   EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE("Export directives must preceed part directives"),
+  EXTERNAL_AFTER_CONST("The modifier 'external' should be before the modifier 'const'"),
+  EXTERNAL_AFTER_FACTORY("The modifier 'external' should be before the modifier 'factory'"),
+  EXTERNAL_AFTER_STATIC("The modifier 'external' should be before the modifier 'static'"),
   EXTERNAL_CONSTRUCTOR_WITH_BODY("External constructors cannot have a body"),
   EXTERNAL_FIELD("Fields cannot be declared 'external'"),
   EXTERNAL_GETTER_WITH_BODY("External getters cannot have a body"),
   EXTERNAL_METHOD_WITH_BODY("External methods cannot have a body"),
   EXTERNAL_OPERATOR_WITH_BODY("External operators cannot have a body"),
   EXTERNAL_SETTER_WITH_BODY("External setters cannot have a body"),
-  FINAL_LOOP_PARAMETER("A loop parameter cannot be declared to be final"),
+  FINAL_AND_VAR("Members cannot be declared to be both 'final' and 'var'"),
+  FINAL_CONSTRUCTOR("A constructor cannot be declared to be 'final'"),
+  FINAL_METHOD("Getters, setters and methods cannot be declared to be 'final'"),
   GETTER_WITH_PARAMETERS("Getter should be declared without a parameter list"),
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
   IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE("Import directives must preceed part directives"),
@@ -85,11 +95,15 @@ public enum ParserErrorCode implements ErrorCode {
   MULTIPLE_VARIABLES_IN_FOR_EACH(
       "A single loop variable must be declared in a for-each loop before the 'in', but %s were found"),
   NAMED_PARAMETER_OUTSIDE_GROUP("Named parameters must be enclosed in curly braces ('{' and '}')"),
+  NON_CONSTRUCTOR_FACTORY("Only constructors can be declared to be a 'factory'"),
   NON_PART_OF_DIRECTIVE_IN_PART("The part-of directive must be the only directive in a part"),
   NON_USER_DEFINABLE_OPERATOR("The operator '%s' is not user definable"),
   POSITIONAL_AFTER_NAMED_ARGUMENT("Positional arguments must occur before named arguments"),
   POSITIONAL_PARAMETER_OUTSIDE_GROUP(
       "Positional parameters must be enclosed in square brackets ('[' and ']')"),
+  STATIC_AFTER_CONST("The modifier 'static' should be before the modifier 'const'"),
+  STATIC_AFTER_FINAL("The modifier 'static' should be before the modifier 'final'"),
+  STATIC_AFTER_VAR("The modifier 'static' should be before the modifier 'var'"),
   STATIC_CONSTRUCTOR("Constructors cannot be static"),
   STATIC_OPERATOR("Operators cannot be static"),
   STATIC_TOP_LEVEL_DECLARATION("Top-level fields and methods cannot be static"),
@@ -98,7 +112,9 @@ public enum ParserErrorCode implements ErrorCode {
   WRONG_SEPARATOR_FOR_NAMED_PARAMETER(
       "The default value of a named parameter should be preceeded by ':'"),
   WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER(
-      "The default value of a positional parameter should be preceeded by '='");
+      "The default value of a positional parameter should be preceeded by '='"),
+  VAR_RETURN_TYPE("The return type cannot be 'var'"),
+  VOID_PARAMETER("Parameters cannot have a type of 'void'");
 
   /**
    * The severity of this error.

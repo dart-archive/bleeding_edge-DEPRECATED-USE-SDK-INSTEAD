@@ -41,20 +41,6 @@ import com.google.dart.engine.ast.SimpleIdentifier;
  * Simpler tests should be defined in the class {@link SimpleParserTest}.
  */
 public class ComplexParserTest extends ParserTestCase {
-  public void fail_constructor_initializer_withParenthesizedExpression() throws Exception {
-    // The parser is currently getting to the left parenthesis inside the initializer and deciding
-    // that the parentheses are enclosing a parameter list and that the left brace is the body of a
-    // function expression.
-    CompilationUnit unit = parseCompilationUnit(createSource(
-        "class C {",
-        "  C() :",
-        "    this.a = (b == null ? c : d) {",
-        "  }",
-        "}"));
-    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
-    assertSize(1, declarations);
-  }
-
   public void test_additiveExpression_normal() throws Exception {
     BinaryExpression expression = parseExpression("x + y - z");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
@@ -224,6 +210,17 @@ public class ComplexParserTest extends ParserTestCase {
   public void test_conditionalExpression_precedence_logicalOrExpression() throws Exception {
     ConditionalExpression expression = parseExpression("a | b ? y : z");
     assertInstanceOf(BinaryExpression.class, expression.getCondition());
+  }
+
+  public void test_constructor_initializer_withParenthesizedExpression() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(createSource(
+        "class C {",
+        "  C() :",
+        "    this.a = (b == null ? c : d) {",
+        "  }",
+        "}"));
+    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
+    assertSize(1, declarations);
   }
 
   public void test_equalityExpression_normal() throws Exception {
