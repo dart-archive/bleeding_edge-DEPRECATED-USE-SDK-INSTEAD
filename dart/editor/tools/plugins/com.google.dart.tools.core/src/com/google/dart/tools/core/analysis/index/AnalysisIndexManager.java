@@ -92,6 +92,7 @@ public class AnalysisIndexManager {
    * Start the server (note that {@link #startIndexing()} should haven been called before starting).
    */
   public static void startServer() {
+    server.startIdleTaskProcessing();
     server.start();
   }
 

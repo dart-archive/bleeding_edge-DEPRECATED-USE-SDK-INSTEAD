@@ -145,7 +145,8 @@ public class TaskProcessor {
 
   /**
    * Set the operation to be executed when the queue is empty and after all have been notified that
-   * the processor is idle. This operation should execute quickly to keep analysis responsive.
+   * the processor is idle. This operation should execute quickly or frequently call both
+   * {@link TaskQueue#isAnalyzing()} and {@link TaskQueue#isEmpty()} to keep analysis responsive.
    * 
    * @param task the task or {@code null} if none
    */

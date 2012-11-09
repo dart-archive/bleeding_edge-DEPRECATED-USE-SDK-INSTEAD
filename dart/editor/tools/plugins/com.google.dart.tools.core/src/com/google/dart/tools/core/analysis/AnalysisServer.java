@@ -296,6 +296,24 @@ public class AnalysisServer {
   }
 
   /**
+   * Start processing low priority tasks when there are no requests
+   */
+  public void startIdleTaskProcessing() {
+    processor.setIdleOperation(new Runnable() {
+      @Override
+      public void run() {
+        while (queue.isAnalyzing() && queue.isEmpty()) {
+          Task idleTask = savedContext.getIdleTask();
+          if (idleTask == null) {
+            break;
+          }
+          idleTask.perform();
+        }
+      }
+    });
+  }
+
+  /**
    * Signal the background analysis thread to stop and wait for up to 5 seconds for it to do so.
    */
   public void stop() {
