@@ -769,23 +769,20 @@ public class DartLibraryImplTest extends TestCase {
 //    DartCoreTestLog.getLog().assertEntries(IStatus.ERROR);
   }
 
-  // TODO(devoncarew): figure out why these tests are flakey
-//  public void test_DartLibraryImpl_isBrowserApplication_lib4() throws Exception {
-//    DartLibraryImpl lib = getDartLib4();
-//    assertEquals(false, lib.isBrowserApplication());
-//  }
+  public void test_DartLibraryImpl_isBrowserApplication_lib4() throws Exception {
+    DartLibraryImpl lib = getDartLib4();
+    assertEquals(false, lib.isBrowserApplication());
+  }
 
-  // TODO(devoncarew): figure out why these tests are flakey
-//  public void test_DartLibraryImpl_isBrowserApplication_lib5() throws Exception {
-//    DartLibraryImpl lib = getDartLib5();
-//    assertEquals(true, lib.isBrowserApplication());
-//  }
+  public void test_DartLibraryImpl_isBrowserApplication_lib5() throws Exception {
+    DartLibraryImpl lib = getDartLib5();
+    assertEquals(true, lib.isBrowserApplication());
+  }
 
-  // TODO(devoncarew): figure out why these tests are flakey
-//  public void test_DartLibraryImpl_isBrowserApplication_lib6() throws Exception {
-//    DartLibraryImpl lib = getDartLib6();
-//    assertEquals(false, lib.isBrowserApplication());
-//  }
+  public void test_DartLibraryImpl_isBrowserApplication_lib6() throws Exception {
+    DartLibraryImpl lib = getDartLib6();
+    assertEquals(false, lib.isBrowserApplication());
+  }
 
   public void test_DartLibraryImpl_isBrowserApplication_libEmpty() throws Exception {
     DartLibraryImpl lib = getDartLibEmpty();
