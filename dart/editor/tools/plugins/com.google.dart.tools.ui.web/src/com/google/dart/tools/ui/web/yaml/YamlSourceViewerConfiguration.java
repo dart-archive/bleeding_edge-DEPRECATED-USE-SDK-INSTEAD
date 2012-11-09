@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.web.yaml;
 
 import com.google.dart.tools.ui.web.utils.WebEditorReconcilingStrategy;
 
+import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
@@ -38,6 +39,15 @@ public class YamlSourceViewerConfiguration extends SourceViewerConfiguration {
 
   public YamlSourceViewerConfiguration(YamlEditor editor) {
     this.editor = editor;
+  }
+
+  @Override
+  public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
+    if (IDocument.DEFAULT_CONTENT_TYPE.equals(contentType)) {
+      return new IAutoEditStrategy[] {new YamlAutoIndentStrategy()};
+    } else {
+      return super.getAutoEditStrategies(sourceViewer, contentType);
+    }
   }
 
   @Override
