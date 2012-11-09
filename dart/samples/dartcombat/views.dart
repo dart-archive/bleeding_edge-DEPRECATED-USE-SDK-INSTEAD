@@ -279,9 +279,9 @@ class ViewUtil {
   /** Extract the position of a mouse event in a containing 500x500 grid. */
   static Future<List<int>> positionFromEvent(Element gridNode, MouseEvent e) {
     final completer = new Completer<List<int>>();
-    gridNode.rect.then((ElementRect rect) {
-      int x = (e.pageX - rect.offset.left) ~/ 50;
-      int y = (e.pageY - rect.offset.top) ~/ 50;
+    window.requestLayoutFrame(() {
+      int x = (e.pageX - gridNode.offsetLeft) ~/ 50;
+      int y = (e.pageY - gridNode.offsetTop) ~/ 50;
       completer.complete([x, y]);
     });
     return completer.future;

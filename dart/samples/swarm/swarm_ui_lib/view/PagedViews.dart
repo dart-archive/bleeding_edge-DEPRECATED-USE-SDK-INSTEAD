@@ -116,12 +116,7 @@ class PagedColumnView extends View {
         true /* horizontalScrollEnabled */,
         true /* momementumEnabled */,
         () {
-          final completer = new Completer<Size>();
-          _container.rect.then((ElementRect rect) {
-            // Only view width matters.
-            completer.complete(new Size(_getViewLength(rect), 1));
-          });
-          return completer.future;
+          return new Size(_getViewLength(_container), 1);
         },
         Scroller.FAST_SNAP_DECELERATION_FACTOR);
 
@@ -131,8 +126,8 @@ class PagedColumnView extends View {
     return node;
   }
 
-  int _getViewLength(ElementRect rect) {
-    return _computePageSize(rect) * pages.length.value;
+  int _getViewLength(Element element) {
+    return _computePageSize(element) * pages.length.value;
   }
 
   // TODO(jmesserly): would be better to not have this code in enterDocument.
@@ -185,17 +180,17 @@ class PagedColumnView extends View {
     // The content needs to have its height explicitly set, or columns don't
     // flow to the right correctly. So we copy our own height and set the height
     // of the content.
-    node.rect.then((ElementRect rect) {
-      contentView.node.style.height = '${rect.offset.height}px';
+    window.requestLayoutFrame(() {
+      contentView.node.style.height = '${node.offsetHeight}px';
     });
     _updatePageCount(null);
   }
 
   bool _updatePageCount(Callback callback) {
     int pageLength = 1;
-    _container.rect.then((ElementRect rect) {
-      if (rect.scroll.width > rect.offset.width) {
-        pageLength = (rect.scroll.width / _computePageSize(rect))
+    window.requestLayoutFrame(() {
+      if (_container.scrollWidth > _container.offsetWidth) {
+        pageLength = (_container.scrollWidth / _computePageSize(_container))
             .ceil().toInt();
       }
       pageLength = Math.max(pageLength, 1);
@@ -218,9 +213,9 @@ class PagedColumnView extends View {
   }
 
   void _onContentMoved(Event e) {
-    _container.rect.then((ElementRect rect) {
+    window.requestLayoutFrame(() {
       num current = scroller.contentOffset.x;
-      int pageSize = _computePageSize(rect);
+      int pageSize = _computePageSize(_container);
       pages.current.value = -(current / pageSize).round().toInt();
     });
   }
@@ -228,8 +223,8 @@ class PagedColumnView extends View {
   void _snapToPage(Event e) {
     num current = scroller.contentOffset.x;
     num currentTarget = scroller.currentTarget.x;
-    _container.rect.then((ElementRect rect) {
-      int pageSize = _computePageSize(rect);
+    window.requestLayoutFrame(() {
+      int pageSize = _computePageSize(_container);
       int destination;
       num currentPageNumber = -(current / pageSize).round();
       num pageNumber = -currentTarget / pageSize;
@@ -239,7 +234,8 @@ class PagedColumnView extends View {
       } else {
         if (currentPageNumber == pageNumber.round() &&
           (pageNumber - currentPageNumber).abs() > MIN_THROW_PAGE_FRACTION &&
-          -current + _viewportSize < _getViewLength(rect) && current < 0) {
+          -current + _viewportSize < _getViewLength(_container) &&
+          current < 0) {
           // The user is trying to throw so we want to round up to the
           // nearest page in the direction they are throwing.
           pageNumber = currentTarget < current
@@ -260,11 +256,11 @@ class PagedColumnView extends View {
     });
   }
 
-  int _computePageSize(ElementRect rect) {
+  int _computePageSize(Element element) {
     // Hacky: we need to duplicate the way the columns are being computed,
     // including rounding, to figure out how far to translate the div.
     // See http://www.w3.org/TR/css3-multicol/#column-width
-    _viewportSize = rect.offset.width;
+    _viewportSize = element.offsetWidth;
 
     // Figure out how many columns we're rendering.
     // The algorithm ensures we're bigger than the specified min size.
@@ -279,8 +275,8 @@ class PagedColumnView extends View {
   }
 
   void _onPageSelected() {
-    _container.rect.then((ElementRect rect) {
-      int translate = -pages.target.value * _computePageSize(rect);
+    window.requestLayoutFrame(() {
+      int translate = -pages.target.value * _computePageSize(_container);
       scroller.throwTo(translate, 0);
     });
   }

@@ -69,9 +69,9 @@ class SolarSystem {
 
   start() {
     // Measure the canvas element.
-    canvas.parent.rect.then((ElementRect rect) {
-      _width = rect.client.width;
-      _height = rect.client.height;
+    window.requestLayoutFrame(() {
+      _width = canvas.parent.clientWidth;
+      _height = canvas.parent.clientHeight;
 
       canvas.width = _width;
 

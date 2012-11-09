@@ -73,8 +73,8 @@ void initialize3D() {
 
   num childCount = target.elements.length;
 
-  query("#target").rect.then((ElementRect r) {
-    num width = r.client.width;
+  window.requestLayoutFrame(() {
+    num width = query("#target").clientWidth;
     figureWidth = (width / 2) ~/ tan(PI / childCount);
 
     target.style.transform = "translateZ(-${figureWidth}px)";

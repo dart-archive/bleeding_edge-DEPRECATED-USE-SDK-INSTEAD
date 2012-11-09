@@ -187,7 +187,7 @@ class Tape {
   }
 
   void scrollToTapeBottom() {
-    tapeUI.tape.rect.then((ElementRect rect) {
+    window.requestLayoutFrame(() {
       // theTape.rect.scroll.top = rect.scroll.height;
       // TODO(terry): Would like to set scrollTop of tape doesn't seem to work
       //              so I scroll by max lines.

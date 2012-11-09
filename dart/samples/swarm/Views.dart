@@ -220,9 +220,7 @@ class GenericListView<D> extends View {
             num height = _layout.getHeight(_viewLength);
             width = width != null ? width : 0;
             height = height != null ? height : 0;
-            final completer = new Completer<Size>();
-            completer.complete(new Size(width, height));
-            return completer.future;
+            return new Size(width, height);
           },
           _paginate && _snapToItems ?
               Scroller.FAST_SNAP_DECELERATION_FACTOR : 1);
@@ -289,8 +287,8 @@ class GenericListView<D> extends View {
 
   void onResize() {
     int lastViewLength = _viewLength;
-    node.rect.then((ElementRect rect) {
-      _viewLength = _vertical ? rect.offset.height : rect.offset.width;
+    window.requestLayoutFrame(() {
+      _viewLength = _vertical ? node.offsetHeight : node.offsetWidth;
       if (_viewLength != lastViewLength) {
         if (_scrollbar != null) {
           _scrollbar.refresh();

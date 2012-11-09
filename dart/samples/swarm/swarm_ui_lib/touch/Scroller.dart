@@ -541,24 +541,15 @@ class Scroller implements Draggable, MomentumDelegate {
    * and maxPoint allowed for scrolling.
    */
   void _resize(Callback callback) {
-    final frameRect = _frame.rect;
-    Future contentSizeFuture;
+    window.requestLayoutFrame(() {
+      if (_lookupContentSizeDelegate !== null) {
+        _contentSize = _lookupContentSizeDelegate();
+      } else {
+        _contentSize = new Size(_element.scrollWidth, _element.scrollHeight);
+      }
 
-    if (_lookupContentSizeDelegate !== null) {
-      contentSizeFuture = _lookupContentSizeDelegate();
-      contentSizeFuture.then((Size size) {
-        _contentSize = size;
-      });
-    } else {
-      contentSizeFuture = _element.rect;
-      contentSizeFuture.then((ElementRect rect) {
-        _contentSize = new Size(rect.scroll.width, rect.scroll.height);
-      });
-    }
-
-    joinFutures(<Future>[frameRect, contentSizeFuture], () {
-      _scrollSize = new Size(frameRect.value.offset.width,
-                             frameRect.value.offset.height);
+      _scrollSize = new Size(_frame.offsetWidth,
+                             _frame.offsetHeight);
       Size adjusted = _getAdjustedContentSize();
       _maxPoint = new Coordinate(-_maxOffset.x, -_maxOffset.y);
       _minPoint = new Coordinate(

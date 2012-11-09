@@ -159,7 +159,7 @@ usingGrid(String example, void test_(View grid)) {
   window.setTimeout(() {
     test_(grid);
     window.setTimeout(expectAsync0(() { grid.removeFromDocument(); }), 0);
-  }, 0); 
+  }, 0);
 }
 
 verifyGrid(String example, [Map expected = null]) {
@@ -172,12 +172,11 @@ verifyGrid(String example, [Map expected = null]) {
     final values = expected[name];
     final node = document.body.query('#$name');
     Expect.isNotNull(node);
-    node.rect.then(expectAsync0((rect) {
-      final offset = rect.offset;
-      Expect.equals(values[0], offset.left);
-      Expect.equals(values[1], offset.top);
-      Expect.equals(values[2], offset.width);
-      Expect.equals(values[3], offset.height);
+    window.requestLayoutFrame(expectAsync0(() {
+      Expect.equals(values[0], node.offsetLeft);
+      Expect.equals(values[1], node.offsetTop);
+      Expect.equals(values[2], node.offsetWidth);
+      Expect.equals(values[3], node.offsetHeight);
     }));
   }
 }

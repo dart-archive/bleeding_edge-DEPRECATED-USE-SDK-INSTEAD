@@ -43,9 +43,10 @@ class ClockNumber {
 
         if (pixels != null) {
           if ((pixels[y][x] != 0) && (px[y][x] == 0)) {
-            img.rect.then((ElementRect r) {
-              double absx = r.bounding.left;
-              double absy = r.bounding.top;
+            window.requestLayoutFrame(() {
+              var r = img.getBoundingClientRect();
+              double absx = r.left;
+              double absy = r.top;
 
               app.balls.add(absx, absy, ballColor);
             });

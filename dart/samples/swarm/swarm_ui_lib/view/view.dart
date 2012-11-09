@@ -346,9 +346,9 @@ class View implements Positionable {
     // a good tradeoff?
     if (ViewLayout.hasCustomLayout(this)) {
       Completer sizeCompleter = new Completer<Size>();
-      _node.rect.then((ElementRect rect) {
+      window.requestLayoutFrame(() {
         sizeCompleter.complete(
-            new Size(rect.client.width, rect.client.height));
+            new Size(_node.clientWidth, _node.clientHeight));
       });
       layout.measureLayout(sizeCompleter.future, changed);
     } else {

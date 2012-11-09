@@ -45,13 +45,11 @@ class CountDownClock {
   CountDownClock() {
     var parent = query("#canvas-content");
 
-    parent.rect.then((ElementRect r) {
-      createNumbers(parent, r.client.width, r.client.height);
+    createNumbers(parent, parent.clientWidth, parent.clientHeight);
 
-      updateTime(new Date.now());
+    updateTime(new Date.now());
 
-      window.requestAnimationFrame(tick);
-    });
+    window.requestAnimationFrame(tick);
   }
 
   void tick(num time) {
