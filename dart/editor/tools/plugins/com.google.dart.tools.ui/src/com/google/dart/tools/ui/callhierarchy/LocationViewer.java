@@ -14,10 +14,14 @@
 package com.google.dart.tools.ui.callhierarchy;
 
 import com.google.dart.tools.ui.internal.callhierarchy.CallLocation;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLayoutData;
 import org.eclipse.jface.viewers.ColumnPixelData;
@@ -29,6 +33,8 @@ import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -59,14 +65,40 @@ class LocationViewer extends TableViewer {
   private ColumnLayoutData columnLayouts[] = {
       new ColumnPixelData(18, false, true), new ColumnWeightData(60), new ColumnWeightData(300)};
 
-  LocationViewer(Composite parent) {
-    super(createTable(parent));
+  private IPreferenceStore preferences;
+  private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      doPropertyChange(event);
+    }
+  };
 
+  LocationViewer(Composite parent, IPreferenceStore preferences) {
+    super(createTable(parent));
+    this.preferences = preferences;
     setContentProvider(new ArrayContentProvider());
     setLabelProvider(new LocationLabelProvider());
     setInput(new ArrayList<CallLocation>());
 
     createColumns();
+    getTable().addListener(SWT.EraseItem, new Listener() {
+      @Override
+      public void handleEvent(Event event) {
+        SWTUtil.eraseSelection(event, getTable(), getPreferences());
+      }
+    });
+    preferences.addPropertyChangeListener(propertyChangeListener);
+  }
+
+  public void dispose() {
+    if (propertyChangeListener != null) {
+      getPreferences().removePropertyChangeListener(propertyChangeListener);
+      propertyChangeListener = null;
+    }
+  }
+
+  protected void updateColors() {
+    SWTUtil.setColors(getTable(), getPreferences());
   }
 
   void clearViewer() {
@@ -134,5 +166,14 @@ class LocationViewer extends TableViewer {
       tc.setResizable(columnLayouts[i].resizable);
       tc.setText(columnHeaders[i]);
     }
+  }
+
+  private void doPropertyChange(PropertyChangeEvent event) {
+    updateColors();
+    refresh(false);
+  }
+
+  private IPreferenceStore getPreferences() {
+    return preferences;
   }
 }

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.callhierarchy;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.SearchScope;
@@ -32,6 +33,7 @@ import com.google.dart.tools.ui.internal.callhierarchy.RealCallers;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.CompositeActionGroup;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
+import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.DartUIHelp;
 import com.google.dart.tools.ui.internal.util.SelectionUtil;
 import com.google.dart.tools.ui.internal.viewsupport.SelectionProviderMediator;
@@ -46,6 +48,7 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.OpenStrategy;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -81,12 +84,14 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionContext;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.ActionGroup;
+import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.part.IShowInSource;
 import org.eclipse.ui.part.IShowInTargetList;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ShowInContext;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
+import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import java.util.ArrayList;
@@ -229,6 +234,7 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
   private IPartListener2 fPartListener;
   private boolean isPinned;
   private PinCallHierarchyViewAction pinViewAction;
+  private IPreferenceStore preferences;
 
   public CallHierarchyViewPart() {
     super();
@@ -239,6 +245,7 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
   @Override
   public void createPartControl(Composite parent) {
     this.parent = parent;
+    preferences = createCombinedPreferences();
     addResizeListener(parent);
     pagebook = new PageBook(parent, SWT.NONE);
 
@@ -287,6 +294,8 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
     }
     restoreSplitterRatio();
     addPartListener();
+    callHierarchyViewer.updateColors();
+    locationViewer.updateColors();
   }
 
   @Override
@@ -303,6 +312,8 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
       getViewSite().getPage().removePartListener(fPartListener);
       fPartListener = null;
     }
+    callHierarchyViewer.dispose();
+    locationViewer.dispose();
     super.dispose();
   }
 
@@ -921,8 +932,17 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
   }
 
   private void createCallHierarchyViewer(Composite parent) {
-    callHierarchyViewer = new CallHierarchyViewer(parent, this);
+    callHierarchyViewer = new CallHierarchyViewer(parent, this, preferences);
     callHierarchyViewer.addSelectionChangedListener(this);
+  }
+
+  @SuppressWarnings("deprecation")
+  private IPreferenceStore createCombinedPreferences() {
+    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
+    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
+    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
+    stores.add(EditorsUI.getPreferenceStore());
+    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
   }
 
   private void createHierarchyLocationSplitter(Composite parent) {
@@ -930,7 +950,7 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
   }
 
   private void createLocationViewer(Composite parent) {
-    locationViewer = new LocationViewer(parent);
+    locationViewer = new LocationViewer(parent, preferences);
     locationViewer.initContextMenu(new IMenuListener() {
       @Override
       public void menuAboutToShow(IMenuManager menu) {

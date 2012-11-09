@@ -15,10 +15,14 @@ package com.google.dart.tools.ui.callhierarchy;
 
 import com.google.dart.tools.ui.internal.callhierarchy.CallerMethodWrapper;
 import com.google.dart.tools.ui.internal.callhierarchy.MethodWrapper;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.internal.viewsupport.ColoringLabelProvider;
 
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -27,6 +31,8 @@ import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.TreeEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.IWorkbenchPartSite;
@@ -38,13 +44,22 @@ class CallHierarchyViewer extends TreeViewer {
   private CallerMethodWrapper constructorToExpand;
   private TreeRoot dummyRoot;
 
+  private IPreferenceStore preferences;
+  private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      doPropertyChange(event);
+    }
+  };
+
   /**
    * @param parent the parent composite
    * @param part the call hierarchy view part
    */
-  CallHierarchyViewer(Composite parent, CallHierarchyViewPart part) {
+  CallHierarchyViewer(Composite parent, CallHierarchyViewPart part, IPreferenceStore preferences) {
     super(new Tree(parent, SWT.MULTI));
     this.part = part;
+    this.preferences = preferences;
     getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
     setUseHashlookup(true);
     setAutoExpandLevel(2);
@@ -52,6 +67,20 @@ class CallHierarchyViewer extends TreeViewer {
     setContentProvider(contentProvider);
     setLabelProvider(new ColoringLabelProvider(new CallHierarchyLabelProvider()));
     clearViewer();
+    getTree().addListener(SWT.EraseItem, new Listener() {
+      @Override
+      public void handleEvent(Event event) {
+        SWTUtil.eraseSelection(event, getTree(), getPreferences());
+      }
+    });
+    preferences.addPropertyChangeListener(propertyChangeListener);
+  }
+
+  public void dispose() {
+    if (propertyChangeListener != null) {
+      getPreferences().removePropertyChangeListener(propertyChangeListener);
+      propertyChangeListener = null;
+    }
   }
 
   @Override
@@ -71,6 +100,10 @@ class CallHierarchyViewer extends TreeViewer {
   protected void handleTreeExpand(TreeEvent event) {
     super.handleTreeExpand(event);
     expandConstructorNode();
+  }
+
+  protected void updateColors() {
+    SWTUtil.setColors(getTree(), getPreferences());
   }
 
   void addKeyListener(KeyListener keyListener) {
@@ -153,6 +186,14 @@ class CallHierarchyViewer extends TreeViewer {
       setSelection(new StructuredSelection(wrappers[0]), true);
     }
     expandConstructorNode();
+  }
+
+  private void doPropertyChange(PropertyChangeEvent event) {
+    updateColors();
+  }
+
+  private IPreferenceStore getPreferences() {
+    return preferences;
   }
 
   /**
