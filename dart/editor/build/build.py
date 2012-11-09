@@ -694,27 +694,34 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
         add_path = None
   
         if 'lin' in buildos:
-          paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
+          paths = glob.glob(join(unzip_dir, 'dartium-*'))
           add_path = paths[0]
           zip_rel_path = 'dart/chromium'
           # remove extra files
-          FileDelete(os.path.join(add_path, 'DumpRenderTree'))
-          FileDelete(os.path.join(add_path, 'DumpRenderTree.pak'))
+          #FileDelete(join(add_path, 'DumpRenderTree'))
+          #FileDelete(join(add_path, 'DumpRenderTree.pak'))
         if 'win' in buildos:
-          paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
+          paths = glob.glob(join(unzip_dir, 'dartium-*'))
           add_path = paths[0]
           zip_rel_path = 'dart/chromium'
           # remove extra files
-          FileDelete(os.path.join(add_path, 'DumpRenderTree.exe'))
-          FileDelete(os.path.join(add_path, 'mini_installer.exe'))
-          FileDelete(os.path.join(add_path, 'sync_unit_tests.exe'))
+          #FileDelete(join(add_path, 'DumpRenderTree.exe'))
+          FileDelete(join(add_path, 'mini_installer.exe'))
+          FileDelete(join(add_path, 'sync_unit_tests.exe'))
+          FileDelete(join(add_path, 'chrome.packed.7z'))
         if 'mac' in buildos:
-          paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
-          add_path = os.path.join(paths[0], 'Chromium.app')
+          paths = glob.glob(join(unzip_dir, 'dartium-*'))
+          #TODO(devoncarew): add DumpRenderTree.app as well?
+          #add_path = paths[0]
+          #zip_rel_path = 'dart'
+          #FileDelete(join(add_path, 'ffmpegsumo.so'))
+          #FileDelete(join(add_path, 'osmesa.so'))
+          #FileDelete(join(add_path, 'snapshot-size.txt'))          
+          add_path = join(paths[0], 'Chromium.app')
           zip_rel_path = 'dart/Chromium.app'
         
         #add to the rcp zip
-        dart_zip_path = os.path.join(buildout, rcpZipFile)
+        dart_zip_path = join(buildout, rcpZipFile)
         dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
         dart_zip.AddDirectoryTree(add_path, zip_rel_path)
         
