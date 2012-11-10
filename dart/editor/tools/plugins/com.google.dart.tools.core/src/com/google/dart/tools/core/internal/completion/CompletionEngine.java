@@ -1099,6 +1099,10 @@ public class CompletionEngine {
 
     @Override
     public Void visitParenthesizedExpression(DartParenthesizedExpression node) {
+      if (isCompletionAfterDot) {
+        // {(.!)}
+        return null;
+      }
       return node.getExpression().accept(this);
     }
 
@@ -1177,17 +1181,17 @@ public class CompletionEngine {
 
     @Override
     public Void visitSyntheticErrorExpression(DartSyntheticErrorExpression node) {
-      return node.getParent().accept(this);
+      return visitParent(node);
     }
 
     @Override
     public Void visitSyntheticErrorIdentifier(DartSyntheticErrorIdentifier node) {
-      return node.getParent().accept(this);
+      return visitParent(node);
     }
 
     @Override
     public Void visitSyntheticErrorStatement(DartSyntheticErrorStatement node) {
-      return node.getParent().accept(this);
+      return visitParent(node);
     }
 
     @Override
@@ -1302,6 +1306,20 @@ public class CompletionEngine {
         proposeTopLevelElementsForPrefix(null);
         proposeTypesForPrefix(null, false);
       }
+    }
+
+    private Void visitParent(DartNode node) {
+      DartNode n = node;
+      if (n.getParent() instanceof DartParenthesizedExpression) {
+        if (isCompletionAfterDot) {
+          // {(.!)}
+          return null;
+        }
+      }
+      while (n != null && n.getParent() instanceof DartParenthesizedExpression) {
+        n = n.getParent();
+      }
+      return n.getParent().accept(this);
     }
   }
 

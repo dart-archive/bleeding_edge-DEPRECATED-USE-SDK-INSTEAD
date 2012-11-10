@@ -730,6 +730,10 @@ public class CompletionEngineTest extends TestCase {
     test(source, "1+HttpResponse");
   }
 
+  public void testCommentSnippets083() throws Exception {
+    test("main() {(.!1)}", "1-Object");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test
