@@ -14,12 +14,14 @@
 package com.google.dart.tools.ui.callhierarchy;
 
 import com.google.dart.tools.ui.internal.callhierarchy.CallLocation;
+import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -32,6 +34,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -46,6 +49,17 @@ import org.eclipse.ui.actions.ActionFactory;
 import java.util.ArrayList;
 
 class LocationViewer extends TableViewer {
+  private class FontPropertyChangeListener implements IPropertyChangeListener {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      if (getTable() != null) {
+        if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
+          updateTableFont();
+          refresh();
+        }
+      }
+    }
+  }
 
   /**
    * Creates the table control.
@@ -66,6 +80,7 @@ class LocationViewer extends TableViewer {
       new ColumnPixelData(18, false, true), new ColumnWeightData(60), new ColumnWeightData(300)};
 
   private IPreferenceStore preferences;
+  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
     @Override
     public void propertyChange(PropertyChangeEvent event) {
@@ -87,10 +102,17 @@ class LocationViewer extends TableViewer {
         SWTUtil.eraseSelection(event, getTable(), getPreferences());
       }
     });
+    JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
+    updateTableFont();
     preferences.addPropertyChangeListener(propertyChangeListener);
+    updateColors();
   }
 
   public void dispose() {
+    if (fontPropertyChangeListener != null) {
+      JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
+      fontPropertyChangeListener = null;
+    }
     if (propertyChangeListener != null) {
       getPreferences().removePropertyChangeListener(propertyChangeListener);
       propertyChangeListener = null;
@@ -99,6 +121,13 @@ class LocationViewer extends TableViewer {
 
   protected void updateColors() {
     SWTUtil.setColors(getTable(), getPreferences());
+  }
+
+  protected void updateTableFont() {
+    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
+    Font oldFont = getTable().getFont();
+    Font font = SWTUtil.changeFontSize(oldFont, newFont);
+    getTable().setFont(font);
   }
 
   void clearViewer() {

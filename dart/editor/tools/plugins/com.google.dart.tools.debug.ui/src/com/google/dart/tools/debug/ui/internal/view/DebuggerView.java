@@ -13,15 +13,20 @@
  */
 package com.google.dart.tools.debug.ui.internal.view;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
+import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchesListener;
 import org.eclipse.debug.core.model.IDebugTarget;
+import org.eclipse.debug.internal.ui.viewers.model.provisional.TreeModelViewer;
 import org.eclipse.debug.internal.ui.views.launch.LaunchView;
 import org.eclipse.debug.internal.ui.views.variables.ToggleLogicalStructureAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -30,6 +35,9 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -38,11 +46,18 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.editors.text.EditorsUI;
+import org.eclipse.ui.texteditor.ChainedPreferenceStore;
+
+import java.util.ArrayList;
+import java.util.List;
 
 // see LaunchView
 // see VariablesView
@@ -68,6 +83,14 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
   private ShowBreakpointsAction showBreakpointsAction;
 
   private ShowExpressionsAction showExpressionsAction;
+  private TreeModelViewer treeViewer;
+  private IPreferenceStore preferences;
+  private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      doPropertyChange(event);
+    }
+  };
 
   /**
    * Create a new DebuggerView instance.
@@ -134,6 +157,10 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
 
     variablesView.dispose();
+    if (propertyChangeListener != null) {
+      getPreferences().removePropertyChangeListener(propertyChangeListener);
+      propertyChangeListener = null;
+    }
 
     super.dispose();
   }
@@ -202,12 +229,51 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     showExpressionsAction = new ShowExpressionsAction();
   }
 
+  @Override
+  protected TreeModelViewer createViewer(Composite parent) {
+    preferences = createCombinedPreferences();
+    final TreeModelViewer treeViewer = (TreeModelViewer) super.createViewer(parent);
+    this.treeViewer = treeViewer;
+    treeViewer.getTree().setBackgroundMode(SWT.INHERIT_FORCE);
+    treeViewer.getTree().addListener(SWT.EraseItem, new Listener() {
+      @Override
+      public void handleEvent(Event event) {
+        SWTUtil.eraseSelection(event, treeViewer.getTree(), getPreferences());
+      }
+    });
+    getPreferences().addPropertyChangeListener(propertyChangeListener);
+    updateColors();
+    return treeViewer;
+  }
+
   /**
    * This method is overridden to remove the context menu for the Debugger view.
    */
   @Override
   protected void fillContextMenu(IMenuManager menu) {
 
+  }
+
+  protected void updateColors() {
+    SWTUtil.setColors(treeViewer.getTree(), getPreferences());
+  }
+
+  @SuppressWarnings("deprecation")
+  private IPreferenceStore createCombinedPreferences() {
+    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
+    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
+    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
+    stores.add(EditorsUI.getPreferenceStore());
+    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
+  }
+
+  private void doPropertyChange(PropertyChangeEvent event) {
+    updateColors();
+    treeViewer.refresh(false);
+  }
+
+  private IPreferenceStore getPreferences() {
+    return preferences;
   }
 
   private boolean isConnected() {

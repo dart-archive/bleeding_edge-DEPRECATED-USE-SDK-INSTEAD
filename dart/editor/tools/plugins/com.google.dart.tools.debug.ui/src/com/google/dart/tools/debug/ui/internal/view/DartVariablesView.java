@@ -13,15 +13,31 @@
  */
 package com.google.dart.tools.debug.ui.internal.view;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.util.IDartDebugVariable;
+import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.debug.internal.ui.viewers.model.provisional.TreeModelViewer;
 import org.eclipse.debug.internal.ui.views.variables.VariablesView;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.ui.editors.text.EditorsUI;
+import org.eclipse.ui.texteditor.ChainedPreferenceStore;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This custom subclass of the debugger VariablesView allows us to customize the actions that the
@@ -31,6 +47,14 @@ import org.eclipse.swt.widgets.TreeItem;
 @SuppressWarnings("restriction")
 public class DartVariablesView extends VariablesView {
   private boolean visible;
+  private TreeModelViewer treeViewer;
+  private IPreferenceStore preferences;
+  private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      doPropertyChange(event);
+    }
+  };
 
   /**
    * Create a new DartVariablesView instance.
@@ -51,6 +75,33 @@ public class DartVariablesView extends VariablesView {
     visible = true;
 
     super.becomesVisible();
+  }
+
+  @Override
+  public TreeModelViewer createViewer(Composite parent) {
+    preferences = createCombinedPreferences();
+    final TreeModelViewer treeViewer = (TreeModelViewer) super.createViewer(parent);
+    this.treeViewer = treeViewer;
+    treeViewer.getTree().setBackgroundMode(SWT.INHERIT_FORCE);
+    treeViewer.getTree().addListener(SWT.EraseItem, new Listener() {
+      @Override
+      public void handleEvent(Event event) {
+        SWTUtil.eraseSelection(event, treeViewer.getTree(), getPreferences());
+      }
+    });
+    getPreferences().addPropertyChangeListener(propertyChangeListener);
+    updateColors();
+    return treeViewer;
+  }
+
+  @Override
+  public void dispose() {
+    if (propertyChangeListener != null) {
+      getPreferences().removePropertyChangeListener(propertyChangeListener);
+      propertyChangeListener = null;
+    }
+
+    super.dispose();
   }
 
   @Override
@@ -106,6 +157,28 @@ public class DartVariablesView extends VariablesView {
   @Override
   protected int[] getLastSashWeights() {
     return new int[] {8, 2};
+  }
+
+  protected void updateColors() {
+    SWTUtil.setColors(treeViewer.getTree(), getPreferences());
+  }
+
+  @SuppressWarnings("deprecation")
+  private IPreferenceStore createCombinedPreferences() {
+    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
+    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
+    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
+    stores.add(EditorsUI.getPreferenceStore());
+    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
+  }
+
+  private void doPropertyChange(PropertyChangeEvent event) {
+    updateColors();
+    treeViewer.refresh(false);
+  }
+
+  private IPreferenceStore getPreferences() {
+    return preferences;
   }
 
 }

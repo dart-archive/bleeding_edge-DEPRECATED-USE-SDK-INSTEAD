@@ -18,8 +18,8 @@ import com.google.dart.tools.search.internal.ui.SearchMessages;
 import com.google.dart.tools.search.ui.IContextMenuConstants;
 import com.google.dart.tools.search.ui.ISearchResultViewPart;
 import com.google.dart.tools.search.ui.text.AbstractTextSearchResult;
-import com.google.dart.tools.search.ui.text.AbstractTextSearchViewPage;
 import com.google.dart.tools.search.ui.text.Match;
+import com.google.dart.tools.ui.internal.search.ThemedSearchResultPage;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
@@ -52,7 +52,7 @@ import java.io.File;
 import java.util.Set;
 
 @SuppressWarnings({"deprecation", "restriction"})
-public class FileSearchPage extends AbstractTextSearchViewPage implements IAdaptable {
+public class FileSearchPage extends ThemedSearchResultPage implements IAdaptable {
 
   public static class DecoratorIgnoringViewerSorter extends ViewerComparator {
     private final ILabelProvider fLabelProvider;
@@ -255,6 +255,7 @@ public class FileSearchPage extends AbstractTextSearchViewPage implements IAdapt
 
   @Override
   protected void configureTableViewer(TableViewer viewer) {
+    super.configureTableViewer(viewer);
     viewer.setUseHashlookup(true);
     FileLabelProvider innerLabelProvider = new FileLabelProvider(this, fCurrentSortOrder);
     viewer.setLabelProvider(new DecoratingFileSearchLabelProvider(innerLabelProvider));
@@ -266,6 +267,7 @@ public class FileSearchPage extends AbstractTextSearchViewPage implements IAdapt
 
   @Override
   protected void configureTreeViewer(TreeViewer viewer) {
+    super.configureTreeViewer(viewer);
     viewer.setUseHashlookup(true);
     FileLabelProvider innerLabelProvider = new FileLabelProvider(this, FileLabelProvider.SHOW_LABEL);
     viewer.setLabelProvider(new DecoratingFileSearchLabelProvider(innerLabelProvider));

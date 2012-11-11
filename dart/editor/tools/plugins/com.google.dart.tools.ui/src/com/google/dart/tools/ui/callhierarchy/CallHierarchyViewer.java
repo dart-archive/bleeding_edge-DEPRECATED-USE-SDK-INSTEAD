@@ -15,12 +15,14 @@ package com.google.dart.tools.ui.callhierarchy;
 
 import com.google.dart.tools.ui.internal.callhierarchy.CallerMethodWrapper;
 import com.google.dart.tools.ui.internal.callhierarchy.MethodWrapper;
+import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.internal.viewsupport.ColoringLabelProvider;
 
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -29,6 +31,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.TreeEvent;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -38,6 +41,17 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.IWorkbenchPartSite;
 
 class CallHierarchyViewer extends TreeViewer {
+  private class FontPropertyChangeListener implements IPropertyChangeListener {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      if (getTree() != null) {
+        if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
+          updateTreeFont();
+          refresh();
+        }
+      }
+    }
+  }
 
   private final CallHierarchyViewPart part;
   private final CallHierarchyContentProvider contentProvider;
@@ -45,6 +59,7 @@ class CallHierarchyViewer extends TreeViewer {
   private TreeRoot dummyRoot;
 
   private IPreferenceStore preferences;
+  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
     @Override
     public void propertyChange(PropertyChangeEvent event) {
@@ -74,9 +89,16 @@ class CallHierarchyViewer extends TreeViewer {
       }
     });
     preferences.addPropertyChangeListener(propertyChangeListener);
+    updateColors();
+    JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
+    updateTreeFont();
   }
 
   public void dispose() {
+    if (fontPropertyChangeListener != null) {
+      JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
+      fontPropertyChangeListener = null;
+    }
     if (propertyChangeListener != null) {
       getPreferences().removePropertyChangeListener(propertyChangeListener);
       propertyChangeListener = null;
@@ -104,6 +126,13 @@ class CallHierarchyViewer extends TreeViewer {
 
   protected void updateColors() {
     SWTUtil.setColors(getTree(), getPreferences());
+  }
+
+  protected void updateTreeFont() {
+    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
+    Font oldFont = getTree().getFont();
+    Font font = SWTUtil.changeFontSize(oldFont, newFont);
+    getTree().setFont(font);
   }
 
   void addKeyListener(KeyListener keyListener) {

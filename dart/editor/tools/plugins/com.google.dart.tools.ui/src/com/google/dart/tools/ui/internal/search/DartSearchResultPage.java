@@ -22,7 +22,6 @@ import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.search.ui.ISearchResultViewPart;
 import com.google.dart.tools.search.ui.NewSearchUI;
 import com.google.dart.tools.search.ui.text.AbstractTextSearchResult;
-import com.google.dart.tools.search.ui.text.AbstractTextSearchViewPage;
 import com.google.dart.tools.search.ui.text.Match;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.Messages;
@@ -73,7 +72,7 @@ import java.util.HashMap;
 /**
  * A search result page for displaying Dart element search matches.
  */
-public class DartSearchResultPage extends AbstractTextSearchViewPage implements IAdaptable {
+public class DartSearchResultPage extends ThemedSearchResultPage implements IAdaptable {
 
   private static class DecoratorIgnoringViewerSorter extends ViewerComparator {
 
@@ -481,6 +480,7 @@ public class DartSearchResultPage extends AbstractTextSearchViewPage implements 
 
   @Override
   protected void configureTableViewer(TableViewer viewer) {
+    super.configureTableViewer(viewer);
     viewer.setUseHashlookup(true);
     fSortingLabelProvider = new SortingLabelProvider(this);
     viewer.setLabelProvider(new DecoratingDartLabelProvider(fSortingLabelProvider, false));
@@ -493,6 +493,7 @@ public class DartSearchResultPage extends AbstractTextSearchViewPage implements 
 
   @Override
   protected void configureTreeViewer(TreeViewer viewer) {
+    super.configureTreeViewer(viewer);
     PostfixLabelProvider postfixLabelProvider = new PostfixLabelProvider(this);
     viewer.setUseHashlookup(true);
     viewer.setComparator(new DecoratorIgnoringViewerSorter(postfixLabelProvider));
