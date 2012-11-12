@@ -138,8 +138,8 @@ public class MoveResourceParticipant extends MoveParticipant {
   private void addUnitUriTextEdit(CompilationUnit sourceUnit, URI sourceUri, SourceRange uriRange,
       CompilationUnit targetUnit) {
     IResource targetResource = targetUnit.getResource();
-    URI targetUri = targetResource.getLocationURI();
     if (targetResource != null) {
+      URI targetUri = targetResource.getLocationURI();
       if (URIUtilities.isFileUri(sourceUri) && URIUtilities.isFileUri(targetUri)) {
         URI relative = URIUtilities.relativize(sourceUri, targetUri);
         String relativeStr = FilenameUtils.separatorsToUnix(relative.toString());
