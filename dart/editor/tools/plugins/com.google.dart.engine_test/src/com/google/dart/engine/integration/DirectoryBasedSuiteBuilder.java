@@ -28,8 +28,16 @@ public abstract class DirectoryBasedSuiteBuilder {
       this.sourceFile = sourceFile;
     }
 
+    public File getSourceFile() {
+      return sourceFile;
+    }
+
     public void testFile() throws Exception {
       testSingleFile(sourceFile);
+    }
+
+    protected String getTestName() {
+      return sourceFile.getName();
     }
 
     @Override
@@ -38,7 +46,7 @@ public abstract class DirectoryBasedSuiteBuilder {
         setName("testFile");
         super.runTest();
       } finally {
-        setName(sourceFile.getName());
+        setName(getTestName());
       }
     }
   }
@@ -51,11 +59,11 @@ public abstract class DirectoryBasedSuiteBuilder {
     return suite;
   }
 
-  protected abstract void testSingleFile(File sourceFile) throws IOException;
-
-  private void addTestForFile(TestSuite suite, File file) {
+  protected void addTestForFile(TestSuite suite, File file) {
     suite.addTest(new AnalysisTest(file));
   }
+
+  protected abstract void testSingleFile(File sourceFile) throws IOException;
 
   private void addTestsForFilesIn(TestSuite suite, File directory) {
     for (File file : directory.listFiles()) {
