@@ -135,7 +135,9 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     String[] commands = commandsList.toArray(new String[commandsList.size()]);
     ProcessBuilder processBuilder = new ProcessBuilder(commands);
 
-    processBuilder.directory(currentWorkingDirectory);
+    if (currentWorkingDirectory != null) {
+      processBuilder.directory(currentWorkingDirectory);
+    }
 
     Process runtimeProcess = null;
 
@@ -306,14 +308,17 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
 
     if (resource != null) {
       String path = resource.getLocation().toFile().getAbsolutePath();
-      String cwdPath = cwd.getAbsolutePath();
 
-      if (!cwdPath.endsWith(File.separator)) {
-        cwdPath = cwdPath + File.separator;
-      }
+      if (cwd != null) {
+        String cwdPath = cwd.getAbsolutePath();
 
-      if (path.startsWith(cwdPath)) {
-        path = path.substring(cwdPath.length());
+        if (!cwdPath.endsWith(File.separator)) {
+          cwdPath = cwdPath + File.separator;
+        }
+
+        if (path.startsWith(cwdPath)) {
+          path = path.substring(cwdPath.length());
+        }
       }
 
       return path;

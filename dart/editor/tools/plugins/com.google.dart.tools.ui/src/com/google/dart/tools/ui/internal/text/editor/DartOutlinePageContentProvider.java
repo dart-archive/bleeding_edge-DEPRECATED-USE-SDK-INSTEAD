@@ -282,6 +282,10 @@ public class DartOutlinePageContentProvider extends StandardDartElementContentPr
    *          process to
    */
   private void postAdd(final Object parent, final Object element, Collection<Runnable> runnables) {
+    if (parent == null) {
+      return;
+    }
+
     runnables.add(new Runnable() {
       @Override
       public void run() {

@@ -206,8 +206,6 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
               "Unable to run " + resource.getName() + " - no Dart applications referenced."));
         }
       } catch (CoreException e) {
-        DartDebugCorePlugin.logError(e);
-
         throw new CoreException(new Status(
             IStatus.ERROR,
             DartDebugUIPlugin.PLUGIN_ID,

@@ -54,8 +54,8 @@ public class OpenExternalFolderDialogAction extends AbstractInstrumentedAction i
 
   @Override
   public void run() {
-
     OpenFolderDialog openFolderDialog = new OpenFolderDialog(window.getShell());
+
     if (openFolderDialog.open() == Window.OK) {
       String directory = openFolderDialog.getFolderLocation();
 
@@ -74,19 +74,24 @@ public class OpenExternalFolderDialogAction extends AbstractInstrumentedAction i
             window,
             directory);
         createAction.run();
-        IProject project = createAction.getProject();
-        
-        // show analysis progress dialog for open folder
-        ScanCallbackProvider.setNewProjectName(project.getName());
 
-        if (openFolderDialog.isRunpub()) {
-          if (project != null && project.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
-            RunPubAction runPubAction = RunPubAction.createPubInstallAction(window);
-            runPubAction.run(new StructuredSelection(project));
+        IProject project = createAction.getProject();
+
+        // TODO: project can be null; this indicates that we didn't do any work when the user hit OK.
+        // This should be communicated to the user.
+
+        if (project != null) {
+          // show analysis progress dialog for open folder
+          ScanCallbackProvider.setNewProjectName(project.getName());
+
+          if (openFolderDialog.isRunpub()) {
+            if (project.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
+              RunPubAction runPubAction = RunPubAction.createPubInstallAction(window);
+              runPubAction.run(new StructuredSelection(project));
+            }
           }
         }
       }
-
     }
   }
 
