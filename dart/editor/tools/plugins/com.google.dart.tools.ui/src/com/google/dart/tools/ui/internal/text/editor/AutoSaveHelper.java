@@ -72,16 +72,19 @@ public class AutoSaveHelper {
   }
 
   private static class EditorInfo implements Serializable {
+    private final long timeStamp;
     private final String content;
     private final int selectionStart;
     private final int selectionLength;
 
     public EditorInfo(String content, int selectionStart, int selectionLength) {
+      this.timeStamp = System.currentTimeMillis();
       this.content = content;
       this.selectionStart = selectionStart;
       this.selectionLength = selectionLength;
     }
   }
+
   private static class OpenTask extends Task {
     private final IFile file;
 
@@ -94,7 +97,6 @@ public class AutoSaveHelper {
       instance.pathMapOpenFile(file);
     }
   }
-
   private static class SaveTask extends Task {
     private final IFile file;
     private final EditorInfo info;
@@ -118,6 +120,8 @@ public class AutoSaveHelper {
   private abstract static class Task {
     abstract void execute() throws Exception;
   }
+
+  private static final long VERSION = 0xDEAD0001;
 
   private static final AutoSaveHelper instance = new AutoSaveHelper();
 
@@ -290,6 +294,7 @@ public class AutoSaveHelper {
     saveFile.delete();
     ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(saveFile));
     try {
+      oos.writeLong(VERSION);
       oos.writeObject(pathMap);
     } finally {
       oos.close();
@@ -302,6 +307,11 @@ public class AutoSaveHelper {
       if (mapFile.exists()) {
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(mapFile));
         try {
+          // check version
+          if (ois.readLong() != VERSION) {
+            return;
+          }
+          // load map
           @SuppressWarnings("unchecked")
           Map<String, Integer> map = (Map<String, Integer>) ois.readObject();
           IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
@@ -314,11 +324,15 @@ public class AutoSaveHelper {
                 IFile file = workspaceRoot.getFile(new Path(pathStr));
                 if (file.exists()) {
                   IEditorPart newEditor = IDE.openEditor(activePage, file);
-                  if (newEditor instanceof AbstractTextEditor) {
+                  if (newEditor instanceof AbstractTextEditor
+                      && file.getLocalTimeStamp() < info.timeStamp) {
                     ISourceViewer viewer = ReflectionUtils.invokeMethod(
                         newEditor,
                         "getSourceViewer()");
-                    viewer.getDocument().set(info.content);
+                    IDocument document = viewer.getDocument();
+                    if (!document.get().equals(info.content)) {
+                      document.set(info.content);
+                    }
                     viewer.setSelectedRange(info.selectionStart, info.selectionLength);
                   }
                 }
