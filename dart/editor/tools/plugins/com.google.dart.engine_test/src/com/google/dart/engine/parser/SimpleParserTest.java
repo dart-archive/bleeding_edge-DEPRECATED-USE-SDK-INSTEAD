@@ -259,6 +259,14 @@ public class SimpleParserTest extends ParserTestCase {
     assertTrue(isFunctionExpression("(a, b) {}"));
   }
 
+  public void test_isFunctionExpression_parameter_named() throws Exception {
+    assertTrue(isFunctionExpression("({a}) {}"));
+  }
+
+  public void test_isFunctionExpression_parameter_optional() throws Exception {
+    assertTrue(isFunctionExpression("([a]) {}"));
+  }
+
   public void test_isFunctionExpression_parameter_single() throws Exception {
     assertTrue(isFunctionExpression("(a) {}"));
   }
@@ -310,6 +318,14 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_isInitializedVariableDeclaration_final_simpleType_initialized() throws Exception {
     assertTrue(isInitializedVariableDeclaration("final A a = 0;"));
+  }
+
+  public void test_isInitializedVariableDeclaration_functionDeclaration_typed() throws Exception {
+    assertFalse(isInitializedVariableDeclaration("A f() {};"));
+  }
+
+  public void test_isInitializedVariableDeclaration_functionDeclaration_untyped() throws Exception {
+    assertFalse(isInitializedVariableDeclaration("f() {};"));
   }
 
   public void test_isInitializedVariableDeclaration_noType_initialized() throws Exception {
@@ -953,12 +969,165 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(method.getReturnType());
   }
 
+  public void test_parseClassMember_method_get_noType() throws Exception {
+    MethodDeclaration method = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "get() {}");
+    assertNull(method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
+    assertNull(method.getModifierKeyword());
+    assertNull(method.getPropertyKeyword());
+    assertNull(method.getReturnType());
+    assertNotNull(method.getName());
+    assertNull(method.getOperatorKeyword());
+    assertNotNull(method.getParameters());
+    assertNotNull(method.getBody());
+  }
+
+  public void test_parseClassMember_method_get_type() throws Exception {
+    MethodDeclaration method = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "int get() {}");
+    assertNull(method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
+    assertNull(method.getModifierKeyword());
+    assertNull(method.getPropertyKeyword());
+    assertNotNull(method.getReturnType());
+    assertNotNull(method.getName());
+    assertNull(method.getOperatorKeyword());
+    assertNotNull(method.getParameters());
+    assertNotNull(method.getBody());
+  }
+
+  public void test_parseClassMember_method_get_void() throws Exception {
+    MethodDeclaration method = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "void get() {}");
+    assertNull(method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
+    assertNull(method.getModifierKeyword());
+    assertNull(method.getPropertyKeyword());
+    assertNotNull(method.getReturnType());
+    assertNotNull(method.getName());
+    assertNull(method.getOperatorKeyword());
+    assertNotNull(method.getParameters());
+    assertNotNull(method.getBody());
+  }
+
+  public void test_parseClassMember_method_operator_noType() throws Exception {
+    MethodDeclaration method = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "operator() {}");
+    assertNull(method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
+    assertNull(method.getModifierKeyword());
+    assertNull(method.getPropertyKeyword());
+    assertNull(method.getReturnType());
+    assertNotNull(method.getName());
+    assertNull(method.getOperatorKeyword());
+    assertNotNull(method.getParameters());
+    assertNotNull(method.getBody());
+  }
+
+  public void test_parseClassMember_method_operator_type() throws Exception {
+    MethodDeclaration method = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "int operator() {}");
+    assertNull(method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
+    assertNull(method.getModifierKeyword());
+    assertNull(method.getPropertyKeyword());
+    assertNotNull(method.getReturnType());
+    assertNotNull(method.getName());
+    assertNull(method.getOperatorKeyword());
+    assertNotNull(method.getParameters());
+    assertNotNull(method.getBody());
+  }
+
+  public void test_parseClassMember_method_operator_void() throws Exception {
+    MethodDeclaration method = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "void operator() {}");
+    assertNull(method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
+    assertNull(method.getModifierKeyword());
+    assertNull(method.getPropertyKeyword());
+    assertNotNull(method.getReturnType());
+    assertNotNull(method.getName());
+    assertNull(method.getOperatorKeyword());
+    assertNotNull(method.getParameters());
+    assertNotNull(method.getBody());
+  }
+
   public void test_parseClassMember_method_returnType_parameterized() throws Exception {
     MethodDeclaration method = parse(
         "parseClassMember",
         new Class[] {String.class},
         new Object[] {"C"},
         "p.A m() {}");
+    assertNull(method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
+    assertNull(method.getModifierKeyword());
+    assertNull(method.getPropertyKeyword());
+    assertNotNull(method.getReturnType());
+    assertNotNull(method.getName());
+    assertNull(method.getOperatorKeyword());
+    assertNotNull(method.getParameters());
+    assertNotNull(method.getBody());
+  }
+
+  public void test_parseClassMember_method_set_noType() throws Exception {
+    MethodDeclaration method = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "set() {}");
+    assertNull(method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
+    assertNull(method.getModifierKeyword());
+    assertNull(method.getPropertyKeyword());
+    assertNull(method.getReturnType());
+    assertNotNull(method.getName());
+    assertNull(method.getOperatorKeyword());
+    assertNotNull(method.getParameters());
+    assertNotNull(method.getBody());
+  }
+
+  public void test_parseClassMember_method_set_type() throws Exception {
+    MethodDeclaration method = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "int set() {}");
+    assertNull(method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
+    assertNull(method.getModifierKeyword());
+    assertNull(method.getPropertyKeyword());
+    assertNotNull(method.getReturnType());
+    assertNotNull(method.getName());
+    assertNull(method.getOperatorKeyword());
+    assertNotNull(method.getParameters());
+    assertNotNull(method.getBody());
+  }
+
+  public void test_parseClassMember_method_set_void() throws Exception {
+    MethodDeclaration method = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "void set() {}");
     assertNull(method.getDocumentationComment());
     assertNull(method.getExternalKeyword());
     assertNull(method.getModifierKeyword());
@@ -2830,7 +2999,22 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getType());
   }
 
-  public void test_parseNonLabeledStatement_const_map() throws Exception {
+  public void test_parseNonLabeledStatement_const_list_empty() throws Exception {
+    ExpressionStatement statement = parse("parseNonLabeledStatement", "const [];");
+    assertNotNull(statement.getExpression());
+  }
+
+  public void test_parseNonLabeledStatement_const_list_nonEmpty() throws Exception {
+    ExpressionStatement statement = parse("parseNonLabeledStatement", "const [1, 2];");
+    assertNotNull(statement.getExpression());
+  }
+
+  public void test_parseNonLabeledStatement_const_map_empty() throws Exception {
+    ExpressionStatement statement = parse("parseNonLabeledStatement", "const {};");
+    assertNotNull(statement.getExpression());
+  }
+
+  public void test_parseNonLabeledStatement_const_map_nonEmpty() throws Exception {
     // TODO(brianwilkerson) Implement more tests for this method.
     ExpressionStatement statement = parse("parseNonLabeledStatement", "const {'a' : 1};");
     assertNotNull(statement.getExpression());
@@ -2838,6 +3022,11 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseNonLabeledStatement_const_object() throws Exception {
     ExpressionStatement statement = parse("parseNonLabeledStatement", "const A();");
+    assertNotNull(statement.getExpression());
+  }
+
+  public void test_parseNonLabeledStatement_const_object_named_typeParameters() throws Exception {
+    ExpressionStatement statement = parse("parseNonLabeledStatement", "const A<B>.c();");
     assertNotNull(statement.getExpression());
   }
 
@@ -2853,6 +3042,14 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseNonLabeledStatement_functionDeclaration() throws Exception {
     parse("parseNonLabeledStatement", "f() {}");
+  }
+
+  public void test_parseNonLabeledStatement_functionDeclaration_arguments() throws Exception {
+    parse("parseNonLabeledStatement", "f(void g()) {}");
+  }
+
+  public void test_parseNonLabeledStatement_functionExpressionIndex() throws Exception {
+    parse("parseNonLabeledStatement", "() {}[0] = null;");
   }
 
   public void test_parseNonLabeledStatement_functionInvocation() throws Exception {
@@ -2886,6 +3083,11 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseNonLabeledStatement_true() throws Exception {
     ExpressionStatement statement = parse("parseNonLabeledStatement", "true;");
+    assertNotNull(statement.getExpression());
+  }
+
+  public void test_parseNonLabeledStatement_typeCast() throws Exception {
+    ExpressionStatement statement = parse("parseNonLabeledStatement", "double.NAN as num;");
     assertNotNull(statement.getExpression());
   }
 

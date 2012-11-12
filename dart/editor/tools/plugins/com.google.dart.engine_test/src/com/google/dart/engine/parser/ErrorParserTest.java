@@ -838,6 +838,19 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
   }
 
+  public void test_unexpectedToken_semicolonBetweenClassMembers() throws Exception {
+    parse(
+        "parseClassDeclaration",
+        new Class[] {CommentAndMetadata.class},
+        new Object[] {emptyCommentAndMetadata()},
+        "class C { int x; ; int y;}",
+        ParserErrorCode.UNEXPECTED_TOKEN);
+  }
+
+  public void test_unexpectedToken_semicolonBetweenCompilationUnitMembers() throws Exception {
+    parse("parseCompilationUnit", "int x; ; int y;", ParserErrorCode.UNEXPECTED_TOKEN);
+  }
+
   public void test_useOfUnaryPlusOperator() throws Exception {
     parse("parseUnaryExpression", "+x", ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR);
   }
