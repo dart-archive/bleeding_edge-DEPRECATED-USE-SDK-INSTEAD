@@ -56,6 +56,8 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.ViewPart;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A basic AST explorer view.
@@ -140,6 +142,10 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
             ASTNode node = (ASTNode) element;
             EditorUtility.revealInEditor(editor, node.getOffset(), node.getLength());
           }
+          if (element instanceof AnalysisError) {
+            AnalysisError error = (AnalysisError) element;
+            EditorUtility.revealInEditor(editor, error.getOffset(), error.getLength());
+          }
         }
       }
 
@@ -147,8 +153,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
 
   }
 
-  private static class ExplorerContentProvider implements IStructuredContentProvider,
-      ITreeContentProvider {
+  private class ExplorerContentProvider implements IStructuredContentProvider, ITreeContentProvider {
 
     private final ASTNode[] NO_NODES = new ASTNode[0];
 
@@ -162,8 +167,9 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
         ASTNode node = (ASTNode) parent;
         CollectingVisitor nodeCollector = new CollectingVisitor();
         node.visitChildren(nodeCollector);
-        return nodeCollector.getNodes().toArray();
+        return nodes(nodeCollector, parent);
       }
+
       return NO_NODES;
     }
 
@@ -177,7 +183,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
       if (child instanceof ASTNode) {
         return ((ASTNode) child).getParent();
       }
-      return NO_NODES;
+      return null;
     }
 
     @Override
@@ -192,17 +198,34 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
       viewer.getControl().setRedraw(true);
     }
 
+    private Object[] nodes(CollectingVisitor nodeCollector, Object parent) {
+
+      List<? extends Object> nodes = nodeCollector.getNodes();
+
+      if (parent instanceof CompilationUnit) {
+        ArrayList<Object> nodesAndErrors = new ArrayList<Object>(nodes);
+        nodesAndErrors.addAll(errors);
+        return nodesAndErrors.toArray();
+      }
+
+      return nodes.toArray();
+    }
+
   }
 
   private static class ExplorerLabelProvider extends LabelProvider {
 
     @Override
     public Image getImage(Object obj) {
-      return DartDevPlugin.getImage("brkpi_obj.gif");
+      String img = obj instanceof AnalysisError ? "error_obj.gif" : "brkpi_obj.gif";
+      return DartDevPlugin.getImage(img);
     }
 
     @Override
     public String getText(Object obj) {
+      if (obj instanceof AnalysisError) {
+        return ((AnalysisError) obj).getMessage();
+      }
       return obj.getClass().getSimpleName();
     }
   }
@@ -218,6 +241,8 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
   private Action collapseAllAction;
 
   private EventHandler eventHandler = new EventHandler();
+
+  private ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
 
   @Override
   public void createPartControl(Composite parent) {
@@ -241,7 +266,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
 
   @Override
   public void onError(AnalysisError error) {
-    //TODO(pquitslund): handle errors
+    errors.add(error);
   }
 
   @Override
@@ -321,6 +346,8 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
         try {
 
           String contents = IFileUtilities.getContents(file);
+
+          errors.clear();
 
           StringScanner scanner = new StringScanner(null, contents, this);
           Parser parser = new Parser(null, this);
