@@ -253,10 +253,10 @@ public class DartSdkManager {
   }
 
   private void initSdk() {
-    if (getDefaultEditorSdkDirectory().exists()) {
-      sdk = new DartSdk(getDefaultEditorSdkDirectory());
-    } else if (getDefaultPluginsSdkDirectory().exists()) {
+    if (getDefaultPluginsSdkDirectory().exists()) {
       sdk = new DartSdk(getDefaultPluginsSdkDirectory());
+    } else if (getDefaultEditorSdkDirectory().exists()) {
+      sdk = new DartSdk(getDefaultEditorSdkDirectory());
     } else {
       sdk = NONE;
     }
