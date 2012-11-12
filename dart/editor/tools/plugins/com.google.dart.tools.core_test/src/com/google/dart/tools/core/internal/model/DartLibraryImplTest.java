@@ -864,6 +864,18 @@ public class DartLibraryImplTest extends TestCase {
     assertTrue(library.isUnreferenced());
   }
 
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    TestUtilities.processAllDeltaChanges();
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    TestUtilities.processAllDeltaChanges();
+    super.tearDown();
+  }
+
   private CompilationUnitImpl assertContainsCompUnit(DartElement[] elements, String elemPath,
       boolean inWorkspace, boolean exists) throws DartModelException {
     for (DartElement elem : elements) {
@@ -1151,9 +1163,9 @@ public class DartLibraryImplTest extends TestCase {
   private DartLibraryImpl getOrCreateDartLib(String libName, DartLibrary[] importLibs,
       String className, String fileContent) throws IOException, DartModelException {
     File libFile = getOrCreateLibFile(libName, importLibs, className, fileContent);
+    TestUtilities.processAllDeltaChanges();
     IResource libRes = ResourceUtil.getResource(libFile);
     if (libRes != null) {
-      TestUtilities.processAllDeltaChanges();
       DartElement elem = DartCore.create(libRes);
       if (elem instanceof CompilationUnitImpl) {
         elem = ((CompilationUnitImpl) elem).getLibrary();
