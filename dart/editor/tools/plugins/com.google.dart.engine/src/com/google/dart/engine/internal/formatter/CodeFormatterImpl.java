@@ -17,8 +17,8 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.formatter.CodeFormatter;
-import com.google.dart.engine.formatter.EditRecorder;
 import com.google.dart.engine.formatter.CodeFormatterOptions;
+import com.google.dart.engine.formatter.EditRecorder;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
@@ -42,25 +42,11 @@ public class CodeFormatterImpl extends CodeFormatter implements AnalysisErrorLis
     this.options = options;
   }
 
-  /**
-   * Format the given source string, describing edits to an {@link EditRecorder} callback.
-   * 
-   * @param kind the kind of the code snippet to format.
-   * @param source the source to format
-   * @param offset the given offset to start recording the edits (inclusive).
-   * @param length the given length to stop recording the edits (exclusive).
-   * @param indentationLevel the initial indentation level, used to shift left/right the entire
-   *          source fragment. An initial indentation level of zero or below has no effect.
-   * @param recorder a callback used to collect/register edits that describe the changes required to
-   *          apply formatting to the given source
-   * @throws IllegalArgumentException if offset is lower than 0, length is lower than 0 or length is
-   *           greater than source length.
-   */
   @Override
-  public void format(Kind kind, String source, int offset, int length, int indentationLevel,
+  public void format(Kind kind, String source, int offset, int end, int indentationLevel,
       EditRecorder<?> recorder) {
 
-    validate(source, offset, length);
+    validate(source, offset, end);
 
     StringScanner scanner = new StringScanner(null, source, this);
     Token start = scanner.tokenize();
@@ -96,8 +82,8 @@ public class CodeFormatterImpl extends CodeFormatter implements AnalysisErrorLis
     hasError = true;
   }
 
-  private void validate(String source, int offset, int length) {
-    if (offset < 0 || length < 0 || length > source.length()) {
+  private void validate(String source, int offset, int end) {
+    if (offset < 0 || end < 0 || end > source.length()) {
       throw new IllegalArgumentException();
     }
   }

@@ -25,15 +25,15 @@ import java.io.IOException;
  * Synthesizes formatting tests out of input read from a companion file (
  * {@code CodeFormatterTest.data}).
  * <p>
- * Data is in a simple format, where <code><<<<</code> delimits the start of the expected formatted
- * content and {@code<<<<</code>} delimits the actual.
+ * Data is in a simple format, where {@code<<<<} delimits the start of the expected formatted
+ * content and {@code>>>>} delimits the actual.
  */
 public class CodeFormatterTest extends EngineTestCase {
 
   private static final String TEST_NAME_PREFIX = "format_test_";
 
   /**
-   * Used to generate unique names for tests (e.g., <code>format_test_1</code>).
+   * Used to generate unique names for tests (e.g., {@code format_test_1}).
    */
   private static int testCount;
 

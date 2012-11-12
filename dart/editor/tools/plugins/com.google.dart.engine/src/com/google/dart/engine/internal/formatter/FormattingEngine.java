@@ -27,7 +27,6 @@ public class FormattingEngine extends RecursiveASTVisitor<Void> {
 
   @SuppressWarnings("unused")
   private final CodeFormatterOptions options;
-
   @SuppressWarnings("unused")
   private EditRecorder<?> recorder;
   @SuppressWarnings("unused")

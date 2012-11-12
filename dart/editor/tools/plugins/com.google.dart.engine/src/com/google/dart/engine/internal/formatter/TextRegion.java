@@ -22,10 +22,10 @@ package com.google.dart.engine.internal.formatter;
 public class TextRegion {
 
   /** The region offset */
-  private int offset;
+  private final int offset;
 
   /** The region length */
-  private int length;
+  private final int length;
 
   /**
    * Create a new region.

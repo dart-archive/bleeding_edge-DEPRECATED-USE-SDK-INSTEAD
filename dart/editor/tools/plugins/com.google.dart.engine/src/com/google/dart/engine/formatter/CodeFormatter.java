@@ -25,11 +25,7 @@ public abstract class CodeFormatter {
     /**
      * Kind used to format a compilation unit.
      */
-    COMPILATION_UNIT,
-    /**
-     * Unknown kind.
-     */
-    UNKNOWN;
+    COMPILATION_UNIT;
   }
 
   /**
@@ -38,7 +34,7 @@ public abstract class CodeFormatter {
    * @param kind the kind of the code snippet to format.
    * @param source the source to format.
    * @param offset the offset at which to start recording the edits. Must not be less than zero.
-   * @param length the length at which to stop recording the edits. Must not be less than zero and
+   * @param end the end offset at which to stop recording the edits. Must not be less than zero and
    *          must not exceed the length of the source string.
    * @param indentationLevel the initial indentation level, used to shift left/right the entire
    *          source fragment. An initial indentation level of zero or below has no effect.
@@ -47,7 +43,7 @@ public abstract class CodeFormatter {
    * @throws IllegalArgumentException if recorder is null, offset or length are less than 0 or
    *           length is greater than source length.
    */
-  public abstract void format(Kind kind, String source, int offset, int length,
-      int indentationLevel, EditRecorder<?> recorder);
+  public abstract void format(Kind kind, String source, int offset, int end, int indentationLevel,
+      EditRecorder<?> recorder);
 
 }
