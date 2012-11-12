@@ -215,7 +215,7 @@ class ObservableList<T>
   }
 
   int lastIndexOf(T element, [int start = null]) {
-    if (start === null) start = length - 1;
+    if (start == null) start = length - 1;
     return _internal.lastIndexOf(element, start);
   }
 
@@ -285,10 +285,7 @@ class ObservableValue<T> extends AbstractObservable {
 
   void set value(T newValue) {
     // Only fire on an actual change.
-    // TODO(terry): An object identity test === is needed.  Each DataSource has
-    //              its own operator == which does a value compare.  Which
-    //              equality check should be done?
-    if (newValue !== _value) {
+    if (!identical(newValue, _value)) {
       final oldValue = _value;
       _value = newValue;
       recordPropertyUpdate("value", newValue, oldValue);

@@ -44,15 +44,15 @@ class FxUtil {
     // transformation matricies that will be set as CSS styles. We should
     // consider using CSSMatrix although that may be overkill.
     String transform = '${TRANSLATE_3D}(${x}px,${y}px,${z}px)';
-    if (rotation !== null) {
+    if (rotation != null) {
       transform = transform.concat(' ${ROTATE}(${rotation}deg)');
     }
-    if (scale !== null) {
+    if (scale != null) {
       transform = transform.concat(' ${SCALE}(${scale})');
     }
     style.transform = transform;
-    if (originX !== null || originY !== null) {
-      assert(originX !== null && originY !== null);
+    if (originX != null || originY != null) {
+      assert(originX != null && originY != null);
       style.transformOrigin = '${originX}px ${originY}px';
     }
   }

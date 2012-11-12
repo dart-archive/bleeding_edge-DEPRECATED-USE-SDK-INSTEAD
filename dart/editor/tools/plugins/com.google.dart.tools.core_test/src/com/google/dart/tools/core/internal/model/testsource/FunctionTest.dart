@@ -307,7 +307,6 @@ class FunctionTest {
     (function(a = 10) { assert(a == 10); })();
     (function(a, b = 10) { assert(b == 10); })(1);
     (function(a = 10) { assert(a == null); })( f() );
-    // FAILS: (function(a = 10) { assert(a === null); })( f() );
   }
 
   void testFunctionDefaults2() {

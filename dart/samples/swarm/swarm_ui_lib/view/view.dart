@@ -56,7 +56,7 @@ class View implements Positionable {
   // it.
   Element get node {
     // Lazy render.
-    if (_node === null) {
+    if (_node == null) {
       _render();
     }
 
@@ -102,7 +102,7 @@ class View implements Positionable {
 
   /** Gets whether this View has already been rendered or not. */
   bool get isRendered {
-    return _node !== null;
+    return _node != null;
   }
 
   /**
@@ -110,7 +110,7 @@ class View implements Positionable {
    * document or not.
    */
   bool get isInDocument {
-    return _node !== null && node.document.body.contains(node);
+    return _node != null && node.document.body.contains(node);
   }
 
   /**

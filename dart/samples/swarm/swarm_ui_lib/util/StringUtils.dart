@@ -10,7 +10,7 @@ class StringUtils {
    * Returns either [str], or if [str] is null, the value of [defaultStr].
    */
   static String defaultString(String str, [String defaultStr='']) {
-    return str === null ? defaultStr : str;
+    return str == null ? defaultStr : str;
   }
 
   /** Parse string to a double, and handle null intelligently */

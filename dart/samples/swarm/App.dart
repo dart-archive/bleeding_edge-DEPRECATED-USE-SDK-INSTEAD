@@ -64,7 +64,7 @@ class App {
     final splash = document.query("#appSplash");
     // Delete it if found, but it's okay for it not to be -- maybe
     // somebody just didn't want to use our splash mechanism.
-    if (splash !== null) {
+    if (splash != null) {
       splash.remove();
     }
   }
@@ -75,7 +75,7 @@ class App {
    */
   bool swapAndReloadCache() {
     DOMApplicationCache appCache = window.applicationCache;
-    if (appCache.status !== DOMApplicationCache.UPDATEREADY) {
+    if (!identical(appCache.status, DOMApplicationCache.UPDATEREADY)) {
       return false;
     }
 

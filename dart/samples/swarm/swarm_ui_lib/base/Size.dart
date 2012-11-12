@@ -13,7 +13,7 @@ class Size {
   }
 
   bool operator ==(Size other) {
-    return other !== null && width == other.width && height == other.height;
+    return other != null && width == other.width && height == other.height;
   }
 
   /**

@@ -11,11 +11,11 @@ class CallbackData {
 
   static int _nextId;
 
-  bool ready(num time) => minTime === null || minTime <= time;
+  bool ready(num time) => minTime == null || minTime <= time;
 
   CallbackData(this.callback, this.minTime) {
     // TODO(jacobr): static init needs cleanup, see http://b/4161827
-    if (_nextId === null) {
+    if (_nextId == null) {
       _nextId = 1;
     }
     id = _nextId++;
@@ -82,14 +82,14 @@ class AnimationScheduler {
 
   void _requestAnimationFrameHelper(CallbackData callbackData) {
     _callbacks.add(callbackData);
-    if (_intervalId === null) {
+    if (_intervalId == null) {
       _setupInterval();
     }
   }
 
   void _setupInterval() {
     // Assert that we never schedule multiple frames at once.
-    assert(_intervalId === null);
+    assert(_intervalId == null);
     if (USE_INTERVALS) {
       _intervalId = window.setInterval(_step, MS_PER_FRAME);
     } else {

@@ -218,7 +218,7 @@ class Article {
   // TODO(jimhug): need to return a lazy Observable<String> and also
   //   add support for preloading.
   void _ensureLoaded() {
-    if (_htmlBody !== null) return;
+    if (_htmlBody != null) return;
 
     var name = '$dataUri.html';
     if (Sections.runningFromFile) {

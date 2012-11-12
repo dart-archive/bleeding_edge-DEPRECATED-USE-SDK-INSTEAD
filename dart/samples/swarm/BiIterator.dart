@@ -58,7 +58,7 @@ class BiIterator<E> {
    */
   void jumpToValue(E val) {
     for (int i = 0; i < list.length; i++) {
-      if (list[i] === val) {
+      if (identical(list[i], val)) {
         currentIndex.value = i;
         break;
       }

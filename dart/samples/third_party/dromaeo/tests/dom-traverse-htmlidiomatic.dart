@@ -37,7 +37,7 @@ void main() {
       for (int i = 0; i < num; i++) {
         for (int j = 0; j < nl; j++) {
           Node cur = nodes[j];
-          while (cur !== null) {
+          while (cur != null) {
             cur = cur.nodes.first;
           }
           ret = cur;
@@ -51,7 +51,7 @@ void main() {
       for (int i = 0; i < num; i++) {
         for (int j = 0; j < nl; j++) {
           Node cur = nodes[j];
-          while (cur !== null) {
+          while (cur != null) {
             cur = cur.nodes.last;
           }
           ret = cur;
@@ -61,7 +61,7 @@ void main() {
     .test('nextSibling', () {
       for (int i = 0; i < num * 2; i++) {
         Node cur = document.body.nodes.first;
-        while (cur !== null) {
+        while (cur != null) {
           cur = cur.nextNode;
         }
         ret = cur;
@@ -70,7 +70,7 @@ void main() {
     .test('previousSibling', () {
       for (int i = 0; i < num * 2; i++) {
         Node cur = document.body.nodes.last;
-        while (cur !== null) {
+        while (cur != null) {
           cur = cur.previousNode;
         }
         ret = cur;

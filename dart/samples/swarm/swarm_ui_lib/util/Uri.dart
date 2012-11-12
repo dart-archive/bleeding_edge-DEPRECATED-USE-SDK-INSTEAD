@@ -27,7 +27,7 @@ class Uri extends uri.Uri {
 
           // Create a list of values for this name if not yet done.
           List values = queryParams[name];
-          if (values === null) {
+          if (values == null) {
             values = new List();
             queryParams[name] = values;
           }

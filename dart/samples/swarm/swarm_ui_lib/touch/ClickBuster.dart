@@ -175,7 +175,7 @@ class ClickBuster {
     //       temporary "allowable zone".
     //     - The click handler captures the user's click event and allows it to
     //       propagate since the click falls in the "allowable zone".
-    if (_coordinates === null) {
+    if (_coordinates == null) {
       // Listen to clicks on capture phase so they can be busted before anything
       // else gets a chance to handle them.
       document.on.click.add((e) { _onClick(e); }, true);

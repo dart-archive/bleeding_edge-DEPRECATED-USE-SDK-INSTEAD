@@ -62,7 +62,7 @@ class CompositeView extends View {
   }
 
   void afterRender(Element node) {
-    if (_scrollbar !== null) {
+    if (_scrollbar != null) {
       _scrollbar.initialize();
     }
   }
@@ -70,7 +70,7 @@ class CompositeView extends View {
   View addChild(View view) {
     childViews.add(view);
     // TODO(rnystrom): Container shouldn't be null. Remove this check.
-    if (container !== null) {
+    if (container != null) {
       container.nodes.add(view.node);
     }
     childViewAdded(view);
@@ -80,7 +80,7 @@ class CompositeView extends View {
   void removeChild(View view) {
     childViews = childViews.filter(bool _(e) { return view != e; });
     // TODO(rnystrom): Container shouldn't be null. Remove this check.
-    if (container !== null) {
+    if (container != null) {
       view.node.remove();
     }
   }
