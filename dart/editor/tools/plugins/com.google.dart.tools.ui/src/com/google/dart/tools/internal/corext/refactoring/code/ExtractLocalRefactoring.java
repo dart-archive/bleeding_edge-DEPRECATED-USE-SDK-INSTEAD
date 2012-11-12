@@ -74,7 +74,7 @@ public class ExtractLocalRefactoring extends Refactoring {
   private final int selectionStart;
   private final int selectionLength;
   private final SourceRange selectionRange;
-  private final CompilationUnitChange change;
+  private CompilationUnitChange change;
   private ExtractUtils utils;
 
   private DartUnit unitNode;
@@ -94,7 +94,6 @@ public class ExtractLocalRefactoring extends Refactoring {
     this.selectionStart = selectionStart;
     this.selectionLength = selectionLength;
     this.selectionRange = SourceRangeFactory.forStartLength(selectionStart, selectionLength);
-    change = new CompilationUnitChange(unit.getElementName(), unit);
     localName = ""; //$NON-NLS-1$
   }
 
@@ -146,11 +145,14 @@ public class ExtractLocalRefactoring extends Refactoring {
 
   @Override
   public Change createChange(IProgressMonitor pm) throws CoreException {
+    pm.beginTask(RefactoringCoreMessages.ExtractLocalRefactoring_checking_preconditions, 1);
     try {
-      pm.beginTask(RefactoringCoreMessages.ExtractLocalRefactoring_checking_preconditions, 1);
       // configure Change
-      change.setEdit(new MultiTextEdit());
-      change.setKeepPreviewEdits(true);
+      {
+        change = new CompilationUnitChange(unit.getElementName(), unit);
+        change.setEdit(new MultiTextEdit());
+        change.setKeepPreviewEdits(true);
+      }
       // prepare occurrences
       List<SourceRange> occurences;
       if (replaceAllOccurrences) {

@@ -143,7 +143,7 @@ public class ExtractMethodRefactoring extends Refactoring {
   private int selectionLength;
   private SourceRange selectionRange;
 
-  private final CompilationUnitChange change;
+  private CompilationUnitChange change;
   private ExtractUtils utils;
   private DartUnit unitNode;
   private final List<ParameterInfo> parameters = Lists.newArrayList();
@@ -171,11 +171,6 @@ public class ExtractMethodRefactoring extends Refactoring {
     this.selectionLength = selectionLength;
     this.selectionRange = SourceRangeFactory.forStartLength(selectionStart, selectionLength);
     this.methodName = "extracted"; //$NON-NLS-1$
-    {
-      this.change = new CompilationUnitChange(unit.getElementName(), unit);
-      change.setEdit(new MultiTextEdit());
-      change.setKeepPreviewEdits(true);
-    }
   }
 
   @Override
@@ -257,6 +252,12 @@ public class ExtractMethodRefactoring extends Refactoring {
   public Change createChange(IProgressMonitor pm) throws CoreException {
     pm.beginTask("", 1 + occurrences.size()); //$NON-NLS-1$
     try {
+      // configure Change
+      {
+        change = new CompilationUnitChange(unit.getElementName(), unit);
+        change.setEdit(new MultiTextEdit());
+        change.setKeepPreviewEdits(true);
+      }
       // replace occurrences with method invocation
       for (Occurrence occurence : occurrences) {
         pm.worked(1);
