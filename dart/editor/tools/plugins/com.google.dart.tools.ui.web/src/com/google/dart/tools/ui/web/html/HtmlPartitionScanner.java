@@ -24,12 +24,19 @@ class HtmlPartitionScanner extends RuleBasedPartitionScanner {
 
   public HtmlPartitionScanner() {
     IToken htmlComment = new Token(HtmlEditor.HTML_COMMENT_PARTITION);
+    IToken templateSection = new Token(HtmlEditor.HTML_TEMPLATE_PARTITION);
     IToken styleSection = new Token(HtmlEditor.HTML_STYLE_PARTITION);
+    IToken codeSection = new Token(HtmlEditor.HTML_CODE_PARTITION);
 
-    IPredicateRule[] rules = new IPredicateRule[2];
+    IPredicateRule[] rules = new IPredicateRule[4];
 
     rules[0] = new MultiLineRule("<!--", "-->", htmlComment);
-    rules[1] = new PatternRule("<style", "</style>", styleSection, Character.MIN_VALUE, false);
+    rules[1] = new MultiLineRule("{{", "}}", templateSection);
+
+    // TODO(devoncarew): create a custom IPartitionTokenScanner that can correctly create
+    // partitions inside the <foo>...</foo> tags, instead of including the tags themselves.
+    rules[2] = new PatternRule("<style", "</style>", styleSection, Character.MIN_VALUE, false);
+    rules[3] = new PatternRule("<script", "</script>", codeSection, Character.MIN_VALUE, false);
 
     setPredicateRules(rules);
   }

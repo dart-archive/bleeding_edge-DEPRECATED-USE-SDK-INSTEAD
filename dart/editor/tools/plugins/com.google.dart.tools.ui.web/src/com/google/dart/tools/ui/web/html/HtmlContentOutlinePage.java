@@ -16,8 +16,8 @@ package com.google.dart.tools.ui.web.html;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 import com.google.dart.tools.ui.web.utils.Node;
 import com.google.dart.tools.ui.web.utils.NodeContentProvider;
-import com.google.dart.tools.ui.web.xml.XmlLabelProvider;
 
+import org.eclipse.jface.viewers.DecoratingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -25,6 +25,8 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
+
+// TODO: nodes need to remember themselves between edits
 
 /**
  * An outline page for the html editor.
@@ -40,7 +42,8 @@ public class HtmlContentOutlinePage extends ContentOutlinePage {
   public void createControl(Composite parent) {
     super.createControl(parent);
 
-    getTreeViewer().setLabelProvider(new XmlLabelProvider());
+    getTreeViewer().setLabelProvider(
+        new DecoratingStyledCellLabelProvider(new HtmlLabelProvider(), null, null));
     getTreeViewer().setContentProvider(new NodeContentProvider());
     getTreeViewer().setInput(editor.getModel());
 
@@ -75,7 +78,7 @@ public class HtmlContentOutlinePage extends ContentOutlinePage {
   private void refresh() {
     try {
       if (!getTreeViewer().getControl().isDisposed()) {
-        getTreeViewer().setInput(editor.getModel());
+        getTreeViewer().refresh(editor.getModel());
       }
     } catch (Throwable exception) {
       DartWebPlugin.logError(exception);

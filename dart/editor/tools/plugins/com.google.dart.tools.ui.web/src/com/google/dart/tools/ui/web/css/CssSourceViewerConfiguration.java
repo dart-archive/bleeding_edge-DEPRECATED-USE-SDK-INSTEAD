@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.web.css;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 import com.google.dart.tools.ui.web.utils.WebEditorReconcilingStrategy;
 
+import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
@@ -39,6 +40,15 @@ public class CssSourceViewerConfiguration extends SourceViewerConfiguration {
 
   public CssSourceViewerConfiguration(CssEditor editor) {
     this.editor = editor;
+  }
+
+  @Override
+  public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
+    if (IDocument.DEFAULT_CONTENT_TYPE.equals(contentType)) {
+      return new IAutoEditStrategy[] {new CssAutoIndentStrategy()};
+    } else {
+      return super.getAutoEditStrategies(sourceViewer, contentType);
+    }
   }
 
   @Override

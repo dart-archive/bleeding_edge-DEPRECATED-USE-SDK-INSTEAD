@@ -39,7 +39,9 @@ public class HtmlDocumentProvider extends TextFileDocumentProvider {
     if (document != null) {
       IDocumentPartitioner partitioner = new FastPartitioner(
           new HtmlPartitionScanner(),
-          new String[] {HtmlEditor.HTML_COMMENT_PARTITION, HtmlEditor.HTML_STYLE_PARTITION});
+          new String[] {
+              HtmlEditor.HTML_COMMENT_PARTITION, HtmlEditor.HTML_TEMPLATE_PARTITION,
+              HtmlEditor.HTML_STYLE_PARTITION, HtmlEditor.HTML_CODE_PARTITION});
       partitioner.connect(document);
       document.setDocumentPartitioner(partitioner);
     }

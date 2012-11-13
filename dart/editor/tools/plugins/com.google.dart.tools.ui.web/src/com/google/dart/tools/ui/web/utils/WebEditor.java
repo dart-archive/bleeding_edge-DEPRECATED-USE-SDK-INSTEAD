@@ -13,9 +13,11 @@
  */
 package com.google.dart.tools.ui.web.utils;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.editor.saveactions.RemoveTrailingWhitespaceAction;
+import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IMenuManager;
@@ -26,10 +28,14 @@ import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The abstract superclass of the html and css editors.
@@ -45,11 +51,7 @@ public abstract class WebEditor extends TextEditor {
   private RemoveTrailingWhitespaceAction removeTrailingWhitespaceAction;
 
   public WebEditor() {
-    // Enable bracket highlighting in the preference store.
-    IPreferenceStore store = getPreferenceStore();
-
-    store.setDefault(MATCHING_BRACKETS, true);
-    store.setDefault(MATCHING_BRACKETS_COLOR, "128,128,128");
+    setPreferenceStore(createPreferenceStore());
   }
 
   @Override
@@ -151,6 +153,16 @@ public abstract class WebEditor extends TextEditor {
 
     // Remove the Preferences menu item
     menu.remove(ITextEditorActionConstants.RULER_PREFERENCES);
+  }
+
+  private IPreferenceStore createPreferenceStore() {
+    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>();
+
+    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
+    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
+    stores.add(EditorsUI.getPreferenceStore());
+
+    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
   }
 
 }

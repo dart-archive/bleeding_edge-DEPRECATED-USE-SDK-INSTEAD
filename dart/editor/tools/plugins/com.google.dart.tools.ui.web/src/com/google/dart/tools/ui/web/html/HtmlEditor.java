@@ -17,6 +17,7 @@ import com.google.dart.tools.ui.web.utils.WebEditor;
 import com.google.dart.tools.ui.web.xml.model.XmlDocument;
 import com.google.dart.tools.ui.web.xml.model.XmlParser;
 
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
@@ -26,7 +27,9 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
  */
 public class HtmlEditor extends WebEditor {
   public final static String HTML_COMMENT_PARTITION = "__html_comment";
+  public final static String HTML_TEMPLATE_PARTITION = "__template";
   public final static String HTML_STYLE_PARTITION = "__css_style";
+  public final static String HTML_CODE_PARTITION = "__code";
 
   private HtmlContentOutlinePage outlinePage;
   private XmlDocument model;
@@ -59,8 +62,7 @@ public class HtmlEditor extends WebEditor {
 
   protected XmlDocument getModel() {
     if (model == null) {
-      //model = new XmlParser(getDocument(), true).parse();
-      model = XmlParser.createEmpty();
+      model = new XmlParser(getDocument(), true).parse();
     }
 
     return model;
@@ -76,6 +78,10 @@ public class HtmlEditor extends WebEditor {
     if (outlinePage != null) {
       outlinePage.handleEditorReconcilation();
     }
+  }
+
+  IPreferenceStore getPreferences() {
+    return super.getPreferenceStore();
   }
 
 }

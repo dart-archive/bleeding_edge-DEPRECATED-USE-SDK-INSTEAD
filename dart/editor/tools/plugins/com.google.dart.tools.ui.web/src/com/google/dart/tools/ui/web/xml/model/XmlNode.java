@@ -50,8 +50,29 @@ public class XmlNode extends Node {
   }
 
   @Override
+  public String getId() {
+    if (getParent() == null) {
+      return getLabel();
+    } else {
+      return getParent().getId() + "." + getLabel() + getChildPos();
+    }
+  }
+
+  @Override
   public String getLabel() {
     return name;
+  }
+
+  private int getChildPos() {
+    List<Node> children = getParent().getChildren();
+
+    for (int i = 0; i < children.size(); i++) {
+      if (children.get(i) == this) {
+        return i;
+      }
+    }
+
+    return -1;
   }
 
 }

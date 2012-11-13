@@ -49,8 +49,7 @@ public class XmlEditor extends WebEditor {
 
   protected XmlDocument getModel() {
     if (model == null) {
-      //model = new XmlParser(getDocument()).parse();
-      model = XmlParser.createEmpty();
+      model = new XmlParser(getDocument()).parse();
     }
 
     return model;

@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.tools.ui.web.yaml;
+package com.google.dart.tools.ui.web.html;
 
 import com.google.dart.tools.ui.web.utils.WebEditorAutoIndentStrategy;
 
@@ -22,11 +22,11 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
 /**
- * An indent strategy for yaml.
+ * An indent strategy for html.
  */
-public class YamlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
+public class HtmlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
 
-  public YamlAutoIndentStrategy() {
+  public HtmlAutoIndentStrategy() {
 
   }
 
@@ -42,7 +42,8 @@ public class YamlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
       IRegion lineInfo = document.getLineInformationOfOffset(location);
       int start = lineInfo.getOffset();
 
-      boolean endsInColon = (document.getChar(command.offset - 1) == ':');
+      boolean endsInBracket = (document.getChar(command.offset - 1) == '>');
+      String startStr = document.get(start, command.offset - start);
 
       // find white spaces
       int end = findEndOfWhiteSpace(document, start, command.offset);
@@ -54,7 +55,9 @@ public class YamlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
         buf.append(document.get(start, end - start));
       }
 
-      if (endsInColon) {
+      // Indent after a >+eol, but not if we're closing an element tag.
+      if (endsInBracket && !(startStr.contains("</") || startStr.contains("/>"))
+          && !(startStr.toLowerCase().endsWith("<p>"))) {
         buf.append("  ");
       }
 

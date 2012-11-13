@@ -41,12 +41,35 @@ public abstract class Node {
     children.add(child);
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+
+    if (this.getClass().isAssignableFrom(obj.getClass())) {
+      Node other = (Node) obj;
+
+      return safeEquals(getId(), other.getId());
+    } else {
+      return false;
+    }
+  }
+
   public List<Node> getChildren() {
     return children;
   }
 
   public Token getEndToken() {
     return endToken;
+  }
+
+  public String getId() {
+    if (parent == null) {
+      return label;
+    } else {
+      return parent.getId() + "." + label;
+    }
   }
 
   public String getLabel() {
@@ -59,6 +82,11 @@ public abstract class Node {
 
   public Token getStartToken() {
     return startToken;
+  }
+
+  @Override
+  public int hashCode() {
+    return getId().hashCode();
   }
 
   public void setEnd(Token t) {
@@ -76,6 +104,18 @@ public abstract class Node {
   @Override
   public String toString() {
     return getLabel();
+  }
+
+  private boolean safeEquals(String id, String id2) {
+    if (id == id2) {
+      return true;
+    }
+
+    if (id == null) {
+      return false;
+    }
+
+    return id.equals(id2);
   }
 
 }

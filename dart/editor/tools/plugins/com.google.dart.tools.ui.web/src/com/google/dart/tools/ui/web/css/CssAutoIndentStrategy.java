@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.tools.ui.web.yaml;
+package com.google.dart.tools.ui.web.css;
 
 import com.google.dart.tools.ui.web.utils.WebEditorAutoIndentStrategy;
 
@@ -22,11 +22,11 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
 /**
- * An indent strategy for yaml.
+ * An indent strategy for css.
  */
-public class YamlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
+public class CssAutoIndentStrategy extends WebEditorAutoIndentStrategy {
 
-  public YamlAutoIndentStrategy() {
+  public CssAutoIndentStrategy() {
 
   }
 
@@ -42,7 +42,8 @@ public class YamlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
       IRegion lineInfo = document.getLineInformationOfOffset(location);
       int start = lineInfo.getOffset();
 
-      boolean endsInColon = (document.getChar(command.offset - 1) == ':');
+      // Auto-indent after a '{'+eol is typed.
+      boolean endsInBrace = (document.getChar(command.offset - 1) == '{');
 
       // find white spaces
       int end = findEndOfWhiteSpace(document, start, command.offset);
@@ -54,7 +55,7 @@ public class YamlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
         buf.append(document.get(start, end - start));
       }
 
-      if (endsInColon) {
+      if (endsInBrace) {
         buf.append("  ");
       }
 

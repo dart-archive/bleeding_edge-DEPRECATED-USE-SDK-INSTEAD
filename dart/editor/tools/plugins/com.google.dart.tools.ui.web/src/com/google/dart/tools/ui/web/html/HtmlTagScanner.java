@@ -42,7 +42,7 @@ class HtmlTagScanner extends RuleBasedScanner {
     rules[0] = new SingleLineRule("\"", "\"", stringToken, '\\');
     rules[1] = new SingleLineRule("'", "'", stringToken, '\\');
 
-    HtmlWordRule keywordRule = new HtmlWordRule(new WordDetector(), Token.UNDEFINED, true);
+    HtmlWordRule keywordRule = new HtmlWordRule(new WordDetector(), true);
 
     for (String keyword : HtmlKeywords.getKeywords()) {
       keywordRule.addWord(keyword, keywordToken);
@@ -51,7 +51,6 @@ class HtmlTagScanner extends RuleBasedScanner {
     rules[2] = keywordRule;
 
     rules[3] = new SingleLineRule("<?", "?>", procInstr);
-
     rules[4] = new WhitespaceRule(new WhitespaceDetector());
 
     setRules(rules);
