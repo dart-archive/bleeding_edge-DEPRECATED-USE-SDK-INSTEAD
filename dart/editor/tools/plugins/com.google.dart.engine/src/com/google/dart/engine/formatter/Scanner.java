@@ -13,20 +13,12 @@
  */
 package com.google.dart.engine.formatter;
 
-import com.google.dart.engine.ExtendedTestSuite;
-
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
-import java.io.IOException;
-
-public class TestAll {
-
-  public static Test suite() throws IOException {
-    TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTest(CodeFormatterTest.suite());
-    suite.addTestSuite(EditRecorderTest.class);
-    return suite;
-  }
+/**
+ * Scanner interface for use by the formatter.
+ * <p>
+ * NOTE: this is a temporary interface; to be replaced by direct access to an
+ * {@code AbstractScanner}.
+ */
+public interface Scanner {
 
 }

@@ -18,6 +18,38 @@ package com.google.dart.engine.formatter;
  */
 public class CodeFormatterOptions {
 
+  /**
+   * OS line separator.
+   */
+  private static final String OS_LINE_SEPARATOR = System.getProperty("line.separator"); //$NON-NLS-1$
+
+  public static CodeFormatterOptions getDefaults() {
+    CodeFormatterOptions options = new CodeFormatterOptions();
+    applyDefaults(options);
+    return options;
+  }
+
+  /**
+   * Apply formatter defaults.
+   * <p>
+   * Where defined, defaults are derived from the <a
+   * href="http://www.dartlang.org/articles/style-guide/">style guide</a>.
+   * 
+   * @param options the options to update
+   */
+  private static void applyDefaults(CodeFormatterOptions options) {
+    options.line_separator = OS_LINE_SEPARATOR;
+    options.initial_indentation_level = 0;
+    options.indentation_size = 2;
+    options.tab_size = 2;
+    options.page_width = 80;
+  }
+
   public String line_separator;
+
+  public int initial_indentation_level;
+  public int indentation_size;
+  public int tab_size;
+  public int page_width;
 
 }

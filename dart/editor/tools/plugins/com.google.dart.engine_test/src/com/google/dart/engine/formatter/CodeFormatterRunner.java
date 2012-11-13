@@ -14,22 +14,13 @@
 package com.google.dart.engine.formatter;
 
 import com.google.dart.engine.formatter.CodeFormatter.Kind;
+import com.google.dart.engine.formatter.FakeFactory.FakeRecorder;
 import com.google.dart.engine.internal.formatter.CodeFormatterImpl;
 
 /**
  * Helper used to run the {@link CodeFormatter}.
  */
 public class CodeFormatterRunner {
-
-  private class TestEditRecorder extends EditRecorder<String> {
-
-    StringBuilder builder = new StringBuilder();
-
-    @Override
-    public String buildEdit() {
-      return builder.toString();
-    }
-  }
 
   private static final String NEW_LINE = System.getProperty("line.separator");
   private static final int DEFAULT_INDENTATION_LEVEL = 0;
@@ -69,7 +60,7 @@ public class CodeFormatterRunner {
 
   public String format(String source, Kind kind, int indentationLevel, int offset, int length,
       String lineSeparator) {
-    TestEditRecorder recorder = new TestEditRecorder();
+    FakeRecorder recorder = FakeFactory.createRecorder();
     codeFormatter.format(kind, source, offset, length, indentationLevel, recorder);
     return recorder.buildEdit();
   }
