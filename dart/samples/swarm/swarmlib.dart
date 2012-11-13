@@ -4,7 +4,6 @@
 
 library swarmlib;
 
-import 'dart:coreimpl';
 import 'dart:json';
 import 'dart:html';
 import 'dart:math' as Math;

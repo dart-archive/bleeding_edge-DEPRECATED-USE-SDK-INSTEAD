@@ -21,10 +21,6 @@ public class PackageLibraryManagerProviderDartCTest extends PackageLibraryManage
     testLibrary("core", "corelib.dart");
   }
 
-  public void test_PackageLibraryManagerProvider_expandCoreImpl() throws Exception {
-    testLibrary("coreimpl", "corelib_impl.dart");
-  }
-
   public void test_PackageLibraryManagerProvider_expandDom() throws Exception {
     testLibrary("dom", "dom.dart");
   }

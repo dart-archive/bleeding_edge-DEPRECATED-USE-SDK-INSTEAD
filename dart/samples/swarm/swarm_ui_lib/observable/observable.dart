@@ -4,8 +4,6 @@
 
 library observable;
 
-import 'dart:coreimpl';
-
 part 'ChangeEvent.dart';
 part 'EventBatch.dart';
 

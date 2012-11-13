@@ -59,7 +59,7 @@ public abstract class PackageLibraryManagerProviderTest extends TestCase {
 //    }
     assertNotNull(specs);
     assertTrue(specs.contains("dart:core"));
-    assertTrue(specs.contains("dart:coreimpl"));
+    assertTrue(specs.contains("dart:collection"));
     assertTrue(specs.contains("dart:html"));
     assertTrue(specs.contains("dart:uri"));
   }

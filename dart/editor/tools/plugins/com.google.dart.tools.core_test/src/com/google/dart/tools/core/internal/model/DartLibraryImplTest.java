@@ -153,14 +153,6 @@ public class DartLibraryImplTest extends TestCase {
     assertEquals(getDartLibCore(), new DartLibraryImpl(libSrc));
   }
 
-  /**
-   * Test equals and sanity check that the core impl library can be accessed
-   */
-  public void test_DartLibraryImpl_equals_libCoreImpl() throws Exception {
-    LibrarySource libSrc = getDartLibCoreImpl().getLibrarySourceFile();
-    assertEquals(getDartLibCoreImpl(), new DartLibraryImpl(libSrc));
-  }
-
   public void test_DartLibraryImpl_equals_libDomWebkit() throws Exception {
     // TODO (danrubel) uncomment to ensure webkit dom is bundled
     //LibrarySource libSrc = getDartLibDomWebkit().getLibrarySourceFile();
@@ -650,11 +642,6 @@ public class DartLibraryImplTest extends TestCase {
     assertDartLib3ImportedLibraries();
   }
 
-  public void test_DartLibraryImpl_getImportedLibraries_libCoreImpl() throws Exception {
-    DartLibrary[] importedLibraries = getDartLibCoreImpl().getImportedLibraries();
-    assertEquals(0, importedLibraries.length);
-  }
-
   public void test_DartLibraryImpl_getImportedLibraries_libEmpty() throws Exception {
     DartLibrary[] importedLibraries = getDartLibEmpty().getImportedLibraries();
     assertEquals(0, importedLibraries.length);
@@ -818,25 +805,10 @@ public class DartLibraryImplTest extends TestCase {
     assertFalse(library.isTopLevel());
   }
 
-  public void xtest_DartLibraryImpl_getChildren_libCoreImpl() throws Exception {
-    DartElement[] children = getDartLibCoreImpl().getChildren();
-    // TODO(brianwilkerson) Disabled to fix the build. Either fix the test or remove it.
-    assertContainsCompUnit(children, "coreimpl_runtime.dart", false, false);
-    assertContainsCompUnit(children, "regexp.dart", false, false);
-    assertContainsCompUnit(children, "array.dart", false, false);
-    assertTrue(children.length > 10);
-  }
-
-  public void xtest_DartLibraryImpl_getElementName_libCoreImpl() throws Exception {
-    // TODO(brianwilkerson) Disabled to fix the build. Either fix the test or remove it.
-    assertEquals("dart:coreimpl", getDartLibCoreImpl().getElementName());
-  }
-
-  public void xtest_DartLibraryImpl_getImportedLibraries_libCore() throws Exception {
-    // TODO(brianwilkerson) Disabled to fix the build. Either fix the test or remove it.
+  public void test_DartLibraryImpl_getImportedLibraries_libCore() throws Exception {
     DartLibrary[] importedLibraries = getDartLibCore().getImportedLibraries();
     assertEquals(1, importedLibraries.length);
-    assertEquals("dart:coreimpl", importedLibraries[0].getElementName());
+    assertEquals("dart:collection", importedLibraries[0].getElementName());
   }
 
   public void xtest_DartLibraryImpl_isUnreferenced_imported() throws Exception {
@@ -1123,10 +1095,6 @@ public class DartLibraryImplTest extends TestCase {
 
   private DartLibraryImpl getDartLibCore() throws Exception {
     return getBundledLib("dart:core");
-  }
-
-  private DartLibraryImpl getDartLibCoreImpl() throws Exception {
-    return (DartLibraryImpl) getDartLibCore().getImportedLibraries()[0];
   }
 
   private DartLibraryImpl getDartLibEmpty() throws Exception {

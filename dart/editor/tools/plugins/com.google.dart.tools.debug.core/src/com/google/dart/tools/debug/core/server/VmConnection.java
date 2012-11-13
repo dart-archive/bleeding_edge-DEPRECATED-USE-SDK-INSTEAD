@@ -70,7 +70,7 @@ public class VmConnection {
    * A set of core libraries - semantically considered part of the core Dart library implementation.
    */
   private static final Set<String> CORE_IMPL_LIBRARIES = new HashSet<String>(
-      Arrays.asList(new String[] {"dart:core", "dart:coreimpl", "dart:nativewrappers"}));
+      Arrays.asList(new String[] {"dart:core", "dart:nativewrappers"}));
 
   private List<VmListener> listeners = new ArrayList<VmListener>();
   private int port;

@@ -4,7 +4,6 @@
 
 library touch;
 
-import 'dart:coreimpl';
 import 'dart:html';
 import 'dart:math' as Math;
 

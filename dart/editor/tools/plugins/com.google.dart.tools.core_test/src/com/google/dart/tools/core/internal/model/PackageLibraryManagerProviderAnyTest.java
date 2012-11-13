@@ -23,10 +23,6 @@ public class PackageLibraryManagerProviderAnyTest extends PackageLibraryManagerP
     testLibrary("core", "core.dart");
   }
 
-  public void test_PackageLibraryManagerProvider_coreImpl() throws Exception {
-    testLibrary("coreimpl", "coreimpl.dart");
-  }
-
   public void test_PackageLibraryManagerProvider_html() throws Exception {
     testLibrary("html", "dartium/html_dartium.dart");
   }
