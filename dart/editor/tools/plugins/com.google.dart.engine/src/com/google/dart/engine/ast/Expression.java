@@ -20,7 +20,8 @@ package com.google.dart.engine.ast;
  * <pre>
  * expression ::=
  *     {@link AssignmentExpression assignmentExpression}
- *   | {@link ConditionalExpression conditionalExpression}
+ *   | {@link ConditionalExpression conditionalExpression} cascadeSection*
+ *   | {@link ThrowExpression throwExpression}
  * </pre>
  */
 public abstract class Expression extends ASTNode {

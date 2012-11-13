@@ -22,14 +22,26 @@ import java.util.List;
 
 /**
  * Instances of the class {@code CompilationUnit} represent a compilation unit.
+ * <p>
+ * While the grammar restricts the order of the directives and declarations within a compilation
+ * unit, this class does not enforce those restrictions. In particular, the children of a
+ * compilation unit will be visited in lexical order even if lexical order does not conform to the
+ * restrictions of the grammar.
  * 
  * <pre>
  * compilationUnit ::=
- *     {@link ScriptTag scriptTag}? directives {@link CompilationUnitMember compilationUnitMember}*
+ *     directives declarations
  * 
  * directives ::=
- *     {@link LibraryDirective libraryDirective}? {@link ImportDirective importDirective}* {@link PartDirective partDirective}*
+ *     {@link ScriptTag scriptTag}? {@link LibraryDirective libraryDirective}? namespaceDirective* {@link PartDirective partDirective}*
  *   | {@link PartOfDirective partOfDirective}
+ * 
+ * namespaceDirective ::=
+ *     {@link ImportDirective importDirective}
+ *   | {@link ExportDirective exportDirective}
+ * 
+ * declarations ::=
+ *     {@link CompilationUnitMember compilationUnitMember}*
  * </pre>
  */
 public class CompilationUnit extends ASTNode {

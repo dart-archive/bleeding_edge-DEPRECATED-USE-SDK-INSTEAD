@@ -20,6 +20,9 @@ import java.util.List;
 /**
  * Instances of the class {@code AdjacentStrings} represents two or more string literals that are
  * implicitly concatenated because of being adjacent (separated only by whitespace).
+ * <p>
+ * While the grammar only allows adjacent strings when all of the strings are of the same kind
+ * (single line or multi-line), this class doesn't enforce that restriction.
  * 
  * <pre>
  * adjacentStrings ::=

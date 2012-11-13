@@ -20,8 +20,8 @@ import java.util.List;
 /**
  * Instances of the class {@code CascadeExpression} represent a sequence of cascaded expressions:
  * expressions that share a common target. There are three kinds of expressions that can be used in
- * a cascade expression: {@link ArrayAccess}, {@link MethodInvocation} and {@link PropertyAccess}.
- * All three implement the interface {@link CascadableExpression}.
+ * a cascade expression: {@link IndexExpression}, {@link MethodInvocation} and
+ * {@link PropertyAccess}.
  * 
  * <pre>
  * cascadeExpression ::=

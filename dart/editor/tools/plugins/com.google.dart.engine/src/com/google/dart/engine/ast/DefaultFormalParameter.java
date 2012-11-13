@@ -17,7 +17,8 @@ import com.google.dart.engine.scanner.Token;
 
 /**
  * Instances of the class {@code DefaultFormalParameter} represent a formal parameter with a default
- * value.
+ * value. There are two kinds of parameters that are both represented by this class: named formal
+ * parameters and positional formal parameters.
  * 
  * <pre>
  * defaultFormalParameter ::=

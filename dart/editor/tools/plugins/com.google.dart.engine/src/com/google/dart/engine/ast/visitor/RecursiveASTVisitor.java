@@ -18,7 +18,7 @@ import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
-import com.google.dart.engine.ast.ArrayAccess;
+import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -59,6 +59,7 @@ import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.InterpolationExpression;
@@ -143,7 +144,7 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitArrayAccess(ArrayAccess node) {
+  public R visitAsExpression(AsExpression node) {
     node.visitChildren(this);
     return null;
   }
@@ -384,6 +385,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitImportDirective(ImportDirective node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public R visitIndexExpression(IndexExpression node) {
     node.visitChildren(this);
     return null;
   }

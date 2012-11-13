@@ -18,14 +18,14 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
-import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
-import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.TypeAlias;
 import com.google.dart.engine.ast.TypeParameter;
@@ -52,6 +52,7 @@ import static com.google.dart.engine.ast.ASTFactory.constructorDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.fieldDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.fieldFormalParameter;
 import static com.google.dart.engine.ast.ASTFactory.formalParameterList;
+import static com.google.dart.engine.ast.ASTFactory.functionDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.functionExpression;
 import static com.google.dart.engine.ast.ASTFactory.functionTypedFormalParameter;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
@@ -365,12 +366,12 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder, new HashMap<ASTNode, Element>());
     String functionName = "f";
-    FunctionExpression expression = functionExpression(
+    FunctionDeclaration declaration = functionDeclaration(
+        null,
         null,
         functionName,
-        formalParameterList(),
-        blockFunctionBody());
-    expression.accept(builder);
+        functionExpression(formalParameterList(), blockFunctionBody()));
+    declaration.accept(builder);
     FunctionElement[] functions = holder.getFunctions();
     assertLength(1, functions);
     FunctionElement function = functions[0];

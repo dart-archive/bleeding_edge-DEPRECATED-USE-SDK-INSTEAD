@@ -16,23 +16,23 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class {@code ArrayAccess} represent an array access expression.
+ * Instances of the class {@code IndexExpression} represent an index expression.
  * 
  * <pre>
- * arrayAccess ::=
- *     {@link Expression array} '[' {@link Expression index} ']'
+ * indexExpression ::=
+ *     {@link Expression target} '[' {@link Expression index} ']'
  * </pre>
  */
-public class ArrayAccess extends Expression {
+public class IndexExpression extends Expression {
   /**
-   * The expression used to compute the array being indexed, or {@code null} if this array access is
-   * part of a cascade expression.
+   * The expression used to compute the object being indexed, or {@code null} if this index
+   * expression is part of a cascade expression.
    */
-  private Expression array;
+  private Expression target;
 
   /**
-   * The period ("..") before a cascaded array access, or {@code null} if this array access is not
-   * part of a cascade expression.
+   * The period ("..") before a cascaded index expression, or {@code null} if this index expression
+   * is not part of a cascade expression.
    */
   private Token period;
 
@@ -52,35 +52,35 @@ public class ArrayAccess extends Expression {
   private Token rightBracket;
 
   /**
-   * Initialize a newly created array access expression.
+   * Initialize a newly created index expression.
    */
-  public ArrayAccess() {
+  public IndexExpression() {
   }
 
   /**
-   * Initialize a newly created array access expression.
+   * Initialize a newly created index expression.
    * 
-   * @param array the expression used to compute the array being indexed
+   * @param target the expression used to compute the object being indexed
    * @param leftBracket the left square bracket
    * @param index the expression used to compute the index
    * @param rightBracket the right square bracket
    */
-  public ArrayAccess(Expression array, Token leftBracket, Expression index, Token rightBracket) {
-    this.array = becomeParentOf(array);
+  public IndexExpression(Expression target, Token leftBracket, Expression index, Token rightBracket) {
+    this.target = becomeParentOf(target);
     this.leftBracket = leftBracket;
     this.index = becomeParentOf(index);
     this.rightBracket = rightBracket;
   }
 
   /**
-   * Initialize a newly created array access expression.
+   * Initialize a newly created index expression.
    * 
-   * @param period the period ("..") before a cascaded array access
+   * @param period the period ("..") before a cascaded index expression
    * @param leftBracket the left square bracket
    * @param index the expression used to compute the index
    * @param rightBracket the right square bracket
    */
-  public ArrayAccess(Token period, Token leftBracket, Expression index, Token rightBracket) {
+  public IndexExpression(Token period, Token leftBracket, Expression index, Token rightBracket) {
     this.period = period;
     this.leftBracket = leftBracket;
     this.index = becomeParentOf(index);
@@ -89,24 +89,24 @@ public class ArrayAccess extends Expression {
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
-    return visitor.visitArrayAccess(this);
+    return visitor.visitIndexExpression(this);
   }
 
   /**
-   * Return the expression used to compute the array being indexed, or {@code null} if this array
-   * access is part of a cascade expression.
+   * Return the expression used to compute the object being indexed, or {@code null} if this index
+   * expression is part of a cascade expression.
    * 
-   * @return the expression used to compute the array being indexed
+   * @return the expression used to compute the object being indexed
    * @see #getRealTarget()
    */
   public Expression getArray() {
-    return array;
+    return target;
   }
 
   @Override
   public Token getBeginToken() {
-    if (array != null) {
-      return array.getBeginToken();
+    if (target != null) {
+      return target.getBeginToken();
     }
     return period;
   }
@@ -135,21 +135,22 @@ public class ArrayAccess extends Expression {
   }
 
   /**
-   * Return the period ("..") before a cascaded array access, or {@code null} if this array access
-   * is not part of a cascade expression.
+   * Return the period ("..") before a cascaded index expression, or {@code null} if this index
+   * expression is not part of a cascade expression.
    * 
-   * @return the period ("..") before a cascaded array access
+   * @return the period ("..") before a cascaded index expression
    */
   public Token getPeriod() {
     return period;
   }
 
   /**
-   * Return the expression used to compute the array being accessed. If this access is not part of a
-   * cascade expression, then this is the same as {@link #getArray()}. If this access is part of a
-   * cascade expression, then the array expression stored with the cascade expression is returned.
+   * Return the expression used to compute the object being indexed. If this index expression is not
+   * part of a cascade expression, then this is the same as {@link #getArray()}. If this index
+   * expression is part of a cascade expression, then the target expression stored with the cascade
+   * expression is returned.
    * 
-   * @return the expression used to compute the array being accessed
+   * @return the expression used to compute the object being indexed
    * @see #getArray()
    */
   public Expression getRealTarget() {
@@ -157,13 +158,13 @@ public class ArrayAccess extends Expression {
       ASTNode ancestor = getParent();
       while (!(ancestor instanceof CascadeExpression)) {
         if (ancestor == null) {
-          return array;
+          return target;
         }
         ancestor = ancestor.getParent();
       }
       return ((CascadeExpression) ancestor).getTarget();
     }
-    return array;
+    return target;
   }
 
   /**
@@ -192,12 +193,12 @@ public class ArrayAccess extends Expression {
   }
 
   /**
-   * Set the expression used to compute the array being indexed to the given expression.
+   * Set the expression used to compute the object being indexed to the given expression.
    * 
-   * @param expression the expression used to compute the array being indexed
+   * @param expression the expression used to compute the object being indexed
    */
   public void setArray(Expression expression) {
-    array = becomeParentOf(expression);
+    target = becomeParentOf(expression);
   }
 
   /**
@@ -219,9 +220,9 @@ public class ArrayAccess extends Expression {
   }
 
   /**
-   * Set the period ("..") before a cascaded array access to the given token.
+   * Set the period ("..") before a cascaded index expression to the given token.
    * 
-   * @param period the period ("..") before a cascaded array access
+   * @param period the period ("..") before a cascaded index expression
    */
   public void setPeriod(Token period) {
     this.period = period;
@@ -238,7 +239,7 @@ public class ArrayAccess extends Expression {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(array, visitor);
+    safelyVisitChild(target, visitor);
     safelyVisitChild(index, visitor);
   }
 }

@@ -20,18 +20,30 @@ import java.util.List;
 /**
  * Instances of the class {@code FormalParameterList} represent the formal parameter list of a
  * method declaration, function declaration, or function type alias.
+ * <p>
+ * While the grammar requires all optional formal parameters to follow all of the normal formal
+ * parameters and at most one grouping of optional formal parameters, this class does not enforce
+ * those constraints. All parameters are flattened into a single list, which can have any or all
+ * kinds of parameters (normal, named, and positional) in any order.
  * 
  * <pre>
  * formalParameterList ::=
- *    '(' ')'
- *  | '(' normalFormalParameters (',' namedFormalParameters)? ')'
- *  | '(' namedFormalParameters ')'
+ *     '(' ')'
+ *   | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
+ *   | '(' optionalFormalParameters ')'
  *
  * normalFormalParameters ::=
  *     {@link NormalFormalParameter normalFormalParameter} (',' {@link NormalFormalParameter normalFormalParameter})*
  *
+ * optionalFormalParameters ::=
+ *     optionalPositionalFormalParameters
+ *   | namedFormalParameters
+ * 
+ * optionalPositionalFormalParameters ::=
+ *     '[' {@link DefaultFormalParameter positionalFormalParameter} (',' {@link DefaultFormalParameter positionalFormalParameter})* ']'
+ * 
  * namedFormalParameters ::=
- *     '[' {@link DefaultFormalParameter namedFormalParameter} (',' {@link DefaultFormalParameter namedFormalParameter})* ']'
+ *     '{' {@link DefaultFormalParameter namedFormalParameter} (',' {@link DefaultFormalParameter namedFormalParameter})* '}'
  * </pre>
  */
 public class FormalParameterList extends ASTNode {

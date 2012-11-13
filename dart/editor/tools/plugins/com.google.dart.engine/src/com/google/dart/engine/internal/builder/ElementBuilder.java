@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.Identifier;
@@ -217,11 +218,30 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   }
 
   @Override
-  public Void visitFunctionExpression(FunctionExpression node) {
+  public Void visitFunctionDeclaration(FunctionDeclaration node) {
     ElementHolder holder = new ElementHolder();
     visitChildren(holder, node);
 
     SimpleIdentifier functionName = node.getName();
+    FunctionElementImpl element = new FunctionElementImpl(functionName);
+    element.setFunctions(holder.getFunctions());
+    element.setLabels(holder.getLabels());
+    element.setLocalVariables(holder.getVariables());
+    if (holder.getParameters() != null) {
+      element.setParameters(holder.getParameters());
+    }
+    currentHolder.addFunction(element);
+    declaredElementMap.put(functionName, element);
+    return null;
+  }
+
+  @Override
+  public Void visitFunctionExpression(FunctionExpression node) {
+    ElementHolder holder = new ElementHolder();
+    visitChildren(holder, node);
+
+    // TODO(brianwilkerson) Figure out how to handle un-named functions
+    SimpleIdentifier functionName = null;
     FunctionElementImpl element = new FunctionElementImpl(functionName);
     element.setFunctions(holder.getFunctions());
     element.setLabels(holder.getLabels());

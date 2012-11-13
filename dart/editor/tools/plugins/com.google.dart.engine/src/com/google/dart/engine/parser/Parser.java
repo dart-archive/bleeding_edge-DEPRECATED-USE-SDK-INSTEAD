@@ -352,25 +352,39 @@ public class Parser {
   }
 
   /**
-   * Return {@code true} if the current token appears to be the beginning of a function expression.
+   * Return {@code true} if the current token appears to be the beginning of a function declaration.
    * 
-   * @return {@code true} if the current token appears to be the beginning of a function expression
+   * @return {@code true} if the current token appears to be the beginning of a function declaration
    */
-  private boolean isFunctionExpression() {
+  private boolean isFunctionDeclaration() {
     if (matches(Keyword.VOID)) {
       return true;
     }
-    Token afterReturnType = skipReturnType(currentToken);
+    Token afterReturnType = skipTypeName(currentToken);
     if (afterReturnType == null) {
       // There was no return type, but it is optional, so go back to where we started.
       afterReturnType = currentToken;
     }
     Token afterIdentifier = skipSimpleIdentifier(afterReturnType);
     if (afterIdentifier == null) {
-      // There was no name, so go back to the end of the return type
-      afterIdentifier = afterReturnType;
+      // It's possible that we parsed the function name as if it were a type name, so see whether
+      // it makes sense if we assume that there is no type.
+      afterIdentifier = skipSimpleIdentifier(currentToken);
     }
-    Token afterParameters = skipFormalParameterList(afterIdentifier);
+    if (afterIdentifier == null) {
+      return false;
+    }
+    return isFunctionExpression(afterIdentifier);
+  }
+
+  /**
+   * Return {@code true} if the given token appears to be the beginning of a function expression.
+   * 
+   * @param startToken the token that might be the start of a function expression
+   * @return {@code true} if the given token appears to be the beginning of a function expression
+   */
+  private boolean isFunctionExpression(Token startToken) {
+    Token afterParameters = skipFormalParameterList(startToken);
     if (afterParameters == null) {
       return false;
     }
@@ -835,7 +849,7 @@ public class Parser {
       Token leftBracket = getAndAdvance();
       Expression index = parseExpression();
       Token rightBracket = expect(TokenType.CLOSE_SQUARE_BRACKET);
-      return new ArrayAccess(prefix, leftBracket, index, rightBracket);
+      return new IndexExpression(prefix, leftBracket, index, rightBracket);
     } else if (matches(TokenType.PERIOD)) {
       Token period = getAndAdvance();
       return new PropertyAccess(prefix, period, parseSimpleIdentifier());
@@ -1003,7 +1017,7 @@ public class Parser {
       Token leftBracket = getAndAdvance();
       Expression index = parseExpression();
       Token rightBracket = expect(TokenType.CLOSE_SQUARE_BRACKET);
-      expression = new ArrayAccess(period, leftBracket, index, rightBracket);
+      expression = new IndexExpression(period, leftBracket, index, rightBracket);
       period = null;
     } else {
       reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
@@ -2468,8 +2482,10 @@ public class Parser {
         commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
         externalKeyword,
+        returnType,
         keyword,
-        new FunctionExpression(returnType, name, parameters, body));
+        name,
+        new FunctionExpression(parameters, body));
   }
 
   /**
@@ -2486,7 +2502,7 @@ public class Parser {
     return new FunctionDeclarationStatement(parseFunctionDeclaration(
         parseCommentAndMetadata(),
         null,
-        parseReturnType(),
+        parseOptionalReturnType(),
         true));
   }
 
@@ -2501,19 +2517,9 @@ public class Parser {
    * @return the function expression that was parsed
    */
   private FunctionExpression parseFunctionExpression() {
-    // TODO(brianwilkerson) This method no longer matches the grammar for a function expression, but
-    // is being used in places where the return type and name are still needed. Fixing this might
-    // require modifications to the AST structure.
-    TypeName returnType = parseOptionalReturnType();
-    SimpleIdentifier name = null;
-    if (matchesIdentifier()) {
-      name = parseSimpleIdentifier();
-    } else if (returnType != null) {
-      // reportError(ParserErrorCode.?);
-    }
     FormalParameterList parameters = parseFormalParameterList();
     FunctionBody body = parseFunctionBody(false, true);
-    return new FunctionExpression(returnType, name, parameters, body);
+    return new FunctionExpression(parameters, body);
   }
 
   /**
@@ -3102,19 +3108,8 @@ public class Parser {
       return parseEmptyStatement();
     } else if (isInitializedVariableDeclaration()) {
       return parseVariableDeclarationStatement();
-    } else if (isFunctionExpression()) {
-      FunctionExpression functionExpression = parseFunctionExpression();
-      Token semicolon = null;
-      if (functionExpression.getName() == null) {
-        if (matches(TokenType.SEMICOLON)) {
-          semicolon = expect(TokenType.SEMICOLON);
-        } else if (matches(TokenType.OPEN_PAREN)) {
-          return new ExpressionStatement(new FunctionExpressionInvocation(
-              functionExpression,
-              parseArgumentList()), expect(TokenType.SEMICOLON));
-        }
-      }
-      return new ExpressionStatement(functionExpression, semicolon);
+    } else if (isFunctionDeclaration()) {
+      return parseFunctionDeclarationStatement();
     } else {
       return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
     }
@@ -3432,7 +3427,7 @@ public class Parser {
     } else if (matches(Keyword.CONST)) {
       return parseConstExpression();
     } else if (matches(TokenType.OPEN_PAREN)) {
-      if (isFunctionExpression()) {
+      if (isFunctionExpression(currentToken)) {
         return parseFunctionExpression();
       }
       Token leftParenthesis = getAndAdvance();
@@ -3497,7 +3492,7 @@ public class Parser {
     Expression expression = parseShiftExpression();
     if (matches(Keyword.AS)) {
       Token isOperator = getAndAdvance();
-      expression = new IsExpression(expression, isOperator, null, parseTypeName());
+      expression = new AsExpression(expression, isOperator, parseTypeName());
     } else if (matches(Keyword.IS)) {
       Token isOperator = getAndAdvance();
       Token notOperator = null;

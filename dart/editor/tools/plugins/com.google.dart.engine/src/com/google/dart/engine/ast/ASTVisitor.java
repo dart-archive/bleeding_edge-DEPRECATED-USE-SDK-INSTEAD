@@ -26,7 +26,7 @@ public interface ASTVisitor<R> {
 
   public R visitArgumentList(ArgumentList node);
 
-  public R visitArrayAccess(ArrayAccess node);
+  public R visitAsExpression(AsExpression node);
 
   public R visitAssertStatement(AssertStatement assertStatement);
 
@@ -107,6 +107,8 @@ public interface ASTVisitor<R> {
   public R visitImplementsClause(ImplementsClause node);
 
   public R visitImportDirective(ImportDirective node);
+
+  public R visitIndexExpression(IndexExpression node);
 
   public R visitInstanceCreationExpression(InstanceCreationExpression node);
 

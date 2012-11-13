@@ -15,12 +15,14 @@ package com.google.dart.engine.ast;
 
 /**
  * The abstract class {@code FormalParameter} defines the behavior of objects representing a
- * parameter to a function.
+ * parameter to a function. There are three kinds of formal parameters: normal formal parameters,
+ * named formal parameters, and positional formal parameters.
  * 
  * <pre>
  * formalParameter ::=
  *     {@link NormalFormalParameter normalFormalParameter}
  *   | {@link DefaultFormalParameter namedFormalParameter}
+ *   | {@link DefaultFormalParameter optionalFormalParameter}
  * </pre>
  */
 public abstract class FormalParameter extends ASTNode {

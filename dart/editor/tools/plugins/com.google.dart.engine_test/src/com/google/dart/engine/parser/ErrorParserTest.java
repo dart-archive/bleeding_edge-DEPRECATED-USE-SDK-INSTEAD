@@ -661,6 +661,10 @@ public class ErrorParserTest extends ParserTestCase {
         false, false}, "return 0;", ParserErrorCode.MISSING_FUNCTION_BODY);
   }
 
+  public void test_missingIdentifier_functionDeclaration_returnTypeWithoutName() throws Exception {
+    parse("parseFunctionDeclarationStatement", "A<T> () {}", ParserErrorCode.MISSING_IDENTIFIER);
+  }
+
   public void test_missingIdentifier_number() throws Exception {
     SimpleIdentifier expression = parse(
         "parseSimpleIdentifier",

@@ -56,12 +56,8 @@ public final class ASTFactory {
         token(TokenType.CLOSE_PAREN));
   }
 
-  public static ArrayAccess arrayAccess(Expression array, Expression index) {
-    return new ArrayAccess(
-        array,
-        token(TokenType.OPEN_SQUARE_BRACKET),
-        index,
-        token(TokenType.CLOSE_SQUARE_BRACKET));
+  public static AsExpression asExpression(Expression expression, TypeName type) {
+    return new AsExpression(expression, token(Keyword.AS), type);
   }
 
   public static AssignmentExpression assignmentExpression(Expression leftHandSide,
@@ -97,8 +93,8 @@ public final class ASTFactory {
     return new BreakStatement(token(Keyword.BREAK), identifier(label), token(TokenType.SEMICOLON));
   }
 
-  public static ArrayAccess cascadedArrayAccess(Expression index) {
-    return new ArrayAccess(
+  public static IndexExpression cascadedIndexExpression(Expression index) {
+    return new IndexExpression(
         token(TokenType.PERIOD_PERIOD),
         token(TokenType.OPEN_SQUARE_BRACKET),
         index,
@@ -401,32 +397,34 @@ public final class ASTFactory {
         body);
   }
 
-  public static FunctionDeclaration functionDeclaration(Keyword keyword,
-      FunctionExpression functionExpression) {
+  public static FunctionDeclaration functionDeclaration(TypeName type, Keyword keyword,
+      String name, FunctionExpression functionExpression) {
     return new FunctionDeclaration(
         null,
         null,
         null,
+        type,
         keyword == null ? null : token(keyword),
+        identifier(name),
         functionExpression);
   }
 
-  public static FunctionDeclarationStatement functionDeclarationStatement(Keyword keyword,
-      FunctionExpression functionExpression) {
-    return new FunctionDeclarationStatement(functionDeclaration(keyword, functionExpression));
+  public static FunctionDeclarationStatement functionDeclarationStatement(TypeName type,
+      Keyword keyword, String name, FunctionExpression functionExpression) {
+    return new FunctionDeclarationStatement(functionDeclaration(
+        type,
+        keyword,
+        name,
+        functionExpression));
   }
 
-  public static FunctionExpression functionExpression(String name) {
-    return new FunctionExpression(
-        null,
-        identifier(name),
-        formalParameterList(),
-        blockFunctionBody());
+  public static FunctionExpression functionExpression() {
+    return new FunctionExpression(formalParameterList(), blockFunctionBody());
   }
 
-  public static FunctionExpression functionExpression(TypeName type, String name,
-      FormalParameterList parameters, FunctionBody body) {
-    return new FunctionExpression(type, identifier(name), parameters, body);
+  public static FunctionExpression functionExpression(FormalParameterList parameters,
+      FunctionBody body) {
+    return new FunctionExpression(parameters, body);
   }
 
   public static FunctionExpressionInvocation functionExpressionInvocation(Expression function,
@@ -499,6 +497,14 @@ public final class ASTFactory {
 
   public static ShowCombinator importShowCombinator(SimpleIdentifier... identifiers) {
     return new ShowCombinator(token("show"), list(identifiers));
+  }
+
+  public static IndexExpression indexExpression(Expression array, Expression index) {
+    return new IndexExpression(
+        array,
+        token(TokenType.OPEN_SQUARE_BRACKET),
+        index,
+        token(TokenType.CLOSE_SQUARE_BRACKET));
   }
 
   public static InstanceCreationExpression instanceCreationExpression(Keyword keyword,

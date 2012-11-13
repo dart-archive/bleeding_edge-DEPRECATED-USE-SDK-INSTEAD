@@ -27,7 +27,7 @@ import static com.google.dart.engine.ast.ASTFactory.adjacentStrings;
 import static com.google.dart.engine.ast.ASTFactory.annotation;
 import static com.google.dart.engine.ast.ASTFactory.argumentDefinitionTest;
 import static com.google.dart.engine.ast.ASTFactory.argumentList;
-import static com.google.dart.engine.ast.ASTFactory.arrayAccess;
+import static com.google.dart.engine.ast.ASTFactory.asExpression;
 import static com.google.dart.engine.ast.ASTFactory.assignmentExpression;
 import static com.google.dart.engine.ast.ASTFactory.binaryExpression;
 import static com.google.dart.engine.ast.ASTFactory.block;
@@ -35,7 +35,7 @@ import static com.google.dart.engine.ast.ASTFactory.blockFunctionBody;
 import static com.google.dart.engine.ast.ASTFactory.booleanLiteral;
 import static com.google.dart.engine.ast.ASTFactory.breakStatement;
 import static com.google.dart.engine.ast.ASTFactory.cascadeExpression;
-import static com.google.dart.engine.ast.ASTFactory.cascadedArrayAccess;
+import static com.google.dart.engine.ast.ASTFactory.cascadedIndexExpression;
 import static com.google.dart.engine.ast.ASTFactory.cascadedMethodInvocation;
 import static com.google.dart.engine.ast.ASTFactory.cascadedPropertyAccess;
 import static com.google.dart.engine.ast.ASTFactory.catchClause;
@@ -69,6 +69,7 @@ import static com.google.dart.engine.ast.ASTFactory.implementsClause;
 import static com.google.dart.engine.ast.ASTFactory.importDirective;
 import static com.google.dart.engine.ast.ASTFactory.importHideCombinator;
 import static com.google.dart.engine.ast.ASTFactory.importShowCombinator;
+import static com.google.dart.engine.ast.ASTFactory.indexExpression;
 import static com.google.dart.engine.ast.ASTFactory.instanceCreationExpression;
 import static com.google.dart.engine.ast.ASTFactory.integer;
 import static com.google.dart.engine.ast.ASTFactory.interpolationExpression;
@@ -142,8 +143,8 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("(a, b)", argumentList(identifier("a"), identifier("b")));
   }
 
-  public void test_visitArrayAccess() {
-    assertSource("a[i]", arrayAccess(identifier("a"), identifier("i")));
+  public void test_visitAsExpression() {
+    assertSource("e as T", asExpression(identifier("e"), typeName("T")));
   }
 
   public void test_visitAssignmentExpression() {
@@ -182,19 +183,19 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("break;", breakStatement());
   }
 
-  public void test_visitCascadeExpression_array() {
-    assertSource(
-        "a..[0]..[1]",
-        cascadeExpression(
-            identifier("a"),
-            cascadedArrayAccess(integer(0L)),
-            cascadedArrayAccess(integer(1L))));
-  }
-
   public void test_visitCascadeExpression_field() {
     assertSource(
         "a..b..c",
         cascadeExpression(identifier("a"), cascadedPropertyAccess("b"), cascadedPropertyAccess("c")));
+  }
+
+  public void test_visitCascadeExpression_index() {
+    assertSource(
+        "a..[0]..[1]",
+        cascadeExpression(
+            identifier("a"),
+            cascadedIndexExpression(integer(0L)),
+            cascadedIndexExpression(integer(1L))));
   }
 
   public void test_visitCascadeExpression_method() {
@@ -729,29 +730,23 @@ public class ToSourceVisitorTest extends EngineTestCase {
   }
 
   public void test_visitFunctionDeclaration_getter() {
-    assertSource("get f() {}", functionDeclaration(Keyword.GET, functionExpression("f")));
+    assertSource("get f() {}", functionDeclaration(null, Keyword.GET, "f", functionExpression()));
   }
 
   public void test_visitFunctionDeclaration_normal() {
-    assertSource("f() {}", functionDeclaration(null, functionExpression("f")));
+    assertSource("f() {}", functionDeclaration(null, null, "f", functionExpression()));
   }
 
   public void test_visitFunctionDeclaration_setter() {
-    assertSource("set f() {}", functionDeclaration(Keyword.SET, functionExpression("f")));
+    assertSource("set f() {}", functionDeclaration(null, Keyword.SET, "f", functionExpression()));
   }
 
   public void test_visitFunctionDeclarationStatement() {
-    assertSource("f() {};", functionDeclarationStatement(null, functionExpression("f")));
+    assertSource("f() {};", functionDeclarationStatement(null, null, "f", functionExpression()));
   }
 
-  public void test_visitFunctionExpression_withoutType() {
-    assertSource("f() {}", functionExpression("f"));
-  }
-
-  public void test_visitFunctionExpression_withType() {
-    assertSource(
-        "C f() {}",
-        functionExpression(typeName("C"), "f", formalParameterList(), blockFunctionBody()));
+  public void test_visitFunctionExpression() {
+    assertSource("() {}", functionExpression());
   }
 
   public void test_visitFunctionExpressionInvocation() {
@@ -836,6 +831,10 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitImportShowCombinator_single() {
     assertSource("show a", importShowCombinator(identifier("a")));
+  }
+
+  public void test_visitIndexExpression() {
+    assertSource("a[i]", indexExpression(identifier("a"), identifier("i")));
   }
 
   public void test_visitInstanceCreationExpression_named() {

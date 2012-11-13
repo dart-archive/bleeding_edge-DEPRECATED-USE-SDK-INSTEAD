@@ -1,7 +1,19 @@
+/*
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.ArrayAccess;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
@@ -11,10 +23,12 @@ import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.LibraryDirective;
@@ -137,13 +151,6 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
   }
 
   @Override
-  public Void visitArrayAccess(ArrayAccess node) {
-    // TODO(brianwilkerson) Resolve the index operator
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
   public Void visitAssignmentExpression(AssignmentExpression node) {
     boolean wasLHS = isLHS;
     isLHS = true;
@@ -261,10 +268,25 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
   }
 
   @Override
-  public Void visitFunctionExpression(FunctionExpression node) {
+  public Void visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = enclosingFunction;
     try {
       SimpleIdentifier functionName = node.getName();
+      enclosingFunction = (ExecutableElement) declaredElementMap.get(functionName);
+      recordResolution(functionName, enclosingFunction);
+      node.visitChildren(this);
+    } finally {
+      enclosingFunction = outerFunction;
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitFunctionExpression(FunctionExpression node) {
+    ExecutableElement outerFunction = enclosingFunction;
+    try {
+      // TODO(brianwilkerson) Figure out how to handle un-named functions
+      SimpleIdentifier functionName = null;
       enclosingFunction = (ExecutableElement) declaredElementMap.get(functionName);
       recordResolution(functionName, enclosingFunction);
       node.visitChildren(this);
@@ -294,6 +316,13 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
         return null;
       }
     }
+    return null;
+  }
+
+  @Override
+  public Void visitIndexExpression(IndexExpression node) {
+    // TODO(brianwilkerson) Resolve the index operator
+    node.visitChildren(this);
     return null;
   }
 

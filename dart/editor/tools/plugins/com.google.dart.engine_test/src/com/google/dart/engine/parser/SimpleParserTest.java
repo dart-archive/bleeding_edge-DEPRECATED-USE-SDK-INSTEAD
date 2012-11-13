@@ -17,7 +17,7 @@ import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
-import com.google.dart.engine.ast.ArrayAccess;
+import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -60,6 +60,7 @@ import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.InterpolationElement;
@@ -223,6 +224,30 @@ public class SimpleParserTest extends ParserTestCase {
     assertTrue(literal.isSynthetic());
   }
 
+  public void test_isFunctionDeclaration_nameButNoReturn_block() throws Exception {
+    assertTrue(isFunctionDeclaration("f() {}"));
+  }
+
+  public void test_isFunctionDeclaration_nameButNoReturn_expression() throws Exception {
+    assertTrue(isFunctionDeclaration("f() => e"));
+  }
+
+  public void test_isFunctionDeclaration_normalReturn_block() throws Exception {
+    assertTrue(isFunctionDeclaration("C f() {}"));
+  }
+
+  public void test_isFunctionDeclaration_normalReturn_expression() throws Exception {
+    assertTrue(isFunctionDeclaration("C f() => e"));
+  }
+
+  public void test_isFunctionDeclaration_voidReturn_block() throws Exception {
+    assertTrue(isFunctionDeclaration("void f() {}"));
+  }
+
+  public void test_isFunctionDeclaration_voidReturn_expression() throws Exception {
+    assertTrue(isFunctionDeclaration("void f() => e"));
+  }
+
   public void test_isFunctionExpression_false_noBody() throws Exception {
     assertFalse(isFunctionExpression("f();"));
   }
@@ -231,28 +256,12 @@ public class SimpleParserTest extends ParserTestCase {
     assertFalse(isFunctionExpression("(a + b) {"));
   }
 
-  public void test_isFunctionExpression_nameButNoReturn_block() throws Exception {
-    assertTrue(isFunctionExpression("f() {}"));
-  }
-
-  public void test_isFunctionExpression_nameButNoReturn_expression() throws Exception {
-    assertTrue(isFunctionExpression("f() => e"));
-  }
-
   public void test_isFunctionExpression_noName_block() throws Exception {
     assertTrue(isFunctionExpression("() {}"));
   }
 
   public void test_isFunctionExpression_noName_expression() throws Exception {
     assertTrue(isFunctionExpression("() => e"));
-  }
-
-  public void test_isFunctionExpression_normalReturn_block() throws Exception {
-    assertTrue(isFunctionExpression("C f() {}"));
-  }
-
-  public void test_isFunctionExpression_normalReturn_expression() throws Exception {
-    assertTrue(isFunctionExpression("C f() => e"));
   }
 
   public void test_isFunctionExpression_parameter_multiple() throws Exception {
@@ -273,14 +282,6 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_isFunctionExpression_parameter_typed() throws Exception {
     assertTrue(isFunctionExpression("(int a, int b) {}"));
-  }
-
-  public void test_isFunctionExpression_voidReturn_block() throws Exception {
-    assertTrue(isFunctionExpression("void f() {}"));
-  }
-
-  public void test_isFunctionExpression_voidReturn_expression() throws Exception {
-    assertTrue(isFunctionExpression("void f() => e"));
   }
 
   public void test_isInitializedVariableDeclaration_assignment() throws Exception {
@@ -525,15 +526,15 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseAssignableExpression_expression_index() throws Exception {
-    ArrayAccess arrayAccess = parse(
+    IndexExpression expression = parse(
         "parseAssignableExpression",
         new Class[] {boolean.class},
         new Object[] {false},
         "(x)[y]");
-    assertNotNull(arrayAccess.getArray());
-    assertNotNull(arrayAccess.getLeftBracket());
-    assertNotNull(arrayAccess.getIndex());
-    assertNotNull(arrayAccess.getRightBracket());
+    assertNotNull(expression.getArray());
+    assertNotNull(expression.getLeftBracket());
+    assertNotNull(expression.getIndex());
+    assertNotNull(expression.getRightBracket());
   }
 
   public void test_parseAssignableExpression_identifier() throws Exception {
@@ -572,15 +573,15 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseAssignableExpression_identifier_index() throws Exception {
-    ArrayAccess arrayAccess = parse(
+    IndexExpression expression = parse(
         "parseAssignableExpression",
         new Class[] {boolean.class},
         new Object[] {false},
         "x[y]");
-    assertNotNull(arrayAccess.getArray());
-    assertNotNull(arrayAccess.getLeftBracket());
-    assertNotNull(arrayAccess.getIndex());
-    assertNotNull(arrayAccess.getRightBracket());
+    assertNotNull(expression.getArray());
+    assertNotNull(expression.getLeftBracket());
+    assertNotNull(expression.getIndex());
+    assertNotNull(expression.getRightBracket());
   }
 
   public void test_parseAssignableExpression_super_dot() throws Exception {
@@ -595,15 +596,15 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseAssignableExpression_super_index() throws Exception {
-    ArrayAccess arrayAccess = parse(
+    IndexExpression expression = parse(
         "parseAssignableExpression",
         new Class[] {boolean.class},
         new Object[] {false},
         "super[y]");
-    assertInstanceOf(SuperExpression.class, arrayAccess.getArray());
-    assertNotNull(arrayAccess.getLeftBracket());
-    assertNotNull(arrayAccess.getIndex());
-    assertNotNull(arrayAccess.getRightBracket());
+    assertInstanceOf(SuperExpression.class, expression.getArray());
+    assertNotNull(expression.getLeftBracket());
+    assertNotNull(expression.getIndex());
+    assertNotNull(expression.getRightBracket());
   }
 
   public void test_parseAssignableSelector_dot() throws Exception {
@@ -614,7 +615,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseAssignableSelector_index() throws Exception {
-    ArrayAccess selector = parse("parseAssignableSelector", new Class[] {
+    IndexExpression selector = parse("parseAssignableSelector", new Class[] {
         Expression.class, boolean.class}, new Object[] {null, true}, "[x]");
     assertNotNull(selector.getLeftBracket());
     assertNotNull(selector.getIndex());
@@ -707,7 +708,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseCascadeSection_i() throws Exception {
-    ArrayAccess section = parse("parseCascadeSection", "..[i]");
+    IndexExpression section = parse("parseCascadeSection", "..[i]");
     assertNull(section.getArray());
     assertNotNull(section.getLeftBracket());
     assertNotNull(section.getIndex());
@@ -716,7 +717,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseCascadeSection_ia() throws Exception {
     FunctionExpressionInvocation section = parse("parseCascadeSection", "..[i](b)");
-    assertInstanceOf(ArrayAccess.class, section.getFunction());
+    assertInstanceOf(IndexExpression.class, section.getFunction());
     assertNotNull(section.getArgumentList());
   }
 
@@ -2427,12 +2428,12 @@ public class SimpleParserTest extends ParserTestCase {
         CommentAndMetadata.class, Token.class, TypeName.class, boolean.class}, new Object[] {
         commentAndMetadata(comment), null, returnType, false}, "f() {}");
     assertEquals(comment, declaration.getDocumentationComment());
+    assertEquals(returnType, declaration.getReturnType());
+    assertNotNull(declaration.getName());
     FunctionExpression expression = declaration.getFunctionExpression();
     assertNotNull(expression);
     assertNotNull(expression.getBody());
-    assertNotNull(expression.getName());
     assertNotNull(expression.getParameters());
-    assertEquals(returnType, expression.getReturnType());
     assertNull(declaration.getPropertyKeyword());
   }
 
@@ -2443,12 +2444,12 @@ public class SimpleParserTest extends ParserTestCase {
         CommentAndMetadata.class, Token.class, TypeName.class, boolean.class}, new Object[] {
         commentAndMetadata(comment), null, returnType, true}, "f() {};");
     assertEquals(comment, declaration.getDocumentationComment());
+    assertEquals(returnType, declaration.getReturnType());
+    assertNotNull(declaration.getName());
     FunctionExpression expression = declaration.getFunctionExpression();
     assertNotNull(expression);
     assertNotNull(expression.getBody());
-    assertNotNull(expression.getName());
     assertNotNull(expression.getParameters());
-    assertEquals(returnType, expression.getReturnType());
     assertNull(declaration.getPropertyKeyword());
   }
 
@@ -2459,12 +2460,12 @@ public class SimpleParserTest extends ParserTestCase {
         CommentAndMetadata.class, Token.class, TypeName.class, boolean.class}, new Object[] {
         commentAndMetadata(comment), null, returnType, false}, "get p => 0;");
     assertEquals(comment, declaration.getDocumentationComment());
+    assertEquals(returnType, declaration.getReturnType());
+    assertNotNull(declaration.getName());
     FunctionExpression expression = declaration.getFunctionExpression();
     assertNotNull(expression);
     assertNotNull(expression.getBody());
-    assertNotNull(expression.getName());
     assertNull(expression.getParameters());
-    assertEquals(returnType, expression.getReturnType());
     assertNotNull(declaration.getPropertyKeyword());
   }
 
@@ -2475,12 +2476,12 @@ public class SimpleParserTest extends ParserTestCase {
         CommentAndMetadata.class, Token.class, TypeName.class, boolean.class}, new Object[] {
         commentAndMetadata(comment), null, returnType, false}, "set p(v) {}");
     assertEquals(comment, declaration.getDocumentationComment());
+    assertEquals(returnType, declaration.getReturnType());
+    assertNotNull(declaration.getName());
     FunctionExpression expression = declaration.getFunctionExpression();
     assertNotNull(expression);
     assertNotNull(expression.getBody());
-    assertNotNull(expression.getName());
     assertNotNull(expression.getParameters());
-    assertEquals(returnType, expression.getReturnType());
     assertNotNull(declaration.getPropertyKeyword());
   }
 
@@ -2494,43 +2495,14 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseFunctionExpression_body_inExpression() throws Exception {
     FunctionExpression expression = parse("parseFunctionExpression", "(int i) => i++");
     assertNotNull(expression.getBody());
-    assertNull(expression.getName());
     assertNotNull(expression.getParameters());
-    assertNull(expression.getReturnType());
     assertNull(((ExpressionFunctionBody) expression.getBody()).getSemicolon());
   }
 
   public void test_parseFunctionExpression_minimal() throws Exception {
     FunctionExpression expression = parse("parseFunctionExpression", "() {}");
     assertNotNull(expression.getBody());
-    assertNull(expression.getName());
     assertNotNull(expression.getParameters());
-    assertNull(expression.getReturnType());
-  }
-
-  public void test_parseFunctionExpression_name() throws Exception {
-    FunctionExpression expression = parse("parseFunctionExpression", "f() {}");
-    assertNotNull(expression.getBody());
-    assertNotNull(expression.getName());
-    assertNotNull(expression.getParameters());
-    assertNull(expression.getReturnType());
-  }
-
-  public void test_parseFunctionExpression_returnType() throws Exception {
-    // TODO(brianwilkerson) This should fail because a return type is not allowed without a name.
-    FunctionExpression expression = parse("parseFunctionExpression", "A<T> () {}");
-    assertNotNull(expression.getBody());
-    assertNull(expression.getName());
-    assertNotNull(expression.getParameters());
-    assertNotNull(expression.getReturnType());
-  }
-
-  public void test_parseFunctionExpression_returnType_name() throws Exception {
-    FunctionExpression expression = parse("parseFunctionExpression", "A f() {}");
-    assertNotNull(expression.getBody());
-    assertNotNull(expression.getName());
-    assertNotNull(expression.getParameters());
-    assertNotNull(expression.getReturnType());
   }
 
   public void test_parseGetter_nonStatic() throws Exception {
@@ -3041,11 +3013,11 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseNonLabeledStatement_functionDeclaration() throws Exception {
-    parse("parseNonLabeledStatement", "f() {}");
+    parse("parseNonLabeledStatement", "f() {};");
   }
 
   public void test_parseNonLabeledStatement_functionDeclaration_arguments() throws Exception {
-    parse("parseNonLabeledStatement", "f(void g()) {}");
+    parse("parseNonLabeledStatement", "f(void g()) {};");
   }
 
   public void test_parseNonLabeledStatement_functionExpressionIndex() throws Exception {
@@ -3261,8 +3233,8 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(TokenType.PLUS_PLUS, expression.getOperator().getType());
   }
 
-  public void test_parsePostfixExpression_none_arrayAccess() throws Exception {
-    ArrayAccess expression = parse("parsePostfixExpression", "a[0]");
+  public void test_parsePostfixExpression_none_indexExpression() throws Exception {
+    IndexExpression expression = parse("parsePostfixExpression", "a[0]");
     assertNotNull(expression.getArray());
     assertNotNull(expression.getIndex());
   }
@@ -3321,16 +3293,12 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parsePrimaryExpression_function_arguments() throws Exception {
     FunctionExpression expression = parse("parsePrimaryExpression", "(int i) => i + 1");
-    assertNull(expression.getReturnType());
-    assertNull(expression.getName());
     assertNotNull(expression.getParameters());
     assertNotNull(expression.getBody());
   }
 
   public void test_parsePrimaryExpression_function_noArguments() throws Exception {
     FunctionExpression expression = parse("parsePrimaryExpression", "() => 42");
-    assertNull(expression.getReturnType());
-    assertNull(expression.getName());
     assertNotNull(expression.getParameters());
     assertNotNull(expression.getBody());
   }
@@ -3446,10 +3414,9 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseRelationalExpression_as() throws Exception {
-    IsExpression expression = parse("parseRelationalExpression", "x as Y");
+    AsExpression expression = parse("parseRelationalExpression", "x as Y");
     assertNotNull(expression.getExpression());
-    assertNotNull(expression.getIsOperator());
-    assertNull(expression.getNotOperator());
+    assertNotNull(expression.getAsOperator());
     assertNotNull(expression.getType());
   }
 
@@ -3582,8 +3549,8 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseStatement_functionDeclaration() throws Exception {
     // TODO(brianwilkerson) Implement more tests for this method.
-    ExpressionStatement statement = parse("parseStatement", "int f(a, b) {};");
-    assertInstanceOf(FunctionExpression.class, statement.getExpression());
+    FunctionDeclarationStatement statement = parse("parseStatement", "int f(a, b) {};");
+    assertNotNull(statement.getFunctionDeclaration());
   }
 
   public void test_parseStatement_mulipleLabels() throws Exception {
@@ -4317,6 +4284,19 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   /**
+   * Invoke the method {@link Parser#isFunctionDeclaration()} with the parser set to the token
+   * stream produced by scanning the given source.
+   * 
+   * @param source the source to be scanned to produce the token stream being tested
+   * @return the result of invoking the method
+   * @throws Exception if the method could not be invoked or throws an exception
+   */
+  private boolean isFunctionDeclaration(String source) throws Exception {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    return invokeParserMethod("isFunctionDeclaration", source, listener);
+  }
+
+  /**
    * Invoke the method {@link Parser#isFunctionExpression()} with the parser set to the token stream
    * produced by scanning the given source.
    * 
@@ -4326,7 +4306,20 @@ public class SimpleParserTest extends ParserTestCase {
    */
   private boolean isFunctionExpression(String source) throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
-    return invokeParserMethod("isFunctionExpression", source, listener);
+    //
+    // Scan the source.
+    //
+    StringScanner scanner = new StringScanner(null, source, listener);
+    Token tokenStream = scanner.tokenize();
+    //
+    // Parse the source.
+    //
+    Parser parser = new Parser(null, listener);
+    Method method = Parser.class.getDeclaredMethod(
+        "isFunctionExpression",
+        new Class[] {Token.class});
+    method.setAccessible(true);
+    return (Boolean) method.invoke(parser, new Object[] {tokenStream});
   }
 
   /**

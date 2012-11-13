@@ -14,10 +14,10 @@
 package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.ArrayAccess;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PartDirective;
@@ -105,12 +105,6 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
-  public Void visitArrayAccess(ArrayAccess node) {
-    node.visitChildren(this);
-    return checkResolved(node);
-  }
-
-  @Override
   public Void visitBinaryExpression(BinaryExpression node) {
     node.visitChildren(this);
     if (!node.getOperator().isUserDefinableOperator()) {
@@ -130,6 +124,12 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     // Not sure how to test the combinators given that it isn't an error if the names are not defined.
     checkResolved(node.getLibraryUri());
     return checkResolved(node.getPrefix());
+  }
+
+  @Override
+  public Void visitIndexExpression(IndexExpression node) {
+    node.visitChildren(this);
+    return checkResolved(node);
   }
 
   @Override

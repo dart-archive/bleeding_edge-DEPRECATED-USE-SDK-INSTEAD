@@ -69,15 +69,10 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
-  public Void visitArrayAccess(ArrayAccess node) {
-    if (node.isCascaded()) {
-      writer.print("..");
-    } else {
-      visit(node.getArray());
-    }
-    writer.print('[');
-    visit(node.getIndex());
-    writer.print(']');
+  public Void visitAsExpression(AsExpression node) {
+    visit(node.getExpression());
+    writer.print(" as ");
+    visit(node.getType());
     return null;
   }
 
@@ -386,7 +381,9 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
 
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
+    visit(node.getReturnType(), " ");
     visit(node.getPropertyKeyword(), " ");
+    visit(node.getName());
     visit(node.getFunctionExpression());
     return null;
   }
@@ -400,8 +397,6 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
 
   @Override
   public Void visitFunctionExpression(FunctionExpression node) {
-    visit(node.getReturnType(), " ");
-    visit(node.getName());
     visit(node.getParameters());
     writer.print(' ');
     visit(node.getBody());
@@ -454,6 +449,19 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
     visit(" as ", node.getPrefix());
     visitList(" ", node.getCombinators(), " ");
     writer.print(';');
+    return null;
+  }
+
+  @Override
+  public Void visitIndexExpression(IndexExpression node) {
+    if (node.isCascaded()) {
+      writer.print("..");
+    } else {
+      visit(node.getArray());
+    }
+    writer.print('[');
+    visit(node.getIndex());
+    writer.print(']');
     return null;
   }
 

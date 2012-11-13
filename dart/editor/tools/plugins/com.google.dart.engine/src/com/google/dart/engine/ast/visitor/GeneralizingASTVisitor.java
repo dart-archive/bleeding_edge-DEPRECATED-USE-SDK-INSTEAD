@@ -57,7 +57,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitArrayAccess(ArrayAccess node) {
+  public R visitAsExpression(AsExpression node) {
     return visitExpression(node);
   }
 
@@ -299,6 +299,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   @Override
   public R visitImportDirective(ImportDirective node) {
     return visitNamespaceDirective(node);
+  }
+
+  @Override
+  public R visitIndexExpression(IndexExpression node) {
+    return visitExpression(node);
   }
 
   @Override

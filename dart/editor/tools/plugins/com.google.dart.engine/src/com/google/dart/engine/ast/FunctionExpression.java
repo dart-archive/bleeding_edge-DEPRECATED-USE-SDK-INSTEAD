@@ -20,20 +20,10 @@ import com.google.dart.engine.scanner.Token;
  * 
  * <pre>
  * functionExpression ::=
- *     ({@link Type returnType}? {@link SimpleIdentifier functionName})? {@link FormalParameterList formalParameterList} {@link FunctionBody functionBody}
+ *     {@link FormalParameterList formalParameterList} {@link FunctionBody functionBody}
  * </pre>
  */
 public class FunctionExpression extends Expression {
-  /**
-   * The return type of the function, or {@code null} if no return type was declared.
-   */
-  private TypeName returnType;
-
-  /**
-   * The name of the function, or {@code null} if the function is not named.
-   */
-  private SimpleIdentifier name;
-
   /**
    * The parameters associated with the function.
    */
@@ -53,15 +43,10 @@ public class FunctionExpression extends Expression {
   /**
    * Initialize a newly created function declaration.
    * 
-   * @param returnType the return type of the function
-   * @param name the name of the function
    * @param parameters the parameters associated with the function
    * @param body the body of the function
    */
-  public FunctionExpression(TypeName returnType, SimpleIdentifier name,
-      FormalParameterList parameters, FunctionBody body) {
-    this.returnType = becomeParentOf(returnType);
-    this.name = becomeParentOf(name);
+  public FunctionExpression(FormalParameterList parameters, FunctionBody body) {
     this.parameters = becomeParentOf(parameters);
     this.body = becomeParentOf(body);
   }
@@ -73,11 +58,7 @@ public class FunctionExpression extends Expression {
 
   @Override
   public Token getBeginToken() {
-    if (returnType != null) {
-      return returnType.getBeginToken();
-    } else if (name != null) {
-      return name.getBeginToken();
-    } else if (parameters != null) {
+    if (parameters != null) {
       return parameters.getBeginToken();
     } else if (body != null) {
       return body.getBeginToken();
@@ -102,23 +83,10 @@ public class FunctionExpression extends Expression {
       return body.getEndToken();
     } else if (parameters != null) {
       return parameters.getEndToken();
-    } else if (name != null) {
-      return name.getEndToken();
-    } else if (returnType != null) {
-      return returnType.getEndToken();
     }
     // This should never be reached because external functions must be named, hence either the body
     // or the name should be non-null.
     throw new IllegalStateException("Non-external functions must have a body");
-  }
-
-  /**
-   * Return the name of the function, or {@code null} if the function is not named.
-   * 
-   * @return the name of the function
-   */
-  public SimpleIdentifier getName() {
-    return name;
   }
 
   /**
@@ -131,30 +99,12 @@ public class FunctionExpression extends Expression {
   }
 
   /**
-   * Return the return type of the function, or {@code null} if no return type was declared.
-   * 
-   * @return the return type of the function
-   */
-  public TypeName getReturnType() {
-    return returnType;
-  }
-
-  /**
    * Set the body of the function to the given function body.
    * 
    * @param functionBody the body of the function
    */
   public void setBody(FunctionBody functionBody) {
     body = becomeParentOf(functionBody);
-  }
-
-  /**
-   * Set the name of the function to the given identifier.
-   * 
-   * @param identifier the name of the function
-   */
-  public void setName(SimpleIdentifier identifier) {
-    name = becomeParentOf(identifier);
   }
 
   /**
@@ -166,19 +116,8 @@ public class FunctionExpression extends Expression {
     this.parameters = becomeParentOf(parameters);
   }
 
-  /**
-   * Set the return type of the function to the given name.
-   * 
-   * @param name the return type of the function
-   */
-  public void setReturnType(TypeName name) {
-    returnType = becomeParentOf(name);
-  }
-
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(returnType, visitor);
-    safelyVisitChild(name, visitor);
     safelyVisitChild(parameters, visitor);
     safelyVisitChild(body, visitor);
   }
