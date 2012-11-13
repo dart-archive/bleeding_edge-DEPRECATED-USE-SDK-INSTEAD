@@ -252,7 +252,9 @@ public class SourceViewerInformationControl implements IInformationControl,
         fontDatas[i].setHeight(fontDatas[i].getHeight() * 9 / 10);
       }
       fStatusTextFont = SWTUtil.getFont(fStatusField.getDisplay(), fontDatas);
-      fStatusField.setFont(fStatusTextFont);
+      if (fStatusTextFont != null) {
+        fStatusField.setFont(fStatusTextFont);
+      }
       GridData gd2 = new GridData(GridData.FILL_VERTICAL | GridData.FILL_HORIZONTAL
           | GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
       fStatusField.setLayoutData(gd2);
