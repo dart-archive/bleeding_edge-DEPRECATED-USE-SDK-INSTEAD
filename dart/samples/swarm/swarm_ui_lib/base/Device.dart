@@ -12,17 +12,17 @@ class Device {
   /**
    * The regular expression for detecting an iPhone or iPod.
    */
-  static final _IPHONE_REGEX = new RegExp('iPhone|iPod');
+  static const _IPHONE_REGEX = const RegExp('iPhone|iPod');
 
   /**
    * The regular expression for detecting an iPhone or iPod or iPad.
    */
-  static final _MOBILE_SAFARI_REGEX = new RegExp('iPhone|iPod|iPad');
+  static const _MOBILE_SAFARI_REGEX = const RegExp('iPhone|iPod|iPad');
 
   /**
    * The regular expression for detecting an iPhone or iPod or iPad simulator.
    */
-  static final _APPLE_SIM_REGEX = new RegExp('iP.*Simulator');
+  static const _APPLE_SIM_REGEX = const RegExp('iP.*Simulator');
 
   /**
    * Gets the browser's user agent. Using this function allows tests to inject
