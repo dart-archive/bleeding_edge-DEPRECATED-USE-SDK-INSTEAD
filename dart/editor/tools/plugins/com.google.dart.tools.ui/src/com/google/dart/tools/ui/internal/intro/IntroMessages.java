@@ -20,6 +20,8 @@ public class IntroMessages extends NLS {
   private static final String BUNDLE_NAME = "com.google.dart.tools.ui.internal.intro.IntroMessages"; //$NON-NLS-1$
   public static String IntroEditor_name;
   public static String IntroEditor_tooltip;
+  public static String IntroEditor_projectName;
+
   static {
     // initialize resource bundle
     NLS.initializeMessages(BUNDLE_NAME, IntroMessages.class);

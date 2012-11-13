@@ -602,6 +602,16 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * Returns the path string for the default dart directory - user.home/dart
+   * 
+   * @return the name of the user.home/dart directory
+   */
+  public static String getUserDefaultDartFolder() {
+    String defaultLocation = System.getProperty("user.home"); //$NON-NLS-1$
+    return defaultLocation + File.separator + "dart" + File.separator; //$NON-NLS-1$
+  }
+
+  /**
    * Returns the current value of the string-valued user-defined property with the given name.
    * Returns <code>null</code> if there is no user-defined property with the given name.
    * <p>

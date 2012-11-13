@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.ui.internal.projects;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.generator.DartIdentifierUtil;
 import com.google.dart.tools.core.internal.util.StatusUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -236,11 +237,6 @@ public class NewApplicationCreationPage extends WizardPage {
     return pubSupportCheckboxButton.getSelection();
   }
 
-  protected String getDefaultFolder() {
-    String defaultLocation = System.getProperty("user.home"); //$NON-NLS-1$
-    return defaultLocation + File.separator + "dart" + File.separator; //$NON-NLS-1$
-  }
-
   protected void handleBrowseButton(Text locationField) {
     DirectoryDialog directoryDialog = new DirectoryDialog(getShell());
     String location = locationField.getText().trim();
@@ -286,7 +282,7 @@ public class NewApplicationCreationPage extends WizardPage {
       return path;
     }
 
-    return getDefaultFolder();
+    return DartCore.getUserDefaultDartFolder();
   }
 
   /**
