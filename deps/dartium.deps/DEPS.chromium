@@ -8,38 +8,38 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "132834",
+  "webkit_revision": "134136",
   "chromium_git": "http://git.chromium.org/git",
   "chromiumos_git": "http://git.chromium.org/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "10116",
+  "nacl_revision": "10218",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "10001",  # native_client/DEPS: tools_rev
   "gtm_revision": "578",
 
-  "libjingle_revision": "220",
+  "libjingle_revision": "230",
   "libphonenumber_revision": "456",
   "libvpx_revision": "163000",
   "lss_revision": "13",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "164413",
-  "ffmpeg_hash": "f1b9c50b8b14c6a5299c022a3a677a5c9941427a",
+  "ffmpeg_revision": "166067",
+  "ffmpeg_hash": "ca54d18833e0caccbc4bcddc3df9f15d08c4b567",
 
   "sfntly_revision": "134",
-  "skia_revision": "6161",
+  "skia_revision": "6360",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "12787",
+  "v8_revision": "12878",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "3016",
+  "webrtc_revision": "3037",
   "jsoncpp_revision": "248",
-  "nss_revision": "164196",
+  "nss_revision": "166571",
 }
 
 deps = {
@@ -84,14 +84,14 @@ deps = {
    "/trunk/deps/third_party/hunspell@149334",
 
   "src/third_party/hunspell_dictionaries":
-    "/trunk/deps/third_party/hunspell_dictionaries@149334",
+    "/trunk/deps/third_party/hunspell_dictionaries@164817",
 
   "src/third_party/safe_browsing/testing":
     (Var("googlecode_url") % "google-safe-browsing") + "/trunk/testing@112",
 
   "src/third_party/cacheinvalidation/src":
     (Var("googlecode_url") % "google-cache-invalidation-api") +
-    "/trunk/src@220",
+    "/trunk/src@245",
 
   "src/third_party/leveldatabase/src":
     (Var("googlecode_url") % "leveldb") + "/trunk@68",
@@ -100,13 +100,13 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@63",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@82",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@84",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1525",
+    (Var("googlecode_url") % "gyp") + "/trunk@1533",
 
   "src/tools/swarm_client":
-    "/trunk/tools/swarm_client@163381",
+    "/trunk/tools/swarm_client@166915",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -320,7 +320,7 @@ deps = {
     (Var("googlecode_url") % "pywebsocket") + "/trunk/src@662",
 
   "src/third_party/opus/src":
-    "/trunk/deps/third_party/opus@164159",
+    "/trunk/deps/third_party/opus@165487",
 }
 
 
@@ -541,7 +541,7 @@ deps_os = {
     # For Linux and Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@880d8d3d6c5c6e4b10bbf7461a8f84a1e599a471",
+      "@5c93f10ee61fa916499b523ad3a1e489e5ad4ded",
   },
   "android": {
     "src/third_party/freetype":
@@ -554,6 +554,9 @@ deps_os = {
     "src/third_party/android_tools":
       Var("chromium_git") + "/android_tools.git" +
       "@e1bf0d38fe01f7ada8ff7ba96321c9af8c06d7c2",
+
+    "src/third_party/findbugs":
+      "/trunk/deps/third_party/findbugs@163586",
   },
 }
 
