@@ -14,8 +14,11 @@
 
 package com.google.dart.tools.ui.console;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.deploy.Activator;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
+import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.debug.core.DebugException;
@@ -27,9 +30,11 @@ import org.eclipse.debug.internal.ui.views.console.ProcessConsole;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -38,10 +43,15 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.IOConsole;
 import org.eclipse.ui.console.MessageConsole;
+import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.part.IPageBookViewPage;
 import org.eclipse.ui.part.PageSite;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
+import org.eclipse.ui.texteditor.ChainedPreferenceStore;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An Eclipse view class that displays one and only one IConsole. This is different from the normal
@@ -165,7 +175,14 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
   private Display display;
 
+  private IPreferenceStore preferences;
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
+  private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      doPropertyChange(event);
+    }
+  };
 
   public DartConsoleView() {
     DartConsoleManager.getManager().consoleViewOpened(this);
@@ -174,6 +191,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   @Override
   public void createPartControl(Composite parent) {
     this.parent = parent;
+    preferences = createCombinedPreferences();
 
     IToolBarManager toolbar = getViewSite().getActionBars().getToolBarManager();
     clearAction = new ClearAction();
@@ -187,6 +205,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     display = Display.getCurrent();
 
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
+    getPreferences().addPropertyChangeListener(propertyChangeListener);
   }
 
   @Override
@@ -222,6 +241,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     }
 
     updateFont();
+    updateColors();
 
     updateContentDescription();
 
@@ -246,6 +266,14 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
     terminateAction.dispose();
     clearAction.dispose();
+    if (fontPropertyChangeListener != null) {
+      JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
+      fontPropertyChangeListener = null;
+    }
+    if (propertyChangeListener != null) {
+      getPreferences().removePropertyChangeListener(propertyChangeListener);
+      propertyChangeListener = null;
+    }
 
     super.dispose();
   }
@@ -330,10 +358,34 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     bringToFront();
   }
 
+  protected void updateColors() {
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        if (page != null && page.getControl() != null) {
+          SWTUtil.setColors((StyledText) page.getControl(), getPreferences());
+        }
+      }
+    });
+  }
+
   private void bringToFront() {
     if (!getViewSite().getPage().isPartVisible(this)) {
       getViewSite().getPage().activate(this);
     }
+  }
+
+  @SuppressWarnings("deprecation")
+  private IPreferenceStore createCombinedPreferences() {
+    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
+    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
+    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
+    stores.add(EditorsUI.getPreferenceStore());
+    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
+  }
+
+  private void doPropertyChange(PropertyChangeEvent event) {
+    updateColors();
   }
 
   private PageSite getPageSite() {
@@ -342,6 +394,10 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     }
 
     return pageSite;
+  }
+
+  private IPreferenceStore getPreferences() {
+    return preferences;
   }
 
   private IProcess getProcess() {

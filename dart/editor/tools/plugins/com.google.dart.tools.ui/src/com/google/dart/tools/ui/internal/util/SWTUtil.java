@@ -21,6 +21,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.graphics.Color;
@@ -256,6 +257,21 @@ public class SWTUtil {
     ctl.setBackground(DartUI.getColorManager().getColor(rgb));
   }
 
+  public static void setColors(StyledText ctl, IPreferenceStore store) {
+    Color color = store.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND_SYSTEM_DEFAULT)
+        ? null : createColor(store, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND);
+    ctl.setForeground(color);
+    color = store.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND_SYSTEM_DEFAULT) ? null
+        : createColor(store, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
+    ctl.setBackground(color);
+    color = store.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_SELECTION_FOREGROUND_SYSTEM_DEFAULT)
+        ? null : createColor(store, AbstractTextEditor.PREFERENCE_COLOR_SELECTION_FOREGROUND);
+    ctl.setSelectionForeground(color);
+    color = store.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_SELECTION_BACKGROUND_SYSTEM_DEFAULT)
+        ? null : createColor(store, AbstractTextEditor.PREFERENCE_COLOR_SELECTION_BACKGROUND);
+    ctl.setSelectionBackground(color);
+  }
+
   public static void setColors(Table ctl, IPreferenceStore store) {
     RGB rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND);
     ctl.setForeground(DartUI.getColorManager().getColor(rgb));
@@ -280,6 +296,21 @@ public class SWTUtil {
    */
   public static void setDefaultVisibleItemCount(Combo combo) {
     combo.setVisibleItemCount(COMBO_VISIBLE_ITEM_COUNT);
+  }
+
+  private static Color createColor(IPreferenceStore store, String key) {
+    RGB rgb = null;
+    if (store.contains(key)) {
+      if (store.isDefault(key)) {
+        rgb = PreferenceConverter.getDefaultColor(store, key);
+      } else {
+        rgb = PreferenceConverter.getColor(store, key);
+      }
+      if (rgb != null) {
+        return DartUI.getColorManager().getColor(rgb);
+      }
+    }
+    return null;
   }
 
   private SWTUtil() {
