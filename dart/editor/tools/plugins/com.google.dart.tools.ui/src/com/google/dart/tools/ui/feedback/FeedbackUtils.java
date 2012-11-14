@@ -15,6 +15,9 @@ package com.google.dart.tools.ui.feedback;
 
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -34,10 +37,13 @@ public class FeedbackUtils {
    * Contains information about the current session
    */
   public static class Stats {
+    public final AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
     public final int numProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects().length;
     public final long maxMem = getMaxMem();
     public final long totalMem = Runtime.getRuntime().totalMemory();
     public final long freeMem = Runtime.getRuntime().freeMemory();
+    public final String indexStats = InMemoryIndex.getInstance().getIndexStatus("index");
+    public final String analysisStats = server.getAnalysisStatus("analysis");
 
     @Override
     public String toString() {
@@ -46,17 +52,17 @@ public class FeedbackUtils {
       writer.print("# projects: ");
       writer.println(numProjects);
 
-      writer.print("mem max: ");
+      writer.print("mem max/total/free: ");
       writer.print(convertToMeg(maxMem));
-      writer.println(" Meg");
-
-      writer.print("mem total: ");
+      writer.print(" / ");
       writer.print(convertToMeg(totalMem));
-      writer.println(" Meg");
-
-      writer.print("mem free: ");
+      writer.print(" / ");
       writer.print(convertToMeg(freeMem));
-      writer.println(" Meg");
+      writer.println(" MB");
+
+      writer.println(analysisStats);
+
+      writer.println(indexStats);
 
       return writer.toString();
     }

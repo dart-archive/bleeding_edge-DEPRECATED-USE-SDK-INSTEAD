@@ -291,6 +291,10 @@ public abstract class Context {
     return result;
   }
 
+  int getLibraryCount() {
+    return libraryCache.size();
+  }
+
   /**
    * Answer the currently cached and resolved libraries
    */

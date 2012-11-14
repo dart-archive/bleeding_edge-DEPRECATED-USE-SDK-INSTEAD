@@ -30,6 +30,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -91,7 +92,6 @@ public class AnalysisServer {
     savedContext = new SavedContext(this, libraryManager);
     editContext = new EditContext(this, savedContext, libraryManager);
     savedContextAnalysisTask = new AnalyzeContextTask(this);
-
   }
 
   /**
@@ -163,6 +163,21 @@ public class AnalysisServer {
     }
 
     queueNewTask(new DiscardTask(this, file));
+  }
+
+  /**
+   * Answer analysis statistics.
+   */
+  public String getAnalysisStatus(String message) {
+    Collection<PackageContext> packageContexts = savedContext.getPackageContexts();
+    int taskCount = queue.size();
+    int contextCount = packageContexts.size() + 1;
+    int libraryCount = savedContext.getLibraryCount();
+    for (PackageContext context : packageContexts) {
+      libraryCount += context.getLibraryCount();
+    }
+    return message + ": " + taskCount + " tasks, " + libraryCount + " libraries, " + contextCount
+        + " contexts";
   }
 
   /**

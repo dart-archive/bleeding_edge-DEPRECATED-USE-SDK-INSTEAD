@@ -191,6 +191,33 @@ public class InMemoryIndex implements Index {
   }
 
   /**
+   * Answer index statistics.
+   */
+  public String getIndexStatus(String message) {
+    int relationshipCount;
+    int attributeCount;
+    int elementCount;
+    int resourceCount;
+    long fileSize;
+    synchronized (indexStore) {
+      relationshipCount = indexStore.getRelationshipCount();
+      attributeCount = indexStore.getAttributeCount();
+      elementCount = indexStore.getElementCount();
+      resourceCount = indexStore.getResourceCount();
+    }
+    try {
+      fileSize = getIndexFile().length();
+      fileSize = (fileSize + (512 * 1024)) / (1024 * 1024); // convert to MB
+    } catch (Exception e) {
+      fileSize = -1;
+    }
+    String statText = message + ": " + relationshipCount + " relationships and " + attributeCount
+        + " attributes in " + elementCount + " elements in " + resourceCount
+        + " resources stored in " + fileSize + " MB on disk";
+    return statText;
+  }
+
+  /**
    * Return the object used to process operations that have been added to the queue.
    * 
    * @return the object used to process operations that have been added to the queue
@@ -350,19 +377,7 @@ public class InMemoryIndex implements Index {
    * Write index statistics to the log.
    */
   public void logIndexStats(String message) {
-    int relationshipCount;
-    int attributeCount;
-    int elementCount;
-    int resourceCount;
-    synchronized (indexStore) {
-      relationshipCount = indexStore.getRelationshipCount();
-      attributeCount = indexStore.getAttributeCount();
-      elementCount = indexStore.getElementCount();
-      resourceCount = indexStore.getResourceCount();
-    }
-    DartCore.logInformation(message + ": " + relationshipCount + " relationships and "
-        + attributeCount + " attributes in " + elementCount + " elements in " + resourceCount
-        + " resources");
+    DartCore.logInformation(getIndexStatus(message));
   }
 
   /**

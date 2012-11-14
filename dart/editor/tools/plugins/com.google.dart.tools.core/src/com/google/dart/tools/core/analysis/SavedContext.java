@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -82,7 +83,7 @@ public class SavedContext extends Context {
     // See if the library is already cached
 
     if (libFileOrDir.isFile()) {
-      for (PackageContext context : packageContexts.values()) {
+      for (PackageContext context : getPackageContexts()) {
         Library lib = context.getCachedLibrary(libFileOrDir);
         if (lib != null) {
           return lib.getContext();
@@ -215,7 +216,7 @@ public class SavedContext extends Context {
   @Override
   void discardLibraries(File rootFile, ArrayList<Library> discarded) {
     super.discardLibraries(rootFile, discarded);
-    Iterator<PackageContext> iter = packageContexts.values().iterator();
+    Iterator<PackageContext> iter = getPackageContexts().iterator();
     while (iter.hasNext()) {
       PackageContext context = iter.next();
       context.discardLibraries(rootFile, discarded);
@@ -252,7 +253,7 @@ public class SavedContext extends Context {
    */
   Library[] getCachedLibrariesInPackageContexts(File libFile) {
     Library[] result = Library.NONE;
-    for (PackageContext context : packageContexts.values()) {
+    for (PackageContext context : getPackageContexts()) {
       Library lib = context.getCachedLibrary(libFile);
       if (lib != null) {
         result = AnalysisUtility.append(result, lib);
@@ -268,7 +269,7 @@ public class SavedContext extends Context {
    */
   @Override
   Library[] getLibrariesSourcing(File file, Library[] result) {
-    for (PackageContext context : packageContexts.values()) {
+    for (PackageContext context : getPackageContexts()) {
       result = context.getLibrariesSourcing(file, result);
     }
     return super.getLibrariesSourcing(file, result);
@@ -288,6 +289,10 @@ public class SavedContext extends Context {
       packageContexts.put(applicationDirectory, context);
     }
     return context;
+  }
+
+  Collection<PackageContext> getPackageContexts() {
+    return packageContexts.values();
   }
 
   /**
@@ -364,7 +369,7 @@ public class SavedContext extends Context {
   void writeCache(CacheWriter writer) {
     writer.writeInt(packageContexts.size());
     super.writeCache(writer);
-    for (PackageContext context : packageContexts.values()) {
+    for (PackageContext context : getPackageContexts()) {
       writer.writeString(context.getApplicationDirectory().getPath());
       context.writeCache(writer);
     }
