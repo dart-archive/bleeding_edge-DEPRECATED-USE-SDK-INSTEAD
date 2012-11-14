@@ -283,7 +283,7 @@ class ChatServerStatus {
   }
 
   int get port => _port;
-  Dynamic get error => _error;
+  dynamic get error => _error;
 
   int _state;
   String _message;

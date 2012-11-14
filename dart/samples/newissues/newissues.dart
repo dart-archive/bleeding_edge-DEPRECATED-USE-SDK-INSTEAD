@@ -35,8 +35,8 @@ void processJson(json) {
 }
 
 /// Sends a HTTPRequest and returns a future fo the date.
-Future<Dynamic> requestJson(String url) {
-  Completer c = new Completer<Dynamic>();
+Future<dynamic> requestJson(String url) {
+  Completer c = new Completer<dynamic>();
   void callback(HttpRequest req) {
     if (req.readyState == HttpRequest.DONE) {
       c.complete(JSON.parse(req.response));
