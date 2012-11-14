@@ -38,6 +38,7 @@ import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.reconciler.IReconciler;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.IVerticalRuler;
+import org.eclipse.jface.text.source.IVerticalRulerColumn;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -188,6 +189,7 @@ public class DartSourceViewer extends ProjectionViewer implements IPropertyChang
    * @see #prepareDelayedProjection()
    */
   private boolean fIsSetVisibleDocumentDelayed = false;
+  private List<IVerticalRulerColumn> rulers = new ArrayList<IVerticalRulerColumn>();
 
   public DartSourceViewer(Composite parent, IVerticalRuler verticalRuler,
       IOverviewRuler overviewRuler, boolean showAnnotationsOverview, int styles,
@@ -220,6 +222,13 @@ public class DartSourceViewer extends ProjectionViewer implements IPropertyChang
         fBackgroundColor = null;
       }
     }
+  }
+
+  @Override
+  public void addVerticalRulerColumn(IVerticalRulerColumn column) {
+    super.addVerticalRulerColumn(column);
+    rulers.add(column);
+    column.getControl().setBackground(getTextWidget().getBackground());
   }
 
   /*
@@ -390,6 +399,12 @@ public class DartSourceViewer extends ProjectionViewer implements IPropertyChang
   @Override
   public Point rememberSelection() {
     return super.rememberSelection();
+  }
+
+  @Override
+  public void removeVerticalRulerColumn(IVerticalRulerColumn column) {
+    super.removeVerticalRulerColumn(column);
+    rulers.remove(column);
   }
 
   /*

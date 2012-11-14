@@ -461,6 +461,12 @@
             xml="mappings/org.eclipse.ui.editors.xml">
       </mapper>
       <mapper
+            class="com.google.dart.tools.ui.theme.mapper.TextEditorMapper"
+            name="Debug"
+            pluginId="org.eclipse.debug.ui"
+            xml="mappings/org.eclipse.debug.ui.xml">
+      </mapper>
+      <mapper
             class="com.google.dart.tools.ui.theme.mapper.WebEditorMapper"
             name="CSS"
             pluginId="org.eclipse.wst.css.ui"

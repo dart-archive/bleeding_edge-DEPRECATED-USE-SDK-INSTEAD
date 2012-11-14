@@ -251,10 +251,16 @@ public class SWTUtil {
   }
 
   public static void setColors(List ctl, IPreferenceStore store) {
-    RGB rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND);
-    ctl.setForeground(DartUI.getColorManager().getColor(rgb));
-    rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
-    ctl.setBackground(DartUI.getColorManager().getColor(rgb));
+    Color color = store.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND_SYSTEM_DEFAULT)
+        ? null : createColor(store, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND);
+    ctl.setForeground(color);
+    color = store.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND_SYSTEM_DEFAULT) ? null
+        : createColor(store, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
+    ctl.setBackground(color);
+//    RGB rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND);
+//    ctl.setForeground(DartUI.getColorManager().getColor(rgb));
+//    rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
+//    ctl.setBackground(DartUI.getColorManager().getColor(rgb));
   }
 
   public static void setColors(StyledText ctl, IPreferenceStore store) {
@@ -273,17 +279,21 @@ public class SWTUtil {
   }
 
   public static void setColors(Table ctl, IPreferenceStore store) {
-    RGB rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND);
-    ctl.setForeground(DartUI.getColorManager().getColor(rgb));
-    rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
-    ctl.setBackground(DartUI.getColorManager().getColor(rgb));
+    Color color = store.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND_SYSTEM_DEFAULT)
+        ? null : createColor(store, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND);
+    ctl.setForeground(color);
+    color = store.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND_SYSTEM_DEFAULT) ? null
+        : createColor(store, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
+    ctl.setBackground(color);
   }
 
   public static void setColors(Tree ctl, IPreferenceStore store) {
-    RGB rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND);
-    ctl.setForeground(DartUI.getColorManager().getColor(rgb));
-    rgb = PreferenceConverter.getColor(store, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
-    ctl.setBackground(DartUI.getColorManager().getColor(rgb));
+    Color color = store.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND_SYSTEM_DEFAULT)
+        ? null : createColor(store, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND);
+    ctl.setForeground(color);
+    color = store.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND_SYSTEM_DEFAULT) ? null
+        : createColor(store, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
+    ctl.setBackground(color);
   }
 
   /**

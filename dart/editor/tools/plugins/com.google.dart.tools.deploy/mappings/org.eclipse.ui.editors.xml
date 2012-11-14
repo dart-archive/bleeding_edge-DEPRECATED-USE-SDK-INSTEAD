@@ -15,14 +15,10 @@
         <mapping pluginKey="printMarginColor" themeKey="lineNumber" />
         <mapping pluginKey="writeOccurrenceIndicationColor" themeKey="writeOccurrenceIndication" />
         <mapping pluginKey="searchResultIndicationColor" themeKey="searchResultIndication" />
-        <mapping pluginKey="PHPWriteOccurrenceIndicationColor" themeKey="writeOccurrenceIndication" />
-        <mapping pluginKey="PHPReadOccurrenceIndicationColor" themeKey="occurrenceIndication" />
         <mapping pluginKey="currentIPColor" themeKey="debugCurrentInstructionPointer" />
         <mapping pluginKey="secondaryIPColor" themeKey="debugSecondaryInstructionPointer" />
-        <mapping pluginKey="pydevOccurrenceIndicationColor" themeKey="occurrenceIndication" />
         <mapping pluginKey="matchingTagIndicationColor" themeKey="occurrenceIndication" />
         <mapping pluginKey="asOccurencesIndicationColor" themeKey="occurrenceIndication" />
         <mapping pluginKey="occurrenceAnnotation.color" themeKey="occurenceIndication" />
-        <mapping pluginKey="org.eclipse.cdt.ui.occurrenceIndicationColor" themeKey="occurenceIndication" />
     </mappings>
 </eclipseColorThemeMapping>
