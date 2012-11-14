@@ -29,7 +29,6 @@ import com.google.dart.tools.ui.text.dart.IQuickFixProcessor;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -41,6 +40,18 @@ import java.util.Comparator;
  */
 public final class QuickFixProcessorTest extends AbstractDartTest {
   private static final IQuickFixProcessor PROCESSOR = new QuickFixProcessor();
+
+  /**
+   * Asserts that given {@link IDartCompletionProposal} has expected preview content.
+   */
+  private static void assertQuickFix(IDartCompletionProposal proposal, String... expectedLines)
+      throws Exception {
+    // prepare result
+    String result = ((CUCorrectionProposal) proposal).getPreviewContent();
+    // assert result
+    String expectedSource = makeSource(expectedLines);
+    assertEquals(expectedSource, result);
+  }
 
   private String proposalNamePrefix;
 
@@ -469,7 +480,6 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_importLibrary_withFunction_hasImportWithPrefix() throws Exception {
-    proposalNamePrefix = "Use imported library 'Lib.dart' with prefix 'lib'";
     setUnitContent("Lib.dart", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
         "library Lib;",
@@ -482,6 +492,8 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  test();",
         "}",
         "");
+    // has fix with prefix
+    proposalNamePrefix = "Use imported library 'Lib.dart' with prefix 'lib'";
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'Lib.dart' as lib;",
@@ -489,6 +501,35 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "  lib.test();",
         "}",
         "");
+    // no fix for new import without prefix
+    proposalNamePrefix = "Import library";
+    assertNoQuickFix();
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6705
+   */
+  public void test_importLibrary_withFunction_hasImportWithPrefix_fromSDK() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:isolate' as iso;",
+        "main() {",
+        "  spawnFunction(null);",
+        "}",
+        "");
+    // has fix with prefix
+    proposalNamePrefix = "Use imported library 'dart:isolate' with prefix 'iso'";
+    assertQuickFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:isolate' as iso;",
+        "main() {",
+        "  iso.spawnFunction(null);",
+        "}",
+        "");
+    // no fix for new import without prefix
+    proposalNamePrefix = "Import library";
+    assertNoQuickFix();
   }
 
   public void test_importLibrary_withFunction_privateName() throws Exception {
@@ -858,27 +899,24 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   /**
    * Asserts that there are no quick fixes for {@link IProblemLocation} using "problem*" fields.
    */
-  private void assertNoQuickFix() throws CoreException {
-    IDartCompletionProposal[] proposals = prepareQuickFixes();
-    assertThat(proposals).isEmpty();
+  private void assertNoQuickFix() throws Exception {
+    IDartCompletionProposal selectedProposal = prepareQuickFix();
+    assertNull(selectedProposal);
   }
 
   /**
    * Runs single proposal created for {@link IProblemLocation} using "problem*" fields.
    */
-  private void assertQuickFix(String... expectedLines) throws CoreException {
+  private void assertQuickFix(String... expectedLines) throws Exception {
     IDartCompletionProposal selectedProposal = prepareQuickFix();
-    // prepare result
-    String result = ((CUCorrectionProposal) selectedProposal).getPreviewContent();
-    // assert result
-    String expectedSource = makeSource(expectedLines);
-    assertEquals(expectedSource, result);
+    assertNotNull(selectedProposal);
+    assertQuickFix(selectedProposal, expectedLines);
   }
 
   /**
    * Waits for a find single Dart problem in {@link #testUnit}.
    */
-  private IProblemLocation findProblemLocation() throws CoreException {
+  private IProblemLocation findProblemLocation() throws Exception {
     long start = System.currentTimeMillis();
     while (System.currentTimeMillis() - start < 5000) {
       IMarker[] markers = testUnit.getResource().findMarkers(
@@ -918,10 +956,9 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   /**
-   * @return the single not <code>null</code> proposal created for {@link IProblemLocation} using
-   *         "problem*" fields.
+   * @return the single proposal created for {@link IProblemLocation} using "problem*" fields.
    */
-  private IDartCompletionProposal prepareQuickFix() throws CoreException {
+  private IDartCompletionProposal prepareQuickFix() throws Exception {
     IDartCompletionProposal[] proposals = prepareQuickFixes();
     // select proposal using name prefix
     IDartCompletionProposal selectedProposal = null;
@@ -932,14 +969,13 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         selectedProposal = proposal;
       }
     }
-    assertNotNull(selectedProposal);
     return selectedProposal;
   }
 
   /**
    * @return proposals created for {@link IProblemLocation} using "problem*" fields.
    */
-  private IDartCompletionProposal[] prepareQuickFixes() throws CoreException {
+  private IDartCompletionProposal[] prepareQuickFixes() throws Exception {
     IProblemLocation problemLocation = findProblemLocation();
     IProblemLocation problemLocations[] = new IProblemLocation[] {problemLocation};
     // prepare context

@@ -467,6 +467,8 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     if (name.startsWith("_")) {
       return;
     }
+    // add only unique libraries
+    Set<DartLibrary> proposedLibraries = Sets.newHashSet();
     // prepare base URI
     CompilationUnit libraryUnit = unit.getLibrary().getDefiningCompilationUnit();
     URI unitNormalizedUri;
@@ -477,7 +479,8 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     // may be there is existing import, but it is with prefix and we don't use this prefix
     for (DartImport imp : unit.getLibrary().getImports()) {
       String prefix = imp.getPrefix();
-      if (!StringUtils.isEmpty(prefix) && imp.getLibrary().findTopLevelElement(name) != null) {
+      DartLibrary library = imp.getLibrary();
+      if (!StringUtils.isEmpty(prefix) && library.findTopLevelElement(name) != null) {
         SourceRange range = SourceRangeFactory.forStartLength(node, 0);
         addReplaceEdit(range, prefix + ".");
         // add proposal
@@ -489,6 +492,8 @@ public class QuickFixProcessor implements IQuickFixProcessor {
                 CorrectionMessages.QuickFixProcessor_importLibrary_addPrefix,
                 new Object[] {getSource(imp.getUriRange()), prefix}),
             DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+        // remember as already proposed
+        proposedLibraries.add(library);
       }
     }
     // prepare Dart model
@@ -497,6 +502,9 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     for (DartProject project : model.getDartProjects()) {
       for (DartLibrary library : project.getDartLibraries()) {
         if (library.findTopLevelElement(name) != null) {
+          if (!proposedLibraries.add(library)) {
+            continue;
+          }
           URI libraryUri = library.getUri();
           URI libraryRelativeUri = unitNormalizedUri.relativize(libraryUri);
           if (StringUtils.isEmpty(libraryRelativeUri.getScheme())) {
@@ -510,6 +518,9 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getPackageLibraryManager();
     for (DartLibrary library : model.getBundledLibraries()) {
       if (library.findTopLevelElement(name) != null) {
+        if (!proposedLibraries.add(library)) {
+          continue;
+        }
         URI libraryUri = library.getUri();
         URI libraryShortUri = libraryManager.getShortUri(libraryUri);
         if (libraryShortUri != null) {
