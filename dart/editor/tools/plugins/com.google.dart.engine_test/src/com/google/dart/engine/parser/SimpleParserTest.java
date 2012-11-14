@@ -50,6 +50,7 @@ import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
+import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionDeclarationStatement;
@@ -2039,99 +2040,144 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFormalParameter_final_withType_named() throws Exception {
-    DefaultFormalParameter namedParameter = parse("parseFormalParameter", new Class[] {
-        boolean.class, boolean.class}, new Object[] {false, true}, "final A a : null");
-    SimpleFormalParameter simpleParameter = (SimpleFormalParameter) namedParameter.getParameter();
+    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.NAMED;
+    DefaultFormalParameter parameter = parse(
+        "parseFormalParameter",
+        new Class[] {FormalParameter.ParameterKind.class},
+        new Object[] {kind},
+        "final A a : null");
+    SimpleFormalParameter simpleParameter = (SimpleFormalParameter) parameter.getParameter();
     assertNotNull(simpleParameter.getIdentifier());
     assertNotNull(simpleParameter.getKeyword());
     assertNotNull(simpleParameter.getType());
-    assertTrue(namedParameter.isNamed());
-    assertNotNull(namedParameter.getSeparator());
-    assertNotNull(namedParameter.getDefaultValue());
+    assertEquals(kind, simpleParameter.getKind());
+    assertNotNull(parameter.getSeparator());
+    assertNotNull(parameter.getDefaultValue());
+    assertEquals(kind, parameter.getKind());
   }
 
   public void test_parseFormalParameter_final_withType_normal() throws Exception {
-    SimpleFormalParameter parameter = parse("parseFormalParameter", new Class[] {
-        boolean.class, boolean.class}, new Object[] {false, false}, "final A a");
+    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.REQUIRED;
+    SimpleFormalParameter parameter = parse(
+        "parseFormalParameter",
+        new Class[] {FormalParameter.ParameterKind.class},
+        new Object[] {kind},
+        "final A a");
     assertNotNull(parameter.getIdentifier());
     assertNotNull(parameter.getKeyword());
     assertNotNull(parameter.getType());
+    assertEquals(kind, parameter.getKind());
   }
 
   public void test_parseFormalParameter_final_withType_positional() throws Exception {
-    DefaultFormalParameter namedParameter = parse("parseFormalParameter", new Class[] {
-        boolean.class, boolean.class}, new Object[] {true, false}, "final A a = null");
-    SimpleFormalParameter simpleParameter = (SimpleFormalParameter) namedParameter.getParameter();
+    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.POSITIONAL;
+    DefaultFormalParameter parameter = parse(
+        "parseFormalParameter",
+        new Class[] {FormalParameter.ParameterKind.class},
+        new Object[] {kind},
+        "final A a = null");
+    SimpleFormalParameter simpleParameter = (SimpleFormalParameter) parameter.getParameter();
     assertNotNull(simpleParameter.getIdentifier());
     assertNotNull(simpleParameter.getKeyword());
     assertNotNull(simpleParameter.getType());
-    assertFalse(namedParameter.isNamed());
-    assertNotNull(namedParameter.getSeparator());
-    assertNotNull(namedParameter.getDefaultValue());
+    assertEquals(kind, simpleParameter.getKind());
+    assertNotNull(parameter.getSeparator());
+    assertNotNull(parameter.getDefaultValue());
+    assertEquals(kind, parameter.getKind());
   }
 
   public void test_parseFormalParameter_nonFinal_withType_named() throws Exception {
-    DefaultFormalParameter namedParameter = parse("parseFormalParameter", new Class[] {
-        boolean.class, boolean.class}, new Object[] {false, true}, "A a : null");
-    SimpleFormalParameter simpleParameter = (SimpleFormalParameter) namedParameter.getParameter();
+    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.NAMED;
+    DefaultFormalParameter parameter = parse(
+        "parseFormalParameter",
+        new Class[] {FormalParameter.ParameterKind.class},
+        new Object[] {kind},
+        "A a : null");
+    SimpleFormalParameter simpleParameter = (SimpleFormalParameter) parameter.getParameter();
     assertNotNull(simpleParameter.getIdentifier());
     assertNull(simpleParameter.getKeyword());
     assertNotNull(simpleParameter.getType());
-    assertTrue(namedParameter.isNamed());
-    assertNotNull(namedParameter.getSeparator());
-    assertNotNull(namedParameter.getDefaultValue());
+    assertEquals(kind, simpleParameter.getKind());
+    assertNotNull(parameter.getSeparator());
+    assertNotNull(parameter.getDefaultValue());
+    assertEquals(kind, parameter.getKind());
   }
 
   public void test_parseFormalParameter_nonFinal_withType_normal() throws Exception {
-    SimpleFormalParameter parameter = parse("parseFormalParameter", new Class[] {
-        boolean.class, boolean.class}, new Object[] {false, false}, "A a");
+    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.REQUIRED;
+    SimpleFormalParameter parameter = parse(
+        "parseFormalParameter",
+        new Class[] {FormalParameter.ParameterKind.class},
+        new Object[] {kind},
+        "A a");
     assertNotNull(parameter.getIdentifier());
     assertNull(parameter.getKeyword());
     assertNotNull(parameter.getType());
+    assertEquals(kind, parameter.getKind());
   }
 
   public void test_parseFormalParameter_nonFinal_withType_positional() throws Exception {
-    DefaultFormalParameter namedParameter = parse("parseFormalParameter", new Class[] {
-        boolean.class, boolean.class}, new Object[] {true, false}, "A a = null");
-    SimpleFormalParameter simpleParameter = (SimpleFormalParameter) namedParameter.getParameter();
+    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.POSITIONAL;
+    DefaultFormalParameter parameter = parse(
+        "parseFormalParameter",
+        new Class[] {FormalParameter.ParameterKind.class},
+        new Object[] {kind},
+        "A a = null");
+    SimpleFormalParameter simpleParameter = (SimpleFormalParameter) parameter.getParameter();
     assertNotNull(simpleParameter.getIdentifier());
     assertNull(simpleParameter.getKeyword());
     assertNotNull(simpleParameter.getType());
-    assertFalse(namedParameter.isNamed());
-    assertNotNull(namedParameter.getSeparator());
-    assertNotNull(namedParameter.getDefaultValue());
+    assertEquals(kind, simpleParameter.getKind());
+    assertNotNull(parameter.getSeparator());
+    assertNotNull(parameter.getDefaultValue());
+    assertEquals(kind, parameter.getKind());
   }
 
   public void test_parseFormalParameter_var() throws Exception {
-    SimpleFormalParameter parameter = parse("parseFormalParameter", new Class[] {
-        boolean.class, boolean.class}, new Object[] {false, false}, "var a");
+    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.REQUIRED;
+    SimpleFormalParameter parameter = parse(
+        "parseFormalParameter",
+        new Class[] {FormalParameter.ParameterKind.class},
+        new Object[] {kind},
+        "var a");
     assertNotNull(parameter.getIdentifier());
     assertNotNull(parameter.getKeyword());
     assertNull(parameter.getType());
+    assertEquals(kind, parameter.getKind());
   }
 
   public void test_parseFormalParameter_var_named() throws Exception {
-    DefaultFormalParameter namedParameter = parse("parseFormalParameter", new Class[] {
-        boolean.class, boolean.class}, new Object[] {false, true}, "var a : null");
-    SimpleFormalParameter simpleParameter = (SimpleFormalParameter) namedParameter.getParameter();
+    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.NAMED;
+    DefaultFormalParameter parameter = parse(
+        "parseFormalParameter",
+        new Class[] {FormalParameter.ParameterKind.class},
+        new Object[] {kind},
+        "var a : null");
+    SimpleFormalParameter simpleParameter = (SimpleFormalParameter) parameter.getParameter();
     assertNotNull(simpleParameter.getIdentifier());
     assertNotNull(simpleParameter.getKeyword());
     assertNull(simpleParameter.getType());
-    assertTrue(namedParameter.isNamed());
-    assertNotNull(namedParameter.getSeparator());
-    assertNotNull(namedParameter.getDefaultValue());
+    assertEquals(kind, simpleParameter.getKind());
+    assertNotNull(parameter.getSeparator());
+    assertNotNull(parameter.getDefaultValue());
+    assertEquals(kind, parameter.getKind());
   }
 
   public void test_parseFormalParameter_var_positional() throws Exception {
-    DefaultFormalParameter namedParameter = parse("parseFormalParameter", new Class[] {
-        boolean.class, boolean.class}, new Object[] {true, false}, "var a = null");
-    SimpleFormalParameter simpleParameter = (SimpleFormalParameter) namedParameter.getParameter();
+    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.POSITIONAL;
+    DefaultFormalParameter parameter = parse(
+        "parseFormalParameter",
+        new Class[] {FormalParameter.ParameterKind.class},
+        new Object[] {kind},
+        "var a = null");
+    SimpleFormalParameter simpleParameter = (SimpleFormalParameter) parameter.getParameter();
     assertNotNull(simpleParameter.getIdentifier());
     assertNotNull(simpleParameter.getKeyword());
     assertNull(simpleParameter.getType());
-    assertFalse(namedParameter.isNamed());
-    assertNotNull(namedParameter.getSeparator());
-    assertNotNull(namedParameter.getDefaultValue());
+    assertEquals(kind, simpleParameter.getKind());
+    assertNotNull(parameter.getSeparator());
+    assertNotNull(parameter.getDefaultValue());
+    assertEquals(kind, parameter.getKind());
   }
 
   public void test_parseFormalParameterList_empty() throws Exception {

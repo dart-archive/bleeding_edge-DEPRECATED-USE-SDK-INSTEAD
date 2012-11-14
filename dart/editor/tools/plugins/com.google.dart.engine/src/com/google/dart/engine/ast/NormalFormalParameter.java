@@ -84,6 +84,15 @@ public abstract class NormalFormalParameter extends FormalParameter {
     return identifier;
   }
 
+  @Override
+  public ParameterKind getKind() {
+    ASTNode parent = getParent();
+    if (parent instanceof DefaultFormalParameter) {
+      return ((DefaultFormalParameter) parent).getKind();
+    }
+    return ParameterKind.REQUIRED;
+  }
+
   /**
    * Return the annotations associated with this parameter.
    * 

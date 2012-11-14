@@ -15,8 +15,7 @@ package com.google.dart.engine.ast;
 
 /**
  * The abstract class {@code FormalParameter} defines the behavior of objects representing a
- * parameter to a function. There are three kinds of formal parameters: normal formal parameters,
- * named formal parameters, and positional formal parameters.
+ * parameter to a function.
  * 
  * <pre>
  * formalParameter ::=
@@ -26,4 +25,44 @@ package com.google.dart.engine.ast;
  * </pre>
  */
 public abstract class FormalParameter extends ASTNode {
+  /**
+   * The enumeration {@code ParameterKind} defines the different kinds of parameters. There are two
+   * basic kinds of parameters: required and optional. Optional parameters are further divided into
+   * two kinds: positional optional and named optional.
+   */
+  public enum ParameterKind {
+    REQUIRED(false),
+    POSITIONAL(true),
+    NAMED(true);
+
+    /**
+     * A flag indicating whether this is an optional parameter.
+     */
+    private boolean isOptional;
+
+    /**
+     * Initialize a newly created kind with the given state.
+     * 
+     * @param isOptional {@code true} if this is an optional parameter
+     */
+    private ParameterKind(boolean isOptional) {
+      this.isOptional = isOptional;
+    }
+
+    /**
+     * Return {@code true} if this is an optional parameter.
+     * 
+     * @return {@code true} if this is an optional parameter
+     */
+    public boolean isOptional() {
+      return isOptional;
+    }
+  }
+
+  /**
+   * Return the kind of this parameter.
+   * 
+   * @return the kind of this parameter
+   */
+  public abstract ParameterKind getKind();
 }

@@ -35,10 +35,9 @@ public class DefaultFormalParameter extends FormalParameter {
   private NormalFormalParameter parameter;
 
   /**
-   * A flag indicating whether this parameter represents a named parameter (as opposed to an
-   * optional positional parameter).
+   * The kind of this parameter.
    */
-  private boolean isNamed;
+  private ParameterKind kind;
 
   /**
    * The token separating the parameter from the default value, or {@code null} if there is no
@@ -62,14 +61,14 @@ public class DefaultFormalParameter extends FormalParameter {
    * Initialize a newly created default formal parameter.
    * 
    * @param parameter the formal parameter with which the default value is associated
-   * @param isNamed {@code true} if this parameter represents a named parameter
+   * @param kind the kind of this parameter
    * @param separator the token separating the parameter from the default value
    * @param defaultValue the expression computing the default value for the parameter
    */
-  public DefaultFormalParameter(NormalFormalParameter parameter, boolean isNamed, Token separator,
-      Expression defaultValue) {
+  public DefaultFormalParameter(NormalFormalParameter parameter, ParameterKind kind,
+      Token separator, Expression defaultValue) {
     this.parameter = becomeParentOf(parameter);
-    this.isNamed = isNamed;
+    this.kind = kind;
     this.separator = separator;
     this.defaultValue = becomeParentOf(defaultValue);
   }
@@ -102,6 +101,11 @@ public class DefaultFormalParameter extends FormalParameter {
     return parameter.getEndToken();
   }
 
+  @Override
+  public ParameterKind getKind() {
+    return kind;
+  }
+
   /**
    * Return the formal parameter with which the default value is associated.
    * 
@@ -122,22 +126,21 @@ public class DefaultFormalParameter extends FormalParameter {
   }
 
   /**
-   * Return {@code true} if this parameter represents a named parameter (as opposed to an optional
-   * positional parameter).
-   * 
-   * @return {@code true} if this parameter represents a named parameter
-   */
-  public boolean isNamed() {
-    return isNamed;
-  }
-
-  /**
    * Set the expression computing the default value for the parameter to the given expression.
    * 
    * @param expression the expression computing the default value for the parameter
    */
   public void setDefaultValue(Expression expression) {
     defaultValue = becomeParentOf(expression);
+  }
+
+  /**
+   * Set the kind of this parameter to the given kind.
+   * 
+   * @param kind the kind of this parameter
+   */
+  public void setKind(ParameterKind kind) {
+    this.kind = kind;
   }
 
   /**

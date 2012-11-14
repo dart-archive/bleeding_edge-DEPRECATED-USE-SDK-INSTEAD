@@ -344,7 +344,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
         writer.print(", ");
       }
       if (groupEnd == null && parameter instanceof DefaultFormalParameter) {
-        if (((DefaultFormalParameter) parameter).isNamed()) {
+        if (parameter.getKind() == FormalParameter.ParameterKind.NAMED) {
           groupEnd = "}";
           writer.print('{');
         } else {

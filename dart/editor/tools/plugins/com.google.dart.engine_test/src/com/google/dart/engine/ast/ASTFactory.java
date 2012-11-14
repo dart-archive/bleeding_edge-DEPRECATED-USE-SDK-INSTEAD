@@ -656,7 +656,11 @@ public final class ASTFactory {
 
   public static DefaultFormalParameter namedFormalParameter(NormalFormalParameter parameter,
       Expression expression) {
-    return new DefaultFormalParameter(parameter, true, token(TokenType.COLON), expression);
+    return new DefaultFormalParameter(
+        parameter,
+        FormalParameter.ParameterKind.NAMED,
+        expression == null ? null : token(TokenType.COLON),
+        expression);
   }
 
   public static NullLiteral nullLiteral() {
@@ -700,7 +704,11 @@ public final class ASTFactory {
 
   public static DefaultFormalParameter positionalFormalParameter(NormalFormalParameter parameter,
       Expression expression) {
-    return new DefaultFormalParameter(parameter, false, token(TokenType.EQ), expression);
+    return new DefaultFormalParameter(
+        parameter,
+        FormalParameter.ParameterKind.POSITIONAL,
+        expression == null ? null : token(TokenType.EQ),
+        expression);
   }
 
   public static PostfixExpression postfixExpression(Expression expression, TokenType operator) {
