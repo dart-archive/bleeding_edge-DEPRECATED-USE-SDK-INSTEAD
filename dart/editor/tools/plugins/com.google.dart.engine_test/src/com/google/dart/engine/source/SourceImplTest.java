@@ -18,6 +18,48 @@ import junit.framework.TestCase;
 import java.io.File;
 
 public class SourceImplTest extends TestCase {
+  public void test_equals_false() {
+    SourceFactory factory = new SourceFactory();
+    File file1 = new File("/does/not/exist1.dart");
+    File file2 = new File("/does/not/exist2.dart");
+    SourceImpl source1 = new SourceImpl(factory, file1);
+    SourceImpl source2 = new SourceImpl(factory, file2);
+    assertFalse(source1.equals(source2));
+  }
+
+  public void test_equals_true() {
+    SourceFactory factory = new SourceFactory();
+    File file1 = new File("/does/not/exist.dart");
+    File file2 = new File("/does/not/exist.dart");
+    SourceImpl source1 = new SourceImpl(factory, file1);
+    SourceImpl source2 = new SourceImpl(factory, file2);
+    assertTrue(source1.equals(source2));
+  }
+
+  public void test_getFullName() {
+    SourceFactory factory = new SourceFactory();
+    String fullPath = "/does/not/exist.dart";
+    File file = new File(fullPath);
+    SourceImpl source = new SourceImpl(factory, file);
+    assertEquals(fullPath, source.getFullName());
+  }
+
+  public void test_getShortName() {
+    SourceFactory factory = new SourceFactory();
+    File file = new File("/does/not/exist.dart");
+    SourceImpl source = new SourceImpl(factory, file);
+    assertEquals("exist.dart", source.getShortName());
+  }
+
+  public void test_hashCode() {
+    SourceFactory factory = new SourceFactory();
+    File file1 = new File("/does/not/exist.dart");
+    File file2 = new File("/does/not/exist.dart");
+    SourceImpl source1 = new SourceImpl(factory, file1);
+    SourceImpl source2 = new SourceImpl(factory, file2);
+    assertEquals(source1.hashCode(), source2.hashCode());
+  }
+
   public void test_nonSystem() {
     SourceFactory factory = new SourceFactory();
     File file = new File("/does/not/exist.dart");
@@ -25,6 +67,23 @@ public class SourceImplTest extends TestCase {
     assertNotNull(source);
     assertEquals(file.getAbsolutePath(), source.getFullName());
     assertFalse(source.isInSystemLibrary());
+  }
+
+  public void test_resolve_absolute() {
+    SourceFactory factory = new SourceFactory(new FileUriResolver());
+    File file = new File("/does/not/exist1.dart");
+    SourceImpl source = new SourceImpl(factory, file);
+    Source result = source.resolve("file:///invalid/path.dart");
+    assertEquals("/invalid/path.dart", result.getFullName());
+  }
+
+  public void test_resolve_relative() {
+    SourceFactory factory = new SourceFactory(new FileUriResolver());
+    File file = new File("/does/not/exist1.dart");
+    SourceImpl source = new SourceImpl(factory, file);
+    Source result = source.resolve("exist2.dart");
+    assertNotNull(result);
+    assertEquals("/does/not/exist2.dart", result.getFullName());
   }
 
   public void test_system() {
