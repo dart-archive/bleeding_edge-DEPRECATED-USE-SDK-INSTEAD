@@ -86,6 +86,11 @@ public abstract class AbstractScanner {
   private List<BeginToken> groupingStack = new ArrayList<BeginToken>();
 
   /**
+   * A flag indicating whether any unmatched groups were found during the parse.
+   */
+  private boolean hasUnmatchedGroups = false;
+
+  /**
    * A non-breaking space, which is allowed by this scanner as a white-space character.
    */
   private static final int $NBSP = 160;
@@ -125,6 +130,15 @@ public abstract class AbstractScanner {
    * @return the current offset of the scanner in the source
    */
   public abstract int getOffset();
+
+  /**
+   * Return {@code true} if any unmatched groups were found during the parse.
+   * 
+   * @return {@code true} if any unmatched groups were found during the parse
+   */
+  public boolean hasUnmatchedGroups() {
+    return hasUnmatchedGroups;
+  }
 
   /**
    * Scan the source code to produce a list of tokens representing the source.
@@ -201,6 +215,7 @@ public abstract class AbstractScanner {
     eofToken.setNext(eofToken);
     tail = tail.setNext(eofToken);
     if (!groupingStack.isEmpty()) {
+      hasUnmatchedGroups = true;
       // TODO(brianwilkerson) Fix the ungrouped tokens?
     }
   }
@@ -447,6 +462,32 @@ public abstract class AbstractScanner {
     return advance();
   }
 
+  /**
+   * Return the beginning token corresponding to a closing brace that was found while scanning
+   * inside a string interpolation expression. Tokens that cannot be matched with the closing brace
+   * will be dropped from the stack.
+   * 
+   * @return the token to be paired with the closing brace
+   */
+  private BeginToken findTokenMatchingClosingBraceInInterpolationExpression() {
+    int last = groupingStack.size() - 1;
+    while (last >= 0) {
+      BeginToken begin = groupingStack.get(last);
+      if (begin.getType() == TokenType.OPEN_CURLY_BRACKET
+          || begin.getType() == TokenType.STRING_INTERPOLATION_EXPRESSION) {
+        return begin;
+      }
+      hasUnmatchedGroups = true;
+      groupingStack.remove(last);
+      last--;
+    }
+    //
+    // We should never get to this point because we wouldn't be inside a string interpolation
+    // expression unless we had previously found the start of the expression.
+    //
+    return null;
+  }
+
   private Token firstToken() {
     return tokens.getNext();
   }
@@ -678,8 +719,14 @@ public abstract class AbstractScanner {
     next = advance();
     while (next != -1) {
       if (next == '}') {
-        BeginToken begin = groupingStack.get(groupingStack.size() - 1);
-        if (begin.getType() == TokenType.OPEN_CURLY_BRACKET) {
+        BeginToken begin = findTokenMatchingClosingBraceInInterpolationExpression();
+        if (begin == null) {
+          beginToken();
+          appendToken(TokenType.CLOSE_CURLY_BRACKET);
+          next = advance();
+          beginToken();
+          return next;
+        } else if (begin.getType() == TokenType.OPEN_CURLY_BRACKET) {
           beginToken();
           appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
           next = advance();
