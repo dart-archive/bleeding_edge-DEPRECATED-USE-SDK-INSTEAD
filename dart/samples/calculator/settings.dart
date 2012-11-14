@@ -63,7 +63,7 @@ class Settings {
         theme = THEME_BUTTON;
       }
 
-      if (e == null || !ui.settingsDialog.contains(e.srcElement)) {
+      if (e == null || !ui.settingsDialog.contains(e.target)) {
         decorateDropdown();
         ui.settingsDialog.style.visibility = "hidden";
         _dialogOpened = false;
