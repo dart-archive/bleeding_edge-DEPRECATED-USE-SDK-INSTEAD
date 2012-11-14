@@ -62,13 +62,11 @@ public class RunPubAction extends SelectionDispatchAction {
     public RunPubJob(IResource resource) {
       super(NLS.bind(ActionMessages.RunPubAction_jobText, command));
       setRule(ResourcesPlugin.getWorkspace().getRoot());
-      setUser(true);
       this.resource = resource;
     }
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
-
       try {
         DartCore.getConsole().clear();
         DartCore.getConsole().println(
