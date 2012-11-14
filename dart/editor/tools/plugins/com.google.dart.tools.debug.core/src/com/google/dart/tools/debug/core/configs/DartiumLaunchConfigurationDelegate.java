@@ -45,12 +45,6 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
   }
 
   @Override
-  public boolean buildForLaunch(ILaunchConfiguration configuration, String mode,
-      IProgressMonitor monitor) throws CoreException {
-    return false;
-  }
-
-  @Override
   public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException {
     if (!ILaunchManager.RUN_MODE.equals(mode) && !ILaunchManager.DEBUG_MODE.equals(mode)) {

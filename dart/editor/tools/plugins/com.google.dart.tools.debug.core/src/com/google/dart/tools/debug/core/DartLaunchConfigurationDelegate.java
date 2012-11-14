@@ -27,6 +27,12 @@ import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 public abstract class DartLaunchConfigurationDelegate extends LaunchConfigurationDelegate {
 
   @Override
+  public final boolean buildForLaunch(ILaunchConfiguration configuration, String mode,
+      IProgressMonitor monitor) throws CoreException {
+    return false;
+  }
+
+  @Override
   public abstract void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException;
 

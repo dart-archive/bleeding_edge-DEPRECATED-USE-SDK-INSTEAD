@@ -62,12 +62,6 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
   }
 
   @Override
-  public boolean buildForLaunch(ILaunchConfiguration configuration, String mode,
-      IProgressMonitor monitor) throws CoreException {
-    return false;
-  }
-
-  @Override
   public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException {
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
@@ -235,23 +229,29 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
   }
 
   private File getCurrentWorkingDirectory(DartLaunchConfigWrapper launchConfig) {
-    IResource resource = launchConfig.getApplicationResource();
+    if (launchConfig.getWorkingDirectory().length() > 0) {
+      String cwd = launchConfig.getWorkingDirectory();
 
-    if (resource == null) {
-      if (launchConfig.getProject() != null) {
-        return launchConfig.getProject().getLocation().toFile();
-      }
+      return new File(cwd);
     } else {
-      if (resource.isLinked()) {
-        // If the resource is linked, set the cwd to the parent directory of the resolved resource.
-        return resource.getLocation().toFile().getParentFile();
+      IResource resource = launchConfig.getApplicationResource();
+
+      if (resource == null) {
+        if (launchConfig.getProject() != null) {
+          return launchConfig.getProject().getLocation().toFile();
+        } else {
+          return null;
+        }
       } else {
-        // If the resource is not linked, set the cwd to the project's directory.
-        return resource.getProject().getLocation().toFile();
+        if (resource.isLinked()) {
+          // If the resource is linked, set the cwd to the parent directory of the resolved resource.
+          return resource.getLocation().toFile().getParentFile();
+        } else {
+          // If the resource is not linked, set the cwd to the project's directory.
+          return resource.getProject().getLocation().toFile();
+        }
       }
     }
-
-    return null;
   }
 
   private boolean isProcessDead(Process process) {
