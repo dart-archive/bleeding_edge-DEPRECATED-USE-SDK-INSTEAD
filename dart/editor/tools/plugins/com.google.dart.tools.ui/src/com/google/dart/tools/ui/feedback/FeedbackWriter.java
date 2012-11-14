@@ -95,6 +95,7 @@ public class FeedbackWriter {
     writer.println(feedback.getEditorProductName() + ": " + feedback.getEditorVersion()); //$NON-NLS-1$
     writer.println("OS: " + feedback.getOsDetails()); //$NON-NLS-1$
     writer.println("JVM: " + System.getProperties().getProperty("java.version")); //$NON-NLS-1$
+    writer.print(feedback.getStatsText());
     writer.println();
     writer.println(feedback.getOptionsText());
     if (sendLogData) {

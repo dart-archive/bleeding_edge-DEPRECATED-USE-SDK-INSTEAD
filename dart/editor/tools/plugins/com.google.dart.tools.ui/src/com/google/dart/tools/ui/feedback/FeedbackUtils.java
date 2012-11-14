@@ -13,12 +13,15 @@
  */
 package com.google.dart.tools.ui.feedback;
 
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.internal.Library;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.zip.CRC32;
 
 /**
@@ -26,6 +29,45 @@ import java.util.zip.CRC32;
  */
 @SuppressWarnings("restriction")
 public class FeedbackUtils {
+
+  /**
+   * Contains information about the current session
+   */
+  public static class Stats {
+    public final int numProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects().length;
+    public final long maxMem = getMaxMem();
+    public final long totalMem = Runtime.getRuntime().totalMemory();
+    public final long freeMem = Runtime.getRuntime().freeMemory();
+
+    @Override
+    public String toString() {
+      PrintStringWriter writer = new PrintStringWriter();
+
+      writer.print("# projects: ");
+      writer.println(numProjects);
+
+      writer.print("mem max: ");
+      writer.print(convertToMeg(maxMem));
+      writer.println(" Meg");
+
+      writer.print("mem total: ");
+      writer.print(convertToMeg(totalMem));
+      writer.println(" Meg");
+
+      writer.print("mem free: ");
+      writer.print(convertToMeg(freeMem));
+      writer.println(" Meg");
+
+      return writer.toString();
+    }
+
+    /**
+     * Converts the given number of bytes to the corresponding number of megabytes (rounded up).
+     */
+    private long convertToMeg(long numBytes) {
+      return (numBytes + (512 * 1024)) / (1024 * 1024);
+    }
+  }
 
   /**
    * Calculate a CRC-32 checksum for a given array of bytes.
@@ -67,6 +109,22 @@ public class FeedbackUtils {
     return DartToolsPlugin.getVersionString() + " (" + getBuildDate() + ") " + binaryDetails;
   }
 
+  // Copied from org.eclipse.ui.internal.HeapStatus
+  public static long getMaxMem() {
+    long max = Long.MAX_VALUE;
+    try {
+      // Must use reflect to allow compilation against JCL/Foundation
+      Method maxMemMethod = Runtime.class.getMethod("maxMemory", new Class[0]); //$NON-NLS-1$
+      Object o = maxMemMethod.invoke(Runtime.getRuntime(), new Object[0]);
+      if (o instanceof Long) {
+        max = ((Long) o).longValue();
+      }
+    } catch (Exception e) {
+      // ignore if method missing or if there are other failures trying to determine the max
+    }
+    return max;
+  }
+
   /**
    * Get a String representation of the current OS.
    * 
@@ -74,6 +132,18 @@ public class FeedbackUtils {
    */
   public static String getOSName() {
     return System.getProperty("os.name") + " - " + getOSArch();
+  }
+
+  /**
+   * Answer information about the current session
+   */
+  public static Stats getStats() {
+    try {
+      return new Stats();
+    } catch (Exception e) {
+      DartCore.logError("Exception obtaining information about the current session", e);
+      return null;
+    }
   }
 
   /**

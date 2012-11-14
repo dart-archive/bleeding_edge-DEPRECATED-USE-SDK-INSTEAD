@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.feedback;
 
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.ui.feedback.FeedbackUtils.Stats;
 
 import org.eclipse.swt.graphics.Image;
 
@@ -26,6 +27,7 @@ public class FeedbackReport {
   private String feedbackText;
   private final String osDetails;
   private final String ideVersion;
+  private final Stats stats;
   private final String logContents;
   private final String productName;
   private final Image screenshotImage;
@@ -39,6 +41,7 @@ public class FeedbackReport {
         productName,
         FeedbackUtils.getOSName(),
         FeedbackUtils.getEditorVersionDetails(),
+        FeedbackUtils.getStats(),
         LogReader.readLogSafely(),
         screenshotImage);
   }
@@ -47,16 +50,18 @@ public class FeedbackReport {
    * Create a new feedback instance.
    * 
    * @param feedbackText the user feedback
-   * @param ideVersion IDE version
    * @param osDetails OS details
+   * @param ideVersion IDE version
+   * @param internalStats information about the current session or <code>null</code> if none
    * @param logContents system log contents
    */
   public FeedbackReport(String feedbackText, String productName, String osDetails,
-      String ideVersion, String logContents, Image screenshotImage) {
+      String ideVersion, Stats stats, String logContents, Image screenshotImage) {
     this.feedbackText = feedbackText;
     this.productName = productName;
     this.osDetails = osDetails;
     this.ideVersion = ideVersion;
+    this.stats = stats;
     this.logContents = logContents;
     this.screenshotImage = screenshotImage;
   }
@@ -94,6 +99,13 @@ public class FeedbackReport {
     }
 
     return msg.toString().trim();
+  }
+
+  /**
+   * Answer information about the current session or an empty string if none.
+   */
+  public String getStatsText() {
+    return stats != null ? stats.toString() : "";
   }
 
   /**
