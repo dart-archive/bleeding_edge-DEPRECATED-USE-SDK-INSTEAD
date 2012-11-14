@@ -63,7 +63,7 @@ public class CompilationUnitBuilder {
     unit.accept(builder);
 
     CompilationUnitElementImpl element = new CompilationUnitElementImpl(
-        compilationUnitSource.getFile().getName());
+        compilationUnitSource.getShortName());
     element.setAccessors(holder.getAccessors());
     element.setFields(holder.getFields());
     element.setFunctions(holder.getFunctions());

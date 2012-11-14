@@ -131,7 +131,7 @@ public class AnalysisError {
   public int hashCode() {
     int hashCode = offset;
     hashCode ^= (message != null) ? message.hashCode() : 0;
-    hashCode ^= (source != null) ? source.getFile().hashCode() : 0;
+    hashCode ^= (source != null) ? source.hashCode() : 0;
     return hashCode;
   }
 
@@ -147,7 +147,7 @@ public class AnalysisError {
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    builder.append((source != null) ? source.getFile().getAbsolutePath() : "<unknown source>");
+    builder.append((source != null) ? source.getFullName() : "<unknown source>");
     builder.append("(");
     builder.append(offset);
     builder.append("..");

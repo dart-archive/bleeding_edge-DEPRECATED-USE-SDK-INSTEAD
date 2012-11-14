@@ -14,6 +14,11 @@
 package com.google.dart.engine.source;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 
 /**
  * Instances of the class {@code SourceImpl} implement a basic source object.
@@ -34,6 +39,11 @@ public class SourceImpl implements Source {
    * A flag indicating whether this source is in one of the system libraries.
    */
   private boolean inSystemLibrary;
+
+  /**
+   * The character set used to decode bytes into characters.
+   */
+  private static final Charset UTF_8_CHARSET = Charset.forName("UTF-8");
 
   /**
    * Initialize a newly created source object. The source object is assumed to not be in a system
@@ -61,12 +71,46 @@ public class SourceImpl implements Source {
 
   @Override
   public boolean equals(Object object) {
-    return this.getClass() == object.getClass() && file.equals(((SourceImpl) object).getFile());
+    return this.getClass() == object.getClass() && file.equals(((SourceImpl) object).file);
   }
 
   @Override
-  public File getFile() {
-    return file;
+  public void getContents(ContentReceiver receiver) throws Exception {
+    RandomAccessFile file = new RandomAccessFile(this.file, "r");
+    FileChannel channel = null;
+    ByteBuffer byteBuffer = null;
+    try {
+      channel = file.getChannel();
+      long size = channel.size();
+      if (size > Integer.MAX_VALUE) {
+        throw new IllegalStateException("File is too long to be read");
+      }
+      int length = (int) size;
+      byte[] bytes = new byte[length];
+      byteBuffer = ByteBuffer.wrap(bytes);
+      byteBuffer.position(0);
+      byteBuffer.limit(length);
+      channel.read(byteBuffer);
+    } finally {
+      if (channel != null) {
+        try {
+          channel.close();
+        } catch (IOException exception) {
+          // Ignored
+        }
+      }
+    }
+    receiver.accept(UTF_8_CHARSET.decode(byteBuffer));
+  }
+
+  @Override
+  public String getFullName() {
+    return file.getAbsolutePath();
+  }
+
+  @Override
+  public String getShortName() {
+    return file.getName();
   }
 
   @Override
@@ -82,5 +126,15 @@ public class SourceImpl implements Source {
   @Override
   public Source resolve(String uri) {
     return factory.resolveUri(this, uri);
+  }
+
+  /**
+   * Return the file represented by this source. This is an internal method that is only intended to
+   * be used by {@link UriResolver}.
+   * 
+   * @return the file represented by this source
+   */
+  File getFile() {
+    return file;
   }
 }

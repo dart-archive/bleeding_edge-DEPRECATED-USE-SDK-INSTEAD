@@ -20,10 +20,11 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Reader;
+import java.io.StringReader;
+import java.nio.CharBuffer;
 
 /**
  * An error formatter that scans the source file and prints the error line and some context around
@@ -73,7 +74,20 @@ public class CommandLineErrorFormatter {
 
     BufferedReader reader = null;
     try {
-      Reader sourceReader = new FileReader(sourceFile.getFile());
+      final String[] fileContent = new String[1];
+      Source.ContentReceiver receiver = new Source.ContentReceiver() {
+        @Override
+        public void accept(CharBuffer contents) {
+          fileContent[0] = contents.toString();
+        }
+
+        @Override
+        public void accept(String contents) {
+          fileContent[0] = contents;
+        }
+      };
+      sourceFile.getContents(receiver);
+      Reader sourceReader = new StringReader(fileContent[0]);
       if (sourceReader != null) {
         reader = new BufferedReader(sourceReader);
       }
@@ -114,13 +128,13 @@ public class CommandLineErrorFormatter {
             escapePipe(event.getErrorCode().getErrorSeverity().toString()),
             escapePipe(event.getErrorCode().getSubSystem().toString()),
             escapePipe(event.getErrorCode().toString()),
-            escapePipe(sourceFile.getFile().getAbsolutePath()),
+            escapePipe(sourceFile.getFullName()),
             location.getLineNumber(),
             1 + col,
             length,
             escapePipe(event.getMessage())));
       } else {
-        String sourceName = sourceFile.getFile().getAbsolutePath();
+        String sourceName = sourceFile.getFullName();
         String includeFrom = getImportString(sourceFile);
         buf.append(String.format(
             "%s:%d: %s%s",
@@ -169,7 +183,7 @@ public class CommandLineErrorFormatter {
       }
 
       outputStream.print(buf.toString());
-    } catch (IOException ex) {
+    } catch (Exception exception) {
       plainFormat(event, lineInfo);
     } finally {
       if (reader != null) {
@@ -220,7 +234,7 @@ public class CommandLineErrorFormatter {
     String includeFrom = getImportString(sourceFile);
 
     if (sourceFile != null) {
-      sourceName = sourceFile.getFile().getAbsolutePath();
+      sourceName = sourceFile.getFullName();
     }
     LineInfo.Location location = lineInfo.getLocation(event.getOffset());
     outputStream.printf(

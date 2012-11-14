@@ -27,7 +27,7 @@ public class FileUriResolverTest extends TestCase {
     UriResolver resolver = new FileUriResolver();
     Source result = resolver.resolve(factory, null, new URI("file:/does/not/exist.dart"));
     assertNotNull(result);
-    assertEquals("/does/not/exist.dart", result.getFile().getAbsolutePath());
+    assertEquals("/does/not/exist.dart", result.getFullName());
   }
 
   public void test_resolve_nonFile() throws Exception {

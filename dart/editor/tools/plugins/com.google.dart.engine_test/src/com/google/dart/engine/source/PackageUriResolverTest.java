@@ -38,8 +38,6 @@ public class PackageUriResolverTest extends TestCase {
     UriResolver resolver = new PackageUriResolver(directory);
     Source result = resolver.resolve(factory, null, new URI("package:third/party/library.dart"));
     assertNotNull(result);
-    assertEquals(
-        "/does/not/exist/packages/third/party/library.dart",
-        result.getFile().getAbsolutePath());
+    assertEquals("/does/not/exist/packages/third/party/library.dart", result.getFullName());
   }
 }

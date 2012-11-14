@@ -20,7 +20,6 @@ import com.google.dart.engine.utilities.source.LineInfo;
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -317,7 +316,7 @@ public class GatheringErrorListener implements AnalysisErrorListener {
     } else if (secondSource == null) {
       return false;
     }
-    return firstSource.getFile().equals(secondSource.getFile());
+    return firstSource.equals(secondSource);
   }
 
   /**
@@ -335,14 +334,13 @@ public class GatheringErrorListener implements AnalysisErrorListener {
     writer.print(" errors:");
     for (AnalysisError error : expectedErrors) {
       Source source = error.getSource();
-      File file = source == null ? null : source.getFile();
       LineInfo lineInfo = lineInfoMap.get(source);
       writer.println();
       if (lineInfo == null) {
         int offset = error.getOffset();
         writer.printf(
             "  %s %s (%d..%d)",
-            file == null ? "" : file.getName(),
+            source == null ? "" : source.getShortName(),
             error.getErrorCode(),
             offset,
             offset + error.getLength());
@@ -350,7 +348,7 @@ public class GatheringErrorListener implements AnalysisErrorListener {
         LineInfo.Location location = lineInfo.getLocation(error.getOffset());
         writer.printf(
             "  %s %s (%d, %d/%d)",
-            source == null ? "" : source.getFile().getName(),
+            source == null ? "" : source.getShortName(),
             error.getErrorCode(),
             location.getLineNumber(),
             location.getColumnNumber(),
@@ -363,14 +361,13 @@ public class GatheringErrorListener implements AnalysisErrorListener {
     writer.print(" errors:");
     for (AnalysisError error : errors) {
       Source source = error.getSource();
-      File file = source == null ? null : source.getFile();
       LineInfo lineInfo = lineInfoMap.get(source);
       writer.println();
       if (lineInfo == null) {
         int offset = error.getOffset();
         writer.printf(
             "  %s %s (%d..%d): %s",
-            file == null ? "" : file.getName(),
+            source == null ? "" : source.getShortName(),
             error.getErrorCode(),
             offset,
             offset + error.getLength(),
@@ -379,7 +376,7 @@ public class GatheringErrorListener implements AnalysisErrorListener {
         LineInfo.Location location = lineInfo.getLocation(error.getOffset());
         writer.printf(
             "  %s %s (%d, %d/%d): %s",
-            source == null ? "" : source.getFile().getName(),
+            source == null ? "" : source.getShortName(),
             error.getErrorCode(),
             location.getLineNumber(),
             location.getColumnNumber(),

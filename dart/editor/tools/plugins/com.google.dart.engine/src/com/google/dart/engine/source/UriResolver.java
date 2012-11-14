@@ -66,11 +66,13 @@ public abstract class UriResolver {
    * @return a {@link Source source} representing the URI to which given URI was resolved
    */
   protected Source resolveRelative(SourceFactory factory, Source containingSource, URI containedUri) {
-    try {
-      URI resolvedUri = containingSource.getFile().toURI().resolve(containedUri).normalize();
-      return new SourceImpl(factory, new File(resolvedUri));
-    } catch (Exception exception) {
-      // Fall through to return null
+    if (containingSource instanceof SourceImpl) {
+      try {
+        URI resolvedUri = ((SourceImpl) containingSource).getFile().toURI().resolve(containedUri).normalize();
+        return new SourceImpl(factory, new File(resolvedUri));
+      } catch (Exception exception) {
+        // Fall through to return null
+      }
     }
     return null;
   }

@@ -27,8 +27,8 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceImpl;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -160,22 +160,7 @@ public class SdkLibrariesReader {
         foundError[0] = true;
       }
     };
-    Source source = new Source() {
-      @Override
-      public File getFile() {
-        return null;
-      }
-
-      @Override
-      public boolean isInSystemLibrary() {
-        return false;
-      }
-
-      @Override
-      public Source resolve(String uri) {
-        return null;
-      }
-    };
+    Source source = new SourceImpl(null, null, false);
     StringScanner scanner = new StringScanner(source, libraryFileContents, errorListener);
     Parser parser = new Parser(source, errorListener);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());

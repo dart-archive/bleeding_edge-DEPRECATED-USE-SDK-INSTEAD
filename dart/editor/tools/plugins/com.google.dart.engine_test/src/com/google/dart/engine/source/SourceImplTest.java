@@ -23,7 +23,7 @@ public class SourceImplTest extends TestCase {
     File file = new File("/does/not/exist.dart");
     SourceImpl source = new SourceImpl(factory, file);
     assertNotNull(source);
-    assertEquals(file, source.getFile());
+    assertEquals(file.getAbsolutePath(), source.getFullName());
     assertFalse(source.isInSystemLibrary());
   }
 
@@ -32,7 +32,7 @@ public class SourceImplTest extends TestCase {
     File file = new File("/does/not/exist.dart");
     SourceImpl source = new SourceImpl(factory, file, true);
     assertNotNull(source);
-    assertEquals(file, source.getFile());
+    assertEquals(file.getAbsolutePath(), source.getFullName());
     assertTrue(source.isInSystemLibrary());
   }
 }

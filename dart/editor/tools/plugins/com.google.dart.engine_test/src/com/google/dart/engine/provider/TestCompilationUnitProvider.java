@@ -64,7 +64,7 @@ public class TestCompilationUnitProvider implements CompilationUnitProvider {
     if (unit == null) {
       String contents = contentProvider.getSource(source);
       if (contents == null) {
-        Assert.fail("Could not get contents for " + source.getFile().getAbsolutePath());
+        Assert.fail("Could not get contents for " + source.getFullName());
       }
       //
       // Scan the file.

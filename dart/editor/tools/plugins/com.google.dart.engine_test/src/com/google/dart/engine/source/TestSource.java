@@ -13,15 +13,23 @@
  */
 package com.google.dart.engine.source;
 
-import java.io.File;
-
 /**
  * Instances of the class {@code TestSource} implement a source object that can be used for testing
  * purposes.
  */
 public class TestSource implements Source {
   @Override
-  public File getFile() {
+  public void getContents(ContentReceiver receiver) throws Exception {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public String getFullName() {
+    return null;
+  }
+
+  @Override
+  public String getShortName() {
     return null;
   }
 
