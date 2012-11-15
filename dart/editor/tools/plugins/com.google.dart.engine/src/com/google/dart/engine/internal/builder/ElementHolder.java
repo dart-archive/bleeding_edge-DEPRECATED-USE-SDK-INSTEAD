@@ -18,6 +18,7 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeElement;
@@ -38,7 +39,7 @@ public class ElementHolder {
   private ArrayList<LabelElement> labels = new ArrayList<LabelElement>();
   private ArrayList<MethodElement> methods = new ArrayList<MethodElement>();
   private ArrayList<TypeAliasElement> typeAliases = new ArrayList<TypeAliasElement>();
-  private VariableElement[] parameters = null;
+  private ArrayList<ParameterElement> parameters = new ArrayList<ParameterElement>();
   private ArrayList<TypeElement> types = new ArrayList<TypeElement>();
   private ArrayList<TypeVariableElement> typeVariables = new ArrayList<TypeVariableElement>();
   private ArrayList<VariableElement> variables = new ArrayList<VariableElement>();
@@ -72,6 +73,10 @@ public class ElementHolder {
 
   public void addMethod(MethodElement element) {
     methods.add(element);
+  }
+
+  public void addParameter(ParameterElement element) {
+    parameters.add(element);
   }
 
   public void addType(TypeElement element) {
@@ -123,8 +128,8 @@ public class ElementHolder {
     return methods.toArray(new MethodElement[methods.size()]);
   }
 
-  public VariableElement[] getParameters() {
-    return parameters;
+  public ParameterElement[] getParameters() {
+    return parameters.toArray(new ParameterElement[parameters.size()]);
   }
 
   public TypeAliasElement[] getTypeAliases() {
@@ -141,9 +146,5 @@ public class ElementHolder {
 
   public VariableElement[] getVariables() {
     return variables.toArray(new VariableElement[variables.size()]);
-  }
-
-  public void setParameters(VariableElement[] parameters) {
-    this.parameters = parameters;
   }
 }

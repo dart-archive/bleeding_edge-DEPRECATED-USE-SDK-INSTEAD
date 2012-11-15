@@ -17,17 +17,11 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.TypeElement;
-import com.google.dart.engine.type.Type;
 
 /**
  * Instances of the class {@code ConstructorElementImpl} implement a {@code ConstructorElement}.
  */
 public class ConstructorElementImpl extends ExecutableElementImpl implements ConstructorElement {
-  /**
-   * The type of the instances created by this constructor.
-   */
-  private Type constructedType;
-
   /**
    * An empty array of constructor elements.
    */
@@ -43,11 +37,6 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
   }
 
   @Override
-  public Type getConstructedType() {
-    return constructedType;
-  }
-
-  @Override
   public TypeElement getEnclosingElement() {
     return (TypeElement) super.getEnclosingElement();
   }
@@ -60,15 +49,6 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
   @Override
   public boolean isFactory() {
     return hasModifier(Modifier.FACTORY);
-  }
-
-  /**
-   * Set the type of the instances created by this constructor to the given type.
-   * 
-   * @param constructedType the type of the instances created by this constructor
-   */
-  public void setConstructedType(Type constructedType) {
-    this.constructedType = constructedType;
   }
 
   /**

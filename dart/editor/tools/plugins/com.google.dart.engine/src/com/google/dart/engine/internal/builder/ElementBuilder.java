@@ -20,7 +20,6 @@ import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
-import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
@@ -46,6 +45,7 @@ import com.google.dart.engine.internal.element.FieldElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
+import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.TypeAliasElementImpl;
 import com.google.dart.engine.internal.element.TypeElementImpl;
@@ -181,9 +181,10 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     }
 
     SimpleIdentifier parameterName = node.getParameter().getIdentifier();
-    VariableElementImpl parameter = new VariableElementImpl(parameterName);
+    ParameterElementImpl parameter = new ParameterElementImpl(parameterName);
+    parameter.setParameterKind(node.getKind());
     parameter.setInitializer(initializer);
-    currentHolder.addVariable(parameter);
+    currentHolder.addParameter(parameter);
     declaredElementMap.put(parameterName, parameter);
     return null;
   }
@@ -203,17 +204,10 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
     SimpleIdentifier parameterName = node.getIdentifier();
-    VariableElementImpl parameter = new VariableElementImpl(parameterName);
-    currentHolder.addVariable(parameter);
+    ParameterElementImpl parameter = new ParameterElementImpl(parameterName);
+    parameter.setParameterKind(node.getKind());
+    currentHolder.addParameter(parameter);
     declaredElementMap.put(parameterName, parameter);
-    return null;
-  }
-
-  @Override
-  public Void visitFormalParameterList(FormalParameterList node) {
-    ElementHolder holder = new ElementHolder();
-    visitChildren(holder, node);
-    currentHolder.setParameters(holder.getVariables());
     return null;
   }
 
@@ -257,8 +251,9 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     SimpleIdentifier parameterName = node.getIdentifier();
-    VariableElementImpl parameter = new VariableElementImpl(parameterName);
-    currentHolder.addVariable(parameter);
+    ParameterElementImpl parameter = new ParameterElementImpl(parameterName);
+    parameter.setParameterKind(node.getKind());
+    currentHolder.addParameter(parameter);
     declaredElementMap.put(parameterName, parameter);
     return null;
   }
@@ -283,8 +278,6 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     Token property = node.getPropertyKeyword();
     if (property == null) {
       Identifier methodName = node.getName();
-      // TODO(brianwilkerson) If the method is defining the unary minus operator, then the name
-      // needs to be mangled to "unary-" (I think).
       MethodElementImpl element = new MethodElementImpl(methodName);
       Token keyword = node.getModifierKeyword();
       element.setAbstract(matches(keyword, Keyword.ABSTRACT));
@@ -328,8 +321,9 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
     SimpleIdentifier parameterName = node.getIdentifier();
-    VariableElementImpl parameter = new VariableElementImpl(parameterName);
-    currentHolder.addVariable(parameter);
+    ParameterElementImpl parameter = new ParameterElementImpl(parameterName);
+    parameter.setParameterKind(node.getKind());
+    currentHolder.addParameter(parameter);
     declaredElementMap.put(parameterName, parameter);
     return null;
   }

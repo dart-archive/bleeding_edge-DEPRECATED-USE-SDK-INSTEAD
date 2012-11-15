@@ -16,7 +16,7 @@ package com.google.dart.engine.element;
 import com.google.dart.engine.type.FunctionType;
 
 /**
- * The interface {@code ExecutableElement} defines the behavior of elements representing a
+ * The interface {@code ExecutableElement} defines the behavior of elements representing an
  * executable object, including functions, methods, constructors, getters, and setters.
  */
 public interface ExecutableElement extends Element {
@@ -46,7 +46,7 @@ public interface ExecutableElement extends Element {
    * 
    * @return the parameters defined by this executable element
    */
-  public VariableElement[] getParameters();
+  public ParameterElement[] getParameters();
 
   /**
    * Return the type of function defined by this executable element.

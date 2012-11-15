@@ -83,7 +83,7 @@ public interface Element {
   public Annotation[] getMetadata();
 
   /**
-   * Return the name of this element.
+   * Return the name of this element, or {@code null} if this element does not have a name.
    * 
    * @return the name of this element
    */
@@ -91,7 +91,8 @@ public interface Element {
 
   /**
    * Return the offset of the name of this element in the file that contains the declaration of this
-   * element, or {@code -1} if this element is synthetic or otherwise does not have an offset.
+   * element, or {@code -1} if this element is synthetic, does not have a name, or otherwise does
+   * not have an offset.
    * 
    * @return the offset of the name of this element
    */

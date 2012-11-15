@@ -16,7 +16,7 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code PropertyAccessorElement} defines the behavior of elements representing a
  * getter or a setter. Note that explicitly defined property accessors implicitly define a synthetic
- * field.Symmetrically, synthetic accessors are implicitly created for explicitly defined fields.
+ * field. Symmetrically, synthetic accessors are implicitly created for explicitly defined fields.
  * The following rules apply:
  * <ul>
  * <li>Every explicit field is represented by a non-synthetic {@link FieldElement}.

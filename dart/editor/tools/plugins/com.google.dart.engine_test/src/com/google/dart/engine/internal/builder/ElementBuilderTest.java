@@ -36,12 +36,14 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import static com.google.dart.engine.ast.ASTFactory.block;
 import static com.google.dart.engine.ast.ASTFactory.blockFunctionBody;
@@ -333,16 +335,17 @@ public class ElementBuilderTest extends EngineTestCase {
     String parameterName = "p";
     FieldFormalParameter formalParameter = fieldFormalParameter(null, null, parameterName);
     formalParameter.accept(builder);
-    VariableElement[] parameters = holder.getVariables();
+    ParameterElement[] parameters = holder.getParameters();
     assertLength(1, parameters);
 
-    VariableElement parameter = parameters[0];
+    ParameterElement parameter = parameters[0];
     assertNotNull(parameter);
     assertEquals(parameterName, parameter.getName());
     assertNull(parameter.getInitializer());
     assertFalse(parameter.isConst());
     assertFalse(parameter.isFinal());
     assertFalse(parameter.isSynthetic());
+    assertEquals(ParameterKind.REQUIRED, parameter.getParameterKind());
   }
 
   public void test_visitFormalParameterList() {
@@ -354,7 +357,7 @@ public class ElementBuilderTest extends EngineTestCase {
         simpleFormalParameter(firstParameterName),
         simpleFormalParameter(secondParameterName));
     parameterList.accept(builder);
-    VariableElement[] parameters = holder.getParameters();
+    ParameterElement[] parameters = holder.getParameters();
     assertLength(2, parameters);
 
     assertEquals(firstParameterName, parameters[0].getName());
@@ -387,16 +390,17 @@ public class ElementBuilderTest extends EngineTestCase {
     String parameterName = "p";
     FunctionTypedFormalParameter formalParameter = functionTypedFormalParameter(null, parameterName);
     formalParameter.accept(builder);
-    VariableElement[] parameters = holder.getVariables();
+    ParameterElement[] parameters = holder.getParameters();
     assertLength(1, parameters);
 
-    VariableElement parameter = parameters[0];
+    ParameterElement parameter = parameters[0];
     assertNotNull(parameter);
     assertEquals(parameterName, parameter.getName());
     assertNull(parameter.getInitializer());
     assertFalse(parameter.isConst());
     assertFalse(parameter.isFinal());
     assertFalse(parameter.isSynthetic());
+    assertEquals(ParameterKind.REQUIRED, parameter.getParameterKind());
   }
 
   public void test_visitLabeledStatement() {
@@ -655,15 +659,16 @@ public class ElementBuilderTest extends EngineTestCase {
         simpleFormalParameter(parameterName),
         identifier("b"));
     formalParameter.accept(builder);
-    VariableElement[] parameters = holder.getVariables();
+    ParameterElement[] parameters = holder.getParameters();
     assertLength(1, parameters);
 
-    VariableElement parameter = parameters[0];
+    ParameterElement parameter = parameters[0];
     assertNotNull(parameter);
     assertEquals(parameterName, parameter.getName());
     assertFalse(parameter.isConst());
     assertFalse(parameter.isFinal());
     assertFalse(parameter.isSynthetic());
+    assertEquals(ParameterKind.NAMED, parameter.getParameterKind());
     FunctionElement initializer = parameter.getInitializer();
     assertNotNull(initializer);
     assertTrue(initializer.isSynthetic());
@@ -675,16 +680,17 @@ public class ElementBuilderTest extends EngineTestCase {
     String parameterName = "p";
     SimpleFormalParameter formalParameter = simpleFormalParameter(parameterName);
     formalParameter.accept(builder);
-    VariableElement[] parameters = holder.getVariables();
+    ParameterElement[] parameters = holder.getParameters();
     assertLength(1, parameters);
 
-    VariableElement parameter = parameters[0];
+    ParameterElement parameter = parameters[0];
     assertNotNull(parameter);
     assertEquals(parameterName, parameter.getName());
     assertNull(parameter.getInitializer());
     assertFalse(parameter.isConst());
     assertFalse(parameter.isFinal());
     assertFalse(parameter.isSynthetic());
+    assertEquals(ParameterKind.REQUIRED, parameter.getParameterKind());
   }
 
   public void test_visitTypeAlias_minimal() {

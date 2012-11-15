@@ -13,16 +13,17 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.utilities.dart.ParameterKind;
+
 /**
- * The interface {@code Annotation} defines the behavior of objects representing a single annotation
- * associated with an element.
+ * The interface {@code ParameterElement} defines the behavior of elements representing a parameter
+ * defined within an executable element.
  */
-public interface Annotation {
+public interface ParameterElement extends VariableElement {
   /**
-   * Return the element representing the field, variable, or const constructor being used as an
-   * annotation.
+   * Return the kind of this parameter.
    * 
-   * @return the field, variable, or constructor being used as an annotation
+   * @return the kind of this parameter
    */
-  public Element getElement();
+  public ParameterKind getParameterKind();
 }

@@ -27,8 +27,8 @@ public interface MethodElement extends ExecutableElement {
   public TypeElement getEnclosingElement();
 
   /**
-   * Return {@code true} if this method is abstract. Methods are abstract if they have been marked
-   * as being abstract using the {@code abstract} modifier.
+   * Return {@code true} if this method is abstract. Methods are abstract if they are not external
+   * and have no body.
    * 
    * @return {@code true} if this method is abstract
    */

@@ -13,22 +13,11 @@
  */
 package com.google.dart.engine.element;
 
-import com.google.dart.engine.type.Type;
-
 /**
  * The interface {@code ConstructorElement} defines the behavior of elements representing a
  * constructor or a factory method defined within a type.
  */
 public interface ConstructorElement extends ExecutableElement {
-  /**
-   * Return the type of the instances created by this constructor. Note that a constructor in a
-   * class may be a default implementation of an interface's constructor, in which case this will
-   * return the type of the interface.
-   * 
-   * @return the type of the instances created by this constructor
-   */
-  public Type getConstructedType();
-
   /**
    * Return the type in which this constructor is defined.
    * 

@@ -25,6 +25,7 @@ public enum ElementKind {
   LABEL,
   LIBRARY,
   METHOD,
+  PARAMETER,
   PREFIX,
   SETTER,
   TYPE,
