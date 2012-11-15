@@ -53,6 +53,7 @@ public class DartLaunchConfigWrapper {
   private static final String CONNECTION_PORT = "connectionPort";
 
   private static final String PROJECT_NAME = "projectName";
+  private static final String WORKING_DIRECTORY = "workingDirectory";
 
   private static final String LAST_LAUNCH_TIME = "launchTime";
 
@@ -294,6 +295,19 @@ public class DartLaunchConfigWrapper {
   }
 
   /**
+   * @return the cwd for command-line launches
+   */
+  public String getWorkingDirectory() {
+    try {
+      return launchConfig.getAttribute(WORKING_DIRECTORY, "");
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return "";
+    }
+  }
+
+  /**
    * Indicate that this launch configuration was just launched.
    */
   public void markAsLaunched() {
@@ -387,6 +401,10 @@ public class DartLaunchConfigWrapper {
 
   public void setUseWebComponents(boolean value) {
     getWorkingCopy().setAttribute(DARTIUM_USE_WEB_COMPONENTS, value);
+  }
+
+  public void setWorkingDirectory(String value) {
+    getWorkingCopy().setAttribute(WORKING_DIRECTORY, value);
   }
 
   protected ILaunchConfigurationWorkingCopy getWorkingCopy() {
