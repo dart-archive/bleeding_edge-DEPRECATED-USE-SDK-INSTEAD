@@ -89,14 +89,18 @@ public class OpenFolderDialog extends TitleAreaDialog {
     setTitle(DialogMessages.OpenFolderDialog_message);
     setMessage(DialogMessages.OpenFolderDialog_description);
     createFolderBrowseRow(composite);
-    createRunPubMessage(parent);
+    if (!DartCore.isWindowsXp()) {
+      createRunPubMessage(parent);
+    }
     return composite;
   }
 
   @Override
   protected void okPressed() {
     folderLocation = text.getText().trim();
-    runpub = runPubButton.getSelection();
+    if (runPubButton != null) {
+      runpub = runPubButton.getSelection();
+    }
     super.okPressed();
   }
 
@@ -132,7 +136,9 @@ public class OpenFolderDialog extends TitleAreaDialog {
             }
           }
           okButton.setEnabled(nonWhitespaceFound);
-          setCheckBoxState();
+          if (!DartCore.isWindowsXp()) {
+            setCheckBoxState();
+          }
         }
       }
     });

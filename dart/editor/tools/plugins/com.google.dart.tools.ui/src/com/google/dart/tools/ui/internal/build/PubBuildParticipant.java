@@ -40,26 +40,28 @@ public class PubBuildParticipant implements DartBuildParticipant {
   public void build(int kind, Map<String, String> args, IResourceDelta delta,
       final IProgressMonitor monitor) throws CoreException {
 
-    // check if pubspec has changed, if so invoke pub install
-    if (delta != null && delta.getKind() == IResourceDelta.CHANGED) {
+    if (!DartCore.isWindowsXp()) {
+      // check if pubspec has changed, if so invoke pub install
+      if (delta != null && delta.getKind() == IResourceDelta.CHANGED) {
 
-      delta.accept(new IResourceDeltaVisitor() {
-        @Override
-        public boolean visit(IResourceDelta delta) {
-          final IResource resource = delta.getResource();
-          if (resource.getType() != IResource.FILE) {
-            return true;
-          }
-          // TODO(keertip): optimize for just changes in dependencies
-          if (resource.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
-            if (PlatformUI.getWorkbench().getWorkbenchWindows().length > 0) {
-              runPubAction(resource);
+        delta.accept(new IResourceDeltaVisitor() {
+          @Override
+          public boolean visit(IResourceDelta delta) {
+            final IResource resource = delta.getResource();
+            if (resource.getType() != IResource.FILE) {
+              return true;
             }
-            monitor.done();
+            // TODO(keertip): optimize for just changes in dependencies
+            if (resource.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
+              if (PlatformUI.getWorkbench().getWorkbenchWindows().length > 0) {
+                runPubAction(resource);
+              }
+              monitor.done();
+            }
+            return false;
           }
-          return false;
-        }
-      });
+        });
+      }
     }
   }
 

@@ -167,10 +167,6 @@ public class RunPubAction extends SelectionDispatchAction {
 
   @Override
   public void run(ISelection selection) {
-    if (DartCore.isWindowsXp()) {
-      printNotSupportedMessage();
-      return;
-    }
     if (selection instanceof ITextSelection) {
       IWorkbenchPage page = DartToolsPlugin.getActivePage();
       if (page != null) {
@@ -191,10 +187,6 @@ public class RunPubAction extends SelectionDispatchAction {
 
   @Override
   public void run(IStructuredSelection selection) {
-    if (DartCore.isWindowsXp()) {
-      printNotSupportedMessage();
-      return;
-    }
     if (!selection.isEmpty() && selection.getFirstElement() instanceof IResource) {
       Object object = selection.getFirstElement();
       if (object instanceof IFile) {
@@ -207,15 +199,6 @@ public class RunPubAction extends SelectionDispatchAction {
           ActionMessages.RunPubAction_fail,
           ActionMessages.RunPubAction_fileNotFound);
     }
-  }
-
-  private void printNotSupportedMessage() {
-    DartCore.getConsole().clear();
-    DartCore.getConsole().println(
-        NLS.bind(
-            ActionMessages.RunPubAction_jobFail,
-            command,
-            "Pub does not support Windows XP platform"));
   }
 
   private void runPubJob(IResource resource) {
