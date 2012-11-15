@@ -2,14 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * An HTML-based prototype implementation for GL.
- */
-library gl_html;
+import 'gl_driver.dart';
+import 'raytrace.dart';
 
-import 'dart:html';
-export 'dart:html' show WebGLRenderingContext;
-export 'dart:html' show Float32Array;
-
-WebGLRenderingContext gl;
-
+main() => glMain(setup, resize, draw);

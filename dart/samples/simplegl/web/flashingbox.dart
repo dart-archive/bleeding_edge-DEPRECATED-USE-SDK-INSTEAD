@@ -5,7 +5,7 @@
 /**
  * A sample GL application.
  */
-library simplegl;
+library flashingbox;
 
 import 'gl.dart';
 
@@ -16,19 +16,23 @@ num b;
 /**
  * Invoked on initial startup.
  */
-void setup(GlContext gl) {
+void setup() {
   r = 0;
   g = 0;
   b = 0;
 }
 
+void resize(int width, int height) {
+  gl.viewport(0, 0, width, height);
+}
+
 /**
  * Invoked on each frame render.
  */
-void draw(GlContext gl) {
+void draw() {
   gl.clearColor(r, g, b, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT |
-      gl.DEPTH_BUFFER_BIT);
+  gl.clear(WebGLRenderingContext.COLOR_BUFFER_BIT |
+       WebGLRenderingContext.DEPTH_BUFFER_BIT);
   r = r + 0.1;
   if (r > 1) {
     r = 0;

@@ -4,29 +4,14 @@
  * BSD-style license that can be found in the LICENSE file.
  */
 
-body {
-  background-color: #F8F8F8;
-  font-family: 'Open Sans', sans-serif;
-  font-size: 14px;
-  font-weight: normal;
-  line-height: 1.2em;
-  margin: 15px;
+*
+{
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
 }
 
-p {
-  color: #333;
-}
-
-#container {
-  width: 100%;
-  height: 400px;
-  position: relative;
-  border: 1px solid #ccc;
-  background-color: #fff;
-}
-
-#text {
-  font-size: 24pt;
-  text-align: center;
-  margin-top: 140px;
+#canvas {
+    background-color: blue;
+    vertical-align: top;
 }
