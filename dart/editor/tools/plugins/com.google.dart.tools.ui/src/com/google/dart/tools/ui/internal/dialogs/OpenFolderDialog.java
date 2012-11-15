@@ -193,7 +193,6 @@ public class OpenFolderDialog extends TitleAreaDialog {
       runPubButton.setSelection(false);
       runPubButton.setEnabled(false);
     } else {
-      runPubButton.setSelection(true);
       runPubButton.setEnabled(true);
     }
   }
