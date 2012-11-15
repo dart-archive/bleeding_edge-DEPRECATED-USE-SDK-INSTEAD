@@ -212,7 +212,9 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   public void display(IConsole inConsole) {
     if (this.console != null) {
       this.console.removePropertyChangeListener(this);
-      getPreferences().removePropertyChangeListener((ProcessConsole) this.console);//in,out,err
+      if (console instanceof ProcessConsole) {
+        getPreferences().removePropertyChangeListener((ProcessConsole) this.console);//in,out,err
+      }
       this.console = null;
     }
 
@@ -227,7 +229,9 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     // show the new console
     if (this.console != null) {
       this.console.addPropertyChangeListener(this);
-      getPreferences().addPropertyChangeListener((ProcessConsole) this.console);
+      if (console instanceof ProcessConsole) {
+        getPreferences().addPropertyChangeListener((ProcessConsole) this.console);
+      }
       page = console.createPage(this);
 
       try {
