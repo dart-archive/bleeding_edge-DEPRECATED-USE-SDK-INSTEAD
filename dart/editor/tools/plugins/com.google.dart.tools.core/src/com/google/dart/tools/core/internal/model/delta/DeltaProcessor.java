@@ -362,15 +362,6 @@ public class DeltaProcessor implements IDeltaProcessor {
   }
 
   /**
-   * Check if contents of packages directory has changed, if so update project info
-   */
-  private void checkForPackageChanges(IResource deltaRes) {
-    if (deltaRes instanceof IFolder && DartCore.isPackagesDirectory((IFolder) deltaRes)) {
-      ((DartProjectImpl) DartCore.create(deltaRes.getProject())).recomputePackageInfo();
-    }
-  }
-
-  /**
    * Closes the given element, which removes it from the cache of open elements.
    */
   private void close(DartElementImpl element) {
@@ -430,6 +421,7 @@ public class DeltaProcessor implements IDeltaProcessor {
         }
 
         // if the element is null, then this must be a new dart file, create a new DartLibrary
+        // TODO(keertip): revisit, not necessarily true in all cases
         if (element == null && resource instanceof IFile) {
           DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(resource.getProject());
           element = new DartLibraryImpl(dartProject, (IFile) resource);
@@ -937,6 +929,23 @@ public class DeltaProcessor implements IDeltaProcessor {
   }
 
   /**
+   * Returns <code>true</code> if the packages directory has been added or removed from the project,
+   * and the project info has to be reset. If there is a change in the packages directory, then
+   * package information has to be recomputed.
+   */
+  private boolean resetForPackagesChange(IResource deltaRes, int deltaKind) {
+    if (deltaRes instanceof IFolder && DartCore.isPackagesDirectory((IFolder) deltaRes)) {
+      if (deltaKind == DeltaProcessorDelta.CHANGED) {
+        ((DartProjectImpl) DartCore.create(deltaRes.getProject())).recomputePackageInfo();
+      } else {
+        resetThisProjectCache((DartProjectImpl) DartCore.create(deltaRes.getProject()));
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * This is called by the {@link DeltaProcessor} when some Dart project has been changed.
    * <p>
    * Since the user cannot directly delete, open or close the dart projects, this is currently only
@@ -1044,10 +1053,11 @@ public class DeltaProcessor implements IDeltaProcessor {
     }
     OpenableElementImpl element;
 
-    checkForPackageChanges(deltaRes);
-
     switch (delta.getKind()) {
       case DeltaProcessorDelta.ADDED:
+        if (resetForPackagesChange(deltaRes, delta.getKind())) {
+          return true;
+        }
         element = createElement(deltaRes, elementType);
         if (DartCore.isHTMLLikeFileName(deltaRes.getName())) {
           buildStructure = updateHtmlMapping(deltaRes);
@@ -1071,6 +1081,9 @@ public class DeltaProcessor implements IDeltaProcessor {
 //        }
         return false;
       case DeltaProcessorDelta.REMOVED:
+        if (resetForPackagesChange(deltaRes, delta.getKind())) {
+          return false;
+        }
         element = createElement(deltaRes, elementType);
         if (element == null) {
           return true;
@@ -1098,6 +1111,7 @@ public class DeltaProcessor implements IDeltaProcessor {
         return false;
 
       case DeltaProcessorDelta.CHANGED:
+        resetForPackagesChange(deltaRes, delta.getKind());
         int flags = delta.getFlags();
         if ((flags & DeltaProcessorDelta.CONTENT) != 0
             || (flags & DeltaProcessorDelta.ENCODING) != 0) {

@@ -671,10 +671,10 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
   }
 
   public void resetCaches() {
-    clearLibraryInfo();
-    DartProjectInfo info = (DartProjectInfo) DartModelManager.getInstance().peekAtInfo(this);
-    if (info != null) {
-      info.resetCaches();
+    try {
+      DartModelManager.getInstance().removeInfoAndChildren(this);
+    } catch (DartModelException e) {
+      DartCore.logError("Failed to clear project cache for project " + getElementName());
     }
   }
 

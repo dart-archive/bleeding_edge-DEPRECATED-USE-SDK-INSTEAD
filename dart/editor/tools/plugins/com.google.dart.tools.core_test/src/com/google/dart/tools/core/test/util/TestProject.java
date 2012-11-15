@@ -151,9 +151,12 @@ public class TestProject {
     }
     // we need to close, because in the other case DelteProcessor for some reason closes it,
     // but at the time when we create (!!!) new project
+
     try {
       if (project.exists()) {
-        project.close(null);
+        // Removed the close, this was causing test failures -test_DartModelImpl_getUnreferencedLibraries(),
+        // test_HTMLFileImpl_getElementInfo
+        // project.close(null);
       }
     } catch (Throwable e) {
     }

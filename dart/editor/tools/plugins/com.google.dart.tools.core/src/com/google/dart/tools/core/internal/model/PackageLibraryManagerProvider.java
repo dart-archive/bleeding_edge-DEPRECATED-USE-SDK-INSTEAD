@@ -19,8 +19,6 @@ import com.google.dart.compiler.SystemLibrary;
 import com.google.dart.compiler.SystemLibraryProvider;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.Context;
-import com.google.dart.tools.core.analysis.SavedContext;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
@@ -141,13 +139,14 @@ public class PackageLibraryManagerProvider {
    * Return the default library manager.
    */
   public static PackageLibraryManager getPackageLibraryManager(File file) {
-    SavedContext savedContext = getDefaultAnalysisServer().getSavedContext();
-    Context context = savedContext.getSuggestedContext(file);
-    if (context != null) {
-      return context.getLibraryManager();
-    } else {
-      return getAnyLibraryManager();
+    File appDir = DartCore.getApplicationDirectory(file);
+    if (appDir != null) {
+      PackageLibraryManager libraryManager = new PackageLibraryManager();
+      File packagesDir = new File(appDir, DartCore.PACKAGES_DIRECTORY_NAME);
+      libraryManager.setPackageRoots(Lists.newArrayList(packagesDir));
+      return libraryManager;
     }
+    return getAnyLibraryManager();
   }
 
   /**
