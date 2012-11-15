@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.omni;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.omni.elements.FileProvider;
 import com.google.dart.tools.ui.omni.elements.HeaderElement;
 import com.google.dart.tools.ui.omni.elements.TextSearchProvider;
@@ -372,7 +373,6 @@ public class OmniBoxPopup extends BasePopupDialog {
     /*
      * Since the control is unfocused, we need to hijack paint events and draw our own selections.
      */
-    final Color selectionColor = parent.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION);
     table.addListener(SWT.EraseItem, new Listener() {
       @Override
       public void handleEvent(Event event) {
@@ -392,12 +392,17 @@ public class OmniBoxPopup extends BasePopupDialog {
           }
         }
 
+        final Color selectionBackColor = getSelectionBackground();
+        final Color selectionForeColor = getSelectionForeground();
         int clientWidth = table.getClientArea().width;
         GC gc = event.gc;
         Color oldBackground = gc.getBackground();
-        gc.setBackground(selectionColor);
+        Color oldForeground = gc.getForeground();
+        gc.setBackground(selectionBackColor);
+        gc.setForeground(selectionForeColor);
         gc.fillRectangle(new Rectangle(0, event.y, clientWidth, event.height));
         gc.setBackground(oldBackground);
+        gc.setForeground(oldForeground);
         event.detail &= ~SWT.SELECTED;
       }
     });
@@ -534,13 +539,15 @@ public class OmniBoxPopup extends BasePopupDialog {
         }
       });
     }
-
     return composite;
   }
 
   @Override
   protected Color getBackground() {
-    return OmniBoxColors.SEARCH_RESULT_BACKGROUND;
+    Color color = DartUI.getViewerBackground(
+        DartToolsPlugin.getDefault().getCombinedPreferenceStore(),
+        Display.getDefault());
+    return color == null ? OmniBoxColors.SEARCH_RESULT_BACKGROUND : color;
   }
 
   @Override
@@ -583,6 +590,14 @@ public class OmniBoxPopup extends BasePopupDialog {
 //    return filterText;
   }
 
+  @Override
+  protected Color getForeground() {
+    Color color = DartUI.getViewerForeground(
+        DartToolsPlugin.getDefault().getCombinedPreferenceStore(),
+        Display.getDefault());
+    return color == null ? super.getForeground() : color;
+  }
+
   protected String getId() {
     return getClass().getName();
   }
@@ -596,6 +611,20 @@ public class OmniBoxPopup extends BasePopupDialog {
       }
     }
     return invokingCommandKeySequences;
+  }
+
+  protected Color getSelectionBackground() {
+    Color color = DartUI.getViewerSelectionBackground(
+        DartToolsPlugin.getDefault().getCombinedPreferenceStore(),
+        Display.getDefault());
+    return color == null ? Display.getDefault().getSystemColor(SWT.COLOR_LIST_SELECTION) : color;
+  }
+
+  protected Color getSelectionForeground() {
+    Color color = DartUI.getViewerSelectionForeground(
+        DartToolsPlugin.getDefault().getCombinedPreferenceStore(),
+        Display.getDefault());
+    return color == null ? super.getForeground() : color;
   }
 
   protected void handleElementSelected(String text, OmniElement selectedElement) {

@@ -502,14 +502,14 @@ public final class DartUI {
 
   public static Color getViewerBackground(IPreferenceStore prefs, Display display) {
     // TODO(messick) Use a color identifier distinct from the editor.
-    return prefs.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND_SYSTEM_DEFAULT) ? null
-        : createColor(prefs, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND, display);
+    return prefs.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND_SYSTEM_DEFAULT) ? null
+        : createColor(prefs, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND, display);
   }
 
   public static Color getViewerForeground(IPreferenceStore prefs, Display display) {
     // TODO(messick) Use a color identifier distinct from the editor.
-    return prefs.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND_SYSTEM_DEFAULT) ? null
-        : createColor(prefs, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND, display);
+    return prefs.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND_SYSTEM_DEFAULT) ? null
+        : createColor(prefs, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND, display);
   }
 
   public static Color getViewerSelectionBackground(IPreferenceStore prefs, Display display) {

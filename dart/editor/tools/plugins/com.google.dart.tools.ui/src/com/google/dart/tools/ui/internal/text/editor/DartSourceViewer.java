@@ -569,6 +569,9 @@ public class DartSourceViewer extends ProjectionViewer implements IPropertyChang
               AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND,
               styledText.getDisplay());
       styledText.setBackground(color);
+      for (IVerticalRulerColumn column : rulers) {
+        column.getControl().setBackground(color);
+      }
 
       if (fBackgroundColor != null) {
         fBackgroundColor.dispose();

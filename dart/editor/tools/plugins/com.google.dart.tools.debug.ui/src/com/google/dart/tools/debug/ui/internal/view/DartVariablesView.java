@@ -13,12 +13,10 @@
  */
 package com.google.dart.tools.debug.ui.internal.view;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.util.IDartDebugVariable;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
-import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.debug.internal.ui.viewers.model.provisional.TreeModelViewer;
@@ -39,11 +37,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.ui.editors.text.EditorsUI;
-import org.eclipse.ui.texteditor.ChainedPreferenceStore;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This custom subclass of the debugger VariablesView allows us to customize the actions that the
@@ -99,7 +92,7 @@ public class DartVariablesView extends VariablesView {
 
   @Override
   public TreeModelViewer createViewer(Composite parent) {
-    preferences = createCombinedPreferences();
+    preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     final TreeModelViewer treeViewer = (TreeModelViewer) super.createViewer(parent);
     this.treeViewer = treeViewer;
     treeViewer.getTree().setBackgroundMode(SWT.INHERIT_FORCE);
@@ -133,6 +126,12 @@ public class DartVariablesView extends VariablesView {
   @Override
   public boolean isVisible() {
     return visible;
+  }
+
+  @Override
+  public void refreshDetailPaneContents() {
+    super.refreshDetailPaneContents();
+    SWTUtil.setColors(getDetailsText(), getPreferences());
   }
 
   @Override
@@ -199,15 +198,6 @@ public class DartVariablesView extends VariablesView {
     treeViewer.getTree().setFont(font);
     StyledText detailsText = getDetailsText();
     detailsText.setFont(font);
-  }
-
-  @SuppressWarnings("deprecation")
-  private IPreferenceStore createCombinedPreferences() {
-    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
-    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
-    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
-    stores.add(EditorsUI.getPreferenceStore());
-    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {

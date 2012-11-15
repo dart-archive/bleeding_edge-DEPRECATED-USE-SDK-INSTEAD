@@ -14,11 +14,9 @@
 
 package com.google.dart.tools.ui.console;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.deploy.Activator;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
-import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.debug.core.DebugException;
@@ -43,15 +41,10 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.IOConsole;
 import org.eclipse.ui.console.MessageConsole;
-import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.part.IPageBookViewPage;
 import org.eclipse.ui.part.PageSite;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
-import org.eclipse.ui.texteditor.ChainedPreferenceStore;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * An Eclipse view class that displays one and only one IConsole. This is different from the normal
@@ -191,7 +184,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   @Override
   public void createPartControl(Composite parent) {
     this.parent = parent;
-    preferences = createCombinedPreferences();
+    preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
 
     IToolBarManager toolbar = getViewSite().getActionBars().getToolBarManager();
     clearAction = new ClearAction();
@@ -377,15 +370,6 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     if (!getViewSite().getPage().isPartVisible(this)) {
       getViewSite().getPage().activate(this);
     }
-  }
-
-  @SuppressWarnings("deprecation")
-  private IPreferenceStore createCombinedPreferences() {
-    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
-    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
-    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
-    stores.add(EditorsUI.getPreferenceStore());
-    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {

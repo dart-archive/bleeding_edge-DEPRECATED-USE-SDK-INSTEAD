@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.appsview;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -30,7 +29,6 @@ import com.google.dart.tools.ui.internal.filesview.LinkWithEditorAction;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
-import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.commands.operations.IUndoContext;
@@ -72,14 +70,12 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.operations.UndoRedoActionGroup;
 import org.eclipse.ui.part.ISetSelectionTarget;
 import org.eclipse.ui.part.PluginTransfer;
 import org.eclipse.ui.part.ResourceTransfer;
 import org.eclipse.ui.part.ViewPart;
-import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -161,7 +157,7 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
 
   @Override
   public void createPartControl(Composite parent) {
-    preferences = createCombinedPreferences();
+    preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new AppsViewContentProvider());
     appLabelProvider = new AppLabelProvider(treeViewer.getTree().getFont());
@@ -424,15 +420,6 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
 
   TreeViewer getViewer() {
     return treeViewer;
-  }
-
-  @SuppressWarnings("deprecation")
-  private IPreferenceStore createCombinedPreferences() {
-    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
-    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
-    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
-    stores.add(EditorsUI.getPreferenceStore());
-    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {

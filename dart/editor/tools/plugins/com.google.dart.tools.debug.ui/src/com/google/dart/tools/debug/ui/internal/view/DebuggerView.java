@@ -13,13 +13,11 @@
  */
 package com.google.dart.tools.debug.ui.internal.view;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
-import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.runtime.CoreException;
@@ -56,11 +54,6 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.editors.text.EditorsUI;
-import org.eclipse.ui.texteditor.ChainedPreferenceStore;
-
-import java.util.ArrayList;
-import java.util.List;
 
 // see LaunchView
 // see VariablesView
@@ -251,7 +244,7 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
 
   @Override
   protected TreeModelViewer createViewer(Composite parent) {
-    preferences = createCombinedPreferences();
+    preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     final TreeModelViewer treeViewer = (TreeModelViewer) super.createViewer(parent);
     this.treeViewer = treeViewer;
     treeViewer.getTree().setBackgroundMode(SWT.INHERIT_FORCE);
@@ -285,15 +278,6 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     Font oldFont = treeViewer.getTree().getFont();
     Font font = SWTUtil.changeFontSize(oldFont, newFont);
     treeViewer.getTree().setFont(font);
-  }
-
-  @SuppressWarnings("deprecation")
-  private IPreferenceStore createCombinedPreferences() {
-    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
-    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
-    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
-    stores.add(EditorsUI.getPreferenceStore());
-    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {

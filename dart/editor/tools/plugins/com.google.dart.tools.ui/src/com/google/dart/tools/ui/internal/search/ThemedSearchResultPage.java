@@ -13,11 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.search;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.search.ui.text.AbstractTextSearchViewPage;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
-import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -31,11 +29,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.ui.editors.text.EditorsUI;
-import org.eclipse.ui.texteditor.ChainedPreferenceStore;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Abstract search results page that handles updates for font and color changes.
@@ -67,12 +60,12 @@ abstract public class ThemedSearchResultPage extends AbstractTextSearchViewPage 
   };
 
   protected ThemedSearchResultPage() {
-    preferences = createCombinedPreferences();
+    preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
   }
 
   protected ThemedSearchResultPage(int supportedLayouts) {
     super(supportedLayouts);
-    preferences = createCombinedPreferences();
+    preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
   }
 
   @Override
@@ -141,15 +134,6 @@ abstract public class ThemedSearchResultPage extends AbstractTextSearchViewPage 
     Font oldFont = treeViewer.getTree().getFont();
     Font font = SWTUtil.changeFontSize(oldFont, newFont);
     treeViewer.getTree().setFont(font);
-  }
-
-  @SuppressWarnings("deprecation")
-  private IPreferenceStore createCombinedPreferences() {
-    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
-    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
-    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
-    stores.add(EditorsUI.getPreferenceStore());
-    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {

@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.callhierarchy;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.SearchScope;
@@ -33,7 +32,6 @@ import com.google.dart.tools.ui.internal.callhierarchy.RealCallers;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.CompositeActionGroup;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
-import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.DartUIHelp;
 import com.google.dart.tools.ui.internal.util.SelectionUtil;
 import com.google.dart.tools.ui.internal.viewsupport.SelectionProviderMediator;
@@ -49,7 +47,9 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.OpenStrategy;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -63,9 +63,11 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionBars;
@@ -84,14 +86,12 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionContext;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.ActionGroup;
-import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.part.IShowInSource;
 import org.eclipse.ui.part.IShowInTargetList;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ShowInContext;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
-import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import java.util.ArrayList;
@@ -235,6 +235,12 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
   private boolean isPinned;
   private PinCallHierarchyViewAction pinViewAction;
   private IPreferenceStore preferences;
+  private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      doPropertyChange(event);
+    }
+  };
 
   public CallHierarchyViewPart() {
     super();
@@ -245,7 +251,7 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
   @Override
   public void createPartControl(Composite parent) {
     this.parent = parent;
-    preferences = createCombinedPreferences();
+    preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     addResizeListener(parent);
     pagebook = new PageBook(parent, SWT.NONE);
 
@@ -256,7 +262,8 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
 
     // Page 2: Nothing selected
     noHierarchyShownLabel = new Label(pagebook, SWT.TOP + SWT.LEFT + SWT.WRAP);
-    noHierarchyShownLabel.setText(CallHierarchyMessages.CallHierarchyViewPart_empty); //
+    noHierarchyShownLabel.setText(CallHierarchyMessages.CallHierarchyViewPart_empty);
+    updateColors(noHierarchyShownLabel);
 
     showPage(PAGE_EMPTY);
 
@@ -294,6 +301,7 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
     }
     restoreSplitterRatio();
     addPartListener();
+    preferences.addPropertyChangeListener(propertyChangeListener);
     callHierarchyViewer.updateColors();
     locationViewer.updateColors();
   }
@@ -314,6 +322,10 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
     }
     callHierarchyViewer.dispose();
     locationViewer.dispose();
+    if (propertyChangeListener != null) {
+      preferences.removePropertyChangeListener(propertyChangeListener);
+      propertyChangeListener = null;
+    }
     super.dispose();
   }
 
@@ -936,15 +948,6 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
     callHierarchyViewer.addSelectionChangedListener(this);
   }
 
-  @SuppressWarnings("deprecation")
-  private IPreferenceStore createCombinedPreferences() {
-    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
-    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
-    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
-    stores.add(EditorsUI.getPreferenceStore());
-    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
-  }
-
   private void createHierarchyLocationSplitter(Composite parent) {
     hierarchyLocationSplitter = new SashForm(parent, SWT.NONE);
   }
@@ -957,6 +960,10 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
         fillLocationViewerContextMenu(menu);
       }
     }, ID_CALL_HIERARCHY, getSite());
+  }
+
+  private void doPropertyChange(PropertyChangeEvent event) {
+    updateColors(noHierarchyShownLabel);
   }
 
   private void fillActionBars() {
@@ -1330,6 +1337,24 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
     for (int i = 0; i < toggleOrientationActions.length; i++) {
       toggleOrientationActions[i].setChecked(orientation == toggleOrientationActions[i].getOrientation());
     }
+  }
+
+  private void updateColors(Control control) {
+    Display display = control.getDisplay();
+    Color color = DartUI.getEditorForeground(
+        DartToolsPlugin.getDefault().getCombinedPreferenceStore(),
+        display);
+    if (color == null) {
+      color = display.getSystemColor(SWT.COLOR_INFO_FOREGROUND);
+    }
+    control.setForeground(color);
+    color = DartUI.getEditorBackground(
+        DartToolsPlugin.getDefault().getCombinedPreferenceStore(),
+        display);
+    if (color == null) {
+      color = display.getSystemColor(SWT.COLOR_INFO_BACKGROUND);
+    }
+    control.setBackground(color);
   }
 
   private void updateHistoryEntries() {

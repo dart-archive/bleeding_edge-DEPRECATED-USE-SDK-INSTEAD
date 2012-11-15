@@ -14,13 +14,13 @@
 
 package com.google.dart.tools.debug.ui.internal.view;
 
-import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
-import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.debug.internal.ui.viewers.model.provisional.TreeModelViewer;
+import org.eclipse.debug.internal.ui.views.variables.details.DetailPaneProxy;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.JFaceResources;
@@ -34,11 +34,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.editors.text.EditorsUI;
-import org.eclipse.ui.texteditor.ChainedPreferenceStore;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A debugger breakpoints view.
@@ -106,6 +101,12 @@ public class BreakpointsView extends
   }
 
   @Override
+  public void refreshDetailPaneContents() {
+    super.refreshDetailPaneContents();
+    SWTUtil.setColors(getDetails(), getPreferences());
+  }
+
+  @Override
   protected void configureToolBar(IToolBarManager manager) {
     removeAllBreakpointsAction = new RemoveAllBreakpointsAction();
 
@@ -115,7 +116,7 @@ public class BreakpointsView extends
 
   @Override
   protected TreeModelViewer createTreeViewer(Composite parent) {
-    preferences = createCombinedPreferences();
+    preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     final TreeModelViewer treeViewer = super.createTreeViewer(parent);
     this.treeViewer = treeViewer;
     treeViewer.getTree().setBackgroundMode(SWT.INHERIT_FORCE);
@@ -143,18 +144,16 @@ public class BreakpointsView extends
     treeViewer.getTree().setFont(font);
   }
 
-  @SuppressWarnings("deprecation")
-  private IPreferenceStore createCombinedPreferences() {
-    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
-    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
-    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
-    stores.add(EditorsUI.getPreferenceStore());
-    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
-  }
-
   private void doPropertyChange(PropertyChangeEvent event) {
     updateColors();
     treeViewer.refresh(false);
+  }
+
+  private Composite getDetails() {
+    // Warning: fragile code!
+    DetailPaneProxy detailProxy = ReflectionUtils.getFieldObject(this, "fDetailPane");
+    Composite text = ReflectionUtils.getFieldObject(detailProxy, "fCurrentControl");
+    return text;
   }
 
   private IPreferenceStore getPreferences() {

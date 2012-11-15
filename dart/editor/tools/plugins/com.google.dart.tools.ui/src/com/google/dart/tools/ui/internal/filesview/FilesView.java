@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -30,7 +29,6 @@ import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
-import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.commands.operations.IUndoContext;
@@ -77,14 +75,12 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.MoveResourceAction;
 import org.eclipse.ui.actions.RenameResourceAction;
-import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.operations.UndoRedoActionGroup;
 import org.eclipse.ui.part.ISetSelectionTarget;
 import org.eclipse.ui.part.PluginTransfer;
 import org.eclipse.ui.part.ResourceTransfer;
 import org.eclipse.ui.part.ViewPart;
-import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 import org.eclipse.ui.views.navigator.LocalSelectionTransfer;
 
 import java.util.ArrayList;
@@ -192,7 +188,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   @Override
   public void createPartControl(Composite parent) {
-    preferences = createCombinedPreferences();
+    preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new ResourceContentProvider());
     resourceLabelProvider = new ResourceLabelProvider();
@@ -517,14 +513,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   TreeViewer getViewer() {
     return treeViewer;
-  }
-
-  private IPreferenceStore createCombinedPreferences() {
-    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
-    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
-    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
-    stores.add(EditorsUI.getPreferenceStore());
-    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {
