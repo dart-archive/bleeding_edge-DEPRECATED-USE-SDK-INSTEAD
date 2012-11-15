@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 
 /**
  * Instances of the class {@code DefaultFormalParameter} represent a formal parameter with a default

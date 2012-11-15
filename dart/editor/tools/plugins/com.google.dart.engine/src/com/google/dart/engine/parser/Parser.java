@@ -27,6 +27,7 @@ import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -2116,27 +2117,27 @@ public class Parser {
    *          delimiters
    * @return the formal parameter that was parsed
    */
-  private FormalParameter parseFormalParameter(FormalParameter.ParameterKind kind) {
+  private FormalParameter parseFormalParameter(ParameterKind kind) {
     NormalFormalParameter parameter = parseNormalFormalParameter();
     if (matches(TokenType.EQ)) {
       Token seperator = getAndAdvance();
       Expression defaultValue = parseExpression();
-      if (kind == FormalParameter.ParameterKind.NAMED) {
+      if (kind == ParameterKind.NAMED) {
         reportError(ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER, seperator);
-      } else if (kind == FormalParameter.ParameterKind.REQUIRED) {
+      } else if (kind == ParameterKind.REQUIRED) {
         reportError(ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter);
       }
       return new DefaultFormalParameter(parameter, kind, seperator, defaultValue);
     } else if (matches(TokenType.COLON)) {
       Token seperator = getAndAdvance();
       Expression defaultValue = parseExpression();
-      if (kind == FormalParameter.ParameterKind.POSITIONAL) {
+      if (kind == ParameterKind.POSITIONAL) {
         reportError(ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, seperator);
-      } else if (kind == FormalParameter.ParameterKind.REQUIRED) {
+      } else if (kind == ParameterKind.REQUIRED) {
         reportError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter);
       }
       return new DefaultFormalParameter(parameter, kind, seperator, defaultValue);
-    } else if (kind != FormalParameter.ParameterKind.REQUIRED) {
+    } else if (kind != ParameterKind.REQUIRED) {
       return new DefaultFormalParameter(parameter, kind, null, null);
     }
     return parameter;
@@ -2188,7 +2189,7 @@ public class Parser {
     Token leftCurlyBracket = null;
     Token rightCurlyBracket = null;
 
-    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.REQUIRED;
+    ParameterKind kind = ParameterKind.REQUIRED;
     boolean firstParameter = true;
     boolean reportedMuliplePositionalGroups = false;
     boolean reportedMulipleNamedGroups = false;
@@ -2214,7 +2215,7 @@ public class Parser {
         }
         leftSquareBracket = getAndAdvance();
         currentParameters = positionalParameters;
-        kind = FormalParameter.ParameterKind.POSITIONAL;
+        kind = ParameterKind.POSITIONAL;
       } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
         if (leftCurlyBracket != null && !reportedMulipleNamedGroups) {
           reportError(ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS);
@@ -2226,7 +2227,7 @@ public class Parser {
         }
         leftCurlyBracket = getAndAdvance();
         currentParameters = namedParameters;
-        kind = FormalParameter.ParameterKind.NAMED;
+        kind = ParameterKind.NAMED;
       }
       //
       // Parse and record the parameter.
@@ -2244,14 +2245,14 @@ public class Parser {
         if (leftSquareBracket == null) {
           // reportError(ParserErrorCode.);
         }
-        kind = FormalParameter.ParameterKind.REQUIRED;
+        kind = ParameterKind.REQUIRED;
       } else if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
         rightCurlyBracket = getAndAdvance();
         currentParameters = normalParameters;
         if (leftCurlyBracket == null) {
           // reportError(ParserErrorCode.);
         }
-        kind = FormalParameter.ParameterKind.REQUIRED;
+        kind = ParameterKind.REQUIRED;
       }
     } while (!matches(TokenType.CLOSE_PAREN));
     Token rightParenthesis = expect(TokenType.CLOSE_PAREN);

@@ -15,6 +15,7 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import static com.google.dart.engine.scanner.TokenFactory.token;
 
@@ -658,7 +659,7 @@ public final class ASTFactory {
       Expression expression) {
     return new DefaultFormalParameter(
         parameter,
-        FormalParameter.ParameterKind.NAMED,
+        ParameterKind.NAMED,
         expression == null ? null : token(TokenType.COLON),
         expression);
   }
@@ -706,7 +707,7 @@ public final class ASTFactory {
       Expression expression) {
     return new DefaultFormalParameter(
         parameter,
-        FormalParameter.ParameterKind.POSITIONAL,
+        ParameterKind.POSITIONAL,
         expression == null ? null : token(TokenType.EQ),
         expression);
   }

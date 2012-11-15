@@ -50,7 +50,6 @@ import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
-import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionDeclarationStatement;
@@ -123,6 +122,7 @@ import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import junit.framework.AssertionFailedError;
 
@@ -2040,10 +2040,10 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFormalParameter_final_withType_named() throws Exception {
-    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.NAMED;
+    ParameterKind kind = ParameterKind.NAMED;
     DefaultFormalParameter parameter = parse(
         "parseFormalParameter",
-        new Class[] {FormalParameter.ParameterKind.class},
+        new Class[] {ParameterKind.class},
         new Object[] {kind},
         "final A a : null");
     SimpleFormalParameter simpleParameter = (SimpleFormalParameter) parameter.getParameter();
@@ -2057,10 +2057,10 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFormalParameter_final_withType_normal() throws Exception {
-    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.REQUIRED;
+    ParameterKind kind = ParameterKind.REQUIRED;
     SimpleFormalParameter parameter = parse(
         "parseFormalParameter",
-        new Class[] {FormalParameter.ParameterKind.class},
+        new Class[] {ParameterKind.class},
         new Object[] {kind},
         "final A a");
     assertNotNull(parameter.getIdentifier());
@@ -2070,10 +2070,10 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFormalParameter_final_withType_positional() throws Exception {
-    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.POSITIONAL;
+    ParameterKind kind = ParameterKind.POSITIONAL;
     DefaultFormalParameter parameter = parse(
         "parseFormalParameter",
-        new Class[] {FormalParameter.ParameterKind.class},
+        new Class[] {ParameterKind.class},
         new Object[] {kind},
         "final A a = null");
     SimpleFormalParameter simpleParameter = (SimpleFormalParameter) parameter.getParameter();
@@ -2087,10 +2087,10 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFormalParameter_nonFinal_withType_named() throws Exception {
-    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.NAMED;
+    ParameterKind kind = ParameterKind.NAMED;
     DefaultFormalParameter parameter = parse(
         "parseFormalParameter",
-        new Class[] {FormalParameter.ParameterKind.class},
+        new Class[] {ParameterKind.class},
         new Object[] {kind},
         "A a : null");
     SimpleFormalParameter simpleParameter = (SimpleFormalParameter) parameter.getParameter();
@@ -2104,10 +2104,10 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFormalParameter_nonFinal_withType_normal() throws Exception {
-    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.REQUIRED;
+    ParameterKind kind = ParameterKind.REQUIRED;
     SimpleFormalParameter parameter = parse(
         "parseFormalParameter",
-        new Class[] {FormalParameter.ParameterKind.class},
+        new Class[] {ParameterKind.class},
         new Object[] {kind},
         "A a");
     assertNotNull(parameter.getIdentifier());
@@ -2117,10 +2117,10 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFormalParameter_nonFinal_withType_positional() throws Exception {
-    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.POSITIONAL;
+    ParameterKind kind = ParameterKind.POSITIONAL;
     DefaultFormalParameter parameter = parse(
         "parseFormalParameter",
-        new Class[] {FormalParameter.ParameterKind.class},
+        new Class[] {ParameterKind.class},
         new Object[] {kind},
         "A a = null");
     SimpleFormalParameter simpleParameter = (SimpleFormalParameter) parameter.getParameter();
@@ -2134,10 +2134,10 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFormalParameter_var() throws Exception {
-    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.REQUIRED;
+    ParameterKind kind = ParameterKind.REQUIRED;
     SimpleFormalParameter parameter = parse(
         "parseFormalParameter",
-        new Class[] {FormalParameter.ParameterKind.class},
+        new Class[] {ParameterKind.class},
         new Object[] {kind},
         "var a");
     assertNotNull(parameter.getIdentifier());
@@ -2147,10 +2147,10 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFormalParameter_var_named() throws Exception {
-    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.NAMED;
+    ParameterKind kind = ParameterKind.NAMED;
     DefaultFormalParameter parameter = parse(
         "parseFormalParameter",
-        new Class[] {FormalParameter.ParameterKind.class},
+        new Class[] {ParameterKind.class},
         new Object[] {kind},
         "var a : null");
     SimpleFormalParameter simpleParameter = (SimpleFormalParameter) parameter.getParameter();
@@ -2164,10 +2164,10 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFormalParameter_var_positional() throws Exception {
-    FormalParameter.ParameterKind kind = FormalParameter.ParameterKind.POSITIONAL;
+    ParameterKind kind = ParameterKind.POSITIONAL;
     DefaultFormalParameter parameter = parse(
         "parseFormalParameter",
-        new Class[] {FormalParameter.ParameterKind.class},
+        new Class[] {ParameterKind.class},
         new Object[] {kind},
         "var a = null");
     SimpleFormalParameter simpleParameter = (SimpleFormalParameter) parameter.getParameter();

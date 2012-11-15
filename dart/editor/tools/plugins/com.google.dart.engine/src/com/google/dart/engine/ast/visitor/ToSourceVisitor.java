@@ -15,6 +15,7 @@ package com.google.dart.engine.ast.visitor;
 
 import com.google.dart.engine.ast.*;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.io.PrintWriter;
 
@@ -344,7 +345,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
         writer.print(", ");
       }
       if (groupEnd == null && parameter instanceof DefaultFormalParameter) {
-        if (parameter.getKind() == FormalParameter.ParameterKind.NAMED) {
+        if (parameter.getKind() == ParameterKind.NAMED) {
           groupEnd = "}";
           writer.print('{');
         } else {

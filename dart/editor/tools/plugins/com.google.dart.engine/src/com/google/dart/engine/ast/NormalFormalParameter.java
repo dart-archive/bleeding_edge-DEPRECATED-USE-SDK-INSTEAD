@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.utilities.dart.ParameterKind;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
