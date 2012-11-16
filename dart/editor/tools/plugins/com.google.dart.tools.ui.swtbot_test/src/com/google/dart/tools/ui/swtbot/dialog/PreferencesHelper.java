@@ -49,13 +49,11 @@ public class PreferencesHelper {
 
   public void assertDefaultPreferencesSelected() {
     SWTBotCheckBox lineNumbersCheckBox = bot.checkBoxInGroup("Show line numbers", "General");
-    SWTBotCheckBox printMarginCheckBox = bot.checkBoxInGroup(
-        "Show print margin at column:",
-        "General");
+    SWTBotCheckBox printMarginCheckBox = bot.checkBoxInGroup("Show print margin", "General");
     SWTBotText printMarginText = bot.text(1);
     SWTBotCheckBox removeWhitespaceCheckBox = bot.checkBoxInGroup(
-        "Remove trailing whitespace on save",
-        "General");
+        "Remove trailing whitespace",
+        "Save actions");
 
     assertNotNull(lineNumbersCheckBox);
     assertFalse(lineNumbersCheckBox.isChecked());

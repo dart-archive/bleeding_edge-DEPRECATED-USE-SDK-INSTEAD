@@ -38,7 +38,7 @@ import java.util.Collection;
  */
 public class FilesViewHelper {
 
-  public static String SDK_TEXT = "SDK Libraries";
+  public static String SDK_TEXT = "Dart SDK";
 
   public static String CLOSE_FOLDER_TEXT = "Close Folder";
   public static String RUN_TEXT = "Run";

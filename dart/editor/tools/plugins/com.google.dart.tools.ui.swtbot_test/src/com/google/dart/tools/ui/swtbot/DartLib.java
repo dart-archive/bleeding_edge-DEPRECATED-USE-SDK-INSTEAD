@@ -40,13 +40,16 @@ import java.util.List;
  * Represents a Dart library
  */
 public class DartLib {
+
   public static final DartLib CLOCK_SAMPLE = new DartLib("clock", "Clock");
   public static final DartLib SLIDER_SAMPLE = new DartLib("slider", "slider_sample");
+  public static final DartLib SOLAR_SAMPLE = new DartLib("solar", "solar");
+  public static final DartLib SOLAR_3D_SAMPLE = new DartLib("solar3d", "solar3d");
+  public static final DartLib SWIPE_SAMPLE = new DartLib("swipe", "swipe");
   public static final DartLib SUNFLOWER_SAMPLE = new DartLib("sunflower", "Sunflower");
   public static final DartLib TIME_SERVER_SAMPLE = new DartLib("time", "time_server");
-  public static final DartLib TOTAL_SAMPLE = new DartLib("total", "client/Total".replace(
-      '/',
-      File.separatorChar));
+  public static final DartLib TODO_MVC_SAMPLE = new DartLib("todomvc", "todomvc");
+
   public static DartLib[] allSamples;
 
   private static IPath dartTrunk;
@@ -73,7 +76,8 @@ public class DartLib {
   public static DartLib[] getAllSamples() {
     if (allSamples == null) {
       allSamples = new DartLib[] {
-          CLOCK_SAMPLE, SLIDER_SAMPLE, SUNFLOWER_SAMPLE, TIME_SERVER_SAMPLE, TOTAL_SAMPLE};
+          CLOCK_SAMPLE, SOLAR_SAMPLE, SOLAR_3D_SAMPLE, SUNFLOWER_SAMPLE, SWIPE_SAMPLE,
+          TIME_SERVER_SAMPLE, TODO_MVC_SAMPLE};
       List<String> libDirs = Arrays.asList("chat", "lib", "ui_lib");
 
       // Assert that all samples are included
