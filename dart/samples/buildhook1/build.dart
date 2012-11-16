@@ -22,7 +22,7 @@ void main() {
 }
 
 void _processFile(String file) {
-  String contents = new File(file).readAsTextSync();
+  String contents = new File(file).readAsStringSync();
 
   if (contents != null) {
     OutputStream out = new File("${file}bar").openOutputStream();

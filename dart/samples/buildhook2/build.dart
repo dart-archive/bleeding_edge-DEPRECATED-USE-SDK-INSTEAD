@@ -99,7 +99,7 @@ void _processFile(String arg) {
 
     File file = new File(arg);
 
-    String contents = file.readAsTextSync();
+    String contents = file.readAsStringSync();
 
     File outFile = new File("${arg}bar");
 

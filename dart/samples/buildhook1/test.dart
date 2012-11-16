@@ -19,7 +19,7 @@ void printContents(String file) {
   var f = new File(file);
 
   if (f.existsSync()) {
-    String contents = new File(file).readAsTextSync();
+    String contents = new File(file).readAsStringSync();
 
     print("[${contents}]");
   } else {
