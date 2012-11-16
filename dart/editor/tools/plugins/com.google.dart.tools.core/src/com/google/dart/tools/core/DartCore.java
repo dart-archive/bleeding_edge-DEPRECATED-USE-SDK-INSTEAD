@@ -14,6 +14,8 @@
 package com.google.dart.tools.core;
 
 import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
@@ -1172,7 +1174,32 @@ public class DartCore extends Plugin implements DartSdkListener {
   @Override
   public void start(BundleContext context) throws Exception {
     super.start(context);
+    AnalysisEngine.getInstance().setLogger(new Logger() {
+      @Override
+      public void logError(String message) {
+        DartCore.logError(message);
+      }
 
+      @Override
+      public void logError(String message, Throwable exception) {
+        DartCore.logError(message, exception);
+      }
+
+      @Override
+      public void logError(Throwable exception) {
+        DartCore.logError(exception);
+      }
+
+      @Override
+      public void logInformation(String message) {
+        DartCore.logInformation(message);
+      }
+
+      @Override
+      public void logInformation(String message, Throwable exception) {
+        DartCore.logInformation(message, exception);
+      }
+    });
     DartSdkManager.getManager().addSdkListener(this);
   }
 
