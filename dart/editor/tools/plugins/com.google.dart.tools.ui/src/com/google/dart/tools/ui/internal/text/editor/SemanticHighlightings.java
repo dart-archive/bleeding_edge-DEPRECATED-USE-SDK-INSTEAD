@@ -909,9 +909,9 @@ public class SemanticHighlightings {
   public static final String TOP_LEVEL_MEMBER = "topLevelMember"; //$NON-NLS-1$
 
   /**
-   * A named preference part that controls the highlighting of build-in identifiers.
+   * A named preference part that controls the highlighting of built-in identifiers.
    */
-  public static final String BUILT_IN = "built_in"; //$NON-NLS-1$
+  public static final String BUILT_IN = "builtin"; //$NON-NLS-1$
 
   /**
    * A named preference part that controls the highlighting of directives.

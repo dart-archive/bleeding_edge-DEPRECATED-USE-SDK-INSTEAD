@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<colorTheme id="-1" name="Hot Pink" modified="2011-01-26 17:47:43" author="KS">
+    <class color="#000030" />
+    <deprecatedMember color="#000000" />
+    <directive color="#FF4040" />
+    <dynamicType color="#FF4040" />
+    <getter color="#0200C0" />
+    <setter color="#00002C0" />
+    <field color="#0000C0" />
+    <localVariable color="#F000F0" />
+    <localVariableDeclaration color="#802C45" />
+    <methodDeclaration color="#8000FF" />
+    <method color="#2BA6E8" />
+    <number color="#008000" />
+    <parameterVariable color="#D7721E" />
+    <staticField color="#0000C0" />
+    <staticMethod color="#2BA6E8" bold="true" />
+    <staticMethodDeclaration color="#8000FF" bold="true" />
+    <builtin color="#7e0854" />
+    <keyword color="#7e0854" bold="true" />
+    <keywordReturn color="#800390" bold="true" />
+    <singleLineComment color="#417e60" />
+    <multiLineComment color="#417e60" />
+    <commentTaskTag color="#417e60" />
+    <javadoc color="#4162bc" />
+    <javadocLink color="#4162bc" />
+    <javadocTag color="#4162bc" />
+    <javadocKeyword color="#CC9393" />
+    <string color="#585545" />
+    <multiLineString color="#585545" />
+    <annotation color="#808080" />
+    <staticFinalField color="#464646" />
+    <operator color="#5f97a9" />
+    <background color="#FFFFFF" />
+    <foreground color="#000000" />
+    <selectionBackground color="#c0c0c0" />
+    <selectionForeground color="#FFFFFF" />
+    <searchResultIndication color="#CC6633" />
+    <filteredSearchResultIndication color="#CC6633" />
+    <occurrenceIndication color="#CC6633" />
+    <writeOccurrenceIndication color="#CC6633" />
+    <findScope color="#BCADAD" />
+    <deletionIndication color="#9b5656" />
+    <sourceHoverBackground color="#EEEEEE" />
+    <bracket color="#000f6a" />
+    <inheritedMethod color="#2c577c" />
+    <typeArgument color="#d07fcd" />
+    <typeParameter color="#d07fcd" />
+    <constant color="#ae25ab" />
+    <currentLine color="#fff7cd" />
+    <lineNumber color="#999999" />
+</colorTheme>

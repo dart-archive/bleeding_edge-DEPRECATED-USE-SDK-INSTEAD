@@ -563,6 +563,12 @@
       <theme
             file="themes/retta.xml">
       </theme>
+      <theme
+            file="themes/hotpink.xml">
+      </theme>
+      <theme
+            file="themes/debugging.xml">
+      </theme>
    </extension>
 
 </plugin>

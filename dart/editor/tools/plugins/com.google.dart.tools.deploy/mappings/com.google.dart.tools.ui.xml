@@ -10,7 +10,7 @@
         <mapping pluginKey="dart_multiline_string" themeKey="multiLineString" /> <!-- new -->
         <mapping pluginKey="dart_bracket" themeKey="bracket" /> 
         <mapping pluginKey="dart_operator" themeKey="operator" /> 
-        <mapping pluginKey="dart_keyword_return" themeKey="keyword" /> 
+        <mapping pluginKey="dart_keyword_return" themeKey="keywordReturn" /> 
         <mapping pluginKey="dart_keyword" themeKey="keyword" /> 
         <mapping pluginKey="dart_doc_default" themeKey="javadoc" /> 
         <mapping pluginKey="dart_doc_link" themeKey="javadocLink" /> 
@@ -31,16 +31,15 @@
     </mappings> 
     <semanticHighlightingMappings> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.number" themeKey="number" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.directive" themeKey="directive" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.class" themeKey="class" /> 
-        <semanticHighlightingMapping pluginKey="semanticHighlighting.interface" themeKey="interface" /> 
-        <semanticHighlightingMapping pluginKey="semanticHighlighting.enum" themeKey="enum" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.method" themeKey="method" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.methodDeclarationName" themeKey="methodDeclaration" />
-        <semanticHighlightingMapping pluginKey="semanticHighlighting.staticMethodInvocation" themeKey="staticMethod" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.staticMethodDeclarationName" themeKey="staticMethodDeclaration" />
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.staticMethod" themeKey="staticMethod" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.annotation" themeKey="annotation" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.localVariable" themeKey="localVariable" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.inheritedMethodInvocation" themeKey="inheritedMethod" /> 
-        <semanticHighlightingMapping pluginKey="semanticHighlighting.abstractMethodInvocation" themeKey="abstractMethod" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.localVariableDeclaration" themeKey="localVariableDeclaration" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.typeArgument" themeKey="typeArgument" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.typeParameter" themeKey="typeParameter" /> 
@@ -48,6 +47,10 @@
         <semanticHighlightingMapping pluginKey="semanticHighlighting.field" themeKey="field" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.staticField" themeKey="staticField" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.staticFinalField" themeKey="staticFinalField" /> 
-        <semanticHighlightingMapping pluginKey="semanticHighlighting.deprecatedMember" themeKey="deprecatedMember" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.deprecated" themeKey="deprecatedMember" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.dynamicType" themeKey="dynamicType" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.getterDeclaration" themeKey="getter" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.setterDeclaration" themeKey="setter" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.builtin" themeKey="builtin" /> 
     </semanticHighlightingMappings> 
 </eclipseColorThemeMapping> 
