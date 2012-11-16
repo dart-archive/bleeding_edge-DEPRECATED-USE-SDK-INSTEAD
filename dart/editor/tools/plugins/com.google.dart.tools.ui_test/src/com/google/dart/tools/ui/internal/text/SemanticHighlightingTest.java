@@ -160,6 +160,16 @@ public class SemanticHighlightingTest extends AbstractDartTest {
     assertHasWordPosition(SemanticHighlightings.BUILT_IN, "get value => 0;");
   }
 
+  public void test_builtIn_get_method_withReturnType() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int get value => 0;",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "get value => 0;");
+  }
+
   public void test_builtIn_get_variableName() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -199,6 +209,16 @@ public class SemanticHighlightingTest extends AbstractDartTest {
     assertHasWordPosition(SemanticHighlightings.BUILT_IN, "operator +(other) => 0;");
   }
 
+  public void test_builtIn_operator_method_withReturnType() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int operator +(other) => 0;",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "operator +(other) => 0;");
+  }
+
   public void test_builtIn_operator_variableName() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -219,6 +239,16 @@ public class SemanticHighlightingTest extends AbstractDartTest {
     assertHasWordPosition(SemanticHighlightings.BUILT_IN, "set value(x)");
   }
 
+  public void test_builtIn_set_method_withReturnType() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  void set value(x) {}",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "set value(x)");
+  }
+
   public void test_builtIn_set_variableName() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -227,6 +257,16 @@ public class SemanticHighlightingTest extends AbstractDartTest {
         "}",
         "");
     assertNoWordPosition(SemanticHighlightings.BUILT_IN, "set = 0;");
+  }
+
+  public void test_builtIn_static_field() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static f = 0;",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "static f =");
   }
 
   public void test_builtIn_static_method() throws Exception {

@@ -20,6 +20,7 @@ import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartExportDirective;
 import com.google.dart.compiler.ast.DartField;
+import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
@@ -40,6 +41,7 @@ import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.NodeElement;
+import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.utilities.ast.DynamicTypesFinder;
@@ -89,7 +91,7 @@ public class SemanticHighlightings {
       DartNode node = token.getNode();
       // typedef
       if (node instanceof DartFunctionTypeAlias) {
-        addPosition(token, "typedef");
+        addStartPosition(token, "typedef");
       }
       // as
       if (node instanceof DartBinaryExpression) {
@@ -100,29 +102,37 @@ public class SemanticHighlightings {
               "as".length()));
         }
       }
+      // field modifiers
+      if (node instanceof DartFieldDefinition) {
+        DartFieldDefinition fieldDef = (DartFieldDefinition) node;
+        List<DartField> fields = fieldDef.getFields();
+        if (!fields.isEmpty() && fields.get(0).getModifiers().isStatic()) {
+          addStartPosition(token, "static");
+        }
+      }
       // method modifiers
       if (node instanceof DartMethodDefinition) {
         DartMethodDefinition method = (DartMethodDefinition) node;
         if (method.getModifiers().isAbstract()) {
-          addPosition(token, "abstract");
+          addStartPosition(token, "abstract");
         }
         if (method.getModifiers().isExternal()) {
-          addPosition(token, "external");
+          addStartPosition(token, "external");
         }
         if (method.getModifiers().isFactory()) {
-          addPosition(token, "factory");
+          addStartPosition(token, "factory");
         }
         if (method.getModifiers().isGetter()) {
-          addPosition(token, "get");
+          addMethodModifierPosition(token, method, "get");
         }
         if (method.getModifiers().isOperator()) {
-          addPosition(token, "operator");
+          addMethodModifierPosition(token, method, "operator");
         }
         if (method.getModifiers().isSetter()) {
-          addPosition(token, "set");
+          addMethodModifierPosition(token, method, "set");
         }
         if (method.getModifiers().isStatic()) {
-          addPosition(token, "static");
+          addStartPosition(token, "static");
         }
       }
       // implements
@@ -162,16 +172,51 @@ public class SemanticHighlightings {
       return true;
     }
 
-    private void addPosition(SemanticToken token, String str) {
+    /**
+     * Attempts to find special method modifier position - "get", "set" or "operator", which can be
+     * not right at the start of the method, but after optional return type.
+     */
+    private void addMethodModifierPosition(SemanticToken token, DartMethodDefinition method,
+        String modifierName) {
+      String source = token.getSource();
+      int offset = method.getSourceInfo().getOffset();
+      // skip return type
+      DartTypeNode returnType = method.getFunction().getReturnTypeNode();
+      if (returnType != null) {
+        int typeOffset = returnType.getSourceInfo().getEnd() - offset;
+        offset += typeOffset;
+        source = source.substring(typeOffset);
+      }
+      // skip whitespace
+      {
+        String trimSource = StringUtils.stripStart(source, null);
+        offset += source.length() - trimSource.length();
+        source = trimSource;
+      }
+      // find modifier
+      int index = source.indexOf(modifierName);
+      if (index == 0) {
+        addPosition(offset, modifierName.length());
+      }
+    }
+
+    private void addPosition(int start, int length) {
+      if (result == null) {
+        result = Lists.newArrayList();
+      }
+      result.add(SourceRangeFactory.forStartLength(start, length));
+    }
+
+    /**
+     * Adds position of token source has <code>str</code> exactly at the start.
+     */
+    private void addStartPosition(SemanticToken token, String str) {
       DartNode node = token.getNode();
       int index = token.getSource().indexOf(str);
       if (index == 0) {
         int start = node.getSourceInfo().getOffset() + index;
         int length = str.length();
-        if (result == null) {
-          result = Lists.newArrayList();
-        }
-        result.add(SourceRangeFactory.forStartLength(start, length));
+        addPosition(start, length);
       }
     }
   }

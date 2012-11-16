@@ -29,12 +29,12 @@ public final class SemanticToken {
   private IDocument document;
 
   /**
-   * Attach source to this token (in case the AST is insufficient).
+   * Attach {@link IDocument} to this token (in case the AST is insufficient).
    * 
    * @param the source
    */
-  public void attachSource(IDocument source) {
-    this.document = source;
+  public void attachSource(IDocument document) {
+    this.document = document;
   }
 
   /**
