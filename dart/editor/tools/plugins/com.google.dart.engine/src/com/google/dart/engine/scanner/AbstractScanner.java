@@ -38,13 +38,6 @@ public abstract class AbstractScanner {
   private final Source source;
 
   /**
-   * The offset from the beginning of the file to the beginning of the source being scanned. This
-   * will normally be zero (0) except in cases where the source is embedded in a larger context,
-   * such as Dart scripts within an HTML document.
-   */
-  private int offsetDelta;
-
-  /**
    * The error listener that will be informed of any errors that are found during the scan.
    */
   private AnalysisErrorListener errorListener;
@@ -99,13 +92,10 @@ public abstract class AbstractScanner {
    * Initialize a newly created scanner.
    * 
    * @param source the source being scanned
-   * @param offsetDelta the offset from the beginning of the file to the beginning of the source
-   *          being scanned
    * @param errorListener the error listener that will be informed of any errors that are found
    */
-  public AbstractScanner(Source source, int offsetDelta, AnalysisErrorListener errorListener) {
+  public AbstractScanner(Source source, AnalysisErrorListener errorListener) {
     this.source = source;
-    this.offsetDelta = offsetDelta;
     this.errorListener = errorListener;
     tokens = new Token(TokenType.EOF, -1);
     tokens.setNext(tokens);
@@ -124,8 +114,9 @@ public abstract class AbstractScanner {
   }
 
   /**
-   * Return the zero (0) if the scanner has not yet scanned the source code, and the length of the
-   * source code if the source code has been scanned.
+   * Return the current offset relative to the beginning of the file. Return the initial offset if
+   * the scanner has not yet scanned the source code, and one (1) past the end of the source code if
+   * the source code has been scanned.
    * 
    * @return the current offset of the scanner in the source
    */
@@ -154,10 +145,30 @@ public abstract class AbstractScanner {
     return firstToken();
   }
 
+  /**
+   * Advance the current position and return the character at the new current position.
+   * 
+   * @return the character at the new current position
+   */
   protected abstract int advance();
 
-  protected abstract String getString(int start, int offset);
+  /**
+   * Return the substring of the source code between the start offset and the modified current
+   * position. The current position is modified by adding the end delta.
+   * 
+   * @param start the offset to the beginning of the string, relative to the start of the file
+   * @param endDelta the number of character after the current location to be included in the
+   *          string, or the number of characters before the current location to be excluded if the
+   *          offset is negative
+   * @return the specified substring of the source code
+   */
+  protected abstract String getString(int start, int endDelta);
 
+  /**
+   * Return the character at the current position without changing the current position.
+   * 
+   * @return the character at the current position
+   */
   protected abstract int peek();
 
   private void appendBeginToken(TokenType type) {
@@ -271,7 +282,7 @@ public abstract class AbstractScanner {
   }
 
   private void beginToken() {
-    tokenStart = offsetDelta + getOffset();
+    tokenStart = getOffset();
   }
 
   private int bigSwitch(int next) {

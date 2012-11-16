@@ -46,7 +46,7 @@ public class CharBufferScanner extends AbstractScanner {
    * @param errorListener the error listener that will be informed of any errors that are found
    */
   public CharBufferScanner(Source source, CharBuffer buffer, AnalysisErrorListener errorListener) {
-    super(source, 0, errorListener);
+    super(source, errorListener);
     this.buffer = buffer;
     this.bufferLength = buffer.length();
     this.charOffset = -1;
@@ -66,8 +66,8 @@ public class CharBufferScanner extends AbstractScanner {
   }
 
   @Override
-  protected String getString(int start, int offset) {
-    return buffer.subSequence(start, charOffset + 1 + offset).toString();
+  protected String getString(int start, int endDelta) {
+    return buffer.subSequence(start, charOffset + 1 + endDelta).toString();
   }
 
   @Override

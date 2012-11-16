@@ -694,17 +694,10 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.TILDE_SLASH_EQ, "~/=");
   }
 
-//public void test_stress() throws Exception {
-//  StringBuilder builder = new StringBuilder();
-//  for (char c = Character.MIN_VALUE; c < Character.MAX_VALUE; c++) {
-//    builder.setLength(0);
-//    builder.append("'${");
-//    builder.append(c);
-//    builder.append("}'");
-//    GatheringErrorListener listener = new GatheringErrorListener();
-//    scan(builder.toString(), listener);
-//  }
-//}
+  public void test_unclosedPairInInterpolation() throws Exception {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    scan("'${(}'", listener);
+  }
 
   protected abstract Token scan(String source, GatheringErrorListener listener);
 

@@ -17,6 +17,15 @@ import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.source.TestSource;
 
 public class StringScannerTest extends AbstractScannerTest {
+  public void test_offsetDelta() {
+    int offsetDelta = 42;
+    GatheringErrorListener listener = new GatheringErrorListener();
+    StringScanner scanner = new StringScanner(null, offsetDelta, "a", listener);
+    Token result = scanner.tokenize();
+    assertNotNull(result);
+    assertEquals(offsetDelta, result.getOffset());
+  }
+
   @Override
   protected Token scan(String source, GatheringErrorListener listener) {
     StringScanner scanner = new StringScanner(null, source, listener);

@@ -22,6 +22,11 @@ import com.google.dart.engine.source.Source;
  */
 public class StringScanner extends AbstractScanner {
   /**
+   * The offset from the beginning of the file to the beginning of the source being scanned.
+   */
+  private int offsetDelta;
+
+  /**
    * The string from which characters will be read.
    */
   private final String string;
@@ -32,7 +37,7 @@ public class StringScanner extends AbstractScanner {
   private final int stringLength;
 
   /**
-   * The index of the last character that was read.
+   * The index, relative to the string, of the last character that was read.
    */
   private int charOffset;
 
@@ -47,7 +52,8 @@ public class StringScanner extends AbstractScanner {
    */
   public StringScanner(Source source, int offsetDelta, String string,
       AnalysisErrorListener errorListener) {
-    super(source, offsetDelta, errorListener);
+    super(source, errorListener);
+    this.offsetDelta = offsetDelta;
     this.string = string;
     this.stringLength = string.length();
     this.charOffset = -1;
@@ -66,7 +72,7 @@ public class StringScanner extends AbstractScanner {
 
   @Override
   public int getOffset() {
-    return charOffset;
+    return offsetDelta + charOffset;
   }
 
   @Override
@@ -78,8 +84,8 @@ public class StringScanner extends AbstractScanner {
   }
 
   @Override
-  protected String getString(int start, int offset) {
-    return string.substring(start, charOffset + 1 + offset);
+  protected String getString(int start, int endDelta) {
+    return string.substring(start - offsetDelta, charOffset + 1 + endDelta);
   }
 
   @Override
