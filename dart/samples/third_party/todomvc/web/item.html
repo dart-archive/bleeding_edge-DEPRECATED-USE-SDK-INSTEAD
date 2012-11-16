@@ -7,9 +7,9 @@ BSD-style license that can be found in the LICENSE file.
 <html lang="en">
 <body>
 <element name="x-todo-row" extends="li" constructor="TodoItemComponent"
-         apply-author-styles="">
+         apply-author-styles>
   <template>
-    <div id="todo-item" class="{{_editingClass}} {{_completedClass}}">
+    <div class="todo-item {{_editingClass}} {{_completedClass}}">
       <div class="view" data-action="doubleClick:edit">
         <input class="toggle" type="checkbox"
                data-bind="checked:todo.done">
