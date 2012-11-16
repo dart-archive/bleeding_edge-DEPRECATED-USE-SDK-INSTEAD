@@ -18,16 +18,29 @@ import com.google.dart.tools.ui.swtbot.matchers.EditorWithTitle;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 import com.google.dart.tools.ui.swtbot.util.SWTBotUtil;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
+import org.eclipse.swtbot.swt.finder.SWTBot;
+import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
+import org.eclipse.swtbot.swt.finder.results.BoolResult;
+import org.eclipse.swtbot.swt.finder.utils.MessageFormat;
+import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
+import org.eclipse.swtbot.swt.finder.widgets.AbstractSWTBot;
+import org.eclipse.swtbot.swt.finder.widgets.AbstractSWTBotControl;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotRadio;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
+import org.hamcrest.Matcher;
+import org.hamcrest.SelfDescribing;
 
 import static org.eclipse.swtbot.eclipse.finder.waits.Conditions.waitForEditor;
+import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
+import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
+import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.withMnemonic;
+import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.withStyle;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -38,6 +51,59 @@ public class NewApplicationHelper {
   public enum ContentType {
     WEB,
     SERVER
+  }
+
+  //TODO (pquitslund): move this to a common factory class
+  private static class SWTBotCheckButton extends AbstractSWTBotControl<Button> {
+
+    public SWTBotCheckButton(Button w, SelfDescribing description) throws WidgetNotFoundException {
+      super(w, description);
+    }
+
+    public void ensureSelected(boolean selected) {
+      if (getSelection() != selected) {
+        click();
+      }
+    }
+
+    public boolean getSelection() {
+      return syncExec(new BoolResult() {
+        @Override
+        public Boolean run() {
+          return widget.getSelection();
+        }
+      });
+    }
+
+    @Override
+    protected AbstractSWTBot<Button> click() {
+      //cribbed from SWTButton
+      log.debug(MessageFormat.format("Clicking on {0}", SWTUtils.getText(widget))); //$NON-NLS-1$
+      waitForEnabled();
+      notify(SWT.MouseEnter);
+      notify(SWT.MouseMove);
+      notify(SWT.Activate);
+      notify(SWT.FocusIn);
+      notify(SWT.MouseDown);
+      notify(SWT.MouseUp);
+      notify(SWT.Selection);
+      notify(SWT.MouseHover);
+      notify(SWT.MouseMove);
+      notify(SWT.MouseExit);
+      notify(SWT.Deactivate);
+      notify(SWT.FocusOut);
+      log.debug(MessageFormat.format("Clicked on {0}", SWTUtils.getText(widget))); //$NON-NLS-1$
+      return this;
+    }
+  }
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  public static SWTBotCheckButton check(SWTBot bot, String mnemonicText) {
+    Matcher matcher = allOf(
+        widgetOfType(Button.class),
+        withMnemonic(mnemonicText),
+        withStyle(SWT.CHECK, "SWT.CHECK"));
+    return new SWTBotCheckButton((Button) bot.widget(matcher, 0), matcher);
   }
 
   private final SWTWorkbenchBot bot;
@@ -54,8 +120,10 @@ public class NewApplicationHelper {
    */
   public DartLib create(String appName, ContentType contentType) {
 
+    //TODO (pquitslund): add param to specify pub support
+
     // Open wizard
-    SWTBotMenu menu = bot.menu("File").menu("New Application...");
+    SWTBotMenu menu = bot.menu("File").menu("New Application");
     menu.setFocus();
     menu.click();
     SWTBotShell shell = bot.activeShell();
@@ -63,38 +131,32 @@ public class NewApplicationHelper {
     shell.activate();
 
     // Reference widgets and Assert content
-    SWTBotText appNameField = bot.textWithLabel("Name: ");
+    SWTBotText appNameField = bot.textWithLabel("Application Name: ");
     assertNotNull(appNameField);
     // By calling setFocus on this widget, we ensure that this dialog is made the top-most
     // window before the click action happens.
     appNameField.setFocus();
     SWTBotUtil.waitForMainShellToDisappear(bot);
-    SWTBotText appDirField = bot.textWithLabel("Directory: ");
+    SWTBotText appDirField = bot.textWithLabel("Parent Directory: ");
     SWTBotButton browseButton = bot.button("Browse...");
     SWTBotButton finishButton = bot.button("Finish");
 
-    SWTBotRadio webAppRadio = bot.radioInGroup("Web application", "Create sample content");
-    SWTBotRadio serverAppRadio = bot.radioInGroup("Command-line application", "Create sample content");
+//    bot.widget(widgetOfType(Button.class));
+
+    SWTBotCheckButton webAppRadio = check(bot, "Generate content for a basic web app");
 
     assertEquals("", appNameField.getText());
     assertTrue(appDirField.getText().length() > 0);
     assertNotNull(browseButton);
     assertNotNull(finishButton);
 
-    assertTrue(webAppRadio.isSelected());
-    assertFalse(serverAppRadio.isSelected());
-
     // Make either the selection of the web sample, or the server sample
     switch (contentType) {
       case WEB:
-        webAppRadio.click();
-        assertTrue(webAppRadio.isSelected());
-        assertFalse(serverAppRadio.isSelected());
+        webAppRadio.ensureSelected(true);
         break;
       case SERVER:
-        serverAppRadio.click();
-        assertTrue(serverAppRadio.isSelected());
-        assertFalse(webAppRadio.isSelected());
+        webAppRadio.ensureSelected(false);
         break;
     }
 
