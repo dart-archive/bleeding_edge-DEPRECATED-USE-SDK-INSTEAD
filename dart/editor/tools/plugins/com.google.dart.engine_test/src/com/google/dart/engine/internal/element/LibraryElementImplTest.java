@@ -14,20 +14,18 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.Identifier;
-import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.ImportSpecification;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
-import com.google.dart.engine.scanner.StringToken;
-import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.SourceImpl;
+
+import static com.google.dart.engine.ast.ASTFactory.identifier;
 
 import java.io.File;
 
 public class LibraryElementImplTest extends EngineTestCase {
   public void test_creation() {
-    assertNotNull(new LibraryElementImpl(createIdentifier("l")));
+    assertNotNull(new LibraryElementImpl(identifier("l")));
   }
 
   public void test_getImportedLibraries() {
@@ -35,8 +33,8 @@ public class LibraryElementImplTest extends EngineTestCase {
     LibraryElementImpl library2 = createLibrary("l2");
     LibraryElementImpl library3 = createLibrary("l3");
     LibraryElementImpl library4 = createLibrary("l4");
-    PrefixElement prefixA = new PrefixElementImpl(createIdentifier("a"));
-    PrefixElement prefixB = new PrefixElementImpl(createIdentifier("b"));
+    PrefixElement prefixA = new PrefixElementImpl(identifier("a"));
+    PrefixElement prefixB = new PrefixElementImpl(identifier("b"));
     ImportSpecificationImpl[] imports = {
         createImport(library2, null), createImport(library2, prefixB),
         createImport(library3, null), createImport(library3, prefixA),
@@ -48,8 +46,8 @@ public class LibraryElementImplTest extends EngineTestCase {
 
   public void test_getPrefixes() {
     LibraryElementImpl library = createLibrary("l1");
-    PrefixElement prefixA = new PrefixElementImpl(createIdentifier("a"));
-    PrefixElement prefixB = new PrefixElementImpl(createIdentifier("b"));
+    PrefixElement prefixA = new PrefixElementImpl(identifier("a"));
+    PrefixElement prefixB = new PrefixElementImpl(identifier("b"));
     ImportSpecificationImpl[] imports = {
         createImport(createLibrary("l2"), null), createImport(createLibrary("l3"), null),
         createImport(createLibrary("l4"), prefixA), createImport(createLibrary("l5"), prefixA),
@@ -66,7 +64,7 @@ public class LibraryElementImplTest extends EngineTestCase {
   }
 
   public void test_setImports() {
-    LibraryElementImpl library = new LibraryElementImpl(createIdentifier("l1"));
+    LibraryElementImpl library = new LibraryElementImpl(identifier("l1"));
     ImportSpecificationImpl[] expectedImports = {
         createImport(createLibrary("l2"), null), createImport(createLibrary("l3"), null)};
     library.setImports(expectedImports);
@@ -75,10 +73,6 @@ public class LibraryElementImplTest extends EngineTestCase {
     for (int i = 0; i < actualImports.length; i++) {
       assertEquals(expectedImports[i], actualImports[i]);
     }
-  }
-
-  private Identifier createIdentifier(String name) {
-    return new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0));
   }
 
   private ImportSpecificationImpl createImport(LibraryElement importedLibrary, PrefixElement prefix) {
@@ -93,7 +87,7 @@ public class LibraryElementImplTest extends EngineTestCase {
     SourceImpl source = new SourceImpl(null, new File(fileName));
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
     unit.setSource(source);
-    LibraryElementImpl library = new LibraryElementImpl(createIdentifier(libraryName));
+    LibraryElementImpl library = new LibraryElementImpl(identifier(libraryName));
     library.setDefiningCompilationUnit(unit);
     return library;
   }

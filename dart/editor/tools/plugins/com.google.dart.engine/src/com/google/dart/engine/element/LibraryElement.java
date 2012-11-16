@@ -59,10 +59,10 @@ public interface LibraryElement extends Element {
   public CompilationUnitElement[] getParts();
 
   /**
-   * Return an array containing elements for each of the prefixes used to {@code #import} libraries
-   * into this library. Each prefix can be used in more than one {@code #import} directive.
+   * Return an array containing elements for each of the prefixes used to {@code import} libraries
+   * into this library. Each prefix can be used in more than one {@code import} directive.
    * 
-   * @return the prefixes used to {@code #import} libraries into this library
+   * @return the prefixes used to {@code import} libraries into this library
    */
   public PrefixElement[] getPrefixes();
 }

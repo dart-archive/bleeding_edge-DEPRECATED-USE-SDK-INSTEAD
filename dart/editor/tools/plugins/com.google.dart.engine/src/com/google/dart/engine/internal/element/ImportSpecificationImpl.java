@@ -37,13 +37,18 @@ public class ImportSpecificationImpl implements ImportSpecification {
    * The combinators that were specified as part of the import directive in the order in which they
    * were specified.
    */
-  private ImportCombinator[] combinators;
+  private ImportCombinator[] combinators = EMPTY_COMBINATORS;
 
   /**
    * The prefix that was specified as part of the import directive, or {@code null} if there was no
    * prefix specified.
    */
   private PrefixElement prefix;
+
+  /**
+   * An empty array of import combinators.
+   */
+  private static final ImportCombinator[] EMPTY_COMBINATORS = new ImportCombinator[0];
 
   /**
    * Initialize a newly created import specification.

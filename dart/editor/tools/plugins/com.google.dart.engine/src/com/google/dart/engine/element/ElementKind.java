@@ -19,6 +19,7 @@ package com.google.dart.engine.element;
 public enum ElementKind {
   COMPILATION_UNIT,
   CONSTRUCTOR,
+  ERROR,
   FIELD,
   FUNCTION,
   GETTER,
