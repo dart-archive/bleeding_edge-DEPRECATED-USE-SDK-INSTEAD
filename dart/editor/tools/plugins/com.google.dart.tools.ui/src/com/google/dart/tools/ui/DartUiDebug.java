@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui;
 
 import com.google.dart.compiler.util.apache.StringUtils;
+import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.runtime.Platform;
 
@@ -34,7 +35,11 @@ public class DartUiDebug {
    * @return <code>true</code> if option has "expected" value.
    */
   private static boolean isOptionValue(String optionSuffix, String expected) {
-    String value = Platform.getDebugOption(DartUI.ID_PLUGIN + "/" + optionSuffix);
+    String option = DartUI.ID_PLUGIN + "/" + optionSuffix;
+    String value = Platform.getDebugOption(option);
+    if (value == null) {
+      value = DartCore.getUserDefinedProperty(option);
+    }
     return StringUtils.equalsIgnoreCase(value, expected);
   }
 

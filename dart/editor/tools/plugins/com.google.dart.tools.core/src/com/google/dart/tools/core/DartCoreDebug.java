@@ -67,7 +67,11 @@ public class DartCoreDebug {
    * @return <code>true</code> if option has "expected" value.
    */
   private static boolean isOptionValue(String optionSuffix, String expected) {
-    String value = Platform.getDebugOption(DartCore.PLUGIN_ID + "/" + optionSuffix);
+    String option = DartCore.PLUGIN_ID + "/" + optionSuffix;
+    String value = Platform.getDebugOption(option);
+    if (value == null) {
+      value = DartCore.getUserDefinedProperty(option);
+    }
     return StringUtils.equalsIgnoreCase(value, expected);
   }
 
