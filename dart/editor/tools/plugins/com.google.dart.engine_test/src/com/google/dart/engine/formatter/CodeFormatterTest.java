@@ -71,7 +71,7 @@ public class CodeFormatterTest extends EngineTestCase {
     assertEqualString(expected, format(actual));
   }
 
-  private String format(String source) {
+  private String format(String source) throws FormatterException {
     return CodeFormatterRunner.getDefault().format(source, Kind.COMPILATION_UNIT);
   }
 

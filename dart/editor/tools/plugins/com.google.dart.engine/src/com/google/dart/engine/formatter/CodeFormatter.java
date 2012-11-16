@@ -13,10 +13,16 @@
  */
 package com.google.dart.engine.formatter;
 
+import com.google.dart.engine.formatter.edit.EditOperation;
+import com.google.dart.engine.formatter.edit.EditRecorder;
+
 /**
  * Base source code formatter.
+ * 
+ * @param <D> the document type
+ * @param <R> an (optional) return result type
  */
-public abstract class CodeFormatter {
+public abstract class CodeFormatter<D, R> {
 
   /**
    * Specifies the kind of code snippet to format.
@@ -38,12 +44,12 @@ public abstract class CodeFormatter {
    *          must not exceed the length of the source string.
    * @param indentationLevel the initial indentation level, used to shift left/right the entire
    *          source fragment. An initial indentation level of zero or below has no effect.
-   * @param recorder a callback used to collect edits that describe the changes required to apply
-   *          formatting to the given source. Must not be {@code null}.
+   * @return an edit operation that applies the edit
    * @throws IllegalArgumentException if recorder is null, offset or length are less than 0 or
    *           length is greater than source length.
+   * @throws FormatterException if an error occurs during formatting
    */
-  public abstract void format(Kind kind, String source, int offset, int end, int indentationLevel,
-      EditRecorder<?> recorder);
+  public abstract EditOperation<D, R> format(Kind kind, String source, int offset, int end,
+      int indentationLevel) throws FormatterException;
 
 }

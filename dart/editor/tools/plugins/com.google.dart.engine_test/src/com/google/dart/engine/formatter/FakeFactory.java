@@ -14,6 +14,7 @@
 package com.google.dart.engine.formatter;
 
 import com.google.dart.engine.formatter.edit.Edit;
+import com.google.dart.engine.formatter.edit.EditRecorder;
 import com.google.dart.engine.formatter.edit.EditStore;
 
 /**
@@ -24,17 +25,10 @@ public class FakeFactory {
   /**
    * A test recorder.
    */
-  public static class FakeRecorder extends EditRecorder<String> {
-
-    private final StringBuilder builder = new StringBuilder();
+  public static class FakeRecorder extends EditRecorder<String, String> {
 
     protected FakeRecorder() {
       super(createScanner(), createStore());
-    }
-
-    @Override
-    public String buildEdit() {
-      return builder.toString();
     }
 
   }
@@ -60,6 +54,12 @@ public class FakeFactory {
     public int getCurrentEditIndex() {
       // TODO Auto-generated method stub
       return 0;
+    }
+
+    @Override
+    public Iterable<Edit> getEdits() {
+      // TODO Auto-generated method stub
+      return null;
     }
 
     @Override
@@ -90,6 +90,18 @@ public class FakeFactory {
   }
 
   /**
+   * Create a test recorder.
+   * 
+   * @source the source being parsed
+   * @return a test recorder
+   */
+  public static FakeRecorder createRecorder(String source) {
+    FakeRecorder fakeRecorder = createRecorder();
+    fakeRecorder.setSource(source);
+    return fakeRecorder;
+  }
+
+  /**
    * Create a test scanner.
    * 
    * @return a test scanner
@@ -105,6 +117,18 @@ public class FakeFactory {
    */
   public static FakeStore createStore() {
     return new FakeStore();
+  }
+
+  /**
+   * Create a new edit.
+   * 
+   * @param offset the offset
+   * @param length the length
+   * @param replacement the replacement text
+   * @return the created edit
+   */
+  public static Edit edit(int offset, int length, String replacement) {
+    return new Edit(offset, length, replacement);
   }
 
 }

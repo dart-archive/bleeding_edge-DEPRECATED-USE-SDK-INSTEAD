@@ -1,18 +1,23 @@
 <<<<
-class A {
-  int x => 42;
-}
+class A {}
 >>>>
 class A {
-  int x => 42;
 }
 <<<<
 class A {
-int x => 42;
+  int x() => 42;
 }
 >>>>
 class A {
-  int x => 42;
+  int x() => 42;
+}
+<<<<
+class A {
+int x() => 42;
+}
+>>>>
+class A {
+  int x() => 42;
 }
 <<<<
 class /**/A { int sample; }

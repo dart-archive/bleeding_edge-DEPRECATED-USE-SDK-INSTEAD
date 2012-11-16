@@ -87,7 +87,7 @@ public class EngineTestCase extends TestCase {
    * Assert that a given String is equal to an expected value.
    * 
    * @param expected the expected String value
-   * @param actualValues the actual String value
+   * @param actual the actual String value
    */
   public static void assertEqualString(String expected, String actual) {
 
@@ -102,7 +102,7 @@ public class EngineTestCase extends TestCase {
       }
     }
 
-    int diffPos = getDiffPos(actual, expected);
+    int diffPos = getDiffPos(expected, actual);
 
     if (diffPos != -1) {
 

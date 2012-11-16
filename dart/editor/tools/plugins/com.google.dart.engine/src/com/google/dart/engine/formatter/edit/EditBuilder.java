@@ -11,23 +11,23 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.formatter;
+package com.google.dart.engine.formatter.edit;
 
-import com.google.dart.engine.ExtendedTestSuite;
-import com.google.dart.engine.formatter.edit.EditRecorderTest;
+/**
+ * Implementers translate sequences of {@link Edit} descriptions into concrete {@link EditOperation}
+ * s that can apply them.
+ * 
+ * @param <D> the document type
+ * @param <R> an (optional) return result type
+ */
+public interface EditBuilder<D, R> {
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
-import java.io.IOException;
-
-public class TestAll {
-
-  public static Test suite() throws IOException {
-    TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTest(CodeFormatterTest.suite());
-    suite.addTestSuite(EditRecorderTest.class);
-    return suite;
-  }
+  /**
+   * Build an edit operation that can apply a given sequence of edit descriptions.
+   * 
+   * @param edits the sequence of edits to apply
+   * @return the resulting edit operation
+   */
+  EditOperation<D, R> buildEdit(Iterable<Edit> edits);
 
 }

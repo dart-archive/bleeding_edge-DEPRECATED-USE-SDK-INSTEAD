@@ -14,24 +14,115 @@
 package com.google.dart.engine.formatter;
 
 import com.google.dart.engine.formatter.CodeFormatter.Kind;
-import com.google.dart.engine.formatter.FakeFactory.FakeRecorder;
-import com.google.dart.engine.internal.formatter.CodeFormatterImpl;
+import com.google.dart.engine.formatter.edit.Edit;
+import com.google.dart.engine.formatter.edit.EditBuilder;
+import com.google.dart.engine.formatter.edit.EditOperation;
+import com.google.dart.engine.formatter.edit.EditRecorder;
+import com.google.dart.engine.formatter.edit.EditStore;
+import com.google.dart.engine.internal.formatter.AbstractCodeFormatter;
 
 /**
  * Helper used to run the {@link CodeFormatter}.
  */
 public class CodeFormatterRunner {
 
+  private static class DefaultScanner implements Scanner {
+
+  }
+  private static class StringEditBuilder implements EditBuilder<String, String> {
+
+    @Override
+    public EditOperation<String, String> buildEdit(Iterable<Edit> edits) {
+      return new StringEditOperation(edits);
+    }
+
+  }
+
+  private static class StringEditOperation implements EditOperation<String, String> {
+
+    @SuppressWarnings("unused")
+    private final Iterable<Edit> edits;
+
+    StringEditOperation(Iterable<Edit> edits) {
+      this.edits = edits;
+    }
+
+    @Override
+    public String applyTo(String document) {
+      //TODO (pquitslund): implement
+      return document;
+    }
+
+  }
+
+  private static class StringEditRecorder extends EditRecorder<String, String> {
+
+    StringEditRecorder(CodeFormatterOptions options, Scanner scanner, EditStore editStore) {
+      super(getDefaultFormatterOptions(), scanner, editStore);
+    }
+
+  }
+
+  private static class StringEditStore implements EditStore {
+
+    @Override
+    public void addEdit(int offset, int length, String replacement) {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public int getCurrentEditIndex() {
+      // TODO Auto-generated method stub
+      return 0;
+    }
+
+    @Override
+    public Iterable<Edit> getEdits() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public Edit getLastEdit() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public void insert(int offset, String insertedString) {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void reset() {
+      // TODO Auto-generated method stub
+
+    }
+
+  }
+
   private static final String NEW_LINE = System.getProperty("line.separator");
+
   private static final int DEFAULT_INDENTATION_LEVEL = 0;
 
   public static CodeFormatterRunner getDefault() {
     return new CodeFormatterRunner(getDefaultFormatter());
   }
 
-  private static CodeFormatter getDefaultFormatter() {
+  private static EditBuilder<String, String> getDefaultBuilder() {
+    return new StringEditBuilder();
+  }
+
+  private static CodeFormatter<String, String> getDefaultFormatter() {
     CodeFormatterOptions preferences = getDefaultFormatterOptions();
-    CodeFormatter codeFormatter = new CodeFormatterImpl(preferences);
+    EditBuilder<String, String> builder = getDefaultBuilder();
+    EditRecorder<String, String> recorder = getDefaultRecorder();
+    CodeFormatter<String, String> codeFormatter = new AbstractCodeFormatter<String, String>(
+        preferences,
+        recorder,
+        builder);
     return codeFormatter;
   }
 
@@ -40,29 +131,48 @@ public class CodeFormatterRunner {
     return preferences;
   }
 
-  private final CodeFormatter codeFormatter;
+  private static EditRecorder<String, String> getDefaultRecorder() {
+    return new StringEditRecorder(
+        getDefaultFormatterOptions(),
+        getDefaultScanner(),
+        getDefaultStore());
+  }
 
-  public CodeFormatterRunner(CodeFormatter formatter) {
+  private static Scanner getDefaultScanner() {
+    return new DefaultScanner();
+  }
+
+  private static StringEditStore getDefaultStore() {
+    return new StringEditStore();
+  }
+
+  private final CodeFormatter<String, String> codeFormatter;
+
+  public CodeFormatterRunner(CodeFormatter<String, String> formatter) {
     this.codeFormatter = formatter;
   }
 
-  public String format(String source, Kind kind) {
+  public String format(String source, Kind kind) throws FormatterException {
     return format(source, kind, DEFAULT_INDENTATION_LEVEL);
   }
 
-  public String format(String source, Kind kind, int indentationLevel) {
+  public String format(String source, Kind kind, int indentationLevel) throws FormatterException {
     return format(source, kind, indentationLevel, 0, source.length());
   }
 
-  public String format(String source, Kind kind, int indentationLevel, int offset, int length) {
+  public String format(String source, Kind kind, int indentationLevel, int offset, int length)
+      throws FormatterException {
     return format(source, kind, indentationLevel, offset, length, NEW_LINE);
   }
 
   public String format(String source, Kind kind, int indentationLevel, int offset, int length,
-      String lineSeparator) {
-    FakeRecorder recorder = FakeFactory.createRecorder();
-    codeFormatter.format(kind, source, offset, length, indentationLevel, recorder);
-    return recorder.buildEdit();
+      String lineSeparator) throws FormatterException {
+    EditOperation<String, String> operation = codeFormatter.format(
+        kind,
+        source,
+        offset,
+        length,
+        indentationLevel);
+    return operation.applyTo(source);
   }
-
 }

@@ -79,7 +79,7 @@ public abstract class DataDrivenTestBuilder {
 
       while (read != null) {
         if (read.startsWith(ACTUAL_START_TOKEN)) {
-          addTest(suite, expected, actual);
+          addTest(suite, actual, expected);
           actual.setLength(0);
           expected.setLength(0);
           sb = expected;

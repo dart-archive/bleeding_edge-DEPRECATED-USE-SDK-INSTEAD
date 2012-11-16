@@ -14,7 +14,20 @@
 package com.google.dart.engine.formatter.edit;
 
 /**
- * Describes a text edit.
+ * Describes a text edit. Edits are executed by applying them to a document via an
+ * {@link EditOperation}.
+ * <p>
+ * The richness of edit semantics is up to the implementation to define. For example, depending on
+ * the concrete implementation:
+ * <ul>
+ * <li>documents might be sophisticated abstractions (such as {@code jface.text.IDocument}) or
+ * simple Strings.</li>
+ * <li>results of edits might be a formatted document or an abstraction supporting the edit (such as
+ * an undo operation)</li>
+ * </ul>
+ * <p>
+ * results of edits might be a formatted document or an abstraction supporting the edit (such as an
+ * undo operation).
  */
 public class Edit {
 
@@ -48,7 +61,7 @@ public class Edit {
 
   @Override
   public String toString() {
-    return (offset < 0 ? "(" : "X(") + offset + ", length " + length + " :>" + replacement + "<"; //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$//$NON-NLS-4$ //$NON-NLS-5$
+    return (offset < 0 ? "(" : "X(") + " offset: " + offset + ", length " + length + ", replacement :>" + replacement + "<)"; //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$//$NON-NLS-4$ //$NON-NLS-5$
   }
 
 }

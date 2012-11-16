@@ -11,23 +11,24 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.formatter;
+package com.google.dart.engine.formatter.edit;
 
-import com.google.dart.engine.ExtendedTestSuite;
-import com.google.dart.engine.formatter.edit.EditRecorderTest;
+/**
+ * An {@code EditOperation} applies an edit (or sequence of edits) to a document, optionally
+ * returning a result.
+ * 
+ * @param <D> the document type
+ * @param <R> an optional result
+ */
+public interface EditOperation<D, R> {
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
-import java.io.IOException;
-
-public class TestAll {
-
-  public static Test suite() throws IOException {
-    TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTest(CodeFormatterTest.suite());
-    suite.addTestSuite(EditRecorderTest.class);
-    return suite;
-  }
+  /**
+   * Apply this operation to the given document. Concrete implementations may optionally return a
+   * result (such as an undo edit).
+   * 
+   * @param document the document to which to apply the edit(s)
+   * @return an optional result (such as undo operation)
+   */
+  R applyTo(D document);
 
 }

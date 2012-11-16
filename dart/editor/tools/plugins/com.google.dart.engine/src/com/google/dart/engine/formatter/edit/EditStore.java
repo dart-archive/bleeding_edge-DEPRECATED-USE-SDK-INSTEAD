@@ -36,6 +36,13 @@ public interface EditStore {
   int getCurrentEditIndex();
 
   /**
+   * Get the underlying sequence of edits.
+   * 
+   * @return the sequence of edits
+   */
+  Iterable<Edit> getEdits();
+
+  /**
    * Get the last edit.
    * 
    * @return the last edit (or {@code null} if there is none).
