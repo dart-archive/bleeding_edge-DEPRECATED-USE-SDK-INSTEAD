@@ -40,7 +40,7 @@ public class EnclosedScopeTest extends ResolverTestCase {
       }
 
       @Override
-      public Element lookup(String name, LibraryElement referencingLibrary) {
+      protected Element lookup(String name, LibraryElement referencingLibrary) {
         return null;
       }
     };
@@ -67,7 +67,7 @@ public class EnclosedScopeTest extends ResolverTestCase {
       }
 
       @Override
-      public Element lookup(String name, LibraryElement referencingLibrary) {
+      protected Element lookup(String name, LibraryElement referencingLibrary) {
         return null;
       }
     };
@@ -95,7 +95,7 @@ public class EnclosedScopeTest extends ResolverTestCase {
       }
 
       @Override
-      public Element lookup(String name, LibraryElement referencingLibrary) {
+      protected Element lookup(String name, LibraryElement referencingLibrary) {
         return null;
       }
     };

@@ -13,8 +13,10 @@
  */
 package com.google.dart.engine.resolver.scope;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportSpecification;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.MultiplyDefinedElement;
 import com.google.dart.engine.element.TypeElement;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
@@ -26,6 +28,44 @@ import com.google.dart.engine.resolver.ResolverTestCase;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 
 public class LibraryImportScopeTest extends ResolverTestCase {
+  public void test_conflictingImports() {
+    String typeNameA = "A";
+    String typeNameB = "B";
+    String typeNameC = "C";
+    TypeElement typeA = new TypeElementImpl(identifier(typeNameA));
+    TypeElement typeB1 = new TypeElementImpl(identifier(typeNameB));
+    TypeElement typeB2 = new TypeElementImpl(identifier(typeNameB));
+    TypeElement typeC = new TypeElementImpl(identifier(typeNameC));
+
+    LibraryElement importedLibrary1 = createTestLibrary("imported1");
+    ((CompilationUnitElementImpl) importedLibrary1.getDefiningCompilationUnit()).setTypes(new TypeElement[] {
+        typeA, typeB1});
+    ImportSpecificationImpl specification1 = new ImportSpecificationImpl();
+    specification1.setImportedLibrary(importedLibrary1);
+
+    LibraryElement importedLibrary2 = createTestLibrary("imported2");
+    ((CompilationUnitElementImpl) importedLibrary2.getDefiningCompilationUnit()).setTypes(new TypeElement[] {
+        typeB2, typeC});
+    ImportSpecificationImpl specification2 = new ImportSpecificationImpl();
+    specification2.setImportedLibrary(importedLibrary2);
+
+    LibraryElementImpl importingLibrary = createTestLibrary("importing");
+    importingLibrary.setImports(new ImportSpecification[] {specification1, specification2});
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    Scope scope = new LibraryImportScope(importingLibrary, errorListener);
+    assertEquals(typeA, scope.lookup(typeNameA, importingLibrary));
+    errorListener.assertNoErrors();
+    assertEquals(typeC, scope.lookup(typeNameC, importingLibrary));
+    errorListener.assertNoErrors();
+    Element element = scope.lookup(typeNameB, importingLibrary);
+    errorListener.assertNoErrors();
+    assertInstanceOf(MultiplyDefinedElement.class, element);
+    Element[] conflictingElements = ((MultiplyDefinedElement) element).getConflictingElements();
+    assertEquals(typeB1, conflictingElements[0]);
+    assertEquals(typeB2, conflictingElements[1]);
+    assertEquals(2, conflictingElements.length);
+  }
+
   public void test_creation_empty() {
     LibraryElement definingLibrary = createTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();

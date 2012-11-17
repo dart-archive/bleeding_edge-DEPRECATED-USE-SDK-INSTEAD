@@ -14,7 +14,10 @@
 package com.google.dart.engine.resolver.scope;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeElement;
 import com.google.dart.engine.element.TypeVariableElement;
 
@@ -22,7 +25,9 @@ import com.google.dart.engine.element.TypeVariableElement;
  * Instances of the class {@code ClassScope} implement the scope defined by a class.
  */
 public class ClassScope extends EnclosedScope {
-  // TODO(brianwilkerson) This does not yet distinguish between static and instance scopes.
+  // TODO(brianwilkerson) This does not yet distinguish between static and instance scopes. It isn't
+  // clear whether we need to do so or whether it might not be easier and better to simply check
+  // when resolving to an instance element that the reference is in an instance scope.
 
   /**
    * Initialize a newly created scope enclosed within another scope.
@@ -33,16 +38,40 @@ public class ClassScope extends EnclosedScope {
   public ClassScope(Scope enclosingScope, TypeElement typeElement) {
     super(new EnclosedScope(enclosingScope));
     defineTypeParameters(typeElement);
+    defineMembers(typeElement);
   }
 
   @Override
-  public Element lookup(String name, LibraryElement referencingLibrary) {
+  protected Element lookup(String name, LibraryElement referencingLibrary) {
+    //
+    // First look in the lexical scope.
+    //
     Element element = super.lookup(name, referencingLibrary);
     if (element != null) {
       return element;
     }
+    //
+    // Then look in the inheritance scope.
+    //
     // TODO(brianwilkerson) Look in the superclass and interfaces.
     return null;
+  }
+
+  /**
+   * Define the instance members defined by the class.
+   * 
+   * @param typeElement the element representing the type represented by this scope
+   */
+  private void defineMembers(TypeElement typeElement) {
+    for (PropertyAccessorElement accessor : typeElement.getAccessors()) {
+      define(accessor);
+    }
+    for (FieldElement field : typeElement.getFields()) {
+      define(field);
+    }
+    for (MethodElement method : typeElement.getMethods()) {
+      define(method);
+    }
   }
 
   /**

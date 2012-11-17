@@ -46,15 +46,6 @@ public class EnclosedScope extends Scope {
     return enclosingScope.getErrorListener();
   }
 
-  @Override
-  public Element lookup(String name, LibraryElement referencingLibrary) {
-    Element element = localLookup(name, referencingLibrary);
-    if (element != null) {
-      return element;
-    }
-    return enclosingScope.lookup(name, referencingLibrary);
-  }
-
   /**
    * Return the scope in which this scope is lexically enclosed.
    * 
@@ -62,5 +53,14 @@ public class EnclosedScope extends Scope {
    */
   protected Scope getEnclosingScope() {
     return enclosingScope;
+  }
+
+  @Override
+  protected Element lookup(String name, LibraryElement referencingLibrary) {
+    Element element = localLookup(name, referencingLibrary);
+    if (element != null) {
+      return element;
+    }
+    return enclosingScope.lookup(name, referencingLibrary);
   }
 }

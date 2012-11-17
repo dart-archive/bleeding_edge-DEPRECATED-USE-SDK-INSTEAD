@@ -61,16 +61,16 @@ public class ScopeTest extends ResolverTestCase {
       return errorListener;
     }
 
+    public void setLookupResult(Element element) {
+      lookupResult = element;
+    }
+
     @Override
-    public Element lookup(String name, LibraryElement referencingLibrary) {
+    protected Element lookup(String name, LibraryElement referencingLibrary) {
       if (lookupResult != null) {
         return lookupResult;
       }
       return localLookup(name, referencingLibrary);
-    }
-
-    public void setLookupResult(Element element) {
-      lookupResult = element;
     }
   }
 
