@@ -36,6 +36,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 public class DartCoreTest extends TestCase {
+
+  public static boolean isRunningOnBuildBot() {
+    return System.getProperty("user.name").startsWith("chrome");
+  }
+
   public void test_DartCore_create_file_notNull() {
     IFile file = new MockFile(new MockProject());
     DartElement element = DartCore.create(file);

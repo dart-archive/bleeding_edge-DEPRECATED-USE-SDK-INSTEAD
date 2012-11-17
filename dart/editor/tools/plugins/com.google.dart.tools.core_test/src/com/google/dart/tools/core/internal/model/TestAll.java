@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.tools.core.DartCoreTest;
+
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -23,8 +25,10 @@ public class TestAll {
 //    suite.addTestSuite(CompilationUnitImpl2Test.class);
     suite.addTestSuite(DartElementImplTest.class);
     suite.addTestSuite(DartFieldImplTest.class);
-    // TODO (danrubel): Comment out flaky test and investigate
-//    suite.addTestSuite(DartLibraryImplTest.class);
+    // TODO (danrubel): Don't run flaky test on bots and investigate locally
+    if (!DartCoreTest.isRunningOnBuildBot()) {
+      suite.addTestSuite(DartLibraryImplTest.class);
+    }
     suite.addTestSuite(DartImportImplTest.class);
     suite.addTestSuite(DartMethodImplTest.class);
     suite.addTestSuite(DartModelImplTest.class);

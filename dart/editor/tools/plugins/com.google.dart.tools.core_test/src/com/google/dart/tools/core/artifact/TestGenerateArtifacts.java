@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.artifact;
 
+import com.google.dart.tools.core.DartCoreTest;
 import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.index.NotifyCallback;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
@@ -66,8 +67,7 @@ public class TestGenerateArtifacts extends TestCase {
     }
 
     // If this is a local test execution, not a build, then don't copy the index file
-    String userName = System.getProperty("user.name"); //$NON-NLS-1$
-    if (getOutputName() == null && !userName.startsWith("chrome")) {
+    if (getOutputName() == null && !DartCoreTest.isRunningOnBuildBot()) {
       System.out.println(">>> Skip copying " + getClass().getSimpleName());
       return;
     }
