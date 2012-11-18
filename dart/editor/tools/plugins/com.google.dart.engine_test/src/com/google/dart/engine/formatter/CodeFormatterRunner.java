@@ -20,6 +20,7 @@ import com.google.dart.engine.formatter.edit.EditOperation;
 import com.google.dart.engine.formatter.edit.EditRecorder;
 import com.google.dart.engine.formatter.edit.EditStore;
 import com.google.dart.engine.internal.formatter.AbstractCodeFormatter;
+import com.google.dart.engine.internal.formatter.BasicEditStore;
 
 /**
  * Helper used to run the {@link CodeFormatter}.
@@ -40,7 +41,6 @@ public class CodeFormatterRunner {
 
   private static class StringEditOperation implements EditOperation<String, String> {
 
-    @SuppressWarnings("unused")
     private final Iterable<Edit> edits;
 
     StringEditOperation(Iterable<Edit> edits) {
@@ -49,8 +49,14 @@ public class CodeFormatterRunner {
 
     @Override
     public String applyTo(String document) {
-      //TODO (pquitslund): implement
-      return document;
+
+      StringBuilder builder = new StringBuilder(document);
+
+      for (Edit edit : edits) {
+        builder.replace(edit.offset, edit.offset + edit.length, edit.replacement);
+      }
+
+      return builder.toString();
     }
 
   }
@@ -63,43 +69,7 @@ public class CodeFormatterRunner {
 
   }
 
-  private static class StringEditStore implements EditStore {
-
-    @Override
-    public void addEdit(int offset, int length, String replacement) {
-      // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public int getCurrentEditIndex() {
-      // TODO Auto-generated method stub
-      return 0;
-    }
-
-    @Override
-    public Iterable<Edit> getEdits() {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public Edit getLastEdit() {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public void insert(int offset, String insertedString) {
-      // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void reset() {
-      // TODO Auto-generated method stub
-
-    }
+  private static class StringEditStore extends BasicEditStore {
 
   }
 

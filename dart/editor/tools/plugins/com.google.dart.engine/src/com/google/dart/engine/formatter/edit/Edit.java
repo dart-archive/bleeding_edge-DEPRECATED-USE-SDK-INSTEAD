@@ -37,7 +37,7 @@ public class Edit {
   public final int offset;
 
   /**
-   * The length of text to replace.
+   * The length of the text interval to replace.
    */
   public final int length;
 
@@ -50,7 +50,7 @@ public class Edit {
    * Create an edit.
    * 
    * @param offset the offset at which to apply the edit
-   * @param length the length of text to replace
+   * @param length the length of the text interval replace
    * @param replacement the replacement text
    */
   public Edit(int offset, int length, String replacement) {
@@ -61,7 +61,7 @@ public class Edit {
 
   @Override
   public String toString() {
-    return (offset < 0 ? "(" : "X(") + " offset: " + offset + ", length " + length + ", replacement :>" + replacement + "<)"; //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$//$NON-NLS-4$ //$NON-NLS-5$
+    return (offset < 0 ? "(" : "X(") + "offset: " + offset + ", length " + length + ", replacement :>" + replacement + "<:)"; //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$//$NON-NLS-4$ //$NON-NLS-5$
   }
 
 }

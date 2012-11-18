@@ -14,10 +14,7 @@
 package com.google.dart.engine.formatter.edit;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.formatter.FakeFactory;
 import com.google.dart.engine.formatter.FakeFactory.FakeRecorder;
-import com.google.dart.engine.formatter.edit.Edit;
-import com.google.dart.engine.formatter.edit.EditRecorder;
 
 import static com.google.dart.engine.formatter.FakeFactory.createRecorder;
 import static com.google.dart.engine.formatter.FakeFactory.edit;
@@ -74,7 +71,7 @@ public class EditRecorderTest extends EngineTestCase {
     recorder.space();
     assertEquals(startColumn + 1, recorder.column);
     Edit edit = recorder.getLastEdit();
-    assertThat(edit, matches(edit(1,1,"")));
+    assertThat(edit, matches(edit(1, 1, "")));
   }
 
   public void testUnindent() throws Exception {
@@ -85,7 +82,4 @@ public class EditRecorderTest extends EngineTestCase {
     assertEquals(0, recorder.indentationLevel);
   }
 
-  
-  
-  
 }
