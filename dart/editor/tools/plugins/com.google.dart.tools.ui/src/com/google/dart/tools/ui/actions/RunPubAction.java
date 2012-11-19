@@ -25,8 +25,6 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -61,7 +59,7 @@ public class RunPubAction extends SelectionDispatchAction {
 
     public RunPubJob(IResource resource) {
       super(NLS.bind(ActionMessages.RunPubAction_jobText, command));
-      setRule(ResourcesPlugin.getWorkspace().getRoot());
+      setRule(resource.getProject());
       this.resource = resource;
     }
 
@@ -105,7 +103,6 @@ public class RunPubAction extends SelectionDispatchAction {
 
         DartCore.getConsole().println(stringBuilder.toString());
         resource.refreshLocal(IResource.DEPTH_INFINITE, monitor);
-        resource.getProject().build(IncrementalProjectBuilder.CLEAN_BUILD, monitor);
         return Status.OK_STATUS;
 
       } catch (OperationCanceledException exception) {
