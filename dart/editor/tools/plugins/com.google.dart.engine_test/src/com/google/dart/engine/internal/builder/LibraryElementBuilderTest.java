@@ -17,9 +17,11 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.TypeElement;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.provider.TestCompilationUnitProvider;
 import com.google.dart.engine.provider.TestSourceContentProvider;
+import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -36,6 +38,38 @@ public class LibraryElementBuilderTest extends EngineTestCase {
    * The content provider used to provide the contents of the sources.
    */
   private TestSourceContentProvider contentProvider;
+
+  public void fail_missingPartOfDirective() {
+    Source partSource = sourceFactory.forFile(new File("/a.dart"));
+    contentProvider.addSource(partSource, createSource(//
+        "class A {}"));
+    Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
+    contentProvider.addSource(librarySource, createSource(//
+        "library lib;",
+        "",
+        "part 'a.dart';"));
+    LibraryElement element = buildLibrary(
+        librarySource,
+        ResolverErrorCode.MISSING_PART_OF_DIRECTIVE);
+    assertNotNull(element);
+  }
+
+  public void fail_partWithWrongLibraryName() {
+    Source partSource = sourceFactory.forFile(new File("/a.dart"));
+    contentProvider.addSource(partSource, createSource(//
+        "part of other_lib;",
+        "",
+        "class A {}"));
+    Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
+    contentProvider.addSource(librarySource, createSource(//
+        "library lib;",
+        "",
+        "part 'a.dart';"));
+    LibraryElement element = buildLibrary(
+        librarySource,
+        ResolverErrorCode.PART_WITH_WRONG_LIBRARY_NAME);
+    assertNotNull(element);
+  }
 
   @Override
   public void setUp() {
@@ -65,6 +99,49 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     assertLength(0, unit.getFunctions());
     assertLength(0, unit.getTypeAliases());
     assertLength(0, unit.getTypes());
+  }
+
+  public void test_invalidUri_export() {
+    Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
+    contentProvider.addSource(librarySource, createSource(//
+        "library lib;",
+        "",
+        "export '${'a'}.dart';"));
+    LibraryElement element = buildLibrary(librarySource, ResolverErrorCode.INVALID_URI);
+    assertNotNull(element);
+  }
+
+  public void test_invalidUri_import() {
+    Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
+    contentProvider.addSource(librarySource, createSource(//
+        "library lib;",
+        "",
+        "import '${'a'}.dart';"));
+    LibraryElement element = buildLibrary(librarySource, ResolverErrorCode.INVALID_URI);
+    assertNotNull(element);
+  }
+
+  public void test_invalidUri_part() {
+    Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
+    contentProvider.addSource(librarySource, createSource(//
+        "library lib;",
+        "",
+        "part '${'a'}.dart';"));
+    LibraryElement element = buildLibrary(librarySource, ResolverErrorCode.INVALID_URI);
+    assertNotNull(element);
+  }
+
+  public void test_missingLibraryDirectiveWithPart() {
+    Source partSource = sourceFactory.forFile(new File("/a.dart"));
+    contentProvider.addSource(partSource, createSource(//
+        "part of lib;"));
+    Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
+    contentProvider.addSource(librarySource, createSource(//
+        "part 'a.dart';"));
+    LibraryElement element = buildLibrary(
+        librarySource,
+        ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
+    assertNotNull(element);
   }
 
   public void test_multipleFiles() {
@@ -129,11 +206,13 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     }
   }
 
-  private LibraryElement buildLibrary(Source librarySource) {
+  private LibraryElement buildLibrary(Source librarySource, ErrorCode... expectedErrorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
     LibraryElementBuilder builder = new LibraryElementBuilder(new TestCompilationUnitProvider(
         contentProvider,
-        listener));
-    return builder.buildLibrary(librarySource);
+        listener), listener);
+    LibraryElement element = builder.buildLibrary(librarySource);
+    listener.assertErrors(expectedErrorCodes);
+    return element;
   }
 }

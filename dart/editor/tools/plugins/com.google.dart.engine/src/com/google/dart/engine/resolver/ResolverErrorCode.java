@@ -137,6 +137,12 @@ public enum ResolverErrorCode implements ErrorCode {
 //  INVALID_OVERRIDE_METADATA(ErrorSeverity.INFO, "Method marked with @override, but does not override any superclass element"),
 //  INVALID_RETURN_IN_CONSTRUCTOR("Generative constructors cannot return arbitrary expressions"),
 //  INVALID_TYPE_NAME_IN_CONSTRUCTOR("Invalid type in constructor name"),
+  /**
+   * It is a compile-time error if [the URI] is not a compile-time constant, or if [the URI]
+   * involves string interpolation.
+   */
+  INVALID_URI(
+      "URI's used in directives must be compile time constants without interpolation expressions"),
 //  IS_A_CLASS("%s is a class and cannot be used as an expression"),
 //  IS_A_CONSTRUCTOR("%s.%s is a constructor, expected a  method"),
 //  IS_AN_INSTANCE_FIELD("%s.%s is an instance field, not a static method"),
@@ -150,6 +156,10 @@ public enum ResolverErrorCode implements ErrorCode {
 //      "Map literal element type must match declaration '%s' when type checks are on."),
 //  MEMBER_WITH_NAME_OF_CLASS("Class member should not have the same name as the enclosing class"),
 //  METHOD_MUST_HAVE_BODY("A non-abstract method must have a body"),
+  MISSING_LIBRARY_DIRECTIVE_IMPORTED(
+      "Libraries that are imported by other libraries must have a library directive"),
+  MISSING_LIBRARY_DIRECTIVE_WITH_PART("Libraries that have parts must have a library directive"),
+  MISSING_PART_OF_DIRECTIVE("The included part must have a part-of directive"),
 //  NAMED_PARAMETERS_CANNOT_START_WITH_UNDER("Named parameters cannot start with an '_' character"),
 //  NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),
 //  NEW_EXPRESSION_NOT_CONSTRUCTOR("New expression does not resolve to a constructor"),
@@ -163,6 +173,7 @@ public enum ResolverErrorCode implements ErrorCode {
 //  NOT_AN_INSTANCE_FIELD("%s is not an instance field"),
 //  REDIRECTED_CONSTRUCTOR_CYCLE("Redirected constructor call has a cycle."),
 //  PARAMETER_INIT_OUTSIDE_CONSTRUCTOR("Parameter initializers can only be used in constructors"),
+  PART_WITH_WRONG_LIBRARY_NAME("The included part appears to be part of the library '%s'"),
 //  SUPER_METHOD_INVOCATION_IN_CONSTRUCTOR_INITIALIZER(
 //      "Super method invocation is not allowed in constructor initializer"),
 //  PARAMETER_INIT_STATIC_FIELD(

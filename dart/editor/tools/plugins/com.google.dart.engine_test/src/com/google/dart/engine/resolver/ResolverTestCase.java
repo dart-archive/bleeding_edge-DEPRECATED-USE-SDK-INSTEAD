@@ -150,7 +150,7 @@ public class ResolverTestCase extends EngineTestCase {
    * @return the error listener used while scanning, parsing and resolving the compilation units
    */
   protected Map<ASTNode, Element> resolve(Source librarySource, Source... unitSources) {
-    LibraryElementBuilder builder = new LibraryElementBuilder(unitProvider);
+    LibraryElementBuilder builder = new LibraryElementBuilder(unitProvider, errorListener);
     LibraryElement definingLibrary = builder.buildLibrary(librarySource);
     Resolver resolver = new Resolver(
         definingLibrary,
