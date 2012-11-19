@@ -13,14 +13,13 @@
  */
 package com.google.dart.tools.debug.ui.internal.view;
 
-import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.dartium.DartiumDebugTarget;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchesListener;
@@ -301,13 +300,8 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
 
   private boolean isDartiumLaunch() {
     for (IDebugTarget debugTarget : DebugPlugin.getDefault().getLaunchManager().getDebugTargets()) {
-      try {
-        if (debugTarget.getLaunch().getLaunchConfiguration().getType().getIdentifier().equals(
-            DartDebugCorePlugin.DARTIUM_LAUNCH_CONFIG_ID)) {
-          return true;
-        }
-      } catch (CoreException e) {
-        return false;
+      if (debugTarget instanceof DartiumDebugTarget) {
+        return true;
       }
     }
 
@@ -334,10 +328,11 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
   private void updateConnectionStatus() {
     if (isConnected()) {
       setTitleImage(CONNECTED_IMAGE);
+      showExpressionsAction.setEnabled(isDartiumLaunch());
     } else {
       setTitleImage(NOT_CONNECTED_IMAGE);
+      showExpressionsAction.setEnabled(false);
     }
-    showExpressionsAction.setEnabled(isDartiumLaunch());
   }
 
   private void updateConnectionStatusAsync() {

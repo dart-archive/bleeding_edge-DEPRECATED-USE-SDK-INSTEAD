@@ -110,6 +110,10 @@ public class ChromiumTabInfo {
     return webSocketDebuggerUrl;
   }
 
+  public boolean isChromeExtension() {
+    return url != null && url.startsWith("chrome-extension://");
+  }
+
   @Override
   public String toString() {
     return "[" + getTitle() + "," + getUrl() + "," + getWebSocketDebuggerUrl() + "]";

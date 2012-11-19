@@ -350,8 +350,19 @@ public class BrowserManager {
       }
     }
 
-    if (tabs.size() == 1) {
+    if (tabs.size() == 0) {
+      // If no tabs, return null.
+      return null;
+    } else if (tabs.size() == 1) {
+      // If one tab, return that.
       return tabs.get(0);
+    } else {
+      // If more then one tab, return the first visible, non-Chrome extension tab.
+      for (ChromiumTabInfo tab : tabs) {
+        if (!tab.isChromeExtension()) {
+          return tab;
+        }
+      }
     }
 
     StringBuilder builder = new StringBuilder("unable to locate target dartium tab [" + tabs.size()

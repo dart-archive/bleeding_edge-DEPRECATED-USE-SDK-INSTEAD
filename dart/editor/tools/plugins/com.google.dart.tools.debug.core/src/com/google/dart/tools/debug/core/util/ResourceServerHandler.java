@@ -650,9 +650,13 @@ class ResourceServerHandler implements Runnable {
   private boolean isConnectionReset(IOException ioe) {
     // ignore java.net.SocketException: Connection reset
     // ignore java.net.SocketException: Broken pipe
+    // ignore java.net.SocketException: Software caused connection abort: socket write error
 
     if (ioe instanceof SocketException) {
-      return "Connection reset".equals(ioe.getMessage()) || "Broken pipe".equals(ioe.getMessage());
+      String message = ioe.getMessage().toLowerCase();
+
+      return "connection reset".equals(message) || "connection abort".equals(message)
+          || "broken pipe".equals(message);
     }
 
     return false;
