@@ -18,12 +18,9 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.search.SearchScope;
 import com.google.dart.tools.core.search.SearchScopeFactory;
-import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
-import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 import com.google.dart.tools.ui.dialogs.TypeSelectionExtension;
 import com.google.dart.tools.ui.internal.SharedImages;
 import com.google.dart.tools.ui.internal.dialogs.FilteredTypesSelectionDialog;
-import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.text.editor.ExternalCompilationUnitEditorInput;
 import com.google.dart.tools.ui.text.IColorManager;
@@ -32,11 +29,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
-import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -472,20 +466,6 @@ public final class DartUI {
             prefs,
             AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_FOREGROUND_COLOR,
             display);
-  }
-
-  /**
-   * @return the selection range in given {@link DartEditor}, works even if called from non-UI
-   *         thread.
-   * @see ITextViewer#getSelectedRange()
-   */
-  public static Point getSelectionRange(final ISourceViewer viewer) {
-    return ExecutionUtils.runObjectUI(new RunnableObjectEx<Point>() {
-      @Override
-      public Point runObject() throws Exception {
-        return viewer.getSelectedRange();
-      }
-    });
   }
 
   /**

@@ -28,6 +28,7 @@ import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.core.utilities.ast.NameOccurrencesFinder;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.core.utilities.general.Timer;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
@@ -138,12 +139,16 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CaretEvent;
+import org.eclipse.swt.custom.CaretListener;
 import org.eclipse.swt.custom.ST;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -1602,6 +1607,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
+  private SourceRange textSelectionRange;
+
   /** Preference key for matching brackets */
   protected final static String MATCHING_BRACKETS = PreferenceConstants.EDITOR_MATCHING_BRACKETS;
 
@@ -2102,6 +2109,15 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   public IPreferenceStore getPreferences() {
     return super.getPreferenceStore();
+  }
+
+  /**
+   * @return the last reported text selection range in underlying {@link #getSourceViewer()}. May be
+   *         <code>null</code> if selection in not known yet. This method will not make any UI
+   *         method invocation.
+   */
+  public SourceRange getTextSelectionRange() {
+    return textSelectionRange;
   }
 
   @Override
@@ -2781,6 +2797,21 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         astCache.clear();
       }
     });
+
+    // track text selection range
+    viewer.getTextWidget().addCaretListener(new CaretListener() {
+      @Override
+      public void caretMoved(CaretEvent event) {
+        textSelectionRange = SourceRangeFactory.forStartLength(event.caretOffset, 0);
+      }
+    });
+    viewer.getTextWidget().addListener(SWT.Selection, new Listener() {
+      @Override
+      public void handleEvent(Event event) {
+        textSelectionRange = SourceRangeFactory.forStartEnd(event.x, event.y);
+      }
+    });
+
     IDocument document = getDocumentProvider().getDocument(null);
     if (document != null) {
       document.addDocumentListener(astCacheClearer);

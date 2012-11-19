@@ -15,6 +15,8 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.collect.MapMaker;
 import com.google.common.io.Files;
+import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.PartListenerAdapter;
@@ -123,17 +125,16 @@ public class AutoSaveHelper {
 
   private static final AutoSaveHelper instance = new AutoSaveHelper();
 
-  public static void reconciled(IEditorInput input, ISourceViewer viewer) {
+  public static void reconciled(IEditorInput input, ISourceViewer viewer, SourceRange selection) {
     IFile file = getInputFile(input);
     if (file != null && viewer != null) {
       IDocument document = viewer.getDocument();
       if (document != null) {
         String content = document.get();
-        // TODO(devoncarew/scheglov): we have a deadlock here. Commenting out the following lines
-        // fixes the issue, but it may not be the correct fix per se. More details here:
-        // http://code.google.com/p/dart/issues/detail?id=6800
-        //Point selection = DartUI.getSelectionRange(viewer);
-        EditorInfo info = new EditorInfo(content, 0, 0); //selection.x, selection.y);
+        if (selection == null) {
+          selection = SourceRangeFactory.forStartLength(0, 0);
+        }
+        EditorInfo info = new EditorInfo(content, selection.getOffset(), selection.getLength());
         instance.taskQueue.add(new SaveTask(file, info));
       }
     }
