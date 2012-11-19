@@ -118,15 +118,15 @@ class Tape {
     DivElement active = activeInput;
     if (op == OP_NOOP) {
       if (active != null) {
-        String displayedOp = active.elements[0].text;
+        String displayedOp = active.children[0].text;
         active.innerHTML = tapeUI.firstOp(displayedOp, number);
       } else {
         element.innerHTML = tapeUI.displayOpAndNumber(opAsStr, number);
-        tapeUI.tape.elements.add(element.elements[0]);
+        tapeUI.tape.children.add(element.children[0]);
         element.innerHTML = tapeUI.alignSubTotal();;
-        tapeUI.tape.elements.add(element.elements[0]);
+        tapeUI.tape.children.add(element.children[0]);
         element.innerHTML = tapeUI.lineBreak();
-        tapeUI.tape.elements.add(element.elements[0]);
+        tapeUI.tape.children.add(element.children[0]);
       }
 
       // Update running total if it exist.
@@ -145,17 +145,17 @@ class Tape {
       }
 
       element.innerHTML = leftSide;
-      tapeUI.tape.elements.add(element.elements[0]);
+      tapeUI.tape.children.add(element.children[0]);
 
       if (op == OP_EQUAL) {
         element.innerHTML = tapeUI.displayTotal(formatOutput(displayTotal));
       } else {
         element.innerHTML = tapeUI.displayActiveTotal();
       }
-      tapeUI.tape.elements.add(element.elements[0]);
+      tapeUI.tape.children.add(element.children[0]);
 
       element.innerHTML = tapeUI.lineBreak();
-      tapeUI.tape.elements.add(element.elements[0]);
+      tapeUI.tape.children.add(element.children[0]);
     }
 
     scrollToTapeBottom();
@@ -177,7 +177,7 @@ class Tape {
     removeActiveElements();
     DivElement element = new Element.tag("div");
     element.innerHTML = tapeUI.displayError(err);
-    tapeUI.tape.elements.add(element.elements[0]);
+    tapeUI.tape.children.add(element.children[0]);
 
     scrollToTapeBottom();
 
@@ -201,12 +201,12 @@ class Tape {
     DivElement active = activeInput;
     if (active != null) {
       element.innerHTML = tapeUI.replaceActiveOp(active.innerHTML);
-      active.replaceWith(element.elements[0]);
+      active.replaceWith(element.children[0]);
 
       active = activeTotal;
       if (active != null) {
         element.innerHTML = tapeUI.replaceActiveTotal(active.text);
-        active.replaceWith(element.elements[0]);
+        active.replaceWith(element.children[0]);
       }
     }
   }
@@ -215,20 +215,20 @@ class Tape {
     final element = new Element.tag('div');
 
     element.innerHTML = tapeUI.clearCalculation();
-    tapeUI.tape.elements.add(element.elements[0]);
+    tapeUI.tape.children.add(element.children[0]);
 
     scrollToTapeBottom();
   }
 
   bool get isClear {
-    return tapeUI.tape.elements.last.classes.contains(TapeUI.clearCalc);
+    return tapeUI.tape.children.last.classes.contains(TapeUI.clearCalc);
   }
 
   void clearTape() {
-    tapeUI.tape.elements.clear();
+    tapeUI.tape.children.clear();
 
     SettingsDialog settingsUI = new SettingsDialog();
-    tapeUI.tape.elements.add(settingsUI.root);
+    tapeUI.tape.children.add(settingsUI.root);
     mySettings = new Settings(settingsUI, Settings.THEME_BUTTON);
   }
 
@@ -238,6 +238,6 @@ class Tape {
   void clear() {
     final element = new Element.tag('div');
     element.innerHTML = tapeUI.clearCalculation();
-    tapeUI.tape.elements.add(element.elements[0]);
+    tapeUI.tape.children.add(element.children[0]);
   }
 }

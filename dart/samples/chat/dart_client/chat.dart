@@ -179,7 +179,7 @@ class Chat {
     showElement(_joinSection);
     hideElement(_chatSection);
     _nextMessage = 0;
-    _messages.elements.clear();
+    _messages.children.clear();
     showStatus("Welcome to dart chat sample. "
                "This chat service is build using Dart for both the server and the client. "
                "Enter your handle to join.");
@@ -227,8 +227,8 @@ class Chat {
     }
     p.text = text.toString();
     _messages.insertAdjacentElement('afterBegin', p);
-    if (_messages.elements.length > 20) {
-      _messages.elements.removeLast();
+    if (_messages.children.length > 20) {
+      _messages.children.removeLast();
     }
   }
 
@@ -294,7 +294,7 @@ class Chat {
     Document doc = window.document;
     ParagraphElement p = new Element.tag('p');
     p.text = message;
-    doc.body.elements.add(p);
+    doc.body.children.add(p);
   }
 
   ButtonElement _joinButton;

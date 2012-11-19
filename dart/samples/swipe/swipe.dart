@@ -71,7 +71,7 @@ void main() {
 void initialize3D() {
   target.classes.add("transformable");
 
-  num childCount = target.elements.length;
+  num childCount = target.children.length;
 
   window.requestLayoutFrame(() {
     num width = query("#target").clientWidth;
@@ -83,7 +83,7 @@ void initialize3D() {
     query('#container2').style.width = "${radius}px";
 
     for (int i = 0; i < childCount; i++) {
-      var panel = target.elements[i];
+      var panel = target.children[i];
 
       panel.classes.add("transformable");
 
@@ -96,7 +96,7 @@ void initialize3D() {
 }
 
 void spinFigure(Element figure, int direction) {
-  num childCount = target.elements.length;
+  num childCount = target.children.length;
 
   anglePos += (360.0 / childCount) * direction;
 

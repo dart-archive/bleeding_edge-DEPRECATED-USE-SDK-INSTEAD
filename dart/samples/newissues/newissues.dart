@@ -11,15 +11,15 @@ class Issue {
   Issue(this.json);
 
   void addTo(Element div) {
-    div.elements.add(new Element.tag("h2")..text = json[r"title"][r"$t"]);
-    div.elements.add(new Element.tag("pre")..text = json[r"content"][r"$t"]);
+    div.children.add(new Element.tag("h2")..text = json[r"title"][r"$t"]);
+    div.children.add(new Element.tag("pre")..text = json[r"content"][r"$t"]);
   }
 }
 
 /// Decodes JSON into a list of Issues.
 List<Issue> getIssues(json) {
   var issues = json["feed"]["entry"];
-  if (issues == null) return null; 
+  if (issues == null) return null;
   return issues.map((data) => new Issue(data));
 }
 
@@ -28,7 +28,7 @@ void processJson(json) {
   Element div = query("#content");
   List<Issue> list = getIssues(json);
   if (list == null) {
-    div.elements.add(new Element.tag("h2")..text = "... no issues found.");
+    div.children.add(new Element.tag("h2")..text = "... no issues found.");
   } else {
     getIssues(json).forEach((Issue i) => i.addTo(div));
   }

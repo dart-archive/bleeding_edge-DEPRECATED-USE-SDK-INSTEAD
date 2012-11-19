@@ -79,7 +79,7 @@ void setupEvents() {
     // If settings dialog is open close it.
     mySettings.close(e);
 
-    renderPad(document.body.elements.last);
+    renderPad(document.body.children.last);
     if (wasOpened) {
       removePadEvents();
       addPadEvents();
@@ -152,12 +152,12 @@ void renderPad(Element parentElement) {
     // Update calculator pad.
 
     // Remove previous pad UI
-    if (parentElement.elements.length > 1) {
-      parentElement.elements.last.remove();
+    if (parentElement.children.length > 1) {
+      parentElement.children.last.remove();
     }
 
     // Add new pad UI.
-    parentElement.elements.add(padUI.root);
+    parentElement.children.add(padUI.root);
   }
 }
 
@@ -367,7 +367,7 @@ void main() {
 
   // Create our Tape UI.
   tapeUI = new TapeUI();
-  element.elements.add(tapeUI.root);
+  element.children.add(tapeUI.root);
 
   // Create our tape controller.
   tape = new Tape();
@@ -375,7 +375,7 @@ void main() {
   renderPad(element);
 
   // Render the UI.
-  document.body.elements.add(element);
+  document.body.children.add(element);
 
   currentRegister = "";
   total = 0.0;

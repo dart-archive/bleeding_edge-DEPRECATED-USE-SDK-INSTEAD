@@ -67,7 +67,7 @@ void _addColorStyles() {
   final colors = const [ 'darkred', 'darkorange', 'darkgoldenrod',
                          'darkgreen', 'darkblue', 'darkviolet'];
   int c = 0;
-  var node = grid.elements[0];
+  var node = grid.children[0];
   while (node != null) {
     if (node.id != '') {
       node.style.cssText += "color:" + colors[c++];
@@ -106,11 +106,11 @@ void printMetrics(String example) {
   final sb = new StringBuffer();
   sb.add("test('Spec Example $exampleId', () {\n");
   sb.add("  verifyExample('$example', {\n");
-  final elements = node.elements;
+  final children = node.children;
 
   window.requestLayoutFrame(() {
-    for (int i = 0; i < elements.length; i++) {
-      _appendMetrics(sb, elements[i], '    ');
+    for (int i = 0; i < children.length; i++) {
+      _appendMetrics(sb, children[i], '    ');
     }
     sb.add('  });\n');
     sb.add('});\n\n');

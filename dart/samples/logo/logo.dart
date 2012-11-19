@@ -175,7 +175,7 @@ void main() {
 </svg>
 """);
 
-  query("#icon").elements.add(logo);
+  query("#icon").children.add(logo);
   logo.queryAll("path").forEach((p) {
     defaultColors[p.id] = new Color.hex(p.style.getPropertyValue('fill'));
   });
