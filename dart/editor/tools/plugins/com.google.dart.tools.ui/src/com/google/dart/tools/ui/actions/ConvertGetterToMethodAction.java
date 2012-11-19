@@ -34,28 +34,28 @@ import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
 /**
- * Converts no-arguments method into getter.
+ * Converts getter into method.
  */
-public class ConvertMethodToGetterAction extends SelectionDispatchAction {
+public class ConvertGetterToMethodAction extends SelectionDispatchAction {
 
   private DartEditor fEditor;
 
-  public ConvertMethodToGetterAction(DartEditor editor) {
+  public ConvertGetterToMethodAction(DartEditor editor) {
     super(editor.getEditorSite());
-    setText(RefactoringMessages.ConvertMethodToGetterAction_title);
+    setText(RefactoringMessages.ConvertGetterToMethodAction_title);
     fEditor = editor;
     PlatformUI.getWorkbench().getHelpSystem().setHelp(
         this,
-        DartHelpContextIds.CONVERT_METHOD_TO_GETTER_ACTION);
+        DartHelpContextIds.CONVERT_GETTER_TO_METHOD_ACTION);
     setEnabled(SelectionConverter.getInputAsCompilationUnit(fEditor) != null);
   }
 
-  public ConvertMethodToGetterAction(IWorkbenchSite site) {
+  public ConvertGetterToMethodAction(IWorkbenchSite site) {
     super(site);
-    setText(RefactoringMessages.ConvertMethodToGetterAction_title);
+    setText(RefactoringMessages.ConvertGetterToMethodAction_title);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(
         this,
-        DartHelpContextIds.CONVERT_METHOD_TO_GETTER_ACTION);
+        DartHelpContextIds.CONVERT_GETTER_TO_METHOD_ACTION);
   }
 
   @Override
@@ -64,8 +64,8 @@ public class ConvertMethodToGetterAction extends SelectionDispatchAction {
       Object element = selection.getFirstElement();
       if (element instanceof DartFunction) {
         DartFunction function = (DartFunction) element;
-        if (RefactoringAvailabilityTester.isConvertMethodToGetterAvailable(function)) {
-          boolean success = RefactoringExecutionStarter.startConvertMethodToGetterRefactoring(
+        if (RefactoringAvailabilityTester.isConvertGetterToMethodAvailable(function)) {
+          boolean success = RefactoringExecutionStarter.startConvertGetterToMethodRefactoring(
               function,
               getShell());
           if (success) {
@@ -77,7 +77,7 @@ public class ConvertMethodToGetterAction extends SelectionDispatchAction {
       ExceptionHandler.handle(
           e,
           getShell(),
-          RefactoringMessages.ConvertMethodToGetterAction_dialog_title,
+          RefactoringMessages.ConvertGetterToMethodAction_dialog_title,
           RefactoringMessages.InlineMethodAction_unexpected_exception);
     }
   }
@@ -91,7 +91,7 @@ public class ConvertMethodToGetterAction extends SelectionDispatchAction {
     CompilationUnit cu = SelectionConverter.getInputAsCompilationUnit(fEditor);
     try {
       DartFunction function = DartModelUtil.findFunction(cu, selection.getOffset());
-      boolean success = RefactoringExecutionStarter.startConvertMethodToGetterRefactoring(
+      boolean success = RefactoringExecutionStarter.startConvertGetterToMethodRefactoring(
           function,
           getShell());
       if (success) {
@@ -102,14 +102,14 @@ public class ConvertMethodToGetterAction extends SelectionDispatchAction {
 
     MessageDialog.openInformation(
         getShell(),
-        RefactoringMessages.ConvertMethodToGetterAction_dialog_title,
-        RefactoringMessages.ConvertMethodToGetterAction_select);
+        RefactoringMessages.ConvertGetterToMethodAction_dialog_title,
+        RefactoringMessages.ConvertGetterToMethodAction_select);
   }
 
   @Override
   public void selectionChanged(DartTextSelection selection) {
     try {
-      setEnabled(RefactoringAvailabilityTester.isConvertMethodToGetterAvailable(selection));
+      setEnabled(RefactoringAvailabilityTester.isConvertGetterToMethodAvailable(selection));
     } catch (DartModelException e) {
       setEnabled(false);
     }
@@ -118,7 +118,7 @@ public class ConvertMethodToGetterAction extends SelectionDispatchAction {
   @Override
   public void selectionChanged(IStructuredSelection selection) {
     try {
-      setEnabled(RefactoringAvailabilityTester.isConvertMethodToGetterAvailable(selection));
+      setEnabled(RefactoringAvailabilityTester.isConvertGetterToMethodAvailable(selection));
     } catch (DartModelException e) {
       setEnabled(false);
     }

@@ -27,6 +27,8 @@ public final class CorrectionMessages extends NLS {
   // strings which we use in Dart
   public static String ConvertMethodToGetterRefactoringProposal_additionalInfo;
   public static String ConvertMethodToGetterRefactoringProposal_name;
+  public static String ConvertGetterToMethodRefactoringProposal_additionalInfo;
+  public static String ConvertGetterToMethodRefactoringProposal_name;
   public static String ConvertOptionalParametersToNamedRefactoringProposal_additionalInfo;
   public static String ConvertOptionalParametersToNamedRefactoringProposal_name;
   public static String QuickAssistProcessor_exchangeOperands;

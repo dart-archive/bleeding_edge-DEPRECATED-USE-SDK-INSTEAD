@@ -335,6 +335,7 @@ public class JdtActionConstants {
   public static final String INLINE = "com.google.dart.tools.ui.actions.Inline"; //$NON-NLS-1$
 
   public static final String CONVERT_METHOD_TO_GETTER = "com.google.dart.tools.ui.actions.ConvertMethodToGetter"; //$NON-NLS-1$
+  public static final String CONVERT_GETTER_TO_METHOD = "com.google.dart.tools.ui.actions.ConvertGetterToMethod"; //$NON-NLS-1$
 
   /**
    * Refactor menu: name of standard Extract Interface global action (value

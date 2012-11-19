@@ -187,6 +187,8 @@ public interface DartHelpContextIds {
   public static final String INLINE_ACTION = PREFIX + "inline_action"; //$NON-NLS-1$
   public static final String CONVERT_METHOD_TO_GETTER_ACTION = PREFIX
       + "convertMethodToGetter_action"; //$NON-NLS-1$
+  public static final String CONVERT_GETTER_TO_METHOD_ACTION = PREFIX
+      + "convertGetterToMethod_action"; //$NON-NLS-1$
   /**
 	 * 
 	 */

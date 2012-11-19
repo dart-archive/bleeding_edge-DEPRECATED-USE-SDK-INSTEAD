@@ -46,6 +46,7 @@ public class TestAll {
     suite.addTestSuite(InlineMethodRefactoringTest.class);
     // convert
     suite.addTestSuite(ConvertMethodToGetterRefactoringTest.class);
+    suite.addTestSuite(ConvertGetterToMethodRefactoringTest.class);
     suite.addTestSuite(ConvertOptionalParametersToNamedRefactoringTest.class);
     // done
     return suite;

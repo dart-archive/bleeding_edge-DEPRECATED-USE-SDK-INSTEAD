@@ -296,6 +296,7 @@ public interface DartEditorActionDefinitionIds extends ITextEditorActionDefiniti
   public static final String INLINE = "com.google.dart.tools.ui.edit.text.dart.inline"; //$NON-NLS-1$
 
   public static final String CONVERT_METHOD_TO_GETTER = "com.google.dart.tools.ui.edit.text.dart.convertMethodToGetter"; //$NON-NLS-1$
+  public static final String CONVERT_GETTER_TO_METHOD = "com.google.dart.tools.ui.edit.text.dart.convertGetterToMethod"; //$NON-NLS-1$
 
   /**
    * Action definition ID of the refactor -> replace invocations action (value

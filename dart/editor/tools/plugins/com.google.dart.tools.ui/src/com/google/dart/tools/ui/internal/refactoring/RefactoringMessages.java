@@ -117,7 +117,7 @@ public final class RefactoringMessages extends NLS {
   public static String InlineMethodInputPage_only_selected;
 
   ///////////////////////////////////////////////////////////////////////////////////////
-  // Convert method <=> getter
+  // Convert method => getter
   ///////////////////////////////////////////////////////////////////////////////////////
   public static String ConvertMethodToGetterAction_title;
   public static String ConvertMethodToGetterAction_dialog_title;
@@ -128,6 +128,14 @@ public final class RefactoringMessages extends NLS {
   public static String ConvertOptionalParametersToNamedWizard_page_title;
   public static String ConvertOptionalParametersToNamedAction_dialog_title;
   public static String ConvertOptionalParametersToNamedAction_noOptionalPositional;
+
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // Convert getter => method
+  ///////////////////////////////////////////////////////////////////////////////////////
+  public static String ConvertGetterToMethodAction_title;
+  public static String ConvertGetterToMethodAction_dialog_title;
+  public static String ConvertGetterToMethodAction_select;
+  public static String ConvertGetterToMethodWizard_page_title;
 
   // XXX
   // These constants are not used yet in Dart refactoring.

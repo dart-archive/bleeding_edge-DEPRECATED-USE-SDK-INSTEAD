@@ -57,6 +57,7 @@ import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetterToMethodRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertOptionalParametersToNamedRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.RenameRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -273,6 +274,25 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
         DartEditor dartEditor = (DartEditor) editor;
         // add proposal
         ICommandAccess proposal = new ConvertMethodToGetterRefactoringProposal(
+            dartEditor,
+            selectionFunction,
+            proposalRelevance);
+        proposals.add(proposal);
+      }
+    }
+  }
+
+  void addProposal_convertGetterToMethodRefactoring() throws CoreException {
+    if (!RefactoringAvailabilityTester.isConvertGetterToMethodAvailable(selectionFunction)) {
+      return;
+    }
+    // we need DartEditor
+    if (context instanceof AssistContext) {
+      IEditorPart editor = ((AssistContext) context).getEditor();
+      if (editor instanceof DartEditor) {
+        DartEditor dartEditor = (DartEditor) editor;
+        // add proposal
+        ICommandAccess proposal = new ConvertGetterToMethodRefactoringProposal(
             dartEditor,
             selectionFunction,
             proposalRelevance);

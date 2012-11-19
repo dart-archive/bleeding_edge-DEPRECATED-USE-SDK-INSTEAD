@@ -25,6 +25,7 @@ import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.internal.corext.refactoring.code.ConvertGetterToMethodRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.ConvertMethodToGetterRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.ConvertOptionalParametersToNamedRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring;
@@ -32,6 +33,7 @@ import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefact
 import com.google.dart.tools.ui.cleanup.ICleanUp;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoring;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoringWizard;
+import com.google.dart.tools.ui.internal.refactoring.ConvertGetterToMethodWizard;
 import com.google.dart.tools.ui.internal.refactoring.ConvertMethodToGetterWizard;
 import com.google.dart.tools.ui.internal.refactoring.ConvertOptionalParametersToNamedWizard;
 import com.google.dart.tools.ui.internal.refactoring.InlineLocalWizard;
@@ -252,6 +254,16 @@ public final class RefactoringExecutionStarter {
 //  	}
 //  	return false;
 //  }
+
+  public static boolean startConvertGetterToMethodRefactoring(DartFunction function, Shell shell) {
+    Refactoring refactoring = new ConvertGetterToMethodRefactoring(function);
+    new RefactoringStarter().activate(
+        new ConvertGetterToMethodWizard(refactoring),
+        shell,
+        RefactoringMessages.ConvertGetterToMethodAction_dialog_title,
+        RefactoringSaveHelper.SAVE_ALL);
+    return true;
+  }
 
   public static boolean startConvertMethodToGetterRefactoring(DartFunction function, Shell shell) {
     try {

@@ -125,6 +125,14 @@ public final class RefactoringCoreMessages extends NLS {
   public static String ConvertMethodToGetterRefactoring_replace_invocation;
 
   ///////////////////////////////////////////////////////////////////////////////////////
+  // Convert getter to method refactoring
+  ///////////////////////////////////////////////////////////////////////////////////////
+  public static String ConvertGetterToMethodRefactoring_name;
+  public static String ConvertGetterToMethodRefactoring_processing;
+  public static String ConvertGetterToMethodRefactoring_make_getter_declaration;
+  public static String ConvertGetterToMethodRefactoring_replace_invocation;
+
+  ///////////////////////////////////////////////////////////////////////////////////////
   // Convert optional positional parameters to named
   ///////////////////////////////////////////////////////////////////////////////////////
   public static String ConvertOptionalParametersToNamedRefactoring_name;

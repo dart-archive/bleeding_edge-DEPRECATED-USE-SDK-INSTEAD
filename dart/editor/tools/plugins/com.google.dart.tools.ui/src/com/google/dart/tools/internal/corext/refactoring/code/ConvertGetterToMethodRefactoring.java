@@ -15,12 +15,10 @@ package com.google.dart.tools.internal.corext.refactoring.code;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.dart.compiler.ast.ASTNodes;
-import com.google.dart.compiler.ast.DartInvocation;
-import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.util.apache.StringUtils;
-import com.google.dart.tools.core.dom.NodeFinder;
-import com.google.dart.tools.core.internal.util.SourceRangeUtils;
+import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.KeywordToken;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.Method;
@@ -48,11 +46,11 @@ import org.eclipse.text.edits.TextEdit;
 import java.util.List;
 
 /**
- * Converts {@link DartFunction} without arguments into getter.
+ * Converts {@link DartFunction} getter into method.
  * 
  * @coverage dart.editor.ui.refactoring.core
  */
-public class ConvertMethodToGetterRefactoring extends Refactoring {
+public class ConvertGetterToMethodRefactoring extends Refactoring {
 
   private static void addReplaceEdit(TextChange change, String name, SourceRange range, String text) {
     TextEdit edit = new ReplaceEdit(range.getOffset(), range.getLength(), text);
@@ -62,7 +60,7 @@ public class ConvertMethodToGetterRefactoring extends Refactoring {
   private final DartFunction function;
   private final TextChangeManager changeManager = new TextChangeManager(true);
 
-  public ConvertMethodToGetterRefactoring(DartFunction function) {
+  public ConvertGetterToMethodRefactoring(DartFunction function) {
     this.function = function;
   }
 
@@ -80,7 +78,7 @@ public class ConvertMethodToGetterRefactoring extends Refactoring {
 
   @Override
   public Change createChange(IProgressMonitor pm) throws CoreException {
-    pm.beginTask(RefactoringCoreMessages.ConvertMethodToGetterRefactoring_processing, 3);
+    pm.beginTask(RefactoringCoreMessages.ConvertGetterToMethodRefactoring_processing, 3);
     pm.subTask(StringUtils.EMPTY);
     try {
       List<DartFunction> declarations;
@@ -102,47 +100,40 @@ public class ConvertMethodToGetterRefactoring extends Refactoring {
         declarations = ImmutableList.of(function);
         references = RenameAnalyzeUtil.getReferences(function, pm2);
       }
-      // convert method declaration(s) to getter
+      // convert getter declaration(s) to method
       for (DartFunction function : declarations) {
         CompilationUnit unit = function.getCompilationUnit();
         TextChange change = changeManager.get(unit);
-        String changeName = RefactoringCoreMessages.ConvertMethodToGetterRefactoring_make_getter_declaration;
+        String changeName = RefactoringCoreMessages.ConvertGetterToMethodRefactoring_make_getter_declaration;
+        // remove "get"
+        {
+          String source = function.getSource();
+          List<Token> tokens = TokenUtils.getTokens(source);
+          KeywordToken getToken = TokenUtils.findKeywordToken(tokens, Keyword.GET);
+          if (getToken != null) {
+            int getOffset = function.getSourceRange().getOffset() + getToken.getOffset();
+            int nameOffset = function.getNameRange().getOffset();
+            SourceRange getRange = SourceRangeFactory.forStartEnd(getOffset, nameOffset);
+            addReplaceEdit(change, changeName, getRange, "");
+          }
+        }
+        // add ()
         addReplaceEdit(
             change,
             changeName,
-            SourceRangeFactory.forStartLength(function.getNameRange(), 0),
-            "get ");
-        addReplaceEdit(
-            change,
-            changeName,
-            SourceRangeFactory.forEndEnd(
-                function.getNameRange(),
-                function.getParametersCloseParen()),
-            "");
+            SourceRangeFactory.forEndLength(function.getNameRange(), 0),
+            "()");
         pm.worked(1);
       }
       // convert all references
       for (SearchMatch reference : references) {
         CompilationUnit refUnit = reference.getElement().getAncestor(CompilationUnit.class);
         TextChange refChange = changeManager.get(refUnit);
-        ExtractUtils utils = new ExtractUtils(refUnit);
-        // prepare invocation
-        DartNode coveringNode = NodeFinder.find(
-            utils.getUnitNode(),
-            reference.getSourceRange().getOffset(),
-            0).getCoveringNode();
-        DartInvocation invocation = ASTNodes.getAncestor(coveringNode, DartInvocation.class);
-        // we need invocation
-        if (invocation != null) {
-          SourceRange range = SourceRangeFactory.forStartEnd(
-              SourceRangeUtils.getEnd(reference.getSourceRange()),
-              invocation);
-          addReplaceEdit(
-              refChange,
-              RefactoringCoreMessages.ConvertMethodToGetterRefactoring_replace_invocation,
-              range,
-              "");
-        }
+        addReplaceEdit(
+            refChange,
+            RefactoringCoreMessages.ConvertGetterToMethodRefactoring_replace_invocation,
+            SourceRangeFactory.forEndLength(reference.getSourceRange(), 0),
+            "()");
       }
       pm.worked(1);
       // done
@@ -154,7 +145,7 @@ public class ConvertMethodToGetterRefactoring extends Refactoring {
 
   @Override
   public String getName() {
-    return RefactoringCoreMessages.ConvertMethodToGetterRefactoring_name;
+    return RefactoringCoreMessages.ConvertGetterToMethodRefactoring_name;
   }
 
 }

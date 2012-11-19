@@ -44,6 +44,18 @@ public interface DartFunction extends CompilationUnitElement, ParentElement, Sou
   public DartVariableDeclaration[] getLocalVariables() throws DartModelException;
 
   /**
+   * @return the {@link SourceRange} of the close character optional parameters declaration,
+   *         <code>]</code> or <code>}</code>. May be <code>null</code> if no optional parameters.
+   */
+  public SourceRange getOptionalParametersClosingGroupChar() throws DartModelException;
+
+  /**
+   * @return the {@link SourceRange} of the open character optional parameters declaration,
+   *         <code>[</code> or <code>{</code>. May be <code>null</code> if no optional parameters.
+   */
+  public SourceRange getOptionalParametersOpeningGroupChar() throws DartModelException;
+
+  /**
    * Return an array containing the names of the parameters for this function, or an empty array if
    * this function does not have any parameters.
    * 
@@ -56,18 +68,6 @@ public interface DartFunction extends CompilationUnitElement, ParentElement, Sou
    * @return the {@link SourceRange} of close paren in parameters declaration.
    */
   public SourceRange getParametersCloseParen() throws DartModelException;
-
-  /**
-   * @return the {@link SourceRange} of the close character optional parameters declaration,
-   *         <code>]</code> or <code>}</code>. May be <code>null</code> if no optional parameters.
-   */
-  public SourceRange getOptionalParametersClosingGroupChar() throws DartModelException;
-
-  /**
-   * @return the {@link SourceRange} of the open character optional parameters declaration,
-   *         <code>[</code> or <code>{</code>. May be <code>null</code> if no optional parameters.
-   */
-  public SourceRange getOptionalParametersOpeningGroupChar() throws DartModelException;
 
   /**
    * Return an array containing the names of the parameter types for this function, or an empty
@@ -96,6 +96,13 @@ public interface DartFunction extends CompilationUnitElement, ParentElement, Sou
   public SourceRange getVisibleRange() throws DartModelException;
 
   /**
+   * Return <code>true</code> if this function is declared as a getter.
+   * 
+   * @return <code>true</code> if this function is declared as a getter
+   */
+  public boolean isGetter();
+
+  /**
    * @return <code>true</code> if this function is global (defined at the top-level of a compilation
    *         unit)
    */
@@ -112,4 +119,11 @@ public interface DartFunction extends CompilationUnitElement, ParentElement, Sou
    * @return whether this function is an entry point
    */
   public boolean isMain();
+
+  /**
+   * Return <code>true</code> if this function is declared as a setter.
+   * 
+   * @return <code>true</code> if this function is declared as a setter
+   */
+  public boolean isSetter();
 }

@@ -20,6 +20,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartModifiers;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
@@ -74,9 +75,32 @@ public class DartFunctionImpl extends SourceReferenceImpl implements DartFunctio
     return variables.toArray(new DartVariableDeclaration[variables.size()]);
   }
 
+  public DartModifiers getModifiers() {
+    try {
+      DartFunctionInfo info = (DartFunctionInfo) getElementInfo();
+      return new DartModifiers(info.getModifiers());
+    } catch (DartModelException exception) {
+      throw new IllegalStateException(exception);
+    }
+  }
+
   @Override
   public SourceRange getNameRange() throws DartModelException {
     return ((DartFunctionInfo) getElementInfo()).getNameRange();
+  }
+
+  @Override
+  public SourceRange getOptionalParametersClosingGroupChar() throws DartModelException {
+    DartFunctionInfo info = (DartFunctionInfo) getElementInfo();
+    int offset = info.getOptionalParametersClosingGroupChar();
+    return offset == -1 ? null : new SourceRangeImpl(offset, 1);
+  }
+
+  @Override
+  public SourceRange getOptionalParametersOpeningGroupChar() throws DartModelException {
+    DartFunctionInfo info = (DartFunctionInfo) getElementInfo();
+    int offset = info.getOptionalParametersOpeningGroupChar();
+    return offset == -1 ? null : new SourceRangeImpl(offset, 1);
   }
 
   @Override
@@ -94,20 +118,6 @@ public class DartFunctionImpl extends SourceReferenceImpl implements DartFunctio
   public SourceRange getParametersCloseParen() throws DartModelException {
     DartFunctionInfo info = (DartFunctionInfo) getElementInfo();
     return new SourceRangeImpl(info.getParametersCloseParen(), 1);
-  }
-
-  @Override
-  public SourceRange getOptionalParametersClosingGroupChar() throws DartModelException {
-    DartFunctionInfo info = (DartFunctionInfo) getElementInfo();
-    int offset = info.getOptionalParametersClosingGroupChar();
-    return offset == -1 ? null : new SourceRangeImpl(offset, 1);
-  }
-
-  @Override
-  public SourceRange getOptionalParametersOpeningGroupChar() throws DartModelException {
-    DartFunctionInfo info = (DartFunctionInfo) getElementInfo();
-    int offset = info.getOptionalParametersOpeningGroupChar();
-    return offset == -1 ? null : new SourceRangeImpl(offset, 1);
   }
 
   @Override
@@ -138,6 +148,11 @@ public class DartFunctionImpl extends SourceReferenceImpl implements DartFunctio
   }
 
   @Override
+  public boolean isGetter() {
+    return getModifiers().isGetter();
+  }
+
+  @Override
   public boolean isGlobal() {
     return getParent() instanceof CompilationUnit;
   }
@@ -150,6 +165,11 @@ public class DartFunctionImpl extends SourceReferenceImpl implements DartFunctio
   @Override
   public boolean isMain() {
     return MAIN.equals(getElementName());
+  }
+
+  @Override
+  public boolean isSetter() {
+    return getModifiers().isSetter();
   }
 
   @Override

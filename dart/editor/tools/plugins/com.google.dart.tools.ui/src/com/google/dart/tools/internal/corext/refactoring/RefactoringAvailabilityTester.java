@@ -391,9 +391,42 @@ public class RefactoringAvailabilityTester {
     return getInlineableMethodNode(NodeFinder.perform(unitNode, offset, length), unit);
   }
 
+  public static boolean isConvertGetterToMethodAvailable(DartFunction function)
+      throws DartModelException {
+    if (!Checks.isAvailable(function)) {
+      return false;
+    }
+    if (!function.isGetter()) {
+      return false;
+    }
+    return SourceRangeUtils.isAvailable(function.getNameRange());
+  }
+
+  public static boolean isConvertGetterToMethodAvailable(DartTextSelection selection)
+      throws DartModelException {
+    DartElement[] elements = selection.resolveElementAtOffset();
+    if (elements.length != 1) {
+      return false;
+    }
+    return elements[0] instanceof DartFunction
+        && isConvertGetterToMethodAvailable((DartFunction) elements[0]);
+  }
+
+  public static boolean isConvertGetterToMethodAvailable(IStructuredSelection selection)
+      throws DartModelException {
+    if (selection.isEmpty() || selection.size() != 1) {
+      return false;
+    }
+    Object first = selection.getFirstElement();
+    return first instanceof DartFunction && isConvertGetterToMethodAvailable((DartFunction) first);
+  }
+
   public static boolean isConvertMethodToGetterAvailable(DartFunction function)
       throws DartModelException {
     if (!Checks.isAvailable(function)) {
+      return false;
+    }
+    if (function.isGetter()) {
       return false;
     }
     if (function instanceof Method && ((Method) function).isConstructor()) {
@@ -403,15 +436,6 @@ public class RefactoringAvailabilityTester {
       return false;
     }
     return SourceRangeUtils.isAvailable(function.getNameRange());
-  }
-
-  public static boolean isConvertMethodToGetterAvailable(DartTextSelection selection)
-      throws DartModelException {
-    DartElement[] elements = selection.resolveElementAtOffset();
-    if (elements.length != 1) {
-      return false;
-    }
-    return elements[0] instanceof Method && isConvertMethodToGetterAvailable((Method) elements[0]);
   }
 
 //  public static boolean isExtractSupertypeAvailable(TypeMember member) throws DartModelException {
@@ -505,13 +529,23 @@ public class RefactoringAvailabilityTester {
 //    return isExtractSupertypeAvailable(new TypeMember[]{(TypeMember) element});
 //  }
 
+  public static boolean isConvertMethodToGetterAvailable(DartTextSelection selection)
+      throws DartModelException {
+    DartElement[] elements = selection.resolveElementAtOffset();
+    if (elements.length != 1) {
+      return false;
+    }
+    return elements[0] instanceof DartFunction
+        && isConvertMethodToGetterAvailable((DartFunction) elements[0]);
+  }
+
   public static boolean isConvertMethodToGetterAvailable(IStructuredSelection selection)
       throws DartModelException {
     if (selection.isEmpty() || selection.size() != 1) {
       return false;
     }
     Object first = selection.getFirstElement();
-    return first instanceof Method && isConvertMethodToGetterAvailable((Method) first);
+    return first instanceof DartFunction && isConvertMethodToGetterAvailable((DartFunction) first);
   }
 
 //  public static boolean isGeneralizeTypeAvailable(DartElement element)

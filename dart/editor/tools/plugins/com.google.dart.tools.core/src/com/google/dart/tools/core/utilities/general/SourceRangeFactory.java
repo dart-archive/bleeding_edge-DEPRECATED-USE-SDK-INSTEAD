@@ -86,6 +86,11 @@ public class SourceRangeFactory {
     return new SourceRangeImpl(start, length);
   }
 
+  public static SourceRange forEndLength(SourceRange a, int length) {
+    int start = a.getOffset() + a.getLength();
+    return forStartLength(start, length);
+  }
+
   /**
    * @return the {@link SourceRange} which start at the end of "a" and ends at the start of "b".
    */

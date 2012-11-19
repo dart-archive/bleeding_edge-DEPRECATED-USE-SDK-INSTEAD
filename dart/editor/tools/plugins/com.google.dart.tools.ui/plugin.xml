@@ -797,6 +797,13 @@
                 id="com.google.dart.tools.ui.actions.Inline">
             </action>
             <action
+                definitionId="com.google.dart.tools.ui.edit.text.dart.convertGetterToMethod"
+                label="%Refactoring.convertGetterToMethodAction.label"
+                retarget="true"
+                menubarPath="edit/endEdit"
+                id="com.google.dart.tools.ui.actions.ConvertGetterToMethod">
+            </action>
+            <action
                 definitionId="com.google.dart.tools.ui.edit.text.dart.convertMethodToGetter"
                 label="%Refactoring.convertMethodToGetterAction.label"
                 retarget="true"
@@ -915,6 +922,13 @@
                retarget="true"
                menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
                id="com.google.dart.tools.ui.actions.Inline">
+         </action>
+         <action
+             definitionId="com.google.dart.tools.ui.edit.text.dart.convertGetterToMethod"
+               label="%Refactoring.convertGetterToMethodAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
+               id="com.google.dart.tools.ui.actions.ConvertGetterToMethod">
          </action>
          <action
              definitionId="com.google.dart.tools.ui.edit.text.dart.convertMethodToGetter"
@@ -1837,6 +1851,12 @@
             description="%ActionDefinition.convertMethodToGetter.description"
             categoryId="com.google.dart.tools.ui.category.refactoring"
             id="com.google.dart.tools.ui.edit.text.dart.convertMethodToGetter">
+      </command>
+      <command
+            name="%ActionDefinition.convertGetterToMethod.name"
+            description="%ActionDefinition.convertGetterToMethod.description"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
+            id="com.google.dart.tools.ui.edit.text.dart.convertGetterToMethod">
       </command>
       <command
             name="%ActionDefinition.extractMethod.name"

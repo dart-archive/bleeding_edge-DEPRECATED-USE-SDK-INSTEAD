@@ -41,13 +41,6 @@ public interface Method extends TypeMember, DartFunction {
   public boolean isFactory();
 
   /**
-   * Return <code>true</code> if this method is declared as a getter.
-   * 
-   * @return <code>true</code> if this method is declared as a getter
-   */
-  public boolean isGetter();
-
-  /**
    * Return <code>true</code> if this method represents an implicitly defined method. At the moment
    * the only implicitly defined methods are zero-argument constructors in classes that have no
    * explicitly defined constructors.
@@ -55,11 +48,4 @@ public interface Method extends TypeMember, DartFunction {
    * @return <code>true</code> if this method represents an implicitly defined method
    */
   public boolean isImplicit();
-
-  /**
-   * Return <code>true</code> if this method is declared as a setter.
-   * 
-   * @return <code>true</code> if this method is declared as a setter
-   */
-  public boolean isSetter();
 }
