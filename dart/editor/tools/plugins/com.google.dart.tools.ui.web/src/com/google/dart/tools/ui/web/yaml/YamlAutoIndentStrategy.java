@@ -24,7 +24,7 @@ import org.eclipse.jface.text.IRegion;
 /**
  * An indent strategy for yaml.
  */
-public class YamlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
+class YamlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
 
   public YamlAutoIndentStrategy() {
 

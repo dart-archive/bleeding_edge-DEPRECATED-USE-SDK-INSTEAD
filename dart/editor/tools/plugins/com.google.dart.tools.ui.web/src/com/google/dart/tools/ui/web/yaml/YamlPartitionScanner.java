@@ -22,7 +22,7 @@ import org.eclipse.jface.text.rules.Token;
 /**
  * A partion scanner for yaml files
  */
-public class YamlPartitionScanner extends RuleBasedPartitionScanner {
+class YamlPartitionScanner extends RuleBasedPartitionScanner {
 
   public final static String YAML_COMMENT = "__yaml_comment";
 

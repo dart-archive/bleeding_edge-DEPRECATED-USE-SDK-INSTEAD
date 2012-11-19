@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.web.yaml;
 
 import com.google.dart.tools.ui.web.DartWebPlugin;
 import com.google.dart.tools.ui.web.utils.WordDetector;
-import com.google.dart.tools.ui.web.utils.YamlKeywords;
 
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.EndOfLineRule;
@@ -31,7 +30,7 @@ import java.util.List;
 /**
  * The tokenizer (ITokenScanner) for yaml content.
  */
-public class YamlScanner extends RuleBasedScanner {
+class YamlScanner extends RuleBasedScanner {
 
   public YamlScanner() {
     Token keywordToken = new Token(new TextAttribute(DartWebPlugin.getPlugin().getEditorColor(

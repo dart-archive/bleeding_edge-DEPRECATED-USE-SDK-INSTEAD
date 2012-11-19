@@ -11,9 +11,8 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.web.yaml;
 
-import com.google.dart.tools.ui.web.utils.YamlKeywords;
+package com.google.dart.tools.ui.web.yaml;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -30,7 +29,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class YamlContentAssistProcessor implements IContentAssistProcessor {
+class YamlContentAssistProcessor implements IContentAssistProcessor {
 
   public YamlContentAssistProcessor() {
 

@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.web.utils;
+package com.google.dart.tools.ui.web.yaml;
 
 import com.google.dart.tools.ui.web.DartWebPlugin;
 
@@ -26,10 +26,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A comprehensive list of keywords used in yaml files for pub and tools . This class reads its
+ * A comprehensive list of keywords used in yaml files for pub and tools. This class reads its
  * content from the meta/yamml.txt file.
  */
-public class YamlKeywords {
+class YamlKeywords {
 
   private static List<String> globalAttributes;
 

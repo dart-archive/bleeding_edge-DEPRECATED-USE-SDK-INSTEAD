@@ -19,6 +19,7 @@ import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.editor.saveactions.RemoveTrailingWhitespaceAction;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -27,6 +28,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.editors.text.TextEditor;
@@ -73,6 +75,16 @@ public abstract class WebEditor extends TextEditor {
 
   public IDocument getDocument() {
     return getSourceViewer().getDocument();
+  }
+
+  public IFile getFile() {
+    IEditorInput input = getEditorInput();
+
+    if (input instanceof IFileEditorInput) {
+      return ((IFileEditorInput) input).getFile();
+    }
+
+    return null;
   }
 
   @Override
