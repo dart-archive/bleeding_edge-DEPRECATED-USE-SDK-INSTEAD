@@ -17,7 +17,6 @@ import com.google.common.collect.MapMaker;
 import com.google.common.io.Files;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.internal.util.PartListenerAdapter;
 
 import org.eclipse.core.resources.IFile;
@@ -27,7 +26,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -131,8 +129,11 @@ public class AutoSaveHelper {
       IDocument document = viewer.getDocument();
       if (document != null) {
         String content = document.get();
-        Point selection = DartUI.getSelectionRange(viewer);
-        EditorInfo info = new EditorInfo(content, selection.x, selection.y);
+        // TODO(devoncarew/scheglov): we have a deadlock here. Commenting out the following lines
+        // fixes the issue, but it may not be the correct fix per se. More details here:
+        // http://code.google.com/p/dart/issues/detail?id=6800
+        //Point selection = DartUI.getSelectionRange(viewer);
+        EditorInfo info = new EditorInfo(content, 0, 0); //selection.x, selection.y);
         instance.taskQueue.add(new SaveTask(file, info));
       }
     }
