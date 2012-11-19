@@ -70,11 +70,13 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.MoveResourceAction;
 import org.eclipse.ui.actions.RenameResourceAction;
+import org.eclipse.ui.dialogs.PropertyDialogAction;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.operations.UndoRedoActionGroup;
 import org.eclipse.ui.part.ISetSelectionTarget;
@@ -143,6 +145,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private IMemento memento;
   private LinkWithEditorAction linkWithEditorAction;
   private MoveResourceAction moveAction;
+  private PropertyDialogAction propertyDialogAction;
   private RenameResourceAction renameAction;
   private CleanUpAction cleanUpAction;
   private OrganizeImportsAction organizeImportsAction;
@@ -265,6 +268,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     if (fontPropertyChangeListener != null) {
       JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
       fontPropertyChangeListener = null;
+    }
+    if (propertyDialogAction != null) {
+      treeViewer.removeSelectionChangedListener(propertyDialogAction);
     }
 
     super.dispose();
@@ -417,6 +423,11 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       manager.add(deleteAction);
       manager.add(new Separator());
     }
+
+    manager.add(new Separator("additions"));
+
+    manager.add(new Separator());
+    manager.add(propertyDialogAction);
   }
 
   protected void fillInToolbar(IToolBarManager toolbar) {
@@ -563,6 +574,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     treeViewer.addSelectionChangedListener(organizeImportsAction);
     moveAction = new MoveResourceAction(getShell());
     treeViewer.addSelectionChangedListener(moveAction);
+
+    propertyDialogAction = new PropertyDialogAction(getViewSite(), treeViewer);
+    propertyDialogAction.setActionDefinitionId(IWorkbenchCommandConstants.FILE_PROPERTIES);
+    treeViewer.addSelectionChangedListener(propertyDialogAction);
 
     ignoreResourceAction = new IgnoreResourceAction(getShell());
     treeViewer.addSelectionChangedListener(ignoreResourceAction);

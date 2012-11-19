@@ -76,6 +76,20 @@
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
+     <key
+            commandId="org.eclipse.ui.file.properties"
+            sequence="M3+CR"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+     <key
+            commandId="org.eclipse.ui.file.properties"
+            platform="cocoa"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+I"/>
+     <key
+            commandId="org.eclipse.ui.file.properties"
+            platform="carbon"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+I"/>
       <key
             commandId="com.google.dart.tools.ui.folder.open"
             contextId="org.eclipse.ui.contexts.window"
@@ -245,6 +259,12 @@
       <activityPatternBinding
             activityId="com.google.dart.development"
             pattern="org\.eclipse\.compare.*">
+      </activityPatternBinding>
+      
+      <!-- Run/debug property pages -->
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\..*defaultLaunchConfigurations">
       </activityPatternBinding>
 
       <!-- internal web browser contributions -->

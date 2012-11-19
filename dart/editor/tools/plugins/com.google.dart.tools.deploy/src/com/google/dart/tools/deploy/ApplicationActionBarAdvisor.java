@@ -905,6 +905,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 //    menu.add(new Separator());
 //    menu.add(actionFactory.getPropertiesItem());
 
+    menu.add(new Separator());
+    menu.add(actionFactory.getPropertiesItem());
+
     menu.add(ContributionItemFactory.REOPEN_EDITORS.create(getWindow()));
     menu.add(new GroupMarker(IWorkbenchActionConstants.MRU));
     menu.add(new Separator());
@@ -918,6 +921,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     quitItem.setVisible(!Util.isMac());
     menu.add(quitItem);
     menu.add(new GroupMarker(IWorkbenchActionConstants.FILE_END));
+
     return menu;
   }
 
