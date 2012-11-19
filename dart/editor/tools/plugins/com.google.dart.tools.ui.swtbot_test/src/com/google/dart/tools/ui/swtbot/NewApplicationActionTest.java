@@ -17,6 +17,7 @@ import com.google.dart.tools.ui.swtbot.dialog.NewApplicationHelper;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -28,24 +29,35 @@ import org.junit.runner.RunWith;
 @RunWith(SWTBotJunit4ClassRunner.class)
 public final class NewApplicationActionTest extends AbstractDartEditorTest {
 
+  private DartLib serverLib;
+  private DartLib webLib;
+
+  @After
+  public void cleanup() {
+    if (serverLib != null) {
+      serverLib.deleteDir();
+    }
+    if (webLib != null) {
+      webLib.deleteDir();
+    }
+  }
+
   @Test
   public void testNewApplicationWizard_server() throws Exception {
-    DartLib dartLib = new NewApplicationHelper(bot).create(
+    serverLib = new NewApplicationHelper(bot).create(
         "NewAppServer",
         NewApplicationHelper.ContentType.SERVER);
     SwtBotPerformance.waitForResults(bot);
     // TODO (jwren) once we can launch server apps (see todo in DartLib.openAndLaunch), then this
     // call should be: openAndLaunchLibrary(dartLib, false, "Hello World");
-    openAndLaunchLibrary(dartLib, false, false);
+    openAndLaunchLibrary(serverLib, false, false);
   }
 
   @Test
   public void testNewApplicationWizard_web() throws Exception {
-    DartLib dartLib = new NewApplicationHelper(bot).create(
-        "NewAppWeb",
-        NewApplicationHelper.ContentType.WEB);
+    webLib = new NewApplicationHelper(bot).create("NewAppWeb", NewApplicationHelper.ContentType.WEB);
     SwtBotPerformance.waitForResults(bot);
-    openAndLaunchLibrary(dartLib, true, true);
+    openAndLaunchLibrary(webLib, true, true);
   }
 
 }

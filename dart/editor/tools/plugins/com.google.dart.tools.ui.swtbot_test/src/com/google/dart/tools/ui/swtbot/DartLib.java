@@ -178,7 +178,7 @@ public class DartLib {
    * ensure a clean test when creating new Dart applications.
    */
   public void deleteDir() {
-    if (dartFile.exists()) {
+    if (dir.exists()) {
       FileUtilities.delete(dir);
     }
   }
@@ -194,7 +194,7 @@ public class DartLib {
   }
 
   public String getNameInFilesView() {
-    return dir.getName();
+    return name;
   }
 
   /**

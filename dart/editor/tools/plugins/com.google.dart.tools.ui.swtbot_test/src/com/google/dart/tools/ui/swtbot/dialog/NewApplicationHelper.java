@@ -150,9 +150,12 @@ public class NewApplicationHelper {
     assertNotNull(browseButton);
     assertNotNull(finishButton);
 
+    File appDir = new File(appDirField.getText(), appName);
+
     // Make either the selection of the web sample, or the server sample
     switch (contentType) {
       case WEB:
+        appDir = new File(appDir, "web");
         webAppRadio.ensureSelected(true);
         break;
       case SERVER:
@@ -160,9 +163,12 @@ public class NewApplicationHelper {
         break;
     }
 
+    //TODO(pquitslund): this inline cleanup is messy
     // Ensure that the directory to be created does not exist
     DartLib lib = new DartLib(new File(appDirField.getText(), appName), appName);
     lib.deleteDir();
+
+    lib = new DartLib(appDir, appName);
 
     // Enter name of new app
     appNameField.setFocus();
@@ -176,5 +182,4 @@ public class NewApplicationHelper {
     lib.editor = bot.editor(matcher).toTextEditor();
     return lib;
   }
-
 }
