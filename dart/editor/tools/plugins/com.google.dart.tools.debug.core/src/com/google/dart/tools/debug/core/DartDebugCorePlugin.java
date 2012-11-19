@@ -66,6 +66,9 @@ public class DartDebugCorePlugin extends Plugin {
   // not yet do anything
   public static boolean SEND_MODIFIED_DART = false;
 
+  // TODO(devoncarew): this causes Dartium to crash
+  public static boolean SEND_MODIFIED_HTML = false;
+
   public static final String BROWSER_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.browserLaunchConfig";
 
   public static final String REMOTE_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.remoteLaunchConfig";

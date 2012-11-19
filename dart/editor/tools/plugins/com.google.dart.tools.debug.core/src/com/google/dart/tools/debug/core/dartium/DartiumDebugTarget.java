@@ -25,6 +25,7 @@ import com.google.dart.tools.debug.core.webkit.WebkitConnection.WebkitConnection
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.DebuggerListenerAdapter;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PauseOnExceptionsType;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
+import com.google.dart.tools.debug.core.webkit.WebkitDom.DomListener;
 import com.google.dart.tools.debug.core.webkit.WebkitPage;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
 import com.google.dart.tools.debug.core.webkit.WebkitResult;
@@ -66,6 +67,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   private DartiumStreamMonitor outputStreamMonitor;
   private BreakpointManager breakpointManager;
   private CssScriptManager cssScriptManager;
+  private HtmlScriptManager htmlScriptManager;
   private DartCodeManager dartCodeManager;
   private boolean canSetScriptSource;
 
@@ -92,6 +94,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     }
 
     cssScriptManager = new CssScriptManager(this, resourceResolver);
+
+    if (DartDebugCorePlugin.SEND_MODIFIED_HTML) {
+      htmlScriptManager = new HtmlScriptManager(this, resourceResolver);
+    }
 
     if (DartDebugCorePlugin.SEND_MODIFIED_DART) {
       dartCodeManager = new DartCodeManager(this, resourceResolver);
@@ -146,8 +152,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       breakpointManager.dispose(false);
     }
 
-    if (cssScriptManager != null) {
-      cssScriptManager.dispose();
+    cssScriptManager.dispose();
+
+    if (htmlScriptManager != null) {
+      htmlScriptManager.dispose();
     }
 
     if (dartCodeManager != null) {
@@ -269,14 +277,27 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     connection.getPage().addPageListener(new WebkitPage.PageListenerAdapter() {
       @Override
       public void loadEventFired(int timestamp) {
-        if (cssScriptManager != null) {
-          cssScriptManager.handleLoadEventFired();
+        cssScriptManager.handleLoadEventFired();
+
+        if (htmlScriptManager != null) {
+          htmlScriptManager.handleLoadEventFired();
         }
       }
     });
     connection.getPage().enable();
 
     connection.getCSS().enable();
+
+    if (DartDebugCorePlugin.SEND_MODIFIED_HTML) {
+      connection.getDom().addDomListener(new DomListener() {
+        @Override
+        public void documentUpdated() {
+          if (htmlScriptManager != null) {
+            htmlScriptManager.handleDocumentUpdated();
+          }
+        }
+      });
+    }
 
     connection.getDebugger().addDebuggerListener(new DebuggerListenerAdapter() {
       @Override
