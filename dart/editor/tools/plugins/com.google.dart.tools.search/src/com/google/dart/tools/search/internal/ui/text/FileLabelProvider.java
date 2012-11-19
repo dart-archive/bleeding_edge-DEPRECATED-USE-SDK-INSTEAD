@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.search.internal.ui.text;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.search.internal.ui.Messages;
 import com.google.dart.tools.search.internal.ui.SearchMessages;
 import com.google.dart.tools.search.internal.ui.SearchPluginImages;
@@ -158,7 +159,11 @@ public class FileLabelProvider extends LabelProvider implements IStyledLabelProv
 
     String name = BasicElementLabels.getResourceName(resource);
     if (fOrder == SHOW_LABEL) {
-      return getColoredLabelWithCounts(resource, new StyledString(name));
+      StyledString label = !DartCore.isAnalyzed(resource) ? new StyledString(
+          name,
+          StyledString.QUALIFIER_STYLER) : new StyledString(name);
+
+      return getColoredLabelWithCounts(resource, label);
     }
 
     String pathString = BasicElementLabels.getPathLabel(resource.getParent().getFullPath(), false);

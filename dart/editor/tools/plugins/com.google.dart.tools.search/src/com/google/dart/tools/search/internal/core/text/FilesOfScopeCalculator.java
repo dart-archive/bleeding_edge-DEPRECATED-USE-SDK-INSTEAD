@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.search.internal.core.text;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.search.core.text.TextSearchScope;
 
 import org.eclipse.core.resources.IFile;
@@ -43,7 +42,7 @@ public class FilesOfScopeCalculator implements IResourceProxyVisitor {
       for (int i = 0; i < roots.length; i++) {
         try {
           IResource resource = roots[i];
-          if (resource.isAccessible() && DartCore.isAnalyzed(resource)) {
+          if (resource.isAccessible()) {
             resource.accept(this, 0);
           }
         } catch (CoreException ex) {
@@ -62,10 +61,7 @@ public class FilesOfScopeCalculator implements IResourceProxyVisitor {
     boolean inScope = fScope.contains(proxy);
 
     if (inScope && proxy.getType() == IResource.FILE) {
-      IResource resource = proxy.requestResource();
-      if (DartCore.isAnalyzed(resource)) {
-        fFiles.add(resource);
-      }
+      fFiles.add(proxy.requestResource());
     }
     return inScope;
   }
