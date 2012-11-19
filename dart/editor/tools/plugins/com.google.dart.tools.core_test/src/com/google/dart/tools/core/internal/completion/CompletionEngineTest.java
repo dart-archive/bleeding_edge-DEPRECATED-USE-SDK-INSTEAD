@@ -55,7 +55,7 @@ public class CompletionEngineTest extends TestCase {
 
   public void testCommentSnippets003() throws Exception {
     test(
-        "class Z {!1Ex!2ception m = const !3Exception!4();mth() {var x = new Li!5st.!6fr!7om(['a']);}}",
+        "class Z {!1Ex!2ception m = new !3Exception!4();mth() {var x = new Li!5st.!6fr!7om(['a']);}}",
         "1+void",
         "2+Exception",
         "3+Object",
