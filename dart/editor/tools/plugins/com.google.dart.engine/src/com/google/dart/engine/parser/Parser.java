@@ -38,11 +38,6 @@ import java.util.List;
  * Instances of the class {@code Parser} are used to parse tokens into an AST structure.
  */
 public class Parser {
-  /*
-   * TODO(brianwilkerson) Find commented out references to the method reportError and uncomment
-   * them.
-   */
-
   /**
    * The source being parsed.
    */
@@ -1140,21 +1135,21 @@ public class Parser {
     Modifiers modifiers = parseClassMemberModifiers();
     if (matches(Keyword.VOID)) {
       TypeName returnType = parseReturnType();
-      if (matches(Keyword.GET) && !matches(peek(), TokenType.OPEN_PAREN)) {
+      if (matches(Keyword.GET) && matchesIdentifier(peek())) {
         validateModifiersForGetterOrSetterOrMethod(modifiers);
         return parseGetter(
             commentAndMetadata,
             modifiers.getExternalKeyword(),
             modifiers.getStaticKeyword(),
             returnType);
-      } else if (matches(Keyword.SET) && !matches(peek(), TokenType.OPEN_PAREN)) {
+      } else if (matches(Keyword.SET) && matchesIdentifier(peek())) {
         validateModifiersForGetterOrSetterOrMethod(modifiers);
         return parseSetter(
             commentAndMetadata,
             modifiers.getExternalKeyword(),
             modifiers.getStaticKeyword(),
             returnType);
-      } else if (matches(Keyword.OPERATOR) && !matches(peek(), TokenType.OPEN_PAREN)) {
+      } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), returnType);
       }
@@ -1164,28 +1159,27 @@ public class Parser {
           modifiers.getExternalKeyword(),
           modifiers.getStaticKeyword(),
           returnType);
-    } else if (matches(Keyword.GET) && !matches(peek(), TokenType.OPEN_PAREN)) {
+    } else if (matches(Keyword.GET) && matchesIdentifier(peek())) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseGetter(
           commentAndMetadata,
           modifiers.getExternalKeyword(),
           modifiers.getStaticKeyword(),
           null);
-    } else if (matches(Keyword.SET) && !matches(peek(), TokenType.OPEN_PAREN)) {
+    } else if (matches(Keyword.SET) && matchesIdentifier(peek())) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseSetter(
           commentAndMetadata,
           modifiers.getExternalKeyword(),
           modifiers.getStaticKeyword(),
           null);
-    } else if (matches(Keyword.OPERATOR) && !matches(peek(), TokenType.OPEN_PAREN)) {
+    } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
       validateModifiersForOperator(modifiers);
       return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), null);
     } else if (!matchesIdentifier()) {
       // TODO(brianwilkerson) Report an error and recover.
       // reportError(ParserErrorCode.?);
-    } else if (matches(peek(), TokenType.PERIOD)
-        && matchesIdentifier(currentToken.getNext().getNext())
+    } else if (matches(peek(), TokenType.PERIOD) && matchesIdentifier(peek(2))
         && matches(peek(3), TokenType.OPEN_PAREN)) {
       return parseConstructor(
           commentAndMetadata,
@@ -1210,6 +1204,7 @@ public class Parser {
             parameters);
       }
       validateModifiersForGetterOrSetterOrMethod(modifiers);
+      validateFormalParameterList(parameters);
       return parseMethodDeclaration(
           commentAndMetadata,
           modifiers.getExternalKeyword(),
@@ -1226,21 +1221,21 @@ public class Parser {
           null);
     }
     TypeName type = parseTypeName();
-    if (matches(Keyword.GET) && !matches(peek(), TokenType.OPEN_PAREN)) {
+    if (matches(Keyword.GET) && matchesIdentifier(peek())) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseGetter(
           commentAndMetadata,
           modifiers.getExternalKeyword(),
           modifiers.getStaticKeyword(),
           type);
-    } else if (matches(Keyword.SET) && !matches(peek(), TokenType.OPEN_PAREN)) {
+    } else if (matches(Keyword.SET) && matchesIdentifier(peek())) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseSetter(
           commentAndMetadata,
           modifiers.getExternalKeyword(),
           modifiers.getStaticKeyword(),
           type);
-    } else if (matches(Keyword.OPERATOR) && !matches(peek(), TokenType.OPEN_PAREN)) {
+    } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
       validateModifiersForOperator(modifiers);
       return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), type);
     } else if (!matchesIdentifier()) {
@@ -2194,13 +2189,20 @@ public class Parser {
     boolean reportedMuliplePositionalGroups = false;
     boolean reportedMulipleNamedGroups = false;
     boolean reportedMixedGroups = false;
+    Token initialToken = null;
     do {
       if (firstParameter) {
         firstParameter = false;
       } else if (!optional(TokenType.COMMA)) {
-        // reportError(ParserErrorCode.MISSING_CLOSING_PARENTHESIS);
-        break;
+        if (((BeginToken) leftParenthesis).getEndToken() != null) {
+          reportError(ParserErrorCode.EXPECTED_TOKEN, TokenType.COMMA.getLexeme());
+        } else {
+          // TODO(brianwilkerson) Report an error.
+          // reportError(ParserErrorCode.MISSING_CLOSING_PARENTHESIS);
+          break;
+        }
       }
+      initialToken = currentToken;
       //
       // Handle the beginning of parameter groups.
       //
@@ -2243,6 +2245,7 @@ public class Parser {
         rightSquareBracket = getAndAdvance();
         currentParameters = normalParameters;
         if (leftSquareBracket == null) {
+          // TODO(brianwilkerson) Report an error.
           // reportError(ParserErrorCode.);
         }
         kind = ParameterKind.REQUIRED;
@@ -2250,19 +2253,22 @@ public class Parser {
         rightCurlyBracket = getAndAdvance();
         currentParameters = normalParameters;
         if (leftCurlyBracket == null) {
+          // TODO(brianwilkerson) Report an error.
           // reportError(ParserErrorCode.);
         }
         kind = ParameterKind.REQUIRED;
       }
-    } while (!matches(TokenType.CLOSE_PAREN));
+    } while (!matches(TokenType.CLOSE_PAREN) && initialToken != currentToken);
     Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
     //
     // Check that the groups were closed correctly.
     //
     if (leftSquareBracket != null && rightSquareBracket == null) {
+      // TODO(brianwilkerson) Report an error.
       // reportError(ParserErrorCode.?);
     }
     if (leftCurlyBracket != null && rightCurlyBracket == null) {
+      // TODO(brianwilkerson) Report an error.
       // reportError(ParserErrorCode.?);
     }
     //
@@ -2465,6 +2471,7 @@ public class Parser {
     FormalParameterList parameters = null;
     if (!isGetter) {
       parameters = parseFormalParameterList();
+      validateFormalParameterList(parameters);
     }
     FunctionBody body = null;
     if (externalKeyword == null) {
@@ -2515,6 +2522,7 @@ public class Parser {
    */
   private FunctionExpression parseFunctionExpression() {
     FormalParameterList parameters = parseFormalParameterList();
+    validateFormalParameterList(parameters);
     FunctionBody body = parseFunctionBody(false, true);
     return new FunctionExpression(parameters, body);
   }
@@ -2925,13 +2933,16 @@ public class Parser {
    */
   private MethodDeclaration parseMethodDeclaration(CommentAndMetadata commentAndMetadata,
       Token externalKeyword, Token staticKeyword, TypeName returnType) {
+    SimpleIdentifier methodName = parseSimpleIdentifier();
+    FormalParameterList parameters = parseFormalParameterList();
+    validateFormalParameterList(parameters);
     return parseMethodDeclaration(
         commentAndMetadata,
         externalKeyword,
         staticKeyword,
         returnType,
-        parseSimpleIdentifier(),
-        parseFormalParameterList());
+        methodName,
+        parameters);
   }
 
   /**
@@ -2948,6 +2959,8 @@ public class Parser {
    * @param externalKeyword the 'external' token
    * @param staticKeyword the static keyword, or {@code null} if the getter is not static
    * @param returnType the return type of the method
+   * @param name the name of the method
+   * @param parameters the parameters to the method
    * @return the method declaration that was parsed
    */
   private MethodDeclaration parseMethodDeclaration(CommentAndMetadata commentAndMetadata,
@@ -3098,6 +3111,7 @@ public class Parser {
         return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
       } else {
         // Expected a statement
+        // TODO(brianwilkerson) Report an error.
         // reportError(ParserErrorCode.?);
         return null;
       }
@@ -3140,14 +3154,13 @@ public class Parser {
     Token thisKeyword = null;
     Token period = null;
     if (matches(Keyword.THIS)) {
-      // TODO(brianwilkerson) Validate that field initializers are only used in constructors.
-      // reportError(ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR);
       thisKeyword = getAndAdvance();
       period = expect(TokenType.PERIOD);
     }
     SimpleIdentifier identifier = parseSimpleIdentifier();
     if (matches(TokenType.OPEN_PAREN)) {
       if (thisKeyword != null) {
+        // TODO(brianwilkerson) Report this error (we have found "this.id(").
         // TODO(brianwilkerson) Decide how to recover from this error.
         // reportError(ParserErrorCode.?);
       }
@@ -3207,6 +3220,7 @@ public class Parser {
     }
     SimpleIdentifier name = new SimpleIdentifier(getAndAdvance());
     FormalParameterList parameters = parseFormalParameterList();
+    validateFormalParameterList(parameters);
     FunctionBody body = parseFunctionBody(true, false);
     if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
       reportError(ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY);
@@ -3567,6 +3581,7 @@ public class Parser {
     Token propertyKeyword = expect(Keyword.SET);
     SimpleIdentifier name = parseSimpleIdentifier();
     FormalParameterList parameters = parseFormalParameterList();
+    validateFormalParameterList(parameters);
     FunctionBody body = parseFunctionBody(true, false);
     if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
       reportError(ParserErrorCode.EXTERNAL_SETTER_WITH_BODY);
@@ -3975,9 +3990,9 @@ public class Parser {
    * Parse a type alias.
    * 
    * <pre>
- * typeAlias ::=
- *     metadata 'typedef' returnType? name typeParameterList? formalParameterList ';'
- * </pre>
+   * typeAlias ::=
+   *     metadata 'typedef' returnType? name typeParameterList? formalParameterList ';'
+   * </pre>
    * 
    * @param commentAndMetadata the metadata to be associated with the member
    * @return the type alias that was parsed
@@ -3994,6 +4009,7 @@ public class Parser {
       typeParameters = parseTypeParameterList();
     }
     FormalParameterList parameters = parseFormalParameterList();
+    validateFormalParameterList(parameters);
     Token semicolon = expect(TokenType.SEMICOLON);
     return new TypeAlias(
         commentAndMetadata.getComment(),
@@ -4006,7 +4022,7 @@ public class Parser {
         semicolon);
   }
 
-/**
+  /**
    * Parse a list of type arguments.
    * 
    * <pre>
@@ -4053,9 +4069,9 @@ public class Parser {
    * Parse a type parameter.
    * 
    * <pre>
- * typeParameter ::=
- *     metadata name ('extends' bound)?
- * </pre>
+   * typeParameter ::=
+   *     metadata name ('extends' bound)?
+   * </pre>
    * 
    * @return the type parameter that was parsed
    */
@@ -4662,24 +4678,24 @@ public class Parser {
     return token;
   }
 
-/**
-     * Parse a list of type arguments, starting at the given token, without actually creating a type argument list
-     * or changing the current token. Return the token following the type argument list that was parsed,
-     * or {@code null} if the given token is not the first token in a valid type argument list.
-     * <p>
-     * This method must be kept in sync with {@link #parseTypeArgumentList()}.
-     * 
-     * <pre>
-     * typeArguments ::=
-     *     '<' typeList '>'
-     * 
-     * typeList ::=
-     *     type (',' type)*
-     * </pre>
-     * 
-     * @param startToken the token at which parsing is to begin
-     * @return the token following the type argument list that was parsed
-     */
+  /**
+   * Parse a list of type arguments, starting at the given token, without actually creating a type argument list
+   * or changing the current token. Return the token following the type argument list that was parsed,
+   * or {@code null} if the given token is not the first token in a valid type argument list.
+   * <p>
+   * This method must be kept in sync with {@link #parseTypeArgumentList()}.
+   * 
+   * <pre>
+   * typeArguments ::=
+   *     '<' typeList '>'
+   * 
+   * typeList ::=
+   *     type (',' type)*
+   * </pre>
+   * 
+   * @param startToken the token at which parsing is to begin
+   * @return the token following the type argument list that was parsed
+   */
   private Token skipTypeArgumentList(Token startToken) {
     Token token = startToken;
     if (!matches(token, TokenType.LT)) {
@@ -4875,6 +4891,21 @@ public class Parser {
       builder.append(currentChar);
     }
     return currentIndex + 1;
+  }
+
+  /**
+   * Validate that the given parameter list does not contain any field initializers.
+   * 
+   * @param parameterList the parameter list to be validated
+   */
+  private void validateFormalParameterList(FormalParameterList parameterList) {
+    for (FormalParameter parameter : parameterList.getParameters()) {
+      if (parameter instanceof FieldFormalParameter) {
+        reportError(
+            ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+            ((FieldFormalParameter) parameter).getIdentifier());
+      }
+    }
   }
 
   /**

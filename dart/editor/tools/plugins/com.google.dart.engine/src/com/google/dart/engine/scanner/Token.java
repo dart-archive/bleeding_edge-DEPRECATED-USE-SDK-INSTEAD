@@ -126,6 +126,15 @@ public class Token {
   }
 
   /**
+   * Return {@code true} if this token represents an operator.
+   * 
+   * @return {@code true} if this token represents an operator
+   */
+  public boolean isOperator() {
+    return type.isOperator();
+  }
+
+  /**
    * Return {@code true} if this token is a synthetic token. A synthetic token is a token that was
    * introduced by the parser in order to recover from an error in the code. Synthetic tokens always
    * have a length of zero ({@code 0}).

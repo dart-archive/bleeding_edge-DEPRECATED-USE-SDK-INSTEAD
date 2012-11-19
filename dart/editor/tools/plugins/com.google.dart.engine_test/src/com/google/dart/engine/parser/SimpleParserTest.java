@@ -937,6 +937,57 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(variable.getName());
   }
 
+  public void test_parseClassMember_field_namedGet() throws Exception {
+    FieldDeclaration field = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "var get;");
+    assertNull(field.getDocumentationComment());
+    assertSize(0, field.getMetadata());
+    assertNull(field.getKeyword());
+    VariableDeclarationList list = field.getFields();
+    assertNotNull(list);
+    NodeList<VariableDeclaration> variables = list.getVariables();
+    assertSize(1, variables);
+    VariableDeclaration variable = variables.get(0);
+    assertNotNull(variable.getName());
+  }
+
+  public void test_parseClassMember_field_namedOperator() throws Exception {
+    FieldDeclaration field = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "var operator;");
+    assertNull(field.getDocumentationComment());
+    assertSize(0, field.getMetadata());
+    assertNull(field.getKeyword());
+    VariableDeclarationList list = field.getFields();
+    assertNotNull(list);
+    NodeList<VariableDeclaration> variables = list.getVariables();
+    assertSize(1, variables);
+    VariableDeclaration variable = variables.get(0);
+    assertNotNull(variable.getName());
+  }
+
+  public void test_parseClassMember_field_namedSet() throws Exception {
+    FieldDeclaration field = parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "var set;");
+    assertNull(field.getDocumentationComment());
+    assertSize(0, field.getMetadata());
+    assertNull(field.getKeyword());
+    VariableDeclarationList list = field.getFields();
+    assertNotNull(list);
+    NodeList<VariableDeclaration> variables = list.getVariables();
+    assertSize(1, variables);
+    VariableDeclaration variable = variables.get(0);
+    assertNotNull(variable.getName());
+  }
+
   public void test_parseClassMember_method_external() throws Exception {
     MethodDeclaration method = parse(
         "parseClassMember",

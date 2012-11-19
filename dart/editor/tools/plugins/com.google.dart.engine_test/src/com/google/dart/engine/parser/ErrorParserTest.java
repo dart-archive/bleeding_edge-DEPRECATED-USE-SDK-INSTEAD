@@ -480,6 +480,15 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.EXTERNAL_SETTER_WITH_BODY);
   }
 
+  public void test_fieldInitializerOutsideConstructor() throws Exception {
+    parse(
+        "parseClassMember",
+        new Class[] {String.class},
+        new Object[] {"C"},
+        "void m(this.x);",
+        ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR);
+  }
+
   public void test_finalAndVar() throws Exception {
     parse(
         "parseClassMember",
@@ -519,7 +528,7 @@ public class ErrorParserTest extends ParserTestCase {
   public void test_illegalAssignmentToNonAssignable_superAssigned() throws Exception {
     // TODO(brianwilkerson) When the test fail_illegalAssignmentToNonAssignable_superAssigned starts
     // to pass, remove this test (there should only be one error generated, but we're keeping this
-    // test until that time so that we can catch other forms of regressions.
+    // test until that time so that we can catch other forms of regressions).
     parse(
         "parseExpression",
         "super = x;",

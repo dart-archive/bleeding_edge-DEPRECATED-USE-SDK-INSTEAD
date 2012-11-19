@@ -206,6 +206,15 @@ public enum TokenType {
   }
 
   /**
+   * Return {@code true} if this token type represents an operator.
+   * 
+   * @return {@code true} if this token type represents an operator
+   */
+  public boolean isOperator() {
+    return tokenClass != NO_CLASS && tokenClass != MEMBER_ACCESS_OPERATOR;
+  }
+
+  /**
    * Return {@code true} if this type of token represents a relational operator.
    * 
    * @return {@code true} if this type of token represents a relational operator

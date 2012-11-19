@@ -58,6 +58,7 @@ public enum ParserErrorCode implements ErrorCode {
   EXTERNAL_METHOD_WITH_BODY("External methods cannot have a body"),
   EXTERNAL_OPERATOR_WITH_BODY("External operators cannot have a body"),
   EXTERNAL_SETTER_WITH_BODY("External setters cannot have a body"),
+  FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR("Field initializers can only be used in a constructor"),
   FINAL_AND_VAR("Members cannot be declared to be both 'final' and 'var'"),
   FINAL_CONSTRUCTOR("A constructor cannot be declared to be 'final'"),
   FINAL_METHOD("Getters, setters and methods cannot be declared to be 'final'"),
