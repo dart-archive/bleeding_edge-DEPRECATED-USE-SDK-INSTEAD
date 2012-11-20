@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
@@ -36,6 +37,7 @@ import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -413,7 +415,14 @@ public class IntroEditor extends EditorPart {
               getDirectory(sampleFile),
               newProject.getLocation().toFile());
           newProject.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+
+          if (newProject.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
+            RunPubAction runPubAction = RunPubAction.createPubInstallAction(getSite().getWorkbenchWindow());
+            runPubAction.run(new StructuredSelection(newProject));
+          }
+
           EditorUtility.openInTextEditor(ResourceUtil.getFile(fileToOpen));
+
         } catch (CoreException e) {
           DartToolsPlugin.log(e);
         } catch (IOException e) {
