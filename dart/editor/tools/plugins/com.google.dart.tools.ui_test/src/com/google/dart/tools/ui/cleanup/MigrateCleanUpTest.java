@@ -21,6 +21,7 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_C
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalNamed_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_parseNum_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_rawString_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_functionLiteral_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeAbstract_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeInterface_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameTypes_CleanUp;
@@ -693,6 +694,51 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "foo() native r'abc';",
         "");
     assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M2_functionLiteral_name() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_functionLiteral_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        " print(foo(x) {});",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        " print((x) {});",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M2_functionLiteral_returnAndName() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_functionLiteral_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        " print(int foo(x) {});",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        " print((x) {});",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M2_functionLiteral_statement() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_functionLiteral_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        " int foo(x) {}",
+        "}",
+        "");
+    assertNoFix(cleanUp, initial);
   }
 
   public void test_1M2_methodsToGetters_collections() throws Exception {
