@@ -83,6 +83,8 @@ public enum ParserErrorCode implements ErrorCode {
       "Variables must be declared using the keywords 'const', 'final', 'var' or a type name"),
   MISSING_FUNCTION_BODY("A function body must be provided"),
   MISSING_IDENTIFIER("Expected an identifier"),
+  MISSING_NAME_IN_LIBRARY_DIRECTIVE("Library directives must include a library name"),
+  MISSING_NAME_IN_PART_OF_DIRECTIVE("Library directives must include a library name"),
   MISSING_VARIABLE_IN_FOR_EACH(
       "A loop variable must be declared in a for-each loop before the 'in', but none were found"),
   MIXED_PARAMETER_GROUPS(
@@ -97,6 +99,7 @@ public enum ParserErrorCode implements ErrorCode {
       "A single loop variable must be declared in a for-each loop before the 'in', but %s were found"),
   NAMED_PARAMETER_OUTSIDE_GROUP("Named parameters must be enclosed in curly braces ('{' and '}')"),
   NON_CONSTRUCTOR_FACTORY("Only constructors can be declared to be a 'factory'"),
+  NON_IDENTIFIER_LIBRARY_NAME("The name of a library must be an identifier"),
   NON_PART_OF_DIRECTIVE_IN_PART("The part-of directive must be the only directive in a part"),
   NON_USER_DEFINABLE_OPERATOR("The operator '%s' is not user definable"),
   POSITIONAL_AFTER_NAMED_ARGUMENT("Positional arguments must occur before named arguments"),

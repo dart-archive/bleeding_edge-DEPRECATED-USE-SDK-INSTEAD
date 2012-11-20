@@ -2747,7 +2747,9 @@ public class Parser {
    */
   private LibraryDirective parseLibraryDirective(CommentAndMetadata commentAndMetadata) {
     Token keyword = expect(Keyword.LIBRARY);
-    SimpleIdentifier libraryName = parseSimpleIdentifier();
+    SimpleIdentifier libraryName = parseLibraryName(
+        ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE,
+        keyword);
     Token semicolon = expect(TokenType.SEMICOLON);
     return new LibraryDirective(
         commentAndMetadata.getComment(),
@@ -2755,6 +2757,33 @@ public class Parser {
         keyword,
         libraryName,
         semicolon);
+  }
+
+  /**
+   * Parse a library name.
+   * 
+   * <pre>
+   * libraryName ::=
+   *     identifier
+   * </pre>
+   * 
+   * @param missingNameError the error code to be used if the library name is missing
+   * @param missingNameToken the token associated with the error produced if the library name is
+   *          missing
+   * @return the library name that was parsed
+   */
+  private SimpleIdentifier parseLibraryName(ParserErrorCode missingNameError, Token missingNameToken) {
+    if (matchesIdentifier()) {
+      return parseSimpleIdentifier();
+    } else if (matches(TokenType.STRING)) {
+      // TODO(brianwilkerson) Recovery: This should be extended to handle arbitrary tokens until we
+      // can find a token that can start a compilation unit member.
+      StringLiteral string = parseStringLiteral();
+      reportError(ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME, string);
+    } else {
+      reportError(missingNameError, missingNameToken);
+    }
+    return createSyntheticIdentifier();
   }
 
   /**
@@ -3272,7 +3301,9 @@ public class Parser {
     Token partKeyword = expect(Keyword.PART);
     if (matches(OF)) {
       Token ofKeyword = getAndAdvance();
-      SimpleIdentifier libraryName = parseSimpleIdentifier();
+      SimpleIdentifier libraryName = parseLibraryName(
+          ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE,
+          ofKeyword);
       Token semicolon = expect(TokenType.SEMICOLON);
       return new PartOfDirective(
           commentAndMetadata.getComment(),

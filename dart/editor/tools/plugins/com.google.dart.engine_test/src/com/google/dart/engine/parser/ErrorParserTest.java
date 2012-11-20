@@ -682,6 +682,22 @@ public class ErrorParserTest extends ParserTestCase {
     assertTrue(expression.isSynthetic());
   }
 
+  public void test_missingNameInLibraryDirective() throws Exception {
+    CompilationUnit unit = parse(
+        "parseCompilationUnit",
+        "library;",
+        ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE);
+    assertNotNull(unit);
+  }
+
+  public void test_missingNameInPartOfDirective() throws Exception {
+    CompilationUnit unit = parse(
+        "parseCompilationUnit",
+        "part of;",
+        ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE);
+    assertNotNull(unit);
+  }
+
   public void test_missingVariableInForEach() throws Exception {
     parse(
         "parseForStatement",
@@ -752,6 +768,22 @@ public class ErrorParserTest extends ParserTestCase {
         new Object[] {"C"},
         "factory int m() {}",
         ParserErrorCode.NON_CONSTRUCTOR_FACTORY);
+  }
+
+  public void test_nonIdentifierLibraryName_library() throws Exception {
+    CompilationUnit unit = parse(
+        "parseCompilationUnit",
+        "library 'lib';",
+        ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME);
+    assertNotNull(unit);
+  }
+
+  public void test_nonIdentifierLibraryName_partOf() throws Exception {
+    CompilationUnit unit = parse(
+        "parseCompilationUnit",
+        "part of 'lib';",
+        ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME);
+    assertNotNull(unit);
   }
 
   public void test_nonPartOfDirectiveInPart_after() throws Exception {
