@@ -129,7 +129,7 @@ public class AboutDartDialog extends Shell implements DetailsProvider {
 
     addCopyDetailsPopup(productNameLabel);
 
-    StyledText buildDetailsText = new StyledText(this, SWT.WRAP);
+    StyledText buildDetailsText = new StyledText(this, SWT.WRAP | SWT.CENTER);
     buildDetailsText.setLineSpacing(7);
     buildDetailsText.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
     buildDetailsText.setEditable(false);

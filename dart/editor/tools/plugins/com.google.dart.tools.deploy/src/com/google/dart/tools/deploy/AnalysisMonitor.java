@@ -37,7 +37,7 @@ public class AnalysisMonitor {
           lock.notifyAll();
         } else if (job == null) {
           job = new NotificationJob();
-          job.schedule(500);
+          job.schedule();
         }
       }
     }
@@ -86,8 +86,6 @@ public class AnalysisMonitor {
 
   public void start() {
     synchronized (lock) {
-      job = new NotificationJob();
-      job.schedule(3000);
       server.addIdleListener(new Listener());
     }
   }
