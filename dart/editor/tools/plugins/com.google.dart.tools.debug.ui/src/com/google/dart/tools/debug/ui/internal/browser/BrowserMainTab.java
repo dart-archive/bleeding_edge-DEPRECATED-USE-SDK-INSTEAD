@@ -27,6 +27,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -57,7 +58,7 @@ public class BrowserMainTab extends DartiumMainTab {
     createHtmlField(group);
 
     Label filler = new Label(group, SWT.NONE);
-    GridDataFactory.swtDefaults().span(3, 1).applyTo(filler);
+    GridDataFactory.swtDefaults().span(3, 1).hint(-1, 4).applyTo(filler);
 
     createUrlField(group);
 
@@ -65,6 +66,7 @@ public class BrowserMainTab extends DartiumMainTab {
     browserGroup.setText(Messages.BrowserMainTab_Browser);
     GridDataFactory.fillDefaults().grab(true, false).applyTo(browserGroup);
     GridLayoutFactory.swtDefaults().numColumns(3).applyTo(browserGroup);
+    ((GridLayout) browserGroup.getLayout()).marginBottom = 5;
 
     defaultBrowserButton = new Button(browserGroup, SWT.CHECK);
     defaultBrowserButton.setText(Messages.BrowserMainTab_DefaultBrowserMessage);
@@ -79,7 +81,6 @@ public class BrowserMainTab extends DartiumMainTab {
         }
         notifyPanelChanged();
       }
-
     });
 
     Label browserLabel = new Label(browserGroup, SWT.NONE);
@@ -103,7 +104,7 @@ public class BrowserMainTab extends DartiumMainTab {
     });
 
     Label argsLabel = new Label(browserGroup, SWT.NONE);
-    argsLabel.setText("Arguments:");
+    argsLabel.setText("Browser arguments:");
 
     argumentText = new Text(browserGroup, SWT.BORDER | SWT.SINGLE);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(

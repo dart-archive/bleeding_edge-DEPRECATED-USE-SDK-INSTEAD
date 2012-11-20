@@ -28,8 +28,12 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.ui.IPageListener;
+import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import java.util.List;
@@ -37,7 +41,8 @@ import java.util.List;
 /**
  * A toolbar action to enumerate a launch debug launch configurations.
  */
-public class DartRunAction extends DartAbstractAction implements IViewActionDelegate {
+public class DartRunAction extends DartRunAbstractAction implements IViewActionDelegate,
+    ISelectionListener, IPageListener {
 
   public DartRunAction() {
     this(null, false);
@@ -52,11 +57,37 @@ public class DartRunAction extends DartAbstractAction implements IViewActionDele
 
     setActionDefinitionId("com.google.dart.tools.debug.ui.run.selection");
     setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.gif"));
+
+    window.getSelectionService().addSelectionListener(this);
+    window.addPageListener(this);
+  }
+
+  @Override
+  public void dispose() {
+    getWindow().removePageListener(this);
+    getWindow().getSelectionService().removeSelectionListener(this);
+
+    super.dispose();
   }
 
   @Override
   public void init(IViewPart view) {
-    window = view.getSite().getWorkbenchWindow();
+
+  }
+
+  @Override
+  public void pageActivated(IWorkbenchPage page) {
+    selectionChanged((IWorkbenchPart) null, getWindow().getSelectionService().getSelection());
+  }
+
+  @Override
+  public void pageClosed(IWorkbenchPage page) {
+
+  }
+
+  @Override
+  public void pageOpened(IWorkbenchPage page) {
+
   }
 
   @Override
@@ -64,7 +95,9 @@ public class DartRunAction extends DartAbstractAction implements IViewActionDele
     try {
       IResource resource = LaunchUtils.getSelectedResource(window);
 
-      if (resource == null) {
+      if (resource != null) {
+        launchResource(resource);
+      } else {
         List<ILaunchConfiguration> launches = LaunchUtils.getAllLaunches();
 
         if (launches.size() == 0) {
@@ -75,10 +108,6 @@ public class DartRunAction extends DartAbstractAction implements IViewActionDele
         } else {
           chooseAndLaunch(launches);
         }
-
-        return;
-      } else {
-        launchResource(resource);
       }
     } catch (CoreException ce) {
       DartUtil.logError(ce);
@@ -99,6 +128,31 @@ public class DartRunAction extends DartAbstractAction implements IViewActionDele
     }
   }
 
+  @Override
+  public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+    setToolTipText("Run");
+
+    IResource resource = LaunchUtils.getSelectedResource(window);
+
+    if (resource != null) {
+      ILaunchConfiguration config = null;
+
+      try {
+        config = LaunchUtils.getLaunchFor(resource);
+      } catch (DartModelException e) {
+
+      }
+
+      if (config == null) {
+        config = LaunchUtils.chooseLatest(LaunchUtils.getAllLaunches());
+      }
+
+      if (config != null) {
+        setToolTipText(LaunchUtils.getLongLaunchName(config));
+      }
+    }
+  }
+
   protected void launchResource(IResource resource) throws DartModelException {
     ILaunchConfiguration config = LaunchUtils.getLaunchFor(resource);
 
@@ -107,8 +161,8 @@ public class DartRunAction extends DartAbstractAction implements IViewActionDele
     } else {
       List<ILaunchShortcut> candidates = LaunchUtils.getApplicableLaunchShortcuts(resource);
 
-      if (candidates.size() == 0) { // selection is neither a server or browser app
-
+      if (candidates.size() == 0) {
+        // Selection is neither a server or browser app.
         DartRunLastAction runLastAction = new DartRunLastAction();
         runLastAction.run();
       } else {

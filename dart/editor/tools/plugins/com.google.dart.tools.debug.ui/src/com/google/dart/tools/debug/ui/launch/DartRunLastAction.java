@@ -26,9 +26,9 @@ import org.eclipse.ui.IWorkbenchWindow;
 import java.util.List;
 
 /**
- * Launches the last application to have run
+ * Launches the last application to have run.
  */
-public class DartRunLastAction extends DartAbstractAction {
+public class DartRunLastAction extends DartRunAbstractAction {
 
   public DartRunLastAction() {
     this(null, false);
@@ -52,16 +52,14 @@ public class DartRunLastAction extends DartAbstractAction {
   @Override
   public void run() {
     try {
-
       List<ILaunchConfiguration> launches = LaunchUtils.getAllLaunches();
 
       if (launches.size() != 0) {
-
         ILaunchConfiguration launchConfig = LaunchUtils.chooseLatest(launches);
+
         if (launchConfig != null) {
           launch(launchConfig);
         }
-
       }
     } catch (Throwable exception) {
       // We need to defensively show all errors coming out of here - the user needs feedback as

@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Launch in Dartium
  */
-public class RunInDartiumAction extends DartAbstractAction {
+public class RunInDartiumAction extends DartRunAbstractAction {
 
   public RunInDartiumAction() {
     this(null);

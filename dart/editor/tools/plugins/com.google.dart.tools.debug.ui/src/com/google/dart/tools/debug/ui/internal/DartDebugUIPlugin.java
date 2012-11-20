@@ -33,6 +33,8 @@ public class DartDebugUIPlugin extends AbstractUIPlugin {
    */
   public static final String PLUGIN_ID = "com.google.dart.tools.debug.ui"; //$NON-NLS-1$
 
+  public static final String CHECK_MODE_DESC_URL = "http://www.dartlang.org/articles/optional-types/#checked-mode";
+
   private static Map<ImageDescriptor, Image> imageCache = new HashMap<ImageDescriptor, Image>();
 
   public static Image getImage(ImageDescriptor imageDescriptor) {

@@ -21,6 +21,7 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.util.AppSelectionDialog;
+import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -43,10 +44,12 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
@@ -139,14 +142,25 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     group.setText("Dartium settings");
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
     GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
+    ((GridLayout) group.getLayout()).marginBottom = 5;
 
     checkedModeButton = new Button(group, SWT.CHECK);
     checkedModeButton.setText("Run in checked mode");
-    GridDataFactory.swtDefaults().span(3, 1).applyTo(checkedModeButton);
     checkedModeButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
         notifyPanelChanged();
+      }
+    });
+    GridDataFactory.swtDefaults().span(2, 1).grab(true, false).applyTo(checkedModeButton);
+
+    Link infoLink = new Link(group, SWT.NONE);
+    infoLink.setText("<a href=\"" + DartDebugUIPlugin.CHECK_MODE_DESC_URL
+        + "\">what is checked mode?</a>");
+    infoLink.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        ExternalBrowserUtil.openInExternalBrowser(DartDebugUIPlugin.CHECK_MODE_DESC_URL);
       }
     });
 
@@ -162,6 +176,8 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
     useWebComponentsButton = new Button(group, SWT.CHECK);
     useWebComponentsButton.setText("Enable experimental Webkit features (Web Components)");
+    useWebComponentsButton.setToolTipText("--enable-experimental-webkit-features"
+        + " and --enable-devtools-experiments");
     GridDataFactory.swtDefaults().span(3, 1).applyTo(useWebComponentsButton);
     useWebComponentsButton.addSelectionListener(new SelectionAdapter() {
       @Override
@@ -182,17 +198,11 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
     // additional browser arguments
     Label argsLabel = new Label(group, SWT.NONE);
-    argsLabel.setText("Arguments:");
-    GridDataFactory.swtDefaults().hint(getLabelColumnWidth(), -1).applyTo(argsLabel);
+    argsLabel.setText("Browser arguments:");
 
     argumentText = new Text(group, SWT.BORDER | SWT.SINGLE);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).span(2, 1).applyTo(
         argumentText);
-
-    Label spacer = new Label(group, SWT.NONE);
-    PixelConverter converter = new PixelConverter(spacer);
-    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).hint(widthHint, -1).applyTo(spacer);
 
     setControl(composite);
   }
@@ -237,19 +247,22 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
   public void initializeFrom(ILaunchConfiguration configuration) {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
 
+    htmlText.setText(dartLauncher.getApplicationName());
+    urlText.setText(dartLauncher.getUrl());
+    IProject project = dartLauncher.getProject();
+    if (project != null) {
+      projectText.setText(project.getName());
+    } else {
+      projectText.setText("");
+    }
+
     if (dartLauncher.getShouldLaunchFile()) {
       htmlButton.setSelection(true);
-      htmlText.setText(dartLauncher.getApplicationName());
-      urlText.setText(dartLauncher.getUrl());
-      projectText.setText(dartLauncher.getProjectName());
       urlButton.setSelection(false);
       updateEnablements(true);
     } else {
-      urlButton.setSelection(true);
-      urlText.setText(dartLauncher.getUrl());
-      projectText.setText(dartLauncher.getProjectName());
-      htmlText.setText(dartLauncher.getApplicationName());
       htmlButton.setSelection(false);
+      urlButton.setSelection(true);
       updateEnablements(false);
     }
 
@@ -428,10 +441,15 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     dialog.open();
 
     Object[] results = dialog.getResult();
+
     if ((results != null) && (results.length > 0) && (results[0] instanceof IFile)) {
-      String pathStr = ((IFile) results[0]).getFullPath().toPortableString();
+      IFile file = (IFile) results[0];
+      String pathStr = file.getFullPath().toPortableString();
 
       htmlText.setText(pathStr);
+      projectText.setText(file.getProject().getName());
+
+      notifyPanelChanged();
     }
   }
 
@@ -455,6 +473,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     dialog.open();
 
     Object[] results = dialog.getResult();
+
     if ((results != null) && (results.length > 0) && (results[0] instanceof IProject)) {
       String pathStr = ((IProject) results[0]).getFullPath().toPortableString();
       projectText.setText(pathStr);

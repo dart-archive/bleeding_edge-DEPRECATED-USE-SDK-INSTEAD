@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationListener;
+import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.internal.core.IInternalDebugCoreConstants;
@@ -44,7 +45,7 @@ import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.viewers.DecoratingLabelProvider;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -66,7 +67,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -87,7 +87,6 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
   private ILaunchConfigurationTabGroup currentTabGroup;
   private ILaunchConfigurationTab activeTab;
 
-  private IAction createAction;
   private IAction deleteAction;
 
   private ILaunchConfiguration launchConfig;
@@ -149,6 +148,7 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
   @Override
   public void launchConfigurationAdded(ILaunchConfiguration configuration) {
     ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
+
     if (selectedConfig != null && selectedConfig.equals(manager.getMovedFrom(configuration))) {
       // this config was re-named, update the dialog with the new config
       selectedConfig = configuration;
@@ -156,7 +156,6 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     }
 
     refreshLaunchesViewer();
-
   }
 
   @Override
@@ -369,7 +368,6 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     if (selectedConfig != null) {
       show(selectedConfig);
     }
-
   }
 
   @Override
@@ -393,6 +391,10 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     super.okPressed();
   }
 
+  private boolean canEnableButton() {
+    return activeTab != null && activeTab.getErrorMessage() == null && canLaunch();
+  }
+
   private void closeConfig(boolean terminate) {
     if (!terminate) {
       saveConfig();
@@ -410,7 +412,7 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     GridLayoutFactory.fillDefaults().margins(12, 6).applyTo(parent);
 
     SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL);
-    GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).hint(675, 350).applyTo(
+    GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).hint(725, 350).applyTo(
         sashForm);
 
     Composite leftComposite = new Composite(sashForm, SWT.NONE);
@@ -423,9 +425,8 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     GridDataFactory.swtDefaults().grab(true, false).align(SWT.BEGINNING, SWT.FILL).applyTo(toolBar);
 
     launchesViewer = new TableViewer(leftComposite, SWT.SINGLE | SWT.V_SCROLL | SWT.BORDER);
-    launchesViewer.setLabelProvider(new DecoratingLabelProvider(
-        DebugUITools.newDebugModelPresentation(),
-        PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator()));
+    launchesViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(
+        new LaunchConfigLabelProvider()));
     launchesViewer.setComparator(new ViewerComparator(String.CASE_INSENSITIVE_ORDER));
     launchesViewer.setContentProvider(new LaunchConfigContentProvider());
     launchesViewer.setInput(ResourcesPlugin.getWorkspace().getRoot());
@@ -440,10 +441,15 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     GridDataFactory.swtDefaults().grab(false, true).align(SWT.FILL, SWT.FILL).hint(50, 50).applyTo(
         launchesViewer.getControl());
 
-    GridDataFactory.swtDefaults().grab(false, true).align(SWT.FILL, SWT.FILL).hint(50, 50).applyTo(
-        launchesViewer.getControl());
+    ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
 
-    toolBarManager.add(getCreateAction());
+    for (final ILaunchConfigurationType configType : manager.getLaunchConfigurationTypes()) {
+      CreateLaunchAction action = new CreateLaunchAction(this, configType);
+
+      toolBarManager.add(action);
+    }
+
+    //toolBarManager.add(new Separator());
     toolBarManager.add(getDeleteAction());
 
     toolBarManager.update(true);
@@ -474,13 +480,9 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
 
     configNameText.setVisible(false);
 
-    sashForm.setWeights(new int[] {30, 70});
+    sashForm.setWeights(new int[] {33, 67});
 
     selectLaunchConfigFromPage();
-  }
-
-  private boolean canEnableButton() {
-    return activeTab != null && activeTab.getErrorMessage() == null && canLaunch();
   }
 
   private ILaunchConfiguration getConfigurationNamed(String name) {
@@ -495,14 +497,6 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     }
 
     return null;
-  }
-
-  private IAction getCreateAction() {
-    if (createAction == null) {
-      createAction = new CreateLaunchAction(this);
-    }
-
-    return createAction;
   }
 
   private IAction getDeleteAction() {
@@ -521,6 +515,10 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
 //    return workingCopy == null ? false : workingCopy.isDirty();
 //  }
 
+  private void refreshTable() {
+    launchesViewer.refresh();
+  }
+
   private void saveConfig() {
     if (currentTabGroup != null) {
       currentTabGroup.performApply(workingCopy);
@@ -538,6 +536,7 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
 
     updateButtons();
     updateMessage();
+    refreshTable();
   }
 
   private void selectFirstLaunchConfig() {

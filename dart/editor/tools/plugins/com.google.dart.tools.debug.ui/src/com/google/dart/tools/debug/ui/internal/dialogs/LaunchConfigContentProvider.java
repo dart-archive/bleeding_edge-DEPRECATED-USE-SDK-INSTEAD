@@ -22,7 +22,7 @@ import org.eclipse.jface.viewers.Viewer;
 /**
  * A content provider for launch configurations.
  */
-public class LaunchConfigContentProvider implements IStructuredContentProvider {
+class LaunchConfigContentProvider implements IStructuredContentProvider {
 
   public LaunchConfigContentProvider() {
 
@@ -35,9 +35,9 @@ public class LaunchConfigContentProvider implements IStructuredContentProvider {
 
   @Override
   public Object[] getElements(Object inputElement) {
-    
+
     return LaunchUtils.getAllLaunchesArray();
-  
+
   }
 
   @Override

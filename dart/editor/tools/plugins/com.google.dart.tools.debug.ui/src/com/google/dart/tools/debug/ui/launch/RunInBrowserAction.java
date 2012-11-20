@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Action to generate JavaScript and launch in default browser
  */
-public class RunInBrowserAction extends DartAbstractAction {
+public class RunInBrowserAction extends DartRunAbstractAction {
 
   public RunInBrowserAction() {
     this(null);

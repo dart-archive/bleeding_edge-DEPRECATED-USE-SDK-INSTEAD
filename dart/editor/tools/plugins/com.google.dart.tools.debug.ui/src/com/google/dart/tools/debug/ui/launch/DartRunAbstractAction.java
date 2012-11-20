@@ -43,13 +43,30 @@ import java.util.Comparator;
 /**
  * The abstract superclass of the run and debug actions.
  */
-public abstract class DartAbstractAction extends AbstractInstrumentedAction implements
+public abstract class DartRunAbstractAction extends AbstractInstrumentedAction implements
     IWorkbenchWindowPulldownDelegate2, IMenuCreator {
+  private static class LaunchConfigComparator implements Comparator<ILaunchConfiguration> {
+    @Override
+    public int compare(ILaunchConfiguration o1, ILaunchConfiguration o2) {
+      DartLaunchConfigWrapper wrapper1 = new DartLaunchConfigWrapper(o1);
+      DartLaunchConfigWrapper wrapper2 = new DartLaunchConfigWrapper(o2);
+
+      long compare = wrapper2.getLastLaunchTime() - wrapper1.getLastLaunchTime();
+
+      if (compare < 0) {
+        return -1;
+      }
+
+      return compare == 0 ? 0 : 1;
+    }
+  }
+
+  private static final int MAX_MENU_LENGTH = 10;
 
   private Menu menu;
   protected IWorkbenchWindow window;
 
-  public DartAbstractAction(IWorkbenchWindow window, String name, int flags) {
+  public DartRunAbstractAction(IWorkbenchWindow window, String name, int flags) {
     super(name, flags);
 
     this.window = window;
@@ -139,11 +156,17 @@ public abstract class DartAbstractAction extends AbstractInstrumentedAction impl
   }
 
   private void fillMenu(Menu menu) {
+    ILaunchConfiguration[] launches = LaunchUtils.getAllLaunchesArray();
 
-    // Iterate through all the launch configurations and add them to the pulldown menu.
-    for (final ILaunchConfiguration config : sort(LaunchUtils.getAllLaunchesArray())) {
+    Arrays.sort(launches, new LaunchConfigComparator());
+
+    int count = Math.min(launches.length, MAX_MENU_LENGTH);
+
+    for (int i = 0; i < count; i++) {
+      final ILaunchConfiguration config = launches[i];
+
       Action launchAction = new Action(
-          config.getName(),
+          LaunchUtils.getLongLaunchName(config),
           DebugUITools.getDefaultImageDescriptor(config)) {
         @Override
         public void run() {
@@ -172,17 +195,6 @@ public abstract class DartAbstractAction extends AbstractInstrumentedAction impl
     }
 
     menu = inMenu;
-  }
-
-  private ILaunchConfiguration[] sort(ILaunchConfiguration[] configs) {
-    Arrays.sort(configs, new Comparator<ILaunchConfiguration>() {
-      @Override
-      public int compare(ILaunchConfiguration config1, ILaunchConfiguration config2) {
-        return config1.getName().compareToIgnoreCase(config2.getName());
-      }
-    });
-
-    return configs;
   }
 
 }

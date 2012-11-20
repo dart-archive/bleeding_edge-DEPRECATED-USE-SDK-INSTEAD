@@ -345,6 +345,19 @@ public class LaunchUtils {
     return null;
   }
 
+  /**
+   * @return a user-consumable long name for the launch config, like "foo.html from foo"
+   */
+  public static String getLongLaunchName(ILaunchConfiguration config) {
+    DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
+
+    if (wrapper.getProject() != null) {
+      return config.getName() + " from " + wrapper.getProject().getName();
+    } else {
+      return config.getName();
+    }
+  }
+
   public static IResource getSelectedResource(IWorkbenchWindow window) {
     IWorkbenchPage page = window.getActivePage();
 
