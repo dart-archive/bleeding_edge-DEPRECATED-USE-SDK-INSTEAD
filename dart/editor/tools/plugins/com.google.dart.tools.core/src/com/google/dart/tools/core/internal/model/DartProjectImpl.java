@@ -1001,19 +1001,22 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     }
     HashSet<IFile> libraryFiles = new HashSet<IFile>(dartFiles);
     for (IFile dartFile : dartFiles) {
-      DartUnit dartUnit = parseDartFile(dartFile);
-      if (dartUnit != null) {
-        LibrarySource librarySource = new UrlLibrarySource(dartFile.getLocation().toFile());
-        for (DartDirective directive : dartUnit.getDirectives()) {
-          if (directive instanceof DartSourceDirective) {
-            DartSourceDirective sourceDirective = (DartSourceDirective) directive;
-            String relativePath = getRelativePath(sourceDirective.getSourceUri());
-            if (relativePath != null && relativePath.length() > 0) {
-              DartSource source = librarySource.getSourceFor(relativePath);
-              if (source != null) {
-                IResource[] compilationUnitFiles = ResourceUtil.getResources(source);
-                if (compilationUnitFiles != null && compilationUnitFiles.length == 1) {
-                  libraryFiles.remove(compilationUnitFiles[0]);
+      IPath location = dartFile.getLocation();
+      if (location != null) {
+        DartUnit dartUnit = parseDartFile(dartFile);
+        if (dartUnit != null) {
+          LibrarySource librarySource = new UrlLibrarySource(location.toFile());
+          for (DartDirective directive : dartUnit.getDirectives()) {
+            if (directive instanceof DartSourceDirective) {
+              DartSourceDirective sourceDirective = (DartSourceDirective) directive;
+              String relativePath = getRelativePath(sourceDirective.getSourceUri());
+              if (relativePath != null && relativePath.length() > 0) {
+                DartSource source = librarySource.getSourceFor(relativePath);
+                if (source != null) {
+                  IResource[] compilationUnitFiles = ResourceUtil.getResources(source);
+                  if (compilationUnitFiles != null && compilationUnitFiles.length == 1) {
+                    libraryFiles.remove(compilationUnitFiles[0]);
+                  }
                 }
               }
             }
