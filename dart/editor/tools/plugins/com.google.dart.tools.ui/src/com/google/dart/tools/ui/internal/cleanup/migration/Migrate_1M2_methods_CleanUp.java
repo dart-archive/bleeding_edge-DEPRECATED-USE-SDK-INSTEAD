@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.LibraryElement;
@@ -27,11 +28,11 @@ import com.google.dart.compiler.type.Type;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 
 /**
- * In 1.0 M2 library many methods become getters.
+ * In 1.0 M2 library many methods become getters; and some of them were renamed.
  * 
  * @coverage dart.editor.ui.cleanup
  */
-public class Migrate_1M2_toGetters_CleanUp extends AbstractMigrateCleanUp {
+public class Migrate_1M2_methods_CleanUp extends AbstractMigrateCleanUp {
   private static class MethodSpec {
     private final String libUri;
     private final String className;
@@ -50,7 +51,7 @@ public class Migrate_1M2_toGetters_CleanUp extends AbstractMigrateCleanUp {
     }
   }
 
-  private static final MethodSpec[] METHODS = new MethodSpec[] {
+  private static final MethodSpec[] METHOD_TO_GETTER_LIST = new MethodSpec[] {
       new MethodSpec("dart://core/core.dart", "Object", "hashCode"),
       new MethodSpec("dart://core/core.dart", "Iterator", "hasNext"),
       new MethodSpec("dart://core/core.dart", "Collection", "isEmpty"),
@@ -75,6 +76,10 @@ public class Migrate_1M2_toGetters_CleanUp extends AbstractMigrateCleanUp {
       new MethodSpec("dart://core/core.dart", "Stopwatch", "elapsedInMs", "elapsedMilliseconds"),
       new MethodSpec("dart://core/core.dart", "Stopwatch", "elapsedInUs", "elapsedMicroseconds"),
       new MethodSpec("dart://core/core.dart", "Stopwatch", "elapsed", "elapsedTicks"),
+      new MethodSpec(null, "_JustForInternalTest", "foo"),};
+
+  private static final MethodSpec[] GETTER_RENAME_LIST = new MethodSpec[] {
+      new MethodSpec("dart://html/dartium/html_dartium.dart", "Element", "elements", "children"),
       new MethodSpec(null, "_JustForInternalTest", "foo"),};
 
   /**
@@ -116,7 +121,7 @@ public class Migrate_1M2_toGetters_CleanUp extends AbstractMigrateCleanUp {
         if (!node.getModifiers().isGetter() && node.getFunction().getParameters().isEmpty()
             && node.getParent() instanceof DartClass) {
           DartClass parentClass = (DartClass) node.getParent();
-          for (MethodSpec spec : METHODS) {
+          for (MethodSpec spec : METHOD_TO_GETTER_LIST) {
             DartExpression nameNode = node.getName();
             if (Elements.isIdentifierName(nameNode, spec.methodName)) {
               InterfaceType parentType = parentClass.getElement().getType();
@@ -137,7 +142,7 @@ public class Migrate_1M2_toGetters_CleanUp extends AbstractMigrateCleanUp {
       public Void visitMethodInvocation(DartMethodInvocation node) {
         DartIdentifier nameNode = node.getFunctionName();
         if (node.getArguments().isEmpty() && node.getTarget() != null) {
-          for (MethodSpec spec : METHODS) {
+          for (MethodSpec spec : METHOD_TO_GETTER_LIST) {
             if (Elements.isIdentifierName(nameNode, spec.methodName)) {
               Type targetType = node.getTarget().getType();
               if (targetType instanceof InterfaceType) {
@@ -153,6 +158,22 @@ public class Migrate_1M2_toGetters_CleanUp extends AbstractMigrateCleanUp {
           }
         }
         return super.visitMethodInvocation(node);
+      }
+
+      @Override
+      public Void visitPropertyAccess(DartPropertyAccess node) {
+        DartIdentifier nameNode = node.getName();
+        for (MethodSpec spec : GETTER_RENAME_LIST) {
+          if (Elements.isIdentifierName(nameNode, spec.methodName) && spec.newName != null) {
+            Type targetType = node.getRealTarget().getType();
+            if (targetType instanceof InterfaceType) {
+              if (isSubType((InterfaceType) targetType, spec.className, spec.libUri)) {
+                addReplaceEdit(SourceRangeFactory.create(nameNode), spec.newName);
+              }
+            }
+          }
+        }
+        return super.visitPropertyAccess(node);
       }
     });
   }

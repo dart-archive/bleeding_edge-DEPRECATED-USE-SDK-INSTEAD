@@ -22,10 +22,10 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalN
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_parseNum_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_rawString_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_functionLiteral_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_methods_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeAbstract_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeInterface_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameTypes_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_toGetters_CleanUp;
 
 /**
  * Test for {@link AbstractMigrateCleanUp}.
@@ -741,8 +741,8 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertNoFix(cleanUp, initial);
   }
 
-  public void test_1M2_methodsToGetters_collections() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
+  public void test_1M2_methods_collections() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_methods_CleanUp();
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -776,8 +776,31 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
-  public void test_1M2_methodsToGetters_interface() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
+  public void test_1M2_methods_Element_elements_children() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_methods_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:html';",
+        "main() {",
+        "  Element e;",
+        "  e.elements;",
+        "  e.children;",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:html';",
+        "main() {",
+        "  Element e;",
+        "  e.children;",
+        "  e.children;",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M2_methods_interface() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_methods_CleanUp();
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class _JustForInternalTest {",
@@ -811,8 +834,8 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
-  public void test_1M2_methodsToGetters_isEmpty() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
+  public void test_1M2_methods_isEmpty() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_methods_CleanUp();
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A_Collection implements Collection {",
@@ -878,8 +901,8 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
-  public void test_1M2_methodsToGetters_Iterator_hasNext() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
+  public void test_1M2_methods_Iterator_hasNext() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_methods_CleanUp();
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -897,8 +920,8 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
-  public void test_1M2_methodsToGetters_num() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
+  public void test_1M2_methods_num() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_methods_CleanUp();
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -936,8 +959,8 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
-  public void test_1M2_methodsToGetters_Object_hashCode() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
+  public void test_1M2_methods_Object_hashCode() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_methods_CleanUp();
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -965,8 +988,8 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
-  public void test_1M2_methodsToGetters_Stopwatch() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M2_toGetters_CleanUp();
+  public void test_1M2_methods_Stopwatch() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_methods_CleanUp();
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
