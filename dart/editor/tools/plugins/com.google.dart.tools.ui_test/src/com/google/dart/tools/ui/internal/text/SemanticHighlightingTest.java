@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.text;
 import com.google.common.collect.Maps;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.util.apache.StringUtils;
+import com.google.dart.tools.core.test.util.TestUtilities;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlighting;
@@ -313,6 +314,7 @@ public class SemanticHighlightingTest extends AbstractDartTest {
   public void test_deprecated() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "const deprecated = 0;",
         "class A {",
         "  @deprecated",
         "  m () {}",
@@ -325,6 +327,28 @@ public class SemanticHighlightingTest extends AbstractDartTest {
     assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "m () {}");
     assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "m ();");
     assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "m );");
+  }
+
+  public void test_deprecated_libraryImport() throws Exception {
+    setUnitContent("ModernLib.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library modernLib;",
+        ""});
+    setUnitContent("DeprecatedLib.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "@deprecated",
+        "library deprecatedLib;",
+        "const deprecated = 0;",
+        ""});
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library App;",
+        "import 'ModernLib.dart';",
+        "import 'DeprecatedLib.dart';",
+        "");
+    TestUtilities.processAllDeltaChanges();
+    String search = "'DeprecatedLib.dart'";
+    assertHasPosition(SemanticHighlightings.DEPRECATED_ELEMENT, findOffset(search), search.length());
   }
 
   public void test_directive_export() throws Exception {

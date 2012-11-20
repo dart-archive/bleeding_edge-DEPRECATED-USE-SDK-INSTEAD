@@ -31,6 +31,7 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPartOfDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
+import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.ImportCombinator;
@@ -300,9 +301,19 @@ public class SemanticHighlightings {
    */
   private static final class DeprecatedElementHighlighting extends DefaultSemanticHighlighting {
     @Override
+    public boolean consumes(SemanticToken token) {
+      DartNode node = token.getNode();
+      if (node instanceof DartStringLiteral && node.getParent() instanceof DartImportDirective) {
+        Element element = node.getElement();
+        return element != null && element.getMetadata().isDeprecated();
+      }
+      return false;
+    }
+
+    @Override
     public boolean consumesIdentifier(SemanticToken token) {
       DartIdentifier node = token.getNodeIdentifier();
-      NodeElement element = node.getElement();
+      Element element = node.getElement();
       return element != null && element.getMetadata().isDeprecated();
     }
 
