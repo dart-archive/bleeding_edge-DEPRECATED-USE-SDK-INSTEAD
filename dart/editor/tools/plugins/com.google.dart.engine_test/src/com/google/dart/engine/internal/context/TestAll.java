@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.internal;
+package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.ExtendedTestSuite;
 
@@ -21,11 +21,7 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTest(com.google.dart.engine.internal.builder.TestAll.suite());
-    suite.addTest(com.google.dart.engine.internal.context.TestAll.suite());
-    suite.addTest(com.google.dart.engine.internal.element.TestAll.suite());
-    suite.addTest(com.google.dart.engine.internal.sdk.TestAll.suite());
-    suite.addTest(com.google.dart.engine.internal.type.TestAll.suite());
+    suite.addTestSuite(AnalysisContextImplTest.class);
     return suite;
   }
 }

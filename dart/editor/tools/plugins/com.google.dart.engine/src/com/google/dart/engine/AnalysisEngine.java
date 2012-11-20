@@ -13,7 +13,8 @@
  */
 package com.google.dart.engine;
 
-import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.utilities.logging.Logger;
 
 /**
@@ -41,15 +42,19 @@ public final class AnalysisEngine {
   private Logger logger = Logger.NULL;
 
   /**
-   * The source factory used to create source objects.
-   */
-  private SourceFactory sourceFactory;
-
-  /**
    * Prevent the creation of instances of this class.
    */
   private AnalysisEngine() {
     super();
+  }
+
+  /**
+   * Create a new context in which analysis can be performed.
+   * 
+   * @return the analysis context that was created
+   */
+  public AnalysisContext createAnalysisContext() {
+    return new AnalysisContextImpl();
   }
 
   /**
@@ -62,16 +67,6 @@ public final class AnalysisEngine {
   }
 
   /**
-   * Return the source factory used to create source objects, or {@code null} if the source factory
-   * has not been configured.
-   * 
-   * @return the source factory used to create source objects
-   */
-  public SourceFactory getSourceFactory() {
-    return sourceFactory;
-  }
-
-  /**
    * Set the logger that should receive information about errors within the analysis engine to the
    * given logger.
    * 
@@ -80,14 +75,5 @@ public final class AnalysisEngine {
    */
   public void setLogger(Logger logger) {
     this.logger = logger == null ? Logger.NULL : logger;
-  }
-
-  /**
-   * Set the source factory used to create source objects to the given factory.
-   * 
-   * @param factory the source factory that is to be used to create source objects
-   */
-  public void setSourceFactory(SourceFactory factory) {
-    sourceFactory = factory;
   }
 }
