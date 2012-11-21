@@ -58,43 +58,37 @@ public interface AnalysisContext {
   public SourceFactory getSourceFactory();
 
   /**
-   * Parse a single source to produce an AST structure. Return the AST structure representing the
-   * content of the source, or {@code null} if the source could not be parsed within the given
-   * amount of time.
+   * Parse a single source to produce an AST structure.
    * 
    * @param source the source to be parsed
    * @param errorListener the listener to which errors should be reported
    * @return the AST structure representing the content of the source
-   * @throws Exception if the content of the source could not be accessed
+   * @throws AnalysisException if the analysis could not be performed
    */
-  public CompilationUnit parse(Source source, AnalysisErrorListener errorListener) throws Exception;
+  public CompilationUnit parse(Source source, AnalysisErrorListener errorListener)
+      throws AnalysisException;
 
   /**
    * Parse and resolve a single source within the given context to produce a fully resolved AST.
-   * Return the result of resolving the AST structure representing the content of the source, or
-   * {@code null} if the source could not be resolved within the given amount of time.
    * 
    * @param source the source to be parsed and resolved
    * @param library the library defining the context in which the source file is to be resolved
    * @param errorListener the listener to which errors should be reported
    * @return the result of resolving the AST structure representing the content of the source
-   * @throws Exception if the content of the source, or any sources referenced by it, could not be
-   *           accessed
+   * @throws AnalysisException if the analysis could not be performed
    */
   public CompilationUnit resolve(Source source, LibraryElement library,
-      AnalysisErrorListener errorListener) throws Exception;
+      AnalysisErrorListener errorListener) throws AnalysisException;
 
   /**
-   * Scan a single source to produce a token stream. Return the head of the token stream
-   * representing the content of the source, or {@code null} if the source could not be scanned
-   * within the given amount of time.
+   * Scan a single source to produce a token stream.
    * 
    * @param source the source to be scanned
    * @param errorListener the listener to which errors should be reported
    * @return the head of the token stream representing the content of the source
-   * @throws Exception if the content of the source could not be accessed
+   * @throws AnalysisException if the analysis could not be performed
    */
-  public Token scan(Source source, AnalysisErrorListener errorListener) throws Exception;
+  public Token scan(Source source, AnalysisErrorListener errorListener) throws AnalysisException;
 
   /**
    * Set the source factory used to create the sources that can be analyzed in this context to the

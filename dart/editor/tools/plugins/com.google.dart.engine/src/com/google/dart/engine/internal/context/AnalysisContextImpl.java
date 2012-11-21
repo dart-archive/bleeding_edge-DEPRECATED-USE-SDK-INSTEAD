@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.LibraryElement;
@@ -27,6 +28,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 
 import java.nio.CharBuffer;
+import java.util.HashMap;
 
 /**
  * Instances of the class {@code AnalysisContextImpl} implement an {@link AnalysisContext analysis
@@ -37,6 +39,12 @@ public class AnalysisContextImpl implements AnalysisContext {
    * The source factory used to create the sources that can be analyzed in this context.
    */
   private SourceFactory sourceFactory;
+
+  /**
+   * A cache mapping sources to the compilation units that were produced for the contents of the
+   * source.
+   */
+  private HashMap<Source, CompilationUnit> parseCache = new HashMap<Source, CompilationUnit>();
 
   /**
    * Initialize a newly created analysis context.
@@ -61,21 +69,27 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public CompilationUnit parse(Source source, AnalysisErrorListener errorListener) throws Exception {
-    Token token = scan(source, errorListener);
-    Parser parser = new Parser(source, errorListener);
-    return parser.parseCompilationUnit(token);
+  public CompilationUnit parse(Source source, AnalysisErrorListener errorListener)
+      throws AnalysisException {
+    CompilationUnit unit = parseCache.get(source);
+    if (unit == null) {
+      Token token = scan(source, errorListener);
+      Parser parser = new Parser(source, errorListener);
+      unit = parser.parseCompilationUnit(token);
+      parseCache.put(source, unit);
+    }
+    return unit;
   }
 
   @Override
   public CompilationUnit resolve(Source source, LibraryElement library,
-      AnalysisErrorListener errorListener) throws Exception {
+      AnalysisErrorListener errorListener) throws AnalysisException {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public Token scan(final Source source, final AnalysisErrorListener errorListener)
-      throws Exception {
+      throws AnalysisException {
     final Token[] tokens = new Token[1];
     Source.ContentReceiver receiver = new Source.ContentReceiver() {
       @Override
