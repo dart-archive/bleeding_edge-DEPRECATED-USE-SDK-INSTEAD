@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.swtbot;
 
+import com.google.dart.tools.ui.internal.intro.SampleDescription;
+import com.google.dart.tools.ui.internal.intro.SampleHelper;
 import com.google.dart.tools.ui.swtbot.action.LaunchBrowserHelper;
 import com.google.dart.tools.ui.swtbot.conditions.AnalysisCompleteCondition;
 import com.google.dart.tools.ui.swtbot.conditions.CompilerWarmedUp;
@@ -22,10 +24,13 @@ import com.google.dart.tools.ui.swtbot.views.FilesViewHelper;
 import com.google.dart.tools.ui.swtbot.views.ProblemsViewHelper;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
+import org.eclipse.swtbot.eclipse.finder.finders.WorkbenchContentsFinder;
+import org.eclipse.swtbot.swt.finder.results.VoidResult;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
+import static org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.syncExec;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
@@ -35,6 +40,7 @@ import static org.junit.Assert.fail;
  * 
  * @see TestAll
  */
+@SuppressWarnings("restriction")
 public abstract class AbstractDartEditorTest {
 
   protected static SWTWorkbenchBot bot;
@@ -101,6 +107,22 @@ public abstract class AbstractDartEditorTest {
     } else {
       openAndLaunchLibrary(dartLibSample, isWebApp, null);
     }
+  }
+
+  /**
+   * Open the given sample.
+   * 
+   * @param sample the sample to open and launch
+   */
+  protected void openSample(final SampleDescription sample) {
+    assertNotNull(sample);
+    syncExec(new VoidResult() {
+      @Override
+      public void run() {
+        SampleHelper.openSample(sample, new WorkbenchContentsFinder().activeWorkbenchWindow());
+      }
+    });
+
   }
 
   /**
