@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/com.google.dart.engine"/>
+	<classpathentry kind="lib" path="third_party/args4j/2.0.12/args4j-2.0.12.jar" sourcepath="third_party/args4j/2.0.12/args4j-2.0.12-src.jar"/>
+	<classpathentry kind="lib" path="third_party/guava/r09/guava-r09.jar" sourcepath="third_party/guava/r09/guava-src-r09.zip"/>
+	<classpathentry kind="lib" path="third_party/json/r2_20080312/json.jar" sourcepath="third_party/json/r2_20080312/json-src.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
