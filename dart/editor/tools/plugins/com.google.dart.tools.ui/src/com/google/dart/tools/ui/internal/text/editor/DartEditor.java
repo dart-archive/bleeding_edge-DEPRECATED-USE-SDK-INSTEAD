@@ -3764,7 +3764,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     DartX.todo("marking");
     List<DartNode> matches = null;
 
-    CompilationUnit input = getInputDartElement().getAncestor(CompilationUnit.class);
+    DartElement dartElement = getInputDartElement();
+    if (dartElement == null) {
+      return;
+    }
+
+    CompilationUnit input = dartElement.getAncestor(CompilationUnit.class);
     DartElementLocator locator = new DartElementLocator(
         input,
         selection.getOffset(),
