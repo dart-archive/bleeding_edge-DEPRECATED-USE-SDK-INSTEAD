@@ -15,6 +15,7 @@ package com.google.dart.engine.parser;
 
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.ErrorSeverity;
+import com.google.dart.engine.error.ErrorType;
 import com.google.dart.engine.error.SubSystem;
 
 /**
@@ -163,6 +164,11 @@ public enum ParserErrorCode implements ErrorCode {
   @Override
   public SubSystem getSubSystem() {
     return SubSystem.PARSER;
+  }
+
+  @Override
+  public ErrorType getType() {
+    return ErrorType.SYNTACTIC;
   }
 
   @Override

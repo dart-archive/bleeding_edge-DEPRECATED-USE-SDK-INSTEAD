@@ -14,28 +14,44 @@
 package com.google.dart.engine.error;
 
 /**
- * Instances of the class {@code ErrorCode} define the behavior common to objects representing error
- * codes associated with {@link AnalysisError analysis errors}.
+ * The interface {@code ErrorCode} defines the behavior common to objects representing error codes
+ * associated with {@link AnalysisError analysis errors}.
  */
 public interface ErrorCode {
   /**
-   * Return the {@link ErrorSeverity severity} of this error.
+   * Return the severity of this error.
+   * 
+   * @return the severity of this error
    */
   public ErrorSeverity getErrorSeverity();
 
   /**
    * Return the message template used to create the message to be displayed for this error.
+   * 
+   * @return the message template used to create the message to be displayed for this error
    */
   public String getMessage();
 
   /**
-   * Return the {@link SubSystem} which issued this error.
+   * Return the subsystem that issued this error.
+   * 
+   * @return the subsystem that issued this error
    */
   public SubSystem getSubSystem();
 
   /**
-   * Return {@code true} if this {@link ErrorCode} should cause recompilation of the source during
-   * the next incremental compilation.
+   * Return the type of the error.
+   * 
+   * @return the type of the error
+   */
+  public ErrorType getType();
+
+  /**
+   * Return {@code true} if this error should cause recompilation of the source during the next
+   * incremental compilation.
+   * 
+   * @return {@code true} if this error should cause recompilation of the source during the next
+   *         incremental compilation
    */
   public boolean needsRecompilation();
 }

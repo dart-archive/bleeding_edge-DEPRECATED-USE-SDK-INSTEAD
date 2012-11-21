@@ -15,6 +15,7 @@ package com.google.dart.engine.scanner;
 
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.ErrorSeverity;
+import com.google.dart.engine.error.ErrorType;
 import com.google.dart.engine.error.SubSystem;
 
 /**
@@ -56,6 +57,11 @@ public enum ScannerErrorCode implements ErrorCode {
   @Override
   public SubSystem getSubSystem() {
     return SubSystem.SCANNER;
+  }
+
+  @Override
+  public ErrorType getType() {
+    return ErrorType.SYNTACTIC;
   }
 
   @Override

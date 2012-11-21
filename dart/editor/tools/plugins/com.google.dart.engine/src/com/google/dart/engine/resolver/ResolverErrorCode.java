@@ -15,6 +15,7 @@ package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.ErrorSeverity;
+import com.google.dart.engine.error.ErrorType;
 import com.google.dart.engine.error.SubSystem;
 
 /**
@@ -253,6 +254,11 @@ public enum ResolverErrorCode implements ErrorCode {
   @Override
   public SubSystem getSubSystem() {
     return SubSystem.RESOLVER;
+  }
+
+  @Override
+  public ErrorType getType() {
+    return ErrorType.SEMANTIC;
   }
 
   @Override
