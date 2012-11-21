@@ -18,9 +18,12 @@ import com.google.dart.tools.ui.swtbot.matchers.EditorWithTitle;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 import com.google.dart.tools.ui.swtbot.util.SWTBotUtil;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
+import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.results.BoolResult;
@@ -32,6 +35,9 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.PartInitException;
 import org.hamcrest.Matcher;
 import org.hamcrest.SelfDescribing;
 
@@ -117,8 +123,9 @@ public class NewApplicationHelper {
    * 
    * @param appName the application name
    * @return the new application
+   * @throws CoreException
    */
-  public DartLib create(String appName, ContentType contentType) {
+  public DartLib create(String appName, ContentType contentType) throws CoreException {
 
     //TODO (pquitslund): add param to specify pub support
 
@@ -180,6 +187,17 @@ public class NewApplicationHelper {
     EditorWithTitle matcher = new EditorWithTitle(lib.dartFile.getName());
     SwtBotPerformance.NEW_APP.log(bot, waitForEditor(matcher), appName);
     lib.editor = bot.editor(matcher).toTextEditor();
+    lib.setProject(findProject(lib.editor));
     return lib;
+  }
+
+  private IProject findProject(SWTBotEclipseEditor editor) throws PartInitException {
+
+    IEditorInput input = editor.getReference().getEditorInput();
+    if (input instanceof IFileEditorInput) {
+      return ((IFileEditorInput) input).getFile().getProject();
+    }
+
+    return null;
   }
 }

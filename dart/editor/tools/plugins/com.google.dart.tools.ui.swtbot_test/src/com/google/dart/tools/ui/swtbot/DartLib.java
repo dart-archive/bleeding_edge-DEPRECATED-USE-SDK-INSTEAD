@@ -23,6 +23,7 @@ import com.google.dart.tools.ui.swtbot.views.FilesViewHelper;
 
 import static com.google.dart.tools.core.internal.perf.Performance.prepend;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
@@ -155,6 +156,8 @@ public class DartLib {
 
   public SWTBotEclipseEditor editor;
 
+  private IProject project;
+
   public DartLib(File dir, String name) {
     this.dir = dir;
     this.name = name;
@@ -198,6 +201,15 @@ public class DartLib {
   }
 
   /**
+   * Get the associated project.
+   * 
+   * @return the project
+   */
+  public IProject getProject() {
+    return project;
+  }
+
+  /**
    * Wait then log the time for the JS file to be generated, without blocking the current thread.
    */
   public void logFullAnalysisTime(String... comments) {
@@ -217,6 +229,10 @@ public class DartLib {
     } else {
       new LaunchBrowserHelper(bot).launch(this);
     }
+  }
+
+  public void setProject(IProject project) {
+    this.project = project;
   }
 
 }

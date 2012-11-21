@@ -14,8 +14,10 @@
 package com.google.dart.tools.ui.swtbot;
 
 import com.google.dart.tools.ui.swtbot.dialog.NewApplicationHelper;
+import com.google.dart.tools.ui.swtbot.dialog.NewApplicationHelper.ContentType;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
 import org.junit.After;
 import org.junit.Test;
@@ -29,35 +31,30 @@ import org.junit.runner.RunWith;
 @RunWith(SWTBotJunit4ClassRunner.class)
 public final class NewApplicationActionTest extends AbstractDartEditorTest {
 
-  private DartLib serverLib;
-  private DartLib webLib;
+  private DartLib lib;
 
   @After
-  public void cleanup() {
-    if (serverLib != null) {
-      serverLib.deleteDir();
-    }
-    if (webLib != null) {
-      webLib.deleteDir();
+  public void cleanup() throws CoreException {
+    if (lib != null) {
+      lib.getProject().delete(true, null);
     }
   }
 
   @Test
   public void testNewApplicationWizard_server() throws Exception {
-    serverLib = new NewApplicationHelper(bot).create(
-        "NewAppServer",
-        NewApplicationHelper.ContentType.SERVER);
-    SwtBotPerformance.waitForResults(bot);
-    // TODO (jwren) once we can launch server apps (see todo in DartLib.openAndLaunch), then this
-    // call should be: openAndLaunchLibrary(dartLib, false, "Hello World");
-    openAndLaunchLibrary(serverLib, false, false);
+    createApp("NewAppServer", ContentType.SERVER);
+    //TODO (pquitslund): verify content and launch
   }
 
   @Test
   public void testNewApplicationWizard_web() throws Exception {
-    webLib = new NewApplicationHelper(bot).create("NewAppWeb", NewApplicationHelper.ContentType.WEB);
+    createApp("NewAppWeb", ContentType.WEB);
+    //TODO (pquitslund): verify content and launch
+  }
+
+  private void createApp(String name, ContentType type) throws CoreException {
+    lib = new NewApplicationHelper(bot).create(name, type);
     SwtBotPerformance.waitForResults(bot);
-    openAndLaunchLibrary(webLib, true, true);
   }
 
 }
