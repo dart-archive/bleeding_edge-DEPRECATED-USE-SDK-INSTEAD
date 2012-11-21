@@ -19,6 +19,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.CharBufferScanner;
@@ -59,6 +60,11 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public AnalysisError[] getErrors(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public LibraryElement getLibraryElement(Source source) {
     throw new UnsupportedOperationException();
   }
@@ -71,14 +77,16 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public CompilationUnit parse(Source source, AnalysisErrorListener errorListener)
       throws AnalysisException {
-    CompilationUnit unit = parseCache.get(source);
-    if (unit == null) {
-      Token token = scan(source, errorListener);
-      Parser parser = new Parser(source, errorListener);
-      unit = parser.parseCompilationUnit(token);
-      parseCache.put(source, unit);
+    synchronized (this) {
+      CompilationUnit unit = parseCache.get(source);
+      if (unit == null) {
+        Token token = scan(source, errorListener);
+        Parser parser = new Parser(source, errorListener);
+        unit = parser.parseCompilationUnit(token);
+        parseCache.put(source, unit);
+      }
+      return unit;
     }
-    return unit;
   }
 
   @Override
@@ -114,5 +122,12 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public void setSourceFactory(SourceFactory sourceFactory) {
     this.sourceFactory = sourceFactory;
+  }
+
+  @Override
+  public void sourceChanged(Source source) {
+    synchronized (this) {
+      parseCache.remove(source);
+    }
   }
 }

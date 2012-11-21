@@ -13,9 +13,12 @@
  */
 package com.google.dart.engine.internal.context;
 
+import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.scanner.Token;
@@ -23,17 +26,45 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceImpl;
 
-import junit.framework.TestCase;
-
 import java.io.File;
 
-public class AnalysisContextImplTest extends TestCase {
+public class AnalysisContextImplTest extends EngineTestCase {
   public void fail_getElement_location() {
     AnalysisContextImpl context = new AnalysisContextImpl();
     ElementLocation location = new ElementLocationImpl("dart:core;Object");
     Element element = context.getElement(location);
     assertNotNull(element);
     assertEquals(location, element.getLocation());
+  }
+
+  public void fail_getErrors_none() throws Exception {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    SourceFactory sourceFactory = new SourceFactory();
+    context.setSourceFactory(sourceFactory);
+    Source source = new SourceImpl(sourceFactory, new File("/lib.dart")) {
+      @Override
+      public void getContents(ContentReceiver receiver) throws Exception {
+        receiver.accept("library lib;");
+      }
+    };
+    AnalysisError[] errors = context.getErrors(source);
+    assertNotNull(errors);
+    assertLength(0, errors);
+  }
+
+  public void fail_getErrors_some() throws Exception {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    SourceFactory sourceFactory = new SourceFactory();
+    context.setSourceFactory(sourceFactory);
+    Source source = new SourceImpl(sourceFactory, new File("/lib.dart")) {
+      @Override
+      public void getContents(ContentReceiver receiver) throws Exception {
+        receiver.accept("library lib;");
+      }
+    };
+    AnalysisError[] errors = context.getErrors(source);
+    assertNotNull(errors);
+    assertTrue(errors.length > 0);
   }
 
   public void fail_getLibraryElement_source() {
@@ -49,7 +80,7 @@ public class AnalysisContextImplTest extends TestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = new SourceImpl(sourceFactory, new File("/does/not/exist.dart")) {
+    Source source = new SourceImpl(sourceFactory, new File("/lib.dart")) {
       @Override
       public void getContents(ContentReceiver receiver) throws Exception {
         receiver.accept("library lib;");
@@ -68,7 +99,7 @@ public class AnalysisContextImplTest extends TestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = new SourceImpl(sourceFactory, new File("/does/not/exist.dart")) {
+    Source source = new SourceImpl(sourceFactory, new File("/lib.dart")) {
       @Override
       public void getContents(ContentReceiver receiver) throws Exception {
         receiver.accept("library lib;");
@@ -83,7 +114,7 @@ public class AnalysisContextImplTest extends TestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = new SourceImpl(sourceFactory, new File("/does/not/exist.dart")) {
+    Source source = new SourceImpl(sourceFactory, new File("/lib.dart")) {
       @Override
       public void getContents(ContentReceiver receiver) throws Exception {
         receiver.accept("library lib;");
@@ -99,5 +130,21 @@ public class AnalysisContextImplTest extends TestCase {
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
     assertEquals(sourceFactory, context.getSourceFactory());
+  }
+
+  public void test_sourceChanged() throws Exception {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    SourceFactory sourceFactory = new SourceFactory();
+    context.setSourceFactory(sourceFactory);
+    Source source = sourceFactory.forFile(new File("/lib.dart"));
+
+    sourceFactory.setContents(source, "class A {}");
+    CompilationUnit unit = context.parse(source, new GatheringErrorListener());
+    assertEquals("A", ((ClassDeclaration) unit.getDeclarations().get(0)).getName().getName());
+
+    sourceFactory.setContents(source, "class B {}");
+    context.sourceChanged(source);
+    unit = context.parse(source, new GatheringErrorListener());
+    assertEquals("B", ((ClassDeclaration) unit.getDeclarations().get(0)).getName().getName());
   }
 }

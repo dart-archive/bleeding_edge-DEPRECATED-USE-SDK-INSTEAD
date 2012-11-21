@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
@@ -41,6 +42,16 @@ public interface AnalysisContext {
    * @return the element referenced by the given location
    */
   public Element getElement(ElementLocation location);
+
+  /**
+   * Return an array containing all of the errors associated with the given source.
+   * 
+   * @param source the source whose errors are to be returned
+   * @return all of the errors associated with the given source
+   * @throws AnalysisException if the errors could not be determined because the analysis could not
+   *           be performed
+   */
+  public AnalysisError[] getErrors(Source source) throws AnalysisException;
 
   /**
    * Parse and build an element model for the library defined by the given source.
@@ -98,4 +109,12 @@ public interface AnalysisContext {
    *          context
    */
   public void setSourceFactory(SourceFactory sourceFactory);
+
+  /**
+   * Respond to the fact that the content of the given source has changed by removing any cached
+   * information that might now be out-of-date.
+   * 
+   * @param source the source whose content has changed
+   */
+  public void sourceChanged(Source source);
 }
