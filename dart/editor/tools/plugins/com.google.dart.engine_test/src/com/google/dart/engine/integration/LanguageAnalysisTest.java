@@ -13,12 +13,18 @@
  */
 package com.google.dart.engine.integration;
 
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.GatheringErrorListener;
+import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.parser.ASTValidator;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.scanner.TokenStreamValidator;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.io.FileUtilities;
@@ -34,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
   public class AnalysisTestWithSource extends AnalysisTest {
@@ -132,7 +139,7 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
     throw new InternalError("Wrong test method invoked for file " + sourceFile.getAbsolutePath());
   }
 
-  protected void testSingleFile(File sourceFile, String contents) throws IOException {
+  protected void testSingleFile(File sourceFile, String contents) throws Exception {
     //
     // Uncomment the lines below to stop reporting failures for files containing directives or
     // interface declarations.
@@ -152,7 +159,7 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
       return;
     }
     //
-    // Scan the file, stopping if there were errors when expected.
+    // Scan the file.
     //
     Source source = new SourceFactory().forFile(sourceFile);
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -160,19 +167,12 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
     long scannerStartTime = System.currentTimeMillis();
     Token token = scanner.tokenize();
     long scannerEndTime = System.currentTimeMillis();
-    if (listener.getErrors().size() > 0) {
-      if (errorExpected) {
-        return;
-      } else {
-        listener.assertNoErrors();
-      }
-    }
     //
-    // Parse the file, stopping if there were errors when expected.
+    // Parse the file.
     //
     Parser parser = new Parser(source, listener);
     long parserStartTime = System.currentTimeMillis();
-    CompilationUnit unit = parser.parseCompilationUnit(token);
+    final CompilationUnit unit = parser.parseCompilationUnit(token);
     long parserEndTime = System.currentTimeMillis();
     //
     // Record the timing information.
@@ -181,6 +181,10 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
     charCount += contents.length();
     scannerTime += (scannerEndTime - scannerStartTime);
     parserTime += (parserEndTime - parserStartTime);
+    //
+    // Validate that the token stream was built correctly.
+    //
+    new TokenStreamValidator().validate(token);
     //
     // Validate the results.
     //
@@ -195,6 +199,15 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
     ASTValidator validator = new ASTValidator();
     unit.accept(validator);
     validator.assertValid();
+    //
+    // Build the element model for the compilation unit.
+    //
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(
+        new AnalysisContextImpl(),
+        listener,
+        new HashMap<ASTNode, Element>());
+    CompilationUnitElement element = builder.buildCompilationUnit(source);
+    Assert.assertNotNull(element);
   }
 
   private int getTestCount(String[] lines) {

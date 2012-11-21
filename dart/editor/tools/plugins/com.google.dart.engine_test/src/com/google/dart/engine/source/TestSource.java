@@ -13,33 +13,40 @@
  */
 package com.google.dart.engine.source;
 
+import java.io.File;
+
 /**
  * Instances of the class {@code TestSource} implement a source object that can be used for testing
  * purposes.
  */
-public class TestSource implements Source {
+public class TestSource extends SourceImpl {
+  /**
+   * The contents of the file represented by this source.
+   */
+  private String contents;
+
+  /**
+   * Initialize a newly created source object.
+   */
+  public TestSource() {
+    this(null, new File("/test.dart"), "");
+  }
+
+  /**
+   * Initialize a newly created source object. The source object is assumed to not be in a system
+   * library.
+   * 
+   * @param factory the source factory that created this source
+   * @param file the file represented by this source
+   * @param contents the contents of the file represented by this source
+   */
+  public TestSource(SourceFactory factory, File file, String contents) {
+    super(factory, file);
+    this.contents = contents;
+  }
+
   @Override
   public void getContents(ContentReceiver receiver) throws Exception {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public String getFullName() {
-    return null;
-  }
-
-  @Override
-  public String getShortName() {
-    return null;
-  }
-
-  @Override
-  public boolean isInSystemLibrary() {
-    return false;
-  }
-
-  @Override
-  public Source resolve(String uri) {
-    return null;
+    receiver.accept(contents);
   }
 }

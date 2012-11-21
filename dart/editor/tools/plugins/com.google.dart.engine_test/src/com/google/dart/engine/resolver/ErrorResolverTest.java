@@ -84,7 +84,7 @@ public class ErrorResolverTest extends ResolverTestCase {
     verify(resolvedElementMap, source);
   }
 
-  public void test_duplicateMemberError() {
+  public void test_duplicateMemberError() throws Exception {
     Source librarySource = addSource("/lib.dart", createSource(//
         "library lib;",
         "",

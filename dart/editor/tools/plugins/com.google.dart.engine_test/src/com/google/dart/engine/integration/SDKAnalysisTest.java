@@ -15,16 +15,16 @@ package com.google.dart.engine.integration;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.cmdline.Analyzer;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.parser.ASTValidator;
 import com.google.dart.engine.parser.Parser;
-import com.google.dart.engine.provider.CompilationUnitProvider;
 import com.google.dart.engine.scanner.CharBufferScanner;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.scanner.TokenStreamValidator;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -35,7 +35,6 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.CharBuffer;
 import java.util.HashMap;
 
@@ -80,14 +79,25 @@ public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
   private long parserTime = 0L;
 
   @Override
-  protected void testSingleFile(File sourceFile) throws IOException {
+  protected void testSingleFile(File sourceFile) throws Exception {
     //
     // Scan the file.
     //
-    CharBuffer buffer = Analyzer.getBufferFromFile(sourceFile);
+    final CharBuffer[] buffer = new CharBuffer[1];
     Source source = new SourceFactory().forFile(sourceFile);
+    source.getContents(new Source.ContentReceiver() {
+      @Override
+      public void accept(CharBuffer contents) {
+        buffer[0] = contents;
+      }
+
+      @Override
+      public void accept(String contents) {
+      }
+    });
+    Assert.assertNotNull("Could not read file", buffer[0]);
     GatheringErrorListener listener = new GatheringErrorListener();
-    CharBufferScanner scanner = new CharBufferScanner(source, buffer, listener);
+    CharBufferScanner scanner = new CharBufferScanner(source, buffer[0], listener);
     long scannerStartTime = System.currentTimeMillis();
     Token token = scanner.tokenize();
     long scannerEndTime = System.currentTimeMillis();
@@ -102,16 +112,24 @@ public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
     // Record the timing information.
     //
     fileCount++;
-    charCount += buffer.length();
+    charCount += buffer[0].length();
     scannerTime += (scannerEndTime - scannerStartTime);
     parserTime += (parserEndTime - parserStartTime);
     //
-    // Validate the results.
+    // Validate that the token stream was built correctly.
     //
-    // Uncomment the lines below to stop reporting failures for files containing directives.
-//    if (listener.hasError(com.google.dart.engine.parser.ParserErrorCode.UNEXPECTED_TOKEN)) {
+    new TokenStreamValidator().validate(token);
+    //
+    // Uncomment the lines below to stop reporting failures for files containing directives and for
+    // files containing an interface.
+    //
+//    String contents = buffer.toString();
+//    if (contents.indexOf("#") >= 0 || contents.indexOf("interface") >= 0) {
 //      return;
 //    }
+    //
+    // Validate the results.
+    //
     listener.assertNoErrors();
     //
     // Validate that the AST structure was built correctly.
@@ -122,12 +140,10 @@ public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
     //
     // Build the element model for the compilation unit.
     //
-    CompilationUnitBuilder builder = new CompilationUnitBuilder(new CompilationUnitProvider() {
-      @Override
-      public CompilationUnit getCompilationUnit(Source source) {
-        return unit;
-      }
-    }, new HashMap<ASTNode, Element>());
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(
+        new AnalysisContextImpl(),
+        listener,
+        new HashMap<ASTNode, Element>());
     CompilationUnitElement element = builder.buildCompilationUnit(source);
     Assert.assertNotNull(element);
   }

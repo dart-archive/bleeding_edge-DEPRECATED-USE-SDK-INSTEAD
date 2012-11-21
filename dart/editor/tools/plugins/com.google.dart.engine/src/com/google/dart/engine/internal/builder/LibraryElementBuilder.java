@@ -30,6 +30,7 @@ import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportCombinator;
@@ -37,13 +38,13 @@ import com.google.dart.engine.element.ImportSpecification;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.HideCombinatorImpl;
 import com.google.dart.engine.internal.element.ImportSpecificationImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.PrefixElementImpl;
 import com.google.dart.engine.internal.element.ShowCombinatorImpl;
-import com.google.dart.engine.provider.CompilationUnitProvider;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.source.Source;
 
@@ -56,9 +57,9 @@ import java.util.Map;
  */
 public class LibraryElementBuilder {
   /**
-   * The provider used to access the compilation unit associated with a given source.
+   * The analysis context in which the element model will be built.
    */
-  private CompilationUnitProvider provider;
+  private AnalysisContextImpl analysisContext;
 
   /**
    * The listener to which errors will be reported.
@@ -78,11 +79,12 @@ public class LibraryElementBuilder {
   /**
    * Initialize a newly created library element builder.
    * 
-   * @param provider the provider used to access the compilation unit associated with a given source
+   * @param analysisContext the analysis context in which the element model will be built
    * @param errorListener the listener to which errors will be reported
    */
-  public LibraryElementBuilder(CompilationUnitProvider provider, AnalysisErrorListener errorListener) {
-    this.provider = provider;
+  public LibraryElementBuilder(AnalysisContextImpl analysisContext,
+      AnalysisErrorListener errorListener) {
+    this.analysisContext = analysisContext;
     this.errorListener = errorListener;
   }
 
@@ -91,10 +93,14 @@ public class LibraryElementBuilder {
    * 
    * @param librarySource the source describing the defining compilation unit for the library
    * @return the library element that was built
+   * @throws AnalysisException if the analysis could not be performed
    */
-  public LibraryElement buildLibrary(Source librarySource) {
-    CompilationUnitBuilder builder = new CompilationUnitBuilder(provider, declaredElementMap);
-    CompilationUnit definingCompilationUnit = provider.getCompilationUnit(librarySource);
+  public LibraryElement buildLibrary(Source librarySource) throws AnalysisException {
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(
+        analysisContext,
+        errorListener,
+        declaredElementMap);
+    CompilationUnit definingCompilationUnit = analysisContext.parse(librarySource, errorListener);
     CompilationUnitElementImpl definingCompilationUnitElement = builder.buildCompilationUnit(librarySource);
     NodeList<Directive> directives = definingCompilationUnit.getDirectives();
     SimpleIdentifier libraryNameNode = null;
@@ -117,7 +123,9 @@ public class LibraryElementBuilder {
         if (source != null) {
           // TODO(brianwilkerson) This needs to go through the analysis context so that we can take
           // advantage of cached results.
-          LibraryElementBuilder libraryBuilder = new LibraryElementBuilder(provider, errorListener);
+          LibraryElementBuilder libraryBuilder = new LibraryElementBuilder(
+              analysisContext,
+              errorListener);
           // TODO(brianwilkerson) Check to see that the imported library has a library directive and
           // report an error if it does not.
           // TODO(brianwilkerson) This needs to be a handle to the built library rather than a

@@ -13,12 +13,18 @@
  */
 package com.google.dart.engine.integration;
 
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.GatheringErrorListener;
+import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.parser.ASTValidator;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.scanner.TokenStreamValidator;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.io.FileUtilities;
@@ -29,7 +35,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.HashMap;
 
 public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
   public class ReportingTest extends TestCase {
@@ -76,7 +82,7 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
   private long parserTime = 0L;
 
   @Override
-  protected void testSingleFile(File sourceFile) throws IOException {
+  protected void testSingleFile(File sourceFile) throws Exception {
     //
     // Determine whether the test is expected to pass or fail.
     //
@@ -89,7 +95,7 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
 //      return;
 //    }
     //
-    // Scan the file, stopping if there were errors when expected.
+    // Scan the file.
     //
     Source source = new SourceFactory().forFile(sourceFile);
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -97,19 +103,12 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
     long scannerStartTime = System.currentTimeMillis();
     Token token = scanner.tokenize();
     long scannerEndTime = System.currentTimeMillis();
-    if (listener.getErrors().size() > 0) {
-      if (errorExpected) {
-        return;
-      } else {
-        listener.assertNoErrors();
-      }
-    }
     //
-    // Parse the file, stopping if there were errors when expected.
+    // Parse the file.
     //
     Parser parser = new Parser(source, listener);
     long parserStartTime = System.currentTimeMillis();
-    CompilationUnit unit = parser.parseCompilationUnit(token);
+    final CompilationUnit unit = parser.parseCompilationUnit(token);
     long parserEndTime = System.currentTimeMillis();
     //
     // Record the timing information.
@@ -119,6 +118,10 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
     scannerTime += (scannerEndTime - scannerStartTime);
     parserTime += (parserEndTime - parserStartTime);
     //
+    // Validate that the token stream was built correctly.
+    //
+    new TokenStreamValidator().validate(token);
+    //
     // Validate the results.
     //
     if (errorExpected) {
@@ -127,7 +130,7 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
       // Uncomment the lines below to stop reporting failures for files containing directives or
       // declarations of the operators 'equals' and 'negate'.
 //      if (listener.hasError(ParserErrorCode.UNEXPECTED_TOKEN)
-//          || listener.hasError(ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE)) {
+//          || listener.hasError(ParserErrorCode.NON_USER_DEFINABLE_OPERATOR)) {
 //        return;
 //      }
       listener.assertNoErrors();
@@ -138,5 +141,14 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
     ASTValidator validator = new ASTValidator();
     unit.accept(validator);
     validator.assertValid();
+    //
+    // Build the element model for the compilation unit.
+    //
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(
+        new AnalysisContextImpl(),
+        listener,
+        new HashMap<ASTNode, Element>());
+    CompilationUnitElement element = builder.buildCompilationUnit(source);
+    Assert.assertNotNull(element);
   }
 }

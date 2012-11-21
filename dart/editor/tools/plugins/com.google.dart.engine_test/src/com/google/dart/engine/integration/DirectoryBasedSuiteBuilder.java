@@ -17,7 +17,6 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import java.io.File;
-import java.io.IOException;
 
 public abstract class DirectoryBasedSuiteBuilder {
   public class AnalysisTest extends TestCase {
@@ -63,7 +62,7 @@ public abstract class DirectoryBasedSuiteBuilder {
     suite.addTest(new AnalysisTest(file));
   }
 
-  protected abstract void testSingleFile(File sourceFile) throws IOException;
+  protected abstract void testSingleFile(File sourceFile) throws Exception;
 
   private void addTestsForFilesIn(TestSuite suite, File directory) {
     for (File file : directory.listFiles()) {

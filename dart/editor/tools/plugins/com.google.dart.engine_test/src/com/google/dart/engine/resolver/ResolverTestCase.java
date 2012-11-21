@@ -15,20 +15,19 @@ package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.TypeElement;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.builder.LibraryElementBuilder;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.TypeElementImpl;
-import com.google.dart.engine.provider.TestCompilationUnitProvider;
-import com.google.dart.engine.provider.TestSourceContentProvider;
-import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.source.TestSourceFactory;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 
@@ -41,7 +40,7 @@ public class ResolverTestCase extends EngineTestCase {
   /**
    * The source factory used to create {@link Source sources}.
    */
-  private SourceFactory sourceFactory;
+  private TestSourceFactory sourceFactory;
 
   /**
    * The error listener used during resolution.
@@ -49,14 +48,9 @@ public class ResolverTestCase extends EngineTestCase {
   private GatheringErrorListener errorListener;
 
   /**
-   * The content provider used to provide the contents of the sources.
+   * The analysis context used to parse the compilation units being resolved.
    */
-  private TestSourceContentProvider contentProvider;
-
-  /**
-   * The compilation unit provider used to provide the AST structures for the sources.
-   */
-  private TestCompilationUnitProvider unitProvider;
+  private AnalysisContextImpl analysisContext;
 
   /**
    * Assert that the number of errors that have been gathered matches the number of errors that are
@@ -73,10 +67,9 @@ public class ResolverTestCase extends EngineTestCase {
 
   @Override
   public void setUp() {
-    sourceFactory = new SourceFactory(new FileUriResolver());
+    sourceFactory = new TestSourceFactory();
     errorListener = new GatheringErrorListener();
-    contentProvider = new TestSourceContentProvider();
-    unitProvider = new TestCompilationUnitProvider(contentProvider, errorListener);
+    analysisContext = new AnalysisContextImpl();
   }
 
   /**
@@ -87,9 +80,9 @@ public class ResolverTestCase extends EngineTestCase {
    * @return the source object representing the added file
    */
   protected Source addSource(String filePath, String contents) {
-    Source source = sourceFactory.forFile(new File(filePath));
-    contentProvider.addSource(source, contents);
-    return source;
+    File file = new File(filePath);
+    sourceFactory.setSource(file, contents);
+    return sourceFactory.forFile(file);
   }
 
   /**
@@ -148,17 +141,19 @@ public class ResolverTestCase extends EngineTestCase {
    * @param librarySource the source for the compilation unit that defines the library
    * @param unitSources the sources for the compilation units that are part of the library
    * @return the error listener used while scanning, parsing and resolving the compilation units
+   * @throws AnalysisException if the analysis could not be performed
    */
-  protected Map<ASTNode, Element> resolve(Source librarySource, Source... unitSources) {
-    LibraryElementBuilder builder = new LibraryElementBuilder(unitProvider, errorListener);
+  protected Map<ASTNode, Element> resolve(Source librarySource, Source... unitSources)
+      throws AnalysisException {
+    LibraryElementBuilder builder = new LibraryElementBuilder(analysisContext, errorListener);
     LibraryElement definingLibrary = builder.buildLibrary(librarySource);
     Resolver resolver = new Resolver(
         definingLibrary,
         errorListener,
         builder.getDeclaredElementMap());
-    resolver.resolve(librarySource, unitProvider.getCompilationUnit(librarySource));
+    resolver.resolve(librarySource, analysisContext.parse(librarySource, errorListener));
     for (Source unitSource : unitSources) {
-      resolver.resolve(unitSource, unitProvider.getCompilationUnit(unitSource));
+      resolver.resolve(unitSource, analysisContext.parse(unitSource, errorListener));
     }
     return resolver.getResolvedElementMap();
   }
@@ -170,11 +165,13 @@ public class ResolverTestCase extends EngineTestCase {
    * @param resolvedElementMap a table mapping the AST nodes that have been resolved to the element
    *          to which they were resolved
    * @param sources the sources identifying the compilation units to be verified
+   * @throws Exception if the contents of the compilation unit cannot be accessed
    */
-  protected void verify(Map<ASTNode, Element> resolvedElementMap, Source... sources) {
+  protected void verify(Map<ASTNode, Element> resolvedElementMap, Source... sources)
+      throws Exception {
     ResolutionVerifier verifier = new ResolutionVerifier(resolvedElementMap);
     for (Source source : sources) {
-      unitProvider.getCompilationUnit(source).accept(verifier);
+      analysisContext.parse(source, errorListener).accept(verifier);
     }
     verifier.assertResolved();
   }

@@ -30,7 +30,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(resolvedElementMap, source);
   }
 
-  public void test_empty() {
+  public void test_empty() throws Exception {
     Source source = addSource("test.dart", "");
     Map<ASTNode, Element> resolvedElementMap = resolve(source);
     assertNoErrors();

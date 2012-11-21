@@ -15,9 +15,11 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
-import com.google.dart.engine.provider.CompilationUnitProvider;
 import com.google.dart.engine.source.Source;
 
 import java.util.HashMap;
@@ -28,9 +30,14 @@ import java.util.HashMap;
  */
 public class CompilationUnitBuilder {
   /**
-   * The provider used to access the compilation unit associated with a given source.
+   * The analysis context in which the element model will be built.
    */
-  private CompilationUnitProvider provider;
+  private AnalysisContextImpl analysisContext;
+
+  /**
+   * The listener to which errors will be reported.
+   */
+  private AnalysisErrorListener errorListener;
 
   /**
    * A table mapping the identifiers of declared elements to the element that was declared.
@@ -40,13 +47,15 @@ public class CompilationUnitBuilder {
   /**
    * Initialize a newly created compilation unit element builder.
    * 
-   * @param provider the provider used to access the compilation unit associated with a given source
+   * @param analysisContext the analysis context in which the element model will be built
+   * @param errorListener the listener to which errors will be reported
    * @param declaredElementMap a table mapping the identifiers of declared elements to the element
    *          that was declared
    */
-  public CompilationUnitBuilder(CompilationUnitProvider provider,
-      HashMap<ASTNode, Element> declaredElementMap) {
-    this.provider = provider;
+  public CompilationUnitBuilder(AnalysisContextImpl analysisContext,
+      AnalysisErrorListener errorListener, HashMap<ASTNode, Element> declaredElementMap) {
+    this.analysisContext = analysisContext;
+    this.errorListener = errorListener;
     this.declaredElementMap = declaredElementMap;
   }
 
@@ -55,9 +64,11 @@ public class CompilationUnitBuilder {
    * 
    * @param compilationUnitSource the source describing the compilation unit
    * @return the compilation unit element that was built
+   * @throws AnalysisException if the analysis could not be performed
    */
-  public CompilationUnitElementImpl buildCompilationUnit(Source compilationUnitSource) {
-    CompilationUnit unit = provider.getCompilationUnit(compilationUnitSource);
+  public CompilationUnitElementImpl buildCompilationUnit(Source compilationUnitSource)
+      throws AnalysisException {
+    CompilationUnit unit = analysisContext.parse(compilationUnitSource, errorListener);
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder, declaredElementMap);
     unit.accept(builder);

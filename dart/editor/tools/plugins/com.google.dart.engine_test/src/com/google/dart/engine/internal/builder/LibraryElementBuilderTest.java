@@ -14,17 +14,16 @@
 package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.TypeElement;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
-import com.google.dart.engine.provider.TestCompilationUnitProvider;
-import com.google.dart.engine.provider.TestSourceContentProvider;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
-import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.source.TestSourceFactory;
 
 import java.io.File;
 
@@ -32,39 +31,38 @@ public class LibraryElementBuilderTest extends EngineTestCase {
   /**
    * The source factory used to create {@link Source sources}.
    */
-  private SourceFactory sourceFactory;
+  private TestSourceFactory sourceFactory;
 
-  /**
-   * The content provider used to provide the contents of the sources.
-   */
-  private TestSourceContentProvider contentProvider;
-
-  public void fail_missingPartOfDirective() {
-    Source partSource = sourceFactory.forFile(new File("/a.dart"));
-    contentProvider.addSource(partSource, createSource(//
+  public void fail_missingPartOfDirective() throws Exception {
+    File partFile = new File("/a.dart");
+    File libraryFile = new File("/lib.dart");
+    sourceFactory.setSource(partFile, createSource(//
         "class A {}"));
-    Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
-    contentProvider.addSource(librarySource, createSource(//
+    sourceFactory.setSource(libraryFile, createSource(//
         "library lib;",
         "",
         "part 'a.dart';"));
+    Source librarySource = sourceFactory.forFile(libraryFile);
+
     LibraryElement element = buildLibrary(
         librarySource,
         ResolverErrorCode.MISSING_PART_OF_DIRECTIVE);
     assertNotNull(element);
   }
 
-  public void fail_partWithWrongLibraryName() {
-    Source partSource = sourceFactory.forFile(new File("/a.dart"));
-    contentProvider.addSource(partSource, createSource(//
+  public void fail_partWithWrongLibraryName() throws Exception {
+    File partFile = new File("/a.dart");
+    File libraryFile = new File("/lib.dart");
+    sourceFactory.setSource(partFile, createSource(//
         "part of other_lib;",
         "",
         "class A {}"));
-    Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
-    contentProvider.addSource(librarySource, createSource(//
+    sourceFactory.setSource(libraryFile, createSource(//
         "library lib;",
         "",
         "part 'a.dart';"));
+    Source librarySource = sourceFactory.forFile(libraryFile);
+
     LibraryElement element = buildLibrary(
         librarySource,
         ResolverErrorCode.PART_WITH_WRONG_LIBRARY_NAME);
@@ -73,13 +71,14 @@ public class LibraryElementBuilderTest extends EngineTestCase {
 
   @Override
   public void setUp() {
-    sourceFactory = new SourceFactory(new FileUriResolver());
-    contentProvider = new TestSourceContentProvider();
+    sourceFactory = new TestSourceFactory();
   }
 
-  public void test_empty() {
-    Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
-    contentProvider.addSource(librarySource, "library lib;");
+  public void test_empty() throws Exception {
+    File libraryFile = new File("/lib.dart");
+    sourceFactory.setSource(libraryFile, "library lib;");
+    Source librarySource = sourceFactory.forFile(libraryFile);
+
     LibraryElement element = buildLibrary(librarySource);
     assertNotNull(element);
     assertEquals("lib", element.getName());
@@ -101,65 +100,75 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     assertLength(0, unit.getTypes());
   }
 
-  public void test_invalidUri_export() {
-    Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
-    contentProvider.addSource(librarySource, createSource(//
+  public void test_invalidUri_export() throws Exception {
+    File libraryFile = new File("/lib.dart");
+    sourceFactory.setSource(libraryFile, createSource(//
         "library lib;",
         "",
         "export '${'a'}.dart';"));
+    Source librarySource = sourceFactory.forFile(libraryFile);
+
     LibraryElement element = buildLibrary(librarySource, ResolverErrorCode.INVALID_URI);
     assertNotNull(element);
   }
 
-  public void test_invalidUri_import() {
-    Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
-    contentProvider.addSource(librarySource, createSource(//
+  public void test_invalidUri_import() throws Exception {
+    File libraryFile = new File("/lib.dart");
+    sourceFactory.setSource(libraryFile, createSource(//
         "library lib;",
         "",
         "import '${'a'}.dart';"));
+    Source librarySource = sourceFactory.forFile(libraryFile);
+
     LibraryElement element = buildLibrary(librarySource, ResolverErrorCode.INVALID_URI);
     assertNotNull(element);
   }
 
-  public void test_invalidUri_part() {
-    Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
-    contentProvider.addSource(librarySource, createSource(//
+  public void test_invalidUri_part() throws Exception {
+    File libraryFile = new File("/lib.dart");
+    sourceFactory.setSource(libraryFile, createSource(//
         "library lib;",
         "",
         "part '${'a'}.dart';"));
+    Source librarySource = sourceFactory.forFile(libraryFile);
+
     LibraryElement element = buildLibrary(librarySource, ResolverErrorCode.INVALID_URI);
     assertNotNull(element);
   }
 
-  public void test_missingLibraryDirectiveWithPart() {
-    Source partSource = sourceFactory.forFile(new File("/a.dart"));
-    contentProvider.addSource(partSource, createSource(//
+  public void test_missingLibraryDirectiveWithPart() throws Exception {
+    File partFile = new File("/a.dart");
+    File libraryFile = new File("/lib.dart");
+    sourceFactory.setSource(partFile, createSource(//
         "part of lib;"));
-    Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
-    contentProvider.addSource(librarySource, createSource(//
+    sourceFactory.setSource(libraryFile, createSource(//
         "part 'a.dart';"));
+    Source librarySource = sourceFactory.forFile(libraryFile);
+
     LibraryElement element = buildLibrary(
         librarySource,
         ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
     assertNotNull(element);
   }
 
-  public void test_multipleFiles() {
-    Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
-    Source firstSource = sourceFactory.forFile(new File("/first.dart"));
-    Source secondSource = sourceFactory.forFile(new File("/second.dart"));
-    contentProvider.addSource(librarySource, createSource(//
+  public void test_multipleFiles() throws Exception {
+    File libraryFile = new File("/lib.dart");
+    File firstFile = new File("/first.dart");
+    File secondFile = new File("/second.dart");
+    sourceFactory.setSource(libraryFile, createSource(//
         "library lib;",
         "part 'first.dart';",
         "part 'second.dart';",
         "",
         "class A {}"));
-    contentProvider.addSource(firstSource, createSource(//
+    sourceFactory.setSource(firstFile, createSource(//
         "part of lib;",
         "class B {}"));
-    contentProvider.addSource(secondSource, createSource(//
+    sourceFactory.setSource(secondFile, createSource(//
         "part of lib;",
         "class C {}"));
+    Source librarySource = sourceFactory.forFile(libraryFile);
+
     LibraryElement element = buildLibrary(librarySource);
     assertNotNull(element);
     CompilationUnitElement[] sourcedUnits = element.getParts();
@@ -175,12 +184,14 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     }
   }
 
-  public void test_singleFile() {
-    Source librarySource = sourceFactory.forFile(new File("/lib.dart"));
-    contentProvider.addSource(librarySource, createSource(//
+  public void test_singleFile() throws Exception {
+    File libraryFile = new File("/lib.dart");
+    sourceFactory.setSource(libraryFile, createSource(//
         "library lib;",
         "",
         "class A {}"));
+    Source librarySource = sourceFactory.forFile(libraryFile);
+
     LibraryElement element = buildLibrary(librarySource);
     assertNotNull(element);
 
@@ -206,11 +217,10 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     }
   }
 
-  private LibraryElement buildLibrary(Source librarySource, ErrorCode... expectedErrorCodes) {
+  private LibraryElement buildLibrary(Source librarySource, ErrorCode... expectedErrorCodes)
+      throws AnalysisException {
     GatheringErrorListener listener = new GatheringErrorListener();
-    LibraryElementBuilder builder = new LibraryElementBuilder(new TestCompilationUnitProvider(
-        contentProvider,
-        listener), listener);
+    LibraryElementBuilder builder = new LibraryElementBuilder(new AnalysisContextImpl(), listener);
     LibraryElement element = builder.buildLibrary(librarySource);
     listener.assertErrors(expectedErrorCodes);
     return element;
