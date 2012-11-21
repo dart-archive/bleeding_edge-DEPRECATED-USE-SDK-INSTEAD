@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.IWorkingCopyManager;
 import com.google.dart.tools.ui.IWorkingCopyManagerExtension;
@@ -21,6 +23,7 @@ import com.google.dart.tools.ui.internal.util.DartModelUtil;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.part.FileEditorInput;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -78,9 +81,14 @@ public class WorkingCopyManager implements IWorkingCopyManager, IWorkingCopyMana
     if (unit == null) {
       unit = fDocumentProvider.getWorkingCopy(input);
     }
-    if (unit != null && (!primaryOnly || DartModelUtil.isPrimary(unit))) {
-      return unit;
+    if (unit != null) {
+      if (unit instanceof CompilationUnitImpl && input instanceof FileEditorInput) {
+        return (CompilationUnit) DartCore.create(((FileEditorInput) input).getFile());
+      } else if (!primaryOnly || DartModelUtil.isPrimary(unit)) {
+        return unit;
+      }
     }
+
     return null;
   }
 
