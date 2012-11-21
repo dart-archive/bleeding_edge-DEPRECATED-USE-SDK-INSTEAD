@@ -69,4 +69,16 @@ public class SourceFactoryTest extends TestCase {
     Source result = factory.resolveUri(containingSource, "exist.dart");
     assertEquals("/does/not/exist.dart", result.getFullName());
   }
+
+  public void test_setContents() {
+    SourceFactory factory = new SourceFactory();
+    File file = new File("/does/not/exist.dart");
+    Source source = factory.forFile(file);
+    assertNull(factory.getContents(source));
+    String contents = "library lib;";
+    factory.setContents(source, contents);
+    assertEquals(contents, factory.getContents(source));
+    factory.setContents(source, null);
+    assertNull(factory.getContents(source));
+  }
 }

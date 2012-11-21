@@ -27,7 +27,7 @@ import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.TypeElementImpl;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.TestSourceFactory;
+import com.google.dart.engine.source.SourceFactory;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 
@@ -40,7 +40,7 @@ public class ResolverTestCase extends EngineTestCase {
   /**
    * The source factory used to create {@link Source sources}.
    */
-  private TestSourceFactory sourceFactory;
+  private SourceFactory sourceFactory;
 
   /**
    * The error listener used during resolution.
@@ -67,7 +67,7 @@ public class ResolverTestCase extends EngineTestCase {
 
   @Override
   public void setUp() {
-    sourceFactory = new TestSourceFactory();
+    sourceFactory = new SourceFactory();
     errorListener = new GatheringErrorListener();
     analysisContext = new AnalysisContextImpl();
   }
@@ -80,9 +80,9 @@ public class ResolverTestCase extends EngineTestCase {
    * @return the source object representing the added file
    */
   protected Source addSource(String filePath, String contents) {
-    File file = new File(filePath);
-    sourceFactory.setSource(file, contents);
-    return sourceFactory.forFile(file);
+    Source source = sourceFactory.forFile(new File(filePath));
+    sourceFactory.setContents(source, contents);
+    return source;
   }
 
   /**

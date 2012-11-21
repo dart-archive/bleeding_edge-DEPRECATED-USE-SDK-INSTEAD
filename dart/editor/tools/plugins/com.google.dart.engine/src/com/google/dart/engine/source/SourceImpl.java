@@ -76,6 +76,17 @@ public class SourceImpl implements Source {
 
   @Override
   public void getContents(ContentReceiver receiver) throws Exception {
+    //
+    // First check to see whether our factory has an override for our contents.
+    //
+    String contents = factory.getContents(this);
+    if (contents != null) {
+      receiver.accept(contents);
+      return;
+    }
+    //
+    // If not, read the contents from the file.
+    //
     RandomAccessFile file = new RandomAccessFile(this.file, "r");
     FileChannel channel = null;
     ByteBuffer byteBuffer = null;
