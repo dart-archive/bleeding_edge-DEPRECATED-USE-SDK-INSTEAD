@@ -1,8 +1,26 @@
 <<<<
-class A{
+class  A {
 }
 >>>>
 class A {
+}
+<<<<
+class B  {
+}
+>>>>
+class B {
+}
+<<<<
+class C  {
+}
+>>>>
+class C {
+}
+<<<<
+class D  extends B  {
+}
+>>>>
+class D extends B {
 }
 <<<<
 class A {}

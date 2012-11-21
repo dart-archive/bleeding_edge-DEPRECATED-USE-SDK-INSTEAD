@@ -14,13 +14,13 @@
 package com.google.dart.engine.formatter;
 
 import com.google.dart.engine.formatter.CodeFormatter.Kind;
-import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.formatter.edit.EditBuilder;
 import com.google.dart.engine.formatter.edit.EditOperation;
 import com.google.dart.engine.formatter.edit.EditRecorder;
 import com.google.dart.engine.formatter.edit.EditStore;
 import com.google.dart.engine.internal.formatter.AbstractCodeFormatter;
 import com.google.dart.engine.internal.formatter.BasicEditStore;
+import com.google.dart.engine.internal.formatter.edit.StringEditBuilder;
 
 /**
  * Helper used to run the {@link CodeFormatter}.
@@ -30,37 +30,6 @@ public class CodeFormatterRunner {
   private static class DefaultScanner implements Scanner {
 
   }
-  private static class StringEditBuilder implements EditBuilder<String, String> {
-
-    @Override
-    public EditOperation<String, String> buildEdit(Iterable<Edit> edits) {
-      return new StringEditOperation(edits);
-    }
-
-  }
-
-  private static class StringEditOperation implements EditOperation<String, String> {
-
-    private final Iterable<Edit> edits;
-
-    StringEditOperation(Iterable<Edit> edits) {
-      this.edits = edits;
-    }
-
-    @Override
-    public String applyTo(String document) {
-
-      StringBuilder builder = new StringBuilder(document);
-
-      for (Edit edit : edits) {
-        builder.replace(edit.offset, edit.offset + edit.length, edit.replacement);
-      }
-
-      return builder.toString();
-    }
-
-  }
-
   private static class StringEditRecorder extends EditRecorder<String, String> {
 
     StringEditRecorder(CodeFormatterOptions options, Scanner scanner, EditStore editStore) {

@@ -11,25 +11,22 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.formatter.edit;
+package com.google.dart.engine.internal.formatter.edit;
+
+import com.google.dart.engine.formatter.edit.Edit;
+import com.google.dart.engine.formatter.edit.EditBuilder;
+import com.google.dart.engine.formatter.edit.EditOperation;
 
 import java.util.List;
 
 /**
- * Implementers translate sequences of {@link Edit} descriptions into concrete {@link EditOperation}
- * s that can apply them.
- * 
- * @param <D> the document type
- * @param <R> an (optional) return result type
+ * An edit builder that produces simple string edit operations.
  */
-public interface EditBuilder<D, R> {
+public class StringEditBuilder implements EditBuilder<String, String> {
 
-  /**
-   * Build an edit operation that can apply a given sequence of edit descriptions.
-   * 
-   * @param edits the sequence of edits to apply
-   * @return the resulting edit operation
-   */
-  EditOperation<D, R> buildEdit(List<Edit> edits);
+  @Override
+  public EditOperation<String, String> buildEdit(List<Edit> edits) {
+    return new StringEditOperation(edits);
+  }
 
 }

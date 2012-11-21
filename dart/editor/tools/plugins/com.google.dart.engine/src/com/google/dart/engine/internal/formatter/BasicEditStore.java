@@ -18,6 +18,7 @@ import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.formatter.edit.EditStore;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Basic un-optimized edit store suitable for subclassing.
@@ -38,7 +39,7 @@ public class BasicEditStore implements EditStore {
   }
 
   @Override
-  public Iterable<Edit> getEdits() {
+  public List<Edit> getEdits() {
     return edits;
   }
 

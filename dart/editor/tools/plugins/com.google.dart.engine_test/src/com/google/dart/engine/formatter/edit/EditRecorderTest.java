@@ -15,12 +15,13 @@ package com.google.dart.engine.formatter.edit;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.formatter.FakeFactory.FakeRecorder;
+import com.google.dart.engine.internal.formatter.edit.StringEditOperation;
+import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.KeywordToken;
+import com.google.dart.engine.scanner.StringToken;
+import com.google.dart.engine.scanner.TokenType;
 
 import static com.google.dart.engine.formatter.FakeFactory.createRecorder;
-import static com.google.dart.engine.formatter.FakeFactory.edit;
-import static com.google.dart.engine.formatter.MatcherFactory.matches;
-
-import static org.junit.Assert.assertThat;
 
 /**
  * Basic {@link EditRecorder} tests.
@@ -51,6 +52,26 @@ public class EditRecorderTest extends EngineTestCase {
     assertFalse(createRecorder("0" + NEW_LINE).isNewlineAt(2));
   }
 
+  public void testNewline_eats_extra_ws_1() throws Exception {
+    String src = " " + NEW_LINE;
+    recorder = createRecorder(src);
+    recorder.newline();
+    assertResultEquals("" + NEW_LINE);
+  }
+
+  public void testNewline_eats_extra_ws_2() throws Exception {
+    String src = "class A " + NEW_LINE;
+    recorder = createRecorder(src);
+    KeywordToken token = new KeywordToken(Keyword.CLASS, 0);
+    token.setNext(new StringToken(TokenType.IDENTIFIER, "A", 6));
+    recorder.setStart(token);
+    recorder.advance("class");
+    recorder.space();
+    recorder.advance("A");
+    recorder.newline();
+    assertResultEquals("class A" + NEW_LINE);
+  }
+
   public void testSpace_advances_1() throws Exception {
     recorder = createRecorder(" foo");
     int startColumn = recorder.column;
@@ -58,20 +79,42 @@ public class EditRecorderTest extends EngineTestCase {
     assertEquals(startColumn + 1, recorder.column);
   }
 
-  public void testSpace_advances_2() throws Exception {
-    recorder = createRecorder("foo");
-    int startColumn = recorder.column;
+  public void testSpace_eats_extra_ws_1() throws Exception {
+    String src = "  class";
+    recorder = createRecorder(src);
+    recorder.setStart(new KeywordToken(Keyword.CLASS, 3));
     recorder.space();
-    assertEquals(startColumn + 1, recorder.column);
+    recorder.advance("class");
+    assertResultEquals(" class");
   }
 
-  public void testSpace_eats_extra_ws() throws Exception {
-    recorder = createRecorder("  foo");
-    int startColumn = recorder.column;
+  public void testSpace_eats_extra_ws_2() throws Exception {
+    String src = "class  A";
+    recorder = createRecorder(src);
+    KeywordToken token = new KeywordToken(Keyword.CLASS, 0);
+    token.setNext(new StringToken(TokenType.IDENTIFIER, "A", 7));
+    recorder.setStart(token);
+    recorder.advance("class");
     recorder.space();
-    assertEquals(startColumn + 1, recorder.column);
-    Edit edit = recorder.getLastEdit();
-    assertThat(edit, matches(edit(1, 1, "")));
+    recorder.advance("A");
+    assertResultEquals("class A");
+  }
+
+  public void testSpace_eats_extra_ws_3() throws Exception {
+    String src = "class  A  extends";
+    recorder = createRecorder(src);
+    KeywordToken token = new KeywordToken(Keyword.CLASS, 0);
+    StringToken token2 = new StringToken(TokenType.IDENTIFIER, "A", 7);
+    KeywordToken token3 = new KeywordToken(Keyword.EXTENDS, 10);
+    token.setNext(token2);
+    token2.setNext(token3);
+    recorder.setStart(token);
+    recorder.advance("class");
+    recorder.space();
+    recorder.advance("A");
+    recorder.space();
+    recorder.advance("extends");
+    assertResultEquals("class A extends");
   }
 
   public void testUnindent() throws Exception {
@@ -80,6 +123,21 @@ public class EditRecorderTest extends EngineTestCase {
     recorder.indent();
     recorder.unIndent();
     assertEquals(0, recorder.indentationLevel);
+  }
+
+//  public void testSpace_eats_extra_ws() throws Exception {
+//    recorder = createRecorder("  foo");
+//    int startColumn = recorder.column;
+//    recorder.space();
+//    assertEquals(startColumn + 1, recorder.column);
+//    Edit edit = recorder.getLastEdit();
+//    assertThat(edit, matches(edit(1, 1, "")));
+//  }
+
+  private void assertResultEquals(String expected) {
+    assertEqualString(
+        expected,
+        new StringEditOperation(recorder.getEdits()).applyTo(recorder.getSource()));
   }
 
 }

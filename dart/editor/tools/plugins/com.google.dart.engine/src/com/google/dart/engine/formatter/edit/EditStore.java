@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.formatter.edit;
 
+import java.util.List;
+
 /**
  * Manages stored edits.
  */
@@ -40,7 +42,7 @@ public interface EditStore {
    * 
    * @return the sequence of edits
    */
-  Iterable<Edit> getEdits();
+  List<Edit> getEdits();
 
   /**
    * Get the last edit.

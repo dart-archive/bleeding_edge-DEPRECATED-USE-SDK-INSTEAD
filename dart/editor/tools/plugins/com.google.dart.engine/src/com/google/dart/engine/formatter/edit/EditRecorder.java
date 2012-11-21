@@ -19,6 +19,8 @@ import com.google.dart.engine.scanner.Token;
 
 import static com.google.dart.engine.formatter.CodeFormatterOptions.OS_LINE_SEPARATOR;
 
+import java.util.List;
+
 /**
  * Records a sequence of edits to a source string that will cause the string to be formatted when
  * applied via an {@link EditOperation}.
@@ -142,8 +144,17 @@ public abstract class EditRecorder<D, R> {
    * 
    * @return the sequence of edits
    */
-  public Iterable<Edit> getEdits() {
+  public List<Edit> getEdits() {
     return editStore.getEdits();
+  }
+
+  /**
+   * Get the current source.
+   * 
+   * @return the source
+   */
+  public String getSource() {
+    return source;
   }
 
   /**
@@ -180,6 +191,9 @@ public abstract class EditRecorder<D, R> {
     }
     // Otherwise, replace whitespace with a newline.
     int charsToReplace = countWhitespace();
+    if (isNewlineAt(sourceIndex + charsToReplace)) {
+      ++charsToReplace;
+    }
     addEdit(sourceIndex, charsToReplace, NEW_LINE);
     column += NEW_LINE.length();
     sourceIndex += charsToReplace;
@@ -217,20 +231,19 @@ public abstract class EditRecorder<D, R> {
    */
   public void space() {
     // TODO(pquitslund) emit comments
-    // If there is a space before the edit location, do nothing.
-    if (isSpaceAt(sourceIndex - 1)) {
-      return;
-    }
-    // If there is a space after the edit location, advance over it.
-    if (isSpaceAt(sourceIndex)) {
-      advance(1);
-      return;
-    }
+//    // If there is a space before the edit location, do nothing.
+//    if (isSpaceAt(sourceIndex - 1)) {
+//      return;
+//    }
+//    // If there is a space after the edit location, advance over it.
+//    if (isSpaceAt(sourceIndex)) {
+//      advance(1);
+//      return;
+//    }
     // Otherwise, replace spaces with a single space.
     int charsToReplace = countWhitespace();
     addEdit(sourceIndex, charsToReplace, SPACES[0]);
-    column += 1;
-    sourceIndex += charsToReplace;
+    advance(charsToReplace);
   }
 
   /**

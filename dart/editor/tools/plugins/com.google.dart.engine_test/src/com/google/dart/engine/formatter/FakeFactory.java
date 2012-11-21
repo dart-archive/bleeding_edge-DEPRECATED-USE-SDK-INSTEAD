@@ -15,7 +15,7 @@ package com.google.dart.engine.formatter;
 
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.formatter.edit.EditRecorder;
-import com.google.dart.engine.formatter.edit.EditStore;
+import com.google.dart.engine.internal.formatter.BasicEditStore;
 
 /**
  * Helper for creating faked implementations for testing purposes.
@@ -43,40 +43,7 @@ public class FakeFactory {
   /**
    * A test edit store.
    */
-  public static class FakeStore implements EditStore {
-
-    @Override
-    public void addEdit(int offset, int length, String replacement) {
-      // TODO Auto-generated method stub
-    }
-
-    @Override
-    public int getCurrentEditIndex() {
-      // TODO Auto-generated method stub
-      return 0;
-    }
-
-    @Override
-    public Iterable<Edit> getEdits() {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public Edit getLastEdit() {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public void insert(int insertPosition, String insertedString) {
-      // TODO Auto-generated method stub
-    }
-
-    @Override
-    public void reset() {
-      // TODO Auto-generated method stub
-    }
+  public static class FakeStore extends BasicEditStore {
 
   }
 

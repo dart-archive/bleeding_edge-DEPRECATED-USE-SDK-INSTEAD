@@ -15,6 +15,7 @@ package com.google.dart.engine.formatter;
 
 import com.google.dart.engine.ExtendedTestSuite;
 import com.google.dart.engine.formatter.edit.EditRecorderTest;
+import com.google.dart.engine.formatter.edit.StringEditOperationTest;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -25,8 +26,9 @@ public class TestAll {
 
   public static Test suite() throws IOException {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTest(CodeFormatterTest.suite());
+    suite.addTestSuite(StringEditOperationTest.class);
     suite.addTestSuite(EditRecorderTest.class);
+    suite.addTest(CodeFormatterTest.suite());
     return suite;
   }
 
