@@ -56,6 +56,11 @@ public class NewFileGenerator extends AbstractGenerator {
       nameOfSrcTxt = "generated-html.txt";
     }
 
+    if (DartCore.PUBSPEC_FILE_NAME.equals(fileName)) {
+      substitutions.put("className", "sample_pubspec"); //$NON-NLS-1$
+      nameOfSrcTxt = "generated-pubspec.txt"; //$NON-NLS-N$
+    }
+
     if (nameOfSrcTxt.length() != 0) {
       try {
         stream = new ByteArrayInputStream(
