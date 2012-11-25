@@ -58,25 +58,19 @@ public class EndToEnd001 extends AbstractEndToEndTest {
   }
 
   private void modifySource(DartEditorHelper helper) {
-    helper.moveToEndOfLineContaining("Hello");
+    // query("#text")
+    helper.moveToStartOfLineContaining("query(");
 
     // type: write("Hello Again")
-    helper.typeLine("show(\"Hello Again");
+    helper.typeLine("print(\"hello\")\n  ");
     helper.save("error in src");
     SwtBotPerformance.waitForResults(bot);
     bot.waitUntil(new ProblemsViewCount(1));
 
     // type ';' after write("Hello Again")
-    helper.moveToEndOfLineContaining("show(\"Hello Again\")");
-    helper.editor().typeText(";");
+    helper.moveToEndOfLineContaining("print(");
+    helper.typeLine(";");
     helper.save();
-    SwtBotPerformance.waitForResults(bot);
-    bot.waitUntil(new ProblemsViewCount(0));
-
-    // type: write("Goodbye.");
-    helper.typeLine("show(\"Goodbye.");
-    helper.moveToEndOfLineContaining("show(\"Goodbye.\")");
-    helper.editor().typeText(";");
     SwtBotPerformance.waitForResults(bot);
     bot.waitUntil(new ProblemsViewCount(0));
 
