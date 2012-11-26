@@ -26,6 +26,7 @@ import com.google.dart.engine.scanner.CharBufferScanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenStreamValidator;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 
@@ -46,14 +47,20 @@ public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
 
     public void reportResults() throws Exception {
       System.out.println("Analyzed " + charCount + " characters in " + fileCount + " files");
-      printTime("  combined: ", scannerTime + parserTime);
       printTime("  scanning: ", scannerTime);
       printTime("  parsing:  ", parserTime);
+      printTime("  lexical:  ", scannerTime + parserTime);
+      printTime("  building: ", builderTime);
+      printTime("  total:    ", scannerTime + parserTime + builderTime);
     }
 
     private void printTime(String label, long time) {
-      long charsPerMs = charCount / time;
-      System.out.println(label + time + " ms (" + charsPerMs + " chars / ms)");
+      if (time == 0) {
+        System.out.println(label + "0 ms ");
+      } else {
+        long charsPerMs = charCount / time;
+        System.out.println(label + time + " ms (" + charsPerMs + " chars / ms)");
+      }
     }
   }
 
@@ -78,13 +85,18 @@ public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
 
   private long parserTime = 0L;
 
+  private long builderTime = 0L;
+
   @Override
   protected void testSingleFile(File sourceFile) throws Exception {
+    SourceFactory sourceFactory = new SourceFactory(new FileUriResolver());
+    AnalysisContextImpl analysisContext = new AnalysisContextImpl();
+    analysisContext.setSourceFactory(sourceFactory);
     //
     // Scan the file.
     //
     final CharBuffer[] buffer = new CharBuffer[1];
-    Source source = new SourceFactory().forFile(sourceFile);
+    Source source = sourceFactory.forFile(sourceFile);
     source.getContents(new Source.ContentReceiver() {
       @Override
       public void accept(CharBuffer contents) {
@@ -109,12 +121,23 @@ public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
     final CompilationUnit unit = parser.parseCompilationUnit(token);
     long parserEndTime = System.currentTimeMillis();
     //
+    // Build the element model for the compilation unit.
+    //
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(
+        analysisContext,
+        listener,
+        new HashMap<ASTNode, Element>());
+    long builderStartTime = System.currentTimeMillis();
+    CompilationUnitElement element = builder.buildCompilationUnit(source);
+    long builderEndTime = System.currentTimeMillis();
+    //
     // Record the timing information.
     //
     fileCount++;
     charCount += buffer[0].length();
     scannerTime += (scannerEndTime - scannerStartTime);
     parserTime += (parserEndTime - parserStartTime);
+    builderTime += (builderEndTime - builderStartTime);
     //
     // Validate that the token stream was built correctly.
     //
@@ -138,13 +161,8 @@ public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
     unit.accept(validator);
     validator.assertValid();
     //
-    // Build the element model for the compilation unit.
+    // Validate that the element model was built.
     //
-    CompilationUnitBuilder builder = new CompilationUnitBuilder(
-        new AnalysisContextImpl(),
-        listener,
-        new HashMap<ASTNode, Element>());
-    CompilationUnitElement element = builder.buildCompilationUnit(source);
     Assert.assertNotNull(element);
   }
 }

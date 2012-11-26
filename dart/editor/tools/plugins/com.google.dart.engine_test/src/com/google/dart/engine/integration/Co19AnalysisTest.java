@@ -45,14 +45,20 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
 
     public void reportResults() throws Exception {
       System.out.println("Analyzed " + charCount + " characters in " + fileCount + " files");
-      printTime("  combined: ", scannerTime + parserTime);
       printTime("  scanning: ", scannerTime);
       printTime("  parsing:  ", parserTime);
+      printTime("  lexical:  ", scannerTime + parserTime);
+      printTime("  building: ", builderTime);
+      printTime("  total:    ", scannerTime + parserTime + builderTime);
     }
 
     private void printTime(String label, long time) {
-      long charsPerMs = charCount / time;
-      System.out.println(label + time + " ms (" + charsPerMs + " chars / ms)");
+      if (time == 0) {
+        System.out.println(label + "0 ms ");
+      } else {
+        long charsPerMs = charCount / time;
+        System.out.println(label + time + " ms (" + charsPerMs + " chars / ms)");
+      }
     }
   }
 
@@ -80,6 +86,8 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
   private long scannerTime = 0L;
 
   private long parserTime = 0L;
+
+  private long builderTime = 0L;
 
   @Override
   protected void testSingleFile(File sourceFile) throws Exception {
@@ -111,12 +119,23 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
     final CompilationUnit unit = parser.parseCompilationUnit(token);
     long parserEndTime = System.currentTimeMillis();
     //
+    // Build the element model for the compilation unit.
+    //
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(
+        new AnalysisContextImpl(),
+        listener,
+        new HashMap<ASTNode, Element>());
+    long builderStartTime = System.currentTimeMillis();
+    CompilationUnitElement element = builder.buildCompilationUnit(source);
+    long builderEndTime = System.currentTimeMillis();
+    //
     // Record the timing information.
     //
     fileCount++;
     charCount += contents.length();
     scannerTime += (scannerEndTime - scannerStartTime);
     parserTime += (parserEndTime - parserStartTime);
+    builderTime += (builderEndTime - builderStartTime);
     //
     // Validate that the token stream was built correctly.
     //
@@ -142,13 +161,8 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
     unit.accept(validator);
     validator.assertValid();
     //
-    // Build the element model for the compilation unit.
+    // Validate that the element model was built.
     //
-    CompilationUnitBuilder builder = new CompilationUnitBuilder(
-        new AnalysisContextImpl(),
-        listener,
-        new HashMap<ASTNode, Element>());
-    CompilationUnitElement element = builder.buildCompilationUnit(source);
     Assert.assertNotNull(element);
   }
 }
