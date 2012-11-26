@@ -44,6 +44,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.text.edits.ReplaceEdit;
+import org.eclipse.text.edits.TextEdit;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -86,6 +87,17 @@ public class ExtractUtils {
    */
   public static boolean covers(SourceRange r, DartNode node) {
     return SourceRangeUtils.covers(r, new SourceRangeImpl(node));
+  }
+
+  /**
+   * @return the number of characters this {@link TextEdit} will move offsets after its range.
+   */
+  public static int getDeltaOffset(TextEdit edit) {
+    if (edit instanceof ReplaceEdit) {
+      ReplaceEdit replaceEdit = (ReplaceEdit) edit;
+      return replaceEdit.getText().length() - replaceEdit.getLength();
+    }
+    return 0;
   }
 
   /**

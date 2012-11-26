@@ -41,6 +41,14 @@ public final class CorrectionMessages extends NLS {
   public static String QuickAssistProcessor_replaceConditionalWithIfElse;
   public static String QuickAssistProcessor_replaceIfElseWithConditional;
   public static String QuickAssistProcessor_splitAndCondition;
+  public static String QuickAssistProcessor_surroundWith_block;
+  public static String QuickAssistProcessor_surroundWith_if;
+  public static String QuickAssistProcessor_surroundWith_while;
+  public static String QuickAssistProcessor_surroundWith_for;
+  public static String QuickAssistProcessor_surroundWith_forIn;
+  public static String QuickAssistProcessor_surroundWith_doWhile;
+  public static String QuickAssistProcessor_surroundWith_tryCatch;
+  public static String QuickAssistProcessor_surroundWith_tryFinally;
   public static String RenameRefactoringProposal_additionalInfo;
   public static String RenameRefactoringProposal_name;
 

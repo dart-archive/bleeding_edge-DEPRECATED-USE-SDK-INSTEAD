@@ -28,19 +28,20 @@ import java.util.Map;
  * Helper for building Dart source with tracked positions.
  */
 public class SourceBuilder {
-  private final int base;
+  private final int offset;
   private final StringBuilder buffer = new StringBuilder();
   private final Map<String, List<TrackedNodePosition>> trackedPositions = Maps.newHashMap();
   private final Map<String, List<TrackedNodeProposal>> trackedProposals = Maps.newHashMap();
   private String currentPositionGroupId;
   private int currentPositionStart;
+  private int endPosition = -1;
 
-  public SourceBuilder(int base) {
-    this.base = base;
+  public SourceBuilder(int offset) {
+    this.offset = offset;
   }
 
-  public SourceBuilder(SourceRange base) {
-    this(base.getOffset());
+  public SourceBuilder(SourceRange offsetRange) {
+    this(offsetRange.getOffset());
   }
 
   public void addProposal(Image icon, String text) {
@@ -63,12 +64,38 @@ public class SourceBuilder {
     currentPositionGroupId = null;
   }
 
+  /**
+   * @return the "end position" for the {@link LinkedCorrectionProposal}, may be <code>-1</code> if
+   *         not set in this {@link SourceBuilder}.
+   */
+  public int getEndPosition() {
+    if (endPosition == -1) {
+      return -1;
+    }
+    return offset + endPosition;
+  }
+
+  /**
+   * @return the offset at which this {@link SourceBuilder} should be applied in the original
+   *         document.
+   */
+  public int getOffset() {
+    return offset;
+  }
+
   public Map<String, List<TrackedNodePosition>> getTrackedPositions() {
     return trackedPositions;
   }
 
   public Map<String, List<TrackedNodeProposal>> getTrackedProposals() {
     return trackedProposals;
+  }
+
+  /**
+   * Marks current position as "end position" of the {@link LinkedCorrectionProposal}.
+   */
+  public void setEndPosition() {
+    endPosition = buffer.length();
   }
 
   public void setProposals(String[] proposals) {
@@ -99,8 +126,8 @@ public class SourceBuilder {
       positions = Lists.newArrayList();
       trackedPositions.put(currentPositionGroupId, positions);
     }
-    int start = base + currentPositionStart;
-    int end = base + buffer.length();
+    int start = offset + currentPositionStart;
+    int end = offset + buffer.length();
     positions.add(TrackedPositions.forStartEnd(start, end));
   }
 }

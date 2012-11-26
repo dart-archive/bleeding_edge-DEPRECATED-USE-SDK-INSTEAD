@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
@@ -43,6 +44,7 @@ import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
+import com.google.dart.tools.core.dom.rewrite.TrackedNodePosition;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -51,15 +53,20 @@ import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
+import com.google.dart.tools.internal.corext.refactoring.code.StatementAnalyzer;
 import com.google.dart.tools.internal.corext.refactoring.code.TokenUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal;
-import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal;
+import com.google.dart.tools.ui.internal.text.Selection;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetterToMethodRefactoringProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertOptionalParametersToNamedRefactoringProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.RenameRefactoringProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.SourceBuilder;
+import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedNodeProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedPositions;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
@@ -84,7 +91,11 @@ import org.eclipse.ui.IEditorPart;
 
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Standard {@link IQuickAssistProcessor} for Dart.
@@ -145,19 +156,21 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
   }
 
   private CompilationUnit unit;
-
+  private DartUnit unitNode;
   private int selectionOffset;
-
   private int selectionLength;
   private ExtractUtils utils;
   private DartNode node;
+  private IInvocationContext context;
+  private com.google.dart.tools.core.model.DartFunction selectionFunction;
   private final List<ICommandAccess> proposals = Lists.newArrayList();
   private final List<TextEdit> textEdits = Lists.newArrayList();
   private int proposalRelevance = DEFAULT_RELEVANCE;
-
-  private IInvocationContext context;
-
-  private com.google.dart.tools.core.model.DartFunction selectionFunction;
+  private final Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
+  private final Map<SourceRange, TextEdit> positionStopEdits = Maps.newHashMap();
+  private final Map<String, List<TrackedNodeProposal>> linkedPositionProposals = Maps.newHashMap();
+  private SourceRange proposalEndRange = null;
+  private LinkedCorrectionProposal proposal;
 
   @Override
   public synchronized IDartCompletionProposal[] getAssists(IInvocationContext context,
@@ -165,6 +178,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     this.context = context;
     proposals.clear();
     unit = context.getCompilationUnit();
+    unitNode = context.getASTRoot();
     selectionOffset = context.getSelectionOffset();
     selectionLength = context.getSelectionLength();
     selectionFunction = DartModelUtil.findFunction(unit, selectionOffset);
@@ -263,25 +277,6 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
         DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
   }
 
-  void addProposal_convertMethodToGetterRefactoring() throws CoreException {
-    if (!RefactoringAvailabilityTester.isConvertMethodToGetterAvailable(selectionFunction)) {
-      return;
-    }
-    // we need DartEditor
-    if (context instanceof AssistContext) {
-      IEditorPart editor = ((AssistContext) context).getEditor();
-      if (editor instanceof DartEditor) {
-        DartEditor dartEditor = (DartEditor) editor;
-        // add proposal
-        ICommandAccess proposal = new ConvertMethodToGetterRefactoringProposal(
-            dartEditor,
-            selectionFunction,
-            proposalRelevance);
-        proposals.add(proposal);
-      }
-    }
-  }
-
   void addProposal_convertGetterToMethodRefactoring() throws CoreException {
     if (!RefactoringAvailabilityTester.isConvertGetterToMethodAvailable(selectionFunction)) {
       return;
@@ -293,6 +288,25 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
         DartEditor dartEditor = (DartEditor) editor;
         // add proposal
         ICommandAccess proposal = new ConvertGetterToMethodRefactoringProposal(
+            dartEditor,
+            selectionFunction,
+            proposalRelevance);
+        proposals.add(proposal);
+      }
+    }
+  }
+
+  void addProposal_convertMethodToGetterRefactoring() throws CoreException {
+    if (!RefactoringAvailabilityTester.isConvertMethodToGetterAvailable(selectionFunction)) {
+      return;
+    }
+    // we need DartEditor
+    if (context instanceof AssistContext) {
+      IEditorPart editor = ((AssistContext) context).getEditor();
+      if (editor instanceof DartEditor) {
+        DartEditor dartEditor = (DartEditor) editor;
+        // add proposal
+        ICommandAccess proposal = new ConvertMethodToGetterRefactoringProposal(
             dartEditor,
             selectionFunction,
             proposalRelevance);
@@ -807,8 +821,373 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
         DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
   }
 
+  void addProposal_surroundWith() throws CoreException {
+    // prepare selected statements
+    List<DartStatement> selectedStatements;
+    {
+      Selection selection = Selection.createFromStartLength(selectionOffset, selectionLength);
+      StatementAnalyzer selectionAnalyzer = new StatementAnalyzer(unit, selection, false);
+      unitNode.accept(selectionAnalyzer);
+      DartNode[] selectedNodes = selectionAnalyzer.getSelectedNodes();
+      // convert nodes to statements
+      selectedStatements = Lists.newArrayList();
+      for (DartNode selectedNode : selectedNodes) {
+        if (selectedNode instanceof DartStatement) {
+          selectedStatements.add((DartStatement) selectedNode);
+        }
+      }
+      // we want only statements
+      if (selectedStatements.isEmpty() || selectedStatements.size() != selectedNodes.length) {
+        return;
+      }
+    }
+    // prepare statement information
+    DartStatement firstStatement = selectedStatements.get(0);
+    DartStatement lastStatement = selectedStatements.get(selectedStatements.size() - 1);
+    SourceRange statementsRange = utils.getLinesRange(selectedStatements);
+    // prepare environment
+    String eol = utils.getEndOfLine();
+    String indentOld = utils.getNodePrefix(firstStatement);
+    String indentNew = indentOld + utils.getIndent(1);
+    // "block"
+    {
+      addInsertEdit(statementsRange.getOffset(), indentOld + "{" + eol);
+      {
+        ReplaceEdit edit = utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        textEdits.add(edit);
+      }
+      addInsertEdit(SourceRangeUtils.getEnd(statementsRange), indentOld + "}" + eol);
+      proposalEndRange = SourceRangeFactory.forEndLength(lastStatement, 0);
+      // add proposal
+      addUnitCorrectionProposal(
+          CorrectionMessages.QuickAssistProcessor_surroundWith_block,
+          DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    }
+    // "if"
+    {
+      {
+        int offset = statementsRange.getOffset();
+        SourceBuilder sb = new SourceBuilder(offset);
+        sb.append(indentOld);
+        sb.append("if (");
+        {
+          sb.startPosition("CONDITION");
+          sb.append("condition");
+          sb.endPosition();
+        }
+        sb.append(") {");
+        sb.append(eol);
+        addInsertEdit(sb);
+      }
+      {
+        ReplaceEdit edit = utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        textEdits.add(edit);
+      }
+      addInsertEdit(SourceRangeUtils.getEnd(statementsRange), indentOld + "}" + eol);
+      proposalEndRange = SourceRangeFactory.forEndLength(lastStatement, 0);
+      // add proposal
+      addUnitCorrectionProposal(
+          CorrectionMessages.QuickAssistProcessor_surroundWith_if,
+          DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    }
+    // "while"
+    {
+      {
+        int offset = statementsRange.getOffset();
+        SourceBuilder sb = new SourceBuilder(offset);
+        sb.append(indentOld);
+        sb.append("while (");
+        {
+          sb.startPosition("CONDITION");
+          sb.append("condition");
+          sb.endPosition();
+        }
+        sb.append(") {");
+        sb.append(eol);
+        addInsertEdit(sb);
+      }
+      {
+        ReplaceEdit edit = utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        textEdits.add(edit);
+      }
+      addInsertEdit(SourceRangeUtils.getEnd(statementsRange), indentOld + "}" + eol);
+      proposalEndRange = SourceRangeFactory.forEndLength(lastStatement, 0);
+      // add proposal
+      addUnitCorrectionProposal(
+          CorrectionMessages.QuickAssistProcessor_surroundWith_while,
+          DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    }
+    // "for-in"
+    {
+      {
+        int offset = statementsRange.getOffset();
+        SourceBuilder sb = new SourceBuilder(offset);
+        sb.append(indentOld);
+        sb.append("for (var ");
+        {
+          sb.startPosition("NAME");
+          sb.append("item");
+          sb.endPosition();
+        }
+        sb.append(" in ");
+        {
+          sb.startPosition("ITERABLE");
+          sb.append("iterable");
+          sb.endPosition();
+        }
+        sb.append(") {");
+        sb.append(eol);
+        addInsertEdit(sb);
+      }
+      {
+        ReplaceEdit edit = utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        textEdits.add(edit);
+      }
+      addInsertEdit(SourceRangeUtils.getEnd(statementsRange), indentOld + "}" + eol);
+      proposalEndRange = SourceRangeFactory.forEndLength(lastStatement, 0);
+      // add proposal
+      addUnitCorrectionProposal(
+          CorrectionMessages.QuickAssistProcessor_surroundWith_forIn,
+          DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    }
+    // "for"
+    {
+      {
+        int offset = statementsRange.getOffset();
+        SourceBuilder sb = new SourceBuilder(offset);
+        sb.append(indentOld);
+        sb.append("for (var ");
+        {
+          sb.startPosition("VAR");
+          sb.append("v");
+          sb.endPosition();
+        }
+        sb.append(" = ");
+        {
+          sb.startPosition("INIT");
+          sb.append("init");
+          sb.endPosition();
+        }
+        sb.append("; ");
+        {
+          sb.startPosition("CONDITION");
+          sb.append("condition");
+          sb.endPosition();
+        }
+        sb.append("; ");
+        {
+          sb.startPosition("INCREMENT");
+          sb.append("increment");
+          sb.endPosition();
+        }
+        sb.append(") {");
+        sb.append(eol);
+        addInsertEdit(sb);
+      }
+      {
+        ReplaceEdit edit = utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        textEdits.add(edit);
+      }
+      addInsertEdit(SourceRangeUtils.getEnd(statementsRange), indentOld + "}" + eol);
+      proposalEndRange = SourceRangeFactory.forEndLength(lastStatement, 0);
+      // add proposal
+      addUnitCorrectionProposal(
+          CorrectionMessages.QuickAssistProcessor_surroundWith_for,
+          DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    }
+    // "do-while"
+    {
+      addInsertEdit(statementsRange.getOffset(), indentOld + "do {" + eol);
+      {
+        ReplaceEdit edit = utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        textEdits.add(edit);
+      }
+      {
+        int offset = SourceRangeUtils.getEnd(statementsRange);
+        SourceBuilder sb = new SourceBuilder(offset);
+        sb.append(indentOld);
+        sb.append("} while (");
+        {
+          sb.startPosition("CONDITION");
+          sb.append("condition");
+          sb.endPosition();
+        }
+        sb.append(");");
+        sb.append(eol);
+        addInsertEdit(sb);
+      }
+      proposalEndRange = SourceRangeFactory.forEndLength(lastStatement, 0);
+      // add proposal
+      addUnitCorrectionProposal(
+          CorrectionMessages.QuickAssistProcessor_surroundWith_doWhile,
+          DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    }
+    // "try-catch"
+    {
+      addInsertEdit(statementsRange.getOffset(), indentOld + "try {" + eol);
+      {
+        ReplaceEdit edit = utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        textEdits.add(edit);
+      }
+      {
+        int offset = SourceRangeUtils.getEnd(statementsRange);
+        SourceBuilder sb = new SourceBuilder(offset);
+        sb.append(indentOld);
+        sb.append("} on ");
+        {
+          sb.startPosition("EXCEPTION_TYPE");
+          sb.append("Exception");
+          sb.endPosition();
+        }
+        sb.append(" catch (");
+        {
+          sb.startPosition("EXCEPTION_VAR");
+          sb.append("e");
+          sb.endPosition();
+        }
+        sb.append(") {");
+        sb.append(eol);
+        //
+        sb.append(indentNew);
+        {
+          sb.startPosition("CATCH");
+          sb.append("// TODO");
+          sb.endPosition();
+          sb.setEndPosition();
+        }
+        sb.append(eol);
+        //
+        sb.append(indentOld);
+        sb.append("}");
+        sb.append(eol);
+        //
+        addInsertEdit(sb);
+      }
+      // add proposal
+      addUnitCorrectionProposal(
+          CorrectionMessages.QuickAssistProcessor_surroundWith_tryCatch,
+          DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    }
+    // "try-finally"
+    {
+      addInsertEdit(statementsRange.getOffset(), indentOld + "try {" + eol);
+      {
+        ReplaceEdit edit = utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        textEdits.add(edit);
+      }
+      {
+        int offset = SourceRangeUtils.getEnd(statementsRange);
+        SourceBuilder sb = new SourceBuilder(offset);
+        //
+        sb.append(indentOld);
+        sb.append("} finally {");
+        sb.append(eol);
+        //
+        sb.append(indentNew);
+        {
+          sb.startPosition("FINALLY");
+          sb.append("// TODO");
+          sb.endPosition();
+        }
+        sb.setEndPosition();
+        sb.append(eol);
+        //
+        sb.append(indentOld);
+        sb.append("}");
+        sb.append(eol);
+        //
+        addInsertEdit(sb);
+      }
+      // add proposal
+      addUnitCorrectionProposal(
+          CorrectionMessages.QuickAssistProcessor_surroundWith_tryFinally,
+          DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    }
+  }
+
   private void addInsertEdit(int offset, String text) {
     textEdits.add(createInsertEdit(offset, text));
+  }
+
+  private void addInsertEdit(SourceBuilder builder) {
+    int offset = builder.getOffset();
+    TextEdit edit = createInsertEdit(offset, builder.toString());
+    textEdits.add(edit);
+    addLinkedPositions(builder, edit);
+  }
+
+  private void addLinkedPosition(String group, SourceRange range) {
+    List<SourceRange> positions = linkedPositions.get(group);
+    if (positions == null) {
+      positions = Lists.newArrayList();
+      linkedPositions.put(group, positions);
+    }
+    positions.add(range);
+  }
+
+  private void addLinkedPositionProposal(String group, Image icon, String text) {
+    List<TrackedNodeProposal> nodeProposals = linkedPositionProposals.get(group);
+    if (nodeProposals == null) {
+      nodeProposals = Lists.newArrayList();
+      linkedPositionProposals.put(group, nodeProposals);
+    }
+    nodeProposals.add(new TrackedNodeProposal(icon, text));
+  }
+
+  /**
+   * Adds positions from the given {@link SourceBuilder} to the {@link #linkedPositions}.
+   */
+  private void addLinkedPositions(SourceBuilder builder, TextEdit edit) {
+    // end position
+    {
+      int endPosition = builder.getEndPosition();
+      if (endPosition != -1) {
+        proposalEndRange = SourceRangeFactory.forStartLength(endPosition, 0);
+        positionStopEdits.put(proposalEndRange, edit);
+      }
+    }
+    // positions
+    Map<String, List<TrackedNodePosition>> builderPositions = builder.getTrackedPositions();
+    for (Entry<String, List<TrackedNodePosition>> entry : builderPositions.entrySet()) {
+      String groupId = entry.getKey();
+      for (TrackedNodePosition position : entry.getValue()) {
+        SourceRange range = SourceRangeFactory.forStartLength(
+            position.getStartPosition(),
+            position.getLength());
+        addLinkedPosition(groupId, range);
+        positionStopEdits.put(range, edit);
+      }
+    }
+    // proposals for positions
+    Map<String, List<TrackedNodeProposal>> builderProposals = builder.getTrackedProposals();
+    for (Entry<String, List<TrackedNodeProposal>> entry : builderProposals.entrySet()) {
+      String groupId = entry.getKey();
+      for (TrackedNodeProposal nodeProposal : entry.getValue()) {
+        addLinkedPositionProposal(groupId, nodeProposal.getIcon(), nodeProposal.getText());
+      }
+    }
+  }
+
+  /**
+   * Adds {@link #linkedPositions} to the current {@link #proposal}.
+   */
+  private void addLinkedPositionsToProposal() {
+    // positions
+    for (Entry<String, List<SourceRange>> entry : linkedPositions.entrySet()) {
+      String groupId = entry.getKey();
+      for (SourceRange range : entry.getValue()) {
+        range = translateRangeAfterTextEdits(range);
+        TrackedNodePosition position = TrackedPositions.forRange(range);
+        proposal.addLinkedPosition(position, false, groupId);
+      }
+    }
+    // proposals for positions
+    for (Entry<String, List<TrackedNodeProposal>> entry : linkedPositionProposals.entrySet()) {
+      String groupId = entry.getKey();
+      for (TrackedNodeProposal nodeProposal : entry.getValue()) {
+        proposal.addLinkedPositionProposal(groupId, nodeProposal.getText(), nodeProposal.getIcon());
+      }
+    }
   }
 
   private void addRemoveEdit(SourceRange range) {
@@ -820,9 +1199,16 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
   }
 
   /**
-   * Adds new {@link CUCorrectionProposal} using {@link #unit} and {@link #textEdits}.
+   * Adds new {@link LinkedCorrectionProposal} using {@link #unit} and {@link #textEdits}.
    */
   private void addUnitCorrectionProposal(String label, Image image) {
+    // sort edits
+    Collections.sort(textEdits, new Comparator<TextEdit>() {
+      @Override
+      public int compare(TextEdit o1, TextEdit o2) {
+        return o1.getOffset() - o2.getOffset();
+      }
+    });
     // prepare change
     CompilationUnitChange change = new CompilationUnitChange(label, unit);
     change.setSaveMode(TextFileChange.LEAVE_DIRTY);
@@ -833,7 +1219,14 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     }
     // add proposal
     if (!textEdits.isEmpty()) {
-      proposals.add(new CUCorrectionProposal(label, unit, change, proposalRelevance, image));
+      proposal = new LinkedCorrectionProposal(label, unit, change, proposalRelevance, image);
+      addLinkedPositionsToProposal();
+      if (proposalEndRange != null) {
+        proposalEndRange = translateRangeAfterTextEdits(proposalEndRange);
+        TrackedNodePosition endPosition = TrackedPositions.forRange(proposalEndRange);
+        proposal.setEndPosition(endPosition);
+      }
+      proposals.add(proposal);
     }
     // reset
     resetProposalElements();
@@ -879,6 +1272,32 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
   private void resetProposalElements() {
     textEdits.clear();
     proposalRelevance = DEFAULT_RELEVANCE;
+    linkedPositions.clear();
+    positionStopEdits.clear();
+    linkedPositionProposals.clear();
+    proposal = null;
+    proposalEndRange = null;
+  }
+
+  /**
+   * @return the updated {@link SourceRange} which should be used after applying {@link #textEdits}.
+   */
+  private SourceRange translateRangeAfterTextEdits(SourceRange range) {
+    int delta = 0;
+    {
+      int rangeOffset = range.getOffset();
+      TextEdit rangeStopEdit = positionStopEdits.get(range);
+      for (TextEdit textEdit : textEdits) {
+        if (textEdit.getOffset() <= rangeOffset) {
+          if (rangeStopEdit == textEdit) {
+            break;
+          }
+          delta += ExtractUtils.getDeltaOffset(textEdit);
+        }
+      }
+    }
+    int offset = delta + range.getOffset();
+    return SourceRangeFactory.forStartLength(offset, range.getLength());
   }
 
 //  private static class RefactoringCorrectionProposal extends CUCorrectionProposal {

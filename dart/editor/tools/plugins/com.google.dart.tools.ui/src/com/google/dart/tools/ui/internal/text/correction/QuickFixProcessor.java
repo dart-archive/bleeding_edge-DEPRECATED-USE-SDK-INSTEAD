@@ -233,9 +233,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
   private int proposalRelevance = DEFAULT_RELEVANCE;
   private final List<TextEdit> textEdits = Lists.newArrayList();
   private final Map<String, List<TrackedNodePosition>> linkedPositions = Maps.newHashMap();
-
   private final Map<String, List<TrackedNodeProposal>> linkedPositionProposals = Maps.newHashMap();
-
   private LinkedCorrectionProposal proposal;
 
   @Override

@@ -23,6 +23,7 @@ import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
 import com.google.dart.tools.ui.text.dart.IQuickAssistProcessor;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.source.ISourceViewer;
 
 import static org.mockito.Mockito.mock;
@@ -62,6 +63,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
 
   private IProblemLocation problemLocations[] = NO_PROBLEMS;
 
+  private int selectionStart = 0;
   private int selectionLength = 0;
 
   public void test_addTypeAnnotation_classField_OK_final() throws Exception {
@@ -126,6 +128,28 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
   public void test_addTypeAnnotation_topLevelField_wrong_noValue() throws Exception {
     String source = "var v;";
     assert_addTypeAnnotation_topLevelField(source, "var ", source);
+  }
+
+  public void test_convertGetterToMethodRefactoring_OK() throws Exception {
+    String source = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int get test => 42;",
+        "}",
+        "");
+    String offsetPattern = "test =>";
+    assert_convertGetterToMethodRefactoring(source, offsetPattern, true);
+  }
+
+  public void test_convertGetterToMethodRefactoring_wrong_notGetter() throws Exception {
+    String source = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int test() => 42;",
+        "}",
+        "");
+    String offsetPattern = "test() =>";
+    assert_convertGetterToMethodRefactoring(source, offsetPattern, false);
   }
 
   public void test_convertMethodToGetterRefactoring_OK() throws Exception {
@@ -818,6 +842,186 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_splitVariableDeclaration_wrong(initial, "v = 1");
   }
 
+  public void test_surroundWith_block() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  {",
+        "    print(0);",
+        "    print(1);",
+        "  }",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "block");
+  }
+
+  public void test_surroundWith_doWhile() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  do {",
+        "    print(0);",
+        "    print(1);",
+        "  } while (condition);",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "'do-while'");
+  }
+
+  public void test_surroundWith_for() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  for (var v = init; condition; increment) {",
+        "    print(0);",
+        "    print(1);",
+        "  }",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "'for'");
+  }
+
+  public void test_surroundWith_forIn() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  for (var item in iterable) {",
+        "    print(0);",
+        "    print(1);",
+        "  }",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "'for-in'");
+  }
+
+  public void test_surroundWith_if() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  if (condition) {",
+        "    print(0);",
+        "    print(1);",
+        "  }",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "'if'");
+  }
+
+  public void test_surroundWith_tryCatch() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  try {",
+        "    print(0);",
+        "    print(1);",
+        "  } on Exception catch (e) {",
+        "    // TODO",
+        "  }",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "'try-catch'");
+  }
+
+  public void test_surroundWith_tryFinally() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  try {",
+        "    print(0);",
+        "    print(1);",
+        "  } finally {",
+        "    // TODO",
+        "  }",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "'try-finally'");
+  }
+
+  public void test_surroundWith_while() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  while (condition) {",
+        "    print(0);",
+        "    print(1);",
+        "  }",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "'while'");
+  }
+
   @Override
   protected void tearDown() throws Exception {
     waitEventLoop(0);
@@ -887,6 +1091,18 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
         expectedDeclaration,
         "");
     assert_addTypeAnnotation(initialSource, offsetPattern, expectedSource);
+  }
+
+  private void assert_convertGetterToMethodRefactoring(
+      String source,
+      String offsetPattern,
+      boolean expected) throws Exception {
+    String name = CorrectionMessages.ConvertGetterToMethodRefactoringProposal_name;
+    if (expected) {
+      assertHasProposal(source, offsetPattern, name);
+    } else {
+      assertNoProposal(source, offsetPattern, name);
+    }
   }
 
   private void assert_convertMethodToGetterRefactoring(
@@ -1093,6 +1309,27 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_splitVariableDeclaration(initialSource, offsetPattern, initialSource);
   }
 
+  private void assert_surroundsWith(String initial, String expected, String surroundName)
+      throws Exception, CoreException {
+    setTestUnitContent(initial);
+    setSelectionFromStartEndComments();
+    AssistContext context = new AssistContext(
+        testUnit,
+        (ISourceViewer) null,
+        new CompilationUnitEditor(),
+        selectionStart,
+        selectionLength);
+    IDartCompletionProposal[] assists = PROCESSOR.getAssists(context, problemLocations);
+    for (IDartCompletionProposal proposal : assists) {
+      if (proposal.getDisplayString().equals("Surround with " + surroundName)) {
+        String result = ((CUCorrectionProposal) proposal).getPreviewContent();
+        assertEquals(expected, result);
+        return;
+      }
+    }
+    fail("no proposal found: " + surroundName);
+  }
+
   private void assertHasProposal(String initialSource, String offsetPattern, String proposalName)
       throws Exception {
     IDartCompletionProposal[] proposals = getProposals(initialSource, offsetPattern);
@@ -1120,5 +1357,10 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
         offset,
         selectionLength);
     return PROCESSOR.getAssists(context, problemLocations);
+  }
+
+  private void setSelectionFromStartEndComments() throws Exception {
+    selectionStart = findOffset("// start") + "// start".length() + "\n".length();
+    selectionLength = findOffset("// end") - selectionStart;
   }
 }
