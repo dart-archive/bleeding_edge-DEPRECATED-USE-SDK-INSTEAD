@@ -19,6 +19,7 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTest(com.google.dart.tools.core.internal.builder.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.internal.completion.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.internal.directoryset.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.internal.index.TestAll.suite());

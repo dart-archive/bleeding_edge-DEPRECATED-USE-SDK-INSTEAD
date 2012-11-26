@@ -2,9 +2,9 @@
 <!-- Schema file written by PDE -->
 <schema targetNamespace="com.google.dart.tools.core" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
-      <appinfo>
+      <appInfo>
          <meta.schema plugin="com.google.dart.tools.core" id="buildParticipant" name="Build Participants"/>
-      </appinfo>
+      </appInfo>
       <documentation>
          This extension point allows clients to participate in the build process by receiving notifications during the build, via a com.google.dart.tools.core.builder.DartBuildParticipant.
       </documentation>
@@ -12,9 +12,9 @@
 
    <element name="extension">
       <annotation>
-         <appinfo>
+         <appInfo>
             <meta.element />
-         </appinfo>
+         </appInfo>
       </annotation>
       <complexType>
          <sequence>
@@ -39,9 +39,9 @@
                <documentation>
                   
                </documentation>
-               <appinfo>
+               <appInfo>
                   <meta.attribute translatable="true"/>
-               </appinfo>
+               </appInfo>
             </annotation>
          </attribute>
       </complexType>
@@ -64,11 +64,20 @@
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>
-                  the class that implements this compilation participant. This class must implement&lt;code&gt;om.google.dart.tools.core.builder.DartBuildParticipant&lt;/code&gt; and provide a public 0-argument constructor.
+                  The class that implements this compilation participant.  This class must implement &lt;code&gt;com.google.dart.tools.core.builder.BuildParticipant&lt;/code&gt; and provided a public 0-argument constructor.
+
+(Deprecated) Classes that implement &lt;code&gt;com.google.dart.tools.core.builder.DartBuildParticipant&lt;/code&gt; rather than the new &lt;code&gt;BuildParticipant&lt;/code&gt; interface are currently supported, but this support will be removed sometime in the future.
                </documentation>
-               <appinfo>
+               <appInfo>
                   <meta.attribute kind="java" basedOn=":com.google.dart.tools.core.builder.DartBuildParticipant"/>
-               </appinfo>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="priority" type="string">
+            <annotation>
+               <documentation>
+                  The priority of this build participant indicating the order in which participants should be called. A lower number indicates a higher priority. The default priority is 50.
+               </documentation>
             </annotation>
          </attribute>
       </complexType>
@@ -76,9 +85,9 @@
 
 
    <annotation>
-      <appinfo>
+      <appInfo>
          <meta.section type="examples"/>
-      </appinfo>
+      </appInfo>
       <documentation>
          Example of a declaration of a &lt;code&gt;buildParticipant&lt;/code&gt;:  &lt;pre&gt;                                                                       
 &lt;extension

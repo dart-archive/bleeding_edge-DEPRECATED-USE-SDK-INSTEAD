@@ -24,7 +24,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import java.util.Map;
 
 /**
- * A participant in the building of dart projects.
+ * A participant in the building of dart projects. This interface has been DEPRECATED in favor of
+ * {@link BuildParticipant}.
  */
 public interface DartBuildParticipant {
 

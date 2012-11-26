@@ -30,21 +30,15 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IExtension;
-import org.eclipse.core.runtime.IExtensionPoint;
-import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.RegistryFactory;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.SubMonitor;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -53,57 +47,25 @@ import java.util.Map;
  */
 public class DartBuilder extends IncrementalProjectBuilder {
 
-  private static final String PARTICIPANT_EXTENSION_POINT = "buildParticipant"; //$NON-NLS-1$
-  private static final String PARTICIPANT_CONTRIBUTION = "buildParticipant"; //$NON-NLS-1$
-  private static final String PARTICIPANT_CLASS_ATTR = "class"; //$NON-NLS-1$
-
   private final AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
 
-  private static DartBuildParticipant[] PARTICIPANTS;
-
-  private static DartBuildParticipant[] getBuildParticipants() {
-    if (PARTICIPANTS == null) {
-      loadParticipantExtensions();
-    }
-
-    return PARTICIPANTS;
-  }
-
-  private static void loadParticipantExtensions() {
-    IExtensionRegistry registry = RegistryFactory.getRegistry();
-    ArrayList<DartBuildParticipant> participants = new ArrayList<DartBuildParticipant>();
-
-    IExtensionPoint point = registry.getExtensionPoint(
-        DartCore.PLUGIN_ID,
-        PARTICIPANT_EXTENSION_POINT);
-
-    for (IExtension extension : point.getExtensions()) {
-      for (IConfigurationElement element : extension.getConfigurationElements()) {
-        try {
-          if (element.getName().equals(PARTICIPANT_CONTRIBUTION)) {
-            DartBuildParticipant participant = (DartBuildParticipant) element.createExecutableExtension(PARTICIPANT_CLASS_ATTR);
-            participants.add(participant);
-          }
-        } catch (CoreException e) {
-          DartCore.logError(e);
-        }
-      }
-    }
-
-    PARTICIPANTS = participants.toArray(new DartBuildParticipant[participants.size()]);
-  }
+  /**
+   * The participants associated with this builder or {@code null} if not initialized. This field is
+   * lazily initialized by calling {@link #getParticipants()}.
+   */
+  private DartBuildParticipant[] participants;
 
   @Override
   protected IProject[] build(final int kind, final Map<String, String> args,
       final IProgressMonitor _monitor) throws CoreException {
 
-    int totalProgress = (getBuildParticipants().length + 1) * 10;
+    int totalProgress = (getParticipants().length + 1) * 10;
     final SubMonitor subMon = SubMonitor.convert(_monitor, totalProgress);
 
     final IResourceDelta delta = getDelta(getProject());
 
     // notify participants
-    for (final DartBuildParticipant participant : getBuildParticipants()) {
+    for (final DartBuildParticipant participant : getParticipants()) {
       if (_monitor.isCanceled()) {
         throw new OperationCanceledException();
       }
@@ -197,7 +159,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
   @Override
   protected void clean(IProgressMonitor monitor) throws CoreException {
     //notify participants
-    for (final DartBuildParticipant participant : getBuildParticipants()) {
+    for (final DartBuildParticipant participant : getParticipants()) {
       SafeRunner.run(new ISafeRunnable() {
         @Override
         public void handleException(Throwable exception) {
@@ -226,4 +188,13 @@ public class DartBuilder extends IncrementalProjectBuilder {
     server.reanalyze();
   }
 
+  /**
+   * Lazily initialize and answer the build participants for the this project.
+   */
+  private DartBuildParticipant[] getParticipants() {
+    if (participants == null) {
+      participants = BuildParticipantDeclaration.participantsFor(getProject());
+    }
+    return participants;
+  }
 }
