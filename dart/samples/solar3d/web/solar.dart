@@ -293,11 +293,11 @@ class SolarSystem {
   }
 
   void selectNextPlanet() {
-    selectedPlanet = (selectedPlanet+1)%planets.length;
+    selectedPlanet = (selectedPlanet + 1) % planets.length;
   }
 
   void selectPreviousPlanet() {
-    selectedPlanet = (selectedPlanet-1)%planets.length;
+    selectedPlanet = (selectedPlanet - 1 ) % planets.length;
   }
 
   void selectPlanet(String planetName) {
@@ -414,11 +414,11 @@ class SolarSystem {
     var dt = (t - lastTime) / 1000.0;
     lastTime = t;
 
-    PlanetaryBody selectedPlanet = planets[selectedPlanet];
+    PlanetaryBody planet = planets[selectedPlanet];
     // Ensure we aren't too close to the selected body.
-    controller.minRadius = selectedPlanet.bodySize*2.0+0.5;
+    controller.minRadius = planet.bodySize*2.0+0.5;
     // Adjust the camera origin to match the selected body.
-    controller.origin = selectedPlanet.position;
+    controller.origin = planet.position;
     // Update the camera.
     controller.updateCamera(dt, camera);
     /* Construct the Projection View matrix */
