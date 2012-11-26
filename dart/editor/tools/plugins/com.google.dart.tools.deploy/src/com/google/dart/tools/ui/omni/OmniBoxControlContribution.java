@@ -14,8 +14,6 @@
 package com.google.dart.tools.ui.omni;
 
 import com.google.dart.tools.deploy.Activator;
-import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartUI;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.jface.bindings.keys.SWTKeySupport;
@@ -31,7 +29,6 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackAdapter;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -470,21 +467,22 @@ public class OmniBoxControlContribution {
   }
 
   private void updateColors() {
-    Display display = textControl.getDisplay();
-    Color color = DartUI.getEditorForeground(
-        DartToolsPlugin.getDefault().getCombinedPreferenceStore(),
-        display);
-    if (color == null) {
-      color = display.getSystemColor(SWT.COLOR_INFO_FOREGROUND);
-    }
-    textControl.setForeground(color);
-    color = DartUI.getEditorBackground(
-        DartToolsPlugin.getDefault().getCombinedPreferenceStore(),
-        display);
-    if (color == null) {
-      color = display.getSystemColor(SWT.COLOR_INFO_BACKGROUND);
-    }
-    textControl.setBackground(color);
+    //TODO(pquitslund): disabled pending investigation of regressions on ubuntu
+//    Display display = textControl.getDisplay();
+//    Color color = DartUI.getEditorForeground(
+//        DartToolsPlugin.getDefault().getCombinedPreferenceStore(),
+//        display);
+//    if (color == null) {
+//      color = display.getSystemColor(SWT.COLOR_INFO_FOREGROUND);
+//    }
+//    textControl.setForeground(color);
+//    color = DartUI.getEditorBackground(
+//        DartToolsPlugin.getDefault().getCombinedPreferenceStore(),
+//        display);
+//    if (color == null) {
+//      color = display.getSystemColor(SWT.COLOR_INFO_BACKGROUND);
+//    }
+//    textControl.setBackground(color);
   }
 
 }
