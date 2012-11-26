@@ -23,11 +23,11 @@ import com.google.dart.tools.ui.actions.GenerateDartdocAction;
 import com.google.dart.tools.ui.actions.GenerateJavascriptAction;
 import com.google.dart.tools.ui.actions.OpenApiDocsAction;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
-import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
+import com.google.dart.tools.ui.internal.handlers.NewFileHandler;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 
@@ -857,8 +857,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(new GroupMarker(IWorkbenchActionConstants.FILE_START));
 
     Action newApplicationAction = new OpenNewApplicationWizardAction();
-    OpenNewFileWizardAction newFileAction = new OpenNewFileWizardAction(getWindow());
     menu.add(newApplicationAction);
+    IAction newFileAction = NewFileHandler.createCommandAction(getWindow());
     menu.add(newFileAction);
     OpenNewFolderWizardAction newFolderAction = new OpenNewFolderWizardAction(getWindow());
     menu.add(newFolderAction);

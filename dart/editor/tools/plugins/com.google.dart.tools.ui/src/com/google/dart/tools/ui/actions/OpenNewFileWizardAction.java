@@ -43,6 +43,7 @@ public class OpenNewFileWizardAction extends AbstractOpenWizardAction implements
     setDescription(ActionMessages.OpenNewFileWizardAction_description);
     setToolTipText(ActionMessages.OpenNewFileWizardAction_tooltip);
     setImageDescriptor(DartPluginImages.DESC_TOOL_NEW_FILE);
+    setActionDefinitionId(ACTION_ID);
     setId(ACTION_ID); //$NON-NLS-N$
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.OPEN_ACTION);
     window.getSelectionService().addSelectionListener(this);
