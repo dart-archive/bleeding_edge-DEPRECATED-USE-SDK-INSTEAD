@@ -32,13 +32,13 @@ import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.swt.SWT;
+import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 
 /**
  * The SourceViewerConfiguration for the html editor.
  */
-public class HtmlSourceViewerConfiguration extends SourceViewerConfiguration {
+public class HtmlSourceViewerConfiguration extends TextSourceViewerConfiguration {
   private HtmlEditor editor;
 
   private RuleBasedScanner htmlScanner;
@@ -49,6 +49,8 @@ public class HtmlSourceViewerConfiguration extends SourceViewerConfiguration {
   private MonoReconciler reconciler;
 
   public HtmlSourceViewerConfiguration(HtmlEditor editor) {
+    super(editor.getPreferences());
+
     this.editor = editor;
   }
 

@@ -25,18 +25,20 @@ import org.eclipse.jface.text.reconciler.MonoReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.jface.text.source.SourceViewerConfiguration;
+import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 
 /**
  * The SourceViewerConfiguration for the xml editor.
  */
-public class XmlSourceViewerConfiguration extends SourceViewerConfiguration {
+public class XmlSourceViewerConfiguration extends TextSourceViewerConfiguration {
   private XmlEditor editor;
   private XmlTagScanner tagScanner;
   private XmlScanner scanner;
   private MonoReconciler reconciler;
 
   public XmlSourceViewerConfiguration(XmlEditor editor) {
+    super(editor.getPreferences());
+
     this.editor = editor;
   }
 

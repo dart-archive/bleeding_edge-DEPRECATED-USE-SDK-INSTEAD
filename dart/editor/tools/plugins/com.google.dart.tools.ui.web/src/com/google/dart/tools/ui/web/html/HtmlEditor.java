@@ -17,7 +17,6 @@ import com.google.dart.tools.ui.web.utils.WebEditor;
 import com.google.dart.tools.ui.web.xml.model.XmlDocument;
 import com.google.dart.tools.ui.web.xml.model.XmlParser;
 
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
@@ -78,10 +77,6 @@ public class HtmlEditor extends WebEditor {
     if (outlinePage != null) {
       outlinePage.handleEditorReconcilation();
     }
-  }
-
-  IPreferenceStore getPreferences() {
-    return super.getPreferenceStore();
   }
 
 }

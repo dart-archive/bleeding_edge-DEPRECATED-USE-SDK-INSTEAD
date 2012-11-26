@@ -87,6 +87,10 @@ public abstract class WebEditor extends TextEditor {
     return null;
   }
 
+  public IPreferenceStore getPreferences() {
+    return super.getPreferenceStore();
+  }
+
   @Override
   public String getTitleToolTip() {
     if (getEditorInput() instanceof IFileEditorInput) {

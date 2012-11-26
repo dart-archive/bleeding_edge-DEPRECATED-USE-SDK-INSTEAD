@@ -28,17 +28,19 @@ import org.eclipse.jface.text.reconciler.MonoReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.jface.text.source.SourceViewerConfiguration;
+import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 
 /**
  * The SourceViewerConfiguration for the css editor.
  */
-public class CssSourceViewerConfiguration extends SourceViewerConfiguration {
+public class CssSourceViewerConfiguration extends TextSourceViewerConfiguration {
   private CssEditor editor;
   private CssScanner scanner;
   private MonoReconciler reconciler;
 
   public CssSourceViewerConfiguration(CssEditor editor) {
+    super(editor.getPreferences());
+
     this.editor = editor;
   }
 

@@ -27,17 +27,19 @@ import org.eclipse.jface.text.reconciler.MonoReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.jface.text.source.SourceViewerConfiguration;
+import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 
 /**
  * The SourceViewerConfiguration for the yaml editor.
  */
-public class YamlSourceViewerConfiguration extends SourceViewerConfiguration {
+public class YamlSourceViewerConfiguration extends TextSourceViewerConfiguration {
   private YamlEditor editor;
   private YamlScanner scanner;
   private MonoReconciler reconciler;
 
   public YamlSourceViewerConfiguration(YamlEditor editor) {
+    super(editor.getPreferences());
+
     this.editor = editor;
   }
 
