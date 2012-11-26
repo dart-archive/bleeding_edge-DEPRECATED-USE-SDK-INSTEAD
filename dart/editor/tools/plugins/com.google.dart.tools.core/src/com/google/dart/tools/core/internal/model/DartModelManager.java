@@ -406,6 +406,10 @@ public class DartModelManager {
    */
   public void addToIgnores(IResource resource) throws IOException, CoreException {
     DartIgnoreManager.getInstance().addToIgnores(resource);
+    DartProjectImpl project = create(resource.getProject());
+    if (project != null) {
+      project.recomputeLibrarySet();
+    }
   }
 
   /**
@@ -1077,6 +1081,10 @@ public class DartModelManager {
    */
   public void removeFromIgnores(IResource resource) throws IOException {
     DartIgnoreManager.getInstance().removeFromIgnores(resource);
+    DartProjectImpl project = create(resource.getProject());
+    if (project != null) {
+      project.recomputeLibrarySet();
+    }
   }
 
   /**

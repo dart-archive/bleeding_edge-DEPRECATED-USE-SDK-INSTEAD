@@ -986,7 +986,10 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
         @Override
         public boolean visit(IResourceProxy proxy) throws CoreException {
           if (proxy.getType() == IResource.FILE && DartCore.isDartLikeFileName(proxy.getName())) {
-            dartFiles.add((IFile) proxy.requestResource());
+            IFile file = (IFile) proxy.requestResource();
+            if (DartCore.isAnalyzed(file)) {
+              dartFiles.add(file);
+            }
           } else if (proxy.getType() == IResource.FOLDER && proxy.getName().startsWith(".")) {
             return false;
           }
