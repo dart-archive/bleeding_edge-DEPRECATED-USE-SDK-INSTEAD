@@ -111,6 +111,7 @@ public class SourceImpl implements Source {
         }
       }
     }
+    byteBuffer.rewind();
     receiver.accept(UTF_8_CHARSET.decode(byteBuffer));
   }
 
