@@ -337,7 +337,8 @@ def main():
     GSU_API_DOCS_PATH = '%s/%s' % (GSU_API_DOCS_BUCKET, REVISION)
 
     homegsutil = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
-    gsu = gsutil.GsUtil(False, homegsutil, running_on_buildbot=running_on_buildbot)
+    gsu = gsutil.GsUtil(False, homegsutil,
+      running_on_buildbot=running_on_buildbot)
 
     print '@@@BUILD_STEP dart-ide dart clients: %s@@@' % options.name
     if sdk_environment.has_key('JAVA_HOME'):
@@ -616,68 +617,43 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
   for rcpZipFile in rcpZipFiles:
     print '  found rcp: %s' % rcpZipFile
   
+  dartiumFiles = []
+  
   if TRUNK_BUILD:
-    # we look for Dartium artifacts differently for trunk vs continuous builds
-    gsPrefix = "gs://dartium-archive"
-
-    dartiumFiles = []
-    dartiumFiles.append(
-      "%s/dartium-mac-full-trunk/dartium-mac-full-trunk-%s.0.zip"
-      % (gsPrefix, REVISION))
-    dartiumFiles.append(
-      "%s/dartium-lucid32-full-trunk/dartium-lucid32-full-trunk-%s.0.zip"
-      % (gsPrefix, REVISION))
-    dartiumFiles.append(
-      "%s/dartium-lucid64-full-trunk/dartium-lucid64-full-trunk-%s.0.zip"
-      % (gsPrefix, REVISION))
-    dartiumFiles.append(
-      "%s/dartium-win-full-trunk/dartium-win-full-trunk-%s.0.zip"
-      % (gsPrefix, REVISION))
+    dartiumFiles.append("gs://dartium-archive/dartium-mac-full-trunk/"
+      + "dartium-mac-full-trunk-%s.0.zip" % REVISION)
+    dartiumFiles.append("gs://dartium-archive/dartium-win-full-trunk/"
+      + "dartium-win-full-trunk-%s.0.zip" % REVISION)
+    dartiumFiles.append("gs://dartium-archive/dartium-lucid32-full-trunk/"
+      + "dartium-lucid32-full-trunk-%s.0.zip" % REVISION)
+    dartiumFiles.append("gs://dartium-archive/dartium-lucid64-full-trunk/"
+      + "dartium-lucid64-full-trunk-%s.0.zip" % REVISION)
   else:
-    # dartium-lucid32-full-9420.9420.zip
-    # dartium-lucid64-full-9420.9420.zip
-    # dartium-mac-full-9420.9420.zip
-    # dartium-win-full-9420.9420.zip
-    # exclude dartium-lucid64-full-trunk-9571.9571.zip
-    dartiumFiles = gsu.ReadBucket(
-      'gs://dartium-archive/latest/dartium-*-full-[0-9]*.zip')
-
-    if not dartiumFiles:
-      raise Exception("could not find any dartium files")
-
-    tempList = []
-    
-    dartiumFiles = RemoveDuplicateDartiums(dartiumFiles)
-    
-    for dartiumFile in dartiumFiles:
-      print '  found dartium: %s' % dartiumFile
-      tempList.append(RemapDartiumUrl(dartiumFile))
-
-    dartiumFiles = tempList
+    dartiumFiles.append("gs://dartium-archive/continuous/dartium-mac.zip")
+    dartiumFiles.append("gs://dartium-archive/continuous/dartium-win.zip")
+    #There is not a dartium-lucid32-inc buildbot.
+    #dartiumFiles.append("gs://dartium-archive/continuous/dartium-lucid32.zip")
+    dartiumFiles.append("gs://dartium-archive/continuous/dartium-lucid64.zip")
   
   for rcpZipFile in rcpZipFiles:
     searchString = None
     
-    # dart-editor-linux.gtk.x86.zip
-    # dart-editor-linux.gtk.x86_64.zip
-    # dart-editor-macosx.cocoa.x86.zip
-    # dart-editor-macosx.cocoa.x86_64.zip
-    # dart-editor-win32.win32.x86.zip
-    # dart-editor-win32.win32.x86_64.zip
+    # dart-editor-linux.gtk.x86.zip, ...
 
     if '-linux.gtk.x86.zip' in rcpZipFile:
-      searchString = 'dartium-lucid32-full-'
+      searchString = 'dartium-lucid32'
     if '-linux.gtk.x86_64.zip' in rcpZipFile:
-      searchString = 'dartium-lucid64-full-'
+      searchString = 'dartium-lucid64'
     if 'macosx' in rcpZipFile:
-      searchString = 'dartium-mac-full-'
+      searchString = 'dartium-mac'
     if 'win32' in rcpZipFile:
-      searchString = 'dartium-win-full-'
+      searchString = 'dartium-win'
     
     for dartiumFile in dartiumFiles:
       if searchString in dartiumFile:
         #download and unzip dartium
-        unzip_dir = os.path.join(tmp_dir, os.path.splitext(os.path.basename(dartiumFile))[0])
+        unzip_dir = os.path.join(tmp_dir,
+          os.path.splitext(os.path.basename(dartiumFile))[0])
         if not os.path.exists(unzip_dir):
           os.makedirs(unzip_dir)
         tmp_zip_file = os.path.join(tmp_dir, os.path.basename(dartiumFile))
@@ -726,40 +702,6 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
         dart_zip.AddDirectoryTree(add_path, zip_rel_path)
         
   shutil.rmtree(tmp_dir, True)
-
-def RemoveDuplicateDartiums(dartiumFiles):
-  result = []
-  found = []
-  
-  dartiumFiles.sort(reverse=True)
-  
-  # dartium-lucid64-full-9420.9420.zip
-  for f in dartiumFiles:
-    index = f.find('-full-')
-    prefix = f[:index]
-    if not prefix in found:
-      found.append(prefix)
-      result.append(f)
-
-  return result
-
-
-# convert:
-#   gs://dartium-archive/latest/dartium-lucid32-full-9420.9420.zip
-# to:
-#   gs://dartium-archive/dartium-lucid32-full/dartium-lucid32-full-9420.9420.zip  
-def RemapDartiumUrl(url):
-  name = os.path.basename(url)
-
-  reResult = re.search('(\S*-\S*-full)-.*', name)
-
-  directory = reResult.group(1)
-  
-  remap = "gs://dartium-archive/%s/%s" % (directory, name)
-  
-  print "    %s ==> %s" % (url, remap)
-  
-  return remap
   
 
 def _InstallArtifacts(buildout, buildos, extra_artifacts):
