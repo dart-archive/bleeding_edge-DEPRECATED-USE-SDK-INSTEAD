@@ -60,6 +60,7 @@ import com.google.dart.tools.core.dom.rewrite.TrackedNodePosition;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModel;
@@ -279,7 +280,8 @@ public class QuickFixProcessor implements IQuickFixProcessor {
             if (errorCode == ResolverErrorCode.CANNOT_RESOLVE_METHOD) {
               addFix_importLibrary_withFunction(location);
             }
-            if (errorCode == ResolverErrorCode.CANNOT_BE_RESOLVED) {
+            if (errorCode == ResolverErrorCode.CANNOT_BE_RESOLVED
+                || errorCode == TypeErrorCode.CANNOT_BE_RESOLVED) {
               addFix_importLibrary_withField(location);
             }
             if (errorCode == ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR) {
@@ -462,7 +464,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
         DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
   }
 
-  private void addFix_importLibrary_withElement(String name) throws Exception {
+  private void addFix_importLibrary_withElement(String name, int elementType) throws Exception {
     // ignore if private
     if (name.startsWith("_")) {
       return;
@@ -480,7 +482,9 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     for (DartImport imp : unit.getLibrary().getImports()) {
       String prefix = imp.getPrefix();
       DartLibrary library = imp.getLibrary();
-      if (!StringUtils.isEmpty(prefix) && library.findTopLevelElement(name) != null) {
+      DartElement foundElement = library.findTopLevelElement(name);
+      if (!StringUtils.isEmpty(prefix) && foundElement != null
+          && foundElement.getElementType() == elementType) {
         SourceRange range = SourceRangeFactory.forStartLength(node, 0);
         addReplaceEdit(range, prefix + ".");
         // add proposal
@@ -501,7 +505,8 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     // check workspace libraries
     for (DartProject project : model.getDartProjects()) {
       for (DartLibrary library : project.getDartLibraries()) {
-        if (library.findTopLevelElement(name) != null) {
+        DartElement foundElement = library.findTopLevelElement(name);
+        if (foundElement != null && foundElement.getElementType() == elementType) {
           if (!proposedLibraries.add(library)) {
             continue;
           }
@@ -517,7 +522,8 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     // check SDK libraries
     PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getPackageLibraryManager();
     for (DartLibrary library : model.getBundledLibraries()) {
-      if (library.findTopLevelElement(name) != null) {
+      DartElement foundElement = library.findTopLevelElement(name);
+      if (foundElement != null && foundElement.getElementType() == elementType) {
         if (!proposedLibraries.add(library)) {
           continue;
         }
@@ -534,7 +540,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
   private void addFix_importLibrary_withField(IProblemLocation location) throws Exception {
     if (node instanceof DartIdentifier) {
       String name = ((DartIdentifier) node).getName();
-      addFix_importLibrary_withElement(name);
+      addFix_importLibrary_withElement(name, DartElement.VARIABLE);
     }
   }
 
@@ -542,14 +548,14 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     if (node instanceof DartIdentifier
         && getLocationInParent(node) == DART_METHOD_INVOCATION_TARGET) {
       String name = ((DartIdentifier) node).getName();
-      addFix_importLibrary_withElement(name);
+      addFix_importLibrary_withElement(name, DartElement.FUNCTION);
     }
   }
 
   private void addFix_importLibrary_withType(IProblemLocation location) throws Exception {
     if (mayBeTypeIdentifier(node)) {
       String typeName = ((DartIdentifier) node).getName();
-      addFix_importLibrary_withElement(typeName);
+      addFix_importLibrary_withElement(typeName, DartElement.TYPE);
     }
   }
 
