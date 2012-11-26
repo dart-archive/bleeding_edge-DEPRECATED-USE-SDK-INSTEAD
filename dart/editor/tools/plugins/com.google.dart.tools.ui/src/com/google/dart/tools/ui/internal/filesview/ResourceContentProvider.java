@@ -45,7 +45,7 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
   private Map<IFileStore, DartLibraryNode> sdkChildMap;
 
   public ResourceContentProvider() {
-    ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
+    ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
 
     sdkNode = new DartSdkNode();
   }
@@ -121,16 +121,11 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
 
   @Override
   public void resourceChanged(IResourceChangeEvent event) {
-    // handle deletes in POST_CHANGE to guard against model building failures during refresh
-    //due to resources being deleted out from under the model
-    if (event.getType() == IResourceChangeEvent.PRE_DELETE) {
-      return;
-    }
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
         if (viewer != null && !viewer.getControl().isDisposed()) {
-            viewer.refresh();
+          viewer.refresh();
         }
       }
     });
