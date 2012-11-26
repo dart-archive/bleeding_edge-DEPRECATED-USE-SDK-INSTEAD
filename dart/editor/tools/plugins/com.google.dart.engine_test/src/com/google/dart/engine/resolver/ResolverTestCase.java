@@ -26,6 +26,7 @@ import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.TypeElementImpl;
+import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 
@@ -67,9 +68,10 @@ public class ResolverTestCase extends EngineTestCase {
 
   @Override
   public void setUp() {
-    sourceFactory = new SourceFactory();
+    sourceFactory = new SourceFactory(new FileUriResolver());
     errorListener = new GatheringErrorListener();
     analysisContext = new AnalysisContextImpl();
+    analysisContext.setSourceFactory(sourceFactory);
   }
 
   /**

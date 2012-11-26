@@ -46,9 +46,9 @@ public class TokenStreamValidator {
       if (type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.OPEN_PAREN
           || type == TokenType.OPEN_SQUARE_BRACKET
           || type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
-        if (!(token instanceof BeginToken)) {
+        if (!(currentToken instanceof BeginToken)) {
           builder.append("\r\nExpected BeginToken, found ");
-          builder.append(token.getClass().getSimpleName());
+          builder.append(currentToken.getClass().getSimpleName());
           builder.append(" ");
           writeToken(builder, currentToken);
         }
