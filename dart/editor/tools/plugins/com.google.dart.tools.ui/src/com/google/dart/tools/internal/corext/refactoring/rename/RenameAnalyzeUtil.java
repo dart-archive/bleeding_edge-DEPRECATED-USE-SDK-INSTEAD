@@ -375,6 +375,7 @@ public class RenameAnalyzeUtil {
    * @return list of super classes from the <code>Object</code> to the given {@link Type}.
    */
   public static List<Type> getSuperClasses(Type type) throws DartModelException {
+    Set<String> foundTypes = Sets.newHashSet();
     LinkedList<Type> superClasses = Lists.newLinkedList();
     DartLibrary library = type.getLibrary();
     if (library != null) {
@@ -383,11 +384,17 @@ public class RenameAnalyzeUtil {
         if (superName == null) {
           break;
         }
+        if (!foundTypes.add(superName)) {
+          break;
+        }
         Type superClass = library.findTypeInScope(superName);
+        if (Objects.equal(superClass, type)) {
+          break;
+        }
         if (superClass != null) {
           superClasses.addFirst(superClass);
-          type = superClass;
         }
+        type = superClass;
       }
     }
     return superClasses;
