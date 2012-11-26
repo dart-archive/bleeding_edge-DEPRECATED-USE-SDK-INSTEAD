@@ -368,6 +368,23 @@
       </view>
    </extension>
 
+
+   <extension point="org.eclipse.debug.ui.contextViewBindings">
+      <contextViewBinding
+            viewId="com.google.dart.tools.debug.debuggerView"
+            contextId="org.eclipse.debug.ui.debugging">
+      </contextViewBinding>
+      <contextViewBinding
+            viewId="com.google.dart.tools.debug.expressionsView"
+            contextId="org.eclipse.debug.ui.debugging"
+            autoOpen="false">
+      </contextViewBinding>
+      <contextViewBinding
+           viewId="com.google.dart.tools.debug.breakpointsView"
+           contextId="org.eclipse.debug.ui.debugging">
+      </contextViewBinding>
+   </extension>
+   
    <extension
          point="org.eclipse.ui.commands">
       <command

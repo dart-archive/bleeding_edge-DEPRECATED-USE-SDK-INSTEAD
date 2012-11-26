@@ -17,6 +17,7 @@ package com.google.dart.tools.debug.ui.internal.dialogs;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
@@ -81,17 +82,21 @@ class LaunchConfigLabelProvider extends LabelProvider implements
       IResource resource = wrapper.getApplicationResource();
 
       if (resource != null) {
-        return " - " + resource.getFullPath();
+        return " " + prettyPrintWorkspacePath(resource.getFullPath());
       }
     } else {
       String url = wrapper.getUrl();
 
       if (url != null && url.length() > 0) {
-        return " - " + url;
+        return " " + url;
       }
     }
 
     return null;
+  }
+
+  private String prettyPrintWorkspacePath(IPath path) {
+    return path.segment(0) + ", " + path.removeFirstSegments(1);
   }
 
 }
