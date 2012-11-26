@@ -10,7 +10,7 @@ BSD-style license that can be found in the LICENSE file.
          apply-author-styles="">
   <template>
     <input id="toggle-all" type="checkbox"
-           checked="{{allChecked}}" data-action="click:markAll">
+           checked="{{allChecked}}" on-click="markAll()">
     <label for="x-toggle-all"></label>
   </template>
   <script type="application/dart">
@@ -21,7 +21,7 @@ BSD-style license that can be found in the LICENSE file.
     bool get allChecked => app.todos.length > 0 &&
         app.todos.every((t) => t.done);
 
-    void markAll(e) => app.todos.forEach((t) { t.done = _toggleAll.checked; });
+    void markAll() => app.todos.forEach((t) { t.done = _toggleAll.checked; });
   }
   </script>
 </element>

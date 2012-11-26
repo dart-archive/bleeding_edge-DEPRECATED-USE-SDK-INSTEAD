@@ -16,7 +16,7 @@ BSD-style license that can be found in the LICENSE file.
       <li> <a class="{{completedClass}}" href="#/completed">Completed</a> </li>
     </ul>
     <template instantiate="if anyDone">
-      <button id="clear-completed" data-action="click:clearDone">
+      <button id="clear-completed" on-click="clearDone()">
         Clear completed ({{doneCount}})
       </button>
     </template>
@@ -48,7 +48,7 @@ BSD-style license that can be found in the LICENSE file.
     String get completedClass =>
         window.location.hash == '#/completed' ?  'selected' : null;
 
-    void clearDone(e) {
+    void clearDone() {
       app.todos = app.todos.filter((t) => !t.done);
     }
 

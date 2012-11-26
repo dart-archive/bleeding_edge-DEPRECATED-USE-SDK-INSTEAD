@@ -10,9 +10,9 @@ BSD-style license that can be found in the LICENSE file.
          apply-author-styles>
   <template>
     <!-- Note: <form> is to make "enter" work on Opera/IE. -->
-    <form data-action="submit:addTodo">
+    <form on-submit="addTodo($event)">
       <input id="new-todo" placeholder="What needs to be done?" autofocus
-             data-action="change:addTodo">
+             on-change="addTodo($event)">
     </form>
   </template>
   <script type="application/dart">

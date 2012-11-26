@@ -10,15 +10,16 @@ BSD-style license that can be found in the LICENSE file.
          apply-author-styles>
   <template>
     <div class="todo-item {{_editingClass}} {{_completedClass}}">
-      <div class="view" data-action="doubleClick:edit">
+      <div class="view" on-double-click="edit()">
         <input class="toggle" type="checkbox"
                data-bind="checked:todo.done">
         <label>{{todo.task}}</label>
-        <button class="destroy" data-action="click:delete"></button>
+        <button class="destroy" on-click="delete()"></button>
       </div>
-      <form data-action="submit:update">
+      <form on-submit="update($event)">
         <input id="edit" class="edit"
-               data-action="blur:update,keyUp:maybeCancel">
+               on-blur="update($event)"
+               on-key-up="maybeCancel($event)">
       </form>
     </div>
   </template>
@@ -34,23 +35,18 @@ BSD-style license that can be found in the LICENSE file.
     String get _editingClass => _editing ? 'editing' : '';
     String get _completedClass => todo.done ? 'completed' : '';
 
-    void edit(e) {
-      // Note: we could preserve the old edit value if the user canceled their
-      // edit and restarts, but then we'd need to provide a different user
-      // gesture to get back to a clean state. For the current simple UI, clean
-      // state is the right default--it matches how most programs operate.
+    void edit() {
       _edit.value = todo.task;
       _editing = true;
 
       // Need to focus after watcher.dispatch() makes the edit box visible
       // TODO(jmesserly): need a better way to handle this. Perhaps via
-      // watchers, but but those are blocked on this bug:
-      // https://github.com/dart-lang/dart-web-components/issues/53
+      // watchers, but those are blocked on this bug:
+      // https://github.com/dart-lang/dart-web-components/issues/90
       window.setTimeout(() {
-        // IE doesn't support autofocus. Also in Firefox, it appears to only
-        // work the first time. So use .focus().
+        // For IE and Firefox: use .focus(), then reset the value to move the
+        // cursor to the end.
         _edit.focus();
-        // Move cursor to end on Firefox and IE.
         _edit.value = '';
         _edit.value = todo.task;
       }, 0);
@@ -64,14 +60,12 @@ BSD-style license that can be found in the LICENSE file.
     }
 
     void maybeCancel(KeyboardEvent e) {
-      // TODO(jmesserly): dart:html should have a KeyCodes enumeration.
-      // http://code.google.com/p/dart/issues/detail?id=5540
-      if (e.keyCode == 27/*ASCII Escape*/) {
+      if (e.keyCode == KeyCode.ESC) {
         _editing = false;
       }
     }
 
-    void delete(e) {
+    void delete() {
       var list = app.todos;
       var index = list.indexOf(todo);
       if (index != -1) {
