@@ -231,10 +231,10 @@ public class ApplicationGenerator extends AbstractGenerator {
         GeneratorMessages.ApplicationGenerator_htmlFileMessage,
         100);
     String htmlFileName = appendIfNoExtension(applicationName, HTML_FILENAME_EXTENSION);
-    File iHtmlFile = getSystemFile(htmlFileName);
+    File iHtmlFile = getApplicationFile(htmlFileName);
     substitutions.put("title", toTitleCase(className));
     substitutions.put("fileName", className);
-    substitutions.put("dartSrcPath", getWebFilePath(applicationFileName));
+    substitutions.put("dartSrcPath", applicationFileName);
     execute("generated-html.txt", iHtmlFile, substitutions, monitor); //$NON-NLS-1$
 
     // css file
@@ -243,20 +243,12 @@ public class ApplicationGenerator extends AbstractGenerator {
         GeneratorMessages.ApplicationGenerator_htmlFileMessage,
         100);
     String cssFileName = appendIfNoExtension(applicationName, CSS_FILENAME_EXTENSION);
-    File iCssFile = getSystemFile(cssFileName);
+    File iCssFile = getApplicationFile(cssFileName);
     execute("generated-css.txt", iCssFile, null, monitor); //$NON-NLS-1$
 
     subMonitor.newChild(100);
     subMonitor.done();
     return applicationFile;
-  }
-
-  private String getWebFilePath(String fileName) {
-    if (hasPubSupport) {
-      return WEB_SOURCE_DIRECTORY_NAME + "/" + fileName;
-    } else {
-      return fileName;
-    }
   }
 
   private String toTitleCase(String str) {
