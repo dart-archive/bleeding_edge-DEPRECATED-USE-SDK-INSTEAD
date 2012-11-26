@@ -21,6 +21,11 @@ import com.google.dart.engine.scanner.Token;
  */
 public class Modifiers {
   /**
+   * The token representing the keyword 'abstract', or {@code null} if the keyword was not found.
+   */
+  private Token abstractKeyword;
+
+  /**
    * The token representing the keyword 'const', or {@code null} if the keyword was not found.
    */
   private Token constKeyword;
@@ -55,6 +60,16 @@ public class Modifiers {
    */
   public Modifiers() {
     super();
+  }
+
+  /**
+   * Return the token representing the keyword 'abstract', or {@code null} if the keyword was not
+   * found.
+   * 
+   * @return the token representing the keyword 'abstract'
+   */
+  public Token getAbstractKeyword() {
+    return abstractKeyword;
   }
 
   /**
@@ -117,6 +132,15 @@ public class Modifiers {
   }
 
   /**
+   * Set the token representing the keyword 'abstract' to the given token.
+   * 
+   * @param abstractKeyword the token representing the keyword 'abstract'
+   */
+  public void setAbstractKeyword(Token abstractKeyword) {
+    this.abstractKeyword = abstractKeyword;
+  }
+
+  /**
    * Set the token representing the keyword 'const' to the given token.
    * 
    * @param constKeyword the token representing the keyword 'const'
@@ -168,5 +192,38 @@ public class Modifiers {
    */
   public void setVarKeyword(Token varKeyword) {
     this.varKeyword = varKeyword;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    boolean needsSpace = appendKeyword(builder, false, abstractKeyword);
+    needsSpace = appendKeyword(builder, needsSpace, constKeyword);
+    needsSpace = appendKeyword(builder, needsSpace, externalKeyword);
+    needsSpace = appendKeyword(builder, needsSpace, factoryKeyword);
+    needsSpace = appendKeyword(builder, needsSpace, finalKeyword);
+    needsSpace = appendKeyword(builder, needsSpace, staticKeyword);
+    appendKeyword(builder, needsSpace, varKeyword);
+    return builder.toString();
+  }
+
+  /**
+   * If the given keyword is not {@code null}, append it to the given builder, prefixing it with a
+   * space if needed.
+   * 
+   * @param builder the builder to which the keyword will be appended
+   * @param needsSpace {@code true} if the keyword needs to be prefixed with a space
+   * @param keyword the keyword to be appended
+   * @return {@code true} if subsequent keywords need to be prefixed with a space
+   */
+  private boolean appendKeyword(StringBuilder builder, boolean needsSpace, Token keyword) {
+    if (keyword != null) {
+      if (needsSpace) {
+        builder.append(' ');
+      }
+      builder.append(keyword.getLexeme());
+      return true;
+    }
+    return needsSpace;
   }
 }
