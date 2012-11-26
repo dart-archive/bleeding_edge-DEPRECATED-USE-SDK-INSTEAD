@@ -799,6 +799,29 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
+  public void test_1M2_methods_File() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M2_methods_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:io';",
+        "main() {",
+        "  File f;",
+        "  f.readAsText();",
+        "  f.readAsString();",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:io';",
+        "main() {",
+        "  File f;",
+        "  f.readAsString();",
+        "  f.readAsString();",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
   public void test_1M2_methods_interface() throws Exception {
     ICleanUp cleanUp = new Migrate_1M2_methods_CleanUp();
     String initial = makeSource(

@@ -78,6 +78,10 @@ public class Migrate_1M2_methods_CleanUp extends AbstractMigrateCleanUp {
       new MethodSpec("dart://core/core.dart", "Stopwatch", "elapsed", "elapsedTicks"),
       new MethodSpec(null, "_JustForInternalTest", "foo"),};
 
+  private static final MethodSpec[] METHOD_RENAME_LIST = new MethodSpec[] {
+      new MethodSpec("dart://io/io.dart", "File", "readAsText", "readAsString"),
+      new MethodSpec(null, "_JustForInternalTest", "foo"),};
+
   private static final MethodSpec[] GETTER_RENAME_LIST = new MethodSpec[] {
       new MethodSpec("dart://html/dartium/html_dartium.dart", "Element", "elements", "children"),
       new MethodSpec(null, "_JustForInternalTest", "foo"),};
@@ -141,17 +145,31 @@ public class Migrate_1M2_methods_CleanUp extends AbstractMigrateCleanUp {
       @Override
       public Void visitMethodInvocation(DartMethodInvocation node) {
         DartIdentifier nameNode = node.getFunctionName();
-        if (node.getArguments().isEmpty() && node.getTarget() != null) {
-          for (MethodSpec spec : METHOD_TO_GETTER_LIST) {
-            if (Elements.isIdentifierName(nameNode, spec.methodName)) {
+        if (node.getTarget() != null) {
+          // method => getter
+          if (node.getArguments().isEmpty()) {
+            for (MethodSpec spec : METHOD_TO_GETTER_LIST) {
+              if (Elements.isIdentifierName(nameNode, spec.methodName)) {
+                Type targetType = node.getTarget().getType();
+                if (targetType instanceof InterfaceType) {
+                  if (isSubType((InterfaceType) targetType, spec.className, spec.libUri)) {
+                    addReplaceEdit(SourceRangeFactory.forEndEnd(nameNode, node), "");
+                    // may be also rename
+                    if (spec.newName != null) {
+                      addReplaceEdit(SourceRangeFactory.create(nameNode), spec.newName);
+                    }
+                  }
+                }
+              }
+            }
+          }
+          // rename method
+          for (MethodSpec spec : METHOD_RENAME_LIST) {
+            if (Elements.isIdentifierName(nameNode, spec.methodName) && spec.newName != null) {
               Type targetType = node.getTarget().getType();
               if (targetType instanceof InterfaceType) {
                 if (isSubType((InterfaceType) targetType, spec.className, spec.libUri)) {
-                  addReplaceEdit(SourceRangeFactory.forEndEnd(nameNode, node), "");
-                  // may be also rename
-                  if (spec.newName != null) {
-                    addReplaceEdit(SourceRangeFactory.create(nameNode), spec.newName);
-                  }
+                  addReplaceEdit(SourceRangeFactory.create(nameNode), spec.newName);
                 }
               }
             }
