@@ -97,7 +97,7 @@ public class SearchEngineTest extends TestCase {
   public void setUp() {
     try {
       index = InMemoryIndex.getInstance();
-      index.initializeIndex(false);
+      index.initializeIndex();
     } catch (Exception exception) {
       fail("Could not load money project");
     }

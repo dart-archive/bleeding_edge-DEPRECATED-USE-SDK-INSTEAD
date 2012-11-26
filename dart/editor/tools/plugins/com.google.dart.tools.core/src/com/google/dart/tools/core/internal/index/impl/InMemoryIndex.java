@@ -340,15 +340,14 @@ public class InMemoryIndex implements Index {
   /**
    * Initialize this index, assuming that it has not already been initialized.
    */
-  public void initializeIndex(boolean noIndexFile) {
+  public void initializeIndex() {
     synchronized (indexStore) {
       if (hasBeenInitialized) {
         return;
       }
       hasBeenInitialized = true;
       indexStore.clear();
-
-      if (noIndexFile || !initializeIndexFrom(getIndexFile())) {
+      if (!initializeIndexFrom(getIndexFile())) {
         if (DartCoreDebug.TRACE_INDEX_STATISTICS) {
           logIndexStats("Clearing index after failing to read from index file");
         }
@@ -594,7 +593,7 @@ public class InMemoryIndex implements Index {
             continue;
           }
           IResource libraryResource = compilationUnit.getResource();
-          if (libraryResource == null || !DartCore.isAnalyzed(libraryResource)) {
+          if (libraryResource == null) {
             continue;
           }
           IPath libraryLocation = libraryResource.getLocation();

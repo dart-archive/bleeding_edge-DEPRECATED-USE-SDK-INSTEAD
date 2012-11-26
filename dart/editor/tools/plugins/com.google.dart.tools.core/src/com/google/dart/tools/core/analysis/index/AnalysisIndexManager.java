@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.analysis.index;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
@@ -48,19 +47,11 @@ public class AnalysisIndexManager {
         server = new AnalysisServer(PackageLibraryManagerProvider.getAnyLibraryManager());
         initServerListeners();
         initServerDebug();
-
-        // Do this to clear the closed projects from analysis cache and index. This is a one time
-        // operation, flag is then set to false 
-        boolean clearOldContents = DartCore.getPlugin().getPrefs().getBoolean(
-            DartCore.CLEAR_OLD_CONTENTS_FLAG,
-            ResourcesPlugin.getWorkspace().getRoot().getProjects().length > 0 ? true : false);
-        DartCore.getPlugin().getPrefs().putBoolean(DartCore.CLEAR_OLD_CONTENTS_FLAG, false);
-
-        initServerContent(clearOldContents);
+        initServerContent();
 
         if (DartSdkManager.getManager().hasSdk()) {
           // Ensure index is initialized before starting analysis server
-          startIndexing(clearOldContents);
+          startIndexing();
 
           startServer();
         }
@@ -73,11 +64,11 @@ public class AnalysisIndexManager {
   /**
    * Load the indexer's cached state and start indexing in the background
    */
-  public static void startIndexing(boolean noIndexFile) {
+  public static void startIndexing() {
     synchronized (lock) {
       if (!indexing) {
         indexing = true;
-        InMemoryIndex.getInstance().initializeIndex(noIndexFile);
+        InMemoryIndex.getInstance().initializeIndex();
         new Thread(new Runnable() {
           @Override
           public void run() {
@@ -121,8 +112,8 @@ public class AnalysisIndexManager {
     }
   }
 
-  private static void initServerContent(boolean reanalyze) {
-    if (reanalyze || !server.readCache()) {
+  private static void initServerContent() {
+    if (!server.readCache()) {
       for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
         server.scan(project.getLocation().toFile(), null);
       }

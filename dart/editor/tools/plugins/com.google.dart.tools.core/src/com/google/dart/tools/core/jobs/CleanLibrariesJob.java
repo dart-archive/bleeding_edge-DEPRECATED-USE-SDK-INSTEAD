@@ -55,7 +55,7 @@ public class CleanLibrariesJob extends Job {
 
         PackageLibraryManagerProvider.resetLibraryManager();
 
-        AnalysisIndexManager.startIndexing(false);
+        AnalysisIndexManager.startIndexing();
         AnalysisIndexManager.startServer();
 
         DartModelManager.getInstance().resetModel();

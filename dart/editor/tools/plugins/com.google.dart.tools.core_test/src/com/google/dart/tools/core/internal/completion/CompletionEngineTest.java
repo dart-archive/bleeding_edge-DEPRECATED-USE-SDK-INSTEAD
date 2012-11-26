@@ -857,7 +857,7 @@ public class CompletionEngineTest extends TestCase {
       analysisCleared = true;
       PackageLibraryManagerProvider.getDefaultAnalysisServer().reanalyze();
     }
-    InMemoryIndex.getInstance().initializeIndex(false);
+    InMemoryIndex.getInstance().initializeIndex();
     AnalysisTestUtilities.waitForIdle(60000);
     IProgressMonitor monitor = new NullProgressMonitor();
     MockLibrarySource library = new MockLibrarySource("FooLib");
