@@ -205,6 +205,8 @@ public class FunctionDeclaration extends CompilationUnitMember {
       return returnType.getBeginToken();
     } else if (propertyKeyword != null) {
       return propertyKeyword;
+    } else if (name != null) {
+      return name.getBeginToken();
     }
     return functionExpression.getBeginToken();
   }
