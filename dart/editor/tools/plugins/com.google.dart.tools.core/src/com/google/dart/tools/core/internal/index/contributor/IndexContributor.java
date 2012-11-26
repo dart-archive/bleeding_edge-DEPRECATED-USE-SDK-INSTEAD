@@ -54,7 +54,6 @@ import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
-import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.util.apache.StringUtils;
@@ -317,7 +316,7 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   @Override
   public Void visitCommentRefName(DartCommentRefName node) {
-    NodeElement element = node.getElement();
+    com.google.dart.compiler.resolver.Element element = node.getElement();
     if (element != null) {
       try {
         Element indexElement = ElementFactory.getElement(element);
