@@ -206,7 +206,9 @@ public abstract class SelectionDispatchAction extends AbstractInstrumentedAction
 
   @Override
   public void selectionChanged(SelectionChangedEvent event) {
-    dispatchSelectionChanged(event.getSelection());
+    if (event != null) {
+      dispatchSelectionChanged(event.getSelection());
+    }
   }
 
   /**
