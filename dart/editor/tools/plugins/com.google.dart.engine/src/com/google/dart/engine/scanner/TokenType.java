@@ -22,6 +22,7 @@ import static com.google.dart.engine.scanner.TokenClass.CASCADE_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.CONDITIONAL_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.EQUALITY_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.INCREMENT_OPERATOR;
+import static com.google.dart.engine.scanner.TokenClass.INDEX_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.LOGICAL_AND_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.LOGICAL_OR_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.MEMBER_ACCESS_OPERATOR;
@@ -83,8 +84,8 @@ public enum TokenType {
   GT_GT_GT(SHIFT_OPERATOR, ">>>"),
   GT_GT_GT_EQ(ASSIGNMENT_OPERATOR, ">>>="),
   HASH(null, "#"),
-  INDEX(null, "[]"),
-  INDEX_EQ(null, "[]="),
+  INDEX(INDEX_OPERATOR, "[]"),
+  INDEX_EQ(INDEX_OPERATOR, "[]="),
   IS(RELATIONAL_OPERATOR, "is"),
   LT(RELATIONAL_OPERATOR, "<"),
   LT_EQ(RELATIONAL_OPERATOR, "<="),
@@ -194,6 +195,15 @@ public enum TokenType {
    */
   public boolean isIncrementOperator() {
     return tokenClass == INCREMENT_OPERATOR;
+  }
+
+  /**
+   * Return {@code true} if this type of token represents an index operator.
+   * 
+   * @return {@code true} if this type of token represents an index operator
+   */
+  public boolean isIndexOperator() {
+    return tokenClass == INDEX_OPERATOR;
   }
 
   /**

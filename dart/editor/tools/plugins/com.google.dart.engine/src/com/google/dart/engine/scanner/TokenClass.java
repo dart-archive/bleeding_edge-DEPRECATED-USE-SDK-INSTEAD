@@ -68,6 +68,11 @@ public enum TokenClass {
   INCREMENT_OPERATOR(14), // POSTFIX_OPERATOR
 
   /**
+   * A value used to indicate that the token type is an index operator.
+   */
+  INDEX_OPERATOR(14),
+
+  /**
    * A value used to indicate that the token type is a logical-and operator.
    */
   LOGICAL_AND_OPERATOR(5),
