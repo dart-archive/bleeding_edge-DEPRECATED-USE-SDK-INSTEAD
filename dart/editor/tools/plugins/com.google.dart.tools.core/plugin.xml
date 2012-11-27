@@ -91,4 +91,12 @@
       </filterMatcher>
    </extension>
 
+  <extension
+          point="com.google.dart.tools.core.buildParticipant">
+       <buildParticipant
+             class="com.google.dart.tools.core.html.HtmlBuildParticipant"
+             id="com.google.dart.tools.core.buildParticipant.html">
+       </buildParticipant>
+    </extension>
+
 </plugin>
