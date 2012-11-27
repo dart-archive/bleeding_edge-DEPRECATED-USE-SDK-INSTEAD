@@ -31,21 +31,9 @@ public class InstanceCreationExpression extends Expression {
   private Token keyword;
 
   /**
-   * The name of the type of the object to be created.
+   * The name of the constructor to be invoked.
    */
-  private TypeName type;
-
-  /**
-   * The period that separates the type from the constructor name, or {@code null} if the unnamed
-   * constructor is to be invoked.
-   */
-  private Token period;
-
-  /**
-   * The name of the constructor to be invoked, or {@code null} if the unnamed constructor is to be
-   * invoked.
-   */
-  private SimpleIdentifier identifier;
+  private ConstructorName constructorName;
 
   /**
    * The list of arguments to the constructor.
@@ -62,17 +50,13 @@ public class InstanceCreationExpression extends Expression {
    * Initialize a newly created instance creation expression.
    * 
    * @param keyword the keyword used to indicate how an object should be created
-   * @param type the name of the type of the object to be created
-   * @param period the period that separates the type from the constructor name
-   * @param identifier the name of the constructor to be invoked
+   * @param constructorName the name of the constructor to be invoked
    * @param argumentList the list of arguments to the constructor
    */
-  public InstanceCreationExpression(Token keyword, TypeName type, Token period,
-      SimpleIdentifier identifier, ArgumentList argumentList) {
+  public InstanceCreationExpression(Token keyword, ConstructorName constructorName,
+      ArgumentList argumentList) {
     this.keyword = keyword;
-    this.type = becomeParentOf(type);
-    this.period = period;
-    this.identifier = becomeParentOf(identifier);
+    this.constructorName = becomeParentOf(constructorName);
     this.argumentList = becomeParentOf(argumentList);
   }
 
@@ -95,19 +79,18 @@ public class InstanceCreationExpression extends Expression {
     return keyword;
   }
 
-  @Override
-  public Token getEndToken() {
-    return argumentList.getEndToken();
-  }
-
   /**
-   * Return the name of the constructor to be invoked, or {@code null} if the unnamed constructor is
-   * to be invoked.
+   * Return the name of the constructor to be invoked.
    * 
    * @return the name of the constructor to be invoked
    */
-  public SimpleIdentifier getIdentifier() {
-    return identifier;
+  public ConstructorName getConstructorName() {
+    return constructorName;
+  }
+
+  @Override
+  public Token getEndToken() {
+    return argumentList.getEndToken();
   }
 
   /**
@@ -120,25 +103,6 @@ public class InstanceCreationExpression extends Expression {
   }
 
   /**
-   * Return the period that separates the type from the constructor name, or {@code null} if the
-   * unnamed constructor is to be invoked.
-   * 
-   * @return the period that separates the type from the constructor name
-   */
-  public Token getPeriod() {
-    return period;
-  }
-
-  /**
-   * Return the name of the type of the object to be created.
-   * 
-   * @return the name of the type of the object to be created
-   */
-  public TypeName getType() {
-    return type;
-  }
-
-  /**
    * Set the list of arguments to the constructor to the given list.
    * 
    * @param argumentList the list of arguments to the constructor
@@ -148,12 +112,12 @@ public class InstanceCreationExpression extends Expression {
   }
 
   /**
-   * Set the name of the constructor to be invoked to the given identifier.
+   * Set the name of the constructor to be invoked to the given name.
    * 
-   * @param identifier the name of the constructor to be invoked
+   * @param constructorName the name of the constructor to be invoked
    */
-  public void setIdentifier(SimpleIdentifier identifier) {
-    this.identifier = becomeParentOf(identifier);
+  public void setConstructorName(ConstructorName constructorName) {
+    this.constructorName = constructorName;
   }
 
   /**
@@ -165,28 +129,9 @@ public class InstanceCreationExpression extends Expression {
     this.keyword = keyword;
   }
 
-  /**
-   * Set the period that separates the type from the constructor name to the given token.
-   * 
-   * @param period the period that separates the type from the constructor name
-   */
-  public void setPeriod(Token period) {
-    this.period = period;
-  }
-
-  /**
-   * Set the name of the type of the object to be created to the given type name.
-   * 
-   * @param typeName the name of the type of the object to be created
-   */
-  public void setType(TypeName typeName) {
-    type = becomeParentOf(typeName);
-  }
-
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(type, visitor);
-    safelyVisitChild(identifier, visitor);
+    safelyVisitChild(constructorName, visitor);
     safelyVisitChild(argumentList, visitor);
   }
 }

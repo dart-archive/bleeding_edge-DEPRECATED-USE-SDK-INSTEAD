@@ -320,31 +320,7 @@ public class Parser {
     if (next == null) {
       return false;
     }
-    if (!matchesIdentifier(next)) {
-      return false;
-    }
-    next = next.getNext();
-    if (matches(next, TokenType.LT)) {
-      //
-      // We should really skip over a list of type parameters, but that would require skipping
-      // arbitrary expressions (because of metadata), so we just look for the balancing '>'.
-      //
-      int depth = 1;
-      next = next.getNext();
-      while (depth > 0 && !matches(next, TokenType.EOF)) {
-        if (matches(next, TokenType.LT)) {
-          depth++;
-        } else if (matches(next, TokenType.GT)) {
-          depth--;
-        } else if (matches(next, TokenType.GT_GT)) {
-          depth -= 2;
-        } else if (matches(next, TokenType.GT_GT_GT)) {
-          depth -= 3;
-        }
-        next = next.getNext();
-      }
-    }
-    return next != null && matches(next, TokenType.OPEN_PAREN);
+    return matchesIdentifier(next);
   }
 
   /**
@@ -384,8 +360,7 @@ public class Parser {
     if (afterParameters == null) {
       return false;
     }
-    return matches(afterParameters, TokenType.OPEN_CURLY_BRACKET)
-        || matches(afterParameters, TokenType.FUNCTION);
+    return matchesAny(afterParameters, TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION);
   }
 
   /**
@@ -464,6 +439,15 @@ public class Parser {
     return false;
   }
 
+  /**
+   * Compare the given tokens to find the token that appears first in the source being parsed. That
+   * is, return the left-most of all of the tokens. The arguments are allowed to be {@code null}.
+   * Return the token with the smallest offset, or {@code null} if there are no arguments or if all
+   * of the arguments are {@code null}.
+   * 
+   * @param tokens the tokens being compared
+   * @return the token with the smallest offset
+   */
   private Token lexicallyFirst(Token... tokens) {
     Token first = null;
     int firstOffset = Integer.MAX_VALUE;
@@ -559,6 +543,23 @@ public class Parser {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Return {@code true} if the given token has any one of the given types.
+   * 
+   * @param token the token being tested
+   * @param types the types of token that are being tested for
+   * @return {@code true} if the given token has any of the given types
+   */
+  private boolean matchesAny(Token token, TokenType... types) {
+    TokenType actualType = token.getType();
+    for (TokenType type : types) {
+      if (actualType == type) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -1064,13 +1065,12 @@ public class Parser {
    * </pre>
    * 
    * @param commentAndMetadata the metadata to be associated with the member
+   * @param abstractKeyword the token for the keyword 'abstract', or {@code null} if the keyword was
+   *          not given
    * @return the class declaration that was parsed
    */
-  private ClassDeclaration parseClassDeclaration(CommentAndMetadata commentAndMetadata) {
-    Token abstractKeyword = null;
-    if (matches(Keyword.ABSTRACT)) {
-      abstractKeyword = getAndAdvance();
-    }
+  private ClassDeclaration parseClassDeclaration(CommentAndMetadata commentAndMetadata,
+      Token abstractKeyword) {
     Token keyword = expect(Keyword.CLASS);
     SimpleIdentifier name = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
     String className = name.getName();
@@ -1095,7 +1095,10 @@ public class Parser {
         reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
         advance();
       } else {
-        members.add(parseClassMember(className));
+        ClassMember member = parseClassMember(className);
+        if (member != null) {
+          members.add(member);
+        }
       }
       if (currentToken == memberStart) {
         reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
@@ -1132,7 +1135,7 @@ public class Parser {
    */
   private ClassMember parseClassMember(String className) {
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
-    Modifiers modifiers = parseClassMemberModifiers();
+    Modifiers modifiers = parseModifiers();
     if (matches(Keyword.VOID)) {
       TypeName returnType = parseReturnType();
       if (matches(Keyword.GET) && matchesIdentifier(peek())) {
@@ -1152,13 +1155,34 @@ public class Parser {
       } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), returnType);
+      } else if (matchesIdentifier()
+          && matchesAny(
+              peek(),
+              TokenType.OPEN_PAREN,
+              TokenType.OPEN_CURLY_BRACKET,
+              TokenType.FUNCTION)) {
+        validateModifiersForGetterOrSetterOrMethod(modifiers);
+        return parseMethodDeclaration(
+            commentAndMetadata,
+            modifiers.getExternalKeyword(),
+            modifiers.getStaticKeyword(),
+            returnType);
+      } else {
+        // We have found an error of some kind. Try to recover.
+        if (matchesIdentifier()) {
+          if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
+            // We appear to have a variable declaration with a type of "void".
+            reportError(ParserErrorCode.VOID_VARIABLE, returnType);
+            return parseInitializedIdentifierList(
+                commentAndMetadata,
+                modifiers.getStaticKeyword(),
+                validateModifiersForField(modifiers),
+                returnType);
+          }
+        }
+        // TODO(brianwilkerson) Report this error.
+        return null;
       }
-      validateModifiersForGetterOrSetterOrMethod(modifiers);
-      return parseMethodDeclaration(
-          commentAndMetadata,
-          modifiers.getExternalKeyword(),
-          modifiers.getStaticKeyword(),
-          returnType);
     } else if (matches(Keyword.GET) && matchesIdentifier(peek())) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseGetter(
@@ -1179,12 +1203,14 @@ public class Parser {
     } else if (!matchesIdentifier()) {
       // TODO(brianwilkerson) Report an error and recover.
       // reportError(ParserErrorCode.?);
+      return null;
     } else if (matches(peek(), TokenType.PERIOD) && matchesIdentifier(peek(2))
         && matches(peek(3), TokenType.OPEN_PAREN)) {
       return parseConstructor(
           commentAndMetadata,
           modifiers.getExternalKeyword(),
           validateModifiersForConstructor(modifiers),
+          modifiers.getFactoryKeyword(),
           parseSimpleIdentifier(),
           getAndAdvance(),
           parseSimpleIdentifier(),
@@ -1198,6 +1224,7 @@ public class Parser {
             commentAndMetadata,
             modifiers.getExternalKeyword(),
             validateModifiersForConstructor(modifiers),
+            modifiers.getFactoryKeyword(),
             methodName,
             null,
             null,
@@ -1212,8 +1239,7 @@ public class Parser {
           null,
           methodName,
           parameters);
-    } else if (matches(peek(), TokenType.EQ) || matches(peek(), TokenType.COMMA)
-        || matches(peek(), TokenType.SEMICOLON)) {
+    } else if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
       return parseInitializedIdentifierList(
           commentAndMetadata,
           modifiers.getStaticKeyword(),
@@ -1254,74 +1280,6 @@ public class Parser {
         modifiers.getStaticKeyword(),
         validateModifiersForField(modifiers),
         type);
-  }
-
-  /**
-   * Parse the modifiers preceeding a class member. This method allows the modifiers to appear in
-   * any order but does generate errors for duplicated modifiers. Checks for other problems, such as
-   * specifying both 'const' and 'final', are reported elsewhere.
-   * 
-   * <pre>
-   * classMemberModifiers ::=
-   *     ('abstract' | 'const' | 'external' | 'factory' | 'final' | 'static' | 'var')*
-   * </pre>
-   * 
-   * @return the modifiers that were parsed
-   */
-  private Modifiers parseClassMemberModifiers() {
-    Modifiers modifiers = new Modifiers();
-    boolean progress = true;
-    while (progress) {
-      if (matches(Keyword.ABSTRACT)) {
-        reportError(ParserErrorCode.ABSTRACT_CLASS_MEMBER);
-        advance();
-      } else if (matches(Keyword.CONST)) {
-        if (modifiers.getConstKeyword() != null) {
-          reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
-          advance();
-        } else {
-          modifiers.setConstKeyword(getAndAdvance());
-        }
-      } else if (matches(Keyword.EXTERNAL)) {
-        if (modifiers.getExternalKeyword() != null) {
-          reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
-          advance();
-        } else {
-          modifiers.setExternalKeyword(getAndAdvance());
-        }
-      } else if (matches(Keyword.FACTORY)) {
-        if (modifiers.getFactoryKeyword() != null) {
-          reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
-          advance();
-        } else {
-          modifiers.setFactoryKeyword(getAndAdvance());
-        }
-      } else if (matches(Keyword.FINAL)) {
-        if (modifiers.getFinalKeyword() != null) {
-          reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
-          advance();
-        } else {
-          modifiers.setFinalKeyword(getAndAdvance());
-        }
-      } else if (matches(Keyword.STATIC)) {
-        if (modifiers.getStaticKeyword() != null) {
-          reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
-          advance();
-        } else {
-          modifiers.setStaticKeyword(getAndAdvance());
-        }
-      } else if (matches(Keyword.VAR)) {
-        if (modifiers.getVarKeyword() != null) {
-          reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
-          advance();
-        } else {
-          modifiers.setVarKeyword(getAndAdvance());
-        }
-      } else {
-        progress = false;
-      }
-    }
-    return modifiers;
   }
 
   /**
@@ -1389,6 +1347,10 @@ public class Parser {
    * @return the comment reference that was parsed
    */
   private CommentReference parseCommentReference(String referenceSource, int sourceOffset) {
+    // TODO(brianwilkerson) The errors are not getting the right offset/length and are being duplicated.
+    if (referenceSource.length() == 0) {
+      return null;
+    }
     try {
       final boolean[] errorFound = {false};
       AnalysisErrorListener listener = new AnalysisErrorListener() {
@@ -1421,21 +1383,27 @@ public class Parser {
             nextToken = firstToken.getNext();
           }
           if (nextToken.getType() != TokenType.EOF) {
-            reportError(ParserErrorCode.INVALID_COMMENT_REFERENCE);
+            // TODO(brianwilkerson) Determine whether this should really be reported in these cases.
+            // reportError(ParserErrorCode.INVALID_COMMENT_REFERENCE);
           }
           return new CommentReference(newKeyword, identifier);
-        } else if (matches(firstToken, Keyword.THIS) || matches(firstToken, Keyword.NULL)) {
+        } else if (matches(firstToken, Keyword.THIS) || matches(firstToken, Keyword.NULL)
+            || matches(firstToken, Keyword.TRUE) || matches(firstToken, Keyword.FALSE)) {
           // TODO(brianwilkerson) If we want to support this we will need to extend the definition
           // of CommentReference to take an expression rather than an identifier. For now we just
           // ignore it to reduce the number of errors produced, but that's probably not a valid
           // long term approach.
           return null;
+        } else if (matches(firstToken, TokenType.STRING)) {
+          // This is a valid link to a URI and should be ignored
         } else {
-          reportError(ParserErrorCode.INVALID_COMMENT_REFERENCE);
+          // TODO(brianwilkerson) Determine whether this should really be reported in these cases.
+          // reportError(ParserErrorCode.INVALID_COMMENT_REFERENCE);
         }
       }
     } catch (Exception exception) {
-      reportError(ParserErrorCode.INVALID_COMMENT_REFERENCE);
+      // TODO(brianwilkerson) Determine whether this should really be reported in these cases.
+      // reportError(ParserErrorCode.INVALID_COMMENT_REFERENCE);
     }
     return null;
   }
@@ -1605,43 +1573,104 @@ public class Parser {
    * @return the compilation unit member that was parsed
    */
   private CompilationUnitMember parseCompilationUnitMember(CommentAndMetadata commentAndMetadata) {
-    if (matches(Keyword.STATIC)) {
-      reportError(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
-      advance();
-    }
-    if (matches(Keyword.ABSTRACT) || matches(Keyword.CLASS)) {
-      return parseClassDeclaration(commentAndMetadata);
+    Modifiers modifiers = parseModifiers();
+    if (matches(Keyword.CLASS)) {
+      return parseClassDeclaration(commentAndMetadata, validateModifiersForClass(modifiers));
     } else if (matches(Keyword.TYPEDEF)) {
+      validateModifiersForTypedef(modifiers);
       return parseTypeAlias(commentAndMetadata);
     }
-    if (matches(Keyword.EXTERNAL)) {
-      Token externalKeyword = expect(Keyword.EXTERNAL);
+    if (matches(Keyword.VOID)) {
+      TypeName returnType = parseReturnType();
+      if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier(peek())) {
+        validateModifiersForTopLevelFunction(modifiers);
+        return parseFunctionDeclaration(
+            commentAndMetadata,
+            modifiers.getExternalKeyword(),
+            null,
+            false);
+      } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
+        // TODO(brianwilkerson) Report this error and recover.
+        return null;
+      } else if (matchesIdentifier()
+          && matchesAny(
+              peek(),
+              TokenType.OPEN_PAREN,
+              TokenType.OPEN_CURLY_BRACKET,
+              TokenType.FUNCTION)) {
+        validateModifiersForTopLevelFunction(modifiers);
+        return parseFunctionDeclaration(
+            commentAndMetadata,
+            modifiers.getExternalKeyword(),
+            null,
+            false);
+      } else {
+        // We have found an error of some kind. Try to recover.
+        if (matchesIdentifier()) {
+          if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
+            // We appear to have a variable declaration with a type of "void".
+            reportError(ParserErrorCode.VOID_VARIABLE, returnType);
+            return new TopLevelVariableDeclaration(
+                commentAndMetadata.getComment(),
+                commentAndMetadata.getMetadata(),
+                parseVariableDeclarationList(validateModifiersForTopLevelVariable(modifiers), null),
+                expect(TokenType.SEMICOLON));
+          }
+        }
+        // TODO(brianwilkerson) Report this error.
+        return null;
+      }
+    } else if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier(peek())) {
+      validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(
           commentAndMetadata,
-          externalKeyword,
-          parseOptionalReturnType(),
+          modifiers.getExternalKeyword(),
+          null,
           false);
-    } else if (matches(Keyword.CONST) || matches(Keyword.FINAL) || matches(Keyword.VAR)) {
+    } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
+      // TODO(brianwilkerson) Report this error and recover.
+      return null;
+    } else if (!matchesIdentifier()) {
+      // TODO(brianwilkerson) Report this error and recover.
+      return null;
+    } else if (matches(peek(), TokenType.OPEN_PAREN)) {
+      validateModifiersForTopLevelFunction(modifiers);
+      return parseFunctionDeclaration(
+          commentAndMetadata,
+          modifiers.getExternalKeyword(),
+          null,
+          false);
+    } else if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
       return new TopLevelVariableDeclaration(
           commentAndMetadata.getComment(),
           commentAndMetadata.getMetadata(),
-          parseVariableDeclarationList(),
+          parseVariableDeclarationList(validateModifiersForTopLevelVariable(modifiers), null),
           expect(TokenType.SEMICOLON));
-    } else if (matches(Keyword.GET) || matches(Keyword.SET)) {
-      return parseFunctionDeclaration(commentAndMetadata, null, null, false);
-    } else if (matchesIdentifier() && matches(peek(), TokenType.OPEN_PAREN)) {
-      return parseFunctionDeclaration(commentAndMetadata, null, null, false);
     }
     TypeName returnType = parseReturnType();
     if (matches(Keyword.GET) || matches(Keyword.SET)) {
-      return parseFunctionDeclaration(commentAndMetadata, null, returnType, false);
-    } else if (matchesIdentifier() && matches(peek(), TokenType.OPEN_PAREN)) {
-      return parseFunctionDeclaration(commentAndMetadata, null, returnType, false);
+      validateModifiersForTopLevelFunction(modifiers);
+      return parseFunctionDeclaration(
+          commentAndMetadata,
+          modifiers.getExternalKeyword(),
+          returnType,
+          false);
+    } else if (!matchesIdentifier()) {
+      // TODO(brianwilkerson) Report this error and recover.
+      return null;
+    }
+    if (matchesAny(peek(), TokenType.OPEN_PAREN, TokenType.FUNCTION, TokenType.OPEN_CURLY_BRACKET)) {
+      validateModifiersForTopLevelFunction(modifiers);
+      return parseFunctionDeclaration(
+          commentAndMetadata,
+          modifiers.getExternalKeyword(),
+          returnType,
+          false);
     }
     return new TopLevelVariableDeclaration(
         commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
-        parseVariableDeclarationList(returnType),
+        parseVariableDeclarationList(validateModifiersForTopLevelVariable(modifiers), returnType),
         expect(TokenType.SEMICOLON));
   }
 
@@ -1692,13 +1721,13 @@ public class Parser {
   }
 
   private ConstructorDeclaration parseConstructor(CommentAndMetadata commentAndMetadata,
-      Token externalKeyword, Token keyword, SimpleIdentifier returnType, Token period,
-      SimpleIdentifier name, FormalParameterList parameters) {
+      Token externalKeyword, Token constKeyword, Token factoryKeyword, SimpleIdentifier returnType,
+      Token period, SimpleIdentifier name, FormalParameterList parameters) {
     boolean bodyAllowed = externalKeyword == null;
-    Token colon = null;
+    Token separator = null;
     List<ConstructorInitializer> initializers = null;
     if (matches(TokenType.COLON)) {
-      colon = getAndAdvance();
+      separator = getAndAdvance();
       initializers = new ArrayList<ConstructorInitializer>();
       do {
         if (matches(Keyword.THIS)) {
@@ -1718,21 +1747,31 @@ public class Parser {
         }
       } while (optional(TokenType.COMMA));
     }
-    FunctionBody body = parseFunctionBody(true, false);
-    if (!bodyAllowed && !(body instanceof EmptyFunctionBody)) {
-      reportError(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY);
+    ConstructorName redirectedConstructor = null;
+    FunctionBody body;
+    if (matches(TokenType.EQ)) {
+      separator = getAndAdvance();
+      redirectedConstructor = parseConstructorName();
+      body = new EmptyFunctionBody(expect(TokenType.SEMICOLON));
+    } else {
+      body = parseFunctionBody(true, false);
+      if (!bodyAllowed && !(body instanceof EmptyFunctionBody)) {
+        reportError(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY);
+      }
     }
     return new ConstructorDeclaration(
         commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
         externalKeyword,
-        keyword,
+        constKeyword,
+        factoryKeyword,
         returnType,
         period,
         name,
         parameters,
-        colon,
+        separator,
         initializers,
+        redirectedConstructor,
         body);
   }
 
@@ -1741,7 +1780,7 @@ public class Parser {
    * 
    * <pre>
    * fieldInitializer:
-   *     ('this' '.')? identifier '=' conditionalExpression
+   *     ('this' '.')? identifier '=' conditionalExpression cascadeSection*
    * </pre>
    * 
    * @return the field initializer that was parsed
@@ -1756,7 +1795,40 @@ public class Parser {
     SimpleIdentifier fieldName = parseSimpleIdentifier();
     Token equals = expect(TokenType.EQ);
     Expression expression = parseConditionalExpression();
+    TokenType tokenType = currentToken.getType();
+    if (tokenType == TokenType.PERIOD_PERIOD) {
+      List<Expression> cascadeSections = new ArrayList<Expression>();
+      while (tokenType == TokenType.PERIOD_PERIOD) {
+        Expression section = parseCascadeSection();
+        if (section != null) {
+          cascadeSections.add(section);
+        }
+        tokenType = currentToken.getType();
+      }
+      expression = new CascadeExpression(expression, cascadeSections);
+    }
     return new ConstructorFieldInitializer(keyword, period, fieldName, equals, expression);
+  }
+
+  /**
+   * Parse the name of a constructor.
+   * 
+   * <pre>
+   * constructorName:
+   *     type ('.' identifier)?
+   * </pre>
+   * 
+   * @return the constructor name that was parsed
+   */
+  private ConstructorName parseConstructorName() {
+    TypeName type = parseTypeName();
+    Token period = null;
+    SimpleIdentifier name = null;
+    if (matches(TokenType.PERIOD)) {
+      period = getAndAdvance();
+      name = parseSimpleIdentifier();
+    }
+    return new ConstructorName(type, period, name);
   }
 
   /**
@@ -2470,8 +2542,15 @@ public class Parser {
     SimpleIdentifier name = parseSimpleIdentifier();
     FormalParameterList parameters = null;
     if (!isGetter) {
-      parameters = parseFormalParameterList();
-      validateFormalParameterList(parameters);
+      if (matches(TokenType.OPEN_PAREN)) {
+        parameters = parseFormalParameterList();
+        validateFormalParameterList(parameters);
+      } else {
+        reportError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
+      }
+    } else if (matches(TokenType.OPEN_PAREN)) {
+      reportError(ParserErrorCode.GETTER_WITH_PARAMETERS);
+      parseFormalParameterList();
     }
     FunctionBody body = null;
     if (externalKeyword == null) {
@@ -2503,10 +2582,28 @@ public class Parser {
    * @return the function declaration statement that was parsed
    */
   private Statement parseFunctionDeclarationStatement() {
+    return parseFunctionDeclarationStatement(parseCommentAndMetadata(), parseOptionalReturnType());
+  }
+
+  /**
+   * Parse a function declaration statement.
+   * 
+   * <pre>
+   * functionDeclarationStatement ::=
+   *     functionSignature functionBody
+   * </pre>
+   * 
+   * @param commentAndMetadata the documentation comment and metadata to be associated with the
+   *          declaration
+   * @param returnType the return type, or {@code null} if there is no return type
+   * @return the function declaration statement that was parsed
+   */
+  private Statement parseFunctionDeclarationStatement(CommentAndMetadata commentAndMetadata,
+      TypeName returnType) {
     return new FunctionDeclarationStatement(parseFunctionDeclaration(
-        parseCommentAndMetadata(),
+        commentAndMetadata,
         null,
-        parseOptionalReturnType(),
+        returnType,
         true));
   }
 
@@ -2723,15 +2820,9 @@ public class Parser {
    * @return the instance creation expression that was parsed
    */
   private InstanceCreationExpression parseInstanceCreationExpression(Token keyword) {
-    TypeName type = parseTypeName();
-    Token period = null;
-    SimpleIdentifier identifier = null;
-    if (matches(TokenType.PERIOD)) {
-      period = getAndAdvance();
-      identifier = parseSimpleIdentifier();
-    }
+    ConstructorName constructorName = parseConstructorName();
     ArgumentList argumentList = parseArgumentList();
-    return new InstanceCreationExpression(keyword, type, period, identifier, argumentList);
+    return new InstanceCreationExpression(keyword, constructorName, argumentList);
   }
 
   /**
@@ -2802,8 +2893,11 @@ public class Parser {
    */
   private ListLiteral parseListLiteral(Token modifier, TypeArgumentList typeArguments) {
     if (matches(TokenType.INDEX)) {
-      Token leftBracket = new Token(TokenType.OPEN_SQUARE_BRACKET, currentToken.getOffset());
+      BeginToken leftBracket = new BeginToken(
+          TokenType.OPEN_SQUARE_BRACKET,
+          currentToken.getOffset());
       Token rightBracket = new Token(TokenType.CLOSE_SQUARE_BRACKET, currentToken.getOffset() + 1);
+      leftBracket.setEndToken(rightBracket);
       rightBracket.setNext(currentToken.getNext());
       leftBracket.setNext(rightBracket);
       currentToken.getPrevious().setNext(leftBracket);
@@ -3019,6 +3113,79 @@ public class Parser {
   }
 
   /**
+   * Parse the modifiers preceding a declaration. This method allows the modifiers to appear in any
+   * order but does generate errors for duplicated modifiers. Checks for other problems, such as
+   * having the modifiers appear in the wrong order or specifying both 'const' and 'final', are
+   * reported in one of the methods whose name is prefixed with {@code validateModifiersFor}.
+   * 
+   * <pre>
+   * modifiers ::=
+   *     ('abstract' | 'const' | 'external' | 'factory' | 'final' | 'static' | 'var')*
+   * </pre>
+   * 
+   * @return the modifiers that were parsed
+   */
+  private Modifiers parseModifiers() {
+    Modifiers modifiers = new Modifiers();
+    boolean progress = true;
+    while (progress) {
+      if (matches(Keyword.ABSTRACT)) {
+        if (modifiers.getAbstractKeyword() != null) {
+          reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
+          advance();
+        } else {
+          modifiers.setAbstractKeyword(getAndAdvance());
+        }
+      } else if (matches(Keyword.CONST)) {
+        if (modifiers.getConstKeyword() != null) {
+          reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
+          advance();
+        } else {
+          modifiers.setConstKeyword(getAndAdvance());
+        }
+      } else if (matches(Keyword.EXTERNAL)) {
+        if (modifiers.getExternalKeyword() != null) {
+          reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
+          advance();
+        } else {
+          modifiers.setExternalKeyword(getAndAdvance());
+        }
+      } else if (matches(Keyword.FACTORY)) {
+        if (modifiers.getFactoryKeyword() != null) {
+          reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
+          advance();
+        } else {
+          modifiers.setFactoryKeyword(getAndAdvance());
+        }
+      } else if (matches(Keyword.FINAL)) {
+        if (modifiers.getFinalKeyword() != null) {
+          reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
+          advance();
+        } else {
+          modifiers.setFinalKeyword(getAndAdvance());
+        }
+      } else if (matches(Keyword.STATIC)) {
+        if (modifiers.getStaticKeyword() != null) {
+          reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
+          advance();
+        } else {
+          modifiers.setStaticKeyword(getAndAdvance());
+        }
+      } else if (matches(Keyword.VAR)) {
+        if (modifiers.getVarKeyword() != null) {
+          reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
+          advance();
+        } else {
+          modifiers.setVarKeyword(getAndAdvance());
+        }
+      } else {
+        progress = false;
+      }
+    }
+    return modifiers;
+  }
+
+  /**
    * Parse a multiplicative expression.
    * 
    * <pre>
@@ -3081,6 +3248,8 @@ public class Parser {
    * @return the non-labeled statement that was parsed
    */
   private Statement parseNonLabeledStatement() {
+    // TODO(brianwilkerson) Pass the comment and metadata on where appropriate.
+    CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     if (matches(TokenType.OPEN_CURLY_BRACKET)) {
       if (matches(peek(), TokenType.STRING)) {
         Token afterString = skipStringLiteral(currentToken.getNext());
@@ -3117,10 +3286,33 @@ public class Parser {
       } else if (keyword == Keyword.VAR || keyword == Keyword.FINAL) {
         return parseVariableDeclarationStatement();
       } else if (keyword == Keyword.VOID) {
-        return parseFunctionDeclarationStatement();
+        TypeName returnType = parseReturnType();
+        if (matchesIdentifier()
+            && matchesAny(
+                peek(),
+                TokenType.OPEN_PAREN,
+                TokenType.OPEN_CURLY_BRACKET,
+                TokenType.FUNCTION)) {
+          return parseFunctionDeclarationStatement(commentAndMetadata, returnType);
+        } else {
+          // We have found an error of some kind. Try to recover.
+          if (matchesIdentifier()) {
+            if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
+              // We appear to have a variable declaration with a type of "void".
+              reportError(ParserErrorCode.VOID_VARIABLE, returnType);
+              return parseVariableDeclarationStatement();
+            }
+          }
+          // TODO(brianwilkerson) Report this error.
+          return null;
+        }
       } else if (keyword == Keyword.CONST) {
-        if (matches(peek(), TokenType.LT) || matches(peek(), TokenType.OPEN_CURLY_BRACKET)
-            || matches(peek(), TokenType.OPEN_SQUARE_BRACKET) || matches(peek(), TokenType.INDEX)) {
+        if (matchesAny(
+            peek(),
+            TokenType.LT,
+            TokenType.OPEN_CURLY_BRACKET,
+            TokenType.OPEN_SQUARE_BRACKET,
+            TokenType.INDEX)) {
           return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
         } else if (matches(peek(), TokenType.IDENTIFIER)) {
           Token afterType = skipTypeName(peek());
@@ -3273,11 +3465,15 @@ public class Parser {
    * @return the return type that was parsed
    */
   private TypeName parseOptionalReturnType() {
-    if (matches(Keyword.VOID)
-        || (matchesIdentifier() && !matches(Keyword.GET) && !matches(Keyword.SET)
-            && !matches(Keyword.OPERATOR) && (matchesIdentifier(peek()) || matches(
-            peek(),
-            TokenType.LT)))) {
+    if (matches(Keyword.VOID)) {
+      return parseReturnType();
+    } else if (matchesIdentifier() && !matches(Keyword.GET) && !matches(Keyword.SET)
+        && !matches(Keyword.OPERATOR)
+        && (matchesIdentifier(peek()) || matches(peek(), TokenType.LT))) {
+      return parseReturnType();
+    } else if (matchesIdentifier() && matches(peek(), TokenType.PERIOD)
+        && matchesIdentifier(peek(2))
+        && (matchesIdentifier(peek(3)) || matches(peek(3), TokenType.LT))) {
       return parseReturnType();
     }
     return null;
@@ -4039,6 +4235,28 @@ public class Parser {
     if (matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
+    if (matches(TokenType.SEMICOLON)) {
+      reportError(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
+      FormalParameterList parameters = new FormalParameterList(
+          createSyntheticToken(TokenType.OPEN_PAREN),
+          null,
+          null,
+          null,
+          createSyntheticToken(TokenType.CLOSE_PAREN));
+      Token semicolon = expect(TokenType.SEMICOLON);
+      return new TypeAlias(
+          commentAndMetadata.getComment(),
+          commentAndMetadata.getMetadata(),
+          keyword,
+          returnType,
+          name,
+          typeParameters,
+          parameters,
+          semicolon);
+    } else if (!matches(TokenType.OPEN_PAREN)) {
+      // TODO(brianwilkerson) Report this error and recover.
+      return null;
+    }
     FormalParameterList parameters = parseFormalParameterList();
     validateFormalParameterList(parameters);
     Token semicolon = expect(TokenType.SEMICOLON);
@@ -4278,21 +4496,6 @@ public class Parser {
   }
 
   /**
-   * Parse a variable declaration list.
-   * 
-   * <pre>
-   * variableDeclarationList ::=
-   *     finalConstVarOrType variableDeclaration (',' variableDeclaration)*
-   * </pre>
-   * 
-   * @param type the type of the variables
-   * @return the variable declaration list that was parsed
-   */
-  private VariableDeclarationList parseVariableDeclarationList(TypeName type) {
-    return parseVariableDeclarationList(null, type);
-  }
-
-  /**
    * Parse a variable declaration statement.
    * 
    * <pre>
@@ -4490,12 +4693,11 @@ public class Parser {
     // Look to see whether the token after the open parenthesis is something that should only occur
     // at the beginning of a parameter list.
     //
-    if (matches(next, TokenType.AT)
-        || matches(next, TokenType.OPEN_SQUARE_BRACKET)
-        || matches(next, TokenType.OPEN_CURLY_BRACKET)
+    if (matchesAny(next, TokenType.AT, TokenType.OPEN_SQUARE_BRACKET, TokenType.OPEN_CURLY_BRACKET)
         || matches(next, Keyword.VOID)
-        || (matchesIdentifier(next) && (matches(next.getNext(), TokenType.COMMA) || matches(
+        || (matchesIdentifier(next) && (matchesAny(
             next.getNext(),
+            TokenType.COMMA,
             TokenType.CLOSE_PAREN)))) {
       return skipPastMatchingToken(startToken);
     }
@@ -4505,9 +4707,7 @@ public class Parser {
     if (matchesIdentifier(next) && matches(next.getNext(), TokenType.OPEN_PAREN)) {
       Token afterParameters = skipFormalParameterList(next.getNext());
       if (afterParameters != null
-          && (matches(afterParameters.getNext(), TokenType.COMMA) || matches(
-              afterParameters.getNext(),
-              TokenType.CLOSE_PAREN))) {
+          && (matchesAny(afterParameters, TokenType.COMMA, TokenType.CLOSE_PAREN))) {
         return skipPastMatchingToken(startToken);
       }
     }
@@ -4940,13 +5140,39 @@ public class Parser {
   }
 
   /**
+   * Validate that the given set of modifiers is appropriate for a class and return the 'abstract'
+   * keyword if there is one.
+   * 
+   * @param modifiers the modifiers being validated
+   */
+  private Token validateModifiersForClass(Modifiers modifiers) {
+    validateModifiersForTopLevelDeclaration(modifiers);
+    if (modifiers.getConstKeyword() != null) {
+      reportError(ParserErrorCode.CONST_CLASS, modifiers.getConstKeyword());
+    }
+    if (modifiers.getExternalKeyword() != null) {
+      reportError(ParserErrorCode.EXTERNAL_CLASS, modifiers.getExternalKeyword());
+    }
+    if (modifiers.getFinalKeyword() != null) {
+      reportError(ParserErrorCode.FINAL_CLASS, modifiers.getFinalKeyword());
+    }
+    if (modifiers.getVarKeyword() != null) {
+      reportError(ParserErrorCode.VAR_CLASS, modifiers.getVarKeyword());
+    }
+    return modifiers.getAbstractKeyword();
+  }
+
+  /**
    * Validate that the given set of modifiers is appropriate for a constructor and return the
-   * 'const' or 'final' keyword if there is one.
+   * 'const' keyword if there is one.
    * 
    * @param modifiers the modifiers being validated
    * @return the 'const' or 'final' keyword associated with the constructor
    */
   private Token validateModifiersForConstructor(Modifiers modifiers) {
+    if (modifiers.getAbstractKeyword() != null) {
+      reportError(ParserErrorCode.ABSTRACT_CLASS_MEMBER);
+    }
     if (modifiers.getFinalKeyword() != null) {
       reportError(ParserErrorCode.FINAL_CONSTRUCTOR, modifiers.getFinalKeyword());
     }
@@ -4959,9 +5185,6 @@ public class Parser {
     Token externalKeyword = modifiers.getExternalKeyword();
     Token constKeyword = modifiers.getConstKeyword();
     Token factoryKeyword = modifiers.getFactoryKeyword();
-    if (constKeyword != null && factoryKeyword != null) {
-      reportError(ParserErrorCode.CONST_AND_FACTORY, factoryKeyword);
-    }
     if (externalKeyword != null && constKeyword != null
         && constKeyword.getOffset() < externalKeyword.getOffset()) {
       reportError(ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword);
@@ -4970,7 +5193,7 @@ public class Parser {
         && factoryKeyword.getOffset() < externalKeyword.getOffset()) {
       reportError(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword);
     }
-    return lexicallyFirst(constKeyword, factoryKeyword);
+    return constKeyword;
   }
 
   /**
@@ -4981,6 +5204,9 @@ public class Parser {
    * @return the 'final', 'const' or 'var' keyword associated with the field
    */
   private Token validateModifiersForField(Modifiers modifiers) {
+    if (modifiers.getAbstractKeyword() != null) {
+      reportError(ParserErrorCode.ABSTRACT_CLASS_MEMBER);
+    }
     if (modifiers.getExternalKeyword() != null) {
       reportError(ParserErrorCode.EXTERNAL_FIELD, modifiers.getExternalKeyword());
     }
@@ -5021,6 +5247,9 @@ public class Parser {
    * @param modifiers the modifiers being validated
    */
   private void validateModifiersForGetterOrSetterOrMethod(Modifiers modifiers) {
+    if (modifiers.getAbstractKeyword() != null) {
+      reportError(ParserErrorCode.ABSTRACT_CLASS_MEMBER);
+    }
     if (modifiers.getConstKeyword() != null) {
       reportError(ParserErrorCode.CONST_METHOD, modifiers.getConstKeyword());
     }
@@ -5047,6 +5276,9 @@ public class Parser {
    * @param modifiers the modifiers being validated
    */
   private void validateModifiersForOperator(Modifiers modifiers) {
+    if (modifiers.getAbstractKeyword() != null) {
+      reportError(ParserErrorCode.ABSTRACT_CLASS_MEMBER);
+    }
     if (modifiers.getConstKeyword() != null) {
       reportError(ParserErrorCode.CONST_METHOD, modifiers.getConstKeyword());
     }
@@ -5061,6 +5293,99 @@ public class Parser {
     }
     if (modifiers.getVarKeyword() != null) {
       reportError(ParserErrorCode.VAR_RETURN_TYPE, modifiers.getVarKeyword());
+    }
+  }
+
+  /**
+   * Validate that the given set of modifiers is appropriate for a top-level declaration.
+   * 
+   * @param modifiers the modifiers being validated
+   */
+  private void validateModifiersForTopLevelDeclaration(Modifiers modifiers) {
+    if (modifiers.getFactoryKeyword() != null) {
+      reportError(ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, modifiers.getFactoryKeyword());
+    }
+    if (modifiers.getStaticKeyword() != null) {
+      reportError(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION, modifiers.getStaticKeyword());
+    }
+  }
+
+  /**
+   * Validate that the given set of modifiers is appropriate for a top-level function.
+   * 
+   * @param modifiers the modifiers being validated
+   */
+  private void validateModifiersForTopLevelFunction(Modifiers modifiers) {
+    validateModifiersForTopLevelDeclaration(modifiers);
+    if (modifiers.getAbstractKeyword() != null) {
+      reportError(ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION);
+    }
+    if (modifiers.getConstKeyword() != null) {
+      reportError(ParserErrorCode.CONST_CLASS, modifiers.getConstKeyword());
+    }
+    if (modifiers.getFinalKeyword() != null) {
+      reportError(ParserErrorCode.FINAL_CLASS, modifiers.getFinalKeyword());
+    }
+    if (modifiers.getVarKeyword() != null) {
+      reportError(ParserErrorCode.VAR_RETURN_TYPE, modifiers.getVarKeyword());
+    }
+  }
+
+  /**
+   * Validate that the given set of modifiers is appropriate for a field and return the 'final',
+   * 'const' or 'var' keyword if there is one.
+   * 
+   * @param modifiers the modifiers being validated
+   * @return the 'final', 'const' or 'var' keyword associated with the field
+   */
+  private Token validateModifiersForTopLevelVariable(Modifiers modifiers) {
+    validateModifiersForTopLevelDeclaration(modifiers);
+    if (modifiers.getAbstractKeyword() != null) {
+      reportError(ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE);
+    }
+    if (modifiers.getExternalKeyword() != null) {
+      reportError(ParserErrorCode.EXTERNAL_FIELD, modifiers.getExternalKeyword());
+    }
+    Token constKeyword = modifiers.getConstKeyword();
+    Token finalKeyword = modifiers.getFinalKeyword();
+    Token varKeyword = modifiers.getVarKeyword();
+    if (constKeyword != null) {
+      if (finalKeyword != null) {
+        reportError(ParserErrorCode.CONST_AND_FINAL, finalKeyword);
+      }
+      if (varKeyword != null) {
+        reportError(ParserErrorCode.CONST_AND_VAR, varKeyword);
+      }
+    } else if (finalKeyword != null) {
+      if (varKeyword != null) {
+        reportError(ParserErrorCode.FINAL_AND_VAR, varKeyword);
+      }
+    }
+    return lexicallyFirst(constKeyword, finalKeyword, varKeyword);
+  }
+
+  /**
+   * Validate that the given set of modifiers is appropriate for a class and return the 'abstract'
+   * keyword if there is one.
+   * 
+   * @param modifiers the modifiers being validated
+   */
+  private void validateModifiersForTypedef(Modifiers modifiers) {
+    validateModifiersForTopLevelDeclaration(modifiers);
+    if (modifiers.getAbstractKeyword() != null) {
+      reportError(ParserErrorCode.ABSTRACT_TYPEDEF, modifiers.getAbstractKeyword());
+    }
+    if (modifiers.getConstKeyword() != null) {
+      reportError(ParserErrorCode.CONST_TYPEDEF, modifiers.getConstKeyword());
+    }
+    if (modifiers.getExternalKeyword() != null) {
+      reportError(ParserErrorCode.EXTERNAL_TYPEDEF, modifiers.getExternalKeyword());
+    }
+    if (modifiers.getFinalKeyword() != null) {
+      reportError(ParserErrorCode.FINAL_TYPEDEF, modifiers.getFinalKeyword());
+    }
+    if (modifiers.getVarKeyword() != null) {
+      reportError(ParserErrorCode.VAR_TYPEDEF, modifiers.getVarKeyword());
     }
   }
 }

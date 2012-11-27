@@ -152,8 +152,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     SimpleIdentifier constructorName = node.getName();
     ConstructorElementImpl element = new ConstructorElementImpl(constructorName);
-    Token keyword = node.getKeyword();
-    if (keyword instanceof KeywordToken && ((KeywordToken) keyword).getKeyword() == Keyword.FACTORY) {
+    if (node.getFactoryKeyword() != null) {
       element.setFactory(true);
     }
     element.setFunctions(holder.getFunctions());

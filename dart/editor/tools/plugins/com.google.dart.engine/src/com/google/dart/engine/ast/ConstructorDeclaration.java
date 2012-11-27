@@ -47,9 +47,14 @@ public class ConstructorDeclaration extends ClassMember {
   private Token externalKeyword;
 
   /**
-   * The token for the 'factory' or 'const' keyword.
+   * The token for the 'const' keyword.
    */
-  private Token keyword;
+  private Token constKeyword;
+
+  /**
+   * The token for the 'factory' keyword.
+   */
+  private Token factoryKeyword;
 
   /**
    * The type of object being created. This can be different than the type in which the constructor
@@ -74,14 +79,21 @@ public class ConstructorDeclaration extends ClassMember {
   private FormalParameterList parameters;
 
   /**
-   * The token for the colon before the initializers, or {@code null} if there are no initializers.
+   * The token for the separator (colon or equals) before the initializers, or {@code null} if there
+   * are no initializers.
    */
-  private Token colon;
+  private Token separator;
 
   /**
    * The initializers associated with the constructor.
    */
   private NodeList<ConstructorInitializer> initializers = new NodeList<ConstructorInitializer>(this);
+
+  /**
+   * The name of the constructor to which this constructor will be redirected, or {@code null} if
+   * this is not a redirecting factory constructor.
+   */
+  private ConstructorName redirectedConstructor;
 
   /**
    * The body of the constructor, or {@code null} if the constructor does not have a body.
@@ -100,28 +112,34 @@ public class ConstructorDeclaration extends ClassMember {
    * @param externalKeyword the token for the 'external' keyword
    * @param comment the documentation comment associated with this constructor
    * @param metadata the annotations associated with this constructor
-   * @param keyword the token for the 'factory' or 'const' keyword
+   * @param constKeyword the token for the 'const' keyword
+   * @param factoryKeyword the token for the 'factory' keyword
    * @param returnType the return type of the constructor
    * @param period the token for the period before the constructor name
    * @param name the name of the constructor
    * @param parameters the parameters associated with the constructor
-   * @param colon the token for the colon before the initializers
+   * @param separator the token for the colon or equals before the initializers
    * @param initializers the initializers associated with the constructor
+   * @param redirectedConstructor the name of the constructor to which this constructor will be
+   *          redirected
    * @param body the body of the constructor
    */
   public ConstructorDeclaration(Comment comment, List<Annotation> metadata, Token externalKeyword,
-      Token keyword, Identifier returnType, Token period, SimpleIdentifier name,
-      FormalParameterList parameters, Token colon, List<ConstructorInitializer> initializers,
+      Token constKeyword, Token factoryKeyword, Identifier returnType, Token period,
+      SimpleIdentifier name, FormalParameterList parameters, Token separator,
+      List<ConstructorInitializer> initializers, ConstructorName redirectedConstructor,
       FunctionBody body) {
     super(comment, metadata);
     this.externalKeyword = externalKeyword;
-    this.keyword = keyword;
+    this.constKeyword = constKeyword;
+    this.factoryKeyword = factoryKeyword;
     this.returnType = becomeParentOf(returnType);
     this.period = period;
     this.name = becomeParentOf(name);
     this.parameters = becomeParentOf(parameters);
-    this.colon = colon;
+    this.separator = separator;
     this.initializers.addAll(initializers);
+    this.redirectedConstructor = becomeParentOf(redirectedConstructor);
     this.body = becomeParentOf(body);
   }
 
@@ -140,13 +158,12 @@ public class ConstructorDeclaration extends ClassMember {
   }
 
   /**
-   * Return the token for the colon before the initializers, or {@code null} if there are no
-   * initializers.
+   * Return the token for the 'const' keyword.
    * 
-   * @return the token for the colon before the initializers
+   * @return the token for the 'const' keyword
    */
-  public Token getColon() {
-    return colon;
+  public Token getConstKeyword() {
+    return constKeyword;
   }
 
   @Override
@@ -170,21 +187,21 @@ public class ConstructorDeclaration extends ClassMember {
   }
 
   /**
+   * Return the token for the 'factory' keyword.
+   * 
+   * @return the token for the 'factory' keyword
+   */
+  public Token getFactoryKeyword() {
+    return factoryKeyword;
+  }
+
+  /**
    * Return the initializers associated with the constructor.
    * 
    * @return the initializers associated with the constructor
    */
   public NodeList<ConstructorInitializer> getInitializers() {
     return initializers;
-  }
-
-  /**
-   * Return the token for the 'factory' or 'const' keyword.
-   * 
-   * @return the token for the 'factory' or 'const' keyword
-   */
-  public Token getKeyword() {
-    return keyword;
   }
 
   /**
@@ -217,6 +234,16 @@ public class ConstructorDeclaration extends ClassMember {
   }
 
   /**
+   * Return the name of the constructor to which this constructor will be redirected, or
+   * {@code null} if this is not a redirecting factory constructor.
+   * 
+   * @return the name of the constructor to which this constructor will be redirected
+   */
+  public ConstructorName getRedirectedConstructor() {
+    return redirectedConstructor;
+  }
+
+  /**
    * Return the type of object being created. This can be different than the type in which the
    * constructor is being declared if the constructor is the implementation of a factory
    * constructor.
@@ -225,6 +252,16 @@ public class ConstructorDeclaration extends ClassMember {
    */
   public Identifier getReturnType() {
     return returnType;
+  }
+
+  /**
+   * Return the token for the separator (colon or equals) before the initializers, or {@code null}
+   * if there are no initializers.
+   * 
+   * @return the token for the separator (colon or equals) before the initializers
+   */
+  public Token getSeparator() {
+    return separator;
   }
 
   /**
@@ -237,12 +274,12 @@ public class ConstructorDeclaration extends ClassMember {
   }
 
   /**
-   * Set the token for the colon before the initializers to the given token.
+   * Set the token for the 'const' keyword to the given token.
    * 
-   * @param colon the token for the colon before the initializers
+   * @param constKeyword the token for the 'const' keyword
    */
-  public void setColon(Token colon) {
-    this.colon = colon;
+  public void setConstKeyword(Token constKeyword) {
+    this.constKeyword = constKeyword;
   }
 
   /**
@@ -255,12 +292,12 @@ public class ConstructorDeclaration extends ClassMember {
   }
 
   /**
-   * Set the token for the 'factory' or 'const' keyword to the given token.
+   * Set the token for the 'factory' keyword to the given token.
    * 
-   * @param keyword the token for the 'factory' or 'const' keyword
+   * @param factoryKeyword the token for the 'factory' keyword
    */
-  public void setKeyword(Token keyword) {
-    this.keyword = keyword;
+  public void setFactoryKeyword(Token factoryKeyword) {
+    this.factoryKeyword = factoryKeyword;
   }
 
   /**
@@ -291,12 +328,32 @@ public class ConstructorDeclaration extends ClassMember {
   }
 
   /**
+   * Set the name of the constructor to which this constructor will be redirected to the given
+   * constructor name.
+   * 
+   * @param redirectedConstructor the name of the constructor to which this constructor will be
+   *          redirected
+   */
+  public void setRedirectedConstructor(ConstructorName redirectedConstructor) {
+    this.redirectedConstructor = becomeParentOf(redirectedConstructor);
+  }
+
+  /**
    * Set the type of object being created to the given type name.
    * 
    * @param typeName the type of object being created
    */
   public void setReturnType(Identifier typeName) {
     returnType = becomeParentOf(typeName);
+  }
+
+  /**
+   * Set the token for the separator (colon or equals) before the initializers to the given token.
+   * 
+   * @param separator the token for the separator (colon or equals) before the initializers
+   */
+  public void setSeparator(Token separator) {
+    this.separator = separator;
   }
 
   @Override
@@ -311,9 +368,28 @@ public class ConstructorDeclaration extends ClassMember {
 
   @Override
   protected Token getFirstTokenAfterCommentAndMetadata() {
-    if (keyword != null) {
-      return keyword;
+    Token leftMost = leftMost(externalKeyword, constKeyword, factoryKeyword);
+    if (leftMost != null) {
+      return leftMost;
     }
     return returnType.getBeginToken();
+  }
+
+  /**
+   * Return the left-most of the given tokens, or {@code null} if there are no tokens given or if
+   * all of the given tokens are {@code null}.
+   * 
+   * @param tokens the tokens being compared to find the left-most token
+   * @return the left-most of the given tokens
+   */
+  private Token leftMost(Token... tokens) {
+    Token leftMost = null;
+    int offset = Integer.MAX_VALUE;
+    for (Token token : tokens) {
+      if (token != null && token.getOffset() < offset) {
+        leftMost = token;
+      }
+    }
+    return leftMost;
   }
 }

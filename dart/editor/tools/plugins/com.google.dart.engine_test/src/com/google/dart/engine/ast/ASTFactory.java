@@ -219,30 +219,40 @@ public final class ASTFactory {
         elseExpression);
   }
 
-  public static ConstructorDeclaration constructorDeclaration(Keyword keyword,
-      Identifier returnType, String name, FormalParameterList parameters,
-      List<ConstructorInitializer> initializers) {
-    return new ConstructorDeclaration(null, null, token(Keyword.EXTERNAL), keyword == null ? null
-        : token(keyword), returnType, name == null ? null : token(TokenType.PERIOD), name == null
-        ? null : identifier(name), parameters, initializers == null || initializers.isEmpty()
-        ? null : token(TokenType.PERIOD), initializers == null
-        ? new ArrayList<ConstructorInitializer>() : initializers, emptyFunctionBody());
-  }
-
-  public static ConstructorDeclaration constructorDeclaration(Keyword keyword,
-      Identifier returnType, String name, FormalParameterList parameters,
-      List<ConstructorInitializer> initializers, FunctionBody body) {
+  public static ConstructorDeclaration constructorDeclaration(Identifier returnType, String name,
+      FormalParameterList parameters, List<ConstructorInitializer> initializers) {
     return new ConstructorDeclaration(
         null,
         null,
+        token(Keyword.EXTERNAL),
         null,
-        keyword == null ? null : token(keyword),
+        null,
         returnType,
         name == null ? null : token(TokenType.PERIOD),
         name == null ? null : identifier(name),
         parameters,
         initializers == null || initializers.isEmpty() ? null : token(TokenType.PERIOD),
         initializers == null ? new ArrayList<ConstructorInitializer>() : initializers,
+        null,
+        emptyFunctionBody());
+  }
+
+  public static ConstructorDeclaration constructorDeclaration(Keyword constKeyword,
+      Keyword factoryKeyword, Identifier returnType, String name, FormalParameterList parameters,
+      List<ConstructorInitializer> initializers, FunctionBody body) {
+    return new ConstructorDeclaration(
+        null,
+        null,
+        null,
+        constKeyword == null ? null : token(constKeyword),
+        factoryKeyword == null ? null : token(factoryKeyword),
+        returnType,
+        name == null ? null : token(TokenType.PERIOD),
+        name == null ? null : identifier(name),
+        parameters,
+        initializers == null || initializers.isEmpty() ? null : token(TokenType.PERIOD),
+        initializers == null ? new ArrayList<ConstructorInitializer>() : initializers,
+        null,
         body);
   }
 
@@ -254,6 +264,11 @@ public final class ASTFactory {
         identifier(fieldName),
         token(TokenType.EQ),
         expression);
+  }
+
+  public static ConstructorName constructorName(TypeName type, String name) {
+    return new ConstructorName(type, name == null ? null : token(TokenType.PERIOD), name == null
+        ? null : identifier(name));
   }
 
   public static ContinueStatement continueStatement() {
@@ -517,10 +532,10 @@ public final class ASTFactory {
       TypeName type, String identifier, Expression... arguments) {
     return new InstanceCreationExpression(
         keyword == null ? null : token(keyword),
-        type,
-        identifier == null ? null : token(TokenType.PERIOD),
-        identifier == null ? null : identifier(identifier),
-        argumentList(arguments));
+        new ConstructorName(
+            type,
+            identifier == null ? null : token(TokenType.PERIOD),
+            identifier == null ? null : identifier(identifier)), argumentList(arguments));
   }
 
   public static IntegerLiteral integer(long value) {
@@ -657,11 +672,8 @@ public final class ASTFactory {
 
   public static DefaultFormalParameter namedFormalParameter(NormalFormalParameter parameter,
       Expression expression) {
-    return new DefaultFormalParameter(
-        parameter,
-        ParameterKind.NAMED,
-        expression == null ? null : token(TokenType.COLON),
-        expression);
+    return new DefaultFormalParameter(parameter, ParameterKind.NAMED, expression == null ? null
+        : token(TokenType.COLON), expression);
   }
 
   public static NullLiteral nullLiteral() {
@@ -705,11 +717,8 @@ public final class ASTFactory {
 
   public static DefaultFormalParameter positionalFormalParameter(NormalFormalParameter parameter,
       Expression expression) {
-    return new DefaultFormalParameter(
-        parameter,
-        ParameterKind.POSITIONAL,
-        expression == null ? null : token(TokenType.EQ),
-        expression);
+    return new DefaultFormalParameter(parameter, ParameterKind.POSITIONAL, expression == null
+        ? null : token(TokenType.EQ), expression);
   }
 
   public static PostfixExpression postfixExpression(Expression expression, TokenType operator) {
@@ -888,6 +897,13 @@ public final class ASTFactory {
 
   public static TypeArgumentList typeArgumentList(TypeName... typeNames) {
     return new TypeArgumentList(token(TokenType.LT), list(typeNames), token(TokenType.GT));
+  }
+
+  public static TypeName typeName(Identifier name, TypeName... arguments) {
+    if (arguments.length == 0) {
+      return new TypeName(name, null);
+    }
+    return new TypeName(name, typeArgumentList(arguments));
   }
 
   public static TypeName typeName(String name, TypeName... arguments) {

@@ -25,18 +25,22 @@ import com.google.dart.engine.error.SubSystem;
  * when appropriate, how the problem can be corrected.
  */
 public enum ParserErrorCode implements ErrorCode {
-  ABSTRACT_CLASS_MEMBER("Members of classes cannot be marked as 'abstract'"),
-  ABSTRACT_STATIC_METHOD("Static methods cannot be abstract"),
+  ABSTRACT_CLASS_MEMBER("Members of classes cannot be declared to be 'abstract'"),
+  ABSTRACT_STATIC_METHOD("Static methods cannot be declared to be 'abstract'"),
+  ABSTRACT_TOP_LEVEL_FUNCTION("Top-level functions cannot be declared to be 'abstract'"),
+  ABSTRACT_TOP_LEVEL_VARIABLE("Top-level variables cannot be declared to be 'abstract'"),
+  ABSTRACT_TYPEDEF("Type aliases cannot be declared to be 'abstract'"),
   BREAK_OUTSIDE_OF_LOOP("A break statement cannot be used outside of a loop or switch statement"),
   BUILT_IN_IDENTIFIER_AS_TYPE_NAME("The built-in identifier '%s' cannot be used as a type name"),
   BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME(
       "The built-in identifier '%s' cannot be used as a type alias name"),
   BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME(
       "The built-in identifier '%s' cannot be used as a type variable name"),
-  CONST_AND_FACTORY("Constructors cannot be declared to be both 'const' and 'factory'"),
   CONST_AND_FINAL("Members cannot be declared to be both 'const' and 'final'"),
   CONST_AND_VAR("Members cannot be declared to be both 'const' and 'var'"),
+  CONST_CLASS("Classes cannot be declared to be 'const'"),
   CONST_METHOD("Getters, setters and methods cannot be declared to be 'const'"),
+  CONST_TYPEDEF("Type aliases cannot be declared to be 'const'"),
   CONSTRUCTOR_WITH_RETURN_TYPE("Constructors cannot have a return type"),
   CONTINUE_OUTSIDE_OF_LOOP(
       "A continue statement cannot be used outside of a loop or switch statement"),
@@ -53,16 +57,21 @@ public enum ParserErrorCode implements ErrorCode {
   EXTERNAL_AFTER_CONST("The modifier 'external' should be before the modifier 'const'"),
   EXTERNAL_AFTER_FACTORY("The modifier 'external' should be before the modifier 'factory'"),
   EXTERNAL_AFTER_STATIC("The modifier 'external' should be before the modifier 'static'"),
+  EXTERNAL_CLASS("Classes cannot be declared to be 'external'"),
   EXTERNAL_CONSTRUCTOR_WITH_BODY("External constructors cannot have a body"),
-  EXTERNAL_FIELD("Fields cannot be declared 'external'"),
+  EXTERNAL_FIELD("Fields cannot be declared to be 'external'"),
   EXTERNAL_GETTER_WITH_BODY("External getters cannot have a body"),
   EXTERNAL_METHOD_WITH_BODY("External methods cannot have a body"),
   EXTERNAL_OPERATOR_WITH_BODY("External operators cannot have a body"),
   EXTERNAL_SETTER_WITH_BODY("External setters cannot have a body"),
+  EXTERNAL_TYPEDEF("Type aliases cannot be declared to be 'external'"),
+  FACTORY_TOP_LEVEL_DECLARATION("Top-level declarations cannot be declared to be 'factory'"),
   FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR("Field initializers can only be used in a constructor"),
   FINAL_AND_VAR("Members cannot be declared to be both 'final' and 'var'"),
+  FINAL_CLASS("Classes cannot be declared to be 'final'"),
   FINAL_CONSTRUCTOR("A constructor cannot be declared to be 'final'"),
   FINAL_METHOD("Getters, setters and methods cannot be declared to be 'final'"),
+  FINAL_TYPEDEF("Type aliases cannot be declared to be 'final'"),
   GETTER_WITH_PARAMETERS("Getter should be declared without a parameter list"),
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
   IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE("Import directives must preceed part directives"),
@@ -83,9 +92,11 @@ public enum ParserErrorCode implements ErrorCode {
   MISSING_CONST_FINAL_VAR_OR_TYPE(
       "Variables must be declared using the keywords 'const', 'final', 'var' or a type name"),
   MISSING_FUNCTION_BODY("A function body must be provided"),
+  MISSING_FUNCTION_PARAMETERS("Functions must have an explicit list of parameters"),
   MISSING_IDENTIFIER("Expected an identifier"),
   MISSING_NAME_IN_LIBRARY_DIRECTIVE("Library directives must include a library name"),
   MISSING_NAME_IN_PART_OF_DIRECTIVE("Library directives must include a library name"),
+  MISSING_TYPEDEF_PARAMETERS("Type aliases for functions must have an explicit list of parameters"),
   MISSING_VARIABLE_IN_FOR_EACH(
       "A loop variable must be declared in a for-each loop before the 'in', but none were found"),
   MIXED_PARAMETER_GROUPS(
@@ -111,15 +122,18 @@ public enum ParserErrorCode implements ErrorCode {
   STATIC_AFTER_VAR("The modifier 'static' should be before the modifier 'var'"),
   STATIC_CONSTRUCTOR("Constructors cannot be static"),
   STATIC_OPERATOR("Operators cannot be static"),
-  STATIC_TOP_LEVEL_DECLARATION("Top-level fields and methods cannot be static"),
+  STATIC_TOP_LEVEL_DECLARATION("Top-level declarations cannot be declared to be 'static'"),
   UNEXPECTED_TOKEN("Unexpected token '%s'"),
   USE_OF_UNARY_PLUS_OPERATOR("There is no unary plus operator in Dart"),
   WRONG_SEPARATOR_FOR_NAMED_PARAMETER(
       "The default value of a named parameter should be preceeded by ':'"),
   WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER(
       "The default value of a positional parameter should be preceeded by '='"),
+  VAR_CLASS("Classes cannot be declared to be 'var'"),
   VAR_RETURN_TYPE("The return type cannot be 'var'"),
-  VOID_PARAMETER("Parameters cannot have a type of 'void'");
+  VAR_TYPEDEF("Type aliases cannot be declared to be 'var'"),
+  VOID_PARAMETER("Parameters cannot have a type of 'void'"),
+  VOID_VARIABLE("Variables cannot have a type of 'void'");
 
   /**
    * The severity of this error.

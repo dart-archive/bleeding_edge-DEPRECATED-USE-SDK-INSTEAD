@@ -44,6 +44,7 @@ import static com.google.dart.engine.ast.ASTFactory.compilationUnit;
 import static com.google.dart.engine.ast.ASTFactory.conditionalExpression;
 import static com.google.dart.engine.ast.ASTFactory.constructorDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.constructorFieldInitializer;
+import static com.google.dart.engine.ast.ASTFactory.constructorName;
 import static com.google.dart.engine.ast.ASTFactory.continueStatement;
 import static com.google.dart.engine.ast.ASTFactory.doStatement;
 import static com.google.dart.engine.ast.ASTFactory.doubleLiteral;
@@ -370,6 +371,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
         "const C() {}",
         constructorDeclaration(
             Keyword.CONST,
+            null,
             identifier("C"),
             null,
             formalParameterList(),
@@ -380,13 +382,14 @@ public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitConstructorDeclaration_external() {
     assertSource(
         "external C() ;",
-        constructorDeclaration(null, identifier("C"), null, formalParameterList(), null));
+        constructorDeclaration(identifier("C"), null, formalParameterList(), null));
   }
 
   public void test_visitConstructorDeclaration_minimal() {
     assertSource(
         "C() {}",
         constructorDeclaration(
+            null,
             null,
             identifier("C"),
             null,
@@ -399,6 +402,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource(
         "C() : a = b, c = d {}",
         constructorDeclaration(
+            null,
             null,
             identifier("C"),
             null,
@@ -414,6 +418,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
         "C(var a, var b) {}",
         constructorDeclaration(
             null,
+            null,
             identifier("C"),
             null,
             formalParameterList(
@@ -428,6 +433,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
         "C.m() {}",
         constructorDeclaration(
             null,
+            null,
             identifier("C"),
             "m",
             formalParameterList(),
@@ -439,6 +445,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource(
         "C() : a = b {}",
         constructorDeclaration(
+            null,
             null,
             identifier("C"),
             null,
@@ -453,6 +460,18 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitConstructorFieldInitializer_withThis() {
     assertSource("this.a = b", constructorFieldInitializer(true, "a", identifier("b")));
+  }
+
+  public void test_visitConstructorName_named_prefix() {
+    assertSource("p.C.n", constructorName(typeName("p.C.n"), null));
+  }
+
+  public void test_visitConstructorName_unnamed_noPrefix() {
+    assertSource("C", constructorName(typeName("C"), null));
+  }
+
+  public void test_visitConstructorName_unnamed_prefix() {
+    assertSource("p.C", constructorName(typeName(identifier("p", "C")), null));
   }
 
   public void test_visitContinueStatement_label() {

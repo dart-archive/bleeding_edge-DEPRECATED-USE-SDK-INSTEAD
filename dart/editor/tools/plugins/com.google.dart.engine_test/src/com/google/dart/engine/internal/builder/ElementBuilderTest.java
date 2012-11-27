@@ -227,6 +227,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder, new HashMap<ASTNode, Element>());
     String className = "A";
     ConstructorDeclaration constructorDeclaration = constructorDeclaration(
+        null,
         Keyword.FACTORY,
         identifier(className),
         null,
@@ -253,6 +254,7 @@ public class ElementBuilderTest extends EngineTestCase {
     String className = "A";
     ConstructorDeclaration constructorDeclaration = constructorDeclaration(
         null,
+        null,
         identifier(className),
         null,
         formalParameterList(),
@@ -278,6 +280,7 @@ public class ElementBuilderTest extends EngineTestCase {
     String className = "A";
     String constructorName = "c";
     ConstructorDeclaration constructorDeclaration = constructorDeclaration(
+        null,
         null,
         identifier(className),
         constructorName,

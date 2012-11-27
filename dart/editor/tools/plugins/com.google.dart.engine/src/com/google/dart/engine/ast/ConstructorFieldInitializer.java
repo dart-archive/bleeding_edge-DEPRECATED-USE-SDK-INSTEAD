@@ -21,7 +21,7 @@ import com.google.dart.engine.scanner.Token;
  * 
  * <pre>
  * fieldInitializer ::=
- *     ('this' '.')? {@link SimpleIdentifier fieldName} '=' {@link Expression conditionalExpression}
+ *     ('this' '.')? {@link SimpleIdentifier fieldName} '=' {@link Expression conditionalExpression cascadeSection*}
  * </pre>
  */
 public class ConstructorFieldInitializer extends ConstructorInitializer {

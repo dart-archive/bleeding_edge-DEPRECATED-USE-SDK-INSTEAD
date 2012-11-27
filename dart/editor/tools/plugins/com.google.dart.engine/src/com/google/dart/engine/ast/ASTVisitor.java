@@ -60,6 +60,8 @@ public interface ASTVisitor<R> {
 
   public R visitConstructorFieldInitializer(ConstructorFieldInitializer node);
 
+  public R visitConstructorName(ConstructorName node);
+
   public R visitContinueStatement(ContinueStatement node);
 
   public R visitDefaultFormalParameter(DefaultFormalParameter node);

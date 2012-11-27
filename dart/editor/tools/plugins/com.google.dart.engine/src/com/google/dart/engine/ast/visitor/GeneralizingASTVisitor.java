@@ -158,6 +158,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitConstructorName(ConstructorName node) {
+    return visitNode(node);
+  }
+
+  @Override
   public R visitContinueStatement(ContinueStatement node) {
     return visitStatement(node);
   }

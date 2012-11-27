@@ -35,6 +35,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
+import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.DoStatement;
@@ -241,6 +242,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public R visitConstructorName(ConstructorName node) {
     node.visitChildren(this);
     return null;
   }

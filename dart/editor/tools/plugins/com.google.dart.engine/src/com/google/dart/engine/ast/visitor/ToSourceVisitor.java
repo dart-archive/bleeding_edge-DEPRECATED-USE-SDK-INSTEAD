@@ -209,11 +209,13 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   @Override
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
     visit(node.getExternalKeyword(), " ");
-    visit(node.getKeyword(), " ");
+    visit(node.getConstKeyword(), " ");
+    visit(node.getFactoryKeyword(), " ");
     visit(node.getReturnType());
     visit(".", node.getName());
     visit(node.getParameters());
     visitList(" : ", node.getInitializers(), ", ");
+    visit(" = ", node.getRedirectedConstructor());
     visit(" ", node.getBody());
     return null;
   }
@@ -224,6 +226,13 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
     visit(node.getFieldName());
     writer.print(" = ");
     visit(node.getExpression());
+    return null;
+  }
+
+  @Override
+  public Void visitConstructorName(ConstructorName node) {
+    visit(node.getType());
+    visit(".", node.getName());
     return null;
   }
 
@@ -469,8 +478,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
     visit(node.getKeyword(), " ");
-    visit(node.getType());
-    visit(".", node.getIdentifier());
+    visit(node.getConstructorName());
     visit(node.getArgumentList());
     return null;
   }
