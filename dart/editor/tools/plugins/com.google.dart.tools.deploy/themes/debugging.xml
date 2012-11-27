@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--  TODO(messick): Not intended for v1.0 distribution -->
+<colorTheme id="-98989" name="Debugging" modified="2011-01-26 17:47:43" author="Debug Tool">
+    <class color="#F00000" />
+    <deprecatedMember color="#F00000" />
+    <directive color="#F00000" />
+    <dynamicType color="#F00000" />
+    <field color="#F000000" />
+    <localVariable color="#F00000" />
+    <localVariableDeclaration color="#F00000" />
+    <methodDeclaration color="#F00000" />
+    <method color="#F00000" />
+    <number color="#F00000" />
+    <parameterVariable color="#F00000" />
+    <getter color="#F00000" />
+    <setter color="#F00000" />
+    <staticField color="#F00000" />
+    <staticMethod color="#F00000" />
+    <staticMethodDeclaration color="#F00000" />
+    <builtin color="#F00000" />
+    <keyword color="#F00000" bold="true" />
+    <keywordReturn color="#F00000" bold="true" />
+    <singleLineComment color="#F00000" />
+    <multiLineComment color="#F00000" />
+    <commentTaskTag color="#F00000" />
+    <javadoc color="#F00000" />
+    <javadocLink color="#F00000" />
+    <javadocTag color="#F00000" />
+    <javadocKeyword color="#F00000" />
+    <string color="#F00000" />
+    <multiLineString color="#F00000" />
+    <annotation color="#F00000" />
+    <staticFinalField color="#F00000" />
+    <operator color="#F00000" />
+    <background color="#FFF8FF" />
+    <foreground color="#F00000" />
+    <selectionBackground color="#F000F0" />
+    <selectionForeground color="#F00000" />
+    <searchResultIndication color="#F00000" />
+    <filteredSearchResultIndication color="#F00000" />
+    <occurrenceIndication color="#F00000" />
+    <writeOccurrenceIndication color="#F00000" />
+    <findScope color="#F00000" />
+    <deletionIndication color="#F00000" />
+    <sourceHoverBackground color="#F00000" />
+    <bracket color="#F00000" />
+    <inheritedMethod color="#F00000" />
+    <typeArgument color="#F00000" />
+    <typeParameter color="#F00000" />
+    <constant color="#F00000" />
+    <currentLine color="#F0F0F0" />
+    <lineNumber color="#F00000" />
+</colorTheme>

@@ -98,6 +98,7 @@ public class TemporaryProject {
         // create project
         project.create(null);
         project.open(null);
+        project.refreshLocal(IProject.DEPTH_ZERO, null);
         // set nature
         IProjectDescription description = workspace.newProjectDescription(projectName);
         description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});

@@ -161,8 +161,12 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
       return true;
     }
     try {
-      editor.close(false);
-      project.dispose();
+      if (editor != null) {
+        editor.close(false);
+      }
+      if (project != null) {
+        project.dispose();
+      }
     } catch (CoreException ex) {
       Activator.logError(ex);
     }
@@ -175,11 +179,15 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
       return true;
     }
     try {
-      String selectedThemeName = themeSelectionList.getSelection()[0];
-      getPreferenceStore().setValue("colorTheme", selectedThemeName); // $NON-NLS-1$
-      colorThemeManager.applyTheme(selectedThemeName);
-      editor.close(false);
-      project.dispose();
+      if (editor != null) {
+        String selectedThemeName = themeSelectionList.getSelection()[0];
+        getPreferenceStore().setValue("colorTheme", selectedThemeName); // $NON-NLS-1$
+        colorThemeManager.applyTheme(selectedThemeName);
+        editor.close(false);
+      }
+      if (project != null) {
+        project.dispose();
+      }
     } catch (PartInitException e) {
       Activator.logError(e);
     } catch (CoreException ex) {
@@ -259,7 +267,7 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
     try {
       createPreviewer(themeDetails);
     } catch (Exception ex) {
-      ex.printStackTrace();
+      Activator.logError(ex);
     }
     themeDetails.setLayoutData(gridData);
     themeDetails.setLayout(themeDetailsLayout);
@@ -295,6 +303,11 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
     getPreferenceStore().setToDefault("colorTheme"); // $NON-NLS-1$
     colorThemeManager.clearImportedThemes();
     reloadThemeSelectionList();
+    if (editor != null) {
+      String selectedThemeName = themeSelectionList.getSelection()[0];
+      getPreferenceStore().setValue("colorTheme", selectedThemeName); // $NON-NLS-1$
+      colorThemeManager.applyTheme(selectedThemeName);
+    }
     super.performDefaults();
   }
 
@@ -386,6 +399,9 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
   }
 
   private void updateDetails(ColorTheme theme) {
+    if (editor == null) {
+      return;
+    }
     if (theme == null) {
       // TODO(messick): Fix this awkward UX
       themeDetails.setVisible(false);
