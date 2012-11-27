@@ -102,7 +102,7 @@ public class DeployConsolePatternMatcher implements IPatternMatchListener {
 
   @Override
   public String getPattern() {
-    return " .*\\.dart:\\d*";
+    return "( .*\\.dart:\\d*)|(file:/\\S+)";
   }
 
   @Override
@@ -114,7 +114,7 @@ public class DeployConsolePatternMatcher implements IPatternMatchListener {
 
       if (location != null && doesLocationExist(location)) {
         int matchOffset = event.getOffset() + match.indexOf(location.file);
-        int matchLength = location.file.length() + 1 + Integer.toString(location.line).length();
+        int matchLength = location.file.length();
 
         console.addHyperlink(new DeployConsoleHyperlink(location), matchOffset, matchLength);
       }
@@ -185,14 +185,18 @@ public class DeployConsolePatternMatcher implements IPatternMatchListener {
       match = match.substring("file:".length());
     }
 
-    String[] strs = match.split(":");
+    if (match.indexOf(':') != -1) {
+      String[] strs = match.split(":");
 
-    if (strs.length == 2) {
-      try {
-        return new Location(strs[0], Integer.parseInt(strs[1]));
-      } catch (NumberFormatException nfe) {
+      if (strs.length == 2) {
+        try {
+          return new Location(strs[0], Integer.parseInt(strs[1]));
+        } catch (NumberFormatException nfe) {
 
+        }
       }
+    } else {
+      return new Location(match, 1);
     }
 
     return null;

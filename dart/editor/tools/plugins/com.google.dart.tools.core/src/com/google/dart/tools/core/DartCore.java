@@ -49,6 +49,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
@@ -61,6 +62,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
+import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
@@ -223,6 +225,13 @@ public class DartCore extends Plugin implements DartSdkListener {
   private static final MessageConsole CONSOLE = new MessageConsoleImpl();
 
   /**
+   * The QualifiedName for a resource remapping (a.foo ==> a.bar).
+   */
+  private static final QualifiedName RESOURCE_REMAP_NAME = new QualifiedName(
+      PLUGIN_ID,
+      "resourceRemap");
+
+  /**
    * Configures the given marker attribute map for the given Dart element. Used for markers, which
    * denote a Dart element rather than a resource.
    * 
@@ -277,6 +286,49 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static void addElementChangedListener(ElementChangedListener listener, int eventMask) {
     DartModelManager.getInstance().addElementChangedListener(listener, eventMask);
+  }
+
+  /**
+   * Remove any resource mapping for the given container.
+   * 
+   * @param resource
+   */
+  public static void clearResourceRemapping(IContainer container) {
+    try {
+      container.accept(new IResourceVisitor() {
+        @Override
+        public boolean visit(IResource resource) throws CoreException {
+          if (resource instanceof IFile) {
+            clearResourceRemapping((IFile) resource);
+
+            return true;
+          } else if (resource instanceof IContainer) {
+            IContainer childContainer = (IContainer) resource;
+
+            if (childContainer.getName().startsWith(".")) {
+              return false;
+            } else {
+              return true;
+            }
+          } else {
+            return false;
+          }
+        }
+      });
+    } catch (CoreException e) {
+      DartCore.logError(e);
+    }
+  }
+
+  /**
+   * Remove any resource mapping for the given file.
+   * 
+   * @param resource
+   */
+  public static void clearResourceRemapping(IFile resource) {
+    if (getResourceRemapping(resource) != null) {
+      setResourceRemapping(resource, null);
+    }
   }
 
   /**
@@ -584,6 +636,17 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static ILog getPluginLog() {
     return PLUGIN_LOG != null ? PLUGIN_LOG : getPlugin().getLog();
+  }
+
+  /**
+   * @return the mapping for the given resource, if any
+   */
+  public static String getResourceRemapping(IFile originalResource) {
+    try {
+      return originalResource.getPersistentProperty(RESOURCE_REMAP_NAME);
+    } catch (CoreException e) {
+      return null;
+    }
   }
 
   /**
@@ -1075,6 +1138,23 @@ public class DartCore extends Plugin implements DartSdkListener {
     ILog oldLog = PLUGIN_LOG;
     PLUGIN_LOG = log;
     return oldLog;
+  }
+
+  /**
+   * Set a symbolic resource mapping from one resource to another. For some uses of the original
+   * resource, like serving web content, the mapped resource should be substituted.
+   * 
+   * @param originalResource
+   * @param newResource
+   */
+  public static void setResourceRemapping(IFile originalResource, IFile newResource) {
+    try {
+      String resourcePath = (newResource == null ? null
+          : newResource.getFullPath().toPortableString());
+      originalResource.setPersistentProperty(RESOURCE_REMAP_NAME, resourcePath);
+    } catch (CoreException e) {
+      DartCore.logError(e);
+    }
   }
 
   private static File getEclipseInstallationDirectory() {

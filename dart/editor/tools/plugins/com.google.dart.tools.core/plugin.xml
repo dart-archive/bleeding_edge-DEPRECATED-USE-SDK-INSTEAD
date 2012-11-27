@@ -58,18 +58,18 @@
 	    <persistent value="true"/>
 	</extension>
 
-   <extension
-       id="refinableType"
-       name="%dart.marker.refinableType.name"
-       point="org.eclipse.core.resources.markers">
-    <super
-          type="org.eclipse.core.resources.textmarker">
-    </super>
-    <persistent
-          value="false">
-    </persistent>
+   <extension id="issue" name="%dart.marker.issue.name" point="org.eclipse.core.resources.markers">
+      <super type="org.eclipse.core.resources.problemmarker"/>
+      <super type="org.eclipse.core.resources.textmarker"/>
+      <persistent value="true"/>
    </extension>
- 
+   
+   <extension id="buildDartIssue" name="%dart.marker.buildDartIssue.name" point="org.eclipse.core.resources.markers">
+      <super type="org.eclipse.core.resources.problemmarker"/>
+      <super type="org.eclipse.core.resources.textmarker"/>
+      <persistent value="true"/>
+   </extension>
+  
    <extension
        point="org.eclipse.core.expressions.propertyTesters">
     <propertyTester

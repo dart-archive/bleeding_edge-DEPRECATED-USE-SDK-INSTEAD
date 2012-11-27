@@ -7,6 +7,8 @@ import "package:args/args.dart";
 
 bool cleanBuild;
 bool fullBuild;
+bool useMachineInterface;
+
 List<String> changedFiles;
 List<String> removedFiles;
 
@@ -17,8 +19,6 @@ List<String> removedFiles;
  * legal command line options.
  */
 void main() {
-  print("running build.dart...");
-
   processArgs();
 
   if (cleanBuild) {
@@ -44,6 +44,8 @@ void processArgs() {
   parser.addOption("removed", help: "the file was removed since the last build",
       allowMultiple: true);
   parser.addFlag("clean", negatable: false, help: "remove any build artifacts");
+  parser.addFlag("machine",
+    negatable: false, help: "write machine interface commands to stdout");
   parser.addFlag("help", negatable: false, help: "displays this help and exit");
   var args = parser.parse(new Options().arguments);
   if (args["help"]) {
@@ -53,6 +55,9 @@ void processArgs() {
 
   changedFiles = args["changed"];
   removedFiles = args["removed"];
+
+  useMachineInterface = args["machine"];
+
   cleanBuild = args["clean"];
   fullBuild = changedFiles.isEmpty && removedFiles.isEmpty && !cleanBuild;
 }
@@ -104,13 +109,31 @@ void _processFile(String arg) {
     File outFile = new File("${arg}bar");
 
     OutputStream out = outFile.openOutputStream();
-    out.writeString("Processed from ${file.name}:\n");
+    out.writeString("// processed from ${file.name}:\n");
     if (contents != null) {
       out.writeString(contents);
     }
     out.close();
 
-    print("wrote     : ${outFile.name}");
+    _findErrors(arg);
+
+    print("wrote: ${outFile.name}");
+  }
+}
+
+void _findErrors(String arg) {
+  File file = new File(arg);
+
+  List lines = file.readAsLinesSync();
+
+  for (int i = 0; i < lines.length; i++) {
+    if (lines[i].contains("woot") && !lines[i].startsWith("//")) {
+      if (useMachineInterface) {
+        // Ideally, we should emit the charStart and charEnd params as well.
+        print('[{"method":"error","params":{"file":"$arg","line":${i+1},'
+            '"message":"woot not supported"}}]');
+      }
+    }
   }
 }
 

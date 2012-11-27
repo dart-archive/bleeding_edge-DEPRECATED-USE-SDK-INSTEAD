@@ -150,6 +150,7 @@ class ResourceServerHandler implements Runnable {
   private static class HttpResponse {
     public static final int OK = 200; // "OK"
     public static final int PARTIAL_CONTENT = 206; // "Partial Content"
+    public static final int REDIRECT = 302; // "Found"
     public static final int NOT_FOUND = 404; // "Not Found"
     public static final int UNAUTHORIZED = 401; // "Unauthorized"
 
@@ -368,6 +369,15 @@ class ResourceServerHandler implements Runnable {
 
     File javaFile = locateFile(header.file);
 
+    // handle redirecting to mapped resources
+    if (javaFile != null) {
+      IResource mappedFile = locateMappedFile(javaFile);
+
+      if (mappedFile != null) {
+        return createRedirectResponse(mappedFile);
+      }
+    }
+
     // If a .dart.js file doesn't exist, check for a .dart file next to it.
     if (javaFile == null && header.file.endsWith(".dart.js")) {
       String dartFilePath = header.file.substring(0, header.file.length() - 3);
@@ -498,6 +508,22 @@ class ResourceServerHandler implements Runnable {
     }
 
     HttpResponse response = new HttpResponse();
+
+    addStandardResponseHeaders(response);
+
+    return response;
+  }
+
+  private HttpResponse createRedirectResponse(IResource mappedFile) {
+    // HTTP/1.1 302 Found
+    // Location: http://www.iana.org/domains/example/
+
+    HttpResponse response = new HttpResponse();
+
+    response.responseCode = HttpResponse.REDIRECT;
+    response.responseText = "Found";
+    response.headers.put("Location", resourceServer.getUrlForResource(mappedFile));
+    response.headers.put(CONTENT_LENGTH, Integer.toString(0));
 
     addStandardResponseHeaders(response);
 
@@ -706,6 +732,28 @@ class ResourceServerHandler implements Runnable {
     }
 
     return javaFile;
+  }
+
+  private IResource locateMappedFile(File file) {
+    IResource resource = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(
+        Path.fromOSString(file.getAbsolutePath()));
+
+    if (resource instanceof IFile) {
+      IFile resourceFile = (IFile) resource;
+
+      String mappingPath = DartCore.getResourceRemapping(resourceFile);
+
+      if (mappingPath != null) {
+        IResource mappedResource = ResourcesPlugin.getWorkspace().getRoot().findMember(
+            Path.fromPortableString(mappingPath));
+
+        if (mappedResource != null && mappedResource.exists()) {
+          return mappedResource;
+        }
+      }
+    }
+
+    return null;
   }
 
   @SuppressWarnings("deprecation")
