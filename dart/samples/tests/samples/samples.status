@@ -36,7 +36,7 @@ chat/chat_server_test: Skip # Uses dart:io
 lib/touch/touch_test: Skip # Issue 157
 
 [ $compiler == none && $runtime == drt ]
-dartcombat/dartcombat_test: Fail # Issue 2790
+dartcombat/dartcombat_test: Fail, Timeout # Issue 2790
 swarm/swarm_test: Pass, Fail # Issue 3977
 
 [ $runtime == chrome || $runtime == ff || $runtime == safari ]
