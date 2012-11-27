@@ -11,7 +11,7 @@ void run() {
 
   // Clear previous output.
   final output = document.query('#output');
-  output.innerHTML = '';
+  output.innerHtml = '';
 
   // Run user script in new iframe.
   final iframe = new IFrameElement();

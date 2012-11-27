@@ -12,7 +12,7 @@ void setUpGame() {
 void setupUI() {
   // Note: we set up the UI programatically to make testing easier.
   var div = new Element.tag("div");
-  div.innerHTML = """
+  div.innerHtml = """
     <div class='hbox'>
       <div class='vbox'>
         Player 1 board:

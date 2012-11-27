@@ -37,7 +37,7 @@ class PlayerGridView extends View {
     }
     String rows = _rows.toString();
     String table = "<div class='vbox'>${rows}</div>";
-    _rootNode.innerHTML = table;
+    _rootNode.innerHtml = table;
 
     // Attaches listeners onto this view.
     new PlaceBoatView(state, _rootNode).attach();
@@ -187,7 +187,7 @@ class EnemyGridView extends View {
     }
     String rows = _rows.toString();
     String table = "<div class='vbox'>${rows}</div>";
-    _rootNode.innerHTML =
+    _rootNode.innerHtml =
         "${table}<div class='notready'>ENEMY IS NOT READY</div>";
     statusBar = new ShootingStatusView(state, doc);
     _rootNode.nodes.add(statusBar._rootNode);
@@ -268,7 +268,7 @@ class ShootingStatusView extends View {
     final miss = state.totalMisses;
     final accounted = hit + miss;
     final sunk = state.boatsSunk;
-    _rootNode.innerHTML =
+    _rootNode.innerHtml =
         "${total} &lt;= ${accounted} (${hit} + ${miss}); ${sunk}";
   }
 }

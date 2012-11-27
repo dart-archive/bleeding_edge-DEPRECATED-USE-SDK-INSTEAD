@@ -119,13 +119,13 @@ class Tape {
     if (op == OP_NOOP) {
       if (active != null) {
         String displayedOp = active.children[0].text;
-        active.innerHTML = tapeUI.firstOp(displayedOp, number);
+        active.innerHtml = tapeUI.firstOp(displayedOp, number);
       } else {
-        element.innerHTML = tapeUI.displayOpAndNumber(opAsStr, number);
+        element.innerHtml = tapeUI.displayOpAndNumber(opAsStr, number);
         tapeUI.tape.children.add(element.children[0]);
-        element.innerHTML = tapeUI.alignSubTotal();;
+        element.innerHtml = tapeUI.alignSubTotal();;
         tapeUI.tape.children.add(element.children[0]);
-        element.innerHTML = tapeUI.lineBreak();
+        element.innerHtml = tapeUI.lineBreak();
         tapeUI.tape.children.add(element.children[0]);
       }
 
@@ -144,17 +144,17 @@ class Tape {
         leftSide = tapeUI.displayOp(opAsStr);
       }
 
-      element.innerHTML = leftSide;
+      element.innerHtml = leftSide;
       tapeUI.tape.children.add(element.children[0]);
 
       if (op == OP_EQUAL) {
-        element.innerHTML = tapeUI.displayTotal(formatOutput(displayTotal));
+        element.innerHtml = tapeUI.displayTotal(formatOutput(displayTotal));
       } else {
-        element.innerHTML = tapeUI.displayActiveTotal();
+        element.innerHtml = tapeUI.displayActiveTotal();
       }
       tapeUI.tape.children.add(element.children[0]);
 
-      element.innerHTML = tapeUI.lineBreak();
+      element.innerHtml = tapeUI.lineBreak();
       tapeUI.tape.children.add(element.children[0]);
     }
 
@@ -176,7 +176,7 @@ class Tape {
   void displayError(String err) {
     removeActiveElements();
     DivElement element = new Element.tag("div");
-    element.innerHTML = tapeUI.displayError(err);
+    element.innerHtml = tapeUI.displayError(err);
     tapeUI.tape.children.add(element.children[0]);
 
     scrollToTapeBottom();
@@ -200,12 +200,12 @@ class Tape {
 
     DivElement active = activeInput;
     if (active != null) {
-      element.innerHTML = tapeUI.replaceActiveOp(active.innerHTML);
+      element.innerHtml = tapeUI.replaceActiveOp(active.innerHtml);
       active.replaceWith(element.children[0]);
 
       active = activeTotal;
       if (active != null) {
-        element.innerHTML = tapeUI.replaceActiveTotal(active.text);
+        element.innerHtml = tapeUI.replaceActiveTotal(active.text);
         active.replaceWith(element.children[0]);
       }
     }
@@ -214,7 +214,7 @@ class Tape {
   void clearTotal() {
     final element = new Element.tag('div');
 
-    element.innerHTML = tapeUI.clearCalculation();
+    element.innerHtml = tapeUI.clearCalculation();
     tapeUI.tape.children.add(element.children[0]);
 
     scrollToTapeBottom();
@@ -237,7 +237,7 @@ class Tape {
 
   void clear() {
     final element = new Element.tag('div');
-    element.innerHTML = tapeUI.clearCalculation();
+    element.innerHtml = tapeUI.clearCalculation();
     tapeUI.tape.children.add(element.children[0]);
   }
 }

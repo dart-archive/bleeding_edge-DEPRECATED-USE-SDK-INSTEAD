@@ -31,7 +31,7 @@ class MessageId {
 SendPort createIsolate(String name) {
   var sendPort = spawnDomFunction(isolateMain);
   var message = {
-    'id' : MessageId.INIT, 
+    'id' : MessageId.INIT,
     'args' : [name, port.toSendPort()]
   };
   sendPort.send(message, null);
@@ -45,7 +45,7 @@ bool isVm() => 1234567890123456789 % 2 > 0;
 /**
  * This function will run in a separate isolate, which shares almost
  * no state with the main isolate. They will both run in the main
- * UI thread, though, so that they can share DOM state. 
+ * UI thread, though, so that they can share DOM state.
  */
 void isolateMain() {
   Element div;
@@ -57,9 +57,9 @@ void isolateMain() {
     chirpPort = chirpPort_;
     div = new DivElement()
       ..classes = ['isolate', 'isolate${isolateName}']
-      ..innerHTML = query('#isolateTemplate').innerHTML
+      ..innerHtml = query('#isolateTemplate').innerHtml
       ..query('.isolateName').text = isolateName
-      ..query('.chirpButton').on.click.add((event) { 
+      ..query('.chirpButton').on.click.add((event) {
           chirpPort.send(
             'this is a chirp message from isolate $isolateName', null);
         });
@@ -71,7 +71,7 @@ void isolateMain() {
    * the user has unchecked the reply checkbox).
    */
   void greeting(String message, SendPort replyTo) {
-    div.query('.messageBox').innerHTML =
+    div.query('.messageBox').innerHtml =
       'received message: <span class="messageText">"${message}"</span>';
     if (div.query('input.replyCheckbox').checked) {
       InputElement element = div.query('.delayTextbox');
@@ -113,8 +113,8 @@ main() {
     element.on.click.add((Event e) {
       replyElement.text = 'waiting for reply...';
 
-      var isolateName = 
-          (e.currentTarget as Element).attributes['data-isolate-name']; 
+      var isolateName =
+          (e.currentTarget as Element).attributes['data-isolate-name'];
       var greeting = query('input#greetingText').value;
       var message = {'id': MessageId.GREETING, 'args': [greeting]};
       ports[isolateName].call(message).then((var msg) {

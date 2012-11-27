@@ -20,7 +20,7 @@ void main() {
   // Try to force real results.
   var ret;
 
-  final htmlstr = document.body.innerHTML;
+  final htmlstr = document.body.innerHtml;
 
   new Suite(window, 'dom-modify')
     .test('createElement', () {
@@ -41,8 +41,8 @@ void main() {
         ret = new Text('${str}5');
       }
     })
-    .test('innerHTML', () {
-      document.body.innerHTML = htmlstr;
+    .test('innerHtml', () {
+      document.body.innerHtml = htmlstr;
     })
     .prep(() {
       elems = new List<Node>();

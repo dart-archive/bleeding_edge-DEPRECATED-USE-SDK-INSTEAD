@@ -781,11 +781,11 @@ class ArticleView extends View {
       }
     });
   }
- 
+
   /**
-   * Notify the view to jump to a different area if we are selecting an 
+   * Notify the view to jump to a different area if we are selecting an
    * article that is currently outside of the visible area.
-   */ 
+   */
   void _updateViewForSelectedArticle() {
     Article selArticle = swarm.state.selectedArticle.value;
     if (swarm.state.hasArticleSelected) {
@@ -816,7 +816,7 @@ class ArticleView extends View {
     final CanvasRenderingContext2D ctx = canvas.getContext("2d");
     ctx.drawImage(img, 0, 0, img.width, img.height);
 
-    return canvas.toDataURL("image/png");
+    return canvas.toDataUrl("image/png");
   }
 
   /**

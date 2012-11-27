@@ -33,8 +33,8 @@ class SuiteController {
     final meanAsString = mean.toStringAsFixed(2);
     final errorAsString = error.toStringAsFixed(2);
     final Element progressDisplay = _element.nextNode.nextNode;
-    progressDisplay.innerHTML =
-        '${progressDisplay.innerHTML}<li><b>${testName}:</b>'
+    progressDisplay.innerHtml =
+        '${progressDisplay.innerHtml}<li><b>${testName}:</b>'
         '${meanAsString}<small> runs/s &#177;${errorAsString}%<small></li>';
     _updateTestPos(percent);
   }
@@ -55,8 +55,8 @@ class SuiteController {
       final mean = Math.pow(_meanProduct, 1.0 / _nTests).toStringAsFixed(2);
       info = '<span>${mean} runs/s</span>';
     }
-    _element.innerHTML =
-        '<b>${suiteName}:</b>' 
+    _element.innerHtml =
+        '<b>${suiteName}:</b>'
         '<div class="bar"><div style="width:${percent}%;">${info}</div></div>';
   }
 
@@ -66,12 +66,12 @@ class SuiteController {
     final description = _suiteDescription.description;
     final originUrl = _suiteDescription.origin.url;
     final testUrl = 'tests/${_suiteDescription.file}';
-    div.innerHTML =
-        '${div.innerHTML}<p>${description}<br/><a href="${originUrl}">Origin</a'
+    div.innerHtml =
+        '${div.innerHtml}<p>${description}<br/><a href="${originUrl}">Origin</a'
         '>, <a href="${testUrl}">Source</a>'
         '<ol class="results"></ol>';
     // Reread the element, as the previous wrapper get disconnected thanks
-    // to .innerHTML update above.
+    // to .innerHtml update above.
     _element = div.nodes[0];
 
     document.query('#main').nodes.add(div);
@@ -123,7 +123,7 @@ class Dromaeo {
     final Element suiteNameElement = _byId('overview').nodes[0];
     final category = Suites.getCategory(tags);
     if (category != null) {
-      suiteNameElement.innerHTML = category;
+      suiteNameElement.innerHtml = category;
     }
     _css(_byId('tests'), 'display', 'none');
     for (SuiteDescription suite in Suites.getSuites(tags)) {
@@ -150,7 +150,7 @@ class Dromaeo {
       final mins = (estimatedTimeSecs / 60).floor().toInt();
       final secs = (estimatedTimeSecs - mins * 60).round().toInt();
       final secsAsString = '${(secs < 10 ? "0" : "")}$secs';
-      _byId('left').innerHTML = '${mins}:${secsAsString}';
+      _byId('left').innerHtml = '${mins}:${secsAsString}';
 
       final elapsed = totalTimeSecs - estimatedTimeSecs;
       final percent = (100 * elapsed / totalTimeSecs).toStringAsFixed(2);

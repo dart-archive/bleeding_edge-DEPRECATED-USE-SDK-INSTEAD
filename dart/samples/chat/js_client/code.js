@@ -196,7 +196,7 @@ function uiAddMessage(message) {
   } else {
     text += "timeout";
   }
-  p.innerHTML = text;
+  p.innerHtml = text;
   if (messages.firstChild == null) {
     messages.appendChild(p);
   } else {
@@ -281,7 +281,7 @@ function writeReadyState(request) {
     case 3: readyStateName = "LOADING"; break;
     case 4: readyStateName = "DONE"; break;
   }
-  p.innerHTML =
+  p.innerHtml =
       "Ready state " + readyStateName + " (" + request.readyState + ")";
   window.document.body.appendChild(p);
 }

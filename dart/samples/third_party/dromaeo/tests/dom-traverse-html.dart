@@ -12,7 +12,7 @@ void main() {
   // Try to force real results.
   var ret;
 
-  String html = document.body.innerHTML;
+  String html = document.body.innerHtml;
 
   new Suite(window, 'dom-traverse')
     .prep(() {
@@ -28,7 +28,7 @@ void main() {
       });
 
       final div = new Element.tag('div');
-      div.innerHTML = html;
+      div.innerHtml = html;
       document.body.$dom_appendChild(div);
     })
     .test('firstChild', () {
