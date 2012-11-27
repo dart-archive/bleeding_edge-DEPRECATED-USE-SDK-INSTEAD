@@ -20,12 +20,15 @@ import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.deploy.Activator;
 
+import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
@@ -36,10 +39,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URI;
 
 /**
  * Helper for creating, manipulating and disposing a temporary {@link DartProject}. This exists in
@@ -98,11 +103,9 @@ public class TemporaryProject {
         // create project
         project.create(null);
         project.open(null);
-        project.refreshLocal(IProject.DEPTH_ZERO, null);
-        // set nature
-        IProjectDescription description = workspace.newProjectDescription(projectName);
-        description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
-        project.setDescription(description, null);
+        // set description
+        IProjectDescription description = createProjectDescription(project);
+        project.setDescription(description, IResource.FORCE, null);
       }
     }, null);
     // remember DartProject
@@ -217,6 +220,27 @@ public class TemporaryProject {
     IFile file = setFileContent(path, content);
     CompilationUnit unit = (CompilationUnit) DartCore.create(file);
     return unit;
+  }
+
+  private IProjectDescription createProjectDescription(IProject project) {
+    URI location = null;
+    try {
+      File tempFile = File.createTempFile("DartEditor", null);
+      File tempDir = tempFile.getParentFile();
+      tempFile.delete();
+      tempDir.mkdirs();
+      location = tempDir.toURI();
+    } catch (IOException ex) {
+      Activator.logError(ex);
+    }
+    IWorkspace workspace = ResourcesPlugin.getWorkspace();
+    IProjectDescription description = workspace.newProjectDescription(project.getName());
+    description.setLocationURI(location);
+    description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
+    ICommand command = description.newCommand();
+    command.setBuilderName(DartCore.DART_BUILDER_ID);
+    description.setBuildSpec(new ICommand[] {command});
+    return description;
   }
 
   private String findUniqueName(IWorkspaceRoot root, String initialName) {
