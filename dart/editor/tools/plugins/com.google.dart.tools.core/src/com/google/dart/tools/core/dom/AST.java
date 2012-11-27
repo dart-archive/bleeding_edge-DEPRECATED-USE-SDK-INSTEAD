@@ -105,7 +105,7 @@ public class AST {
     } else if (nodeClass == DartCase.class) {
       return (N) new DartCase(null, new ArrayList<DartLabel>(), new ArrayList<DartStatement>());
     } else if (nodeClass == DartCatchBlock.class) {
-      return (N) new DartCatchBlock(null, null, null);
+      return (N) new DartCatchBlock(null, -1, null, null);
     } else if (nodeClass == DartClass.class) {
       return (N) new DartClass(
           -1,

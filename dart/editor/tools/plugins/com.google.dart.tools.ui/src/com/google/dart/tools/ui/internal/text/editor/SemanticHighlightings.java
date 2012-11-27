@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartBinaryExpression;
+import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartExportDirective;
@@ -32,6 +33,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPartOfDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
+import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.ImportCombinator;
@@ -143,6 +145,18 @@ public class SemanticHighlightings {
         return ImmutableList.of(SourceRangeFactory.forStartLength(
             implementsOffset,
             "implements".length()));
+      }
+      // try {} on
+      if (node instanceof DartTryStatement) {
+        List<SourceRange> onTokens = Lists.newArrayList();
+        DartTryStatement onStatement = (DartTryStatement) node;
+        for (DartCatchBlock catchBlock : onStatement.getCatchBlocks()) {
+          int onOffset = catchBlock.getOnTokenOffset();
+          if (onOffset != -1) {
+            onTokens.add(SourceRangeFactory.forStartLength(onOffset, "on".length()));
+          }
+        }
+        return onTokens;
       }
       // done
       return result;

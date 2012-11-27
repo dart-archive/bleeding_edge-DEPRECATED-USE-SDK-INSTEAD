@@ -200,6 +200,21 @@ public class SemanticHighlightingTest extends AbstractDartTest {
     assertNoWordPosition(SemanticHighlightings.BUILT_IN, "implements = 0;");
   }
 
+  public void test_builtIn_on() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class E1 {}",
+        "class E2 {}",
+        "main() {",
+        "  try {",
+        "  } on E1 catch (e) {",
+        "  } on E2 catch (e) {",
+        "  }",
+        "");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "on E1");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "on E2");
+  }
+
   public void test_builtIn_operator_method() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
