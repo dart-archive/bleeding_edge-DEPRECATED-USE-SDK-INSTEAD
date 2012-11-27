@@ -1351,8 +1351,10 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
   @Override
   public int hashCode() {
-    return Util.combineHashCodes(getPath().hashCode(), super.hashCode());
-
+    if (getPath() != null) {
+      return Util.combineHashCodes(getPath().hashCode(), super.hashCode());
+    }
+    return super.hashCode();
   }
 
   @Override

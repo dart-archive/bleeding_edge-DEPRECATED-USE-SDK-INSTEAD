@@ -137,7 +137,10 @@ public abstract class SourceFileElementImpl<E> extends OpenableElementImpl imple
 
   @Override
   public IPath getPath() {
-    return getFile().getFullPath();
+    if (getFile() != null) {
+      return getFile().getFullPath();
+    }
+    return null;
   }
 
   /**
