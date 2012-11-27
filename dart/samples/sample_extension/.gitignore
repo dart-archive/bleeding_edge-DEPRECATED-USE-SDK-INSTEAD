@@ -1,2 +1,9 @@
-/sample_extension.Makefile
-/sample_extension.target.mk
+/Makefile
+/*.Makefile
+/*.sln
+/*.target.mk
+/*.vcproj
+/*.vcxproj
+/*.vcxproj.filters
+/*.vcxproj.user
+/*.xcodeproj
