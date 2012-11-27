@@ -21,15 +21,14 @@ import static com.google.dart.engine.scanner.TokenClass.BITWISE_XOR_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.CASCADE_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.CONDITIONAL_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.EQUALITY_OPERATOR;
-import static com.google.dart.engine.scanner.TokenClass.INCREMENT_OPERATOR;
-import static com.google.dart.engine.scanner.TokenClass.INDEX_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.LOGICAL_AND_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.LOGICAL_OR_OPERATOR;
-import static com.google.dart.engine.scanner.TokenClass.MEMBER_ACCESS_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.MULTIPLICATIVE_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.NO_CLASS;
 import static com.google.dart.engine.scanner.TokenClass.RELATIONAL_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.SHIFT_OPERATOR;
+import static com.google.dart.engine.scanner.TokenClass.UNARY_POSTFIX_OPERATOR;
+import static com.google.dart.engine.scanner.TokenClass.UNARY_PREFIX_OPERATOR;
 
 /**
  * The enumeration {@code TokenType} defines the types of tokens that can be returned by the
@@ -60,7 +59,7 @@ public enum TokenType {
   AMPERSAND_AMPERSAND(LOGICAL_AND_OPERATOR, "&&"),
   AMPERSAND_EQ(ASSIGNMENT_OPERATOR, "&="),
   AT(null, "@"),
-  BANG(null, "!"),
+  BANG(UNARY_PREFIX_OPERATOR, "!"),
   BANG_EQ(EQUALITY_OPERATOR, "!="),
   BANG_EQ_EQ(EQUALITY_OPERATOR, "!=="),
   BAR(BITWISE_OR_OPERATOR, "|"),
@@ -84,8 +83,8 @@ public enum TokenType {
   GT_GT_GT(SHIFT_OPERATOR, ">>>"),
   GT_GT_GT_EQ(ASSIGNMENT_OPERATOR, ">>>="),
   HASH(null, "#"),
-  INDEX(INDEX_OPERATOR, "[]"),
-  INDEX_EQ(INDEX_OPERATOR, "[]="),
+  INDEX(UNARY_POSTFIX_OPERATOR, "[]"),
+  INDEX_EQ(UNARY_POSTFIX_OPERATOR, "[]="),
   IS(RELATIONAL_OPERATOR, "is"),
   LT(RELATIONAL_OPERATOR, "<"),
   LT_EQ(RELATIONAL_OPERATOR, "<="),
@@ -93,17 +92,17 @@ public enum TokenType {
   LT_LT_EQ(ASSIGNMENT_OPERATOR, "<<="),
   MINUS(ADDITIVE_OPERATOR, "-"),
   MINUS_EQ(ASSIGNMENT_OPERATOR, "-="),
-  MINUS_MINUS(INCREMENT_OPERATOR, "--"),
+  MINUS_MINUS(UNARY_PREFIX_OPERATOR, "--"),
   OPEN_CURLY_BRACKET(null, "{"),
-  OPEN_PAREN(MEMBER_ACCESS_OPERATOR, "("), // Not sure the type is right, but it has the right precedence
-  OPEN_SQUARE_BRACKET(MEMBER_ACCESS_OPERATOR, "["), // Not sure the type is right, but it has the right precedence
+  OPEN_PAREN(UNARY_POSTFIX_OPERATOR, "("),
+  OPEN_SQUARE_BRACKET(UNARY_POSTFIX_OPERATOR, "["),
   PERCENT(MULTIPLICATIVE_OPERATOR, "%"),
   PERCENT_EQ(ASSIGNMENT_OPERATOR, "%="),
-  PERIOD(MEMBER_ACCESS_OPERATOR, "."),
+  PERIOD(UNARY_POSTFIX_OPERATOR, "."),
   PERIOD_PERIOD(CASCADE_OPERATOR, ".."),
   PLUS(ADDITIVE_OPERATOR, "+"),
   PLUS_EQ(ASSIGNMENT_OPERATOR, "+="),
-  PLUS_PLUS(INCREMENT_OPERATOR, "++"),
+  PLUS_PLUS(UNARY_PREFIX_OPERATOR, "++"),
   QUESTION(CONDITIONAL_OPERATOR, "?"),
   SEMICOLON(null, ";"),
   SLASH(MULTIPLICATIVE_OPERATOR, "/"),
@@ -112,7 +111,7 @@ public enum TokenType {
   STAR_EQ(ASSIGNMENT_OPERATOR, "*="),
   STRING_INTERPOLATION_EXPRESSION(null, "${"),
   STRING_INTERPOLATION_IDENTIFIER(null, "$"),
-  TILDE(null, "~"),
+  TILDE(UNARY_PREFIX_OPERATOR, "~"),
   TILDE_SLASH(MULTIPLICATIVE_OPERATOR, "~/"),
   TILDE_SLASH_EQ(ASSIGNMENT_OPERATOR, "~/="),
 
@@ -194,16 +193,7 @@ public enum TokenType {
    * @return {@code true} if this type of token represents an increment operator
    */
   public boolean isIncrementOperator() {
-    return tokenClass == INCREMENT_OPERATOR;
-  }
-
-  /**
-   * Return {@code true} if this type of token represents an index operator.
-   * 
-   * @return {@code true} if this type of token represents an index operator
-   */
-  public boolean isIndexOperator() {
-    return tokenClass == INDEX_OPERATOR;
+    return lexeme == "++" || lexeme == "--";
   }
 
   /**
@@ -221,7 +211,8 @@ public enum TokenType {
    * @return {@code true} if this token type represents an operator
    */
   public boolean isOperator() {
-    return tokenClass != NO_CLASS && tokenClass != MEMBER_ACCESS_OPERATOR;
+    return tokenClass != NO_CLASS && this != OPEN_PAREN && this != OPEN_SQUARE_BRACKET
+        && this != PERIOD;
   }
 
   /**
@@ -243,15 +234,32 @@ public enum TokenType {
   }
 
   /**
+   * Return {@code true} if this type of token represents a unary postfix operator.
+   * 
+   * @return {@code true} if this type of token represents a unary postfix operator
+   */
+  public boolean isUnaryPostfixOperator() {
+    return tokenClass == UNARY_POSTFIX_OPERATOR;
+  }
+
+  /**
+   * Return {@code true} if this type of token represents a unary prefix operator.
+   * 
+   * @return {@code true} if this type of token represents a unary prefix operator
+   */
+  public boolean isUnaryPrefixOperator() {
+    return tokenClass == UNARY_PREFIX_OPERATOR;
+  }
+
+  /**
    * Return {@code true} if this token type represents an operator that can be defined by users.
    * 
    * @return {@code true} if this token type represents an operator that can be defined by users
    */
   public boolean isUserDefinableOperator() {
-    return lexeme == "==" || lexeme == "~" || lexeme == "negate" || lexeme == "[]"
-        || lexeme == "[]=" || lexeme == "*" || lexeme == "/" || lexeme == "%" || lexeme == "~/"
-        || lexeme == "+" || lexeme == "-" || lexeme == "<<" || lexeme == ">>>" || lexeme == ">>"
-        || lexeme == ">=" || lexeme == ">" || lexeme == "<=" || lexeme == "<" || lexeme == "&"
-        || lexeme == "^" || lexeme == "|";
+    return lexeme == "==" || lexeme == "~" || lexeme == "[]" || lexeme == "[]=" || lexeme == "*"
+        || lexeme == "/" || lexeme == "%" || lexeme == "~/" || lexeme == "+" || lexeme == "-"
+        || lexeme == "<<" || lexeme == ">>" || lexeme == ">=" || lexeme == ">" || lexeme == "<="
+        || lexeme == "<" || lexeme == "&" || lexeme == "^" || lexeme == "|";
   }
 }

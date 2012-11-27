@@ -24,6 +24,7 @@ public class TestAll {
     suite.addTestSuite(CharBufferScannerTest.class);
     suite.addTestSuite(KeywordStateTest.class);
     suite.addTestSuite(StringScannerTest.class);
+    suite.addTestSuite(TokenTypeTest.class);
     return suite;
   }
 }

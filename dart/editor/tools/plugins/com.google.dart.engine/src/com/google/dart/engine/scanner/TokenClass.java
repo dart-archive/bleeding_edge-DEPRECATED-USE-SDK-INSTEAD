@@ -30,7 +30,7 @@ public enum TokenClass {
   /**
    * A value used to indicate that the token type is an assignment operator.
    */
-  ASSIGNMENT_OPERATOR(2),
+  ASSIGNMENT_OPERATOR(1),
 
   /**
    * A value used to indicate that the token type is a bitwise-and operator.
@@ -50,7 +50,7 @@ public enum TokenClass {
   /**
    * A value used to indicate that the token type is a cascade operator.
    */
-  CASCADE_OPERATOR(1),
+  CASCADE_OPERATOR(2),
 
   /**
    * A value used to indicate that the token type is a conditional operator.
@@ -63,16 +63,6 @@ public enum TokenClass {
   EQUALITY_OPERATOR(9),
 
   /**
-   * A value used to indicate that the token type is an increment operator.
-   */
-  INCREMENT_OPERATOR(14), // POSTFIX_OPERATOR
-
-  /**
-   * A value used to indicate that the token type is an index operator.
-   */
-  INDEX_OPERATOR(14),
-
-  /**
    * A value used to indicate that the token type is a logical-and operator.
    */
   LOGICAL_AND_OPERATOR(5),
@@ -81,11 +71,6 @@ public enum TokenClass {
    * A value used to indicate that the token type is a logical-or operator.
    */
   LOGICAL_OR_OPERATOR(4),
-
-  /**
-   * A value used to indicate that the token type is a member access operator.
-   */
-  MEMBER_ACCESS_OPERATOR(14),
 
   /**
    * A value used to indicate that the token type is a multiplicative operator.
@@ -100,7 +85,17 @@ public enum TokenClass {
   /**
    * A value used to indicate that the token type is a shift operator.
    */
-  SHIFT_OPERATOR(11);
+  SHIFT_OPERATOR(11),
+
+  /**
+   * A value used to indicate that the token type is a unary operator.
+   */
+  UNARY_POSTFIX_OPERATOR(15),
+
+  /**
+   * A value used to indicate that the token type is a unary operator.
+   */
+  UNARY_PREFIX_OPERATOR(14);
 
   /**
    * The precedence of tokens of this class, or {@code 0} if the such tokens do not represent an
