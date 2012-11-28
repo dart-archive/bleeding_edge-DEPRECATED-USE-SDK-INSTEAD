@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--  TODO(messick): Not intended for v1.0 distribution -->
-<colorTheme id="-98989" name="Debugging" modified="2011-01-26 17:47:43" author="Debug Tool">
+<colorTheme id="-98989" name="Debugging" modified="2012-11-28 11:02" author="Debug Tool">
     <class color="#F00000" />
     <deprecatedMember color="#F00000" />
     <directive color="#F00000" />

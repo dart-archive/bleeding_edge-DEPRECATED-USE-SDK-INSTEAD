@@ -601,6 +601,9 @@
             file="themes/retta.xml">
       </theme>
       <theme
+            file="themes/dartboard.xml">
+      </theme>
+      <theme
             file="themes/hotpink.xml">
       </theme>
       <theme

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<colorTheme id="-1" name="Dartboard" modified="2012-11-28 11:02" author="Dart">
+    <class color="#0646a7" />
+    <deprecatedMember color="#000000" />
+    <directive color="#014d64" bold="true" />
+    <dynamicType color="#7f1cc9" />
+    <field color="#87312e" />
+    <localVariable color="#000000" />
+    <localVariableDeclaration color="#000000" />
+    <methodDeclaration color="#0b5bd2" bold="true" />
+    <method color="#000000" />
+    <number color="#000000" />
+    <parameterVariable color="#87312e" />
+    <getter color="#87312e" />
+    <setter color="#87312e" />
+    <staticField color="#87312e" />
+    <staticMethod color="#000000" />
+    <staticMethodDeclaration color="#0b5bd2" bold="true" />
+    <builtin color="#000000" bold="true" />
+    <keyword color="#000000" bold="true" />
+    <keywordReturn color="#000000" bold="true" />
+    <singleLineComment color="#7a7a7a" />
+    <multiLineComment color="#606060" />
+    <commentTaskTag color="#606060" />
+    <javadoc color="#606060" />
+    <javadocLink color="#606060" />
+    <javadocTag color="#606060" />
+    <javadocKeyword color="#606060" />
+    <string color="#679b3b" />
+    <multiLineString color="#679b3b" />
+    <annotation color="#000000" />
+    <staticFinalField color="#55122a" />
+    <operator color="#000000" />
+    <background color="#fafafa" />
+    <foreground color="#000000" />
+    <selectionBackground color="#b6d6fd" />
+    <selectionForeground color="#000000" />
+    <searchResultIndication color="#000000" />
+    <filteredSearchResultIndication color="#000000" />
+    <occurrenceIndication color="#e0e0e0" />
+    <writeOccurrenceIndication color="#e0e0e0" />
+    <findScope color="#000000" />
+    <deletionIndication color="#000000" />
+    <sourceHoverBackground color="#fbfbc8" />
+    <bracket color="#606060" />
+    <inheritedMethod color="#000000" />
+    <typeArgument color="#033178" />
+    <typeParameter color="#033178" />
+    <constant color="#55122a" />
+    <currentLine color="#F0F0F0" />
+    <lineNumber color="#000000" />
+</colorTheme>
