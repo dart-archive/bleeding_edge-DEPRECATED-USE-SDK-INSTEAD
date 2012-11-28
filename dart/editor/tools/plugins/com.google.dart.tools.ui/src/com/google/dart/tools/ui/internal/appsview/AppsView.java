@@ -137,19 +137,23 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
       Display.getDefault().asyncExec(new Runnable() {
         @Override
         public void run() {
-          treeViewer.refresh();
+          if (treeViewer != null && !treeViewer.getTree().isDisposed()) {
+            treeViewer.refresh();
+          }
         };
       });
     }
   };
 
-  private ElementChangedListener listener = new ElementChangedListener() {
+  private ElementChangedListener modelListener = new ElementChangedListener() {
     @Override
     public void elementChanged(ElementChangedEvent event) {
       Display.getDefault().asyncExec(new Runnable() {
         @Override
         public void run() {
-          treeViewer.refresh();
+          if (treeViewer != null && !treeViewer.getTree().isDisposed()) {
+            treeViewer.refresh();
+          }
         };
       });
     }
@@ -204,7 +208,7 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
 
     restoreState();
     int eventMask = ElementChangedEvent.POST_RECONCILE;
-    DartModelManager.getInstance().addElementChangedListener(listener, eventMask);
+    DartModelManager.getInstance().addElementChangedListener(modelListener, eventMask);
   }
 
   @Override
@@ -221,13 +225,19 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     if (ignoreListener != null) {
       DartModelManager.getInstance().removeIgnoreListener(ignoreListener);
     }
+
     if (propertyChangeListener != null) {
       getPreferences().removePropertyChangeListener(propertyChangeListener);
       propertyChangeListener = null;
     }
+
     if (fontPropertyChangeListener != null) {
       JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
       fontPropertyChangeListener = null;
+    }
+
+    if (modelListener != null) {
+      DartModelManager.getInstance().removeElementChangedListener(modelListener);
     }
 
     super.dispose();
