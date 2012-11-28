@@ -25,6 +25,28 @@ public class LibraryReferenceFinderTest extends TestCase {
     assertNotNull(finder);
   }
 
+  public void test_LibraryReferenceFinder_malformed() throws Exception {
+    // issue 6651
+    String malformedHtml = "<html><body>"
+        + "\n    <script type=\"application/dart\" src=\"bug.dart\"> /script>" + "\n</body></html>"
+        + "\n/Network/Servers/hdserver1.hdinternal.net/Users/egrimes/dart/bug/web/bug.html";
+    LibraryReferenceFinder finder = new LibraryReferenceFinder();
+    finder.processHTML(malformedHtml);
+    List<String> libraries = finder.getLibraryList();
+    assertNotNull(libraries);
+    assertEquals(1, libraries.size());
+  }
+
+  public void test_LibraryReferenceFinder_malformed2() throws Exception {
+    // issue 6651
+    String malformedHtml = "<html><body><script type=\"application/dart\" src=\"bug.dart\"";
+    LibraryReferenceFinder finder = new LibraryReferenceFinder();
+    finder.processHTML(malformedHtml);
+    List<String> libraries = finder.getLibraryList();
+    assertNotNull(libraries);
+    assertEquals(0, libraries.size());
+  }
+
   public void test_LibraryReferenceFinder_noScripts() {
     LibraryReferenceFinder finder = new LibraryReferenceFinder();
     finder.processHTML(HTMLFactory.noScripts());

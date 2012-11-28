@@ -88,11 +88,17 @@ public class LibraryReferenceFinder {
         if (htmlSource.startsWith(TAG_NAME_SCRIPT, index)) {
           index += TAG_NAME_SCRIPT_LENGTH;
           int endIndex = htmlSource.indexOf('>', index);
+          if (endIndex < 0) {
+            return;
+          }
           boolean isDartScript = processScriptTagAttributes(htmlSource.substring(index, endIndex));
           if (isDartScript && htmlSource.charAt(endIndex - 1) != '/') {
             // If the script tag is well-formed, then it has a body that we also need to process.
             endIndex++;
             index = htmlSource.indexOf(TAG_END_SCRIPT, endIndex);
+            if (index < 0) {
+              return;
+            }
             processScriptBody(htmlSource.substring(endIndex, index));
             index += TAG_END_SCRIPT_LENGTH;
           } else {
