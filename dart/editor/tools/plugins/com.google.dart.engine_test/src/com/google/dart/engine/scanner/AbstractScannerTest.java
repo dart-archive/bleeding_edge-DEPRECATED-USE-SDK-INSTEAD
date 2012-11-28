@@ -355,6 +355,10 @@ public abstract class AbstractScannerTest extends TestCase {
     assertKeywordToken("library");
   }
 
+  public void test_keyword_mixin() throws Exception {
+    assertKeywordToken("mixin");
+  }
+
   public void test_keyword_new() throws Exception {
     assertKeywordToken("new");
   }

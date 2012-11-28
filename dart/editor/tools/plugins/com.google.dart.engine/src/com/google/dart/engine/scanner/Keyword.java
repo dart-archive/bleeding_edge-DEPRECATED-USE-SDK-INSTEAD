@@ -62,6 +62,7 @@ public enum Keyword {
   IMPLEMENTS("implements", true),
   IMPORT("import", true),
   LIBRARY("library", true),
+  MIXIN("mixin", true),
   OPERATOR("operator", true),
   PART("part", true),
   SET("set", true),

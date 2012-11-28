@@ -791,6 +791,86 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(declaration.getTypeParameters());
   }
 
+  public void test_parseClassDeclaration_application() throws Exception {
+    ClassDeclaration declaration = parse(
+        "parseClassDeclaration",
+        new Class[] {CommentAndMetadata.class, Token.class},
+        new Object[] {emptyCommentAndMetadata(), null},
+        "class A = B;");
+    assertNull(declaration.getDocumentationComment());
+    assertNull(declaration.getAbstractKeyword());
+    assertNotNull(declaration.getClassKeyword());
+    assertNotNull(declaration.getName());
+    assertNull(declaration.getTypeParameters());
+    assertNotNull(declaration.getMixinApplication());
+    assertNull(declaration.getExtendsClause());
+    assertNull(declaration.getMixinClause());
+    assertNull(declaration.getImplementsClause());
+    assertNull(declaration.getLeftBracket());
+    assertSize(0, declaration.getMembers());
+    assertNull(declaration.getRightBracket());
+  }
+
+  public void test_parseClassDeclaration_applicationAndExtends() throws Exception {
+    ClassDeclaration declaration = parse(
+        "parseClassDeclaration",
+        new Class[] {CommentAndMetadata.class, Token.class},
+        new Object[] {emptyCommentAndMetadata(), null},
+        "class A = B extends C;");
+    assertNull(declaration.getDocumentationComment());
+    assertNull(declaration.getAbstractKeyword());
+    assertNotNull(declaration.getClassKeyword());
+    assertNotNull(declaration.getName());
+    assertNull(declaration.getTypeParameters());
+    assertNotNull(declaration.getMixinApplication());
+    assertNotNull(declaration.getExtendsClause());
+    assertNull(declaration.getMixinClause());
+    assertNull(declaration.getImplementsClause());
+    assertNull(declaration.getLeftBracket());
+    assertSize(0, declaration.getMembers());
+    assertNull(declaration.getRightBracket());
+  }
+
+  public void test_parseClassDeclaration_applicationAndExtendsAndImplements() throws Exception {
+    ClassDeclaration declaration = parse(
+        "parseClassDeclaration",
+        new Class[] {CommentAndMetadata.class, Token.class},
+        new Object[] {emptyCommentAndMetadata(), null},
+        "class A = B extends C implements D;");
+    assertNull(declaration.getDocumentationComment());
+    assertNull(declaration.getAbstractKeyword());
+    assertNotNull(declaration.getClassKeyword());
+    assertNotNull(declaration.getName());
+    assertNull(declaration.getTypeParameters());
+    assertNotNull(declaration.getMixinApplication());
+    assertNotNull(declaration.getExtendsClause());
+    assertNull(declaration.getMixinClause());
+    assertNotNull(declaration.getImplementsClause());
+    assertNull(declaration.getLeftBracket());
+    assertSize(0, declaration.getMembers());
+    assertNull(declaration.getRightBracket());
+  }
+
+  public void test_parseClassDeclaration_applicationAndImplements() throws Exception {
+    ClassDeclaration declaration = parse(
+        "parseClassDeclaration",
+        new Class[] {CommentAndMetadata.class, Token.class},
+        new Object[] {emptyCommentAndMetadata(), null},
+        "class A = B implements C;");
+    assertNull(declaration.getDocumentationComment());
+    assertNull(declaration.getAbstractKeyword());
+    assertNotNull(declaration.getClassKeyword());
+    assertNotNull(declaration.getName());
+    assertNull(declaration.getTypeParameters());
+    assertNotNull(declaration.getMixinApplication());
+    assertNull(declaration.getExtendsClause());
+    assertNull(declaration.getMixinClause());
+    assertNotNull(declaration.getImplementsClause());
+    assertNull(declaration.getLeftBracket());
+    assertSize(0, declaration.getMembers());
+    assertNull(declaration.getRightBracket());
+  }
+
   public void test_parseClassDeclaration_empty() throws Exception {
     ClassDeclaration declaration = parse(
         "parseClassDeclaration",
@@ -845,6 +925,46 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(declaration.getTypeParameters());
   }
 
+  public void test_parseClassDeclaration_extendsAndMixin() throws Exception {
+    ClassDeclaration declaration = parse(
+        "parseClassDeclaration",
+        new Class[] {CommentAndMetadata.class, Token.class},
+        new Object[] {emptyCommentAndMetadata(), null},
+        "class A extends B mixin C {}");
+    assertNull(declaration.getDocumentationComment());
+    assertNull(declaration.getAbstractKeyword());
+    assertNotNull(declaration.getClassKeyword());
+    assertNotNull(declaration.getName());
+    assertNull(declaration.getTypeParameters());
+    assertNull(declaration.getMixinApplication());
+    assertNotNull(declaration.getExtendsClause());
+    assertNotNull(declaration.getMixinClause());
+    assertNull(declaration.getImplementsClause());
+    assertNotNull(declaration.getLeftBracket());
+    assertSize(0, declaration.getMembers());
+    assertNotNull(declaration.getRightBracket());
+  }
+
+  public void test_parseClassDeclaration_extendsAndMixinAndImplements() throws Exception {
+    ClassDeclaration declaration = parse(
+        "parseClassDeclaration",
+        new Class[] {CommentAndMetadata.class, Token.class},
+        new Object[] {emptyCommentAndMetadata(), null},
+        "class A extends B mixin C implements D {}");
+    assertNull(declaration.getDocumentationComment());
+    assertNull(declaration.getAbstractKeyword());
+    assertNotNull(declaration.getClassKeyword());
+    assertNotNull(declaration.getName());
+    assertNull(declaration.getTypeParameters());
+    assertNull(declaration.getMixinApplication());
+    assertNotNull(declaration.getExtendsClause());
+    assertNotNull(declaration.getMixinClause());
+    assertNotNull(declaration.getImplementsClause());
+    assertNotNull(declaration.getLeftBracket());
+    assertSize(0, declaration.getMembers());
+    assertNotNull(declaration.getRightBracket());
+  }
+
   public void test_parseClassDeclaration_implements() throws Exception {
     ClassDeclaration declaration = parse(
         "parseClassDeclaration",
@@ -861,6 +981,46 @@ public class SimpleParserTest extends ParserTestCase {
     assertSize(0, declaration.getMembers());
     assertNotNull(declaration.getRightBracket());
     assertNull(declaration.getTypeParameters());
+  }
+
+  public void test_parseClassDeclaration_mixin() throws Exception {
+    ClassDeclaration declaration = parse(
+        "parseClassDeclaration",
+        new Class[] {CommentAndMetadata.class, Token.class},
+        new Object[] {emptyCommentAndMetadata(), null},
+        "class A mixin B, C {}");
+    assertNull(declaration.getDocumentationComment());
+    assertNull(declaration.getAbstractKeyword());
+    assertNotNull(declaration.getClassKeyword());
+    assertNotNull(declaration.getName());
+    assertNull(declaration.getTypeParameters());
+    assertNull(declaration.getMixinApplication());
+    assertNull(declaration.getExtendsClause());
+    assertNotNull(declaration.getMixinClause());
+    assertNull(declaration.getImplementsClause());
+    assertNotNull(declaration.getLeftBracket());
+    assertSize(0, declaration.getMembers());
+    assertNotNull(declaration.getRightBracket());
+  }
+
+  public void test_parseClassDeclaration_mixinAndImplements() throws Exception {
+    ClassDeclaration declaration = parse(
+        "parseClassDeclaration",
+        new Class[] {CommentAndMetadata.class, Token.class},
+        new Object[] {emptyCommentAndMetadata(), null},
+        "class A mixin B implements C {}");
+    assertNull(declaration.getDocumentationComment());
+    assertNull(declaration.getAbstractKeyword());
+    assertNotNull(declaration.getClassKeyword());
+    assertNotNull(declaration.getName());
+    assertNull(declaration.getTypeParameters());
+    assertNull(declaration.getMixinApplication());
+    assertNull(declaration.getExtendsClause());
+    assertNotNull(declaration.getMixinClause());
+    assertNotNull(declaration.getImplementsClause());
+    assertNotNull(declaration.getLeftBracket());
+    assertSize(0, declaration.getMembers());
+    assertNotNull(declaration.getRightBracket());
   }
 
   public void test_parseClassDeclaration_nonEmpty() throws Exception {

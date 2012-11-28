@@ -54,6 +54,7 @@ public enum ParserErrorCode implements ErrorCode {
   EXPECTED_STRING_LITERAL("Expected a string literal"),
   EXPECTED_TOKEN("Expected to find: %s"),
   EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE("Export directives must preceed part directives"),
+  EXTENDS_BEFORE_APPLICATION("The application of the mixin must be before the extends clause"),
   EXTERNAL_AFTER_CONST("The modifier 'external' should be before the modifier 'const'"),
   EXTERNAL_AFTER_FACTORY("The modifier 'external' should be before the modifier 'factory'"),
   EXTERNAL_AFTER_STATIC("The modifier 'external' should be before the modifier 'static'"),
@@ -74,6 +75,9 @@ public enum ParserErrorCode implements ErrorCode {
   FINAL_TYPEDEF("Type aliases cannot be declared to be 'final'"),
   GETTER_WITH_PARAMETERS("Getter should be declared without a parameter list"),
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
+  IMPLEMENTS_BEFORE_APPLICATION("The application of the mixin must be before the implements clause"),
+  IMPLEMENTS_BEFORE_EXTENDS("The extends clause must be before the implements clause"),
+  IMPLEMENTS_BEFORE_MIXIN("The mixin clause must be before the implements clause"),
   IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE("Import directives must preceed part directives"),
   INITIALIZED_VARIABLE_IN_FOR_EACH("The loop variable in a for-each loop cannot be initialized"),
   INVALID_CODE_POINT("The escape sequence '%s' is not a valid code point"),
@@ -89,6 +93,7 @@ public enum ParserErrorCode implements ErrorCode {
   // parsing the assignable selector in order to get decent messages.
   MISSING_ASSIGNABLE_SELECTOR("Missing selector such as \".<identifier>\" or \"[0]\""),
   MISSING_CATCH_OR_FINALLY("A try statement must have either a catch or finally clause"),
+  MISSING_CLASS_BODY("A class definition must have a body, even if it is empty"),
   MISSING_CONST_FINAL_VAR_OR_TYPE(
       "Variables must be declared using the keywords 'const', 'final', 'var' or a type name"),
   MISSING_FUNCTION_BODY("A function body must be provided"),
@@ -101,6 +106,14 @@ public enum ParserErrorCode implements ErrorCode {
       "A loop variable must be declared in a for-each loop before the 'in', but none were found"),
   MIXED_PARAMETER_GROUPS(
       "Cannot have both positional and named parameters in a single parameter list"),
+  MIXIN_APPLICATION_WITH_BODY(
+      "An application of a mixin cannot include a class body; use a mixin clause instead"),
+  MIXIN_APPLICATION_WITH_MIXIN_CLAUSE("A mixin clause cannot be combined with a mixin application"),
+  MIXIN_BEFORE_EXTENDS("The extends clause must be before the mixin clause"),
+  MULTIPLE_EXTENDS_CLAUSES("Each class definition can have at most one extends clause"),
+  MULTIPLE_IMPLEMENTS_CLAUSES("Each class definition can have at most one implements clause"),
+  MULTIPLE_MIXIN_APPLICATIONS("Each mixin application must apply exactly one mixin"),
+  MULTIPLE_MIXIN_CLAUSES("Each class definition can have at most one mixin clause"),
   MULTIPLE_LIBRARY_DIRECTIVES("Only one library directive may be declared in a file"),
   MULTIPLE_NAMED_PARAMETER_GROUPS(
       "Cannot have multiple groups of named parameters in a single parameter list"),

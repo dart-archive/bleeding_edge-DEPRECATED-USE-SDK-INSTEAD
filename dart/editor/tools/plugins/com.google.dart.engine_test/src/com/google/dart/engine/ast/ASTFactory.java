@@ -162,11 +162,14 @@ public final class ASTFactory {
         token(Keyword.CLASS),
         identifier(name),
         typeParameters,
+        null,
         extendsClause,
+        null,
         implementsClause,
         token(TokenType.OPEN_CURLY_BRACKET),
         list(members),
-        token(TokenType.CLOSE_CURLY_BRACKET));
+        token(TokenType.CLOSE_CURLY_BRACKET),
+        null);
   }
 
   public static CompilationUnit compilationUnit() {

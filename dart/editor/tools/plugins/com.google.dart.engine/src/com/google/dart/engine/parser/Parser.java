@@ -1057,11 +1057,14 @@ public class Parser {
   }
 
   /**
-   * Parse a class declaration.
+   * Parse a class declaration or mixin application.
    * 
    * <pre>
    * classDeclaration ::=
-   *     metadata 'abstract'? 'class' name typeParameterList? extendsClause? implementsClause? '{' (metadata memberDefinition)* '}'
+   *     metadata 'abstract'? 'class' name typeParameterList? extendsClause? mixinClause? implementsClause? '{' classMembers '}'
+   * 
+   * mixinApplication ::=
+   *     metadata 'class' name typeParameterList? mixinApplication extendsClause? implementsClause? ';'
    * </pre>
    * 
    * @param commentAndMetadata the metadata to be associated with the member
@@ -1078,35 +1081,95 @@ public class Parser {
     if (matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
+    MixinApplication mixinApplication = null;
     ExtendsClause extendsClause = null;
-    if (matches(Keyword.EXTENDS)) {
-      extendsClause = parseExtendsClause();
-    }
+    MixinClause mixinClause = null;
     ImplementsClause implementsClause = null;
-    if (matches(Keyword.IMPLEMENTS)) {
-      implementsClause = parseImplementsClause();
-    }
-    Token leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
-    List<ClassMember> members = new ArrayList<ClassMember>();
-    Token memberStart = currentToken;
-    while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)
-        && !matches(Keyword.CLASS)) {
-      if (matches(TokenType.SEMICOLON)) {
-        reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
-        advance();
-      } else {
-        ClassMember member = parseClassMember(className);
-        if (member != null) {
-          members.add(member);
+    boolean foundClause = true;
+    while (foundClause) {
+      if (matches(TokenType.EQ)) {
+        if (mixinApplication == null) {
+          mixinApplication = parseMixinApplication();
+          if (extendsClause != null) {
+            reportError(ParserErrorCode.EXTENDS_BEFORE_APPLICATION, extendsClause.getKeyword());
+          } else if (mixinClause != null) {
+            reportError(
+                ParserErrorCode.MIXIN_APPLICATION_WITH_MIXIN_CLAUSE,
+                mixinApplication.getEquals());
+          } else if (implementsClause != null) {
+            reportError(
+                ParserErrorCode.IMPLEMENTS_BEFORE_APPLICATION,
+                implementsClause.getKeyword());
+          }
+        } else {
+          reportError(ParserErrorCode.MULTIPLE_MIXIN_APPLICATIONS, mixinApplication.getEquals());
+          parseMixinApplication();
         }
+      } else if (matches(Keyword.EXTENDS)) {
+        if (extendsClause == null) {
+          extendsClause = parseExtendsClause();
+          if (mixinClause != null) {
+            reportError(ParserErrorCode.MIXIN_BEFORE_EXTENDS, mixinClause.getMixinKeyword());
+          } else if (implementsClause != null) {
+            reportError(ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, implementsClause.getKeyword());
+          }
+        } else {
+          reportError(ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, extendsClause.getKeyword());
+          parseExtendsClause();
+        }
+      } else if (matches(Keyword.MIXIN)) {
+        if (mixinClause == null) {
+          mixinClause = parseMixinClause();
+          if (implementsClause != null) {
+            reportError(ParserErrorCode.IMPLEMENTS_BEFORE_MIXIN, implementsClause.getKeyword());
+          }
+          if (mixinApplication != null) {
+            reportError(
+                ParserErrorCode.MIXIN_APPLICATION_WITH_MIXIN_CLAUSE,
+                mixinClause.getMixinKeyword());
+          }
+        } else {
+          reportError(ParserErrorCode.MULTIPLE_MIXIN_CLAUSES, mixinClause.getMixinKeyword());
+          parseMixinClause();
+          // TODO(brianwilkerson) Should we merge the list of applied mixins into a single list?
+        }
+      } else if (matches(Keyword.IMPLEMENTS)) {
+        if (implementsClause == null) {
+          implementsClause = parseImplementsClause();
+        } else {
+          reportError(ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, implementsClause.getKeyword());
+          parseImplementsClause();
+          // TODO(brianwilkerson) Should we merge the list of implemented classes into a single list?
+        }
+      } else {
+        foundClause = false;
       }
-      if (currentToken == memberStart) {
-        reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
-        advance();
-      }
-      memberStart = currentToken;
     }
-    Token rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
+    Token leftBracket = null;
+    List<ClassMember> members = null;
+    Token rightBracket = null;
+    Token semicolon = null;
+    if (mixinApplication != null) {
+      if (matches(TokenType.OPEN_CURLY_BRACKET)) {
+        leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
+        members = parseClassMembers(className);
+        rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
+        reportError(ParserErrorCode.MIXIN_APPLICATION_WITH_BODY, leftBracket);
+      } else {
+        semicolon = expect(TokenType.SEMICOLON);
+      }
+    } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
+      leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
+      members = parseClassMembers(className);
+      rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
+    } else {
+      leftBracket = createSyntheticToken(TokenType.OPEN_CURLY_BRACKET);
+      rightBracket = createSyntheticToken(TokenType.CLOSE_CURLY_BRACKET);
+      reportError(ParserErrorCode.MISSING_CLASS_BODY);
+    }
+    // TODO(brianwilkerson) If there was both a mixin application and a mixin clause, should we
+    // merge the lists to make the AST internally consistent, or leave it as is to make is more
+    // faithful to the original source?
     return new ClassDeclaration(
         commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
@@ -1114,11 +1177,14 @@ public class Parser {
         keyword,
         name,
         typeParameters,
+        mixinApplication,
         extendsClause,
+        mixinClause,
         implementsClause,
         leftBracket,
         members,
-        rightBracket);
+        rightBracket,
+        semicolon);
   }
 
   /**
@@ -1280,6 +1346,39 @@ public class Parser {
         modifiers.getStaticKeyword(),
         validateModifiersForField(modifiers),
         type);
+  }
+
+  /**
+   * Parse a list of class members.
+   * 
+   * <pre>
+   * classMembers ::=
+   *     (metadata memberDefinition)*
+   * </pre>
+   * 
+   * @return the list of class members that were parsed
+   */
+  private List<ClassMember> parseClassMembers(String className) {
+    List<ClassMember> members = new ArrayList<ClassMember>();
+    Token memberStart = currentToken;
+    while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)
+        && !matches(Keyword.CLASS) && !matches(Keyword.TYPEDEF)) {
+      if (matches(TokenType.SEMICOLON)) {
+        reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
+        advance();
+      } else {
+        ClassMember member = parseClassMember(className);
+        if (member != null) {
+          members.add(member);
+        }
+      }
+      if (currentToken == memberStart) {
+        reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
+        advance();
+      }
+      memberStart = currentToken;
+    }
+    return members;
   }
 
   /**
@@ -3110,6 +3209,42 @@ public class Parser {
         name,
         parameters,
         body);
+  }
+
+  /**
+   * Parse a mixin application.
+   * 
+   * <pre>
+   * mixinApplication ::=
+   *     '=' typeName
+   * </pre>
+   * 
+   * @return the mixin application that was parsed
+   */
+  private MixinApplication parseMixinApplication() {
+    Token equals = expect(TokenType.EQ);
+    TypeName type = parseTypeName();
+    return new MixinApplication(equals, type);
+  }
+
+  /**
+   * Parse a mixin clause.
+   * 
+   * <pre>
+   * mixinClause ::=
+   *     'mixin' typeName (',' typeName)*
+   * </pre>
+   * 
+   * @return the mixin clause that was parsed
+   */
+  private MixinClause parseMixinClause() {
+    Token mixin = expect(Keyword.MIXIN);
+    ArrayList<TypeName> types = new ArrayList<TypeName>();
+    types.add(parseTypeName());
+    while (optional(TokenType.COMMA)) {
+      types.add(parseTypeName());
+    }
+    return new MixinClause(mixin, types);
   }
 
   /**
