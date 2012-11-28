@@ -52,6 +52,11 @@ public class DartCoreDebug {
   public static final boolean ENABLE_FORMATTER = isOptionTrue("experimental/formatter");
   public static final boolean ENABLE_THEMES = true; //isOptionTrue("experimental/themes");
 
+  // Pub
+
+  public static final boolean ENABLE_PUB_IN_WINXP = isOptionTrue("experimental/pubInWinXP");
+  public static final boolean ENABLE_PUB = !DartCore.isWindowsXp() || ENABLE_PUB_IN_WINXP;
+
   // Persistent developer settings
 
   public static final boolean DISABLE_MARK_OCCURRENCES = isOptionTrue("dev/disableMarkOccurrences");

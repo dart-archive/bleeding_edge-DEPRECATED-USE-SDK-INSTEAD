@@ -21,7 +21,7 @@
 			<run class="com.google.dart.tools.core.internal.builder.DartBuilder"/>
 		</builder>
 	</extension>
-
+    
    <extension
          point="org.eclipse.core.contenttype.contentTypes">
       <content-type
@@ -98,5 +98,13 @@
              id="com.google.dart.tools.core.buildParticipant.html">
        </buildParticipant>
     </extension>
+
+  <extension
+      point="com.google.dart.tools.core.buildParticipant">
+    <buildParticipant
+        class="com.google.dart.tools.core.pub.PubBuildParticipant"
+        id="com.google.dart.tools.core.buildParticipant.pub">
+    </buildParticipant>
+  </extension>
 
 </plugin>

@@ -21,6 +21,9 @@ public final class ActionMessages extends NLS {
 
   private static final String BUNDLE_NAME = "com.google.dart.tools.ui.actions.ActionMessages";//$NON-NLS-1$
   private static final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_NAME);
+  static {
+    NLS.initializeMessages(BUNDLE_NAME, ActionMessages.class);
+  }
 
   public static String OpenResourceAction_label;
   public static String OpenResourceAction_error_title;
@@ -347,7 +350,6 @@ public final class ActionMessages extends NLS {
   public static String RemoveFromClasspathAction_Removing;
   public static String RemoveFromClasspathAction_exception_dialog_title;
   public static String RemoveFromClasspathAction_Problems_occurred;
-  public static String RunPubAction_cancel;
   public static String RunPubAction_fileNotFound;
   public static String RunPubAction_fail;
   public static String AddDelegateMethodsAction_error_title;
@@ -387,9 +389,6 @@ public final class ActionMessages extends NLS {
   public static String CategoryFilterActionGroup_ShowCategoriesToolTip;
   public static String CategoryFilterActionGroup_ShowCategoriesLabel;
   public static String CategoryFilterActionGroup_ShowUncategorizedMembers;
-  static {
-    NLS.initializeMessages(BUNDLE_NAME, ActionMessages.class);
-  }
 
   public static String OpenNewFileWizardAction_text;
   public static String OpenNewFileWizardAction_description;
@@ -451,10 +450,7 @@ public final class ActionMessages extends NLS {
   public static String OpenExistingFolderWizardAction_text;
 
   public static String RunPubAction_commandDesc;
-  public static String RunPubAction_jobText;
-  public static String RunPubAction_jobFail;
   public static String RunPubAction_commandText;
-  public static String RunPubAction_runningPubMessage;
 
   public static ResourceBundle getBundle() {
     return bundle;

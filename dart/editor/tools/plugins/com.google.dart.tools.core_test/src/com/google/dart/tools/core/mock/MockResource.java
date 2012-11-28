@@ -66,7 +66,7 @@ public class MockResource implements IResource {
 
   @Override
   public boolean contains(ISchedulingRule rule) {
-    return false;
+    return this == rule;
   }
 
   @Override
@@ -261,7 +261,7 @@ public class MockResource implements IResource {
 
   @Override
   public boolean isConflicting(ISchedulingRule rule) {
-    return false;
+    return this == rule;
   }
 
   @Override

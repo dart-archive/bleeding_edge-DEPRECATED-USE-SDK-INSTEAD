@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.builder.DartBuildParticipant;
+import com.google.dart.tools.core.mock.MockProject;
 
 import org.eclipse.core.resources.IProject;
 
@@ -30,7 +31,7 @@ public class BuildParticipantDeclarationTest extends AbstractDartCoreTest {
     }
 
     // At a minimum, the "pub" build participant should be defined
-    //assertTrue(participants.length > 0);
+    assertTrue(participants.length > 0);
 
     // TODO (danrubel): assert participants are prioritized
     // pub before build.dart before analysis

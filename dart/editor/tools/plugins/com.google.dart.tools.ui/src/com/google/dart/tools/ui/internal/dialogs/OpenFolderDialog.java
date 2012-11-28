@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.dialogs;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 
@@ -89,7 +90,7 @@ public class OpenFolderDialog extends TitleAreaDialog {
     setTitle(DialogMessages.OpenFolderDialog_message);
     setMessage(DialogMessages.OpenFolderDialog_description);
     createFolderBrowseRow(composite);
-    if (!DartCore.isWindowsXp()) {
+    if (DartCoreDebug.ENABLE_PUB) {
       createRunPubMessage(parent);
     }
     return composite;
@@ -136,7 +137,7 @@ public class OpenFolderDialog extends TitleAreaDialog {
             }
           }
           okButton.setEnabled(nonWhitespaceFound);
-          if (!DartCore.isWindowsXp()) {
+          if (DartCoreDebug.ENABLE_PUB) {
             setCheckBoxState();
           }
         }
