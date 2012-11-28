@@ -22,12 +22,14 @@ import com.google.dart.tools.ui.swtbot.dialog.OpenLibraryHelper;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 import com.google.dart.tools.ui.swtbot.views.FilesViewHelper;
 import com.google.dart.tools.ui.swtbot.views.ProblemsViewHelper;
+import com.google.dart.tools.ui.test.model.internal.workbench.LogWatcher;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.finders.WorkbenchContentsFinder;
 import org.eclipse.swtbot.swt.finder.results.VoidResult;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 
 import static org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.syncExec;
@@ -70,11 +72,27 @@ public abstract class AbstractDartEditorTest {
     DartLib.getAllSamples();
   }
 
+  private final LogWatcher watcher = new LogWatcher();
+
   @After
   public void assertNoLibrariesOpen() {
     // After each test, assert that there is only one element (SDK Libraries) in the Files view,
     // this guarantees that any previous examples have been closed out.
     new FilesViewHelper(bot).assertTreeItemsEqual(FilesViewHelper.SDK_TEXT);
+  }
+
+  @After
+  public void inspectLog() {
+    try {
+      watcher.assertNoLoggedExceptions();
+    } finally {
+      watcher.stop();
+    }
+  }
+
+  @Before
+  public void startLogWatcher() {
+    watcher.start();
   }
 
   /**
