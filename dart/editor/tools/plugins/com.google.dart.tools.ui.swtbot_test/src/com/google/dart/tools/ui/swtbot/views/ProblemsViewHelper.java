@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.swtbot.views;
 
-import com.google.dart.tools.ui.swtbot.AbstractDartEditorTest;
+import com.google.dart.tools.ui.test.model.Workbench;
 
 import static com.google.dart.tools.core.utilities.general.FormattedStringBuilder.appendText;
 
@@ -39,7 +39,8 @@ public class ProblemsViewHelper {
 
   public ProblemsViewHelper(SWTBot bot) {
     this.bot = bot;
-    SWTBotView view = ((SWTWorkbenchBot) bot).viewByTitle(AbstractDartEditorTest.PROBLEMS_VIEW_NAME);
+    //TODO(pquitslund): push into model view
+    SWTBotView view = ((SWTWorkbenchBot) bot).viewByTitle(Workbench.View.PROBLEMS.getName());
     Composite composite = (Composite) view.getWidget();
     Table problemsTable = bot.widget(widgetOfType(Table.class), composite);
     table = new SWTBotTable(problemsTable);

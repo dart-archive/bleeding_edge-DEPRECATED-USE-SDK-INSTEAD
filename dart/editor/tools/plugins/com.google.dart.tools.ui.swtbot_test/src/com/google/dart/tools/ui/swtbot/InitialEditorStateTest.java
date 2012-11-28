@@ -18,17 +18,15 @@ import com.google.dart.tools.ui.swtbot.dialog.PreferencesHelper;
 import com.google.dart.tools.ui.swtbot.util.SWTBotUtil;
 import com.google.dart.tools.ui.swtbot.views.FilesViewHelper;
 import com.google.dart.tools.ui.swtbot.views.ProblemsViewHelper;
+import com.google.dart.tools.ui.test.model.Workbench;
 
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotPerspective;
-import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotLabel;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.eclipse.ui.IEditorReference;
-import org.eclipse.ui.IViewReference;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -84,13 +82,10 @@ public final class InitialEditorStateTest extends AbstractDartEditorTest {
 
   @Test
   public void testInitState_editor_welcome() throws Exception {
-    SWTBotEditor editor = bot.editorByTitle(AbstractDartEditorTest.WELCOME_EDITOR_NAME);
-    assertNotNull(editor);
-    IEditorReference editorRef = editor.getReference();
+    IEditorReference editorRef = Workbench.Editor.WELCOME.getReference();
     assertNotNull(editorRef);
     assertFalse(editorRef.isPinned());
     assertFalse(editorRef.isDirty());
-    assertEquals(AbstractDartEditorTest.WELCOME_EDITOR_NAME, editorRef.getTitle());
     assertNotNull(editorRef.getTitleImage());
   }
 
@@ -115,21 +110,16 @@ public final class InitialEditorStateTest extends AbstractDartEditorTest {
 
   @Test
   public void testInitState_view_callers() throws Exception {
-    bot.menu(AbstractDartEditorTest.TOOLS_MENU_NAME).menu(AbstractDartEditorTest.CALLERS_VIEW_NAME).click();
-    SWTBotView view = baseViewAssertions(AbstractDartEditorTest.CALLERS_VIEW_NAME);
-    view.close();
+    Workbench.View.CALLERS.open().close();
   }
 
   @Test
   public void testInitState_view_debugger() throws Exception {
-    bot.menu("Tools").menu(AbstractDartEditorTest.DEBUGGER_VIEW_NAME).click();
-    SWTBotView view = baseViewAssertions(AbstractDartEditorTest.DEBUGGER_VIEW_NAME);
-    view.close();
+    Workbench.View.DEBUG.open().close();
   }
 
   @Test
   public void testInitState_view_files() throws Exception {
-    baseViewAssertions(AbstractDartEditorTest.FILES_VIEW_NAME);
     FilesViewHelper filesViewHelper = new FilesViewHelper(bot);
     filesViewHelper.assertTreeItemCount(1);
     filesViewHelper.assertTreeItemsEqual(FilesViewHelper.SDK_TEXT);
@@ -140,34 +130,13 @@ public final class InitialEditorStateTest extends AbstractDartEditorTest {
 
   @Test
   public void testInitState_view_outline() throws Exception {
-    bot.menu("Tools").menu(AbstractDartEditorTest.OUTLINE_VIEW_NAME).click();
-    SWTBotView view = baseViewAssertions(AbstractDartEditorTest.OUTLINE_VIEW_NAME);
-    view.close();
+    Workbench.View.OUTLINE.open().close();
   }
 
   @Test
   public void testInitState_view_problems() throws Exception {
-    baseViewAssertions(AbstractDartEditorTest.PROBLEMS_VIEW_NAME);
     ProblemsViewHelper helper = new ProblemsViewHelper(bot);
     helper.assertNoProblems();
-  }
-
-  /**
-   * A utility method which make a set of base-assertions on the view with the passed title.
-   * 
-   * @param viewName the name as it appears in the Dart Editor
-   * @return the {@link SWTBotView}, handy for make more tests after this method is called
-   */
-  private SWTBotView baseViewAssertions(String viewName) {
-    SWTBotView view = bot.viewByTitle(viewName);
-    assertNotNull(view);
-    IViewReference viewRef = view.getReference();
-    assertNotNull(viewRef);
-    assertFalse(viewRef.isFastView());
-    assertFalse(viewRef.isDirty());
-    assertFalse(viewRef.getTitle().isEmpty());
-    assertNotNull(viewRef.getTitleImage());
-    return view;
   }
 
 }

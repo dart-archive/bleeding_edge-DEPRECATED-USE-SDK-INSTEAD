@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.swtbot.views;
 
-import com.google.dart.tools.ui.swtbot.AbstractDartEditorTest;
+import com.google.dart.tools.ui.test.model.Workbench;
 
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.widgets.Composite;
@@ -34,7 +34,8 @@ public class ConsoleViewHelper {
   private SWTBotStyledText text;
 
   public ConsoleViewHelper(SWTBot bot) {
-    SWTBotView view = ((SWTWorkbenchBot) bot).viewByTitle(AbstractDartEditorTest.CONSOLE_VIEW_NAME);
+    //TODO(pquitslund): push into model view
+    SWTBotView view = ((SWTWorkbenchBot) bot).viewByTitle(Workbench.View.CONSOLE.getName());
     view.show();
     assertTrue(view.isActive());
     Composite composite = (Composite) view.getWidget();

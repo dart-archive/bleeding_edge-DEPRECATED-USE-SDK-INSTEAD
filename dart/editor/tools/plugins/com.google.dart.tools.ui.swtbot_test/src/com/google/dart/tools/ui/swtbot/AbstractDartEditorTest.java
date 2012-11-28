@@ -45,20 +45,6 @@ public abstract class AbstractDartEditorTest {
 
   protected static SWTWorkbenchBot bot;
 
-  public static String FILE_MENU_NAME = "File";
-  public static String EDIT_MENU_NAME = "Edit";
-  public static String NAVIGATE_MENU_NAME = "Navigate";
-  public static String TOOLS_MENU_NAME = "Tools";
-  public static String HELP_MENU_NAME = "Help";
-
-  public static String WELCOME_EDITOR_NAME = "Welcome";
-  public static String CALLERS_VIEW_NAME = "Callers";
-  public static String CONSOLE_VIEW_NAME = "Output";
-  public static String DEBUGGER_VIEW_NAME = "Debugger";
-  public static String FILES_VIEW_NAME = "Files";
-  public static String OUTLINE_VIEW_NAME = "Outline";
-  public static String PROBLEMS_VIEW_NAME = "Problems";
-
   @AfterClass
   public static void printResults() {
     SwtBotPerformance.waitForResults(bot);
