@@ -13,34 +13,30 @@
  */
 package com.google.dart.tools.ui;
 
-import com.google.dart.compiler.util.apache.StringUtils;
-import com.google.dart.tools.core.DartCore;
-
-import org.eclipse.core.runtime.Platform;
 
 /**
  * Debug/Tracing options for the {@link DartUI} plugin.
  */
 public class DartUiDebug {
-  public static final boolean USE_ONLY_SEMANTIC_HIGHLIGHTER = isOptionTrue("experimental/useOnlySemanticHighlighter");
+  public static final boolean USE_ONLY_SEMANTIC_HIGHLIGHTER = true; //isOptionTrue("experimental/useOnlySemanticHighlighter");
 
-  /**
-   * @return <code>true</code> if option has value "true".
-   */
-  private static boolean isOptionTrue(String optionSuffix) {
-    return isOptionValue(optionSuffix, "true");
-  }
-
-  /**
-   * @return <code>true</code> if option has "expected" value.
-   */
-  private static boolean isOptionValue(String optionSuffix, String expected) {
-    String option = DartUI.ID_PLUGIN + "/" + optionSuffix;
-    String value = Platform.getDebugOption(option);
-    if (value == null) {
-      value = DartCore.getUserDefinedProperty(option);
-    }
-    return StringUtils.equalsIgnoreCase(value, expected);
-  }
+//  /**
+//   * @return <code>true</code> if option has value "true".
+//   */
+//  private static boolean isOptionTrue(String optionSuffix) {
+//    return isOptionValue(optionSuffix, "true");
+//  }
+//
+//  /**
+//   * @return <code>true</code> if option has "expected" value.
+//   */
+//  private static boolean isOptionValue(String optionSuffix, String expected) {
+//    String option = DartUI.ID_PLUGIN + "/" + optionSuffix;
+//    String value = Platform.getDebugOption(option);
+//    if (value == null) {
+//      value = DartCore.getUserDefinedProperty(option);
+//    }
+//    return StringUtils.equalsIgnoreCase(value, expected);
+//  }
 
 }
