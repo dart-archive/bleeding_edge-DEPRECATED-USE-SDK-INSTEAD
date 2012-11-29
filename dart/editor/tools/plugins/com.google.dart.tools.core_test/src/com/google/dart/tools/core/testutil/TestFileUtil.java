@@ -13,10 +13,7 @@
  */
 package com.google.dart.tools.core.testutil;
 
-import com.google.dart.tools.core.generator.DartLibraryGenerator;
 import com.google.dart.tools.core.generator.DartProjectGenerator;
-
-import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -39,36 +36,6 @@ import java.io.Reader;
  * File based utility methods for use during test execution.
  */
 public class TestFileUtil {
-  /**
-   * Get container for the specified Dart Library, creating it if necessary
-   * 
-   * @param project the project containing the library
-   * @param libPath the relative path of the library within the project
-   * @return the library container (not <code>null</code>)
-   */
-  public static IContainer getOrCreateDartLibContainer(IProject project, String libPath)
-      throws CoreException {
-    int index = libPath.lastIndexOf('/');
-    if (index == -1) {
-      return project;
-    }
-    String folderPath = libPath.substring(0, index);
-    final IFolder folder = project.getFolder(folderPath);
-    if (folder.exists()) {
-      return folder;
-    }
-    final DartLibraryGenerator generator = new DartLibraryGenerator(true);
-    generator.setContainer(project);
-    generator.setName(libPath);
-    run(new IWorkspaceRunnable() {
-      @Override
-      public void run(IProgressMonitor monitor) throws CoreException {
-        generator.execute(new NullProgressMonitor());
-      }
-    });
-    TestCase.assertTrue(folder.exists());
-    return folder;
-  }
 
   /**
    * Answer the specified workspace project, creating it if necessary

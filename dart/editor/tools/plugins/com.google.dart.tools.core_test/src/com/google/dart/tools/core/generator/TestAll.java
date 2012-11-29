@@ -20,12 +20,6 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(DartProjectGeneratorTest.class);
-    suite.addTestSuite(DartLibraryGeneratorTest.class);
-    // TODO(brianwilkerson) Decide whether these tests need to be fixed or whether the generators
-    // need to be deleted.
-//    suite.addTestSuite(DartClassGeneratorTest.class);
-//    suite.addTestSuite(DartInterfaceGeneratorTest.class);
-    suite.addTestSuite(DartHtmlGeneratorTest.class);
     return suite;
   }
 }
