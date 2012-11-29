@@ -69,5 +69,5 @@ public interface CompilationUnitElement extends Element {
    * 
    * @return the classes contained in this compilation unit
    */
-  public TypeElement[] getTypes();
+  public ClassElement[] getTypes();
 }

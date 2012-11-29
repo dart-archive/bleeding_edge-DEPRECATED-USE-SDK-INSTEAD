@@ -13,8 +13,10 @@
  */
 package com.google.dart.engine.resolver.scope;
 
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExportSpecification;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.HideCombinator;
@@ -25,7 +27,6 @@ import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ShowCombinator;
 import com.google.dart.engine.element.TypeAliasElement;
-import com.google.dart.engine.element.TypeElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
 
@@ -117,7 +118,7 @@ public class LibraryImportScope extends Scope {
       for (TypeAliasElement element : compilationUnit.getTypeAliases()) {
         definedNames.put(element.getName(), element);
       }
-      for (TypeElement element : compilationUnit.getTypes()) {
+      for (ClassElement element : compilationUnit.getTypes()) {
         definedNames.put(element.getName(), element);
       }
     }
@@ -224,27 +225,52 @@ public class LibraryImportScope extends Scope {
 
   /**
    * Build a namespace representing all of the names available to this scope from the library
+   * exported from the given specification.
+   * 
+   * @param specification the specification of the library being imported
+   * @return the namespace that was built
+   */
+  private Namespace buildExportedNamespace(ExportSpecification specification) {
+    return buildExportedNamespace(
+        specification.getExportedLibrary(),
+        specification.getCombinators());
+  }
+
+  /**
+   * Build a namespace representing all of the names available to this scope from the library
    * imported from the given specification.
    * 
    * @param specification the specification of the library being imported
    * @return the namespace that was built
    */
   private Namespace buildExportedNamespace(ImportSpecification specification) {
-    LibraryElement library = specification.getImportedLibrary();
+    Namespace namespace = buildExportedNamespace(
+        specification.getImportedLibrary(),
+        specification.getCombinators());
+    namespace.apply(specification.getPrefix());
+    return namespace;
+  }
+
+  /**
+   * Build a namespace representing all of the names exported from the given library after applying
+   * the given combinators.
+   * 
+   * @param library the library defining the exported names
+   * @param combinators the combinators controlling which names are visible
+   * @return the namespace that was built
+   */
+  private Namespace buildExportedNamespace(LibraryElement library, ImportCombinator[] combinators) {
     Namespace namespace = new Namespace();
     namespace.addPublicNames(library.getDefiningCompilationUnit());
     for (CompilationUnitElement compilationUnit : library.getParts()) {
       namespace.addPublicNames(compilationUnit);
     }
-    for (ImportSpecification innerSpecification : library.getImports()) {
-      if (innerSpecification.isExported()) {
-        namespace.add(buildExportedNamespace(innerSpecification));
-      }
+    for (ExportSpecification innerSpecification : library.getExports()) {
+      namespace.add(buildExportedNamespace(innerSpecification));
     }
-    for (ImportCombinator combinator : specification.getCombinators()) {
+    for (ImportCombinator combinator : combinators) {
       namespace.apply(combinator);
     }
-    namespace.apply(specification.getPrefix());
     return namespace;
   }
 
@@ -257,9 +283,7 @@ public class LibraryImportScope extends Scope {
    */
   private final void createImportedNamespaces(LibraryElement definingLibrary) {
     for (ImportSpecification specification : definingLibrary.getImports()) {
-      if (!specification.isExported()) {
-        importedNamespaces.add(buildExportedNamespace(specification));
-      }
+      importedNamespaces.add(buildExportedNamespace(specification));
     }
   }
 }

@@ -21,7 +21,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
-import com.google.dart.engine.element.TypeElement;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 
@@ -40,7 +40,7 @@ public class ElementHolder {
   private ArrayList<MethodElement> methods = new ArrayList<MethodElement>();
   private ArrayList<TypeAliasElement> typeAliases = new ArrayList<TypeAliasElement>();
   private ArrayList<ParameterElement> parameters = new ArrayList<ParameterElement>();
-  private ArrayList<TypeElement> types = new ArrayList<TypeElement>();
+  private ArrayList<ClassElement> types = new ArrayList<ClassElement>();
   private ArrayList<TypeVariableElement> typeVariables = new ArrayList<TypeVariableElement>();
   private ArrayList<VariableElement> variables = new ArrayList<VariableElement>();
 
@@ -79,7 +79,7 @@ public class ElementHolder {
     parameters.add(element);
   }
 
-  public void addType(TypeElement element) {
+  public void addType(ClassElement element) {
     types.add(element);
   }
 
@@ -136,8 +136,8 @@ public class ElementHolder {
     return typeAliases.toArray(new TypeAliasElement[typeAliases.size()]);
   }
 
-  public TypeElement[] getTypes() {
-    return types.toArray(new TypeElement[types.size()]);
+  public ClassElement[] getTypes() {
+    return types.toArray(new ClassElement[types.size()]);
   }
 
   public TypeVariableElement[] getTypeVariables() {

@@ -18,7 +18,7 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeElement;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.TypeVariableElement;
 
 /**
@@ -35,7 +35,7 @@ public class ClassScope extends EnclosedScope {
    * @param enclosingScope the scope in which this scope is lexically enclosed
    * @param typeElement the element representing the type represented by this scope
    */
-  public ClassScope(Scope enclosingScope, TypeElement typeElement) {
+  public ClassScope(Scope enclosingScope, ClassElement typeElement) {
     super(new EnclosedScope(enclosingScope));
     defineTypeParameters(typeElement);
     defineMembers(typeElement);
@@ -62,7 +62,7 @@ public class ClassScope extends EnclosedScope {
    * 
    * @param typeElement the element representing the type represented by this scope
    */
-  private void defineMembers(TypeElement typeElement) {
+  private void defineMembers(ClassElement typeElement) {
     for (PropertyAccessorElement accessor : typeElement.getAccessors()) {
       define(accessor);
     }
@@ -79,7 +79,7 @@ public class ClassScope extends EnclosedScope {
    * 
    * @param typeElement the element representing the type represented by this scope
    */
-  private void defineTypeParameters(TypeElement typeElement) {
+  private void defineTypeParameters(ClassElement typeElement) {
     Scope parameterScope = getEnclosingScope();
     for (TypeVariableElement parameter : typeElement.getTypeVariables()) {
       parameterScope.define(parameter);

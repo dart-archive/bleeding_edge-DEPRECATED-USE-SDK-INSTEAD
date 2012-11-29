@@ -34,6 +34,13 @@ public interface LibraryElement extends Element {
   public FunctionElement getEntryPoint();
 
   /**
+   * Return an array containing specifications of all of the exports defined in this library.
+   * 
+   * @return the exports defined in this library
+   */
+  public ExportSpecification[] getExports();
+
+  /**
    * Return an array containing all of the libraries that are imported into this library. This
    * includes all of the libraries that are imported using a prefix (also available through the
    * prefixes returned by {@link #getPrefixes()}) and those that are imported without a prefix.

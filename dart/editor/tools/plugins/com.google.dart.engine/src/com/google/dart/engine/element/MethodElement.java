@@ -24,7 +24,7 @@ public interface MethodElement extends ExecutableElement {
    * @return the type in which this method is defined
    */
   @Override
-  public TypeElement getEnclosingElement();
+  public ClassElement getEnclosingElement();
 
   /**
    * Return {@code true} if this method is abstract. Methods are abstract if they are not external

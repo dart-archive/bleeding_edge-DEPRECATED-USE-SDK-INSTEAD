@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.type;
 
-import com.google.dart.engine.element.TypeElement;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
@@ -47,7 +47,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * 
    * @param element the element representing the declaration of the type
    */
-  public InterfaceTypeImpl(TypeElement element) {
+  public InterfaceTypeImpl(ClassElement element) {
     super(element, element.getName());
   }
 
@@ -62,8 +62,8 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @Override
-  public TypeElement getElement() {
-    return (TypeElement) super.getElement();
+  public ClassElement getElement() {
+    return (ClassElement) super.getElement();
   }
 
   @Override
@@ -73,8 +73,8 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Override
   public boolean isDirectSupertypeOf(InterfaceType type) {
-    TypeElement i = getElement();
-    TypeElement j = type.getElement();
+    ClassElement i = getElement();
+    ClassElement j = type.getElement();
     Type supertype = j.getSupertype();
     //
     // I is Object, and J has no extends clause.
@@ -86,7 +86,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 //      }
       return false;
     }
-    TypeElement supertypeElement = (TypeElement) supertype.getElement();
+    ClassElement supertypeElement = (ClassElement) supertype.getElement();
     //
     // I is listed in the extends clause of J.
     //
@@ -155,10 +155,9 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 //      }
 //    }
     //
-    // Transitivity: <i>T &laquo; U</i> and <i>U &laquo; S</i>.
+    // Transitivity: T << U and U << S.
     //
-    // TODO(brianwilkerson) Implement this.
-    return false;
+    return getElement().getSupertype().isMoreSpecificThan(type);
   }
 
   @Override

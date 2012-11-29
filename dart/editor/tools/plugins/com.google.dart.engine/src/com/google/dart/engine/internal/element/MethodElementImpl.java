@@ -16,7 +16,7 @@ package com.google.dart.engine.internal.element;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.MethodElement;
-import com.google.dart.engine.element.TypeElement;
+import com.google.dart.engine.element.ClassElement;
 
 /**
  * Instances of the class {@code MethodElementImpl} implement a {@code MethodElement}.
@@ -37,8 +37,8 @@ public class MethodElementImpl extends ExecutableElementImpl implements MethodEl
   }
 
   @Override
-  public TypeElement getEnclosingElement() {
-    return (TypeElement) super.getEnclosingElement();
+  public ClassElement getEnclosingElement() {
+    return (ClassElement) super.getEnclosingElement();
   }
 
   @Override

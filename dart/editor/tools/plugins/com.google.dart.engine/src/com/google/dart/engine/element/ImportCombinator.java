@@ -18,4 +18,8 @@ package com.google.dart.engine.element;
  * namespaces are combined.
  */
 public interface ImportCombinator {
+  /**
+   * An empty array of import combinators.
+   */
+  public static final ImportCombinator[] EMPTY_ARRAY = new ImportCombinator[0];
 }

@@ -45,12 +45,4 @@ public interface ImportSpecification {
    * @return the prefix that was specified as part of the import directive
    */
   public PrefixElement getPrefix();
-
-  /**
-   * Return {@code true} if the names imported by the import directive are to be made visible to
-   * libraries that import the containing library.
-   * 
-   * @return {@code true} if the names imported by the import directive are re-exported
-   */
-  public boolean isExported();
 }

@@ -32,6 +32,7 @@ import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExportSpecification;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportCombinator;
 import com.google.dart.engine.element.ImportSpecification;
@@ -40,6 +41,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
+import com.google.dart.engine.internal.element.ExportSpecificationImpl;
 import com.google.dart.engine.internal.element.HideCombinatorImpl;
 import com.google.dart.engine.internal.element.ImportSpecificationImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
@@ -107,6 +109,7 @@ public class LibraryElementBuilder {
     boolean hasPartDirective = false;
     FunctionElement entryPoint = findEntryPoint(definingCompilationUnitElement);
     ArrayList<ImportSpecification> imports = new ArrayList<ImportSpecification>();
+    ArrayList<ExportSpecification> exports = new ArrayList<ExportSpecification>();
     HashMap<String, PrefixElementImpl> nameToPrefixMap = new HashMap<String, PrefixElementImpl>();
     HashMap<PrefixElementImpl, ArrayList<ImportSpecification>> prefixToImportMap = new HashMap<PrefixElementImpl, ArrayList<ImportSpecification>>();
     ArrayList<CompilationUnitElementImpl> sourcedCompilationUnits = new ArrayList<CompilationUnitElementImpl>();
@@ -117,22 +120,15 @@ public class LibraryElementBuilder {
         }
       } else if (directive instanceof NamespaceDirective) {
         NamespaceDirective namespaceDirective = (NamespaceDirective) directive;
-        ImportSpecificationImpl specification = new ImportSpecificationImpl();
-        specification.setCombinators(buildCombinators(namespaceDirective));
-        Source source = getSource(librarySource, namespaceDirective.getLibraryUri());
-        if (source != null) {
-          // TODO(brianwilkerson) This needs to go through the analysis context so that we can take
-          // advantage of cached results.
-          LibraryElementBuilder libraryBuilder = new LibraryElementBuilder(
-              analysisContext,
-              errorListener);
-          // TODO(brianwilkerson) Check to see that the imported library has a library directive and
-          // report an error if it does not.
-          // TODO(brianwilkerson) This needs to be a handle to the built library rather than a
-          // direct reference.
-          specification.setImportedLibrary(libraryBuilder.buildLibrary(source));
-        }
         if (directive instanceof ImportDirective) {
+          ImportSpecificationImpl specification = new ImportSpecificationImpl();
+          specification.setCombinators(buildCombinators(namespaceDirective));
+          LibraryElement importedLibrary = getReferencedLibrary(
+              librarySource,
+              namespaceDirective.getLibraryUri());
+          if (importedLibrary != null) {
+            specification.setImportedLibrary(importedLibrary);
+          }
           SimpleIdentifier prefixNode = ((ImportDirective) directive).getPrefix();
           if (prefixNode != null) {
             String prefixName = prefixNode.getName();
@@ -156,14 +152,22 @@ public class LibraryElementBuilder {
             prefixedImports.add(specification);
             specification.setPrefix(prefix);
           }
+          imports.add(specification);
         } else if (directive instanceof ExportDirective) {
-          specification.setExported(true);
+          ExportSpecificationImpl specification = new ExportSpecificationImpl();
+          specification.setCombinators(buildCombinators(namespaceDirective));
+          LibraryElement exportedLibrary = getReferencedLibrary(
+              librarySource,
+              namespaceDirective.getLibraryUri());
+          if (exportedLibrary != null) {
+            specification.setExportedLibrary(exportedLibrary);
+          }
+          exports.add(specification);
         } else {
           AnalysisEngine.getInstance().getLogger().logError(
               "Internal error: LibraryElementBuilder does not handle instances of "
                   + directive.getClass().getName());
         }
-        imports.add(specification);
       } else if (directive instanceof PartDirective) {
         hasPartDirective = true;
         StringLiteral partUri = ((PartDirective) directive).getPartUri();
@@ -288,6 +292,35 @@ public class LibraryElementBuilder {
       identifiers[i] = names.get(i).getName();
     }
     return identifiers;
+  }
+
+  /**
+   * Return the element model for a library that is being referenced by the library whose element
+   * model is being built.
+   * 
+   * @param librarySource the source for the library being built
+   * @param libraryUri the URI of the referenced library
+   * @return the element model for the referenced library
+   */
+  private LibraryElement getReferencedLibrary(Source librarySource, StringLiteral libraryUri) {
+    Source source = getSource(librarySource, libraryUri);
+    if (source == null) {
+      return null;
+    }
+    // TODO(brianwilkerson) This needs to go through the analysis context so that we can take
+    // advantage of cached results.
+    LibraryElementBuilder libraryBuilder = new LibraryElementBuilder(analysisContext, errorListener);
+    // TODO(brianwilkerson) Check to see that the referenced library has a library directive and
+    // report an error if it does not.
+    try {
+      // TODO(brianwilkerson) This needs to return a handle to the built library rather than a
+      // direct reference.
+      return libraryBuilder.buildLibrary(source);
+    } catch (AnalysisException exception) {
+      // Even if we are unable to build the referenced library we still want to try to continue to
+      // build the referencing library.
+      return null;
+    }
   }
 
   /**

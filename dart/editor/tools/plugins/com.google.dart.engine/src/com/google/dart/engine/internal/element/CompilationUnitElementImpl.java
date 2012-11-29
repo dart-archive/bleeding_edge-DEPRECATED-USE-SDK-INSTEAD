@@ -20,7 +20,7 @@ import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
-import com.google.dart.engine.element.TypeElement;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -57,7 +57,7 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   /**
    * An array containing all of the types contained in this compilation unit.
    */
-  private TypeElement[] types = TypeElementImpl.EMPTY_ARRAY;
+  private ClassElement[] types = ClassElementImpl.EMPTY_ARRAY;
 
   /**
    * An empty array of compilation unit elements.
@@ -116,7 +116,7 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   }
 
   @Override
-  public TypeElement[] getTypes() {
+  public ClassElement[] getTypes() {
     return types;
   }
 
@@ -188,9 +188,9 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
    * 
    * @param types types contained in this compilation unit
    */
-  public void setTypes(TypeElement[] types) {
-    for (TypeElement type : types) {
-      ((TypeElementImpl) type).setEnclosingElement(this);
+  public void setTypes(ClassElement[] types) {
+    for (ClassElement type : types) {
+      ((ClassElementImpl) type).setEnclosingElement(this);
     }
     this.types = types;
   }

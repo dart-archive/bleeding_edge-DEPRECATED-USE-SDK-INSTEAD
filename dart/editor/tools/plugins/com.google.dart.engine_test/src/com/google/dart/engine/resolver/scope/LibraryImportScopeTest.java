@@ -17,12 +17,12 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportSpecification;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
-import com.google.dart.engine.element.TypeElement;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ImportSpecificationImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
-import com.google.dart.engine.internal.element.TypeElementImpl;
+import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
@@ -32,19 +32,19 @@ public class LibraryImportScopeTest extends ResolverTestCase {
     String typeNameA = "A";
     String typeNameB = "B";
     String typeNameC = "C";
-    TypeElement typeA = new TypeElementImpl(identifier(typeNameA));
-    TypeElement typeB1 = new TypeElementImpl(identifier(typeNameB));
-    TypeElement typeB2 = new TypeElementImpl(identifier(typeNameB));
-    TypeElement typeC = new TypeElementImpl(identifier(typeNameC));
+    ClassElement typeA = new ClassElementImpl(identifier(typeNameA));
+    ClassElement typeB1 = new ClassElementImpl(identifier(typeNameB));
+    ClassElement typeB2 = new ClassElementImpl(identifier(typeNameB));
+    ClassElement typeC = new ClassElementImpl(identifier(typeNameC));
 
     LibraryElement importedLibrary1 = createTestLibrary("imported1");
-    ((CompilationUnitElementImpl) importedLibrary1.getDefiningCompilationUnit()).setTypes(new TypeElement[] {
+    ((CompilationUnitElementImpl) importedLibrary1.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
         typeA, typeB1});
     ImportSpecificationImpl specification1 = new ImportSpecificationImpl();
     specification1.setImportedLibrary(importedLibrary1);
 
     LibraryElement importedLibrary2 = createTestLibrary("imported2");
-    ((CompilationUnitElementImpl) importedLibrary2.getDefiningCompilationUnit()).setTypes(new TypeElement[] {
+    ((CompilationUnitElementImpl) importedLibrary2.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
         typeB2, typeC});
     ImportSpecificationImpl specification2 = new ImportSpecificationImpl();
     specification2.setImportedLibrary(importedLibrary2);
@@ -74,9 +74,9 @@ public class LibraryImportScopeTest extends ResolverTestCase {
 
   public void test_creation_nonEmpty() {
     String importedTypeName = "A";
-    TypeElement importedType = new TypeElementImpl(identifier(importedTypeName));
+    ClassElement importedType = new ClassElementImpl(identifier(importedTypeName));
     LibraryElement importedLibrary = createTestLibrary("imported");
-    ((CompilationUnitElementImpl) importedLibrary.getDefiningCompilationUnit()).setTypes(new TypeElement[] {importedType});
+    ((CompilationUnitElementImpl) importedLibrary.getDefiningCompilationUnit()).setTypes(new ClassElement[] {importedType});
     LibraryElementImpl definingLibrary = createTestLibrary("importing");
     ImportSpecificationImpl specification = new ImportSpecificationImpl();
     specification.setImportedLibrary(importedLibrary);

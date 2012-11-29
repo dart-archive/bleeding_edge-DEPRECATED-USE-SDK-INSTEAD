@@ -16,9 +16,9 @@ package com.google.dart.engine.element;
 import com.google.dart.engine.type.Type;
 
 /**
- * The interface {@code TypeElement} defines the behavior of elements that represent a class.
+ * The interface {@code ClassElement} defines the behavior of elements that represent a class.
  */
-public interface TypeElement extends Element {
+public interface ClassElement extends Element {
   /**
    * Return an array containing all of the accessors (getters and setters) contained in this class.
    * 
@@ -53,6 +53,14 @@ public interface TypeElement extends Element {
    * @return the methods contained in this class
    */
   public MethodElement[] getMethods();
+
+  /**
+   * Return an array containing all of the mixins that are applied to the class being extended in
+   * order to derive the superclass of this class.
+   * 
+   * @return the mixins that are applied to derive the superclass of this class
+   */
+  public Type[] getMixins();
 
   /**
    * Return the superclass of this class. Return {@code null} if the class does not have an explicit

@@ -28,27 +28,16 @@ public class ImportSpecificationImpl implements ImportSpecification {
   private LibraryElement importedLibrary;
 
   /**
-   * A flag indicating whether the names imported by the import directive are to be made visible to
-   * libraries that import the containing library.
-   */
-  private boolean exported;
-
-  /**
    * The combinators that were specified as part of the import directive in the order in which they
    * were specified.
    */
-  private ImportCombinator[] combinators = EMPTY_COMBINATORS;
+  private ImportCombinator[] combinators = ImportCombinator.EMPTY_ARRAY;
 
   /**
    * The prefix that was specified as part of the import directive, or {@code null} if there was no
    * prefix specified.
    */
   private PrefixElement prefix;
-
-  /**
-   * An empty array of import combinators.
-   */
-  private static final ImportCombinator[] EMPTY_COMBINATORS = new ImportCombinator[0];
 
   /**
    * Initialize a newly created import specification.
@@ -72,11 +61,6 @@ public class ImportSpecificationImpl implements ImportSpecification {
     return prefix;
   }
 
-  @Override
-  public boolean isExported() {
-    return exported;
-  }
-
   /**
    * Set the combinators that were specified as part of the import directive to the given array of
    * combinators.
@@ -85,17 +69,6 @@ public class ImportSpecificationImpl implements ImportSpecification {
    */
   public void setCombinators(ImportCombinator[] combinators) {
     this.combinators = combinators;
-  }
-
-  /**
-   * Set whether the names imported by the import directive are to be made visible to libraries that
-   * import the containing library to the given value.
-   * 
-   * @param exported {@code true} if the names imported by the import directive are to be made
-   *          visible to libraries that import the containing library
-   */
-  public void setExported(boolean exported) {
-    this.exported = exported;
   }
 
   /**

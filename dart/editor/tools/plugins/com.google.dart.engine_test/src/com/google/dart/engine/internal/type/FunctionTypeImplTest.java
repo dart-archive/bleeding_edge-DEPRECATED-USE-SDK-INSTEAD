@@ -15,7 +15,7 @@ package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
-import com.google.dart.engine.internal.element.TypeElementImpl;
+import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
@@ -55,7 +55,7 @@ public class FunctionTypeImplTest extends EngineTestCase {
   public void test_setNamedParameterTypes() {
     FunctionTypeImpl type = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
     LinkedHashMap<String, Type> expectedTypes = new LinkedHashMap<String, Type>();
-    expectedTypes.put("a", new InterfaceTypeImpl(new TypeElementImpl(identifier("C"))));
+    expectedTypes.put("a", new InterfaceTypeImpl(new ClassElementImpl(identifier("C"))));
     type.setNamedParameterTypes(expectedTypes);
     Map<String, Type> types = type.getNamedParameterTypes();
     assertEquals(expectedTypes, types);
@@ -63,7 +63,7 @@ public class FunctionTypeImplTest extends EngineTestCase {
 
   public void test_setNormalParameterTypes() {
     FunctionTypeImpl type = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
-    Type[] expectedTypes = new Type[] {new InterfaceTypeImpl(new TypeElementImpl(identifier("C")))};
+    Type[] expectedTypes = new Type[] {new InterfaceTypeImpl(new ClassElementImpl(identifier("C")))};
     type.setNormalParameterTypes(expectedTypes);
     Type[] types = type.getNormalParameterTypes();
     assertEquals(expectedTypes, types);
@@ -71,7 +71,7 @@ public class FunctionTypeImplTest extends EngineTestCase {
 
   public void test_setReturnType() {
     FunctionTypeImpl type = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
-    Type expectedType = new InterfaceTypeImpl(new TypeElementImpl(identifier("C")));
+    Type expectedType = new InterfaceTypeImpl(new ClassElementImpl(identifier("C")));
     type.setReturnType(expectedType);
     Type returnType = type.getReturnType();
     assertEquals(expectedType, returnType);

@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.element;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ExportSpecification;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportSpecification;
 import com.google.dart.engine.element.LibraryElement;
@@ -48,6 +49,11 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   private ImportSpecification[] imports = ImportSpecification.EMPTY_ARRAY;
 
   /**
+   * An array containing specifications of all of the exports defined in this library.
+   */
+  private ExportSpecification[] exports = ExportSpecification.EMPTY_ARRAY;
+
+  /**
    * An array containing all of the compilation units that are included in this library using a
    * {@code part} directive.
    */
@@ -76,6 +82,11 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @Override
   public FunctionElement getEntryPoint() {
     return entryPoint;
+  }
+
+  @Override
+  public ExportSpecification[] getExports() {
+    return exports;
   }
 
   @Override
@@ -138,6 +149,15 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   public void setEntryPoint(FunctionElement entryPoint) {
     ((FunctionElementImpl) entryPoint).setEnclosingElement(this);
     this.entryPoint = entryPoint;
+  }
+
+  /**
+   * Set the specifications of all of the exports defined in this library to the given array.
+   * 
+   * @param exports the specifications of all of the exports defined in this library
+   */
+  public void setExports(ExportSpecification[] exports) {
+    this.exports = exports;
   }
 
   /**

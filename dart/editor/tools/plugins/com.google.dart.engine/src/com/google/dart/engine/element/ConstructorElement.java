@@ -24,12 +24,19 @@ public interface ConstructorElement extends ExecutableElement {
    * @return the type in which this constructor is defined
    */
   @Override
-  public TypeElement getEnclosingElement();
+  public ClassElement getEnclosingElement();
 
   /**
-   * Return {@code true} if this constructor represents a factory method.
+   * Return {@code true} if this constructor is a const constructor.
    * 
-   * @return {@code true} if this constructor represents a factory method
+   * @return {@code true} if this constructor is a const constructor
+   */
+  public boolean isConst();
+
+  /**
+   * Return {@code true} if this constructor represents a factory constructor.
+   * 
+   * @return {@code true} if this constructor represents a factory constructor
    */
   public boolean isFactory();
 }

@@ -39,7 +39,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
-import com.google.dart.engine.element.TypeElement;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.scanner.Keyword;
@@ -114,10 +114,10 @@ public class ElementBuilderTest extends EngineTestCase {
         null,
         null);
     classDeclaration.accept(builder);
-    TypeElement[] types = holder.getTypes();
+    ClassElement[] types = holder.getTypes();
     assertLength(1, types);
 
-    TypeElement type = types[0];
+    ClassElement type = types[0];
     assertNotNull(type);
     assertEquals(className, type.getName());
     TypeVariableElement[] typeVariables = type.getTypeVariables();
@@ -132,10 +132,10 @@ public class ElementBuilderTest extends EngineTestCase {
     String className = "C";
     ClassDeclaration classDeclaration = classDeclaration(null, className, null, null, null);
     classDeclaration.accept(builder);
-    TypeElement[] types = holder.getTypes();
+    ClassElement[] types = holder.getTypes();
     assertLength(1, types);
 
-    TypeElement type = types[0];
+    ClassElement type = types[0];
     assertNotNull(type);
     assertEquals(className, type.getName());
     TypeVariableElement[] typeVariables = type.getTypeVariables();
@@ -157,10 +157,10 @@ public class ElementBuilderTest extends EngineTestCase {
         null,
         null);
     classDeclaration.accept(builder);
-    TypeElement[] types = holder.getTypes();
+    ClassElement[] types = holder.getTypes();
     assertLength(1, types);
 
-    TypeElement type = types[0];
+    ClassElement type = types[0];
     assertNotNull(type);
     assertEquals(className, type.getName());
     TypeVariableElement[] typeVariables = type.getTypeVariables();
@@ -194,10 +194,10 @@ public class ElementBuilderTest extends EngineTestCase {
             formalParameterList(),
             blockFunctionBody()));
     classDeclaration.accept(builder);
-    TypeElement[] types = holder.getTypes();
+    ClassElement[] types = holder.getTypes();
     assertLength(1, types);
 
-    TypeElement type = types[0];
+    ClassElement type = types[0];
     assertNotNull(type);
     assertEquals(className, type.getName());
     assertFalse(type.isAbstract());

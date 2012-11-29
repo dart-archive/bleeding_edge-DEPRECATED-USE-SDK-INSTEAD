@@ -55,7 +55,7 @@ import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PrefixElement;
-import com.google.dart.engine.element.TypeElement;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisError;
@@ -117,7 +117,7 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
   /**
    * The type element representing the type most recently being visited.
    */
-  private TypeElement enclosingType = null;
+  private ClassElement enclosingType = null;
 
   /**
    * The executable element representing the method or function most recently being visited.
@@ -205,13 +205,13 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
     Element element = nameScope.lookup(node.getName(), definingLibrary);
-    if (!(element instanceof TypeElement)) {
+    if (!(element instanceof ClassElement)) {
       // Internal error.
     }
-    TypeElement outerType = enclosingType;
+    ClassElement outerType = enclosingType;
     Scope outerScope = nameScope;
     try {
-      enclosingType = (TypeElement) element;
+      enclosingType = (ClassElement) element;
       nameScope = new ClassScope(nameScope, enclosingType);
       node.visitChildren(this);
     } finally {
@@ -402,8 +402,8 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
     recordResolution(prefix, prefixElement);
     if (prefixElement instanceof PrefixElement) {
       // TODO(brianwilkerson) Look up identifier.getName() in the prefixed libraries
-    } else if (prefixElement instanceof TypeElement) {
-      Element memberElement = lookupInType((TypeElement) prefixElement, identifier.getName());
+    } else if (prefixElement instanceof ClassElement) {
+      Element memberElement = lookupInType((ClassElement) prefixElement, identifier.getName());
       if (memberElement == null) {
         reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, identifier, identifier.getName());
 //      } else if (!element.isStatic()) {
@@ -537,7 +537,7 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
    * @param memberName the name of the member being looked up
    * @return the element representing the member that was found
    */
-  private Element lookupInType(TypeElement type, String memberName) {
+  private Element lookupInType(ClassElement type, String memberName) {
 //    if (type.isDynamic()) {
 //      return ?;
 //    }

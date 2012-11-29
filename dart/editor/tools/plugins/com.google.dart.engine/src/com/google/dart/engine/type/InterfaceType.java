@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.type;
 
-import com.google.dart.engine.element.TypeElement;
+import com.google.dart.engine.element.ClassElement;
 
 /**
  * The interface {@code InterfaceType} defines the behavior common to objects representing the type
@@ -21,7 +21,7 @@ import com.google.dart.engine.element.TypeElement;
  */
 public interface InterfaceType extends Type {
   @Override
-  public TypeElement getElement();
+  public ClassElement getElement();
 
   /**
    * Return an array containing the actual types of the type arguments. If this type's element does

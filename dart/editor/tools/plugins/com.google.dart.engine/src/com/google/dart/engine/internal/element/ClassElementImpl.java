@@ -14,20 +14,20 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.internal.type.TypeImpl;
 import com.google.dart.engine.type.Type;
 
 /**
- * Instances of the class {@code TypeElementImpl} implement a {@code TypeElement}.
+ * Instances of the class {@code ClassElementImpl} implement a {@code ClassElement}.
  */
-public class TypeElementImpl extends ElementImpl implements TypeElement {
+public class ClassElementImpl extends ElementImpl implements ClassElement {
   /**
    * An array containing all of the accessors (getters and setters) contained in this class.
    */
@@ -42,6 +42,12 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
    * An array containing all of the fields contained in this class.
    */
   private FieldElement[] fields = FieldElementImpl.EMPTY_ARRAY;
+
+  /**
+   * An array containing all of the mixins that are applied to the class being extended in order to
+   * derive the superclass of this class.
+   */
+  private Type[] mixins = TypeImpl.EMPTY_ARRAY;
 
   /**
    * An array containing all of the interfaces that are implemented by this class.
@@ -71,14 +77,14 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
   /**
    * An empty array of type elements.
    */
-  public static final TypeElement[] EMPTY_ARRAY = new TypeElement[0];
+  public static final ClassElement[] EMPTY_ARRAY = new ClassElement[0];
 
   /**
    * Initialize a newly created class element to have the given name.
    * 
    * @param name the name of this element
    */
-  public TypeElementImpl(Identifier name) {
+  public ClassElementImpl(Identifier name) {
     super(name);
   }
 
@@ -110,6 +116,11 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
   @Override
   public MethodElement[] getMethods() {
     return methods;
+  }
+
+  @Override
+  public Type[] getMixins() {
+    return mixins;
   }
 
   @Override
@@ -196,6 +207,16 @@ public class TypeElementImpl extends ElementImpl implements TypeElement {
       ((MethodElementImpl) method).setEnclosingElement(this);
     }
     this.methods = methods;
+  }
+
+  /**
+   * Set the mixins that are applied to the class being extended in order to derive the superclass
+   * of this class to the given types.
+   * 
+   * @param mixins the mixins that are applied to derive the superclass of this class
+   */
+  public void setMixins(Type[] mixins) {
+    this.mixins = mixins;
   }
 
   /**

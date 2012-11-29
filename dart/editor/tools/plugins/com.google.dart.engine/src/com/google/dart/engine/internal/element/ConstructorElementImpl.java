@@ -16,7 +16,7 @@ package com.google.dart.engine.internal.element;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementKind;
-import com.google.dart.engine.element.TypeElement;
+import com.google.dart.engine.element.ClassElement;
 
 /**
  * Instances of the class {@code ConstructorElementImpl} implement a {@code ConstructorElement}.
@@ -37,13 +37,18 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
   }
 
   @Override
-  public TypeElement getEnclosingElement() {
-    return (TypeElement) super.getEnclosingElement();
+  public ClassElement getEnclosingElement() {
+    return (ClassElement) super.getEnclosingElement();
   }
 
   @Override
   public ElementKind getKind() {
     return ElementKind.CONSTRUCTOR;
+  }
+
+  @Override
+  public boolean isConst() {
+    return hasModifier(Modifier.CONST);
   }
 
   @Override

@@ -18,14 +18,14 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.element.TypeElement;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.builder.LibraryElementBuilder;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
-import com.google.dart.engine.internal.element.TypeElementImpl;
+import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -118,11 +118,11 @@ public class ResolverTestCase extends EngineTestCase {
     CompilationUnitElementImpl[] sourcedCompilationUnits = new CompilationUnitElementImpl[count];
     for (int i = 0; i < count; i++) {
       String typeName = typeNames[i];
-      TypeElementImpl type = new TypeElementImpl(identifier(typeName));
+      ClassElementImpl type = new ClassElementImpl(identifier(typeName));
       String fileName = typeName + ".dart";
       CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
       compilationUnit.setSource(sourceFactory.forFile(new File(fileName)));
-      compilationUnit.setTypes(new TypeElement[] {type});
+      compilationUnit.setTypes(new ClassElement[] {type});
       sourcedCompilationUnits[i] = compilationUnit;
     }
     String fileName = libraryName + ".dart";

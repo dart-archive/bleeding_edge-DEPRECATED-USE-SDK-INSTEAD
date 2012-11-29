@@ -48,7 +48,7 @@ import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.TypeAliasElementImpl;
-import com.google.dart.engine.internal.element.TypeElementImpl;
+import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
@@ -118,7 +118,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     visitChildren(holder, node);
 
     SimpleIdentifier className = node.getName();
-    TypeElementImpl element = new TypeElementImpl(className);
+    ClassElementImpl element = new ClassElementImpl(className);
     MethodElement[] methods = holder.getMethods();
     element.setAbstract(node.getAbstractKeyword() != null || hasAbstractMethod(methods));
     element.setAccessors(holder.getAccessors());

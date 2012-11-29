@@ -17,7 +17,7 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.element.TypeElement;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
@@ -190,9 +190,9 @@ public class LibraryElementBuilderTest extends EngineTestCase {
 
   private void assertTypes(CompilationUnitElement unit, String... typeNames) {
     assertNotNull(unit);
-    TypeElement[] types = unit.getTypes();
+    ClassElement[] types = unit.getTypes();
     assertLength(typeNames.length, types);
-    for (TypeElement type : types) {
+    for (ClassElement type : types) {
       assertNotNull(type);
       String actualTypeName = type.getName();
       boolean wasExpected = false;
