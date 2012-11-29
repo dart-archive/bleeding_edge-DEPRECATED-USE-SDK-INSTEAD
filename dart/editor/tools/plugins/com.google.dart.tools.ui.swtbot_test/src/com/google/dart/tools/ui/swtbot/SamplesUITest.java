@@ -13,21 +13,14 @@
  */
 package com.google.dart.tools.ui.swtbot;
 
-import com.google.dart.tools.ui.internal.intro.SampleDescription;
-import com.google.dart.tools.ui.internal.intro.SampleDescriptionHelper;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 import com.google.dart.tools.ui.swtbot.views.ProblemsViewHelper;
+import com.google.dart.tools.ui.test.model.Workspace.Sample;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
-import org.eclipse.swtbot.swt.finder.results.Result;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.syncExec;
 
 /**
  * Sample tests for the Dart Editor. This set of tests pulls in each of the samples just like the
@@ -35,69 +28,8 @@ import static org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.syncExec;
  * 
  * @see TestAll
  */
-@SuppressWarnings("restriction")
 @RunWith(SWTBotJunit4ClassRunner.class)
 public final class SamplesUITest extends AbstractDartEditorTest {
-
-  private static enum Sample {
-
-    CLOCK("Clock"),
-    SLIDER("Slider"),
-    SOLAR("Solar"),
-    SOLAR_3D("Solar 3D"),
-    SWIPE("Swipe"),
-    SUNFLOWER("Sunflower"),
-    TIME("Time server"),
-    TODO_MVC("TodoMVC");
-
-    public static SampleDescription getDescription(String name) {
-      for (SampleDescription desc : SampleDescriptionHelper.getDescriptions()) {
-        if (desc.name.equals(name)) {
-          return desc;
-        }
-      }
-      return null;
-    }
-
-    private final SampleDescription description;
-
-    private Sample(String name) {
-      this.description = getDescription(name);
-    }
-
-    public void dispose() throws CoreException {
-
-      CoreException exception = syncExec(new Result<CoreException>() {
-
-        @Override
-        public CoreException run() {
-          //TODO (pquitslund): consider getting a handle on the created project from the SampleHelper 
-          //(in a future) so we can do this more cleanly
-          IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-          for (IProject project : root.getProjects()) {
-            if (project.getName().startsWith(description.directory.getName())) {
-              try {
-                project.delete(true, null);
-                return null;
-              } catch (CoreException e) {
-                return e;
-              }
-            }
-          }
-          return null;
-        }
-      });
-
-      if (exception != null) {
-        throw exception;
-      }
-    }
-
-    public SampleDescription getDescription() {
-      return description;
-    }
-
-  };
 
   @Test
   public void test_clock() throws Exception {
@@ -137,7 +69,7 @@ public final class SamplesUITest extends AbstractDartEditorTest {
   private void testSample(Sample sample) throws CoreException {
     try {
 
-      openSample(sample.getDescription());
+      sample.open();
 
       SwtBotPerformance.waitForResults(bot);
 
