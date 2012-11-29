@@ -21,6 +21,7 @@ import com.google.dart.tools.core.analysis.AnalysisError;
 import com.google.dart.tools.core.analysis.AnalysisEvent;
 import com.google.dart.tools.core.analysis.AnalysisListener;
 import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.html.HtmlAnalyzeHelper;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 
 import org.eclipse.core.resources.IMarker;
@@ -58,6 +59,7 @@ class AnalysisMarkerManager implements AnalysisListener {
       if (file == null || error == null) {
         return;
       }
+      file = HtmlAnalyzeHelper.getSourceHtmlFile(file);
       IResource res = ResourceUtil.getResource(file);
       if (res == null || !res.exists() || !DartCore.isAnalyzed(res)) {
         return;
@@ -91,11 +93,11 @@ class AnalysisMarkerManager implements AnalysisListener {
       try {
         IMarker marker = res.createMarker(DartCore.DART_PROBLEM_MARKER_TYPE);
         marker.setAttribute(IMarker.SEVERITY, severity);
-        marker.setAttribute(IMarker.MESSAGE, errMsg);
         marker.setAttribute(IMarker.CHAR_START, offset);
         marker.setAttribute(IMarker.CHAR_END, offset + length);
         marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
         marker.setAttribute("errorCode", errorCodeString);
+        marker.setAttribute(IMarker.MESSAGE, errMsg);
       } catch (CoreException e) {
         DartCore.logError("Failed to create marker for " + res + "\n   at " + offset + " message: "
             + errMsg, e);

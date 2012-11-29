@@ -138,27 +138,28 @@ public class HtmlBuildParticipant implements DartBuildParticipant {
   }
 
   private void processHtml(IFile file) {
+    HtmlAnalyzeHelper.analyze(file);
     //final String SEARCH_STR = "\"application/dart\"";
 
-    try {
-      MarkerUtilities.deleteMarkers(file);
-
-//      String data = Files.toString(file.getLocation().toFile(), Charsets.UTF_8);
+//    try {
+//      MarkerUtilities.deleteMarkers(file);
 //
-//      int index = data.indexOf(SEARCH_STR);
-//
-//      while (index != -1) {
-//        MarkerUtilities.createWarningMarker(
-//            file,
-//            "Found Dart!",
-//            getLineNumber(data, index),
-//            index,
-//            SEARCH_STR.length() + index);
-//        index = data.indexOf(SEARCH_STR, index + 1);
-//      }
-    } catch (CoreException e) {
-      DartCore.logError(e);
-    }
+////      String data = Files.toString(file.getLocation().toFile(), Charsets.UTF_8);
+////
+////      int index = data.indexOf(SEARCH_STR);
+////
+////      while (index != -1) {
+////        MarkerUtilities.createWarningMarker(
+////            file,
+////            "Found Dart!",
+////            getLineNumber(data, index),
+////            index,
+////            SEARCH_STR.length() + index);
+////        index = data.indexOf(SEARCH_STR, index + 1);
+////      }
+//    } catch (CoreException e) {
+//      DartCore.logError(e);
+//    }
 //    } catch (IOException e) {
 //      DartCore.logError(e);
 //    }

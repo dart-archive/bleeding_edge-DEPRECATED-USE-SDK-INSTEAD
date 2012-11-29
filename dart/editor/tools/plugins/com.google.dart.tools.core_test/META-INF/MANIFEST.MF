@@ -19,6 +19,7 @@ Require-Bundle: com.google.dart.compiler.js,
  org.eclipse.debug.ui
 Export-Package: com.google.dart.tools.core,
  com.google.dart.tools.core.samples,
+ com.google.dart.tools.core.test,
  com.google.dart.tools.core.test.util,
  com.google.dart.tools.core.testutil,
  org.fest.assertions,

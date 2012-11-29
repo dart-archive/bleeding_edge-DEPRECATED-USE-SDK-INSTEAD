@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.core.internal.util;
 
-import com.google.dart.compiler.Source;
 import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.compiler.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 
