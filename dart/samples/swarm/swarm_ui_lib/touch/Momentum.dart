@@ -23,9 +23,10 @@
  * accelerated method such as using 'translate3d' on the element's
  * -webkit-transform style property.
  */
-interface Momentum default TimeoutMomentum {
+class Momentum {
 
-  Momentum(MomentumDelegate delegate, [num defaultDecelerationFactor]);
+  factory Momentum(MomentumDelegate delegate, [num defaultDecelerationFactor = 1])
+      => new TimeoutMomentum(delegate, defaultDecelerationFactor);
 
   bool get decelerating;
 
