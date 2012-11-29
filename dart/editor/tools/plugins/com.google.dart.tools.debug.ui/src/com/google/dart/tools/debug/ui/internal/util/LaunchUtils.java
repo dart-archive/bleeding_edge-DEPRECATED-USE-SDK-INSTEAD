@@ -236,22 +236,18 @@ public class LaunchUtils {
       HTMLFile htmlFile = (HTMLFile) element;
 
       try {
-        DartLibrary libraries[] = htmlFile.getReferencedLibraries();
-        return libraries;
+        return htmlFile.getReferencedLibraries();
 
       } catch (DartModelException exception) {
         DartUtil.logError(exception);
       }
 
-      return null;
     } else if (element instanceof DartProjectImpl) {
-      DartLibrary[] libraries = null;
       try {
-        libraries = ((DartProjectImpl) element).getDartLibraries();
+        return ((DartProjectImpl) element).getDartLibraries();
       } catch (DartModelException e) {
 
       }
-      return libraries;
     }
     return new DartLibrary[] {};
 
