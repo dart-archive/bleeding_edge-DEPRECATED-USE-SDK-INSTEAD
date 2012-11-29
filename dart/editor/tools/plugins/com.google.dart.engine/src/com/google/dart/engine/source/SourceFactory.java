@@ -35,6 +35,11 @@ public class SourceFactory {
   private HashMap<Source, String> contentMap = new HashMap<Source, String>();
 
   /**
+   * The mapper used by file-based sources to compute their container.
+   */
+  private ContainerMapper containerMapper = DefaultContainerMapper.getInstance();
+
+  /**
    * Initialize a newly created source factory.
    * 
    * @param resolvers the resolvers used to resolve absolute URI's
@@ -54,6 +59,17 @@ public class SourceFactory {
   }
 
   /**
+   * Return the container mapper that should be used by file-based sources to map files to their
+   * container.
+   * 
+   * @return the container mapper that should be used by file-based sources to map files to their
+   *         container
+   */
+  public ContainerMapper getContainerMapper() {
+    return containerMapper;
+  }
+
+  /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or
    * {@code null} if either the contained URI is invalid or if it cannot be resolved against the
@@ -70,6 +86,18 @@ public class SourceFactory {
     } catch (URISyntaxException exception) {
       return null;
     }
+  }
+
+  /**
+   * Set the container mapper that should be used by file-based sources to map files to their
+   * container to the given mapper.
+   * 
+   * @param containerMapper the container mapper that should be used by file-based sources to map
+   *          files to their container
+   */
+  public void setContainerMapper(ContainerMapper containerMapper) {
+    this.containerMapper = containerMapper == null ? DefaultContainerMapper.getInstance()
+        : containerMapper;
   }
 
   /**

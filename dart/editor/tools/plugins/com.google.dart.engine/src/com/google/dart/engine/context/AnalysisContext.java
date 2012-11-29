@@ -21,7 +21,10 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
+
+import java.util.List;
 
 /**
  * The interface {@code AnalysisContext} defines the behavior of objects that represent a context in
@@ -35,6 +38,16 @@ import com.google.dart.engine.source.SourceFactory;
  * proposed future state, such as after a refactoring.
  */
 public interface AnalysisContext {
+  /**
+   * Return a list containing the source containers that the given source container depends on. More
+   * specifically, return a list containing the source containers associated with the sources on
+   * which the sources associated with the given source container depend.
+   * 
+   * @param container the source container that depends on the containers that will be returned
+   * @return the source containers that the given source container depends
+   */
+  public List<SourceContainer> getDependedOnContainers(SourceContainer container);
+
   /**
    * Return the element referenced by the given location.
    * 

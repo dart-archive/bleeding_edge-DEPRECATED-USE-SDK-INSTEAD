@@ -53,6 +53,13 @@ public interface Source {
   public boolean equals(Object object);
 
   /**
+   * Return the container containing this source.
+   * 
+   * @return the container containing this source
+   */
+  public SourceContainer getContainer();
+
+  /**
    * Get the contents of this source and pass it to the given receiver. Exactly one of the methods
    * defined on the receiver will be invoked unless an exception is thrown. The method that will be
    * invoked depends on which of the possible representations of the contents is the most efficient.
@@ -95,6 +102,11 @@ public interface Source {
    * @return {@code true} if this is in a system library
    */
   public boolean isInSystemLibrary();
+
+  /**
+   * The container containing this source might have changed to it needs to be re-computed.
+   */
+  public void resetContainer();
 
   /**
    * Resolve the given URI relative to the location of this source.

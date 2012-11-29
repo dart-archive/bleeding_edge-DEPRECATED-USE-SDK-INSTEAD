@@ -36,6 +36,25 @@ public class SourceImplTest extends TestCase {
     assertTrue(source1.equals(source2));
   }
 
+  public void test_getContainer() {
+    SourceFactory factory = new SourceFactory();
+    final SourceContainer[] container = {new TestSourceContainer()};
+    ContainerMapper mapper = new ContainerMapper() {
+      @Override
+      public SourceContainer getContainerFor(Source source) {
+        return container[0];
+      }
+    };
+    factory.setContainerMapper(mapper);
+    SourceImpl source = new SourceImpl(factory, new File("/does/not/exist.dart"));
+
+    assertEquals(container[0], source.getContainer());
+
+    container[0] = new TestSourceContainer();
+    source.resetContainer();
+    assertEquals(container[0], source.getContainer());
+  }
+
   public void test_getFullName() {
     SourceFactory factory = new SourceFactory();
     String fullPath = "/does/not/exist.dart";

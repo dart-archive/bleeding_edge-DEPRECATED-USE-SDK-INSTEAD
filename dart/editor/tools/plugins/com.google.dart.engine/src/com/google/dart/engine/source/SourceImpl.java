@@ -31,6 +31,11 @@ public class SourceImpl implements Source {
   private SourceFactory factory;
 
   /**
+   * The container containing this source.
+   */
+  private SourceContainer container;
+
+  /**
    * The file represented by this source.
    */
   private File file;
@@ -72,6 +77,14 @@ public class SourceImpl implements Source {
   @Override
   public boolean equals(Object object) {
     return this.getClass() == object.getClass() && file.equals(((SourceImpl) object).file);
+  }
+
+  @Override
+  public SourceContainer getContainer() {
+    if (container == null) {
+      container = factory.getContainerMapper().getContainerFor(this);
+    }
+    return container;
   }
 
   @Override
@@ -133,6 +146,11 @@ public class SourceImpl implements Source {
   @Override
   public boolean isInSystemLibrary() {
     return inSystemLibrary;
+  }
+
+  @Override
+  public void resetContainer() {
+    container = null;
   }
 
   @Override

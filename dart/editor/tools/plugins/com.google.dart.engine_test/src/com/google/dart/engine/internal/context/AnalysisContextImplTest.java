@@ -23,12 +23,23 @@ import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceImpl;
+import com.google.dart.engine.source.TestSourceContainer;
 
 import java.io.File;
+import java.util.List;
 
 public class AnalysisContextImplTest extends EngineTestCase {
+  public void fail_getDependendOnContainers() {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    SourceContainer container = new TestSourceContainer();
+    // TODO(brianwilkerson) Figure out how to set up dependencies between sources.
+    List<SourceContainer> containers = context.getDependedOnContainers(container);
+    assertNotNull(containers);
+  }
+
   public void fail_getElement_location() {
     AnalysisContextImpl context = new AnalysisContextImpl();
     ElementLocation location = new ElementLocationImpl("dart:core;Object");

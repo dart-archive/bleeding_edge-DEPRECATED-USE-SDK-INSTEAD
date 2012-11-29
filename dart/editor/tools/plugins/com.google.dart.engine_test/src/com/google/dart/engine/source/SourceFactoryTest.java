@@ -70,6 +70,22 @@ public class SourceFactoryTest extends TestCase {
     assertEquals("/does/not/exist.dart", result.getFullName());
   }
 
+  public void test_setContainerMapper() {
+    SourceFactory factory = new SourceFactory();
+    ContainerMapper defaultMapper = factory.getContainerMapper();
+    assertNotNull(defaultMapper);
+    ContainerMapper newMapper = new ContainerMapper() {
+      @Override
+      public SourceContainer getContainerFor(Source source) {
+        return null;
+      }
+    };
+    factory.setContainerMapper(newMapper);
+    assertEquals(newMapper, factory.getContainerMapper());
+    factory.setContainerMapper(null);
+    assertEquals(defaultMapper, factory.getContainerMapper());
+  }
+
   public void test_setContents() {
     SourceFactory factory = new SourceFactory();
     File file = new File("/does/not/exist.dart");

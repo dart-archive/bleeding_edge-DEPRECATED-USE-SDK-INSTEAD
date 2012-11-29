@@ -26,10 +26,12 @@ import com.google.dart.engine.scanner.CharBufferScanner;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 
 import java.nio.CharBuffer;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Instances of the class {@code AnalysisContextImpl} implement an {@link AnalysisContext analysis
@@ -52,6 +54,11 @@ public class AnalysisContextImpl implements AnalysisContext {
    */
   public AnalysisContextImpl() {
     super();
+  }
+
+  @Override
+  public List<SourceContainer> getDependedOnContainers(SourceContainer container) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
