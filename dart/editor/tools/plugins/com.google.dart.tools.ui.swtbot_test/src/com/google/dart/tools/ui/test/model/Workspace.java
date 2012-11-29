@@ -15,9 +15,12 @@ package com.google.dart.tools.ui.test.model;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
+import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
 import com.google.dart.tools.ui.internal.intro.SampleDescription;
 import com.google.dart.tools.ui.internal.intro.SampleDescriptionHelper;
 import com.google.dart.tools.ui.internal.intro.SampleHelper;
+import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
+import com.google.dart.tools.ui.swtbot.util.SWTBotUtil;
 import com.google.dart.tools.ui.test.model.internal.workbench.ProjectImpl;
 import com.google.dart.tools.ui.test.runnable.Result;
 import com.google.dart.tools.ui.test.runnable.VoidResult;
@@ -43,6 +46,26 @@ public class Workspace {
    * Represents a top-level folder which corresponds with an underlying dart {@link IProject}.
    */
   public static interface Project {
+
+    /**
+     * Represents project type.
+     */
+    public static enum Type {
+
+      SERVER(ProjectType.SERVER),
+      WEB(ProjectType.WEB),
+      NONE(ProjectType.NONE);
+
+      private final ProjectType type;
+
+      private Type(ProjectType type) {
+        this.type = type;
+      }
+
+      private ProjectType adapt() {
+        return type;
+      }
+    }
 
     /**
      * Deletes this project from the workspace.
@@ -153,6 +176,18 @@ public class Workspace {
   }
 
   /**
+   * Create a test project with the given name and type.
+   * 
+   * @param name the name of the project
+   * @param type the project type
+   * @return the created project
+   */
+  public static Project createProject(String name, Project.Type type) {
+    IProject project = createProject(name, type.adapt());
+    return createProject(project);
+  }
+
+  /**
    * Find the project with the given name.
    * 
    * @param name the project name
@@ -187,13 +222,35 @@ public class Workspace {
     });
   }
 
+  private static ProjectImpl createProject(IProject project) {
+    return new ProjectImpl(project);
+  }
+
+  private static IProject createProject(final String name, final ProjectType type) {
+
+    return syncExec(new Result<IProject>() {
+
+      @Override
+      public IProject run() {
+        CreateAndRevealProjectAction action = new CreateAndRevealProjectAction(
+            SWTBotUtil.getWorkbenchWindow(),
+            type,
+            name);
+        action.run();
+        return action.getProject();
+
+      }
+    });
+
+  }
+
   private static List<Project> findProjects(Predicate<IProject> matcher) {
 
     List<Project> projects = Lists.newArrayList();
 
     for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
       if (matcher.apply(project)) {
-        projects.add(new ProjectImpl(project));
+        projects.add(createProject(project));
       }
     }
 

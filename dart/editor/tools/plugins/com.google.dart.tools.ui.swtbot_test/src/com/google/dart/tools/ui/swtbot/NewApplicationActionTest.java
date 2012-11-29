@@ -13,9 +13,10 @@
  */
 package com.google.dart.tools.ui.swtbot;
 
-import com.google.dart.tools.ui.swtbot.dialog.NewApplicationHelper;
-import com.google.dart.tools.ui.swtbot.dialog.NewApplicationHelper.ContentType;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
+import com.google.dart.tools.ui.test.model.Workspace;
+import com.google.dart.tools.ui.test.model.Workspace.Project;
+import com.google.dart.tools.ui.test.model.Workspace.Project.Type;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
@@ -25,35 +26,35 @@ import org.junit.runner.RunWith;
 
 /**
  * New Application tests for the Dart Editor.
- * 
- * @see TestAll
  */
 @RunWith(SWTBotJunit4ClassRunner.class)
 public final class NewApplicationActionTest extends AbstractDartEditorTest {
 
-  private DartLib lib;
+  private Project project;
 
   @After
   public void cleanup() throws CoreException {
-    if (lib != null) {
-      lib.getProject().delete(true, null);
+    if (project != null) {
+      project.delete();
     }
   }
 
   @Test
   public void testNewApplicationWizard_server() throws Exception {
-    createApp("NewAppServer", ContentType.SERVER);
+    createApp("NewAppServer", Type.SERVER);
     //TODO (pquitslund): verify content and launch
   }
 
   @Test
   public void testNewApplicationWizard_web() throws Exception {
-    createApp("NewAppWeb", ContentType.WEB);
+    createApp("NewAppWeb", Type.WEB);
     //TODO (pquitslund): verify content and launch
   }
 
-  private void createApp(String name, ContentType type) throws CoreException {
-    lib = new NewApplicationHelper(bot).create(name, type);
+  private void createApp(String name, Type type) throws CoreException {
+    //lib = new NewApplicationHelper(bot).create(name, type);
+    project = Workspace.createProject(name, type);
+    //may be unnecessary
     SwtBotPerformance.waitForResults(bot);
   }
 

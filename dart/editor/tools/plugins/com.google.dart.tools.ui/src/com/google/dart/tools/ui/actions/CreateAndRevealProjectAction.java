@@ -49,6 +49,21 @@ public class CreateAndRevealProjectAction extends Action {
   private final String[] directories;
   private IStatus status;
   private IProject project = null;
+  private final ProjectType type;
+
+  /**
+   * Create the action.
+   * 
+   * @param window the workbench window
+   * @param type the project type
+   * @param directories directory paths
+   */
+  public CreateAndRevealProjectAction(IWorkbenchWindow window, ProjectType type,
+      String... directories) {
+    this.type = type;
+    this.directories = directories;
+    this.window = window;
+  }
 
   /**
    * Create the action.
@@ -57,8 +72,7 @@ public class CreateAndRevealProjectAction extends Action {
    * @param directories directory paths
    */
   public CreateAndRevealProjectAction(IWorkbenchWindow window, String... directories) {
-    this.directories = directories;
-    this.window = window;
+    this(window, ProjectType.NONE, directories);
   }
 
   public IProject getProject() {
@@ -102,7 +116,7 @@ public class CreateAndRevealProjectAction extends Action {
       IProject newProject = ProjectUtils.createNewProject(
           name,
           projectHandle,
-          ProjectType.NONE,
+          type,
           location,
           window,
           getShell());
