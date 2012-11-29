@@ -55,8 +55,7 @@ public class MixinClause extends ASTNode {
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
-    // TODO(brianwilkerson) Implement this.
-    return null; //visitor.visitMixinClause(this);
+    return visitor.visitMixinClause(this);
   }
 
   @Override

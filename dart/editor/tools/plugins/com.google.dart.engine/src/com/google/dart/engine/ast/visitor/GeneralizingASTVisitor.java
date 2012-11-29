@@ -385,6 +385,16 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitMixinApplication(MixinApplication node) {
+    return visitNode(node);
+  }
+
+  @Override
+  public R visitMixinClause(MixinClause node) {
+    return visitNode(node);
+  }
+
+  @Override
   public R visitNamedExpression(NamedExpression node) {
     return visitExpression(node);
   }

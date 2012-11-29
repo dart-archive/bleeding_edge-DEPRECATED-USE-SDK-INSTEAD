@@ -54,8 +54,7 @@ public class MixinApplication extends ASTNode {
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
-    // TODO(brianwilkerson) Implement this.
-    return null; //visitor.visitMixinApplication(this);
+    return visitor.visitMixinApplication(this);
   }
 
   @Override

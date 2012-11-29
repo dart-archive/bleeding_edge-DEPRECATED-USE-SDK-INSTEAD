@@ -138,6 +138,10 @@ public interface ASTVisitor<R> {
 
   public R visitMethodInvocation(MethodInvocation node);
 
+  public R visitMixinApplication(MixinApplication node);
+
+  public R visitMixinClause(MixinClause node);
+
   public R visitNamedExpression(NamedExpression node);
 
   public R visitNullLiteral(NullLiteral node);

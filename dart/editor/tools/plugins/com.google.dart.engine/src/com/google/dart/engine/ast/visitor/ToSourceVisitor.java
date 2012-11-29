@@ -605,6 +605,20 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitMixinApplication(MixinApplication node) {
+    writer.print(" = ");
+    visit(node.getSuperclass());
+    return null;
+  }
+
+  @Override
+  public Void visitMixinClause(MixinClause node) {
+    writer.print(" mixin ");
+    visitList(node.getMixinTypes(), ", ");
+    return null;
+  }
+
+  @Override
   public Void visitNamedExpression(NamedExpression node) {
     visit(node.getName());
     visit(" ", node.getExpression());

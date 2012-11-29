@@ -74,6 +74,8 @@ import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.MixinApplication;
+import com.google.dart.engine.ast.MixinClause;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.ParenthesizedExpression;
@@ -476,6 +478,18 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitMethodInvocation(MethodInvocation node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public R visitMixinApplication(MixinApplication node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public R visitMixinClause(MixinClause node) {
     node.visitChildren(this);
     return null;
   }
