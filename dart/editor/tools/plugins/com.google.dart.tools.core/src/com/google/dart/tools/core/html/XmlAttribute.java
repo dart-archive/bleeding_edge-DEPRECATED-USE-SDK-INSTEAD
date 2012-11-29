@@ -11,15 +11,34 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.web.xml.model;
+package com.google.dart.tools.core.html;
 
 /**
- * An xml model element. XmlDocument is the root node of the xml model.
+ * An xml model element. An XmlAttribute is owned by an XmlNode.
  */
-public class XmlDocument extends XmlNode {
+public class XmlAttribute extends XmlNode {
+  private String value;
 
-  public XmlDocument() {
-    super(null);
+  public XmlAttribute(String name) {
+    this(name, null);
+  }
+
+  public XmlAttribute(String name, String value) {
+    super(name);
+
+    this.value = value;
+  }
+
+  public String getName() {
+    return getLabel();
+  }
+
+  public String getValue() {
+    return value;
+  }
+
+  public void setValue(String val) {
+    this.value = val;
   }
 
 }

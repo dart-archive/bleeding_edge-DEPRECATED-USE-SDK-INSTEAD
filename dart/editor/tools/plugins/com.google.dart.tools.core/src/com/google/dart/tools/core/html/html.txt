@@ -1,4 +1,5 @@
 [accesskey,class,contenteditable,contextmenu,dir,draggable,dropzone,hidden,id,lang,spellcheck,style,tabindex,title]
+[onafterprint,onbeforeprint,onbeforeunload,onerror,onhaschange,onload,onmessage,onoffline,ononline,onpagehide,onpageshow,onpopstate,onredo,onresize,onstorage,onundo,onunload,onblur,onchange,oncontextmenu,onfocus,onformchange,onforminput,oninput,oninvalid,onselect,onsubmit,onkeydown,onkeypress,onkeyup,onclick,ondblclick,ondoubleclick,ondrag,ondragend,ondragenter,ondragleave,ondragover,ondragstart,ondrop,onmousedown,onmousemove,onmouseout,onmouseover,onmouseup,onmousewheel,onscroll,onabort,oncanplay,oncanplaythrough,ondurationchange,onemptied,onended,onerror,onloadeddata,onloadedmetadata,onloadstart,onpause,onplay,onplaying,onprogress,onratechange,onreadystatechange,onseeked,onseeking,onstalled,onsuspend,ontimeupdate,onvolumechange,onwaiting,databind]
 
 a=href,target,rel,media,hreflang,type
 abbr
@@ -114,4 +115,4 @@ content=select
 decorator=apply-author-styles
 element=apply-author-styles,constructor,extends,name
 shadow
-template
+template=instantiate,iterate

@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.web.html;
 
+import com.google.dart.tools.core.html.XmlNode;
 import com.google.dart.tools.ui.web.DartWebPlugin;
-import com.google.dart.tools.ui.web.utils.Node;
-import com.google.dart.tools.ui.web.utils.NodeContentProvider;
+import com.google.dart.tools.ui.web.xml.XmlNodeContentProvider;
 
 import org.eclipse.jface.viewers.DecoratingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.ISelection;
@@ -44,7 +44,7 @@ public class HtmlContentOutlinePage extends ContentOutlinePage {
 
     getTreeViewer().setLabelProvider(
         new DecoratingStyledCellLabelProvider(new HtmlLabelProvider(), null, null));
-    getTreeViewer().setContentProvider(new NodeContentProvider());
+    getTreeViewer().setContentProvider(new XmlNodeContentProvider());
     getTreeViewer().setInput(editor.getModel());
 
     getTreeViewer().expandToLevel(3);
@@ -67,8 +67,8 @@ public class HtmlContentOutlinePage extends ContentOutlinePage {
     if (selection instanceof IStructuredSelection) {
       Object sel = ((IStructuredSelection) selection).getFirstElement();
 
-      if (sel instanceof Node) {
-        Node node = (Node) sel;
+      if (sel instanceof XmlNode) {
+        XmlNode node = (XmlNode) sel;
 
         editor.selectAndReveal(node);
       }

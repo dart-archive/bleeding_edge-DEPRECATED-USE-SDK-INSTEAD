@@ -28,7 +28,7 @@ Export-Package: com.google.dart.tools.core,
  com.google.dart.tools.core.expressions,
  com.google.dart.tools.core.formatter,
  com.google.dart.tools.core.generator,
- com.google.dart.tools.core.html;x-friends:="com.google.dart.tools.core_test",
+ com.google.dart.tools.core.html;
  com.google.dart.tools.core.index,
  com.google.dart.tools.core.internal.buffer,
  com.google.dart.tools.core.internal.builder,

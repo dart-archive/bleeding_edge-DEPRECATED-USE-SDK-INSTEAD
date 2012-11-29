@@ -14,8 +14,9 @@
 
 package com.google.dart.tools.ui.web.html;
 
+import com.google.dart.tools.core.html.XmlElement;
+import com.google.dart.tools.core.html.XmlNode;
 import com.google.dart.tools.ui.web.xml.XmlLabelProvider;
-import com.google.dart.tools.ui.web.xml.model.XmlNode;
 
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.StyledString;
@@ -39,17 +40,38 @@ public class HtmlLabelProvider extends XmlLabelProvider implements IStyledLabelP
 
   private String getAuxText(XmlNode node) {
     if ("title".equalsIgnoreCase(node.getLabel())) {
-      return node.getContents();
+      return trim(node.getContents());
     }
 
-    if ("link".equalsIgnoreCase(node.getLabel())) {
-      return node.getAttributeString("href");
+    if (node instanceof XmlElement) {
+      XmlElement element = (XmlElement) node;
+
+      if ("link".equalsIgnoreCase(element.getLabel())) {
+        return element.getAttributeString("href");
+      }
+
+      if ("script".equalsIgnoreCase(element.getLabel())) {
+        return element.getAttributeString("type");
+      }
+
+      if ("img".equalsIgnoreCase(element.getLabel()) && element.getAttributeString("src") != null) {
+        return element.getAttributeString("src");
+      }
+
+      if (element.getAttributeString("id") != null) {
+        return "#" + element.getAttributeString("id");
+      }
     }
 
-    if ("script".equalsIgnoreCase(node.getLabel())) {
-      return node.getAttributeString("src");
-    }
     return null;
+  }
+
+  private String trim(String str) {
+    if (str == null) {
+      return str;
+    } else {
+      return str.toString();
+    }
   }
 
 }

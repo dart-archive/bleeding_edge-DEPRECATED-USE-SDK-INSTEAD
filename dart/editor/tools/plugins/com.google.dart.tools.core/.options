@@ -18,6 +18,7 @@ com.google.dart.tools.core/experimental/altKeyBindings = false
 com.google.dart.tools.core/experimental/testsView = false
 com.google.dart.tools.core/experimental/formatter = false
 com.google.dart.tools.core/experimental/themes = false
+com.google.dart.tools.core/experimental/validateHtml = false
 
 com.google.dart.tools.core/dev/disableMarkOccurrences=false
 

@@ -13,10 +13,10 @@
  */
 package com.google.dart.tools.ui.web.css;
 
+import com.google.dart.tools.core.html.HtmlKeywords;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 import com.google.dart.tools.ui.web.html.HtmlWordRule;
 import com.google.dart.tools.ui.web.utils.CssAttributes;
-import com.google.dart.tools.ui.web.utils.HtmlKeywords;
 
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.IRule;

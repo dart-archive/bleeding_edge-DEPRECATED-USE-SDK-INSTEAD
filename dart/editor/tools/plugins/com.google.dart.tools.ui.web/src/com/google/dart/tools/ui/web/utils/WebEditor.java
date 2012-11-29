@@ -104,18 +104,6 @@ public abstract class WebEditor extends TextEditor {
     return super.getTitleToolTip();
   }
 
-  public void selectAndReveal(Node node) {
-    if (node.getEndToken() != null) {
-      int length = node.getEndToken().getLocation() - node.getStartToken().getLocation();
-
-      length += node.getEndToken().getValue().length();
-
-      selectAndReveal(node.getStartToken().getLocation(), length);
-    } else {
-      selectAndReveal(node.getStartToken().getLocation(), 0);
-    }
-  }
-
   @Override
   protected void createActions() {
     super.createActions();

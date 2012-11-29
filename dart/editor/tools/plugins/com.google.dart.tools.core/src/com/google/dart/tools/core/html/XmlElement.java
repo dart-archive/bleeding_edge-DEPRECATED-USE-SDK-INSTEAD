@@ -11,24 +11,24 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.web.xml.model;
 
-import com.google.dart.tools.ui.web.utils.Node;
+package com.google.dart.tools.core.html;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * An xml model element. A node is parented by another node, and has child nodes and zero or more
- * owned XmlAttribute properties.
+ * 
  */
-public class XmlNode extends Node {
+public class XmlElement extends XmlNode {
   private List<XmlAttribute> attributes = new ArrayList<XmlAttribute>();
-  private String name;
-  private String contents;
 
-  public XmlNode(String name) {
-    this.name = name;
+  public XmlElement() {
+
+  }
+
+  public XmlElement(String label) {
+    super(label);
   }
 
   public List<XmlAttribute> getAttributes() {
@@ -45,34 +45,16 @@ public class XmlNode extends Node {
     return null;
   }
 
-  public String getContents() {
-    return contents;
+  void addAttribute(XmlAttribute attribute) {
+    attributes.add(attribute);
   }
 
-  @Override
-  public String getId() {
-    if (getParent() == null) {
-      return getLabel();
+  void appendContents(String value) {
+    if (getContents() == null) {
+      setContents(value);
     } else {
-      return getParent().getId() + "." + getLabel() + getChildPos();
+      setContents(getContents() + value);
     }
-  }
-
-  @Override
-  public String getLabel() {
-    return name;
-  }
-
-  private int getChildPos() {
-    List<Node> children = getParent().getChildren();
-
-    for (int i = 0; i < children.size(); i++) {
-      if (children.get(i) == this) {
-        return i;
-      }
-    }
-
-    return -1;
   }
 
 }

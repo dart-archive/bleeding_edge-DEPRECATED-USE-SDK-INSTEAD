@@ -11,9 +11,9 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.web.utils;
+package com.google.dart.tools.core.html;
 
-import com.google.dart.tools.ui.web.DartWebPlugin;
+import com.google.dart.tools.core.DartCore;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,11 +27,12 @@ import java.util.Map;
 
 /**
  * A comprehensive list of html keywords and attributes. This class reads its content from the
- * meta/html.txt file.
+ * html.txt file.
  */
 public class HtmlKeywords {
 
   private static List<String> globalAttributes;
+  private static List<String> eventAttributes;
 
   private static List<String> keywords;
   private static Map<String, List<String>> attributeMap;
@@ -53,8 +54,18 @@ public class HtmlKeywords {
     }
   }
 
+  public static List<String> getEventAttributes() {
+    return eventAttributes;
+  }
+
   public static List<String> getKeywords() {
     return keywords;
+  }
+
+  public static boolean isValidEventAttribute(String name) {
+    name = processEventAttribute(name);
+
+    return eventAttributes.contains(name);
   }
 
   private static void init() {
@@ -64,32 +75,35 @@ public class HtmlKeywords {
       globalAttributes = Collections.emptyList();
 
       BufferedReader reader = new BufferedReader(new InputStreamReader(
-          HtmlKeywords.class.getResourceAsStream("/meta/html.txt")));
+          HtmlKeywords.class.getResourceAsStream("html.txt")));
 
+      // handle the global attributes
       String line = reader.readLine();
+      line = line.substring(1, line.length() - 1);
+      globalAttributes = Collections.unmodifiableList(Arrays.asList(line.split(",")));
+
+      // handle the event attributes
+      line = reader.readLine();
+      line = line.substring(1, line.length() - 1);
+      eventAttributes = Collections.unmodifiableList(Arrays.asList(line.split(",")));
+
+      line = reader.readLine();
 
       while (line != null) {
         line = line.trim();
 
         if (line.length() > 0 && line.charAt(0) != '#') {
-          if (line.startsWith("[")) {
-            // handle the global attributes
-            line = line.substring(1, line.length() - 1);
+          List<String> atts = Collections.emptyList();
+          String keyword = line;
 
-            globalAttributes = Collections.unmodifiableList(Arrays.asList(line.split(",")));
-          } else {
-            List<String> atts = Collections.emptyList();
-            String keyword = line;
+          if (line.indexOf('=') != -1) {
+            String[] strs = line.split("=");
 
-            if (line.indexOf('=') != -1) {
-              String[] strs = line.split("=");
-
-              keyword = strs[0];
-              atts = Collections.unmodifiableList(Arrays.asList(strs[1]));
-            }
-
-            attributeMap.put(keyword, atts);
+            keyword = strs[0];
+            atts = Collections.unmodifiableList(Arrays.asList(strs[1].split(",")));
           }
+
+          attributeMap.put(keyword, atts);
         }
 
         line = reader.readLine();
@@ -100,8 +114,22 @@ public class HtmlKeywords {
       keywords.addAll(attributeMap.keySet());
       Collections.sort(keywords);
     } catch (IOException ioe) {
-      DartWebPlugin.logError(ioe);
+      DartCore.logError(ioe);
     }
+  }
+
+  private static String processEventAttribute(String name) {
+    name = name.toLowerCase();
+
+    int index = name.indexOf('-');
+
+    while (index != -1) {
+      name = name.substring(0, index) + name.substring(index + 1);
+
+      index = name.indexOf('-');
+    }
+
+    return name;
   }
 
   private HtmlKeywords() {

@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.web.html;
 
-import com.google.dart.tools.ui.web.utils.HtmlKeywords;
+import com.google.dart.tools.core.html.HtmlKeywords;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;

@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.web.html;
 
+import com.google.dart.tools.core.html.HtmlKeywords;
 import com.google.dart.tools.ui.web.DartWebPlugin;
-import com.google.dart.tools.ui.web.utils.HtmlKeywords;
 import com.google.dart.tools.ui.web.utils.WhitespaceDetector;
 import com.google.dart.tools.ui.web.utils.WordDetector;
 

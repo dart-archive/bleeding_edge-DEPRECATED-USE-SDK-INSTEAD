@@ -36,6 +36,12 @@
             base-type="org.eclipse.core.runtime.text"
             file-names="pubspec.yaml"
             default-charset="UTF-8"/>
+      <content-type
+            id="com.google.dart.tools.core.htmlFile"
+            name="%dart.contentType.htmlFile.name"
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="html,htm"
+            default-charset="UTF-8"/>
    </extension>
 
 	<extension

@@ -13,9 +13,10 @@
  */
 package com.google.dart.tools.ui.web.xml;
 
+import com.google.dart.tools.core.html.XmlDocument;
+import com.google.dart.tools.core.html.XmlNode;
+import com.google.dart.tools.core.html.XmlParser;
 import com.google.dart.tools.ui.web.utils.WebEditor;
-import com.google.dart.tools.ui.web.xml.model.XmlDocument;
-import com.google.dart.tools.ui.web.xml.model.XmlParser;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
@@ -47,9 +48,21 @@ public class XmlEditor extends WebEditor {
     return super.getAdapter(required);
   }
 
+  public void selectAndReveal(XmlNode node) {
+    if (node.getEndToken() != null) {
+      int length = node.getEndToken().getLocation() - node.getStartToken().getLocation();
+
+      length += node.getEndToken().getValue().length();
+
+      selectAndReveal(node.getStartToken().getLocation(), length);
+    } else {
+      selectAndReveal(node.getStartToken().getLocation(), 0);
+    }
+  }
+
   protected XmlDocument getModel() {
     if (model == null) {
-      model = new XmlParser(getDocument()).parse();
+      model = new XmlParser(getDocument().get()).parse();
     }
 
     return model;

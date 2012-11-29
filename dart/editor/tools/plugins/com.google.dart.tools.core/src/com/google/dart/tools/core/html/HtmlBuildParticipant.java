@@ -14,7 +14,10 @@
 
 package com.google.dart.tools.core.html;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.builder.DartBuildParticipant;
 import com.google.dart.tools.core.internal.builder.MarkerUtilities;
 
@@ -29,6 +32,8 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -138,31 +143,67 @@ public class HtmlBuildParticipant implements DartBuildParticipant {
   }
 
   private void processHtml(IFile file) {
-    HtmlAnalyzeHelper.analyze(file);
-    //final String SEARCH_STR = "\"application/dart\"";
+    try {
+      MarkerUtilities.deleteMarkers(file);
 
-//    try {
-//      MarkerUtilities.deleteMarkers(file);
-//
-////      String data = Files.toString(file.getLocation().toFile(), Charsets.UTF_8);
-////
-////      int index = data.indexOf(SEARCH_STR);
-////
-////      while (index != -1) {
-////        MarkerUtilities.createWarningMarker(
-////            file,
-////            "Found Dart!",
-////            getLineNumber(data, index),
-////            index,
-////            SEARCH_STR.length() + index);
-////        index = data.indexOf(SEARCH_STR, index + 1);
-////      }
-//    } catch (CoreException e) {
-//      DartCore.logError(e);
-//    }
-//    } catch (IOException e) {
-//      DartCore.logError(e);
-//    }
+      XmlDocument document = new HtmlParser(Files.toString(
+          file.getLocation().toFile(),
+          Charsets.UTF_8)).parse();
+
+      validate(document, file);
+    } catch (CoreException e) {
+      DartCore.logError(e);
+    } catch (IOException ioe) {
+
+    }
+
+    HtmlAnalyzeHelper.analyze(file);
+  }
+
+  private void validate(XmlDocument document, IFile file) throws CoreException {
+    for (XmlNode node : document.getChildren()) {
+      if (node instanceof XmlElement) {
+        validate((XmlElement) node, file);
+      }
+    }
+  }
+
+  private void validate(XmlElement node, IFile file) throws CoreException {
+    // We need to be very smart about html attribute validation, as lots of html code
+    // uses older attributes, or makes up their own custom attributes.
+    // We should probably look for typos of the common attributes.
+    if (DartCoreDebug.ENABLE_HTML_VALIDATION) {
+      if (node.getAttributes().size() > 0) {
+        List<String> validAttributes = HtmlKeywords.getAttributes(node.getLabel());
+
+        if (!validAttributes.isEmpty()) {
+          for (XmlAttribute attribute : node.getAttributes()) {
+            String name = attribute.getName();
+
+            if (!validAttributes.contains(name)) {
+              if (!HtmlKeywords.isValidEventAttribute(name)) {
+                int charStart = attribute.getStartToken().getLocation();
+                String message = "\"" + name + "\" is not a valid attribute for the " + "<"
+                    + node.getLabel() + "> element.";
+
+                MarkerUtilities.createWarningMarker(
+                    file,
+                    message,
+                    attribute.getStartToken().getLineNumber(),
+                    charStart,
+                    charStart + name.length());
+              }
+            }
+          }
+        }
+      }
+    }
+
+    for (XmlNode child : node.getChildren()) {
+      if (child instanceof XmlElement) {
+        validate((XmlElement) child, file);
+      }
+    }
   }
 
 }

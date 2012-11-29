@@ -51,6 +51,7 @@ public class DartCoreDebug {
   public static final boolean ENABLE_TESTS_VIEW = isOptionTrue("experimental/testsView");
   public static final boolean ENABLE_FORMATTER = isOptionTrue("experimental/formatter");
   public static final boolean ENABLE_THEMES = true; //isOptionTrue("experimental/themes");
+  public static final boolean ENABLE_HTML_VALIDATION = isOptionTrue("experimental/validateHtml");
 
   // Pub
 
