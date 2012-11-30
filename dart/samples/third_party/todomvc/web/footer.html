@@ -15,7 +15,7 @@ BSD-style license that can be found in the LICENSE file.
       <li> <a class="{{activeClass}}" href="#/active">Active</a> </li>
       <li> <a class="{{completedClass}}" href="#/completed">Completed</a> </li>
     </ul>
-    <template instantiate="if anyDone">
+    <template if="anyDone">
       <button id="clear-completed" on-click="clearDone()">
         Clear completed ({{doneCount}})
       </button>

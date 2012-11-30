@@ -9,8 +9,7 @@ BSD-style license that can be found in the LICENSE file.
 <element name="x-toggle-all" extends="div" constructor="ToggleComponent"
          apply-author-styles="">
   <template>
-    <input id="toggle-all" type="checkbox"
-           checked="{{allChecked}}" on-click="markAll()">
+    <input id="toggle-all" type="checkbox" bind-checked="allChecked">
     <label for="x-toggle-all"></label>
   </template>
   <script type="application/dart">
@@ -20,8 +19,7 @@ BSD-style license that can be found in the LICENSE file.
   class ToggleComponent extends WebComponent {
     bool get allChecked => app.todos.length > 0 &&
         app.todos.every((t) => t.done);
-
-    void markAll() => app.todos.forEach((t) { t.done = _toggleAll.checked; });
+    set allChecked(bool value) => app.todos.forEach((t) { t.done = value; });
   }
   </script>
 </element>

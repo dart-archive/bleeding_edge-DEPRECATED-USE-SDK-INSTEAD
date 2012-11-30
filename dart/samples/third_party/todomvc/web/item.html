@@ -11,8 +11,7 @@ BSD-style license that can be found in the LICENSE file.
   <template>
     <div class="todo-item {{_editingClass}} {{_completedClass}}">
       <div class="view" on-double-click="edit()">
-        <input class="toggle" type="checkbox"
-               data-bind="checked:todo.done">
+        <input class="toggle" type="checkbox" bind-checked="todo.done">
         <label>{{todo.task}}</label>
         <button class="destroy" on-click="delete()"></button>
       </div>
@@ -25,18 +24,24 @@ BSD-style license that can be found in the LICENSE file.
   </template>
   <script type="application/dart">
   import 'dart:html';
-  import 'model.dart';
   import 'package:web_components/web_components.dart';
+  import 'model.dart';
 
   class TodoItemComponent extends WebComponent {
     Todo todo;
     bool _editing = false;
+    InputElement editBox;
 
     String get _editingClass => _editing ? 'editing' : '';
     String get _completedClass => todo.done ? 'completed' : '';
 
+    void created() {
+      super.created();
+      editBox = _root.query('#edit');
+    }
+
     void edit() {
-      _edit.value = todo.task;
+      editBox.value = todo.task;
       _editing = true;
 
       // Need to focus after watcher.dispatch() makes the edit box visible
@@ -46,16 +51,16 @@ BSD-style license that can be found in the LICENSE file.
       window.setTimeout(() {
         // For IE and Firefox: use .focus(), then reset the value to move the
         // cursor to the end.
-        _edit.focus();
-        _edit.value = '';
-        _edit.value = todo.task;
+        editBox.focus();
+        editBox.value = '';
+        editBox.value = todo.task;
       }, 0);
     }
 
     void update(e) {
       e.preventDefault(); // don't submit the form
       if (!_editing) return; // bail if user canceled
-      todo.task = _edit.value;
+      todo.task = editBox.value;
       _editing = false;
     }
 

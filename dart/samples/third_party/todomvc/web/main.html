@@ -25,13 +25,13 @@ BSD-style license that can be found in the LICENSE file.
       <x-toggle-all></x-toggle-all>
       <ul id="todo-list">
         <template iterate="x in app.todos">
-          <template instantiate="if viewModel.isVisible(x)">
-            <x-todo-row data-value="todo:x"></x-todo-row>
+          <template if="viewModel.isVisible(x)">
+            <x-todo-row todo="{{x}}"></x-todo-row>
           </template>
         </template>
       </ul>
     </section>
-    <template instantiate="if viewModel.hasElements">
+    <template if="viewModel.hasElements">
       <x-todo-footer id="footer"></x-todo-footer>
     </template>
   </section>

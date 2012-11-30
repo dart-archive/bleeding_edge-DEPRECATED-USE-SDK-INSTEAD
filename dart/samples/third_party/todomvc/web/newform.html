@@ -16,15 +16,22 @@ BSD-style license that can be found in the LICENSE file.
     </form>
   </template>
   <script type="application/dart">
-  import 'model.dart';
+  import 'dart:html';
   import 'package:web_components/web_components.dart';
+  import 'model.dart';
 
   class FormComponent extends WebComponent {
+    InputElement input;
+    void created() {
+      super.created();
+      input = _root.query('#new-todo');
+    }
+
     void addTodo(e) {
       e.preventDefault(); // don't submit the form
-      if (_newTodo.value == '') return;
-      app.todos.add(new Todo(_newTodo.value));
-      _newTodo.value = '';
+      if (input.value == '') return;
+      app.todos.add(new Todo(input.value));
+      input.value = '';
     }
   }
   </script>
