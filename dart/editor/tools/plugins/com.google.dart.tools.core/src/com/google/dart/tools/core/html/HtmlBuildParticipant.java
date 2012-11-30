@@ -157,7 +157,8 @@ public class HtmlBuildParticipant implements DartBuildParticipant {
 
     }
 
-    HtmlAnalyzeHelper.analyze(file);
+    // TODO (danrubel): reenable once build participants have been refactored
+//    HtmlAnalyzeHelper.analyze(file);
   }
 
   private void validate(XmlDocument document, IFile file) throws CoreException {
