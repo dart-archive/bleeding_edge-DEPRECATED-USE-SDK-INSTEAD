@@ -14,8 +14,8 @@
 
 package com.google.dart.tools.ui.web.xml;
 
+import com.google.dart.tools.core.html.XmlNode;
 import com.google.dart.tools.ui.web.DartWebPlugin;
-import com.google.dart.tools.ui.web.utils.Node;
 
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
@@ -32,7 +32,7 @@ public class XmlLabelProvider extends LabelProvider {
 
   @Override
   public String getText(Object element) {
-    Node node = (Node) element;
+    XmlNode node = (XmlNode) element;
 
     return node.getLabel();
   }
