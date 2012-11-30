@@ -16,6 +16,8 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.ScanCallback;
+import com.google.dart.tools.core.builder.BuildEvent;
+import com.google.dart.tools.core.builder.CleanEvent;
 import com.google.dart.tools.core.builder.DartBuildParticipant;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
@@ -55,14 +57,27 @@ public class DartBuilder extends IncrementalProjectBuilder {
    */
   private DartBuildParticipant[] participants;
 
+  /**
+   * Flag indicating whether {@link #clean(IProgressMonitor)} was called
+   */
+  private boolean cleaned;
+
   @Override
   protected IProject[] build(final int kind, final Map<String, String> args,
       final IProgressMonitor _monitor) throws CoreException {
 
+    final IResourceDelta delta = getDelta(getProject());
+
     int totalProgress = (getParticipants().length + 1) * 10;
     final SubMonitor subMon = SubMonitor.convert(_monitor, totalProgress);
 
-    final IResourceDelta delta = getDelta(getProject());
+    // If this is a full build (no delta available), then ensure that clean has been called
+    if (delta == null && !cleaned) {
+      clean(subMon);
+    }
+    cleaned = false;
+
+    final BuildEvent event = new BuildEvent(getProject(), delta, subMon);
 
     // notify participants
     for (final DartBuildParticipant participant : getParticipants()) {
@@ -73,12 +88,19 @@ public class DartBuilder extends IncrementalProjectBuilder {
       SafeRunner.run(new ISafeRunnable() {
         @Override
         public void handleException(Throwable exception) {
-          DartCore.logError("Error notifying build participant", exception);
+          if (!(exception instanceof OperationCanceledException)) {
+            DartCore.logError("Error notifying build participant", exception);
+          }
         }
 
         @Override
         public void run() throws Exception {
-          participant.build(kind, args, delta, subMon.newChild(10));
+          if (participant instanceof BuildParticipantAdapter) {
+            BuildParticipantAdapter adapter = (BuildParticipantAdapter) participant;
+            adapter.getParticipant().build(event, subMon.newChild(1));
+          } else {
+            participant.build(kind, args, delta, subMon.newChild(10));
+          }
         }
       });
     }
@@ -158,34 +180,56 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
   @Override
   protected void clean(IProgressMonitor monitor) throws CoreException {
-    //notify participants
-    for (final DartBuildParticipant participant : getParticipants()) {
-      SafeRunner.run(new ISafeRunnable() {
-        @Override
-        public void handleException(Throwable exception) {
-          DartCore.logError("Error notifying build participant", exception);
-        }
+    cleaned = true;
+    final CleanEvent event = new CleanEvent(getProject());
+    final SubMonitor subMonitor = SubMonitor.convert(monitor, getParticipants().length + 3);
+    try {
 
-        @Override
-        public void run() throws Exception {
-          participant.clean(getProject(), new NullProgressMonitor());
-        }
-      });
+      //notify participants
+      monitor.beginTask(getProject().getName(), getParticipants().length + 3);
+      for (final DartBuildParticipant participant : getParticipants()) {
+        SafeRunner.run(new ISafeRunnable() {
+          @Override
+          public void handleException(Throwable exception) {
+            if (!(exception instanceof OperationCanceledException)) {
+              DartCore.logError("Error notifying build participant", exception);
+            }
+          }
+
+          @Override
+          public void run() throws Exception {
+            // TODO (danrubel): refactor once DartBuildParticipant is removed
+            IProgressMonitor partMonitor = subMonitor.newChild(1);
+            if (participant instanceof BuildParticipantAdapter) {
+              ((BuildParticipantAdapter) participant).getParticipant().clean(event, partMonitor);
+            } else {
+              participant.clean(getProject(), partMonitor);
+            }
+          }
+        });
+      }
+
+      DartBasedBuilder.getBuilder().handleClean(getProject(), new NullProgressMonitor());
+      subMonitor.worked(1);
+
+      // Clear the index before triggering reanalyze so that updates from re-analysis
+      // will be included in the rebuilt index
+      InMemoryIndex.getInstance().clear();
+      subMonitor.worked(1);
+
+      IWorkspace workspace = ResourcesPlugin.getWorkspace();
+      IWorkspaceRoot root = workspace.getRoot();
+
+      root.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_INFINITE);
+
+      AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
+      server.reanalyze();
+
+    } finally {
+      if (monitor != null) {
+        monitor.done();
+      }
     }
-
-    DartBasedBuilder.getBuilder().handleClean(getProject(), new NullProgressMonitor());
-
-    // Clear the index before triggering reanalyze so that updates from re-analysis
-    // will be included in the rebuilt index
-    InMemoryIndex.getInstance().clear();
-
-    IWorkspace workspace = ResourcesPlugin.getWorkspace();
-    IWorkspaceRoot root = workspace.getRoot();
-
-    root.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_INFINITE);
-
-    AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
-    server.reanalyze();
   }
 
   /**

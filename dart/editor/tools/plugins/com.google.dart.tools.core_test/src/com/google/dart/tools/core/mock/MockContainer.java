@@ -19,13 +19,64 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceFilterDescription;
+import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 
-public class MockContainer extends MockResource implements IContainer {
+import java.util.ArrayList;
+
+public abstract class MockContainer extends MockResource implements IContainer {
+  private ArrayList<MockResource> children;
+
   public MockContainer(IContainer parent, String name) {
     super(parent, name);
+  }
+
+  @Override
+  public void accept(IResourceProxyVisitor visitor, int memberFlags) throws CoreException {
+    if (visitor.visit(new MockProxy(this))) {
+      if (children != null) {
+        for (MockResource child : children) {
+          child.accept(visitor, memberFlags);
+        }
+      }
+    }
+  }
+
+  /**
+   * Add the specified child to the receiver.
+   * 
+   * @param child the child to be added (not <code>null</code>)
+   * @return the child added
+   */
+  public MockResource add(MockResource child) {
+    if (child == null) {
+      throw new IllegalArgumentException();
+    }
+    if (children == null) {
+      children = new ArrayList<MockResource>();
+    }
+    children.add(child);
+    return child;
+  }
+
+  /**
+   * Create a {@link MockFile} and add it to the receiver as a child
+   */
+  public MockFile addFile(String name) {
+    MockFile file = new MockFile(this, name);
+    add(file);
+    return file;
+  }
+
+  /**
+   * Create a {@link MockFolder} and add it to the receiver as a child
+   */
+  public MockFolder addFolder(String name) {
+    MockFolder folder = new MockFolder(this, name);
+    add(folder);
+    return folder;
   }
 
   @Override

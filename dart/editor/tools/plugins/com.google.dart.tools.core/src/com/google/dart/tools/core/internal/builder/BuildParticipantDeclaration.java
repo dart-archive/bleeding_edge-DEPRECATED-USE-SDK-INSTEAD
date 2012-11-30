@@ -193,11 +193,9 @@ public class BuildParticipantDeclaration {
       return deprecatedParticipant;
     }
 
+    // Return a placeholder that holds onto the real participant
     if (object instanceof BuildParticipant) {
-      BuildParticipant participant = (BuildParticipant) object;
-      participant.setup(project);
-      // TODO (danrubel): wrapper the participant in a DartBuildParticipant and return
-      throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, "Not implemented yet"));
+      return new BuildParticipantAdapter((BuildParticipant) object);
     }
 
     throw new CoreException(new Status(

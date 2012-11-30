@@ -15,56 +15,75 @@ package com.google.dart.tools.core.pub;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.builder.DartBuildParticipant;
+import com.google.dart.tools.core.builder.BuildEvent;
+import com.google.dart.tools.core.builder.BuildParticipant;
+import com.google.dart.tools.core.builder.CleanEvent;
 
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.IResourceProxy;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-
-import java.util.Map;
 
 /**
  * This build participant is called from the DartBuilder before the dart project is built. It will
  * run pub install if the pubspec file has changed.
  */
-public class PubBuildParticipant implements DartBuildParticipant {
+public class PubBuildParticipant implements BuildParticipant {
 
   @Override
-  public void build(int kind, Map<String, String> args, IResourceDelta delta,
-      final IProgressMonitor monitor) throws CoreException {
-
-    // Pub not supported on Windows XP
-    if (!DartCoreDebug.ENABLE_PUB) {
-      return;
-    }
-
-    // check if pubspec has changed, if so invoke pub install
-    if (delta != null && delta.getKind() == IResourceDelta.CHANGED) {
-      delta.accept(new IResourceDeltaVisitor() {
-        @Override
-        public boolean visit(IResourceDelta delta) {
-          final IResource resource = delta.getResource();
-          if (resource.getType() != IResource.FILE) {
-            return true;
-          }
-          // TODO(keertip): optimize for just changes in dependencies
-          if (resource.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
-            IContainer container = resource.getParent();
-            new RunPubJob(container, RunPubJob.INSTALL_COMMAND).run(monitor);
-          }
-          return false;
-        }
-      });
+  public void build(BuildEvent event, IProgressMonitor monitor) throws CoreException {
+    if (DartCoreDebug.ENABLE_PUB) {
+      event.traverse(this);
     }
   }
 
   @Override
-  public void clean(IProject project, IProgressMonitor monitor) throws CoreException {
-    // do nothing
+  public void clean(CleanEvent event, IProgressMonitor monitor) {
+    // nothing to do
+  }
 
+  @Override
+  public boolean visit(IResourceDelta delta, IProgressMonitor monitor) {
+    final IResource resource = delta.getResource();
+
+    // Don't traverse "packages" directories
+    if (resource.getType() != IResource.FILE) {
+      return !resource.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME);
+    }
+
+    if (delta.getKind() == IResourceDelta.CHANGED) {
+      // TODO(keertip): optimize for just changes in dependencies
+      if (resource.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
+        runPub(resource.getParent(), monitor);
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean visit(IResourceProxy proxy, IProgressMonitor monitor) {
+
+    // Don't traverse "packages" directories
+    if (proxy.getType() != IResource.FILE) {
+      return !proxy.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME);
+    }
+
+    if (proxy.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
+      runPub(proxy.requestResource().getParent(), monitor);
+    }
+    return false;
+  }
+
+  /**
+   * Execute the pub operation. This is overridden when testing this class to record the intent to
+   * run pub but prevent actually running pub.
+   * 
+   * @param container the workng directory in which pub should be run (not <code>null</code>)
+   * @param monitor the progress monitor (not <code>null</code>)
+   */
+  protected void runPub(IContainer container, final IProgressMonitor monitor) {
+    new RunPubJob(container, RunPubJob.INSTALL_COMMAND).run(monitor);
   }
 }

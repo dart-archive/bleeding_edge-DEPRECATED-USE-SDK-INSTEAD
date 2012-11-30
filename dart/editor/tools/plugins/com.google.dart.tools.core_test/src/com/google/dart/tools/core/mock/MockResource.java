@@ -20,7 +20,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceProxy;
-import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourceAttributes;
@@ -34,17 +33,13 @@ import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import java.net.URI;
 import java.util.Map;
 
-public class MockResource implements IResource {
+public abstract class MockResource implements IResource {
   private IContainer parent;
   private String name;
 
   public MockResource(IContainer parent, String name) {
     this.parent = parent;
     this.name = name;
-  }
-
-  @Override
-  public void accept(IResourceProxyVisitor visitor, int memberFlags) throws CoreException {
   }
 
   @Override
@@ -245,11 +240,6 @@ public class MockResource implements IResource {
   }
 
   @Override
-  public int getType() {
-    return 0;
-  }
-
-  @Override
   public IWorkspace getWorkspace() {
     return null;
   }
@@ -395,6 +385,11 @@ public class MockResource implements IResource {
 
   @Override
   public void setTeamPrivateMember(boolean isTeamPrivate) throws CoreException {
+  }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "[" + getName() + "]";
   }
 
   @Override

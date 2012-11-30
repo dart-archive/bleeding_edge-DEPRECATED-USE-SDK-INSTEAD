@@ -16,6 +16,8 @@ package com.google.dart.tools.core.mock;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFileState;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -41,6 +43,11 @@ public class MockFile extends MockResource implements IFile {
   public MockFile(IContainer parent, String name, String contents) {
     super(parent, name);
     this.contents = contents;
+  }
+
+  @Override
+  public void accept(IResourceProxyVisitor visitor, int memberFlags) throws CoreException {
+    visitor.visit(new MockProxy(this));
   }
 
   @Override
@@ -116,6 +123,11 @@ public class MockFile extends MockResource implements IFile {
   @Override
   public IFileState[] getHistory(IProgressMonitor monitor) throws CoreException {
     return null;
+  }
+
+  @Override
+  public int getType() {
+    return IResource.FILE;
   }
 
   @Override

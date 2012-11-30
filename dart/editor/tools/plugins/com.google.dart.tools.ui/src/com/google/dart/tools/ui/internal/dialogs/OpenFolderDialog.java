@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.dialogs;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 
@@ -49,9 +47,7 @@ public class OpenFolderDialog extends TitleAreaDialog {
       + ".last.dir"; //$NON-NLS-1$
 
   private Text text;
-  private Button runPubButton;
 
-  private boolean runpub = false;
   private String folderLocation;
 
   public OpenFolderDialog(Shell parentShell) {
@@ -64,10 +60,6 @@ public class OpenFolderDialog extends TitleAreaDialog {
       return new File(new File(home), folderLocation.substring(1)).toString();
     }
     return folderLocation;
-  }
-
-  public boolean isRunpub() {
-    return runpub;
   }
 
   @Override
@@ -90,18 +82,12 @@ public class OpenFolderDialog extends TitleAreaDialog {
     setTitle(DialogMessages.OpenFolderDialog_message);
     setMessage(DialogMessages.OpenFolderDialog_description);
     createFolderBrowseRow(composite);
-    if (DartCoreDebug.ENABLE_PUB) {
-      createRunPubMessage(parent);
-    }
     return composite;
   }
 
   @Override
   protected void okPressed() {
     folderLocation = text.getText().trim();
-    if (runPubButton != null) {
-      runpub = runPubButton.getSelection();
-    }
     super.okPressed();
   }
 
@@ -137,9 +123,6 @@ public class OpenFolderDialog extends TitleAreaDialog {
             }
           }
           okButton.setEnabled(nonWhitespaceFound);
-          if (DartCoreDebug.ENABLE_PUB) {
-            setCheckBoxState();
-          }
         }
       }
     });
@@ -167,35 +150,9 @@ public class OpenFolderDialog extends TitleAreaDialog {
     });
   }
 
-  private void createRunPubMessage(Composite parent) {
-    Composite panel = new Composite(parent, SWT.NONE);
-    GridLayout layout = new GridLayout();
-    layout.marginHeight = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_MARGIN);
-    layout.marginWidth = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_MARGIN);
-    layout.verticalSpacing = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_SPACING);
-    layout.horizontalSpacing = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_SPACING);
-    panel.setLayout(layout);
-    panel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-    panel.setFont(parent.getFont());
-
-    runPubButton = new Button(panel, SWT.CHECK);
-    runPubButton.setText(DialogMessages.OpenFolderDialog_rubPubMessage);
-    runPubButton.setSelection(true);
-  }
-
   private String getInitialBrowsePath() {
     IDialogSettings dialogSettings = DartToolsPlugin.getDefault().getDialogSettings();
     return dialogSettings.get(DIALOGSTORE_LAST_DIR);
-  }
-
-  private void setCheckBoxState() {
-    File file = new File(getFolderLocation(), DartCore.PUBSPEC_FILE_NAME);
-    if (!file.exists()) {
-      runPubButton.setSelection(false);
-      runPubButton.setEnabled(false);
-    } else {
-      runPubButton.setEnabled(true);
-    }
   }
 
 }

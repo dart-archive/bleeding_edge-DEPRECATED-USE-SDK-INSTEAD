@@ -16,6 +16,7 @@ package com.google.dart.tools.core.mock;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -62,6 +63,11 @@ public class MockFolder extends MockContainer implements IFolder {
   @Override
   public IFolder getFolder(String name) {
     return null;
+  }
+
+  @Override
+  public int getType() {
+    return IResource.FOLDER;
   }
 
   @Override

@@ -17,20 +17,17 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 import com.google.dart.tools.ui.internal.projects.ProjectUtils;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -58,8 +55,8 @@ public class SampleHelper {
 
     String sampleName = getDirectory(sampleFile).getName();
     // user.home/dart/clock
-    File newProjectDir = new File(DartCore.getUserDefaultDartFolder(), sampleName);
-    newProjectDir = generateUniqueSampleDirFrom(sampleName, newProjectDir);
+    File potentialDir = new File(DartCore.getUserDefaultDartFolder(), sampleName);
+    final File newProjectDir = generateUniqueSampleDirFrom(sampleName, potentialDir);
 
     final String newProjectName = newProjectDir.getName();
     final IProject newProjectHandle = ResourcesPlugin.getWorkspace().getRoot().getProject(
@@ -71,8 +68,16 @@ public class SampleHelper {
       @Override
       public void run() {
 
+        // Copy sample to new directory before creating project
+        // so that builder will have the resources to analyze first time through
         try {
-          IProject newProject = ProjectUtils.createNewProject(
+          FileUtilities.copyDirectoryContents(getDirectory(sampleFile), newProjectDir);
+        } catch (IOException e) {
+          DartToolsPlugin.log(e);
+        }
+
+        try {
+          ProjectUtils.createNewProject(
               newProjectName,
               newProjectHandle,
               ProjectType.NONE,
@@ -80,21 +85,9 @@ public class SampleHelper {
               window,
               window.getShell());
 
-          FileUtilities.copyDirectoryContents(
-              getDirectory(sampleFile),
-              newProject.getLocation().toFile());
-          newProject.refreshLocal(IResource.DEPTH_INFINITE, monitor);
-
-          if (newProject.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
-            RunPubAction runPubAction = RunPubAction.createPubInstallAction(window);
-            runPubAction.run(new StructuredSelection(newProject));
-          }
-
           EditorUtility.openInTextEditor(ResourceUtil.getFile(fileToOpen));
 
         } catch (CoreException e) {
-          DartToolsPlugin.log(e);
-        } catch (IOException e) {
           DartToolsPlugin.log(e);
         }
       }

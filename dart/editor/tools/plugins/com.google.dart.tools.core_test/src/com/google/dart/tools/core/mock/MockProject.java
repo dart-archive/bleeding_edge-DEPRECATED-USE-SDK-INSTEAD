@@ -19,6 +19,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IPluginDescriptor;
@@ -41,6 +42,7 @@ public class MockProject extends MockContainer implements IProject {
   }
 
   // Eclipse 3.7 specific method
+  @Override
   public void build(IBuildConfiguration config, int kind, IProgressMonitor monitor)
       throws CoreException {
     // TODO Auto-generated method stub
@@ -81,18 +83,21 @@ public class MockProject extends MockContainer implements IProject {
   }
 
   // Eclipse 3.7 specific method
+  @Override
   public IBuildConfiguration getActiveBuildConfig() throws CoreException {
     // TODO Auto-generated method stub
     return null;
   }
 
   // Eclipse 3.7 specific method
+  @Override
   public IBuildConfiguration getBuildConfig(String configName) throws CoreException {
     // TODO Auto-generated method stub
     return null;
   }
 
   // Eclipse 3.7 specific method
+  @Override
   public IBuildConfiguration[] getBuildConfigs() throws CoreException {
     // TODO Auto-generated method stub
     return null;
@@ -137,6 +142,7 @@ public class MockProject extends MockContainer implements IProject {
   }
 
   // Eclipse 3.7 specific method
+  @Override
   public IBuildConfiguration[] getReferencedBuildConfigs(String configName, boolean includeMissing)
       throws CoreException {
     // TODO Auto-generated method stub
@@ -154,11 +160,17 @@ public class MockProject extends MockContainer implements IProject {
   }
 
   @Override
+  public int getType() {
+    return IResource.PROJECT;
+  }
+
+  @Override
   public IPath getWorkingLocation(String id) {
     return null;
   }
 
   // Eclipse 3.7 specific method
+  @Override
   public boolean hasBuildConfig(String configName) throws CoreException {
     // TODO Auto-generated method stub
     return false;
