@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <target name="-pre-build">
+      <mkdir dir="res/drawable-hdpi"/>
+      <mkdir dir="res/drawable-ldpi"/>
+      <mkdir dir="res/drawable-mdpi"/>
+      <mkdir dir="res/drawable-xhdpi"/>
+      <exec executable="xxd">
+        <arg value="-r"/>
+        <arg value="ic_launcher.png-hdpi.hex"/>
+        <arg value="res/drawable-hdpi/ic_launcher.png"/>
+      </exec>
+      <exec executable="xxd">
+        <arg value="-r"/>
+        <arg value="ic_launcher.png-ldpi.hex"/>
+        <arg value="res/drawable-ldpi/ic_launcher.png"/>
+      </exec>
+      <exec executable="xxd">
+        <arg value="-r"/>
+        <arg value="ic_launcher.png-mdpi.hex"/>
+        <arg value="res/drawable-mdpi/ic_launcher.png"/>
+      </exec>
+      <exec executable="xxd">
+        <arg value="-r"/>
+        <arg value="ic_launcher.png-xhdpi.hex"/>
+        <arg value="res/drawable-xhdpi/ic_launcher.png"/>
+      </exec>
+    </target>
+    <target name="-pre-compile">
+      <exec executable="ndk-build" dir="jni">
+        <arg line="V=1" />
+      </exec>
+    </target>
+    <target name="-post-compile">
+      <copy file="obj/local/x86/libandroid_extension.so"
+           tofile="assets/dart/libandroid_extension.so"/>
+    </target>
+</project>
