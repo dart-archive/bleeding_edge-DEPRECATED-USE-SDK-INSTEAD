@@ -55,11 +55,11 @@ void main() {
 
   // Handle key events.
   document.on.keyDown.add((KeyboardEvent event) {
-    switch (event.keyIdentifier) {
-      case KeyName.LEFT:
+    switch (event.keyCode) {
+      case KeyCode.LEFT:
         startSpin(target, -1);
         break;
-      case KeyName.RIGHT:
+      case KeyCode.RIGHT:
         startSpin(target, 1);
         break;
     }
