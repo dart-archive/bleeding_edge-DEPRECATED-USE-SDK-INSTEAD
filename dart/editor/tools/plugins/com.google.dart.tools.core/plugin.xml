@@ -2,7 +2,7 @@
 <?eclipse version="3.2"?>
 <plugin>
    <extension-point id="workingCopyOwner" name="Working Copy Owner" schema="schema/workingCopyOwner.exsd"/>
-   <extension-point id="buildParticipant" name="Build Participant" schema="schema/buildParticipant.exsd"/>
+   <extension-point id="buildParticipants" name="Build Participants" schema="schema/buildParticipants.exsd"/>
    
 	<extension
 			point="org.eclipse.core.resources.natures"
@@ -98,19 +98,22 @@
    </extension>
 
   <extension
-          point="com.google.dart.tools.core.buildParticipant">
+          point="com.google.dart.tools.core.buildParticipants">
+       <buildParticipant
+             class="com.google.dart.tools.core.pub.PubBuildParticipant"
+             id="com.google.dart.tools.core.buildParticipant.pub"
+             priority="30">
+       </buildParticipant>
+       <buildParticipant
+             class="com.google.dart.tools.core.internal.builder.BuildDartParticipant"
+             id="com.google.dart.tools.core.buildParticipant.buildDart"
+             priority="40">
+       </buildParticipant>
        <buildParticipant
              class="com.google.dart.tools.core.html.HtmlBuildParticipant"
-             id="com.google.dart.tools.core.buildParticipant.html">
+             id="com.google.dart.tools.core.buildParticipant.html"
+             priority="70">
        </buildParticipant>
-    </extension>
-
-  <extension
-      point="com.google.dart.tools.core.buildParticipant">
-    <buildParticipant
-        class="com.google.dart.tools.core.pub.PubBuildParticipant"
-        id="com.google.dart.tools.core.buildParticipant.pub">
-    </buildParticipant>
   </extension>
 
 </plugin>

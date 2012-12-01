@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.core.builder;
 
-import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceProxy;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -25,8 +23,8 @@ public interface BuildParticipant {
 
   /**
    * Called when the participant should process resources to perform any analysis and building
-   * required. Participants should use {@link BuildEvent#traverse(BuildParticipant)} to visit
-   * resources that need to be processed
+   * required. Participants should use {@link BuildEvent#traverse(BuildParticipant, boolean)} to
+   * visit resources that need to be processed
    * 
    * @param event the event (not <code>null</code>)
    * @param monitor the progress monitor (not <code>null</code>) to use for reporting progress to
@@ -44,27 +42,4 @@ public interface BuildParticipant {
    *          the user. It is the caller's responsibility to call done() on the given monitor.
    */
   void clean(CleanEvent event, IProgressMonitor monitor) throws CoreException;
-
-  /**
-   * Called by {@link BuildEvent#traverse(BuildParticipant)} when a resource has been modified or
-   * deleted.
-   * 
-   * @param delta the object describing the resource and the change (not <code>null</code>)
-   * @param monitor the progress monitor (not <code>null</code>) to use for reporting progress to
-   *          the user. It is the caller's responsibility to call done() on the given monitor.
-   * @return <code>true</code> if the resource's children should be visited
-   */
-  boolean visit(IResourceDelta delta, IProgressMonitor monitor);
-
-  /**
-   * Called by {@link BuildEvent#traverse(BuildParticipant)} when a resource has been added or is
-   * otherwise being visited for the first time since the last call to
-   * {@link #clean(CleanEvent, IProgressMonitor)}.
-   * 
-   * @param proxy a proxy to the resource being visited
-   * @param monitor the progress monitor (not <code>null</code>) to use for reporting progress to
-   *          the user. It is the caller's responsibility to call done() on the given monitor.
-   * @return <code>true</code> if the resource's children should be visited
-   */
-  boolean visit(IResourceProxy proxy, IProgressMonitor monitor);
 }

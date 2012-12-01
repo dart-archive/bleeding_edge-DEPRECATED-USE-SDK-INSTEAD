@@ -24,9 +24,12 @@ import com.google.dart.tools.core.mock.MockProject;
 import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+
+import static org.eclipse.core.resources.IResourceDelta.ADDED;
+import static org.eclipse.core.resources.IResourceDelta.CHANGED;
+import static org.eclipse.core.resources.IResourceDelta.REMOVED;
 
 import java.util.ArrayList;
 
@@ -95,12 +98,14 @@ public class PubBuildParticipantTest extends TestCase {
   }
 
   // Assert pub is not run on pubspec.yaml in folder under "packages" directory hierarchy
+  // or in hidden ".svn" directory
   public void test_build_full_pubInPackages() throws Exception {
     Target target = new Target();
     MockProject project = new MockProject(PubBuildParticipantTest.class.getSimpleName());
     project.addFile(DartCore.PUBSPEC_FILE_NAME);
     project.addFolder(DartCore.PACKAGES_DIRECTORY_NAME).addFolder("foo").addFile(
         DartCore.PUBSPEC_FILE_NAME);
+    project.addFolder(".svn").addFile(DartCore.PUBSPEC_FILE_NAME);
 
     target.build(new BuildEvent(project, null, MONITOR), MONITOR);
     target.assertCalls(project);
@@ -114,8 +119,8 @@ public class PubBuildParticipantTest extends TestCase {
     project.addFolder(DartCore.PACKAGES_DIRECTORY_NAME).addFolder("foo").addFile(
         DartCore.PUBSPEC_FILE_NAME);
 
-    MockDelta delta = new MockDelta(project, IResourceDelta.CHANGED);
-    delta.add(pubspec, IResourceDelta.ADDED);
+    MockDelta delta = new MockDelta(project, CHANGED);
+    delta.add(pubspec, ADDED);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertCalls(project);
@@ -129,14 +134,15 @@ public class PubBuildParticipantTest extends TestCase {
     project.addFolder(DartCore.PACKAGES_DIRECTORY_NAME).addFolder("foo").addFile(
         DartCore.PUBSPEC_FILE_NAME);
 
-    MockDelta delta = new MockDelta(project, IResourceDelta.CHANGED);
-    delta.add(pubspec, IResourceDelta.CHANGED);
+    MockDelta delta = new MockDelta(project, CHANGED);
+    delta.add(pubspec, CHANGED);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertCalls(project);
   }
 
   // Assert pub is not run on pubspec.yaml in file under "packages" directory hierarchy
+  // or in hidden ".svn" directory
   public void test_build_incremental_pubInPackagesAdded() throws Exception {
     Target target = new Target();
     MockProject project = new MockProject(PubBuildParticipantTest.class.getSimpleName());
@@ -144,17 +150,19 @@ public class PubBuildParticipantTest extends TestCase {
     MockFolder packages = project.addFolder(DartCore.PACKAGES_DIRECTORY_NAME);
     MockFolder folder = packages.addFolder("foo");
     MockFile pubspec = folder.addFile(DartCore.PUBSPEC_FILE_NAME);
+    MockFolder svnFolder = project.addFolder(".svn");
+    MockFile pubspec2 = svnFolder.addFile(DartCore.PUBSPEC_FILE_NAME);
 
-    MockDelta delta = new MockDelta(project, IResourceDelta.CHANGED);
-    delta.add(packages, IResourceDelta.CHANGED).add(folder, IResourceDelta.CHANGED).add(
-        pubspec,
-        IResourceDelta.ADDED);
+    MockDelta delta = new MockDelta(project, CHANGED);
+    delta.add(packages, CHANGED).add(folder, CHANGED).add(pubspec, ADDED);
+    delta.add(svnFolder, CHANGED).add(pubspec2, CHANGED);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertCalls();
   }
 
   // Assert pub is not run on pubspec.yaml in file under "packages" directory hierarchy
+  // or in hidden ".svn" directory
   public void test_build_incremental_pubInPackagesChanged() throws Exception {
     Target target = new Target();
     MockProject project = new MockProject(PubBuildParticipantTest.class.getSimpleName());
@@ -162,11 +170,12 @@ public class PubBuildParticipantTest extends TestCase {
     MockFolder packages = project.addFolder(DartCore.PACKAGES_DIRECTORY_NAME);
     MockFolder folder = packages.addFolder("foo");
     MockFile pubspec = folder.addFile(DartCore.PUBSPEC_FILE_NAME);
+    MockFolder svnFolder = project.addFolder(".svn");
+    MockFile pubspec2 = svnFolder.addFile(DartCore.PUBSPEC_FILE_NAME);
 
-    MockDelta delta = new MockDelta(project, IResourceDelta.CHANGED);
-    delta.add(packages, IResourceDelta.CHANGED).add(folder, IResourceDelta.CHANGED).add(
-        pubspec,
-        IResourceDelta.CHANGED);
+    MockDelta delta = new MockDelta(project, CHANGED);
+    delta.add(packages, CHANGED).add(folder, CHANGED).add(pubspec, CHANGED);
+    delta.add(svnFolder, CHANGED).add(pubspec2, CHANGED);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertCalls();
@@ -180,8 +189,8 @@ public class PubBuildParticipantTest extends TestCase {
     project.addFolder(DartCore.PACKAGES_DIRECTORY_NAME).addFolder("foo").addFile(
         DartCore.PUBSPEC_FILE_NAME);
 
-    MockDelta delta = new MockDelta(project, IResourceDelta.CHANGED);
-    delta.add(pubspec, IResourceDelta.REMOVED);
+    MockDelta delta = new MockDelta(project, CHANGED);
+    delta.add(pubspec, REMOVED);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertCalls();

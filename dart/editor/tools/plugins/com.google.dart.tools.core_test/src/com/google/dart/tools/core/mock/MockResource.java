@@ -36,10 +36,16 @@ import java.util.Map;
 public abstract class MockResource implements IResource {
   private IContainer parent;
   private String name;
+  private boolean exists;
 
   public MockResource(IContainer parent, String name) {
+    this(parent, name, true);
+  }
+
+  public MockResource(IContainer parent, String name, boolean exists) {
     this.parent = parent;
     this.name = name;
+    this.exists = exists;
   }
 
   @Override
@@ -107,7 +113,7 @@ public abstract class MockResource implements IResource {
 
   @Override
   public boolean exists() {
-    return true;
+    return exists;
   }
 
   @Override
@@ -389,7 +395,7 @@ public abstract class MockResource implements IResource {
 
   @Override
   public String toString() {
-    return getClass().getSimpleName() + "[" + getName() + "]";
+    return getClass().getSimpleName() + "[" + getFullPath() + "]";
   }
 
   @Override

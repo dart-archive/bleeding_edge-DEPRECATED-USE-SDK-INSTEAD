@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.builder.BuildParticipant;
-import com.google.dart.tools.core.builder.DartBuildParticipant;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -38,7 +37,7 @@ import java.util.Iterator;
  */
 public class BuildParticipantDeclaration {
 
-  private static final String PARTICIPANT_EXTENSION_POINT = "buildParticipant"; //$NON-NLS-1$
+  private static final String PARTICIPANT_EXTENSION_POINT = "buildParticipants"; //$NON-NLS-1$
   private static final String PARTICIPANT_CONTRIBUTION = "buildParticipant"; //$NON-NLS-1$
   private static final String PARTICIPANT_CLASS_ATTR = "class"; //$NON-NLS-1$
   private static final String PARTICIPANT_PRIORITY_ATTR = "priority"; //$NON-NLS-1$
@@ -64,7 +63,7 @@ public class BuildParticipantDeclaration {
    * @param project the project for which participants are to be created (not {@code null})
    * @return an array of participants (not {@code null} , contains no {@code null}s)
    */
-  public static DartBuildParticipant[] participantsFor(IProject project) {
+  public static BuildParticipant[] participantsFor(IProject project) {
     synchronized (lock) {
       if (declarations == null) {
 
@@ -101,7 +100,7 @@ public class BuildParticipantDeclaration {
       }
 
       // Construct one new participant for each declaration
-      ArrayList<DartBuildParticipant> participants = new ArrayList<DartBuildParticipant>();
+      ArrayList<BuildParticipant> participants = new ArrayList<BuildParticipant>();
       Iterator<BuildParticipantDeclaration> iter = declarations.iterator();
       while (iter.hasNext()) {
         BuildParticipantDeclaration declaration = iter.next();
@@ -113,20 +112,13 @@ public class BuildParticipantDeclaration {
           iter.remove();
         }
       }
-      return participants.toArray(new DartBuildParticipant[participants.size()]);
+      return participants.toArray(new BuildParticipant[participants.size()]);
     }
   }
 
   private final IConfigurationElement configElement;
 
   private final int priority;
-
-  /**
-   * If the {@link #configElement} defines a {@link DartBuildParticipant} rather than a
-   * {@link BuildParticipant}, then that instance will be cached in this field because those types
-   * of build participant are shared across all projects and builders.
-   */
-  private DartBuildParticipant deprecatedParticipant;
 
   /**
    * Construct a new instance representing the specified type of build participant.
@@ -177,32 +169,15 @@ public class BuildParticipantDeclaration {
    * 
    * @param project the project associated with the new participant (not {@code null})
    */
-  private DartBuildParticipant newParticipant(IProject project) throws CoreException {
-
-    // Use the deprecated participant if already defined
-    if (deprecatedParticipant != null) {
-      return deprecatedParticipant;
-    }
-
-    // Construct a new instance
+  private BuildParticipant newParticipant(IProject project) throws CoreException {
     Object object = configElement.createExecutableExtension(PARTICIPANT_CLASS_ATTR);
-
-    // Cache deprecated instances for use by all builders
-    if (object instanceof DartBuildParticipant) {
-      deprecatedParticipant = (DartBuildParticipant) object;
-      return deprecatedParticipant;
-    }
-
-    // Return a placeholder that holds onto the real participant
     if (object instanceof BuildParticipant) {
-      return new BuildParticipantAdapter((BuildParticipant) object);
+      return (BuildParticipant) object;
     }
-
     throw new CoreException(new Status(
         IStatus.ERROR,
         DartCore.PLUGIN_ID,
         "Expected build participant to be an instance of\n  " + BuildParticipant.class.getName()
-            + "\n  or " + DartBuildParticipant.class.getName() + "\n  but was "
-            + (object != null ? object.getClass().getName() : "null")));
+            + "\n  but was " + (object != null ? object.getClass().getName() : "null")));
   }
 }

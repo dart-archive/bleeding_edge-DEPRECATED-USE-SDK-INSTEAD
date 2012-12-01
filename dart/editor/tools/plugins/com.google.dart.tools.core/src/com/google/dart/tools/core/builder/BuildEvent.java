@@ -13,74 +13,83 @@
  */
 package com.google.dart.tools.core.builder;
 
+import com.google.dart.tools.core.DartCore;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
-import org.eclipse.core.resources.IResourceProxy;
-import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 
 /**
- * 
+ * Event passed to {@link BuildParticipant}s when
+ * {@link BuildParticipant#build(BuildEvent, IProgressMonitor)} is called. Use
+ * {@link #traverse(BuildParticipant, boolean)} to visit all resources to be processed
  */
 public class BuildEvent extends ParticipantEvent {
 
-  private final IResourceDelta delta;
-  private final IProgressMonitor monitor;
+  private final IResourceDelta projectDelta;
 
   public BuildEvent(IProject project, IResourceDelta delta, IProgressMonitor monitor) {
-    super(project);
-    this.delta = delta;
-    this.monitor = monitor;
+    super(project, monitor);
+    this.projectDelta = delta;
   }
 
   /**
    * Called by the participant to traverse the set of files to be built.
    * 
-   * @param participant the build participant (not <code>null</code>)
+   * @param visitor the build visitor (not <code>null</code>)
+   * @param visitPackages <code>true</code> if files and folders in the "packages" directory should
+   *          be visited, and <code>false</code> if not
    * @throws CoreException if a problem occurred during traversal
    * @throws OperationCanceledException if the operation is canceled during traversal
    */
-  public void traverse(final BuildParticipant participant) throws CoreException {
+  public void traverse(final BuildVisitor visitor, final boolean visitPackages)
+      throws CoreException {
     if (monitor.isCanceled()) {
       throw new OperationCanceledException();
     }
 
-    // If there is no delta, then traverse all resources in the project
-    if (delta == null) {
-      traverseResources(participant, getProject());
+    // If there is no projectDelta, then traverse all resources in the project
+    if (projectDelta == null) {
+      traverseResources(visitor, getProject(), visitPackages);
       return;
     }
 
     // Traverse only those resources that have changed
-    delta.accept(new IResourceDeltaVisitor() {
+    projectDelta.accept(new IResourceDeltaVisitor() {
       @Override
       public boolean visit(IResourceDelta delta) throws CoreException {
+        IResource resource = delta.getResource();
+
+        // Traverse added resources via proxy
         if (delta.getKind() == IResourceDelta.ADDED) {
-          traverseResources(participant, delta.getResource());
+          traverseResources(visitor, resource, visitPackages);
           return false;
         }
+
         if (monitor.isCanceled()) {
           throw new OperationCanceledException();
         }
-        return participant.visit(delta, monitor);
+
+        if (resource.getType() != IResource.FILE) {
+          String name = resource.getName();
+
+          // Skip "hidden" directories
+          if (name.startsWith(".")) {
+            return false;
+          }
+
+          // Visit "packages" directories only if specified
+          if (!visitPackages && name.equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
+            return false;
+          }
+        }
+
+        return visitor.visit(delta, monitor);
       }
     });
-  }
-
-  private void traverseResources(final BuildParticipant participant, IResource resource)
-      throws CoreException {
-    resource.accept(new IResourceProxyVisitor() {
-      @Override
-      public boolean visit(IResourceProxy proxy) throws CoreException {
-        if (monitor.isCanceled()) {
-          throw new OperationCanceledException();
-        }
-        return participant.visit(proxy, monitor);
-      }
-    }, 0);
   }
 }

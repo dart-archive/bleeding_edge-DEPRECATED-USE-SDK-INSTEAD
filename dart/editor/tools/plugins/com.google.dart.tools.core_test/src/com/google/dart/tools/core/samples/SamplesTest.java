@@ -27,6 +27,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.util.DartSourceString;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.LibraryReferenceFinder;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
@@ -252,11 +253,11 @@ public class SamplesTest extends TestCase {
         continue;
       }
       String name = file.getName();
-      if (name.endsWith(".dart")) {
+      if (DartCore.isDartLikeFileName(name)) {
         visitDartFile(file);
         continue;
       }
-      if (name.endsWith(".html") || name.endsWith(".htm")) {
+      if (DartCore.isHTMLLikeFileName(name)) {
         visitHmtlFile(file);
         continue;
       }

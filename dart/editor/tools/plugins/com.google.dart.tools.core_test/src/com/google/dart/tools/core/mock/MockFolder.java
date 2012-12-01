@@ -32,6 +32,10 @@ public class MockFolder extends MockContainer implements IFolder {
     super(parent, name);
   }
 
+  public MockFolder(IContainer parent, String name, boolean exists) {
+    super(parent, name, exists);
+  }
+
   @Override
   public void create(boolean force, boolean local, IProgressMonitor monitor) throws CoreException {
   }

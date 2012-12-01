@@ -14,8 +14,10 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.tools.core.AbstractDartCoreTest;
-import com.google.dart.tools.core.builder.DartBuildParticipant;
+import com.google.dart.tools.core.builder.BuildParticipant;
+import com.google.dart.tools.core.html.HtmlBuildParticipant;
 import com.google.dart.tools.core.mock.MockProject;
+import com.google.dart.tools.core.pub.PubBuildParticipant;
 
 import org.eclipse.core.resources.IProject;
 
@@ -23,7 +25,7 @@ public class BuildParticipantDeclarationTest extends AbstractDartCoreTest {
 
   public void test_participantsFor() {
     IProject project = new MockProject();
-    DartBuildParticipant[] participants = BuildParticipantDeclaration.participantsFor(project);
+    BuildParticipant[] participants = BuildParticipantDeclaration.participantsFor(project);
 
     assertNotNull(participants);
     for (Object participant : participants) {
@@ -33,7 +35,25 @@ public class BuildParticipantDeclarationTest extends AbstractDartCoreTest {
     // At a minimum, the "pub" build participant should be defined
     assertTrue(participants.length > 0);
 
-    // TODO (danrubel): assert participants are prioritized
-    // pub before build.dart before analysis
+    // Assert contains known participants
+    int pubIndex = indexOf(participants, PubBuildParticipant.class);
+    int buildDartindex = indexOf(participants, BuildDartParticipant.class);
+    int htmlIndex = indexOf(participants, HtmlBuildParticipant.class);
+
+    assertTrue(pubIndex >= 0);
+    assertTrue(buildDartindex >= 0);
+    assertTrue(htmlIndex >= 0);
+
+    assertTrue(pubIndex < buildDartindex);
+    assertTrue(buildDartindex < htmlIndex);
+  }
+
+  private int indexOf(BuildParticipant[] participants, Class<?> bpClass) {
+    for (int index = 0; index < participants.length; index++) {
+      if (participants[index].getClass() == bpClass) {
+        return index;
+      }
+    }
+    return -1;
   }
 }

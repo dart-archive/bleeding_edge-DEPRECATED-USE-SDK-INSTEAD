@@ -17,8 +17,8 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.ScanCallback;
 import com.google.dart.tools.core.builder.BuildEvent;
+import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.CleanEvent;
-import com.google.dart.tools.core.builder.DartBuildParticipant;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.Extensions;
@@ -35,7 +35,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ISafeRunnable;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.SubMonitor;
@@ -45,7 +44,7 @@ import java.util.Map;
 
 /**
  * Instances of the class <code>DartBuilder</code> implement the incremental builder for Dart
- * projects.
+ * projects and contained pub packages.
  */
 public class DartBuilder extends IncrementalProjectBuilder {
 
@@ -55,7 +54,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
    * The participants associated with this builder or {@code null} if not initialized. This field is
    * lazily initialized by calling {@link #getParticipants()}.
    */
-  private DartBuildParticipant[] participants;
+  private BuildParticipant[] participants;
 
   /**
    * Flag indicating whether {@link #clean(IProgressMonitor)} was called
@@ -64,24 +63,18 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
   @Override
   protected IProject[] build(final int kind, final Map<String, String> args,
-      final IProgressMonitor _monitor) throws CoreException {
-
-    final IResourceDelta delta = getDelta(getProject());
+      final IProgressMonitor monitor) throws CoreException {
 
     int totalProgress = (getParticipants().length + 1) * 10;
-    final SubMonitor subMon = SubMonitor.convert(_monitor, totalProgress);
+    final SubMonitor subMonitor = SubMonitor.convert(monitor, totalProgress);
 
-    // If this is a full build (no delta available), then ensure that clean has been called
-    if (delta == null && !cleaned) {
-      clean(subMon);
-    }
+    final IResourceDelta delta = cleaned ? null : getDelta(getProject());
+    final BuildEvent event = new BuildEvent(getProject(), delta, subMonitor);
     cleaned = false;
 
-    final BuildEvent event = new BuildEvent(getProject(), delta, subMon);
-
     // notify participants
-    for (final DartBuildParticipant participant : getParticipants()) {
-      if (_monitor.isCanceled()) {
+    for (final BuildParticipant participant : getParticipants()) {
+      if (subMonitor.isCanceled()) {
         throw new OperationCanceledException();
       }
 
@@ -95,21 +88,14 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
         @Override
         public void run() throws Exception {
-          if (participant instanceof BuildParticipantAdapter) {
-            BuildParticipantAdapter adapter = (BuildParticipantAdapter) participant;
-            adapter.getParticipant().build(event, subMon.newChild(1));
-          } else {
-            participant.build(kind, args, delta, subMon.newChild(10));
-          }
+          participant.build(event, subMonitor.newChild(10));
         }
       });
     }
 
-    if (_monitor.isCanceled()) {
+    if (subMonitor.isCanceled()) {
       throw new OperationCanceledException();
     }
-
-    DartBasedBuilder.getBuilder().handleBuild(getProject(), kind, delta, subMon.newChild(10));
 
     // If delta is null, then building a new project
 
@@ -181,13 +167,13 @@ public class DartBuilder extends IncrementalProjectBuilder {
   @Override
   protected void clean(IProgressMonitor monitor) throws CoreException {
     cleaned = true;
-    final CleanEvent event = new CleanEvent(getProject());
     final SubMonitor subMonitor = SubMonitor.convert(monitor, getParticipants().length + 3);
+    final CleanEvent event = new CleanEvent(getProject(), subMonitor);
     try {
 
       //notify participants
-      monitor.beginTask(getProject().getName(), getParticipants().length + 3);
-      for (final DartBuildParticipant participant : getParticipants()) {
+      subMonitor.beginTask(getProject().getName(), getParticipants().length + 3);
+      for (final BuildParticipant participant : getParticipants()) {
         SafeRunner.run(new ISafeRunnable() {
           @Override
           public void handleException(Throwable exception) {
@@ -198,19 +184,10 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
           @Override
           public void run() throws Exception {
-            // TODO (danrubel): refactor once DartBuildParticipant is removed
-            IProgressMonitor partMonitor = subMonitor.newChild(1);
-            if (participant instanceof BuildParticipantAdapter) {
-              ((BuildParticipantAdapter) participant).getParticipant().clean(event, partMonitor);
-            } else {
-              participant.clean(getProject(), partMonitor);
-            }
+            participant.clean(event, subMonitor.newChild(1));
           }
         });
       }
-
-      DartBasedBuilder.getBuilder().handleClean(getProject(), new NullProgressMonitor());
-      subMonitor.worked(1);
 
       // Clear the index before triggering reanalyze so that updates from re-analysis
       // will be included in the rebuilt index
@@ -235,7 +212,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
   /**
    * Lazily initialize and answer the build participants for the this project.
    */
-  private DartBuildParticipant[] getParticipants() {
+  private BuildParticipant[] getParticipants() {
     if (participants == null) {
       participants = BuildParticipantDeclaration.participantsFor(getProject());
     }

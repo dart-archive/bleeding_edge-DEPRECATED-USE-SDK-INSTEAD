@@ -33,6 +33,10 @@ public abstract class MockContainer extends MockResource implements IContainer {
     super(parent, name);
   }
 
+  public MockContainer(IContainer parent, String name, boolean exists) {
+    super(parent, name, exists);
+  }
+
   @Override
   public void accept(IResourceProxyVisitor visitor, int memberFlags) throws CoreException {
     if (visitor.visit(new MockProxy(this))) {
@@ -129,7 +133,27 @@ public abstract class MockContainer extends MockResource implements IContainer {
 
   @Override
   public IFile getFile(IPath path) {
-    return null;
+    if (path == null || path.segmentCount() == 0) {
+      return null;
+    }
+    String firstSegment = path.segment(0);
+    if (children != null) {
+      for (MockResource child : children) {
+        if (child.getName().equals(firstSegment)) {
+          if (path.segmentCount() == 1) {
+            if (child instanceof MockFile) {
+              return (IFile) child;
+            }
+            return new MockFile(this, firstSegment, false);
+          }
+          return ((MockContainer) child).getFile(path.removeFirstSegments(1));
+        }
+      }
+    }
+    if (path.segmentCount() == 1) {
+      return new MockFile(this, firstSegment, false);
+    }
+    return new MockFolder(this, firstSegment, false).getFile(path.removeFirstSegments(1));
   }
 
   @Override

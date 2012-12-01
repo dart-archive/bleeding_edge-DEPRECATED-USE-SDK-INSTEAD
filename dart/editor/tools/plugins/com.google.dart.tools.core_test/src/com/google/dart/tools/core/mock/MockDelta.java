@@ -147,4 +147,20 @@ public class MockDelta implements IResourceDelta {
   public IResource getResource() {
     return resource;
   }
+
+  @Override
+  public String toString() {
+    String identifier;
+    switch (kind) {
+      case ADDED:
+        identifier = "ADDED";
+      case CHANGED:
+        identifier = "CHANGED";
+      case REMOVED:
+        identifier = "REMOVED";
+      default:
+        identifier = "UNKNOWN-" + kind;
+    }
+    return getClass().getSimpleName() + "[" + resource + ", " + identifier + "]";
+  }
 }

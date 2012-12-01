@@ -14,7 +14,9 @@
 package com.google.dart.tools.core.builder;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 
 /**
  * Event passed to {@link BuildParticipant}s when
@@ -22,7 +24,20 @@ import org.eclipse.core.runtime.IProgressMonitor;
  */
 public class CleanEvent extends ParticipantEvent {
 
-  public CleanEvent(IProject project) {
-    super(project);
+  public CleanEvent(IProject project, IProgressMonitor monitor) {
+    super(project, monitor);
+  }
+
+  /**
+   * Called by the participant to traverse the set of files to be cleaned.
+   * 
+   * @param visitor the clean visitor (not <code>null</code>)
+   * @param visitPackages <code>true</code> if files and folders in the "packages" directory should
+   *          be visited, and <code>false</code> if not
+   * @throws CoreException if a problem occurred during traversal
+   * @throws OperationCanceledException if the operation is canceled during traversal
+   */
+  public void traverse(CleanVisitor visitor, final boolean visitPackages) throws CoreException {
+    traverseResources(visitor, getProject(), visitPackages);
   }
 }

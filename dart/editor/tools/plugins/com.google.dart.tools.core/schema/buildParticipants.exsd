@@ -6,7 +6,7 @@
          <meta.schema plugin="com.google.dart.tools.core" id="buildParticipant" name="Build Participants"/>
       </appInfo>
       <documentation>
-         This extension point allows clients to participate in the build process by receiving notifications during the build, via a com.google.dart.tools.core.builder.DartBuildParticipant.
+         This extension point allows clients to participate in the build process by receiving notifications during the build, via a com.google.dart.tools.core.builder.BuildParticipant.
       </documentation>
    </annotation>
 
@@ -93,7 +93,7 @@
 &lt;extension
       id=&quot;acme&quot;
       name=&quot;%acmeBuilder&quot;
-      point=&quot;com.google.dart.tools.core.buildParticipant&quot;&gt;
+      point=&quot;com.google.dart.tools.core.buildParticipants&quot;&gt;
    &lt;buildParticipant
          class=&quot;com.acme.core.internal.AcmeBuildParticipant&quot;
          id=&quot;Acme&quot;&gt;

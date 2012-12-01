@@ -40,6 +40,10 @@ public class MockFile extends MockResource implements IFile {
     super(parent, name);
   }
 
+  public MockFile(IContainer parent, String name, boolean exists) {
+    super(parent, name, exists);
+  }
+
   public MockFile(IContainer parent, String name, String contents) {
     super(parent, name);
     this.contents = contents;
