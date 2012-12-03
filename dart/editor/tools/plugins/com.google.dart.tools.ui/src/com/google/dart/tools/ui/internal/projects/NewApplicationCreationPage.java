@@ -19,6 +19,7 @@ import com.google.dart.tools.core.generator.DartIdentifierUtil;
 import com.google.dart.tools.core.internal.util.StatusUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.DirectoryVerification;
+import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IProject;
@@ -46,6 +47,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 
 import java.io.File;
@@ -149,10 +151,11 @@ public class NewApplicationCreationPage extends WizardPage {
     Group contentGroup = new Group(container, SWT.NONE);
 //    contentGroup.setText("Create sample content");
     GridDataFactory.fillDefaults().span(3, 1).grab(true, false).indent(0, 10).applyTo(contentGroup);
-    GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(contentGroup);
+    GridLayoutFactory.fillDefaults().numColumns(2).margins(8, 8).applyTo(contentGroup);
 
     webAppCheckboxButton = new Button(contentGroup, SWT.CHECK);
     webAppCheckboxButton.setText(ProjectMessages.NewApplicationWizardPage_webAppCheckbox_name_label);
+    GridDataFactory.fillDefaults().span(2, 1).applyTo(webAppCheckboxButton);
     webAppCheckboxButton.setSelection(getWebAppCheckboxEnabled());
     webAppCheckboxButton.addSelectionListener(new SelectionAdapter() {
       @Override
@@ -165,6 +168,7 @@ public class NewApplicationCreationPage extends WizardPage {
 
     pubSupportCheckboxButton = new Button(contentGroup, SWT.CHECK);
     pubSupportCheckboxButton.setText(ProjectMessages.NewApplicationCreationPage_pubSupportCheckbox_name_label);
+    GridDataFactory.swtDefaults().grab(true, false).applyTo(pubSupportCheckboxButton);
     pubSupportCheckboxButton.setSelection(getPubSupportCheckboxEnabled());
     pubSupportCheckboxButton.addSelectionListener(new SelectionAdapter() {
       @Override
@@ -172,6 +176,15 @@ public class NewApplicationCreationPage extends WizardPage {
         IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
             NEW_APPPLICATION_SETTINGS);
         settings.put(PUB_SUPPORT_CHECKBOX_DISABLED, !pubSupportCheckboxButton.getSelection());
+      }
+    });
+
+    Link infoLink = new Link(contentGroup, SWT.NONE);
+    infoLink.setText("<a href=\"" + "http://pub.dartlang.org/doc/" + "\">what is Pub?</a>");
+    infoLink.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        ExternalBrowserUtil.openInExternalBrowser("http://pub.dartlang.org/doc/");
       }
     });
 
