@@ -260,6 +260,20 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
     assertThat(names).contains("selectedItem", "item", "arg", "treeItem");
   }
 
+  public void test_guessNames_stringPart() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var s = 'Hello Bob... welcome to Dart!';",
+        "}");
+    selectionStart = findOffset("Hello Bob");
+    selectionEnd = findOffset("...");
+    createRefactoring("res");
+    // check guesses
+    String[] names = refactoring.guessNames();
+    assertThat(names).contains("helloBob", "bob");
+  }
+
   public void test_occurences_disableOccurences() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -548,6 +562,25 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
         "f() {",
         "  int res = 1 + 2 ;",
         "  int a = res; // marker",
+        "}");
+  }
+
+  public void test_stringPart() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var s1 = 'aaa bbb ccc bbbb ddd';",
+        "  var s2 = 'aaa bbb ccc bbbb ddd';",
+        "}");
+    selectionStart = findOffset("bbb");
+    selectionEnd = findOffset(" ccc");
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var res = \"bbb\";",
+        "  var s1 = 'aaa ${res} ccc ${res}b ddd';",
+        "  var s2 = 'aaa ${res} ccc ${res}b ddd';",
         "}");
   }
 

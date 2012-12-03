@@ -37,32 +37,6 @@ public final class RenameFunctionProcessorTest extends RefactoringTest {
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
   }
 
-  private void check_postCondition_topLevel(String shadowName) throws Exception {
-    check_postCondition_topLevel("Test.dart", shadowName);
-  }
-
-  private void check_postCondition_topLevel(String unitName, String shadowName) throws Exception {
-    DartFunction function = findElement("test() {");
-    // try to rename
-    String source = testUnit.getSource();
-    try {
-      renameFunction(function, "newName");
-      fail();
-    } catch (InterruptedException e) {
-    }
-    // error should be displayed
-    assertThat(openInformationMessages).isEmpty();
-    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals("File 'Test/"
-        + unitName
-        + "' in library 'Test' already declares top-level "
-        + shadowName
-        + " 'newName'", showStatusMessages.get(0));
-    // no source changes
-    assertEquals(source, testUnit.getSource());
-  }
-
   /**
    * Just for coverage of {@link RenameFunctionProcessor} accessors.
    */
@@ -592,5 +566,31 @@ public final class RenameFunctionProcessorTest extends RefactoringTest {
         "  newName();",
         "}",
         "somethingBad");
+  }
+
+  private void check_postCondition_topLevel(String shadowName) throws Exception {
+    check_postCondition_topLevel("Test.dart", shadowName);
+  }
+
+  private void check_postCondition_topLevel(String unitName, String shadowName) throws Exception {
+    DartFunction function = findElement("test() {");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameFunction(function, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
+    assertThat(showStatusMessages).hasSize(1);
+    assertEquals("File 'Test/"
+        + unitName
+        + "' in library 'Test' already declares top-level "
+        + shadowName
+        + " 'newName'", showStatusMessages.get(0));
+    // no source changes
+    assertEquals(source, testUnit.getSource());
   }
 }

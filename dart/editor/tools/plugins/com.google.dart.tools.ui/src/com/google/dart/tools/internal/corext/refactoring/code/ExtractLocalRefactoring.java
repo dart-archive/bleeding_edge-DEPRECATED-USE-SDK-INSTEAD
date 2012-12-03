@@ -22,10 +22,12 @@ import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStatement;
+import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.util.apache.ArrayUtils;
 import com.google.dart.compiler.util.apache.StringUtils;
+import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -81,6 +83,7 @@ public class ExtractLocalRefactoring extends Refactoring {
   private SelectionAnalyzer selectionAnalyzer;
   private DartExpression rootExpression;
   private DartExpression singleExpression;
+  private String stringLiteralPart;
   private String localName;
 
   private String[] guessedNames;
@@ -164,14 +167,19 @@ public class ExtractLocalRefactoring extends Refactoring {
       }
       // add variable declaration
       {
-        // prepare expression type
-        String typeSource = ExtractUtils.getTypeSource(rootExpression);
-        if (typeSource == null || typeSource.equals("Dynamic")) {
-          typeSource = "var";
+        String declarationSource;
+        if (stringLiteralPart != null) {
+          declarationSource = "var " + localName + " = " + "\"" + stringLiteralPart + "\";";
+        } else {
+          // prepare expression type
+          String typeSource = ExtractUtils.getTypeSource(rootExpression);
+          if (typeSource == null || typeSource.equals("Dynamic")) {
+            typeSource = "var";
+          }
+          // prepare variable declaration source
+          String initializerSource = utils.getText(selectionStart, selectionLength);
+          declarationSource = typeSource + " " + localName + " = " + initializerSource + ";";
         }
-        // prepare variable declaration source
-        String initializerSource = utils.getText(selectionStart, selectionLength);
-        String declarationSource = typeSource + " " + localName + " = " + initializerSource + ";";
         // prepare location for declaration
         DartStatement targetStatement = findTargetStatement(occurences);
         String prefix = utils.getNodePrefix(targetStatement);
@@ -186,9 +194,14 @@ public class ExtractLocalRefactoring extends Refactoring {
             RefactoringCoreMessages.ExtractLocalRefactoring_declare_local_variable,
             edit));
       }
+      // prepare replacement
+      String occurrenceReplacement = localName;
+      if (stringLiteralPart != null) {
+        occurrenceReplacement = "${" + localName + "}";
+      }
       // replace occurrences with variable reference
       for (SourceRange range : occurences) {
-        TextEdit edit = new ReplaceEdit(range.getOffset(), range.getLength(), localName);
+        TextEdit edit = new ReplaceEdit(range.getOffset(), range.getLength(), occurrenceReplacement);
         change.addEdit(edit);
         change.addTextEditGroup(new TextEditGroup(
             RefactoringCoreMessages.ExtractLocalRefactoring_replace,
@@ -212,11 +225,14 @@ public class ExtractLocalRefactoring extends Refactoring {
    */
   public String[] guessNames() {
     if (guessedNames == null) {
-      if (singleExpression != null) {
+      Set<String> excluded = getExcludedVariableNames();
+      if (stringLiteralPart != null) {
+        return StubUtility.getVariableNameSuggestions(stringLiteralPart, excluded);
+      } else if (singleExpression != null) {
         guessedNames = StubUtility.getVariableNameSuggestions(
             singleExpression.getType(),
             singleExpression,
-            getExcludedVariableNames());
+            excluded);
       } else {
         guessedNames = ArrayUtils.EMPTY_STRING_ARRAY;
       }
@@ -249,12 +265,15 @@ public class ExtractLocalRefactoring extends Refactoring {
         selectionRange.getLength());
     selectionAnalyzer = new SelectionAnalyzer(selection, false);
     unitNode.accept(selectionAnalyzer);
-    // XXX
-    {
-      DartNode coveringNode = selectionAnalyzer.getLastCoveringNode();
-      if (ASTNodes.getAncestor(coveringNode, DartBlock.class) == null) {
-        return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.ExtractLocalRefactoring_select_in_function);
-      }
+    DartNode coveringNode = selectionAnalyzer.getLastCoveringNode();
+    // we need enclosing block to add variable declaration statement
+    if (ASTNodes.getAncestor(coveringNode, DartBlock.class) == null) {
+      return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.ExtractLocalRefactoring_select_in_function);
+    }
+    // part of string literal
+    if (coveringNode instanceof DartStringLiteral) {
+      stringLiteralPart = utils.getText(selectionRange);
+      return new RefactoringStatus();
     }
     // single node selected
     if (selectionAnalyzer.getSelectedNodes().length == 1
@@ -269,15 +288,12 @@ public class ExtractLocalRefactoring extends Refactoring {
       }
     }
     // fragment of binary expression selected
-    {
-      DartNode coveringNode = selectionAnalyzer.getLastCoveringNode();
-      if (coveringNode instanceof DartBinaryExpression) {
-        DartBinaryExpression binaryExpression = (DartBinaryExpression) coveringNode;
-        if (utils.validateBinaryExpressionRange(binaryExpression, selectionRange)) {
-          rootExpression = binaryExpression;
-          singleExpression = null;
-          return new RefactoringStatus();
-        }
+    if (coveringNode instanceof DartBinaryExpression) {
+      DartBinaryExpression binaryExpression = (DartBinaryExpression) coveringNode;
+      if (utils.validateBinaryExpressionRange(binaryExpression, selectionRange)) {
+        rootExpression = binaryExpression;
+        singleExpression = null;
+        return new RefactoringStatus();
       }
     }
     // invalid selection
@@ -364,6 +380,27 @@ public class ExtractLocalRefactoring extends Refactoring {
       // prepare function tokens
       List<com.google.dart.engine.scanner.Token> functionTokens = TokenUtils.getTokens(functionSource);
       functionSource = StringUtils.join(functionTokens, TOKEN_SEPARATOR);
+      // string part occurrences
+      if (stringLiteralPart != null) {
+        int occuLength = stringLiteralPart.length();
+        for (com.google.dart.engine.scanner.Token token : functionTokens) {
+          if (token.getType() == TokenType.STRING) {
+            String tokenValue = token.getLexeme();
+            int lastIndex = 0;
+            while (true) {
+              int index = tokenValue.indexOf(stringLiteralPart, lastIndex);
+              if (index == -1) {
+                break;
+              }
+              lastIndex = index + occuLength;
+              int occuStart = functionOffset + token.getOffset() + index;
+              SourceRange occuRange = SourceRangeFactory.forStartLength(occuStart, occuLength);
+              occurrences.add(occuRange);
+            }
+          }
+        }
+        return occurrences;
+      }
       // find "selection" in "function" tokens
       int lastIndex = 0;
       while (true) {

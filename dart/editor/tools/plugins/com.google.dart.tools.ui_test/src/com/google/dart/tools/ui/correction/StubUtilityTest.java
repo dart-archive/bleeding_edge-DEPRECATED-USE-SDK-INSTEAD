@@ -93,6 +93,22 @@ public final class StubUtilityTest extends AbstractDartTest {
     }
   }
 
+  public void test_getVariableNameSuggestions_forText() throws Exception {
+    {
+      String[] suggestions = StubUtility.getVariableNameSuggestions(
+          "Goodbye, cruel world!",
+          nameSuggestExclude);
+      assertThat(suggestions).isEqualTo(new String[] {"goodbyeCruelWorld", "cruelWorld", "world"});
+    }
+    {
+      nameSuggestExclude = ImmutableSet.of("world");
+      String[] suggestions = StubUtility.getVariableNameSuggestions(
+          "Goodbye, cruel world!",
+          nameSuggestExclude);
+      assertThat(suggestions).isEqualTo(new String[] {"goodbyeCruelWorld", "cruelWorld", "world2"});
+    }
+  }
+
   public void test_getVariableNameSuggestions_invocationArgument_named() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
