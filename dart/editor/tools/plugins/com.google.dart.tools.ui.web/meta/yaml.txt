@@ -5,3 +5,6 @@ version
 author
 authors
 homepage
+url
+ref
+
