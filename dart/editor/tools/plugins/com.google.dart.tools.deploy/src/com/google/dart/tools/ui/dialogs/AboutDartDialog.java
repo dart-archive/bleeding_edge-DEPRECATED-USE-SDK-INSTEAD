@@ -159,6 +159,7 @@ public class AboutDartDialog extends Shell implements DetailsProvider {
 
     //spacer and caret repressor
     final StyledText spacer = new StyledText(this, SWT.NONE);
+    spacer.setEditable(false);
     spacer.setFocus();
     spacer.getCaret().setSize(0, 0); //nuke the caret
 
