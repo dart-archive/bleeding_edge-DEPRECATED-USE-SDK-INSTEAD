@@ -3,7 +3,7 @@
     <class color="#0646a7" />
     <deprecatedMember color="#000000" />
     <directive color="#014d64" bold="true" />
-    <dynamicType color="#7f1cc9" />
+    <dynamicType color="#000000" />
     <field color="#87312e" />
     <localVariable color="#000000" />
     <localVariableDeclaration color="#000000" />
