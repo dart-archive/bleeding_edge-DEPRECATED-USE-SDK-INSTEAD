@@ -20,13 +20,14 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
  * This class represents a VM variable.
  */
-public class VmVariable extends VmRef {
+public class VmVariable extends VmRef implements Comparable<VmVariable> {
 
   static class LazyValue {
     private VmConnection connection;
@@ -93,6 +94,8 @@ public class VmVariable extends VmRef {
       variables.add(createFrom(isolate, arr.getJSONObject(i)));
     }
 
+    Collections.sort(variables);
+
     return variables;
   }
 
@@ -126,6 +129,11 @@ public class VmVariable extends VmRef {
 
   private VmVariable(VmIsolate isolate) {
     super(isolate);
+  }
+
+  @Override
+  public int compareTo(VmVariable other) {
+    return getName().compareTo(other.getName());
   }
 
   public boolean getIsException() {

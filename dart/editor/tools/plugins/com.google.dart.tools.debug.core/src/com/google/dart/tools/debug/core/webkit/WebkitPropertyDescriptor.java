@@ -23,7 +23,7 @@ import org.json.JSONObject;
  * 
  * @see code.google.com/chrome/devtools/docs/protocol/tot/runtime.html#type-PropertyDescriptor
  */
-public class WebkitPropertyDescriptor {
+public class WebkitPropertyDescriptor implements Comparable<WebkitPropertyDescriptor> {
   public static final String CLASS_INFO = "@classInfo";
   public static final String STATIC_FIELDS = "@staticFields";
 
@@ -91,6 +91,11 @@ public class WebkitPropertyDescriptor {
   private boolean configurable;
 
   private WebkitRemoteObject value;
+
+  @Override
+  public int compareTo(WebkitPropertyDescriptor other) {
+    return getName().compareTo(other.getName());
+  }
 
   /**
    * A function which serves as a getter for the property, or undefined if there is no getter
