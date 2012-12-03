@@ -47,7 +47,15 @@ public class AnalysisContextImpl implements AnalysisContext {
    * A cache mapping sources to the compilation units that were produced for the contents of the
    * source.
    */
+  // TODO(brianwilkerson) Replace this with a real cache.
   private HashMap<Source, CompilationUnit> parseCache = new HashMap<Source, CompilationUnit>();
+
+  /**
+   * A cache mapping sources (of the defining compilation units of libraries) to the library
+   * elements for those libraries.
+   */
+  // TODO(brianwilkerson) Replace this with a real cache.
+  private HashMap<Source, LibraryElement> libraryElementCache = new HashMap<Source, LibraryElement>();
 
   /**
    * Initialize a newly created analysis context.
@@ -64,6 +72,16 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public Element getElement(ElementLocation location) {
     throw new UnsupportedOperationException();
+//    String[] components = ((ElementLocationImpl) location).getComponents();
+//    Source librarySource = findSource(components[0]);
+//    ElementImpl element = (ElementImpl) getLibraryElement(librarySource);
+//    for (int i = 1; i < components.length; i++) {
+//      if (element == null) {
+//        return null;
+//      }
+//      element = element.getChild(components[i]);
+//    }
+//    return element;
   }
 
   @Override
@@ -74,6 +92,15 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public LibraryElement getLibraryElement(Source source) {
     throw new UnsupportedOperationException();
+//    synchronized (this) {
+//      LibraryElement element = libraryElementCache.get(source);
+//      if (element == null) {
+//        // TODO(brianwilkerson) Build the library element.
+//        element = ...;
+//        libraryElementCache.put(source, element);
+//      }
+//      return element;
+//    }
   }
 
   @Override
@@ -135,6 +162,12 @@ public class AnalysisContextImpl implements AnalysisContext {
   public void sourceChanged(Source source) {
     synchronized (this) {
       parseCache.remove(source);
+      libraryElementCache.remove(source);
     }
+  }
+
+  @Override
+  public void sourceDeleted(Source source) {
+    sourceChanged(source);
   }
 }

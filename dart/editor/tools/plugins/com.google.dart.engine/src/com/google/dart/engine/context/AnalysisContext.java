@@ -130,4 +130,12 @@ public interface AnalysisContext {
    * @param source the source whose content has changed
    */
   public void sourceChanged(Source source);
+
+  /**
+   * Respond to the fact that the given source has been deleted by removing any cached information
+   * that might now be out-of-date.
+   * 
+   * @param source the source that was deleted
+   */
+  public void sourceDeleted(Source source);
 }
