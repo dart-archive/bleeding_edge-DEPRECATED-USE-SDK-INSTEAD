@@ -26,6 +26,7 @@ import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
@@ -171,21 +172,32 @@ public class LibraryElementBuilder {
       } else if (directive instanceof PartDirective) {
         hasPartDirective = true;
         StringLiteral partUri = ((PartDirective) directive).getPartUri();
-        Source source = getSource(librarySource, partUri);
-        if (source != null) {
-          CompilationUnitElementImpl part = builder.buildCompilationUnit(source);
-          // TODO(brianwilkerson) Validate that the part contains a part-of directive with the same
-          // name as the library. If there is no libraryNameNode, look to see whether all of the
-          // parts use the same name so that we can use the intended name in a quick-fix.
+        Source partSource = getSource(librarySource, partUri);
+        if (partSource != null) {
+          CompilationUnitElementImpl part = builder.buildCompilationUnit(partSource);
           //
-          // String partLibraryName = ...;
-          // if (partLibraryName == null) {
-          //   errorListener.onError(new AnalysisError(librarySource, partUri.getOffset, partUri.getLength(), ResolverErrorCode.MISSING_PART_OF_DIRECTIVE));
-          // } else if (libraryNameNode == null) {
-          //   partLibraryNames.add(partLibraryName);
-          // } else if (!libraryNameNode.getName().equals(partLibraryName)) {
-          //   errorListener.onError(new AnalysisError(librarySource, partUri.getOffset, partUri.getLength(), ResolverErrorCode.PART_WITH_WRONG_LIBRARY_NAME, partLibraryName));
-          // }
+          // Validate that the part contains a part-of directive with the same name as the library.
+          //
+          String partLibraryName = getPartLibraryName(partSource);
+          if (partLibraryName == null) {
+            errorListener.onError(new AnalysisError(
+                librarySource,
+                partUri.getOffset(),
+                partUri.getLength(),
+                ResolverErrorCode.MISSING_PART_OF_DIRECTIVE));
+          } else if (libraryNameNode == null) {
+            // TODO(brianwilkerson) Collect the names declared by the part. If they are all the same
+            // then we can use that name as the inferred name of the library and present it in a
+            // quick-fix.
+            // partLibraryNames.add(partLibraryName);
+          } else if (!libraryNameNode.getName().equals(partLibraryName)) {
+            errorListener.onError(new AnalysisError(
+                librarySource,
+                partUri.getOffset(),
+                partUri.getLength(),
+                ResolverErrorCode.PART_WITH_WRONG_LIBRARY_NAME,
+                partLibraryName));
+          }
           if (entryPoint == null) {
             entryPoint = findEntryPoint(part);
           }
@@ -295,6 +307,30 @@ public class LibraryElementBuilder {
   }
 
   /**
+   * Return the name of the library that the given part is declared to be a part of, or {@code null}
+   * if the part does not contain a part-of directive.
+   * 
+   * @param partSource the source representing the part
+   * @return the name of the library that the given part is declared to be a part of
+   */
+  private String getPartLibraryName(Source partSource) {
+    try {
+      CompilationUnit partUnit = analysisContext.parse(partSource, errorListener);
+      for (Directive directive : partUnit.getDirectives()) {
+        if (directive instanceof PartOfDirective) {
+          SimpleIdentifier libraryName = ((PartOfDirective) directive).getLibraryName();
+          if (libraryName != null) {
+            return libraryName.getName();
+          }
+        }
+      }
+    } catch (AnalysisException exception) {
+      // Fall through to return null.
+    }
+    return null;
+  }
+
+  /**
    * Return the element model for a library that is being referenced by the library whose element
    * model is being built.
    * 
@@ -308,7 +344,9 @@ public class LibraryElementBuilder {
       return null;
     }
     // TODO(brianwilkerson) This needs to go through the analysis context so that we can take
-    // advantage of cached results.
+    // advantage of cached results. In addition, we need to have a way to build a library element
+    // without building the whole element model for that library so that we can handle circular
+    // dependencies.
     LibraryElementBuilder libraryBuilder = new LibraryElementBuilder(analysisContext, errorListener);
     // TODO(brianwilkerson) Check to see that the referenced library has a library directive and
     // report an error if it does not.

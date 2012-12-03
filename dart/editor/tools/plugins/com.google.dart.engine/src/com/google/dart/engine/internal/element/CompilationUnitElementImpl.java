@@ -13,14 +13,15 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
-import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -86,6 +87,36 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   }
 
   @Override
+  public ElementImpl getChild(String identifier) {
+    for (PropertyAccessorElement accessor : accessors) {
+      if (((PropertyAccessorElementImpl) accessor).getIdentifier().equals(identifier)) {
+        return (PropertyAccessorElementImpl) accessor;
+      }
+    }
+    for (FieldElement field : fields) {
+      if (((FieldElementImpl) field).getIdentifier().equals(identifier)) {
+        return (FieldElementImpl) field;
+      }
+    }
+    for (ExecutableElement function : functions) {
+      if (((ExecutableElementImpl) function).getIdentifier().equals(identifier)) {
+        return (ExecutableElementImpl) function;
+      }
+    }
+    for (TypeAliasElement typeAlias : typeAliases) {
+      if (((TypeAliasElementImpl) typeAlias).getIdentifier().equals(identifier)) {
+        return (TypeAliasElementImpl) typeAlias;
+      }
+    }
+    for (ClassElement type : types) {
+      if (((ClassElementImpl) type).getIdentifier().equals(identifier)) {
+        return (ClassElementImpl) type;
+      }
+    }
+    return null;
+  }
+
+  @Override
   public LibraryElement getEnclosingElement() {
     return (LibraryElement) super.getEnclosingElement();
   }
@@ -98,6 +129,11 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   @Override
   public FunctionElement[] getFunctions() {
     return functions;
+  }
+
+  @Override
+  public String getIdentifier() {
+    return getSource().getFullName();
   }
 
   @Override

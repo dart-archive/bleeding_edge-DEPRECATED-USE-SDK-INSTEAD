@@ -14,9 +14,9 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementKind;
-import com.google.dart.engine.element.ClassElement;
 
 /**
  * Instances of the class {@code ConstructorElementImpl} implement a {@code ConstructorElement}.

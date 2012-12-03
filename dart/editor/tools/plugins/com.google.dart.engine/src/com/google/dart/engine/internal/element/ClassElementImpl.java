@@ -94,6 +94,36 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
+  public ElementImpl getChild(String identifier) {
+    for (PropertyAccessorElement accessor : accessors) {
+      if (((PropertyAccessorElementImpl) accessor).getIdentifier().equals(identifier)) {
+        return (PropertyAccessorElementImpl) accessor;
+      }
+    }
+    for (ConstructorElement constructor : constructors) {
+      if (((ConstructorElementImpl) constructor).getIdentifier().equals(identifier)) {
+        return (ConstructorElementImpl) constructor;
+      }
+    }
+    for (FieldElement field : fields) {
+      if (((FieldElementImpl) field).getIdentifier().equals(identifier)) {
+        return (FieldElementImpl) field;
+      }
+    }
+    for (MethodElement method : methods) {
+      if (((MethodElementImpl) method).getIdentifier().equals(identifier)) {
+        return (MethodElementImpl) method;
+      }
+    }
+    for (TypeVariableElement typeVariable : typeVariables) {
+      if (((TypeVariableElementImpl) typeVariable).getIdentifier().equals(identifier)) {
+        return (TypeVariableElementImpl) typeVariable;
+      }
+    }
+    return null;
+  }
+
+  @Override
   public ConstructorElement[] getConstructors() {
     return constructors;
   }
@@ -110,7 +140,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @Override
   public ElementKind getKind() {
-    return ElementKind.TYPE;
+    return ElementKind.CLASS;
   }
 
   @Override

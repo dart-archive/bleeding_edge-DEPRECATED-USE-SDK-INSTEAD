@@ -75,6 +75,19 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @Override
+  public ElementImpl getChild(String identifier) {
+    if (((CompilationUnitElementImpl) definingCompilationUnit).getIdentifier().equals(identifier)) {
+      return (CompilationUnitElementImpl) definingCompilationUnit;
+    }
+    for (CompilationUnitElement part : parts) {
+      if (((CompilationUnitElementImpl) part).getIdentifier().equals(identifier)) {
+        return (CompilationUnitElementImpl) part;
+      }
+    }
+    return null;
+  }
+
+  @Override
   public CompilationUnitElement getDefiningCompilationUnit() {
     return definingCompilationUnit;
   }
@@ -87,6 +100,11 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @Override
   public ExportSpecification[] getExports() {
     return exports;
+  }
+
+  @Override
+  public String getIdentifier() {
+    return definingCompilationUnit.getSource().getFullName();
   }
 
   @Override

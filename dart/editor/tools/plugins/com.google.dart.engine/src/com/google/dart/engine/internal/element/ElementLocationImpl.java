@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.util.ArrayList;
 
@@ -41,7 +42,7 @@ public class ElementLocationImpl implements ElementLocation {
     ArrayList<String> components = new ArrayList<String>();
     Element ancestor = element;
     while (ancestor != null) {
-      components.add(0, ancestor.getName());
+      components.add(0, ((ElementImpl) ancestor).getIdentifier());
       ancestor = ancestor.getEnclosingElement();
     }
     this.components = components.toArray(new String[components.size()]);
@@ -74,6 +75,15 @@ public class ElementLocationImpl implements ElementLocation {
     return true;
   }
 
+  /**
+   * Return the path to the element whose location is represented by this object.
+   * 
+   * @return the path to the element whose location is represented by this object
+   */
+  public String[] getComponents() {
+    return components;
+  }
+
   @Override
   public String getEncoding() {
     StringBuilder builder = new StringBuilder();
@@ -92,7 +102,7 @@ public class ElementLocationImpl implements ElementLocation {
     int length = components.length;
     int hashCode = length;
     for (int i = 0; i < length; i++) {
-      hashCode = (hashCode << 2) ^ components[i].hashCode();
+      hashCode = ObjectUtilities.combineHashCodes(hashCode, components[i].hashCode());
     }
     return hashCode;
   }

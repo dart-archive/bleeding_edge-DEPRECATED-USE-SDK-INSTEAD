@@ -26,7 +26,23 @@ public final class ObjectUtilities {
    * @return the result of combining the hash codes
    */
   public static int combineHashCodes(int firstHashCode, int secondHashCode) {
-    return firstHashCode * 17 + secondHashCode;
+    return firstHashCode * 31 + secondHashCode;
+  }
+
+  /**
+   * Return {@code true} if the given objects are equal.
+   * 
+   * @param first the first object being compared
+   * @param second the second object being compared
+   * @return {@code true} if the given objects are equal
+   */
+  public static boolean equals(Object first, Object second) {
+    if (first == null) {
+      return second == null;
+    } else if (second == null) {
+      return false;
+    }
+    return first.equals(second);
   }
 
   /**

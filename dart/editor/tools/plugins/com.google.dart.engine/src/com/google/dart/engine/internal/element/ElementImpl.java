@@ -18,7 +18,6 @@ import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.util.EnumSet;
 
@@ -78,12 +77,7 @@ public abstract class ElementImpl implements Element {
 
   @Override
   public boolean equals(Object object) {
-    if (this.getClass() != object.getClass()) {
-      return false;
-    }
-    ElementImpl other = (ElementImpl) object;
-    return equals(name, other.getName()) && nameOffset == other.getNameOffset()
-        && equals(enclosingElement, other.getEnclosingElement());
+    return object instanceof Element && ((Element) object).getLocation().equals(getLocation());
   }
 
   @Override
@@ -96,9 +90,30 @@ public abstract class ElementImpl implements Element {
     return (E) ancestor;
   }
 
+  /**
+   * Return the child of this element that is uniquely identified by the given identifier, or
+   * {@code null} if there is no such child.
+   * 
+   * @param identifier the identifier used to select a child
+   * @return the child of this element with the given identifier
+   */
+  public ElementImpl getChild(String identifier) {
+    return null;
+  }
+
   @Override
   public Element getEnclosingElement() {
     return enclosingElement;
+  }
+
+  /**
+   * Return an identifier that uniquely identifies this element among the children of this element's
+   * parent.
+   * 
+   * @return an identifier that uniquely identifies this element relative to its parent
+   */
+  public String getIdentifier() {
+    return getName();
   }
 
   @Override
@@ -128,7 +143,7 @@ public abstract class ElementImpl implements Element {
 
   @Override
   public int hashCode() {
-    return ObjectUtilities.combineHashCodes(name.hashCode(), Math.max(0, nameOffset));
+    return getLocation().hashCode();
   }
 
   @Override
@@ -186,21 +201,5 @@ public abstract class ElementImpl implements Element {
     } else {
       modifiers.remove(modifier);
     }
-  }
-
-  /**
-   * Return {@code true} if the given objects are equal.
-   * 
-   * @param first the first object being compared
-   * @param second the second object being compared
-   * @return {@code true} if the given objects are equal
-   */
-  private boolean equals(Object first, Object second) {
-    if (first == null) {
-      return second == null;
-    } else if (second == null) {
-      return false;
-    }
-    return first.equals(second);
   }
 }

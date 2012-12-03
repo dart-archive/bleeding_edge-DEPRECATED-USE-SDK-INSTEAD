@@ -15,9 +15,9 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
@@ -33,35 +33,6 @@ public class LibraryElementBuilderTest extends EngineTestCase {
    * The source factory used to create {@link Source sources}.
    */
   private SourceFactory sourceFactory;
-
-  public void fail_missingPartOfDirective() throws Exception {
-    addSource("/a.dart", "class A {}");
-    Source librarySource = addSource("/lib.dart", createSource(//
-        "library lib;",
-        "",
-        "part 'a.dart';"));
-
-    LibraryElement element = buildLibrary(
-        librarySource,
-        ResolverErrorCode.MISSING_PART_OF_DIRECTIVE);
-    assertNotNull(element);
-  }
-
-  public void fail_partWithWrongLibraryName() throws Exception {
-    addSource("/a.dart", createSource(//
-        "part of other_lib;",
-        "",
-        "class A {}"));
-    Source librarySource = addSource("/lib.dart", createSource(//
-        "library lib;",
-        "",
-        "part 'a.dart';"));
-
-    LibraryElement element = buildLibrary(
-        librarySource,
-        ResolverErrorCode.PART_WITH_WRONG_LIBRARY_NAME);
-    assertNotNull(element);
-  }
 
   @Override
   public void setUp() {
@@ -134,6 +105,19 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     assertNotNull(element);
   }
 
+  public void test_missingPartOfDirective() throws Exception {
+    addSource("/a.dart", "class A {}");
+    Source librarySource = addSource("/lib.dart", createSource(//
+        "library lib;",
+        "",
+        "part 'a.dart';"));
+
+    LibraryElement element = buildLibrary(
+        librarySource,
+        ResolverErrorCode.MISSING_PART_OF_DIRECTIVE);
+    assertNotNull(element);
+  }
+
   public void test_multipleFiles() throws Exception {
     Source librarySource = addSource("/lib.dart", createSource(//
         "library lib;",
@@ -161,6 +145,22 @@ public class LibraryElementBuilderTest extends EngineTestCase {
       assertTypes(sourcedUnits[0], "C");
       assertTypes(sourcedUnits[1], "B");
     }
+  }
+
+  public void test_partWithWrongLibraryName() throws Exception {
+    addSource("/a.dart", createSource(//
+        "part of other_lib;",
+        "",
+        "class A {}"));
+    Source librarySource = addSource("/lib.dart", createSource(//
+        "library lib;",
+        "",
+        "part 'a.dart';"));
+
+    LibraryElement element = buildLibrary(
+        librarySource,
+        ResolverErrorCode.PART_WITH_WRONG_LIBRARY_NAME);
+    assertNotNull(element);
   }
 
   public void test_singleFile() throws Exception {

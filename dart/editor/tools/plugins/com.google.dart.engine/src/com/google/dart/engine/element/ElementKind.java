@@ -17,6 +17,7 @@ package com.google.dart.engine.element;
  * The enumeration {@code ElementKind} defines the various kinds of elements in the element model.
  */
 public enum ElementKind {
+  CLASS,
   COMPILATION_UNIT,
   CONSTRUCTOR,
   ERROR,
@@ -29,7 +30,6 @@ public enum ElementKind {
   PARAMETER,
   PREFIX,
   SETTER,
-  TYPE,
   TYPE_ALIAS,
   TYPE_VARIABLE,
   VARIABLE;

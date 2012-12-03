@@ -76,6 +76,31 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
   }
 
   @Override
+  public ElementImpl getChild(String identifier) {
+    for (ExecutableElement function : functions) {
+      if (((ExecutableElementImpl) function).getIdentifier().equals(identifier)) {
+        return (ExecutableElementImpl) function;
+      }
+    }
+    for (LabelElement label : labels) {
+      if (((LabelElementImpl) label).getIdentifier().equals(identifier)) {
+        return (LabelElementImpl) label;
+      }
+    }
+    for (VariableElement variable : localVariables) {
+      if (((VariableElementImpl) variable).getIdentifier().equals(identifier)) {
+        return (VariableElementImpl) variable;
+      }
+    }
+    for (ParameterElement parameter : parameters) {
+      if (((ParameterElementImpl) parameter).getIdentifier().equals(identifier)) {
+        return (ParameterElementImpl) parameter;
+      }
+    }
+    return null;
+  }
+
+  @Override
   public ExecutableElement[] getFunctions() {
     return functions;
   }

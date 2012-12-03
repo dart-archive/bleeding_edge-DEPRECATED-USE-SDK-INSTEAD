@@ -55,6 +55,21 @@ public class TypeAliasElementImpl extends ElementImpl implements TypeAliasElemen
   }
 
   @Override
+  public ElementImpl getChild(String identifier) {
+    for (VariableElement parameter : parameters) {
+      if (((VariableElementImpl) parameter).getIdentifier().equals(identifier)) {
+        return (VariableElementImpl) parameter;
+      }
+    }
+    for (TypeVariableElement typeVariable : typeVariables) {
+      if (((TypeVariableElementImpl) typeVariable).getIdentifier().equals(identifier)) {
+        return (TypeVariableElementImpl) typeVariable;
+      }
+    }
+    return null;
+  }
+
+  @Override
   public CompilationUnitElement getEnclosingElement() {
     return (CompilationUnitElement) super.getEnclosingElement();
   }
