@@ -105,6 +105,20 @@ public abstract class NormalFormalParameter extends FormalParameter {
   }
 
   /**
+   * Return {@code true} if this parameter is a const parameter.
+   * 
+   * @return {@code true} if this parameter is a const parameter
+   */
+  public abstract boolean isConst();
+
+  /**
+   * Return {@code true} if this parameter is a final parameter.
+   * 
+   * @return {@code true} if this parameter is a final parameter
+   */
+  public abstract boolean isFinal();
+
+  /**
    * Set the documentation comment associated with this parameter to the given comment
    * 
    * @param comment the documentation comment to be associated with this parameter

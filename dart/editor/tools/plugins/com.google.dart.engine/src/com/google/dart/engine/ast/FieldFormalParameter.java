@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -129,6 +131,18 @@ public class FieldFormalParameter extends NormalFormalParameter {
    */
   public TypeName getType() {
     return type;
+  }
+
+  @Override
+  public boolean isConst() {
+    return (keyword instanceof KeywordToken)
+        && ((KeywordToken) keyword).getKeyword() == Keyword.CONST;
+  }
+
+  @Override
+  public boolean isFinal() {
+    return (keyword instanceof KeywordToken)
+        && ((KeywordToken) keyword).getKeyword() == Keyword.FINAL;
   }
 
   /**

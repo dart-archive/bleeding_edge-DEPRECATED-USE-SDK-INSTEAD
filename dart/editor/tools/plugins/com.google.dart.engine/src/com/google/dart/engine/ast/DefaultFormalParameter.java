@@ -127,6 +127,24 @@ public class DefaultFormalParameter extends FormalParameter {
   }
 
   /**
+   * Return {@code true} if this parameter is a const parameter.
+   * 
+   * @return {@code true} if this parameter is a const parameter
+   */
+  public boolean isConst() {
+    return parameter != null && parameter.isConst();
+  }
+
+  /**
+   * Return {@code true} if this parameter is a final parameter.
+   * 
+   * @return {@code true} if this parameter is a final parameter
+   */
+  public boolean isFinal() {
+    return parameter != null && parameter.isFinal();
+  }
+
+  /**
    * Set the expression computing the default value for the parameter to the given expression.
    * 
    * @param expression the expression computing the default value for the parameter

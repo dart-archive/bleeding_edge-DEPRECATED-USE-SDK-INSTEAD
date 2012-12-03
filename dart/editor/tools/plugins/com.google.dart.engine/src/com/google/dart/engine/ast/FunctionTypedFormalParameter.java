@@ -97,6 +97,16 @@ public class FunctionTypedFormalParameter extends NormalFormalParameter {
     return returnType;
   }
 
+  @Override
+  public boolean isConst() {
+    return false;
+  }
+
+  @Override
+  public boolean isFinal() {
+    return false;
+  }
+
   /**
    * Set the parameters of the function-typed parameter to the given parameters.
    * 
