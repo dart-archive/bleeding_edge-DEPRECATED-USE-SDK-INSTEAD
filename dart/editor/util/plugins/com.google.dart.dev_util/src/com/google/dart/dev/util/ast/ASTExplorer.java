@@ -15,7 +15,19 @@ package com.google.dart.dev.util.ast;
 
 import com.google.dart.dev.util.DartDevPlugin;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.FieldDeclaration;
+import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.TopLevelVariableDeclaration;
+import com.google.dart.engine.ast.TypeAlias;
+import com.google.dart.engine.ast.TypeParameter;
+import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.parser.Parser;
@@ -125,7 +137,8 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
       //TODO(pquitslund): implement text selection tracking
       if (selection instanceof ITextSelection) {
         int offset = ((ITextSelection) selection).getOffset();
-        selectNodeAtOffset(offset);
+        int length = ((ITextSelection) selection).getLength();
+        selectNodeAtOffset(offset, length);
       }
     }
 
@@ -226,7 +239,78 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
       if (obj instanceof AnalysisError) {
         return ((AnalysisError) obj).getMessage();
       }
-      return obj.getClass().getSimpleName();
+      StringBuilder builder = new StringBuilder();
+      builder.append(obj.getClass().getSimpleName());
+      if (obj instanceof ASTNode) {
+        ASTNode node = (ASTNode) obj;
+        builder.append(" [");
+        builder.append(node.getOffset());
+        builder.append("..");
+        builder.append(node.getOffset() + node.getLength() - 1);
+        builder.append("]");
+        String name = getName(node);
+        if (name != null) {
+          builder.append(" - ");
+          builder.append(name);
+        }
+      }
+      return builder.toString();
+    }
+
+    /**
+     * Return the name of the given node, or {@code null} if the given node is not a declaration.
+     * 
+     * @param node the node whose name is to be returned
+     * @return the name of the given node
+     */
+    private String getName(ASTNode node) {
+      // TODO(brianwilkerson) Rewrite this to use a visitor.
+      if (node instanceof ConstructorDeclaration) {
+        return ((ConstructorDeclaration) node).getName().getName();
+      } else if (node instanceof FieldDeclaration) {
+        return getNames(((FieldDeclaration) node).getFields());
+      } else if (node instanceof MethodDeclaration) {
+        return ((MethodDeclaration) node).getName().getName();
+      } else if (node instanceof ClassDeclaration) {
+        return ((ClassDeclaration) node).getName().getName();
+      } else if (node instanceof FunctionDeclaration) {
+        SimpleIdentifier nameNode = ((FunctionDeclaration) node).getName();
+        if (nameNode != null) {
+          return nameNode.getName();
+        }
+      } else if (node instanceof Identifier) {
+        return ((Identifier) node).getName();
+      } else if (node instanceof TopLevelVariableDeclaration) {
+        return getNames(((TopLevelVariableDeclaration) node).getVariables());
+      } else if (node instanceof TypeAlias) {
+        return ((TypeAlias) node).getName().getName();
+      } else if (node instanceof TypeParameter) {
+        return ((TypeParameter) node).getName().getName();
+      } else if (node instanceof VariableDeclaration) {
+        return ((VariableDeclaration) node).getName().getName();
+      }
+      return null;
+    }
+
+    /**
+     * Return a string containing a comma-separated list of the names of all of the variables in the
+     * given list.
+     * 
+     * @param variables the list containing the variables
+     * @return a comma-separated list of the names of the given variables
+     */
+    private String getNames(VariableDeclarationList variables) {
+      boolean first = true;
+      StringBuilder builder = new StringBuilder();
+      for (VariableDeclaration variable : variables.getVariables()) {
+        if (first) {
+          first = false;
+        } else {
+          builder.append(", ");
+        }
+        builder.append(variable.getName().getName());
+      }
+      return builder.toString();
     }
   }
 
@@ -297,6 +381,34 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
     manager.add(collapseAllAction);
   }
 
+  private CompilationUnit getCompilationUnit() {
+    IEditorPart editor = getActiveEditor();
+    if (editor != null) {
+
+      IEditorInput input = editor.getEditorInput();
+      if (input instanceof IFileEditorInput) {
+        IFile file = ((IFileEditorInput) input).getFile();
+        try {
+
+          String contents = IFileUtilities.getContents(file);
+
+          errors.clear();
+
+          StringScanner scanner = new StringScanner(null, contents, this);
+          Parser parser = new Parser(null, this);
+
+          Token token = scanner.tokenize();
+          return parser.parseCompilationUnit(token);
+        } catch (CoreException e) {
+          DartDevPlugin.logError(e);
+        } catch (IOException e) {
+          DartDevPlugin.logError(e);
+        }
+      }
+    }
+    return null;
+  }
+
   private void hookupListeners() {
     viewer.addSelectionChangedListener(eventHandler);
     getSelectionService().addSelectionListener(eventHandler);
@@ -336,38 +448,17 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
   }
 
   private void refresh() {
-
-    IEditorPart editor = getActiveEditor();
-    if (editor != null) {
-
-      IEditorInput input = editor.getEditorInput();
-      if (input instanceof IFileEditorInput) {
-        IFile file = ((IFileEditorInput) input).getFile();
-        try {
-
-          String contents = IFileUtilities.getContents(file);
-
-          errors.clear();
-
-          StringScanner scanner = new StringScanner(null, contents, this);
-          Parser parser = new Parser(null, this);
-
-          Token token = scanner.tokenize();
-          CompilationUnit compilationUnit = parser.parseCompilationUnit(token);
-
-          viewer.setInput(compilationUnit);
-
-        } catch (CoreException e) {
-          DartDevPlugin.logError(e);
-        } catch (IOException e) {
-          DartDevPlugin.logError(e);
-        }
-      }
-    }
+    viewer.setInput(getCompilationUnit());
   }
 
-  private void selectNodeAtOffset(int offset) {
+  private void selectNodeAtOffset(int offset, int length) {
     //TODO(pquitslund): implement
+    if (length <= 0) {
+      return;
+    }
+//    NodeLocator locator = new NodeLocator(offset, offset + length - 1);
+//    ASTNode node = locator.searchWithin(getCompilationUnit());
+//    viewer.setSelection(new StructuredSelection(node), true);
   }
 
 }
