@@ -65,11 +65,9 @@
             <annotation>
                <documentation>
                   The class that implements this compilation participant.  This class must implement &lt;code&gt;com.google.dart.tools.core.builder.BuildParticipant&lt;/code&gt; and provided a public 0-argument constructor.
-
-(Deprecated) Classes that implement &lt;code&gt;com.google.dart.tools.core.builder.DartBuildParticipant&lt;/code&gt; rather than the new &lt;code&gt;BuildParticipant&lt;/code&gt; interface are currently supported, but this support will be removed sometime in the future.
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn=":com.google.dart.tools.core.builder.DartBuildParticipant"/>
+                  <meta.attribute kind="java" basedOn=":com.google.dart.tools.core.builder.BuildParticipant"/>
                </appInfo>
             </annotation>
          </attribute>

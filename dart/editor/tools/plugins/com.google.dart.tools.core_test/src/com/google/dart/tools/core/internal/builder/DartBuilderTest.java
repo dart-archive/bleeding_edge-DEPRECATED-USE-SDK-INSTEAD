@@ -13,71 +13,126 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.test.util.MoneyProjectUtilities;
-import com.google.dart.tools.core.test.util.TestUtilities;
-
-import junit.framework.TestCase;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
+import com.google.dart.tools.core.AbstractDartCoreTest;
+import com.google.dart.tools.core.builder.BuildEvent;
+import com.google.dart.tools.core.builder.BuildParticipant;
+import com.google.dart.tools.core.builder.CleanEvent;
+import com.google.dart.tools.core.builder.ParticipantEvent;
+import com.google.dart.tools.core.mock.MockProject;
+import com.google.dart.tools.core.pub.PubBuildParticipantTest;
+import com.google.dart.tools.core.test.util.DartCoreTestLog;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 
-import java.io.File;
+import java.util.ArrayList;
 
-public class DartBuilderTest extends TestCase {
-  public void test_DartBuilder_fullBuild() throws Exception {
-    testBuild(IncrementalProjectBuilder.FULL_BUILD, "full");
-  }
+public class DartBuilderTest extends AbstractDartCoreTest {
 
-  public void test_DartBuilder_incrementalBuild() throws Exception {
-    testBuild(IncrementalProjectBuilder.INCREMENTAL_BUILD, "incremental");
-  }
+  /**
+   * Specialized {@link BuildParticipant} that asserts specific methods are called
+   */
+  private class MockParticipant implements BuildParticipant {
 
-  public void test_DartBuilder_multipleProjects() throws Exception {
-    DartProject dartMoneyProject = MoneyProjectUtilities.getMoneyProject();
-    IProject moneyProject = dartMoneyProject.getProject();
+    private final ArrayList<Object[]> expected = new ArrayList<Object[]>();
+    private int index = 0;
 
-    DartProject dartSampleProject = TestUtilities.loadPluginRelativeProject("SampleCode");
-    IProject sampleProject = dartSampleProject.getProject();
-
-    moneyProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
-    sampleProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
-
-    File moneyOutputFile = getOutputFile(dartMoneyProject, "money.dart.app.js");
-    assertTrue(moneyOutputFile.exists());
-    assertTrue(moneyOutputFile.length() > 0);
-
-    File sampleOutputFile = getOutputFile(dartSampleProject, "sampler.dart.app.js");
-    assertTrue(sampleOutputFile.exists());
-    assertTrue(sampleOutputFile.length() > 0);
-  }
-
-  private File getOutputFile(DartProject project, String outputFileName) throws DartModelException {
-    CompilationUnit definingCU = project.getDartLibraries()[0].getDefiningCompilationUnit();
-    IResource resource = definingCU.getCorrespondingResource();
-    return resource.getLocation().removeLastSegments(1).append(outputFileName).toFile();
-  }
-
-  private void testBuild(int buildKind, String buildType) throws Exception {
-    DartProject dartMoneyProject = MoneyProjectUtilities.getMoneyProject();
-    IProject project = dartMoneyProject.getProject();
-    project.build(buildKind, null);
-    File outputFile = getOutputFile(dartMoneyProject, "money.dart.app.js");
-    assertTrue(outputFile.exists());
-    long expectedLength = outputFile.length();
-    assertTrue(expectedLength > 0);
-    for (int i = 0; i < 10; i++) {
-      CompilationUnit unit = MoneyProjectUtilities.getMoneyCompilationUnit("simple_money.dart");
-      unit.getResource().getLocation().toFile().setLastModified(System.currentTimeMillis());
-      project.build(buildKind, null);
-      long actualLength = outputFile.length();
-      assertEquals(
-          "Different output file length on iteration " + i + " of " + buildType + " build",
-          expectedLength,
-          actualLength);
+    @Override
+    public void build(BuildEvent event, IProgressMonitor monitor) throws CoreException {
+      validateCall("build", event, monitor);
+      // TODO (danrubel): validate event has appropriate delta
     }
+
+    @Override
+    public void clean(CleanEvent event, IProgressMonitor monitor) throws CoreException {
+      validateCall("clean", event, monitor);
+    }
+
+    void assertComplete() {
+      int delta = expected.size() - index;
+      if (delta == 0) {
+        return;
+      }
+      PrintStringWriter msg = new PrintStringWriter();
+      msg.print("Expected ");
+      msg.print(delta);
+      msg.print(" additional call(s):");
+      for (int i = index; i < expected.size(); i++) {
+        msg.println();
+        msg.print("  ");
+        Object[] details = expected.get(i);
+        for (Object each : details) {
+          msg.print(each);
+          msg.print(", ");
+        }
+      }
+      fail(msg.toString());
+    }
+
+    void expect(String methodName, IProject project) {
+      expected.add(new Object[] {methodName, project});
+    }
+
+    private Object[] validateCall(String mthName, ParticipantEvent event, IProgressMonitor monitor) {
+      if (index >= expected.size()) {
+        fail("Unexpected call to " + mthName);
+      }
+      Object[] details = expected.get(index++);
+      assertEquals("Expected call to method", details[0], mthName);
+      assertNotNull(event.getProject());
+      assertSame(details[1], event.getProject());
+      assertNotNull(monitor);
+      return details;
+    }
+  }
+
+  private static final MockProject PROJECT = new MockProject(
+      PubBuildParticipantTest.class.getSimpleName());
+  private MockParticipant participant;
+
+  public void test_build_exception() throws Exception {
+    participant = new MockParticipant() {
+      @Override
+      public void build(BuildEvent event, IProgressMonitor monitor) throws CoreException {
+        throw new RuntimeException("test exception");
+      }
+    };
+    new DartBuilder(participant).build(PROJECT, IncrementalProjectBuilder.FULL_BUILD, null, null);
+    DartCoreTestLog.getLog().assertEntries(IStatus.ERROR);
+  }
+
+  public void test_build_full() throws Exception {
+    participant.expect("build", PROJECT);
+    new DartBuilder(participant).build(PROJECT, IncrementalProjectBuilder.FULL_BUILD, null, null);
+  }
+
+  public void test_clean() throws Exception {
+    participant.expect("clean", PROJECT);
+    new DartBuilder(participant).clean(PROJECT, null);
+  }
+
+  public void test_clean_exception() throws Exception {
+    participant = new MockParticipant() {
+      @Override
+      public void clean(CleanEvent event, IProgressMonitor monitor) throws CoreException {
+        throw new RuntimeException("test exception");
+      }
+    };
+    new DartBuilder(participant).clean(PROJECT, null);
+    DartCoreTestLog.getLog().assertEntries(IStatus.ERROR);
+  }
+
+  @Override
+  protected void setUp() {
+    participant = new MockParticipant();
+  }
+
+  @Override
+  protected void tearDown() {
+    participant.assertComplete();
   }
 }

@@ -64,6 +64,16 @@ public class MockDelta implements IResourceDelta {
    * @return the new delta
    */
   public MockDelta add(MockResource resource, int kind) {
+    if (!(this.resource instanceof MockContainer)) {
+      throw new RuntimeException("Cannot add to a file delta: " + this.resource);
+    }
+    if (resource.getParent() != this.resource) {
+      throw new RuntimeException("Added resource is not a child of the receiver's resource: "
+          + resource);
+    }
+    if (this.kind == ADDED || this.kind == REMOVED) {
+      throw new RuntimeException("Cannot add a delta to a delta marked ADDED or REMOVED");
+    }
     MockDelta childDelta = new MockDelta(resource, kind);
     if (children == null) {
       children = new ArrayList<MockDelta>();

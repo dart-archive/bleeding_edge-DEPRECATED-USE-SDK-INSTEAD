@@ -14,21 +14,23 @@ com.google.dart.tools.core/debug/warmup = false
 com.google.dart.tools.core/debug/verbose = false
 com.google.dart.tools.core/logging/debugger = false
 
-com.google.dart.tools.core/experimental/altKeyBindings = false
-com.google.dart.tools.core/experimental/testsView = false
-com.google.dart.tools.core/experimental/formatter = false
-com.google.dart.tools.core/experimental/themes = false
-com.google.dart.tools.core/experimental/validateHtml = false
-
-com.google.dart.tools.core/dev/disableMarkOccurrences=false
-
 com.google.dart.tools.core/trace/artifactProvider = false
 com.google.dart.tools.core/trace/index/contributor = false
 com.google.dart.tools.core/trace/index/processor = false
 com.google.dart.tools.core/trace/index/statistics = false
-
 com.google.dart.tools.core/trace/update = false
 
 com.google.dart.tools.core/perf/timer = false
 com.google.dart.tools.core/perf/index = false
 com.google.dart.tools.core/perf/osResources = false
+
+com.google.dart.tools.core/experimental/altKeyBindings = false
+com.google.dart.tools.core/experimental/testsView = false
+com.google.dart.tools.core/experimental/formatter = false
+com.google.dart.tools.core/experimental/themes = false
+com.google.dart.tools.core/experimental/validateHtml = false
+com.google.dart.tools.core/experimental/analysis/engine = false
+
+com.google.dart.tools.core/experimental/pubInWinXP = false
+
+com.google.dart.tools.core/dev/disableMarkOccurrences=false
