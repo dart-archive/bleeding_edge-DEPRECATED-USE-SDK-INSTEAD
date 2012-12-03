@@ -54,6 +54,7 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ModifyEvent;
@@ -80,6 +81,7 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
 
   private TableViewer launchesViewer;
   private Composite configUI;
+  private ScrolledComposite launchConfigArea;
   private Text configNameText;
 
   private ILaunchConfiguration selectedConfig;
@@ -216,18 +218,20 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     activeTab = tab;
 
     if (activeTab != null) {
-      configUI.setRedraw(false);
+      launchConfigArea.setRedraw(false);
 
       configNameText.setVisible(true);
 
-      activeTab.createControl(configUI);
-      GridDataFactory.swtDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
-          activeTab.getControl());
+      activeTab.createControl(launchConfigArea);
+//      GridDataFactory.swtDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
+//          activeTab.getControl());
+      launchConfigArea.setContent(activeTab.getControl());
+      activeTab.getControl().setSize(activeTab.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT));
       configUI.layout(true);
 
       activeTab.activated(workingCopy);
 
-      configUI.setRedraw(true);
+      launchConfigArea.setRedraw(true);
     } else {
       configNameText.setVisible(false);
     }
@@ -412,7 +416,7 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     GridLayoutFactory.fillDefaults().margins(12, 6).applyTo(parent);
 
     SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL);
-    GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).hint(725, 350).applyTo(
+    GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).hint(725, 360).applyTo(
         sashForm);
 
     Composite leftComposite = new Composite(sashForm, SWT.NONE);
@@ -477,6 +481,12 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
         }
       }
     });
+
+    launchConfigArea = new ScrolledComposite(configUI, SWT.V_SCROLL);
+    GridDataFactory.swtDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).applyTo(
+        launchConfigArea);
+    launchConfigArea.setExpandVertical(false);
+    launchConfigArea.setExpandHorizontal(true);
 
     configNameText.setVisible(false);
 
