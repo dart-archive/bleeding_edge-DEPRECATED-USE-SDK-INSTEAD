@@ -1458,7 +1458,8 @@ public class Parser {
           errorFound[0] = true;
         }
       };
-      StringScanner scanner = new StringScanner(null, sourceOffset, referenceSource, listener);
+      StringScanner scanner = new StringScanner(null, referenceSource, listener);
+      scanner.setSourceStart(1, 1, sourceOffset);
       Token firstToken = scanner.tokenize();
       if (!errorFound[0]) {
         Token newKeyword = null;
@@ -4406,7 +4407,7 @@ public class Parser {
         semicolon);
   }
 
-  /**
+/**
    * Parse a list of type arguments.
    * 
    * <pre>
@@ -5044,7 +5045,7 @@ public class Parser {
     return token;
   }
 
-  /**
+/**
    * Parse a list of type arguments, starting at the given token, without actually creating a type argument list
    * or changing the current token. Return the token following the type argument list that was parsed,
    * or {@code null} if the given token is not the first token in a valid type argument list.

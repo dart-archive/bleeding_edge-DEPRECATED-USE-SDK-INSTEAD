@@ -17,13 +17,16 @@ import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.source.TestSource;
 
 public class StringScannerTest extends AbstractScannerTest {
-  public void test_offsetDelta() {
+  public void test_setSourceStart() throws Exception {
     int offsetDelta = 42;
     GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(null, offsetDelta, "a", listener);
-    Token result = scanner.tokenize();
-    assertNotNull(result);
-    assertEquals(offsetDelta, result.getOffset());
+    StringScanner scanner = new StringScanner(null, "a", listener);
+    scanner.setSourceStart(3, 9, offsetDelta);
+    scanner.tokenize();
+    int[] lineStarts = scanner.getLineStarts();
+    assertNotNull(lineStarts);
+    assertEquals(3, lineStarts.length);
+    assertEquals(33, lineStarts[2]);
   }
 
   @Override

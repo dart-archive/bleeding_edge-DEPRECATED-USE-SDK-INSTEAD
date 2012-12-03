@@ -171,6 +171,13 @@ public abstract class AbstractScanner {
    */
   protected abstract int peek();
 
+  /**
+   * Record the fact that we are at the beginning of a new line in the source.
+   */
+  protected void recordStartOfLine() {
+    lineStarts.add(getOffset());
+  }
+
   private void appendBeginToken(TokenType type) {
     BeginToken token;
     if (firstComment == null) {
@@ -510,13 +517,6 @@ public abstract class AbstractScanner {
    */
   private Source getSource() {
     return source;
-  }
-
-  /**
-   * Record the fact that we are at the beginning of a new line in the source.
-   */
-  private void recordStartOfLine() {
-    lineStarts.add(getOffset());
   }
 
   /**

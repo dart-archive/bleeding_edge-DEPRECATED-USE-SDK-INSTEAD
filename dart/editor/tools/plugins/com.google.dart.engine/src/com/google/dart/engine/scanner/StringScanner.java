@@ -45,34 +45,46 @@ public class StringScanner extends AbstractScanner {
    * Initialize a newly created scanner to scan the characters in the given string.
    * 
    * @param source the source being scanned
-   * @param offsetDelta the offset from the beginning of the file to the beginning of the source
-   *          being scanned
    * @param string the string from which characters will be read
    * @param errorListener the error listener that will be informed of any errors that are found
    */
-  public StringScanner(Source source, int offsetDelta, String string,
-      AnalysisErrorListener errorListener) {
+  public StringScanner(Source source, String string, AnalysisErrorListener errorListener) {
     super(source, errorListener);
-    this.offsetDelta = offsetDelta;
+    this.offsetDelta = 0;
     this.string = string;
     this.stringLength = string.length();
     this.charOffset = -1;
   }
 
-  /**
-   * Initialize a newly created scanner to scan the characters in the given string.
-   * 
-   * @param source the source being scanned
-   * @param string the string from which characters will be read
-   * @param errorListener the error listener that will be informed of any errors that are found
-   */
-  public StringScanner(Source source, String string, AnalysisErrorListener errorListener) {
-    this(source, 0, string, errorListener);
-  }
-
   @Override
   public int getOffset() {
     return offsetDelta + charOffset;
+  }
+
+  /**
+   * Record that the source begins on the given line and column at the given offset. The line starts
+   * for lines before the given line will not be correct.
+   * <p>
+   * This method must be invoked at most one time and must be invoked before scanning begins. The
+   * values provided must be sensible. The results are undefined if these conditions are violated.
+   * 
+   * @param line the one-based index of the line containing the first character of the source
+   * @param column the one-based index of the column in which the first character of the source
+   *          occurs
+   * @param offset the zero-based offset from the beginning of the larger context to the first
+   *          character of the source
+   */
+  public void setSourceStart(int line, int column, int offset) {
+    if (line < 1 || column < 1 || offset < 0 || (line + column - 2) >= offset) {
+      return;
+    }
+    offsetDelta = 1;
+    for (int i = 2; i < line; i++) {
+      recordStartOfLine();
+    }
+    offsetDelta = offset - column + 1;
+    recordStartOfLine();
+    offsetDelta = offset;
   }
 
   @Override
