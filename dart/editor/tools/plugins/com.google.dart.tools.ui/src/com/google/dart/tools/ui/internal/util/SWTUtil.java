@@ -21,6 +21,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DropTarget;
@@ -257,6 +258,21 @@ public class SWTUtil {
     color = store.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND_SYSTEM_DEFAULT) ? null
         : createColor(store, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
     ctl.setBackground(color);
+  }
+
+  public static void setColors(CTabFolder ctl, IPreferenceStore store) {
+    Color fgColor = store.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND_SYSTEM_DEFAULT)
+        ? null : createColor(store, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND);
+    ctl.setForeground(fgColor);
+    Color bgColor = store.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND_SYSTEM_DEFAULT)
+        ? null : createColor(store, AbstractTextEditor.PREFERENCE_COLOR_BACKGROUND);
+    ctl.setBackground(bgColor);
+    Color sfgColor = store.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_SELECTION_FOREGROUND_SYSTEM_DEFAULT)
+        ? null : createColor(store, AbstractTextEditor.PREFERENCE_COLOR_SELECTION_FOREGROUND);
+    ctl.setSelectionForeground(sfgColor);
+    Color sbgColor = store.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_SELECTION_BACKGROUND_SYSTEM_DEFAULT)
+        ? null : createColor(store, AbstractTextEditor.PREFERENCE_COLOR_SELECTION_BACKGROUND);
+    ctl.setSelectionBackground(sbgColor);
   }
 
   public static void setColors(List ctl, IPreferenceStore store) {

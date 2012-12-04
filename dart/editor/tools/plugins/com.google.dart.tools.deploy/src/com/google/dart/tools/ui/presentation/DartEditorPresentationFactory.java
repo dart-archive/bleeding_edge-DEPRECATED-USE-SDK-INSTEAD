@@ -13,9 +13,19 @@
  */
 package com.google.dart.tools.ui.presentation;
 
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
+
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IWorkbenchPreferenceConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.presentations.defaultpresentation.DefaultTabFolder;
@@ -34,7 +44,6 @@ import org.eclipse.ui.presentations.StackPresentation;
 public class DartEditorPresentationFactory extends AbstractPresentationFactory {
 
   public DartEditorPresentationFactory() {
-
   }
 
   @Override
@@ -45,6 +54,7 @@ public class DartEditorPresentationFactory extends AbstractPresentationFactory {
         site.supportsState(IStackPresentationSite.STATE_MINIMIZED),
         site.supportsState(IStackPresentationSite.STATE_MAXIMIZED));
     folder.setSimpleTabs(false);
+    configureFolder(folder);
 
     PresentablePartFolder partFolder = new PresentablePartFolder(folder);
 
@@ -93,6 +103,7 @@ public class DartEditorPresentationFactory extends AbstractPresentationFactory {
     folder.setUnselectedCloseVisible(false);
     folder.setUnselectedImageVisible(true);
     folder.setSimpleTabs(false);
+    configureFolder(folder);
 
     PresentablePartFolder partFolder = new PresentablePartFolder(folder);
 
@@ -107,4 +118,44 @@ public class DartEditorPresentationFactory extends AbstractPresentationFactory {
     return result;
   }
 
+  private void configureFolder(DefaultTabFolder folder) {
+    if (!DartCoreDebug.ENABLE_TAB_COLORING) {
+      return;
+    }
+    //TODO(messick) experimental
+    folder.setSimpleTabs(true);
+    folder.setUnselectedCloseVisible(true);
+    folder.setUnselectedImageVisible(true);
+    Control ctrl = folder.getControl();
+    if (ctrl instanceof CTabFolder) {
+      final CTabFolder tabs = (CTabFolder) ctrl;
+      tabs.setBorderVisible(true);
+      setColors(tabs);
+      final IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
+        @Override
+        public void propertyChange(PropertyChangeEvent event) {
+          setColors(tabs);
+        }
+      };
+      tabs.addDisposeListener(new DisposeListener() {
+        // This will only be used when closing all tabs in a folder, e.g. close all editors.
+        @Override
+        public void widgetDisposed(DisposeEvent e) {
+          getPreferences().removePropertyChangeListener(propertyChangeListener);
+        }
+      });
+      getPreferences().addPropertyChangeListener(propertyChangeListener);
+    }
+  }
+
+  private IPreferenceStore getPreferences() {
+    return DartToolsPlugin.getDefault().getCombinedPreferenceStore();
+  }
+
+  private void setColors(CTabFolder tabs) {
+    SWTUtil.setColors(tabs, getPreferences());
+    // Do this last to initialize fields with colors.
+    TabFolderRenderer renderer = new TabFolderRenderer(tabs);
+    tabs.setRenderer(renderer);
+  }
 }
