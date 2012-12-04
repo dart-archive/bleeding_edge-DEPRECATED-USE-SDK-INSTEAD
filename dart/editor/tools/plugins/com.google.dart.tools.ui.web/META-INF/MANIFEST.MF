@@ -14,6 +14,9 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.ide,
  org.eclipse.core.resources,
  com.google.dart.tools.core,
- com.google.dart.tools.ui
+ com.google.dart.tools.ui,
+ org.eclipse.ui.forms
+Bundle-ClassPath: .,
+  lib/snakeyaml-1.10.jar
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy

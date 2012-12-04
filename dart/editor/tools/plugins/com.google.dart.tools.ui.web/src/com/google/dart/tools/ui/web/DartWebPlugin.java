@@ -21,6 +21,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.forms.FormColors;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.themes.ITheme;
 import org.eclipse.ui.themes.IThemeManager;
@@ -48,6 +49,8 @@ public class DartWebPlugin extends AbstractUIPlugin {
   public static DartWebPlugin getPlugin() {
     return plugin;
   }
+
+  private FormColors formColors;
 
   private Map<String, Color> colors = new HashMap<String, Color>();
 
@@ -109,6 +112,14 @@ public class DartWebPlugin extends AbstractUIPlugin {
     return colors.get(id);
   }
 
+  public FormColors getFormColors(Display display) {
+    if (formColors == null) {
+      formColors = new FormColors(display);
+      formColors.markShared();
+    }
+    return formColors;
+  }
+
   @Override
   public void start(BundleContext context) throws Exception {
     super.start(context);
@@ -118,7 +129,14 @@ public class DartWebPlugin extends AbstractUIPlugin {
   @Override
   public void stop(BundleContext context) throws Exception {
     plugin = null;
-    super.stop(context);
+    try {
+      if (formColors != null) {
+        formColors.dispose();
+        formColors = null;
+      }
+    } finally {
+      super.stop(context);
+    }
   }
 
   private Image getPluginImage(String imagePath) {
