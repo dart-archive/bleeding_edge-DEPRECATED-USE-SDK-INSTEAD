@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.web.pubspec;
 
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
+import com.google.dart.tools.ui.web.DartWebPlugin;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -24,8 +25,9 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.AbstractFormPart;
 import org.eclipse.ui.forms.IDetailsPage;
@@ -45,14 +47,17 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
 
   private static String EMPTY_STRING = "";
 
+  private static String[] sourceList = {"git", "pub.dartlang.org"};
+
   private DependencyObject input;
 
   private Text nameText;
   private Text versionText;
   private Text pathText;
   private Text gitrefText;
-  private Button pubButton;
-  private Button gitButton;
+  private Combo sourceCombo;
+  private Label pathLabel;
+  private Label gitrefLabel;
 
   private boolean ignoreModify = false;
 
@@ -89,61 +94,6 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
       }
     });
 
-    toolkit.createLabel(client, "Source:");
-    pubButton = toolkit.createButton(client, "pub.dartlang.org", SWT.RADIO);
-    pubButton.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
-    pubButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        if (pubButton.getSelection()) {
-          updateModelandSourceFields(false);
-        } else {
-          updateModelandSourceFields(true);
-        }
-        setTextDirty();
-      }
-    });
-    toolkit.createLabel(client, "");
-    gitButton = toolkit.createButton(client, "Git repository", SWT.RADIO);
-    gitButton.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
-    gitButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        if (gitButton.getSelection()) {
-          updateModelandSourceFields(true);
-        } else {
-          updateModelandSourceFields(false);
-        }
-        setTextDirty();
-      }
-    });
-    toolkit.createLabel(client, "");
-    toolkit.createLabel(client, "Path:");
-    pathText = toolkit.createText(client, "", SWT.SINGLE); //$NON-NLS-1$
-    gd = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
-    pathText.setLayoutData(gd);
-    pathText.addModifyListener(new ModifyListener() {
-      @Override
-      public void modifyText(ModifyEvent e) {
-        if (input != null) {
-          input.setPath(pathText.getText());
-          setTextDirty();
-        }
-      }
-    });
-    toolkit.createLabel(client, "");
-    toolkit.createLabel(client, "Git ref:");
-    gitrefText = toolkit.createText(client, "", SWT.SINGLE);
-    gitrefText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-    gitrefText.addModifyListener(new ModifyListener() {
-      @Override
-      public void modifyText(ModifyEvent e) {
-        if (input != null) {
-          input.setGitRef(gitrefText.getText());
-          setTextDirty();
-        }
-      }
-    });
     toolkit.createLabel(client, "Version: ");
     versionText = toolkit.createText(client, "", SWT.SINGLE); //$NON-NLS-1$
     gd = new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1);
@@ -159,22 +109,17 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
     });
 
     toolkit.createLabel(client, "");
-
+    Label examplesLabel = toolkit.createLabel(client, "e.g. any, 1.0.0 ...");
+    examplesLabel.setFont(DartWebPlugin.getPlugin().getItalicFont(examplesLabel.getFont()));
     StringBuffer buf = new StringBuffer();
     buf.append("<form>");
-    buf.append("<p>");
-    buf.append("Examples: ");
-    buf.append("</p>");
-    buf.append("<li bindent=\"20\">any</li>");
-    buf.append("<li bindent=\"20\">1.0.0.</li>");
-    buf.append("<li bindent=\"20\">&gt;=2.0.0 &lt;3.0.0</li>");
     buf.append("<p>");
     buf.append("<a href=\"http://pub.dartlang.org/doc/pubspec.html#version-constraints\">what are version constraints?</a>");
     buf.append("</p>");
     buf.append("</form>");
 
     FormText info = toolkit.createFormText(client, true);
-    gd = new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1);
+    gd = new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1);
     info.setLayoutData(gd);
     info.setText(buf.toString(), true, true);
     info.addHyperlinkListener(new HyperlinkAdapter() {
@@ -183,6 +128,50 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
         ExternalBrowserUtil.openInExternalBrowser((String) e.getHref());
       }
     });
+
+    toolkit.createLabel(client, "Source:");
+    sourceCombo = new Combo(client, SWT.READ_ONLY | SWT.BORDER);
+    toolkit.adapt(sourceCombo, true, false);
+    sourceCombo.setItems(sourceList);
+    sourceCombo.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        if (sourceCombo.getSelectionIndex() == 0) {
+          updateModelandSourceFields(true);
+        } else {
+          updateModelandSourceFields(false);
+        }
+        setTextDirty();
+      }
+    });
+
+    toolkit.createLabel(client, "");
+    pathLabel = toolkit.createLabel(client, "Git path:");
+    pathText = toolkit.createText(client, "", SWT.SINGLE); //$NON-NLS-1$
+    pathText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
+    pathText.addModifyListener(new ModifyListener() {
+      @Override
+      public void modifyText(ModifyEvent e) {
+        if (input != null) {
+          input.setPath(pathText.getText());
+          setTextDirty();
+        }
+      }
+    });
+
+    gitrefLabel = toolkit.createLabel(client, "Git ref:");
+    gitrefText = toolkit.createText(client, "", SWT.SINGLE);
+    gitrefText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
+    gitrefText.addModifyListener(new ModifyListener() {
+      @Override
+      public void modifyText(ModifyEvent e) {
+        if (input != null) {
+          input.setGitRef(gitrefText.getText());
+          setTextDirty();
+        }
+      }
+    });
+
     toolkit.paintBordersFor(section);
     section.setClient(client);
   }
@@ -222,22 +211,20 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
   }
 
   private void update() {
-    nameText.setText(input != null && input.getName() != null ? input.getName() : EMPTY_STRING);
-    versionText.setText(input != null && input.getVersion() != null ? input.getVersion()
-        : EMPTY_STRING);
-    if (input != null && input.isGitDependency()) {
-      gitButton.setSelection(true);
-      pubButton.setSelection(false);
-      updateModelandSourceFields(true);
-      pathText.setText(input != null && input.getPath() != null ? input.getPath() : EMPTY_STRING);
-      gitrefText.setText(input != null && input.getGitRef() != null ? input.getGitRef()
-          : EMPTY_STRING);
-    } else {
-      pubButton.setSelection(true);
-      gitButton.setSelection(false);
-      pathText.setText(EMPTY_STRING);
-      gitrefText.setText(EMPTY_STRING);
-      updateModelandSourceFields(false);
+    if (input != null) {
+      nameText.setText(input.getName() != null ? input.getName() : EMPTY_STRING);
+      versionText.setText(input.getVersion() != null ? input.getVersion() : EMPTY_STRING);
+      if (input.isGitDependency()) {
+        sourceCombo.select(0);
+        updateModelandSourceFields(true);
+        pathText.setText(input.getPath() != null ? input.getPath() : EMPTY_STRING);
+        gitrefText.setText(input.getGitRef() != null ? input.getGitRef() : EMPTY_STRING);
+      } else {
+        sourceCombo.select(1);
+        pathText.setText(EMPTY_STRING);
+        gitrefText.setText(EMPTY_STRING);
+        updateModelandSourceFields(false);
+      }
     }
   }
 
@@ -245,8 +232,10 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
     if (input != null) {
       input.setGitDependency(value);
     }
-    pathText.setEnabled(value);
-    gitrefText.setEnabled(value);
+    pathLabel.setVisible(value);
+    pathText.setVisible(value);
+    gitrefLabel.setVisible(value);
+    gitrefText.setVisible(value);
   }
 
 }

@@ -16,7 +16,10 @@ package com.google.dart.tools.ui.web;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
@@ -41,23 +44,6 @@ public class DartWebPlugin extends AbstractUIPlugin {
   // The shared instance
   private static DartWebPlugin plugin;
 
-  /**
-   * Returns the shared instance
-   * 
-   * @return the shared instance
-   */
-  public static DartWebPlugin getPlugin() {
-    return plugin;
-  }
-
-  private FormColors formColors;
-
-  private Map<String, Color> colors = new HashMap<String, Color>();
-
-  public static final String COLOR_COMMENTS = "org.eclipse.wst.jsdt.ui.java_multi_line_comment";
-  public static final String COLOR_STRING = "org.eclipse.wst.jsdt.ui.java_string";
-  public static final String COLOR_KEYWORD = "org.eclipse.wst.jsdt.ui.java_keyword";
-  public static final String COLOR_STATIC_FIELD = "org.eclipse.wst.jsdt.ui.fieldHighlighting";
   public static final String COLOR_ALT_COMMENTS = "org.eclipse.wst.jsdt.ui.annotationHighlighting";
 
   /**
@@ -68,6 +54,15 @@ public class DartWebPlugin extends AbstractUIPlugin {
    */
   public static Image getImage(String imagePath) {
     return getPlugin().getPluginImage(imagePath);
+  }
+
+  /**
+   * Returns the shared instance
+   * 
+   * @return the shared instance
+   */
+  public static DartWebPlugin getPlugin() {
+    return plugin;
   }
 
   /**
@@ -92,6 +87,17 @@ public class DartWebPlugin extends AbstractUIPlugin {
           new Status(IStatus.ERROR, PLUGIN_ID, exception.getMessage(), exception));
     }
   }
+
+  private Font italicFont = null;
+  private FormColors formColors;
+  private Map<String, Color> colors = new HashMap<String, Color>();
+
+  public static final String COLOR_COMMENTS = "org.eclipse.wst.jsdt.ui.java_multi_line_comment";
+  public static final String COLOR_STRING = "org.eclipse.wst.jsdt.ui.java_string";
+
+  public static final String COLOR_KEYWORD = "org.eclipse.wst.jsdt.ui.java_keyword";
+
+  public static final String COLOR_STATIC_FIELD = "org.eclipse.wst.jsdt.ui.fieldHighlighting";
 
   private Map<String, Image> imageMap = new HashMap<String, Image>();
 
@@ -120,6 +126,17 @@ public class DartWebPlugin extends AbstractUIPlugin {
     return formColors;
   }
 
+  public Font getItalicFont(Font font) {
+    if (italicFont == null) {
+      FontData data = font.getFontData()[0];
+      italicFont = new Font(Display.getDefault(), new FontData(
+          data.getName(),
+          data.getHeight(),
+          SWT.ITALIC));
+    }
+    return italicFont;
+  }
+
   @Override
   public void start(BundleContext context) throws Exception {
     super.start(context);
@@ -133,6 +150,9 @@ public class DartWebPlugin extends AbstractUIPlugin {
       if (formColors != null) {
         formColors.dispose();
         formColors = null;
+        if (italicFont != null) {
+          italicFont.dispose();
+        }
       }
     } finally {
       super.stop(context);

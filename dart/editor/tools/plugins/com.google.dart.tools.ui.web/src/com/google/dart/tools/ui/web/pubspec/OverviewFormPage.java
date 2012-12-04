@@ -109,7 +109,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
 
     Composite links = new Composite(client, SWT.NONE);
 
-    GridLayoutFactory.fillDefaults().spacing(15, 10).applyTo(links);
+    GridLayoutFactory.fillDefaults().spacing(15, 5).applyTo(links);
 
     createExternalLink(
         links,

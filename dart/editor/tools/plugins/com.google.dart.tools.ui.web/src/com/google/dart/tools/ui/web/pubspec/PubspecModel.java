@@ -238,12 +238,14 @@ public class PubspecModel {
   }
 
   private void setValuesFromObject(PubYamlObject object) {
-    name = object.name;
-    version = (object.version != null) ? object.version : EMPTY_STRING;
-    author = (object.author != null) ? object.author : EMPTY_STRING;
-    description = (object.description != null) ? object.description : EMPTY_STRING;
-    homepage = (object.homepage != null) ? object.homepage : EMPTY_STRING;
-    add(processDependencies(object.dependencies), IModelListener.REFRESH);
+    if (object != null) {
+      name = object.name;
+      version = (object.version != null) ? object.version : EMPTY_STRING;
+      author = (object.author != null) ? object.author : EMPTY_STRING;
+      description = (object.description != null) ? object.description : EMPTY_STRING;
+      homepage = (object.homepage != null) ? object.homepage : EMPTY_STRING;
+      add(processDependencies(object.dependencies), IModelListener.REFRESH);
+    }
   }
 
 }
