@@ -29,6 +29,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 
+import java.io.File;
 import java.nio.CharBuffer;
 import java.util.HashMap;
 import java.util.List;
@@ -62,6 +63,25 @@ public class AnalysisContextImpl implements AnalysisContext {
    */
   public AnalysisContextImpl() {
     super();
+  }
+
+  @Override
+  public void clearResolution() {
+    // TODO (danrubel): Optimize to only discard resolution information
+    discard();
+  }
+
+  @Override
+  public void discard() {
+    // TODO (danrubel): Optimize to recache the token stream and/or ASTs in a global context
+    parseCache.clear();
+    libraryElementCache.clear();
+  }
+
+  @Override
+  public void filesDeleted(File file) {
+    // TODO (danrubel): Optimize to remove only the specified files
+    discard();
   }
 
   @Override

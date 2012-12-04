@@ -24,6 +24,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -38,6 +39,24 @@ import java.util.List;
  * proposed future state, such as after a refactoring.
  */
 public interface AnalysisContext {
+  /**
+   * Clear cached resolution information
+   */
+  public void clearResolution();
+
+  /**
+   * Discard all cached information.
+   */
+  public void discard();
+
+  /**
+   * Discard cached information for the specified file or all files contained in the specified
+   * directory
+   * 
+   * @param file the file (not {@code null})
+   */
+  public void filesDeleted(File file);
+
   /**
    * Return a list containing the source containers that the given source container depends on. More
    * specifically, return a list containing the source containers associated with the sources on

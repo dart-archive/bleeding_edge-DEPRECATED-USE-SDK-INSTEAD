@@ -15,7 +15,6 @@ package com.google.dart.tools.core.builder;
 
 import com.google.dart.tools.core.DartCore;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
@@ -32,8 +31,8 @@ public class BuildEvent extends ParticipantEvent {
 
   private final IResourceDelta projectDelta;
 
-  public BuildEvent(IProject project, IResourceDelta delta, IProgressMonitor monitor) {
-    super(project, monitor);
+  public BuildEvent(IResource resource, IResourceDelta delta, IProgressMonitor monitor) {
+    super(resource, monitor);
     this.projectDelta = delta;
   }
 
@@ -48,13 +47,13 @@ public class BuildEvent extends ParticipantEvent {
    */
   public void traverse(final BuildVisitor visitor, final boolean visitPackages)
       throws CoreException {
-    if (monitor.isCanceled()) {
+    if (getMonitor().isCanceled()) {
       throw new OperationCanceledException();
     }
 
     // If there is no projectDelta, then traverse all resources in the project
     if (projectDelta == null) {
-      traverseResources(visitor, getProject(), visitPackages);
+      traverseResources(visitor, getResource(), visitPackages);
       return;
     }
 
@@ -70,7 +69,7 @@ public class BuildEvent extends ParticipantEvent {
           return false;
         }
 
-        if (monitor.isCanceled()) {
+        if (getMonitor().isCanceled()) {
           throw new OperationCanceledException();
         }
 
@@ -88,7 +87,7 @@ public class BuildEvent extends ParticipantEvent {
           }
         }
 
-        return visitor.visit(delta, monitor);
+        return visitor.visit(delta, getMonitor());
       }
     });
   }

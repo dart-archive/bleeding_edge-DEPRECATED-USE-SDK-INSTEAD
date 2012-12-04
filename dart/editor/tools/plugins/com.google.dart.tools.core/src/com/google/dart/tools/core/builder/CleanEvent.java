@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.builder;
 
-import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -24,8 +24,8 @@ import org.eclipse.core.runtime.OperationCanceledException;
  */
 public class CleanEvent extends ParticipantEvent {
 
-  public CleanEvent(IProject project, IProgressMonitor monitor) {
-    super(project, monitor);
+  public CleanEvent(IResource resource, IProgressMonitor monitor) {
+    super(resource, monitor);
   }
 
   /**
@@ -38,6 +38,6 @@ public class CleanEvent extends ParticipantEvent {
    * @throws OperationCanceledException if the operation is canceled during traversal
    */
   public void traverse(CleanVisitor visitor, final boolean visitPackages) throws CoreException {
-    traverseResources(visitor, getProject(), visitPackages);
+    traverseResources(visitor, getResource(), visitPackages);
   }
 }

@@ -28,20 +28,38 @@ import org.eclipse.core.runtime.OperationCanceledException;
  */
 public class ParticipantEvent {
 
-  private final IProject project;
-  final IProgressMonitor monitor;
+  private final IResource resource;
+  private final IProgressMonitor monitor;
 
-  public ParticipantEvent(IProject project, IProgressMonitor monitor) {
-    this.project = project;
+  public ParticipantEvent(IResource resource, IProgressMonitor monitor) {
+    this.resource = resource;
     this.monitor = monitor;
   }
 
-  public IProject getProject() {
-    return project;
+  public IProgressMonitor getMonitor() {
+    return monitor;
   }
 
-  protected void traverseResources(final CleanVisitor visitor, IResource resource,
-      final boolean visitPackages) throws CoreException {
+  public IProject getProject() {
+    return resource.getProject();
+  }
+
+  public IResource getResource() {
+    return resource;
+  }
+
+  /**
+   * Utility method for visiting the specified resource and all contained resources.
+   * 
+   * @param visitor the visitor (not {@code null})
+   * @param resource the file to be visited (not {@code null}). If this is a container, then then
+   *          container will be visited along with all contained resources.
+   * @param visitPackages {@code true} if the specified resource contains a "packages" folder and
+   *          visitPackages is {@code true} then the "packages" folder and its contents will be
+   *          visited.
+   */
+  void traverseResources(final CleanVisitor visitor, IResource resource, final boolean visitPackages)
+      throws CoreException {
     resource.accept(new IResourceProxyVisitor() {
       @Override
       public boolean visit(IResourceProxy proxy) throws CoreException {
