@@ -291,7 +291,11 @@ public class Parser {
     }
     // Remove uses of this method in favor of matches?
     // Pass in the error code to use to report the error?
-    reportError(ParserErrorCode.EXPECTED_TOKEN, type.getLexeme());
+    if (type == TokenType.SEMICOLON) {
+      reportError(ParserErrorCode.EXPECTED_TOKEN, currentToken.getPrevious(), type.getLexeme());
+    } else {
+      reportError(ParserErrorCode.EXPECTED_TOKEN, type.getLexeme());
+    }
     return currentToken;
   }
 
