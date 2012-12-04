@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.context.AnalysisContext;
+
 /**
  * The interface {@code Element} defines the behavior common to all of the elements in the element
  * model. Generally speaking, the element model is a semantic model of the program that represents
@@ -42,6 +44,13 @@ public interface Element {
    * @return the element that encloses this element
    */
   public <E extends Element> E getAncestor(Class<E> elementClass);
+
+  /**
+   * Return the analysis context in which this element is defined.
+   * 
+   * @return the analysis context in which this element is defined
+   */
+  public AnalysisContext getContext();
 
   /**
    * Return the element that either physically or logically encloses this element. This will be

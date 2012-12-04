@@ -13,145 +13,19 @@
  */
 package com.google.dart.engine.resolver.scope;
 
-import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ExportSpecification;
-import com.google.dart.engine.element.FieldElement;
-import com.google.dart.engine.element.FunctionElement;
-import com.google.dart.engine.element.HideCombinator;
-import com.google.dart.engine.element.ImportCombinator;
 import com.google.dart.engine.element.ImportSpecification;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.element.PrefixElement;
-import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.ShowCombinator;
-import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Instances of the class {@code LibraryImportScope} represent the scope containing all of the names
  * available from imported libraries.
  */
 public class LibraryImportScope extends Scope {
-  /**
-   * Instances of the class {@code Namespace} represent the names that are exported from some
-   * library. This class is not thread-safe.
-   */
-  private static class Namespace {
-    /**
-     * A table mapping names that are defined in this namespace to the element representing the
-     * thing declared with that name.
-     */
-    private HashMap<String, Element> definedNames = new HashMap<String, Element>();
-
-    /**
-     * Add all of the names in the given namespace to this namespace.
-     * 
-     * @param namespace the namespace containing the names to be added to this namespace
-     */
-    public void add(Namespace namespace) {
-      for (Map.Entry<String, Element> entry : namespace.definedNames.entrySet()) {
-        definedNames.put(entry.getKey(), entry.getValue());
-      }
-    }
-
-    public void apply(ImportCombinator combinator) {
-      if (combinator instanceof HideCombinator) {
-        hide(((HideCombinator) combinator).getHiddenNames());
-      } else if (combinator instanceof ShowCombinator) {
-        show(((ShowCombinator) combinator).getShownNames());
-      } else {
-        // Internal error.
-      }
-    }
-
-    /**
-     * Apply the given prefix to all of the names in this namespace.
-     * 
-     * @param prefixElement the element defining the prefix to be added to the names
-     */
-    public void apply(PrefixElement prefixElement) {
-      if (prefixElement != null) {
-        String prefix = prefixElement.getName();
-        HashMap<String, Element> newNames = new HashMap<String, Element>(definedNames.size());
-        for (Map.Entry<String, Element> entry : definedNames.entrySet()) {
-          newNames.put(prefix + "." + entry.getKey(), entry.getValue());
-        }
-        definedNames = newNames;
-      }
-    }
-
-    /**
-     * Return the element in this namespace that is available to the containing scope using the
-     * given name.
-     * 
-     * @param name the name used to reference the
-     * @return
-     */
-    public Element get(String name) {
-      return definedNames.get(name);
-    }
-
-    /**
-     * Add to this namespace all of the public top-level names that are defined in the given
-     * compilation unit.
-     * 
-     * @param compilationUnit the compilation unit defining the top-level names to be added to this
-     *          namespace
-     */
-    private void addPublicNames(CompilationUnitElement compilationUnit) {
-      for (PropertyAccessorElement element : compilationUnit.getAccessors()) {
-        definedNames.put(element.getName(), element);
-      }
-      for (FieldElement element : compilationUnit.getFields()) {
-        definedNames.put(element.getName(), element);
-      }
-      for (FunctionElement element : compilationUnit.getFunctions()) {
-        definedNames.put(element.getName(), element);
-      }
-      for (TypeAliasElement element : compilationUnit.getTypeAliases()) {
-        definedNames.put(element.getName(), element);
-      }
-      for (ClassElement element : compilationUnit.getTypes()) {
-        definedNames.put(element.getName(), element);
-      }
-    }
-
-    /**
-     * Hide all of the given names by removing them from this namespace.
-     * 
-     * @param hiddenNames the names to be hidden
-     */
-    private void hide(String[] hiddenNames) {
-      for (String name : hiddenNames) {
-        definedNames.remove(name);
-      }
-    }
-
-    /**
-     * Compute a new set of names for this namespace that consists of the intersection of the names
-     * that are defined in this namespace and the names in the given array.
-     * 
-     * @param shownNames the names that are to be available in this namespace
-     */
-    private void show(String[] shownNames) {
-      HashMap<String, Element> newNames = new HashMap<String, Element>(definedNames.size());
-      for (String name : shownNames) {
-        Element element = definedNames.get(name);
-        if (element != null) {
-          newNames.put(name, element);
-        }
-      }
-      definedNames = newNames;
-    }
-  }
-
   /**
    * The element representing the library in which this scope is enclosed.
    */
@@ -213,7 +87,10 @@ public class LibraryImportScope extends Scope {
         if (foundElement == null) {
           foundElement = element;
         } else {
-          foundElement = new MultiplyDefinedElementImpl(foundElement, element);
+          foundElement = new MultiplyDefinedElementImpl(
+              definingLibrary.getContext(),
+              foundElement,
+              element);
         }
       }
     }
@@ -224,57 +101,6 @@ public class LibraryImportScope extends Scope {
   }
 
   /**
-   * Build a namespace representing all of the names available to this scope from the library
-   * exported from the given specification.
-   * 
-   * @param specification the specification of the library being imported
-   * @return the namespace that was built
-   */
-  private Namespace buildExportedNamespace(ExportSpecification specification) {
-    return buildExportedNamespace(
-        specification.getExportedLibrary(),
-        specification.getCombinators());
-  }
-
-  /**
-   * Build a namespace representing all of the names available to this scope from the library
-   * imported from the given specification.
-   * 
-   * @param specification the specification of the library being imported
-   * @return the namespace that was built
-   */
-  private Namespace buildExportedNamespace(ImportSpecification specification) {
-    Namespace namespace = buildExportedNamespace(
-        specification.getImportedLibrary(),
-        specification.getCombinators());
-    namespace.apply(specification.getPrefix());
-    return namespace;
-  }
-
-  /**
-   * Build a namespace representing all of the names exported from the given library after applying
-   * the given combinators.
-   * 
-   * @param library the library defining the exported names
-   * @param combinators the combinators controlling which names are visible
-   * @return the namespace that was built
-   */
-  private Namespace buildExportedNamespace(LibraryElement library, ImportCombinator[] combinators) {
-    Namespace namespace = new Namespace();
-    namespace.addPublicNames(library.getDefiningCompilationUnit());
-    for (CompilationUnitElement compilationUnit : library.getParts()) {
-      namespace.addPublicNames(compilationUnit);
-    }
-    for (ExportSpecification innerSpecification : library.getExports()) {
-      namespace.add(buildExportedNamespace(innerSpecification));
-    }
-    for (ImportCombinator combinator : combinators) {
-      namespace.apply(combinator);
-    }
-    return namespace;
-  }
-
-  /**
    * Create all of the namespaces associated with the libraries imported into this library. The
    * names are not added to this scope, but are stored for later reference.
    * 
@@ -282,8 +108,9 @@ public class LibraryImportScope extends Scope {
    *          which namespaces will be created
    */
   private final void createImportedNamespaces(LibraryElement definingLibrary) {
+    NamespaceBuilder builder = new NamespaceBuilder();
     for (ImportSpecification specification : definingLibrary.getImports()) {
-      importedNamespaces.add(buildExportedNamespace(specification));
+      importedNamespaces.add(builder.createImportNamespace(specification));
     }
   }
 }

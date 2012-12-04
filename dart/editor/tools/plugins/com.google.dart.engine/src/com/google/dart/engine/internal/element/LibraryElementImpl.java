@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExportSpecification;
@@ -32,6 +33,11 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * An empty array of library elements.
    */
   public static final LibraryElement[] EMPTY_ARRAY = new LibraryElement[0];
+
+  /**
+   * The analysis context in which this library is defined.
+   */
+  private AnalysisContext context;
 
   /**
    * The compilation unit that defines this library.
@@ -64,8 +70,9 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * 
    * @param name the name of this element
    */
-  public LibraryElementImpl(Identifier name) {
+  public LibraryElementImpl(AnalysisContext context, Identifier name) {
     super(name);
+    this.context = context;
   }
 
   @Override
@@ -85,6 +92,11 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
     }
     return null;
+  }
+
+  @Override
+  public AnalysisContext getContext() {
+    return context;
   }
 
   @Override

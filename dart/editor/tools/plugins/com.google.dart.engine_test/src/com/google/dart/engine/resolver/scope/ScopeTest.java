@@ -19,6 +19,7 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.error.GatheringErrorListener;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
@@ -114,7 +115,9 @@ public class ScopeTest extends ResolverTestCase {
   }
 
   public void test_getErrorListener() throws Exception {
-    LibraryElement definingLibrary = new LibraryElementImpl(identifier("test"));
+    LibraryElement definingLibrary = new LibraryElementImpl(
+        new AnalysisContextImpl(),
+        identifier("test"));
     GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope scope = new TestScope(definingLibrary, errorListener);
     assertEquals(errorListener, scope.getErrorListener());

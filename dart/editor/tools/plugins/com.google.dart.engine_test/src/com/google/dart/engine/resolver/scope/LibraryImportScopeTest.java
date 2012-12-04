@@ -13,22 +13,25 @@
  */
 package com.google.dart.engine.resolver.scope;
 
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportSpecification;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
-import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.error.GatheringErrorListener;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ImportSpecificationImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
-import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 
 public class LibraryImportScopeTest extends ResolverTestCase {
   public void test_conflictingImports() {
+    AnalysisContext context = new AnalysisContextImpl();
     String typeNameA = "A";
     String typeNameB = "B";
     String typeNameC = "C";
@@ -37,19 +40,19 @@ public class LibraryImportScopeTest extends ResolverTestCase {
     ClassElement typeB2 = new ClassElementImpl(identifier(typeNameB));
     ClassElement typeC = new ClassElementImpl(identifier(typeNameC));
 
-    LibraryElement importedLibrary1 = createTestLibrary("imported1");
+    LibraryElement importedLibrary1 = createTestLibrary(context, "imported1");
     ((CompilationUnitElementImpl) importedLibrary1.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
         typeA, typeB1});
     ImportSpecificationImpl specification1 = new ImportSpecificationImpl();
     specification1.setImportedLibrary(importedLibrary1);
 
-    LibraryElement importedLibrary2 = createTestLibrary("imported2");
+    LibraryElement importedLibrary2 = createTestLibrary(context, "imported2");
     ((CompilationUnitElementImpl) importedLibrary2.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
         typeB2, typeC});
     ImportSpecificationImpl specification2 = new ImportSpecificationImpl();
     specification2.setImportedLibrary(importedLibrary2);
 
-    LibraryElementImpl importingLibrary = createTestLibrary("importing");
+    LibraryElementImpl importingLibrary = createTestLibrary(context, "importing");
     importingLibrary.setImports(new ImportSpecification[] {specification1, specification2});
     GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope scope = new LibraryImportScope(importingLibrary, errorListener);
@@ -73,11 +76,12 @@ public class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   public void test_creation_nonEmpty() {
+    AnalysisContext context = new AnalysisContextImpl();
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl(identifier(importedTypeName));
-    LibraryElement importedLibrary = createTestLibrary("imported");
+    LibraryElement importedLibrary = createTestLibrary(context, "imported");
     ((CompilationUnitElementImpl) importedLibrary.getDefiningCompilationUnit()).setTypes(new ClassElement[] {importedType});
-    LibraryElementImpl definingLibrary = createTestLibrary("importing");
+    LibraryElementImpl definingLibrary = createTestLibrary(context, "importing");
     ImportSpecificationImpl specification = new ImportSpecificationImpl();
     specification.setImportedLibrary(importedLibrary);
     definingLibrary.setImports(new ImportSpecification[] {specification});

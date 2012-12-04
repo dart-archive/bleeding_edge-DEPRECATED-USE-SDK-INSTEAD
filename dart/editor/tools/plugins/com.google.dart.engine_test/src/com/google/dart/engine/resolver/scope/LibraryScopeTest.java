@@ -13,14 +13,16 @@
  */
 package com.google.dart.engine.resolver.scope;
 
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ImportSpecification;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.error.GatheringErrorListener;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ImportSpecificationImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
-import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
@@ -33,11 +35,12 @@ public class LibraryScopeTest extends ResolverTestCase {
   }
 
   public void test_creation_nonEmpty() {
+    AnalysisContext context = new AnalysisContextImpl();
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl(identifier(importedTypeName));
-    LibraryElement importedLibrary = createTestLibrary("imported");
+    LibraryElement importedLibrary = createTestLibrary(context, "imported");
     ((CompilationUnitElementImpl) importedLibrary.getDefiningCompilationUnit()).setTypes(new ClassElement[] {importedType});
-    LibraryElementImpl definingLibrary = createTestLibrary("importing");
+    LibraryElementImpl definingLibrary = createTestLibrary(context, "importing");
     ImportSpecificationImpl specification = new ImportSpecificationImpl();
     specification.setImportedLibrary(importedLibrary);
     definingLibrary.setImports(new ImportSpecification[] {specification});

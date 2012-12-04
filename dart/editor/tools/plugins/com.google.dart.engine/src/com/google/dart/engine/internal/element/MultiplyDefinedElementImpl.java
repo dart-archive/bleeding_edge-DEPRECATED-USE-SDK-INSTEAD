@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
@@ -28,6 +29,11 @@ import java.util.ArrayList;
  */
 public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   /**
+   * The analysis context in which the multiply defined elements are defined.
+   */
+  private AnalysisContext context;
+
+  /**
    * The name of the conflicting elements.
    */
   private String name;
@@ -40,10 +46,12 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   /**
    * Initialize a newly created element to represent a list of conflicting elements.
    * 
+   * @param context the analysis context in which the multiply defined elements are defined
    * @param firstElement the first element that conflicts
    * @param secondElement the second element that conflicts
    */
-  public MultiplyDefinedElementImpl(Element firstElement, Element secondElement) {
+  public MultiplyDefinedElementImpl(AnalysisContext context, Element firstElement,
+      Element secondElement) {
     name = firstElement.getName();
     conflictingElements = computeConflictingElements(firstElement, secondElement);
   }
@@ -56,6 +64,11 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @Override
   public Element[] getConflictingElements() {
     return conflictingElements;
+  }
+
+  @Override
+  public AnalysisContext getContext() {
+    return context;
   }
 
   @Override

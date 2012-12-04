@@ -15,17 +15,18 @@ package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.builder.LibraryElementBuilder;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
-import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -103,7 +104,7 @@ public class ResolverTestCase extends EngineTestCase {
    * @return the library element that was created
    */
   protected LibraryElementImpl createTestLibrary() {
-    return createTestLibrary("test");
+    return createTestLibrary(new AnalysisContextImpl(), "test");
   }
 
   /**
@@ -113,7 +114,8 @@ public class ResolverTestCase extends EngineTestCase {
    * @param libraryName the name of the library to be created
    * @return the library element that was created
    */
-  protected LibraryElementImpl createTestLibrary(String libraryName, String... typeNames) {
+  protected LibraryElementImpl createTestLibrary(AnalysisContext context, String libraryName,
+      String... typeNames) {
     int count = typeNames.length;
     CompilationUnitElementImpl[] sourcedCompilationUnits = new CompilationUnitElementImpl[count];
     for (int i = 0; i < count; i++) {
@@ -129,7 +131,7 @@ public class ResolverTestCase extends EngineTestCase {
     CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
     compilationUnit.setSource(sourceFactory.forFile(new File(fileName)));
 
-    LibraryElementImpl library = new LibraryElementImpl(identifier(libraryName));
+    LibraryElementImpl library = new LibraryElementImpl(context, identifier(libraryName));
     library.setDefiningCompilationUnit(compilationUnit);
     library.setParts(sourcedCompilationUnits);
     return library;

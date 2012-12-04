@@ -22,6 +22,8 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.parser.Parser;
+import com.google.dart.engine.resolver.scope.Namespace;
+import com.google.dart.engine.resolver.scope.NamespaceBuilder;
 import com.google.dart.engine.scanner.CharBufferScanner;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
@@ -59,6 +61,18 @@ public class AnalysisContextImpl implements AnalysisContext {
   private HashMap<Source, LibraryElement> libraryElementCache = new HashMap<Source, LibraryElement>();
 
   /**
+   * A cache mapping sources (of the defining compilation units of libraries) to the public
+   * namespace for that library.
+   */
+  // TODO(brianwilkerson) Replace this with a real cache.
+  private HashMap<Source, Namespace> publicNamespaceCache = new HashMap<Source, Namespace>();
+
+  /**
+   * The object used to synchronize access to all of the caches.
+   */
+  private Object cacheLock = new Object();
+
+  /**
    * Initialize a newly created analysis context.
    */
   public AnalysisContextImpl() {
@@ -76,6 +90,7 @@ public class AnalysisContextImpl implements AnalysisContext {
     // TODO (danrubel): Optimize to recache the token stream and/or ASTs in a global context
     parseCache.clear();
     libraryElementCache.clear();
+    publicNamespaceCache.clear();
   }
 
   @Override
@@ -112,7 +127,7 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public LibraryElement getLibraryElement(Source source) {
     throw new UnsupportedOperationException();
-//    synchronized (this) {
+//    synchronized (cacheLock) {
 //      LibraryElement element = libraryElementCache.get(source);
 //      if (element == null) {
 //        // TODO(brianwilkerson) Build the library element.
@@ -123,6 +138,49 @@ public class AnalysisContextImpl implements AnalysisContext {
 //    }
   }
 
+  /**
+   * Return a namespace containing mappings for all of the public names defined by the given
+   * library.
+   * 
+   * @param library the library whose public namespace is to be returned
+   * @return the public namespace of the given library
+   */
+  public Namespace getPublicNamespace(LibraryElement library) {
+    Source source = library.getDefiningCompilationUnit().getSource();
+    synchronized (cacheLock) {
+      Namespace namespace = publicNamespaceCache.get(source);
+      if (namespace == null) {
+        NamespaceBuilder builder = new NamespaceBuilder();
+        namespace = builder.createPublicNamespace(library);
+        publicNamespaceCache.put(source, namespace);
+      }
+      return namespace;
+    }
+  }
+
+  /**
+   * Return a namespace containing mappings for all of the public names defined by the library
+   * defined by the given source.
+   * 
+   * @param source the source defining the library whose public namespace is to be returned
+   * @return the public namespace corresponding to the library defined by the given source
+   */
+  public Namespace getPublicNamespace(Source source) {
+    synchronized (cacheLock) {
+      Namespace namespace = publicNamespaceCache.get(source);
+      if (namespace == null) {
+        LibraryElement library = getLibraryElement(source);
+        if (library == null) {
+          return null;
+        }
+        NamespaceBuilder builder = new NamespaceBuilder();
+        namespace = builder.createPublicNamespace(library);
+        publicNamespaceCache.put(source, namespace);
+      }
+      return namespace;
+    }
+  }
+
   @Override
   public SourceFactory getSourceFactory() {
     return sourceFactory;
@@ -131,7 +189,7 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public CompilationUnit parse(Source source, AnalysisErrorListener errorListener)
       throws AnalysisException {
-    synchronized (this) {
+    synchronized (cacheLock) {
       CompilationUnit unit = parseCache.get(source);
       if (unit == null) {
         Token token = scan(source, errorListener);
@@ -180,9 +238,10 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public void sourceChanged(Source source) {
-    synchronized (this) {
+    synchronized (cacheLock) {
       parseCache.remove(source);
       libraryElementCache.remove(source);
+      publicNamespaceCache.remove(source);
     }
   }
 

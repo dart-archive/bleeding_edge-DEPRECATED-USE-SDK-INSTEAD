@@ -212,7 +212,7 @@ public class LibraryElementBuilder {
           librarySource,
           ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART));
     }
-    LibraryElementImpl libraryElement = new LibraryElementImpl(libraryNameNode);
+    LibraryElementImpl libraryElement = new LibraryElementImpl(analysisContext, libraryNameNode);
     libraryElement.setDefiningCompilationUnit(definingCompilationUnitElement);
     if (entryPoint != null) {
       libraryElement.setEntryPoint(entryPoint);
