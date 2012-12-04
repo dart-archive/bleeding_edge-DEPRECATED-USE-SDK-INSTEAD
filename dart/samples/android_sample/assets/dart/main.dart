@@ -325,6 +325,7 @@ setup(int w, int h) {
   gl.clearDepth(1.0);
   initBuffers();
   resize(w, h);
+  playBackground("music/la_ere_gymnopedie.mp3");
 }
 
 resize(int w, int h) {

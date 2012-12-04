@@ -8,6 +8,7 @@
 #include "jni/context.h"
 #include "jni/graphics.h"
 #include "jni/input_service.h"
+#include "jni/sound_service.h"
 #include "jni/timer.h"
 #include "jni/vm_glue.h"
 
@@ -48,8 +49,9 @@ class DartHost : public ActivityHandler {
 
   ANativeWindow_Buffer window_buffer_;
   InputHandler* input_handler_;
-  Timer* timer_;
   Graphics* graphics_;
+  SoundService* sound_service_;
+  Timer* timer_;
   VMGlue* vm_glue_;
   bool active_;
 };

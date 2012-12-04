@@ -13,6 +13,7 @@
 
 #include "bin/log.h"
 #include "include/dart_api.h"
+#include "jni/android_extension.h"
 
 Dart_NativeFunction ResolveName(Dart_Handle name, int argc);
 
@@ -37,15 +38,19 @@ void CheckGLError(const char *function) {
   }
 }
 
+const char* GetStringArg(Dart_NativeArguments arguments, int idx) {
+  Dart_Handle whatHandle = HandleError(Dart_GetNativeArgument(arguments, idx));
+  uint8_t* str;
+  intptr_t length;
+  HandleError(Dart_StringLength(whatHandle, &length));
+  HandleError(Dart_StringToUTF8(whatHandle, &str, length));
+  str[length] = 0;
+  return  const_cast<const char*>(reinterpret_cast<char*>(str));
+}
+
 void Log(Dart_NativeArguments arguments) {
   Dart_EnterScope();
-  Dart_Handle whatHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
-  intptr_t length[1];
-  HandleError(Dart_StringLength(whatHandle, length));
-  uint8_t* str[1];
-  HandleError(Dart_StringToUTF8(whatHandle, &str[0], length));
-  str[0][*length] = 0;
-  Log::Print(const_cast<const GLchar*>(reinterpret_cast<GLchar*>(str[0])));
+  Log::Print(GetStringArg(arguments, 0));
   Dart_ExitScope();
 }
 
@@ -1104,6 +1109,22 @@ void RandomArrayServicePort(Dart_NativeArguments arguments) {
   Dart_ExitScope();
 }
 
+void PlayBackground(Dart_NativeArguments arguments) {
+  Log::Print("PlayBackground");
+  Dart_EnterScope();
+  const char* what = GetStringArg(arguments, 0);
+  int rtn = PlayBackground(what);
+  Dart_Handle result = HandleError(Dart_NewInteger(rtn));
+  Dart_SetReturnValue(arguments, result);
+  Dart_ExitScope();
+}
+
+void StopBackground(Dart_NativeArguments arguments) {
+  Log::Print("StopBackground");
+  Dart_EnterScope();
+  StopBackground();
+  Dart_ExitScope();
+}
 
 struct FunctionLookup {
   const char* name;
@@ -1168,6 +1189,11 @@ FunctionLookup function_list[] = {
     {"GLGetShaderInfoLog", GLGetShaderInfoLog},
     {"GLGetProgramInfoLog", GLGetProgramInfoLog},
     {"RandomArray_ServicePort", RandomArrayServicePort},
+
+    // Audio support.
+    {"PlayBackground", PlayBackground},
+    {"StopBackground", StopBackground},
+
     {NULL, NULL}};
 
 Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {

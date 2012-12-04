@@ -11,9 +11,10 @@
 #include "vm/flags.h"
 
 DartHost::DartHost(Context *context)
-    : input_handler_(context->input_handler),
+    : graphics_(context->graphics),
+      input_handler_(context->input_handler),
+      sound_service_(context->sound_service),
       timer_(context->timer),
-      graphics_(context->graphics),
       vm_glue_(context->vm_glue),
       active_(false) {
   Log::Print("Creating DartHost");
@@ -31,6 +32,9 @@ int32_t DartHost::Activate() {
   if (!active_) {
     Log::Print("Activating DartHost");
     if (graphics_->Start() != 0) {
+      return -1;
+    }
+    if (sound_service_->Start() != 0) {
       return -1;
     }
     if (input_handler_->Start() != 0) {
@@ -58,6 +62,7 @@ void DartHost::Deactivate() {
     active_ = false;
     vm_glue_->FinishMainIsolate();
     Log::Print("Deactivating DartHost");
+    sound_service_->Stop();
     graphics_->Stop();
   }
 }

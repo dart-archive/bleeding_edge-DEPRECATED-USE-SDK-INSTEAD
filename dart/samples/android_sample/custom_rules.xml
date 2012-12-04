@@ -5,6 +5,7 @@
       <mkdir dir="res/drawable-ldpi"/>
       <mkdir dir="res/drawable-mdpi"/>
       <mkdir dir="res/drawable-xhdpi"/>
+      <mkdir dir="assets/music"/>
       <exec executable="xxd">
         <arg value="-r"/>
         <arg value="ic_launcher.png-hdpi.hex"/>
@@ -24,6 +25,11 @@
         <arg value="-r"/>
         <arg value="ic_launcher.png-xhdpi.hex"/>
         <arg value="res/drawable-xhdpi/ic_launcher.png"/>
+      </exec>
+      <exec executable="xxd">
+        <arg value="-r"/>
+        <arg value="la_ere_gymnopedie.mp3.hex"/>
+        <arg value="assets/music/la_ere_gymnopedie.mp3"/>
       </exec>
     </target>
     <target name="-pre-compile">

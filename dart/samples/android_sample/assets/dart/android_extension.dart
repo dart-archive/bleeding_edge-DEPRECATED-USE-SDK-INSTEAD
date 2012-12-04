@@ -141,3 +141,10 @@ class WebGLRenderingContext {
 }
 
 var gl = new WebGLRenderingContext();
+
+//------------------------------------------------------------------
+// Simple audio support.
+
+void playBackground(String path) native "PlayBackground";
+void stopBackground() native "StopBackground";
+
