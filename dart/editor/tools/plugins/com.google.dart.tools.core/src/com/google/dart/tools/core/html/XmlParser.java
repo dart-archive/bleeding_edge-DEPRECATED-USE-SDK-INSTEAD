@@ -218,6 +218,10 @@ public class XmlParser {
         // foo=foo
         Token token = tokenizer.next();
 
+        if (token == null) {
+          return;
+        }
+
         XmlAttribute attribute = new XmlAttribute(token.getValue());
         attribute.setStart(token);
 

@@ -18,6 +18,21 @@ import junit.framework.TestCase;
 
 public class HtmlParserTest extends TestCase {
 
+  public void test_attributeNPE() {
+    final String data = "<!DOCTYPE html>\n\n" + "<html>\n" + "  <body foo=\"sdfsdf\"\">\n"
+        + "  </body>\n" + "</html>\n";
+
+    XmlDocument root = new XmlDocument();
+    root.addChild(new XmlNode("<!DOCTYPE html>"));
+    XmlElement htmlNode = new XmlElement("html");
+    root.addChild(htmlNode);
+    htmlNode.addChild(new XmlElement("body"));
+
+    XmlDocument results = verifyParseTree(data, root);
+    XmlElement bodyNode = (XmlElement) results.getChildren().get(1).getChildren().get(0);
+    assertEquals("sdfsdf", bodyNode.getAttributeString("foo"));
+  }
+
   public void test_parse1() {
     XmlDocument root = new XmlDocument();
     XmlElement htmlNode = new XmlElement("html");
