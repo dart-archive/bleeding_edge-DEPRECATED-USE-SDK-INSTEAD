@@ -82,7 +82,17 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public void clearResolution() {
     // TODO (danrubel): Optimize to only discard resolution information
-    discard();
+    parseCache.clear();
+    libraryElementCache.clear();
+    publicNamespaceCache.clear();
+  }
+
+  @Override
+  public void directoryDeleted(File file) {
+    // TODO (danrubel): Optimize to remove only the specified files
+    parseCache.clear();
+    libraryElementCache.clear();
+    publicNamespaceCache.clear();
   }
 
   @Override
@@ -91,12 +101,6 @@ public class AnalysisContextImpl implements AnalysisContext {
     parseCache.clear();
     libraryElementCache.clear();
     publicNamespaceCache.clear();
-  }
-
-  @Override
-  public void filesDeleted(File file) {
-    // TODO (danrubel): Optimize to remove only the specified files
-    discard();
   }
 
   @Override

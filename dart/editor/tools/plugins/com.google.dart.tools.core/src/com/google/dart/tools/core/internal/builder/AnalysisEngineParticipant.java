@@ -78,7 +78,6 @@ public class AnalysisEngineParticipant implements BuildParticipant {
     /**
      * Traverse the specified resource delta and update the existing context.
      * 
-     * @param context the context (not {@code null})
      * @param delta the resource delta describing the changes (not {@code null})
      * @param monitor the progress monitor (not {@code null})
      * @return {@code true} if the delta was processed, or {@code false} if the context was
@@ -116,7 +115,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
 
           // If the "packages" directory was removed for the project, then re-resolve
           if (container.getType() == PROJECT) {
-            context.filesDeleted(resource.getLocation().toFile());
+            context.directoryDeleted(resource.getLocation().toFile());
             context.clearResolution();
             break;
           }
@@ -339,7 +338,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         IPath location = resource.getLocation();
         if (location != null) {
           if (resource.getType() != FILE) {
-            context.filesDeleted(location.toFile());
+            context.directoryDeleted(location.toFile());
           } else if (isDartLikeFileName(resource.getName())) {
             context.sourceDeleted(factory.forFile(location.toFile()));
           }

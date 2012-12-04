@@ -40,22 +40,30 @@ import java.util.List;
  */
 public interface AnalysisContext {
   /**
-   * Clear cached resolution information
+   * Clear any cached information that is dependent on resolution. This method should be invoked if
+   * the assumptions used by resolution have changed but the contents of the file have not changed.
+   * Use {@link #sourceChanged(Source)} and {@link #directoryDeleted(File)} to indicate when the
+   * contents of a file or files have changed.
    */
+  // TODO (danrubel): review the situations under which this method is and should be called
+  // with an eye towards removing this method if it is not useful.
   public void clearResolution();
 
   /**
-   * Discard all cached information.
+   * Discard cached information for all files in the specified directory.
+   * 
+   * @param directory the directory that was deleted (not {@code null})
    */
-  public void discard();
+  public void directoryDeleted(File directory);
 
   /**
-   * Discard cached information for the specified file or all files contained in the specified
-   * directory
-   * 
-   * @param file the file (not {@code null})
+   * Call this method when this context is no longer going to be used. At this point, the receiver
+   * may choose to push some of its information back into the global cache for consumption by
+   * another context for performance.
    */
-  public void filesDeleted(File file);
+  // TODO (danrubel): review the situations under which this method is and should be called
+  // with an eye towards removing this method if it is not useful.
+  public void discard();
 
   /**
    * Return a list containing the source containers that the given source container depends on. More
