@@ -27,7 +27,6 @@ import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.ParentElement;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
@@ -71,7 +70,6 @@ import java.util.Set;
  * Clients may instantiate or subclass. Subclasses must make sure to always call the superclass'
  * code when overriding methods that are marked with "subclasses may extend".
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
 public class DefaultDartFoldingStructureProvider implements IDartFoldingStructureProvider,
     IDartFoldingStructureProviderExtension {
 
@@ -135,9 +133,9 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 
     private final boolean allowCollapsing;
 
-    private Type firstType;
+    private SourceReference firstRef;
     private boolean hasHeaderComment;
-    private LinkedHashMap map = new LinkedHashMap();
+    private LinkedHashMap<DartProjectionAnnotation, Position> map = new LinkedHashMap<DartProjectionAnnotation, Position>();
     private TokenStream tokenStream;
 
     private FoldingStructureComputationContext(IDocument document, ProjectionAnnotationModel model,
@@ -201,14 +199,14 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       return allowCollapsing && collapseImportContainer;
     }
 
-    /**
-     * Returns <code>true</code> if inner types should be collapsed.
-     * 
-     * @return <code>true</code> if inner types should be collapsed
-     */
-    public boolean collapseInnerTypes() {
-      return allowCollapsing && collapseInnerTypes;
-    }
+//    /**
+//     * Returns <code>true</code> if inner types should be collapsed.
+//     * 
+//     * @return <code>true</code> if inner types should be collapsed
+//     */
+//    public boolean collapseInnerTypes() {
+//      return allowCollapsing && collapseInnerTypes;
+//    }
 
     /**
      * Returns <code>true</code> if methods should be collapsed.
@@ -220,7 +218,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     }
 
     boolean hasFirstType() {
-      return firstType != null;
+      return firstRef != null;
     }
 
     /**
@@ -232,8 +230,8 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       return document;
     }
 
-    private Type getFirstType() {
-      return firstType;
+    private SourceReference getFirstRef() {
+      return firstRef;
     }
 
     private ProjectionAnnotationModel getModel() {
@@ -253,11 +251,11 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       return hasHeaderComment;
     }
 
-    private void setFirstType(Type type) {
+    private void setFirstRef(SourceReference type) {
       if (hasFirstType()) {
         throw new IllegalStateException();
       }
-      firstType = type;
+      firstRef = type;
     }
 
     private void setHasHeaderComment() {
@@ -753,7 +751,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   /* preferences */
   private boolean collapseDartDoc = false;
   private boolean collapseImportContainer = true;
-  private boolean collapseInnerTypes = true;
   private boolean collapseMembers = false;
 
   private boolean collapseHeaderComments = true;
@@ -784,7 +781,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 
   @Override
   public final void collapseElements(DartElement[] elements) {
-    Set set = new HashSet(Arrays.asList(elements));
+    Set<DartElement> set = new HashSet<DartElement>(Arrays.asList(elements));
     modifyFiltered(new DartElementSetFilter(set, false), false);
   }
 
@@ -795,7 +792,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 
   @Override
   public final void expandElements(DartElement[] elements) {
-    Set set = new HashSet(Arrays.asList(elements));
+    Set<DartElement> set = new HashSet<DartElement>(Arrays.asList(elements));
     modifyFiltered(new DartElementSetFilter(set, true), true);
   }
 
@@ -856,9 +853,15 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       int offset = document.getLineOffset(start);
       int endOffset;
       if (document.getNumberOfLines() > end + 1) {
-        endOffset = document.getLineOffset(end + 1);
+        endOffset = document.getLineOffset(end);
+        if (endOffset != region.getOffset() + region.getLength()) {
+          endOffset = document.getLineOffset(end + 1);
+        }
       } else {
-        endOffset = document.getLineOffset(end) + document.getLineLength(end);
+        endOffset = document.getLineOffset(end);
+        if (endOffset != end) {
+          endOffset += document.getLineLength(end);
+        }
       }
 
       return new Region(offset, endOffset - offset);
@@ -896,8 +899,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
         collapse = ctx.collapseImportContainer();
         break;
       case DartElement.TYPE:
-        collapseCode = isInnerType((Type) element);
-        collapse = ctx.collapseInnerTypes() && collapseCode;
         break;
       case DartElement.METHOD:
       case DartElement.FIELD:
@@ -919,7 +920,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
           if (position != null) {
             boolean commentCollapse;
             if (i == 0 && (regions.length > 2 || ctx.hasHeaderComment())
-                && element == ctx.getFirstType()) {
+                && element == ctx.getFirstRef()) {
               commentCollapse = ctx.collapseHeaderComments();
             } else {
               commentCollapse = ctx.collapseDartDoc();
@@ -971,9 +972,9 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
         return new IRegion[0];
       }
 
-      List regions = new ArrayList();
-      if (!ctx.hasFirstType() && reference instanceof Type) {
-        ctx.setFirstType((Type) reference);
+      List<IRegion> regions = new ArrayList<IRegion>();
+      if (!ctx.hasFirstType()) {
+        ctx.setFirstRef(reference);
         IRegion headerComment = computeHeaderComment(ctx);
         if (headerComment != null) {
           regions.add(headerComment);
@@ -1063,8 +1064,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   protected void handleProjectionEnabled() {
     // projectionEnabled messages are not always paired with projectionDisabled
     // i.e. multiple enabled messages may be sent out.
-    // we have to make sure that we disable first when getting an enable
-    // message.
+    // we have to make sure that we disable first when getting an enable message.
     handleProjectionDisabled();
 
     if (isInstalled()) {
@@ -1087,33 +1087,35 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     return dartEditor != null;
   }
 
-  private Map computeCurrentStructure(FoldingStructureComputationContext ctx) {
-    Map map = new HashMap();
+  private Map<DartElement, List<Tuple>> computeCurrentStructure(
+      FoldingStructureComputationContext ctx) {
+    Map<DartElement, List<Tuple>> map = new HashMap<DartElement, List<Tuple>>();
     ProjectionAnnotationModel model = ctx.getModel();
-    Iterator e = model.getAnnotationIterator();
+    @SuppressWarnings("unchecked")
+    Iterator<Object> e = model.getAnnotationIterator();
     while (e.hasNext()) {
       Object annotation = e.next();
       if (annotation instanceof DartProjectionAnnotation) {
         DartProjectionAnnotation java = (DartProjectionAnnotation) annotation;
         Position position = model.getPosition(java);
         Assert.isNotNull(position);
-        List list = (List) map.get(java.getElement());
+        List<Tuple> list = map.get(java.getElement());
         if (list == null) {
-          list = new ArrayList(2);
+          list = new ArrayList<Tuple>(2);
           map.put(java.getElement(), list);
         }
         list.add(new Tuple(java, position));
       }
     }
 
-    Comparator comparator = new Comparator() {
+    Comparator<Tuple> comparator = new Comparator<Tuple>() {
       @Override
-      public int compare(Object o1, Object o2) {
-        return ((Tuple) o1).position.getOffset() - ((Tuple) o2).position.getOffset();
+      public int compare(Tuple o1, Tuple o2) {
+        return o1.position.getOffset() - o2.position.getOffset();
       }
     };
-    for (Iterator it = map.values().iterator(); it.hasNext();) {
-      List list = (List) it.next();
+    for (Iterator<List<Tuple>> it = map.values().iterator(); it.hasNext();) {
+      List<Tuple> list = it.next();
       Collections.sort(list, comparator);
     }
     return map;
@@ -1152,8 +1154,8 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 
   private IRegion computeHeaderComment(FoldingStructureComputationContext ctx)
       throws DartModelException {
-    // search at most up to the first type
-    SourceRange range = ctx.getFirstType().getSourceRange();
+    // search at most up to the first element
+    SourceRange range = ctx.getFirstRef().getSourceRange();
     if (range == null) {
       return null;
     }
@@ -1171,9 +1173,13 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       }
       headerEnd = comment.getEnd();
       foundComment = true;
-      comment = comment.getNext();
-      if (comment == terminal) {
+      Token nextComment = comment.getNext();
+      if (nextComment == terminal || nextComment == null) {
         comment = null;
+      } else if (nextComment.getOffset() != comment.getEnd()) {
+        comment = null;
+      } else {
+        comment = nextComment;
       }
     }
 
@@ -1228,11 +1234,11 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
    * @param ctx the context
    * @return a matching tuple or <code>null</code> for no match
    */
-  private Tuple findMatch(Tuple tuple, Collection annotations, Map positionMap,
-      FoldingStructureComputationContext ctx) {
-    Iterator it = annotations.iterator();
+  private Tuple findMatch(Tuple tuple, Collection<DartProjectionAnnotation> annotations,
+      Map<DartProjectionAnnotation, Position> positionMap, FoldingStructureComputationContext ctx) {
+    Iterator<DartProjectionAnnotation> it = annotations.iterator();
     while (it.hasNext()) {
-      DartProjectionAnnotation annotation = (DartProjectionAnnotation) it.next();
+      DartProjectionAnnotation annotation = it.next();
       if (tuple.annotation.isComment() == annotation.isComment()) {
         Position position = positionMap == null ? ctx.getModel().getPosition(annotation)
             : (Position) positionMap.get(annotation);
@@ -1277,7 +1283,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 
   private void initializePreferences() {
     IPreferenceStore store = DartToolsPlugin.getDefault().getPreferenceStore();
-    collapseInnerTypes = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_INNERTYPES);
     collapseImportContainer = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_IMPORTS);
     collapseDartDoc = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_JAVADOC);
     collapseMembers = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_METHODS);
@@ -1297,17 +1302,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   }
 
   /**
-   * Returns <code>true</code> if <code>type</code> is not a top-level type, <code>false</code> if
-   * it is.
-   * 
-   * @param type the type to test
-   * @return <code>true</code> if <code>type</code> is an inner type
-   */
-  private boolean isInnerType(Type type) {
-    return false;
-  }
-
-  /**
    * Matches deleted annotations to changed or added ones. A deleted annotation/position tuple that
    * has a matching addition / change is updated and marked as changed. The matching tuple is not
    * added (for additions) or marked as deletion instead (for changes). The result is that more
@@ -1318,18 +1312,19 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
    * @param changes list with changed annotations
    * @param ctx the context
    */
-  private void match(List deletions, Map additions, List changes,
+  private void match(List<DartProjectionAnnotation> deletions,
+      Map<DartProjectionAnnotation, Position> additions, List<DartProjectionAnnotation> changes,
       FoldingStructureComputationContext ctx) {
     if (deletions.isEmpty() || (additions.isEmpty() && changes.isEmpty())) {
       return;
     }
 
-    List newDeletions = new ArrayList();
-    List newChanges = new ArrayList();
+    List<DartProjectionAnnotation> newDeletions = new ArrayList<DartProjectionAnnotation>();
+    List<DartProjectionAnnotation> newChanges = new ArrayList<DartProjectionAnnotation>();
 
-    Iterator deletionIterator = deletions.iterator();
+    Iterator<DartProjectionAnnotation> deletionIterator = deletions.iterator();
     while (deletionIterator.hasNext()) {
-      DartProjectionAnnotation deleted = (DartProjectionAnnotation) deletionIterator.next();
+      DartProjectionAnnotation deleted = deletionIterator.next();
       Position deletedPosition = ctx.getModel().getPosition(deleted);
       if (deletedPosition == null) {
         continue;
@@ -1383,8 +1378,9 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       return;
     }
 
-    List modified = new ArrayList();
-    Iterator iter = model.getAnnotationIterator();
+    List<DartProjectionAnnotation> modified = new ArrayList<DartProjectionAnnotation>();
+    @SuppressWarnings("unchecked")
+    Iterator<Object> iter = model.getAnnotationIterator();
     while (iter.hasNext()) {
       Object annotation = iter.next();
       if (annotation instanceof DartProjectionAnnotation) {
@@ -1402,56 +1398,41 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       }
     }
 
-    model.modifyAnnotations(
-        null,
-        null,
-        (Annotation[]) modified.toArray(new Annotation[modified.size()]));
+    model.modifyAnnotations(null, null, modified.toArray(new Annotation[modified.size()]));
   }
 
   private void update(FoldingStructureComputationContext ctx) {
     if (ctx == null) {
       return;
     }
-    Map additions = new HashMap();
-    List deletions = new ArrayList();
-    List updates = new ArrayList();
+    Map<DartProjectionAnnotation, Position> additions = new HashMap<DartProjectionAnnotation, Position>();
+    List<DartProjectionAnnotation> deletions = new ArrayList<DartProjectionAnnotation>();
+    List<DartProjectionAnnotation> updates = new ArrayList<DartProjectionAnnotation>();
 
     computeFoldingStructure(ctx);
-    Map newStructure = ctx.map;
-    Map oldStructure = computeCurrentStructure(ctx);
+    Map<DartProjectionAnnotation, Position> newStructure = ctx.map;
+    Map<DartElement, List<Tuple>> oldStructure = computeCurrentStructure(ctx);
 
-    Iterator e = newStructure.keySet().iterator();
+    Iterator<DartProjectionAnnotation> e = newStructure.keySet().iterator();
     while (e.hasNext()) {
-      DartProjectionAnnotation newAnnotation = (DartProjectionAnnotation) e.next();
-      Position newPosition = (Position) newStructure.get(newAnnotation);
+      DartProjectionAnnotation newAnnotation = e.next();
+      Position newPosition = newStructure.get(newAnnotation);
 
       DartElement element = newAnnotation.getElement();
-      /*
-       * See https://bugs.eclipse.org/bugs/show_bug.cgi?id=130472 and
-       * https://bugs.eclipse.org/bugs/show_bug.cgi?id=127445 In the presence of syntax errors,
-       * anonymous types may have a source range offset of 0. When such a situation is encountered,
-       * we ignore the proposed folding range: if no corresponding folding range exists, it is
-       * silently ignored; if there *is* a matching folding range, we ignore the position update and
-       * keep the old range, in order to keep the folding structure stable.
-       */
-      boolean isMalformedAnonymousType = newPosition.getOffset() == 0
-          && element.getElementType() == DartElement.TYPE && isInnerType((Type) element);
-      List annotations = (List) oldStructure.get(element);
+      List<Tuple> annotations = oldStructure.get(element);
       if (annotations == null) {
-        if (!isMalformedAnonymousType) {
-          additions.put(newAnnotation, newPosition);
-        }
+        additions.put(newAnnotation, newPosition);
       } else {
-        Iterator x = annotations.iterator();
+        Iterator<Tuple> x = annotations.iterator();
         boolean matched = false;
         while (x.hasNext()) {
-          Tuple tuple = (Tuple) x.next();
+          Tuple tuple = x.next();
           DartProjectionAnnotation existingAnnotation = tuple.annotation;
           Position existingPosition = tuple.position;
           if (newAnnotation.isComment() == existingAnnotation.isComment()) {
             boolean updateCollapsedState = ctx.allowCollapsing()
                 && existingAnnotation.isCollapsed() != newAnnotation.isCollapsed();
-            if (!isMalformedAnonymousType && existingPosition != null
+            if (existingPosition != null
                 && (!newPosition.equals(existingPosition) || updateCollapsedState)) {
               existingPosition.setOffset(newPosition.getOffset());
               existingPosition.setLength(newPosition.getLength());
@@ -1479,19 +1460,19 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       }
     }
 
-    e = oldStructure.values().iterator();
-    while (e.hasNext()) {
-      List list = (List) e.next();
+    Iterator<List<Tuple>> e2 = oldStructure.values().iterator();
+    while (e2.hasNext()) {
+      List<Tuple> list = e2.next();
       int size = list.size();
       for (int i = 0; i < size; i++) {
-        deletions.add(((Tuple) list.get(i)).annotation);
+        deletions.add(list.get(i).annotation);
       }
     }
 
     match(deletions, additions, updates, ctx);
 
-    Annotation[] deletedArray = (Annotation[]) deletions.toArray(new Annotation[deletions.size()]);
-    Annotation[] changedArray = (Annotation[]) updates.toArray(new Annotation[updates.size()]);
+    Annotation[] deletedArray = deletions.toArray(new Annotation[deletions.size()]);
+    Annotation[] changedArray = updates.toArray(new Annotation[updates.size()]);
     ctx.getModel().modifyAnnotations(deletedArray, additions, changedArray);
     try {
       ctx.setScannerSource(""); // clear token stream
