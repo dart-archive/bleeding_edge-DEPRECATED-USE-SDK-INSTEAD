@@ -43,7 +43,7 @@ const char* GetStringArg(Dart_NativeArguments arguments, int idx) {
   uint8_t* str;
   intptr_t length;
   HandleError(Dart_StringLength(whatHandle, &length));
-  HandleError(Dart_StringToUTF8(whatHandle, &str, length));
+  HandleError(Dart_StringToUTF8(whatHandle, &str, &length));
   str[length] = 0;
   return  const_cast<const char*>(reinterpret_cast<char*>(str));
 }

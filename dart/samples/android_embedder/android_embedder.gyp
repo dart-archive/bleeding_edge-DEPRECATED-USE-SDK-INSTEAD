@@ -15,7 +15,7 @@
             'target_name': 'android_embedder',
             'type': 'shared_library',
             'dependencies': [
-              '../../runtime/dart-runtime.gyp:libdart_export',
+              '../../runtime/dart-runtime.gyp:libdart',
               '../../runtime/dart-runtime.gyp:libdart_builtin',
               '../../runtime/dart-runtime.gyp:generate_snapshot_file',
             ],
