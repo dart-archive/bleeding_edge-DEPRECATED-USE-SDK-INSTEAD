@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.web.pubspec;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
@@ -46,8 +47,9 @@ import org.eclipse.ui.forms.widgets.TableWrapLayout;
 public class DependencyDetailsPage extends AbstractFormPart implements IDetailsPage {
 
   private static String EMPTY_STRING = "";
-
   private static String[] sourceList = {"git", "pub.dartlang.org"};
+  private static String VERSION_CONTSTRAINTS_EXPRESSION = "[=<>]?(\\d+\\.){2}\\d+([\\+-]([\\.a-zA-Z0-9-])*)?";
+  private static String VERSION_CONTSTRAINTS_KEY = "versionConstraints";
 
   private DependencyObject input;
 
@@ -102,7 +104,9 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
       @Override
       public void modifyText(ModifyEvent e) {
         if (input != null) {
-          input.setVersion(versionText.getText());
+          if (validateVersionConstriants(versionText.getText())) {
+            input.setVersion(versionText.getText());
+          }
           setTextDirty();
         }
       }
@@ -236,6 +240,33 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
     pathText.setVisible(value);
     gitrefLabel.setVisible(value);
     gitrefText.setVisible(value);
+  }
+
+  private boolean validateVersionConstriants(String version) {
+    boolean isValid = true;
+    if (!version.equals("any") && !version.isEmpty()) {
+      String[] versions = version.split(" ");
+      if (versions.length > 2) {
+        isValid = false;
+      } else {
+        for (String ver : versions) {
+          if (!ver.matches(VERSION_CONTSTRAINTS_EXPRESSION)) {
+            isValid = false;
+          }
+        }
+      }
+    }
+    if (isValid) {
+      getManagedForm().getMessageManager().removeMessage(VERSION_CONTSTRAINTS_KEY, versionText);
+    } else {
+      getManagedForm().getMessageManager().addMessage(
+          VERSION_CONTSTRAINTS_KEY,
+          "The version constriant does not have the correct format as in '1.0.0', '<1.5.0', \n'>=2.0.0 <3.0.0', or it contains invalid characters",
+          null,
+          IMessageProvider.ERROR,
+          versionText);
+    }
+    return isValid;
   }
 
 }

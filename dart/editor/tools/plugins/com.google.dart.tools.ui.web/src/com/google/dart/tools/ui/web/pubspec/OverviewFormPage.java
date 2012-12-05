@@ -14,9 +14,13 @@
 
 package com.google.dart.tools.ui.web.pubspec;
 
+import com.google.dart.tools.core.generator.DartIdentifierUtil;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -42,6 +46,10 @@ import org.eclipse.ui.forms.widgets.TableWrapLayout;
  * The forms page for the Pubspec Editor
  */
 public class OverviewFormPage extends FormPage implements IModelListener {
+
+  private static String NAME_MESSAGE_KEY = "nameMessage";
+  private static String VERSION_MESSAGE_KEY = "versionMessage";
+  private static String VERSION_EXPRESSION = "(\\d+\\.){2}\\d+([\\+-]([\\.a-zA-Z0-9-])*)?";
 
   private DependenciesMasterBlock block;
   private Text nameText;
@@ -119,6 +127,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
         links,
         "View Pubspec documentation",
         "http://pub.dartlang.org/doc/pubspec.html");
+    createExternalLink(links, "View Semantic versioning information", "http://semver.org/");
 
   }
 
@@ -153,39 +162,24 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     infoSectionPart = new SectionPart(section);
     form.addPart(infoSectionPart);
 
-    toolkit.createLabel(client, "Name:");
+    Label nameLabel = toolkit.createLabel(client, "Name:");
+    nameLabel.setToolTipText("A unique name to identify this package. The name should be a valid Dart identifier.");
     nameText = toolkit.createText(client, "", SWT.SINGLE);
     nameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     nameText.addModifyListener(new ModifyListener() {
       @Override
       public void modifyText(ModifyEvent e) {
-        model.setName(nameText.getText().trim());
+        if (validateName(nameText.getText().trim())) {
+          model.setName(nameText.getText().trim());
+        }
         setTextDirty();
       }
     });
 
-    toolkit.createLabel(client, "Author:");
+    Label authorLabel = toolkit.createLabel(client, "Author:");
+    authorLabel.setToolTipText("Name(s) of the author(s) of this package. Email address can also be included.");
     authorText = toolkit.createText(client, "", SWT.SINGLE);
     authorText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-    toolkit.createLabel(client, "Version:");
-    versionText = toolkit.createText(client, "", SWT.SINGLE);
-    versionText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-    toolkit.createLabel(client, "Homepage: ");
-    homepageText = toolkit.createText(client, "", SWT.SINGLE);
-    homepageText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-    Label label = toolkit.createLabel(client, "Description:");
-    label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
-    description = toolkit.createText(client, "", SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
-    toolkit.adapt(description, true, true);
-    GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-    gd.heightHint = 50;
-    description.setLayoutData(gd);
-
-    updateInfoSection();
-
     authorText.addModifyListener(new ModifyListener() {
       @Override
       public void modifyText(ModifyEvent e) {
@@ -193,13 +187,26 @@ public class OverviewFormPage extends FormPage implements IModelListener {
         setTextDirty();
       }
     });
+
+    Label versionLabel = toolkit.createLabel(client, "Version:");
+    versionLabel.setToolTipText("A version number is three numbers separated by dots, like 0.2.43. "
+        + "It can also have a build (+hotfix.oopsie) or pre-release (-alpha.12) suffix.");
+    versionText = toolkit.createText(client, "", SWT.SINGLE);
+    versionText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     versionText.addModifyListener(new ModifyListener() {
       @Override
       public void modifyText(ModifyEvent e) {
-        model.setVersion(versionText.getText().trim());
+        if (validateVersion(versionText.getText().trim())) {
+          model.setVersion(versionText.getText().trim());
+        }
         setTextDirty();
       }
     });
+
+    Label homepageLabel = toolkit.createLabel(client, "Homepage: ");
+    homepageLabel.setToolTipText("The homepage is the URL pointing to the website for this package.");
+    homepageText = toolkit.createText(client, "", SWT.SINGLE);
+    homepageText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     homepageText.addModifyListener(new ModifyListener() {
       @Override
       public void modifyText(ModifyEvent e) {
@@ -207,6 +214,15 @@ public class OverviewFormPage extends FormPage implements IModelListener {
         setTextDirty();
       }
     });
+
+    Label descriptionLabel = toolkit.createLabel(client, "Description:");
+    descriptionLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+    descriptionLabel.setToolTipText("A description about this package");
+    description = toolkit.createText(client, "", SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+    toolkit.adapt(description, true, true);
+    GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+    gd.heightHint = 50;
+    description.setLayoutData(gd);
     description.addModifyListener(new ModifyListener() {
       @Override
       public void modifyText(ModifyEvent e) {
@@ -214,6 +230,9 @@ public class OverviewFormPage extends FormPage implements IModelListener {
         setTextDirty();
       }
     });
+
+    updateInfoSection();
+
   }
 
   private void setTextDirty() {
@@ -229,6 +248,38 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     description.setText(model.getDescription());
     homepageText.setText(model.getHomepage());
     authorText.setText(model.getAuthor());
+  }
+
+  private boolean validateName(String name) {
+    IStatus status = DartIdentifierUtil.validateIdentifier(name);
+    if (status == Status.OK_STATUS) {
+      form.getMessageManager().removeMessage(NAME_MESSAGE_KEY, nameText);
+      return true;
+    }
+    if (status.getSeverity() == Status.ERROR) {
+      form.getMessageManager().addMessage(
+          NAME_MESSAGE_KEY,
+          "The name must be all lowercase, start with an alphabetic character, '_' or '$' and include only [a-z0-9_].",
+          null,
+          IMessageProvider.ERROR,
+          nameText);
+    }
+
+    return false;
+  }
+
+  private boolean validateVersion(String version) {
+    if (version.matches(VERSION_EXPRESSION)) {
+      form.getMessageManager().removeMessage(VERSION_MESSAGE_KEY, versionText);
+      return true;
+    }
+    form.getMessageManager().addMessage(
+        VERSION_MESSAGE_KEY,
+        "The specified version does not have the correct format (major.minor.patch), or contains invalid characters.",
+        null,
+        IMessageProvider.ERROR,
+        versionText);
+    return false;
   }
 
 }

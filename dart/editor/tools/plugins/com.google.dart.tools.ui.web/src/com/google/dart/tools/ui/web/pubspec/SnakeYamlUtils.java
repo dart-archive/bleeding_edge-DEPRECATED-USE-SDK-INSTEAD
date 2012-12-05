@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.web.pubspec;
 
+import com.google.dart.tools.ui.web.DartWebPlugin;
+
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.introspector.BeanAccess;
@@ -98,6 +100,7 @@ public class SnakeYamlUtils {
       String yamlString = yaml.dumpAsMap(pubYamlObject);
       return yamlString;
     } catch (Exception e) {
+      DartWebPlugin.logError(e);
       return null;
     }
 
@@ -114,6 +117,7 @@ public class SnakeYamlUtils {
       pubYamlObject = (PubYamlObject) yaml.load(contents);
       return pubYamlObject;
     } catch (Exception e) {
+      DartWebPlugin.logError(e);
       return null;
     }
 
