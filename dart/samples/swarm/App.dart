@@ -74,8 +74,8 @@ class App {
    * an update is not ready.
    */
   bool swapAndReloadCache() {
-    DOMApplicationCache appCache = window.applicationCache;
-    if (!identical(appCache.status, DOMApplicationCache.UPDATEREADY)) {
+    ApplicationCache appCache = window.applicationCache;
+    if (!identical(appCache.status, ApplicationCache.UPDATEREADY)) {
       return false;
     }
 
