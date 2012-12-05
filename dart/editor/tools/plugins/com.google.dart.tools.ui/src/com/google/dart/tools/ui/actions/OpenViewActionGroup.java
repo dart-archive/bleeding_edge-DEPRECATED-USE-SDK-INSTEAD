@@ -46,7 +46,7 @@ import org.eclipse.ui.part.Page;
 public class OpenViewActionGroup extends ActionGroup {
 
   private boolean fEditorIsOwner;
-//	private boolean fIsTypeHiararchyViewerOwner;
+  private boolean fIsTypeHiararchyViewerOwner;
   private boolean fIsCallHiararchyViewerOwner;
 
   private ISelectionProvider fSelectionProvider;
@@ -55,7 +55,7 @@ public class OpenViewActionGroup extends ActionGroup {
 //	private OpenImplementationAction fOpenImplementation;
 
 //	private OpenAttachedJavadocAction fOpenAttachedJavadoc;
-//	private OpenTypeHierarchyAction fOpenTypeHierarchy;
+  private OpenTypeHierarchyAction fOpenTypeHierarchy;
   private OpenCallHierarchyAction fOpenCallHierarchy;
   private PropertyDialogAction fOpenPropertiesDialog;
 
@@ -85,9 +85,9 @@ public class OpenViewActionGroup extends ActionGroup {
 //		fOpenAttachedJavadoc.setActionDefinitionId(IJavaEditorActionDefinitionIds.OPEN_ATTACHED_JAVADOC);
 //		part.setAction("OpenAttachedJavadoc", fOpenAttachedJavadoc); //$NON-NLS-1$
 
-//		fOpenTypeHierarchy= new OpenTypeHierarchyAction(part);
-//		fOpenTypeHierarchy.setActionDefinitionId(IJavaEditorActionDefinitionIds.OPEN_TYPE_HIERARCHY);
-//		part.setAction("OpenTypeHierarchy", fOpenTypeHierarchy); //$NON-NLS-1$
+    fOpenTypeHierarchy = new OpenTypeHierarchyAction(part);
+    fOpenTypeHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_TYPE_HIERARCHY);
+    part.setAction("OpenTypeHierarchy", fOpenTypeHierarchy); //$NON-NLS-1$
 
     fOpenCallHierarchy = new OpenCallHierarchyAction(part);
     fOpenCallHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_CALL_HIERARCHY);
@@ -117,7 +117,8 @@ public class OpenViewActionGroup extends ActionGroup {
     createSiteActions(part.getSite(), selectionProvider);
     // we do a name check here to avoid class loading.
     String partName = part.getClass().getName();
-//		fIsTypeHiararchyViewerOwner= "org.eclipse.jdt.internal.ui.typehierarchy.TypeHierarchyViewPart".equals(partName); //$NON-NLS-1$
+    // TODO(scheglov) use correct ID
+    fIsTypeHiararchyViewerOwner = "org.eclipse.jdt.internal.ui.typehierarchy.TypeHierarchyViewPart".equals(partName); //$NON-NLS-1$
     fIsCallHiararchyViewerOwner = "com.google.dart.tools.ui.callhierarchy.CallHierarchyViewPart".equals(partName); //$NON-NLS-1$
   }
 
@@ -182,7 +183,7 @@ public class OpenViewActionGroup extends ActionGroup {
 //		fSelectionProvider.removeSelectionChangedListener(fOpenImplementation);
 //		fSelectionProvider.removeSelectionChangedListener(fOpenSuperImplementation);
 //		fSelectionProvider.removeSelectionChangedListener(fOpenAttachedJavadoc);
-//		fSelectionProvider.removeSelectionChangedListener(fOpenTypeHierarchy);
+    fSelectionProvider.removeSelectionChangedListener(fOpenTypeHierarchy);
     fSelectionProvider.removeSelectionChangedListener(fOpenCallHierarchy);
     super.dispose();
   }
@@ -196,14 +197,12 @@ public class OpenViewActionGroup extends ActionGroup {
     setGlobalActionHandlers(actionBar);
   }
 
-  /*
-   * (non-Javadoc) Method declared in ActionGroup
-   */
   @Override
   public void fillContextMenu(IMenuManager menu) {
     super.fillContextMenu(menu);
-//		if (!fIsTypeHiararchyViewerOwner)
-//			appendToGroup(menu, fOpenTypeHierarchy);
+    if (!fIsTypeHiararchyViewerOwner) {
+      appendToGroup(menu, fOpenTypeHierarchy);
+    }
     if (!fIsCallHiararchyViewerOwner) {
       appendToGroup(menu, fOpenCallHierarchy);
     }
@@ -241,9 +240,9 @@ public class OpenViewActionGroup extends ActionGroup {
 //		fOpenAttachedJavadoc.setActionDefinitionId(IJavaEditorActionDefinitionIds.OPEN_ATTACHED_JAVADOC);
 //		fOpenAttachedJavadoc.setSpecialSelectionProvider(specialProvider);
 
-//		fOpenTypeHierarchy= new OpenTypeHierarchyAction(site);
-//		fOpenTypeHierarchy.setActionDefinitionId(IJavaEditorActionDefinitionIds.OPEN_TYPE_HIERARCHY);
-//		fOpenTypeHierarchy.setSpecialSelectionProvider(specialProvider);
+    fOpenTypeHierarchy = new OpenTypeHierarchyAction(site);
+    fOpenTypeHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_TYPE_HIERARCHY);
+    fOpenTypeHierarchy.setSpecialSelectionProvider(specialProvider);
 
     fOpenCallHierarchy = new OpenCallHierarchyAction(site);
     fOpenCallHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_CALL_HIERARCHY);
@@ -289,7 +288,7 @@ public class OpenViewActionGroup extends ActionGroup {
 //		fOpenImplementation.update(selection);
 //		fOpenSuperImplementation.update(selection);
 //		fOpenAttachedJavadoc.update(selection);
-//		fOpenTypeHierarchy.update(selection);
+    fOpenTypeHierarchy.update(selection);
     fOpenCallHierarchy.update(selection);
     if (!fEditorIsOwner) {
       if (fShowOpenPropertiesAction) {
@@ -302,7 +301,7 @@ public class OpenViewActionGroup extends ActionGroup {
 //			provider.addSelectionChangedListener(fOpenImplementation);
 //			provider.addSelectionChangedListener(fOpenSuperImplementation);
 //			provider.addSelectionChangedListener(fOpenAttachedJavadoc);
-//			provider.addSelectionChangedListener(fOpenTypeHierarchy);
+      provider.addSelectionChangedListener(fOpenTypeHierarchy);
       provider.addSelectionChangedListener(fOpenCallHierarchy);
       // no need to register the open properties dialog action since it registers itself
     }
@@ -312,7 +311,7 @@ public class OpenViewActionGroup extends ActionGroup {
 //		actionBars.setGlobalActionHandler(JdtActionConstants.OPEN_IMPLEMENTATION, fOpenImplementation);
 //		actionBars.setGlobalActionHandler(JdtActionConstants.OPEN_SUPER_IMPLEMENTATION, fOpenSuperImplementation);
 //		actionBars.setGlobalActionHandler(JdtActionConstants.OPEN_ATTACHED_JAVA_DOC, fOpenAttachedJavadoc);
-//		actionBars.setGlobalActionHandler(JdtActionConstants.OPEN_TYPE_HIERARCHY, fOpenTypeHierarchy);
+    actionBars.setGlobalActionHandler(JdtActionConstants.OPEN_TYPE_HIERARCHY, fOpenTypeHierarchy);
     actionBars.setGlobalActionHandler(JdtActionConstants.OPEN_CALL_HIERARCHY, fOpenCallHierarchy);
 
     if (!fEditorIsOwner && fShowOpenPropertiesAction) {

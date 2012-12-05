@@ -204,6 +204,19 @@ public class RenameAnalyzeUtil {
   }
 
   /**
+   * @return {@link TypeMember}s declared in given {@link Type} ants its supertypes.
+   */
+  public static List<TypeMember> getAllTypeMembers(Type type) throws DartModelException {
+    List<TypeMember> allMembers = Lists.newArrayList();
+    while (type != null) {
+      List<TypeMember> members = type.getChildrenOfType(TypeMember.class);
+      allMembers.addAll(members);
+      type = getSuperClass(type);
+    }
+    return allMembers;
+  }
+
+  /**
    * @return all direct subtypes of the given {@link Type}.
    */
   public static List<Type> getDirectSubTypes(Type type) throws CoreException {
@@ -369,6 +382,18 @@ public class RenameAnalyzeUtil {
    */
   public static List<Type> getSubTypes(Type type) throws CoreException {
     return getSubTypes0(type, true);
+  }
+
+  /**
+   * @return the direct superclass of the given {@link Type}.
+   */
+  public static Type getSuperClass(Type type) throws DartModelException {
+    String superName = type.getSuperclassName();
+    if (superName != null) {
+      DartLibrary library = type.getLibrary();
+      return library.findTypeInScope(superName);
+    }
+    return null;
   }
 
   /**

@@ -18,6 +18,15 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.DartUIMessages;
+import com.google.dart.tools.ui.internal.actions.SelectionConverter;
+import com.google.dart.tools.ui.internal.typehierarchy.TypeHierarchyViewPart;
+
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 
 public class OpenTypeHierarchyUtil {
 
@@ -73,54 +82,48 @@ public class OpenTypeHierarchyUtil {
     return null;
   }
 
-// TODO (pquitslund): port/implement TypeHierarchyViewPart
-//
-//  public static TypeHierarchyViewPart open(DartElement element,
-//      IWorkbenchWindow window) {
-//    DartElement[] candidates = getCandidates(element);
-//    if (candidates != null) {
-//      return open(candidates, window);
-//    }
-//    return null;
-//  }
-//
-//  public static TypeHierarchyViewPart open(DartElement[] candidates,
-//      IWorkbenchWindow window) {
-//    Assert.isTrue(candidates != null && candidates.length != 0);
-//
-//    DartElement input = null;
-//    if (candidates.length > 1) {
-//      String title = DartUIMessages.OpenTypeHierarchyUtil_selectionDialog_title;
-//      String message = DartUIMessages.OpenTypeHierarchyUtil_selectionDialog_message;
-//      input = SelectionConverter.selectJavaElement(candidates,
-//          window.getShell(), title, message);
-//    } else {
-//      input = candidates[0];
-//    }
-//    if (input == null)
-//      return null;
-//
-//    return openInViewPart(window, input);
-//  }
-//
-//  private static TypeHierarchyViewPart openInViewPart(IWorkbenchWindow window,
-//      DartElement input) {
-//    IWorkbenchPage page = window.getActivePage();
-//    try {
-//      TypeHierarchyViewPart result = (TypeHierarchyViewPart) page.findView(DartUI.ID_TYPE_HIERARCHY);
-//      if (result != null) {
-//        result.clearNeededRefresh(); // avoid refresh of old hierarchy on
-//// 'becomes visible'
-//      }
-//      result = (TypeHierarchyViewPart) page.showView(DartUI.ID_TYPE_HIERARCHY);
-//      result.setInputElement(input);
-//      return result;
-//    } catch (CoreException e) {
-//      ExceptionHandler.handle(e, window.getShell(),
-//          DartUIMessages.OpenTypeHierarchyUtil_error_open_view, e.getMessage());
-//    }
-//    return null;
-//  }
+  public static TypeHierarchyViewPart open(DartElement element, IWorkbenchWindow window) {
+    DartElement[] candidates = getCandidates(element);
+    if (candidates != null) {
+      return open(candidates, window);
+    }
+    return null;
+  }
+
+  public static TypeHierarchyViewPart open(DartElement[] candidates, IWorkbenchWindow window) {
+    Assert.isTrue(candidates != null && candidates.length != 0);
+
+    DartElement input = null;
+    if (candidates.length > 1) {
+      String title = DartUIMessages.OpenTypeHierarchyUtil_selectionDialog_title;
+      String message = DartUIMessages.OpenTypeHierarchyUtil_selectionDialog_message;
+      input = SelectionConverter.selectJavaElement(candidates, window.getShell(), title, message);
+    } else {
+      input = candidates[0];
+    }
+    if (input == null) {
+      return null;
+    }
+
+    return openInViewPart(window, input);
+  }
+
+  private static TypeHierarchyViewPart openInViewPart(IWorkbenchWindow window, DartElement input) {
+    IWorkbenchPage page = window.getActivePage();
+    try {
+      TypeHierarchyViewPart result = (TypeHierarchyViewPart) page.findView(DartUI.ID_TYPE_HIERARCHY);
+      result = (TypeHierarchyViewPart) page.showView(DartUI.ID_TYPE_HIERARCHY);
+      result.setInputElement(input);
+      return result;
+    } catch (CoreException e) {
+      ExceptionHandler.handle(
+          e,
+          window.getShell(),
+          DartUIMessages.OpenTypeHierarchyUtil_error_open_view,
+          e.getMessage());
+    }
+    return null;
+  }
 
   private OpenTypeHierarchyUtil() {
   }

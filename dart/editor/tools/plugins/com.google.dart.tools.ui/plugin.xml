@@ -390,6 +390,15 @@
             allowMultiple="true"
             id="com.google.dart.tools.ui.callhierarchy.view">
       </view>
+
+      <view
+            name="%typeHierarchyViewName"
+            icon="$nl$/icons/full/eview16/class_hi.gif"
+            category="com.google.dart.tools.ui.dart"
+            class="com.google.dart.tools.ui.internal.typehierarchy.TypeHierarchyViewPart"
+            allowMultiple="false"
+            id="com.google.dart.tools.ui.TypeHierarchy">
+      </view>
       
       <view
             category="com.google.dart.tools.ui.dart"
@@ -750,13 +759,6 @@
                id="org.eclipse.wst.jsdt.ui.actions.OpenCallHierarchy">
          </action>
          <action
-               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.open.type.hierarchy"
-               label="%OpenTypeHierarchyAction.label"
-               retarget="true"
-               menubarPath="navigate/open.ext"
-               id="org.eclipse.wst.jsdt.ui.actions.OpenTypeHierarchy">
-         </action>
-         <action
                definitionId="com.google.dart.tools.ui.edit.text.dart.open.editor"
                label="%OpenAction.label"
                tooltip="%OpenAction.tooltip"
@@ -827,8 +829,28 @@
         </actionSet>
     </extension>
 
+    <extension
+        point="org.eclipse.ui.actionSets">
+        <actionSet
+            label="%OpenActionSet.label"
+            description="%OpenActionSet.description"
+            visible="false"
+            id="com.google.dart.tools.ui.OpenActionSet">
+            <action
+                definitionId="com.google.dart.tools.ui.edit.text.dart.open.type.hierarchy"
+                label="%OpenTypeHierarchyAction.label"
+                retarget="true"
+                menubarPath="navigate/open.ext"
+                id="com.google.dart.tools.ui.actions.OpenTypeHierarchy">
+            </action>
+        </actionSet>
+    </extension>
+
     <extension point="org.eclipse.ui.actionSetPartAssociations">
         <actionSetPartAssociation targetID="com.google.dart.tools.ui.RefactorActionSet">
+            <part id="com.google.dart.tools.ui.text.editor.CompilationUnitEditor"/>
+        </actionSetPartAssociation>
+        <actionSetPartAssociation targetID="com.google.dart.tools.ui.OpenActionSet">
             <part id="com.google.dart.tools.ui.text.editor.CompilationUnitEditor"/>
         </actionSetPartAssociation>
     </extension>
@@ -2002,7 +2024,7 @@
             name="%ActionDefinition.openTypeHierarchy.name"
             description="%ActionDefinition.openTypeHierarchy.description"
             categoryId="org.eclipse.ui.category.navigate"
-            id="org.eclipse.wst.jsdt.ui.edit.text.java.open.type.hierarchy">
+            id="com.google.dart.tools.ui.edit.text.dart.open.type.hierarchy">
       </command>
       <command
             name="%ActionDefinition.openCallHierarchy.name"
@@ -3188,6 +3210,12 @@
             sequence="CTRL+ALT+H"
             contextId="com.google.dart.tools.ui.dartEditorScope"
             commandId="com.google.dart.tools.ui.edit.text.analyze.call.hierarchy"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+
+      <key
+            sequence="F4"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.open.type.hierarchy"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
 
       <key
