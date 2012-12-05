@@ -133,7 +133,7 @@ class PagedColumnView extends View {
   // TODO(jmesserly): would be better to not have this code in enterDocument.
   // But we need computedStyle to read our CSS properties.
   void enterDocument() {
-    contentView.node.computedStyle.then((CSSStyleDeclaration style) {
+    contentView.node.computedStyle.then((CssStyleDeclaration style) {
       _computeColumnGap(style);
 
       // Trigger a fake resize event so we measure our height.
@@ -155,7 +155,7 @@ class PagedColumnView extends View {
   }
 
   /** Read the column-gap setting so we know how far to translate the child. */
-  void _computeColumnGap(CSSStyleDeclaration style) {
+  void _computeColumnGap(CssStyleDeclaration style) {
     String gap = style.columnGap;
     if (gap == 'normal') {
       gap = style.fontSize;

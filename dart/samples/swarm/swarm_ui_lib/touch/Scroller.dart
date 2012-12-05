@@ -231,7 +231,7 @@ class Scroller implements Draggable, MomentumDelegate {
     // The scrollable element must be relatively positioned.
     // TODO(jacobr): this assert fires asynchronously which could be confusing.
     if (_scrollTechnique == ScrollerScrollTechnique.RELATIVE_POSITIONING) {
-      _element.computedStyle.then((CSSStyleDeclaration style) {
+      _element.computedStyle.then((CssStyleDeclaration style) {
         assert(style.position != "static");
       });
     }

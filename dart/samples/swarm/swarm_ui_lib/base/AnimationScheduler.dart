@@ -41,7 +41,7 @@ class AnimationScheduler {
   List<CallbackData> _callbacks;
   int _intervalId;
   bool _isMobileSafari = false;
-  CSSStyleDeclaration _safariHackStyle;
+  CssStyleDeclaration _safariHackStyle;
   int _frameCount = 0;
   bool _webkitAnimationFrameMaybeAvailable = true;
 
