@@ -158,7 +158,8 @@ class ObservableList<T>
     recordGlobalChange();
   }
 
-  void sort([Comparator compare = Comparable.compare]) {
+  void sort([int compare(var a, var b)]) {
+    if (compare == null) compare = Comparable.compare;
     _internal.sort(compare);
     recordGlobalChange();
   }
