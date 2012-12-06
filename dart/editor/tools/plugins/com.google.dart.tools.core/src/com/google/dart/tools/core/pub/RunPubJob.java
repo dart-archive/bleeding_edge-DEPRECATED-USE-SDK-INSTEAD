@@ -55,7 +55,8 @@ public class RunPubJob extends Job {
     super(NLS.bind(PubMessages.RunPubJob_name, command));
     this.command = command;
     this.container = container;
-    setRule(container);
+    // TODO(keertip): comment out for now, on windows pub install takes long time and blocks builder
+    //   setRule(container);
   }
 
   /**
