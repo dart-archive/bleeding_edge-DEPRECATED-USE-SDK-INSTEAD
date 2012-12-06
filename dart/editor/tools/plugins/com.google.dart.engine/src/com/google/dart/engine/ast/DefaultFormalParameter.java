@@ -103,6 +103,11 @@ public class DefaultFormalParameter extends FormalParameter {
   }
 
   @Override
+  public SimpleIdentifier getIdentifier() {
+    return parameter.getIdentifier();
+  }
+
+  @Override
   public ParameterKind getKind() {
     return kind;
   }

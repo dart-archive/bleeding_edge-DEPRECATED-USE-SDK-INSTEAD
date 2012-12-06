@@ -77,11 +77,7 @@ public abstract class NormalFormalParameter extends FormalParameter {
     return comment;
   }
 
-  /**
-   * Return the name of the parameter being declared.
-   * 
-   * @return the name of the parameter being declared
-   */
+  @Override
   public SimpleIdentifier getIdentifier() {
     return identifier;
   }

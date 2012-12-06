@@ -28,6 +28,13 @@ import com.google.dart.engine.utilities.dart.ParameterKind;
  */
 public abstract class FormalParameter extends ASTNode {
   /**
+   * Return the name of the parameter being declared.
+   * 
+   * @return the name of the parameter being declared
+   */
+  public abstract SimpleIdentifier getIdentifier();
+
+  /**
    * Return the kind of this parameter.
    * 
    * @return the kind of this parameter
