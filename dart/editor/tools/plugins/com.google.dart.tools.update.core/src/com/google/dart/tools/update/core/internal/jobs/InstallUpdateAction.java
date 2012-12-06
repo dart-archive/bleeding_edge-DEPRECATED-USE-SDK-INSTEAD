@@ -16,6 +16,7 @@ package com.google.dart.tools.update.core.internal.jobs;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateCore;
 import com.google.dart.tools.update.core.UpdateManager;
 import com.google.dart.tools.update.core.internal.UpdateUtils;
@@ -34,6 +35,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -49,11 +51,29 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class InstallUpdateAction extends Action {
 
+  private static class RetryUpdateDialog extends MessageDialog {
+
+    public RetryUpdateDialog(Shell parentShell) {
+      super(
+          parentShell,
+          UpdateJobMessages.InstallUpdateAction_bad_zip_dialog_title,
+          null,
+          UpdateJobMessages.InstallUpdateAction_bad_zip_dialog_msg,
+          MessageDialog.QUESTION,
+          new String[] {
+              UpdateJobMessages.InstallUpdateAction_bad_zip_retry_confirm,
+              UpdateJobMessages.InstallUpdateAction_bad_zip_dialog_cancel},
+          0);
+    }
+
+  }
+
   private static final String PROP_EXIT_CODE = "eclipse.exitcode"; //$NON-NLS-1$
   private static final String PROP_EXIT_DATA = "eclipse.exitdata"; //$NON-NLS-1$  
   private static final String PROP_VM = "eclipse.vm"; //$NON-NLS-1$
   private static final String PROP_COMMANDS = "eclipse.commands"; //$NON-NLS-1$
   private static final String PROP_VMARGS = "eclipse.vmargs"; //$NON-NLS-1$
+
   private static final String CMD_VMARGS = "-vmargs"; //$NON-NLS-1$
 
   private static final String NEW_LINE = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -123,8 +143,9 @@ public class InstallUpdateAction extends Action {
     }
 
     try {
-      applyUpdate();
-      restart();
+      if (applyUpdate()) {
+        restart();
+      }
     } catch (Throwable th) {
       UpdateCore.logError(th);
       MessageDialog.openError(
@@ -134,7 +155,9 @@ public class InstallUpdateAction extends Action {
     }
   }
 
-  private void applyUpdate() throws InvocationTargetException, InterruptedException {
+  private boolean applyUpdate() throws InvocationTargetException, InterruptedException {
+
+    final boolean result[] = new boolean[1];
 
     new ProgressMonitorDialog(getShell()) {
       @Override
@@ -146,13 +169,15 @@ public class InstallUpdateAction extends Action {
       public void run(IProgressMonitor monitor) throws InvocationTargetException,
           InterruptedException {
         try {
-          doApplyUpdate(monitor);
+          result[0] = doApplyUpdate(monitor);
         } catch (IOException e) {
           throw new InvocationTargetException(e);
         }
       }
 
     });
+
+    return result[0];
   }
 
   //TODO (pquitslund): this step may be unnecessary if writing bundles.info suffices
@@ -201,7 +226,7 @@ public class InstallUpdateAction extends Action {
     monitor.done();
   }
 
-  private void doApplyUpdate(IProgressMonitor monitor) throws IOException {
+  private boolean doApplyUpdate(IProgressMonitor monitor) throws IOException {
 
     File tmpDir = UpdateUtils.getUpdateTempDir();
 
@@ -210,9 +235,30 @@ public class InstallUpdateAction extends Action {
     cleanupTempDir(tmpDir, mon.newChild(3));
 
     IPath updatePath = updateManager.getLatestStagedUpdate().getLocalPath();
+    File updateZip = updatePath.toFile();
+
+    if (!UpdateUtils.isZipValid(updateZip)) {
+
+      final boolean[] retry = new boolean[1];
+
+      Display.getDefault().syncExec(new Runnable() {
+        @Override
+        public void run() {
+          retry[0] = new RetryUpdateDialog(getShell()).open() == 0;
+        }
+      });
+
+      if (retry[0]) {
+        Revision latest = UpdateManager.getInstance().getLatestRevision();
+        UpdateManager.getInstance().scheduleDownload(latest);
+      }
+
+      return false;
+    }
+
     monitor.setTaskName(UpdateJobMessages.InstallUpdateAction_extract_task);
     UpdateUtils.unzip(
-        updatePath.toFile(),
+        updateZip,
         tmpDir,
         UpdateJobMessages.InstallUpdateAction_extract_task,
         mon.newChild(20));
@@ -257,6 +303,7 @@ public class InstallUpdateAction extends Action {
     UpdateUtils.ensureExecutable(new File(sdkDir, "bin").listFiles()); //$NON-NLS-1$
     UpdateUtils.ensureExecutable(DartSdkManager.getManager().getSdk().getDartiumExecutable());
 
+    return true;
   }
 
   private File getIni(File dir) {

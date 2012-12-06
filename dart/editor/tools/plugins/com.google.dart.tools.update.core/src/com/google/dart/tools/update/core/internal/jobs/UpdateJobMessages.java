@@ -25,6 +25,10 @@ public class UpdateJobMessages extends NLS {
   public static String DownloadUpdatesJob_editor_rev_label;
   public static String DownloadUpdatesJob_job_label;
   public static String DownloadUpdatesJob_progress_label;
+  public static String InstallUpdateAction_bad_zip_dialog_cancel;
+  public static String InstallUpdateAction_bad_zip_dialog_msg;
+  public static String InstallUpdateAction_bad_zip_dialog_title;
+  public static String InstallUpdateAction_bad_zip_retry_confirm;
   public static String InstallUpdateAction_cleanup_task;
   public static String InstallUpdateAction_confirm_save_msg;
   public static String InstallUpdateAction_confirm_save_title;
