@@ -243,11 +243,13 @@ public class OverviewFormPage extends FormPage implements IModelListener {
   }
 
   private void updateInfoSection() {
-    nameText.setText(model.getName());
-    versionText.setText(model.getVersion());
-    description.setText(model.getDescription());
-    homepageText.setText(model.getHomepage());
-    authorText.setText(model.getAuthor());
+    if (model != null) {
+      nameText.setText(model.getName());
+      versionText.setText(model.getVersion());
+      description.setText(model.getDescription());
+      homepageText.setText(model.getHomepage());
+      authorText.setText(model.getAuthor());
+    }
   }
 
   private boolean validateName(String name) {
@@ -269,7 +271,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
   }
 
   private boolean validateVersion(String version) {
-    if (version.matches(VERSION_EXPRESSION)) {
+    if (version.isEmpty() || version.matches(VERSION_EXPRESSION)) {
       form.getMessageManager().removeMessage(VERSION_MESSAGE_KEY, versionText);
       return true;
     }
