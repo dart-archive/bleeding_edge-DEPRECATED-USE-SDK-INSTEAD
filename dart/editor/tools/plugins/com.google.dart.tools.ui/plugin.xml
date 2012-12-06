@@ -392,7 +392,7 @@
       </view>
 
       <view
-            name="%typeHierarchyViewName"
+            name="%classHierarchyViewName"
             icon="$nl$/icons/full/eview16/class_hi.gif"
             category="com.google.dart.tools.ui.dart"
             class="com.google.dart.tools.ui.internal.typehierarchy.TypeHierarchyViewPart"
@@ -839,7 +839,7 @@
             id="com.google.dart.tools.ui.OpenActionSet">
             <action
                 definitionId="com.google.dart.tools.ui.edit.text.dart.open.type.hierarchy"
-                label="%OpenTypeHierarchyAction.label"
+                label="%OpenClassHierarchyAction.label"
                 retarget="true"
                 menubarPath="navigate/open.ext"
                 id="com.google.dart.tools.ui.actions.OpenTypeHierarchy">
