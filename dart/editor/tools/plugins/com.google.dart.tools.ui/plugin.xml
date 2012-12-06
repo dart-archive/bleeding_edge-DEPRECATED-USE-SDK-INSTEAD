@@ -529,6 +529,11 @@
             super="org.eclipse.ui.workbench.texteditor.warning"
             markerType="com.google.dart.tools.core.problem"
             markerSeverity="0"/>
+      <type
+            name="com.google.dart.tools.ui.info"
+            super="org.eclipse.ui.workbench.texteditor.warning"
+            markerType="com.google.dart.tools.core.buildDartIssue"
+            markerSeverity="0"/>
       <type name="com.google.dart.tools.ui.occurrences"/>
       <type name="com.google.dart.tools.ui.overrideIndicator"/>
    </extension>
@@ -543,10 +548,6 @@
            annotationType="com.google.dart.tools.ui.warning"
            annotationImageProvider="com.google.dart.tools.ui.internal.text.editor.DartAnnotationImageProvider">
        </specification>
-       <!--<specification
-           annotationType="com.google.dart.tools.ui.info"
-           annotationImageProvider="com.google.dart.tools.ui.internal.text.editor.DartAnnotationImageProvider">
-       </specification>-->
        <specification
             annotationType="com.google.dart.tools.ui.occurrences"
             label="%OccurrenceAnnotation.label"
@@ -597,8 +598,8 @@
      <specification
            annotationType="com.google.dart.tools.ui.info"
            colorPreferenceKey="suggestionIndicationColor"
-           colorPreferenceValue="127,127,127"
-           icon="icons/full/misc/info2.png"
+           colorPreferenceValue="244,200,45"
+           icon="icons/full/misc/info.png"
            contributesToHeader="true"
            highlightPreferenceKey="suggestionIndicationHighlighting"
            highlightPreferenceValue="false"

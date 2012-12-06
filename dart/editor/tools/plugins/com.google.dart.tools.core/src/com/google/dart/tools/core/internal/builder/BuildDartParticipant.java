@@ -265,7 +265,7 @@ public class BuildDartParticipant implements BuildParticipant {
       throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, e.getMessage(), e));
     }
 
-    processBuilderOutput(container, runner.getStdOut());
+    String processedOutput = processBuilderOutput(container, runner.getStdOut());
 
     if (result != 0) {
       DartCore.getConsole().println("build.dart " + commandSummary);
@@ -274,7 +274,7 @@ public class BuildDartParticipant implements BuildParticipant {
       }
       DartCore.getConsole().println("build.dart returned error code " + result);
 
-      String stdout = runner.getStdOut().trim();
+      String stdout = processedOutput.trim();
 
       if (stdout.length() > 0) {
         DartCore.getConsole().println();
@@ -396,6 +396,15 @@ public class BuildDartParticipant implements BuildParticipant {
           params.optInt("line", -1),
           params.optInt("charStart", -1),
           params.optInt("charEnd", -1));
+    } else if (method.equals("info")) {
+      createMarker(
+          container,
+          IMarker.SEVERITY_INFO,
+          params.getString("file"),
+          params.getString("message"),
+          params.optInt("line", -1),
+          params.optInt("charStart", -1),
+          params.optInt("charEnd", -1));
     } else if (method.equals("mapping")) {
       String fromPath = params.getString("from");
       String toPath = params.getString("to");
@@ -411,19 +420,20 @@ public class BuildDartParticipant implements BuildParticipant {
     }
   }
 
-  private void processBuilderOutput(IContainer container, String output) {
+  private String processBuilderOutput(IContainer container, String output) {
     String[] lines = output.split("\n");
+    StringBuilder stringBuilder = new StringBuilder(output.length());
 
     for (String line : lines) {
-      line = line.trim();
+      String trimmedLine = line.trim();
 
-      if (line.startsWith("[{") && line.endsWith("}]")) {
+      if (trimmedLine.startsWith("[{") && trimmedLine.endsWith("}]")) {
         // try and parse this as a builder event
         //[{"method":"error","params":{"file":"foo.html","line":23,"message":"no ID found"}}]
         //[{"method":"warning","params":{"file":"foo.html","line":23,"message":"no ID found"}}]
         //[{"method":"mapping","params":{"from":"foo.html","to":"out/foo.html"}}]
 
-        String jsonStr = line.substring(1, line.length() - 1);
+        String jsonStr = trimmedLine.substring(1, trimmedLine.length() - 1);
 
         try {
           JSONObject json = new JSONObject(jsonStr);
@@ -432,8 +442,13 @@ public class BuildDartParticipant implements BuildParticipant {
         } catch (JSONException e) {
           DartCore.logError(e);
         }
+      } else {
+        stringBuilder.append(line);
+        stringBuilder.append('\n');
       }
     }
+
+    return stringBuilder.toString();
   }
 
   /**

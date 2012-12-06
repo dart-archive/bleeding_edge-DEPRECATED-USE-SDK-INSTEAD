@@ -413,8 +413,10 @@ class ResourceServerHandler implements Runnable {
       // Last-Modified: Wed, 08 Jan 2003 23:11:55 GMT
       Date date = new Date(javaFile.lastModified());
       response.headers.put("Last-Modified", HttpResponse.RFC_1123_DATE_FORMAT.format(date));
+    } catch (ArrayIndexOutOfBoundsException ex) {
+      // This happens occasionally on Windows. 
+
     } catch (Throwable t) {
-      // Some (bad?) file times can cause exceptions to be thrown from the formatter. 
       DartDebugCorePlugin.logError(t);
     }
 

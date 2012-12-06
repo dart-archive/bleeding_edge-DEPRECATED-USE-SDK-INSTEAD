@@ -14,12 +14,7 @@
 package com.google.dart.tools.debug.ui.internal.browser;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
-import com.google.dart.tools.core.dart2js.Dart2JSCompiler.CompilationResult;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
@@ -32,13 +27,11 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
@@ -110,13 +103,15 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
             Messages.BrowserLaunchConfigurationDelegate_HtmlFileNotFound));
       }
 
-      try {
-        compileJavascript(resource, monitor);
-      } catch (OperationCanceledException ex) {
-        // The user cancelled the launch.
-
-        return;
-      }
+//      try {
+//        // Our embedded web server will automatically recompile the dart.js file if any of its
+//        // dependencies have changed. There's no need to compile it here (esp. on every launch).
+//        compileJavascript(resource, monitor);
+//      } catch (OperationCanceledException ex) {
+//        // The user cancelled the launch.
+//
+//        return;
+//      }
 
       try {
         // This returns just a plain file: url.
@@ -154,67 +149,6 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
     }
 
     DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
-  }
-
-  /**
-   * Before proceeding with launch, check if Javascript has been generated.
-   * 
-   * @param resource
-   * @throws CoreException
-   */
-  private void compileJavascript(IResource resource, IProgressMonitor monitor)
-      throws CoreException, OperationCanceledException {
-    DartElement element = DartCore.create(resource);
-
-    if (element == null) {
-      throw new CoreException(new Status(
-          IStatus.ERROR,
-          DartDebugUIPlugin.PLUGIN_ID,
-          Messages.BrowserLaunchShortcut_NotInLibraryErrorMessage));
-    } else if (!(element instanceof HTMLFile)) {
-      throw new CoreException(new Status(
-          IStatus.ERROR,
-          DartDebugUIPlugin.PLUGIN_ID,
-          Messages.BrowserLaunchShortcut_NotHtmlFileErrorMessage));
-    } else {
-      HTMLFile htmlFile = (HTMLFile) element;
-
-      try {
-        if (htmlFile.getReferencedLibraries().length > 0) {
-          DartLibrary library = htmlFile.getReferencedLibraries()[0];
-
-          CompilationResult result = Dart2JSCompiler.compileLibrary(
-              library,
-              monitor,
-              DartCore.getConsole());
-
-          if (result.getExitCode() != 0) {
-            String errMsg = NLS.bind(
-                "Failure to launch - unable to generate JavaScript for {0}.\n\nPlease see the console or log for more details.",
-                resource.getName());
-
-            errMsg = errMsg.trim();
-
-            DartDebugCorePlugin.logError(result.getAllOutput());
-
-            throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, errMsg));
-          }
-        } else {
-          throw new CoreException(new Status(
-              IStatus.ERROR,
-              DartDebugUIPlugin.PLUGIN_ID,
-              "Unable to run " + resource.getName() + " - no Dart applications referenced."));
-        }
-      } catch (CoreException e) {
-        throw new CoreException(new Status(
-            IStatus.ERROR,
-            DartDebugUIPlugin.PLUGIN_ID,
-            e.toString(),
-            e));
-      } finally {
-        monitor.done();
-      }
-    }
   }
 
   private void launchInExternalBrowser(DartLaunchConfigWrapper launchConfig, final String url)
