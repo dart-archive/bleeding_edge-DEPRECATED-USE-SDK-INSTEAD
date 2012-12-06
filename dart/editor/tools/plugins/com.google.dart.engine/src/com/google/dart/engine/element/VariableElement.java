@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.type.Type;
+
 /**
  * The interface {@code VariableElement} defines the behavior common to elements that represent a
  * variable.
@@ -26,6 +28,14 @@ public interface VariableElement extends Element {
    * @return a synthetic function representing this variable's initializer
    */
   public FunctionElement getInitializer();
+
+  /**
+   * Return the declared type of this variable, or {@code null} if the variable did not have a
+   * declared type (such as if it was declared using the keyword 'var').
+   * 
+   * @return the declared type of this variable
+   */
+  public Type getType();
 
   /**
    * Return {@code true} if this variable is a const variable. Variables are const if they have been

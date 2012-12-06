@@ -17,11 +17,17 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.type.Type;
 
 /**
  * Instances of the class {@code VariableElementImpl} implement a {@code VariableElement}.
  */
 public class VariableElementImpl extends ElementImpl implements VariableElement {
+  /**
+   * The declared type of this variable.
+   */
+  private Type type;
+
   /**
    * A synthetic function representing this variable's initializer, or {@code null} if this variable
    * does not have an initializer.
@@ -64,6 +70,11 @@ public class VariableElementImpl extends ElementImpl implements VariableElement 
   }
 
   @Override
+  public Type getType() {
+    return type;
+  }
+
+  @Override
   public boolean isConst() {
     return hasModifier(Modifier.CONST);
   }
@@ -101,5 +112,14 @@ public class VariableElementImpl extends ElementImpl implements VariableElement 
       ((FunctionElementImpl) initializer).setEnclosingElement(this);
     }
     this.initializer = initializer;
+  }
+
+  /**
+   * Set the declared type of this variable to the given type.
+   * 
+   * @param type the declared type of this variable
+   */
+  public void setType(Type type) {
+    this.type = type;
   }
 }
