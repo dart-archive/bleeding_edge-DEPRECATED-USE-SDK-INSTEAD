@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.web.pubspec;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -166,7 +167,11 @@ public class PubspecModel {
       pubYamlObject.description = description;
     }
     if (!author.isEmpty()) {
-      pubYamlObject.author = author;
+      if (author.indexOf(',') != -1) { // comma separated list
+        pubYamlObject.authors = Arrays.asList(author.split(","));
+      } else {
+        pubYamlObject.author = author;
+      }
     }
     if (!homepage.isEmpty()) {
       pubYamlObject.homepage = homepage;
@@ -242,6 +247,12 @@ public class PubspecModel {
       name = object.name;
       version = (object.version != null) ? object.version : EMPTY_STRING;
       author = (object.author != null) ? object.author : EMPTY_STRING;
+      if (object.authors != null) {
+        author = object.authors.get(0);
+        for (int i = 1; i < object.authors.size(); i++) {
+          author += "," + object.authors.get(i);
+        }
+      }
       description = (object.description != null) ? object.description : EMPTY_STRING;
       homepage = (object.homepage != null) ? object.homepage : EMPTY_STRING;
       add(processDependencies(object.dependencies), IModelListener.REFRESH);

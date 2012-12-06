@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.web.pubspec;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,6 +25,7 @@ public class PubYamlObject {
 
   public String version;
   public String author;
+  public List<String> authors;
   public String description;
   public String homepage;
   public Map<String, Object> dependencies;
