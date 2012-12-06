@@ -1,14 +1,13 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 #include "jni/dart_host.h"
 
 #include <math.h>
 #include <unistd.h>
 
-#include "bin/eventhandler.h"
-#include "bin/isolate_data.h"
-#include "bin/log.h"
-#include "bin/platform.h"
-#include "bin/process.h"
-#include "vm/flags.h"
+#include "jni/log.h"
 
 DartHost::DartHost(Context *context)
     : graphics_(context->graphics),
@@ -17,11 +16,11 @@ DartHost::DartHost(Context *context)
       timer_(context->timer),
       vm_glue_(context->vm_glue),
       active_(false) {
-  Log::Print("Creating DartHost");
+  LOGI("Creating DartHost");
 }
 
 DartHost::~DartHost() {
-  Log::Print("Freeing DartHost");
+  LOGI("Freeing DartHost");
 }
 
 int32_t DartHost::OnActivate() {
@@ -30,7 +29,7 @@ int32_t DartHost::OnActivate() {
 
 int32_t DartHost::Activate() {
   if (!active_) {
-    Log::Print("Activating DartHost");
+    LOGI("Activating DartHost");
     if (graphics_->Start() != 0) {
       return -1;
     }
@@ -41,10 +40,10 @@ int32_t DartHost::Activate() {
       return -1;
     }
     timer_->reset();
-    Log::Print("Starting main isolate");
+    LOGI("Starting main isolate");
     int result = vm_glue_->StartMainIsolate();
     if (result != 0) {
-      Log::PrintErr("startMainIsolate returned %d", result);
+      LOGE("startMainIsolate returned %d", result);
       return -1;
     }
     active_ = true;
@@ -61,7 +60,7 @@ void DartHost::Deactivate() {
   if (active_) {
     active_ = false;
     vm_glue_->FinishMainIsolate();
-    Log::Print("Deactivating DartHost");
+    LOGI("Deactivating DartHost");
     sound_service_->Stop();
     graphics_->Stop();
   }
@@ -77,55 +76,54 @@ int32_t DartHost::OnStep() {
 }
 
 void DartHost::OnStart() {
-  Log::Print("Starting DartHost");
+  LOGI("Starting DartHost");
 }
 
 void DartHost::OnResume() {
-  Log::Print("Resuming DartHost");
+  LOGI("Resuming DartHost");
 }
 
 void DartHost::OnPause() {
-  Log::Print("Pausing DartHost");
+  LOGI("Pausing DartHost");
 }
 
 void DartHost::OnStop() {
-  Log::Print("Stopping DartHost");
+  LOGI("Stopping DartHost");
 }
 
 void DartHost::OnDestroy() {
-  Log::Print("Destroying DartHost");
+  LOGI("Destroying DartHost");
 }
 
 void DartHost::OnSaveState(void** data, size_t size) {
-  Log::Print("Saving DartHost state");
+  LOGI("Saving DartHost state");
 }
 
 void DartHost::OnConfigurationChanged() {
-  Log::Print("DartHost config changed");
+  LOGI("DartHost config changed");
 }
 
 void DartHost::OnLowMemory() {
-  Log::Print("DartHost low on memory");
+  LOGI("DartHost low on memory");
 }
 
 void DartHost::OnCreateWindow() {
-  Log::Print("DartHost creating window");
+  LOGI("DartHost creating window");
 }
 
 void DartHost::OnDestroyWindow() {
-  Log::Print("DartHost destroying window");
+  LOGI("DartHost destroying window");
 }
 
 void DartHost::OnGainedFocus() {
-  Log::Print("DartHost gained focus");
+  LOGI("DartHost gained focus");
 }
 
 void DartHost::OnLostFocus() {
-  Log::Print("DartHost lost focus");
+  LOGI("DartHost lost focus");
 }
 
 void DartHost::Clear() {
   memset(window_buffer_.bits, 0,
          window_buffer_.stride * window_buffer_.height * sizeof(int32_t));
 }
-

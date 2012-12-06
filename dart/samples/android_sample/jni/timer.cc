@@ -1,5 +1,8 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 #include "jni/timer.h"
-#include "bin/log.h"
 
 Timer::Timer() : elapsed_(0.0f), last_time_(0.0) {
 }
@@ -24,4 +27,3 @@ double Timer::now() {
 float Timer::elapsed() {
   return elapsed_;
 }
-

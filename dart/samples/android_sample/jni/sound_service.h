@@ -26,7 +26,6 @@ class SoundService {
     SLSeekItf background_player_seek_if_;
 };
 
-int32_t PlayBackground(const char* path);
+void PlayBackground(const char* path);
 void StopBackground();
 #endif
-

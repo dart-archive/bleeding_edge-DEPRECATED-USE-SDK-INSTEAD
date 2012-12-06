@@ -22,12 +22,10 @@ void android_main(android_app* application) {
   eventLoop.Run(&host, &context);
 }
 
-int32_t PlayBackground(const char* path) {
+void PlayBackground(const char* path) {
   psound_service->PlayBackground(path);
 }
 
 void StopBackground() {
   psound_service->StopBackground();
 }
-
-

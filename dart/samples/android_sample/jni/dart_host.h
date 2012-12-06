@@ -1,8 +1,11 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 #ifndef DART_HOST_H
 #define DART_HOST_H
 
 #include <android_native_app_glue.h>
-#include "bin/dartutils.h"
 #include "include/dart_api.h"
 #include "jni/activity_handler.h"
 #include "jni/context.h"

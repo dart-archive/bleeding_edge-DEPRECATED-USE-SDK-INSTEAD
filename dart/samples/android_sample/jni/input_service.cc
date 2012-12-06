@@ -1,8 +1,12 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 #include <android_native_app_glue.h>
 #include <cmath>
 
-#include "bin/log.h"
 #include "jni/input_service.h"
+#include "jni/log.h"
 
 InputService::InputService(android_app* application,
                            VMGlue* vm_glue,
@@ -54,7 +58,7 @@ bool InputService::OnTouchEvent(AInputEvent* event) {
     float move_x = AMotionEvent_getX(event, 0);
     float move_y = AMotionEvent_getY(event, 0);
     int64_t when = AMotionEvent_getEventTime(event);
-    Log::Print("Got motion event %d at %f, %f", type, move_x, move_y);
+    LOGI("Got motion event %d at %f, %f", type, move_x, move_y);
 
     if (vm_glue_->OnMotionEvent(function, when, move_x, move_y) != 0) {
       return false;
@@ -105,7 +109,7 @@ bool InputService::OnKeyEvent(AInputEvent* event) {
      * java.lang.System.nanoTime() time base. */
     int64_t when = AKeyEvent_getEventTime(event);
 
-    Log::Print("Got key event %d %d", type, key_code);
+    LOGI("Got key event %d %d", type, key_code);
     if (vm_glue_->OnKeyEvent(function, when, flags, key_code,
                              meta_state, repeat) != 0) {
       return false;
@@ -115,4 +119,3 @@ bool InputService::OnKeyEvent(AInputEvent* event) {
   }
   return true;
 }
-

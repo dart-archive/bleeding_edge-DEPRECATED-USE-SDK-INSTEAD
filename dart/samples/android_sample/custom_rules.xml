@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
 <project>
     <target name="-pre-build">
       <mkdir dir="res/drawable-hdpi"/>
@@ -38,7 +42,5 @@
       </exec>
     </target>
     <target name="-post-compile">
-      <copy file="obj/local/x86/libandroid_extension.so"
-           tofile="assets/dart/libandroid_extension.so"/>
     </target>
 </project>

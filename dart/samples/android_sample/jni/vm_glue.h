@@ -1,8 +1,12 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 #ifndef VM_GLUE_H
 #define VM_GLUE_H
 
 #include <android_native_app_glue.h>
-#include "bin/dartutils.h"
+
 #include "include/dart_api.h"
 #include "jni/graphics.h"
 
@@ -24,9 +28,8 @@ class VMGlue {
   int Invoke(const char *function, int argc, Dart_Handle* args);
 
   static int ErrorExit(const char* format, ...);
-  static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
-                                         const char* executable_name,
-                                         const char* script_name);
+  static Dart_Handle CheckError(Dart_Handle);
+
   static bool CreateIsolateAndSetupHelper(const char* script_uri,
                                           const char* main,
                                           void* data,
@@ -34,6 +37,10 @@ class VMGlue {
   static bool CreateIsolateAndSetup(const char* script_uri,
                                     const char* main,
                                     void* data, char** error);
+  static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
+				       Dart_Handle library,
+				       Dart_Handle urlHandle);
+  static Dart_Handle LoadSourceFromFile(const char* url);
   static void ShutdownIsolate(void* callback_data);
 
   Graphics* graphics_;

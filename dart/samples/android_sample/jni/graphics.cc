@@ -1,6 +1,13 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 #include "jni/graphics.h"
+
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+
+#include "jni/log.h"
 
 Graphics::Graphics(android_app* application, Timer* timer)
     : application_(application),
@@ -34,19 +41,19 @@ int32_t Graphics::Start() {
 
   display_ = eglGetDisplay(EGL_DEFAULT_DISPLAY);
   if (display_ != EGL_NO_DISPLAY) {
-    Log::Print("eglInitialize");
+    LOGI("eglInitialize");
     if (eglInitialize(display_, NULL, NULL)) {
-      Log::Print("eglChooseConfig");
+      LOGI("eglChooseConfig");
       if (eglChooseConfig(display_, attributes, &config, 1, &numConfigs) &&
           numConfigs > 0) {
-        Log::Print("eglGetConfigAttrib");
+        LOGI("eglGetConfigAttrib");
         if (eglGetConfigAttrib(display_, config,
                                EGL_NATIVE_VISUAL_ID, &format)) {
           ANativeWindow_setBuffersGeometry(application_->window, 0, 0, format);
           surface_ = eglCreateWindowSurface(display_, config,
                               (EGLNativeWindowType)application_->window, NULL);
           if (surface_ != EGL_NO_SURFACE) {
-            Log::Print("eglCreateContext");
+            LOGI("eglCreateContext");
             context_ = eglCreateContext(display_, config, EGL_NO_CONTEXT,
                                         ctx_attribs);
             if (context_ != EGL_NO_CONTEXT) {
@@ -64,13 +71,13 @@ int32_t Graphics::Start() {
       }
     }
   }
-  Log::PrintErr("Error starting graphics");
+  LOGE("Error starting graphics");
   Stop();
   return -1;
 }
 
 void Graphics::Stop() {
-  Log::Print("Stopping graphics");
+  LOGI("Stopping graphics");
   if (display_ != EGL_NO_DISPLAY) {
     eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     if (context_ != EGL_NO_CONTEXT) {
@@ -89,4 +96,3 @@ void Graphics::Stop() {
 int32_t Graphics::Update() {
   return 0;
 }
-

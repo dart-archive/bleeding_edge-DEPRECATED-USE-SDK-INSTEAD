@@ -11,7 +11,7 @@
             'target_name': 'android_sample',
             'type': 'none',
             'dependencies': [
-              '../android_embedder/android_embedder.gyp:android_embedder',
+              '../../runtime/dart-runtime.gyp:android_embedder',
             ],
             'actions': [
               # TODO(gram) - this should have a debug and release version.

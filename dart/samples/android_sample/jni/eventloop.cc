@@ -1,5 +1,9 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 #include "jni/eventloop.h"
-#include "bin/log.h"
+#include "jni/log.h"
 
 EventLoop::EventLoop(android_app* application)
     : enabled_(false),
@@ -21,7 +25,7 @@ void EventLoop::Run(ActivityHandler* activity_handler,
   app_dummy();
   activity_handler_ = activity_handler;
   input_handler_ = context->input_handler;
-  Log::Print("Starting event loop");
+  LOGI("Starting event loop");
   while (true) {
     // If not enabled, block on events. If enabled, don't block
     // so we can do useful work in onStep.
@@ -37,7 +41,7 @@ void EventLoop::Run(ActivityHandler* activity_handler,
       }
     }
     if (enabled_ && !quit_) {
-      Log::Print("step");
+      LOGI("step");
       if (activity_handler_->OnStep() != 0) {
         quit_ = true;
         ANativeActivity_finish(application_->activity);
@@ -48,7 +52,7 @@ void EventLoop::Run(ActivityHandler* activity_handler,
 
 // Called when we gain focus.
 void EventLoop::Activate() {
-  Log::Print("activate");
+  LOGI("activate");
   if (!enabled_ && application_->window != NULL) {
     quit_ = false;
     enabled_ = true;
@@ -61,7 +65,7 @@ void EventLoop::Activate() {
 
 // Called when we lose focus.
 void EventLoop::Deactivate() {
-  Log::Print("deactivate");
+  LOGI("deactivate");
   if (enabled_) {
     activity_handler_->OnDeactivate();
     enabled_ = false;
@@ -118,7 +122,7 @@ void EventLoop::ProcessActivityEvent(int32_t command) {
 
 int32_t EventLoop::ProcessInputEvent(AInputEvent* event) {
   int32_t event_type = AInputEvent_getType(event);
-  Log::Print("Got input event type %d", event_type);
+  LOGI("Got input event type %d", event_type);
   switch (event_type) {
     case AINPUT_EVENT_TYPE_MOTION:
       if (AInputEvent_getSource(event) == AINPUT_SOURCE_TOUCHSCREEN) {
@@ -141,4 +145,3 @@ int32_t EventLoop::InputCallback(android_app* application,
   EventLoop* event_loop = reinterpret_cast<EventLoop*>(application->userData);
   return event_loop->ProcessInputEvent(event);
 }
-

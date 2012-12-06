@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "jni/android_extension.h"
+
 #include <android/log.h>
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
@@ -11,20 +13,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bin/log.h"
 #include "include/dart_api.h"
-#include "jni/android_extension.h"
-
-Dart_NativeFunction ResolveName(Dart_Handle name, int argc);
-
-DART_EXPORT Dart_Handle android_extension_Init(Dart_Handle parent_library) {
-  if (Dart_IsError(parent_library)) { return parent_library; }
-
-  Dart_Handle result_code = Dart_SetNativeResolver(parent_library, ResolveName);
-  if (Dart_IsError(result_code)) return result_code;
-
-  return Dart_Null();
-}
+#include "jni/log.h"
 
 Dart_Handle HandleError(Dart_Handle handle) {
   if (Dart_IsError(handle)) Dart_PropagateError(handle);
@@ -34,7 +24,7 @@ Dart_Handle HandleError(Dart_Handle handle) {
 void CheckGLError(const char *function) {
   int error = glGetError();
   if (error != GL_NO_ERROR) {
-    Log::PrintErr("ERROR!: %s returns %d", function, error);
+    LOGE("ERROR!: %s returns %d", function, error);
   }
 }
 
@@ -50,7 +40,7 @@ const char* GetStringArg(Dart_NativeArguments arguments, int idx) {
 
 void Log(Dart_NativeArguments arguments) {
   Dart_EnterScope();
-  Log::Print(GetStringArg(arguments, 0));
+  LOGI(GetStringArg(arguments, 0));
   Dart_ExitScope();
 }
 
@@ -80,7 +70,7 @@ void SystemSrand(Dart_NativeArguments arguments) {
 }
 
 void EGLSwapBuffers(Dart_NativeArguments arguments) {
-  Log::Print("GLSwapBuffers");
+  LOGI("GLSwapBuffers");
   Dart_EnterScope();
 
   EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -92,7 +82,7 @@ void EGLSwapBuffers(Dart_NativeArguments arguments) {
 }
 
 void GLAttachShader(Dart_NativeArguments arguments) {
-  Log::Print("GLAttachShader");
+  LOGI("GLAttachShader");
   Dart_EnterScope();
 
   Dart_Handle programHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -109,7 +99,7 @@ void GLAttachShader(Dart_NativeArguments arguments) {
 }
 
 void GLBindBuffer(Dart_NativeArguments arguments) {
-  Log::Print("GLBindBuffer");
+  LOGI("GLBindBuffer");
   Dart_EnterScope();
 
   Dart_Handle targetHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -126,7 +116,7 @@ void GLBindBuffer(Dart_NativeArguments arguments) {
 }
 
 void GLBufferData(Dart_NativeArguments arguments) {
-  Log::Print("GLBufferData");
+  LOGI("GLBufferData");
   Dart_EnterScope();
 
   Dart_Handle targetHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -137,7 +127,7 @@ void GLBufferData(Dart_NativeArguments arguments) {
   intptr_t size;
   HandleError(Dart_ListLength(dataHandle, &size));
 
-  Log::Print("Size: %d", size);
+  LOGI("Size: %d", size);
 
   // TODO(vsm): No guarantee that this is a float!
   float* data = reinterpret_cast<float*>(malloc(size * sizeof(float)));
@@ -146,7 +136,7 @@ void GLBufferData(Dart_NativeArguments arguments) {
     double value;
     Dart_DoubleValue(elemHandle, &value);
     data[i] = static_cast<float>(value);
-    Log::Print("Value[%d]: %f", i, data[i]);
+    LOGI("Value[%d]: %f", i, data[i]);
   }
 
   Dart_Handle usageHandle = HandleError(Dart_GetNativeArgument(arguments, 2));
@@ -166,14 +156,14 @@ void GLCompileShader(Dart_NativeArguments arguments) {
   int64_t shader;
   HandleError(Dart_IntegerToInt64(shaderHandle, &shader));
 
-  Log::Print("GLCompileShader");
+  LOGI("GLCompileShader");
   glCompileShader(shader);
   CheckGLError("glCompileShader");
   Dart_ExitScope();
 }
 
 void GLCreateBuffer(Dart_NativeArguments arguments) {
-  Log::Print("GLCreateBuffer");
+  LOGI("GLCreateBuffer");
   Dart_EnterScope();
   GLuint buffer;
 
@@ -185,7 +175,7 @@ void GLCreateBuffer(Dart_NativeArguments arguments) {
 }
 
 void GLCreateProgram(Dart_NativeArguments arguments) {
-  Log::Print("GLCreateProgram");
+  LOGI("GLCreateProgram");
   Dart_EnterScope();
 
   int64_t program = glCreateProgram();
@@ -203,7 +193,7 @@ void GLCreateShader(Dart_NativeArguments arguments) {
   HandleError(Dart_IntegerToInt64(typeHandle, &type));
 
   int64_t shader = glCreateShader((GLenum)type);
-  Log::Print("GLCreateShader");
+  LOGI("GLCreateShader");
   CheckGLError("glCreateShader");
   Dart_Handle result = HandleError(Dart_NewInteger(shader));
   Dart_SetReturnValue(arguments, result);
@@ -211,7 +201,7 @@ void GLCreateShader(Dart_NativeArguments arguments) {
 }
 
 void GLDrawArrays(Dart_NativeArguments arguments) {
-  Log::Print("GLDrawArrays");
+  LOGI("GLDrawArrays");
   Dart_EnterScope();
 
   Dart_Handle modeHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -232,7 +222,7 @@ void GLDrawArrays(Dart_NativeArguments arguments) {
 }
 
 void GLEnableVertexAttribArray(Dart_NativeArguments arguments) {
-  Log::Print("GLEnableVertexAttribArray");
+  LOGI("GLEnableVertexAttribArray");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -246,7 +236,7 @@ void GLEnableVertexAttribArray(Dart_NativeArguments arguments) {
 }
 
 void GLGetAttribLocation(Dart_NativeArguments arguments) {
-  Log::Print("GLGetAttribLocation");
+  LOGI("GLGetAttribLocation");
   Dart_EnterScope();
 
   Dart_Handle programHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -269,7 +259,7 @@ void GLGetAttribLocation(Dart_NativeArguments arguments) {
 }
 
 void GLGetError(Dart_NativeArguments arguments) {
-  Log::Print("GLGetError");
+  LOGI("GLGetError");
   Dart_EnterScope();
 
   int64_t error = glGetError();
@@ -279,7 +269,7 @@ void GLGetError(Dart_NativeArguments arguments) {
 }
 
 void GLGetProgramParameter(Dart_NativeArguments arguments) {
-  Log::Print("GLGetProgramParameter");
+  LOGI("GLGetProgramParameter");
   Dart_EnterScope();
 
   Dart_Handle programHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -300,7 +290,7 @@ void GLGetProgramParameter(Dart_NativeArguments arguments) {
 }
 
 void GLGetShaderParameter(Dart_NativeArguments arguments) {
-  Log::Print("GLGetShaderParameter");
+  LOGI("GLGetShaderParameter");
   Dart_EnterScope();
 
   Dart_Handle shaderHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -321,7 +311,7 @@ void GLGetShaderParameter(Dart_NativeArguments arguments) {
 }
 
 void GLGetShaderInfoLog(Dart_NativeArguments arguments) {
-  Log::Print("GLGetShaderInfoLog");
+  LOGI("GLGetShaderInfoLog");
   Dart_EnterScope();
 
   Dart_Handle shaderHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -342,7 +332,7 @@ void GLGetShaderInfoLog(Dart_NativeArguments arguments) {
 }
 
 void GLGetProgramInfoLog(Dart_NativeArguments arguments) {
-  Log::Print("GLGetProgramInfoLog");
+  LOGI("GLGetProgramInfoLog");
   Dart_EnterScope();
 
   Dart_Handle programHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -363,7 +353,7 @@ void GLGetProgramInfoLog(Dart_NativeArguments arguments) {
 }
 
 void GLGetUniformLocation(Dart_NativeArguments arguments) {
-  Log::Print("GLGetUniformLocation");
+  LOGI("GLGetUniformLocation");
   Dart_EnterScope();
 
   Dart_Handle programHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -386,7 +376,7 @@ void GLGetUniformLocation(Dart_NativeArguments arguments) {
 }
 
 void GLLinkProgram(Dart_NativeArguments arguments) {
-  Log::Print("GLLinkProgram");
+  LOGI("GLLinkProgram");
   Dart_EnterScope();
 
   Dart_Handle programHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -399,7 +389,7 @@ void GLLinkProgram(Dart_NativeArguments arguments) {
 }
 
 void GLShaderSource(Dart_NativeArguments arguments) {
-  Log::Print("GLShaderSource");
+  LOGI("GLShaderSource");
   Dart_EnterScope();
 
   Dart_Handle shaderHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -409,15 +399,15 @@ void GLShaderSource(Dart_NativeArguments arguments) {
   Dart_Handle sourceHandle = HandleError(Dart_GetNativeArgument(arguments, 1));
   intptr_t length[1];
   HandleError(Dart_StringLength(sourceHandle, length));
-  Log::Print("Source length is %d", length[0]);
+  LOGI("Source length is %d", length[0]);
   uint8_t* str[1];
   HandleError(Dart_StringToUTF8(sourceHandle, &str[0], length));
-  Log::Print("Converted length is %d", length[0]);
+  LOGI("Converted length is %d", length[0]);
   str[0][*length] = 0;
 
   const GLchar* source =
       const_cast<const GLchar*>(reinterpret_cast<GLchar*>(str[0]));
-  Log::Print("Source: %s", source);
+  LOGI("Source: %s", source);
   glShaderSource(shader, 1,
       const_cast<const GLchar**>(reinterpret_cast<GLchar**>(str)), NULL);
   CheckGLError("glShaderSource");
@@ -425,7 +415,7 @@ void GLShaderSource(Dart_NativeArguments arguments) {
 }
 
 void GLUseProgram(Dart_NativeArguments arguments) {
-  Log::Print("GLUseProgram");
+  LOGI("GLUseProgram");
   Dart_EnterScope();
 
   Dart_Handle programHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -438,7 +428,7 @@ void GLUseProgram(Dart_NativeArguments arguments) {
 }
 
 void GLUniform1i(Dart_NativeArguments arguments) {
-  Log::Print("GLUniform1i");
+  LOGI("GLUniform1i");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -456,7 +446,7 @@ void GLUniform1i(Dart_NativeArguments arguments) {
 }
 
 void GLUniform2i(Dart_NativeArguments arguments) {
-  Log::Print("GLUniform2i");
+  LOGI("GLUniform2i");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -478,7 +468,7 @@ void GLUniform2i(Dart_NativeArguments arguments) {
 }
 
 void GLUniform3i(Dart_NativeArguments arguments) {
-  Log::Print("GLUniform3i");
+  LOGI("GLUniform3i");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -504,7 +494,7 @@ void GLUniform3i(Dart_NativeArguments arguments) {
 }
 
 void GLUniform4i(Dart_NativeArguments arguments) {
-  Log::Print("GLUniform4i");
+  LOGI("GLUniform4i");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -534,7 +524,7 @@ void GLUniform4i(Dart_NativeArguments arguments) {
 }
 
 void GLUniform1f(Dart_NativeArguments arguments) {
-  Log::Print("GLUniform1f");
+  LOGI("GLUniform1f");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -552,7 +542,7 @@ void GLUniform1f(Dart_NativeArguments arguments) {
 }
 
 void GLUniform2f(Dart_NativeArguments arguments) {
-  Log::Print("GLUniform2f");
+  LOGI("GLUniform2f");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -574,7 +564,7 @@ void GLUniform2f(Dart_NativeArguments arguments) {
 }
 
 void GLUniform3f(Dart_NativeArguments arguments) {
-  Log::Print("GLUniform3f");
+  LOGI("GLUniform3f");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -600,7 +590,7 @@ void GLUniform3f(Dart_NativeArguments arguments) {
 }
 
 void GLUniform4f(Dart_NativeArguments arguments) {
-  Log::Print("GLUniform4f");
+  LOGI("GLUniform4f");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -630,7 +620,7 @@ void GLUniform4f(Dart_NativeArguments arguments) {
 }
 
 void GLUniform1iv(Dart_NativeArguments arguments) {
-  Log::Print("GLUniform1iv");
+  LOGI("GLUniform1iv");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -658,7 +648,7 @@ void GLUniform1iv(Dart_NativeArguments arguments) {
 }
 
 void GLUniform2iv(Dart_NativeArguments arguments) {
-  Log::Print("GLUniform2iv");
+  LOGI("GLUniform2iv");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -686,7 +676,7 @@ void GLUniform2iv(Dart_NativeArguments arguments) {
 }
 
 void GLUniform3iv(Dart_NativeArguments arguments) {
-  Log::Print("GLUniform3iv");
+  LOGI("GLUniform3iv");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -714,7 +704,7 @@ void GLUniform3iv(Dart_NativeArguments arguments) {
 }
 
 void GLUniform4iv(Dart_NativeArguments arguments) {
-  Log::Print("GLUniform4iv");
+  LOGI("GLUniform4iv");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -742,7 +732,7 @@ void GLUniform4iv(Dart_NativeArguments arguments) {
 }
 
 void GLUniform1fv(Dart_NativeArguments arguments) {
-  Log::Print("GLUniform1fv");
+  LOGI("GLUniform1fv");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -770,7 +760,7 @@ void GLUniform1fv(Dart_NativeArguments arguments) {
 }
 
 void GLUniform2fv(Dart_NativeArguments arguments) {
-  Log::Print("GLUniform2fv");
+  LOGI("GLUniform2fv");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -798,7 +788,7 @@ void GLUniform2fv(Dart_NativeArguments arguments) {
 }
 
 void GLUniform3fv(Dart_NativeArguments arguments) {
-  Log::Print("GLUniform3fv");
+  LOGI("GLUniform3fv");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -826,7 +816,7 @@ void GLUniform3fv(Dart_NativeArguments arguments) {
 }
 
 void GLUniform4fv(Dart_NativeArguments arguments) {
-  Log::Print("In GLUniform4fv");
+  LOGI("In GLUniform4fv");
   Dart_EnterScope();
 
   Dart_Handle locationHandle =
@@ -854,7 +844,7 @@ void GLUniform4fv(Dart_NativeArguments arguments) {
 }
 
 void GLViewport(Dart_NativeArguments arguments) {
-  Log::Print("GLViewport");
+  LOGI("GLViewport");
   Dart_EnterScope();
 
   Dart_Handle xHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -873,7 +863,7 @@ void GLViewport(Dart_NativeArguments arguments) {
   int64_t height;
   HandleError(Dart_IntegerToInt64(heightHandle, &height));
 
-  Log::Print("Dimensions: [%ld, %ld, %ld, %ld]", x, y, width, height);
+  LOGI("Dimensions: [%ld, %ld, %ld, %ld]", x, y, width, height);
 
   glViewport(x, y, width, height);
   CheckGLError("glViewPort");
@@ -881,7 +871,7 @@ void GLViewport(Dart_NativeArguments arguments) {
 }
 
 void GLVertexAttribPointer(Dart_NativeArguments arguments) {
-  Log::Print("GLVertexAttribPointer");
+  LOGI("GLVertexAttribPointer");
   Dart_EnterScope();
 
   Dart_Handle indexHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -917,7 +907,7 @@ void GLVertexAttribPointer(Dart_NativeArguments arguments) {
 }
 
 void GLClearColor(Dart_NativeArguments arguments) {
-  Log::Print("GLClearColor");
+  LOGI("GLClearColor");
   Dart_EnterScope();
 
   Dart_Handle redHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -942,7 +932,7 @@ void GLClearColor(Dart_NativeArguments arguments) {
 }
 
 void GLClearDepth(Dart_NativeArguments arguments) {
-  Log::Print("GLClearDepth");
+  LOGI("GLClearDepth");
   Dart_EnterScope();
 
   Dart_Handle depthHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
@@ -955,7 +945,7 @@ void GLClearDepth(Dart_NativeArguments arguments) {
 }
 
 void GLClear(Dart_NativeArguments arguments) {
-  Log::Print("GLClear");
+  LOGI("GLClear");
   Dart_EnterScope();
   Dart_Handle maskHandle = HandleError(Dart_GetNativeArgument(arguments, 0));
   int64_t mask;
@@ -966,7 +956,7 @@ void GLClear(Dart_NativeArguments arguments) {
 }
 
 void GLArrayBuffer(Dart_NativeArguments arguments) {
-  Log::Print("GLArrayBuffer");
+  LOGI("GLArrayBuffer");
   Dart_EnterScope();
   Dart_Handle result = HandleError(Dart_NewInteger(GL_ARRAY_BUFFER));
   Dart_SetReturnValue(arguments, result);
@@ -974,7 +964,7 @@ void GLArrayBuffer(Dart_NativeArguments arguments) {
 }
 
 void GLColorBufferBit(Dart_NativeArguments arguments) {
-  Log::Print("GLColorBuffer");
+  LOGI("GLColorBuffer");
   Dart_EnterScope();
   Dart_Handle result = HandleError(Dart_NewInteger(GL_COLOR_BUFFER_BIT));
   Dart_SetReturnValue(arguments, result);
@@ -982,7 +972,7 @@ void GLColorBufferBit(Dart_NativeArguments arguments) {
 }
 
 void GLCompileStatus(Dart_NativeArguments arguments) {
-  Log::Print("GLCompileStatus");
+  LOGI("GLCompileStatus");
   Dart_EnterScope();
   Dart_Handle result = HandleError(Dart_NewInteger(GL_COMPILE_STATUS));
   Dart_SetReturnValue(arguments, result);
@@ -990,7 +980,7 @@ void GLCompileStatus(Dart_NativeArguments arguments) {
 }
 
 void GLDepthBufferBit(Dart_NativeArguments arguments) {
-  Log::Print("GLDepthBufferBit");
+  LOGI("GLDepthBufferBit");
   Dart_EnterScope();
   Dart_Handle result = HandleError(Dart_NewInteger(GL_DEPTH_BUFFER_BIT));
   Dart_SetReturnValue(arguments, result);
@@ -1110,17 +1100,15 @@ void RandomArrayServicePort(Dart_NativeArguments arguments) {
 }
 
 void PlayBackground(Dart_NativeArguments arguments) {
-  Log::Print("PlayBackground");
+  LOGI("PlayBackground");
   Dart_EnterScope();
   const char* what = GetStringArg(arguments, 0);
-  int rtn = PlayBackground(what);
-  Dart_Handle result = HandleError(Dart_NewInteger(rtn));
-  Dart_SetReturnValue(arguments, result);
+  PlayBackground(what);
   Dart_ExitScope();
 }
 
 void StopBackground(Dart_NativeArguments arguments) {
-  Log::Print("StopBackground");
+  LOGI("StopBackground");
   Dart_EnterScope();
   StopBackground();
   Dart_ExitScope();
@@ -1211,4 +1199,3 @@ Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {
   Dart_ExitScope();
   return result;
 }
-

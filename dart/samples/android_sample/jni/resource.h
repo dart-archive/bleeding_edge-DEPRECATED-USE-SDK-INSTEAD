@@ -1,7 +1,13 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 #ifndef RESOURCE_H
 #define RESOURCE_H
 
 #include <android_native_app_glue.h>
+
+#include "jni/log.h"
 
 class Resource {
   public:
@@ -34,8 +40,8 @@ class Resource {
       asset_ = AAssetManager_open(asset_manager_, path_, AASSET_MODE_UNKNOWN);
       if (asset_ != NULL) {
         descriptor_ = AAsset_openFileDescriptor(asset_, &start_, &length_);
-        Log::Print("%s has start %d, length %d, fd %d",
-            path_, start_, length_, descriptor_);
+        LOGI("%s has start %d, length %d, fd %d",
+             path_, start_, length_, descriptor_);
         return 0;
       }
       return -1;
@@ -63,4 +69,3 @@ class Resource {
 };
 
 #endif
-

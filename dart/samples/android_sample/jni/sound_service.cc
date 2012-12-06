@@ -1,6 +1,10 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 #include "jni/sound_service.h"
 
-#include "bin/log.h"
+#include "jni/log.h"
 #include "jni/resource.h"
 
 SoundService::SoundService(android_app* application)
@@ -14,7 +18,7 @@ SoundService::SoundService(android_app* application)
 }
 
 int32_t SoundService::Start() {
-  Log::Print("Starting SoundService");
+  LOGI("Starting SoundService");
 
   const SLInterfaceID k_engine_mix_IIDs[] = { SL_IID_ENGINE };
   const SLboolean k_engine_mix_reqs[] = { SL_BOOLEAN_TRUE };
@@ -32,7 +36,7 @@ int32_t SoundService::Start() {
           SL_RESULT_SUCCESS) {
     return 0;
   }
-  Log::Print("Failed to start SoundService");
+  LOGI("Failed to start SoundService");
   Stop();
   return -1;
 }
@@ -53,10 +57,10 @@ void SoundService::Stop() {
 int32_t SoundService::PlayBackground(const char* path) {
   Resource resource(application_, path);
   if (resource.open() < 0) {
-    Log::Print("Could not open file %s", path);
+    LOGI("Could not open file %s", path);
     return -1;
   }
-  Log::Print("Saving FD data");
+  LOGI("Saving FD data");
   SLDataLocator_AndroidFD data_locator_in;
   data_locator_in.locatorType = SL_DATALOCATOR_ANDROIDFD;
   data_locator_in.fd = resource.descriptor();
@@ -64,23 +68,23 @@ int32_t SoundService::PlayBackground(const char* path) {
   data_locator_in.length = resource.length();
   resource.close();
 
-  Log::Print("Init data format");
+  LOGI("Init data format");
   SLDataFormat_MIME data_format;
   data_format.formatType = SL_DATAFORMAT_MIME;
   data_format.mimeType = NULL;
   data_format.containerType = SL_CONTAINERTYPE_UNSPECIFIED;
 
-  Log::Print("Init data source");
+  LOGI("Init data source");
   SLDataSource data_source;
   data_source.pLocator = &data_locator_in;
   data_source.pFormat = &data_format;
 
-  Log::Print("Init out locator");
+  LOGI("Init out locator");
   SLDataLocator_OutputMix data_locator_out;
   data_locator_out.locatorType = SL_DATALOCATOR_OUTPUTMIX;
   data_locator_out.outputMix = output_mix_;
 
-  Log::Print("Init data sink");
+  LOGI("Init data sink");
   SLDataSink data_sink;
   data_sink.pLocator = &data_locator_out;
   data_sink.pFormat = NULL;
@@ -89,50 +93,50 @@ int32_t SoundService::PlayBackground(const char* path) {
   const SLboolean k_background_player_reqs[] =
       { SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE };
 
-  Log::Print("Creating audio player");
+  LOGI("Creating audio player");
   if ((*engine_if_)->
           CreateAudioPlayer(engine_if_, &background_player_,
                             &data_source, &data_sink, 2,
                             k_background_player_IIDs,
                             k_background_player_reqs) != SL_RESULT_SUCCESS) {
-    Log::PrintErr("Couldn't create audio player");
+    LOGE("Couldn't create audio player");
     return -1;
   }
-  Log::Print("Created audio player");
+  LOGI("Created audio player");
   if ((*background_player_)->
           Realize(background_player_, SL_BOOLEAN_FALSE) != SL_RESULT_SUCCESS) {
-    Log::PrintErr("Couldn't realize audio player");
+    LOGE("Couldn't realize audio player");
     return -1;
   }
-  Log::Print("Realized audio player");
+  LOGI("Realized audio player");
   if ((*background_player_)->
           GetInterface(background_player_, SL_IID_PLAY,
                        &background_player_if_) != SL_RESULT_SUCCESS) {
-    Log::PrintErr("Couldn't get player interface");
+    LOGE("Couldn't get player interface");
     return -1;
   }
-  Log::Print("Got player interface");
+  LOGI("Got player interface");
   if ((*background_player_)->
           GetInterface(background_player_, SL_IID_SEEK,
                        &background_player_seek_if_) != SL_RESULT_SUCCESS) {
-    Log::PrintErr("Couldn't get seek interface");
+    LOGE("Couldn't get seek interface");
     return -1;
   }
-  Log::Print("Got seek interface");
+  LOGI("Got seek interface");
   if ((*background_player_seek_if_)->
           SetLoop(background_player_seek_if_, SL_BOOLEAN_TRUE, 0,
                   SL_TIME_UNKNOWN) != SL_RESULT_SUCCESS) {
-    Log::PrintErr("Couldn't set loop");
+    LOGE("Couldn't set loop");
     return -1;
   }
-  Log::Print("Set loop");
+  LOGI("Set loop");
   if ((*background_player_if_)->
           SetPlayState(background_player_if_, SL_PLAYSTATE_PLAYING) !=
           SL_RESULT_SUCCESS) {
-    Log::PrintErr("Couldn't start playing");
+    LOGE("Couldn't start playing");
     return -1;
   }
-  Log::Print("Started playing");
+  LOGI("Started playing");
   return 0;
 }
 
@@ -151,4 +155,3 @@ void SoundService::StopBackground() {
     }
   }
 }
-

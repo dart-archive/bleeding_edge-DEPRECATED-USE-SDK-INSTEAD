@@ -3,9 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 {
-  'variables': {
-    'snapshot_cc_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_gen.cc',
-  },
   'conditions': [
     ['OS=="android"',
       {
@@ -15,28 +12,26 @@
             'target_name': 'android_embedder',
             'type': 'shared_library',
             'dependencies': [
-              '../../runtime/dart-runtime.gyp:libdart',
-              '../../runtime/dart-runtime.gyp:libdart_builtin',
-              '../../runtime/dart-runtime.gyp:generate_snapshot_file',
+              'libdart_lib_withcore',
+              'libdart_vm',
+              'libjscre',
+              'libdouble_conversion',
+              'generate_version_cc_file',
             ],
             'include_dirs': [
-              '../../runtime'
+              '../..'
             ],
             'defines': [
               'DART_SHARED_LIB'
             ],
             'sources': [
+              '../../include/dart_api.h',
+              '../../include/dart_debugger_api.h',
+              '../../vm/dart_api_impl.cc',
+              '../../vm/debugger_api_impl.cc',
+              '../../vm/version.h',
               'support_android.cc',
-              'builtin_nolib.cc',
-              '../../runtime/bin/socket.cc',
-              '../../runtime/bin/socket_android.cc',
-              '../../runtime/bin/eventhandler.cc',
-              '../../runtime/bin/eventhandler_android.cc',
-              '../../runtime/bin/process.cc',
-              '../../runtime/bin/process_android.cc',
-              '../../runtime/bin/platform.cc',
-              '../../runtime/bin/platform_android.cc',
-              '<(snapshot_cc_file)',
+              '<(version_cc_file)',
             ],
             'link_settings': {
               'libraries': [ '-llog', '-lc' ],
