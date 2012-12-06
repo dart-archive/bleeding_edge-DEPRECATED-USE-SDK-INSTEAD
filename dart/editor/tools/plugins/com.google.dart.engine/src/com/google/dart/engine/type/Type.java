@@ -30,6 +30,15 @@ public interface Type {
   public Element getElement();
 
   /**
+   * Return the least upper bound of this type and the given type, or {@code null} if there is no
+   * least upper bound.
+   * 
+   * @param type the other type used to compute the least upper bound
+   * @return the least upper bound of this type and the given type
+   */
+  public Type getLeastUpperBound(Type type);
+
+  /**
    * Return the name of this type, or {@code null} if the type does not have a name, such as when
    * the type represents the type of an unnamed function.
    * 

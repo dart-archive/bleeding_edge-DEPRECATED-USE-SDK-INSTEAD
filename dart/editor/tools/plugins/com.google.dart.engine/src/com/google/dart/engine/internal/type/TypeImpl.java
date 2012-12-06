@@ -54,6 +54,11 @@ public abstract class TypeImpl implements Type {
   }
 
   @Override
+  public Type getLeastUpperBound(Type type) {
+    return null;
+  }
+
+  @Override
   public String getName() {
     return name;
   }

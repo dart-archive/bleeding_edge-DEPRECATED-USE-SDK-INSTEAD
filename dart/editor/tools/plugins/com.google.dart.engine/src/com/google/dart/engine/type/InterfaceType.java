@@ -24,6 +24,25 @@ public interface InterfaceType extends Type {
   public ClassElement getElement();
 
   /**
+   * Return the least upper bound of this type and the given type, or {@code null} if there is no
+   * least upper bound.
+   * <p>
+   * Given two interfaces <i>I</i> and <i>J</i>, let <i>S<sub>I</sub></i> be the set of
+   * superinterfaces of <i>I<i>, let <i>S<sub>J</sub></i> be the set of superinterfaces of <i>J</i>
+   * and let <i>S = (I &cup; S<sub>I</sub>) &cap; (J &cup; S<sub>J</sub>)</i>. Furthermore, we
+   * define <i>S<sub>n</sub> = {T | T &isin; S &and; depth(T) = n}</i> for any finite <i>n</i>,
+   * where <i>depth(T)</i> is the number of steps in the longest inheritance path from <i>T</i> to
+   * <i>Object</i>. Let <i>q</i> be the largest number such that <i>S<sub>q</sub></i> has
+   * cardinality one. The least upper bound of <i>I</i> and <i>J</i> is the sole element of
+   * <i>S<sub>q</sub></i>.
+   * 
+   * @param type the other type used to compute the least upper bound
+   * @return the least upper bound of this type and the given type
+   */
+  @Override
+  public Type getLeastUpperBound(Type type);
+
+  /**
    * Return an array containing the actual types of the type arguments. If this type's element does
    * not have type parameters, then the array should be empty (although it is possible for type
    * arguments to be erroneously declared). If the element has type parameters and the actual type
@@ -68,6 +87,7 @@ public interface InterfaceType extends Type {
    * @param type the type being compared with this type
    * @return {@code true} if this type is more specific than the given type
    */
+  @Override
   public boolean isMoreSpecificThan(Type type);
 
   /**

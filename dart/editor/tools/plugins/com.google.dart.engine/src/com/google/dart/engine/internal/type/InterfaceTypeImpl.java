@@ -67,6 +67,12 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @Override
+  public Type getLeastUpperBound(Type type) {
+    // TODO(brianwilkerson) Implement this.
+    return this;
+  }
+
+  @Override
   public Type[] getTypeArguments() {
     return typeArguments;
   }
@@ -172,7 +178,16 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else if (this.equals(type)) {
       return true;
     }
-    return getElement().getSupertype().isSubtypeOf(type);
+    ClassElement element = getElement();
+    if (element == null) {
+      return false;
+    }
+    Type supertype = element.getSupertype();
+    if (supertype == null) {
+      // TODO(brianwilkerson) Figure out whether the type is Object and return true if it is.
+      return false;
+    }
+    return supertype.isSubtypeOf(type);
   }
 
   /**
