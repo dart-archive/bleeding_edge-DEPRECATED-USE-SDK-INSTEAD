@@ -124,9 +124,12 @@ int VMGlue::InitializeVM() {
   // creating and shutting down isolates.
   LOGI("Initializing Dart");
   if (!Dart_Initialize(CreateIsolateAndSetup,
-       NULL,
-       NULL,
-       NULL)) {
+                       NULL,
+                       NULL,
+                       NULL,
+                       NULL,
+                       NULL,
+                       NULL)) {
     LOGE("VM initialization failed\n");
     return -1;
   }
