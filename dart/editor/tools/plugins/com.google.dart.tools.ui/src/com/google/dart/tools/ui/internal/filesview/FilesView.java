@@ -29,6 +29,7 @@ import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
+import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.commands.operations.IUndoContext;
@@ -39,6 +40,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -105,6 +107,19 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         }
       }
     }
+  }
+
+  private class OpenPubDocs extends Action {
+
+    public OpenPubDocs() {
+      setText("Find packages to include");
+    }
+
+    @Override
+    public void run() {
+      ExternalBrowserUtil.openInExternalBrowser("http://pub.dartlang.org/packages");
+    }
+
   }
 
   public static final String VIEW_ID = "com.google.dart.tools.ui.FileExplorer"; // from plugin.xml
@@ -425,6 +440,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     }
 
     manager.add(new Separator("additions"));
+    manager.add(new Separator());
+    manager.add(new OpenPubDocs());
 
     manager.add(new Separator());
     manager.add(propertyDialogAction);
