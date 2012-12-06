@@ -33,9 +33,16 @@ import java.util.List;
  * view.
  */
 public class MapStructureType implements ILogicalStructureTypeDelegate {
-  // TODO(devoncarew): add a unit test to ensure that "_HashMapImpl" is available.
-  // That way we'll fast fail if the name changes or the class is removed.
-  private static final String MAP_IMPL_NAME = "_HashMapImpl";
+  // TODO(devoncarew): add a unit test to ensure that these classes are available.
+  private static final String CLASS_HASH_SET_IMPL = "_HashSetImpl";
+
+  //private static final String CLASS_LINKED_HASH_MAP_IMPL = "_LinkedHashMapImpl";
+
+  private static final String CLASS_HASH_MAP_IMPL = "_HashMapImpl";
+
+  // TODO(devoncarew): in order to implement more logical types, we need to be able to execute
+  // named methods (i.e. queue.toList()).
+  //private static final String CLASS_DOUBLE_LINKED_QUEUE = "DoubleLinkedQueue";
 
   public MapStructureType() {
 
@@ -44,12 +51,18 @@ public class MapStructureType implements ILogicalStructureTypeDelegate {
   @Override
   public IValue getLogicalStructure(IValue value) throws CoreException {
     try {
-      return createHashMap(value);
-    } catch (CoreException ce) {
-      DartDebugCorePlugin.logError(ce);
+      if (CLASS_HASH_MAP_IMPL.equals(value.getReferenceTypeName())) {
+        return createHashMap(value);
+      }
 
-      return value;
+      if (CLASS_HASH_SET_IMPL.equals(value.getReferenceTypeName())) {
+        return createHashSet(value);
+      }
+    } catch (Throwable t) {
+      DartDebugCorePlugin.logError(t);
     }
+
+    return value;
   }
 
   @Override
@@ -59,10 +72,20 @@ public class MapStructureType implements ILogicalStructureTypeDelegate {
     }
 
     try {
-      return MAP_IMPL_NAME.equals(value.getReferenceTypeName());
-    } catch (DebugException e) {
-      return false;
+      // _HashSetImpl
+      if (CLASS_HASH_SET_IMPL.equals(value.getReferenceTypeName())) {
+        return true;
+      }
+
+      // _HashMapImpl
+      if (CLASS_HASH_MAP_IMPL.equals(value.getReferenceTypeName())) {
+        return true;
+      }
+    } catch (Throwable t) {
+
     }
+
+    return false;
   }
 
   private IValue createHashMap(IValue value) throws DebugException {
@@ -84,6 +107,12 @@ public class MapStructureType implements ILogicalStructureTypeDelegate {
     }
 
     return new LogicalDebugValue(value, vars.toArray(new IVariable[vars.size()]));
+  }
+
+  private IValue createHashSet(IValue value) throws DebugException {
+    IValue _backingMap = getNamedField(value, "_backingMap");
+
+    return createHashMap(_backingMap);
   }
 
   private IValue getNamedField(IValue value, String name) throws DebugException {

@@ -9,9 +9,6 @@ import 'pets.dart';
 
 num rotatePos = 0;
 
-// TODO(devoncarew): both: what is the best ordering of the fields?
-// By order of their declaration? How do I get that?
-
 void main() {
   query("#text").text = "Welcome to Dart!";
 
@@ -41,6 +38,8 @@ void testAnimals() {
   print("${tempCat}:");
 
   tempCat.performAction();
+
+  checkTypes();
 
   var dog = new Dog("Scooter");
 

@@ -10,7 +10,7 @@ final SPARKY = const Cat("Sparky");
 
 final CHIPPY = const _Chipmunk("Chi\np\npy");
 
-interface Animal {
+abstract class Animal {
   bool livesWith(Animal other);
   void performAction();
 }
@@ -157,4 +157,43 @@ void _spawnAnimals() {
   for (num i = 0; i < count * 1000; i++) {
     getLotsOfAnimals();
   }
+}
+
+void checkTypes() {
+  // TODO: arrays vs lists
+  List<String> list = new List<String>();
+  list.add("one");
+  list.add("two");
+  list.add("three");
+  var arr = ["dsdf", "dsss", "sfs23"];
+
+  // TODO: DoubleLinkedQueue
+  DoubleLinkedQueue queue = new DoubleLinkedQueue();
+  queue.add("foo");
+  queue.add("bar");
+  queue.add(123);
+
+  // TODO: _LinkedHashMapImpl
+  var map = {};
+  map["one"] = 1;
+  map["two"] = 2;
+  map["three"] = 3;
+
+  // should display as null
+  var bob = null;
+
+  // TODO: empty lists
+  var emptyList = [];
+
+  // TODO: empty maps
+  var emptyMap = {};
+
+  // display sets (_HashSetImpl)
+  var set = new Set();
+  set.add(1);
+  set.add(2);
+  set.add(2);
+  set.add("what");
+
+  print("types");
 }

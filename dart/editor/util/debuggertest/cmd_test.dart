@@ -22,6 +22,8 @@ void main() {
 
   cat.performAction();
 
+  pets.checkTypes();
+
   var dog = new pets.Dog("Scooter");
 
   dog.performAction();
