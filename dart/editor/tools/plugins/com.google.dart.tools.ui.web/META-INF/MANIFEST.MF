@@ -20,3 +20,5 @@ Bundle-ClassPath: .,
   lib/snakeyaml-1.10.jar
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
+Export-Package: com.google.dart.tools.ui.web.html,
+ com.google.dart.tools.ui.web.utils

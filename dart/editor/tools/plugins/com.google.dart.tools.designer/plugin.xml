@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+    <extension
+        point="org.eclipse.ui.editors">
+        <editor
+              class="com.google.dart.tools.designer.editor.DartDesignerEditor"
+              default="true"
+              extensions="html2"
+              icon="icons/htmlfile.png"
+              id="com.google.dart.tools.designer.editor.DartDesignerEditor"
+              name="Dart Designer Editor"/>
+    </extension>
+
+
+
+
+    <!-- ======================================================== -->
+    <!-- Actions and commands -->
+    <!-- ======================================================== -->
+    <extension point="org.eclipse.ui.editorActions">
+        <editorContribution id="com.google.dart.tools.designer.actions"
+            targetID="com.google.dart.tools.designer.editor.DartDesignerEditor">
+            <action id="com.google.dart.tools.designer.editor.actions.SwitchAction"
+                class="com.google.dart.tools.designer.editor.actions.SwitchAction"
+                definitionId="com.google.dart.tools.designer.editor.actions.SwitchAction"
+                label="%actions.switch.name" tooltip="%actions.switch.text" menubarPath="navigate/open.ext2"
+                helpContextId="switch_page"/>
+            <!--<action id="org.eclipse.wb.core.xml.editor.actions.SwitchPairEditorAction"
+                class="org.eclipse.wb.internal.core.xml.editor.actions.SwitchPairEditorAction"
+                definitionId="org.eclipse.wb.core.xml.editor.actions.SwitchPairEditorAction"
+                label="%actions.switchPair.name" tooltip="%actions.switchPair.text"
+                menubarPath="navigate/open.ext2" helpContextId="switch_page"/>-->
+        </editorContribution>
+    </extension>
+    
+    <extension point="org.eclipse.ui.commands">
+        <category name="WindowBuilder Pro" description="WindowBuilder Pro actions"
+            id="com.google.dart.tools.designer.actions.category"/>
+        <command name="%actions.switch.name" description="%actions.switch.text"
+            categoryId="com.google.dart.tools.designer.actions.category"
+            id="com.google.dart.tools.designer.editor.actions.SwitchAction"/>
+        <!--<command name="%actions.switchPair.name" description="%actions.switchPair.text"
+            categoryId="com.google.dart.tools.designer.actions.category"
+            id="org.eclipse.wb.core.xml.editor.actions.SwitchPairEditorAction"/>-->
+        <command name="Empty command" description="Command which does nothing"
+            categoryId="com.google.dart.tools.designer.actions.category"
+            id="com.google.dart.tools.designer.commands.empty"/>
+    </extension>
+    
+    <extension point="org.eclipse.ui.contexts">
+        <context name="Dart Designer scope"
+            parentId="org.eclipse.ui.textEditorScope"
+            id="com.google.dart.tools.designer.editorScope"/>
+    </extension>
+    
+    <extension point="org.eclipse.ui.bindings">
+        <key sequence="M1+F12" commandId="com.google.dart.tools.designer.editor.actions.SwitchAction"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            contextId="com.google.dart.tools.designer.editorScope"/>
+        <key sequence="F8" commandId="com.google.dart.tools.designer.editor.actions.SwitchAction"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            contextId="com.google.dart.tools.designer.editorScope"/>
+        <!--<key sequence="M2+F12"
+            commandId="org.eclipse.wb.core.xml.editor.actions.SwitchPairEditorAction"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            contextId="org.eclipse.ui.textEditorScope"/>-->
+        <!-- set empty command for required keys -->
+        <!--<key sequence="M1+M2+A" commandId="org.eclipse.wb.core.commands.empty"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            contextId="org.eclipse.wb.core.xml.editorScope"/>
+        <key sequence="M1+M3+A" commandId="org.eclipse.wb.core.commands.empty"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            contextId="org.eclipse.wb.core.xml.editorScope"/>-->
+    </extension>
+    
+
+</plugin>
