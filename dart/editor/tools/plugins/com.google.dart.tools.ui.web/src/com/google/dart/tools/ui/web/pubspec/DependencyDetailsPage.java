@@ -48,7 +48,7 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
 
   private static String EMPTY_STRING = "";
   private static String[] sourceList = {"git", "pub.dartlang.org"};
-  private static String VERSION_CONTSTRAINTS_EXPRESSION = "[=<>]?(\\d+\\.){2}\\d+([\\+-]([\\.a-zA-Z0-9-])*)?";
+  private static String VERSION_CONTSTRAINTS_EXPRESSION = "([=]{0,1}[<>]?)|[<>]?[=]{0,1})(\\d+\\.){2}\\d+([\\+-]([\\.a-zA-Z0-9-])*)?";
   private static String VERSION_CONTSTRAINTS_KEY = "versionConstraints";
 
   private DependencyObject input;
@@ -104,9 +104,10 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
       @Override
       public void modifyText(ModifyEvent e) {
         if (input != null) {
-          if (validateVersionConstriants(versionText.getText())) {
-            input.setVersion(versionText.getText());
-          }
+          //(TODO(keertip): enable once regex is right
+//          if (validateVersionConstriants(versionText.getText())) {
+          input.setVersion(versionText.getText());
+//          }
           setTextDirty();
         }
       }
@@ -244,6 +245,7 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
 
   private boolean validateVersionConstriants(String version) {
     boolean isValid = true;
+
     if (!version.equals("any") && !version.isEmpty()) {
       String[] versions = version.split(" ");
       if (versions.length > 2) {
