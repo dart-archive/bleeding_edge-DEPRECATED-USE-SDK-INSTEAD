@@ -4,32 +4,48 @@
 
 library model;
 
-class MainComponent {
-  MainComponent();
-
+class ViewModel {
   bool isVisible(Todo todo) => todo != null &&
       ((showIncomplete && !todo.done) || (showDone && todo.done));
 
   bool showIncomplete = true;
 
   bool showDone = true;
-
-  bool get hasElements => app.todos.length > 0;
 }
 
-MainComponent _viewModel;
-MainComponent get viewModel {
-  if (_viewModel == null) {
-    _viewModel = new MainComponent();
-  }
-  return _viewModel;
-}
+final ViewModel viewModel = new ViewModel();
 
 // The real model:
 
-class App {
+class AppModel {
   List<Todo> todos = <Todo>[];
+
+  // TODO(jmesserly): remove this once List has a remove method.
+  void removeTodo(Todo todo) {
+    var index = todos.indexOf(todo);
+    if (index != -1) {
+      todos.removeRange(index, 1);
+    }
+  }
+
+  bool get allChecked => todos.length > 0 && todos.every((t) => t.done);
+
+  set allChecked(bool value) => todos.forEach((t) { t.done = value; });
+
+  int get doneCount {
+    int res = 0;
+    todos.forEach((t) { if (t.done) res++; });
+    return res;
+  }
+
+  int get remaining => todos.length - doneCount;
+
+  void clearDone() {
+    todos = todos.filter((t) => !t.done);
+  }
 }
+
+final AppModel app = new AppModel();
 
 class Todo {
   String task;
@@ -38,12 +54,4 @@ class Todo {
   Todo(this.task);
 
   String toString() => "$task ${done ? '(done)' : '(not done)'}";
-}
-
-App _app;
-App get app {
-  if (_app == null) {
-    _app = new App();
-  }
-  return _app;
 }

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+<head>
+  <link rel="components" href="editable_label.html">
+</head>
+<body>
+<element name="x-todo-row" extends="li" apply-author-styles>
+  <template>
+    <div class="todo-item {{_editingClass}} {{_completedClass}}">
+      <input class="toggle" type="checkbox" bind-checked="todo.done">
+      <x-editable-label id="label" bind-value="todo.task"></x-editable-label>
+      <button class="destroy" on-click="app.removeTodo(todo)"></button>
+    </div>
+  </template>
+  <script type="application/dart">
+  import 'package:web_ui/web_ui.dart';
+  import 'model.dart';
+
+  class TodoRow extends WebComponent {
+    Todo todo;
+
+    bool get editing => _root.query('#label').xtag.editing;
+    String get _completedClass => todo.done ? 'completed' : '';
+    String get _editingClass => editing ? 'editing' : '';
+  }
+  </script>
+</element>
+</body>
+</html>

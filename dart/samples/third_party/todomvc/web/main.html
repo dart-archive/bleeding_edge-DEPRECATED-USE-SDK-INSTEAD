@@ -8,10 +8,8 @@ BSD-style license that can be found in the LICENSE file.
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <link rel="components" href="footer.html">
-  <link rel="components" href="newform.html">
-  <link rel="components" href="toggleall.html">
-  <link rel="components" href="item.html">
+  <link rel="components" href="router_options.html">
+  <link rel="components" href="todo_row.html">
   <link rel="stylesheet" href="base.css">
   <title>dart - TodoMVC</title>
 </head>
@@ -19,10 +17,14 @@ BSD-style license that can be found in the LICENSE file.
   <section id="todoapp">
     <header id="header">
       <h1 class='title'>todos</h1>
-      <x-todo-form></x-todo-form>
+      <form on-submit="addTodo($event)">
+        <input id="new-todo" placeholder="What needs to be done?" autofocus
+               on-change="addTodo($event)">
+      </form>
     </header>
     <section id="main">
-      <x-toggle-all></x-toggle-all>
+      <input id="toggle-all" type="checkbox" bind-checked="app.allChecked">
+      <label for="toggle-all"></label>
       <ul id="todo-list">
         <template iterate="x in app.todos">
           <template if="viewModel.isVisible(x)">
@@ -31,8 +33,20 @@ BSD-style license that can be found in the LICENSE file.
         </template>
       </ul>
     </section>
-    <template if="viewModel.hasElements">
-      <x-todo-footer id="footer"></x-todo-footer>
+    <template if="app.todos.length > 0">
+      <footer id="footer">
+        <span id="todo-count"><strong>{{app.remaining}}</strong></span>
+        <x-router-options id="filters">
+          <li> <a href="#/">All</a> </li>
+          <li> <a href="#/active">Active</a> </li>
+          <li> <a href="#/completed">Completed</a> </li>
+        </x-router-options>
+        <template if="app.doneCount > 0">
+          <button id="clear-completed" on-click="app.clearDone()">
+            Clear completed ({{app.doneCount}})
+          </button>
+        </template>
+      </footer>
     </template>
   </section>
   <footer id="info">
@@ -46,24 +60,6 @@ BSD-style license that can be found in the LICENSE file.
     </p>
     <p>Part of <a href="http://todomvc.com">TodoMVC</a>.</p>
   </footer>
-  <script type="application/dart">
-import 'dart:html';
-import 'model.dart';
-import 'package:web_components/web_components.dart';
-
-main() {
-  // listen on changes to #hash in the URL
-  // Note: listen on both popState and hashChange, because IE9 doens't support
-  // history API, and it doesn't work properly on Opera 12.
-  // See http://dartbug.com/5483
-  updateFilters(e) {
-    viewModel.showIncomplete = window.location.hash != '#/completed';
-    viewModel.showDone = window.location.hash != '#/active';
-    dispatch();
-  }
-  window.on.hashChange.add(updateFilters);
-  window.on.popState.add(updateFilters);
-}
-  </script>
+  <script type="application/dart" src="main.dart"></script>
 </body>
 </html>

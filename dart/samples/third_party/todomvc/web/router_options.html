@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+<body>
+<element name="x-router-options" extends="ul" apply-author-styles>
+  <template><content></content></template>
+  <script type="application/dart">
+  import 'dart:html';
+  import 'package:web_ui/web_ui.dart';
+
+  /**
+   * Given a set of child links to this page, this will add the "selected" CSS
+   * class to the link that matches window.location.hash.
+   *
+   * For example, if the current window.location.hash is "#/completed" and we
+   * have a tag like `<a href="#/completed">` it will get the class
+   * `class="selected"`, and other links will have that CSS class removed.
+   */
+  class RouterOptions extends WebComponent {
+
+    var _stopWatcher;
+
+    void inserted() {
+      super.inserted();
+
+      var anchors = this.queryAll('a');
+
+      // TODO(jmesserly): this only works because main() registered for
+      // popState and hashChanged.
+      _stopWatcher = watchAndInvoke(() => window.location.hash, (e) {
+        var hash = e.newValue;
+        if (hash == '') hash = '#/';
+        for (var a in anchors) {
+          updateCssClass(a, a.hash == hash, 'selected');
+        }
+      });
+    }
+
+    void removed() {
+      _stopWatcher();
+      super.removed();
+    }
+  }
+  </script>
+</element>
+</body>
+</html>

@@ -161,22 +161,11 @@ label[for='toggle-all'] {
 
 #toggle-all {
   position: absolute;
-  top: -56px;
-  left: -15px;
-  width: 65px;
-  height: 41px;
+  top: -42px;
+  left: -4px;
+  width: 40px;
   text-align: center;
   border: none; /* Mobile Safari */
-  -webkit-appearance: none;
-  /*-moz-appearance: none;*/
-  -ms-appearance: none;
-  -o-appearance: none;
-  appearance: none;
-  -webkit-transform: rotate(90deg);
-  /*-moz-transform: rotate(90deg);*/
-  -ms-transform: rotate(90deg);
-  /*-o-transform: rotate(90deg);*/
-  transform: rotate(90deg);
 }
 
 #toggle-all:before {
@@ -215,21 +204,23 @@ TODO(jmesserly): fix this. It's broken in our sample.
   padding: 0;
 }
 
-.todo-item.editing .edit {
+/*
+TODO(jmesserly): it seems to be impossible to have selectors that span a
+ShadowRoot transition, even with allow-author-styles set. Various workarounds
+are included in the code below.
+*/
+.edit.editing {
   display: block;
   width: 506px;
   padding: 13px 17px 12px 17px;
   margin: 0 0 0 43px;
 }
 
-.todo-item.editing .view {
-  display: none;
-}
-
 .todo-item .toggle {
   text-align: center;
   width: 40px;
-  height: 40px;
+  /* auto, since non-WebKit browsers don't support input styling */
+  height: auto;
   position: absolute;
   top: 0;
   bottom: 0;
@@ -243,7 +234,6 @@ TODO(jmesserly): fix this. It's broken in our sample.
 }
 
 .todo-item .toggle:after {
-  font-size: 18px;
   content: '✔';
   line-height: 43px; /* 40 + a couple of pixels visual adjustment */
   font-size: 20px;
@@ -258,7 +248,11 @@ TODO(jmesserly): fix this. It's broken in our sample.
   position: relative;
 }
 
-.todo-item label {
+/*
+TODO(jmesserly): the ".todo-item label" selector does not work with real
+ShadowRoot because it crosses the shadow boundary.
+*/
+.edit-label {
   word-break: break-word;
   margin: 15px 15px 15px 60px;
   display: inline-block;
@@ -270,9 +264,13 @@ TODO(jmesserly): fix this. It's broken in our sample.
   transition: color 0.4s;
 }
 
-.todo-item.completed label {
+.todo-item.completed x-editable-label {
   color: #a9a9a9;
   text-decoration: line-through;
+}
+
+.edit-label {
+  text-decoration: inherit;
 }
 
 .todo-item .destroy {
@@ -311,7 +309,8 @@ TODO(jmesserly): fix this. It's broken in our sample.
   display: block;
 }
 
-.todo-item .edit {
+.todo-item.editing .destroy,
+.todo-item.editing .toggle {
   display: none;
 }
 
@@ -410,5 +409,19 @@ TODO(jmesserly): fix this. It's broken in our sample.
   #toggle-all,
   .todo-item .toggle {
     background: none;
+  }
+  #todo-item .toggle {
+    height: 40px;
+  }
+
+  #toggle-all {
+    top: -56px;
+    left: -15px;
+    width: 65px;
+    height: 41px;
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
+    -webkit-appearance: none;
+    appearance: none;
   }
 }
