@@ -40,6 +40,11 @@ public class ImportSpecificationImpl implements ImportSpecification {
   private PrefixElement prefix;
 
   /**
+   * A flag indicating whether this import specification is synthetic.
+   */
+  private boolean isSynthetic = false;
+
+  /**
    * Initialize a newly created import specification.
    */
   public ImportSpecificationImpl() {
@@ -59,6 +64,11 @@ public class ImportSpecificationImpl implements ImportSpecification {
   @Override
   public PrefixElement getPrefix() {
     return prefix;
+  }
+
+  @Override
+  public boolean isSynthetic() {
+    return isSynthetic;
   }
 
   /**
@@ -88,5 +98,14 @@ public class ImportSpecificationImpl implements ImportSpecification {
    */
   public void setPrefix(PrefixElement prefix) {
     this.prefix = prefix;
+  }
+
+  /**
+   * Set whether this element is synthetic to correspond to the given value.
+   * 
+   * @param isSynthetic {@code true} if the element is synthetic
+   */
+  public void setSynthetic(boolean isSynthetic) {
+    this.isSynthetic = isSynthetic;
   }
 }

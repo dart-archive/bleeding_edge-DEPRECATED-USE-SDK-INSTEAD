@@ -45,4 +45,13 @@ public interface ImportSpecification {
    * @return the prefix that was specified as part of the import directive
    */
   public PrefixElement getPrefix();
+
+  /**
+   * Return {@code true} if this element is synthetic. A synthetic element is an element that is not
+   * represented in the source code explicitly, but is implied by the source code, such as the
+   * default constructor for a class that does not explicitly define any constructors.
+   * 
+   * @return {@code true} if this element is synthetic
+   */
+  public boolean isSynthetic();
 }
