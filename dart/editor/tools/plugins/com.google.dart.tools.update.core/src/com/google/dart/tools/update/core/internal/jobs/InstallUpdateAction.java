@@ -23,7 +23,6 @@ import com.google.dart.tools.update.core.internal.UpdateUtils;
 
 import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.debug.core.DebugException;
@@ -234,10 +233,10 @@ public class InstallUpdateAction extends Action {
 
     cleanupTempDir(tmpDir, mon.newChild(3));
 
-    IPath updatePath = updateManager.getLatestStagedUpdate().getLocalPath();
-    File updateZip = updatePath.toFile();
+    Revision latestStagedUpdate = updateManager.getLatestStagedUpdate();
+    File updateZip = latestStagedUpdate.getLocalPath().toFile();
 
-    if (!UpdateUtils.isZipValid(updateZip)) {
+    if (latestStagedUpdate == Revision.UNKNOWN || !UpdateUtils.isZipValid(updateZip)) {
 
       final boolean[] retry = new boolean[1];
 
