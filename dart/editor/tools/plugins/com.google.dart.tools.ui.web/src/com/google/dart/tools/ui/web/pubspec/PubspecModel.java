@@ -149,7 +149,7 @@ public class PubspecModel {
 
   private void clearModelFields() {
     isDirty = false;
-    name = description = homepage = author = EMPTY_STRING;
+    name = version = description = homepage = author = EMPTY_STRING;
     dependencies.clear();
   }
 
