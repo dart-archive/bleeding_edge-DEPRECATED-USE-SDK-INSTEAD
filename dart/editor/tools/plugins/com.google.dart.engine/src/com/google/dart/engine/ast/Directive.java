@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -32,6 +33,12 @@ import java.util.List;
  */
 public abstract class Directive extends AnnotatedNode {
   /**
+   * The element associated with this directive, or {@code null} if the AST structure has not been
+   * resolved or if this directive could not be resolved.
+   */
+  private Element element;
+
+  /**
    * Initialize a newly create directive.
    */
   public Directive() {
@@ -49,10 +56,30 @@ public abstract class Directive extends AnnotatedNode {
   }
 
   /**
+   * Return the element associated with this directive, or {@code null} if the AST structure has not
+   * been resolved or if this directive could not be resolved. Examples of the latter case include a
+   * directive that contains an invalid URL or a URL that does not exist.
+   * 
+   * @return the element associated with this directive
+   */
+  public Element getElement() {
+    return element;
+  }
+
+  /**
    * Return the token representing the keyword that introduces this directive ('import', 'export',
    * 'library' or 'part').
    * 
    * @return the token representing the keyword that introduces this directive
    */
   public abstract Token getKeyword();
+
+  /**
+   * Set the element associated with this directive to the given element.
+   * 
+   * @param element the element associated with this directive
+   */
+  public void setElement(Element element) {
+    this.element = element;
+  }
 }

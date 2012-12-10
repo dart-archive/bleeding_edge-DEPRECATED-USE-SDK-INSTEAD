@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -50,6 +51,12 @@ public class IndexExpression extends Expression {
    * The right square bracket.
    */
   private Token rightBracket;
+
+  /**
+   * The element associated with the operator, or {@code null} if the AST structure has not been
+   * resolved or if the operator could not be resolved.
+   */
+  private Element element;
 
   /**
    * Initialize a newly created index expression.
@@ -109,6 +116,17 @@ public class IndexExpression extends Expression {
       return target.getBeginToken();
     }
     return period;
+  }
+
+  /**
+   * Return the element associated with the operator, or {@code null} if the AST structure has not
+   * been resolved or if the operator could not be resolved. One example of the latter case is an
+   * operator that is not defined for the type of the left-hand operand.
+   * 
+   * @return the element associated with this operator
+   */
+  public Element getElement() {
+    return element;
   }
 
   @Override
@@ -199,6 +217,15 @@ public class IndexExpression extends Expression {
    */
   public void setArray(Expression expression) {
     target = becomeParentOf(expression);
+  }
+
+  /**
+   * Set the element associated with the operator to the given element.
+   * 
+   * @param element the element associated with this operator
+   */
+  public void setElement(Element element) {
+    this.element = element;
   }
 
   /**

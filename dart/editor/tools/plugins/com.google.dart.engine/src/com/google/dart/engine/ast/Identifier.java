@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
+
 /**
  * The abstract class {@code Identifier} defines the behavior common to nodes that represent an
  * identifier.
@@ -36,6 +38,23 @@ public abstract class Identifier extends Expression {
   }
 
   /**
+   * The element associated with this identifier, or {@code null} if the AST structure has not been
+   * resolved or if this identifier could not be resolved.
+   */
+  private Element element;
+
+  /**
+   * Return the element associated with this identifier, or {@code null} if the AST structure has
+   * not been resolved or if this identifier could not be resolved. One example of the latter case
+   * is an identifier that is not defined within the scope in which it appears.
+   * 
+   * @return the element associated with this identifier
+   */
+  public Element getElement() {
+    return element;
+  }
+
+  /**
    * Return the lexical representation of the identifier.
    * 
    * @return the lexical representation of the identifier
@@ -45,5 +64,14 @@ public abstract class Identifier extends Expression {
   @Override
   public boolean isAssignable() {
     return true;
+  }
+
+  /**
+   * Set the element associated with this identifier to the given element.
+   * 
+   * @param element the element associated with this identifier
+   */
+  public void setElement(Element element) {
+    this.element = element;
   }
 }

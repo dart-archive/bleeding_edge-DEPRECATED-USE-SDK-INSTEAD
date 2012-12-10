@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -38,6 +39,12 @@ public class BinaryExpression extends Expression {
    * The expression used to compute the right operand.
    */
   private Expression rightOperand;
+
+  /**
+   * The element associated with the operator, or {@code null} if the AST structure has not been
+   * resolved, if the operator is not user definable, or if the operator could not be resolved.
+   */
+  private Element element;
 
   /**
    * Initialize a newly created binary expression.
@@ -66,6 +73,18 @@ public class BinaryExpression extends Expression {
   @Override
   public Token getBeginToken() {
     return leftOperand.getBeginToken();
+  }
+
+  /**
+   * Return the element associated with the operator, or {@code null} if the AST structure has not
+   * been resolved, if the operator is not user definable, or if the operator could not be resolved.
+   * One example of the latter case is an operator that is not defined for the type of the left-hand
+   * operand.
+   * 
+   * @return the element associated with the operator
+   */
+  public Element getElement() {
+    return element;
   }
 
   @Override
@@ -98,6 +117,15 @@ public class BinaryExpression extends Expression {
    */
   public Expression getRightOperand() {
     return rightOperand;
+  }
+
+  /**
+   * Set the element associated with the operator to the given element.
+   * 
+   * @param element the element associated with the operator
+   */
+  public void setElement(Element element) {
+    this.element = element;
   }
 
   /**

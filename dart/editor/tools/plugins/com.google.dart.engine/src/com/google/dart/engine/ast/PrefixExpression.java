@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -33,6 +34,12 @@ public class PrefixExpression extends Expression {
    * The expression computing the operand for the operator.
    */
   private Expression operand;
+
+  /**
+   * The element associated with the operator, or {@code null} if the AST structure has not been
+   * resolved, if the operator is not user definable, or if the operator could not be resolved.
+   */
+  private Element element;
 
   /**
    * Initialize a newly created prefix expression.
@@ -61,6 +68,17 @@ public class PrefixExpression extends Expression {
     return operator;
   }
 
+  /**
+   * Return the element associated with the operator, or {@code null} if the AST structure has not
+   * been resolved, if the operator is not user definable, or if the operator could not be resolved.
+   * One example of the latter case is an operator that is not defined for the type of the operand.
+   * 
+   * @return the element associated with the operator
+   */
+  public Element getElement() {
+    return element;
+  }
+
   @Override
   public Token getEndToken() {
     return operand.getEndToken();
@@ -82,6 +100,15 @@ public class PrefixExpression extends Expression {
    */
   public Token getOperator() {
     return operator;
+  }
+
+  /**
+   * Set the element associated with the operator to the given element.
+   * 
+   * @param element the element associated with the operator
+   */
+  public void setElement(Element element) {
+    this.element = element;
   }
 
   /**

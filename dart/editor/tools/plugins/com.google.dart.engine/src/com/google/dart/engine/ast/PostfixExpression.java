@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -33,6 +34,12 @@ public class PostfixExpression extends Expression {
    * The postfix operator being applied to the operand.
    */
   private Token operator;
+
+  /**
+   * The element associated with this the operator, or {@code null} if the AST structure has not
+   * been resolved, if the operator is not user definable, or if the operator could not be resolved.
+   */
+  private Element element;
 
   /**
    * Initialize a newly created postfix expression.
@@ -61,6 +68,17 @@ public class PostfixExpression extends Expression {
     return operand.getBeginToken();
   }
 
+  /**
+   * Return the element associated with the operator, or {@code null} if the AST structure has not
+   * been resolved, if the operator is not user definable, or if the operator could not be resolved.
+   * One example of the latter case is an operator that is not defined for the type of the operand.
+   * 
+   * @return the element associated with the operator
+   */
+  public Element getElement() {
+    return element;
+  }
+
   @Override
   public Token getEndToken() {
     return operator;
@@ -82,6 +100,15 @@ public class PostfixExpression extends Expression {
    */
   public Token getOperator() {
     return operator;
+  }
+
+  /**
+   * Set the element associated with the operator to the given element.
+   * 
+   * @param element the element associated with the operator
+   */
+  public void setElement(Element element) {
+    this.element = element;
   }
 
   /**

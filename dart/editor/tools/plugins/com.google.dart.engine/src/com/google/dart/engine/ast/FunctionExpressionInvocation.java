@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -37,6 +38,12 @@ public class FunctionExpressionInvocation extends Expression {
    * The list of arguments to the function.
    */
   private ArgumentList argumentList;
+
+  /**
+   * The element associated with the function being invoked, or {@code null} if the AST structure
+   * has not been resolved or the function could not be resolved.
+   */
+  private Element element;
 
   /**
    * Initialize a newly created function expression invocation.
@@ -74,6 +81,17 @@ public class FunctionExpressionInvocation extends Expression {
     return function.getBeginToken();
   }
 
+  /**
+   * Return the element associated with the function being invoked, or {@code null} if the AST
+   * structure has not been resolved or the function could not be resolved. One common example of
+   * the latter case is an expression whose value can change over time.
+   * 
+   * @return the element associated with the function being invoked
+   */
+  public Element getElement() {
+    return element;
+  }
+
   @Override
   public Token getEndToken() {
     return argumentList.getEndToken();
@@ -95,6 +113,15 @@ public class FunctionExpressionInvocation extends Expression {
    */
   public void setArgumentList(ArgumentList argumentList) {
     this.argumentList = becomeParentOf(argumentList);
+  }
+
+  /**
+   * Set the element associated with the function being invoked to the given element.
+   * 
+   * @param element the element associated with the function being invoked
+   */
+  public void setElement(Element element) {
+    this.element = element;
   }
 
   /**

@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.type.Type;
 
 /**
  * Instances of the class {@code TypeName} represent the name of a type, which can optionally
@@ -34,6 +35,11 @@ public class TypeName extends ASTNode {
    * The type arguments associated with the type, or {@code null} if there are no type arguments.
    */
   private TypeArgumentList typeArguments;
+
+  /**
+   * The type being named, or {@code null} if the AST structure has not been resolved.
+   */
+  private Type type;
 
   /**
    * Initialize a newly created type name.
@@ -81,6 +87,15 @@ public class TypeName extends ASTNode {
   }
 
   /**
+   * Return the type being named, or {@code null} if the AST structure has not been resolved.
+   * 
+   * @return the type being named
+   */
+  public Type getType() {
+    return type;
+  }
+
+  /**
    * Return the type arguments associated with the type, or {@code null} if there are no type
    * arguments.
    * 
@@ -102,6 +117,15 @@ public class TypeName extends ASTNode {
    */
   public void setName(Identifier identifier) {
     name = becomeParentOf(identifier);
+  }
+
+  /**
+   * Set the type being named to the given type.
+   * 
+   * @param type the type being named
+   */
+  public void setType(Type type) {
+    this.type = type;
   }
 
   /**

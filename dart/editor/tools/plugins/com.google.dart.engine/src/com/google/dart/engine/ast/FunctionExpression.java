@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -33,6 +34,12 @@ public class FunctionExpression extends Expression {
    * The body of the function, or {@code null} if this is an external function.
    */
   private FunctionBody body;
+
+  /**
+   * The element associated with the function, or {@code null} if the AST structure has not been
+   * resolved.
+   */
+  private Element element;
 
   /**
    * Initialize a newly created function declaration.
@@ -77,6 +84,16 @@ public class FunctionExpression extends Expression {
     return body;
   }
 
+  /**
+   * Return the element associated with this function, or {@code null} if the AST structure has not
+   * been resolved.
+   * 
+   * @return the element associated with this function
+   */
+  public Element getElement() {
+    return element;
+  }
+
   @Override
   public Token getEndToken() {
     if (body != null) {
@@ -105,6 +122,15 @@ public class FunctionExpression extends Expression {
    */
   public void setBody(FunctionBody functionBody) {
     body = becomeParentOf(functionBody);
+  }
+
+  /**
+   * Set the element associated with this function to the given element.
+   * 
+   * @param element the element associated with this function
+   */
+  public void setElement(Element element) {
+    this.element = element;
   }
 
   /**
