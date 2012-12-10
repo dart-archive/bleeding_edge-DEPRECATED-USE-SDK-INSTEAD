@@ -205,39 +205,40 @@ public class PubspecModel {
   @SuppressWarnings("unchecked")
   private DependencyObject[] processDependencies(Map<String, Object> yamlDep) {
     List<DependencyObject> deps = new ArrayList<DependencyObject>();
-
-    for (String name : yamlDep.keySet()) {
-      DependencyObject d = new DependencyObject(name);
-      Object value = yamlDep.get(name);
-      if (value instanceof String) {
-        d.setVersion((String) value);
-      } else if (value instanceof Map) {
-        Map<String, Object> values = (Map<String, Object>) value;
-        for (String key : values.keySet()) {
-          if (key.equals("version")) {
-            d.setVersion((String) values.get(key));
-          }
-          if (key.equals("git")) {
-            d.setGitDependency(true);
-            Object fields = values.get(key);
-            if (fields instanceof String) {
-              d.setPath((String) fields);
+    if (yamlDep != null) {
+      for (String name : yamlDep.keySet()) {
+        DependencyObject d = new DependencyObject(name);
+        Object value = yamlDep.get(name);
+        if (value instanceof String) {
+          d.setVersion((String) value);
+        } else if (value instanceof Map) {
+          Map<String, Object> values = (Map<String, Object>) value;
+          for (String key : values.keySet()) {
+            if (key.equals("version")) {
+              d.setVersion((String) values.get(key));
             }
-            if (fields instanceof Map) {
-              Map<String, Object> map = (Map<String, Object>) fields;
-              for (String mapKey : map.keySet()) {
-                if (mapKey.equals("url")) {
-                  d.setPath((String) map.get(mapKey));
-                }
-                if (mapKey.equals("ref")) {
-                  d.setGitRef((String) map.get(mapKey));
+            if (key.equals("git")) {
+              d.setGitDependency(true);
+              Object fields = values.get(key);
+              if (fields instanceof String) {
+                d.setPath((String) fields);
+              }
+              if (fields instanceof Map) {
+                Map<String, Object> map = (Map<String, Object>) fields;
+                for (String mapKey : map.keySet()) {
+                  if (mapKey.equals("url")) {
+                    d.setPath((String) map.get(mapKey));
+                  }
+                  if (mapKey.equals("ref")) {
+                    d.setGitRef((String) map.get(mapKey));
+                  }
                 }
               }
             }
           }
         }
+        deps.add(d);
       }
-      deps.add(d);
     }
     return deps.toArray(new DependencyObject[deps.size()]);
   }
