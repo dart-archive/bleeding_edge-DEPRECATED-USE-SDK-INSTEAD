@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -22,7 +23,6 @@ import com.google.dart.tools.ui.actions.DeleteAction;
 import com.google.dart.tools.ui.actions.OpenAsTextAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
-import com.google.dart.tools.ui.actions.OrganizeImportsAction;
 import com.google.dart.tools.ui.internal.actions.CleanUpAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
@@ -37,6 +37,7 @@ import org.eclipse.core.filesystem.IFileInfo;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -163,7 +164,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private PropertyDialogAction propertyDialogAction;
   private RenameResourceAction renameAction;
   private CleanUpAction cleanUpAction;
-  private OrganizeImportsAction organizeImportsAction;
   private DeleteAction deleteAction;
   private OpenNewFileWizardAction createFileAction;
   private OpenNewFolderWizardAction createFolderAction;
@@ -391,13 +391,17 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
     }
 
+    boolean isPackagesDir = isPackagesDir(selection);
+
     // EDIT GROUP
 
     if (!selection.isEmpty() && allElementsAreResources(selection)) {
 
       manager.add(new Separator());
 
-      manager.add(copyAction);
+      if (!isPackagesDir) {
+        manager.add(copyAction);
+      }
 
       // Copy File Path iff single element and is an IResource
 
@@ -405,43 +409,53 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         manager.add(copyFilePathAction);
       }
 
-      manager.add(pasteAction);
+      if (!isPackagesDir) {
+        manager.add(pasteAction);
+      }
 
-      if (selection.size() == 1 && selection.getFirstElement() instanceof IFile) {
+      if (selection.size() == 1 && selection.getFirstElement() instanceof IFile
+          && !((IResource) (selection.getFirstElement())).getName().endsWith(".dart")) {
         manager.add(openAsTextAction);
       }
 
       manager.add(new Separator());
       manager.add(refreshAction);
-    }
 
-    // REFACTOR GROUP
+      // REFACTOR GROUP
 
-    // Refactor iff all elements are IResources
-
-    if (!selection.isEmpty() && allElementsAreResources(selection)) {
       manager.add(new Separator());
+
       if (selection.size() == 1) {
-        manager.add(renameAction);
-        manager.add(moveAction);
+
+        if (!isPackagesDir) {
+          manager.add(renameAction);
+          manager.add(moveAction);
+        }
+
       }
-      manager.add(cleanUpAction);
-      manager.add(organizeImportsAction);
-      manager.add(new Separator());
-      ignoreResourceAction.updateLabel();
-      manager.add(ignoreResourceAction);
-      if (enableBuilderAction.shouldBeEnabled()) {
-        enableBuilderAction.updateLabel();
-        manager.add(enableBuilderAction);
+
+      if (!isPackagesDir) {
+        manager.add(cleanUpAction);
+        manager.add(new Separator());
+        ignoreResourceAction.updateLabel();
+        manager.add(ignoreResourceAction);
+        if (enableBuilderAction.shouldBeEnabled()) {
+          enableBuilderAction.updateLabel();
+          manager.add(enableBuilderAction);
+        }
       }
+
       manager.add(new Separator());
       manager.add(deleteAction);
       manager.add(new Separator());
     }
 
     manager.add(new Separator("additions"));
-    manager.add(new Separator());
-    manager.add(new OpenPubDocs());
+
+    if (isPackagesDir) {
+      manager.add(new Separator());
+      manager.add(new OpenPubDocs());
+    }
 
     manager.add(new Separator());
     manager.add(propertyDialogAction);
@@ -577,6 +591,18 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     treeViewer.addDropSupport(ops | DND.DROP_DEFAULT, transfers, adapter);
   }
 
+  private boolean isPackagesDir(IStructuredSelection selection) {
+
+    if (selection.isEmpty()) {
+      return false;
+    }
+
+    Object resource = selection.getFirstElement();
+
+    return resource instanceof IFolder && DartCore.isPackagesDirectory((IFolder) resource);
+
+  }
+
   private void makeActions() {
     createFileAction = new OpenNewFileWizardAction(getSite().getWorkbenchWindow());
     treeViewer.addSelectionChangedListener(createFileAction);
@@ -586,9 +612,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     renameAction = new RenameResourceAction(getShell(), treeViewer.getTree());
     treeViewer.addSelectionChangedListener(renameAction);
     cleanUpAction = new CleanUpAction(getViewSite());
-    organizeImportsAction = new OrganizeImportsAction(getViewSite());
     treeViewer.addSelectionChangedListener(cleanUpAction);
-    treeViewer.addSelectionChangedListener(organizeImportsAction);
     moveAction = new MoveResourceAction(getShell());
     treeViewer.addSelectionChangedListener(moveAction);
 
