@@ -191,6 +191,7 @@ public final class PreferencesMessages extends NLS {
   public static String DartEditorPreferencePage_sourceHoverBackgroundColor;
   public static String DartEditorPreferencePage_general;
   public static String DartBasePreferencePage_save;
+  public static String DartBasePreferencePage_pub;
   public static String DartEditorPreferencePage_colors;
   public static String DartEditorPreferencePage_empty_input;
   public static String DartEditorPreferencePage_invalid_input;
@@ -780,6 +781,8 @@ public final class PreferencesMessages extends NLS {
   public static String DartBasePreferencePage_select;
   public static String DartBasePreferencePage_text_font;
   public static String DartBasePreferencePage_trailing_ws_details;
+  public static String DartBasePreferencePage_pub_auto_label;
+  public static String DartBasePreferencePage_pub_auto_details;
   public static String DartBasePreferencePage_trailing_ws_label;
   public static String DartBasePreferencePage_update_group_label;
 

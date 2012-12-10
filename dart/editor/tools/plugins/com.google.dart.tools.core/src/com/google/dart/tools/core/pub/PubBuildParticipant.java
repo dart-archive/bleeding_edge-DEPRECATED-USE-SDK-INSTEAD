@@ -37,7 +37,7 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
 
   @Override
   public void build(BuildEvent event, IProgressMonitor monitor) throws CoreException {
-    if (DartCoreDebug.ENABLE_PUB) {
+    if (DartCoreDebug.ENABLE_PUB && DartCore.getPlugin().isAutoRunPubEnabled()) {
       event.traverse(this, false);
     }
   }
