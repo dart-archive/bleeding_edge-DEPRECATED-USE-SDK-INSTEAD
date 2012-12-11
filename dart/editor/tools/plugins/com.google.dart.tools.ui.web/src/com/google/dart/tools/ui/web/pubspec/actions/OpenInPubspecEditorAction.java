@@ -19,9 +19,10 @@ import com.google.dart.tools.ui.web.pubspec.PubspecEditor;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.part.FileEditorInput;
 
 /**
  * Action that opens the PubspecEditor
@@ -44,7 +45,11 @@ public class OpenInPubspecEditorAction extends SelectionDispatchAction {
     if (selection != null && selection instanceof StructuredSelection) {
       IFile file = (IFile) ((StructuredSelection) selection).getFirstElement();
       try {
-        IDE.openEditor(getSite().getPage(), file, PubspecEditor.ID);
+        getSite().getPage().openEditor(
+            new FileEditorInput(file),
+            PubspecEditor.ID,
+            true,
+            IWorkbenchPage.MATCH_INPUT | IWorkbenchPage.MATCH_ID);
       } catch (PartInitException e) {
 
       }

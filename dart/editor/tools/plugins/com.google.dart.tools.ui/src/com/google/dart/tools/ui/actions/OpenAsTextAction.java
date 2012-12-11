@@ -19,7 +19,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.actions.SelectionListenerAction;
 import org.eclipse.ui.editors.text.EditorsUI;
-import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.part.FileEditorInput;
 
 import java.util.List;
 
@@ -47,7 +47,11 @@ public class OpenAsTextAction extends SelectionListenerAction {
     if (selectedResources.get(0) instanceof IFile) {
       IFile file = (IFile) selectedResources.get(0);
       try {
-        IDE.openEditor(page, file, EditorsUI.DEFAULT_TEXT_EDITOR_ID);
+        page.openEditor(
+            new FileEditorInput(file),
+            EditorsUI.DEFAULT_TEXT_EDITOR_ID,
+            true,
+            IWorkbenchPage.MATCH_INPUT | IWorkbenchPage.MATCH_ID);
       } catch (PartInitException e) {
 
       }
