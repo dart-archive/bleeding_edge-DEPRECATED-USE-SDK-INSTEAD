@@ -19,7 +19,6 @@ import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.LibraryDirective;
-import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PostfixExpression;
@@ -32,7 +31,6 @@ import com.google.dart.engine.utilities.io.PrintStringWriter;
 import junit.framework.Assert;
 
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -40,12 +38,6 @@ import java.util.Set;
  * structure that should have been resolved were resolved.
  */
 public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
-  /**
-   * A table mapping the AST nodes that have been resolved to the element to which they were
-   * resolved.
-   */
-  private Map<ASTNode, Element> resolvedElementMap;
-
   /**
    * A set containing nodes that are known to not be resolvable and should therefore not cause the
    * test to fail.
@@ -59,28 +51,22 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
 
   /**
    * Initialize a newly created verifier to verify that all of the nodes in the visited AST
-   * structures that are expected to have been resolved have an entry in the given map.
-   * 
-   * @param resolvedElementMap a table mapping the AST nodes that have been resolved to the element
-   *          to which they were resolved
+   * structures that are expected to have been resolved have an element associated with them.
    */
-  public ResolutionVerifier(Map<ASTNode, Element> resolvedElementMap) {
-    this(resolvedElementMap, null);
+  public ResolutionVerifier() {
+    this(null);
   }
 
   /**
    * Initialize a newly created verifier to verify that all of the identifiers in the visited AST
-   * structures that are expected to have been resolved have an entry in the given map. Nodes in the
-   * set of known exceptions are not expected to have been resolved, even if they normally would
-   * have been expected to have been resolved.
+   * structures that are expected to have been resolved have an element associated with them. Nodes
+   * in the set of known exceptions are not expected to have been resolved, even if they normally
+   * would have been expected to have been resolved.
    * 
-   * @param resolvedElementMap a table mapping the AST nodes that have been resolved to the element
-   *          to which they were resolved
    * @param knownExceptions a set containing nodes that are known to not be resolvable and should
    *          therefore not cause the test to fail
    **/
-  public ResolutionVerifier(Map<ASTNode, Element> resolvedElementMap, Set<ASTNode> knownExceptions) {
-    this.resolvedElementMap = resolvedElementMap;
+  public ResolutionVerifier(Set<ASTNode> knownExceptions) {
     this.knownExceptions = knownExceptions;
   }
 
@@ -110,47 +96,41 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (!node.getOperator().isUserDefinableOperator()) {
       return null;
     }
-    return checkResolved(node);
+    return checkResolved(node, node.getElement());
   }
 
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.visitChildren(this);
-    return checkResolved(node);
+    return checkResolved(node, node.getElement());
   }
 
   @Override
   public Void visitImportDirective(ImportDirective node) {
     // Not sure how to test the combinators given that it isn't an error if the names are not defined.
-    checkResolved(node.getLibraryUri());
-    return checkResolved(node.getPrefix());
+    checkResolved(node, node.getElement());
+    return checkResolved(node.getPrefix(), node.getPrefix().getElement());
   }
 
   @Override
   public Void visitIndexExpression(IndexExpression node) {
     node.visitChildren(this);
-    return checkResolved(node);
+    return checkResolved(node, node.getElement());
   }
 
   @Override
   public Void visitLibraryDirective(LibraryDirective node) {
-    return checkResolved(node);
-  }
-
-  @Override
-  public Void visitMethodInvocation(MethodInvocation node) {
-    node.visitChildren(this);
-    return checkResolved(node);
+    return checkResolved(node, node.getElement());
   }
 
   @Override
   public Void visitPartDirective(PartDirective node) {
-    return checkResolved(node.getPartUri());
+    return checkResolved(node, node.getElement());
   }
 
   @Override
   public Void visitPartOfDirective(PartOfDirective node) {
-    return checkResolved(node);
+    return checkResolved(node, node.getElement());
   }
 
   @Override
@@ -159,7 +139,7 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (!node.getOperator().isUserDefinableOperator()) {
       return null;
     }
-    return checkResolved(node);
+    return checkResolved(node, node.getElement());
   }
 
   @Override
@@ -168,7 +148,7 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (!node.getOperator().isUserDefinableOperator()) {
       return null;
     }
-    return checkResolved(node);
+    return checkResolved(node, node.getElement());
   }
 
   @Override
@@ -176,11 +156,11 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (node.getName().equals("void")) {
       return null;
     }
-    return checkResolved(node);
+    return checkResolved(node, node.getElement());
   }
 
-  private Void checkResolved(ASTNode node) {
-    if (node != null && !resolvedElementMap.containsKey(node)) {
+  private Void checkResolved(ASTNode node, Element element) {
+    if (node != null && element == null) {
       if (knownExceptions == null || !knownExceptions.contains(node)) {
         unresolvedNodes.add(node);
       }

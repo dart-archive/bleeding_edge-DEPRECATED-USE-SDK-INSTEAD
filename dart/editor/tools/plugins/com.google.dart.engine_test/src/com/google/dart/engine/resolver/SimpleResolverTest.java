@@ -13,11 +13,7 @@
  */
 package com.google.dart.engine.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
-
-import java.util.Map;
 
 public class SimpleResolverTest extends ResolverTestCase {
   public void test_class_extends_implements() throws Exception {
@@ -25,15 +21,15 @@ public class SimpleResolverTest extends ResolverTestCase {
         "class A extends B implements C {}",
         "class B {}",
         "class C {}"));
-    Map<ASTNode, Element> resolvedElementMap = resolve(source);
+    resolve(source);
     assertNoErrors();
-    verify(resolvedElementMap, source);
+    verify(source);
   }
 
   public void test_empty() throws Exception {
     Source source = addSource("test.dart", "");
-    Map<ASTNode, Element> resolvedElementMap = resolve(source);
+    resolve(source);
     assertNoErrors();
-    verify(resolvedElementMap, source);
+    verify(source);
   }
 }

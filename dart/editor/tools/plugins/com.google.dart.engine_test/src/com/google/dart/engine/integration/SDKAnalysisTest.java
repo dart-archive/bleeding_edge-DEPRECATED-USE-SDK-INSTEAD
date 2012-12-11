@@ -13,10 +13,8 @@
  */
 package com.google.dart.engine.integration;
 
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
@@ -37,7 +35,6 @@ import junit.framework.TestSuite;
 
 import java.io.File;
 import java.nio.CharBuffer;
-import java.util.HashMap;
 
 public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
   public class ReportingTest extends TestCase {
@@ -123,10 +120,7 @@ public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
     //
     // Build the element model for the compilation unit.
     //
-    CompilationUnitBuilder builder = new CompilationUnitBuilder(
-        analysisContext,
-        listener,
-        new HashMap<ASTNode, Element>());
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(analysisContext, listener);
     long builderStartTime = System.currentTimeMillis();
     CompilationUnitElement element = builder.buildCompilationUnit(source);
     long builderEndTime = System.currentTimeMillis();

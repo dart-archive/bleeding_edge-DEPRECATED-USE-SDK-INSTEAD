@@ -14,7 +14,6 @@
 package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -32,7 +31,6 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExportSpecification;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportCombinator;
@@ -53,7 +51,6 @@ import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Instances of the class {@code LibraryElementBuilder} build an element model for a single library.
@@ -70,9 +67,10 @@ public class LibraryElementBuilder {
   private AnalysisErrorListener errorListener;
 
   /**
-   * A table mapping the identifiers of declared elements to the element that was declared.
+   * The name of the core library.
    */
-  private HashMap<ASTNode, Element> declaredElementMap = new HashMap<ASTNode, Element>();
+  // TODO(brianwilkerson) Decide where this should really be defined. Perhaps DartSDK?
+  private static final String CORE_LIBRARY_NAME = "dart:core";
 
   /**
    * The name of the function used as an entry point.
@@ -99,29 +97,33 @@ public class LibraryElementBuilder {
    * @throws AnalysisException if the analysis could not be performed
    */
   public LibraryElement buildLibrary(Source librarySource) throws AnalysisException {
-    CompilationUnitBuilder builder = new CompilationUnitBuilder(
-        analysisContext,
-        errorListener,
-        declaredElementMap);
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(analysisContext, errorListener);
     CompilationUnit definingCompilationUnit = analysisContext.parse(librarySource, errorListener);
     CompilationUnitElementImpl definingCompilationUnitElement = builder.buildCompilationUnit(librarySource);
     NodeList<Directive> directives = definingCompilationUnit.getDirectives();
     SimpleIdentifier libraryNameNode = null;
     boolean hasPartDirective = false;
+    boolean explicitlyImportsCore = false;
     FunctionElement entryPoint = findEntryPoint(definingCompilationUnitElement);
     ArrayList<ImportSpecification> imports = new ArrayList<ImportSpecification>();
     ArrayList<ExportSpecification> exports = new ArrayList<ExportSpecification>();
     HashMap<String, PrefixElementImpl> nameToPrefixMap = new HashMap<String, PrefixElementImpl>();
     HashMap<PrefixElementImpl, ArrayList<ImportSpecification>> prefixToImportMap = new HashMap<PrefixElementImpl, ArrayList<ImportSpecification>>();
+    ArrayList<Directive> directivesToResolve = new ArrayList<Directive>();
     ArrayList<CompilationUnitElementImpl> sourcedCompilationUnits = new ArrayList<CompilationUnitElementImpl>();
     for (Directive directive : directives) {
       if (directive instanceof LibraryDirective) {
         if (libraryNameNode == null) {
           libraryNameNode = ((LibraryDirective) directive).getName();
+          directivesToResolve.add(directive);
         }
       } else if (directive instanceof NamespaceDirective) {
         NamespaceDirective namespaceDirective = (NamespaceDirective) directive;
         if (directive instanceof ImportDirective) {
+          String uri = getStringValue(namespaceDirective.getLibraryUri());
+          if (uri != null && CORE_LIBRARY_NAME.equals(uri)) {
+            explicitlyImportsCore = true;
+          }
           ImportSpecificationImpl specification = new ImportSpecificationImpl();
           specification.setCombinators(buildCombinators(namespaceDirective));
           LibraryElement importedLibrary = getReferencedLibrary(
@@ -129,6 +131,7 @@ public class LibraryElementBuilder {
               namespaceDirective.getLibraryUri());
           if (importedLibrary != null) {
             specification.setImportedLibrary(importedLibrary);
+            directive.setElement(importedLibrary);
           }
           SimpleIdentifier prefixNode = ((ImportDirective) directive).getPrefix();
           if (prefixNode != null) {
@@ -162,6 +165,7 @@ public class LibraryElementBuilder {
               namespaceDirective.getLibraryUri());
           if (exportedLibrary != null) {
             specification.setExportedLibrary(exportedLibrary);
+            directive.setElement(exportedLibrary);
           }
           exports.add(specification);
         } else {
@@ -178,7 +182,7 @@ public class LibraryElementBuilder {
           //
           // Validate that the part contains a part-of directive with the same name as the library.
           //
-          String partLibraryName = getPartLibraryName(partSource);
+          String partLibraryName = getPartLibraryName(partSource, directivesToResolve);
           if (partLibraryName == null) {
             errorListener.onError(new AnalysisError(
                 librarySource,
@@ -201,11 +205,19 @@ public class LibraryElementBuilder {
           if (entryPoint == null) {
             entryPoint = findEntryPoint(part);
           }
-          declaredElementMap.put(partUri, part);
+          directive.setElement(part);
           sourcedCompilationUnits.add(part);
         }
       }
     }
+    // TODO(brianwilkerson) Uncomment the code below when the necessary pieces are implemented.
+//    if (!explicitlyImportsCore && !CORE_LIBRARY_NAME.equals(librarySource.getFullName())) {
+//      ImportSpecificationImpl specification = new ImportSpecificationImpl();
+//      LibraryElement importedLibrary = getReferencedLibrary(librarySource, CORE_LIBRARY_NAME);
+//      specification.setImportedLibrary(importedLibrary);
+//      specification.setSynthetic(true);
+//      imports.add(specification);
+//    }
 
     if (hasPartDirective && libraryNameNode == null) {
       errorListener.onError(new AnalysisError(
@@ -219,17 +231,11 @@ public class LibraryElementBuilder {
     }
     libraryElement.setImports(imports.toArray(new ImportSpecification[imports.size()]));
     libraryElement.setParts(sourcedCompilationUnits.toArray(new CompilationUnitElementImpl[sourcedCompilationUnits.size()]));
+    for (Directive directive : directivesToResolve) {
+      directive.setElement(libraryElement);
+    }
 
     return libraryElement;
-  }
-
-  /**
-   * Return a table mapping the identifiers of declared elements to the element that was declared.
-   * 
-   * @return a table mapping the identifiers of declared elements to the element that was declared
-   */
-  public Map<ASTNode, Element> getDeclaredElementMap() {
-    return declaredElementMap;
   }
 
   /**
@@ -311,13 +317,16 @@ public class LibraryElementBuilder {
    * if the part does not contain a part-of directive.
    * 
    * @param partSource the source representing the part
+   * @param directivesToResolve a list of directives that should be resolved to the library being
+   *          built
    * @return the name of the library that the given part is declared to be a part of
    */
-  private String getPartLibraryName(Source partSource) {
+  private String getPartLibraryName(Source partSource, ArrayList<Directive> directivesToResolve) {
     try {
       CompilationUnit partUnit = analysisContext.parse(partSource, errorListener);
       for (Directive directive : partUnit.getDirectives()) {
         if (directive instanceof PartOfDirective) {
+          directivesToResolve.add(directive);
           SimpleIdentifier libraryName = ((PartOfDirective) directive).getLibraryName();
           if (libraryName != null) {
             return libraryName.getName();
@@ -335,12 +344,11 @@ public class LibraryElementBuilder {
    * model is being built.
    * 
    * @param librarySource the source for the library being built
-   * @param libraryUri the URI of the referenced library
+   * @param referencedSource the source for the library that was referenced
    * @return the element model for the referenced library
    */
-  private LibraryElement getReferencedLibrary(Source librarySource, StringLiteral libraryUri) {
-    Source source = getSource(librarySource, libraryUri);
-    if (source == null) {
+  private LibraryElement getReferencedLibrary(Source librarySource, Source referencedSource) {
+    if (referencedSource == null) {
       return null;
     }
     // TODO(brianwilkerson) This needs to go through the analysis context so that we can take
@@ -353,12 +361,56 @@ public class LibraryElementBuilder {
     try {
       // TODO(brianwilkerson) This needs to return a handle to the built library rather than a
       // direct reference.
-      return libraryBuilder.buildLibrary(source);
+      return libraryBuilder.buildLibrary(referencedSource);
     } catch (AnalysisException exception) {
       // Even if we are unable to build the referenced library we still want to try to continue to
       // build the referencing library.
       return null;
     }
+  }
+
+  /**
+   * Return the element model for a library that is being referenced by the library whose element
+   * model is being built.
+   * 
+   * @param librarySource the source for the library being built
+   * @param libraryUri the URI of the referenced library
+   * @return the element model for the referenced library
+   */
+  private LibraryElement getReferencedLibrary(Source librarySource, String libraryUri) {
+    return getReferencedLibrary(librarySource, getSource(librarySource, libraryUri, 0, 0));
+  }
+
+  /**
+   * Return the element model for a library that is being referenced by the library whose element
+   * model is being built.
+   * 
+   * @param librarySource the source for the library being built
+   * @param libraryUri the URI of the referenced library
+   * @return the element model for the referenced library
+   */
+  private LibraryElement getReferencedLibrary(Source librarySource, StringLiteral libraryUri) {
+    return getReferencedLibrary(librarySource, getSource(librarySource, libraryUri));
+  }
+
+  /**
+   * Return the result of resolving the given URI against the URI of the library, or {@code null} if
+   * the URI is not valid. If the URI is not valid, report the error.
+   * 
+   * @param librarySource the source defining the URI against which the given URI will be resolved
+   * @param partUri the URI to be resolved
+   * @return the result of resolving the given URI against the URI of the library
+   */
+  private Source getSource(Source librarySource, String uri, int uriOffset, int uriLength) {
+    if (uri == null) {
+      errorListener.onError(new AnalysisError(
+          librarySource,
+          uriOffset,
+          uriLength,
+          ResolverErrorCode.INVALID_URI));
+      return null;
+    }
+    return librarySource.resolve(uri);
   }
 
   /**
@@ -370,16 +422,11 @@ public class LibraryElementBuilder {
    * @return the result of resolving the given URI against the URI of the library
    */
   private Source getSource(Source librarySource, StringLiteral partUri) {
-    String uri = getStringValue(partUri);
-    if (uri == null) {
-      errorListener.onError(new AnalysisError(
-          librarySource,
-          partUri.getOffset(),
-          partUri.getLength(),
-          ResolverErrorCode.INVALID_URI));
-      return null;
-    }
-    return librarySource.resolve(uri);
+    return getSource(
+        librarySource,
+        getStringValue(partUri),
+        partUri.getOffset(),
+        partUri.getLength());
   }
 
   /**

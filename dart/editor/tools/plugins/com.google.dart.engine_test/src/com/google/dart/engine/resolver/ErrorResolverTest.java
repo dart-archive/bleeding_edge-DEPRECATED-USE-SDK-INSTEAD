@@ -13,11 +13,7 @@
  */
 package com.google.dart.engine.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
-
-import java.util.Map;
 
 public class ErrorResolverTest extends ResolverTestCase {
   public void fail_labelInOuterScope() throws Exception {
@@ -33,9 +29,9 @@ public class ErrorResolverTest extends ResolverTestCase {
         "    }",
         "  }",
         "}"));
-    Map<ASTNode, Element> resolvedElementMap = resolve(source);
+    resolve(source);
     assertErrors(ResolverErrorCode.LABEL_IN_OUTER_SCOPE);
-    verify(resolvedElementMap, source);
+    verify(source);
   }
 
   public void test_breakLabelOnSwitchMember() throws Exception {
@@ -52,9 +48,9 @@ public class ErrorResolverTest extends ResolverTestCase {
         "    }",
         "  }",
         "}"));
-    Map<ASTNode, Element> resolvedElementMap = resolve(source);
+    resolve(source);
     assertErrors(ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER);
-    verify(resolvedElementMap, source);
+    verify(source);
   }
 
   public void test_cannotBeResolved_static() throws Exception {
@@ -79,9 +75,9 @@ public class ErrorResolverTest extends ResolverTestCase {
         "    }",
         "  }",
         "}"));
-    Map<ASTNode, Element> resolvedElementMap = resolve(source);
+    resolve(source);
     assertErrors(ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH);
-    verify(resolvedElementMap, source);
+    verify(source);
   }
 
   public void test_duplicateMemberError() throws Exception {
@@ -98,9 +94,9 @@ public class ErrorResolverTest extends ResolverTestCase {
         "part of lib;",
         "",
         "class A {}"));
-    Map<ASTNode, Element> resolvedElementMap = resolve(librarySource, sourceA, sourceB);
+    resolve(librarySource, sourceA, sourceB);
     assertErrors(ResolverErrorCode.DUPLICATE_MEMBER_ERROR);
-    verify(resolvedElementMap, librarySource, sourceA, sourceB);
+    verify(librarySource, sourceA, sourceB);
   }
 
   public void test_undefinedLabel() throws Exception {

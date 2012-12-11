@@ -37,7 +37,6 @@ import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
@@ -59,8 +58,6 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.Type;
 
-import java.util.HashMap;
-
 /**
  * Instances of the class {@code ElementBuilder} traverse an AST structure and build the element
  * model representing the AST structure.
@@ -72,11 +69,6 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   private ElementHolder currentHolder;
 
   /**
-   * A table mapping the identifiers of declared elements to the element that was declared.
-   */
-  private HashMap<ASTNode, Element> declaredElementMap;
-
-  /**
    * A flag indicating whether a variable declaration is in the context of a field declaration.
    */
   private boolean inFieldContext = false;
@@ -85,12 +77,9 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
    * Initialize a newly created element builder to build the elements for a compilation unit.
    * 
    * @param initialHolder the element holder associated with the compilation unit being built
-   * @param declaredElementMap a table mapping the identifiers of declared elements to the element
-   *          that was declared
    */
-  public ElementBuilder(ElementHolder initialHolder, HashMap<ASTNode, Element> declaredElementMap) {
+  public ElementBuilder(ElementHolder initialHolder) {
     currentHolder = initialHolder;
-    this.declaredElementMap = declaredElementMap;
   }
 
   @Override
@@ -100,14 +89,14 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       VariableElementImpl exception = new VariableElementImpl(exceptionParameter);
 
       currentHolder.addVariable(exception);
-      declaredElementMap.put(exceptionParameter, exception);
+      exceptionParameter.setElement(exception);
 
       SimpleIdentifier stackTraceParameter = node.getStackTraceParameter();
       if (stackTraceParameter != null) {
         VariableElementImpl stackTrace = new VariableElementImpl(stackTraceParameter);
 
         currentHolder.addVariable(stackTrace);
-        declaredElementMap.put(stackTraceParameter, stackTrace);
+        stackTraceParameter.setElement(stackTrace);
       }
     }
     node.visitChildren(this);
@@ -143,7 +132,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setType(interfaceType);
 
     currentHolder.addType(element);
-    declaredElementMap.put(className, element);
+    className.setElement(element);
     return null;
   }
 
@@ -163,7 +152,11 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setParameters(holder.getParameters());
 
     currentHolder.addConstructor(element);
-    declaredElementMap.put(constructorName, element);
+    if (constructorName == null) {
+      // TODO(brianwilkerson) Decide how to record elements for un-named constructors. 
+    } else {
+      constructorName.setElement(element);
+    }
     return null;
   }
 
@@ -186,7 +179,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     parameter.setParameterKind(node.getKind());
 
     currentHolder.addParameter(parameter);
-    declaredElementMap.put(parameterName, parameter);
+    parameterName.setElement(parameter);
     return null;
   }
 
@@ -211,7 +204,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     parameter.setParameterKind(node.getKind());
 
     currentHolder.addParameter(parameter);
-    declaredElementMap.put(parameterName, parameter);
+    parameterName.setElement(parameter);
     return null;
   }
 
@@ -228,7 +221,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setParameters(holder.getParameters());
 
     currentHolder.addFunction(element);
-    declaredElementMap.put(functionName, element);
+    functionName.setElement(element);
     return null;
   }
 
@@ -237,7 +230,6 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     ElementHolder holder = new ElementHolder();
     visitChildren(holder, node);
 
-    // TODO(brianwilkerson) Figure out how to handle un-named functions
     SimpleIdentifier functionName = null;
     FunctionElementImpl element = new FunctionElementImpl(functionName);
     element.setFunctions(holder.getFunctions());
@@ -246,7 +238,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setParameters(holder.getParameters());
 
     currentHolder.addFunction(element);
-    declaredElementMap.put(functionName, element);
+    node.setElement(element);
     return null;
   }
 
@@ -257,7 +249,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     parameter.setParameterKind(node.getKind());
 
     currentHolder.addParameter(parameter);
-    declaredElementMap.put(parameterName, parameter);
+    parameterName.setElement(parameter);
     return null;
   }
 
@@ -269,7 +261,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       LabelElementImpl element = new LabelElementImpl(labelName, onSwitchStatement, false);
 
       currentHolder.addLabel(element);
-      declaredElementMap.put(labelName, element);
+      labelName.setElement(element);
     }
     return null;
   }
@@ -292,7 +284,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       element.setStatic(matches(keyword, Keyword.STATIC));
 
       currentHolder.addMethod(element);
-      declaredElementMap.put(methodName, element);
+      methodName.setElement(element);
     } else {
       Identifier propertyNameNode = node.getName();
       String propertyName = propertyNameNode.getName();
@@ -311,7 +303,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         field.setGetter(getter);
 
         currentHolder.addAccessor(getter);
-        declaredElementMap.put(propertyNameNode, getter);
+        propertyNameNode.setElement(getter);
       } else {
         PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(propertyNameNode);
         setter.setField(field);
@@ -320,7 +312,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         field.setFinal(false);
 
         currentHolder.addAccessor(setter);
-        declaredElementMap.put(propertyNameNode, setter);
+        propertyNameNode.setElement(setter);
       }
     }
     return null;
@@ -335,7 +327,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     parameter.setParameterKind(node.getKind());
 
     currentHolder.addParameter(parameter);
-    declaredElementMap.put(parameterName, parameter);
+    parameterName.setElement(parameter);
     return null;
   }
 
@@ -346,7 +338,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       LabelElementImpl element = new LabelElementImpl(labelName, false, true);
 
       currentHolder.addLabel(element);
-      declaredElementMap.put(labelName, element);
+      labelName.setElement(element);
     }
     return null;
   }
@@ -358,7 +350,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       LabelElementImpl element = new LabelElementImpl(labelName, false, true);
 
       currentHolder.addLabel(element);
-      declaredElementMap.put(labelName, element);
+      labelName.setElement(element);
     }
     return null;
   }
@@ -379,7 +371,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 //    element.setType(functionType);
 
     currentHolder.addTypeAlias(element);
-    declaredElementMap.put(aliasName, element);
+    aliasName.setElement(element);
     return null;
   }
 
@@ -389,7 +381,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     TypeVariableElementImpl element = new TypeVariableElementImpl(parameterName);
 
     currentHolder.addTypeVariable(element);
-    declaredElementMap.put(parameterName, element);
+    parameterName.setElement(element);
     return null;
   }
 
@@ -401,13 +393,13 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       element = new FieldElementImpl(fieldName);
 
       currentHolder.addField((FieldElementImpl) element);
-      declaredElementMap.put(fieldName, element);
+      fieldName.setElement(element);
     } else {
       SimpleIdentifier variableName = node.getName();
       element = new VariableElementImpl(variableName);
 
       currentHolder.addVariable(element);
-      declaredElementMap.put(variableName, element);
+      variableName.setElement(element);
     }
 
     Token keyword = ((VariableDeclarationList) node.getParent()).getKeyword();

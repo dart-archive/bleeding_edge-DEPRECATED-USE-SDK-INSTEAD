@@ -13,16 +13,12 @@
  */
 package com.google.dart.engine.internal.builder;
 
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.source.Source;
-
-import java.util.HashMap;
 
 /**
  * Instances of the class {@code CompilationUnitBuilder} build an element model for a single
@@ -40,23 +36,15 @@ public class CompilationUnitBuilder {
   private AnalysisErrorListener errorListener;
 
   /**
-   * A table mapping the identifiers of declared elements to the element that was declared.
-   */
-  private HashMap<ASTNode, Element> declaredElementMap;
-
-  /**
    * Initialize a newly created compilation unit element builder.
    * 
    * @param analysisContext the analysis context in which the element model will be built
    * @param errorListener the listener to which errors will be reported
-   * @param declaredElementMap a table mapping the identifiers of declared elements to the element
-   *          that was declared
    */
   public CompilationUnitBuilder(AnalysisContextImpl analysisContext,
-      AnalysisErrorListener errorListener, HashMap<ASTNode, Element> declaredElementMap) {
+      AnalysisErrorListener errorListener) {
     this.analysisContext = analysisContext;
     this.errorListener = errorListener;
-    this.declaredElementMap = declaredElementMap;
   }
 
   /**
@@ -70,7 +58,7 @@ public class CompilationUnitBuilder {
       throws AnalysisException {
     CompilationUnit unit = analysisContext.parse(compilationUnitSource, errorListener);
     ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = new ElementBuilder(holder, declaredElementMap);
+    ElementBuilder builder = new ElementBuilder(holder);
     unit.accept(builder);
 
     CompilationUnitElementImpl element = new CompilationUnitElementImpl(

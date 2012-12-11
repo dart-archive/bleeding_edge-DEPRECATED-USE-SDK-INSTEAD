@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.resolver.scope;
 
-import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
@@ -103,7 +103,7 @@ public abstract class Scope {
    *          implement library-level privacy
    * @return the element with which the given identifier is associated
    */
-  public Element lookup(SimpleIdentifier identifier, LibraryElement referencingLibrary) {
+  public Element lookup(Identifier identifier, LibraryElement referencingLibrary) {
     return lookup(identifier.getName(), referencingLibrary);
   }
 

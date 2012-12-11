@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ImportDirective;
@@ -24,14 +23,10 @@ import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.StringLiteral;
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.resolver.scope.LibraryScope;
 import com.google.dart.engine.source.Source;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Instances of the class {@code Resolver} resolve references within the AST structure to the
@@ -86,40 +81,13 @@ public class Resolver {
   private LibraryScope libraryScope;
 
   /**
-   * A table mapping the identifiers of declared elements to the element that was declared.
-   */
-  private Map<ASTNode, Element> declaredElementMap;
-
-  /**
-   * A table mapping the AST nodes that have been resolved to the element to which they were
-   * resolved.
-   */
-  private Map<ASTNode, Element> resolvedElementMap;
-
-  /**
    * @param definingLibrary the element for the library within which resolution is being performed
    * @param errorListener the error listener that will be informed of any errors that are found
    *          during resolution
-   * @param declaredElementMap a table mapping the identifiers of declared elements to the element
-   *          that was declared
    */
-  public Resolver(LibraryElement definingLibrary, AnalysisErrorListener errorListener,
-      Map<ASTNode, Element> declaredElementMap) {
+  public Resolver(LibraryElement definingLibrary, AnalysisErrorListener errorListener) {
     this.definingLibrary = definingLibrary;
     libraryScope = new LibraryScope(definingLibrary, errorListener);
-    this.declaredElementMap = declaredElementMap;
-    resolvedElementMap = new HashMap<ASTNode, Element>();
-  }
-
-  /**
-   * Return a table mapping the AST nodes that have been resolved to the element to which they were
-   * resolved.
-   * 
-   * @return a table mapping the AST nodes that have been resolved to the element to which they were
-   *         resolved
-   */
-  public Map<ASTNode, Element> getResolvedElementMap() {
-    return resolvedElementMap;
   }
 
   /**
@@ -130,12 +98,7 @@ public class Resolver {
    * @param unit the compilation unit to be resolved
    */
   public void resolve(Source source, CompilationUnit unit) {
-    ResolverVisitor visitor = new ResolverVisitor(
-        definingLibrary,
-        source,
-        libraryScope,
-        declaredElementMap,
-        resolvedElementMap);
+    ResolverVisitor visitor = new ResolverVisitor(definingLibrary, source, libraryScope);
     unit.accept(visitor);
   }
 }

@@ -13,10 +13,8 @@
  */
 package com.google.dart.engine.integration;
 
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
@@ -40,7 +38,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
   public class AnalysisTestWithSource extends AnalysisTest {
@@ -185,10 +182,7 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
     //
     // Build the element model for the compilation unit.
     //
-    CompilationUnitBuilder builder = new CompilationUnitBuilder(
-        new AnalysisContextImpl(),
-        listener,
-        new HashMap<ASTNode, Element>());
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(new AnalysisContextImpl(), listener);
     long builderStartTime = System.currentTimeMillis();
     CompilationUnitElement element = builder.buildCompilationUnit(source);
     long builderEndTime = System.currentTimeMillis();

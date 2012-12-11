@@ -14,11 +14,9 @@
 package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
@@ -27,6 +25,8 @@ import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
+import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -36,7 +36,6 @@ import static com.google.dart.engine.ast.ASTFactory.identifier;
 import junit.framework.AssertionFailedError;
 
 import java.io.File;
-import java.util.Map;
 
 public class ResolverTestCase extends EngineTestCase {
   /**
@@ -69,7 +68,8 @@ public class ResolverTestCase extends EngineTestCase {
 
   @Override
   public void setUp() {
-    sourceFactory = new SourceFactory(new FileUriResolver());
+    sourceFactory = new SourceFactory(new FileUriResolver(), new DartUriResolver(
+        DartSdk.getDefaultSdk()));
     errorListener = new GatheringErrorListener();
     analysisContext = new AnalysisContextImpl();
     analysisContext.setSourceFactory(sourceFactory);
@@ -147,19 +147,14 @@ public class ResolverTestCase extends EngineTestCase {
    * @return the error listener used while scanning, parsing and resolving the compilation units
    * @throws AnalysisException if the analysis could not be performed
    */
-  protected Map<ASTNode, Element> resolve(Source librarySource, Source... unitSources)
-      throws AnalysisException {
+  protected void resolve(Source librarySource, Source... unitSources) throws AnalysisException {
     LibraryElementBuilder builder = new LibraryElementBuilder(analysisContext, errorListener);
     LibraryElement definingLibrary = builder.buildLibrary(librarySource);
-    Resolver resolver = new Resolver(
-        definingLibrary,
-        errorListener,
-        builder.getDeclaredElementMap());
+    Resolver resolver = new Resolver(definingLibrary, errorListener);
     resolver.resolve(librarySource, analysisContext.parse(librarySource, errorListener));
     for (Source unitSource : unitSources) {
       resolver.resolve(unitSource, analysisContext.parse(unitSource, errorListener));
     }
-    return resolver.getResolvedElementMap();
   }
 
   /**
@@ -171,9 +166,8 @@ public class ResolverTestCase extends EngineTestCase {
    * @param sources the sources identifying the compilation units to be verified
    * @throws Exception if the contents of the compilation unit cannot be accessed
    */
-  protected void verify(Map<ASTNode, Element> resolvedElementMap, Source... sources)
-      throws Exception {
-    ResolutionVerifier verifier = new ResolutionVerifier(resolvedElementMap);
+  protected void verify(Source... sources) throws Exception {
+    ResolutionVerifier verifier = new ResolutionVerifier();
     for (Source source : sources) {
       analysisContext.parse(source, errorListener).accept(verifier);
     }

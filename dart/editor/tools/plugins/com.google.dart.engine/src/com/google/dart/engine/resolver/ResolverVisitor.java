@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.resolver;
 
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
@@ -31,23 +30,21 @@ import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LabeledStatement;
-import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
-import com.google.dart.engine.ast.PartDirective;
-import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchDefault;
 import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
@@ -55,7 +52,6 @@ import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PrefixElement;
-import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisError;
@@ -69,8 +65,6 @@ import com.google.dart.engine.resolver.scope.LibraryScope;
 import com.google.dart.engine.resolver.scope.Scope;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
-
-import java.util.Map;
 
 /**
  * Instances of the class {@code ResolverVisitor} are used to resolve the nodes within a single
@@ -104,17 +98,6 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
   private LabelScope labelScope;
 
   /**
-   * A table mapping the identifiers of declared elements to the element that was declared.
-   */
-  private Map<ASTNode, Element> declaredElementMap;
-
-  /**
-   * A table mapping the AST nodes that have been resolved to the element to which they were
-   * resolved.
-   */
-  private Map<ASTNode, Element> resolvedElementMap;
-
-  /**
    * The type element representing the type most recently being visited.
    */
   private ClassElement enclosingType = null;
@@ -135,19 +118,12 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
    * @param definingLibrary the element for the library containing the compilation unit
    * @param source the source representing the compilation unit being visited
    * @param nameScope the name scope for the library containing the compilation unit
-   * @param declaredElementMap a table mapping the identifiers of declared elements to the element
-   *          that was declared
-   * @param resolvedElementMap a table mapping the AST nodes that have been resolved to the element
-   *          to which they were resolved
    */
-  public ResolverVisitor(LibraryElement definingLibrary, Source source, LibraryScope nameScope,
-      Map<ASTNode, Element> declaredElementMap, Map<ASTNode, Element> resolvedElementMap) {
+  public ResolverVisitor(LibraryElement definingLibrary, Source source, LibraryScope nameScope) {
     this.definingLibrary = definingLibrary;
     this.source = source;
     this.errorListener = nameScope.getErrorListener();
     this.nameScope = nameScope;
-    this.declaredElementMap = declaredElementMap;
-    this.resolvedElementMap = resolvedElementMap;
   }
 
   @Override
@@ -272,7 +248,7 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
     ExecutableElement outerFunction = enclosingFunction;
     try {
       SimpleIdentifier functionName = node.getName();
-      enclosingFunction = (ExecutableElement) declaredElementMap.get(functionName);
+      enclosingFunction = (ExecutableElement) functionName.getElement();
       recordResolution(functionName, enclosingFunction);
       node.visitChildren(this);
     } finally {
@@ -285,9 +261,8 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
   public Void visitFunctionExpression(FunctionExpression node) {
     ExecutableElement outerFunction = enclosingFunction;
     try {
-      // TODO(brianwilkerson) Figure out how to handle un-named functions
       SimpleIdentifier functionName = null;
-      enclosingFunction = (ExecutableElement) declaredElementMap.get(functionName);
+      enclosingFunction = (ExecutableElement) node.getElement();
       recordResolution(functionName, enclosingFunction);
       node.visitChildren(this);
     } finally {
@@ -298,14 +273,15 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    // TODO(brianwilkerson) Resolve the function being invoked
+    // TODO(brianwilkerson) Resolve the function being invoked?
     node.visitChildren(this);
     return null;
   }
 
   @Override
   public Void visitImportDirective(ImportDirective node) {
-    // TODO(brianwilkerson) Resolve the uri, and names in combinators
+    // TODO(brianwilkerson) Determine whether this still needs to be done.
+    // TODO(brianwilkerson) Resolve the names in combinators
     SimpleIdentifier prefixNode = node.getPrefix();
     if (prefixNode != null) {
       String prefixName = prefixNode.getName();
@@ -338,15 +314,9 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
   }
 
   @Override
-  public Void visitLibraryDirective(LibraryDirective node) {
-    recordResolution(node, definingLibrary);
-    return null;
-  }
-
-  @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
     Identifier methodName = node.getName();
-    Element element = declaredElementMap.get(methodName);
+    Element element = methodName.getElement();
     recordResolution(methodName, element);
     if (!(element instanceof ExecutableElement)) {
       // Internal error.
@@ -372,19 +342,6 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
   }
 
   @Override
-  public Void visitPartDirective(PartDirective node) {
-    StringLiteral partUri = node.getPartUri();
-    recordResolution(partUri, declaredElementMap.get(partUri));
-    return null;
-  }
-
-  @Override
-  public Void visitPartOfDirective(PartOfDirective node) {
-    recordResolution(node, definingLibrary);
-    return null;
-  }
-
-  @Override
   public Void visitPostfixExpression(PostfixExpression node) {
     if (node.getOperator().isUserDefinableOperator()) {
       // TODO(brianwilkerson) Resolve the unary operator
@@ -401,8 +358,10 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
     Element prefixElement = nameScope.lookup(prefix, definingLibrary);
     recordResolution(prefix, prefixElement);
     if (prefixElement instanceof PrefixElement) {
-      // TODO(brianwilkerson) Look up identifier.getName() in the prefixed libraries
+      Element element = nameScope.lookup(node, definingLibrary);
+      recordResolution(node, element);
     } else if (prefixElement instanceof ClassElement) {
+      // TODO(brianwilkerson) Should we replace this node with a PropertyAccess node?
       Element memberElement = lookupInType((ClassElement) prefixElement, identifier.getName());
       if (memberElement == null) {
         reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, identifier, identifier.getName());
@@ -412,6 +371,7 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
         recordResolution(identifier, memberElement);
       }
     } else if (prefixElement instanceof VariableElement) {
+      // TODO(brianwilkerson) Should we replace this node with a PropertyAccess node?
       // TODO(brianwilkerson) Look for a member of the given variable's type. The problem is that we
       // have not yet done type analysis, so we might not know the type of the variable.
 //      TypeElement variableType = ((VariableElement) prefixElement).getType().getElement();
@@ -428,6 +388,12 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
       // TODO(brianwilkerson) Resolve the unary operator
     }
     node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public Void visitPropertyAccess(PropertyAccess node) {
+    // TODO(brianwilkerson) Implement this.
     return null;
   }
 
@@ -474,7 +440,7 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
     for (SwitchMember member : node.getMembers()) {
       for (Label label : member.getLabels()) {
         SimpleIdentifier labelName = label.getLabel();
-        LabelElement labelElement = (LabelElement) declaredElementMap.get(labelName);
+        LabelElement labelElement = (LabelElement) labelName.getElement();
         recordResolution(labelName, labelElement);
         labelScope = new LabelScope(outerScope, labelName.getName(), labelElement);
       }
@@ -510,7 +476,7 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
     for (Label label : labels) {
       SimpleIdentifier labelNameNode = label.getLabel();
       String labelName = labelNameNode.getName();
-      LabelElement labelElement = (LabelElement) declaredElementMap.get(labelNameNode);
+      LabelElement labelElement = (LabelElement) labelNameNode.getElement();
       recordResolution(labelNameNode, labelElement);
       labelScope = new LabelScope(labelScope, labelName, labelElement);
     }
@@ -538,6 +504,7 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
    * @return the element representing the member that was found
    */
   private Element lookupInType(ClassElement type, String memberName) {
+    // TODO(brianwilkerson) Decide how to represent this.
 //    if (type.isDynamic()) {
 //      return ?;
 //    }
@@ -600,9 +567,9 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
    * @param node the AST node that was resolved
    * @param element the element to which the AST node was resolved
    */
-  private void recordResolution(ASTNode node, Element element) {
+  private void recordResolution(Identifier node, Element element) {
     if (element != null) {
-      resolvedElementMap.put(node, element);
+      node.setElement(element);
     }
   }
 

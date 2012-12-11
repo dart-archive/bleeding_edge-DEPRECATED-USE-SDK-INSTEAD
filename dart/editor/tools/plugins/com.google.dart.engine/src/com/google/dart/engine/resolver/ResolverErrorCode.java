@@ -166,6 +166,7 @@ public enum ResolverErrorCode implements ErrorCode {
 //  NEW_EXPRESSION_NOT_CONSTRUCTOR("New expression does not resolve to a constructor"),
 //  NO_SUCH_TYPE("no such type \"%s\""),
 //  NO_SUCH_TYPE_CONSTRUCTOR("no such type \"%s\" in constructor"),
+  NON_BOOLEAN_CONDITION("Conditions must have a static type of 'bool'"),
 //  NOT_A_CLASS("\"%s\" is not a class"),
 //  NOT_A_LABEL("\"%s\" is not a label"),
 //  NOT_A_STATIC_FIELD("\"%s\" is not a static field"),
