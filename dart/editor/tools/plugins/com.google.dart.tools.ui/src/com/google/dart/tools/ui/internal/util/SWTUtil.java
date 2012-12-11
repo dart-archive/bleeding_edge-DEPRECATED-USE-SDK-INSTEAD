@@ -35,6 +35,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Caret;
 import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -331,6 +332,24 @@ public class SWTUtil {
    */
   public static void setDefaultVisibleItemCount(Combo combo) {
     combo.setVisibleItemCount(COMBO_VISIBLE_ITEM_COUNT);
+  }
+
+  /**
+   * Changes enablement of the given {@link Control} and all its children.
+   */
+  public static void setEnabledHierarchy(Control control, boolean enable) {
+    if (control.getEnabled() != enable) {
+      control.setEnabled(enable);
+    }
+    if (control instanceof Composite) {
+      Composite composite = (Composite) control;
+      Control[] children = composite.getChildren();
+      if (children != null) {
+        for (Control child : children) {
+          setEnabledHierarchy(child, enable);
+        }
+      }
+    }
   }
 
   private static Color createColor(IPreferenceStore store, String key) {

@@ -213,7 +213,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
 
   void addProposal_addTypeAnnotation() throws Exception {
     Type type = null;
-    HasSourceInfo declartionStart = null;
+    HasSourceInfo declarationStart = null;
     HasSourceInfo nameStart = null;
     // try local variable
     {
@@ -223,7 +223,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
         if (variables.size() == 1) {
           DartVariable variable = variables.get(0);
           type = variable.getElement().getType();
-          declartionStart = statement;
+          declarationStart = statement;
           nameStart = variable;
           // language style guide recommends to use "var" for locals, so deprioritize
           proposalRelevance -= 1;
@@ -240,7 +240,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
           DartExpression value = field.getValue();
           if (value != null) {
             type = value.getType();
-            declartionStart = fieldDefinition;
+            declarationStart = fieldDefinition;
             nameStart = field;
           }
         }
@@ -251,12 +251,12 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
       return;
     }
     // add edit
-    if (declartionStart != null && nameStart != null) {
+    if (declarationStart != null && nameStart != null) {
       String typeSource = ExtractUtils.getTypeSource(type);
       // find "var" token
       KeywordToken varToken;
       {
-        SourceRange modifiersRange = SourceRangeFactory.forStartEnd(declartionStart, nameStart);
+        SourceRange modifiersRange = SourceRangeFactory.forStartEnd(declarationStart, nameStart);
         String modifiersSource = utils.getText(modifiersRange);
         List<com.google.dart.engine.scanner.Token> tokens = TokenUtils.getTokens(modifiersSource);
         varToken = TokenUtils.findKeywordToken(tokens, Keyword.VAR);
@@ -264,7 +264,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
       // replace "var", or insert type before name
       if (varToken != null) {
         SourceRange range = SourceRangeFactory.forToken(varToken);
-        range = SourceRangeFactory.withBase(declartionStart, range);
+        range = SourceRangeFactory.withBase(declarationStart, range);
         addReplaceEdit(range, typeSource);
       } else {
         SourceRange range = SourceRangeFactory.forStartLength(nameStart, 0);

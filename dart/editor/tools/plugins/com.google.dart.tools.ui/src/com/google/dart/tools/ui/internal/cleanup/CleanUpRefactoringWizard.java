@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.cleanup;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.utilities.io.Base16;
@@ -34,8 +35,10 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeInt
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameTypes_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_trailingSpace_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_useBlocks_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.style.Style_useTypeAnnotations_CleanUp;
 import com.google.dart.tools.ui.internal.util.GridDataFactory;
 import com.google.dart.tools.ui.internal.util.GridLayoutFactory;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.wizard.IWizardPage;
@@ -45,7 +48,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -74,7 +76,8 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
 
     private static final String ID_STYLE_TRAILING_WHITESPACE = "style-trailingWhitespace";
     private static final String ID_STYLE_USE_BLOCKS = "style-useBlocks";
-    private static final String ID_STYLE_USE_BLOCKS_FLAG = "style-useBlocks-flag";
+    private static final String ID_STYLE_USE_TYPE_ANNOTATIONS = "style-useTypeAnnotations";
+    private static final String ID_STYLE_USE_TYPE_ANNOTATIONS_CONFIG = "style-useTypeAnnotations-config";
 
     static {
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_CATCH, new Migrate_1M1_catch_CleanUp());
@@ -104,14 +107,18 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       settings.setDefault(ID_MIGRATE_SYNTAX_1M2_METHODS, false);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M2_RENAME_TYPES, false);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M2_REMOVE_ABSTRACT, true);
-      settings.setDefault(ID_MIGRATE_SYNTAX_1M2_REMOVE_INTERFACE, false);
+      settings.setDefault(ID_MIGRATE_SYNTAX_1M2_REMOVE_INTERFACE, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M2_FUNCTION_LITERAL, false);
       // style
       CLEAN_UPS.put(ID_STYLE_TRAILING_WHITESPACE, new Style_trailingSpace_CleanUp());
       CLEAN_UPS.put(ID_STYLE_USE_BLOCKS, new Style_useBlocks_CleanUp());
+      CLEAN_UPS.put(ID_STYLE_USE_TYPE_ANNOTATIONS, new Style_useTypeAnnotations_CleanUp());
       settings.setDefault(ID_STYLE_TRAILING_WHITESPACE, true);
       settings.setDefault(ID_STYLE_USE_BLOCKS, true);
-      settings.setDefault(ID_STYLE_USE_BLOCKS_FLAG, "ALWAYS");
+      settings.setDefault(ID_STYLE_USE_TYPE_ANNOTATIONS, false);
+      settings.setDefault(
+          ID_STYLE_USE_TYPE_ANNOTATIONS_CONFIG,
+          Style_useTypeAnnotations_CleanUp.NEVER);
     }
 
     private final CleanUpRefactoring refactoring;
@@ -192,12 +199,12 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M2_FUNCTION_LITERAL,
                 "Remove name and return type in function literals");
-            new Label(syntaxComposite, SWT.NONE);
-            new Label(syntaxComposite, SWT.NONE).setText("Work in progress... not fully implemented:");
             createCheckButton(
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M2_REMOVE_INTERFACE,
                 "Replace 'interface' with 'abstract class'");
+//            new Label(syntaxComposite, SWT.NONE);
+//            new Label(syntaxComposite, SWT.NONE).setText("Work in progress... not fully implemented:");
           }
         }
         // Code Style
@@ -216,6 +223,34 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 tabComposite,
                 ID_STYLE_USE_BLOCKS,
                 "Use blocks in if/while/for statements");
+            {
+              final Button button = createCheckButton(
+                  tabComposite,
+                  ID_STYLE_USE_TYPE_ANNOTATIONS,
+                  "Use type annotations in local variable declarations");
+              {
+                final Composite typeAnnotationsComposite = new Composite(tabComposite, SWT.NONE);
+                GridDataFactory.create(typeAnnotationsComposite).indentHorizontalChars(5);
+                GridLayoutFactory.create(typeAnnotationsComposite);
+                createRadioButtons(
+                    typeAnnotationsComposite,
+                    ID_STYLE_USE_TYPE_ANNOTATIONS_CONFIG,
+                    new String[] {"Always", "Never"},
+                    new String[] {
+                        Style_useTypeAnnotations_CleanUp.ALWAYS,
+                        Style_useTypeAnnotations_CleanUp.NEVER});
+                // enable/disable radio buttons
+                SWTUtil.setEnabledHierarchy(
+                    typeAnnotationsComposite,
+                    settings.getBoolean(ID_STYLE_USE_TYPE_ANNOTATIONS));
+                button.addListener(SWT.Selection, new Listener() {
+                  @Override
+                  public void handleEvent(Event event) {
+                    SWTUtil.setEnabledHierarchy(typeAnnotationsComposite, button.getSelection());
+                  }
+                });
+              }
+            }
           }
         }
       }
@@ -237,8 +272,8 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       return super.performFinish();
     }
 
-    private Button createCheckButton(Composite syntaxComposite, final String key, String text) {
-      final Button button = new Button(syntaxComposite, SWT.CHECK);
+    private Button createCheckButton(Composite parent, final String key, String text) {
+      final Button button = new Button(parent, SWT.CHECK);
       button.setText(text);
       button.setSelection(settings.getBoolean(key));
       button.addListener(SWT.Selection, new Listener() {
@@ -250,23 +285,23 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       return button;
     }
 
-//    private void createRadioButtons(Composite syntaxComposite, final String key, String[] titles,
-//        String[] values) {
-//      String currentValue = settings.get(key);
-//      for (int i = 0; i < titles.length; i++) {
-//        String text = titles[i];
-//        final String value = values[i];
-//        Button button = new Button(syntaxComposite, SWT.RADIO);
-//        button.setText(text);
-//        button.setSelection(Objects.equal(value, currentValue));
-//        button.addListener(SWT.Selection, new Listener() {
-//          @Override
-//          public void handleEvent(Event event) {
-//            settings.set(key, value);
-//          }
-//        });
-//      }
-//    }
+    private void createRadioButtons(Composite parent, final String key, String[] titles,
+        String[] values) {
+      String currentValue = settings.get(key);
+      for (int i = 0; i < titles.length; i++) {
+        String text = titles[i];
+        final String value = values[i];
+        Button button = new Button(parent, SWT.RADIO);
+        button.setText(text);
+        button.setSelection(Objects.equal(value, currentValue));
+        button.addListener(SWT.Selection, new Listener() {
+          @Override
+          public void handleEvent(Event event) {
+            settings.set(key, value);
+          }
+        });
+      }
+    }
 
     private void initializeRefactoring() {
       refactoring.clearCleanUps();
@@ -274,6 +309,9 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
         String id = entry.getKey();
         if (settings.getBoolean(id)) {
           ICleanUp cleanUp = entry.getValue();
+          if (cleanUp instanceof Style_useTypeAnnotations_CleanUp) {
+            ((Style_useTypeAnnotations_CleanUp) cleanUp).setConfig(settings.get(ID_STYLE_USE_TYPE_ANNOTATIONS_CONFIG));
+          }
           refactoring.addCleanUp(cleanUp);
         }
       }
@@ -329,6 +367,10 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
 
     public void set(String key, boolean value) {
       map.put(key, value ? "TRUE" : "FALSE");
+    }
+
+    public void set(String key, String value) {
+      map.put(key, value);
     }
 
     public void setDefault(String key, boolean value) {
