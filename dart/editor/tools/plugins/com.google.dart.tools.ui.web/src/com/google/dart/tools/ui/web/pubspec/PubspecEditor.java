@@ -24,6 +24,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.forms.editor.FormEditor;
+import org.eclipse.ui.forms.editor.IFormPage;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import java.io.File;
@@ -73,6 +74,15 @@ public class PubspecEditor extends FormEditor {
   @Override
   public boolean isSaveAsAllowed() {
     return false;
+  }
+
+  @Override
+  public void setFocus() {
+    super.setFocus();
+    IFormPage page = getActivePageInstance();
+    if ((page != null) && (page instanceof OverviewFormPage)) {
+      ((OverviewFormPage) page).updateFormSelection();
+    }
   }
 
   @Override

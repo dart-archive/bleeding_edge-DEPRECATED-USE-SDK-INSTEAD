@@ -22,13 +22,21 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.SectionPart;
@@ -51,6 +59,8 @@ public class OverviewFormPage extends FormPage implements IModelListener {
   private static String VERSION_MESSAGE_KEY = "versionMessage";
   private static String VERSION_EXPRESSION = "(\\d+\\.){2}\\d+([\\+-]([\\.a-zA-Z0-9-])*)?";
 
+  private Control lastFocusControl;
+
   private DependenciesMasterBlock block;
   private Text nameText;
   private Text authorText;
@@ -69,6 +79,43 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     super(editor, "overview", "Overview");
     block = new DependenciesMasterBlock(this);
     model = ((PubspecEditor) this.getEditor()).getModel();
+    lastFocusControl = null;
+  }
+
+  /**
+   * Add focus listeners to the specified composite and its children that track the last control to
+   * have focus before a page change or the editor lost focus
+   */
+  public void addLastFocusListeners(Composite composite) {
+    Control[] controls = composite.getChildren();
+    for (int i = 0; i < controls.length; i++) {
+      Control control = controls[i];
+      // Add a focus listener if the control is any one of the below types
+      if ((control instanceof Text) || (control instanceof Button) || (control instanceof Combo)
+          || (control instanceof Table) || (control instanceof Hyperlink)
+          || (control instanceof List)) {
+        addLastFocusListener(control);
+      }
+      if (control instanceof Composite) {
+        // Recursively add focus listeners to this composites children
+        addLastFocusListeners((Composite) control);
+      }
+    }
+  }
+
+  @Override
+  public void createPartControl(Composite parent) {
+    super.createPartControl(parent);
+    // Dynamically add focus listeners to all the forms children in order
+    // to track the last focus control
+    IManagedForm managedForm = getManagedForm();
+    if (managedForm != null) {
+      addLastFocusListeners(managedForm.getForm());
+    }
+  }
+
+  public Control getLastFocusControl() {
+    return lastFocusControl;
   }
 
   @Override
@@ -78,6 +125,35 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     }
     updateInfoSection();
     ignoreModify = false;
+  }
+
+  /**
+   * @param control
+   */
+  public void setLastFocusControl(Control control) {
+    lastFocusControl = control;
+  }
+
+  /**
+   * Set the focus on the last control to have focus before a page change or the editor lost focus.
+   */
+  public void updateFormSelection() {
+    if ((lastFocusControl != null) && (lastFocusControl.isDisposed() == false)) {
+      Control lastControl = lastFocusControl;
+      // Set focus on the control
+      lastControl.forceFocus();
+      // If the control is a Text widget, select its contents
+      if (lastControl instanceof Text) {
+        Text text = (Text) lastControl;
+        text.setSelection(0, text.getText().length());
+      }
+    } else {
+      if (model.getDependecies().length > 0) {
+        block.getViewer().setSelection(new StructuredSelection(model.getDependecies()[0]));
+        block.getViewer().getTable().forceFocus();
+      }
+      setFocus();
+    }
   }
 
   @Override
@@ -102,6 +178,26 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     block.createContent(form);
     model.addModelListener(this);
 
+  }
+
+  /**
+   * Add a focus listener to the specified control that tracks the last control to have focus on
+   * this page. When focus is gained by this control, it registers itself as the last control to
+   * have focus. The last control to have focus is stored in order to be restored after a page
+   * change or editor loses focus.
+   */
+  private void addLastFocusListener(final Control control) {
+    control.addFocusListener(new FocusListener() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        // NO-OP
+      }
+
+      @Override
+      public void focusLost(FocusEvent e) {
+        lastFocusControl = control;
+      }
+    });
   }
 
   private void createExploreSection(Composite top) {
@@ -283,5 +379,4 @@ public class OverviewFormPage extends FormPage implements IModelListener {
         versionText);
     return false;
   }
-
 }

@@ -86,11 +86,16 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
   private FormPage page;
   private PubspecModel model;
   private TableViewer viewer;
+
   private SectionPart sectionPart;
 
   public DependenciesMasterBlock(FormPage page) {
     this.page = page;
     model = ((PubspecEditor) page.getEditor()).getModel();
+  }
+
+  public TableViewer getViewer() {
+    return viewer;
   }
 
   @Override
@@ -174,12 +179,6 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
     viewer.setContentProvider(new MasterContentProvider());
     viewer.setLabelProvider(new MasterLabelProvider());
     viewer.setInput(page.getEditor().getEditorInput());
-    if (model.getDependecies().length > 0) {
-      sectionPart.setFocus();
-      viewer.setSelection(new StructuredSelection(model.getDependecies()[0]));
-      managedForm.fireSelectionChanged(sectionPart, new StructuredSelection(
-          model.getDependecies()[0]));
-    }
     model.addModelListener(this);
 
   }
