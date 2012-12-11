@@ -110,7 +110,7 @@ class ZipUtil(object):
       count = 0
       print 'adding {0} to {1}'.format(base_directory, self._zipfile_name)
       localzip = zipfile.ZipFile(self._zipfile_name, mode=mode_in)
-      for root, dirs, files in os.walk(abs_dir):
+      for root, _, files in os.walk(abs_dir):
         for f in files:
           full_file = os.path.join(root, f)
           rel_file = full_file[len(abs_dir) + 1:]

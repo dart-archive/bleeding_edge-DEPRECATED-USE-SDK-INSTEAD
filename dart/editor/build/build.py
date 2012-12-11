@@ -182,6 +182,7 @@ def GetUtils(toolspath):
   Returns:
     the utils module
   """
+  global utils
   sys.path.append(os.path.abspath(toolspath))
   utils = __import__('utils')
   return utils
@@ -442,7 +443,7 @@ def main():
 
 
 def ReadPropertyFile(buildos, property_file):
-  """Read a property file and return a dictionary of key/value pares.
+  """Read a property file and return a dictionary of key/value pairs.
 
   Args:
     buildos: the os the build is running under
@@ -752,9 +753,10 @@ def PostProcessEditorBuilds(out_dir):
     if (basename.startswith('darteditor-macos-')):
       infofile = join('dart', 'DartEditor.app', 'Contents', 'Info.plist')
       subprocess.call(['unzip', zipFile, infofile], env=os.environ)
-      ReplaceInFiles([infofile],
-                     [('<dict>',
-                       '<dict>\n\t<key>NSHighResolutionCapable</key>\n\t\t<true/>')])
+      ReplaceInFiles(
+          [infofile],
+          [('<dict>',
+            '<dict>\n\t<key>NSHighResolutionCapable</key>\n\t\t<true/>')])
       subprocess.call(['zip', '-q', zipFile, infofile], env=os.environ)
       os.remove(infofile)
       
@@ -933,7 +935,7 @@ def CreateWin32SDK(sdkpath):
 
 
 def CallBuildScript(mode, arch, target):
-  """ invoke tools/build.py """
+  """invoke tools/build.py"""
   buildScript = join(TOOLS_PATH, 'build.py')
   cmd = [sys.executable, buildScript, '--mode=%s' % mode, '--arch=%s' % arch,
          target]
@@ -1055,7 +1057,7 @@ def FileDelete(f):
   if os.path.exists(f):
     try:
       os.remove(f)
-    except:
+    except OSError:
       print 'error deleting %s' % f
 
 

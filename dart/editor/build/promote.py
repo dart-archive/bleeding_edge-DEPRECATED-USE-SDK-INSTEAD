@@ -119,7 +119,7 @@ def main():
       sys.exit(3)
     if not (options.continuous or options.integration or 
             options.testing or options.trunk):
-      print 'You must specify --continuous, --integration, --testing, or --trunk'
+      print 'Specify --continuous, --integration, --testing, or --trunk'
       parser.print_help()
       sys.exit(4)
     if options.continuous and options.integration:

@@ -30,7 +30,8 @@ def main():
               'dart-editor-win32.win32.x86_64.zip',
               'dart-editor-win32.win32.x86.zip']
   os_names = []
-  re_filename = re.compile(r'^(dart-editor|DartBuild)-(\w.+)\.(\w.+)\.(\w+)\.zip')
+  re_filename = re.compile(
+      r'^(dart-editor|DartBuild)-(\w.+)\.(\w.+)\.(\w+)\.zip')
   for element in elements:
     matcher = re_filename.match(element)
     os_name = matcher.group(2)

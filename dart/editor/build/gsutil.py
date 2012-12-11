@@ -6,7 +6,6 @@
 
 import os
 import platform
-import StringIO
 import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
@@ -229,7 +228,7 @@ class GsUtil(object):
                       'GsUtil.Copy command')
     print 'schema = ({0}), path = ({1})'.format(scheme, path)
     if 'file' in scheme or not scheme:
-      for root, dirs, files in os.walk(path):
+      for root, _, files in os.walk(path):
         for f in files:
           elements_to_copy.append(os.path.join(root, f))
 
@@ -407,7 +406,7 @@ class GsUtil(object):
       xml document with updated ACL
     """
     root = ET.fromstring(acl)
-  #  root = dom.getroot()
+    #root = dom.getroot()
     entries = root.find('Entries')
     foundentries = entries.findall('Entry')
     foundallusers = False
