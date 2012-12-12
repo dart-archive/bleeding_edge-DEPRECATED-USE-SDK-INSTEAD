@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of layout;
+
 /** The interface that the layout algorithms use to talk to the view. */
 abstract class Positionable {
   ViewLayout get layout;

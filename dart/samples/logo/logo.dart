@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
+import 'dart:svg';
 import 'dart:math' as Math;
 
 class Color {
@@ -45,7 +46,7 @@ class Color {
     return new Color((h.round() % 360).toInt(), s, l);
   }
 
-  factory Color.hex(String hex) => new Color.rgb(
+  factory Color.fromHex(String hex) => new Color.rgb(
       _parseHex(hex.substring(1, 3))/255,
       _parseHex(hex.substring(3, 5))/255,
       _parseHex(hex.substring(5, 7))/255);
@@ -104,7 +105,7 @@ class Color {
   }
 }
 
-SVGSVGElement logo;
+SvgSvgElement logo;
 InputElement hue, saturation, lightness;
 Map<String, Color> defaultColors;
 
@@ -136,7 +137,7 @@ onSliderChange(_) {
 void main() {
   defaultColors = {};
 
-  logo = new SVGElement.svg("""
+  logo = new SvgElement.svg("""
 <svg xmlns="http://www.w3.org/2000/svg"
      version="1.1"
      width="371.6655"
@@ -177,7 +178,7 @@ void main() {
 
   query("#icon").children.add(logo);
   logo.queryAll("path").forEach((p) {
-    defaultColors[p.id] = new Color.hex(p.style.getPropertyValue('fill'));
+    defaultColors[p.id] = new Color.fromHex(p.style.getPropertyValue('fill'));
   });
 
   hue = document.query("input[name=hue]");

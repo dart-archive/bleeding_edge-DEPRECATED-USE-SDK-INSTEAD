@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of layout;
+
 /**
  * Base class for simple recursive descent parsers.
  * Handles the lower level stuff, i.e. what a scanner/tokenizer would do.
