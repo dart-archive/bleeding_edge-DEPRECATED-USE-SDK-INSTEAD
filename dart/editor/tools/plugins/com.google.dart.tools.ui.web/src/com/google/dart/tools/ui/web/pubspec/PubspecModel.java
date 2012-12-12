@@ -13,9 +13,6 @@
  */
 package com.google.dart.tools.ui.web.pubspec;
 
-import com.google.dart.tools.core.utilities.yaml.PubYamlObject;
-import com.google.dart.tools.core.utilities.yaml.SnakeYamlUtils;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
