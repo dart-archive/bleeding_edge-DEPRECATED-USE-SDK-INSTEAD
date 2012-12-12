@@ -259,6 +259,8 @@ Solar3DApplication application = new Solar3DApplication();
 
 double fpsAverage;
 
+final bool VERBOSE = false;
+
 /**
  * Display the animation's FPS in a div.
  */
@@ -526,7 +528,7 @@ class PlanetaryBody {
 }
 
 void printLog(String log) {
-  if (log != null && !log.isEmpty) {
+  if (VERBOSE && log != null && !log.isEmpty) {
     print(log);
   }
 }

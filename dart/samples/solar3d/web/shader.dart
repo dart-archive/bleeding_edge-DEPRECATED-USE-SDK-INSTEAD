@@ -40,20 +40,20 @@ class Shader {
   void dumpUniforms(WebGLRenderingContext gl) {
     final int numUniforms = gl.getProgramParameter(program,
                                  WebGLRenderingContext.ACTIVE_UNIFORMS);
-    print('Dumping active uniforms:');
+    printLog('Dumping active uniforms:');
     for (int i = 0; i < numUniforms; i++) {
       var uniform = gl.getActiveUniform(program, i);
-      print('[$i] - ${uniform.name}');
+      printLog('[$i] - ${uniform.name}');
     }
   }
 
   void dumpAttributes(WebGLRenderingContext gl) {
     final int numAttributes = gl.getProgramParameter(program,
                                 WebGLRenderingContext.ACTIVE_ATTRIBUTES);
-    print('Dumping active attributes:');
+    printLog('Dumping active attributes:');
     for (int i = 0; i < numAttributes; i++) {
       var attribute = gl.getActiveAttrib(program, i);
-      print('[$i] - ${attribute.name}');
+      printLog('[$i] - ${attribute.name}');
     }
   }
 }

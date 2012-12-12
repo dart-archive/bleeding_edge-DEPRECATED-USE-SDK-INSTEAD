@@ -63,7 +63,6 @@ class TextureManager {
                     WebGLRenderingContext.UNSIGNED_BYTE,
                     img);
       gl.generateMipmap(t.bindingPoint);
-      //print('Loaded ${img.src}');
       c.complete(img.src);
     });
     img.src = '$baseURL$name';
@@ -110,7 +109,6 @@ class TextureManager {
                       WebGLRenderingContext.RGBA,
                       WebGLRenderingContext.UNSIGNED_BYTE,
                       img);
-        //print('Loaded ${img.src}');
         c.complete(img.src);
       });
       img.src = '$baseURL${sides[i]}';
