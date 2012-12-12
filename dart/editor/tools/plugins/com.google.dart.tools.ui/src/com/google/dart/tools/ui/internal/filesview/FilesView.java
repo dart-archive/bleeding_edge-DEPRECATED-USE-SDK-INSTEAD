@@ -634,6 +634,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     propertyDialogAction = new PropertyDialogAction(getViewSite(), treeViewer);
     propertyDialogAction.setActionDefinitionId(IWorkbenchCommandConstants.FILE_PROPERTIES);
+    propertyDialogAction.setEnabled(false); //selection events will update
     treeViewer.addSelectionChangedListener(propertyDialogAction);
 
     ignoreResourceAction = new IgnoreResourceAction(getShell());
@@ -648,6 +649,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     treeViewer.addSelectionChangedListener(pasteAction);
 
     copyAction = new CopyAction(getShell(), clipboard, pasteAction);
+    copyAction.setEnabled(false); //selection events will update
     treeViewer.addSelectionChangedListener(copyAction);
 
     refreshAction = new RefreshAction(this);
