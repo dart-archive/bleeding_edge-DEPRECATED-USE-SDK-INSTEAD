@@ -43,8 +43,9 @@ public class DartPackagesFolderMatcher extends AbstractFileInfoMatcher {
   @Override
   public boolean matches(IContainer parent, IFileInfo fileInfo) throws CoreException {
 
-    // suppress self link
-    if (parent.getParent() != null
+    // suppress self link 
+    // TODO(keertip): this does not work on Windows, replace it.
+    if (!DartCore.isWindows() && parent.getParent() != null
         && parent.getParent().getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
       if (DartCore.isSelfLinkedResource(parent.getProject(), parent)) {
         return true;
@@ -65,6 +66,15 @@ public class DartPackagesFolderMatcher extends AbstractFileInfoMatcher {
     // If it's a system symlink, filter it out.
     if (isSymLinked(parent)) {
       return true;
+    }
+
+    // on Windows, isSymLinked does not work for Junctions
+    // TODO(keertip): remove when we get better support for symlinks on Windows
+    if (parent.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
+      IContainer gParent = parent.getParent();
+      if (gParent != null && !(gParent instanceof IProject)) {
+        return true;
+      }
     }
 
     return false;
