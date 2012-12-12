@@ -13,11 +13,16 @@
  */
 package com.google.dart.tools.ui.web.pubspec;
 
+import com.google.dart.tools.core.utilities.yaml.PubYamlObject;
+import com.google.dart.tools.core.utilities.yaml.SnakeYamlUtils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Model representing the pubspec
@@ -34,6 +39,8 @@ public class PubspecModel {
   private String author;
   private String homepage;
   private ArrayList<DependencyObject> dependencies;
+
+  private String comments;
 
   private boolean isDirty = false;
 
@@ -72,7 +79,8 @@ public class PubspecModel {
    * Return the model contents as a yaml string
    */
   public String getContents() {
-    return SnakeYamlUtils.buildYamlString(convertModelToObject());
+    // append comments at end of pubspec
+    return SnakeYamlUtils.buildYamlString(convertModelToObject()) + comments;
   }
 
   public Object[] getDependecies() {
@@ -101,6 +109,7 @@ public class PubspecModel {
   public void initialize(String yamlString) {
     if (yamlString != null) {
       clearModelFields();
+      comments = getComments(yamlString);
       setValuesFromObject(SnakeYamlUtils.parsePubspecYamlToObject(yamlString));
     }
   }
@@ -149,7 +158,7 @@ public class PubspecModel {
 
   private void clearModelFields() {
     isDirty = false;
-    name = version = description = homepage = author = EMPTY_STRING;
+    name = version = description = homepage = author = comments = EMPTY_STRING;
     dependencies.clear();
   }
 
@@ -198,6 +207,18 @@ public class PubspecModel {
     }
     pubYamlObject.dependencies = dependenciesMap;
     return pubYamlObject;
+  }
+
+  // search for comments and store them so that we don't lose it altogether
+  // TODO(keertip): remove when we can do micro edits
+  private String getComments(String yamlString) {
+    Matcher m = Pattern.compile("(?m)^(?:(?!--|').|'(?:''|[^'])*')*(#.*)$").matcher(yamlString);
+    StringBuilder builder = new StringBuilder();
+    while (m.find()) {
+      builder.append("\n");
+      builder.append(m.group(1));
+    }
+    return builder.toString();
   }
 
   // Support for dependencies hosted on pub.dartlang.org and git. 
