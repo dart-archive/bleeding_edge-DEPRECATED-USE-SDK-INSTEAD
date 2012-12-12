@@ -122,7 +122,7 @@ public class CleanUpAction extends SelectionDispatchAction {
    * @return the name of this action, not <b>null</b>
    */
   protected String getActionName() {
-    return "Clean Up...";
+    return "Clean Up Source...";
   }
 
   /**

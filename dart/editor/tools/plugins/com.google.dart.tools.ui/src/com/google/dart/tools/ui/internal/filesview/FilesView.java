@@ -369,7 +369,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       manager.add(createFileAction);
 
     }
-    if (selection.size() == 1 && selection.getFirstElement() instanceof IContainer) {
+    if (selection.size() == 0 || selection.getFirstElement() instanceof IContainer) {
       manager.add(createFolderAction);
     }
 
@@ -381,7 +381,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       manager.add(new Separator());
     }
 
-    manager.add(OpenFolderHandler.createCommandAction(getSite().getWorkbenchWindow()));
+    if (selection.size() == 0) {
+      manager.add(OpenFolderHandler.createCommandAction(getSite().getWorkbenchWindow()));
+    }
 
     // Close folder action (aka Remove from Editor)
     if (!selection.isEmpty() && allElementsAreResources(selection)) {
@@ -427,7 +429,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
       if (selection.size() == 1) {
 
-        if (!isPackagesDir) {
+        if (!isPackagesDir && !isPubFile(selection.getFirstElement())) {
           manager.add(renameAction);
           manager.add(moveAction);
         }
@@ -437,8 +439,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       if (!isPackagesDir) {
         manager.add(cleanUpAction);
         manager.add(new Separator());
-        ignoreResourceAction.updateLabel();
-        manager.add(ignoreResourceAction);
+        if (selection.size() == 1 && isDartLikeFile(selection.getFirstElement())) {
+          ignoreResourceAction.updateLabel();
+          manager.add(ignoreResourceAction);
+        }
         if (enableBuilderAction.shouldBeEnabled()) {
           enableBuilderAction.updateLabel();
           manager.add(enableBuilderAction);
@@ -591,6 +595,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     treeViewer.addDropSupport(ops | DND.DROP_DEFAULT, transfers, adapter);
   }
 
+  private boolean isDartLikeFile(Object file) {
+    return file instanceof IResource && DartCore.isDartLikeFileName(((IResource) file).getName());
+  }
+
   private boolean isPackagesDir(IStructuredSelection selection) {
 
     if (selection.isEmpty()) {
@@ -601,6 +609,14 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     return resource instanceof IFolder && DartCore.isPackagesDirectory((IFolder) resource);
 
+  }
+
+  private boolean isPubFile(Object file) {
+    if (!(file instanceof IResource)) {
+      return false;
+    }
+    String name = ((IResource) file).getName();
+    return name.equals(DartCore.PUBSPEC_FILE_NAME) || name.equals(DartCore.PUBSPEC_LOCK_FILE_NAME);
   }
 
   private void makeActions() {
