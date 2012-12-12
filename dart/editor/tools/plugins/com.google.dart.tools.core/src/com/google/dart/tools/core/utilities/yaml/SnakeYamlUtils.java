@@ -30,6 +30,7 @@ import org.yaml.snakeyaml.representer.Representer;
 
 import java.beans.IntrospectionException;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -99,6 +100,22 @@ public class SnakeYamlUtils {
       Yaml yaml = new Yaml(repr);
       String yamlString = yaml.dumpAsMap(pubYamlObject);
       return yamlString;
+    } catch (Exception e) {
+      DartCore.logError(e);
+      return null;
+    }
+
+  }
+
+  /**
+   * Parse the pubspec.yaml string contents to an Map
+   */
+  @SuppressWarnings("unchecked")
+  public static Map<String, Object> parsePubspecYamlToMap(String contents) {
+    Yaml yaml = new Yaml();
+    try {
+      Map<String, Object> map = (Map<String, Object>) yaml.load(contents);
+      return map;
     } catch (Exception e) {
       DartCore.logError(e);
       return null;

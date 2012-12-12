@@ -38,6 +38,7 @@ import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import com.google.dart.tools.core.utilities.resource.IResourceUtilities;
+import com.google.dart.tools.core.utilities.yaml.SnakeYamlUtils;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.resources.IFile;
@@ -603,26 +604,17 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
   public void recomputePackageInfo() {
     try {
       ((DartProjectInfo) getElementInfo()).setLinkedPackageDirName(null);
-      IResource packagesDirectory = project.findMember(DartCore.PACKAGES_DIRECTORY_NAME);
-      if (packagesDirectory != null && packagesDirectory.exists()) {
-        packagesDirectory.accept(new IResourceProxyVisitor() {
-
-          @Override
-          public boolean visit(IResourceProxy proxy) throws CoreException {
-
-            if (proxy.getType() == IResource.FOLDER) {
-              if (proxy.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
-                return true;
-              }
-              IResource resource = proxy.requestResource();
-              if (DartCore.isSelfLinkedResource(resource.getProject(), resource)) {
-                ((DartProjectInfo) getElementInfo()).setLinkedPackageDirName(resource.getName());
-                return false;
-              }
+      IResource pubspec = project.findMember(DartCore.PUBSPEC_FILE_NAME);
+      if (pubspec != null) {
+        Map<String, Object> pubMap = SnakeYamlUtils.parsePubspecYamlToMap(IFileUtilities.getContents((IFile) pubspec));
+        if (pubMap != null) {
+          for (String key : pubMap.keySet()) {
+            if (key.equals("name")) {
+              ((DartProjectInfo) getElementInfo()).setLinkedPackageDirName((String) pubMap.get(key));
+              return;
             }
-            return false;
           }
-        }, 0);
+        }
       }
 
     } catch (Exception exception) {

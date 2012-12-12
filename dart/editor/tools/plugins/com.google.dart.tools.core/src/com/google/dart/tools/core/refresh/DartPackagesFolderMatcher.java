@@ -64,17 +64,10 @@ public class DartPackagesFolderMatcher extends AbstractFileInfoMatcher {
     }
 
     // If it's a system symlink, filter it out.
+    // TODO(keertip): this does not filter symlinks in web/packages etc on Windows. For now we
+    // need the resources to be shown in editor for debugging. Fix when debugging is fixed.
     if (isSymLinked(parent)) {
       return true;
-    }
-
-    // on Windows, isSymLinked does not work for Junctions
-    // TODO(keertip): remove when we get better support for symlinks on Windows
-    if (parent.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
-      IContainer gParent = parent.getParent();
-      if (gParent != null && !(gParent instanceof IProject)) {
-        return true;
-      }
     }
 
     return false;
