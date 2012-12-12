@@ -18,7 +18,7 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.actions.OpenAction;
 
-import org.eclipse.jface.action.ToolBarManager;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
@@ -28,13 +28,11 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ViewForm;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
@@ -57,7 +55,6 @@ public class TypeHierarchyViewPart extends ViewPart {
   private Label fNoHierarchyShownLabel;
   private ViewForm fTypeViewerViewForm;
   private ViewForm fMethodViewerViewForm;
-  private CLabel fMethodViewerPaneLabel;
   private TreeViewer typesViewer;
   private MethodsViewer methodsViewer;
 
@@ -71,11 +68,10 @@ public class TypeHierarchyViewPart extends ViewPart {
     fPagebook = new PageBook(container, SWT.NONE);
     // page 1 of page book (no hierarchy label)
     {
-      fNoHierarchyShownLabel = new Label(fPagebook, SWT.TOP + SWT.LEFT + SWT.WRAP);
+      fNoHierarchyShownLabel = new Label(fPagebook, SWT.TOP | SWT.LEFT | SWT.WRAP);
       fNoHierarchyShownLabel.setText(TypeHierarchyMessages.TypeHierarchyViewPart_empty);
     }
     // page 2 of page book (viewers)
-    ToolBar methodViewerToolBar;
     {
       fTypeMethodsSplitter = new SashForm(fPagebook, SWT.VERTICAL);
       fTypeMethodsSplitter.setVisible(false);
@@ -86,24 +82,18 @@ public class TypeHierarchyViewPart extends ViewPart {
       fTypeViewerViewForm.setContent(typeViewerControl);
 
       fMethodViewerViewForm = new ViewForm(fTypeMethodsSplitter, SWT.NONE);
-      fTypeMethodsSplitter.setWeights(new int[] {35, 65});
+      fTypeMethodsSplitter.setWeights(new int[] {65, 35});
 
       Control methodViewerPart = createMethodViewerControl(fMethodViewerViewForm);
       fMethodViewerViewForm.setContent(methodViewerPart);
-
-      fMethodViewerPaneLabel = new CLabel(fMethodViewerViewForm, SWT.NONE);
-      fMethodViewerViewForm.setTopLeft(fMethodViewerPaneLabel);
-
-      methodViewerToolBar = new ToolBar(fMethodViewerViewForm, SWT.FLAT | SWT.WRAP);
-      fMethodViewerViewForm.setTopCenter(methodViewerToolBar);
     }
 
     fPagebook.showPage(fNoHierarchyShownLabel);
 
-    // fill the method viewer tool bar
-    ToolBarManager lowertbmanager = new ToolBarManager(methodViewerToolBar);
-    methodsViewer.contributeToToolBar(lowertbmanager);
-    lowertbmanager.update(true);
+    // fill the tool bar
+    IToolBarManager toolbarManager = getViewSite().getActionBars().getToolBarManager();
+    methodsViewer.contributeToToolBar(toolbarManager);
+    toolbarManager.update(true);
 
     if (fMemento != null) {
       restoreState(fMemento);
@@ -179,7 +169,7 @@ public class TypeHierarchyViewPart extends ViewPart {
   }
 
   private Control createTypeViewerControl(Composite parent) {
-    typesViewer = new TreeViewer(parent);
+    typesViewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
     typesViewer.setContentProvider(new TypeHierarchyContentProvider());
     typesViewer.setLabelProvider(new HierarchyLabelProvider(Predicates.alwaysFalse()));
     typesViewer.addPostSelectionChangedListener(new ISelectionChangedListener() {

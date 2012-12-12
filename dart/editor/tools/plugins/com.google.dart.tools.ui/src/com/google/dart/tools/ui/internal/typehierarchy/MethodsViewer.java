@@ -14,7 +14,7 @@ import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
@@ -88,9 +88,8 @@ public class MethodsViewer extends TableViewer {
   /**
    * Fills the {@link ToolBarManager} with items for the {@link MethodsViewer}.
    */
-  public void contributeToToolBar(ToolBarManager tbm) {
+  public void contributeToToolBar(IToolBarManager tbm) {
     tbm.add(showInheritedMembersAction);
-    tbm.add(new Separator());
     fMemberFilterActionGroup.contributeToToolBar(tbm);
   }
 
