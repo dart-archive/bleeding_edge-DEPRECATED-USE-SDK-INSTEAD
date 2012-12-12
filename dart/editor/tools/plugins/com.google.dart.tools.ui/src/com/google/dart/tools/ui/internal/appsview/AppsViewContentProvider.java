@@ -256,18 +256,12 @@ public class AppsViewContentProvider implements ITreeContentProvider, IResourceC
   }
 
   private List<DartLibrary> selectTopLevelLibraries(List<DartLibrary> libs) throws CoreException {
-    List<DartLibrary> topLevel = new ArrayList<DartLibrary>();
-    nextLib : for (DartLibrary possibleTopLevelLib : libs) {
-      for (DartLibrary libWithImports : libs) {
-        for (DartImport imp : libWithImports.getImports()) {
-          if (imp.getLibrary().equals(possibleTopLevelLib)) {
-            // not top level
-            continue nextLib;
-          }
-        }
+    HashSet<DartLibrary> topLevel = new HashSet<DartLibrary>(libs);
+    for (DartLibrary library : libs) {
+      for (DartImport imp : library.getImports()) {
+        topLevel.remove(imp.getLibrary());
       }
-      topLevel.add(possibleTopLevelLib);
     }
-    return topLevel;
+    return new ArrayList<DartLibrary>(topLevel);
   }
 }
