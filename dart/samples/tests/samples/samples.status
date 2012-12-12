@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-markdown_test: Fail # TODO(erikcorry): Erik has a CL to fix this.
+markdown_test: Fail # TODO(erikcorry) : Erik has a CL to fix this.
 
 [ $compiler == dartc ]
 # samples issue 6332
@@ -31,6 +31,8 @@ chat/chat_server_test: Skip # Uses dart:io
 
 [ $runtime == drt ]
 lib/touch/touch_test: Skip # Issue 157
+markdown_test: Skip # markdown_test includes dart:io, and times out
+                    # due to http://dartbug.com/7036.
 
 [ $compiler == none && $runtime == drt ]
 dartcombat/dartcombat_test: Fail, Timeout # Issue 2790
