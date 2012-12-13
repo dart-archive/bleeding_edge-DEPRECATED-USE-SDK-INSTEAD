@@ -14,13 +14,14 @@
 package com.google.dart.tools.ui.internal.handlers;
 
 import com.google.dart.tools.ui.DartPluginImages;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.jface.action.IAction;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -32,16 +33,30 @@ import org.eclipse.ui.internal.actions.CommandAction;
 @SuppressWarnings("restriction")
 public class NewFileHandler extends AbstractHandler {
 
-  private static class NewFileCommandAction extends CommandAction {
+  public static class NewFileCommandAction extends CommandAction {
     public NewFileCommandAction(IWorkbenchWindow window) {
       super(window, COMMAND_ID);
       setImageDescriptor(DartPluginImages.DESC_TOOL_NEW_FILE);
     }
+
+    public void updateEnablement() {
+      setEnabled(getNumberOfProjects() > 0);
+    }
+
+    private int getNumberOfProjects() {
+      try {
+        return ResourcesPlugin.getWorkspace().getRoot().getProjects().length;
+      } catch (Throwable th) {
+        DartToolsPlugin.log(th);
+        return 0;
+      }
+    }
+
   }
 
   public static final String COMMAND_ID = DartUI.class.getPackage().getName() + ".file.new"; //$NON-NLS-1$
 
-  public static IAction createCommandAction(IWorkbenchWindow window) {
+  public static NewFileCommandAction createCommandAction(IWorkbenchWindow window) {
     return new NewFileCommandAction(window);
   }
 
@@ -55,4 +70,5 @@ public class NewFileHandler extends AbstractHandler {
     new OpenNewFileWizardAction(window).run();
     return null;
   }
+
 }

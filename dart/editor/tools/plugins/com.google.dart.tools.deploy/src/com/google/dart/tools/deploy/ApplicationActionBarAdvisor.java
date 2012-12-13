@@ -28,6 +28,7 @@ import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
 import com.google.dart.tools.ui.internal.handlers.NewFileHandler;
+import com.google.dart.tools.ui.internal.handlers.NewFileHandler.NewFileCommandAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 
@@ -232,6 +233,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   private OpenOnlineDocsAction openOnlineDocsAction;
   private OpenApiDocsAction openApiDocsAction;
 
+  private NewFileCommandAction newFileAction;
+
   /**
    * Constructs a new action builder which contributes actions to the given window.
    * 
@@ -337,7 +340,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   @Override
   public void fillActionBars(int flags) {
     super.fillActionBars(flags);
-    updateBuildActions(true);
+    updateProjectStateDependentActions(true);
     if ((flags & FILL_PROXY) == 0) {
       hookListeners();
     }
@@ -644,20 +647,27 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   }
 
   /**
-   * Update the build actions on the toolbar and menu bar based on the current state of autobuild.
+   * Update actions based on resource changes. Actions affected include the new file action, the
+   * build actions on the toolbar and menu bar based on the current state of autobuild.
+   * <p>
    * This method can be called from any thread.
    * 
    * @param immediately <code>true</code> to update the actions immediately, <code>false</code> to
    *          queue the update to be run in the event loop
    */
-  void updateBuildActions(boolean immediately) {
-    // this can be triggered by property or resource change notifications
+  void updateProjectStateDependentActions(boolean immediately) {
     Runnable update = new Runnable() {
       @Override
       public void run() {
+
         if (isDisposed) {
           return;
         }
+
+        if (newFileAction != null) {
+          newFileAction.updateEnablement();
+        }
+
         //update the cool bar build button
         ICoolBarManager coolBarManager = getActionBarConfigurer().getCoolBarManager();
         IContributionItem cbItem = coolBarManager.find(IWorkbenchActionConstants.TOOLBAR_FILE);
@@ -858,7 +868,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     Action newApplicationAction = new OpenNewApplicationWizardAction();
     menu.add(newApplicationAction);
-    IAction newFileAction = NewFileHandler.createCommandAction(getWindow());
+    newFileAction = NewFileHandler.createCommandAction(getWindow());
     menu.add(newFileAction);
     OpenNewFolderWizardAction newFolderAction = new OpenNewFolderWizardAction(getWindow());
     menu.add(newFolderAction);
@@ -1082,7 +1092,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       @Override
       public void propertyChange(Preferences.PropertyChangeEvent event) {
         if (event.getProperty().equals(ResourcesPlugin.PREF_AUTO_BUILDING)) {
-          updateBuildActions(false);
+          updateProjectStateDependentActions(false);
         }
       }
     };
@@ -1128,7 +1138,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
           //affected by projects being opened/closed or description changes
           boolean changed = (projectDeltas[i].getFlags() & (IResourceDelta.DESCRIPTION | IResourceDelta.OPEN)) != 0;
           if (kind != IResourceDelta.CHANGED || changed) {
-            updateBuildActions(false);
+            updateProjectStateDependentActions(false);
             return;
           }
         }
