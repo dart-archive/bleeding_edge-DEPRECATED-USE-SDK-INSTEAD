@@ -14,9 +14,7 @@
 package com.google.dart.tools.ui.internal.util;
 
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 
@@ -35,7 +33,6 @@ public class TypeNameMatchLabelProvider extends LabelProvider {
   public static final int SHOW_POST_QUALIFIED = 0x40;
 
   private static final Image CLASS_ICON = DartPluginImages.get(DartPluginImages.IMG_OBJS_CLASS);
-  private static final Image INTERFACE_ICON = DartPluginImages.get(DartPluginImages.IMG_OBJS_INTERFACE);
 
   private int fFlags;
 
@@ -51,25 +48,7 @@ public class TypeNameMatchLabelProvider extends LabelProvider {
   @Override
   public Image getImage(Object element) {
     if (element instanceof Type) {
-//    if (isSet(SHOW_TYPE_CONTAINER_ONLY)) {
-//      Type typeRef = (Type) element;
-//      if (typeRef.getPackageName().equals(typeRef.getTypeContainerName()))
-//        return PKG_ICON;
-//
-//      // XXX cannot check outer type for interface efficiently (5887)
-//      return CLASS_ICON;
-//
-//    } else if (isSet(SHOW_PACKAGE_ONLY)) {
-//      return PKG_ICON;
-//    } else {
-      Type type = (Type) element;
-      try {
-        return type.isInterface() ? INTERFACE_ICON : CLASS_ICON;
-      } catch (DartModelException e) {
-        DartToolsPlugin.log(e);
-      }
-      return null;
-//    }
+      return CLASS_ICON;
     } else if (element instanceof DartFunctionTypeAlias) {
       ImageDescriptor descriptor = new DartElementImageProvider().getBaseImageDescriptor(
           (DartFunctionTypeAlias) element,

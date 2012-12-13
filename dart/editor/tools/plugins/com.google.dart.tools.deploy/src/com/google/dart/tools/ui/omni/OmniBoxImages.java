@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.omni;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -75,12 +74,7 @@ public class OmniBoxImages {
    * @return an image descriptor for the given type
    */
   public static ImageDescriptor getTypeImageDescriptor(Type type) {
-    try {
-      return type.isInterface() ? INTERFACE_ICON : CLASS_ICON;
-    } catch (DartModelException e) {
-      DartToolsPlugin.log(e);
-    }
-    return null;
+    return CLASS_ICON;
   }
 
   /**

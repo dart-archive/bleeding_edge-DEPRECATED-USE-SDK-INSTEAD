@@ -59,12 +59,7 @@ public class TypeElement extends OmniElement {
 
   @Override
   public ImageDescriptor getImageDescriptor() {
-    try {
-      return type.isInterface() ? INTERFACE_ICON : CLASS_ICON;
-    } catch (DartModelException e) {
-      DartToolsPlugin.log(e);
-    }
-    return null;
+    return CLASS_ICON;
   }
 
   @Override

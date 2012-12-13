@@ -2123,12 +2123,10 @@ public class CompletionEngine {
       int positionalCount = 0;
       boolean hasNamed = false;
       boolean hasOptional = false;
-      boolean isInterface = false;
       int kind;
       switch (ElementKind.of(element)) {
         case CLASS:
           kind = CompletionProposal.TYPE_REF;
-          isInterface = ((ClassElement) element).isInterface();
           break;
         case FUNCTION_TYPE_ALIAS:
           kind = CompletionProposal.METHOD_NAME_REFERENCE;
@@ -2162,7 +2160,7 @@ public class CompletionEngine {
       proposal.setSignature(typeName.toCharArray());
       proposal.setCompletion(name.toCharArray());
       proposal.setName(name.toCharArray());
-      proposal.setIsInterface(isInterface);
+      proposal.setIsInterface(false);
       proposal.setParameterNames(parameterNames);
       proposal.setParameterTypeNames(parameterTypeNames);
       proposal.setPositionalParameterCount(positionalCount);
@@ -2620,7 +2618,7 @@ public class CompletionEngine {
     char[] nameChars = name.toCharArray();
     proposal.setCompletion(nameChars);
     proposal.setSignature(nameChars);
-    proposal.setIsInterface(true); // TODO For now, use the Interface icon for generic types
+    proposal.setIsInterface(false);
     setSourceLoc(proposal, node, prefix);
     proposal.setRelevance(1);
     requestor.accept(proposal);
@@ -2629,19 +2627,12 @@ public class CompletionEngine {
   private void createTypeCompletionsForParameterDecl(DartNode node, SearchMatch match, String prefix) {
     DartElement element = match.getElement();
     String name;
-    boolean isInterface;
     if (element instanceof DartFunctionTypeAliasImpl) {
       DartFunctionTypeAliasImpl alias = (DartFunctionTypeAliasImpl) element;
       name = alias.getElementName();
-      isInterface = false;
     } else if (element instanceof com.google.dart.tools.core.model.Type) {
       com.google.dart.tools.core.model.Type type = (com.google.dart.tools.core.model.Type) element;
       name = type.getElementName();
-      try {
-        isInterface = type.isInterface();
-      } catch (DartModelException ex) {
-        isInterface = false;
-      }
     } else {
       return;
     }
@@ -2661,7 +2652,7 @@ public class CompletionEngine {
     char[] nameChars = name.toCharArray();
     proposal.setCompletion(nameChars);
     proposal.setSignature(nameChars);
-    proposal.setIsInterface(isInterface);
+    proposal.setIsInterface(false);
     setSourceLoc(proposal, node, prefix);
     proposal.setRelevance(1);
     requestor.accept(proposal);
@@ -2681,18 +2672,6 @@ public class CompletionEngine {
       }
     }
     com.google.dart.tools.core.model.Type type = (com.google.dart.tools.core.model.Type) element;
-    boolean isInterface = false;
-    try {
-      isInterface = type.isInterface();
-      if (isClassOnly && isInterface) {
-        return;
-      }
-      if (isInterfaceOnly && !isInterface) {
-        return;
-      }
-    } catch (DartModelException ex) {
-      // no one cares
-    }
     String name = type.getElementName();
     if (disallowPrivate && name.startsWith("_")) {
       return;
@@ -2701,7 +2680,7 @@ public class CompletionEngine {
         CompletionProposal.TYPE_REF,
         actualCompletionPosition - offset);
     char[] nameChars = name.toCharArray();
-    proposal.setIsInterface(isInterface);
+    proposal.setIsInterface(false);
     proposal.setCompletion(nameChars);
     proposal.setSignature(nameChars);
     setSourceLoc(proposal, node, prefix);

@@ -216,12 +216,7 @@ public class DartElementImageProvider {
       case DartElement.TYPE: {
         Type type = (Type) element;
 
-        boolean isInterface;
-        try {
-          isInterface = type.isInterface();
-        } catch (DartModelException e) {
-          isInterface = false;
-        }
+        boolean isInterface = false;
         return getTypeImageDescriptor(isInterface, type.isPrivate());
       }
 
