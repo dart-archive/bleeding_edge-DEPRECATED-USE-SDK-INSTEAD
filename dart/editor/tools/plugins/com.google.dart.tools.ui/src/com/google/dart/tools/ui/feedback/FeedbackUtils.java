@@ -22,6 +22,9 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.internal.Library;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.PlatformUI;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -39,6 +42,8 @@ public class FeedbackUtils {
   public static class Stats {
     public final AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
     public final int numProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects().length;
+    public final int numEditors = getNumberOfOpenDartEditors();
+
     public final long maxMem = getMaxMem();
     public final long totalMem = Runtime.getRuntime().totalMemory();
     public final long freeMem = Runtime.getRuntime().freeMemory();
@@ -51,6 +56,9 @@ public class FeedbackUtils {
 
       writer.print("# projects: ");
       writer.println(numProjects);
+
+      writer.print("# open dart files: ");
+      writer.println(countString(numEditors));
 
       writer.print("mem max/total/free: ");
       writer.print(convertToMeg(maxMem));
@@ -73,6 +81,11 @@ public class FeedbackUtils {
     private long convertToMeg(long numBytes) {
       return (numBytes + (512 * 1024)) / (1024 * 1024);
     }
+
+    private String countString(int count) {
+      return count == -1 ? "<unknown>" : Integer.toString(count);
+    }
+
   }
 
   /**
@@ -184,6 +197,30 @@ public class FeedbackUtils {
 
   private static String getBuildDate() {
     return DartCore.getBuildDate();
+  }
+
+  private static int getNumberOfOpenDartEditors() {
+
+    final Integer[] projects = new Integer[] {-1};
+
+    Display.getDefault().syncExec(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          int count = 0;
+          for (IEditorReference ref : PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getEditorReferences()) {
+            if (DartCore.isDartLikeFileName(ref.getPartName())) {
+              ++count;
+            }
+          }
+          projects[0] = count;
+        } catch (Throwable e) {
+          //ignore --- -1 value indicates a failure
+        }
+      }
+    });
+
+    return projects[0];
   }
 
   private static String getOSArch() {
