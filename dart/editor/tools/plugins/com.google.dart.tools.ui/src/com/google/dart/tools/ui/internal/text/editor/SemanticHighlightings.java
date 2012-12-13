@@ -138,13 +138,20 @@ public class SemanticHighlightings {
           addStartPosition(token, "static");
         }
       }
-      // implements
+      // class
       if (node instanceof DartClass) {
         DartClass clazz = (DartClass) node;
-        int implementsOffset = clazz.getImplementsOffset();
-        return ImmutableList.of(SourceRangeFactory.forStartLength(
-            implementsOffset,
-            "implements".length()));
+        // implements
+        {
+          int implementsOffset = clazz.getImplementsOffset();
+          if (implementsOffset != -1) {
+            addPosition(implementsOffset, "implements".length());
+          }
+        }
+        // "abstract"
+        if (clazz.getModifiers().isAbstract()) {
+          addStartPosition(token, "abstract");
+        }
       }
       // try {} on
       if (node instanceof DartTryStatement) {
@@ -216,10 +223,15 @@ public class SemanticHighlightings {
     }
 
     private void addPosition(int start, int length) {
+      SourceRange range = SourceRangeFactory.forStartLength(start, length);
+      addPosition(range);
+    }
+
+    private void addPosition(SourceRange range) {
       if (result == null) {
         result = Lists.newArrayList();
       }
-      result.add(SourceRangeFactory.forStartLength(start, length));
+      result.add(range);
     }
 
     /**

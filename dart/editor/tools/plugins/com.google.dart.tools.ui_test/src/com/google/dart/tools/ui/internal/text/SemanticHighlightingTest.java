@@ -53,6 +53,15 @@ public class SemanticHighlightingTest extends AbstractDartTest {
 
   private List<HighlightedPosition> positions;
 
+  public void test_builtIn_abstract_class() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "abstract class");
+  }
+
   public void test_builtIn_abstract_method() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
