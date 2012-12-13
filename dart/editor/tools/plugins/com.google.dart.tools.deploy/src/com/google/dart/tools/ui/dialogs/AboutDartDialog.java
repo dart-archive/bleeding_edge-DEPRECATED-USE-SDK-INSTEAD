@@ -19,6 +19,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.CopyDetailsToClipboardAction;
 import com.google.dart.tools.ui.actions.CopyDetailsToClipboardAction.DetailsProvider;
+import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.update.core.UpdateAdapter;
 import com.google.dart.tools.update.core.UpdateCore;
 import com.google.dart.tools.update.core.UpdateListener;
@@ -39,6 +40,10 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.forms.events.HyperlinkAdapter;
+import org.eclipse.ui.forms.events.HyperlinkEvent;
+import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.eclipse.ui.forms.widgets.Hyperlink;
 
 /**
  * A minimal "About Dart" dialog shell.
@@ -156,6 +161,16 @@ public class AboutDartDialog extends Shell implements DetailsProvider {
     copyrightLabel2.setText(DialogsMessages.AboutDartDialog_copyright_line2);
 
     addCopyDetailsPopup(copyrightLabel2);
+
+    FormToolkit toolkit = new FormToolkit(getDisplay());
+    Hyperlink link = toolkit.createHyperlink(this, "Privacy Policy", SWT.NONE);
+    center(link);
+    link.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      public void linkActivated(HyperlinkEvent e) {
+        ExternalBrowserUtil.openInExternalBrowser("http://www.google.com/intl/en/policies/privacy/");
+      }
+    });
 
     //spacer and caret repressor
     final StyledText spacer = new StyledText(this, SWT.NONE);
