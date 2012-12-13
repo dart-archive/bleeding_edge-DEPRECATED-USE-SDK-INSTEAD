@@ -66,10 +66,9 @@ public class CheckForUpdatesJob extends Job {
     try {
       latest = downloadManager.getLatestRevision();
     } catch (IOException e) {
-      message = "Unable to get latest revision : " + e.toString(); //$NON-NLS-1$
-      UpdateCore.logError(message);
+      message = "Unable to get latest revision"; //$NON-NLS-1$
+      UpdateCore.logError(message + " : " + e.toString()); //$NON-NLS-1$
     }
     return Status.OK_STATUS;
   }
-
 }
