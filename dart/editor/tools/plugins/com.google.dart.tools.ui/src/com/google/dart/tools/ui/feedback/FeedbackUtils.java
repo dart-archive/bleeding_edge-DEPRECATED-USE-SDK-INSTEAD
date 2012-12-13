@@ -43,12 +43,13 @@ public class FeedbackUtils {
     public final AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
     public final int numProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects().length;
     public final int numEditors = getNumberOfOpenDartEditors();
-
+    public final int numThreads = getNumberOfThreads();
     public final long maxMem = getMaxMem();
     public final long totalMem = Runtime.getRuntime().totalMemory();
     public final long freeMem = Runtime.getRuntime().freeMemory();
     public final String indexStats = InMemoryIndex.getInstance().getIndexStatus("index");
     public final String analysisStats = server.getAnalysisStatus("analysis");
+    public final boolean autoRunPubEnabled = DartCore.getPlugin().isAutoRunPubEnabled();
 
     @Override
     public String toString() {
@@ -60,6 +61,8 @@ public class FeedbackUtils {
       writer.print("# open dart files: ");
       writer.println(countString(numEditors));
 
+      writer.println("auto-run pub: " + autoRunPubEnabled);
+
       writer.print("mem max/total/free: ");
       writer.print(convertToMeg(maxMem));
       writer.print(" / ");
@@ -67,6 +70,8 @@ public class FeedbackUtils {
       writer.print(" / ");
       writer.print(convertToMeg(freeMem));
       writer.println(" MB");
+
+      writer.println("thread count: " + countString(numThreads));
 
       writer.println(analysisStats);
 
@@ -221,6 +226,14 @@ public class FeedbackUtils {
     });
 
     return projects[0];
+  }
+
+  private static int getNumberOfThreads() {
+    try {
+      return Thread.getAllStackTraces().keySet().size();
+    } catch (Throwable e) {
+      return -1;
+    }
   }
 
   private static String getOSArch() {
