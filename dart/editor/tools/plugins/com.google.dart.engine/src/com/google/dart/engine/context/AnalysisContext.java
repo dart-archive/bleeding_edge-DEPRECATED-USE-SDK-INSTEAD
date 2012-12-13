@@ -16,6 +16,7 @@ package com.google.dart.engine.context;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -92,6 +93,14 @@ public interface AnalysisContext {
    *           be performed
    */
   public AnalysisError[] getErrors(Source source) throws AnalysisException;
+
+  /**
+   * Parse and build an element model for the HTML file defined by the given source.
+   * 
+   * @param source the source defining the HTML file whose element model is to be returned
+   * @return the element model corresponding to the HTML file defined by the given source
+   */
+  public HtmlElement getHtmlElement(Source source);
 
   /**
    * Parse and build an element model for the library defined by the given source.

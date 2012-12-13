@@ -24,6 +24,7 @@ public enum ElementKind {
   FIELD,
   FUNCTION,
   GETTER,
+  HTML,
   LABEL,
   LIBRARY,
   METHOD,

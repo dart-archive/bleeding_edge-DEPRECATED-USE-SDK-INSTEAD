@@ -70,7 +70,7 @@ public interface Element {
 
   /**
    * Return the library that contains this element. This will be {@code null} if this element is a
-   * library because libraries are not contained in other libraries.
+   * library or HTML file because libraries and HTML files are not contained in other libraries.
    * 
    * @return the library that contains this element
    */

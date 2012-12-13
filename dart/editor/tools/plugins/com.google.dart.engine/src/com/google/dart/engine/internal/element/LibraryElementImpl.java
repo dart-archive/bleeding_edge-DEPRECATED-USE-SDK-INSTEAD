@@ -68,6 +68,7 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /**
    * Initialize a newly created library element to have the given name.
    * 
+   * @param context the analysis context in which the library is defined
    * @param name the name of this element
    */
   public LibraryElementImpl(AnalysisContext context, Identifier name) {

@@ -18,6 +18,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -125,6 +126,12 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public AnalysisError[] getErrors(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public HtmlElement getHtmlElement(Source source) {
+    // TODO(brianwilkerson) Implement this.
     throw new UnsupportedOperationException();
   }
 
