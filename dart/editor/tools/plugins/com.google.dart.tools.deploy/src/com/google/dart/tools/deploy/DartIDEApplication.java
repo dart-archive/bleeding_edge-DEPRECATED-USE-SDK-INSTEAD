@@ -16,25 +16,48 @@ package com.google.dart.tools.deploy;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.perf.DartEditorCommandLineManager;
 import com.google.dart.tools.core.internal.perf.Performance;
+import com.google.dart.tools.debug.core.util.ResourceServerManager;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.util.Util;
 import org.eclipse.osgi.service.datalocation.Location;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.internal.WorkbenchPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.URL;
 import java.util.ArrayList;
 
 /**
  * This class controls all aspects of the application's execution.
  */
+@SuppressWarnings("restriction")
 public class DartIDEApplication implements IApplication {
+
+  private static class ConfirmMultipleEditorsDialog extends MessageDialog {
+
+    public ConfirmMultipleEditorsDialog(Shell parentShell) {
+      super(
+          parentShell,
+          WorkbenchMessages.DartIDEApplication_already_running_dialog_title,
+          null,
+          WorkbenchMessages.DartIDEApplication_already_running_dialog_msg,
+          MessageDialog.QUESTION,
+          new String[] {
+              WorkbenchMessages.DartIDEApplication_already_running_dialog_run_button,
+              WorkbenchMessages.DartIDEApplication_already_running_dialog_cancel_button},
+          1);
+    }
+
+  }
 
   /**
    * Value taken from <code>DartEditorCommandLineManager.PERF_FLAG</code>.
@@ -43,14 +66,34 @@ public class DartIDEApplication implements IApplication {
    * the dart core bundle to load (prematurely) before we've started the platform in
    * {@link #start(IApplicationContext)}.
    */
-  private static final String PERF_FLAG = "-perf"; //DartEditorCommandLineManager.PERF_FLAG
+  private static final String PERF_FLAG = "-perf"; //DartEditorCommandLineManager.PERF_FLAG //$NON-NLS-1$
 
   //a flag to cache whether we're measuring perf, used to delay loading of dart core
-  private boolean perfFlagSet = false;
+  private boolean perfFlagSet = false;;
 
   @Override
   public Object start(IApplicationContext context) throws Exception {
+
     Display display = PlatformUI.createDisplay();
+
+    if (isWorkspaceServerPortBound()) {
+
+      final Shell shell = WorkbenchPlugin.getSplashShell(display);
+
+      final boolean[] runAnyway = new boolean[1];
+
+      Display.getDefault().syncExec(new Runnable() {
+        @Override
+        public void run() {
+          runAnyway[0] = new ConfirmMultipleEditorsDialog(shell).open() == 0;
+        }
+      });
+
+      if (!runAnyway[0]) {
+        return EXIT_OK;
+      }
+
+    }
 
     try {
       setWorkspaceLocation();
@@ -63,7 +106,7 @@ public class DartIDEApplication implements IApplication {
       // Now that the start time of the Editor has been recorded from the command line, we can
       // record the time taken to start the Application
       if (perfFlagSet) {
-        System.out.println("Dart Editor build " + DartCore.getBuildIdOrDate());
+        System.out.println("Dart Editor build " + DartCore.getBuildIdOrDate()); //$NON-NLS-1$
         Performance.TIME_TO_START_ECLIPSE.log(DartEditorCommandLineManager.getStartTime());
       }
 
@@ -94,6 +137,17 @@ public class DartIDEApplication implements IApplication {
         }
       }
     });
+  }
+
+  private boolean isWorkspaceServerPortBound() {
+
+    try {
+      new ServerSocket(ResourceServerManager.PREFERRED_PORT).close();
+    } catch (IOException e) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -132,10 +186,10 @@ public class DartIDEApplication implements IApplication {
           failedToGetStartTime = true;
         }
         if (failedToGetStartTime) {
-          System.err.println("Could not retrieve milliseconds from epoch time from command "
-              + "line, the value should be passed after the \""
-              + DartEditorCommandLineManager.PERF_FLAG + "\" flag, recording the start time "
-              + "of the Dart Editor *now*- at the application init time.");
+          System.err.println("Could not retrieve milliseconds from epoch time from command " //$NON-NLS-1$
+              + "line, the value should be passed after the \"" //$NON-NLS-1$
+              + DartEditorCommandLineManager.PERF_FLAG + "\" flag, recording the start time " //$NON-NLS-1$
+              + "of the Dart Editor *now*- at the application init time."); //$NON-NLS-1$
           DartEditorCommandLineManager.setStartTime(System.currentTimeMillis());
         }
         for (int j = 0; j < args.length; j++) {
@@ -163,10 +217,10 @@ public class DartIDEApplication implements IApplication {
           if (file.exists()) {
             fileSet.add(file);
           } else {
-            System.out.println("Input \"" + arg
-                + "\" could not be parsed as a valid file, file inputs on the command line "
-                + "need to be absolute paths for files or folders that exist, or relative to "
-                + "the directory that the Dart Editor is installed.");
+            System.out.println("Input \"" + arg //$NON-NLS-1$
+                + "\" could not be parsed as a valid file, file inputs on the command line " //$NON-NLS-1$
+                + "need to be absolute paths for files or folders that exist, or relative to " //$NON-NLS-1$
+                + "the directory that the Dart Editor is installed."); //$NON-NLS-1$
           }
         }
       }
@@ -180,18 +234,18 @@ public class DartIDEApplication implements IApplication {
     Location workspaceLocation = Platform.getInstanceLocation();
 
     if (!workspaceLocation.isSet()) {
-      File userHomeDir = new File(System.getProperty("user.home"));
+      File userHomeDir = new File(System.getProperty("user.home")); //$NON-NLS-1$
       URL workspaceUrl;
 
       try {
         if (Util.isMac()) {
-          workspaceUrl = new URL("file", null, System.getProperty("user.home")
-              + "/Library/Application Support/DartEditor");
+          workspaceUrl = new URL("file", null, System.getProperty("user.home") //$NON-NLS-1$ //$NON-NLS-2$
+              + "/Library/Application Support/DartEditor"); //$NON-NLS-1$
         } else if (Util.isWindows()) {
-          File workspaceDir = new File(userHomeDir, "DartEditor");
+          File workspaceDir = new File(userHomeDir, "DartEditor"); //$NON-NLS-1$
           workspaceUrl = workspaceDir.toURI().toURL();
         } else {
-          File workspaceDir = new File(userHomeDir, ".dartEditor");
+          File workspaceDir = new File(userHomeDir, ".dartEditor"); //$NON-NLS-1$
           workspaceUrl = workspaceDir.toURI().toURL();
         }
 

@@ -20,6 +20,10 @@ public class WorkbenchMessages extends NLS {
   public static String ApplicationActionBarAdvisor_openInBrowserMenu;
   public static String ApplicationActionBarAdvisor_openInBrowserToolTip;
   public static String build_menu;
+  public static String DartIDEApplication_already_running_dialog_cancel_button;
+  public static String DartIDEApplication_already_running_dialog_msg;
+  public static String DartIDEApplication_already_running_dialog_run_button;
+  public static String DartIDEApplication_already_running_dialog_title;
   public static String tools_menu;
 
   static {

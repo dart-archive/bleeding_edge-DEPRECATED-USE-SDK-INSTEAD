@@ -22,7 +22,7 @@ import java.io.IOException;
  * @see ResourceServer
  */
 public class ResourceServerManager {
-  private static final int PREFERRED_PORT = 3030;
+  public static final int PREFERRED_PORT = 3030;
 
   private static ResourceServer server;
 
