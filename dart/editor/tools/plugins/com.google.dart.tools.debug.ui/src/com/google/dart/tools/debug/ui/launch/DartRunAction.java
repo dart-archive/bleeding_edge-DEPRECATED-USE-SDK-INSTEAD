@@ -28,12 +28,8 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.ui.IPageListener;
-import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import java.util.List;
@@ -41,8 +37,7 @@ import java.util.List;
 /**
  * A toolbar action to enumerate a launch debug launch configurations.
  */
-public class DartRunAction extends DartRunAbstractAction implements IViewActionDelegate,
-    ISelectionListener, IPageListener {
+public class DartRunAction extends DartRunAbstractAction implements IViewActionDelegate {
 
   public DartRunAction() {
     this(null, false);
@@ -57,15 +52,16 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
 
     setActionDefinitionId("com.google.dart.tools.debug.ui.run.selection");
     setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.gif"));
+    setToolTipText("Run");
 
-    window.getSelectionService().addSelectionListener(this);
-    window.addPageListener(this);
+//    window.getSelectionService().addSelectionListener(this);
+//    window.addPageListener(this);
   }
 
   @Override
   public void dispose() {
-    getWindow().removePageListener(this);
-    getWindow().getSelectionService().removeSelectionListener(this);
+//    getWindow().removePageListener(this);
+//    getWindow().getSelectionService().removeSelectionListener(this);
 
     super.dispose();
   }
@@ -75,20 +71,20 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
 
   }
 
-  @Override
-  public void pageActivated(IWorkbenchPage page) {
-    selectionChanged((IWorkbenchPart) null, getWindow().getSelectionService().getSelection());
-  }
-
-  @Override
-  public void pageClosed(IWorkbenchPage page) {
-
-  }
-
-  @Override
-  public void pageOpened(IWorkbenchPage page) {
-
-  }
+//  @Override
+//  public void pageActivated(IWorkbenchPage page) {
+//    selectionChanged((IWorkbenchPart) null, getWindow().getSelectionService().getSelection());
+//  }
+//
+//  @Override
+//  public void pageClosed(IWorkbenchPage page) {
+//
+//  }
+//
+//  @Override
+//  public void pageOpened(IWorkbenchPage page) {
+//
+//  }
 
   @Override
   public void run() {
@@ -128,30 +124,30 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
     }
   }
 
-  @Override
-  public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-    setToolTipText("Run");
-
-    IResource resource = LaunchUtils.getSelectedResource(window);
-
-    if (resource != null) {
-      ILaunchConfiguration config = null;
-
-      try {
-        config = LaunchUtils.getLaunchFor(resource);
-      } catch (DartModelException e) {
-
-      }
-
-      if (config == null) {
-        config = LaunchUtils.chooseLatest(LaunchUtils.getAllLaunches());
-      }
-
-      if (config != null) {
-        setToolTipText(LaunchUtils.getLongLaunchName(config));
-      }
-    }
-  }
+//  @Override
+//  public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+//    setToolTipText("Run");
+//
+//    IResource resource = LaunchUtils.getSelectedResource(window);
+//
+//    if (resource != null) {
+//      ILaunchConfiguration config = null;
+//
+//      try {
+//        config = LaunchUtils.getLaunchFor(resource);
+//      } catch (DartModelException e) {
+//
+//      }
+//
+//      if (config == null) {
+//        config = LaunchUtils.chooseLatest(LaunchUtils.getAllLaunches());
+//      }
+//
+//      if (config != null) {
+//        setToolTipText(LaunchUtils.getLongLaunchName(config));
+//      }
+//    }
+//  }
 
   protected void launchResource(IResource resource) throws DartModelException {
     ILaunchConfiguration config = LaunchUtils.getLaunchFor(resource);
