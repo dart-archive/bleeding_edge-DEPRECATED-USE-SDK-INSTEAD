@@ -1,11 +1,4 @@
-A. Building the Calculator application for ChromeOS:
-====================================================
-
-cd dart/samples/calculator
-./build_app ~/www
-
-
-B. Installing calculator in ChromeOS:
+A. Installing calculator in ChromeOS:
 =====================================
 
 Copy the manifest to point to Dart calculator application and application icon:
@@ -22,7 +15,7 @@ Copy the manifest to point to Dart calculator application and application icon:
 10. Choose the new folder craeted in the File Manager (e.g., calculator)
 
 
-C. Installing the app (bring up the extensions management page):
+B. Installing the app (bring up the extensions management page):
 ================================================================
 
 1. Click the wrench icon and choosing Tools > Extensions.

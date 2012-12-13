@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of calcui;
+
 class Tape {
   static const int OP_NOOP = 0;
   static const int OP_PLUS = 1;

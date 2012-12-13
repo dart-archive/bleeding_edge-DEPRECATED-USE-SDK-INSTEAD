@@ -4,20 +4,7 @@
 
 import 'dart:html';
 import 'dart:math' as Math;
-part 'tape.dart';
-part 'settings.dart';
-part 'calcui.dart';
-
-var padUI;          // Calculator Pad UI.
-
-TapeUI tapeUI;      // Tape output area UI.
-Tape tape;          // Controller.
-
-Settings mySettings;
-
-String currentRegister;
-int currentOperator;
-double total;
+import 'calcui.dart';
 
 Set numberKeyPresses;
 Set operatorKeyPresses;
@@ -367,7 +354,7 @@ void main() {
 
   // Create our Tape UI.
   tapeUI = new TapeUI();
-  element.children.add(tapeUI.root);
+  element.children.add(tapeUI.root);        // Render the UI
 
   // Create our tape controller.
   tape = new Tape();
