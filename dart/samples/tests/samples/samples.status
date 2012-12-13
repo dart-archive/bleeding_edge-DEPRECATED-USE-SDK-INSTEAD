@@ -35,7 +35,7 @@ markdown_test: Skip # markdown_test includes dart:io, and times out
                     # due to http://dartbug.com/7036.
 
 [ $compiler == none && $runtime == drt ]
-dartcombat/dartcombat_test: Fail, Timeout # Issue 2790
+dartcombat/dartcombat_test: Skip # Issue 2790
 swarm/swarm_test: Pass, Fail # Issue 3977
 
 [ $runtime == chrome || $runtime == ff || $runtime == safari ]
