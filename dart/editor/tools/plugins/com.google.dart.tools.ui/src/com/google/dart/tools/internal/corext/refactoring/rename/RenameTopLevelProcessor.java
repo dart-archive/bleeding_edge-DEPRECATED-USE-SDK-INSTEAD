@@ -104,7 +104,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
           if (importNames.contains(newName)) {
             DartLibrary importLibrary = imprt.getLibrary();
             CompilationUnit importLibraryUnit = importLibrary.getDefiningCompilationUnit();
-            IPath importLibraryPath = importLibraryUnit.getResource().getFullPath();
+            IPath importLibraryPath = getElementPath(importLibraryUnit);
             String message = Messages.format(
                 RefactoringCoreMessages.RenameTopProcessor_shadow_topLevel2,
                 new Object[] {
@@ -312,8 +312,8 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
 
   private static void reportTopLevelAlreadyDeclared(RefactoringStatus result, String newName,
       DartLibrary library, CompilationUnitElement existingElement) {
-    IPath libraryPath = library.getResource().getFullPath();
-    IPath resourcePath = existingElement.getResource().getFullPath();
+    IPath libraryPath = getElementPath(library);
+    IPath resourcePath = getElementPath(existingElement);
     String message = Messages.format(
         RefactoringCoreMessages.RenameTopProcessor_shadow_topLevel,
         new Object[] {

@@ -25,6 +25,7 @@ import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
 import com.google.dart.tools.ui.text.DartTextTools;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.JFaceResources;
@@ -75,10 +76,13 @@ public class DartStatusContextViewer extends TextStatusContextViewer {
             // document is null which is a valid input.
           }
         } else {
-          IEditorInput editorInput = new FileEditorInput((IFile) cunit.getResource());
-          document = getDocument(
-              DartToolsPlugin.getDefault().getCompilationUnitDocumentProvider(),
-              editorInput);
+          IResource resource = cunit.getResource();
+          if (resource instanceof IFile) {
+            IEditorInput editorInput = new FileEditorInput((IFile) resource);
+            document = getDocument(
+                DartToolsPlugin.getDefault().getCompilationUnitDocumentProvider(),
+                editorInput);
+          }
         }
         if (document == null) {
           document = new Document(RefactoringMessages.DartStatusContextViewer_no_source_available);
