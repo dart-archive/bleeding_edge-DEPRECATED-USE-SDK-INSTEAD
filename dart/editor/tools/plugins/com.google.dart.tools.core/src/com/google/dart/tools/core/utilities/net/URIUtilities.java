@@ -17,7 +17,6 @@ import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 
 import java.io.File;
 import java.net.URI;
-import java.util.Arrays;
 
 /**
  * The class <code>URIUtilities</code> defines utility methods for working with instances of the
@@ -68,11 +67,6 @@ public final class URIUtilities {
     // Split paths into segments
     String[] bParts = base.getPath().split("\\/");
     String[] cParts = child.getPath().split("\\/");
-
-    // Discard trailing segment of base path
-    if (bParts.length > 0 && !base.getPath().endsWith("/")) {
-      bParts = Arrays.copyOf(bParts, bParts.length - 1);
-    }
 
     // Remove common prefix segments
     int i = 0;

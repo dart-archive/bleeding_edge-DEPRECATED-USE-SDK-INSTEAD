@@ -40,7 +40,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.CompositeChange;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
@@ -107,11 +106,11 @@ public class MoveResourceParticipant extends MoveParticipant {
     String namePrefix;
     {
       URI sourceUri = cu.getResource().getParent().getLocationURI();
-      namePrefix = sourceUri.relativize(destUri).toString();
-      if (namePrefix.length() != 0) {
+      URI relative = URIUtilities.relativize(sourceUri, destUri);
+      namePrefix = FilenameUtils.separatorsToUnix(relative.toString());
+      if (namePrefix.length() != 0 && !namePrefix.endsWith("/")) {
         namePrefix += "/";
       }
-      namePrefix = FilenameUtils.separatorsToUnix(namePrefix);
     }
     // prepare "old name" range
     SourceRange matchRange = match.getSourceRange();
@@ -177,7 +176,7 @@ public class MoveResourceParticipant extends MoveParticipant {
           CompilationUnit unit = (CompilationUnit) fileElement;
           DartLibrary library = unit.getLibrary();
           if (library != null && Objects.equal(library.getDefiningCompilationUnit(), unit)) {
-            URI newUnitUri = destContainer.getFile(new Path("no-matter")).getLocationURI();
+            URI newUnitUri = destContainer.getLocationURI();
             // "import"
             for (DartImport imp : library.getImports()) {
               SourceRange uriRange = imp.getUriRange();

@@ -111,6 +111,37 @@ public final class MoveResourceParticipantTest extends RefactoringTest {
         ""});
   }
 
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=6978
+   */
+  public void test_OK_reference_inImport_inDeepFolder() throws Exception {
+    IFolder destination = testProject.createFolder("aaa");
+    testProject.createFolder("aaa/bbb");
+    setUnitContent("aaa/bbb/A.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library a;",
+        "import 'B.dart';",
+        ""});
+    CompilationUnit unitB = setUnitContent("aaa/bbb/B.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library b;",
+        "import 'A.dart';",
+        ""});
+    // do move
+    moveUnit(unitB, destination);
+    assertUnitContent(testProject.getUnit("aaa/bbb/A.dart"), new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library a;",
+        "import '../B.dart';",
+        ""});
+    assertUnitContent(testProject.getUnit("aaa/B.dart"), new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library b;",
+        "import 'bbb/A.dart';",
+        ""});
+  }
+
   public void test_OK_reference_inPart() throws Exception {
     IFolder destination = testProject.createFolder("aaa");
     setUnitContent("A.dart", new String[] {
