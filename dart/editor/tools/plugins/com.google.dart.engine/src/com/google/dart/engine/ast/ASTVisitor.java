@@ -48,6 +48,8 @@ public interface ASTVisitor<R> {
 
   public R visitClassDeclaration(ClassDeclaration node);
 
+  public R visitClassTypeAlias(ClassTypeAlias node);
+
   public R visitComment(Comment node);
 
   public R visitCommentReference(CommentReference node);
@@ -100,6 +102,8 @@ public interface ASTVisitor<R> {
 
   public R visitFunctionExpressionInvocation(FunctionExpressionInvocation node);
 
+  public R visitFunctionTypeAlias(FunctionTypeAlias functionTypeAlias);
+
   public R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node);
 
   public R visitHideCombinator(HideCombinator node);
@@ -140,7 +144,7 @@ public interface ASTVisitor<R> {
 
   public R visitMixinApplication(MixinApplication node);
 
-  public R visitMixinClause(MixinClause node);
+  public R visitMixinClause(WithClause node);
 
   public R visitNamedExpression(NamedExpression node);
 
@@ -193,8 +197,6 @@ public interface ASTVisitor<R> {
   public R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node);
 
   public R visitTryStatement(TryStatement node);
-
-  public R visitTypeAlias(TypeAlias node);
 
   public R visitTypeArgumentList(TypeArgumentList node);
 

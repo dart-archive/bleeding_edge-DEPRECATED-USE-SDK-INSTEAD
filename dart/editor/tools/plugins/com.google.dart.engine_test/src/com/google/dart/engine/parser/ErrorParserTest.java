@@ -410,13 +410,6 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE);
   }
 
-  public void test_extendsBeforeApplication() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "class A extends B = C;",
-        ParserErrorCode.EXTENDS_BEFORE_APPLICATION);
-  }
-
   public void test_externalAfterConst() throws Exception {
     parse(
         "parseClassMember",
@@ -629,13 +622,6 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
   }
 
-  public void test_implementsBeforeApplication() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "class A implements B = C;",
-        ParserErrorCode.IMPLEMENTS_BEFORE_APPLICATION);
-  }
-
   public void test_implementsBeforeExtends() throws Exception {
     parse(
         "parseCompilationUnit",
@@ -643,11 +629,11 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS);
   }
 
-  public void test_implementsBeforeMixin() throws Exception {
+  public void test_implementsBeforeWith() throws Exception {
     parse(
         "parseCompilationUnit",
-        "class A implements B mixin C {}",
-        ParserErrorCode.IMPLEMENTS_BEFORE_MIXIN);
+        "class A extends B implements C with D {}",
+        ParserErrorCode.IMPLEMENTS_BEFORE_WITH);
   }
 
   public void test_importDirectiveAfterPartDirective() throws Exception {
@@ -858,24 +844,6 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_mixedParameterGroups_positionalNamed() throws Exception {
     parse("parseFormalParameterList", "(a, [b], {c})", ParserErrorCode.MIXED_PARAMETER_GROUPS);
-  }
-
-  public void test_mixinApplicationWithBody() throws Exception {
-    parse("parseCompilationUnit", "class A = B {}", ParserErrorCode.MIXIN_APPLICATION_WITH_BODY);
-  }
-
-  public void test_mixinApplicationWithMixinClause() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "class A = B mixin C;",
-        ParserErrorCode.MIXIN_APPLICATION_WITH_MIXIN_CLAUSE);
-  }
-
-  public void test_mixinBeforeExtends() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "class A mixin B extends C {}",
-        ParserErrorCode.MIXIN_BEFORE_EXTENDS);
   }
 
   public void test_multipleLibraryDirectives() throws Exception {
@@ -1117,6 +1085,22 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_voidParameter() throws Exception {
     parse("parseNormalFormalParameter", "void a)", ParserErrorCode.VOID_PARAMETER);
+  }
+
+  public void test_withBeforeExtends() throws Exception {
+    parse(
+        "parseCompilationUnit",
+        "class A with B extends C {}",
+        ParserErrorCode.WITH_BEFORE_EXTENDS);
+  }
+
+  public void test_withWithoutExtends() throws Exception {
+    parse(
+        "parseClassDeclaration",
+        new Class[] {CommentAndMetadata.class, Token.class},
+        new Object[] {emptyCommentAndMetadata(), null},
+        "class A with B, C {}",
+        ParserErrorCode.WITH_WITHOUT_EXTENDS);
   }
 
   public void test_wrongSeparatorForNamedParameter() throws Exception {

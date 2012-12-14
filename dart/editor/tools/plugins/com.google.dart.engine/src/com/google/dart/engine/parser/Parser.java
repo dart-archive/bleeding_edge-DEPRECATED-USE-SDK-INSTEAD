@@ -1061,14 +1061,11 @@ public class Parser {
   }
 
   /**
-   * Parse a class declaration or mixin application.
+   * Parse a class declaration.
    * 
    * <pre>
    * classDeclaration ::=
-   *     metadata 'abstract'? 'class' name typeParameterList? extendsClause? mixinClause? implementsClause? '{' classMembers '}'
-   * 
-   * mixinApplication ::=
-   *     metadata 'class' name typeParameterList? mixinApplication extendsClause? implementsClause? ';'
+   *     metadata 'abstract'? 'class' name typeParameterList? (extendsClause withClause?)? implementsClause? '{' classMembers '}'
    * </pre>
    * 
    * @param commentAndMetadata the metadata to be associated with the member
@@ -1085,35 +1082,20 @@ public class Parser {
     if (matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
-    MixinApplication mixinApplication = null;
+    //
+    // Parse the clauses. The parser accepts clauses in any order, but will generate errors if they
+    // are not in the order required by the specification.
+    //
     ExtendsClause extendsClause = null;
-    MixinClause mixinClause = null;
+    WithClause withClause = null;
     ImplementsClause implementsClause = null;
     boolean foundClause = true;
     while (foundClause) {
-      if (matches(TokenType.EQ)) {
-        if (mixinApplication == null) {
-          mixinApplication = parseMixinApplication();
-          if (extendsClause != null) {
-            reportError(ParserErrorCode.EXTENDS_BEFORE_APPLICATION, extendsClause.getKeyword());
-          } else if (mixinClause != null) {
-            reportError(
-                ParserErrorCode.MIXIN_APPLICATION_WITH_MIXIN_CLAUSE,
-                mixinApplication.getEquals());
-          } else if (implementsClause != null) {
-            reportError(
-                ParserErrorCode.IMPLEMENTS_BEFORE_APPLICATION,
-                implementsClause.getKeyword());
-          }
-        } else {
-          reportError(ParserErrorCode.MULTIPLE_MIXIN_APPLICATIONS, mixinApplication.getEquals());
-          parseMixinApplication();
-        }
-      } else if (matches(Keyword.EXTENDS)) {
+      if (matches(Keyword.EXTENDS)) {
         if (extendsClause == null) {
           extendsClause = parseExtendsClause();
-          if (mixinClause != null) {
-            reportError(ParserErrorCode.MIXIN_BEFORE_EXTENDS, mixinClause.getMixinKeyword());
+          if (withClause != null) {
+            reportError(ParserErrorCode.WITH_BEFORE_EXTENDS, withClause.getWithKeyword());
           } else if (implementsClause != null) {
             reportError(ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, implementsClause.getKeyword());
           }
@@ -1121,20 +1103,15 @@ public class Parser {
           reportError(ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, extendsClause.getKeyword());
           parseExtendsClause();
         }
-      } else if (matches(Keyword.MIXIN)) {
-        if (mixinClause == null) {
-          mixinClause = parseMixinClause();
+      } else if (matches(Keyword.WITH)) {
+        if (withClause == null) {
+          withClause = parseWithClause();
           if (implementsClause != null) {
-            reportError(ParserErrorCode.IMPLEMENTS_BEFORE_MIXIN, implementsClause.getKeyword());
-          }
-          if (mixinApplication != null) {
-            reportError(
-                ParserErrorCode.MIXIN_APPLICATION_WITH_MIXIN_CLAUSE,
-                mixinClause.getMixinKeyword());
+            reportError(ParserErrorCode.IMPLEMENTS_BEFORE_WITH, implementsClause.getKeyword());
           }
         } else {
-          reportError(ParserErrorCode.MULTIPLE_MIXIN_CLAUSES, mixinClause.getMixinKeyword());
-          parseMixinClause();
+          reportError(ParserErrorCode.MULTIPLE_WITH_CLAUSES, withClause.getWithKeyword());
+          parseWithClause();
           // TODO(brianwilkerson) Should we merge the list of applied mixins into a single list?
         }
       } else if (matches(Keyword.IMPLEMENTS)) {
@@ -1149,20 +1126,16 @@ public class Parser {
         foundClause = false;
       }
     }
+    if (withClause != null && extendsClause == null) {
+      reportError(ParserErrorCode.WITH_WITHOUT_EXTENDS, withClause.getWithKeyword());
+    }
+    //
+    // Parse the body of the class.
+    //
     Token leftBracket = null;
     List<ClassMember> members = null;
     Token rightBracket = null;
-    Token semicolon = null;
-    if (mixinApplication != null) {
-      if (matches(TokenType.OPEN_CURLY_BRACKET)) {
-        leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
-        members = parseClassMembers(className);
-        rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
-        reportError(ParserErrorCode.MIXIN_APPLICATION_WITH_BODY, leftBracket);
-      } else {
-        semicolon = expect(TokenType.SEMICOLON);
-      }
-    } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
+    if (matches(TokenType.OPEN_CURLY_BRACKET)) {
       leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
       members = parseClassMembers(className);
       rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
@@ -1171,9 +1144,6 @@ public class Parser {
       rightBracket = createSyntheticToken(TokenType.CLOSE_CURLY_BRACKET);
       reportError(ParserErrorCode.MISSING_CLASS_BODY);
     }
-    // TODO(brianwilkerson) If there was both a mixin application and a mixin clause, should we
-    // merge the lists to make the AST internally consistent, or leave it as is to make is more
-    // faithful to the original source?
     return new ClassDeclaration(
         commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
@@ -1181,14 +1151,12 @@ public class Parser {
         keyword,
         name,
         typeParameters,
-        mixinApplication,
         extendsClause,
-        mixinClause,
+        withClause,
         implementsClause,
         leftBracket,
         members,
-        rightBracket,
-        semicolon);
+        rightBracket);
   }
 
   /**
@@ -1383,6 +1351,53 @@ public class Parser {
       memberStart = currentToken;
     }
     return members;
+  }
+
+  /**
+   * Parse a class type alias.
+   * 
+   * <pre>
+   * classTypeAlias ::=
+   *     identifier typeParameters? '=' 'abstract'? mixinApplication
+   * 
+   * mixinApplication ::=
+   *     qualified withClause implementsClause? ';'
+   * </pre>
+   * 
+   * @param commentAndMetadata the metadata to be associated with the member
+   * @param keyword the token representing the 'typedef' keyword
+   * @return the class type alias that was parsed
+   */
+  private ClassTypeAlias parseClassTypeAlias(CommentAndMetadata commentAndMetadata, Token keyword) {
+    SimpleIdentifier name = parseSimpleIdentifier();
+    TypeParameterList typeParameters = null;
+    if (matches(TokenType.LT)) {
+      typeParameters = parseTypeParameterList();
+    }
+    Token equals = expect(TokenType.EQ);
+    Token abstractKeyword = null;
+    if (matches(Keyword.ABSTRACT)) {
+      abstractKeyword = getAndAdvance();
+    }
+    Identifier superclass = parsePrefixedIdentifier();
+    WithClause withClause = parseWithClause();
+    ImplementsClause implementsClause = null;
+    if (matches(Keyword.IMPLEMENTS)) {
+      implementsClause = parseImplementsClause();
+    }
+    Token semicolon = expect(TokenType.SEMICOLON);
+    return new ClassTypeAlias(
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
+        keyword,
+        name,
+        typeParameters,
+        equals,
+        abstractKeyword,
+        superclass,
+        withClause,
+        implementsClause,
+        semicolon);
   }
 
   /**
@@ -2729,6 +2744,68 @@ public class Parser {
   }
 
   /**
+   * Parse a function type alias.
+   * 
+   * <pre>
+   * functionTypeAlias ::=
+   *     functionPrefix typeParameterList? formalParameterList ';'
+   *
+   * functionPrefix ::=
+   *     returnType? name
+   * </pre>
+   * 
+   * @param commentAndMetadata the metadata to be associated with the member
+   * @param keyword the token representing the 'typedef' keyword
+   * @return the function type alias that was parsed
+   */
+  private FunctionTypeAlias parseFunctionTypeAlias(CommentAndMetadata commentAndMetadata,
+      Token keyword) {
+    TypeName returnType = null;
+    if (hasReturnTypeInTypeAlias()) {
+      returnType = parseReturnType();
+    }
+    SimpleIdentifier name = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    TypeParameterList typeParameters = null;
+    if (matches(TokenType.LT)) {
+      typeParameters = parseTypeParameterList();
+    }
+    if (matches(TokenType.SEMICOLON)) {
+      reportError(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
+      FormalParameterList parameters = new FormalParameterList(
+          createSyntheticToken(TokenType.OPEN_PAREN),
+          null,
+          null,
+          null,
+          createSyntheticToken(TokenType.CLOSE_PAREN));
+      Token semicolon = expect(TokenType.SEMICOLON);
+      return new FunctionTypeAlias(
+          commentAndMetadata.getComment(),
+          commentAndMetadata.getMetadata(),
+          keyword,
+          returnType,
+          name,
+          typeParameters,
+          parameters,
+          semicolon);
+    } else if (!matches(TokenType.OPEN_PAREN)) {
+      // TODO(brianwilkerson) Report this error and recover.
+      return null;
+    }
+    FormalParameterList parameters = parseFormalParameterList();
+    validateFormalParameterList(parameters);
+    Token semicolon = expect(TokenType.SEMICOLON);
+    return new FunctionTypeAlias(
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
+        keyword,
+        returnType,
+        name,
+        typeParameters,
+        parameters,
+        semicolon);
+  }
+
+  /**
    * Parse a getter.
    * 
    * <pre>
@@ -3214,42 +3291,6 @@ public class Parser {
         name,
         parameters,
         body);
-  }
-
-  /**
-   * Parse a mixin application.
-   * 
-   * <pre>
-   * mixinApplication ::=
-   *     '=' typeName
-   * </pre>
-   * 
-   * @return the mixin application that was parsed
-   */
-  private MixinApplication parseMixinApplication() {
-    Token equals = expect(TokenType.EQ);
-    TypeName type = parseTypeName();
-    return new MixinApplication(equals, type);
-  }
-
-  /**
-   * Parse a mixin clause.
-   * 
-   * <pre>
-   * mixinClause ::=
-   *     'mixin' typeName (',' typeName)*
-   * </pre>
-   * 
-   * @return the mixin clause that was parsed
-   */
-  private MixinClause parseMixinClause() {
-    Token mixin = expect(Keyword.MIXIN);
-    ArrayList<TypeName> types = new ArrayList<TypeName>();
-    types.add(parseTypeName());
-    while (optional(TokenType.COMMA)) {
-      types.add(parseTypeName());
-    }
-    return new MixinClause(mixin, types);
   }
 
   /**
@@ -4017,7 +4058,7 @@ public class Parser {
    *     IDENTIFIER
    * </pre>
    * 
-   * @param errorCode the error code to be used to report a built-in identifier is one is found
+   * @param errorCode the error code to be used to report a built-in identifier if one is found
    * @return the simple identifier that was parsed
    */
   private SimpleIdentifier parseSimpleIdentifier(ParserErrorCode errorCode) {
@@ -4358,7 +4399,23 @@ public class Parser {
    * 
    * <pre>
    * typeAlias ::=
-   *     metadata 'typedef' returnType? name typeParameterList? formalParameterList ';'
+   *     'typedef' typeAliasBody
+   * 
+   * typeAliasBody ::=
+   *     classTypeAlias
+   *   | functionTypeAlias
+   *
+   * classTypeAlias ::=
+   *     identifier typeParameters? '=' 'abstract'? mixinApplication
+   * 
+   * mixinApplication ::=
+   *     qualified withClause implementsClause? ';'
+   *
+   * functionTypeAlias ::=
+   *     functionPrefix typeParameterList? formalParameterList ';'
+   *
+   * functionPrefix ::=
+   *     returnType? name
    * </pre>
    * 
    * @param commentAndMetadata the metadata to be associated with the member
@@ -4366,49 +4423,18 @@ public class Parser {
    */
   private TypeAlias parseTypeAlias(CommentAndMetadata commentAndMetadata) {
     Token keyword = expect(Keyword.TYPEDEF);
-    TypeName returnType = null;
-    if (hasReturnTypeInTypeAlias()) {
-      returnType = parseReturnType();
+    if (matchesIdentifier()) {
+      Token next = peek();
+      if (matches(next, TokenType.LT)) {
+        next = skipTypeParameterList(next);
+        if (next != null && matches(next, TokenType.EQ)) {
+          return parseClassTypeAlias(commentAndMetadata, keyword);
+        }
+      } else if (matches(next, TokenType.EQ)) {
+        return parseClassTypeAlias(commentAndMetadata, keyword);
+      }
     }
-    SimpleIdentifier name = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
-    TypeParameterList typeParameters = null;
-    if (matches(TokenType.LT)) {
-      typeParameters = parseTypeParameterList();
-    }
-    if (matches(TokenType.SEMICOLON)) {
-      reportError(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
-      FormalParameterList parameters = new FormalParameterList(
-          createSyntheticToken(TokenType.OPEN_PAREN),
-          null,
-          null,
-          null,
-          createSyntheticToken(TokenType.CLOSE_PAREN));
-      Token semicolon = expect(TokenType.SEMICOLON);
-      return new TypeAlias(
-          commentAndMetadata.getComment(),
-          commentAndMetadata.getMetadata(),
-          keyword,
-          returnType,
-          name,
-          typeParameters,
-          parameters,
-          semicolon);
-    } else if (!matches(TokenType.OPEN_PAREN)) {
-      // TODO(brianwilkerson) Report this error and recover.
-      return null;
-    }
-    FormalParameterList parameters = parseFormalParameterList();
-    validateFormalParameterList(parameters);
-    Token semicolon = expect(TokenType.SEMICOLON);
-    return new TypeAlias(
-        commentAndMetadata.getComment(),
-        commentAndMetadata.getMetadata(),
-        keyword,
-        returnType,
-        name,
-        typeParameters,
-        parameters,
-        semicolon);
+    return parseFunctionTypeAlias(commentAndMetadata, keyword);
   }
 
 /**
@@ -4674,6 +4700,26 @@ public class Parser {
     } finally {
       inLoop = wasInLoop;
     }
+  }
+
+  /**
+   * Parse a with clause.
+   * 
+   * <pre>
+   * withClause ::=
+   *     'with' typeName (',' typeName)*
+   * </pre>
+   * 
+   * @return the with clause that was parsed
+   */
+  private WithClause parseWithClause() {
+    Token with = expect(Keyword.WITH);
+    ArrayList<TypeName> types = new ArrayList<TypeName>();
+    types.add(parseTypeName());
+    while (optional(TokenType.COMMA)) {
+      types.add(parseTypeName());
+    }
+    return new WithClause(with, types);
   }
 
   /**
@@ -5122,6 +5168,36 @@ public class Parser {
       token = skipTypeArgumentList(token);
     }
     return token;
+  }
+
+/**
+   * Parse a list of type parameters, starting at the given token, without actually creating a type parameter list
+   * or changing the current token. Return the token following the type parameter list that was parsed,
+   * or {@code null} if the given token is not the first token in a valid type parameter list.
+   * <p>
+   * This method must be kept in sync with {@link #parseTypeParameterList()}.
+   * 
+   * <pre>
+   * typeParameterList ::=
+   *     '<' typeParameter (',' typeParameter)* '>'
+   * </pre>
+   * 
+   * @param startToken the token at which parsing is to begin
+   * @return the token following the type parameter list that was parsed
+   */
+  private Token skipTypeParameterList(Token startToken) {
+    //
+    // We can't skip a type parameter because it can be preceeded by metadata, so we just assume
+    // that everything before the matching end token is valid.
+    //
+    if (!(startToken instanceof BeginToken)) {
+      return null;
+    }
+    Token endToken = ((BeginToken) startToken).getEndToken();
+    if (endToken == null) {
+      return null;
+    }
+    return endToken.getNext();
   }
 
   /**

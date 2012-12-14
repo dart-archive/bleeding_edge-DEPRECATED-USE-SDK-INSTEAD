@@ -18,40 +18,22 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class {@code TypeAlias} represent a type alias.
+ * The abstract class {@code TypeAlias} defines the behavior common to declarations of type aliases.
  * 
  * <pre>
  * typeAlias ::=
- *     'typedef' {@link TypeName returnType}? {@link SimpleIdentifier name}
- *     {@link TypeParameterList typeParameterList}? {@link FormalParameterList formalParameterList} ';'
+ *     'typedef' typeAliasBody
+ * 
+ * typeAliasBody ::=
+ *     classTypeAlias
+ *   | functionTypeAlias
  * </pre>
  */
-public class TypeAlias extends CompilationUnitMember {
+public abstract class TypeAlias extends CompilationUnitMember {
   /**
    * The token representing the 'typedef' keyword.
    */
   private Token keyword;
-
-  /**
-   * The name of the return type of the function type being defined.
-   */
-  private TypeName returnType;
-
-  /**
-   * The name of the type being declared.
-   */
-  private SimpleIdentifier name;
-
-  /**
-   * The type parameters for the type, or {@code null} if the type does not have any type
-   * parameters.
-   */
-  private TypeParameterList typeParameters;
-
-  /**
-   * The parameters associated with the function.
-   */
-  private FormalParameterList parameters;
 
   /**
    * The semicolon terminating the declaration.
@@ -70,27 +52,12 @@ public class TypeAlias extends CompilationUnitMember {
    * @param comment the documentation comment associated with this type alias
    * @param metadata the annotations associated with this type alias
    * @param keyword the token representing the 'typedef' keyword
-   * @param returnType the name of the return type of the function type being defined
-   * @param name the name of the type being declared
-   * @param typeParameters the type parameters for the type
-   * @param parameters the parameters associated with the function
    * @param semicolon the semicolon terminating the declaration
    */
-  public TypeAlias(Comment comment, List<Annotation> metadata, Token keyword, TypeName returnType,
-      SimpleIdentifier name, TypeParameterList typeParameters, FormalParameterList parameters,
-      Token semicolon) {
+  public TypeAlias(Comment comment, List<Annotation> metadata, Token keyword, Token semicolon) {
     super(comment, metadata);
     this.keyword = keyword;
-    this.returnType = becomeParentOf(returnType);
-    this.name = becomeParentOf(name);
-    this.typeParameters = becomeParentOf(typeParameters);
-    this.parameters = becomeParentOf(parameters);
     this.semicolon = semicolon;
-  }
-
-  @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
-    return visitor.visitTypeAlias(this);
   }
 
   @Override
@@ -108,49 +75,12 @@ public class TypeAlias extends CompilationUnitMember {
   }
 
   /**
-   * Return the name of the type being declared.
-   * 
-   * @return the name of the type being declared
-   */
-  public SimpleIdentifier getName() {
-    return name;
-  }
-
-  /**
-   * Return the parameters associated with the function type.
-   * 
-   * @return the parameters associated with the function type
-   */
-  public FormalParameterList getParameters() {
-    return parameters;
-  }
-
-  /**
-   * Return the name of the return type of the function type being defined.
-   * 
-   * @return the name of the return type of the function type being defined
-   */
-  public TypeName getReturnType() {
-    return returnType;
-  }
-
-  /**
    * Return the semicolon terminating the declaration.
    * 
    * @return the semicolon terminating the declaration
    */
   public Token getSemicolon() {
     return semicolon;
-  }
-
-  /**
-   * Return the type parameters for the function type, or {@code null} if the type does not have any
-   * type parameters.
-   * 
-   * @return the type parameters for the function type
-   */
-  public TypeParameterList getTypeParameters() {
-    return typeParameters;
   }
 
   /**
@@ -163,57 +93,12 @@ public class TypeAlias extends CompilationUnitMember {
   }
 
   /**
-   * Set the name of the type being declared to the given identifier.
-   * 
-   * @param identifier the name of the type being declared
-   */
-  public void setName(SimpleIdentifier identifier) {
-    name = becomeParentOf(identifier);
-  }
-
-  /**
-   * Set the parameters associated with the function type to the given list of parameters.
-   * 
-   * @param parameters the parameters associated with the function type
-   */
-  public void setParameters(FormalParameterList parameters) {
-    this.parameters = becomeParentOf(parameters);
-  }
-
-  /**
-   * Set the name of the return type of the function type being defined to the given type name.
-   * 
-   * @param typeName the name of the return type of the function type being defined
-   */
-  public void setReturnType(TypeName typeName) {
-    returnType = becomeParentOf(typeName);
-  }
-
-  /**
    * Set the semicolon terminating the declaration to the given token.
    * 
    * @param semicolon the semicolon terminating the declaration
    */
   public void setSemicolon(Token semicolon) {
     this.semicolon = semicolon;
-  }
-
-  /**
-   * Set the type parameters for the function type to the given list of parameters.
-   * 
-   * @param typeParameters the type parameters for the function type
-   */
-  public void setTypeParameters(TypeParameterList typeParameters) {
-    this.typeParameters = becomeParentOf(typeParameters);
-  }
-
-  @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChild(returnType, visitor);
-    safelyVisitChild(name, visitor);
-    safelyVisitChild(typeParameters, visitor);
-    safelyVisitChild(parameters, visitor);
   }
 
   @Override

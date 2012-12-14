@@ -18,18 +18,18 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class {@code MixinClause} represent the "mixin" clause in a class declaration.
+ * Instances of the class {@code WithClause} represent the with clause in a class declaration.
  * 
  * <pre>
- * mixinClause ::=
- *     'mixin' {@link TypeName mixin} (',' {@link TypeName mixin})*
+ * withClause ::=
+ *     'with' {@link TypeName mixin} (',' {@link TypeName mixin})*
  * </pre>
  */
-public class MixinClause extends ASTNode {
+public class WithClause extends ASTNode {
   /**
-   * The token representing the 'mixin' keyword.
+   * The token representing the 'with' keyword.
    */
-  private Token mixinKeyword;
+  private Token withKeyword;
 
   /**
    * The names of the mixins that were specified.
@@ -37,19 +37,19 @@ public class MixinClause extends ASTNode {
   private NodeList<TypeName> mixinTypes = new NodeList<TypeName>(this);
 
   /**
-   * Initialize a newly created mixin clause.
+   * Initialize a newly created with clause.
    */
-  public MixinClause() {
+  public WithClause() {
   }
 
   /**
-   * Initialize a newly created mixin clause.
+   * Initialize a newly created with clause.
    * 
-   * @param keyword the token representing the 'mixin' keyword
+   * @param withKeyword the token representing the 'with' keyword
    * @param mixinTypes the names of the mixins that were specified
    */
-  public MixinClause(Token keyword, List<TypeName> mixinTypes) {
-    this.mixinKeyword = keyword;
+  public WithClause(Token withKeyword, List<TypeName> mixinTypes) {
+    this.withKeyword = withKeyword;
     this.mixinTypes.addAll(mixinTypes);
   }
 
@@ -60,21 +60,12 @@ public class MixinClause extends ASTNode {
 
   @Override
   public Token getBeginToken() {
-    return mixinKeyword;
+    return withKeyword;
   }
 
   @Override
   public Token getEndToken() {
     return mixinTypes.getEndToken();
-  }
-
-  /**
-   * Return the token representing the 'mixin' keyword.
-   * 
-   * @return the token representing the 'mixin' keyword
-   */
-  public Token getMixinKeyword() {
-    return mixinKeyword;
   }
 
   /**
@@ -87,12 +78,21 @@ public class MixinClause extends ASTNode {
   }
 
   /**
-   * Set the token representing the 'mixin' keyword to the given token.
+   * Return the token representing the 'with' keyword.
    * 
-   * @param keyword the token representing the 'mixin' keyword
+   * @return the token representing the 'with' keyword
    */
-  public void setMixinKeyword(Token keyword) {
-    this.mixinKeyword = keyword;
+  public Token getWithKeyword() {
+    return withKeyword;
+  }
+
+  /**
+   * Set the token representing the 'with' keyword to the given token.
+   * 
+   * @param withKeyword the token representing the 'with' keyword
+   */
+  public void setMixinKeyword(Token withKeyword) {
+    this.withKeyword = withKeyword;
   }
 
   @Override

@@ -54,7 +54,6 @@ public enum ParserErrorCode implements ErrorCode {
   EXPECTED_STRING_LITERAL("Expected a string literal"),
   EXPECTED_TOKEN("Expected to find: %s"),
   EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE("Export directives must preceed part directives"),
-  EXTENDS_BEFORE_APPLICATION("The application of the mixin must be before the extends clause"),
   EXTERNAL_AFTER_CONST("The modifier 'external' should be before the modifier 'const'"),
   EXTERNAL_AFTER_FACTORY("The modifier 'external' should be before the modifier 'factory'"),
   EXTERNAL_AFTER_STATIC("The modifier 'external' should be before the modifier 'static'"),
@@ -75,9 +74,8 @@ public enum ParserErrorCode implements ErrorCode {
   FINAL_TYPEDEF("Type aliases cannot be declared to be 'final'"),
   GETTER_WITH_PARAMETERS("Getter should be declared without a parameter list"),
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
-  IMPLEMENTS_BEFORE_APPLICATION("The application of the mixin must be before the implements clause"),
   IMPLEMENTS_BEFORE_EXTENDS("The extends clause must be before the implements clause"),
-  IMPLEMENTS_BEFORE_MIXIN("The mixin clause must be before the implements clause"),
+  IMPLEMENTS_BEFORE_WITH("The with clause must be before the implements clause"),
   IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE("Import directives must preceed part directives"),
   INITIALIZED_VARIABLE_IN_FOR_EACH("The loop variable in a for-each loop cannot be initialized"),
   INVALID_CODE_POINT("The escape sequence '%s' is not a valid code point"),
@@ -106,14 +104,8 @@ public enum ParserErrorCode implements ErrorCode {
       "A loop variable must be declared in a for-each loop before the 'in', but none were found"),
   MIXED_PARAMETER_GROUPS(
       "Cannot have both positional and named parameters in a single parameter list"),
-  MIXIN_APPLICATION_WITH_BODY(
-      "An application of a mixin cannot include a class body; use a mixin clause instead"),
-  MIXIN_APPLICATION_WITH_MIXIN_CLAUSE("A mixin clause cannot be combined with a mixin application"),
-  MIXIN_BEFORE_EXTENDS("The extends clause must be before the mixin clause"),
   MULTIPLE_EXTENDS_CLAUSES("Each class definition can have at most one extends clause"),
   MULTIPLE_IMPLEMENTS_CLAUSES("Each class definition can have at most one implements clause"),
-  MULTIPLE_MIXIN_APPLICATIONS("Each mixin application must apply exactly one mixin"),
-  MULTIPLE_MIXIN_CLAUSES("Each class definition can have at most one mixin clause"),
   MULTIPLE_LIBRARY_DIRECTIVES("Only one library directive may be declared in a file"),
   MULTIPLE_NAMED_PARAMETER_GROUPS(
       "Cannot have multiple groups of named parameters in a single parameter list"),
@@ -122,6 +114,7 @@ public enum ParserErrorCode implements ErrorCode {
       "Cannot have multiple groups of positional parameters in a single parameter list"),
   MULTIPLE_VARIABLES_IN_FOR_EACH(
       "A single loop variable must be declared in a for-each loop before the 'in', but %s were found"),
+  MULTIPLE_WITH_CLAUSES("Each class definition can have at most one with clause"),
   NAMED_PARAMETER_OUTSIDE_GROUP("Named parameters must be enclosed in curly braces ('{' and '}')"),
   NON_CONSTRUCTOR_FACTORY("Only constructors can be declared to be a 'factory'"),
   NON_IDENTIFIER_LIBRARY_NAME("The name of a library must be an identifier"),
@@ -138,6 +131,8 @@ public enum ParserErrorCode implements ErrorCode {
   STATIC_TOP_LEVEL_DECLARATION("Top-level declarations cannot be declared to be 'static'"),
   UNEXPECTED_TOKEN("Unexpected token '%s'"),
   USE_OF_UNARY_PLUS_OPERATOR("There is no unary plus operator in Dart"),
+  WITH_BEFORE_EXTENDS("The extends clause must be before the with clause"),
+  WITH_WITHOUT_EXTENDS("The with clause cannot be used without an extends clause"),
   WRONG_SEPARATOR_FOR_NAMED_PARAMETER(
       "The default value of a named parameter should be preceeded by ':'"),
   WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER(

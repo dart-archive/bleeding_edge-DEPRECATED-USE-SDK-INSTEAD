@@ -115,6 +115,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
     return visitDeclaration(node);
   }
 
+  @Override
+  public R visitClassTypeAlias(ClassTypeAlias node) {
+    return visitTypeAlias(node);
+  }
+
   public R visitCombinator(Combinator node) {
     return visitNode(node);
   }
@@ -278,6 +283,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitFunctionTypeAlias(FunctionTypeAlias node) {
+    return visitTypeAlias(node);
+  }
+
+  @Override
   public R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     return visitNormalFormalParameter(node);
   }
@@ -390,7 +400,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitMixinClause(MixinClause node) {
+  public R visitMixinClause(WithClause node) {
     return visitNode(node);
   }
 
@@ -549,7 +559,6 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
     return visitStatement(node);
   }
 
-  @Override
   public R visitTypeAlias(TypeAlias node) {
     return visitCompilationUnitMember(node);
   }

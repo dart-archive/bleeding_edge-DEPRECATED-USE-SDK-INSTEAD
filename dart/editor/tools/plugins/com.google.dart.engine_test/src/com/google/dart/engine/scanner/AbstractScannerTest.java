@@ -355,10 +355,6 @@ public abstract class AbstractScannerTest extends TestCase {
     assertKeywordToken("library");
   }
 
-  public void test_keyword_mixin() throws Exception {
-    assertKeywordToken("mixin");
-  }
-
   public void test_keyword_new() throws Exception {
     assertKeywordToken("new");
   }
@@ -425,6 +421,10 @@ public abstract class AbstractScannerTest extends TestCase {
 
   public void test_keyword_while() throws Exception {
     assertKeywordToken("while");
+  }
+
+  public void test_keyword_with() throws Exception {
+    assertKeywordToken("with");
   }
 
   public void test_lt() throws Exception {

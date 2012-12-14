@@ -162,14 +162,12 @@ public final class ASTFactory {
         token(Keyword.CLASS),
         identifier(name),
         typeParameters,
-        null,
         extendsClause,
         null,
         implementsClause,
         token(TokenType.OPEN_CURLY_BRACKET),
         list(members),
-        token(TokenType.CLOSE_CURLY_BRACKET),
-        null);
+        token(TokenType.CLOSE_CURLY_BRACKET));
   }
 
   public static CompilationUnit compilationUnit() {
@@ -885,9 +883,9 @@ public final class ASTFactory {
         : token(Keyword.FINALLY), finallyClause);
   }
 
-  public static TypeAlias typeAlias(TypeName returnType, String name,
+  public static FunctionTypeAlias typeAlias(TypeName returnType, String name,
       TypeParameterList typeParameters, FormalParameterList parameters) {
-    return new TypeAlias(
+    return new FunctionTypeAlias(
         null,
         null,
         token(Keyword.TYPEDEF),

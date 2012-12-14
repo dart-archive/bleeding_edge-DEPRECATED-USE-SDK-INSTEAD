@@ -13,104 +13,7 @@
  */
 package com.google.dart.engine.ast.visitor;
 
-import com.google.dart.engine.ast.ASTVisitor;
-import com.google.dart.engine.ast.AdjacentStrings;
-import com.google.dart.engine.ast.Annotation;
-import com.google.dart.engine.ast.ArgumentDefinitionTest;
-import com.google.dart.engine.ast.ArgumentList;
-import com.google.dart.engine.ast.AsExpression;
-import com.google.dart.engine.ast.AssertStatement;
-import com.google.dart.engine.ast.AssignmentExpression;
-import com.google.dart.engine.ast.BinaryExpression;
-import com.google.dart.engine.ast.Block;
-import com.google.dart.engine.ast.BlockFunctionBody;
-import com.google.dart.engine.ast.BooleanLiteral;
-import com.google.dart.engine.ast.BreakStatement;
-import com.google.dart.engine.ast.CascadeExpression;
-import com.google.dart.engine.ast.CatchClause;
-import com.google.dart.engine.ast.ClassDeclaration;
-import com.google.dart.engine.ast.Comment;
-import com.google.dart.engine.ast.CommentReference;
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.ConditionalExpression;
-import com.google.dart.engine.ast.ConstructorDeclaration;
-import com.google.dart.engine.ast.ConstructorFieldInitializer;
-import com.google.dart.engine.ast.ConstructorName;
-import com.google.dart.engine.ast.ContinueStatement;
-import com.google.dart.engine.ast.DefaultFormalParameter;
-import com.google.dart.engine.ast.DoStatement;
-import com.google.dart.engine.ast.DoubleLiteral;
-import com.google.dart.engine.ast.EmptyFunctionBody;
-import com.google.dart.engine.ast.EmptyStatement;
-import com.google.dart.engine.ast.ExportDirective;
-import com.google.dart.engine.ast.ExpressionFunctionBody;
-import com.google.dart.engine.ast.ExpressionStatement;
-import com.google.dart.engine.ast.ExtendsClause;
-import com.google.dart.engine.ast.FieldDeclaration;
-import com.google.dart.engine.ast.FieldFormalParameter;
-import com.google.dart.engine.ast.ForEachStatement;
-import com.google.dart.engine.ast.ForStatement;
-import com.google.dart.engine.ast.FormalParameterList;
-import com.google.dart.engine.ast.FunctionDeclaration;
-import com.google.dart.engine.ast.FunctionDeclarationStatement;
-import com.google.dart.engine.ast.FunctionExpression;
-import com.google.dart.engine.ast.FunctionExpressionInvocation;
-import com.google.dart.engine.ast.FunctionTypedFormalParameter;
-import com.google.dart.engine.ast.HideCombinator;
-import com.google.dart.engine.ast.IfStatement;
-import com.google.dart.engine.ast.ImplementsClause;
-import com.google.dart.engine.ast.ImportDirective;
-import com.google.dart.engine.ast.IndexExpression;
-import com.google.dart.engine.ast.InstanceCreationExpression;
-import com.google.dart.engine.ast.IntegerLiteral;
-import com.google.dart.engine.ast.InterpolationExpression;
-import com.google.dart.engine.ast.InterpolationString;
-import com.google.dart.engine.ast.IsExpression;
-import com.google.dart.engine.ast.Label;
-import com.google.dart.engine.ast.LabeledStatement;
-import com.google.dart.engine.ast.LibraryDirective;
-import com.google.dart.engine.ast.ListLiteral;
-import com.google.dart.engine.ast.MapLiteral;
-import com.google.dart.engine.ast.MapLiteralEntry;
-import com.google.dart.engine.ast.MethodDeclaration;
-import com.google.dart.engine.ast.MethodInvocation;
-import com.google.dart.engine.ast.MixinApplication;
-import com.google.dart.engine.ast.MixinClause;
-import com.google.dart.engine.ast.NamedExpression;
-import com.google.dart.engine.ast.NullLiteral;
-import com.google.dart.engine.ast.ParenthesizedExpression;
-import com.google.dart.engine.ast.PartDirective;
-import com.google.dart.engine.ast.PartOfDirective;
-import com.google.dart.engine.ast.PostfixExpression;
-import com.google.dart.engine.ast.PrefixExpression;
-import com.google.dart.engine.ast.PrefixedIdentifier;
-import com.google.dart.engine.ast.PropertyAccess;
-import com.google.dart.engine.ast.RedirectingConstructorInvocation;
-import com.google.dart.engine.ast.ReturnStatement;
-import com.google.dart.engine.ast.ScriptTag;
-import com.google.dart.engine.ast.ShowCombinator;
-import com.google.dart.engine.ast.SimpleFormalParameter;
-import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.SimpleStringLiteral;
-import com.google.dart.engine.ast.StringInterpolation;
-import com.google.dart.engine.ast.SuperConstructorInvocation;
-import com.google.dart.engine.ast.SuperExpression;
-import com.google.dart.engine.ast.SwitchCase;
-import com.google.dart.engine.ast.SwitchDefault;
-import com.google.dart.engine.ast.SwitchStatement;
-import com.google.dart.engine.ast.ThisExpression;
-import com.google.dart.engine.ast.ThrowExpression;
-import com.google.dart.engine.ast.TopLevelVariableDeclaration;
-import com.google.dart.engine.ast.TryStatement;
-import com.google.dart.engine.ast.TypeAlias;
-import com.google.dart.engine.ast.TypeArgumentList;
-import com.google.dart.engine.ast.TypeName;
-import com.google.dart.engine.ast.TypeParameter;
-import com.google.dart.engine.ast.TypeParameterList;
-import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.VariableDeclarationList;
-import com.google.dart.engine.ast.VariableDeclarationStatement;
-import com.google.dart.engine.ast.WhileStatement;
+import com.google.dart.engine.ast.*;
 
 /**
  * Instances of the class {@code SimpleASTVisitor} implement an AST visitor that will do nothing
@@ -191,6 +94,11 @@ public class SimpleASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitClassDeclaration(ClassDeclaration node) {
+    return null;
+  }
+
+  @Override
+  public R visitClassTypeAlias(ClassTypeAlias node) {
     return null;
   }
 
@@ -325,6 +233,11 @@ public class SimpleASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitFunctionTypeAlias(FunctionTypeAlias node) {
+    return null;
+  }
+
+  @Override
   public R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     return null;
   }
@@ -425,7 +338,7 @@ public class SimpleASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
-  public R visitMixinClause(MixinClause node) {
+  public R visitMixinClause(WithClause node) {
     return null;
   }
 
@@ -556,11 +469,6 @@ public class SimpleASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitTryStatement(TryStatement node) {
-    return null;
-  }
-
-  @Override
-  public R visitTypeAlias(TypeAlias node) {
     return null;
   }
 

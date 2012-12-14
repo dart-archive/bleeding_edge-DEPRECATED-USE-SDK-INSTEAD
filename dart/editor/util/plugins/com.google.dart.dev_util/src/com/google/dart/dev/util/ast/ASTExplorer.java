@@ -16,15 +16,16 @@ package com.google.dart.dev.util.ast;
 import com.google.dart.dev.util.DartDevPlugin;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
-import com.google.dart.engine.ast.TypeAlias;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
@@ -273,17 +274,19 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
         return ((MethodDeclaration) node).getName().getName();
       } else if (node instanceof ClassDeclaration) {
         return ((ClassDeclaration) node).getName().getName();
+      } else if (node instanceof ClassTypeAlias) {
+        return ((ClassTypeAlias) node).getName().getName();
       } else if (node instanceof FunctionDeclaration) {
         SimpleIdentifier nameNode = ((FunctionDeclaration) node).getName();
         if (nameNode != null) {
           return nameNode.getName();
         }
+      } else if (node instanceof FunctionTypeAlias) {
+        return ((FunctionTypeAlias) node).getName().getName();
       } else if (node instanceof Identifier) {
         return ((Identifier) node).getName();
       } else if (node instanceof TopLevelVariableDeclaration) {
         return getNames(((TopLevelVariableDeclaration) node).getVariables());
-      } else if (node instanceof TypeAlias) {
-        return ((TypeAlias) node).getName().getName();
       } else if (node instanceof TypeParameter) {
         return ((TypeParameter) node).getName().getName();
       } else if (node instanceof VariableDeclaration) {

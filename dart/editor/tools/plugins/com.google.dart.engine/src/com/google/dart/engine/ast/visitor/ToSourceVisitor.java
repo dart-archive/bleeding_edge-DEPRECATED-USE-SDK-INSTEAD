@@ -173,6 +173,19 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitClassTypeAlias(ClassTypeAlias node) {
+    writer.print("typedef ");
+    visit(node.getName());
+    visit(node.getTypeParameters());
+    writer.print(" = ");
+    visit(node.getSuperclass());
+    visit(" ", node.getWithClause());
+    visit(" ", node.getImplementsClause());
+    writer.print(";");
+    return null;
+  }
+
+  @Override
   public Void visitComment(Comment node) {
     // We don't print comments.
     return null;
@@ -421,6 +434,17 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    writer.print("typedef ");
+    visit(node.getReturnType(), " ");
+    visit(node.getName());
+    visit(node.getTypeParameters());
+    visit(node.getParameters());
+    writer.print(";");
+    return null;
+  }
+
+  @Override
   public Void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     visit(node.getReturnType(), " ");
     visit(node.getIdentifier());
@@ -612,7 +636,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
-  public Void visitMixinClause(MixinClause node) {
+  public Void visitMixinClause(WithClause node) {
     writer.print(" mixin ");
     visitList(node.getMixinTypes(), ", ");
     return null;
@@ -817,17 +841,6 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
     visit(node.getBody());
     visitList(" ", node.getCatchClauses(), " ");
     visit(" finally ", node.getFinallyClause());
-    return null;
-  }
-
-  @Override
-  public Void visitTypeAlias(TypeAlias node) {
-    writer.print("typedef ");
-    visit(node.getReturnType(), " ");
-    visit(node.getName());
-    visit(node.getTypeParameters());
-    visit(node.getParameters());
-    writer.print(";");
     return null;
   }
 

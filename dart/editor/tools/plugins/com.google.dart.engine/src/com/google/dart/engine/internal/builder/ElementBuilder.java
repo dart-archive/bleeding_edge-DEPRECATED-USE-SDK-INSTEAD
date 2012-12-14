@@ -16,12 +16,14 @@ package com.google.dart.engine.internal.builder;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.Label;
@@ -32,7 +34,6 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchDefault;
 import com.google.dart.engine.ast.SwitchStatement;
-import com.google.dart.engine.ast.TypeAlias;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
@@ -116,6 +117,34 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setConstructors(holder.getConstructors());
     element.setFields(holder.getFields());
     element.setMethods(methods);
+    TypeVariableElement[] typeVariables = holder.getTypeVariables();
+    element.setTypeVariables(typeVariables);
+
+    InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
+    int typeVariableCount = typeVariables.length;
+    Type[] typeArguments = new Type[typeVariableCount];
+    for (int i = 0; i < typeVariableCount; i++) {
+      TypeVariableElementImpl typeVariable = (TypeVariableElementImpl) typeVariables[i];
+      TypeVariableTypeImpl typeArgument = new TypeVariableTypeImpl(typeVariable);
+      typeVariable.setType(typeArgument);
+      typeArguments[i] = typeArgument;
+    }
+    interfaceType.setTypeArguments(typeArguments);
+    element.setType(interfaceType);
+
+    currentHolder.addType(element);
+    className.setElement(element);
+    return null;
+  }
+
+  @Override
+  public Void visitClassTypeAlias(ClassTypeAlias node) {
+    ElementHolder holder = new ElementHolder();
+    visitChildren(holder, node);
+
+    SimpleIdentifier className = node.getName();
+    ClassElementImpl element = new ClassElementImpl(className);
+    element.setAbstract(node.getAbstractKeyword() != null);
     TypeVariableElement[] typeVariables = holder.getTypeVariables();
     element.setTypeVariables(typeVariables);
 
@@ -243,6 +272,26 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    ElementHolder holder = new ElementHolder();
+    visitChildren(holder, node);
+
+    SimpleIdentifier aliasName = node.getName();
+    TypeAliasElementImpl element = new TypeAliasElementImpl(aliasName);
+    element.setParameters(holder.getParameters());
+    element.setTypeVariables(holder.getTypeVariables());
+
+    // TODO(brianwilkerson) Figure out how to build the type for an alias. (We might need a new
+    // FunctionAliasType.)
+//    FunctionTypeImpl functionType = new FunctionTypeImpl(element);
+//    element.setType(functionType);
+
+    currentHolder.addTypeAlias(element);
+    aliasName.setElement(element);
+    return null;
+  }
+
+  @Override
   public Void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     SimpleIdentifier parameterName = node.getIdentifier();
     ParameterElementImpl parameter = new ParameterElementImpl(parameterName);
@@ -356,26 +405,6 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   }
 
   @Override
-  public Void visitTypeAlias(TypeAlias node) {
-    ElementHolder holder = new ElementHolder();
-    visitChildren(holder, node);
-
-    SimpleIdentifier aliasName = node.getName();
-    TypeAliasElementImpl element = new TypeAliasElementImpl(aliasName);
-    element.setParameters(holder.getParameters());
-    element.setTypeVariables(holder.getTypeVariables());
-
-    // TODO(brianwilkerson) Figure out how to build the type for an alias. (We might need a new
-    // FunctionAliasType.)
-//    FunctionTypeImpl functionType = new FunctionTypeImpl(element);
-//    element.setType(functionType);
-
-    currentHolder.addTypeAlias(element);
-    aliasName.setElement(element);
-    return null;
-  }
-
-  @Override
   public Void visitTypeParameter(TypeParameter node) {
     SimpleIdentifier parameterName = node.getName();
     TypeVariableElementImpl element = new TypeVariableElementImpl(parameterName);
@@ -461,12 +490,12 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
    */
   private void visitChildren(ElementHolder holder, ASTNode node) {
     if (node != null) {
-      ElementHolder previousBuilder = currentHolder;
+      ElementHolder previousHolder = currentHolder;
       currentHolder = holder;
       try {
         node.visitChildren(this);
       } finally {
-        currentHolder = previousBuilder;
+        currentHolder = previousHolder;
       }
     }
   }

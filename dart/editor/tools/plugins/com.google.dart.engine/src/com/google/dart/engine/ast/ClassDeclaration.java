@@ -18,22 +18,14 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class {@code ClassDeclaration} represent either the declaration of a class or
- * the application of a mixin to create a class.
+ * Instances of the class {@code ClassDeclaration} represent the declaration of a class.
  * 
  * <pre>
  * classDeclaration ::=
  *     'abstract'? 'class' {@link SimpleIdentifier name} {@link TypeParameterList typeParameterList}?
- *     {@link ExtendsClause extendsClause}?
- *     {@link MixinClause mixinClause}?
+ *     ({@link ExtendsClause extendsClause} {@link WithClause withClause}?)?
  *     {@link ImplementsClause implementsClause}?
  *     '{' {@link ClassMember classMember}* '}'
- * 
- * mixinApplication ::=
- *     'class' {@link SimpleIdentifier name} {@link TypeParameterList typeParameterList}?
- *     {@link MixinApplication mixinApplication}
- *     {@link ExtendsClause extendsClause}?
- *     {@link ImplementsClause implementsClause}? ';'
  * </pre>
  */
 public class ClassDeclaration extends CompilationUnitMember {
@@ -59,20 +51,14 @@ public class ClassDeclaration extends CompilationUnitMember {
   private TypeParameterList typeParameters;
 
   /**
-   * The mixin application for the class, or {@code null} if the class does not have a mixin
-   * application.
-   */
-  private MixinApplication mixinApplication;
-
-  /**
    * The extends clause for the class, or {@code null} if the class does not extend any other class.
    */
   private ExtendsClause extendsClause;
 
   /**
-   * The mixin clause for the class, or {@code null} if the class does not have a mixin clause.
+   * The with clause for the class, or {@code null} if the class does not have a with clause.
    */
-  private MixinClause mixinClause;
+  private WithClause withClause;
 
   /**
    * The implements clause for the class, or {@code null} if the class does not implement any
@@ -81,7 +67,7 @@ public class ClassDeclaration extends CompilationUnitMember {
   private ImplementsClause implementsClause;
 
   /**
-   * The left curly bracket, or {@code null} if this is a mixin application.
+   * The left curly bracket.
    */
   private Token leftBracket;
 
@@ -91,15 +77,9 @@ public class ClassDeclaration extends CompilationUnitMember {
   private NodeList<ClassMember> members = new NodeList<ClassMember>(this);
 
   /**
-   * The right curly bracket, or {@code null} if this is a mixin application.
+   * The right curly bracket.
    */
   private Token rightBracket;
-
-  /**
-   * The semicolon terminating the mixin application, or {@code null} if this is not a mixin
-   * application.
-   */
-  private Token semicolon;
 
   /**
    * Initialize a newly created class declaration.
@@ -117,31 +97,27 @@ public class ClassDeclaration extends CompilationUnitMember {
    * @param name the name of the class being declared
    * @param typeParameters the type parameters for the class
    * @param extendsClause the extends clause for the class
-   * @param mixinClause the mixin clause for the class
+   * @param withClause the with clause for the class
    * @param implementsClause the implements clause for the class
    * @param leftBracket the left curly bracket
    * @param members the members defined by the class
    * @param rightBracket the right curly bracket
-   * @param semicolon the semicolon terminating the mixin application
    */
   public ClassDeclaration(Comment comment, List<Annotation> metadata, Token abstractKeyword,
       Token classKeyword, SimpleIdentifier name, TypeParameterList typeParameters,
-      MixinApplication mixinApplication, ExtendsClause extendsClause, MixinClause mixinClause,
-      ImplementsClause implementsClause, Token leftBracket, List<ClassMember> members,
-      Token rightBracket, Token semicolon) {
+      ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause,
+      Token leftBracket, List<ClassMember> members, Token rightBracket) {
     super(comment, metadata);
     this.abstractKeyword = abstractKeyword;
     this.classKeyword = classKeyword;
     this.name = becomeParentOf(name);
     this.typeParameters = becomeParentOf(typeParameters);
-    this.mixinApplication = becomeParentOf(mixinApplication);
     this.extendsClause = becomeParentOf(extendsClause);
-    this.mixinClause = becomeParentOf(mixinClause);
+    this.withClause = becomeParentOf(withClause);
     this.implementsClause = becomeParentOf(implementsClause);
     this.leftBracket = leftBracket;
     this.members.addAll(members);
     this.rightBracket = rightBracket;
-    this.semicolon = semicolon;
   }
 
   @Override
@@ -193,7 +169,7 @@ public class ClassDeclaration extends CompilationUnitMember {
   }
 
   /**
-   * Return the left curly bracket, or {@code null} if this is a mixin application.
+   * Return the left curly bracket.
    * 
    * @return the left curly bracket
    */
@@ -211,26 +187,6 @@ public class ClassDeclaration extends CompilationUnitMember {
   }
 
   /**
-   * Return the mixin application for the class, or {@code null} if the class does not have a mixin
-   * application.
-   * 
-   * @return the mixin application for the class
-   */
-  public MixinApplication getMixinApplication() {
-    return mixinApplication;
-  }
-
-  /**
-   * Return the mixin clause for the class, or {@code null} if the class does not have a mixin
-   * clause.
-   * 
-   * @return the mixin clause for the class
-   */
-  public MixinClause getMixinClause() {
-    return mixinClause;
-  }
-
-  /**
    * Return the name of the class being declared.
    * 
    * @return the name of the class being declared
@@ -240,22 +196,12 @@ public class ClassDeclaration extends CompilationUnitMember {
   }
 
   /**
-   * Return the right curly bracket, or {@code null} if this is a mixin application.
+   * Return the right curly bracket.
    * 
    * @return the right curly bracket
    */
   public Token getRightBracket() {
     return rightBracket;
-  }
-
-  /**
-   * Return the semicolon terminating the mixin application, or {@code null} if this is not a mixin
-   * application.
-   * 
-   * @return the semicolon terminating the mixin application
-   */
-  public Token getSemicolon() {
-    return semicolon;
   }
 
   /**
@@ -266,6 +212,15 @@ public class ClassDeclaration extends CompilationUnitMember {
    */
   public TypeParameterList getTypeParameters() {
     return typeParameters;
+  }
+
+  /**
+   * Return the with clause for the class, or {@code null} if the class does not have a with clause.
+   * 
+   * @return the with clause for the class
+   */
+  public WithClause getWithClause() {
+    return withClause;
   }
 
   /**
@@ -314,24 +269,6 @@ public class ClassDeclaration extends CompilationUnitMember {
   }
 
   /**
-   * Set the mixin application for the class to the given application.
-   * 
-   * @param mixinApplication the mixin application for the class
-   */
-  public void setMixinApplication(MixinApplication mixinApplication) {
-    this.mixinApplication = becomeParentOf(mixinApplication);
-  }
-
-  /**
-   * Set the mixin clause for the class to the given clause.
-   * 
-   * @param mixinClause the mixin clause for the class
-   */
-  public void setMixinClause(MixinClause mixinClause) {
-    this.mixinClause = becomeParentOf(mixinClause);
-  }
-
-  /**
    * Set the name of the class being declared to the given identifier.
    * 
    * @param identifier the name of the class being declared
@@ -350,15 +287,6 @@ public class ClassDeclaration extends CompilationUnitMember {
   }
 
   /**
-   * Set the semicolon terminating the mixin application to the given token.
-   * 
-   * @param semicolon the semicolon terminating the mixin application
-   */
-  public void setSemicolon(Token semicolon) {
-    this.semicolon = semicolon;
-  }
-
-  /**
    * Set the type parameters for the class to the given list of type parameters.
    * 
    * @param typeParameters the type parameters for the class
@@ -367,14 +295,22 @@ public class ClassDeclaration extends CompilationUnitMember {
     this.typeParameters = typeParameters;
   }
 
+  /**
+   * Set the with clause for the class to the given clause.
+   * 
+   * @param withClause the with clause for the class
+   */
+  public void setWithClause(WithClause withClause) {
+    this.withClause = becomeParentOf(withClause);
+  }
+
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(getDocumentationComment(), visitor);
     safelyVisitChild(name, visitor);
     safelyVisitChild(typeParameters, visitor);
-    safelyVisitChild(mixinApplication, visitor);
     safelyVisitChild(extendsClause, visitor);
-    safelyVisitChild(mixinClause, visitor);
+    safelyVisitChild(withClause, visitor);
     safelyVisitChild(implementsClause, visitor);
     getMembers().accept(visitor);
   }
