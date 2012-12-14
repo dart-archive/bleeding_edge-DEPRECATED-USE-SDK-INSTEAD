@@ -81,12 +81,8 @@ public class WorkingCopyManager implements IWorkingCopyManager, IWorkingCopyMana
     if (unit == null) {
       unit = fDocumentProvider.getWorkingCopy(input);
     }
-    if (unit != null) {
-      if (unit instanceof CompilationUnitImpl && input instanceof FileEditorInput) {
-        return (CompilationUnit) DartCore.create(((FileEditorInput) input).getFile());
-      } else if (!primaryOnly || DartModelUtil.isPrimary(unit)) {
-        return unit;
-      }
+    if (unit != null && (!primaryOnly || DartModelUtil.isPrimary(unit))) {
+      return unit;
     }
 
     return null;
