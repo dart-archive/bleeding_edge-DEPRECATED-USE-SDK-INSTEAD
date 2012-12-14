@@ -17,7 +17,6 @@ import com.google.dart.tools.ui.IContextMenuConstants;
 import com.google.dart.tools.ui.callhierarchy.OpenCallHierarchyAction;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -46,8 +45,6 @@ import org.eclipse.ui.part.Page;
 public class OpenViewActionGroup extends ActionGroup {
 
   private boolean fEditorIsOwner;
-  private boolean fIsTypeHiararchyViewerOwner;
-  private boolean fIsCallHiararchyViewerOwner;
 
   private ISelectionProvider fSelectionProvider;
 
@@ -115,11 +112,6 @@ public class OpenViewActionGroup extends ActionGroup {
    */
   public OpenViewActionGroup(IViewPart part, ISelectionProvider selectionProvider) {
     createSiteActions(part.getSite(), selectionProvider);
-    // we do a name check here to avoid class loading.
-    String partName = part.getClass().getName();
-    // TODO(scheglov) use correct ID
-    fIsTypeHiararchyViewerOwner = "org.eclipse.jdt.internal.ui.typehierarchy.TypeHierarchyViewPart".equals(partName); //$NON-NLS-1$
-    fIsCallHiararchyViewerOwner = "com.google.dart.tools.ui.callhierarchy.CallHierarchyViewPart".equals(partName); //$NON-NLS-1$
   }
 
   /**
@@ -200,13 +192,6 @@ public class OpenViewActionGroup extends ActionGroup {
   @Override
   public void fillContextMenu(IMenuManager menu) {
     super.fillContextMenu(menu);
-    if (!fIsTypeHiararchyViewerOwner) {
-      appendToGroup(menu, fOpenTypeHierarchy);
-    }
-    if (!fIsCallHiararchyViewerOwner) {
-      appendToGroup(menu, fOpenCallHierarchy);
-    }
-
 //    if (fShowShowInMenu) {
 //			MenuManager showInSubMenu= new MenuManager(getShowInMenuLabel());
 //			IWorkbenchWindow workbenchWindow= fOpenSuperImplementation.getSite().getWorkbenchWindow();
@@ -218,12 +203,6 @@ public class OpenViewActionGroup extends ActionGroup {
     if (fShowOpenPropertiesAction && selection != null
         && fOpenPropertiesDialog.isApplicableForSelection()) {
       menu.appendToGroup(IContextMenuConstants.GROUP_PROPERTIES, fOpenPropertiesDialog);
-    }
-  }
-
-  private void appendToGroup(IMenuManager menu, IAction action) {
-    if (action.isEnabled()) {
-      menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
     }
   }
 
