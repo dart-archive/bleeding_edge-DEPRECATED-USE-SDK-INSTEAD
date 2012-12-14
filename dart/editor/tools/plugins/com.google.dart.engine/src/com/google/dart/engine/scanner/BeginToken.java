@@ -31,7 +31,8 @@ public class BeginToken extends Token {
    */
   public BeginToken(TokenType type, int offset) {
     super(type, offset);
-    assert (type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.OPEN_PAREN || type == TokenType.OPEN_SQUARE_BRACKET);
+    assert (type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.OPEN_PAREN
+        || type == TokenType.OPEN_SQUARE_BRACKET || type == TokenType.STRING_INTERPOLATION_EXPRESSION);
   }
 
   /**
