@@ -315,6 +315,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       }
       DartFunctionImpl functionImpl = new DartFunctionImpl(compilationUnit, functionName);
       DartFunctionInfo functionInfo = new DartFunctionInfo();
+      functionInfo.setParametersOpenParen(node.getFunction().getParametersOpenParen());
       functionInfo.setParametersCloseParen(node.getFunction().getParametersCloseParen());
       functionInfo.setOptionalParametersOpeningGroupChar(node.getFunction().getParametersOptionalOpen());
       functionInfo.setOptionalParametersClosingGroupChar(node.getFunction().getParametersOptionalClose());
@@ -423,6 +424,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         String className, List<DartElementImpl> children) {
       DartMethodImpl methodImpl = new DartMethodImpl(typeImpl, methodNode.getName().toString());
       DartMethodInfo methodInfo = new DartMethodInfo();
+      methodInfo.setParametersOpenParen(methodNode.getFunction().getParametersOpenParen());
       methodInfo.setParametersCloseParen(methodNode.getFunction().getParametersCloseParen());
       methodInfo.setOptionalParametersOpeningGroupChar(methodNode.getFunction().getParametersOptionalOpen());
       methodInfo.setOptionalParametersClosingGroupChar(methodNode.getFunction().getParametersOptionalClose());
@@ -510,6 +512,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       DartFunctionImpl functionImpl = new DartFunctionImpl(parentElement, node.getFunctionName());
       functionImpl.occurrenceCount = functionCount++;
       DartFunctionInfo functionInfo = new DartFunctionInfo();
+      functionInfo.setParametersOpenParen(node.getFunction().getParametersOpenParen());
       functionInfo.setParametersCloseParen(node.getFunction().getParametersCloseParen());
       functionInfo.setOptionalParametersOpeningGroupChar(node.getFunction().getParametersOptionalOpen());
       functionInfo.setOptionalParametersClosingGroupChar(node.getFunction().getParametersOptionalClose());

@@ -115,6 +115,7 @@ public final class RefactoringCoreMessages extends NLS {
   public static String InlineMethodRefactoring_name;
   public static String InlineMethodRefactoring_multipleReturns;
   public static String InlineMethodRefactoring_cascadeInvocation;
+  public static String InlineMethodRefactoring_classMethodRefrence;
 
   ///////////////////////////////////////////////////////////////////////////////////////
   // Convert method to getter refactoring

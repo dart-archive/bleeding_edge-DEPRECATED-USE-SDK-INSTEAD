@@ -20,6 +20,7 @@ package com.google.dart.tools.core.internal.model.info;
 public class DartMethodInfo extends DeclarationElementInfo {
   private int optionalParametersOpeningGroupChar;
   private int optionalParametersClosingGroupChar;
+  private int parametersOpenParen;
   private int parametersCloseParen;
   /**
    * A flag indicating whether this method is a constructor.
@@ -50,6 +51,13 @@ public class DartMethodInfo extends DeclarationElementInfo {
    */
   public int getParametersCloseParen() {
     return parametersCloseParen;
+  }
+
+  /**
+   * @return the position of parameters open parenthesis.
+   */
+  public int getParametersOpenParen() {
+    return parametersOpenParen;
   }
 
   /**
@@ -112,6 +120,10 @@ public class DartMethodInfo extends DeclarationElementInfo {
 
   public void setParametersCloseParen(int parametersCloseParen) {
     this.parametersCloseParen = parametersCloseParen;
+  }
+
+  public void setParametersOpenParen(int parametersOpenParen) {
+    this.parametersOpenParen = parametersOpenParen;
   }
 
   /**

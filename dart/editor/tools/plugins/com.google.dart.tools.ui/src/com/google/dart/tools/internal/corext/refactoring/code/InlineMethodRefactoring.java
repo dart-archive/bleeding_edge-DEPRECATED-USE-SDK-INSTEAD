@@ -13,9 +13,6 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.code;
 
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_CLASS_MEMBER_NAME;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -34,13 +31,16 @@ import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.FieldElement;
+import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.dom.NodeFinder;
+import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -58,6 +58,10 @@ import com.google.dart.tools.internal.corext.refactoring.rename.FunctionLocalEle
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
+
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_CLASS_MEMBER_NAME;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_FUNCTION_EXPRESSION_FUNCTION;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -177,16 +181,18 @@ public class InlineMethodRefactoring extends Refactoring {
   private final DartFunction method;
   private final CompilationUnit methodUnit;
   private final CompilationUnit selectionUnit;
-  private final int selectionOffset;
 
+  private final int selectionOffset;
   private final TextChangeManager changeManager = new TextChangeManager(true);
   private boolean deleteSource;
   private Mode initialMode;
   private Mode currentMode;
   private ExtractUtils methodUtils;
-  private DartMethodDefinition methodNode;
+  private com.google.dart.compiler.ast.DartFunction methodNode;
+  private MethodElement methodElement;
   private ClassElement methodClassElement;
   private SourcePart methodExpressionPart;
+
   private SourcePart methodStatementsPart;
 
   public InlineMethodRefactoring(DartFunction method, CompilationUnit selectionUnit,
@@ -218,14 +224,19 @@ public class InlineMethodRefactoring extends Refactoring {
       CompilationUnit refUnit = reference.getElement().getAncestor(CompilationUnit.class);
       TextChange refChange = changeManager.get(refUnit);
       ExtractUtils utils = new ExtractUtils(refUnit);
-      // prepare invocation
-      DartNode coveringNode = NodeFinder.find(
+      // prepare reference node
+      DartNode node = NodeFinder.find(
           utils.getUnitNode(),
           reference.getSourceRange().getOffset(),
           0).getCoveringNode();
-      DartInvocation invocation = ASTNodes.getAncestor(coveringNode, DartInvocation.class);
-      // we need invocation
-      if (invocation != null) {
+      // prepare environment
+      DartStatement refStatement = ASTNodes.getAncestor(node, DartStatement.class);
+      SourceRange refLineRange = utils.getLinesRange(ImmutableList.of(refStatement));
+      String refPrefix = utils.getNodePrefix(refStatement);
+      // may be invocation of inline method
+      if ((node.getParent() instanceof DartUnqualifiedInvocation && ((DartUnqualifiedInvocation) node.getParent()).getTarget() == node)
+          || (node.getParent() instanceof DartMethodInvocation && ((DartMethodInvocation) node.getParent()).getFunctionName() == node)) {
+        DartInvocation invocation = (DartInvocation) node.getParent();
         // we don't support cascade
         if (invocation instanceof DartMethodInvocation
             && ((DartMethodInvocation) invocation).isCascade()) {
@@ -233,10 +244,6 @@ public class InlineMethodRefactoring extends Refactoring {
               RefactoringCoreMessages.InlineMethodRefactoring_cascadeInvocation,
               DartStatusContext.create(refUnit, invocation));
         }
-        // prepare environment
-        DartStatement invocationStatement = ASTNodes.getAncestor(invocation, DartStatement.class);
-        SourceRange invocationLineRange = utils.getLinesRange(ImmutableList.of(invocationStatement));
-        String refPrefix = utils.getNodePrefix(invocationStatement);
         // may be only single place should be inlined
         SourceRange invocationRange = SourceRangeFactory.create(invocation);
         if (currentMode == Mode.INLINE_SINGLE) {
@@ -250,7 +257,7 @@ public class InlineMethodRefactoring extends Refactoring {
           String source = getMethodSourceForInvocation(methodStatementsPart, utils, invocation);
           source = utils.getIndentSource(source, methodStatementsPart.prefix, refPrefix);
           // do insert
-          SourceRange range = SourceRangeFactory.forStartLength(invocationLineRange, 0);
+          SourceRange range = SourceRangeFactory.forStartLength(refLineRange, 0);
           TextChangeCompatibility.addTextEdit(
               refChange,
               RefactoringCoreMessages.InlineMethodRefactoring_replace_references,
@@ -270,8 +277,31 @@ public class InlineMethodRefactoring extends Refactoring {
           TextChangeCompatibility.addTextEdit(
               refChange,
               RefactoringCoreMessages.InlineMethodRefactoring_replace_references,
-              new ReplaceEdit(invocationLineRange.getOffset(), invocationLineRange.getLength(), ""));
+              new ReplaceEdit(refLineRange.getOffset(), refLineRange.getLength(), ""));
         }
+      } else {
+        // cannot inline: var v = new A().method;
+        if (methodClassElement != null) {
+          result.addFatalError(
+              RefactoringCoreMessages.InlineMethodRefactoring_classMethodRefrence,
+              DartStatusContext.create(refUnit, node));
+        }
+        // not invocation, just reference to inline method
+        String source;
+        {
+          source = methodUtils.getText(SourceRangeFactory.forStartEnd(
+              method.getParametersOpenParen(),
+              methodNode));
+          String methodPrefix = methodUtils.getLinePrefix(method.getSourceRange().getOffset());
+          source = utils.getIndentSource(source, methodPrefix, refPrefix);
+          source = source.trim();
+        }
+        // do insert
+        SourceRange range = SourceRangeFactory.create(node);
+        TextChangeCompatibility.addTextEdit(
+            refChange,
+            RefactoringCoreMessages.InlineMethodRefactoring_replace_references,
+            new ReplaceEdit(range.getOffset(), range.getLength(), source));
       }
     }
     // delete method
@@ -299,8 +329,10 @@ public class InlineMethodRefactoring extends Refactoring {
       {
         DartUnit selectionUnitNode = DartCompilerUtilities.resolveUnit(selectionUnit);
         DartNode node = NodeFinder.perform(selectionUnitNode, selectionOffset, 0);
-        boolean methodNameSelected = getLocationInParent(node) == DART_CLASS_MEMBER_NAME;
-        initialMode = currentMode = methodNameSelected ? Mode.INLINE_ALL : Mode.INLINE_SINGLE;
+        StructuralPropertyDescriptor locationInParent = getLocationInParent(node);
+        boolean declarationSelected = locationInParent == DART_CLASS_MEMBER_NAME
+            || locationInParent == DART_FUNCTION_EXPRESSION_FUNCTION;
+        initialMode = currentMode = declarationSelected ? Mode.INLINE_ALL : Mode.INLINE_SINGLE;
       }
       // prepare "methodX" information
       {
@@ -309,12 +341,23 @@ public class InlineMethodRefactoring extends Refactoring {
             methodUtils.getUnitNode(),
             method.getNameRange().getOffset(),
             0).getCoveringNode();
-        methodNode = ASTNodes.getAncestor(methodNameNode, DartMethodDefinition.class);
-        if (methodNode.getElement().getEnclosingElement() instanceof ClassElement) {
-          methodClassElement = (ClassElement) methodNode.getElement().getEnclosingElement();
+        {
+          methodNode = ASTNodes.getAncestor(
+              methodNameNode,
+              com.google.dart.compiler.ast.DartFunction.class);
+          if (methodNode == null) {
+            DartMethodDefinition methodNode0 = ASTNodes.getAncestor(
+                methodNameNode,
+                DartMethodDefinition.class);
+            methodNode = methodNode0.getFunction();
+            methodElement = methodNode0.getElement();
+          }
+        }
+        if (methodElement != null && methodElement.getEnclosingElement() instanceof ClassElement) {
+          methodClassElement = (ClassElement) methodElement.getEnclosingElement();
         }
         // analyze method body
-        DartBlock body = methodNode.getFunction().getBody();
+        DartBlock body = methodNode.getBody();
         List<DartStatement> statements = body.getStatements();
         if (statements.size() >= 1) {
           DartStatement lastStatement = statements.get(statements.size() - 1);

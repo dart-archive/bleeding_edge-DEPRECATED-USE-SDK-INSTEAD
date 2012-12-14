@@ -524,6 +524,70 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
         "");
   }
 
+  public void test_reference_toClassMethod() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test(a, b) {",
+        "    print(a);",
+        "    print(b);",
+        "  }",
+        "}",
+        "main() {",
+        "  print(new A().test);",
+        "}");
+    selection = findOffset("test(a, b)");
+    createRefactoring();
+    // error
+    assertTrue(refactoringStatus.hasFatalError());
+  }
+
+  public void test_reference_toLocal() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  test(a, b) {",
+        "    print(a);",
+        "    print(b);",
+        "  }",
+        "  print(test);",
+        "}");
+    selection = findOffset("test(a, b)");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print((a, b) {",
+        "    print(a);",
+        "    print(b);",
+        "  });",
+        "}");
+  }
+
+  public void test_reference_toTopLevel() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a, b) {",
+        "  print(a);",
+        "  print(b);",
+        "}",
+        "main() {",
+        "  print(test);",
+        "}");
+    selection = findOffset("test(a, b)");
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print((a, b) {",
+        "    print(a);",
+        "    print(b);",
+        "  });",
+        "}");
+  }
+
   public void test_singleExpression_oneUsage() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
