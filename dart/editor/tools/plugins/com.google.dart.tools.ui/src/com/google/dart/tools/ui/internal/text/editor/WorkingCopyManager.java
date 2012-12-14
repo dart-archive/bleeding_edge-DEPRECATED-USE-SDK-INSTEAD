@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.IWorkingCopyManager;
 import com.google.dart.tools.ui.IWorkingCopyManagerExtension;
@@ -23,7 +21,6 @@ import com.google.dart.tools.ui.internal.util.DartModelUtil;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.part.FileEditorInput;
 
 import java.util.HashMap;
 import java.util.Map;

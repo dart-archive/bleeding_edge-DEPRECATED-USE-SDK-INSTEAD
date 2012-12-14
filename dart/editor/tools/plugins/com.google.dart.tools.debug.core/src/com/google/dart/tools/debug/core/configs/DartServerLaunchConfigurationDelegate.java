@@ -36,14 +36,11 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IProcess;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.SequenceInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -157,8 +154,8 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
 
       eclipseProcess = DebugPlugin.newProcess(
           launch,
-          wrapProcess(runtimeProcess, processBuilder),
-          launchConfig.getApplicationName(),
+          runtimeProcess,
+          launchConfig.getApplicationName() + " (" + new Date() + ")",
           processAttributes);
     }
 
@@ -171,7 +168,7 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
           DartDebugCorePlugin.createErrorStatus("Error starting Dart VM process"));
     }
 
-    eclipseProcess.setAttribute(IProcess.ATTR_CMDLINE, generateCommandLine(commands));
+    eclipseProcess.setAttribute(IProcess.ATTR_CMDLINE, describe(processBuilder));
 
     if (enableDebugging && !DartCore.isWindows()) {
       ServerDebugTarget debugTarget = new ServerDebugTarget(launch, eclipseProcess, connectionPort);
@@ -195,37 +192,11 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     StringBuilder builder = new StringBuilder();
 
     for (String arg : processBuilder.command()) {
-      // Showing the --debug option doesn't provide a lot of value.
-      if (arg.startsWith("--debug")) {
-        continue;
-      }
-
-      // Shorten the long path to the dart vm - just show "dart".
-      if (arg.endsWith(File.separator
-          + DartSdkManager.getManager().getSdk().getVmExecutable().getName())) {
-        builder.append("dart");
-      } else {
-        builder.append(arg);
-      }
-
+      builder.append(arg);
       builder.append(" ");
     }
 
-    return builder.toString().trim() + "\n\n";
-  }
-
-  private String generateCommandLine(String[] commands) {
-    StringBuilder builder = new StringBuilder();
-
-    for (String str : commands) {
-      if (builder.length() > 0) {
-        builder.append(" ");
-      }
-
-      builder.append(str);
-    }
-
-    return builder.toString();
+    return builder.toString().trim();
   }
 
   private File getCurrentWorkingDirectory(DartLaunchConfigWrapper launchConfig) {
@@ -327,45 +298,4 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     }
   }
 
-  private Process wrapProcess(final Process process, final ProcessBuilder processBuilder) {
-    return new Process() {
-      private InputStream in;
-
-      @Override
-      public void destroy() {
-        process.destroy();
-      }
-
-      @Override
-      public int exitValue() {
-        return process.exitValue();
-      }
-
-      @Override
-      public InputStream getErrorStream() {
-        return process.getErrorStream();
-      }
-
-      @Override
-      public InputStream getInputStream() {
-        if (in == null) {
-          in = new SequenceInputStream(
-              new ByteArrayInputStream(describe(processBuilder).getBytes()),
-              process.getInputStream());
-        }
-
-        return in;
-      }
-
-      @Override
-      public OutputStream getOutputStream() {
-        return process.getOutputStream();
-      }
-
-      @Override
-      public int waitFor() throws InterruptedException {
-        return process.waitFor();
-      }
-    };
-  }
 }

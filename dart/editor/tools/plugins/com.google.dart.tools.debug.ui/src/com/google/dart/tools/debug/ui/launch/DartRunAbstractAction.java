@@ -127,7 +127,6 @@ public abstract class DartRunAbstractAction extends AbstractInstrumentedAction i
 
   protected void launch(ILaunchConfiguration config) {
     String mode = ILaunchManager.RUN_MODE;
-    ILaunchConfiguration configCopy = null;
 
     try {
       if (config.supportsMode(ILaunchManager.DEBUG_MODE)) {
@@ -135,17 +134,12 @@ public abstract class DartRunAbstractAction extends AbstractInstrumentedAction i
       }
 
       if (config.getType().getIdentifier().equals(DartDebugCorePlugin.DARTIUM_LAUNCH_CONFIG_ID)) {
-        configCopy = config.copy(LaunchUtils.DARTIUM_LAUNCH_NAME);
         DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(config);
         launchConfig.markAsLaunched();
         LaunchUtils.clearDartiumConsoles();
       }
 
-      if (configCopy != null) {
-        DebugUITools.launch(configCopy, mode);
-      } else {
-        DebugUITools.launch(config, mode);
-      }
+      DebugUITools.launch(config, mode);
     } catch (CoreException e) {
       DartDebugCorePlugin.logError(e);
     }

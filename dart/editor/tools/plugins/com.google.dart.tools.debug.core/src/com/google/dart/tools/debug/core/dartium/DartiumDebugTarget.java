@@ -41,6 +41,7 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IStreamMonitor;
 import org.eclipse.debug.core.model.IThread;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -74,8 +75,9 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   /**
    * @param target
    */
-  public DartiumDebugTarget(String debugTargetName, WebkitConnection connection, ILaunch launch,
-      Process javaProcess, IResourceResolver resourceResolver, boolean enableBreakpoints) {
+  public DartiumDebugTarget(File executable, String debugTargetName, WebkitConnection connection,
+      ILaunch launch, Process javaProcess, IResourceResolver resourceResolver,
+      boolean enableBreakpoints) {
     super(null);
 
     setActiveTarget(this);
@@ -86,7 +88,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     this.resourceResolver = resourceResolver;
 
     debugThread = new DartiumDebugThread(this);
-    process = new DartiumProcess(this, javaProcess);
+    process = new DartiumProcess(executable, this, javaProcess);
     outputStreamMonitor = new DartiumStreamMonitor();
 
     if (enableBreakpoints) {

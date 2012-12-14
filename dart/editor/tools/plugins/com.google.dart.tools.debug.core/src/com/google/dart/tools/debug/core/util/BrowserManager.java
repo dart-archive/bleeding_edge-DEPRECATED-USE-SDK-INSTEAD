@@ -34,6 +34,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.model.IProcess;
 
 import java.io.File;
 import java.io.IOException;
@@ -148,13 +149,16 @@ public class BrowserManager {
     } else {
       terminateExistingBrowserProcess();
 
+      StringBuilder processDescription = new StringBuilder();
+
       ListeningStream dartiumOutput = startNewBrowserProcess(
           launchConfig,
           url,
           monitor,
           enableDebugging,
           browserLocation,
-          browserName);
+          browserName,
+          processDescription);
 
       sleep(100);
 
@@ -171,6 +175,7 @@ public class BrowserManager {
       }
 
       connectToChromiumDebug(
+          dartium,
           browserName,
           launch,
           launchConfig,
@@ -180,7 +185,8 @@ public class BrowserManager {
           timer,
           enableBreakpoints,
           devToolsPortNumber,
-          dartiumOutput);
+          dartiumOutput,
+          processDescription.toString());
     }
 
     DebugUIHelper.getHelper().activateApplication(dartium, "Chromium");
@@ -193,10 +199,10 @@ public class BrowserManager {
   /**
    * Launch browser and open file url. If debug mode also connect to browser.
    */
-  void connectToChromiumDebug(String browserName, ILaunch launch,
+  void connectToChromiumDebug(File executable, String browserName, ILaunch launch,
       DartLaunchConfigWrapper launchConfig, String url, IProgressMonitor monitor,
       Process runtimeProcess, LogTimer timer, boolean enableBreakpoints, int devToolsPortNumber,
-      ListeningStream dartiumOutput) throws CoreException {
+      ListeningStream dartiumOutput, String processDescription) throws CoreException {
     monitor.worked(1);
 
     try {
@@ -232,6 +238,7 @@ public class BrowserManager {
       WebkitConnection connection = new WebkitConnection(chromiumTab.getWebSocketDebuggerUrl());
 
       final DartiumDebugTarget debugTarget = new DartiumDebugTarget(
+          executable,
           browserName,
           connection,
           launch,
@@ -244,6 +251,7 @@ public class BrowserManager {
       launch.setAttribute(DebugPlugin.ATTR_CONSOLE_ENCODING, "UTF-8");
       launch.addDebugTarget(debugTarget);
       launch.addProcess(debugTarget.getProcess());
+      debugTarget.getProcess().setAttribute(IProcess.ATTR_CMDLINE, processDescription);
 
       if (launchConfig.getShowLaunchOutput()) {
         dartiumOutput.setListener(new StreamListener() {
@@ -338,6 +346,15 @@ public class BrowserManager {
     }
 
     return arguments;
+  }
+
+  private void describe(List<String> arguments, StringBuilder builder) {
+    for (int i = 0; i < arguments.size(); i++) {
+      if (i > 0) {
+        builder.append(" ");
+      }
+      builder.append(arguments.get(i));
+    }
   }
 
   private ChromiumTabInfo findTargetTab(List<ChromiumTabInfo> tabs) {
@@ -575,8 +592,8 @@ public class BrowserManager {
    * @throws CoreException
    */
   private ListeningStream startNewBrowserProcess(DartLaunchConfigWrapper launchConfig, String url,
-      IProgressMonitor monitor, boolean enableDebugging, IPath browserLocation, String browserName)
-      throws CoreException {
+      IProgressMonitor monitor, boolean enableDebugging, IPath browserLocation, String browserName,
+      StringBuilder argDescription) throws CoreException {
 
     Process process = null;
     monitor.worked(1);
@@ -637,6 +654,8 @@ public class BrowserManager {
     builder.command(arguments);
     builder.directory(DartSdkManager.getManager().getSdk().getDartiumWorkingDirectory());
     builder.redirectErrorStream(true);
+
+    describe(arguments, argDescription);
 
     try {
       process = builder.start();

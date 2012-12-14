@@ -28,19 +28,29 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IStreamMonitor;
 import org.eclipse.debug.core.model.IStreamsProxy;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This is a Dartium specific implementation of an IProcess.
  */
 class DartiumProcess extends PlatformObject implements IProcess {
+  private File executable;
   private DartiumDebugTarget target;
   private Process javaProcess;
   private IStreamsProxy streamsProxy;
+  private Map<String, String> attributes = new HashMap<String, String>();
+  private Date launchTime;
 
-  public DartiumProcess(DartiumDebugTarget target, Process javaProcess) {
+  public DartiumProcess(File executable, DartiumDebugTarget target, Process javaProcess) {
+    this.executable = executable;
     this.target = target;
     this.javaProcess = javaProcess;
+
+    launchTime = new Date();
 
     if (javaProcess != null) {
       new Thread(new Runnable() {
@@ -77,7 +87,7 @@ class DartiumProcess extends PlatformObject implements IProcess {
       return "UTF-8";
     }
 
-    return null;
+    return attributes.get(key);
   }
 
   @Override
@@ -94,7 +104,7 @@ class DartiumProcess extends PlatformObject implements IProcess {
 
   @Override
   public String getLabel() {
-    return target.getName();
+    return executable.toString() + " (" + launchTime + ")";
   }
 
   @Override
@@ -142,7 +152,7 @@ class DartiumProcess extends PlatformObject implements IProcess {
 
   @Override
   public void setAttribute(String key, String value) {
-
+    attributes.put(key, value);
   }
 
   @Override

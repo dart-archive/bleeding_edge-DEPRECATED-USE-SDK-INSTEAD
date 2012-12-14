@@ -26,9 +26,11 @@ import org.eclipse.debug.core.ILaunchesListener2;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.internal.ui.views.console.ProcessConsole;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -41,6 +43,7 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.IOConsole;
 import org.eclipse.ui.console.MessageConsole;
+import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.part.IPageBookViewPage;
 import org.eclipse.ui.part.PageSite;
 import org.eclipse.ui.part.ViewPart;
@@ -54,7 +57,6 @@ import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
 public class DartConsoleView extends ViewPart implements IConsoleView, IPropertyChangeListener {
 
   private class ClearAction extends Action {
-
     public ClearAction() {
       super("Clear", Activator.getImageDescriptor("icons/full/eview16/rem_co.gif"));
     }
@@ -90,6 +92,24 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
         updateFont();
       }
+    }
+  }
+
+  private class PropertiesAction extends Action {
+    public PropertiesAction() {
+      super("Properties...", Activator.getImageDescriptor("icons/full/obj16/properties.gif"));
+    }
+
+    @Override
+    public void run() {
+      PreferenceDialog dialog = PreferencesUtil.createPropertyDialogOn(
+          getSite().getShell(),
+          getProcess(),
+          null,
+          null,
+          null);
+
+      dialog.open();
     }
   }
 
@@ -165,6 +185,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
   private TerminateAction terminateAction;
   private ClearAction clearAction;
+  private IAction propertiesAction;
 
   private Display display;
 
@@ -189,6 +210,8 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     IToolBarManager toolbar = getViewSite().getActionBars().getToolBarManager();
     clearAction = new ClearAction();
     toolbar.add(clearAction);
+    propertiesAction = new PropertiesAction();
+    toolbar.add(propertiesAction);
     toolbar.add(new Separator());
     terminateAction = new TerminateAction();
     toolbar.add(terminateAction);
@@ -245,6 +268,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     updateIcon();
 
     terminateAction.update();
+    propertiesAction.setEnabled(getProcess() != null);
   }
 
   @Override
@@ -263,10 +287,12 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
 
     terminateAction.dispose();
     clearAction.dispose();
+
     if (fontPropertyChangeListener != null) {
       JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
       fontPropertyChangeListener = null;
     }
+
     if (propertyChangeListener != null) {
       getPreferences().removePropertyChangeListener(propertyChangeListener);
       propertyChangeListener = null;
@@ -397,26 +423,24 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   }
 
   private void updateContentDescription() {
-    if (console == null) {
-      setContentDescription("");
-    } else {
-      String suffix = "";
+    if (console instanceof ProcessConsole) {
+      IProcess process = ((ProcessConsole) console).getProcess();
 
-      if (console instanceof ProcessConsole) {
-        IProcess process = ((ProcessConsole) console).getProcess();
+      String name = ""; //process.getLaunch().getLaunchConfiguration().getName();
 
-        if (process.isTerminated()) {
-          try {
-            suffix = " [exit value: " + process.getExitValue() + "]";
-          } catch (DebugException ex) {
-            // ignore
-          }
-
-          bringToFront();
+      if (process.isTerminated()) {
+        try {
+          name += "exit code=" + process.getExitValue();
+        } catch (DebugException ex) {
+          // ignore
         }
+
+        bringToFront();
       }
 
-      setContentDescription(console.getName() + suffix);
+      setContentDescription(name);
+    } else {
+      setContentDescription("");
     }
 
     if (console instanceof ProcessConsole) {
