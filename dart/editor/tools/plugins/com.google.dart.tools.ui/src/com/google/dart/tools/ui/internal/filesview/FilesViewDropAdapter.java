@@ -53,11 +53,16 @@ public class FilesViewDropAdapter extends NavigatorDropAdapter {
   @Override
   public boolean performDrop(Object data) {
     Object target = getCurrentTarget();
+    // project drop
     if (target instanceof IWorkspaceRoot) {
       IStatus status = performProjectDrop(data);
       return status.isOK();
     }
-    // move IResource(s) to IContainer
+    // DROP_COPY
+    if (getCurrentOperation() == DND.DROP_COPY) {
+      return super.performDrop(data);
+    }
+    // DROP_MOVE, move IResource(s) to IContainer
     if (target instanceof IContainer && data instanceof IStructuredSelection) {
       final IContainer destination = (IContainer) target;
       // prepare resources
