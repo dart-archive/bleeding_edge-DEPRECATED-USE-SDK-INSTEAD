@@ -19,6 +19,7 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(AnalysisEngineParticipantTest.class);
     suite.addTestSuite(AnalysisServerParticipantTest.class);
     suite.addTestSuite(BuildDartParticipantTest.class);
     suite.addTestSuite(BuildParticipantDeclarationTest.class);

@@ -37,6 +37,11 @@ public class DartCoreTestLog implements ILog {
   private static final DartCoreTestLog LOG = new DartCoreTestLog();
 
   /**
+   * Set this flag {@code true} to echo all {@link DartCore} log entries
+   */
+  private static final boolean VERBOSE = false;
+
+  /**
    * Answer the single instance of the receiver
    */
   public static DartCoreTestLog getLog() {
@@ -98,7 +103,9 @@ public class DartCoreTestLog implements ILog {
 
   @Override
   public void log(IStatus status) {
-    DartCore.getPlugin().getLog().log(status);
+    if (VERBOSE) {
+      DartCore.getPlugin().getLog().log(status);
+    }
     if (status.getSeverity() != IStatus.INFO) {
       content.add(status);
     }

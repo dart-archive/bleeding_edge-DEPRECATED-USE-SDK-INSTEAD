@@ -23,9 +23,7 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.SubMonitor;
 
 import java.util.Map;
@@ -35,6 +33,10 @@ import java.util.Map;
  * projects and contained pub packages.
  */
 public class DartBuilder extends IncrementalProjectBuilder {
+
+  private static abstract class ParticipantRunner {
+    public abstract void run(IProgressMonitor monitor) throws CoreException;
+  }
 
   /**
    * The participants associated with this builder or {@code null} if not initialized. This field is
@@ -74,27 +76,12 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
     try {
       for (final BuildParticipant participant : getParticipants()) {
-
-        // Check if the operation has been canceled
-        if (subMonitor.isCanceled()) {
-          throw new OperationCanceledException();
-        }
-
-        SafeRunner.run(new ISafeRunnable() {
+        safeRun(new ParticipantRunner() {
           @Override
-          public void handleException(Throwable exception) {
-            if (!(exception instanceof OperationCanceledException)) {
-              DartCore.logError("Error notifying build participant", exception);
-            }
+          public void run(IProgressMonitor monitor) throws CoreException {
+            participant.build(event, monitor);
           }
-
-          @Override
-          public void run() throws Exception {
-            SubMonitor childMonitor = subMonitor.newChild(1);
-            participant.build(event, childMonitor);
-            childMonitor.done();
-          }
-        });
+        }, subMonitor);
       }
     } finally {
       if (monitor != null) {
@@ -120,27 +107,12 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
     try {
       for (final BuildParticipant participant : getParticipants()) {
-
-        // Check if the operation has been canceled
-        if (subMonitor.isCanceled()) {
-          throw new OperationCanceledException();
-        }
-
-        SafeRunner.run(new ISafeRunnable() {
+        safeRun(new ParticipantRunner() {
           @Override
-          public void handleException(Throwable exception) {
-            if (!(exception instanceof OperationCanceledException)) {
-              DartCore.logError("Error notifying build participant", exception);
-            }
+          public void run(IProgressMonitor monitor) throws CoreException {
+            participant.clean(event, monitor);
           }
-
-          @Override
-          public void run() throws Exception {
-            SubMonitor childMonitor = subMonitor.newChild(1);
-            participant.clean(event, childMonitor);
-            childMonitor.done();
-          }
-        });
+        }, subMonitor);
       }
     } finally {
       if (monitor != null) {
@@ -157,5 +129,32 @@ public class DartBuilder extends IncrementalProjectBuilder {
       participants = BuildParticipantDeclaration.participantsFor(getProject());
     }
     return participants;
+  }
+
+  /**
+   * Safely execute the specified runner, logging any exceptions that occur
+   * 
+   * @param runner the runner (not {@code null})
+   * @param subMonitor the monitor (not {@code null})
+   */
+  private void safeRun(ParticipantRunner runner, final SubMonitor subMonitor) {
+    // Check if the operation has been canceled
+    if (subMonitor.isCanceled()) {
+      throw new OperationCanceledException();
+    }
+
+    try {
+      SubMonitor childMonitor = subMonitor.newChild(1);
+      runner.run(childMonitor);
+      childMonitor.done();
+    } catch (Exception e) {
+      if (!(e instanceof OperationCanceledException)) {
+        DartCore.logError("Error notifying build participant", e);
+      }
+    } catch (LinkageError e) {
+      DartCore.logError("Error notifying build participant", e);
+    } catch (AssertionError e) {
+      DartCore.logError("Error notifying build participant", e);
+    }
   }
 }

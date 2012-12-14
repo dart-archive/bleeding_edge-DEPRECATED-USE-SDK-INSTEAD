@@ -13,26 +13,171 @@
  */
 package com.google.dart.tools.core.analysis.timing;
 
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.HtmlElement;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
+import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.builder.BuildEvent;
+import com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant;
+
 import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceProxy;
 import org.eclipse.core.resources.IResourceProxyVisitor;
+import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Evaluate time to scan a directory using {@link File} versus {@link IResourceProxyVisitor}
  */
 public class ScanTimings extends TestCase {
 
+  /**
+   * Simplified analysis context for performing {@link AnalysisEngineParticipant} timings
+   */
+  private final class MockContext implements AnalysisContext {
+    private SourceFactory sourceFactory;
+
+    @Override
+    public void clearResolution() {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void directoryDeleted(File directory) {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void discard() {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public AnalysisContext extractAnalysisContext(File directory) {
+      contextCount++;
+      return new MockContext();
+    }
+
+    @Override
+    public Collection<Source> getAvailableSources() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public List<SourceContainer> getDependedOnContainers(SourceContainer container) {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public Element getElement(ElementLocation location) {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public AnalysisError[] getErrors(Source source) throws AnalysisException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public HtmlElement getHtmlElement(Source source) {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public LibraryElement getLibraryElement(Source source) {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public SourceFactory getSourceFactory() {
+      return sourceFactory;
+    }
+
+    @Override
+    public void mergeAnalysisContext(AnalysisContext context) {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public CompilationUnit parse(Source source, AnalysisErrorListener errorListener)
+        throws AnalysisException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public CompilationUnit resolve(Source source, LibraryElement library,
+        AnalysisErrorListener errorListener) throws AnalysisException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public Token scan(Source source, AnalysisErrorListener errorListener) throws AnalysisException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public void setSourceFactory(SourceFactory sourceFactory) {
+      this.sourceFactory = sourceFactory;
+    }
+
+    @Override
+    public void sourceAvailable(Source source) {
+      checkName(source.getShortName());
+    }
+
+    @Override
+    public void sourceChanged(Source source) {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void sourceDeleted(Source source) {
+      // TODO Auto-generated method stub
+
+    }
+  }
+
   private int fileCount;
+  private int dartCount;
+  private int contextCount;
 
   public void test_large_scan() throws Exception {
 
@@ -43,19 +188,45 @@ public class ScanTimings extends TestCase {
     assertTrue("Must exist " + dirPath, dir.exists());
     System.out.println("Scanning files in " + dirPath);
 
+    System.out.println("\nScan using java.io.File");
     runScanFiles(dir);
     runScanFiles(dir);
     runScanFiles(dir);
 
+    System.out.println("\nOpening project...");
     IProject project = createProject(dirPath);
 
+    System.out.println("\nScan using proxy...");
+    runScanProxies(project);
+    runScanProxies(project);
+    runScanProxies(project);
+
+    System.out.println("\nScan using proxy and container");
+    runScanProxiesAndContainers(project);
+    runScanProxiesAndContainers(project);
+    runScanProxiesAndContainers(project);
+
+    System.out.println("\nScan using proxy and container and dart source");
+    runScanProxiesAndSource(project);
+    runScanProxiesAndSource(project);
+    runScanProxiesAndSource(project);
+
+    System.out.println("\nScan all resources");
     runScanResources(project);
     runScanResources(project);
     runScanResources(project);
+
+    System.out.println("\nScan with participant");
+    runScanWithParticipant(project);
+    runScanWithParticipant(project);
+    runScanWithParticipant(project);
   }
 
   private void checkName(String name) {
     fileCount++;
+    if (DartCore.isDartLikeFileName(name)) {
+      dartCount++;
+    }
   }
 
   private IProject createProject(String dirPath) throws CoreException {
@@ -75,18 +246,58 @@ public class ScanTimings extends TestCase {
 
   private void runScanFiles(File dir) {
     fileCount = 0;
+    dartCount = 0;
     long start = System.currentTimeMillis();
     scanFiles(dir);
     long delta = System.currentTimeMillis() - start;
-    System.out.println("File: " + fileCount + " files in " + delta + " ms");
+    System.out.println("File: " + fileCount + " (" + dartCount + ") files in " + delta + " ms");
+  }
+
+  private void runScanProxies(IProject project) throws CoreException {
+    fileCount = 0;
+    dartCount = 0;
+    long start = System.currentTimeMillis();
+    scanProxies(project);
+    long delta = System.currentTimeMillis() - start;
+    System.out.println("IRes: " + fileCount + " (" + dartCount + ") files in " + delta + " ms");
+  }
+
+  private void runScanProxiesAndContainers(IProject project) throws CoreException {
+    fileCount = 0;
+    dartCount = 0;
+    long start = System.currentTimeMillis();
+    scanProxiesAndContainers(project);
+    long delta = System.currentTimeMillis() - start;
+    System.out.println("IRes: " + fileCount + " (" + dartCount + ") files in " + delta + " ms");
+  }
+
+  private void runScanProxiesAndSource(IProject project) throws CoreException {
+    fileCount = 0;
+    dartCount = 0;
+    long start = System.currentTimeMillis();
+    scanProxiesAndSource(project);
+    long delta = System.currentTimeMillis() - start;
+    System.out.println("IRes: " + fileCount + " (" + dartCount + ") files in " + delta + " ms");
   }
 
   private void runScanResources(IProject project) throws CoreException {
     fileCount = 0;
+    dartCount = 0;
     long start = System.currentTimeMillis();
     scanResources(project);
     long delta = System.currentTimeMillis() - start;
-    System.out.println("IRes: " + fileCount + " files in " + delta + " ms");
+    System.out.println("IRes: " + fileCount + " (" + dartCount + ") files in " + delta + " ms");
+  }
+
+  private void runScanWithParticipant(IProject project) throws CoreException {
+    fileCount = 0;
+    dartCount = 0;
+    contextCount = 0;
+    long start = System.currentTimeMillis();
+    scanWithParticipant(project);
+    long delta = System.currentTimeMillis() - start;
+    System.out.println("IRes: " + fileCount + " (" + dartCount + ") files in " + delta + " ms in "
+        + contextCount + " contexts");
   }
 
   private void scanFiles(File dir) {
@@ -100,7 +311,7 @@ public class ScanTimings extends TestCase {
     }
   }
 
-  private void scanResources(IProject project) throws CoreException {
+  private void scanProxies(IProject project) throws CoreException {
     project.accept(new IResourceProxyVisitor() {
       @Override
       public boolean visit(IResourceProxy proxy) throws CoreException {
@@ -110,5 +321,61 @@ public class ScanTimings extends TestCase {
         return true;
       }
     }, 0);
+  }
+
+  private void scanProxiesAndContainers(IProject project) throws CoreException {
+    project.accept(new IResourceProxyVisitor() {
+      @Override
+      public boolean visit(IResourceProxy proxy) throws CoreException {
+        checkName(proxy.getName());
+//        proxy.requestFullPath();
+        if (proxy.getType() != IResource.FILE) {
+          proxy.requestResource();
+        }
+        return true;
+      }
+    }, 0);
+  }
+
+  private void scanProxiesAndSource(IProject project) throws CoreException {
+    project.accept(new IResourceProxyVisitor() {
+      @Override
+      public boolean visit(IResourceProxy proxy) throws CoreException {
+        checkName(proxy.getName());
+//        proxy.requestFullPath();
+        if (proxy.getType() != IResource.FILE || proxy.getName().endsWith(".dart")) {
+          proxy.requestResource();
+        }
+        return true;
+      }
+    }, 0);
+  }
+
+  private void scanResources(IProject project) throws CoreException {
+    project.accept(new IResourceVisitor() {
+      @Override
+      public boolean visit(IResource resource) throws CoreException {
+        checkName(resource.getName());
+        return true;
+      }
+    });
+  }
+
+  private void scanWithParticipant(IProject project) throws CoreException {
+    IProgressMonitor monitor = new NullProgressMonitor();
+    AnalysisEngineParticipant participant = new AnalysisEngineParticipant(true) {
+      @Override
+      public boolean visit(IResourceProxy proxy, IProgressMonitor monitor) throws CoreException {
+        checkName(proxy.getName());
+        return super.visit(proxy, monitor);
+      }
+
+      @Override
+      protected AnalysisContext createRootContext() {
+        contextCount++;
+        return new MockContext();
+      }
+    };
+    participant.build(new BuildEvent(project, null, monitor), monitor);
   }
 }

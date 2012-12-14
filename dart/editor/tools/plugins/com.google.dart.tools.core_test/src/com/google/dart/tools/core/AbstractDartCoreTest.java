@@ -9,9 +9,17 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 
 /**
- * Common {@link TestCase} superclass that asserts no unexpected Eclipse log entries
+ * Common {@link TestCase} superclass that asserts no unexpected Eclipse log entries and provides a
+ * setup method ({@link #setUpOnce()}) that is called once before all tests in the class are
+ * executed and a teardown method ({@link #tearDownOnce()}) that is called once after all tests in
+ * the class have been executed.
  */
 public abstract class AbstractDartCoreTest extends TestCase {
+
+  /**
+   * The test log
+   */
+  protected static final DartCoreTestLog LOG = DartCoreTestLog.getLog();
 
   /**
    * Used to determine when {@link #setUpOnce()} and {@link #tearDownOnce()} should be called.
@@ -83,14 +91,14 @@ public abstract class AbstractDartCoreTest extends TestCase {
       TEST_COUNTS.put(getClass(), countTestMethods(getClass()));
       invokeStaticMethodIfExists(getClass(), "setUpOnce");
     }
-    DartCoreTestLog.getLog().setUp();
+    LOG.setUp();
     try {
       super.runBare();
     } catch (Throwable running) {
       exception = running;
     } finally {
       try {
-        DartCoreTestLog.getLog().tearDown();
+        LOG.tearDown();
         int count = TEST_COUNTS.get(getClass()) - 1;
         TEST_COUNTS.put(getClass(), count);
         if (count == 0) {
@@ -113,7 +121,7 @@ public abstract class AbstractDartCoreTest extends TestCase {
   @Override
   protected void runTest() throws Throwable {
     super.runTest();
-    DartCoreTestLog.getLog().assertEmpty();
+    LOG.assertEmpty();
   }
 
   /**

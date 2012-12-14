@@ -23,6 +23,7 @@ import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 
 import java.util.ArrayList;
 
@@ -131,29 +132,39 @@ public abstract class MockContainer extends MockResource implements IContainer {
     return null;
   }
 
+  /**
+   * Answer an existing child resource with the specified name or {@code null} if none
+   * 
+   * @param name the name (not {@code null})
+   * @return the child resource
+   */
+  public MockResource getExistingChild(String name) {
+    if (children != null) {
+      for (MockResource child : children) {
+        if (child.getName().equals(name)) {
+          return child;
+        }
+      }
+    }
+    return null;
+  }
+
   @Override
   public IFile getFile(IPath path) {
     if (path == null || path.segmentCount() == 0) {
       return null;
     }
     String firstSegment = path.segment(0);
-    if (children != null) {
-      for (MockResource child : children) {
-        if (child.getName().equals(firstSegment)) {
-          if (path.segmentCount() == 1) {
-            if (child instanceof MockFile) {
-              return (IFile) child;
-            }
-            return new MockFile(this, firstSegment, false);
-          }
-          return ((MockContainer) child).getFile(path.removeFirstSegments(1));
-        }
-      }
-    }
+    MockResource child = getExistingChild(firstSegment);
     if (path.segmentCount() == 1) {
+      if (child instanceof MockFile) {
+        return (IFile) child;
+      }
       return new MockFile(this, firstSegment, false);
     }
-    return new MockFolder(this, firstSegment, false).getFile(path.removeFirstSegments(1));
+    MockContainer container = child != null && child instanceof MockContainer
+        ? (MockContainer) child : new MockFolder(this, firstSegment, false);
+    return container.getFile(path.removeFirstSegments(1));
   }
 
   @Override
@@ -163,7 +174,50 @@ public abstract class MockContainer extends MockResource implements IContainer {
 
   @Override
   public IFolder getFolder(IPath path) {
-    return null;
+    if (path == null || path.segmentCount() == 0) {
+      return null;
+    }
+    String firstSegment = path.segment(0);
+    MockResource child = getExistingChild(firstSegment);
+    if (path.segmentCount() == 1) {
+      if (child instanceof MockFolder) {
+        return (IFolder) child;
+      }
+      return new MockFolder(this, firstSegment, false);
+    }
+    MockContainer container = child != null && child instanceof MockContainer
+        ? (MockContainer) child : new MockFolder(this, firstSegment, false);
+    return container.getFolder(path.removeFirstSegments(1));
+  }
+
+  public MockFile getMockFile(IPath path) {
+    MockResource child = getExistingChild(path.segment(0));
+    if (child == null) {
+      throw new RuntimeException("Child named " + path.segment(0) + " not found in " + this);
+    }
+    if (path.segmentCount() == 1) {
+      return (MockFile) child;
+    }
+    return ((MockContainer) child).getMockFile(path.removeFirstSegments(1));
+  }
+
+  public MockFile getMockFile(String path) {
+    return getMockFile(new Path(path));
+  }
+
+  public MockResource getMockFolder(IPath path) {
+    MockResource child = getExistingChild(path.segment(0));
+    if (child == null) {
+      throw new RuntimeException("Child named " + path.segment(0) + " not found in " + this);
+    }
+    if (path.segmentCount() == 1) {
+      return child;
+    }
+    return ((MockContainer) child).getMockFolder(path.removeFirstSegments(1));
+  }
+
+  public MockResource getMockFolder(String path) {
+    return getMockFolder(new Path(path));
   }
 
   @Override
@@ -179,6 +233,22 @@ public abstract class MockContainer extends MockResource implements IContainer {
   @Override
   public IResource[] members(int memberFlags) throws CoreException {
     return null;
+  }
+
+  public void remove(IPath path) {
+    MockResource child = getExistingChild(path.segment(0));
+    if (child == null) {
+      throw new RuntimeException("Not found: " + path.segment(0));
+    }
+    if (path.segmentCount() == 1) {
+      children.remove(child);
+    } else {
+      ((MockContainer) child).remove(path.removeFirstSegments(1));
+    }
+  }
+
+  public void remove(String path) {
+    remove(new Path(path));
   }
 
   @Override

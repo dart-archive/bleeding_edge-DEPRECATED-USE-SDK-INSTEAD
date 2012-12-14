@@ -14,21 +14,24 @@
 package com.google.dart.tools.core.pub;
 
 import com.google.dart.engine.utilities.io.PrintStringWriter;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.builder.BuildEvent;
+import com.google.dart.tools.core.internal.builder.TestProjects;
+import com.google.dart.tools.core.mock.MockContainer;
 import com.google.dart.tools.core.mock.MockDelta;
-import com.google.dart.tools.core.mock.MockFile;
-import com.google.dart.tools.core.mock.MockFolder;
 import com.google.dart.tools.core.mock.MockProject;
+
+import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
+import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
+import static com.google.dart.tools.core.internal.builder.TestProjects.MONITOR;
+import static com.google.dart.tools.core.internal.builder.TestProjects.newEmptyProject;
+import static com.google.dart.tools.core.internal.builder.TestProjects.newPubProject1;
 
 import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 
 import static org.eclipse.core.resources.IResourceDelta.ADDED;
-import static org.eclipse.core.resources.IResourceDelta.CHANGED;
 import static org.eclipse.core.resources.IResourceDelta.REMOVED;
 
 import java.util.ArrayList;
@@ -76,12 +79,10 @@ public class PubBuildParticipantTest extends TestCase {
     }
   }
 
-  private static final NullProgressMonitor MONITOR = new NullProgressMonitor();
-
   // Assert pub is not run
   public void test_build_full_emptyProject() throws Exception {
     Target target = new Target();
-    MockProject project = new MockProject(PubBuildParticipantTest.class.getSimpleName());
+    MockContainer project = newEmptyProject();
 
     target.build(new BuildEvent(project, null, MONITOR), MONITOR);
     target.assertCalls();
@@ -90,8 +91,8 @@ public class PubBuildParticipantTest extends TestCase {
   // Assert pub is run on container containing pubspec.yaml
   public void test_build_full_pub() throws Exception {
     Target target = new Target();
-    MockProject project = new MockProject(PubBuildParticipantTest.class.getSimpleName());
-    project.addFile(DartCore.PUBSPEC_FILE_NAME);
+    MockContainer project = new MockProject(PubBuildParticipantTest.class.getSimpleName());
+    project.addFile(PUBSPEC_FILE_NAME);
 
     target.build(new BuildEvent(project, null, MONITOR), MONITOR);
     target.assertCalls(project);
@@ -101,11 +102,7 @@ public class PubBuildParticipantTest extends TestCase {
   // or in hidden ".svn" directory
   public void test_build_full_pubInPackages() throws Exception {
     Target target = new Target();
-    MockProject project = new MockProject(PubBuildParticipantTest.class.getSimpleName());
-    project.addFile(DartCore.PUBSPEC_FILE_NAME);
-    project.addFolder(DartCore.PACKAGES_DIRECTORY_NAME).addFolder("foo").addFile(
-        DartCore.PUBSPEC_FILE_NAME);
-    project.addFolder(".svn").addFile(DartCore.PUBSPEC_FILE_NAME);
+    MockContainer project = newPubProject1();
 
     target.build(new BuildEvent(project, null, MONITOR), MONITOR);
     target.assertCalls(project);
@@ -114,13 +111,10 @@ public class PubBuildParticipantTest extends TestCase {
   // Assert pub is run when pubspec.yaml is added
   public void test_build_incremental_pubAdded() throws Exception {
     Target target = new Target();
-    MockProject project = new MockProject(PubBuildParticipantTest.class.getSimpleName());
-    MockFile pubspec = project.addFile(DartCore.PUBSPEC_FILE_NAME);
-    project.addFolder(DartCore.PACKAGES_DIRECTORY_NAME).addFolder("foo").addFile(
-        DartCore.PUBSPEC_FILE_NAME);
+    MockContainer project = TestProjects.newPubProject1();
 
-    MockDelta delta = new MockDelta(project, CHANGED);
-    delta.add(pubspec, ADDED);
+    MockDelta delta = new MockDelta(project);
+    delta.add(PUBSPEC_FILE_NAME, ADDED);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertCalls(project);
@@ -129,13 +123,10 @@ public class PubBuildParticipantTest extends TestCase {
   // Assert pub is run when pubspec.yaml has changed
   public void test_build_incremental_pubChanged() throws Exception {
     Target target = new Target();
-    MockProject project = new MockProject(PubBuildParticipantTest.class.getSimpleName());
-    MockFile pubspec = project.addFile(DartCore.PUBSPEC_FILE_NAME);
-    project.addFolder(DartCore.PACKAGES_DIRECTORY_NAME).addFolder("foo").addFile(
-        DartCore.PUBSPEC_FILE_NAME);
+    MockContainer project = TestProjects.newPubProject1();
 
-    MockDelta delta = new MockDelta(project, CHANGED);
-    delta.add(pubspec, CHANGED);
+    MockDelta delta = new MockDelta(project);
+    delta.add(PUBSPEC_FILE_NAME);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertCalls(project);
@@ -145,17 +136,11 @@ public class PubBuildParticipantTest extends TestCase {
   // or in hidden ".svn" directory
   public void test_build_incremental_pubInPackagesAdded() throws Exception {
     Target target = new Target();
-    MockProject project = new MockProject(PubBuildParticipantTest.class.getSimpleName());
-    project.addFile(DartCore.PUBSPEC_FILE_NAME);
-    MockFolder packages = project.addFolder(DartCore.PACKAGES_DIRECTORY_NAME);
-    MockFolder folder = packages.addFolder("foo");
-    MockFile pubspec = folder.addFile(DartCore.PUBSPEC_FILE_NAME);
-    MockFolder svnFolder = project.addFolder(".svn");
-    MockFile pubspec2 = svnFolder.addFile(DartCore.PUBSPEC_FILE_NAME);
+    MockContainer project = TestProjects.newPubProject1();
 
-    MockDelta delta = new MockDelta(project, CHANGED);
-    delta.add(packages, CHANGED).add(folder, CHANGED).add(pubspec, ADDED);
-    delta.add(svnFolder, CHANGED).add(pubspec2, CHANGED);
+    MockDelta delta = new MockDelta(project);
+    delta.add(PACKAGES_DIRECTORY_NAME).add("foo").add(PUBSPEC_FILE_NAME);
+    delta.add(".svn").add(PUBSPEC_FILE_NAME);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertCalls();
@@ -165,17 +150,11 @@ public class PubBuildParticipantTest extends TestCase {
   // or in hidden ".svn" directory
   public void test_build_incremental_pubInPackagesChanged() throws Exception {
     Target target = new Target();
-    MockProject project = new MockProject(PubBuildParticipantTest.class.getSimpleName());
-    project.addFile(DartCore.PUBSPEC_FILE_NAME);
-    MockFolder packages = project.addFolder(DartCore.PACKAGES_DIRECTORY_NAME);
-    MockFolder folder = packages.addFolder("foo");
-    MockFile pubspec = folder.addFile(DartCore.PUBSPEC_FILE_NAME);
-    MockFolder svnFolder = project.addFolder(".svn");
-    MockFile pubspec2 = svnFolder.addFile(DartCore.PUBSPEC_FILE_NAME);
+    MockContainer project = TestProjects.newPubProject1();
 
-    MockDelta delta = new MockDelta(project, CHANGED);
-    delta.add(packages, CHANGED).add(folder, CHANGED).add(pubspec, CHANGED);
-    delta.add(svnFolder, CHANGED).add(pubspec2, CHANGED);
+    MockDelta delta = new MockDelta(project);
+    delta.add(PACKAGES_DIRECTORY_NAME).add("foo").add(PUBSPEC_FILE_NAME);
+    delta.add(".svn").add(PUBSPEC_FILE_NAME);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertCalls();
@@ -184,13 +163,10 @@ public class PubBuildParticipantTest extends TestCase {
   // Assert pub not is run when pubspec.yaml is removed
   public void test_build_incremental_pubRemoved() throws Exception {
     Target target = new Target();
-    MockProject project = new MockProject(PubBuildParticipantTest.class.getSimpleName());
-    MockFile pubspec = project.addFile(DartCore.PUBSPEC_FILE_NAME);
-    project.addFolder(DartCore.PACKAGES_DIRECTORY_NAME).addFolder("foo").addFile(
-        DartCore.PUBSPEC_FILE_NAME);
+    MockContainer project = TestProjects.newPubProject1();
 
-    MockDelta delta = new MockDelta(project, CHANGED);
-    delta.add(pubspec, REMOVED);
+    MockDelta delta = new MockDelta(project);
+    delta.add(PUBSPEC_FILE_NAME, REMOVED);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertCalls();

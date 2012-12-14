@@ -26,6 +26,7 @@ import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -65,6 +66,29 @@ public interface AnalysisContext {
   // TODO (danrubel): review the situations under which this method is and should be called
   // with an eye towards removing this method if it is not useful.
   public void discard();
+
+  /**
+   * Create a new context in which analysis can be performed. Any sources in the specified directory
+   * in the receiver will be removed from the receiver and added to the newly created context.
+   * 
+   * @param directory the directory (not {@code null}) containing sources that should be removed
+   *          from the receiver and added to the returned context
+   * @return the analysis context that was created (not {@code null})
+   */
+  // TODO (danrubel): review the situations under which this method is and should be called
+  // with an eye towards removing this method if it is not useful.
+  public AnalysisContext extractAnalysisContext(File directory);
+
+  /**
+   * Answer the collection of sources that have been added to the receiver via
+   * {@link #sourceAvailable(Source)} and not removed from the receiver via
+   * {@link #sourceDeleted(Source)} or {@link #directoryDeleted(File)}.
+   * 
+   * @return a collection of sources (not {@code null}, contains no {@code null}s)
+   */
+  // TODO (danrubel): review the situations under which this method is and should be called
+  // with an eye towards removing this method if it is not useful.
+  public Collection<Source> getAvailableSources();
 
   /**
    * Return a list containing the source containers that the given source container depends on. More
@@ -118,6 +142,17 @@ public interface AnalysisContext {
   public SourceFactory getSourceFactory();
 
   /**
+   * Add the sources contained in the specified context to the receiver's collection of sources.
+   * This method is called when an existing context's pubspec has been removed, and the contained
+   * sources should be reanalyzed as part of the receiver.
+   * 
+   * @param context the context being merged (not {@code null})
+   */
+  // TODO (danrubel): review the situations under which this method is and should be called
+  // with an eye towards removing this method if it is not useful.
+  public void mergeAnalysisContext(AnalysisContext context);
+
+  /**
    * Parse a single source to produce an AST structure.
    * 
    * @param source the source to be parsed
@@ -160,6 +195,17 @@ public interface AnalysisContext {
   public void setSourceFactory(SourceFactory sourceFactory);
 
   /**
+   * Cache the fact that content for the given source is now available, is of interest to the
+   * client, and should be analyzed. Do not modify or discard any information about this source that
+   * is already cached.
+   * 
+   * @param source the source that is now available
+   */
+  // TODO (danrubel): review the situations under which this method is and should be called
+  // with an eye towards removing this method if it is not useful.
+  public void sourceAvailable(Source source);
+
+  /**
    * Respond to the fact that the content of the given source has changed by removing any cached
    * information that might now be out-of-date.
    * 
@@ -168,8 +214,8 @@ public interface AnalysisContext {
   public void sourceChanged(Source source);
 
   /**
-   * Respond to the fact that the given source has been deleted by removing any cached information
-   * that might now be out-of-date.
+   * Respond to the fact that the given source has been deleted and should no longer be analyzed by
+   * removing any cached information that might now be out-of-date.
    * 
    * @param source the source that was deleted
    */

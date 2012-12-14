@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.context;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
@@ -34,7 +35,10 @@ import com.google.dart.engine.source.SourceFactory;
 
 import java.io.File;
 import java.nio.CharBuffer;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -69,6 +73,13 @@ public class AnalysisContextImpl implements AnalysisContext {
   private HashMap<Source, Namespace> publicNamespaceCache = new HashMap<Source, Namespace>();
 
   /**
+   * A cache of the available sources of interest to the client. Sources are added to this
+   * collection via {@link #sourceAvailable(Source)} and removed from this collection via
+   * {@link #sourceDeleted(Source)} and {@link #directoryDeleted(File)}
+   */
+  private final HashSet<Source> availableSources = new HashSet<Source>();
+
+  /**
    * The object used to synchronize access to all of the caches.
    */
   private Object cacheLock = new Object();
@@ -89,11 +100,23 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public void directoryDeleted(File file) {
+  public void directoryDeleted(File directory) {
     // TODO (danrubel): Optimize to remove only the specified files
     parseCache.clear();
     libraryElementCache.clear();
     publicNamespaceCache.clear();
+
+    // Remove deleted sources from the available sources collection
+    String prefix = directory.getAbsolutePath();
+    if (prefix.charAt(prefix.length() - 1) != File.separatorChar) {
+      prefix += File.separator;
+    }
+    Iterator<Source> iter = availableSources.iterator();
+    while (iter.hasNext()) {
+      if (iter.next().getFullName().startsWith(prefix)) {
+        iter.remove();
+      }
+    }
   }
 
   @Override
@@ -102,6 +125,35 @@ public class AnalysisContextImpl implements AnalysisContext {
     parseCache.clear();
     libraryElementCache.clear();
     publicNamespaceCache.clear();
+    availableSources.clear();
+  }
+
+  @Override
+  public AnalysisContext extractAnalysisContext(File directory) {
+    AnalysisContext newContext = AnalysisEngine.getInstance().createAnalysisContext();
+
+    // Move sources in the specified directory to the new context
+    String prefix = directory.getAbsolutePath();
+    if (prefix.charAt(prefix.length() - 1) != File.separatorChar) {
+      prefix += File.separator;
+    }
+    Iterator<Source> iter = availableSources.iterator();
+    while (iter.hasNext()) {
+      Source source = iter.next();
+      if (source.getFullName().startsWith(prefix)) {
+        iter.remove();
+        newContext.sourceAvailable(source);
+      }
+    }
+
+    // TODO (danrubel): Move cached information about the source to the new context
+
+    return newContext;
+  }
+
+  @Override
+  public Collection<Source> getAvailableSources() {
+    return availableSources;
   }
 
   @Override
@@ -198,6 +250,15 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public void mergeAnalysisContext(AnalysisContext context) {
+
+    // Move sources in the specified context into the receiver
+    availableSources.addAll(context.getAvailableSources());
+
+    // TODO (danrubel): Move cached information about the source to the new context
+  }
+
+  @Override
   public CompilationUnit parse(Source source, AnalysisErrorListener errorListener)
       throws AnalysisException {
     synchronized (cacheLock) {
@@ -248,6 +309,11 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public void sourceAvailable(Source source) {
+    availableSources.add(source);
+  }
+
+  @Override
   public void sourceChanged(Source source) {
     synchronized (cacheLock) {
       parseCache.remove(source);
@@ -258,6 +324,7 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public void sourceDeleted(Source source) {
+    availableSources.remove(source);
     sourceChanged(source);
   }
 }

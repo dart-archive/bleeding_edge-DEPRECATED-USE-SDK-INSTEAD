@@ -31,6 +31,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 
+import java.io.File;
 import java.net.URI;
 import java.util.Map;
 
@@ -401,5 +402,9 @@ public abstract class MockResource implements IResource {
 
   @Override
   public void touch(IProgressMonitor monitor) throws CoreException {
+  }
+
+  public File toFile() {
+    return getLocation().toFile();
   }
 }

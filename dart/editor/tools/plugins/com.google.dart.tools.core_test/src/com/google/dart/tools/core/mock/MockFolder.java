@@ -20,6 +20,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 
 import java.net.URI;
 
@@ -61,12 +62,12 @@ public class MockFolder extends MockContainer implements IFolder {
 
   @Override
   public IFile getFile(String name) {
-    return null;
+    return getFile(new Path(name));
   }
 
   @Override
   public IFolder getFolder(String name) {
-    return null;
+    return getFolder(new Path(name));
   }
 
   @Override

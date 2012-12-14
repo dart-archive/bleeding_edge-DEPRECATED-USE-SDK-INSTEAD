@@ -21,7 +21,6 @@ import com.google.dart.tools.core.builder.CleanEvent;
 import com.google.dart.tools.core.builder.ParticipantEvent;
 import com.google.dart.tools.core.mock.MockProject;
 import com.google.dart.tools.core.pub.PubBuildParticipantTest;
-import com.google.dart.tools.core.test.util.DartCoreTestLog;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -102,7 +101,7 @@ public class DartBuilderTest extends AbstractDartCoreTest {
       }
     };
     new DartBuilder(participant).build(PROJECT, IncrementalProjectBuilder.FULL_BUILD, null, null);
-    DartCoreTestLog.getLog().assertEntries(IStatus.ERROR);
+    LOG.assertEntries(IStatus.ERROR);
   }
 
   public void test_build_full() throws Exception {
@@ -123,7 +122,7 @@ public class DartBuilderTest extends AbstractDartCoreTest {
       }
     };
     new DartBuilder(participant).clean(PROJECT, null);
-    DartCoreTestLog.getLog().assertEntries(IStatus.ERROR);
+    LOG.assertEntries(IStatus.ERROR);
   }
 
   @Override

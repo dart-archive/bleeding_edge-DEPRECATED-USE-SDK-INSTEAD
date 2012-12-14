@@ -7,13 +7,12 @@ import com.google.dart.tools.core.analysis.ScanCallback;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.builder.CleanEvent;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
+import com.google.dart.tools.core.mock.MockContainer;
 import com.google.dart.tools.core.mock.MockDelta;
 import com.google.dart.tools.core.mock.MockFile;
 import com.google.dart.tools.core.mock.MockFolder;
 import com.google.dart.tools.core.mock.MockProject;
-import com.google.dart.tools.core.pub.PubBuildParticipantTest;
-
-import junit.framework.TestCase;
+import com.google.dart.tools.core.test.AbstractDartCoreTest;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 
@@ -24,7 +23,7 @@ import static org.eclipse.core.resources.IResourceDelta.REMOVED;
 import java.io.File;
 import java.util.ArrayList;
 
-public class AnalysisServerParticipantTest extends TestCase {
+public class AnalysisServerParticipantTest extends AbstractDartCoreTest {
 
   /**
    * Specialized {@link AnalysisServer} that asserts specific methods are called
@@ -102,26 +101,30 @@ public class AnalysisServerParticipantTest extends TestCase {
     }
   }
 
-  private static final MockProject PROJECT = new MockProject(
-      PubBuildParticipantTest.class.getSimpleName());
-  private static final MockFile BUILDER0 = PROJECT.addFile(DartCore.BUILD_DART_FILE_NAME);
-  private static final MockFile DART0 = PROJECT.addFile("some.dart");
-  private static final MockFile DART01 = PROJECT.addFile("some1.dart");
+  private static final MockContainer PROJECT = new MockProject(
+      AnalysisServerParticipantTest.class.getSimpleName());
   private static final MockFolder MYAPP = PROJECT.addFolder("myapp");
-  private static final MockFile BUILDER1 = MYAPP.addFile(DartCore.BUILD_DART_FILE_NAME);
-  private static final MockFile DART1 = MYAPP.addFile("other.dart");
   private static final MockFolder SVN = PROJECT.addFolder(".svn");
-  private static final MockFile DART2 = SVN.addFile("foo.dart");
   private static final MockFolder PACKAGES = PROJECT.addFolder(DartCore.PACKAGES_DIRECTORY_NAME);
   private static final MockFolder SOME_PACKAGE = PACKAGES.addFolder("pkg1");
   private static final MockFile DART3 = SOME_PACKAGE.addFile("bar.dart");
   private static final MockFolder SOME_FOLDER = PROJECT.addFolder("some_folder");
   private static final MockFile DART4 = SOME_FOLDER.addFile("bar.dart");
   static {
+    PROJECT.addFile(DartCore.BUILD_DART_FILE_NAME);
+    PROJECT.addFile("some.dart");
+    PROJECT.addFile("some1.dart");
+
     MYAPP.addFile(DartCore.PUBSPEC_FILE_NAME);
+    MYAPP.addFile(DartCore.BUILD_DART_FILE_NAME);
+    MYAPP.addFile("other.dart");
+
     SOME_FOLDER.addFile(DartCore.BUILD_DART_FILE_NAME);
+
     SVN.addFile(DartCore.PUBSPEC_FILE_NAME);
     SVN.addFile(DartCore.BUILD_DART_FILE_NAME);
+    SVN.addFile("foo.dart");
+
     SOME_PACKAGE.addFile(DartCore.PUBSPEC_FILE_NAME);
     SOME_PACKAGE.addFile(DartCore.BUILD_DART_FILE_NAME);
   }

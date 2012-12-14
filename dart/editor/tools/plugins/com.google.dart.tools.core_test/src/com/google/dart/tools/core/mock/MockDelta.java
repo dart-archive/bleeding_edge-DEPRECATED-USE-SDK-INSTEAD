@@ -29,6 +29,10 @@ public class MockDelta implements IResourceDelta {
   private final int kind;
   private ArrayList<MockDelta> children;
 
+  public MockDelta(MockResource resource) {
+    this(resource, CHANGED);
+  }
+
   public MockDelta(MockResource resource, int kind) {
     this.resource = resource;
     this.kind = kind;
@@ -56,6 +60,16 @@ public class MockDelta implements IResourceDelta {
   }
 
   /**
+   * Convenience method equivalent to {@code add(resource, CHANGED}
+   * 
+   * @param resource the resource (not <code>null</code>)
+   * @return the new delta
+   */
+  public MockDelta add(MockResource resource) {
+    return add(resource, CHANGED);
+  }
+
+  /**
    * Create a new child delta for the specified resource
    * 
    * @param resource the resource (not <code>null</code>)
@@ -80,6 +94,31 @@ public class MockDelta implements IResourceDelta {
     }
     children.add(childDelta);
     return childDelta;
+  }
+
+  /**
+   * Convenience method equivalent to {@code add(name, CHANGED)}.
+   * 
+   * @param resource the resource (not <code>null</code>)
+   * @return the new delta
+   */
+  public MockDelta add(String name) {
+    return add(name, CHANGED);
+  }
+
+  /**
+   * Create a new child delta for the resource having the specified name
+   * 
+   * @param resource the resource (not <code>null</code>)
+   * @param kind the delta kind: one of {@link IResourceDelta#ADDED}, {@link IResourceDelta#CHANGED}
+   *          , {@link IResourceDelta#REMOVED}
+   * @return the new delta
+   */
+  public MockDelta add(String name, int kind) {
+    if (!(this.resource instanceof MockContainer)) {
+      throw new RuntimeException("Cannot add to a file delta: " + this.resource);
+    }
+    return add(((MockContainer) resource).getExistingChild(name), kind);
   }
 
   @Override

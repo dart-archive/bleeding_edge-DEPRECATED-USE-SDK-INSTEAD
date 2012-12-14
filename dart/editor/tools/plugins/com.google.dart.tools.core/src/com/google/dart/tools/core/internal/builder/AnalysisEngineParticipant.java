@@ -15,34 +15,30 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.error.AnalysisErrorListener;
-import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.PackageUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.BuildVisitor;
 import com.google.dart.tools.core.builder.CleanEvent;
-import com.google.dart.tools.core.builder.CleanVisitor;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import static com.google.dart.tools.core.DartCore.DART_PROBLEM_MARKER_TYPE;
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
-import static com.google.dart.tools.core.DartCore.isDartLikeFileName;
-import static com.google.dart.tools.core.DartCore.logError;
+import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceProxy;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -57,7 +53,10 @@ import static org.eclipse.core.resources.IResourceDelta.ADDED;
 import static org.eclipse.core.resources.IResourceDelta.CHANGED;
 import static org.eclipse.core.resources.IResourceDelta.REMOVED;
 
+import java.io.File;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 /**
  * Performs source analysis using instances of {@link AnalysisContext}.
@@ -65,321 +64,28 @@ import java.util.HashMap;
  * 
  * @see DartCoreDebug#ENABLE_NEW_ANALYSIS
  */
-public class AnalysisEngineParticipant implements BuildParticipant {
+public class AnalysisEngineParticipant implements BuildParticipant, BuildVisitor {
 
-  /**
-   * Visitor for creating or updating a context
-   */
-  private class ContextVisitor implements BuildVisitor {
+  private static final Path PUBSPEC_PATH = new Path(PUBSPEC_FILE_NAME);
 
-    private AnalysisContext context;
-    private IContainer container;
-
-    /**
-     * Traverse the specified resource delta and update the existing context.
-     * 
-     * @param delta the resource delta describing the changes (not {@code null})
-     * @param monitor the progress monitor (not {@code null})
-     * @return {@code true} if the delta was processed, or {@code false} if the context was
-     *         discarded and no analysis performed.
-     */
-    public boolean traverse(IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
-      this.container = (IContainer) delta.getResource();
-
-      // If the container was removed, then discard the context
-      if (delta.getKind() == REMOVED) {
-        context = contexts.remove(container);
-        if (context != null) {
-          context.discard();
-        }
-        return false;
-      }
-
-      // If this resource was just added or there was no existing context,
-      // then traverse it like a new context
-      context = contexts.get(container);
-      if (delta.getKind() == ADDED || context == null) {
-        new NewContextVisitor().createAndTraverse(container, monitor);
-        return true;
-      }
-
-      // Process any changes to the "packages" directory first
-      for (IResourceDelta childDelta : delta.getAffectedChildren()) {
-        IResource resource = childDelta.getResource();
-
-        // Process the "packages" directory using the PackagesVisitor
-        if (resource.getType() == FOLDER && resource.getName().equals(PACKAGES_DIRECTORY_NAME)) {
-          if (new PackagesVisitor().traverse(context, childDelta, monitor)) {
-            continue;
-          }
-
-          // If the "packages" directory was removed for the project, then re-resolve
-          if (container.getType() == PROJECT) {
-            context.directoryDeleted(resource.getLocation().toFile());
-            context.clearResolution();
-            break;
-          }
-
-          // If the "packages" directory was removed from a folder, then discard the context
-          contexts.remove(container);
-          context.discard();
-          return false;
-        }
-      }
-
-      // Traverse all resources except hidden resources and resources in the "packages" directory
-      new BuildEvent(container, delta, monitor).traverse(this, false);
-
-      // TODO (danrubel): resolve each source in the context
-
-      return true;
-    }
-
-    @Override
-    public boolean visit(IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
-      IResource resource = delta.getResource();
-
-      // Parse changed *.dart files and discard those removed
-      if (resource.getType() == FILE) {
-        if (isDartLikeFileName(resource.getName())) {
-          if (delta.getKind() == CHANGED) {
-            parse(context, resource, true);
-          } else {
-            IPath location = resource.getLocation();
-            if (location != null) {
-              context.sourceDeleted(context.getSourceFactory().forFile(location.toFile()));
-            }
-          }
-        }
-        return false;
-      }
-
-      // If this folder contains a "packages" directory, then traverse it as a separate context
-      IContainer container = (IContainer) resource;
-      IFolder packages = container.getFolder(new Path(PACKAGES_DIRECTORY_NAME));
-      if (packages.exists()) {
-        if (new ContextVisitor().traverse(delta, monitor)) {
-          return false;
-        }
-      }
-
-      // If there is a context associated with this folder, then discard it
-      AnalysisContext childContext = contexts.remove(container);
-      if (childContext != null) {
-        childContext.discard();
-      }
-
-      // Recursively visit all changes
-      return true;
-    }
-
-    @Override
-    public boolean visit(IResourceProxy proxy, IProgressMonitor monitor) throws CoreException {
-
-      // Parse added *.dart files
-      if (proxy.getType() == FILE) {
-        if (isDartLikeFileName(proxy.getName())) {
-          parse(context, proxy.requestResource(), false);
-        }
-        return false;
-      }
-
-      // Traverse and parse all newly added resources
-      IContainer folder = (IContainer) proxy.requestResource();
-      new NewContextVisitor().traverseAndParse(context, container, folder, monitor);
-      return false;
-    }
-  }
-
-  /**
-   * Visitor for creating a context and analyzing all elements in that context
-   */
-  private class NewContextVisitor implements CleanVisitor {
-
-    private IContainer container;
-    private AnalysisContext context;
-
-    /**
-     * Create a new context for the specified container then traverse and analyze the resources
-     * 
-     * @param container the container (project or folder, not {@code null})
-     * @param monitor the progress monitor (not {@code null})
-     */
-    public void createAndTraverse(IContainer container, IProgressMonitor monitor)
-        throws CoreException {
-
-      DartSdkManager sdkManager = com.google.dart.tools.core.model.DartSdkManager.getManager();
-      DartSdk sdk = new DartSdk(sdkManager.getSdk().getDirectory());
-      DartUriResolver dartResolver = new DartUriResolver(sdk);
-
-      FileUriResolver fileResolver = new FileUriResolver();
-
-      SourceFactory factory;
-      IFolder packages = container.getFolder(new Path(PACKAGES_DIRECTORY_NAME));
-      if (packages.exists()) {
-        PackageUriResolver pkgResolver = new PackageUriResolver(container.getLocation().toFile());
-        factory = new SourceFactory(dartResolver, pkgResolver, fileResolver);
-      } else {
-        factory = new SourceFactory(dartResolver, fileResolver);
-      }
-
-      context = contexts.remove(container);
-      if (context != null) {
-        context.discard();
-      }
-      context = createContext(container);
-      context.setSourceFactory(factory);
-      contexts.put(container, context);
-
-      // Traverse all resources except hidden resources and resources in the "packages" directory
-      traverseAndParse(context, container, container, monitor);
-
-      // TODO (danrubel): resolve each source in the context
-    }
-
-    /**
-     * Traverse and parse all resources in the specified folder
-     * 
-     * @param context the context in which the parse should occur (not {@code null})
-     * @param container the context container (not {@code null})
-     * @param folder the folder to traverse (may be the same as the container, but not {@code null})
-     * @param monitor the progress monitor (not {@code null})
-     */
-    public void traverseAndParse(AnalysisContext context, IContainer container, IContainer folder,
-        IProgressMonitor monitor) throws CoreException {
-      this.context = context;
-      this.container = container;
-      new CleanEvent(folder, monitor).traverse(this, false);
-    }
-
-    /**
-     * Recursively visit and parse all resources
-     */
-    @Override
-    public boolean visit(IResourceProxy proxy, IProgressMonitor monitor) throws CoreException {
-
-      if (proxy.getType() != FILE) {
-
-        // If this is a folder in the receiver's container and has a "packages" directory
-        // then create a new context to analyze the content of that container
-        IContainer folder = (IContainer) proxy.requestResource();
-        if (!folder.equals(container)) {
-          IFolder packages = folder.getFolder(new Path(PACKAGES_DIRECTORY_NAME));
-          if (packages.exists()) {
-            new NewContextVisitor().createAndTraverse(folder, monitor);
-            return false;
-          }
-        }
-
-        // Recursively visit all resources
-        return true;
-      }
-
-      // Parse any *.dart files found
-      if (isDartLikeFileName(proxy.getName())) {
-        IResource resource = proxy.requestResource();
-        parse(context, resource, false);
-      }
-      return false;
-    }
-  }
-
-  /**
-   * Visitor for updating an existing context given changes in the "packages" directory
-   * 
-   * @see PackagesVisitor#traverse(AnalysisContext, IResourceDelta, IProgressMonitor)
-   */
-  private class PackagesVisitor implements BuildVisitor {
-    private AnalysisContext context;
-    private SourceFactory factory;
-
-    /**
-     * Traverse the specified packages resource delta and update the given context.
-     * 
-     * @param context the context to be updated (not {@code null})
-     * @param delta the delta to be traversed (not {@code null})
-     * @param monitor the progress monitor (not {@code null})
-     * @return {@code true} if the context was updated, or {@code false} if the packages directory
-     *         was removed and the context was not updated
-     */
-    public boolean traverse(AnalysisContext context, IResourceDelta delta, IProgressMonitor monitor)
-        throws CoreException {
-      IContainer container = (IContainer) delta.getResource();
-
-      // Sanity check
-      if (!container.getName().equals(PACKAGES_DIRECTORY_NAME)) {
-        throw new RuntimeException("Expected packages folder");
-      }
-
-      // If the packages directory was added, then the context should be reresolved
-      if (delta.getKind() == ADDED) {
-        context.clearResolution();
-        return true;
-      }
-
-      // If the packages directory was removed, then the context should be reresolved or discarded
-      if (delta.getKind() == REMOVED) {
-        return false;
-      }
-
-      // Visit all changes in the packages directory
-      this.context = context;
-      this.factory = context.getSourceFactory();
-      new BuildEvent(container, delta, monitor).traverse(this, false);
-      return true;
-    }
-
-    @Override
-    public boolean visit(IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
-      IResource resource = delta.getResource();
-
-      // Notify the context of anything that was removed
-      if (delta.getKind() == REMOVED) {
-        IPath location = resource.getLocation();
-        if (location != null) {
-          if (resource.getType() != FILE) {
-            context.directoryDeleted(location.toFile());
-          } else if (isDartLikeFileName(resource.getName())) {
-            context.sourceDeleted(factory.forFile(location.toFile()));
-          }
-        }
-        return false;
-      }
-
-      // Recursively visit changes
-      if (resource.getType() != FILE) {
-        return true;
-      }
-
-      // Notify the context about any *.dart files that changed
-      if (isDartLikeFileName(resource.getName())) {
-        IPath location = resource.getLocation();
-        if (location != null) {
-          context.sourceChanged(factory.forFile(location.toFile()));
-        }
-      }
-      return false;
-    }
-
-    /**
-     * If anything was added, then re-resolve the entire context
-     */
-    @Override
-    public boolean visit(IResourceProxy proxy, IProgressMonitor monitor) throws CoreException {
-      if (proxy.getType() != FILE || isDartLikeFileName(proxy.getName())) {
-        context.clearResolution();
-      }
-      return false;
-    }
-  }
+  private final boolean enabled;
 
   /**
    * Map of application container (directory containing a pubspec.yaml and a "packages" directory)
    * to the context used to analyze that application.
    */
-  private final HashMap<IContainer, AnalysisContext> contexts = new HashMap<IContainer, AnalysisContext>();
+  private final HashMap<IContainer, AnalysisContext> allContexts = new HashMap<IContainer, AnalysisContext>();
 
-  private final boolean enabled;
+  /**
+   * The current context in which analysis should occur.
+   */
+  private AnalysisContext currentContext;
+
+  /**
+   * The container associated with the {@link #currentContext}. This field should be updated
+   * whenever {@link #currentContext} is updated.
+   */
+  private IContainer currentContextContainer;
 
   public AnalysisEngineParticipant() {
     this(DartCoreDebug.ENABLE_NEW_ANALYSIS);
@@ -400,20 +106,19 @@ public class AnalysisEngineParticipant implements BuildParticipant {
       return;
     }
 
-    event.traverse(new BuildVisitor() {
-
-      @Override
-      public boolean visit(IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
-        new ContextVisitor().traverse(delta, monitor);
-        return false;
+    // Create a context for the project if one does not already exist
+    if (allContexts.isEmpty()) {
+      IProject project = event.getProject();
+      AnalysisContext context = initContext(createRootContext(), project);
+      if (context == null) {
+        DartCore.logInformation("No location for " + project);
+        return;
       }
+      allContexts.put(project, context);
+    }
 
-      @Override
-      public boolean visit(IResourceProxy proxy, IProgressMonitor monitor) throws CoreException {
-        new NewContextVisitor().createAndTraverse((IContainer) proxy.requestResource(), monitor);
-        return false;
-      }
-    }, false);
+    // Traverse resources specified by the build event
+    event.traverse(this, false);
   }
 
   /**
@@ -427,99 +132,393 @@ public class AnalysisEngineParticipant implements BuildParticipant {
       return;
     }
 
-    for (AnalysisContext context : contexts.values()) {
+    for (AnalysisContext context : allContexts.values()) {
       context.discard();
     }
-    contexts.clear();
+    allContexts.clear();
     event.getProject().deleteMarkers(DART_PROBLEM_MARKER_TYPE, true, DEPTH_INFINITE);
   }
 
   /**
-   * Create a new {@link AnalysisContext}. This method is overridden during testing to create a mock
-   * context rather than a context that would actually perform analysis.
-   * 
-   * @param container the container (not {@code null}). This parameter is not used here, but exists
-   *          for testing to assert that the context is created for the correct container.
-   * @return the context (not {@code null})
+   * Visit resources, updating contexts and sources without performing any analysis
    */
-  protected AnalysisContext createContext(IContainer container) {
+  @Override
+  public boolean visit(IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
+    IResource resource = delta.getResource();
+    if (delta.getKind() == CHANGED) {
+      if (resource.getType() == FILE) {
+        return fileChanged(resource);
+      } else {
+        return containerChanged((IContainer) resource, delta);
+      }
+    } else {
+      if (resource.getType() == FILE) {
+        return fileRemoved(resource);
+      } else {
+        return containerRemoved((IContainer) resource);
+      }
+    }
+  }
+
+  /**
+   * Visit resources, updating contexts and sources without performing any analysis
+   */
+  @Override
+  public boolean visit(IResourceProxy proxy, IProgressMonitor monitor) throws CoreException {
+    if (proxy.getType() == FILE) {
+      return fileAdded(proxy);
+    } else {
+      return containerAdded((IContainer) proxy.requestResource());
+    }
+  }
+
+  /**
+   * Create a new {@link AnalysisContext} for the project associated with this builder. This method
+   * is overridden during testing to create a mock context rather than a context that would actually
+   * perform analysis.
+   * 
+   * @return the context not {@code null}
+   */
+  protected AnalysisContext createRootContext() {
     return AnalysisEngine.getInstance().createAnalysisContext();
   }
 
   /**
-   * Create an error marker for the specified resource. This method is overridden during testing to
-   * record which markers were requested rather than actually creating markers.
+   * Answer all context defined in the recevier. This is used by tests to assert the correct
+   * contexts have been created and sources updated
    * 
-   * @param resource the resource (not {@code null})
-   * @param error the error (not {@code null})
+   * @return a map of container to context (not {@code null}, contains no {@code null}s)
    */
-  protected void createMarker(IResource resource, AnalysisError error) {
+  protected HashMap<IContainer, AnalysisContext> getAllContexts() {
+    return allContexts;
+  }
 
-    ErrorCode errorCode = error.getErrorCode();
+  /**
+   * For any container with a pubspec file, create a new context if one does not exist. For any
+   * container with an associated context but no pubspec file, discard the context. Update the
+   * currently cached context based upon the container being visited.
+   * 
+   * @param container the container (not {@code null})
+   * @return {@code true} if the container's content should be visited
+   */
+  private boolean containerAdded(IContainer container) {
 
-    int severity;
-    switch (errorCode.getErrorSeverity()) {
-      case ERROR:
-        severity = IMarker.SEVERITY_ERROR;
-        break;
-      case WARNING:
-        severity = IMarker.SEVERITY_WARNING;
-        break;
-      default:
-        severity = IMarker.SEVERITY_INFO;
-        break;
+    // If the container is the project or the container has a pubspec file
+    // then create the context if it does not already exist
+    if (container.getType() == PROJECT || container.getFile(PUBSPEC_PATH).exists()) {
+      if (getOrCreateCurrentContext(container) == null) {
+        return false;
+      }
     }
 
-    int offset = error.getOffset();
-    int length = error.getLength();
-    // TODO (danrubel): calculate line number
-    int lineNumber = 1;
-    String errorMessage = error.getMessage();
-    String errorCodeMessage = errorCode.getMessage();
+    // Discard any existing context and update the current context
+    else {
+      discardExistingContext((IFolder) container);
+    }
+    return true;
+  }
 
-    try {
-      IMarker marker = resource.createMarker(DART_PROBLEM_MARKER_TYPE);
-      marker.setAttribute(IMarker.SEVERITY, severity);
-      marker.setAttribute(IMarker.CHAR_START, offset);
-      marker.setAttribute(IMarker.CHAR_END, offset + length);
-      marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
-      marker.setAttribute("errorCode", errorCodeMessage);
-      marker.setAttribute(IMarker.MESSAGE, errorMessage);
-    } catch (CoreException e) {
-      logError("Failed to create marker for " + resource + "\n   at " + offset + " message: "
-          + errorMessage, e);
+  /**
+   * If a pubspec file is added to a container, then create a new context if one does not exist. If
+   * a pubspec file is removed from a container, discard the context.
+   * 
+   * @param container the container (not {@code null})
+   * @param delta the resource delta describing the change
+   * @return {@code true} if the container's content should be visited
+   */
+  private boolean containerChanged(IContainer container, IResourceDelta delta) throws CoreException {
+    updateCurrentContext(container);
+    boolean isFolder = container.getType() == FOLDER;
+
+    for (IResourceDelta childDelta : delta.getAffectedChildren()) {
+      String name = childDelta.getResource().getName();
+
+      // Check for pubspec file changes indicating whether a context should be created or discarded
+      // The project level context exists regardless of a pubspec file
+      if (isFolder && name.equals(PUBSPEC_FILE_NAME)) {
+
+        // If the pubspec file was added, then create a context if it does not already exist
+        if (childDelta.getKind() == ADDED) {
+          if (getOrCreateCurrentContext(container) == null) {
+            return false;
+          }
+        }
+
+        // If the pubspec file was removed, then discard any existing context
+        else if (childDelta.getKind() == REMOVED) {
+          discardExistingContext((IFolder) container);
+        }
+      }
+
+      // Traverse changes in the "packages" directory
+      if (name.equals(PACKAGES_DIRECTORY_NAME)) {
+        updatePackages(childDelta);
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Discard any contexts associated with the specified container or any child containers. Discard
+   * any sources in the specified container associated with the current context.
+   * 
+   * @param container the container being removed (not {@code null})
+   * @return {@code false} indicating that the container's content should not be visited
+   */
+  private boolean containerRemoved(IContainer container) {
+
+    // If the project is removed... discard everything
+    if (container.getType() == PROJECT) {
+      allContexts.clear();
+      return false;
+    }
+
+    // Remove any existing contexts in the given container
+    Iterator<Entry<IContainer, AnalysisContext>> iter = allContexts.entrySet().iterator();
+    while (iter.hasNext()) {
+      Entry<IContainer, AnalysisContext> entry = iter.next();
+      if (equalsOrContains(container, entry.getKey())) {
+        entry.getValue().discard();
+        iter.remove();
+      }
+    }
+
+    updateCurrentContext(container);
+
+    // Delete the sources from the current context
+    IPath location = container.getLocation();
+    if (location == null) {
+      DartCore.logInformation("No location for " + container);
+      return false;
+    }
+    currentContext.directoryDeleted(location.toFile());
+
+    return false;
+  }
+
+  /**
+   * Discard the specified context associated with the specified folder and merge its source into
+   * the parent container's context. Ensure that {@link #currentContext} and
+   * {@link #currentContextContainer} are set to the context for analyzing the folder's sources.
+   * 
+   * @param folder the folder (not {@code null})
+   */
+  private void discardExistingContext(IFolder folder) {
+    AnalysisContext context = allContexts.remove(folder);
+    updateCurrentContext(folder.getParent());
+    if (context != null) {
+      currentContext.mergeAnalysisContext(context);
     }
   }
 
   /**
-   * Parse the specified resource in the given context
+   * Answer <code>true</code> if the container equals or contains the specified resource.
    * 
-   * @param context the context (not {@code null})
-   * @param resource the resource (not {@code null} and must be a *.dart file)
-   * @param changed {@code true} if the source has changed
+   * @param directory the directory (not <code>null</code>, absolute file)
+   * @param file the file (not <code>null</code>, absolute file)
    */
-  protected void parse(AnalysisContext context, final IResource resource, boolean changed) {
-    if (!resource.exists()) {
-      return;
-    }
-    IPath location = resource.getLocation();
-    if (location == null) {
-      return;
-    }
-    try {
-      Source source = context.getSourceFactory().forFile(location.toFile());
-      if (changed) {
-        context.sourceChanged(source);
+  private boolean equalsOrContains(IContainer container, IResource resource) {
+    IPath dirPath = container.getFullPath();
+    IPath filePath = resource.getFullPath();
+    return dirPath.equals(filePath) || dirPath.isPrefixOf(filePath);
+  }
+
+  /**
+   * If the file is a Dart source file, then determine the context containing the specified file and
+   * notify the context that the source is available.
+   * 
+   * @param proxy the file proxy (not {@code null})
+   */
+  private boolean fileAdded(IResourceProxy proxy) {
+    Source source;
+    if (DartCore.isDartLikeFileName(proxy.getName())) {
+      IResource resource = proxy.requestResource();
+      IPath location = resource.getLocation();
+      if (location != null) {
+        source = currentContext.getSourceFactory().forFile(location.toFile());
+        currentContext.sourceAvailable(source);
+      } else {
+        DartCore.logInformation("No location for " + resource);
       }
-      context.parse(source, new AnalysisErrorListener() {
-        @Override
-        public void onError(AnalysisError error) {
-          // TODO (danrubel): replace error listener with method that gets syntactic errors
-          createMarker(resource, error);
+    }
+    return false;
+  }
+
+  /**
+   * If the file is a Dart source file, then determine the context containing the specified file and
+   * notify the context that the source has changed.
+   * 
+   * @param resource the resource (not {@code null})
+   */
+  private boolean fileChanged(IResource resource) {
+    Source source;
+    if (DartCore.isDartLikeFileName(resource.getName())) {
+      IPath location = resource.getLocation();
+      if (location != null) {
+        source = currentContext.getSourceFactory().forFile(location.toFile());
+        currentContext.sourceChanged(source);
+      } else {
+        DartCore.logInformation("No location for " + resource);
+      }
+    }
+    return false;
+  }
+
+  private boolean fileRemoved(IResource resource) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  /**
+   * Get the context for the specified container, creating and initializing one as necessary. If an
+   * existing context is found or a new context successfully created, then {@link #currentContext}
+   * is set to that context and {@link #currentContextContainer} set to the specified container
+   * 
+   * @param container the container for which a context should exist
+   * @return the context or {@code null} if there was a problem creating it
+   */
+  private AnalysisContext getOrCreateCurrentContext(IContainer container) {
+    AnalysisContext context = allContexts.get(container);
+    // The context for the project is created in the build method and thus should not be null here
+    if (context == null) {
+      updateCurrentContext(container.getParent());
+      IPath location = container.getLocation();
+      if (location == null) {
+        DartCore.logInformation("No location for " + container);
+        return null;
+      }
+      context = initContext(currentContext.extractAnalysisContext(location.toFile()), container);
+      if (context == null) {
+        return null;
+      }
+      allContexts.put(container, context);
+    }
+    currentContext = context;
+    currentContextContainer = container;
+    return context;
+  }
+
+  /**
+   * Initialize the specified context for analyzing sources in the specified container.
+   * 
+   * @param context the context to be initialized (not {@code null})
+   * @param container the container of sources (not {@code null})
+   * @return the context or {@code null} if it could not be initialized
+   */
+  private AnalysisContext initContext(AnalysisContext context, IContainer container) {
+    IPath location = container.getLocation();
+    if (location == null) {
+      DartCore.logInformation("No location for " + container);
+      return null;
+    }
+    File applicationDirectory = location.toFile();
+
+    // Create the resolvers and the source factory
+
+    DartSdkManager sdkManager = com.google.dart.tools.core.model.DartSdkManager.getManager();
+    DartSdk sdk = new DartSdk(sdkManager.getSdk().getDirectory());
+    DartUriResolver dartResolver = new DartUriResolver(sdk);
+
+    FileUriResolver fileResolver = new FileUriResolver();
+
+    File packagesDir = new File(applicationDirectory, PACKAGES_DIRECTORY_NAME);
+    PackageUriResolver pkgResolver = new PackageUriResolver(packagesDir);
+
+    SourceFactory factory = new SourceFactory(dartResolver, pkgResolver, fileResolver);
+
+    // Create and cache the context
+    context.setSourceFactory(factory);
+    return context;
+  }
+
+  /**
+   * Update {@link #currentContext} to be the context in which sources in the specified container
+   * should be analyzed.
+   * 
+   * @param container the container (not {@code null})
+   */
+  private void updateCurrentContext(IContainer container) {
+
+    // Determine if the current context applies to the container
+    IContainer parent = container.getParent();
+    while (parent != null && !parent.equals(currentContextContainer)) {
+      parent = parent.getParent();
+    }
+
+    // If the current context does not apply, then find the context that does
+    if (parent == null) {
+      currentContextContainer = container;
+      while (true) {
+        currentContext = allContexts.get(currentContextContainer);
+        if (currentContext != null) {
+          break;
         }
-      });
-    } catch (AnalysisException e) {
-      // TODO (danrubel): create a marker and log an exception
+        currentContextContainer = currentContextContainer.getParent();
+      }
+    }
+  }
+
+  /**
+   * Traverse changes in the "packages" folder and update the {@link #currentContext}.
+   * 
+   * @param packagesDelta the delta describing the changes (not {@code null})
+   */
+  private void updatePackages(IResourceDelta packagesDelta) throws CoreException {
+    final boolean[] sourcesAdded = {false};
+    packagesDelta.accept(new IResourceDeltaVisitor() {
+      @Override
+      public boolean visit(IResourceDelta delta) throws CoreException {
+
+        // If a folder or *.dart file is added, clear the resolution
+        if (delta.getKind() == ADDED) {
+          IResource resource = delta.getResource();
+          if (resource.getType() == FOLDER || DartCore.isDartLikeFileName(resource.getName())) {
+            sourcesAdded[0] = true;
+          }
+          return false;
+        }
+
+        // If a *.dart file changes, then update the context
+        else if (delta.getKind() == CHANGED) {
+          IResource resource = delta.getResource();
+          if (resource.getType() == FILE && DartCore.isDartLikeFileName(resource.getName())) {
+            IPath location = resource.getLocation();
+            if (location == null) {
+              DartCore.logInformation("No location for " + resource);
+              return false;
+            }
+            Source source = currentContext.getSourceFactory().forFile(location.toFile());
+            currentContext.sourceChanged(source);
+          }
+        }
+
+        // If a folder or *.dart file is removed, then update the context
+        if (delta.getKind() == REMOVED) {
+          IResource resource = delta.getResource();
+          if (resource.getType() == FOLDER) {
+            IPath location = resource.getLocation();
+            if (location == null) {
+              DartCore.logInformation("No location for " + resource);
+              return false;
+            }
+            currentContext.directoryDeleted(location.toFile());
+          } else if (DartCore.isDartLikeFileName(resource.getName())) {
+            IPath location = resource.getLocation();
+            if (location == null) {
+              DartCore.logInformation("No location for " + resource);
+              return false;
+            }
+            Source source = currentContext.getSourceFactory().forFile(location.toFile());
+            currentContext.sourceDeleted(source);
+          }
+        }
+
+        return true;
+      }
+    });
+    if (sourcesAdded[0]) {
+      currentContext.clearResolution();
     }
   }
 }

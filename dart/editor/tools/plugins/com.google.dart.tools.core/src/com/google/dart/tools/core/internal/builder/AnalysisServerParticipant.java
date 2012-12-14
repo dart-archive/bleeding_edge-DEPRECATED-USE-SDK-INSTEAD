@@ -153,26 +153,4 @@ public class AnalysisServerParticipant implements BuildParticipant, BuildVisitor
     }
     return false;
   }
-
-  /**
-   * If the resource is in the "packages" directory hierarchy, then return the application directory
-   * containing that "packages" directory, otherwise return {@code null}.
-   * 
-   * @param resource the resource (not {@code null})
-   * @return the resource or the application directory resource (not {@code null})
-   */
-  private IResource getPackagesParent(IResource resource) {
-    IPath fullPath = resource.getFullPath();
-    int segmentCount = fullPath.segmentCount();
-    for (int index = 0; index < segmentCount; index++) {
-      if (fullPath.segment(index).equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
-        for (int count = index > 0 ? index : 1; count < segmentCount; count++) {
-          ;
-        }
-        resource = resource.getParent();
-        return resource;
-      }
-    }
-    return null;
-  }
 }

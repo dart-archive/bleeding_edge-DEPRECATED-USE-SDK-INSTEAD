@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IPluginDescriptor;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.content.IContentTypeMatcher;
 
 import java.net.URI;
@@ -118,12 +119,12 @@ public class MockProject extends MockContainer implements IProject {
 
   @Override
   public IFile getFile(String name) {
-    return null;
+    return getFile(new Path(name));
   }
 
   @Override
   public IFolder getFolder(String name) {
-    return null;
+    return getFolder(new Path(name));
   }
 
   @Override
