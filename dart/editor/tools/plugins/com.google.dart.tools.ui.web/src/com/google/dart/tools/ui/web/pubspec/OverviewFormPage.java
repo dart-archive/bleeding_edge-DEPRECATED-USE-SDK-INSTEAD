@@ -15,6 +15,8 @@
 package com.google.dart.tools.ui.web.pubspec;
 
 import com.google.dart.tools.core.generator.DartIdentifierUtil;
+import com.google.dart.tools.core.pub.IModelListener;
+import com.google.dart.tools.core.pub.PubspecModel;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 

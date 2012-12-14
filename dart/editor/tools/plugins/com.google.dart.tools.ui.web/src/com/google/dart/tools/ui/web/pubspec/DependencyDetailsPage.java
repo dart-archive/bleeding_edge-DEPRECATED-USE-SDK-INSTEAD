@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.web.pubspec;
 
+import com.google.dart.tools.core.pub.DependencyObject;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 

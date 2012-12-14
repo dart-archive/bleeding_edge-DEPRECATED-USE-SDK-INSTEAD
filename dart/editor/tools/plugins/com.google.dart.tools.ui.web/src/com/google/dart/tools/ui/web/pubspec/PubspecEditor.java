@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.ui.web.pubspec;
 
+import com.google.dart.tools.core.pub.PubspecModel;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 import com.google.dart.tools.ui.web.yaml.YamlEditor;

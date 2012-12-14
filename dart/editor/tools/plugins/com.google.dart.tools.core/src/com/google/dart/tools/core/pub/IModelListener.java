@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.tools.ui.web.pubspec;
+package com.google.dart.tools.core.pub;
 
 /**
  * A listener for changes to the {@link PubspecModel}

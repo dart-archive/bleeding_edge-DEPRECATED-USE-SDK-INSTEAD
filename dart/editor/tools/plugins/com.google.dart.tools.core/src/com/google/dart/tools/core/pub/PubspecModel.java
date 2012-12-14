@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.web.pubspec;
+package com.google.dart.tools.core.pub;
 
 import com.google.dart.tools.core.utilities.yaml.PubYamlObject;
 import com.google.dart.tools.core.utilities.yaml.SnakeYamlUtils;

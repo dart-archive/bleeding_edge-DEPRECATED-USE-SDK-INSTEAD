@@ -14,6 +14,9 @@
 
 package com.google.dart.tools.ui.web.pubspec;
 
+import com.google.dart.tools.core.pub.DependencyObject;
+import com.google.dart.tools.core.pub.IModelListener;
+import com.google.dart.tools.core.pub.PubspecModel;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
