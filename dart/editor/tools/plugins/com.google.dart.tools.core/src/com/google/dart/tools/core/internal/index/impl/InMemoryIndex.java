@@ -277,7 +277,8 @@ public class InMemoryIndex implements Index {
         element = ((CompilationUnitImpl) element).getLibrary();
       }
       if (!(element instanceof DartLibrary)) {
-        DartCore.logError("Expected library to be associated with " + libraryFile);
+        DartCore.logError("Expected library to be associated with \"" + libraryFile
+            + "\" but found " + (element == null ? "null" : element.getClass().getName()));
         return;
       }
       library = (DartLibraryImpl) element;
