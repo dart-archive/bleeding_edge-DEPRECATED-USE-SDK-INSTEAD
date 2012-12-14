@@ -64,6 +64,17 @@ public class ResourceUtil {
     }
   };
 
+  public static URI getCanonicalUri(URI uri) {
+    if (uri == null) {
+      return null;
+    }
+    try {
+      return new File(uri).getCanonicalFile().toURI();
+    } catch (IOException exception) {
+    }
+    return uri;
+  }
+
   /**
    * Return the file resource associated with the given file, or <code>null</code> if the file does
    * not correspond to an existing file resource.
@@ -231,17 +242,6 @@ public class ResourceUtil {
 
   private static URI getCanonicalUri(IResource resource) {
     return getCanonicalUri(resource.getLocationURI());
-  }
-
-  private static URI getCanonicalUri(URI uri) {
-    if (uri == null) {
-      return null;
-    }
-    try {
-      return new File(uri).getCanonicalFile().toURI();
-    } catch (IOException exception) {
-    }
-    return uri;
   }
 
   /**

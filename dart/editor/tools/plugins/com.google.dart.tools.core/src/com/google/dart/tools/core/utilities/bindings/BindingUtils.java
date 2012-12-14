@@ -41,6 +41,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
@@ -534,6 +535,8 @@ public class BindingUtils {
     }
     URI libraryUri = URIUtilities.safelyResolveDartUri(librarySource.getUri());
     URI targetUri = URIUtilities.safelyResolveDartUri(libraryBinding.getLibraryUnit().getSource().getUri());
+    libraryUri = ResourceUtil.getCanonicalUri(libraryUri);
+    targetUri = ResourceUtil.getCanonicalUri(targetUri);
     HashSet<URI> visitedLibraries = new HashSet<URI>();
     return findLibrary(library, libraryUri, targetUri, visitedLibraries);
     // TODO(brianwilkerson) If we could not find the library it might be because we could not access
@@ -1144,8 +1147,10 @@ public class BindingUtils {
     try {
       for (DartElement child : project.getChildren()) {
         if (child instanceof DartLibrary) {
-          String libraryUri = ((DartLibraryImpl) child).getLibrarySourceFile().getUri().toString();
-          if (targetUri.equals(libraryUri)) {
+          URI libraryUri = ((DartLibraryImpl) child).getLibrarySourceFile().getUri();
+          URI libraryUriCanonical = ResourceUtil.getCanonicalUri(libraryUri);
+          String libraryUriCanonicalString = libraryUriCanonical.toString();
+          if (libraryUriCanonicalString.equals(targetUri)) {
             return (DartLibrary) child;
           }
         }
