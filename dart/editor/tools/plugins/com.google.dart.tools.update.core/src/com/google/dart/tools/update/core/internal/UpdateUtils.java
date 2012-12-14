@@ -200,7 +200,7 @@ public class UpdateUtils {
    * @param monitor the progress monitor
    */
   public static void deleteDirectory(File dir, IProgressMonitor monitor) {
-    if (dir == null || !dir.exists()) {
+    if (dir == null || !dir.isDirectory()) {
       return;
     }
     for (File file : dir.listFiles()) {
