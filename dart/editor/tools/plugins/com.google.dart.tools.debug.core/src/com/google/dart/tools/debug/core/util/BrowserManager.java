@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.core.DebugUIHelper;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugTarget;
 import com.google.dart.tools.debug.core.util.ListeningStream.StreamListener;
 import com.google.dart.tools.debug.core.webkit.ChromiumConnector;
@@ -182,7 +183,7 @@ public class BrowserManager {
           dartiumOutput);
     }
 
-    BrowserHelper.activateApplication(dartium);
+    DebugUIHelper.getHelper().activateApplication(dartium, "Chromium");
 
     timer.stopTask();
     timer.stopTimer();

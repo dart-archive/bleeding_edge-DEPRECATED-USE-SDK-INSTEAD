@@ -21,11 +21,19 @@ import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 
+import java.io.File;
+
 /**
  * A helper class to allow core classes to communicate with the UI.
  */
 public abstract class DebugUIHelper {
   private static class DefaultDebugUIHelper extends DebugUIHelper {
+    @Override
+    public void activateApplication(File application, String name) {
+      // no-op
+
+    }
+
     @Override
     public void showStatusLineMessage(String message) {
       // no-op
@@ -80,6 +88,8 @@ public abstract class DebugUIHelper {
   protected DebugUIHelper() {
 
   }
+
+  public abstract void activateApplication(File application, String name);
 
   public abstract void showStatusLineMessage(String message);
 
