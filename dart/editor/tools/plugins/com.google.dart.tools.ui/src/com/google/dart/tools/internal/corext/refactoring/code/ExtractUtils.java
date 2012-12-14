@@ -58,6 +58,15 @@ import java.util.List;
 public class ExtractUtils {
 
   /**
+   * Describes where to insert new directive or top-level declaration at the top of file.
+   */
+  public class TopInsertDesc {
+    public int offset;
+    public boolean insertEmptyLineBefore;
+    public boolean insertEmptyLineAfter;
+  }
+
+  /**
    * The default end-of-line marker for the current platform. This value should (almost) never be
    * used directly. The end-of-line marker should always be queried from {@link Buffer} because it
    * can differ from the platform default in some situations.
@@ -258,8 +267,8 @@ public class ExtractUtils {
   private final CompilationUnit unit;
 
   private final Buffer buffer;
-  private final DartUnit unitNode;
 
+  private final DartUnit unitNode;
   private String endOfLine;
 
   public ExtractUtils(CompilationUnit unit) throws DartModelException {
@@ -551,6 +560,63 @@ public class ExtractUtils {
       return nextOffset;
     }
     return tokens.get(0).getOffset();
+  }
+
+  /**
+   * @return {@link TopInsertDesc}, description where to insert new directive or top-level
+   *         declaration at the top of file.
+   */
+  public TopInsertDesc getTopInsertDesc() {
+    // skip leading line comments
+    int offset = 0;
+    boolean insertEmptyLineBefore = false;
+    boolean insertEmptyLineAfter = false;
+    String source = getText();
+    // skip hash-bang
+    if (offset < source.length() - 2) {
+      String linePrefix = getText(offset, 2);
+      if (linePrefix.equals("#!")) {
+        insertEmptyLineBefore = true;
+        offset = getLineNext(offset);
+        // skip empty lines to first line comment
+        int emptyOffset = offset;
+        while (emptyOffset < source.length() - 2) {
+          int nextLineOffset = getLineNext(emptyOffset);
+          String line = source.substring(emptyOffset, nextLineOffset);
+          if (line.trim().isEmpty()) {
+            emptyOffset = nextLineOffset;
+            continue;
+          } else if (line.startsWith("//")) {
+            offset = emptyOffset;
+            break;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    // skip line comments
+    while (offset < source.length() - 2) {
+      String linePrefix = getText(offset, 2);
+      if (linePrefix.equals("//")) {
+        insertEmptyLineBefore = true;
+        offset = getLineNext(offset);
+      } else {
+        break;
+      }
+    }
+    // determine if empty line required
+    int nextLineOffset = getLineNext(offset);
+    String insertLine = source.substring(offset, nextLineOffset);
+    if (!insertLine.trim().isEmpty()) {
+      insertEmptyLineAfter = true;
+    }
+    // fill TopInsertDesc
+    TopInsertDesc desc = new TopInsertDesc();
+    desc.offset = offset;
+    desc.insertEmptyLineBefore = insertEmptyLineBefore;
+    desc.insertEmptyLineAfter = insertEmptyLineAfter;
+    return desc;
   }
 
   public CompilationUnit getUnit() {

@@ -422,6 +422,88 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
     assertTrue(file.exists());
   }
 
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7083
+   */
+  public void test_importLibrary_afterHashBang() throws Exception {
+    proposalNamePrefix = "Import library";
+    setTestUnitContent(
+        "#!/usr/bin/dart",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  min(1, 2);",
+        "}",
+        "");
+    assertQuickFix(
+        "#!/usr/bin/dart",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "",
+        "import 'dart:math';",
+        "",
+        "main() {",
+        "  min(1, 2);",
+        "}",
+        "");
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7083
+   */
+  public void test_importLibrary_afterHashBang2() throws Exception {
+    proposalNamePrefix = "Import library";
+    setTestUnitContent(
+        "#!/usr/bin/dart",
+        "",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  min(1, 2);",
+        "}",
+        "");
+    assertQuickFix(
+        "#!/usr/bin/dart",
+        "",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "",
+        "import 'dart:math';",
+        "",
+        "main() {",
+        "  min(1, 2);",
+        "}",
+        "");
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7083
+   */
+  public void test_importLibrary_afterHashBang3() throws Exception {
+    proposalNamePrefix = "Import library";
+    setTestUnitContent(
+        "#!/usr/bin/dart",
+        " ",
+        "  ",
+        "main() {",
+        "  min(1, 2);",
+        "}",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "");
+    assertQuickFix(
+        "#!/usr/bin/dart",
+        "",
+        "import 'dart:math';",
+        " ",
+        "  ",
+        "main() {",
+        "  min(1, 2);",
+        "}",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "");
+  }
+
   public void test_importLibrary_withField_fromSDK() throws Exception {
     proposalNamePrefix = "Import library";
     setTestUnitContent(
@@ -432,8 +514,10 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "process(x) {}",
         "");
     assertQuickFix(
-        "import 'dart:math';",
         "// filler filler filler filler filler filler filler filler filler filler",
+        "",
+        "import 'dart:math';",
+        "",
         "main() {",
         "  process(PI);",
         "}",
@@ -454,8 +538,10 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "}",
         "");
     assertQuickFix(
-        "import 'Lib.dart';",
         "// filler filler filler filler filler filler filler filler filler filler",
+        "",
+        "import 'Lib.dart';",
+        "",
         "main() {",
         "  test();",
         "}",
@@ -471,8 +557,10 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "}",
         "");
     assertQuickFix(
-        "import 'dart:math';",
         "// filler filler filler filler filler filler filler filler filler filler",
+        "",
+        "import 'dart:math';",
+        "",
         "main() {",
         "  min(1, 2);",
         "}",
@@ -556,8 +644,10 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "}",
         "");
     assertQuickFix(
-        "import 'dart:html';",
         "// filler filler filler filler filler filler filler filler filler filler",
+        "",
+        "import 'dart:html';",
+        "",
         "main() {",
         "  TableElement t = null;",
         "}",
@@ -642,8 +732,10 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "}",
         "");
     assertQuickFix(
-        "import 'Lib.dart';",
         "// filler filler filler filler filler filler filler filler filler filler",
+        "",
+        "import 'Lib.dart';",
+        "",
         "main() {",
         "  Test t = null;",
         "}",
@@ -659,8 +751,10 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         "}",
         "");
     assertQuickFix(
-        "import 'dart:json';",
         "// filler filler filler filler filler filler filler filler filler filler",
+        "",
+        "import 'dart:json';",
+        "",
         "main() {",
         "  var foo = JSON.parse('{\"foo\":1}');",
         "}",

@@ -67,10 +67,10 @@ import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.codemanipulation.StubUtility;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
+import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils.TopInsertDesc;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
@@ -438,16 +438,21 @@ public class QuickFixProcessor implements IQuickFixProcessor {
       range = SourceRangeFactory.forStartEnd(0, 0);
       prefix = "";
       suffix = eol;
+      ExtractUtils libraryUtils = new ExtractUtils(libraryUnit);
       // after last directive in library
-      {
-        DartUnit libraryUnitNode = DartCompilerUtilities.parseUnit(libraryUnit);
-        for (DartDirective directive : libraryUnitNode.getDirectives()) {
-          if (directive instanceof DartLibraryDirective || directive instanceof DartImportDirective) {
-            range = SourceRangeFactory.forEndLength(directive, 0);
-            prefix = eol;
-            suffix = "";
-          }
+      for (DartDirective directive : libraryUtils.getUnitNode().getDirectives()) {
+        if (directive instanceof DartLibraryDirective || directive instanceof DartImportDirective) {
+          range = SourceRangeFactory.forEndLength(directive, 0);
+          prefix = eol;
+          suffix = "";
         }
+      }
+      // if still beginning of file, skip shebang and line comments
+      if (range.getOffset() == 0) {
+        TopInsertDesc desc = libraryUtils.getTopInsertDesc();
+        range = SourceRangeFactory.forStartLength(desc.offset, 0);
+        prefix = desc.insertEmptyLineBefore ? eol : "";
+        suffix = eol + (desc.insertEmptyLineAfter ? eol : "");
       }
     }
     // insert new import

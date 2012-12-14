@@ -23,6 +23,7 @@ import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
+import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils.TopInsertDesc;
 
 import org.eclipse.text.edits.TextEdit;
 
@@ -42,38 +43,18 @@ public class Migrate_1M1_library_CleanUp extends AbstractMigrateCleanUp {
     if (library != null) {
       String libraryName = library.getLibraryDirectiveName();
       if (libraryName != null) {
-        // prepare position of "part of"
-        int insertOffset = 0;
-        boolean insertEmptyLineBefore = false;
-        boolean insertEmptyLineAfter = false;
-        {
-          String source = utils.getText();
-          while (insertOffset < source.length() - 2) {
-            if (utils.getText(insertOffset, 2).equals("//")) {
-              insertEmptyLineBefore = true;
-              insertOffset = utils.getLineNext(insertOffset);
-            } else {
-              break;
-            }
-          }
-          // determine if empty line required
-          int nextLineOffset = utils.getLineNext(insertOffset);
-          String insertLine = source.substring(insertOffset, nextLineOffset);
-          if (!insertLine.trim().isEmpty()) {
-            insertEmptyLineAfter = true;
-          }
-        }
+        TopInsertDesc insertDesc = utils.getTopInsertDesc();
         // do insert
         libraryName = mapLibraryName(libraryName);
         String eol = utils.getEndOfLine();
         String source = "part of " + libraryName + ";" + eol;
-        if (insertEmptyLineBefore) {
+        if (insertDesc.insertEmptyLineBefore) {
           source = eol + source;
         }
-        if (insertEmptyLineAfter) {
+        if (insertDesc.insertEmptyLineAfter) {
           source += eol;
         }
-        edit = createReplaceEdit(SourceRangeFactory.forStartLength(insertOffset, 0), source);
+        edit = createReplaceEdit(SourceRangeFactory.forStartLength(insertDesc.offset, 0), source);
       }
     }
     return edit;
