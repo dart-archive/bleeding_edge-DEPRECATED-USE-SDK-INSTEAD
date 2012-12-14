@@ -199,15 +199,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       return allowCollapsing && collapseImportContainer;
     }
 
-//    /**
-//     * Returns <code>true</code> if inner types should be collapsed.
-//     * 
-//     * @return <code>true</code> if inner types should be collapsed
-//     */
-//    public boolean collapseInnerTypes() {
-//      return allowCollapsing && collapseInnerTypes;
-//    }
-
     /**
      * Returns <code>true</code> if methods should be collapsed.
      * 
@@ -217,7 +208,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       return allowCollapsing && collapseMembers;
     }
 
-    boolean hasFirstType() {
+    boolean hasFirstRef() {
       return firstRef != null;
     }
 
@@ -252,7 +243,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     }
 
     private void setFirstRef(SourceReference type) {
-      if (hasFirstType()) {
+      if (hasFirstRef()) {
         throw new IllegalStateException();
       }
       firstRef = type;
@@ -973,7 +964,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       }
 
       List<IRegion> regions = new ArrayList<IRegion>();
-      if (!ctx.hasFirstType()) {
+      if (!ctx.hasFirstRef()) {
         ctx.setFirstRef(reference);
         IRegion headerComment = computeHeaderComment(ctx);
         if (headerComment != null) {
