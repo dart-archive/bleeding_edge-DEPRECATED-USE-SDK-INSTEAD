@@ -35,11 +35,6 @@ import java.util.ArrayList;
 
 public class ParserTestCase extends EngineTestCase {
   /**
-   * An empty array of classes used as parameter types for zero-argument methods.
-   */
-  private static final Class<?>[] EMPTY_PARAMETERS = new Class[0];
-
-  /**
    * An empty array of objects used as arguments to zero-argument methods.
    */
   private static final Object[] EMPTY_ARGUMENTS = new Object[0];
@@ -52,16 +47,14 @@ public class ParserTestCase extends EngineTestCase {
    * source before the parse method is invoked.
    * 
    * @param methodName the name of the parse method that should be invoked to parse the source
-   * @param classes the types of the arguments to the method
    * @param objects the values of the arguments to the method
    * @param source the source to be parsed by the parse method
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    * @throws AssertionFailedError if the result is {@code null} or if any errors are produced
    */
-  public static <E> E parse(String methodName, Class<?>[] classes, Object[] objects, String source)
-      throws Exception {
-    return parse(methodName, classes, objects, source, new AnalysisError[0]);
+  public static <E> E parse(String methodName, Object[] objects, String source) throws Exception {
+    return parse(methodName, objects, source, new AnalysisError[0]);
   }
 
   /**
@@ -72,7 +65,6 @@ public class ParserTestCase extends EngineTestCase {
    * source before the parse method is invoked.
    * 
    * @param methodName the name of the parse method that should be invoked to parse the source
-   * @param classes the types of the arguments to the method
    * @param objects the values of the arguments to the method
    * @param source the source to be parsed by the parse method
    * @param errorCodes the error codes of the errors that should be generated
@@ -81,10 +73,10 @@ public class ParserTestCase extends EngineTestCase {
    * @throws AssertionFailedError if the result is {@code null} or the errors produced while
    *           scanning and parsing the source do not match the expected errors
    */
-  public static <E> E parse(String methodName, Class<?>[] classes, Object[] objects, String source,
+  public static <E> E parse(String methodName, Object[] objects, String source,
       AnalysisError... errors) throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
-    E result = invokeParserMethod(methodName, classes, objects, source, listener);
+    E result = invokeParserMethod(methodName, objects, source, listener);
     listener.assertErrors(errors);
     return result;
   }
@@ -97,7 +89,6 @@ public class ParserTestCase extends EngineTestCase {
    * source before the parse method is invoked.
    * 
    * @param methodName the name of the parse method that should be invoked to parse the source
-   * @param classes the types of the arguments to the method
    * @param objects the values of the arguments to the method
    * @param source the source to be parsed by the parse method
    * @param errorCodes the error codes of the errors that should be generated
@@ -106,10 +97,10 @@ public class ParserTestCase extends EngineTestCase {
    * @throws AssertionFailedError if the result is {@code null} or the errors produced while
    *           scanning and parsing the source do not match the expected errors
    */
-  public static <E> E parse(String methodName, Class<?>[] classes, Object[] objects, String source,
+  public static <E> E parse(String methodName, Object[] objects, String source,
       ErrorCode... errorCodes) throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
-    E result = invokeParserMethod(methodName, classes, objects, source, listener);
+    E result = invokeParserMethod(methodName, objects, source, listener);
     listener.assertErrors(errorCodes);
     return result;
   }
@@ -130,7 +121,7 @@ public class ParserTestCase extends EngineTestCase {
    */
   public static <E> E parse(String methodName, String source, ErrorCode... errorCodes)
       throws Exception {
-    return parse(methodName, EMPTY_PARAMETERS, EMPTY_ARGUMENTS, source, errorCodes);
+    return parse(methodName, EMPTY_ARGUMENTS, source, errorCodes);
   }
 
   /**
@@ -209,7 +200,6 @@ public class ParserTestCase extends EngineTestCase {
    * source before the method is invoked.
    * 
    * @param methodName the name of the method that should be invoked
-   * @param classes the types of the arguments to the method
    * @param objects the values of the arguments to the method
    * @param source the source to be processed by the parse method
    * @param listener the error listener that will be used for both scanning and parsing
@@ -219,12 +209,8 @@ public class ParserTestCase extends EngineTestCase {
    *           scanning and parsing the source do not match the expected errors
    */
   @SuppressWarnings("unchecked")
-  protected static <E> E invokeParserMethod(String methodName, Class<?>[] classes,
-      Object[] objects, String source, GatheringErrorListener listener) throws Exception {
-    if (classes.length != objects.length) {
-      fail("Invalid test: number of parameters specified (" + classes.length
-          + ") does not match number of arguments provided (" + objects.length + ")");
-    }
+  protected static <E> E invokeParserMethod(String methodName, Object[] objects, String source,
+      GatheringErrorListener listener) throws Exception {
     //
     // Scan the source.
     //
@@ -238,8 +224,7 @@ public class ParserTestCase extends EngineTestCase {
     Field currentTokenField = Parser.class.getDeclaredField("currentToken");
     currentTokenField.setAccessible(true);
     currentTokenField.set(parser, tokenStream);
-    Method parseMethod = Parser.class.getDeclaredMethod(methodName, classes);
-    parseMethod.setAccessible(true);
+    Method parseMethod = findParserMethod(methodName, objects.length);
     Object result = parseMethod.invoke(parser, objects);
     //
     // Partially test the results.
@@ -264,7 +249,23 @@ public class ParserTestCase extends EngineTestCase {
    */
   protected static <E> E invokeParserMethod(String methodName, String source,
       GatheringErrorListener listener) throws Exception {
-    return invokeParserMethod(methodName, EMPTY_PARAMETERS, EMPTY_ARGUMENTS, source, listener);
+    return invokeParserMethod(methodName, EMPTY_ARGUMENTS, source, listener);
+  }
+
+  /**
+   * @return the {@link Method} with given name in {@link Parser}, not <code>null</code>. Fails if
+   *         not found.
+   */
+  private static Method findParserMethod(String name, int numParameters) {
+    Method[] methods = Parser.class.getDeclaredMethods();
+    for (Method method : methods) {
+      if (method.getName().equals(name) && method.getParameterTypes().length == numParameters) {
+        method.setAccessible(true);
+        return method;
+      }
+    }
+    fail("Cannot find method Parser." + name);
+    return null;
   }
 
   /**
