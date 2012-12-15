@@ -15,7 +15,7 @@ var html = document.body.innerHTML;
 		html = html.replace(/name="test.*?"/g, 'name="test' + num + '"');
 		html = html.replace(/class="foo.*?"/g, 'class="foo test' + num + ' bar"');
 		var div = document.createElement("div");
-		div.innerHtml = html;
+		div.innerHTML = html;
 		document.body.appendChild( div );
 	});
 
