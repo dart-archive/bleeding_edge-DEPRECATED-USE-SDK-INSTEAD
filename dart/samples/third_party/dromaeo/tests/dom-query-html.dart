@@ -1,4 +1,4 @@
-library dom_query;
+library dromaeo;
 import 'dart:html';
 import '../common/common.dart';
 import 'dart:math' as Math;

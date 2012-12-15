@@ -1,3 +1,5 @@
+part of dromaeo;
+
 typedef void Test();
 typedef void Operation();
 typedef void Reporter(Map<String, Result> results);

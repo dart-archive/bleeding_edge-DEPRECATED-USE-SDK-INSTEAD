@@ -1,3 +1,5 @@
+part of dromaeo;
+
 class Result {
   int get runs { return _sorted.length; }
 

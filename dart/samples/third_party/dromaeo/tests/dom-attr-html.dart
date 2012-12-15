@@ -1,4 +1,4 @@
-library dom_attr;
+library dromaeo;
 import 'dart:html';
 import 'dart:json';
 import 'dart:math' as Math;
