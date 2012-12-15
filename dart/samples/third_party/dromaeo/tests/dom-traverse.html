@@ -8,14 +8,14 @@ startTest("dom-traverse");
 // Try to force real results
 var ret, tmp;
 var num = 40;
-var html = document.body.innerHtml;
+var html = document.body.innerHTML;
 
 	prep(function(){
 		html = html.replace(/id="test.*?"/g, 'id="test' + num + '"');
 		html = html.replace(/name="test.*?"/g, 'name="test' + num + '"');
 		html = html.replace(/class="foo.*?"/g, 'class="foo test' + num + ' bar"');
 		var div = document.createElement("div");
-		div.innerHtml = html;
+		div.innerHTML = html;
 		document.body.appendChild( div );
 	});
 

@@ -8,7 +8,7 @@ startTest("dom-query");
 // Try to force real results
 var ret, tmp;
 var num = 40;
-var html = document.body.innerHtml;
+var html = document.body.innerHTML;
 
 	prep(function(){
 		html = html.replace(/id="test(\w).*?"/g, 'id="test$1' + num + '"');
