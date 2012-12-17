@@ -25,6 +25,7 @@ import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DeployConsolePatternMatcher;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.internal.preferences.DartKeyBindingPersistence;
+import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.IFileTree;
@@ -78,6 +79,7 @@ import org.eclipse.ui.internal.ide.IDEWorkbenchMessages;
 import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
 import org.eclipse.ui.internal.ide.undo.WorkspaceUndoMonitor;
 import org.eclipse.ui.keys.IBindingService;
+import org.eclipse.ui.statushandlers.AbstractStatusHandler;
 import org.osgi.framework.Bundle;
 
 import java.net.URL;
@@ -126,6 +128,11 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
    */
   private DelayedEventsProcessor delayedEventsProcessor;
 
+  /**
+   * The workbench error handler.
+   */
+  private AbstractStatusHandler workbenchErrorHandler;
+
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
   private MessageConsole console;
 
@@ -163,6 +170,14 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
   @Override
   public String getInitialWindowPerspectiveId() {
     return PERSPECTIVE_ID;
+  }
+
+  @Override
+  public synchronized AbstractStatusHandler getWorkbenchErrorHandler() {
+    if (workbenchErrorHandler == null) {
+      workbenchErrorHandler = new DartWorkbenchErrorHandler();
+    }
+    return workbenchErrorHandler;
   }
 
   @Override
@@ -215,7 +230,12 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
   @Override
   public void postStartup() {
     try {
+
       refreshFromLocal();
+
+      // close all editors whose file contents have been deleted
+      EditorUtility.closeOrphanedEditors();
+
       // TODO remove or comment in the following code: activate a proxy service?
       //activateProxyService();
 
