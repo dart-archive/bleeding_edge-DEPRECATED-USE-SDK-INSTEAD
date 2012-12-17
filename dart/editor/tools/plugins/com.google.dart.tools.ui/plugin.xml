@@ -3380,39 +3380,6 @@
          </enabledWhen>
       </handler>
    </extension>
-   <extension
-         point="org.eclipse.ui.menus">
-      <menuContribution
-            allPopups="false"
-            locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
-         <command
-               commandId="com.google.dart.tools.ui.commands.pubInstall"
-               label="Pub Install"
-               style="push"
-               tooltip="Run pub install">
-                 <visibleWhen
-                  checkEnabled="false">
-                  <with
-                     variable="selection">
-                      <and>
-                          <count
-                                value="1">
-                          </count>
-                       <iterate>
-                        <adapt
-                             type="org.eclipse.core.resources.IResource">
-                          <test
-                                property="org.eclipse.core.resources.name"
-                                value="pubspec.yaml">
-                          </test>
-                       </adapt>
-                     </iterate>     
-                 </and>
-               </with>
-            </visibleWhen>
-         </command>
-      </menuContribution>
-   </extension>
 
     <extension
         point="org.eclipse.compare.contentMergeViewers">

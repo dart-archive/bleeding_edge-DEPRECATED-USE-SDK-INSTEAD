@@ -23,6 +23,7 @@ import com.google.dart.tools.ui.actions.DeleteAction;
 import com.google.dart.tools.ui.actions.OpenAsTextAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
+import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.internal.actions.CleanUpAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
@@ -177,6 +178,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private HideProjectAction hideContainerAction;
 
   private UndoRedoActionGroup undoRedoActionGroup;
+  private RunPubAction pubUpdateAction;
+  private RunPubAction pubInstallAction;
 
   private IPreferenceStore preferences;
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
@@ -456,6 +459,12 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     manager.add(new Separator("additions"));
 
+    if (selection.size() == 1 && selection.getFirstElement() instanceof IFile
+        && isPubSpecFile(selection.getFirstElement())) {
+      manager.add(pubInstallAction);
+      manager.add(pubUpdateAction);
+    }
+
     if (isPackagesDir) {
       manager.add(new Separator());
       manager.add(new OpenPubDocs());
@@ -615,8 +624,12 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     if (!(file instanceof IResource)) {
       return false;
     }
-    String name = ((IResource) file).getName();
-    return name.equals(DartCore.PUBSPEC_FILE_NAME) || name.equals(DartCore.PUBSPEC_LOCK_FILE_NAME);
+    return isPubSpecFile(file)
+        || ((IResource) file).getName().equals(DartCore.PUBSPEC_LOCK_FILE_NAME);
+  }
+
+  private boolean isPubSpecFile(Object file) {
+    return ((IResource) file).getName().equals(DartCore.PUBSPEC_FILE_NAME);
   }
 
   private void makeActions() {
@@ -668,5 +681,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     openAsTextAction = new OpenAsTextAction(getSite().getPage());
     treeViewer.addSelectionChangedListener(openAsTextAction);
+
+    pubUpdateAction = RunPubAction.createPubUpdateAction(getSite().getWorkbenchWindow());
+    pubInstallAction = RunPubAction.createPubInstallAction(getSite().getWorkbenchWindow());
   }
 }
