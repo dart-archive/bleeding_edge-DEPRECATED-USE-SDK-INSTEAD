@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
+
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -132,6 +134,9 @@ public class DeleteResourceAction extends SelectionListenerAction {
     final IResource[] resources = getSelectedResourcesArray();
 
     if (LTKLauncher.openDeleteWizard(getStructuredSelection())) {
+
+      EditorUtility.closeOrphanedEditors();
+
       return;
     }
 

@@ -50,9 +50,11 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IFileEditorInput;
@@ -88,6 +90,48 @@ import java.util.Set;
 public class EditorUtility {
 
   private static final String ID_ORG_ECLIPSE_UI_DEFAULT_TEXT_EDITOR = "org.eclipse.ui.DefaultTextEditor"; //$NON-NLS-1$
+
+  /**
+   * Closes all editors whose underlying file contents do not exist.
+   */
+  public static void closeOrphanedEditors() {
+
+    Display.getDefault().syncExec(new Runnable() {
+      @Override
+      public void run() {
+
+        try {
+
+          IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+          IEditorReference[] refs = activePage.getEditorReferences();
+
+          for (IEditorReference ref : refs) {
+
+            IEditorInput input = ref.getEditorInput();
+
+            if (input instanceof FileEditorInput) {
+
+              IFile file = ((FileEditorInput) input).getFile();
+
+              if (!file.exists()) {
+
+                IEditorPart editor = ref.getEditor(false);
+                if (editor == null) {
+                  activePage.closeEditors(new IEditorReference[] {ref}, false);
+                }
+              }
+
+            }
+
+          }
+
+        } catch (Throwable th) {
+          DartToolsPlugin.log(th);
+        }
+      }
+    });
+
+  }
 
   /**
    * Maps the localized modifier name to a code in the same manner as #findModifier.
