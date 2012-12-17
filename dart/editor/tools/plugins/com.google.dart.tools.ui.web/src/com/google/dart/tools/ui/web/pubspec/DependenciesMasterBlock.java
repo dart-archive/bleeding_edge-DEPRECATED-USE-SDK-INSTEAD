@@ -20,6 +20,7 @@ import com.google.dart.tools.core.pub.PubspecModel;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.PixelConverter;
@@ -41,6 +42,9 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.forms.DetailsPart;
 import org.eclipse.ui.forms.IManagedForm;
@@ -86,8 +90,30 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
     }
   }
 
+  private class AddPackageDialog extends InputDialog {
+
+    public AddPackageDialog(Shell parentShell, String dialogTitle, String dialogMessage,
+        String initialValue, IInputValidator validator) {
+      super(parentShell, dialogTitle, dialogMessage, initialValue, validator);
+    }
+
+    @Override
+    protected Control createDialogArea(Composite parent) {
+      Composite composite = (Composite) super.createDialogArea(parent);
+      Label label = new Label(composite, SWT.NONE);
+      label.setText("For example, unittest, web_ui, ...");
+      label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+      Label imageLabel = new Label(composite, SWT.NONE);
+      imageLabel.setImage(DartWebPlugin.getImage("pub_package.png"));
+      imageLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
+      return composite;
+    }
+
+  }
+
   private FormPage page;
   private PubspecModel model;
+
   private TableViewer viewer;
 
   private SectionPart sectionPart;
@@ -196,10 +222,10 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
   }
 
   private void handleAddDependency() {
-    InputDialog inputDialog = new InputDialog(
+    AddPackageDialog inputDialog = new AddPackageDialog(
         page.getSite().getShell(),
         "Add Dependency",
-        "Enter the name of package",
+        "Enter the name of package:",
         "",
         null);
     if (inputDialog.open() != Window.OK) {
