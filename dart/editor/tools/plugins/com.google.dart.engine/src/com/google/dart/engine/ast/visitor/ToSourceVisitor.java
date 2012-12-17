@@ -165,6 +165,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
     visit(node.getName());
     visit(node.getTypeParameters());
     visit(" ", node.getExtendsClause());
+    visit(" ", node.getWithClause());
     visit(" ", node.getImplementsClause());
     writer.print(" {");
     visitList(node.getMembers(), " ");
@@ -178,6 +179,9 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
     visit(node.getName());
     visit(node.getTypeParameters());
     writer.print(" = ");
+    if (node.getAbstractKeyword() != null) {
+      writer.print("abstract ");
+    }
     visit(node.getSuperclass());
     visit(" ", node.getWithClause());
     visit(" ", node.getImplementsClause());
@@ -629,20 +633,6 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
-  public Void visitMixinApplication(MixinApplication node) {
-    writer.print(" = ");
-    visit(node.getSuperclass());
-    return null;
-  }
-
-  @Override
-  public Void visitMixinClause(WithClause node) {
-    writer.print(" mixin ");
-    visitList(node.getMixinTypes(), ", ");
-    return null;
-  }
-
-  @Override
   public Void visitNamedExpression(NamedExpression node) {
     visit(node.getName());
     visit(" ", node.getExpression());
@@ -902,6 +892,13 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
     visit(node.getCondition());
     writer.print(") ");
     visit(node.getBody());
+    return null;
+  }
+
+  @Override
+  public Void visitWithClause(WithClause node) {
+    writer.print("with ");
+    visitList(node.getMixinTypes(), ", ");
     return null;
   }
 

@@ -142,10 +142,6 @@ public interface ASTVisitor<R> {
 
   public R visitMethodInvocation(MethodInvocation node);
 
-  public R visitMixinApplication(MixinApplication node);
-
-  public R visitMixinClause(WithClause node);
-
   public R visitNamedExpression(NamedExpression node);
 
   public R visitNullLiteral(NullLiteral node);
@@ -213,4 +209,6 @@ public interface ASTVisitor<R> {
   public R visitVariableDeclarationStatement(VariableDeclarationStatement node);
 
   public R visitWhileStatement(WhileStatement node);
+
+  public R visitWithClause(WithClause node);
 }

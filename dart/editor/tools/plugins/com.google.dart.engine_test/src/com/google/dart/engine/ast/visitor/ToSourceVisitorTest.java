@@ -16,11 +16,14 @@ package com.google.dart.engine.ast.visitor;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Combinator;
+import com.google.dart.engine.ast.Comment;
+import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 
 import static com.google.dart.engine.ast.ASTFactory.adjacentStrings;
@@ -28,6 +31,7 @@ import static com.google.dart.engine.ast.ASTFactory.annotation;
 import static com.google.dart.engine.ast.ASTFactory.argumentDefinitionTest;
 import static com.google.dart.engine.ast.ASTFactory.argumentList;
 import static com.google.dart.engine.ast.ASTFactory.asExpression;
+import static com.google.dart.engine.ast.ASTFactory.assertStatement;
 import static com.google.dart.engine.ast.ASTFactory.assignmentExpression;
 import static com.google.dart.engine.ast.ASTFactory.binaryExpression;
 import static com.google.dart.engine.ast.ASTFactory.block;
@@ -40,6 +44,7 @@ import static com.google.dart.engine.ast.ASTFactory.cascadedMethodInvocation;
 import static com.google.dart.engine.ast.ASTFactory.cascadedPropertyAccess;
 import static com.google.dart.engine.ast.ASTFactory.catchClause;
 import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
+import static com.google.dart.engine.ast.ASTFactory.classTypeAlias;
 import static com.google.dart.engine.ast.ASTFactory.compilationUnit;
 import static com.google.dart.engine.ast.ASTFactory.conditionalExpression;
 import static com.google.dart.engine.ast.ASTFactory.constructorDeclaration;
@@ -118,6 +123,8 @@ import static com.google.dart.engine.ast.ASTFactory.variableDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.variableDeclarationList;
 import static com.google.dart.engine.ast.ASTFactory.variableDeclarationStatement;
 import static com.google.dart.engine.ast.ASTFactory.whileStatement;
+import static com.google.dart.engine.ast.ASTFactory.withClause;
+import static com.google.dart.engine.scanner.TokenFactory.token;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -146,6 +153,10 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitAsExpression() {
     assertSource("e as T", asExpression(identifier("e"), typeName("T")));
+  }
+
+  public void test_visitAssertStatement() {
+    assertSource("assert (a);", assertStatement(identifier("a")));
   }
 
   public void test_visitAssignmentExpression() {
@@ -225,17 +236,19 @@ public class ToSourceVisitorTest extends EngineTestCase {
   }
 
   public void test_visitClassDeclaration_abstract() {
-    assertSource("abstract class C {}", classDeclaration(Keyword.ABSTRACT, "C", null, null, null));
+    assertSource(
+        "abstract class C {}",
+        classDeclaration(Keyword.ABSTRACT, "C", null, null, null, null));
   }
 
   public void test_visitClassDeclaration_empty() {
-    assertSource("class C {}", classDeclaration(null, "C", null, null, null));
+    assertSource("class C {}", classDeclaration(null, "C", null, null, null, null));
   }
 
   public void test_visitClassDeclaration_extends() {
     assertSource(
         "class C extends A {}",
-        classDeclaration(null, "C", null, extendsClause(typeName("A")), null));
+        classDeclaration(null, "C", null, extendsClause(typeName("A")), null, null));
   }
 
   public void test_visitClassDeclaration_extends_implements() {
@@ -246,13 +259,38 @@ public class ToSourceVisitorTest extends EngineTestCase {
             "C",
             null,
             extendsClause(typeName("A")),
+            null,
+            implementsClause(typeName("B"))));
+  }
+
+  public void test_visitClassDeclaration_extends_with() {
+    assertSource(
+        "class C extends A with M {}",
+        classDeclaration(
+            null,
+            "C",
+            null,
+            extendsClause(typeName("A")),
+            withClause(typeName("M")),
+            null));
+  }
+
+  public void test_visitClassDeclaration_extends_with_implements() {
+    assertSource(
+        "class C extends A with M implements B {}",
+        classDeclaration(
+            null,
+            "C",
+            null,
+            extendsClause(typeName("A")),
+            withClause(typeName("M")),
             implementsClause(typeName("B"))));
   }
 
   public void test_visitClassDeclaration_implements() {
     assertSource(
         "class C implements B {}",
-        classDeclaration(null, "C", null, null, implementsClause(typeName("B"))));
+        classDeclaration(null, "C", null, null, null, implementsClause(typeName("B"))));
   }
 
   public void test_visitClassDeclaration_multipleMember() {
@@ -264,18 +302,27 @@ public class ToSourceVisitorTest extends EngineTestCase {
             null,
             null,
             null,
+            null,
             fieldDeclaration(false, Keyword.VAR, variableDeclaration("a")),
             fieldDeclaration(false, Keyword.VAR, variableDeclaration("b"))));
   }
 
   public void test_visitClassDeclaration_parameters() {
-    assertSource("class C<E> {}", classDeclaration(null, "C", typeParameterList("E"), null, null));
+    assertSource(
+        "class C<E> {}",
+        classDeclaration(null, "C", typeParameterList("E"), null, null, null));
   }
 
   public void test_visitClassDeclaration_parameters_extends() {
     assertSource(
         "class C<E> extends A {}",
-        classDeclaration(null, "C", typeParameterList("E"), extendsClause(typeName("A")), null));
+        classDeclaration(
+            null,
+            "C",
+            typeParameterList("E"),
+            extendsClause(typeName("A")),
+            null,
+            null));
   }
 
   public void test_visitClassDeclaration_parameters_extends_implements() {
@@ -286,13 +333,44 @@ public class ToSourceVisitorTest extends EngineTestCase {
             "C",
             typeParameterList("E"),
             extendsClause(typeName("A")),
+            null,
+            implementsClause(typeName("B"))));
+  }
+
+  public void test_visitClassDeclaration_parameters_extends_with() {
+    assertSource(
+        "class C<E> extends A with M {}",
+        classDeclaration(
+            null,
+            "C",
+            typeParameterList("E"),
+            extendsClause(typeName("A")),
+            withClause(typeName("M")),
+            null));
+  }
+
+  public void test_visitClassDeclaration_parameters_extends_with_implements() {
+    assertSource(
+        "class C<E> extends A with M implements B {}",
+        classDeclaration(
+            null,
+            "C",
+            typeParameterList("E"),
+            extendsClause(typeName("A")),
+            withClause(typeName("M")),
             implementsClause(typeName("B"))));
   }
 
   public void test_visitClassDeclaration_parameters_implements() {
     assertSource(
         "class C<E> implements B {}",
-        classDeclaration(null, "C", typeParameterList("E"), null, implementsClause(typeName("B"))));
+        classDeclaration(
+            null,
+            "C",
+            typeParameterList("E"),
+            null,
+            null,
+            implementsClause(typeName("B"))));
   }
 
   public void test_visitClassDeclaration_singleMember() {
@@ -304,7 +382,88 @@ public class ToSourceVisitorTest extends EngineTestCase {
             null,
             null,
             null,
+            null,
             fieldDeclaration(false, Keyword.VAR, variableDeclaration("a"))));
+  }
+
+  public void test_visitClassTypeAlias_abstract() {
+    assertSource(
+        "typedef C = abstract S with M1;",
+        classTypeAlias("C", null, Keyword.ABSTRACT, "S", withClause(typeName("M1")), null));
+  }
+
+  public void test_visitClassTypeAlias_abstract_implements() {
+    assertSource(
+        "typedef C = abstract S with M1 implements I;",
+        classTypeAlias(
+            "C",
+            null,
+            Keyword.ABSTRACT,
+            "S",
+            withClause(typeName("M1")),
+            implementsClause(typeName("I"))));
+  }
+
+  public void test_visitClassTypeAlias_implements() {
+    assertSource(
+        "typedef C = S with M1 implements I;",
+        classTypeAlias(
+            "C",
+            null,
+            null,
+            "S",
+            withClause(typeName("M1")),
+            implementsClause(typeName("I"))));
+  }
+
+  public void test_visitClassTypeAlias_minimal() {
+    assertSource(
+        "typedef C = S with M1;",
+        classTypeAlias("C", null, null, "S", withClause(typeName("M1")), null));
+  }
+
+  public void test_visitClassTypeAlias_parameters_abstract() {
+    assertSource(
+        "typedef C<E> = abstract S with M1;",
+        classTypeAlias(
+            "C",
+            typeParameterList("E"),
+            Keyword.ABSTRACT,
+            "S",
+            withClause(typeName("M1")),
+            null));
+  }
+
+  public void test_visitClassTypeAlias_parameters_abstract_implements() {
+    assertSource(
+        "typedef C<E> = abstract S with M1 implements I;",
+        classTypeAlias(
+            "C",
+            typeParameterList("E"),
+            Keyword.ABSTRACT,
+            "S",
+            withClause(typeName("M1")),
+            implementsClause(typeName("I"))));
+  }
+
+  public void test_visitClassTypeAlias_parameters_implements() {
+    assertSource(
+        "typedef C<E> = S with M1 implements I;",
+        classTypeAlias(
+            "C",
+            typeParameterList("E"),
+            null,
+            "S",
+            withClause(typeName("M1")),
+            implementsClause(typeName("I"))));
+  }
+
+  public void test_visitComment() {
+    assertSource("", Comment.createBlockComment(new Token[] {token("/* comment */")}));
+  }
+
+  public void test_visitCommentReference() {
+    assertSource("", new CommentReference(null, identifier("a")));
   }
 
   public void test_visitCompilationUnit_declaration() {
@@ -1381,6 +1540,14 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitWhileStatement() {
     assertSource("while (c) {}", whileStatement(identifier("c"), block()));
+  }
+
+  public void test_visitWithClause_multiple() {
+    assertSource("with A, B, C", withClause(typeName("A"), typeName("B"), typeName("C")));
+  }
+
+  public void test_visitWithClause_single() {
+    assertSource("with A", withClause(typeName("A")));
   }
 
   /**

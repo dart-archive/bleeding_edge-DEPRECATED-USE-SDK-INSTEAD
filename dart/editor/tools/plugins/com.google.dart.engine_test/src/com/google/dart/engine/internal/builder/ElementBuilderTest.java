@@ -108,6 +108,7 @@ public class ElementBuilderTest extends EngineTestCase {
         className,
         null,
         null,
+        null,
         null);
     classDeclaration.accept(builder);
     ClassElement[] types = holder.getTypes();
@@ -126,7 +127,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String className = "C";
-    ClassDeclaration classDeclaration = classDeclaration(null, className, null, null, null);
+    ClassDeclaration classDeclaration = classDeclaration(null, className, null, null, null, null);
     classDeclaration.accept(builder);
     ClassElement[] types = holder.getTypes();
     assertLength(1, types);
@@ -150,6 +151,7 @@ public class ElementBuilderTest extends EngineTestCase {
         null,
         className,
         typeParameterList(firstVariableName, secondVariableName),
+        null,
         null,
         null);
     classDeclaration.accept(builder);
@@ -178,6 +180,7 @@ public class ElementBuilderTest extends EngineTestCase {
         null,
         className,
         typeParameterList(typeVariableName),
+        null,
         null,
         null,
         fieldDeclaration(false, null, variableDeclaration(fieldName)),

@@ -61,6 +61,15 @@ public final class ASTFactory {
     return new AsExpression(expression, token(Keyword.AS), type);
   }
 
+  public static AssertStatement assertStatement(Expression condition) {
+    return new AssertStatement(
+        token(Keyword.ASSERT),
+        token(TokenType.OPEN_PAREN),
+        condition,
+        token(TokenType.CLOSE_PAREN),
+        token(TokenType.SEMICOLON));
+  }
+
   public static AssignmentExpression assignmentExpression(Expression leftHandSide,
       TokenType operator, Expression rightHandSide) {
     return new AssignmentExpression(leftHandSide, token(operator), rightHandSide);
@@ -153,7 +162,7 @@ public final class ASTFactory {
   }
 
   public static ClassDeclaration classDeclaration(Keyword abstractKeyword, String name,
-      TypeParameterList typeParameters, ExtendsClause extendsClause,
+      TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause,
       ImplementsClause implementsClause, ClassMember... members) {
     return new ClassDeclaration(
         null,
@@ -163,11 +172,28 @@ public final class ASTFactory {
         identifier(name),
         typeParameters,
         extendsClause,
-        null,
+        withClause,
         implementsClause,
         token(TokenType.OPEN_CURLY_BRACKET),
         list(members),
         token(TokenType.CLOSE_CURLY_BRACKET));
+  }
+
+  public static ClassTypeAlias classTypeAlias(String name, TypeParameterList typeParameters,
+      Keyword abstractKeyword, String superclass, WithClause withClause,
+      ImplementsClause implementsClause) {
+    return new ClassTypeAlias(
+        null,
+        null,
+        token(Keyword.TYPEDEF),
+        identifier(name),
+        typeParameters,
+        token(TokenType.EQ),
+        abstractKeyword == null ? null : token(abstractKeyword),
+        identifier(superclass),
+        withClause,
+        implementsClause,
+        token(TokenType.SEMICOLON));
   }
 
   public static CompilationUnit compilationUnit() {
@@ -970,6 +996,10 @@ public final class ASTFactory {
         condition,
         token(TokenType.CLOSE_PAREN),
         body);
+  }
+
+  public static WithClause withClause(TypeName... types) {
+    return new WithClause(token(Keyword.WITH), list(types));
   }
 
   /**

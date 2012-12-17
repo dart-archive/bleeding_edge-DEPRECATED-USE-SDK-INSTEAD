@@ -58,14 +58,14 @@ public class FormalParameterList extends ASTNode {
   private NodeList<FormalParameter> parameters = new NodeList<FormalParameter>(this);
 
   /**
-   * The left square bracket.
+   * The left square bracket ('[') or left curly brace ('{') introducing the optional parameters.
    */
-  private Token leftBracket;
+  private Token leftDelimiter;
 
   /**
-   * The right square bracket.
+   * The right square bracket (']') or right curly brace ('}') introducing the optional parameters.
    */
-  private Token rightBracket;
+  private Token rightDelimiter;
 
   /**
    * The right parenthesis.
@@ -83,16 +83,16 @@ public class FormalParameterList extends ASTNode {
    * 
    * @param leftParenthesis the left parenthesis
    * @param parameters the parameters associated with the method
-   * @param leftBracket the left square bracket
-   * @param rightBracket the right square bracket
+   * @param leftDelimiter the left delimiter introducing the optional parameters
+   * @param rightDelimiter the right delimiter introducing the optional parameters
    * @param rightParenthesis the right parenthesis
    */
   public FormalParameterList(Token leftParenthesis, List<FormalParameter> parameters,
-      Token leftBracket, Token rightBracket, Token rightParenthesis) {
+      Token leftDelimiter, Token rightDelimiter, Token rightParenthesis) {
     this.leftParenthesis = leftParenthesis;
     this.parameters.addAll(parameters);
-    this.leftBracket = leftBracket;
-    this.rightBracket = rightBracket;
+    this.leftDelimiter = leftDelimiter;
+    this.rightDelimiter = rightDelimiter;
     this.rightParenthesis = rightParenthesis;
   }
 
@@ -112,12 +112,14 @@ public class FormalParameterList extends ASTNode {
   }
 
   /**
-   * Return the left square bracket.
+   * Return the left square bracket ('[') or left curly brace ('{') introducing the optional
+   * parameters.
    * 
-   * @return the left square bracket
+   * @return the left square bracket ('[') or left curly brace ('{') introducing the optional
+   *         parameters
    */
-  public Token getLeftBracket() {
-    return leftBracket;
+  public Token getLeftDelimiter() {
+    return leftDelimiter;
   }
 
   /**
@@ -139,12 +141,14 @@ public class FormalParameterList extends ASTNode {
   }
 
   /**
-   * Return the right square bracket.
+   * Return the right square bracket (']') or right curly brace ('}') introducing the optional
+   * parameters.
    * 
-   * @return the right square bracket
+   * @return the right square bracket (']') or right curly brace ('}') introducing the optional
+   *         parameters
    */
-  public Token getRightBracket() {
-    return rightBracket;
+  public Token getRightDelimiter() {
+    return rightDelimiter;
   }
 
   /**
@@ -157,12 +161,13 @@ public class FormalParameterList extends ASTNode {
   }
 
   /**
-   * Set the left square bracket to the given token.
+   * Set the left square bracket ('[') or left curly brace ('{') introducing the optional parameters
+   * to the given token.
    * 
-   * @param bracket the left square bracket
+   * @param bracket the left delimiter introducing the optional parameters
    */
-  public void setLeftBracket(Token bracket) {
-    leftBracket = bracket;
+  public void setLeftDelimiter(Token bracket) {
+    leftDelimiter = bracket;
   }
 
   /**
@@ -175,12 +180,13 @@ public class FormalParameterList extends ASTNode {
   }
 
   /**
-   * Set the right square bracket to the given token.
+   * Set the right square bracket (']') or right curly brace ('}') introducing the optional
+   * parameters to the given token.
    * 
-   * @param bracket the right square bracket
+   * @param bracket the right delimiter introducing the optional parameters
    */
-  public void setRightBracket(Token bracket) {
-    rightBracket = bracket;
+  public void setRightDelimiter(Token bracket) {
+    rightDelimiter = bracket;
   }
 
   /**

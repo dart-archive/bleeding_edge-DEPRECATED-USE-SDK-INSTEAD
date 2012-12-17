@@ -55,7 +55,7 @@ public class WithClause extends ASTNode {
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
-    return visitor.visitMixinClause(this);
+    return visitor.visitWithClause(this);
   }
 
   @Override

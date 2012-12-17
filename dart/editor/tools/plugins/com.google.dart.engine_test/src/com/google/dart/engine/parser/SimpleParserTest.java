@@ -2145,9 +2145,9 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseFormalParameterList_empty() throws Exception {
     FormalParameterList parameterList = parse("parseFormalParameterList", "()");
     assertNotNull(parameterList.getLeftParenthesis());
-    assertNull(parameterList.getLeftBracket());
+    assertNull(parameterList.getLeftDelimiter());
     assertSize(0, parameterList.getParameters());
-    assertNull(parameterList.getRightBracket());
+    assertNull(parameterList.getRightDelimiter());
     assertNotNull(parameterList.getRightParenthesis());
   }
 
@@ -2156,54 +2156,54 @@ public class SimpleParserTest extends ParserTestCase {
         "parseFormalParameterList",
         "({A a : 1, B b, C c : 3})");
     assertNotNull(parameterList.getLeftParenthesis());
-    assertNotNull(parameterList.getLeftBracket());
+    assertNotNull(parameterList.getLeftDelimiter());
     assertSize(3, parameterList.getParameters());
-    assertNotNull(parameterList.getRightBracket());
+    assertNotNull(parameterList.getRightDelimiter());
     assertNotNull(parameterList.getRightParenthesis());
   }
 
   public void test_parseFormalParameterList_named_single() throws Exception {
     FormalParameterList parameterList = parse("parseFormalParameterList", "({A a})");
     assertNotNull(parameterList.getLeftParenthesis());
-    assertNotNull(parameterList.getLeftBracket());
+    assertNotNull(parameterList.getLeftDelimiter());
     assertSize(1, parameterList.getParameters());
-    assertNotNull(parameterList.getRightBracket());
+    assertNotNull(parameterList.getRightDelimiter());
     assertNotNull(parameterList.getRightParenthesis());
   }
 
   public void test_parseFormalParameterList_normal_multiple() throws Exception {
     FormalParameterList parameterList = parse("parseFormalParameterList", "(A a, B b, C c)");
     assertNotNull(parameterList.getLeftParenthesis());
-    assertNull(parameterList.getLeftBracket());
+    assertNull(parameterList.getLeftDelimiter());
     assertSize(3, parameterList.getParameters());
-    assertNull(parameterList.getRightBracket());
+    assertNull(parameterList.getRightDelimiter());
     assertNotNull(parameterList.getRightParenthesis());
   }
 
   public void test_parseFormalParameterList_normal_named() throws Exception {
     FormalParameterList parameterList = parse("parseFormalParameterList", "(A a, {B b})");
     assertNotNull(parameterList.getLeftParenthesis());
-    assertNotNull(parameterList.getLeftBracket());
+    assertNotNull(parameterList.getLeftDelimiter());
     assertSize(2, parameterList.getParameters());
-    assertNotNull(parameterList.getRightBracket());
+    assertNotNull(parameterList.getRightDelimiter());
     assertNotNull(parameterList.getRightParenthesis());
   }
 
   public void test_parseFormalParameterList_normal_positional() throws Exception {
     FormalParameterList parameterList = parse("parseFormalParameterList", "(A a, [B b])");
     assertNotNull(parameterList.getLeftParenthesis());
-    assertNotNull(parameterList.getLeftBracket());
+    assertNotNull(parameterList.getLeftDelimiter());
     assertSize(2, parameterList.getParameters());
-    assertNotNull(parameterList.getRightBracket());
+    assertNotNull(parameterList.getRightDelimiter());
     assertNotNull(parameterList.getRightParenthesis());
   }
 
   public void test_parseFormalParameterList_normal_single() throws Exception {
     FormalParameterList parameterList = parse("parseFormalParameterList", "(A a)");
     assertNotNull(parameterList.getLeftParenthesis());
-    assertNull(parameterList.getLeftBracket());
+    assertNull(parameterList.getLeftDelimiter());
     assertSize(1, parameterList.getParameters());
-    assertNull(parameterList.getRightBracket());
+    assertNull(parameterList.getRightDelimiter());
     assertNotNull(parameterList.getRightParenthesis());
   }
 
@@ -2212,18 +2212,18 @@ public class SimpleParserTest extends ParserTestCase {
         "parseFormalParameterList",
         "([A a = null, B b, C c = null])");
     assertNotNull(parameterList.getLeftParenthesis());
-    assertNotNull(parameterList.getLeftBracket());
+    assertNotNull(parameterList.getLeftDelimiter());
     assertSize(3, parameterList.getParameters());
-    assertNotNull(parameterList.getRightBracket());
+    assertNotNull(parameterList.getRightDelimiter());
     assertNotNull(parameterList.getRightParenthesis());
   }
 
   public void test_parseFormalParameterList_positional_single() throws Exception {
     FormalParameterList parameterList = parse("parseFormalParameterList", "([A a = null])");
     assertNotNull(parameterList.getLeftParenthesis());
-    assertNotNull(parameterList.getLeftBracket());
+    assertNotNull(parameterList.getLeftDelimiter());
     assertSize(1, parameterList.getParameters());
-    assertNotNull(parameterList.getRightBracket());
+    assertNotNull(parameterList.getRightDelimiter());
     assertNotNull(parameterList.getRightParenthesis());
   }
 
