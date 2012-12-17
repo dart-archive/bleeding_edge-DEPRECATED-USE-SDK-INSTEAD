@@ -177,6 +177,14 @@
       </activityPatternBinding>
       <activityPatternBinding
             activityId="com.google.dart.development"
+            pattern="org\.eclipse\..*toggleShowWhitespaceCharacters">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\..*toggleBlockSelectionMode">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
             pattern="org.eclipse.search/org.eclipse.search.OpenSearchDialog">
       </activityPatternBinding>
       <activityPatternBinding
