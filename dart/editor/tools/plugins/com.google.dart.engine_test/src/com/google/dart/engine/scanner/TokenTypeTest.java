@@ -22,7 +22,6 @@ public class TokenTypeTest extends EngineTestCase {
     assertTrue(TokenType.AMPERSAND_EQ.isOperator());
     assertTrue(TokenType.BANG.isOperator());
     assertTrue(TokenType.BANG_EQ.isOperator());
-    assertTrue(TokenType.BANG_EQ_EQ.isOperator());
     assertTrue(TokenType.BAR.isOperator());
     assertTrue(TokenType.BAR_BAR.isOperator());
     assertTrue(TokenType.BAR_EQ.isOperator());
@@ -30,13 +29,10 @@ public class TokenTypeTest extends EngineTestCase {
     assertTrue(TokenType.CARET_EQ.isOperator());
     assertTrue(TokenType.EQ.isOperator());
     assertTrue(TokenType.EQ_EQ.isOperator());
-    assertTrue(TokenType.EQ_EQ_EQ.isOperator());
     assertTrue(TokenType.GT.isOperator());
     assertTrue(TokenType.GT_EQ.isOperator());
     assertTrue(TokenType.GT_GT.isOperator());
     assertTrue(TokenType.GT_GT_EQ.isOperator());
-    assertTrue(TokenType.GT_GT_GT.isOperator());
-    assertTrue(TokenType.GT_GT_GT_EQ.isOperator());
     assertTrue(TokenType.INDEX.isOperator());
     assertTrue(TokenType.INDEX_EQ.isOperator());
     assertTrue(TokenType.IS.isOperator());

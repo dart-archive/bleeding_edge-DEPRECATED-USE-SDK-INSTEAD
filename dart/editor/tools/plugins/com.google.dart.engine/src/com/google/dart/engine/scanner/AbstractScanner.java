@@ -589,10 +589,11 @@ public abstract class AbstractScanner {
   }
 
   private int tokenizeEquals(int next) {
-    // = == === =>
+    // = == =>
     next = advance();
     if (next == '=') {
-      return select('=', TokenType.EQ_EQ_EQ, TokenType.EQ_EQ);
+      appendToken(TokenType.EQ_EQ);
+      return advance();
     } else if (next == '>') {
       appendToken(TokenType.FUNCTION);
       return advance();
@@ -602,10 +603,11 @@ public abstract class AbstractScanner {
   }
 
   private int tokenizeExclamation(int next) {
-    // ! != !===
+    // ! !=
     next = advance();
     if (next == '=') {
-      return select('=', TokenType.BANG_EQ_EQ, TokenType.BANG_EQ);
+      appendToken(TokenType.BANG_EQ);
+      return advance();
     }
     appendToken(TokenType.BANG);
     return next;
@@ -659,7 +661,7 @@ public abstract class AbstractScanner {
   }
 
   private int tokenizeGreaterThan(int next) {
-    // > >= >> >>= >>> >>>=
+    // > >= >> >>=
     next = advance();
     if ('=' == next) {
       appendToken(TokenType.GT_EQ);
@@ -669,15 +671,6 @@ public abstract class AbstractScanner {
       if ('=' == next) {
         appendToken(TokenType.GT_GT_EQ);
         return advance();
-      } else if ('>' == next) {
-        next = advance();
-        if (next == '=') {
-          appendToken(TokenType.GT_GT_GT_EQ);
-          return advance();
-        } else {
-          appendToken(TokenType.GT_GT_GT);
-          return next;
-        }
       } else {
         appendToken(TokenType.GT_GT);
         return next;

@@ -51,10 +51,6 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.BANG_EQ, "!=");
   }
 
-  public void test_bang_eq_eq() throws Exception {
-    assertToken(TokenType.BANG_EQ_EQ, "!==");
-  }
-
   public void test_bar() throws Exception {
     assertToken(TokenType.BAR, "|");
   }
@@ -183,10 +179,6 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.EQ_EQ, "==");
   }
 
-  public void test_eq_eq_eq() throws Exception {
-    assertToken(TokenType.EQ_EQ_EQ, "===");
-  }
-
   public void test_gt() throws Exception {
     assertToken(TokenType.GT, ">");
   }
@@ -201,14 +193,6 @@ public abstract class AbstractScannerTest extends TestCase {
 
   public void test_gt_gt_eq() throws Exception {
     assertToken(TokenType.GT_GT_EQ, ">>=");
-  }
-
-  public void test_gt_gt_gt() throws Exception {
-    assertToken(TokenType.GT_GT_GT, ">>>");
-  }
-
-  public void test_gt_gt_gt_eq() throws Exception {
-    assertToken(TokenType.GT_GT_GT_EQ, ">>>=");
   }
 
   public void test_hash() throws Exception {

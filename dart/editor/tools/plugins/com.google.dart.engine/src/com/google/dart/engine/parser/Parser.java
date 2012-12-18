@@ -531,17 +531,6 @@ public class Parser {
           currentToken.getPrevious().setNext(first);
           currentToken = first;
           return true;
-        } else if (currentType == TokenType.GT_GT_GT) {
-          int offset = currentToken.getOffset();
-          Token first = new Token(TokenType.GT, offset);
-          Token second = new Token(TokenType.GT, offset + 1);
-          Token third = new Token(TokenType.GT, offset + 2);
-          third.setNext(currentToken.getNext());
-          second.setNext(third);
-          first.setNext(second);
-          currentToken.getPrevious().setNext(first);
-          currentToken = first;
-          return true;
         }
       }
       return false;
@@ -5133,12 +5122,6 @@ public class Parser {
     } else if (token.getType() == TokenType.GT_GT) {
       Token second = new Token(TokenType.GT, token.getOffset() + 1);
       second.setNextWithoutSettingPrevious(token.getNext());
-      return second;
-    } else if (token.getType() == TokenType.GT_GT_GT) {
-      Token second = new Token(TokenType.GT, token.getOffset() + 1);
-      Token third = new Token(TokenType.GT, token.getOffset() + 2);
-      third.setNextWithoutSettingPrevious(token.getNext());
-      second.setNextWithoutSettingPrevious(third);
       return second;
     }
     return null;
