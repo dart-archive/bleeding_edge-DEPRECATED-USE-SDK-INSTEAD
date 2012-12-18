@@ -540,6 +540,17 @@ public abstract class AbstractScanner {
     }
   }
 
+  private int select(char choice, TokenType yesType, TokenType noType, int offset) {
+    int next = advance();
+    if (next == choice) {
+      appendToken(yesType, offset);
+      return advance();
+    } else {
+      appendToken(noType, offset);
+      return next;
+    }
+  }
+
   private int tokenizeAmpersand(int next) {
     // && &= &
     next = advance();
@@ -650,6 +661,9 @@ public abstract class AbstractScanner {
     }
     if (!hasDigit) {
       appendStringToken(TokenType.INT, getString(start, -2));
+      if ('.' == next) {
+        return select('.', TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, getOffset() - 1);
+      }
       appendToken(TokenType.PERIOD, getOffset() - 1);
       return bigSwitch(next);
     }

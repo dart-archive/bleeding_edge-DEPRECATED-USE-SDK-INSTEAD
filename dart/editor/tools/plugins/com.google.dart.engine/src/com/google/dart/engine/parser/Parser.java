@@ -4536,21 +4536,16 @@ public class Parser {
    * @return the unary expression that was parsed
    */
   private Expression parseUnaryExpression() {
-    if (matches(TokenType.MINUS)) {
+    if (matches(TokenType.MINUS) || matches(TokenType.BANG) || matches(TokenType.TILDE)) {
       Token operator = getAndAdvance();
       if (matches(Keyword.SUPER)) {
-        return new PrefixExpression(operator, new SuperExpression(getAndAdvance()));
-      }
-      return new PrefixExpression(operator, parseUnaryExpression());
-    } else if (matches(TokenType.BANG)) {
-      Token operator = getAndAdvance();
-      if (matches(Keyword.SUPER)) {
-        return new PrefixExpression(operator, new SuperExpression(getAndAdvance()));
-      }
-      return new PrefixExpression(operator, parseUnaryExpression());
-    } else if (matches(TokenType.TILDE)) {
-      Token operator = getAndAdvance();
-      if (matches(Keyword.SUPER)) {
+        if (matches(peek(), TokenType.OPEN_SQUARE_BRACKET) || matches(peek(), TokenType.PERIOD)) {
+          //     "prefixOperator unaryExpression"
+          // --> "prefixOperator postfixExpression"
+          // --> "prefixOperator primary                    selector*"
+          // --> "prefixOperator 'super' assignableSelector selector*"
+          return new PrefixExpression(operator, parseUnaryExpression());
+        }
         return new PrefixExpression(operator, new SuperExpression(getAndAdvance()));
       }
       return new PrefixExpression(operator, parseUnaryExpression());

@@ -475,7 +475,7 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.PERIOD_PERIOD_PERIOD, "...");
   }
 
-  public void test_periodAfterNumberNotIncluded() throws Exception {
+  public void test_periodAfterNumberNotIncluded_identifier() throws Exception {
     assertTokens(
         "42.isEven()",
         new StringToken(TokenType.INT, "42", 0),
@@ -483,6 +483,16 @@ public abstract class AbstractScannerTest extends TestCase {
         new StringToken(TokenType.IDENTIFIER, "isEven", 3),
         new Token(TokenType.OPEN_PAREN, 9),
         new Token(TokenType.CLOSE_PAREN, 10));
+  }
+
+  public void test_periodAfterNumberNotIncluded_period() throws Exception {
+    assertTokens(
+        "42..isEven()",
+        new StringToken(TokenType.INT, "42", 0),
+        new Token(TokenType.PERIOD_PERIOD, 2),
+        new StringToken(TokenType.IDENTIFIER, "isEven", 4),
+        new Token(TokenType.OPEN_PAREN, 10),
+        new Token(TokenType.CLOSE_PAREN, 11));
   }
 
   public void test_plus() throws Exception {
