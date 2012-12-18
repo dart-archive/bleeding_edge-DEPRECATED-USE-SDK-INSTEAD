@@ -15,6 +15,8 @@ package com.google.dart.engine.integration;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
@@ -120,7 +122,13 @@ public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
     //
     // Build the element model for the compilation unit.
     //
-    CompilationUnitBuilder builder = new CompilationUnitBuilder(analysisContext, listener);
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(
+        analysisContext,
+        new AnalysisErrorListener() {
+          @Override
+          public void onError(AnalysisError error) {
+          }
+        });
     long builderStartTime = System.currentTimeMillis();
     CompilationUnitElement element = builder.buildCompilationUnit(source);
     long builderEndTime = System.currentTimeMillis();

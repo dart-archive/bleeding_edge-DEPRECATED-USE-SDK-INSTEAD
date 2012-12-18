@@ -15,6 +15,8 @@ package com.google.dart.engine.integration;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
@@ -156,7 +158,8 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
     //
     // Determine whether the test is expected to pass or fail.
     //
-    boolean errorExpected = contents.indexOf("compile-time error") > 0
+    boolean errorExpected = sourceFile.getName().endsWith("_negative_test.dart")
+        || contents.indexOf("compile-time error") > 0
         || contents.indexOf("static type warning") > 0 || contents.indexOf("static warning") > 0;
     // Uncomment the lines below to stop reporting failures for files that are expected to contain
     // errors.
@@ -182,7 +185,13 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
     //
     // Build the element model for the compilation unit.
     //
-    CompilationUnitBuilder builder = new CompilationUnitBuilder(new AnalysisContextImpl(), listener);
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(
+        new AnalysisContextImpl(),
+        new AnalysisErrorListener() {
+          @Override
+          public void onError(AnalysisError error) {
+          }
+        });
     long builderStartTime = System.currentTimeMillis();
     CompilationUnitElement element = builder.buildCompilationUnit(source);
     long builderEndTime = System.currentTimeMillis();
