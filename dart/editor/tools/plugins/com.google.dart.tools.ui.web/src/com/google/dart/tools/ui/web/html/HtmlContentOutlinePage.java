@@ -26,8 +26,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
-// TODO: nodes need to remember themselves between edits
-
 /**
  * An outline page for the html editor.
  */

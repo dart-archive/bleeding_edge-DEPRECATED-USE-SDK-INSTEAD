@@ -121,6 +121,7 @@ public abstract class WebEditor extends TextEditor {
   }
 
   protected void handleDocumentModified() {
+
   }
 
   protected abstract void handleReconcilation(IRegion partition);
