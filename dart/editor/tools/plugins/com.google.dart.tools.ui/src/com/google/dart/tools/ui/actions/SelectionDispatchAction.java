@@ -121,7 +121,7 @@ public abstract class SelectionDispatchAction extends AbstractInstrumentedAction
 
   @Override
   public void run() {
-    EmitInstrumentationCommand();
+    emitInstrumentationCommand();
     dispatchRun(getSelection());
   }
 
@@ -131,7 +131,7 @@ public abstract class SelectionDispatchAction extends AbstractInstrumentedAction
    * @param selection the selection
    */
   public void run(DartTextSelection selection) {
-    EmitInstrumentationCommand();
+    emitInstrumentationCommand();
     run((ITextSelection) selection);
   }
 
@@ -150,7 +150,7 @@ public abstract class SelectionDispatchAction extends AbstractInstrumentedAction
    * @param selection the selection
    */
   public void run(IStructuredSelection selection) {
-    EmitInstrumentationCommand();
+    emitInstrumentationCommand();
     run((ISelection) selection);
   }
 
@@ -161,7 +161,7 @@ public abstract class SelectionDispatchAction extends AbstractInstrumentedAction
    * @param selection the selection
    */
   public void run(ITextSelection selection) {
-    EmitInstrumentationCommand();
+    emitInstrumentationCommand();
     run((ISelection) selection);
   }
 

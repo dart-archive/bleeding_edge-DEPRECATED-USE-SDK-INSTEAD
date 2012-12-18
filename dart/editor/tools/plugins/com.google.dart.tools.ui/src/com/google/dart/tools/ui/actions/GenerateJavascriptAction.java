@@ -143,7 +143,7 @@ public class GenerateJavascriptAction extends AbstractInstrumentedAction impleme
 
   @Override
   public void run() {
-    EmitInstrumentationCommand();
+    emitInstrumentationCommand();
     deployOptimized(window.getActivePage());
   }
 

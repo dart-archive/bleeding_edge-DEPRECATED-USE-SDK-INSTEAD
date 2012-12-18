@@ -39,7 +39,7 @@ public class OpenOnlineDocsAction extends AbstractInstrumentedAction implements 
 
   @Override
   public void run() {
-    EmitInstrumentationCommand();
+    emitInstrumentationCommand();
     ExternalBrowserUtil.openInExternalBrowser(ActionMessages.OpenOnlineDocsAction_href);
   }
 

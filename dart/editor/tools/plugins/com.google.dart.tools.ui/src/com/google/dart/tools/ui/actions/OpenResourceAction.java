@@ -75,7 +75,7 @@ public class OpenResourceAction extends AbstractInstrumentedAction implements IW
 
   @Override
   public void run() {
-    EmitInstrumentationCommand();
+    emitInstrumentationCommand();
     final List<IFile> files = new ArrayList<IFile>();
 
     // Prompt the user for the resource to open.

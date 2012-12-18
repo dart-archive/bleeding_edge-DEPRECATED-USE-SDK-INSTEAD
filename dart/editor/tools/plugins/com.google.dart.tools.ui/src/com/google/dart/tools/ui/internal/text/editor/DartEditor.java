@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
+import com.google.dart.tools.core.instrumentation.InstrumentationLogger;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -3468,9 +3469,14 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     Timer timer = new Timer("save");
 
     performSaveActions();
+
     super.performSave(overwrite, progressMonitor);
 
-    timer.stop();
+    long millis = timer.stop();
+
+    int lines = getDocumentProvider().getDocument(getEditorInput()).getNumberOfLines();
+
+    InstrumentationLogger.getLogger().info("Editor-Save-Perf", lines + " lines," + millis + " ms");
   }
 
   @Override

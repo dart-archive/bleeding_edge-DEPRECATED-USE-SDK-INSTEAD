@@ -32,7 +32,7 @@ public class OpenIntroEditorAction extends AbstractInstrumentedAction {
 
   @Override
   public void run() {
-    EmitInstrumentationCommand();
+    emitInstrumentationCommand();
     try {
       IDE.openEditor(DartToolsPlugin.getActivePage(), IntroEditor.INPUT, IntroEditor.ID);
     } catch (PartInitException e) {

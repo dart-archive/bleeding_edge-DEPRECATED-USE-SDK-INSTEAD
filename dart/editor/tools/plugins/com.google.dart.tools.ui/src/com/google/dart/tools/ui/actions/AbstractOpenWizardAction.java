@@ -47,7 +47,7 @@ public abstract class AbstractOpenWizardAction extends AbstractInstrumentedActio
 
   @Override
   public void run() {
-    EmitInstrumentationCommand();
+    emitInstrumentationCommand();
     Shell shell = getShell();
     try {
       INewWizard wizard = createWizard();

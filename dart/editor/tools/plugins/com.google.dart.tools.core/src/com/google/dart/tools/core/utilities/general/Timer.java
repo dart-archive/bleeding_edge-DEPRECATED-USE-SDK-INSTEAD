@@ -30,13 +30,15 @@ public class Timer {
     this.startTime = System.nanoTime();
   }
 
-  public void stop() {
-    if (DartCoreDebug.PERF_TIMER) {
-      long elapsedMillis = (System.nanoTime() - startTime) / 1000000;
+  public long stop() {
+    long elapsedMillis = (System.nanoTime() - startTime) / 1000000;
 
+    if (DartCoreDebug.PERF_TIMER) {
       // "save in 100ms"
       System.out.println(name + " in " + NumberFormat.getInstance().format(elapsedMillis) + "ms");
     }
+
+    return elapsedMillis;
   }
 
 }

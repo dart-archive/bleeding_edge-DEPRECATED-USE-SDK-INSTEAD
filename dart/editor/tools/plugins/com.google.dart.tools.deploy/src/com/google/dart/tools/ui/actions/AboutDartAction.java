@@ -46,13 +46,13 @@ public class AboutDartAction extends AbstractInstrumentedAction implements IWork
 
   @Override
   public void run() {
-    EmitInstrumentationCommand();
+    emitInstrumentationCommand();
     openDialog();
   }
 
   @Override
   public void runWithEvent(Event event) {
-    EmitInstrumentationCommand();
+    emitInstrumentationCommand();
     openDialog();
   }
 

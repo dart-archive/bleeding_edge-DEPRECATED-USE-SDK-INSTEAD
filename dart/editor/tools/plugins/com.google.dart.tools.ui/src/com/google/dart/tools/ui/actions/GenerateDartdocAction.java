@@ -154,7 +154,7 @@ public class GenerateDartdocAction extends AbstractInstrumentedAction implements
 
   @Override
   public void run() {
-    EmitInstrumentationCommand();
+    emitInstrumentationCommand();
     deployOptimized(window.getActivePage());
   }
 

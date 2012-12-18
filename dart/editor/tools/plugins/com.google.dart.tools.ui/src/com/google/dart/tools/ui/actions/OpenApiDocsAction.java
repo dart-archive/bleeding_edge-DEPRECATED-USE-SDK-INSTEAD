@@ -40,7 +40,7 @@ public class OpenApiDocsAction extends AbstractInstrumentedAction implements IWo
 
   @Override
   public void run() {
-    EmitInstrumentationCommand();
+    emitInstrumentationCommand();
 
     ExternalBrowserUtil.openInExternalBrowser(ActionMessages.OpenApiDocsAction_href);
   }

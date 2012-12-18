@@ -3,6 +3,7 @@
 <plugin>
    <extension-point id="workingCopyOwner" name="Working Copy Owner" schema="schema/workingCopyOwner.exsd"/>
    <extension-point id="buildParticipants" name="Build Participants" schema="schema/buildParticipants.exsd"/>
+   <extension-point id="instrumentationLogger" name="Instrumentation Logger" schema="schema/instrumentationLogger.exsd"/>
    
 	<extension
 			point="org.eclipse.core.resources.natures"
