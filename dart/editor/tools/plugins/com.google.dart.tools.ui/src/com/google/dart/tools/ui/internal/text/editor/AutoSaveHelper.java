@@ -14,9 +14,9 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.collect.MapMaker;
-import com.google.common.io.Files;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
+import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.PartListenerAdapter;
@@ -265,7 +265,7 @@ public class AutoSaveHelper {
   private void pathMapDelete() {
     try {
       File saveFolder = getSaveFolder();
-      Files.deleteRecursively(saveFolder);
+      FileUtilities.deleteContents(saveFolder);
     } catch (Throwable e) {
     }
   }

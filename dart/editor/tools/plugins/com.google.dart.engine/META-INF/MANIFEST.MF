@@ -38,4 +38,4 @@ Export-Package: com.google.dart.engine,
  com.google.dart.engine.utilities.os,
  com.google.dart.engine.utilities.source
 Bundle-ClassPath: .,
- third_party/guava/r09/guava-r09.jar
+ third_party/guava/r13/guava-13.0.1.jar

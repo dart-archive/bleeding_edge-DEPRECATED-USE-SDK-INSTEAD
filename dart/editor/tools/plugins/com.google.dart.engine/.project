@@ -27,7 +27,7 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>third-party</name>
+			<name>third_party</name>
 			<type>2</type>
 			<locationURI>DART_TRUNK/third_party</locationURI>
 		</link>
