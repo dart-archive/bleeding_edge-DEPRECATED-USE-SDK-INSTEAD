@@ -69,10 +69,10 @@ class Spirodraw {
     width = window.innerWidth - 270;
     yc = height~/2;
     xc = width~/2;
-    frontCanvas.height = height;
-    frontCanvas.width = width;
-    backCanvas.height = height;
-    backCanvas.width = width;
+    frontCanvas..height = height
+               ..width = width;
+    backCanvas..height = height
+              ..width = width;
     clear();
   }
 
@@ -130,21 +130,15 @@ class Spirodraw {
   }
 
   int calcNumPoints() {
-    if ((dUnits==0) || (rUnits==0)) {
-      // Empirically, treat it like an oval
-      return 2;
-    }
+    // Empirically, treat it like an oval.
+    if (dUnits == 0 || rUnits == 0) return 2;
+
     int gcf_ = gcf(RUnits, rUnits);
     int n = RUnits ~/ gcf_;
     int d_ = rUnits ~/ gcf_;
-    if (n % 2 == 1) {
-      // odd
-      return n;
-    } else if (d_ %2 == 1) {
-      return n;
-    } else {
-      return n~/2;
-    }
+    if (n % 2 == 1) return n;
+    if (d_% 2 == 1) return n;
+    return n~/2;
   }
 
   // TODO return optimum step size in radians
@@ -152,14 +146,14 @@ class Spirodraw {
 
   void drawFrame(double theta) {
     if (animationEnabled) {
-      front.clearRect(0, 0, width, height);
-      front.drawImage(backCanvas, 0, 0);
+      front..clearRect(0, 0, width, height)
+           ..drawImage(backCanvas, 0, 0);
       drawFixed();
     }
     drawWheel(theta);
   }
 
-  void animate(int time) {
+  void animate(double time) {
     if (run && rad <= maxTurns * PI2) {
       rad+=stepSize;
       drawFrame(rad);
@@ -180,9 +174,7 @@ class Spirodraw {
 
   int calcTurns() {
     // compute ratio of wheel radius to big R then find LCM
-    if ((dUnits==0) || (rUnits==0)) {
-      return 1;
-    }
+    if ((dUnits==0) || (rUnits==0)) return 1;
     int ru = rUnits.abs();
     int wrUnits = RUnits + rUnits;
     int g = gcf (wrUnits, ru);
@@ -192,8 +184,8 @@ class Spirodraw {
   void stop() {
     run = false;
     // Show drawing only
-    front.clearRect(0, 0, width, height);
-    front.drawImage(backCanvas, 0, 0);
+    front..clearRect(0, 0, width, height)
+         ..drawImage(backCanvas, 0, 0);
     // Reset angle
     rad = 0.0;
   }
@@ -220,12 +212,12 @@ class Spirodraw {
 
   void drawFixed() {
     if (animationEnabled) {
-      front.beginPath();
-      front.setLineWidth(2);
-      front.strokeStyle = "gray";
-      front.arc(xc, yc, R, 0, PI2, true);
-      front.closePath();
-      front.stroke();
+      front..beginPath()
+           ..setLineWidth(2)
+           ..strokeStyle = "gray"
+           ..arc(xc, yc, R, 0, PI2, true)
+           ..closePath()
+           ..stroke();
     }
   }
 
@@ -241,18 +233,18 @@ class Spirodraw {
     if (animationEnabled) {
       if (rUnits>0) {
         // Draw ring
-        front.beginPath();
-        front.arc(wx, wy, r.abs(), 0, PI2, true);
-        front.closePath();
-        front.stroke();
+        front..beginPath()
+             ..arc(wx, wy, r.abs(), 0, PI2, true)
+             ..closePath()
+             ..stroke();
         // Draw center
-        front.setLineWidth(1);
-        front.beginPath();
-        front.arc(wx, wy, 3, 0, PI2, true);
-        front.fillStyle = "black";
-        front.fill();
-        front.closePath();
-        front.stroke();
+        front..setLineWidth(1)
+             ..beginPath()
+             ..arc(wx, wy, 3, 0, PI2, true)
+             ..fillStyle = "black"
+             ..fill()
+             ..closePath()
+             ..stroke();
       }
     }
     drawTip(wx, wy, theta);
@@ -273,28 +265,28 @@ class Spirodraw {
     double tx = wx + d * Math.cos(rot);
     double ty = wy - d * Math.sin(rot);
     if (animationEnabled) {
-      front.beginPath();
-      front.fillStyle = penColor;
-      front.arc(tx, ty, penWidth/2+2, 0, PI2, true);
-      front.fill();
-      front.moveTo(wx, wy);
-      front.strokeStyle = "black";
-      front.lineTo(tx, ty);
-      front.closePath();
-      front.stroke();
+      front..beginPath()
+           ..fillStyle = penColor
+           ..arc(tx, ty, penWidth/2+2, 0, PI2, true)
+           ..fill()
+           ..moveTo(wx, wy)
+           ..strokeStyle = "black"
+           ..lineTo(tx, ty)
+           ..closePath()
+           ..stroke();
     }
     drawSegmentTo(tx, ty);
   }
 
   void drawSegmentTo(double tx, double ty) {
     if (lastX > 0) {
-      back.beginPath();
-      back.strokeStyle = penColor;
-      back.setLineWidth(penWidth);
-      back.moveTo(lastX, lastY);
-      back.lineTo(tx, ty);
-      back.closePath();
-      back.stroke();
+      back..beginPath()
+          ..strokeStyle = penColor
+          ..setLineWidth(penWidth)
+          ..moveTo(lastX, lastY)
+          ..lineTo(tx, ty)
+          ..closePath()
+          ..stroke();
     }
     lastX = tx;
     lastY = ty;
@@ -303,13 +295,10 @@ class Spirodraw {
 }
 
 int gcf(int n, int d) {
-  if (n==d) {
-    return n;
-  }
+  if (n == d) return n;
   int max = Math.max(n, d);
-  for (int i = max ~/ 2; i > 1; i--)
-    if ((n % i == 0) && (d % i == 0)) {
-      return i;
-    }
+  for (int i = max ~/ 2; i > 1; i--) {
+    if ((n % i == 0) && (d % i == 0)) return i;
+  }
   return 1;
 }
