@@ -52,7 +52,7 @@ import java.net.URI;
  */
 public class TemporaryProject {
 
-  private static final String DEFAULT_NAME = "CodeColoringSample";
+  public static final String DEFAULT_NAME = "CodeColoringSample";
 
   static void deleteProject(IProject project) throws CoreException {
     final int MAX_FAILURES = 10;

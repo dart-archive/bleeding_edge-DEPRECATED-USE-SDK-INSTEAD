@@ -26,6 +26,7 @@ import com.google.dart.tools.ui.actions.DeployConsolePatternMatcher;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.internal.preferences.DartKeyBindingPersistence;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
+import com.google.dart.tools.ui.theme.preferences.TemporaryProject;
 
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.IFileTree;
@@ -357,6 +358,12 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
           Activator.log("removing closed or non-existent project '" + project.getName()
               + "' pre startup");
           project.delete(false /* don't delete content */, true /* force */, null /* no monitor */);
+        } catch (CoreException e) {
+          Activator.logError(e);
+        }
+      } else if (project.isHidden() && project.getName().equals(TemporaryProject.DEFAULT_NAME)) {
+        try {
+          project.delete(true /* delete content */, true /* force */, null /* no monitor */);
         } catch (CoreException e) {
           Activator.logError(e);
         }
