@@ -139,6 +139,62 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
     assertEquals(true, refactoring.canEnableDeleteSource());
   }
 
+  public void test_fieldAccessor_getter() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var f;",
+        "  get foo() {",
+        "    return f * 2;",
+        "  }",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  print(a.foo);",
+        "}");
+    selection = findOffset("foo() {");
+    createRefactoring();
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var f;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  print(a.f * 2);",
+        "}");
+  }
+
+  public void test_fieldAccessor_setter() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var f;",
+        "  set foo(x) {",
+        "    f = x;",
+        "  }",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.foo = 0;",
+        "}");
+    selection = findOffset("foo(x) {");
+    createRefactoring();
+    // do refactoring
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var f;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.f = 0;",
+        "}");
+  }
+
   public void test_function_hasReturn_noVars_oneUsage() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

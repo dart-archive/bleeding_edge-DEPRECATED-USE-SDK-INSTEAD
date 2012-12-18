@@ -22,17 +22,20 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartExpression;
+import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.FieldElement;
@@ -191,6 +194,7 @@ public class InlineMethodRefactoring extends Refactoring {
   private com.google.dart.compiler.ast.DartFunction methodNode;
   private MethodElement methodElement;
   private ClassElement methodClassElement;
+  private boolean methodAccessor;
   private SourcePart methodExpressionPart;
 
   private SourcePart methodStatementsPart;
@@ -235,17 +239,36 @@ public class InlineMethodRefactoring extends Refactoring {
       String refPrefix = utils.getNodePrefix(refStatement);
       // may be invocation of inline method
       if ((node.getParent() instanceof DartUnqualifiedInvocation && ((DartUnqualifiedInvocation) node.getParent()).getTarget() == node)
-          || (node.getParent() instanceof DartMethodInvocation && ((DartMethodInvocation) node.getParent()).getFunctionName() == node)) {
-        DartInvocation invocation = (DartInvocation) node.getParent();
-        // we don't support cascade
-        if (invocation instanceof DartMethodInvocation
-            && ((DartMethodInvocation) invocation).isCascade()) {
-          result.addFatalError(
-              RefactoringCoreMessages.InlineMethodRefactoring_cascadeInvocation,
-              DartStatusContext.create(refUnit, invocation));
+          || (node.getParent() instanceof DartMethodInvocation && ((DartMethodInvocation) node.getParent()).getFunctionName() == node)
+          || (methodAccessor && node.getParent() instanceof DartPropertyAccess && ((DartPropertyAccess) node.getParent()).getName() == node)) {
+        DartExpression targetExpression;
+        List<DartExpression> arguments;
+        SourceRange invocationRange;
+        if (node.getParent() instanceof DartInvocation) {
+          DartInvocation invocation = (DartInvocation) node.getParent();
+          targetExpression = invocation.getTarget();
+          arguments = invocation.getArguments();
+          invocationRange = SourceRangeFactory.create(invocation);
+          // we don't support cascade
+          if (invocation instanceof DartMethodInvocation
+              && ((DartMethodInvocation) invocation).isCascade()) {
+            result.addFatalError(
+                RefactoringCoreMessages.InlineMethodRefactoring_cascadeInvocation,
+                DartStatusContext.create(refUnit, invocation));
+          }
+        } else {
+          DartPropertyAccess access = (DartPropertyAccess) node.getParent();
+          invocationRange = SourceRangeFactory.create(access);
+          targetExpression = (DartExpression) access.getQualifier();
+          arguments = ImmutableList.of();
+          if (access.getParent() instanceof DartBinaryExpression) {
+            DartBinaryExpression binary = (DartBinaryExpression) access.getParent();
+            if (binary.getArg1() == access && binary.getOperator() == Token.ASSIGN) {
+              arguments = ImmutableList.of(binary.getArg2());
+            }
+          }
         }
         // may be only single place should be inlined
-        SourceRange invocationRange = SourceRangeFactory.create(invocation);
         if (currentMode == Mode.INLINE_SINGLE) {
           if (!SourceRangeUtils.contains(invocationRange, selectionOffset)) {
             continue;
@@ -254,7 +277,11 @@ public class InlineMethodRefactoring extends Refactoring {
         // insert non-return statements
         if (methodStatementsPart != null) {
           // prepare statements source for invocation
-          String source = getMethodSourceForInvocation(methodStatementsPart, utils, invocation);
+          String source = getMethodSourceForInvocation(
+              methodStatementsPart,
+              utils,
+              targetExpression,
+              arguments);
           source = utils.getIndentSource(source, methodStatementsPart.prefix, refPrefix);
           // do insert
           SourceRange range = SourceRangeFactory.forStartLength(refLineRange, 0);
@@ -266,7 +293,11 @@ public class InlineMethodRefactoring extends Refactoring {
         // replace invocation with return expression
         if (methodExpressionPart != null) {
           // prepare expression source for invocation
-          String source = getMethodSourceForInvocation(methodExpressionPart, utils, invocation);
+          String source = getMethodSourceForInvocation(
+              methodExpressionPart,
+              utils,
+              targetExpression,
+              arguments);
           // do replace
           SourceRange sourceRange = invocationRange;
           TextChangeCompatibility.addTextEdit(
@@ -342,6 +373,7 @@ public class InlineMethodRefactoring extends Refactoring {
             method.getNameRange().getOffset(),
             0).getCoveringNode();
         {
+          methodAccessor = false;
           methodNode = ASTNodes.getAncestor(
               methodNameNode,
               com.google.dart.compiler.ast.DartFunction.class);
@@ -349,6 +381,13 @@ public class InlineMethodRefactoring extends Refactoring {
             DartMethodDefinition methodNode0 = ASTNodes.getAncestor(
                 methodNameNode,
                 DartMethodDefinition.class);
+            if (methodNode0 == null) {
+              DartField field = ASTNodes.getAncestor(methodNameNode, DartField.class);
+              if (field != null) {
+                methodNode0 = field.getAccessor();
+                methodAccessor = true;
+              }
+            }
             methodNode = methodNode0.getFunction();
             methodElement = methodNode0.getElement();
           }
@@ -503,12 +542,10 @@ public class InlineMethodRefactoring extends Refactoring {
   }
 
   /**
-   * @return the source which should replace given {@link DartInvocation}.
+   * @return the source which should replace given invocation with given arguments.
    */
   private String getMethodSourceForInvocation(SourcePart part, ExtractUtils utils,
-      DartInvocation invocation) throws DartModelException {
-    // prepare arguments
-    List<DartExpression> arguments = invocation.getArguments();
+      DartExpression targetExpression, List<DartExpression> arguments) throws DartModelException {
     // prepare edits to replace parameters with arguments
     List<ReplaceEdit> edits = Lists.newArrayList();
     for (Entry<Integer, List<ParameterOccurrence>> entry : part.parameters.entrySet()) {
@@ -540,14 +577,13 @@ public class InlineMethodRefactoring extends Refactoring {
     }
     // replace instance field "qualifier" with invocation target
     {
-      DartExpression targetExpression = invocation.getTarget();
       String targetSource = utils.getText(targetExpression) + ".";
       for (SourceRange qualifierRange : part.instanceFieldQualifiers) {
         edits.add(createReplaceEdit(qualifierRange, targetSource));
       }
     }
     // prepare edits to replace conflicting variables
-    Set<String> conflictingNames = getNamesConflictingWithLocal(utils.getUnit(), invocation);
+    Set<String> conflictingNames = getNamesConflictingWithLocal(utils.getUnit(), targetExpression);
     for (Entry<VariableElement, List<SourceRange>> entry : part.variables.entrySet()) {
       String originalName = entry.getKey().getName();
       // prepare unique name
