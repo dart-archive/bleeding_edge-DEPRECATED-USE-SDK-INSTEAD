@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.dialogs;
 
+import com.google.common.base.Strings;
+import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.themes.Fonts;
 import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateAdapter;
@@ -27,7 +29,6 @@ import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.window.Window;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -38,6 +39,10 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Link;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * Contributes an update status label and update action button to the {@link AboutDartDialog}.
@@ -55,7 +60,10 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
     };
   }
 
-  private CLabel updateStatusLabel;
+  private static final String WHATS_NEW_LINK_TEXT = " <a>What's new?</a>";
+  private static final String NEW_VERSION_AVAILABLE_MSG = "A new version {0} is ready to install.";
+
+  private Link updateStatusLabel;
   private Button updateStatusButton;
 
   private UpdateAction updateAction;
@@ -113,7 +121,12 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
     createControl(parent);
     cacheFonts();
 
-    setStatus("Checking for updates...", italicFont);
+    //pad the initial status message to ensure it's wide enough to display new version available text
+    setStatus(
+        padToMatch(
+            "Checking for updates...",
+            bindRevision(NEW_VERSION_AVAILABLE_MSG + WHATS_NEW_LINK_TEXT, "000000")),
+        italicFont);
     setActionDisabled(checkFordUpdatesAction);
 
     UpdateManager updateManager = UpdateCore.getUpdateManager();
@@ -182,9 +195,7 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
       @Override
       public void run() {
         if (latestAvailableRevision != null) {
-          setStatus(
-              bindLatestAvailableRevision("A new version {0} is ready to install."),
-              regularFont);
+          setStatus(bindRevision(NEW_VERSION_AVAILABLE_MSG, latestAvailableRevision), regularFont);
           setActionEnabled(applyUpdateAction);
         }
       }
@@ -203,13 +214,27 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
   }
 
   @Override
-  public void updateAvailable(Revision revision) {
+  public void updateAvailable(final Revision revision) {
     this.latestAvailableRevision = revision;
     UpdateCore.logInfo("UpdateStatusControl.updateAvailable() => " + latestAvailableRevision);
     asyncExec(new Runnable() {
       @Override
       public void run() {
-        setStatus(bindLatestAvailableRevision("A new version {0} is available."), regularFont);
+
+        String link = "";
+        try {
+          URL url = revision.getUrl();
+          //sanity check in case a custom URL is being used
+          if (url.getPath().contains("integration")) {
+            link = WHATS_NEW_LINK_TEXT;
+          }
+        } catch (MalformedURLException e) {
+          //bad URL means no link
+        }
+
+        setStatus(
+            bindRevision(NEW_VERSION_AVAILABLE_MSG + link, latestAvailableRevision),
+            regularFont);
         setActionEnabled(downloadUpdateAction);
       }
     });
@@ -236,8 +261,8 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
     updateStatusLabel.getDisplay().asyncExec(runnable);
   }
 
-  private String bindLatestAvailableRevision(String msg) {
-    return NLS.bind(msg, "[" + latestAvailableRevision + "]");
+  private String bindRevision(String msg, Object revision) {
+    return NLS.bind(msg, "[" + revision + "]");
   }
 
   private void cacheFonts() {
@@ -245,7 +270,7 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
     italicFont = Fonts.getItalicFont(regularFont);
   }
 
-  private void createControl(Composite parent) {
+  private void createControl(final Composite parent) {
 
     Composite comp = new Composite(parent, SWT.NONE);
 
@@ -253,11 +278,22 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
     GridLayoutFactory.fillDefaults().numColumns(isCentered ? 1 : 2).margins(margin.x, margin.y).applyTo(
         comp);
 
-    updateStatusLabel = new CLabel(comp, SWT.NONE);
+    updateStatusLabel = new Link(comp, SWT.NO_FOCUS);
     if (backgroundColor != null) {
       comp.setBackground(backgroundColor);
       updateStatusLabel.setBackground(backgroundColor);
     }
+    updateStatusLabel.addSelectionListener(new SelectionListener() {
+      @Override
+      public void widgetDefaultSelected(SelectionEvent e) {
+        widgetSelected(e);
+      }
+
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        ExternalBrowserUtil.openInExternalBrowser(UpdateCore.getChangeLogUrl());
+      }
+    });
 
     GridDataFactory.fillDefaults().align(isCentered ? SWT.CENTER : SWT.FILL, SWT.CENTER).grab(
         true,
@@ -280,6 +316,14 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
         performAction(e);
       }
     });
+  }
+
+  private String padToMatch(String original, String toMatch) {
+    int pad = toMatch.length() - original.length();
+    if (pad > 0) {
+      return original.concat(Strings.repeat(" ", pad + 5));
+    }
+    return original;
   }
 
   private void performAction(SelectionEvent e) {

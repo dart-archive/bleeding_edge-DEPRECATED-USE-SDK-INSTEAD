@@ -62,12 +62,6 @@ public class UpdateCore extends Plugin {
   private static final boolean AUTO_UPDATE_CHECK_DEFAULT = true;
 
   /**
-   * Changelog URL.
-   */
-  //TODO(pquitslund): move to props file
-  private static final String CHANGELOG_URL = "http://commondatastorage.googleapis.com/dart-editor-archive-integration/latest/changelog.html";
-
-  /**
    * Key to fetch the update URL.
    */
   private static final String UPDATE_URL_PROP_KEY = "updateUrl";
@@ -145,7 +139,7 @@ public class UpdateCore extends Plugin {
    * @return the changelog url
    */
   public static String getChangeLogUrl() {
-    return CHANGELOG_URL;
+    return getUpdateUrl() + "latest/changelog.html";
   }
 
   /**
