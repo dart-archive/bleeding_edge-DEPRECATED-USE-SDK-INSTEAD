@@ -67,12 +67,22 @@ class FxUtil {
    * changed.
    */
   static Coordinate computeRelativePosition(Element element, Element target) {
-    final testPoint = new Point(0, 0);
-    final pagePoint =
-        window.webkitConvertPointFromNodeToPage(element, testPoint);
-    final pointRelativeToTarget =
-        window.webkitConvertPointFromPageToNode(target, pagePoint);
-    return new Coordinate(pointRelativeToTarget.x, pointRelativeToTarget.y);
+    final elementPoint = computePagePosition(element);
+    final targetPoint = computePagePosition(target);
+    return new Coordinate(elementPoint.x - targetPoint.x,
+        elementPoint.y - targetPoint.y);
+  }
+
+  /** Computes the position of an element on the page. */
+  static Coordinate computePagePosition(Element element) {
+    num left = 0;
+    num top = 0;
+    do {
+      left += element.offsetLeft;
+      top += element.offsetTop;
+      element = element.offsetParent;
+    } while (element != null);
+    return new Coordinate(left, top);
   }
 
   /** Clear a -webkit-transform from an element. */
