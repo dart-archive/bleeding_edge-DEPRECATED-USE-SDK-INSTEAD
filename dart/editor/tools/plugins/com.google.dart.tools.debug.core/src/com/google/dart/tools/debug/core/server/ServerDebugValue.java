@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.server.ServerDebugVariable.IValueRetriever;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.util.IDartDebugValue;
@@ -145,17 +146,27 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
           new VmCallback<VmObject>() {
             @Override
             public void handleResult(VmResult<VmObject> result) {
-              if (!result.isError()) {
-                value.setVmObject(result.getResult());
+              try {
+                if (!result.isError()) {
+                  value.setVmObject(result.getResult());
 
-                tempFields.addAll(convert(result.getResult()));
+                  tempFields.addAll(convert(result.getResult()));
+                }
+
+                if (result != null && result.getResult() != null) {
+                  fillInStaticFields(
+                      value.getIsolate(),
+                      result.getResult().getClassId(),
+                      tempFields,
+                      latch);
+                } else {
+                  latch.countDown();
+                }
+              } catch (Throwable t) {
+                latch.countDown();
+
+                DartDebugCorePlugin.logError(t);
               }
-
-              fillInStaticFields(
-                  value.getIsolate(),
-                  result.getResult().getClassId(),
-                  tempFields,
-                  latch);
             }
           });
     } catch (Exception e) {
