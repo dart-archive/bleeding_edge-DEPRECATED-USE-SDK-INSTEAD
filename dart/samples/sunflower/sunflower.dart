@@ -7,68 +7,45 @@ library sunflower;
 import 'dart:html';
 import 'dart:math';
 
-const SEED_RADIUS = 2;
-const SCALE_FACTOR = 4;
-const TAU = PI * 2;
+const String ORANGE = "orange";
+const int SEED_RADIUS = 2;
+const int SCALE_FACTOR = 4;
+const num TAU = PI * 2;
+const int MAX_D = 300;
+const num centerX = MAX_D / 2;
+const num centerY = centerX;
 
-const MAX_D = 300;
-const ORANGE = "orange";
-
-num centerX, centerY;
+final CanvasRenderingContext2D context = query("#canvas").context2d;
+final InputElement slider = query("#slider");
+final Element notes = query("#notes");
+final num PHI = (sqrt(5) + 1) / 2;
 int seeds = 0;
 
-var PHI;
+void main() {
+  slider.on.change.add((e) => draw(), true);
+  draw();
+}
 
-main() {
-  PHI = (sqrt(5) + 1) / 2;
-
-  CanvasElement canvas = query("#canvas");
-  centerX = centerY = MAX_D / 2;
-  var context = canvas.context2d;
-
-  InputElement slider = query("#slider");
-  slider.on.change.add((Event e) {
-    seeds = int.parse(slider.value);
-    drawFrame(context);
-  }, true);
-
+/// Draw the complete figure for the current number of seeds.
+void draw() {
   seeds = int.parse(slider.value);
-
-  drawFrame(context);
-}
-
-/**
- * Draw the complete figure for the current number of seeds.
- */
-void drawFrame(CanvasRenderingContext2D context) {
   context.clearRect(0, 0, MAX_D, MAX_D);
-
   for (var i = 0; i < seeds; i++) {
-    var theta = i * TAU / PHI;
-    var r = sqrt(i) * SCALE_FACTOR;
-    var x = centerX + r * cos(theta);
-    var y = centerY - r * sin(theta);
-
-    drawSeed(context, x, y);
+    final num theta = i * TAU / PHI;
+    final num r = sqrt(i) * SCALE_FACTOR;
+    drawSeed(centerX + r * cos(theta), centerY - r * sin(theta));
   }
-
-  displaySeedCount(seeds);
+  notes.text = "${seeds} seeds";
 }
 
-/**
- * Draw a small circle representing a seed centered at (x,y).
- */
-void drawSeed(CanvasRenderingContext2D context, num x, num y) {
-  context.beginPath();
-  context.lineWidth = 2;
-  context.fillStyle = ORANGE;
-  context.strokeStyle = ORANGE;
-  context.arc(x, y, SEED_RADIUS, 0, TAU, false);
-  context.fill();
-  context.closePath();
-  context.stroke();
-}
-
-void displaySeedCount(num seedCount) {
-  query("#notes").text = "${seedCount} seeds";
+/// Draw a small circle representing a seed centered at (x,y).
+void drawSeed(num x, num y) {
+  context..beginPath()
+         ..lineWidth = 2
+         ..fillStyle = ORANGE
+         ..strokeStyle = ORANGE
+         ..arc(x, y, SEED_RADIUS, 0, TAU, false)
+         ..fill()
+         ..closePath()
+         ..stroke();
 }
