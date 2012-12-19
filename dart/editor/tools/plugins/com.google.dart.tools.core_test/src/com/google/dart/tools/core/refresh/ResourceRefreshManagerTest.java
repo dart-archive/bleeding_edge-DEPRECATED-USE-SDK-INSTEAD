@@ -96,53 +96,54 @@ public class ResourceRefreshManagerTest extends TestCase {
     });
   }
 
-  public void test_ResourceRefreshManager_updateWithoutNotification() throws Exception {
-    TestUtilities.runWithTempDirectory(new FileOperation() {
-      @Override
-      public void run(File tempDirectory) throws Exception {
-        File dartFile = new File(tempDirectory, "test.dart");
-        PrintWriter writer = null;
-        try {
-          writer = new PrintWriter(new FileWriter(dartFile));
-          writer.println("#library('test');");
-          writer.println();
-          writer.println("class test {}");
-        } finally {
-          if (writer != null) {
-            writer.flush();
-            writer.close();
-          }
-        }
-        final IFile[][] addedFiles = new IFile[1][];
-        final IFile[][] modifiedFiles = new IFile[1][];
-        final IFile[][] deletedFiles = new IFile[1][];
-        ResourceRefreshManager manager = new ResourceRefreshManager();
-        manager.addResourceChangeListener(new ResourceChangeListener() {
-          @Override
-          public void resourcesChanged(ResourceChangeEvent event) {
-            addedFiles[0] = event.getAddedFiles().toArray(new IFile[0]);
-            modifiedFiles[0] = event.getModifiedFiles().toArray(new IFile[0]);
-            deletedFiles[0] = event.getDeletedFiles().toArray(new IFile[0]);
-          }
-        });
-        IProject project = DartCore.openLibrary(dartFile, null).getDartProject().getProject();
-        //
-        // The manager should have been notified of the new files and updated it's state, so there
-        // should not be anything left to refresh.
-        //
-        manager.refresh();
-        assertNotNull(addedFiles[0]);
-        assertEquals(0, addedFiles[0].length);
-        assertNotNull(modifiedFiles[0]);
-        assertEquals(0, modifiedFiles[0].length);
-        assertNotNull(deletedFiles[0]);
-        assertEquals(0, deletedFiles[0].length);
-
-        project.delete(true, null);
-        manager.shutdown();
-      }
-    });
-  }
+  // TODO(devoncarew): flaky test (https://code.google.com/p/dart/issues/detail?id=7504)
+//  public void test_ResourceRefreshManager_updateWithoutNotification() throws Exception {
+//    TestUtilities.runWithTempDirectory(new FileOperation() {
+//      @Override
+//      public void run(File tempDirectory) throws Exception {
+//        File dartFile = new File(tempDirectory, "test.dart");
+//        PrintWriter writer = null;
+//        try {
+//          writer = new PrintWriter(new FileWriter(dartFile));
+//          writer.println("#library('test');");
+//          writer.println();
+//          writer.println("class test {}");
+//        } finally {
+//          if (writer != null) {
+//            writer.flush();
+//            writer.close();
+//          }
+//        }
+//        final IFile[][] addedFiles = new IFile[1][];
+//        final IFile[][] modifiedFiles = new IFile[1][];
+//        final IFile[][] deletedFiles = new IFile[1][];
+//        ResourceRefreshManager manager = new ResourceRefreshManager();
+//        manager.addResourceChangeListener(new ResourceChangeListener() {
+//          @Override
+//          public void resourcesChanged(ResourceChangeEvent event) {
+//            addedFiles[0] = event.getAddedFiles().toArray(new IFile[0]);
+//            modifiedFiles[0] = event.getModifiedFiles().toArray(new IFile[0]);
+//            deletedFiles[0] = event.getDeletedFiles().toArray(new IFile[0]);
+//          }
+//        });
+//        IProject project = DartCore.openLibrary(dartFile, null).getDartProject().getProject();
+//        //
+//        // The manager should have been notified of the new files and updated it's state, so there
+//        // should not be anything left to refresh.
+//        //
+//        manager.refresh();
+//        assertNotNull(addedFiles[0]);
+//        assertEquals(0, addedFiles[0].length);
+//        assertNotNull(modifiedFiles[0]);
+//        assertEquals(0, modifiedFiles[0].length);
+//        assertNotNull(deletedFiles[0]);
+//        assertEquals(0, deletedFiles[0].length);
+//
+//        project.delete(true, null);
+//        manager.shutdown();
+//      }
+//    });
+//  }
 
   /**
    * Return the file in which the resource refresh manager will store the modification times of
