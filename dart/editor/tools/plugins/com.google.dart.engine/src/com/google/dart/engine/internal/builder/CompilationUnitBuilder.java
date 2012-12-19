@@ -50,23 +50,33 @@ public class CompilationUnitBuilder {
   /**
    * Build the compilation unit element for the given source.
    * 
-   * @param compilationUnitSource the source describing the compilation unit
+   * @param source the source describing the compilation unit
    * @return the compilation unit element that was built
    * @throws AnalysisException if the analysis could not be performed
    */
-  public CompilationUnitElementImpl buildCompilationUnit(Source compilationUnitSource)
+  public CompilationUnitElementImpl buildCompilationUnit(Source source) throws AnalysisException {
+    return buildCompilationUnit(source, analysisContext.parse(source, errorListener));
+  }
+
+  /**
+   * Build the compilation unit element for the given source.
+   * 
+   * @param source the source describing the compilation unit
+   * @param unit the AST structure representing the compilation unit
+   * @return the compilation unit element that was built
+   * @throws AnalysisException if the analysis could not be performed
+   */
+  public CompilationUnitElementImpl buildCompilationUnit(Source source, CompilationUnit unit)
       throws AnalysisException {
-    CompilationUnit unit = analysisContext.parse(compilationUnitSource, errorListener);
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     unit.accept(builder);
 
-    CompilationUnitElementImpl element = new CompilationUnitElementImpl(
-        compilationUnitSource.getShortName());
+    CompilationUnitElementImpl element = new CompilationUnitElementImpl(source.getShortName());
     element.setAccessors(holder.getAccessors());
     element.setFields(holder.getFields());
     element.setFunctions(holder.getFunctions());
-    element.setSource(compilationUnitSource);
+    element.setSource(source);
     element.setTypeAliases(holder.getTypeAliases());
     element.setTypes(holder.getTypes());
     return element;
