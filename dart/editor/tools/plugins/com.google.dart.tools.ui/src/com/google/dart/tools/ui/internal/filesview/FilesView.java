@@ -440,12 +440,18 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
 
       if (!isPackagesDir) {
+
         manager.add(cleanUpAction);
         manager.add(new Separator());
-        if (selection.size() == 1 && isDartLikeFile(selection.getFirstElement())) {
-          ignoreResourceAction.updateLabel();
-          manager.add(ignoreResourceAction);
+
+        if (selection.size() == 1) {
+          Object elem = selection.getFirstElement();
+          if (elem instanceof IFolder || isDartLikeFile(elem)) {
+            ignoreResourceAction.updateLabel();
+            manager.add(ignoreResourceAction);
+          }
         }
+
         if (enableBuilderAction.shouldBeEnabled()) {
           enableBuilderAction.updateLabel();
           manager.add(enableBuilderAction);
