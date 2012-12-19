@@ -13,14 +13,7 @@
  */
 package com.google.dart.tools.core.refresh;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.test.util.FileOperation;
-import com.google.dart.tools.core.test.util.TestUtilities;
-
 import junit.framework.TestCase;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -48,53 +41,54 @@ public class ResourceRefreshManagerTest extends TestCase {
     assertTrue(timeStore.exists());
   }
 
-  public void test_ResourceRefreshManager_refresh() throws Exception {
-    TestUtilities.runWithTempDirectory(new FileOperation() {
-      @Override
-      public void run(File tempDirectory) throws Exception {
-        File dartFile = new File(tempDirectory, "test.dart");
-        PrintWriter writer = null;
-        try {
-          writer = new PrintWriter(new FileWriter(dartFile));
-          writer.println("#library('test');");
-          writer.println();
-          writer.println("class test {}");
-        } finally {
-          if (writer != null) {
-            writer.flush();
-            writer.close();
-          }
-        }
-        final IFile[][] addedFiles = new IFile[1][];
-        final IFile[][] modifiedFiles = new IFile[1][];
-        final IFile[][] deletedFiles = new IFile[1][];
-        ResourceRefreshManager manager = new ResourceRefreshManager();
-        manager.addResourceChangeListener(new ResourceChangeListener() {
-          @Override
-          public void resourcesChanged(ResourceChangeEvent event) {
-            addedFiles[0] = event.getAddedFiles().toArray(new IFile[0]);
-            modifiedFiles[0] = event.getModifiedFiles().toArray(new IFile[0]);
-            deletedFiles[0] = event.getDeletedFiles().toArray(new IFile[0]);
-          }
-        });
-        IProject project = DartCore.openLibrary(dartFile, null).getDartProject().getProject();
-        manager.refresh();
-
-        updateModificationTime(dartFile);
-        manager.refresh();
-        assertNotNull(addedFiles[0]);
-        assertEquals(0, addedFiles[0].length);
-        assertNotNull(modifiedFiles[0]);
-        assertEquals(1, modifiedFiles[0].length);
-        assertEquals(dartFile.getName(), modifiedFiles[0][0].getName());
-        assertNotNull(deletedFiles[0]);
-        assertEquals(0, deletedFiles[0].length);
-
-        project.delete(true, null);
-        manager.shutdown();
-      }
-    });
-  }
+  // TODO(devoncarew): flaky test (https://code.google.com/p/dart/issues/detail?id=7504)
+//  public void test_ResourceRefreshManager_refresh() throws Exception {
+//    TestUtilities.runWithTempDirectory(new FileOperation() {
+//      @Override
+//      public void run(File tempDirectory) throws Exception {
+//        File dartFile = new File(tempDirectory, "test.dart");
+//        PrintWriter writer = null;
+//        try {
+//          writer = new PrintWriter(new FileWriter(dartFile));
+//          writer.println("#library('test');");
+//          writer.println();
+//          writer.println("class test {}");
+//        } finally {
+//          if (writer != null) {
+//            writer.flush();
+//            writer.close();
+//          }
+//        }
+//        final IFile[][] addedFiles = new IFile[1][];
+//        final IFile[][] modifiedFiles = new IFile[1][];
+//        final IFile[][] deletedFiles = new IFile[1][];
+//        ResourceRefreshManager manager = new ResourceRefreshManager();
+//        manager.addResourceChangeListener(new ResourceChangeListener() {
+//          @Override
+//          public void resourcesChanged(ResourceChangeEvent event) {
+//            addedFiles[0] = event.getAddedFiles().toArray(new IFile[0]);
+//            modifiedFiles[0] = event.getModifiedFiles().toArray(new IFile[0]);
+//            deletedFiles[0] = event.getDeletedFiles().toArray(new IFile[0]);
+//          }
+//        });
+//        IProject project = DartCore.openLibrary(dartFile, null).getDartProject().getProject();
+//        manager.refresh();
+//
+//        updateModificationTime(dartFile);
+//        manager.refresh();
+//        assertNotNull(addedFiles[0]);
+//        assertEquals(0, addedFiles[0].length);
+//        assertNotNull(modifiedFiles[0]);
+//        assertEquals(1, modifiedFiles[0].length);
+//        assertEquals(dartFile.getName(), modifiedFiles[0][0].getName());
+//        assertNotNull(deletedFiles[0]);
+//        assertEquals(0, deletedFiles[0].length);
+//
+//        project.delete(true, null);
+//        manager.shutdown();
+//      }
+//    });
+//  }
 
   // TODO(devoncarew): flaky test (https://code.google.com/p/dart/issues/detail?id=7504)
 //  public void test_ResourceRefreshManager_updateWithoutNotification() throws Exception {
@@ -158,6 +152,7 @@ public class ResourceRefreshManagerTest extends TestCase {
     return (File) method.invoke(null);
   }
 
+  @SuppressWarnings("unused")
   private void updateModificationTime(File dartFile) throws Exception {
     long initialTime = dartFile.lastModified();
     long currentTime = initialTime;
