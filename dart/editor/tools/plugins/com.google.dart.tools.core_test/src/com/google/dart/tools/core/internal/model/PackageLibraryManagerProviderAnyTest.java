@@ -15,8 +15,6 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.PackageLibraryManager;
 
-import java.io.File;
-
 public class PackageLibraryManagerProviderAnyTest extends PackageLibraryManagerProviderTest {
 
   public void test_PackageLibraryManagerProvider_core() throws Exception {
@@ -40,7 +38,7 @@ public class PackageLibraryManagerProviderAnyTest extends PackageLibraryManagerP
   }
 
   public void test_PackageLibraryManagerProvider_package() throws Exception {
-    String fileName = "ui" + File.separator + "lib.dart";
+    String fileName = "ui" + "/" + "lib.dart";
     testPackage(fileName, "package:" + fileName);
   }
 

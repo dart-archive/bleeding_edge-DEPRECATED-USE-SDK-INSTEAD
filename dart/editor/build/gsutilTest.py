@@ -11,6 +11,8 @@ import tempfile
 import unittest
 import gsutil
 
+# access to protected members of gsutil.py
+# pylint: disable=W0212
 
 class TestGsutil(unittest.TestCase):
   """Class to test the gsutil.py class."""

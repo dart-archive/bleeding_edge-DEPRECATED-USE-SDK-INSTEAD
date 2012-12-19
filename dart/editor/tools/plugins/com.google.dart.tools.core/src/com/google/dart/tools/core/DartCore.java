@@ -19,7 +19,6 @@ import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
-import com.google.dart.tools.core.internal.directoryset.DirectorySetManager;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
@@ -554,13 +553,6 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static Hashtable<String, String> getDefaultOptions() {
     return DartModelManager.getInstance().getDefaultOptions();
-  }
-
-  /**
-   * Return the static {@link DirectorySetManager} instance.
-   */
-  public static DirectorySetManager getDirectorySetManager() {
-    return DirectorySetManager.getInstance();
   }
 
   /**
@@ -1196,10 +1188,6 @@ public class DartCore extends Plugin implements DartSdkListener {
     PLUG_IN = this;
   }
 
-  public boolean isAutoRunPubEnabled() {
-    return DartCore.getPlugin().getPrefs().getBoolean(PUB_AUTO_RUN_PREFERENCE, true);
-  }
-
   /**
    * Use dart2js if the SDK is present.
    */
@@ -1236,6 +1224,10 @@ public class DartCore extends Plugin implements DartSdkListener {
     ProjectScope projectScope = new ProjectScope(project);
 
     return projectScope.getNode(PLUGIN_ID);
+  }
+
+  public boolean isAutoRunPubEnabled() {
+    return DartCore.getPlugin().getPrefs().getBoolean(PUB_AUTO_RUN_PREFERENCE, true);
   }
 
   @Override

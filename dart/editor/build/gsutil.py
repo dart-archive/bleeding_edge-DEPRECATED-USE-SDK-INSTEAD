@@ -396,7 +396,7 @@ class GsUtil(object):
         message += ch
     return message
 
-  def AddPublicAcl(self, acl):
+  def AddPublicAcl(self, acl): # pylint: disable=R0201
     """Create the new ACL for the Object.
 
     Args:
@@ -506,7 +506,7 @@ class GsUtil(object):
       else:
         self._LogStream(out, '')
 
-  def _PrintFailure(self, text):
+  def _PrintFailure(self, text): # pylint: disable=R0201
     """Print a failure message."""
     error_line_seperator = '*****************************'
 

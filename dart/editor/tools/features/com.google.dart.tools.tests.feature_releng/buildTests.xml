@@ -172,14 +172,13 @@
         </move>
     </target>
     
-    <!-- We have not set "failonerror='true'" for either the test runner
-        or test collector, because we want the HTML report to be generated
-        even when the tests fail. Unfortunately, this will cause ant to
-        report "BUILD SUCCESSFUL, even if the tests fail. To get around this 
-        problem, the -check_results task will parse the generated XML report
-        and look for the substrings 'failures="0"' and 'errors="0"'. If either
-        of these strings cannot be found, then a <fail> task is run.-->
-    <target name="check_results" depends="generateHtml">
+    <!-- The -check_results task parses the generated XML report and looks for
+         the substrings 'failures="0"' and 'errors="0"'. If eitherof these
+         strings cannot be found, then a <fail> task is run.-->
+    <target name="check_results">
+        <copy
+            file="${build.test.reports.dir}/TEST-${build.test.suite}.xml"
+            tofile="${build.out}/test-results.xml"/>
         
         <loadfile
             srcfile="${build.test.reports.dir}/TEST-${build.test.suite}.xml"
@@ -212,19 +211,6 @@
             message="SUCCESS - all tests passed - see the XML report in ${build.test.reports.dir} for more details" />
     </target>
 
-    <!--
-    create an HTML version of the Junit output
-    -->
-    <target name="generateHtml">
-        <junitreport>
-            <fileset dir="${build.test.reports.dir}">
-                <include name="TEST-${build.test.suite}.xml" />
-            </fileset>
-            <report todir="${build.out}/html" >
-            </report>    
-        </junitreport>
-    </target>
-    
     <!--
         deploy the tests to the out directory so they cna be used by the test runner
     -->

@@ -306,7 +306,7 @@ public class AnalysisServerTest extends TestCase {
     assertQueuedTasks(server);
     StringWriter writer = new StringWriter(5000);
     writeCache(writer);
-    Assert.assertEquals(EMPTY_CACHE_CONTENT, writer.toString());
+    Assert.assertEquals(EMPTY_CACHE_CONTENT, normalizeEols(writer.toString()));
   }
 
   public void test_write_read_1() throws Exception {
@@ -516,6 +516,14 @@ public class AnalysisServerTest extends TestCase {
       readCache(reader);
     }
     listener = new Listener(server);
+  }
+
+  private Object normalizeEols(String str) {
+    if (str == null) {
+      return null;
+    } else {
+      return str.replaceAll("\r\n", "\n");
+    }
   }
 
   private void readCache(Reader reeader) throws Exception {

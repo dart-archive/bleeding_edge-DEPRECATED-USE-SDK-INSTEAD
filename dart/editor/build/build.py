@@ -17,6 +17,7 @@ import ziputils
 import hashlib
 
 from os.path import join
+from xml.dom.minidom import parseString
 
 BUILD_OS = None
 DART_PATH = None
@@ -402,9 +403,25 @@ def main():
                               revision, options.name, buildroot, buildout,
                               editorpath, buildos,
                               extra_artifacts=extra_artifacts)
+      
+      #<testsuite errors="0" failures="1" name="com.google.dart.tools.core_test"
+      #   tests="740" time="40.713">
+      testResults = parseString(open(join(buildout, 'test-results.xml')).read())
+      testsuite = testResults.documentElement
+      
+      if testsuite.getAttribute("errors") != "0":
+        junit_status = 1
+      if testsuite.getAttribute("failures") != "0":
+        junit_status = 1
+      
+      print "\n%s: %s tests, %s errors, %s failures (time: %s)\n" % (
+          testsuite.getAttribute("name"),
+          testsuite.getAttribute("tests"),
+          testsuite.getAttribute("errors"),
+          testsuite.getAttribute("failures"),
+          testsuite.getAttribute("time"))
+      
       properties = ReadPropertyFile(buildos, ant_property_file.name)
-      if buildos:
-        UploadTestHtml(buildout, to_bucket, revision, buildos, gsu)
       if junit_status:
         if properties['build.runtime']:
           #if there is a build.runtime and the status is not
@@ -493,37 +510,6 @@ def PrintErrorLog(rootdir):
         print logline
   if not found:
     print 'no log file was found in ' + configdir
-
-
-def UploadTestHtml(buildout, bucket, svnid, buildos, gsu):
-  """Upload the Test Results HTML to GoogleStorage.
-
-  Args:
-    buildout: the location ofthe output of the build
-    bucket: the Google Storage bucket the code is staged in
-    svnid: the revision id for this build
-    buildos: the os the build is running on
-    gsu: the gsutil object
-  """
-  print 'UploadTestHtml(%s, %s, %s, %s)' % (buildout, bucket, svnid, buildos)
-  local_dir = '{0}'.format(svnid)
-  html_dir = os.path.join(buildout, 'html')
-  cwd = os.getcwd()
-  gs_test_dir_name = 'tests'
-  tmp_dir = None
-  try:
-    if os.path.exists(html_dir):
-      tmp_dir = tempfile.mkdtemp(prefix=gs_test_dir_name)
-      local_path = os.path.join(tmp_dir, local_dir)
-      os.makedirs(local_path)
-      os.chdir(tmp_dir)
-      shutil.copytree(html_dir, os.path.join(local_path, gs_test_dir_name,
-                                             buildos))
-      gsu.Copy(svnid, bucket, recursive_flag=True)
-  finally:
-    os.chdir(cwd)
-    if tmp_dir is not None and os.path.exists(tmp_dir):
-      shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 def _FindRcpZipFiles(out_dir):
