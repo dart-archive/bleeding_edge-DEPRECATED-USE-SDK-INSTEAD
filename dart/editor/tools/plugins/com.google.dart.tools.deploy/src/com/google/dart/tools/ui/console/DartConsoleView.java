@@ -426,11 +426,12 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     if (console instanceof ProcessConsole) {
       IProcess process = ((ProcessConsole) console).getProcess();
 
-      String name = ""; //process.getLaunch().getLaunchConfiguration().getName();
+      String name = "";
+      String configName = process.getLaunch().getLaunchConfiguration().getName();
 
       if (process.isTerminated()) {
         try {
-          name += "exit code=" + process.getExitValue();
+          name = "<" + configName + "> exit code=" + process.getExitValue();
         } catch (DebugException ex) {
           // ignore
         }

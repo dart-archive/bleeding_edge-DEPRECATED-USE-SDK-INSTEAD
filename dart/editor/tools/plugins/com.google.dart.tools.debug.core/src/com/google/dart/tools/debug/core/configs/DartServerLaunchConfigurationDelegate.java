@@ -107,7 +107,7 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     commandsList.add(vmExecPath);
     commandsList.addAll(Arrays.asList(launchConfig.getVmArgumentsAsArray()));
 
-    if (enableDebugging && !DartCore.isWindows()) {
+    if (enableDebugging) {
       commandsList.add("--debug:" + connectionPort);
     }
 
@@ -170,7 +170,7 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
 
     eclipseProcess.setAttribute(IProcess.ATTR_CMDLINE, describe(processBuilder));
 
-    if (enableDebugging && !DartCore.isWindows()) {
+    if (enableDebugging) {
       ServerDebugTarget debugTarget = new ServerDebugTarget(launch, eclipseProcess, connectionPort);
 
       try {

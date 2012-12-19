@@ -208,12 +208,14 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
   }
 
   synchronized void fillInFields() {
+    if (fields != null) {
+      return;
+    }
+
     if (value == null) {
       fields = valueRetriever.getVariables();
     } else if (value.isObject()) {
-      if (fields == null) {
-        fillInFieldsSync();
-      }
+      fillInFieldsSync();
     } else if (value.isList()) {
       fields = new ArrayList<IVariable>();
 
@@ -224,9 +226,7 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
             i)));
       }
     } else {
-      if (fields == null) {
-        fields = Collections.emptyList();
-      }
+      fields = Collections.emptyList();
     }
   }
 
