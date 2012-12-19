@@ -36,19 +36,6 @@ public class CompletionEngineTest extends TestCase {
 
   private static boolean analysisCleared = false;
 
-  // FIXME http://code.google.com/p/dart/issues/detail?id=7483
-  public void _testCommentSnippets060() throws Exception {
-    String source = Joiner.on("\n").join(
-        "interface MM extends Map{}",
-        "class Z {",
-        "  MM x;",
-        "  f() {",
-        "    x!1",
-        "  }",
-        "}");
-    test(source, "1+x", "1+x[]");
-  }
-
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",
@@ -413,6 +400,18 @@ public class CompletionEngineTest extends TestCase {
 
   public void testCommentSnippets059() throws Exception {
     test("f(){((int x) => x+4).!1call(1);}", "1-call");
+  }
+
+  public void testCommentSnippets060() throws Exception {
+    String source = Joiner.on("\n").join(
+        "abstract class MM extends Map{factory MM() => new Map();}",
+        "class Z {",
+        "  MM x;",
+        "  f() {",
+        "    x!1",
+        "  }",
+        "}");
+    test(source, "1+x", "1+x[]");
   }
 
   public void testCommentSnippets061() throws Exception {

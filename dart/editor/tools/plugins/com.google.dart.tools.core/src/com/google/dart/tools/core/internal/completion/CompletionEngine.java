@@ -1706,7 +1706,7 @@ public class CompletionEngine {
   private static final char[] DYNAMIC_CA = "dynamic".toCharArray();
   private static final boolean DEBUG = "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.ui/debug/CompletionEngine"));
   private static final String C_VOID = "void";
-  private static final String CORELIB_NAME = "dart:core";
+  private static final String CORELIB_NAME = "dart.core";
   private static final String MAP_TYPE_NAME = "Map";
   private static final String LIST_TYPE_NAME = "List";
   /** Signature of Object.noSuchMethod(), which should not appear in proposal lists. */
