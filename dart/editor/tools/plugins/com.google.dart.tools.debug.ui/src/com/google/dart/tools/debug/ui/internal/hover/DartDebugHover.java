@@ -30,15 +30,16 @@ import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 
 /**
- * Hover text for variables while debugging
+ * Hover text for variables while debugging.
  */
 public class DartDebugHover implements ITextHover, ITextHoverExtension2 {
+  private static DartDebugModelPresentation presentation = new DartDebugModelPresentation();
 
   /**
    * Returns a configured model presentation for use displaying variables.
    */
   private static DartDebugModelPresentation getModelPresentation() {
-    return new DartDebugModelPresentation();
+    return presentation;
   }
 
   /**

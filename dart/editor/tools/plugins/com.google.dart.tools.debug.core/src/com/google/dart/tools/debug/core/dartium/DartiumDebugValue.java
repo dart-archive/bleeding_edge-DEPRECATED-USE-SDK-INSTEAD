@@ -61,7 +61,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     }
 
     if (value.isNull()) {
-      callback.detailComputed(null);
+      callback.detailComputed(getDisplayString());
       return;
     }
 

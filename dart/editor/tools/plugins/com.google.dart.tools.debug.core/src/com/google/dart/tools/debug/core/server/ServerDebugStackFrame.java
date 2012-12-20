@@ -104,7 +104,6 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
       if (var.getName().equals(varName)) {
         return var;
       }
-
     }
 
     return null;

@@ -153,7 +153,6 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
       if (var.getName().equals(varName)) {
         return var;
       }
-
     }
 
     return null;
