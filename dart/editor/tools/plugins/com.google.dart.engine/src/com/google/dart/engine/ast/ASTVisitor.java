@@ -132,6 +132,8 @@ public interface ASTVisitor<R> {
 
   public R visitLibraryDirective(LibraryDirective node);
 
+  public R visitLibraryIdentifier(LibraryIdentifier node);
+
   public R visitListLiteral(ListLiteral node);
 
   public R visitMapLiteral(MapLiteral node);

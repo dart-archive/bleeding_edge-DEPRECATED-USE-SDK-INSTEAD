@@ -39,7 +39,7 @@ public class PartOfDirective extends Directive {
   /**
    * The name of the library that the containing compilation unit is part of.
    */
-  private SimpleIdentifier libraryName;
+  private LibraryIdentifier libraryName;
 
   /**
    * The semicolon terminating the directive.
@@ -57,7 +57,7 @@ public class PartOfDirective extends Directive {
    * @param semicolon the semicolon terminating the directive
    */
   public PartOfDirective(Comment comment, List<Annotation> metadata, Token partToken,
-      Token ofToken, SimpleIdentifier libraryName, Token semicolon) {
+      Token ofToken, LibraryIdentifier libraryName, Token semicolon) {
     super(comment, metadata);
     this.partToken = partToken;
     this.ofToken = ofToken;
@@ -85,7 +85,7 @@ public class PartOfDirective extends Directive {
    * 
    * @return the name of the library that the containing compilation unit is part of
    */
-  public SimpleIdentifier getLibraryName() {
+  public LibraryIdentifier getLibraryName() {
     return libraryName;
   }
 
@@ -121,7 +121,7 @@ public class PartOfDirective extends Directive {
    * 
    * @param libraryName the name of the library that the containing compilation unit is part of
    */
-  public void setLibraryName(SimpleIdentifier libraryName) {
+  public void setLibraryName(LibraryIdentifier libraryName) {
     this.libraryName = becomeParentOf(libraryName);
   }
 

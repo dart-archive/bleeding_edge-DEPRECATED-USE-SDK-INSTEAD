@@ -366,6 +366,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitLibraryIdentifier(LibraryIdentifier node) {
+    return visitIdentifier(node);
+  }
+
+  @Override
   public R visitListLiteral(ListLiteral node) {
     return visitTypedLiteral(node);
   }

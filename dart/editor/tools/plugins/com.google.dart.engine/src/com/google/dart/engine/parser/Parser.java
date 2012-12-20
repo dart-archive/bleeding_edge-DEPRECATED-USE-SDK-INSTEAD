@@ -3028,7 +3028,7 @@ public class Parser {
    */
   private LibraryDirective parseLibraryDirective(CommentAndMetadata commentAndMetadata) {
     Token keyword = expect(Keyword.LIBRARY);
-    SimpleIdentifier libraryName = parseLibraryName(
+    LibraryIdentifier libraryName = parseLibraryName(
         ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE,
         keyword);
     Token semicolon = expect(TokenType.SEMICOLON);
@@ -3041,11 +3041,31 @@ public class Parser {
   }
 
   /**
+   * Parse a library identifier.
+   * 
+   * <pre>
+   * libraryIdentifier ::=
+   *     identifier ('.' identifier)*
+   * </pre>
+   * 
+   * @return the library identifier that was parsed
+   */
+  private LibraryIdentifier parseLibraryIdentifier() {
+    ArrayList<SimpleIdentifier> components = new ArrayList<SimpleIdentifier>();
+    components.add(parseSimpleIdentifier());
+    while (matches(TokenType.PERIOD)) {
+      advance();
+      components.add(parseSimpleIdentifier());
+    }
+    return new LibraryIdentifier(components);
+  }
+
+  /**
    * Parse a library name.
    * 
    * <pre>
    * libraryName ::=
-   *     identifier
+   *     libraryIdentifier
    * </pre>
    * 
    * @param missingNameError the error code to be used if the library name is missing
@@ -3053,9 +3073,10 @@ public class Parser {
    *          missing
    * @return the library name that was parsed
    */
-  private SimpleIdentifier parseLibraryName(ParserErrorCode missingNameError, Token missingNameToken) {
+  private LibraryIdentifier parseLibraryName(ParserErrorCode missingNameError,
+      Token missingNameToken) {
     if (matchesIdentifier()) {
-      return parseSimpleIdentifier();
+      return parseLibraryIdentifier();
     } else if (matches(TokenType.STRING)) {
       // TODO(brianwilkerson) Recovery: This should be extended to handle arbitrary tokens until we
       // can find a token that can start a compilation unit member.
@@ -3064,7 +3085,9 @@ public class Parser {
     } else {
       reportError(missingNameError, missingNameToken);
     }
-    return createSyntheticIdentifier();
+    ArrayList<SimpleIdentifier> components = new ArrayList<SimpleIdentifier>();
+    components.add(createSyntheticIdentifier());
+    return new LibraryIdentifier(components);
   }
 
   /**
@@ -3687,7 +3710,7 @@ public class Parser {
     Token partKeyword = expect(Keyword.PART);
     if (matches(OF)) {
       Token ofKeyword = getAndAdvance();
-      SimpleIdentifier libraryName = parseLibraryName(
+      LibraryIdentifier libraryName = parseLibraryName(
           ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE,
           ofKeyword);
       Token semicolon = expect(TokenType.SEMICOLON);

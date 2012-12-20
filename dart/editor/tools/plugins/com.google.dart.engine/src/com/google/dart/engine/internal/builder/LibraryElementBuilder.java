@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.LibraryDirective;
+import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PartDirective;
@@ -99,9 +100,11 @@ public class LibraryElementBuilder {
   public LibraryElement buildLibrary(Source librarySource) throws AnalysisException {
     CompilationUnitBuilder builder = new CompilationUnitBuilder(analysisContext, errorListener);
     CompilationUnit definingCompilationUnit = analysisContext.parse(librarySource, errorListener);
-    CompilationUnitElementImpl definingCompilationUnitElement = builder.buildCompilationUnit(librarySource);
+    CompilationUnitElementImpl definingCompilationUnitElement = builder.buildCompilationUnit(
+        librarySource,
+        definingCompilationUnit);
     NodeList<Directive> directives = definingCompilationUnit.getDirectives();
-    SimpleIdentifier libraryNameNode = null;
+    LibraryIdentifier libraryNameNode = null;
     boolean hasPartDirective = false;
     boolean explicitlyImportsCore = false;
     FunctionElement entryPoint = findEntryPoint(definingCompilationUnitElement);
@@ -327,7 +330,7 @@ public class LibraryElementBuilder {
       for (Directive directive : partUnit.getDirectives()) {
         if (directive instanceof PartOfDirective) {
           directivesToResolve.add(directive);
-          SimpleIdentifier libraryName = ((PartOfDirective) directive).getLibraryName();
+          LibraryIdentifier libraryName = ((PartOfDirective) directive).getLibraryName();
           if (libraryName != null) {
             return libraryName.getName();
           }

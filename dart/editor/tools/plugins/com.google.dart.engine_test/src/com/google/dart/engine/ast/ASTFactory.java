@@ -603,17 +603,30 @@ public final class ASTFactory {
     return new LabeledStatement(labels, statement);
   }
 
-  public static LibraryDirective libraryDirective(List<Annotation> metadata, String libraryName) {
+  public static LibraryDirective libraryDirective(List<Annotation> metadata,
+      LibraryIdentifier libraryName) {
     return new LibraryDirective(
         null,
         metadata,
         token(Keyword.LIBRARY),
-        identifier(libraryName),
+        libraryName,
         token(TokenType.SEMICOLON));
   }
 
   public static LibraryDirective libraryDirective(String libraryName) {
-    return libraryDirective(new ArrayList<Annotation>(), libraryName);
+    return libraryDirective(new ArrayList<Annotation>(), libraryIdentifier(libraryName));
+  }
+
+  public static LibraryIdentifier libraryIdentifier(SimpleIdentifier... components) {
+    return new LibraryIdentifier(list(components));
+  }
+
+  public static LibraryIdentifier libraryIdentifier(String... components) {
+    ArrayList<SimpleIdentifier> componentList = new ArrayList<SimpleIdentifier>();
+    for (String component : components) {
+      componentList.add(identifier(component));
+    }
+    return new LibraryIdentifier(componentList);
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
@@ -727,8 +740,12 @@ public final class ASTFactory {
     return partDirective(new ArrayList<Annotation>(), url);
   }
 
+  public static PartOfDirective partOfDirective(LibraryIdentifier libraryName) {
+    return partOfDirective(new ArrayList<Annotation>(), libraryName);
+  }
+
   public static PartOfDirective partOfDirective(List<Annotation> metadata,
-      SimpleIdentifier libraryName) {
+      LibraryIdentifier libraryName) {
     return new PartOfDirective(
         null,
         metadata,
@@ -736,10 +753,6 @@ public final class ASTFactory {
         token("of"),
         libraryName,
         token(TokenType.SEMICOLON));
-  }
-
-  public static PartOfDirective partOfDirective(SimpleIdentifier libraryName) {
-    return partOfDirective(new ArrayList<Annotation>(), libraryName);
   }
 
   public static DefaultFormalParameter positionalFormalParameter(NormalFormalParameter parameter,

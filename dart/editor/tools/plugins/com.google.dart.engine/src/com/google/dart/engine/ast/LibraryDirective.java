@@ -34,7 +34,7 @@ public class LibraryDirective extends Directive {
   /**
    * The name of the library being defined.
    */
-  private SimpleIdentifier name;
+  private LibraryIdentifier name;
 
   /**
    * The semicolon terminating the directive.
@@ -51,7 +51,7 @@ public class LibraryDirective extends Directive {
    * @param semicolon the semicolon terminating the directive
    */
   public LibraryDirective(Comment comment, List<Annotation> metadata, Token libraryToken,
-      SimpleIdentifier name, Token semicolon) {
+      LibraryIdentifier name, Token semicolon) {
     super(comment, metadata);
     this.libraryToken = libraryToken;
     this.name = becomeParentOf(name);
@@ -87,7 +87,7 @@ public class LibraryDirective extends Directive {
    * 
    * @return the name of the library being defined
    */
-  public SimpleIdentifier getName() {
+  public LibraryIdentifier getName() {
     return name;
   }
 
@@ -110,11 +110,11 @@ public class LibraryDirective extends Directive {
   }
 
   /**
-   * Set the name of the library being defined to the given string.
+   * Set the name of the library being defined to the given name.
    * 
    * @param name the name of the library being defined
    */
-  public void setName(SimpleIdentifier name) {
+  public void setName(LibraryIdentifier name) {
     this.name = becomeParentOf(name);
   }
 

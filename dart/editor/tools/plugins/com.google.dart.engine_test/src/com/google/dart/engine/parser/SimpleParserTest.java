@@ -2756,6 +2756,18 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(directive.getSemicolon());
   }
 
+  public void test_parseLibraryIdentifier_multiple() throws Exception {
+    String name = "a.b.c";
+    LibraryIdentifier identifier = parse("parseLibraryIdentifier", name);
+    assertEquals(name, identifier.getName());
+  }
+
+  public void test_parseLibraryIdentifier_single() throws Exception {
+    String name = "a";
+    LibraryIdentifier identifier = parse("parseLibraryIdentifier", name);
+    assertEquals(name, identifier.getName());
+  }
+
   public void test_parseListLiteral_empty_oneToken() throws Exception {
     Token token = token(Keyword.CONST);
     TypeArgumentList typeArguments = new TypeArgumentList(null, null, null);

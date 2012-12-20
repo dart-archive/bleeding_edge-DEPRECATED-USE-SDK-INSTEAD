@@ -571,6 +571,12 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitLibraryIdentifier(LibraryIdentifier node) {
+    writer.print(node.getName());
+    return null;
+  }
+
+  @Override
   public Void visitListLiteral(ListLiteral node) {
     if (node.getModifier() != null) {
       writer.print(node.getModifier().getLexeme());

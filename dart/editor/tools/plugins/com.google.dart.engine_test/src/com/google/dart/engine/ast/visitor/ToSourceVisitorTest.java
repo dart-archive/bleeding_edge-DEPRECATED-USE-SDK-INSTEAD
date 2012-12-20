@@ -26,104 +26,7 @@ import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 
-import static com.google.dart.engine.ast.ASTFactory.adjacentStrings;
-import static com.google.dart.engine.ast.ASTFactory.annotation;
-import static com.google.dart.engine.ast.ASTFactory.argumentDefinitionTest;
-import static com.google.dart.engine.ast.ASTFactory.argumentList;
-import static com.google.dart.engine.ast.ASTFactory.asExpression;
-import static com.google.dart.engine.ast.ASTFactory.assertStatement;
-import static com.google.dart.engine.ast.ASTFactory.assignmentExpression;
-import static com.google.dart.engine.ast.ASTFactory.binaryExpression;
-import static com.google.dart.engine.ast.ASTFactory.block;
-import static com.google.dart.engine.ast.ASTFactory.blockFunctionBody;
-import static com.google.dart.engine.ast.ASTFactory.booleanLiteral;
-import static com.google.dart.engine.ast.ASTFactory.breakStatement;
-import static com.google.dart.engine.ast.ASTFactory.cascadeExpression;
-import static com.google.dart.engine.ast.ASTFactory.cascadedIndexExpression;
-import static com.google.dart.engine.ast.ASTFactory.cascadedMethodInvocation;
-import static com.google.dart.engine.ast.ASTFactory.cascadedPropertyAccess;
-import static com.google.dart.engine.ast.ASTFactory.catchClause;
-import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.classTypeAlias;
-import static com.google.dart.engine.ast.ASTFactory.compilationUnit;
-import static com.google.dart.engine.ast.ASTFactory.conditionalExpression;
-import static com.google.dart.engine.ast.ASTFactory.constructorDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.constructorFieldInitializer;
-import static com.google.dart.engine.ast.ASTFactory.constructorName;
-import static com.google.dart.engine.ast.ASTFactory.continueStatement;
-import static com.google.dart.engine.ast.ASTFactory.doStatement;
-import static com.google.dart.engine.ast.ASTFactory.doubleLiteral;
-import static com.google.dart.engine.ast.ASTFactory.emptyFunctionBody;
-import static com.google.dart.engine.ast.ASTFactory.emptyStatement;
-import static com.google.dart.engine.ast.ASTFactory.exportDirective;
-import static com.google.dart.engine.ast.ASTFactory.expressionFunctionBody;
-import static com.google.dart.engine.ast.ASTFactory.expressionStatement;
-import static com.google.dart.engine.ast.ASTFactory.extendsClause;
-import static com.google.dart.engine.ast.ASTFactory.fieldDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.fieldFormalParameter;
-import static com.google.dart.engine.ast.ASTFactory.forEachStatement;
-import static com.google.dart.engine.ast.ASTFactory.forStatement;
-import static com.google.dart.engine.ast.ASTFactory.formalParameterList;
-import static com.google.dart.engine.ast.ASTFactory.functionDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.functionDeclarationStatement;
-import static com.google.dart.engine.ast.ASTFactory.functionExpression;
-import static com.google.dart.engine.ast.ASTFactory.functionExpressionInvocation;
-import static com.google.dart.engine.ast.ASTFactory.functionTypedFormalParameter;
-import static com.google.dart.engine.ast.ASTFactory.identifier;
-import static com.google.dart.engine.ast.ASTFactory.ifStatement;
-import static com.google.dart.engine.ast.ASTFactory.implementsClause;
-import static com.google.dart.engine.ast.ASTFactory.importDirective;
-import static com.google.dart.engine.ast.ASTFactory.importHideCombinator;
-import static com.google.dart.engine.ast.ASTFactory.importShowCombinator;
-import static com.google.dart.engine.ast.ASTFactory.indexExpression;
-import static com.google.dart.engine.ast.ASTFactory.instanceCreationExpression;
-import static com.google.dart.engine.ast.ASTFactory.integer;
-import static com.google.dart.engine.ast.ASTFactory.interpolationExpression;
-import static com.google.dart.engine.ast.ASTFactory.interpolationString;
-import static com.google.dart.engine.ast.ASTFactory.isExpression;
-import static com.google.dart.engine.ast.ASTFactory.label;
-import static com.google.dart.engine.ast.ASTFactory.labeledStatement;
-import static com.google.dart.engine.ast.ASTFactory.libraryDirective;
-import static com.google.dart.engine.ast.ASTFactory.list;
-import static com.google.dart.engine.ast.ASTFactory.listLiteral;
-import static com.google.dart.engine.ast.ASTFactory.mapLiteral;
-import static com.google.dart.engine.ast.ASTFactory.mapLiteralEntry;
-import static com.google.dart.engine.ast.ASTFactory.methodDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.methodInvocation;
-import static com.google.dart.engine.ast.ASTFactory.namedExpression;
-import static com.google.dart.engine.ast.ASTFactory.namedFormalParameter;
-import static com.google.dart.engine.ast.ASTFactory.nullLiteral;
-import static com.google.dart.engine.ast.ASTFactory.parenthesizedExpression;
-import static com.google.dart.engine.ast.ASTFactory.partDirective;
-import static com.google.dart.engine.ast.ASTFactory.partOfDirective;
-import static com.google.dart.engine.ast.ASTFactory.positionalFormalParameter;
-import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
-import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
-import static com.google.dart.engine.ast.ASTFactory.propertyAccess;
-import static com.google.dart.engine.ast.ASTFactory.redirectingConstructorInvocation;
-import static com.google.dart.engine.ast.ASTFactory.returnStatement;
-import static com.google.dart.engine.ast.ASTFactory.scriptTag;
-import static com.google.dart.engine.ast.ASTFactory.simpleFormalParameter;
-import static com.google.dart.engine.ast.ASTFactory.string;
-import static com.google.dart.engine.ast.ASTFactory.superConstructorInvocation;
-import static com.google.dart.engine.ast.ASTFactory.superExpression;
-import static com.google.dart.engine.ast.ASTFactory.switchCase;
-import static com.google.dart.engine.ast.ASTFactory.switchDefault;
-import static com.google.dart.engine.ast.ASTFactory.switchStatement;
-import static com.google.dart.engine.ast.ASTFactory.thisExpression;
-import static com.google.dart.engine.ast.ASTFactory.throwExpression;
-import static com.google.dart.engine.ast.ASTFactory.topLevelVariableDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.tryStatement;
-import static com.google.dart.engine.ast.ASTFactory.typeAlias;
-import static com.google.dart.engine.ast.ASTFactory.typeArgumentList;
-import static com.google.dart.engine.ast.ASTFactory.typeName;
-import static com.google.dart.engine.ast.ASTFactory.typeParameter;
-import static com.google.dart.engine.ast.ASTFactory.typeParameterList;
-import static com.google.dart.engine.ast.ASTFactory.variableDeclaration;
-import static com.google.dart.engine.ast.ASTFactory.variableDeclarationList;
-import static com.google.dart.engine.ast.ASTFactory.variableDeclarationStatement;
-import static com.google.dart.engine.ast.ASTFactory.whileStatement;
-import static com.google.dart.engine.ast.ASTFactory.withClause;
+import static com.google.dart.engine.ast.ASTFactory.*;
 import static com.google.dart.engine.scanner.TokenFactory.token;
 
 import java.io.PrintWriter;
@@ -1075,6 +978,14 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("library l;", libraryDirective("l"));
   }
 
+  public void test_visitLibraryIdentifier_multiple() {
+    assertSource("a.b.c", libraryIdentifier(identifier("a"), identifier("b"), identifier("c")));
+  }
+
+  public void test_visitLibraryIdentifier_single() {
+    assertSource("a", libraryIdentifier(identifier("a")));
+  }
+
   public void test_visitListLiteral_const() {
     assertSource("const []", listLiteral(Keyword.CONST, null));
   }
@@ -1289,7 +1200,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   }
 
   public void test_visitPartOfDirective() {
-    assertSource("part of l;", partOfDirective(identifier("l")));
+    assertSource("part of l;", partOfDirective(libraryIdentifier("l")));
   }
 
   public void test_visitPositionalFormalParameter() {
