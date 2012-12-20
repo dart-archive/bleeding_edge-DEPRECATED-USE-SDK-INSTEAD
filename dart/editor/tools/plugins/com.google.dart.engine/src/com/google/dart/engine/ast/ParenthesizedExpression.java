@@ -41,12 +41,6 @@ public class ParenthesizedExpression extends Expression {
 
   /**
    * Initialize a newly created parenthesized expression.
-   */
-  public ParenthesizedExpression() {
-  }
-
-  /**
-   * Initialize a newly created parenthesized expression.
    * 
    * @param leftParenthesis the left parenthesis
    * @param expression the expression within the parentheses

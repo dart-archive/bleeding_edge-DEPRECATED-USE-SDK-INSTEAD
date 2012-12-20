@@ -37,12 +37,6 @@ public class ExpressionStatement extends Statement {
 
   /**
    * Initialize a newly created expression statement.
-   */
-  public ExpressionStatement() {
-  }
-
-  /**
-   * Initialize a newly created expression statement.
    * 
    * @param expression the expression that comprises the statement
    * @param semicolon the semicolon terminating the statement

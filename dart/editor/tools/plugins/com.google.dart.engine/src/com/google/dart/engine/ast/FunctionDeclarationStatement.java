@@ -27,12 +27,6 @@ public class FunctionDeclarationStatement extends Statement {
 
   /**
    * Initialize a newly created function declaration statement.
-   */
-  public FunctionDeclarationStatement() {
-  }
-
-  /**
-   * Initialize a newly created function declaration statement.
    * 
    * @param functionDeclaration the the function declaration being wrapped
    */

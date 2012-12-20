@@ -51,12 +51,6 @@ public class ConditionalExpression extends Expression {
 
   /**
    * Initialize a newly created conditional expression.
-   */
-  public ConditionalExpression() {
-  }
-
-  /**
-   * Initialize a newly created conditional expression.
    * 
    * @param condition the condition used to determine which expression is executed next
    * @param question the token used to separate the condition from the then expression

@@ -68,12 +68,6 @@ public class ClassTypeAlias extends TypeAlias {
 
   /**
    * Initialize a newly created class type alias.
-   */
-  public ClassTypeAlias() {
-  }
-
-  /**
-   * Initialize a newly created class type alias.
    * 
    * @param comment the documentation comment associated with this type alias
    * @param metadata the annotations associated with this type alias

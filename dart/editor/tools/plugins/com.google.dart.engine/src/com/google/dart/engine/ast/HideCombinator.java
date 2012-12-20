@@ -34,13 +34,6 @@ public class HideCombinator extends Combinator {
 
   /**
    * Initialize a newly created import show combinator.
-   */
-  public HideCombinator() {
-    super();
-  }
-
-  /**
-   * Initialize a newly created import show combinator.
    * 
    * @param keyword the comma introducing the combinator
    * @param hiddenNames the list of names from the library that are hidden by this combinator

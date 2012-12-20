@@ -41,12 +41,6 @@ public class AsExpression extends Expression {
 
   /**
    * Initialize a newly created as expression.
-   */
-  public AsExpression() {
-  }
-
-  /**
-   * Initialize a newly created as expression.
    * 
    * @param expression the expression used to compute the value being cast
    * @param isOperator the is operator

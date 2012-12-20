@@ -60,12 +60,6 @@ public class FunctionDeclaration extends CompilationUnitMember {
 
   /**
    * Initialize a newly created function declaration.
-   */
-  public FunctionDeclaration() {
-  }
-
-  /**
-   * Initialize a newly created function declaration.
    * 
    * @param comment the documentation comment associated with this function
    * @param metadata the annotations associated with this function

@@ -42,12 +42,6 @@ public class MapLiteralEntry extends ASTNode {
 
   /**
    * Initialize a newly created map literal entry.
-   */
-  public MapLiteralEntry() {
-  }
-
-  /**
-   * Initialize a newly created map literal entry.
    * 
    * @param key the key with which the value will be associated
    * @param separator the colon that separates the key from the value

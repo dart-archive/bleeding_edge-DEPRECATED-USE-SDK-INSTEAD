@@ -43,12 +43,6 @@ public class PrefixExpression extends Expression {
 
   /**
    * Initialize a newly created prefix expression.
-   */
-  public PrefixExpression() {
-  }
-
-  /**
-   * Initialize a newly created prefix expression.
    * 
    * @param operator the prefix operator being applied to the operand
    * @param operand the expression computing the operand for the operator

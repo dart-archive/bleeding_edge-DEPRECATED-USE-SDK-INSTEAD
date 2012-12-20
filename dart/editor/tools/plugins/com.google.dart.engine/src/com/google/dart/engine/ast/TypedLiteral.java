@@ -40,12 +40,6 @@ public abstract class TypedLiteral extends Literal {
 
   /**
    * Initialize a newly created typed literal.
-   */
-  public TypedLiteral() {
-  }
-
-  /**
-   * Initialize a newly created typed literal.
    * 
    * @param modifier the const modifier associated with this literal
    * @param typeArguments the type argument associated with this literal, or {@code null} if no type

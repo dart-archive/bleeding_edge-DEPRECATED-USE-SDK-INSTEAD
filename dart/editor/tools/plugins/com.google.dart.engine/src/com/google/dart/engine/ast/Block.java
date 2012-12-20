@@ -43,12 +43,6 @@ public class Block extends Statement {
 
   /**
    * Initialize a newly created block of code.
-   */
-  public Block() {
-  }
-
-  /**
-   * Initialize a newly created block of code.
    * 
    * @param leftBracket the left curly bracket
    * @param statements the statements contained in the block

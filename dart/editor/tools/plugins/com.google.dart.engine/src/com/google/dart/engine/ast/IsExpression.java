@@ -46,12 +46,6 @@ public class IsExpression extends Expression {
 
   /**
    * Initialize a newly created is expression.
-   */
-  public IsExpression() {
-  }
-
-  /**
-   * Initialize a newly created is expression.
    * 
    * @param expression the expression used to compute the value whose type is being tested
    * @param isOperator the is operator

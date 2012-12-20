@@ -39,12 +39,6 @@ public class LabeledStatement extends Statement {
 
   /**
    * Initialize a newly created labeled statement.
-   */
-  public LabeledStatement() {
-  }
-
-  /**
-   * Initialize a newly created labeled statement.
    * 
    * @param labels the labels being associated with the statement
    * @param statement the statement with which the labels are being associated

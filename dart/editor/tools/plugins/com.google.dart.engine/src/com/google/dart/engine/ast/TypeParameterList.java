@@ -43,13 +43,6 @@ public class TypeParameterList extends ASTNode {
 
   /**
    * Initialize a newly created list of type parameters.
-   */
-  public TypeParameterList() {
-    super();
-  }
-
-  /**
-   * Initialize a newly created list of type parameters.
    * 
    * @param leftBracket the left angle bracket
    * @param typeParameters the type parameters in the list

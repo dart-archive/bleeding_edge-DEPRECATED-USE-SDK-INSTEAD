@@ -43,12 +43,6 @@ public class FunctionExpression extends Expression {
 
   /**
    * Initialize a newly created function declaration.
-   */
-  public FunctionExpression() {
-  }
-
-  /**
-   * Initialize a newly created function declaration.
    * 
    * @param parameters the parameters associated with the function
    * @param body the body of the function

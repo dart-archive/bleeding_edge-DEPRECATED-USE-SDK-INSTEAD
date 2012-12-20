@@ -39,12 +39,6 @@ public class ImportDirective extends NamespaceDirective {
 
   /**
    * Initialize a newly created import directive.
-   */
-  public ImportDirective() {
-  }
-
-  /**
-   * Initialize a newly created import directive.
    * 
    * @param comment the documentation comment associated with this directive
    * @param metadata the annotations associated with the directive

@@ -28,12 +28,6 @@ import java.util.List;
 public class SwitchDefault extends SwitchMember {
   /**
    * Initialize a newly created switch default.
-   */
-  public SwitchDefault() {
-  }
-
-  /**
-   * Initialize a newly created switch default.
    * 
    * @param labels the labels associated with the switch member
    * @param keyword the token representing the 'case' or 'default' keyword

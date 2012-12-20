@@ -31,12 +31,6 @@ public class SuperExpression extends Expression {
 
   /**
    * Initialize a newly created super expression.
-   */
-  public SuperExpression() {
-  }
-
-  /**
-   * Initialize a newly created super expression.
    * 
    * @param keyword the token representing the keyword
    */

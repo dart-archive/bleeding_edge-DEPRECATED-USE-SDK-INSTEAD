@@ -47,12 +47,6 @@ public class FunctionExpressionInvocation extends Expression {
 
   /**
    * Initialize a newly created function expression invocation.
-   */
-  public FunctionExpressionInvocation() {
-  }
-
-  /**
-   * Initialize a newly created function expression invocation.
    * 
    * @param function the expression producing the function being invoked
    * @param argumentList the list of arguments to the method

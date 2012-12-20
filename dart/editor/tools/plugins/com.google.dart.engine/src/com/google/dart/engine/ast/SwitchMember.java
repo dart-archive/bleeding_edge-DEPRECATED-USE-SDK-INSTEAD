@@ -50,12 +50,6 @@ public abstract class SwitchMember extends ASTNode {
 
   /**
    * Initialize a newly created switch member.
-   */
-  public SwitchMember() {
-  }
-
-  /**
-   * Initialize a newly created switch member.
    * 
    * @param labels the labels associated with the switch member
    * @param keyword the token representing the 'case' or 'default' keyword

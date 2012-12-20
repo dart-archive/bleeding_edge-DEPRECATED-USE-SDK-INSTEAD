@@ -42,12 +42,6 @@ public abstract class TypeAlias extends CompilationUnitMember {
 
   /**
    * Initialize a newly created type alias.
-   */
-  public TypeAlias() {
-  }
-
-  /**
-   * Initialize a newly created type alias.
    * 
    * @param comment the documentation comment associated with this type alias
    * @param metadata the annotations associated with this type alias

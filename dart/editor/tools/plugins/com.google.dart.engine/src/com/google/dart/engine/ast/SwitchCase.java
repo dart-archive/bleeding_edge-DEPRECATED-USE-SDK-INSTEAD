@@ -33,12 +33,6 @@ public class SwitchCase extends SwitchMember {
 
   /**
    * Initialize a newly created switch case.
-   */
-  public SwitchCase() {
-  }
-
-  /**
-   * Initialize a newly created switch case.
    * 
    * @param labels the labels associated with the switch member
    * @param keyword the token representing the 'case' or 'default' keyword

@@ -83,12 +83,6 @@ public class ClassDeclaration extends CompilationUnitMember {
 
   /**
    * Initialize a newly created class declaration.
-   */
-  public ClassDeclaration() {
-  }
-
-  /**
-   * Initialize a newly created class declaration.
    * 
    * @param comment the documentation comment associated with this class
    * @param metadata the annotations associated with this class

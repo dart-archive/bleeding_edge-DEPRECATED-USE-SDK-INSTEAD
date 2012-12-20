@@ -54,13 +54,6 @@ public class ConstructorFieldInitializer extends ConstructorInitializer {
   /**
    * Initialize a newly created field initializer to initialize the field with the given name to the
    * value of the given expression.
-   */
-  public ConstructorFieldInitializer() {
-  }
-
-  /**
-   * Initialize a newly created field initializer to initialize the field with the given name to the
-   * value of the given expression.
    * 
    * @param keyword the token for the 'this' keyword
    * @param period the token for the period after the 'this' keyword

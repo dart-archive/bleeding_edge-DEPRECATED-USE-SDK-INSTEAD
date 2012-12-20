@@ -46,12 +46,6 @@ public class PropertyAccess extends Expression {
 
   /**
    * Initialize a newly created property access expression.
-   */
-  public PropertyAccess() {
-  }
-
-  /**
-   * Initialize a newly created property access expression.
    * 
    * @param target the expression computing the object defining the property being accessed
    * @param operator the property access operator

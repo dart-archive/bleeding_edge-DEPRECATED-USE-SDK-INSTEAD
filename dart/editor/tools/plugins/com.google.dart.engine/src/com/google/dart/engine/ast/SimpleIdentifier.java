@@ -35,12 +35,6 @@ public class SimpleIdentifier extends Identifier {
 
   /**
    * Initialize a newly created identifier.
-   */
-  public SimpleIdentifier() {
-  }
-
-  /**
-   * Initialize a newly created identifier.
    * 
    * @param token the token representing the identifier
    */

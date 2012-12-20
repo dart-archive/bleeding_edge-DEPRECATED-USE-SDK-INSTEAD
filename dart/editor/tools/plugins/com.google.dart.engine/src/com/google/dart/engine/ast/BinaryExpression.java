@@ -48,12 +48,6 @@ public class BinaryExpression extends Expression {
 
   /**
    * Initialize a newly created binary expression.
-   */
-  public BinaryExpression() {
-  }
-
-  /**
-   * Initialize a newly created binary expression.
    * 
    * @param leftOperand the expression used to compute the left operand
    * @param operator the binary operator being applied

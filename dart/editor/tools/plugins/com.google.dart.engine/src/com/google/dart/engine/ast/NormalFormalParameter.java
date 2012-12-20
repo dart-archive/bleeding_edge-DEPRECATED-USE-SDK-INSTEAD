@@ -49,12 +49,6 @@ public abstract class NormalFormalParameter extends FormalParameter {
 
   /**
    * Initialize a newly created formal parameter.
-   */
-  public NormalFormalParameter() {
-  }
-
-  /**
-   * Initialize a newly created formal parameter.
    * 
    * @param comment the documentation comment associated with this parameter
    * @param metadata the annotations associated with this parameter

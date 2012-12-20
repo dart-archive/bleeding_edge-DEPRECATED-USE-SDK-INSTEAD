@@ -43,12 +43,6 @@ public class TypeName extends ASTNode {
 
   /**
    * Initialize a newly created type name.
-   */
-  public TypeName() {
-  }
-
-  /**
-   * Initialize a newly created type name.
    * 
    * @param name the name of the type
    * @param typeArguments the type arguments associated with the type, or {@code null} if there are

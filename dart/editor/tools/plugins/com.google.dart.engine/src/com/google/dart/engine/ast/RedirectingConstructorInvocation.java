@@ -50,13 +50,6 @@ public class RedirectingConstructorInvocation extends ConstructorInitializer {
   /**
    * Initialize a newly created redirecting invocation to invoke the constructor with the given name
    * with the given arguments.
-   */
-  public RedirectingConstructorInvocation() {
-  }
-
-  /**
-   * Initialize a newly created redirecting invocation to invoke the constructor with the given name
-   * with the given arguments.
    * 
    * @param keyword the token for the 'this' keyword
    * @param period the token for the period before the name of the constructor that is being invoked

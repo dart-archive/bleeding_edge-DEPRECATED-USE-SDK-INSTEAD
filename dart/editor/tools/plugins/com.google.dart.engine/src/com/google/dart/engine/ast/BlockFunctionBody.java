@@ -32,12 +32,6 @@ public class BlockFunctionBody extends FunctionBody {
 
   /**
    * Initialize a newly created function body consisting of a block of statements.
-   */
-  public BlockFunctionBody() {
-  }
-
-  /**
-   * Initialize a newly created function body consisting of a block of statements.
    * 
    * @param block the block representing the body of the function
    */

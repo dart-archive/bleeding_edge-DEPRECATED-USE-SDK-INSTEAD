@@ -39,12 +39,6 @@ public class TopLevelVariableDeclaration extends CompilationUnitMember {
   private Token semicolon;
 
   /**
-   * Initialize a newly created field declaration.
-   */
-  public TopLevelVariableDeclaration() {
-  }
-
-  /**
    * Initialize a newly created top-level variable declaration.
    * 
    * @param comment the documentation comment associated with this variable

@@ -43,12 +43,6 @@ public class LibraryDirective extends Directive {
 
   /**
    * Initialize a newly created library directive.
-   */
-  public LibraryDirective() {
-  }
-
-  /**
-   * Initialize a newly created library directive.
    * 
    * @param comment the documentation comment associated with this directive
    * @param metadata the annotations associated with the directive

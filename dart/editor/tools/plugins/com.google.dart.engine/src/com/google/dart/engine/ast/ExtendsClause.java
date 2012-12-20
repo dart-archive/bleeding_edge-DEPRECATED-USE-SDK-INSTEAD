@@ -37,12 +37,6 @@ public class ExtendsClause extends ASTNode {
 
   /**
    * Initialize a newly created extends clause.
-   */
-  public ExtendsClause() {
-  }
-
-  /**
-   * Initialize a newly created extends clause.
    * 
    * @param keyword the token representing the 'extends' keyword
    * @param superclass the name of the class that is being extended

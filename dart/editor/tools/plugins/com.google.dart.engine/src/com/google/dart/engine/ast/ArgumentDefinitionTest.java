@@ -36,12 +36,6 @@ public class ArgumentDefinitionTest extends Expression {
 
   /**
    * Initialize a newly created argument definition test.
-   */
-  public ArgumentDefinitionTest() {
-  }
-
-  /**
-   * Initialize a newly created argument definition test.
    * 
    * @param question the token representing the question mark
    * @param identifier the identifier representing the argument being tested

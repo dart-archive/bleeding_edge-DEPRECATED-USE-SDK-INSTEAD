@@ -51,12 +51,6 @@ public class VariableDeclarationList extends ASTNode {
 
   /**
    * Initialize a newly created variable declaration list.
-   */
-  public VariableDeclarationList() {
-  }
-
-  /**
-   * Initialize a newly created variable declaration list.
    * 
    * @param keyword the token representing the 'final', 'const' or 'var' keyword
    * @param type the type of the variables being declared

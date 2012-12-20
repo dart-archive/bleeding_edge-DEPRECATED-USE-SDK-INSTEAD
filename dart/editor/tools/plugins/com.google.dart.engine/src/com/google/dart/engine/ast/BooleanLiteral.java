@@ -36,12 +36,6 @@ public class BooleanLiteral extends Literal {
 
   /**
    * Initialize a newly created boolean literal.
-   */
-  public BooleanLiteral() {
-  }
-
-  /**
-   * Initialize a newly created boolean literal.
    * 
    * @param literal the token representing the literal
    * @param value the value of the literal

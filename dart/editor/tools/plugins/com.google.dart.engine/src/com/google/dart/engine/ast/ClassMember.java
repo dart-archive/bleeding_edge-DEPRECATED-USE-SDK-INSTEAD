@@ -22,12 +22,6 @@ import java.util.List;
 public abstract class ClassMember extends Declaration {
   /**
    * Initialize a newly created member of a class.
-   */
-  public ClassMember() {
-  }
-
-  /**
-   * Initialize a newly created member of a class.
    * 
    * @param comment the documentation comment associated with this member
    * @param metadata the annotations associated with this member

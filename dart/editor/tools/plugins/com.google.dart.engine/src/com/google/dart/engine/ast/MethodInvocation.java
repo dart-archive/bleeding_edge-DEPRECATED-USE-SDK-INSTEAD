@@ -53,12 +53,6 @@ public class MethodInvocation extends Expression {
 
   /**
    * Initialize a newly created method invocation.
-   */
-  public MethodInvocation() {
-  }
-
-  /**
-   * Initialize a newly created method invocation.
    * 
    * @param target the expression producing the object on which the method is defined
    * @param period the period that separates the target from the method name

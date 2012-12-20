@@ -61,12 +61,6 @@ public class ForEachStatement extends Statement {
 
   /**
    * Initialize a newly created for-each statement.
-   */
-  public ForEachStatement() {
-  }
-
-  /**
-   * Initialize a newly created for-each statement.
    * 
    * @param forKeyword the token representing the 'for' keyword
    * @param leftParenthesis the left parenthesis

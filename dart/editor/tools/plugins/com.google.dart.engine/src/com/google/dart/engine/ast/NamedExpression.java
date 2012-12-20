@@ -37,12 +37,6 @@ public class NamedExpression extends Expression {
 
   /**
    * Initialize a newly created named expression.
-   */
-  public NamedExpression() {
-  }
-
-  /**
-   * Initialize a newly created named expression.
    * 
    * @param name the name associated with the expression
    * @param expression the expression with which the name is associated

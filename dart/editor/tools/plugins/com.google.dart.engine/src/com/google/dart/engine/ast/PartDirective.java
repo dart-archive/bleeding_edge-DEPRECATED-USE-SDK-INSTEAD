@@ -43,12 +43,6 @@ public class PartDirective extends Directive {
 
   /**
    * Initialize a newly created part directive.
-   */
-  public PartDirective() {
-  }
-
-  /**
-   * Initialize a newly created part directive.
    * 
    * @param comment the documentation comment associated with this directive
    * @param metadata the annotations associated with the directive

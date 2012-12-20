@@ -74,12 +74,6 @@ public class FormalParameterList extends ASTNode {
 
   /**
    * Initialize a newly created parameter list.
-   */
-  public FormalParameterList() {
-  }
-
-  /**
-   * Initialize a newly created parameter list.
    * 
    * @param leftParenthesis the left parenthesis
    * @param parameters the parameters associated with the method

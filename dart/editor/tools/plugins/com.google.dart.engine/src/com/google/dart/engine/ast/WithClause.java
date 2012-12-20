@@ -38,12 +38,6 @@ public class WithClause extends ASTNode {
 
   /**
    * Initialize a newly created with clause.
-   */
-  public WithClause() {
-  }
-
-  /**
-   * Initialize a newly created with clause.
    * 
    * @param withKeyword the token representing the 'with' keyword
    * @param mixinTypes the names of the mixins that were specified

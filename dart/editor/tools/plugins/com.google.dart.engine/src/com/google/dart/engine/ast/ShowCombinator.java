@@ -34,13 +34,6 @@ public class ShowCombinator extends Combinator {
 
   /**
    * Initialize a newly created import show combinator.
-   */
-  public ShowCombinator() {
-    super();
-  }
-
-  /**
-   * Initialize a newly created import show combinator.
    * 
    * @param keyword the comma introducing the combinator
    * @param shownNames the list of names from the library that are made visible by this combinator

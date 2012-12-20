@@ -44,12 +44,6 @@ public class InterpolationExpression extends InterpolationElement {
 
   /**
    * Initialize a newly created interpolation expression.
-   */
-  public InterpolationExpression() {
-  }
-
-  /**
-   * Initialize a newly created interpolation expression.
    * 
    * @param leftBracket the left curly bracket
    * @param expression the expression to be evaluated for the value to be converted into a string

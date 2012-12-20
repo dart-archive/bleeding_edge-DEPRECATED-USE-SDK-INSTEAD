@@ -76,12 +76,6 @@ public class CatchClause extends ASTNode {
 
   /**
    * Initialize a newly created catch clause.
-   */
-  public CatchClause() {
-  }
-
-  /**
-   * Initialize a newly created catch clause.
    * 
    * @param onKeyword the token representing the 'on' keyword
    * @param exceptionType the type of exceptions caught by this catch clause

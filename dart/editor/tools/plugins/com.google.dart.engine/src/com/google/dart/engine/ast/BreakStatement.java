@@ -41,12 +41,6 @@ public class BreakStatement extends Statement {
 
   /**
    * Initialize a newly created break statement.
-   */
-  public BreakStatement() {
-  }
-
-  /**
-   * Initialize a newly created break statement.
    * 
    * @param keyword the token representing the 'break' keyword
    * @param label the label associated with the statement

@@ -22,12 +22,6 @@ import java.util.List;
 public abstract class Declaration extends AnnotatedNode {
   /**
    * Initialize a newly created declaration.
-   */
-  public Declaration() {
-  }
-
-  /**
-   * Initialize a newly created declaration.
    * 
    * @param comment the documentation comment associated with this declaration
    * @param metadata the annotations associated with this declaration

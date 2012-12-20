@@ -42,12 +42,6 @@ public class InstanceCreationExpression extends Expression {
 
   /**
    * Initialize a newly created instance creation expression.
-   */
-  public InstanceCreationExpression() {
-  }
-
-  /**
-   * Initialize a newly created instance creation expression.
    * 
    * @param keyword the keyword used to indicate how an object should be created
    * @param constructorName the name of the constructor to be invoked

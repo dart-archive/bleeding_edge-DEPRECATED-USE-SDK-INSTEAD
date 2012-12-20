@@ -34,12 +34,6 @@ public class StringInterpolation extends StringLiteral {
 
   /**
    * Initialize a newly created string interpolation expression.
-   */
-  public StringInterpolation() {
-  }
-
-  /**
-   * Initialize a newly created string interpolation expression.
    * 
    * @param elements the elements that will be composed to produce the resulting string
    */

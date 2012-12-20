@@ -43,12 +43,6 @@ public class PostfixExpression extends Expression {
 
   /**
    * Initialize a newly created postfix expression.
-   */
-  public PostfixExpression() {
-  }
-
-  /**
-   * Initialize a newly created postfix expression.
    * 
    * @param operand the expression computing the operand for the operator
    * @param operator the postfix operator being applied to the operand

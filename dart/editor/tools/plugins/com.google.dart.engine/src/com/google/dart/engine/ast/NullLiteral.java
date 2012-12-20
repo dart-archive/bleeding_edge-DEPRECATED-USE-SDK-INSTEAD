@@ -31,13 +31,6 @@ public class NullLiteral extends Literal {
 
   /**
    * Initialize a newly created null literal.
-   */
-  public NullLiteral() {
-    super();
-  }
-
-  /**
-   * Initialize a newly created null literal.
    * 
    * @param token the token representing the literal
    */

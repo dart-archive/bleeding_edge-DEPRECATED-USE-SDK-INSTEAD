@@ -37,12 +37,6 @@ public class CommentReference extends ASTNode {
 
   /**
    * Initialize a newly created reference to a Dart element.
-   */
-  public CommentReference() {
-  }
-
-  /**
-   * Initialize a newly created reference to a Dart element.
    * 
    * @param newKeyword the token representing the 'new' keyword
    * @param identifier the identifier being referenced

@@ -28,12 +28,6 @@ import java.util.List;
 public class ExportDirective extends NamespaceDirective {
   /**
    * Initialize a newly created export directive.
-   */
-  public ExportDirective() {
-  }
-
-  /**
-   * Initialize a newly created export directive.
    * 
    * @param comment the documentation comment associated with this directive
    * @param metadata the annotations associated with the directive

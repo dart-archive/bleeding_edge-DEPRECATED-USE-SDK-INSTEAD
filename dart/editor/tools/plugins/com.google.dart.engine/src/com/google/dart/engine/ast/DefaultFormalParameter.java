@@ -54,12 +54,6 @@ public class DefaultFormalParameter extends FormalParameter {
 
   /**
    * Initialize a newly created default formal parameter.
-   */
-  public DefaultFormalParameter() {
-  }
-
-  /**
-   * Initialize a newly created default formal parameter.
    * 
    * @param parameter the formal parameter with which the default value is associated
    * @param kind the kind of this parameter

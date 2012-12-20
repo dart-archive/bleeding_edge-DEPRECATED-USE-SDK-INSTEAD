@@ -46,12 +46,6 @@ public class IntegerLiteral extends Literal {
 
   /**
    * Initialize a newly created integer literal.
-   */
-  public IntegerLiteral() {
-  }
-
-  /**
-   * Initialize a newly created integer literal.
    * 
    * @param literal the token representing the literal
    * @param value the value of the literal

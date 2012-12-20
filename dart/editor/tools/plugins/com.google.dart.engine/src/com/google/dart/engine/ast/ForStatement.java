@@ -89,12 +89,6 @@ public class ForStatement extends Statement {
 
   /**
    * Initialize a newly created for statement.
-   */
-  public ForStatement() {
-  }
-
-  /**
-   * Initialize a newly created for statement.
    * 
    * @param forKeyword the token representing the 'for' keyword
    * @param leftParenthesis the left parenthesis

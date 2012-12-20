@@ -53,12 +53,6 @@ public class FunctionTypeAlias extends TypeAlias {
 
   /**
    * Initialize a newly created function type alias.
-   */
-  public FunctionTypeAlias() {
-  }
-
-  /**
-   * Initialize a newly created function type alias.
    * 
    * @param comment the documentation comment associated with this type alias
    * @param metadata the annotations associated with this type alias

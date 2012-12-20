@@ -50,13 +50,6 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
   /**
    * Initialize a newly created super invocation to invoke the inherited constructor with the given
    * name with the given arguments.
-   */
-  public SuperConstructorInvocation() {
-  }
-
-  /**
-   * Initialize a newly created super invocation to invoke the inherited constructor with the given
-   * name with the given arguments.
    * 
    * @param keyword the token for the 'super' keyword
    * @param period the token for the period before the name of the constructor that is being invoked

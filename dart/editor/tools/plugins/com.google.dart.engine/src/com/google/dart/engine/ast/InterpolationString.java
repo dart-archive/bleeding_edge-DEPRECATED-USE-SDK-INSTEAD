@@ -37,12 +37,6 @@ public class InterpolationString extends InterpolationElement {
 
   /**
    * Initialize a newly created string of characters that are part of a string interpolation.
-   */
-  public InterpolationString() {
-  }
-
-  /**
-   * Initialize a newly created string of characters that are part of a string interpolation.
    * 
    * @param the characters that will be added to the string
    * @param value the value of the literal

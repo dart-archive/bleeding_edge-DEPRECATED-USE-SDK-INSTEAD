@@ -32,12 +32,6 @@ import java.util.List;
 public abstract class CompilationUnitMember extends Declaration {
   /**
    * Initialize a newly created generic compilation unit member.
-   */
-  public CompilationUnitMember() {
-  }
-
-  /**
-   * Initialize a newly created generic compilation unit member.
    * 
    * @param comment the documentation comment associated with this member
    * @param metadata the annotations associated with this member

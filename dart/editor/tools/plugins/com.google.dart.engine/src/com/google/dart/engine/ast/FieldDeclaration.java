@@ -44,12 +44,6 @@ public class FieldDeclaration extends ClassMember {
 
   /**
    * Initialize a newly created field declaration.
-   */
-  public FieldDeclaration() {
-  }
-
-  /**
-   * Initialize a newly created field declaration.
    * 
    * @param comment the documentation comment associated with this field
    * @param metadata the annotations associated with this field

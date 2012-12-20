@@ -41,12 +41,6 @@ public class ContinueStatement extends Statement {
 
   /**
    * Initialize a newly created continue statement.
-   */
-  public ContinueStatement() {
-  }
-
-  /**
-   * Initialize a newly created continue statement.
    * 
    * @param keyword the token representing the 'continue' keyword
    * @param label the label associated with the statement

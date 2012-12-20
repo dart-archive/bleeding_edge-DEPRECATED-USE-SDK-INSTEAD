@@ -42,12 +42,6 @@ public class ExpressionFunctionBody extends FunctionBody {
 
   /**
    * Initialize a newly created function body consisting of a block of statements.
-   */
-  public ExpressionFunctionBody() {
-  }
-
-  /**
-   * Initialize a newly created function body consisting of a block of statements.
    * 
    * @param functionDefinition the token introducing the expression that represents the body of the
    *          function

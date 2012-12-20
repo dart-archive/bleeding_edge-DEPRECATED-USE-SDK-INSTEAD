@@ -61,12 +61,6 @@ public class DoStatement extends Statement {
 
   /**
    * Initialize a newly created do loop.
-   */
-  public DoStatement() {
-  }
-
-  /**
-   * Initialize a newly created do loop.
    * 
    * @param doKeyword the token representing the 'do' keyword
    * @param body the body of the loop

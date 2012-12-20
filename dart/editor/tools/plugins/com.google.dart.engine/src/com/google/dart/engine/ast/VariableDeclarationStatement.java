@@ -37,12 +37,6 @@ public class VariableDeclarationStatement extends Statement {
 
   /**
    * Initialize a newly created variable declaration statement.
-   */
-  public VariableDeclarationStatement() {
-  }
-
-  /**
-   * Initialize a newly created variable declaration statement.
    * 
    * @param variableList the fields being declared
    * @param semicolon the semicolon terminating the statement

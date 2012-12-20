@@ -102,12 +102,6 @@ public class ConstructorDeclaration extends ClassMember {
 
   /**
    * Initialize a newly created constructor declaration.
-   */
-  public ConstructorDeclaration() {
-  }
-
-  /**
-   * Initialize a newly created constructor declaration.
    * 
    * @param externalKeyword the token for the 'external' keyword
    * @param comment the documentation comment associated with this constructor

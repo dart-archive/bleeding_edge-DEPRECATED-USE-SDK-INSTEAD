@@ -43,12 +43,6 @@ public class PrefixedIdentifier extends Identifier {
 
   /**
    * Initialize a newly created prefixed identifier.
-   */
-  public PrefixedIdentifier() {
-  }
-
-  /**
-   * Initialize a newly created prefixed identifier.
    * 
    * @param prefix the identifier being prefixed
    * @param period the period used to separate the prefix from the identifier

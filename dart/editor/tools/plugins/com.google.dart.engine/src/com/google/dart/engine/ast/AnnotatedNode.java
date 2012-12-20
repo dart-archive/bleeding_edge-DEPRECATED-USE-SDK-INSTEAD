@@ -37,12 +37,6 @@ public abstract class AnnotatedNode extends ASTNode {
 
   /**
    * Initialize a newly created node.
-   */
-  public AnnotatedNode() {
-  }
-
-  /**
-   * Initialize a newly created node.
    * 
    * @param comment the documentation comment associated with this node
    * @param metadata the annotations associated with this node

@@ -45,12 +45,6 @@ public class TypeParameter extends Declaration {
 
   /**
    * Initialize a newly created type parameter.
-   */
-  public TypeParameter() {
-  }
-
-  /**
-   * Initialize a newly created type parameter.
    * 
    * @param comment the documentation comment associated with the type parameter
    * @param metadata the annotations associated with the type parameter

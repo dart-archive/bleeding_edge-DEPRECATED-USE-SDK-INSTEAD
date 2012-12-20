@@ -53,12 +53,6 @@ public class SimpleStringLiteral extends StringLiteral {
 
   /**
    * Initialize a newly created simple string literal.
-   */
-  public SimpleStringLiteral() {
-  }
-
-  /**
-   * Initialize a newly created simple string literal.
    * 
    * @param literal the token representing the literal
    * @param value the value of the literal

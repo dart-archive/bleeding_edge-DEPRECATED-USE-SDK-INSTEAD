@@ -62,12 +62,6 @@ public class IfStatement extends Statement {
 
   /**
    * Initialize a newly created if statement.
-   */
-  public IfStatement() {
-  }
-
-  /**
-   * Initialize a newly created if statement.
    * 
    * @param ifKeyword the token representing the 'if' keyword
    * @param leftParenthesis the left parenthesis

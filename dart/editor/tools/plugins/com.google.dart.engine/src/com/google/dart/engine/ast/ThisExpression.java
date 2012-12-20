@@ -31,12 +31,6 @@ public class ThisExpression extends Expression {
 
   /**
    * Initialize a newly created this expression.
-   */
-  public ThisExpression() {
-  }
-
-  /**
-   * Initialize a newly created this expression.
    * 
    * @param keyword the token representing the keyword
    */

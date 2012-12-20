@@ -39,12 +39,6 @@ public class FunctionTypedFormalParameter extends NormalFormalParameter {
 
   /**
    * Initialize a newly created formal parameter.
-   */
-  public FunctionTypedFormalParameter() {
-  }
-
-  /**
-   * Initialize a newly created formal parameter.
    * 
    * @param comment the documentation comment associated with this parameter
    * @param metadata the annotations associated with this parameter

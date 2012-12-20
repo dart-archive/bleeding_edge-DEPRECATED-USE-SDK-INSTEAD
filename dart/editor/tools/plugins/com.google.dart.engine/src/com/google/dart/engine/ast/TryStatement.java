@@ -58,12 +58,6 @@ public class TryStatement extends Statement {
 
   /**
    * Initialize a newly created try statement.
-   */
-  public TryStatement() {
-  }
-
-  /**
-   * Initialize a newly created try statement.
    * 
    * @param tryKeyword the token representing the 'try' keyword
    * @param body the body of the statement

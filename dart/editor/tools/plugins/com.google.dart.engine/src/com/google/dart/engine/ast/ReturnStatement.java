@@ -42,12 +42,6 @@ public class ReturnStatement extends Statement {
 
   /**
    * Initialize a newly created return statement.
-   */
-  public ReturnStatement() {
-  }
-
-  /**
-   * Initialize a newly created return statement.
    * 
    * @param keyword the token representing the 'return' keyword
    * @param expression the expression computing the value to be returned

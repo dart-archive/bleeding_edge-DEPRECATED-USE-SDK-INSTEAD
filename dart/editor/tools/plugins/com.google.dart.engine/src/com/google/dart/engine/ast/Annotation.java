@@ -59,13 +59,6 @@ public class Annotation extends ASTNode {
 
   /**
    * Initialize a newly created annotation.
-   */
-  public Annotation() {
-    super();
-  }
-
-  /**
-   * Initialize a newly created annotation.
    * 
    * @param atSign the at sign that introduced the annotation
    * @param name the name of the class defining the constructor that is being invoked or the name of

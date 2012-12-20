@@ -39,12 +39,6 @@ public class ImplementsClause extends ASTNode {
 
   /**
    * Initialize a newly created extends clause.
-   */
-  public ImplementsClause() {
-  }
-
-  /**
-   * Initialize a newly created extends clause.
    * 
    * @param keyword the token representing the 'implements' keyword
    * @param interfaces the interfaces that are being implemented

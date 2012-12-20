@@ -33,13 +33,6 @@ public abstract class Combinator extends ASTNode {
 
   /**
    * Initialize a newly created import combinator.
-   */
-  public Combinator() {
-    super();
-  }
-
-  /**
-   * Initialize a newly created import combinator.
    * 
    * @param keyword the keyword specifying what kind of processing is to be done on the imported
    *          names

@@ -48,12 +48,6 @@ public class PartOfDirective extends Directive {
 
   /**
    * Initialize a newly created part-of directive.
-   */
-  public PartOfDirective() {
-  }
-
-  /**
-   * Initialize a newly created part-of directive.
    * 
    * @param comment the documentation comment associated with this directive
    * @param metadata the annotations associated with the directive

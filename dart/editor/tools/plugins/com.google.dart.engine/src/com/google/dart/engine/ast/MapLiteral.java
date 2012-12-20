@@ -43,12 +43,6 @@ public class MapLiteral extends TypedLiteral {
 
   /**
    * Initialize a newly created map literal.
-   */
-  public MapLiteral() {
-  }
-
-  /**
-   * Initialize a newly created map literal.
    * 
    * @param modifier the const modifier associated with this literal
    * @param typeArguments the type argument associated with this literal, or {@code null} if no type

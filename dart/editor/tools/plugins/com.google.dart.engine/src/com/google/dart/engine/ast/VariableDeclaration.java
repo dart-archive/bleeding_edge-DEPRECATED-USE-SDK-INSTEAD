@@ -47,12 +47,6 @@ public class VariableDeclaration extends Declaration {
 
   /**
    * Initialize a newly created variable declaration.
-   */
-  public VariableDeclaration() {
-  }
-
-  /**
-   * Initialize a newly created variable declaration.
    * 
    * @param comment the documentation comment associated with this declaration
    * @param metadata the annotations associated with this member

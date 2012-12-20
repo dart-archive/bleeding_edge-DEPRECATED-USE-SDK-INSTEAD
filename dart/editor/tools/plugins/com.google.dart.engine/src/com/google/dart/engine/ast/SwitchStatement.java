@@ -63,12 +63,6 @@ public class SwitchStatement extends Statement {
 
   /**
    * Initialize a newly created switch statement.
-   */
-  public SwitchStatement() {
-  }
-
-  /**
-   * Initialize a newly created switch statement.
    * 
    * @param keyword the token representing the 'switch' keyword
    * @param leftParenthesis the left parenthesis

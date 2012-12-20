@@ -51,12 +51,6 @@ public class WhileStatement extends Statement {
 
   /**
    * Initialize a newly created while statement.
-   */
-  public WhileStatement() {
-  }
-
-  /**
-   * Initialize a newly created while statement.
    * 
    * @param keyword the token representing the 'while' keyword
    * @param leftParenthesis the left parenthesis

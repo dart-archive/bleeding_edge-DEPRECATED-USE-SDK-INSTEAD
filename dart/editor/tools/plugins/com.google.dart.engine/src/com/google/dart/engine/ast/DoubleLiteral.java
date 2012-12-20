@@ -40,12 +40,6 @@ public class DoubleLiteral extends Literal {
 
   /**
    * Initialize a newly created floating point literal.
-   */
-  public DoubleLiteral() {
-  }
-
-  /**
-   * Initialize a newly created floating point literal.
    * 
    * @param literal the token representing the literal
    * @param value the value of the literal

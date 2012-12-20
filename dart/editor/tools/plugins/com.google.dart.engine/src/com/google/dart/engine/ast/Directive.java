@@ -40,13 +40,6 @@ public abstract class Directive extends AnnotatedNode {
 
   /**
    * Initialize a newly create directive.
-   */
-  public Directive() {
-    super();
-  }
-
-  /**
-   * Initialize a newly create directive.
    * 
    * @param comment the documentation comment associated with this directive
    * @param metadata the annotations associated with the directive

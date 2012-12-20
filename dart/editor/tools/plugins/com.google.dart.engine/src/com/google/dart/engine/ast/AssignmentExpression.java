@@ -41,12 +41,6 @@ public class AssignmentExpression extends Expression {
 
   /**
    * Initialize a newly created assignment expression.
-   */
-  public AssignmentExpression() {
-  }
-
-  /**
-   * Initialize a newly created assignment expression.
    * 
    * @param leftHandSide the expression used to compute the left hand side
    * @param operator the assignment operator being applied

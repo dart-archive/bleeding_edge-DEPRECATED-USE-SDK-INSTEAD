@@ -50,12 +50,6 @@ public abstract class NamespaceDirective extends Directive {
 
   /**
    * Initialize a newly created namespace directive.
-   */
-  public NamespaceDirective() {
-  }
-
-  /**
-   * Initialize a newly created namespace directive.
    * 
    * @param comment the documentation comment associated with this directive
    * @param metadata the annotations associated with the directive

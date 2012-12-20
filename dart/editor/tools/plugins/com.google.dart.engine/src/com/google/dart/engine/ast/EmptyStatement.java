@@ -31,12 +31,6 @@ public class EmptyStatement extends Statement {
 
   /**
    * Initialize a newly created empty statement.
-   */
-  public EmptyStatement() {
-  }
-
-  /**
-   * Initialize a newly created empty statement.
    * 
    * @param semicolon the semicolon terminating the statement
    */

@@ -74,12 +74,6 @@ public class CompilationUnit extends ASTNode {
 
   /**
    * Initialize a newly created compilation unit to have the given directives and declarations.
-   */
-  public CompilationUnit() {
-  }
-
-  /**
-   * Initialize a newly created compilation unit to have the given directives and declarations.
    * 
    * @param beginToken the first token in the token stream
    * @param scriptTag the script tag at the beginning of the compilation unit

@@ -81,12 +81,6 @@ public class MethodDeclaration extends ClassMember {
 
   /**
    * Initialize a newly created method declaration.
-   */
-  public MethodDeclaration() {
-  }
-
-  /**
-   * Initialize a newly created method declaration.
    * 
    * @param externalKeyword the token for the 'external' keyword
    * @param comment the documentation comment associated with this method

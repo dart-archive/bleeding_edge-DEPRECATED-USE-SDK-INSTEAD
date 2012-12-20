@@ -38,12 +38,6 @@ public class ThrowExpression extends Expression {
 
   /**
    * Initialize a newly created throw expression.
-   */
-  public ThrowExpression() {
-  }
-
-  /**
-   * Initialize a newly created throw expression.
    * 
    * @param keyword the token representing the 'throw' keyword
    * @param expression the expression computing the exception to be thrown

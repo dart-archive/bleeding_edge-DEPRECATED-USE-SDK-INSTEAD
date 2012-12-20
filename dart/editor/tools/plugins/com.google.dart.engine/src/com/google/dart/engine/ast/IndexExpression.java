@@ -60,12 +60,6 @@ public class IndexExpression extends Expression {
 
   /**
    * Initialize a newly created index expression.
-   */
-  public IndexExpression() {
-  }
-
-  /**
-   * Initialize a newly created index expression.
    * 
    * @param target the expression used to compute the object being indexed
    * @param leftBracket the left square bracket
