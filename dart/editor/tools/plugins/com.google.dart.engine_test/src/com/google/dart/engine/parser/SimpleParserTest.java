@@ -13,103 +13,7 @@
  */
 package com.google.dart.engine.parser;
 
-import com.google.dart.engine.ast.AdjacentStrings;
-import com.google.dart.engine.ast.Annotation;
-import com.google.dart.engine.ast.ArgumentDefinitionTest;
-import com.google.dart.engine.ast.ArgumentList;
-import com.google.dart.engine.ast.AsExpression;
-import com.google.dart.engine.ast.AssertStatement;
-import com.google.dart.engine.ast.AssignmentExpression;
-import com.google.dart.engine.ast.BinaryExpression;
-import com.google.dart.engine.ast.Block;
-import com.google.dart.engine.ast.BlockFunctionBody;
-import com.google.dart.engine.ast.BooleanLiteral;
-import com.google.dart.engine.ast.BreakStatement;
-import com.google.dart.engine.ast.CatchClause;
-import com.google.dart.engine.ast.ClassDeclaration;
-import com.google.dart.engine.ast.Combinator;
-import com.google.dart.engine.ast.Comment;
-import com.google.dart.engine.ast.CommentReference;
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.ConditionalExpression;
-import com.google.dart.engine.ast.ConstructorDeclaration;
-import com.google.dart.engine.ast.ConstructorFieldInitializer;
-import com.google.dart.engine.ast.ConstructorName;
-import com.google.dart.engine.ast.ContinueStatement;
-import com.google.dart.engine.ast.DefaultFormalParameter;
-import com.google.dart.engine.ast.DoStatement;
-import com.google.dart.engine.ast.DoubleLiteral;
-import com.google.dart.engine.ast.EmptyFunctionBody;
-import com.google.dart.engine.ast.EmptyStatement;
-import com.google.dart.engine.ast.ExportDirective;
-import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.ast.ExpressionFunctionBody;
-import com.google.dart.engine.ast.ExpressionStatement;
-import com.google.dart.engine.ast.ExtendsClause;
-import com.google.dart.engine.ast.FieldDeclaration;
-import com.google.dart.engine.ast.FieldFormalParameter;
-import com.google.dart.engine.ast.ForEachStatement;
-import com.google.dart.engine.ast.ForStatement;
-import com.google.dart.engine.ast.FormalParameterList;
-import com.google.dart.engine.ast.FunctionDeclaration;
-import com.google.dart.engine.ast.FunctionDeclarationStatement;
-import com.google.dart.engine.ast.FunctionExpression;
-import com.google.dart.engine.ast.FunctionExpressionInvocation;
-import com.google.dart.engine.ast.FunctionTypeAlias;
-import com.google.dart.engine.ast.FunctionTypedFormalParameter;
-import com.google.dart.engine.ast.HideCombinator;
-import com.google.dart.engine.ast.IfStatement;
-import com.google.dart.engine.ast.ImplementsClause;
-import com.google.dart.engine.ast.ImportDirective;
-import com.google.dart.engine.ast.IndexExpression;
-import com.google.dart.engine.ast.InstanceCreationExpression;
-import com.google.dart.engine.ast.IntegerLiteral;
-import com.google.dart.engine.ast.InterpolationElement;
-import com.google.dart.engine.ast.InterpolationExpression;
-import com.google.dart.engine.ast.InterpolationString;
-import com.google.dart.engine.ast.IsExpression;
-import com.google.dart.engine.ast.Label;
-import com.google.dart.engine.ast.LabeledStatement;
-import com.google.dart.engine.ast.LibraryDirective;
-import com.google.dart.engine.ast.ListLiteral;
-import com.google.dart.engine.ast.MapLiteral;
-import com.google.dart.engine.ast.MapLiteralEntry;
-import com.google.dart.engine.ast.MethodDeclaration;
-import com.google.dart.engine.ast.MethodInvocation;
-import com.google.dart.engine.ast.NamedExpression;
-import com.google.dart.engine.ast.NodeList;
-import com.google.dart.engine.ast.NullLiteral;
-import com.google.dart.engine.ast.ParenthesizedExpression;
-import com.google.dart.engine.ast.PartDirective;
-import com.google.dart.engine.ast.PartOfDirective;
-import com.google.dart.engine.ast.PostfixExpression;
-import com.google.dart.engine.ast.PrefixExpression;
-import com.google.dart.engine.ast.PrefixedIdentifier;
-import com.google.dart.engine.ast.PropertyAccess;
-import com.google.dart.engine.ast.RedirectingConstructorInvocation;
-import com.google.dart.engine.ast.ReturnStatement;
-import com.google.dart.engine.ast.ShowCombinator;
-import com.google.dart.engine.ast.SimpleFormalParameter;
-import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.SimpleStringLiteral;
-import com.google.dart.engine.ast.Statement;
-import com.google.dart.engine.ast.StringInterpolation;
-import com.google.dart.engine.ast.StringLiteral;
-import com.google.dart.engine.ast.SuperConstructorInvocation;
-import com.google.dart.engine.ast.SuperExpression;
-import com.google.dart.engine.ast.SwitchStatement;
-import com.google.dart.engine.ast.ThisExpression;
-import com.google.dart.engine.ast.ThrowExpression;
-import com.google.dart.engine.ast.TopLevelVariableDeclaration;
-import com.google.dart.engine.ast.TryStatement;
-import com.google.dart.engine.ast.TypeArgumentList;
-import com.google.dart.engine.ast.TypeName;
-import com.google.dart.engine.ast.TypeParameter;
-import com.google.dart.engine.ast.TypeParameterList;
-import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.VariableDeclarationList;
-import com.google.dart.engine.ast.VariableDeclarationStatement;
-import com.google.dart.engine.ast.WhileStatement;
+import com.google.dart.engine.ast.*;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.GatheringErrorListener;
@@ -1550,7 +1454,71 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(declaration.getPropertyKeyword());
   }
 
-  public void test_parseCompilationUnitMember_typedef() throws Exception {
+  public void test_parseCompilationUnitMember_typedef_class_abstract() throws Exception {
+    ClassTypeAlias typeAlias = parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "typedef C = abstract S with M;");
+    assertNotNull(typeAlias.getKeyword());
+    assertEquals("C", typeAlias.getName().getName());
+    assertNull(typeAlias.getTypeParameters());
+    assertNotNull(typeAlias.getEquals());
+    assertNotNull(typeAlias.getAbstractKeyword());
+    assertEquals("S", typeAlias.getSuperclass().getName().getName());
+    assertNotNull(typeAlias.getWithClause());
+    assertNull(typeAlias.getImplementsClause());
+    assertNotNull(typeAlias.getSemicolon());
+  }
+
+  public void test_parseCompilationUnitMember_typedef_class_generic() throws Exception {
+    ClassTypeAlias typeAlias = parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "typedef C<E> = S<E> with M<E> implements I<E>;");
+    assertNotNull(typeAlias.getKeyword());
+    assertEquals("C", typeAlias.getName().getName());
+    assertSize(1, typeAlias.getTypeParameters().getTypeParameters());
+    assertNotNull(typeAlias.getEquals());
+    assertNull(typeAlias.getAbstractKeyword());
+    assertEquals("S", typeAlias.getSuperclass().getName().getName());
+    assertNotNull(typeAlias.getWithClause());
+    assertNotNull(typeAlias.getImplementsClause());
+    assertNotNull(typeAlias.getSemicolon());
+  }
+
+  public void test_parseCompilationUnitMember_typedef_class_implements() throws Exception {
+    ClassTypeAlias typeAlias = parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "typedef C = S with M implements I;");
+    assertNotNull(typeAlias.getKeyword());
+    assertEquals("C", typeAlias.getName().getName());
+    assertNull(typeAlias.getTypeParameters());
+    assertNotNull(typeAlias.getEquals());
+    assertNull(typeAlias.getAbstractKeyword());
+    assertEquals("S", typeAlias.getSuperclass().getName().getName());
+    assertNotNull(typeAlias.getWithClause());
+    assertNotNull(typeAlias.getImplementsClause());
+    assertNotNull(typeAlias.getSemicolon());
+  }
+
+  public void test_parseCompilationUnitMember_typedef_class_noImplements() throws Exception {
+    ClassTypeAlias typeAlias = parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "typedef C = S with M;");
+    assertNotNull(typeAlias.getKeyword());
+    assertEquals("C", typeAlias.getName().getName());
+    assertNull(typeAlias.getTypeParameters());
+    assertNotNull(typeAlias.getEquals());
+    assertNull(typeAlias.getAbstractKeyword());
+    assertEquals("S", typeAlias.getSuperclass().getName().getName());
+    assertNotNull(typeAlias.getWithClause());
+    assertNull(typeAlias.getImplementsClause());
+    assertNotNull(typeAlias.getSemicolon());
+  }
+
+  public void test_parseCompilationUnitMember_typedef_function() throws Exception {
     FunctionTypeAlias typeAlias = parse(
         "parseCompilationUnitMember",
         new Object[] {emptyCommentAndMetadata()},
@@ -3929,8 +3897,22 @@ public class SimpleParserTest extends ParserTestCase {
     assertSize(3, parameterList.getTypeParameters());
   }
 
+  public void test_parseTypeParameterList_parameterizedWithTrailingEquals() throws Exception {
+    TypeParameterList parameterList = parse("parseTypeParameterList", "<A extends B<E>>=");
+    assertNotNull(parameterList.getLeftBracket());
+    assertNotNull(parameterList.getRightBracket());
+    assertSize(1, parameterList.getTypeParameters());
+  }
+
   public void test_parseTypeParameterList_single() throws Exception {
     TypeParameterList parameterList = parse("parseTypeParameterList", "<A>");
+    assertNotNull(parameterList.getLeftBracket());
+    assertNotNull(parameterList.getRightBracket());
+    assertSize(1, parameterList.getTypeParameters());
+  }
+
+  public void test_parseTypeParameterList_withTrailingEquals() throws Exception {
+    TypeParameterList parameterList = parse("parseTypeParameterList", "<A>=");
     assertNotNull(parameterList.getLeftBracket());
     assertNotNull(parameterList.getRightBracket());
     assertSize(1, parameterList.getTypeParameters());
@@ -4118,6 +4100,18 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getCondition());
     assertNotNull(statement.getRightParenthesis());
     assertNotNull(statement.getBody());
+  }
+
+  public void test_parseWithClause_multiple() throws Exception {
+    WithClause clause = parse("parseWithClause", "with A, B, C");
+    assertNotNull(clause.getWithKeyword());
+    assertSize(3, clause.getMixinTypes());
+  }
+
+  public void test_parseWithClause_single() throws Exception {
+    WithClause clause = parse("parseWithClause", "with M");
+    assertNotNull(clause.getWithKeyword());
+    assertSize(1, clause.getMixinTypes());
   }
 
   public void test_skipPrefixedIdentifier_invalid() throws Exception {

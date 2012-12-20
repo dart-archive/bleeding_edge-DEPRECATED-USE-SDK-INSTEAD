@@ -25,7 +25,7 @@ import java.util.List;
  *     {@link SimpleIdentifier identifier} {@link TypeParameterList typeParameters}? '=' 'abstract'? mixinApplication
  * 
  * mixinApplication ::=
- *     {@link Identifier qualified} {@link WithClause withClause} {@link ImplementsClause implementsClause}? ';'
+ *     {@link TypeName superclass} {@link WithClause withClause} {@link ImplementsClause implementsClause}? ';'
  * </pre>
  */
 public class ClassTypeAlias extends TypeAlias {
@@ -54,7 +54,7 @@ public class ClassTypeAlias extends TypeAlias {
   /**
    * The name of the superclass of the class being declared.
    */
-  private Identifier superclass;
+  private TypeName superclass;
 
   /**
    * The with clause for this class.
@@ -89,8 +89,7 @@ public class ClassTypeAlias extends TypeAlias {
    */
   public ClassTypeAlias(Comment comment, List<Annotation> metadata, Token keyword,
       SimpleIdentifier name, TypeParameterList typeParameters, Token equals, Token abstractKeyword,
-      Identifier superclass, WithClause withClause, ImplementsClause implementsClause,
-      Token semicolon) {
+      TypeName superclass, WithClause withClause, ImplementsClause implementsClause, Token semicolon) {
     super(comment, metadata, keyword, semicolon);
     this.name = becomeParentOf(name);
     this.typeParameters = becomeParentOf(typeParameters);
@@ -148,7 +147,7 @@ public class ClassTypeAlias extends TypeAlias {
    * 
    * @return the name of the superclass of the class being declared
    */
-  public Identifier getSuperclass() {
+  public TypeName getSuperclass() {
     return superclass;
   }
 
@@ -212,7 +211,7 @@ public class ClassTypeAlias extends TypeAlias {
    * 
    * @param superclass the name of the superclass of the class being declared
    */
-  public void setSuperclass(Identifier superclass) {
+  public void setSuperclass(TypeName superclass) {
     this.superclass = becomeParentOf(superclass);
   }
 

@@ -531,6 +531,26 @@ public class Parser {
           currentToken.getPrevious().setNext(first);
           currentToken = first;
           return true;
+        } else if (currentType == TokenType.GT_EQ) {
+          int offset = currentToken.getOffset();
+          Token first = new Token(TokenType.GT, offset);
+          Token second = new Token(TokenType.EQ, offset + 1);
+          second.setNext(currentToken.getNext());
+          first.setNext(second);
+          currentToken.getPrevious().setNext(first);
+          currentToken = first;
+          return true;
+        } else if (currentType == TokenType.GT_GT_EQ) {
+          int offset = currentToken.getOffset();
+          Token first = new Token(TokenType.GT, offset);
+          Token second = new Token(TokenType.GT, offset + 1);
+          Token third = new Token(TokenType.EQ, offset + 2);
+          third.setNext(currentToken.getNext());
+          second.setNext(third);
+          first.setNext(second);
+          currentToken.getPrevious().setNext(first);
+          currentToken = first;
+          return true;
         }
       }
       return false;
@@ -1350,7 +1370,7 @@ public class Parser {
    *     identifier typeParameters? '=' 'abstract'? mixinApplication
    * 
    * mixinApplication ::=
-   *     qualified withClause implementsClause? ';'
+   *     type withClause implementsClause? ';'
    * </pre>
    * 
    * @param commentAndMetadata the metadata to be associated with the member
@@ -1368,7 +1388,7 @@ public class Parser {
     if (matches(Keyword.ABSTRACT)) {
       abstractKeyword = getAndAdvance();
     }
-    Identifier superclass = parsePrefixedIdentifier();
+    TypeName superclass = parseTypeName();
     WithClause withClause = parseWithClause();
     ImplementsClause implementsClause = null;
     if (matches(Keyword.IMPLEMENTS)) {
@@ -5148,10 +5168,11 @@ public class Parser {
     return token;
   }
 
-/**
-   * Parse a list of type parameters, starting at the given token, without actually creating a type parameter list
-   * or changing the current token. Return the token following the type parameter list that was parsed,
-   * or {@code null} if the given token is not the first token in a valid type parameter list.
+  /**
+   * Parse a list of type parameters, starting at the given token, without actually creating a type
+   * parameter list or changing the current token. Return the token following the type parameter
+   * list that was parsed, or {@code null} if the given token is not the first token in a valid type
+   * parameter list.
    * <p>
    * This method must be kept in sync with {@link #parseTypeParameterList()}.
    * 
@@ -5164,18 +5185,44 @@ public class Parser {
    * @return the token following the type parameter list that was parsed
    */
   private Token skipTypeParameterList(Token startToken) {
+    if (!matches(startToken, TokenType.LT)) {
+      return null;
+    }
     //
     // We can't skip a type parameter because it can be preceeded by metadata, so we just assume
     // that everything before the matching end token is valid.
     //
-    if (!(startToken instanceof BeginToken)) {
-      return null;
+    int depth = 1;
+    Token next = startToken.getNext();
+    while (depth > 0) {
+      if (matches(next, TokenType.EOF)) {
+        return null;
+      } else if (matches(next, TokenType.LT)) {
+        depth++;
+      } else if (matches(next, TokenType.GT)) {
+        depth--;
+      } else if (matches(next, TokenType.GT_EQ)) {
+        if (depth == 1) {
+          Token fakeEquals = new Token(TokenType.EQ, next.getOffset() + 2);
+          fakeEquals.setNextWithoutSettingPrevious(next.getNext());
+          return fakeEquals;
+        }
+        depth--;
+      } else if (matches(next, TokenType.GT_GT)) {
+        depth -= 2;
+      } else if (matches(next, TokenType.GT_GT_EQ)) {
+        if (depth < 2) {
+          return null;
+        } else if (depth == 2) {
+          Token fakeEquals = new Token(TokenType.EQ, next.getOffset() + 2);
+          fakeEquals.setNextWithoutSettingPrevious(next.getNext());
+          return fakeEquals;
+        }
+        depth -= 2;
+      }
+      next = next.getNext();
     }
-    Token endToken = ((BeginToken) startToken).getEndToken();
-    if (endToken == null) {
-      return null;
-    }
-    return endToken.getNext();
+    return next;
   }
 
   /**

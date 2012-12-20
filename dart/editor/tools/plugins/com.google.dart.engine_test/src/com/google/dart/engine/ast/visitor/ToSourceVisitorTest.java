@@ -389,7 +389,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitClassTypeAlias_abstract() {
     assertSource(
         "typedef C = abstract S with M1;",
-        classTypeAlias("C", null, Keyword.ABSTRACT, "S", withClause(typeName("M1")), null));
+        classTypeAlias("C", null, Keyword.ABSTRACT, typeName("S"), withClause(typeName("M1")), null));
   }
 
   public void test_visitClassTypeAlias_abstract_implements() {
@@ -399,9 +399,21 @@ public class ToSourceVisitorTest extends EngineTestCase {
             "C",
             null,
             Keyword.ABSTRACT,
-            "S",
+            typeName("S"),
             withClause(typeName("M1")),
             implementsClause(typeName("I"))));
+  }
+
+  public void test_visitClassTypeAlias_generic() {
+    assertSource(
+        "typedef C<E> = S<E> with M1<E>;",
+        classTypeAlias(
+            "C",
+            typeParameterList("E"),
+            null,
+            typeName("S", typeName("E")),
+            withClause(typeName("M1", typeName("E"))),
+            null));
   }
 
   public void test_visitClassTypeAlias_implements() {
@@ -411,7 +423,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
             "C",
             null,
             null,
-            "S",
+            typeName("S"),
             withClause(typeName("M1")),
             implementsClause(typeName("I"))));
   }
@@ -419,7 +431,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitClassTypeAlias_minimal() {
     assertSource(
         "typedef C = S with M1;",
-        classTypeAlias("C", null, null, "S", withClause(typeName("M1")), null));
+        classTypeAlias("C", null, null, typeName("S"), withClause(typeName("M1")), null));
   }
 
   public void test_visitClassTypeAlias_parameters_abstract() {
@@ -429,7 +441,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
             "C",
             typeParameterList("E"),
             Keyword.ABSTRACT,
-            "S",
+            typeName("S"),
             withClause(typeName("M1")),
             null));
   }
@@ -441,7 +453,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
             "C",
             typeParameterList("E"),
             Keyword.ABSTRACT,
-            "S",
+            typeName("S"),
             withClause(typeName("M1")),
             implementsClause(typeName("I"))));
   }
@@ -453,7 +465,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
             "C",
             typeParameterList("E"),
             null,
-            "S",
+            typeName("S"),
             withClause(typeName("M1")),
             implementsClause(typeName("I"))));
   }

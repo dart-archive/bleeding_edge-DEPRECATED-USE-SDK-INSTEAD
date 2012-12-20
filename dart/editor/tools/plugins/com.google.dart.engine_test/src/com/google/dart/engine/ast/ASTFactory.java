@@ -180,7 +180,7 @@ public final class ASTFactory {
   }
 
   public static ClassTypeAlias classTypeAlias(String name, TypeParameterList typeParameters,
-      Keyword abstractKeyword, String superclass, WithClause withClause,
+      Keyword abstractKeyword, TypeName superclass, WithClause withClause,
       ImplementsClause implementsClause) {
     return new ClassTypeAlias(
         null,
@@ -190,7 +190,7 @@ public final class ASTFactory {
         typeParameters,
         token(TokenType.EQ),
         abstractKeyword == null ? null : token(abstractKeyword),
-        identifier(superclass),
+        superclass,
         withClause,
         implementsClause,
         token(TokenType.SEMICOLON));
