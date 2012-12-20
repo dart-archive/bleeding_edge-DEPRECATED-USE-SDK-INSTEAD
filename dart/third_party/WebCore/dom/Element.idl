@@ -20,7 +20,8 @@
 
 [
     JSGenerateToNativeObject,
-    JSInlineGetOwnPropertySlot
+    JSInlineGetOwnPropertySlot,
+    V8CustomToJSObject
 ] interface Element : Node {
 
     // DOM Level 1 Core
@@ -118,6 +119,12 @@
     readonly attribute Element nextElementSibling;
     readonly attribute unsigned long childElementCount;
 
+    // ShadowAware API
+#if defined(ENABLE_SHADOW_DOM) && ENABLE_SHADOW_DOM
+    [Reflect, V8EnabledAtRuntime=shadowDOM] attribute DOMString pseudo;
+    [V8EnabledAtRuntime=shadowDOM, ImplementedAs=createShadowRoot] ShadowRoot webkitCreateShadowRoot() raises(DOMException);
+#endif
+
     // DOM 4
     void remove()
         raises(DOMException);
@@ -142,7 +149,7 @@
     [V8EnabledAtRuntime] void webkitRequestFullscreen();
 #endif
 
-    [Conditional=POINTER_LOCK, V8EnabledAtRuntime=pointerLock] void webkitRequestPointerLock();
+    [Conditional=POINTER_LOCK] void webkitRequestPointerLock();
 
     // CSS Regions API
     [Conditional=CSS_REGIONS] readonly attribute DOMString webkitRegionOverset;

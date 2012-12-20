@@ -39,6 +39,7 @@
     ReplaceableConstructor,
     JSLegacyParent=JSDOMWindowBase,
     V8CustomToJSObject,
+    V8NoWrapperCache,
     InterfaceName=Window
 ] interface DOMWindow {
     // DOM Level 0
@@ -340,8 +341,16 @@
     attribute CSSValueListConstructor CSSValueList;
     attribute WebKitCSSTransformValueConstructor WebKitCSSTransformValue;
 
+#if defined(ENABLE_CSS_SHADERS) && ENABLE_CSS_SHADERS
+    attribute WebKitCSSMixFunctionValueConstructor WebKitCSSMixFunctionValue;
+#endif
+
 #if defined(ENABLE_CSS_FILTERS) && ENABLE_CSS_FILTERS
     attribute WebKitCSSFilterValueConstructor WebKitCSSFilterValue;
+#endif
+
+#if defined(ENABLE_CSS_DEVICE_ADAPTATION) && ENABLE_CSS_DEVICE_ADAPTATION
+    attribute WebKitCSSViewportRuleConstructor WebKitCSSViewportRule;
 #endif
 
     attribute CSSRuleConstructor CSSRule;
@@ -463,12 +472,15 @@
     attribute HTMLTableElementConstructor HTMLTableElement;
     attribute HTMLTableRowElementConstructor HTMLTableRowElement;
     attribute HTMLTableSectionElementConstructor HTMLTableSectionElement;
+    attribute [Conditional=TEMPLATE_ELEMENT] HTMLTemplateElementConstructor HTMLTemplateElement;
     attribute HTMLTextAreaElementConstructor HTMLTextAreaElement;
     attribute HTMLTitleElementConstructor HTMLTitleElement;
     attribute HTMLUListElementConstructor HTMLUListElement;
 
     attribute HTMLCollectionConstructor HTMLCollection;
     attribute HTMLAllCollectionConstructor HTMLAllCollection;
+    attribute HTMLFormControlsCollectionConstructor HTMLFormControlsCollection;
+    attribute HTMLOptionsCollectionConstructor HTMLOptionsCollection;
     [Conditional=MICRODATA] attribute HTMLPropertiesCollectionConstructor HTMLPropertiesCollection;
     attribute HTMLUnknownElementConstructor HTMLUnknownElement;
 
@@ -551,7 +563,9 @@
     attribute XMLHttpRequestProgressEventConstructor XMLHttpRequestProgressEvent;
     [Conditional=DEVICE_ORIENTATION, V8EnabledAtRuntime] attribute DeviceMotionEventConstructor DeviceMotionEvent;
     [Conditional=DEVICE_ORIENTATION, V8EnabledAtRuntime] attribute DeviceOrientationEventConstructor DeviceOrientationEvent;
+    [Conditional=TOUCH_EVENTS] attribute TouchConstructor Touch;
     [Conditional=TOUCH_EVENTS] attribute TouchEventConstructor TouchEvent;
+    [Conditional=TOUCH_EVENTS] attribute TouchListConstructor TouchList;
     attribute StorageEventConstructor StorageEvent;
     [Conditional=INPUT_SPEECH] attribute SpeechInputEventConstructor SpeechInputEvent;
     [Conditional=WEBGL] attribute WebGLContextEventConstructor WebGLContextEvent;
