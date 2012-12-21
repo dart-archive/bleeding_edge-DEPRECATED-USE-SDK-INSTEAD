@@ -14,6 +14,8 @@
 
 package com.google.dart.tools.core.internal.builder;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.builder.BuildParticipant;
@@ -44,7 +46,10 @@ import org.json.JSONObject;
 import static org.eclipse.core.resources.IResource.FILE;
 import static org.eclipse.core.resources.IResource.PROJECT;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -59,9 +64,6 @@ import java.util.List;
  * @see DartBuilder
  */
 public class BuildDartParticipant implements BuildParticipant {
-
-  private static final boolean VERBOSE = false;
-
   // The generic unix/max/bsd CLI limit is 262144.
   private static final int GENERAL_CLI_LIMIT = 262000;
 
@@ -70,9 +72,9 @@ public class BuildDartParticipant implements BuildParticipant {
 
   static final String ISSUE_MARKER = DartCore.PLUGIN_ID + ".buildDartIssue";
 
-  private static final Path REL_PUBSPEC_PATH = new Path(DartCore.PUBSPEC_FILE_NAME);
-  private static final Path REL_BUILD_DART_PATH = new Path(BUILD_DART_FILE_NAME);
   private static final String CLEAN = "--clean";
+
+  private static final String BUILD_LOG_NAME = ".buildlog";
 
   private static void createErrorMarker(IFile file, int severity, String message, int line,
       int charStart, int charEnd) throws CoreException {
@@ -111,7 +113,7 @@ public class BuildDartParticipant implements BuildParticipant {
       public boolean visit(IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
         IResource resource = delta.getResource();
         if (resource.getType() != FILE) {
-          IFile builderFile = ((IContainer) resource).getFile(REL_BUILD_DART_PATH);
+          IFile builderFile = ((IContainer) resource).getFile(new Path(BUILD_DART_FILE_NAME));
           if (shouldRunBuildDart(builderFile)) {
             processDelta(builderFile, 0, delta, monitor);
           }
@@ -178,6 +180,7 @@ public class BuildDartParticipant implements BuildParticipant {
     // Construct the args array.
     int containerDepth = builderFile.getParent().getFullPath().segmentCount();
     List<String> args = new ArrayList<String>(changedFiles.size() + deletedFiles.size());
+
     for (IFile file : changedFiles) {
       deleteMarkers(file);
       DartCore.clearResourceRemapping(file);
@@ -251,21 +254,24 @@ public class BuildDartParticipant implements BuildParticipant {
 
     ProcessRunner runner = new ProcessRunner(builder);
 
-    if (VERBOSE) {
-      System.out.println("build.dart " + commandSummary);
-    }
+    logStart(builderFile);
+    log(builderFile, "---\nbuild.dart " + commandSummary);
 
     long startTime = System.currentTimeMillis();
 
-    // The monitor argument is just used to listen for user cancellations.
     int result;
+
     try {
+      // The monitor argument is just used to listen for user cancellations.
       result = runner.runSync(monitor);
     } catch (IOException e) {
       throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, e.getMessage(), e));
     }
 
-    String processedOutput = processBuilderOutput(container, runner.getStdOut());
+    String output = runner.getStdOut();
+    String processedOutput = processBuilderOutput(container, output);
+
+    log(builderFile, output.trim());
 
     if (result != 0) {
       DartCore.getConsole().println("build.dart " + commandSummary);
@@ -284,11 +290,8 @@ public class BuildDartParticipant implements BuildParticipant {
       DartCore.getConsole().println();
     }
 
-    if (VERBOSE) {
-      long elapsedTime = System.currentTimeMillis() - startTime;
-
-      System.out.println("build.dart finished [" + elapsedTime + " ms]");
-    }
+    long elapsedTime = System.currentTimeMillis() - startTime;
+    log(builderFile, "build.dart finished [" + elapsedTime + " ms]\n");
 
     BuilderUtil.delayedRefresh(builderFile.getParent());
   }
@@ -325,19 +328,26 @@ public class BuildDartParticipant implements BuildParticipant {
         IResource resource = delta.getResource();
 
         if (resource.getType() == IResource.FILE) {
+          // Don't report changes to "." files.
+          if (resource.getName().startsWith(".")) {
+            return false;
+          }
+
           // Don't report changes to "build.dart" files
-          if (!resource.getName().equals(BUILD_DART_FILE_NAME)) {
-            switch (delta.getKind()) {
-              case IResourceDelta.ADDED:
-                changedFiles.add((IFile) resource);
-                break;
-              case IResourceDelta.CHANGED:
-                changedFiles.add((IFile) resource);
-                break;
-              case IResourceDelta.REMOVED:
-                deletedFiles.add((IFile) resource);
-                break;
-            }
+          if (resource.getName().equals(BUILD_DART_FILE_NAME)) {
+            return false;
+          }
+
+          switch (delta.getKind()) {
+            case IResourceDelta.ADDED:
+              changedFiles.add((IFile) resource);
+              break;
+            case IResourceDelta.CHANGED:
+              changedFiles.add((IFile) resource);
+              break;
+            case IResourceDelta.REMOVED:
+              deletedFiles.add((IFile) resource);
+              break;
           }
         } else if (resource.getType() == IResource.FOLDER) {
           // Don't report changes in hidden directories, specifically SCM (.svn, .git) directories.
@@ -350,13 +360,6 @@ public class BuildDartParticipant implements BuildParticipant {
           if (resource.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
             return false;
           }
-
-//          // Don't report changes to resources in an 'out' directory.
-//          // TODO(devoncarew): For now, we're not doing this; there is no specially handled output
-//          // directory from the pov of the editor.
-//          if (resource.getName().equals("out")) {
-//            return false;
-//          }
         }
 
         return true;
@@ -420,6 +423,41 @@ public class BuildDartParticipant implements BuildParticipant {
     }
   }
 
+  private void log(IFile builderFile, String string) {
+    try {
+      IFile logFile = builderFile.getParent().getFile(new Path(BUILD_LOG_NAME));
+      File file = new File(logFile.getLocationURI().toURL().toURI());
+      Files.append(string + "\n", file, Charsets.UTF_8);
+    } catch (IOException ioe) {
+
+    } catch (URISyntaxException e) {
+
+    }
+  }
+
+  private void logStart(IFile builderFile) {
+    final long TRUNC_SIZE = 1024 * 1024;
+
+    try {
+      IFile logFile = builderFile.getParent().getFile(new Path(BUILD_LOG_NAME));
+      File file = new File(logFile.getLocationURI().toURL().toURI());
+
+      if (logFile.exists()) {
+        if (file.length() > TRUNC_SIZE) {
+          RandomAccessFile rFile = new RandomAccessFile(file, "rw");
+          rFile.setLength(0);
+          rFile.close();
+        }
+      } else {
+        Files.touch(file);
+      }
+    } catch (IOException ioe) {
+
+    } catch (URISyntaxException e) {
+
+    }
+  }
+
   private String processBuilderOutput(IContainer container, String output) {
     String[] lines = output.split("\n");
     StringBuilder stringBuilder = new StringBuilder(output.length());
@@ -467,12 +505,15 @@ public class BuildDartParticipant implements BuildParticipant {
     if (!builderFile.exists()) {
       return false;
     }
+
     IContainer container = builderFile.getParent();
-    // Legacy... always run build.dart in project
+
+    // Always run build.dart in a project's root.
     if (container.getType() == PROJECT) {
       return true;
     }
-    return container.getFile(REL_PUBSPEC_PATH).exists();
+
+    return container.getFile(new Path(DartCore.PUBSPEC_FILE_NAME)).exists();
   }
 
 }
