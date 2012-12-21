@@ -4,6 +4,8 @@
 
 library observable;
 
+import 'dart:collection';
+
 part 'ChangeEvent.dart';
 part 'EventBatch.dart';
 
@@ -197,7 +199,7 @@ class ObservableList<T>
   T removeAt(int index) {
     int i = 0;
     T found = null;
-    _internal = _internal.filter(bool _(element) {
+    _internal = _internal.filter((element) {
       if (i++ == index) {
         found = element;
         return false;
@@ -257,6 +259,16 @@ class ObservableList<T>
   List getRange(int start, int length) {
     throw new UnimplementedError();
   }
+
+  bool contains(T element) {
+    throw new UnimplementedError();
+  }
+
+  dynamic reduce(var initialValue,
+                 dynamic combine(var previousValue, T element)) {
+    throw new UnimplementedError();
+  }
+
 
   // Iterable<T>:
   Iterator<T> iterator() => _internal.iterator();

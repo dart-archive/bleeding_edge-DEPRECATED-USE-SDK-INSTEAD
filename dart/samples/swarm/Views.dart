@@ -258,7 +258,7 @@ class GenericListView<D> extends View {
     }
 
     if (_selectedItem != null) {
-      addOnClick(function(Event e) { _onClick(e); });
+      addOnClick((Event e) { _onClick(e); });
     }
 
     if (_selectedItem != null) {

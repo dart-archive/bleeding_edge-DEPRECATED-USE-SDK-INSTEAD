@@ -206,7 +206,7 @@ class PlayerState {
         seq.complete(true);
       } else {
         _exploreDirectionHelper(dir, x, y).then(
-            (_next != null) ? _next : (void _(v) {seq.complete(false);}));
+            (_next != null) ? _next : ((v) {seq.complete(false);}));
       }
     };
   }

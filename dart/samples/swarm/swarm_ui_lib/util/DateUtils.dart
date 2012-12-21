@@ -104,8 +104,7 @@ class DateUtils {
         int.parse(time[0]),
         int.parse(time[1]),
         int.parse(seconds[0]),
-        milliseconds,
-        isUtc: isUtc);
+        milliseconds);
   }
 
   /**

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of observable_tests;
+
 testEventBatch() {
   test('EventBatch', () {
     // check that all events are fired at the end. Use all record methods

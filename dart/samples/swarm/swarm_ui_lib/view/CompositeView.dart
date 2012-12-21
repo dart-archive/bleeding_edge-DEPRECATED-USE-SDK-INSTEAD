@@ -80,7 +80,7 @@ class CompositeView extends View {
   }
 
   void removeChild(View view) {
-    childViews = childViews.filter(bool _(e) { return view != e; });
+    childViews = childViews.filter((e) { return view != e; });
     // TODO(rnystrom): Container shouldn't be null. Remove this check.
     if (container != null) {
       view.node.remove();

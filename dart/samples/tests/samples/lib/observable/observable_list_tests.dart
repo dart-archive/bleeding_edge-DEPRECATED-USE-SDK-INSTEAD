@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of observable_tests;
+
 testObservableList() {
   test('ObservableList', () {
     final arr = new ObservableList<int>();
@@ -38,7 +40,7 @@ testObservableList() {
       expect(arr.lastIndexOf(1, arr.length - 1), equals(3));
       expect(arr.last, equals(4));
       final copy = new List<int>();
-      arr.forEach(f(i) {
+      arr.forEach((i) {
         copy.add(i);
       });
       expect(copy, orderedEquals([1, 2, 3, 1, 3, 4]));
@@ -89,7 +91,7 @@ testObservableList() {
       arr.add(4);
       arr.add(10);
       arr.add(9);
-      arr.sort(int compare(int a, int b) { return a - b; });
+      arr.sort((int a, int b) { return a - b; });
       called = true;
     })(null);
     expect(called, isTrue);
