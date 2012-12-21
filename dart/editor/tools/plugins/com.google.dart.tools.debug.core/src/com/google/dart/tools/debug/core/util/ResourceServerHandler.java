@@ -683,8 +683,12 @@ class ResourceServerHandler implements Runnable {
     if (ioe instanceof SocketException) {
       String message = ioe.getMessage().toLowerCase();
 
-      return "connection reset".equals(message) || "connection abort".equals(message)
-          || "broken pipe".equals(message);
+      if (message == null) {
+        return false;
+      }
+
+      return message.contains("connection rese") || message.contains("connection abort")
+          || message.contains("broken pipe");
     }
 
     return false;

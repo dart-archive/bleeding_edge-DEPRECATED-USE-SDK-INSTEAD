@@ -63,7 +63,20 @@ public class StringUtilitiesTest extends TestCase {
     Assert.assertFalse(StringUtilities.endsWithIgnoreCase("name.DAR", ".dart"));
     Assert.assertFalse(StringUtilities.endsWithIgnoreCase("name.DaR", ".dart"));
     Assert.assertFalse(StringUtilities.endsWithIgnoreCase("name.dAr", ".dart"));
+  }
 
+  public void test_StringUtilities_parseArgumentString() {
+    Assert.assertArrayEquals(
+        new String[] {"one", "two"},
+        StringUtilities.parseArgumentString("one two"));
+
+    Assert.assertArrayEquals(
+        new String[] {"one", "two two"},
+        StringUtilities.parseArgumentString("one \"two two\""));
+
+    Assert.assertArrayEquals(
+        new String[] {"one", "arg='two two'"},
+        StringUtilities.parseArgumentString("one arg='two two'"));
   }
 
 }

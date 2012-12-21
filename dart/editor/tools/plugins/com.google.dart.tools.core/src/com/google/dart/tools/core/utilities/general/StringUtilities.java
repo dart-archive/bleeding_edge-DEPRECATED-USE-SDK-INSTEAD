@@ -233,13 +233,10 @@ public final class StringUtilities {
       if (!prevWasSlash && (c == '\'' || c == '"')) {
         inQuote = !inQuote;
         prevWasSlash = false;
-
-        // Don't include the quote char.
-        continue;
       }
 
       if (c == ' ' && !inQuote) {
-        args.add(builder.toString());
+        args.add(stripQuotes(builder.toString()));
         builder.setLength(0);
       } else {
         builder.append(c);
@@ -249,7 +246,7 @@ public final class StringUtilities {
     }
 
     if (builder.length() > 0) {
-      args.add(builder.toString());
+      args.add(stripQuotes(builder.toString()));
     }
 
     return args.toArray(new String[args.size()]);
@@ -423,6 +420,17 @@ public final class StringUtilities {
       return str;
     }
     return str.substring(0, pos);
+  }
+
+  private static String stripQuotes(String str) {
+    if (str.length() > 1) {
+      if ((str.startsWith("'") && str.endsWith("'"))
+          || (str.startsWith("\"") && str.endsWith("\""))) {
+        str = str.substring(1, str.length() - 1);
+      }
+    }
+
+    return str;
   }
 
   private StringUtilities() {
