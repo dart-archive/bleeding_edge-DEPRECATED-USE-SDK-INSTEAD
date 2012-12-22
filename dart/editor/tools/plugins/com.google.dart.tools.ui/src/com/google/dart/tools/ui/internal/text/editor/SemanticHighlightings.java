@@ -331,7 +331,8 @@ public class SemanticHighlightings {
       DartNode node = token.getNode();
       if (node instanceof DartStringLiteral && node.getParent() instanceof DartImportDirective) {
         Element element = node.getElement();
-        return element != null && element.getMetadata().isDeprecated();
+        return element != null && element.getMetadata() != null
+            && element.getMetadata().isDeprecated();
       }
       return false;
     }
@@ -340,7 +341,8 @@ public class SemanticHighlightings {
     public boolean consumesIdentifier(SemanticToken token) {
       DartIdentifier node = token.getNodeIdentifier();
       Element element = node.getElement();
-      return element != null && element.getMetadata().isDeprecated();
+      return element != null && element.getMetadata() != null
+          && element.getMetadata().isDeprecated();
     }
 
     @Override
