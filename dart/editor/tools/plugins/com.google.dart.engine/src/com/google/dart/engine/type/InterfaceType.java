@@ -61,6 +61,8 @@ public interface InterfaceType extends Type {
    * <li><i>I</i> is Object, and <i>J</i> has no extends clause.</li>
    * <li><i>I</i> is listed in the extends clause of <i>J</i>.</li>
    * <li><i>I</i> is listed in the implements clause of <i>J</i>.</li>
+   * <li><i>I</i> is listed in the with clause of <i>J</i>.</li>
+   * <li><i>J</i> is a mixin application of the mixin of <i>I</i>.</li>
    * </ul>
    * 
    * @param type the type being compared with this type
@@ -102,4 +104,7 @@ public interface InterfaceType extends Type {
    */
   @Override
   public boolean isSubtypeOf(Type type);
+
+  @Override
+  public InterfaceType substitute(Type[] argumentTypes, Type[] parameterTypes);
 }

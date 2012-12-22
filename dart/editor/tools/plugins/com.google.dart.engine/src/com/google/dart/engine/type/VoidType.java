@@ -18,4 +18,6 @@ package com.google.dart.engine.type;
  * {@code void}.
  */
 public interface VoidType extends Type {
+  @Override
+  public VoidType substitute(Type[] argumentTypes, Type[] parameterTypes);
 }

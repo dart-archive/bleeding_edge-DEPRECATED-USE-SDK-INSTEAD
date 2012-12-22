@@ -15,6 +15,8 @@ package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.TypeVariableElementImpl;
+import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
@@ -66,7 +68,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
 
   public void test_getTypeArguments() {
     InterfaceTypeImpl type = new InterfaceTypeImpl(new ClassElementImpl(identifier("A")));
-    assertNull(type.getTypeArguments());
+    assertLength(0, type.getTypeArguments());
   }
 
   public void test_isDirectSupertypeOf_false_explicit() {
@@ -140,5 +142,43 @@ public class InterfaceTypeImplTest extends EngineTestCase {
         new InterfaceTypeImpl(new ClassElementImpl(identifier("C"))),};
     type.setTypeArguments(typeArguments);
     assertEquals(typeArguments, type.getTypeArguments());
+  }
+
+  public void test_substitute_equal() {
+    ClassElementImpl classElement = new ClassElementImpl(identifier("A"));
+    TypeVariableElementImpl parameterElement = new TypeVariableElementImpl(identifier("E"));
+    //classElement.setTypeVariables(new TypeVariableElement[] {parameterElement});
+
+    InterfaceTypeImpl type = new InterfaceTypeImpl(classElement);
+    TypeVariableTypeImpl parameter = new TypeVariableTypeImpl(parameterElement);
+    type.setTypeArguments(new Type[] {parameter});
+
+    InterfaceTypeImpl argumentType = new InterfaceTypeImpl(new ClassElementImpl(identifier("B")));
+
+    InterfaceType result = type.substitute(new Type[] {argumentType}, new Type[] {parameter});
+    assertEquals(classElement, result.getElement());
+    Type[] resultArguments = result.getTypeArguments();
+    assertLength(1, resultArguments);
+    assertEquals(argumentType, resultArguments[0]);
+  }
+
+  public void test_substitute_notEqual() {
+    ClassElementImpl classElement = new ClassElementImpl(identifier("A"));
+    TypeVariableElementImpl parameterElement = new TypeVariableElementImpl(identifier("E"));
+    //classElement.setTypeVariables(new TypeVariableElement[] {parameterElement});
+
+    InterfaceTypeImpl type = new InterfaceTypeImpl(classElement);
+    TypeVariableTypeImpl parameter = new TypeVariableTypeImpl(parameterElement);
+    type.setTypeArguments(new Type[] {parameter});
+
+    InterfaceTypeImpl argumentType = new InterfaceTypeImpl(new ClassElementImpl(identifier("B")));
+    TypeVariableTypeImpl parameterType = new TypeVariableTypeImpl(new TypeVariableElementImpl(
+        identifier("F")));
+
+    InterfaceType result = type.substitute(new Type[] {argumentType}, new Type[] {parameterType});
+    assertEquals(classElement, result.getElement());
+    Type[] resultArguments = result.getTypeArguments();
+    assertLength(1, resultArguments);
+    assertEquals(parameter, resultArguments[0]);
   }
 }

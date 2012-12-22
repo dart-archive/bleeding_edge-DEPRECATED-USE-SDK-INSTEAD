@@ -80,4 +80,19 @@ public interface Type {
    * @return {@code true} if this type is a supertype of the given type
    */
   public boolean isSupertypeOf(Type type);
+
+  /**
+   * Return the type resulting from substituting the given arguments for the given parameters in
+   * this type. The specification defines this operation in section 2: <blockquote> The notation
+   * <i>[x<sub>1</sub>, ..., x<sub>n</sub>/y<sub>1</sub>, ..., y<sub>n</sub>]E</i> denotes a copy of
+   * <i>E</i> in which all occurrences of <i>y<sub>i</sub>, 1 <= i <= n</i> have been replaced with
+   * <i>x<sub>i</sub></i>. </blockquote> Note that, contrary to the specification, this method will
+   * not create a copy of this type if no substitutions were required, but will return this type
+   * directly.
+   * 
+   * @param argumentTypes the actual type arguments being substituted for the parameters
+   * @param parameterTypes the parameters to be replaced
+   * @return the result of performing the substitution
+   */
+  public Type substitute(Type[] argumentTypes, Type[] parameterTypes);
 }

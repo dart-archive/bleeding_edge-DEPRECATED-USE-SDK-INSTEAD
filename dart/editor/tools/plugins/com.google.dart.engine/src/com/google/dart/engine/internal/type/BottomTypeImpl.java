@@ -22,7 +22,7 @@ public class BottomTypeImpl extends TypeImpl {
   /**
    * The unique instance of this class.
    */
-  private static BottomTypeImpl INSTANCE = new BottomTypeImpl(); //$NON-NLS-1$
+  private static final BottomTypeImpl INSTANCE = new BottomTypeImpl(); //$NON-NLS-1$
 
   /**
    * Return the unique instance of this class.
@@ -41,6 +41,11 @@ public class BottomTypeImpl extends TypeImpl {
   }
 
   @Override
+  public boolean equals(Object object) {
+    return object instanceof BottomTypeImpl;
+  }
+
+  @Override
   public boolean isMoreSpecificThan(Type type) {
     return true;
   }
@@ -49,5 +54,10 @@ public class BottomTypeImpl extends TypeImpl {
   public boolean isSubtypeOf(Type type) {
     // bottom is a subtype of all types
     return true;
+  }
+
+  @Override
+  public BottomTypeImpl substitute(Type[] argumentTypes, Type[] parameterTypes) {
+    return this;
   }
 }

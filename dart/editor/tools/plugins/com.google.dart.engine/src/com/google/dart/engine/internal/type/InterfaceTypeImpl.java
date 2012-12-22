@@ -16,6 +16,9 @@ package com.google.dart.engine.internal.type;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.general.ObjectUtilities;
+
+import java.util.Arrays;
 
 /**
  * Instances of the class {@code InterfaceTypeImpl} defines the behavior common to objects
@@ -26,7 +29,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /**
    * An array containing the actual types of the type arguments.
    */
-  private Type[] typeArguments;
+  private Type[] typeArguments = TypeImpl.EMPTY_ARRAY;
 
   /**
    * The instance representing the type {@code dynamic}.
@@ -62,6 +65,16 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof InterfaceTypeImpl)) {
+      return false;
+    }
+    InterfaceTypeImpl otherType = (InterfaceTypeImpl) object;
+    return ObjectUtilities.equals(getElement(), otherType.getElement())
+        && Arrays.equals(typeArguments, otherType.typeArguments);
+  }
+
+  @Override
   public ClassElement getElement() {
     return (ClassElement) super.getElement();
   }
@@ -75,6 +88,15 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @Override
   public Type[] getTypeArguments() {
     return typeArguments;
+  }
+
+  @Override
+  public int hashCode() {
+    ClassElement element = getElement();
+    if (element == null) {
+      return 0;
+    }
+    return element.hashCode();
   }
 
   @Override
@@ -107,6 +129,18 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return true;
       }
     }
+    //
+    // I is listed in the with clause of J.
+    //
+    for (Type mixinType : j.getMixins()) {
+      if (mixinType.equals(i)) {
+        return true;
+      }
+    }
+    //
+    // J is a mixin application of the mixin of I.
+    //
+    // TODO(brianwilkerson) Implement this.
     return false;
   }
 
@@ -197,5 +231,19 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    */
   public void setTypeArguments(Type[] typeArguments) {
     this.typeArguments = typeArguments;
+  }
+
+  @Override
+  public InterfaceTypeImpl substitute(Type[] argumentTypes, Type[] parameterTypes) {
+    if (argumentTypes.length != parameterTypes.length) {
+      throw new IllegalArgumentException("argumentTypes.length (" + argumentTypes.length
+          + ") != parameterTypes.length (" + parameterTypes.length + ")");
+    }
+    if (argumentTypes.length == 0) {
+      return this;
+    }
+    InterfaceTypeImpl newType = new InterfaceTypeImpl(getElement());
+    newType.setTypeArguments(substitute(typeArguments, argumentTypes, parameterTypes));
+    return newType;
   }
 }

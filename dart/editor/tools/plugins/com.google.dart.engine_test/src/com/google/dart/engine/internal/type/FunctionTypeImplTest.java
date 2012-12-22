@@ -14,8 +14,10 @@
 package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.FunctionElementImpl;
+import com.google.dart.engine.internal.element.TypeVariableElementImpl;
+import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
@@ -75,5 +77,69 @@ public class FunctionTypeImplTest extends EngineTestCase {
     type.setReturnType(expectedType);
     Type returnType = type.getReturnType();
     assertEquals(expectedType, returnType);
+  }
+
+  public void test_substitute_equal() {
+    FunctionTypeImpl functionType = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
+    TypeVariableTypeImpl parameterType = new TypeVariableTypeImpl(new TypeVariableElementImpl(
+        identifier("E")));
+
+    functionType.setReturnType(parameterType);
+    functionType.setNormalParameterTypes(new Type[] {parameterType});
+    functionType.setOptionalParameterTypes(new Type[] {parameterType});
+    LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();
+    String namedParameterName = "c";
+    namedParameterTypes.put(namedParameterName, parameterType);
+    functionType.setNamedParameterTypes(namedParameterTypes);
+
+    InterfaceTypeImpl argumentType = new InterfaceTypeImpl(new ClassElementImpl(identifier("D")));
+
+    FunctionType result = functionType.substitute(
+        new Type[] {argumentType},
+        new Type[] {parameterType});
+    assertEquals(argumentType, result.getReturnType());
+    Type[] normalParameters = result.getNormalParameterTypes();
+    assertLength(1, normalParameters);
+    assertEquals(argumentType, normalParameters[0]);
+    Type[] optionalParameters = result.getOptionalParameterTypes();
+    assertLength(1, optionalParameters);
+    assertEquals(argumentType, optionalParameters[0]);
+    Map<String, Type> namedParameters = result.getNamedParameterTypes();
+    assertSize(1, namedParameters);
+    assertEquals(argumentType, namedParameters.get(namedParameterName));
+  }
+
+  public void test_substitute_notEqual() {
+    FunctionTypeImpl functionType = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
+    Type returnType = new InterfaceTypeImpl(new ClassElementImpl(identifier("R")));
+    Type normalParameterType = new InterfaceTypeImpl(new ClassElementImpl(identifier("A")));
+    Type optionalParameterType = new InterfaceTypeImpl(new ClassElementImpl(identifier("B")));
+    Type namedParameterType = new InterfaceTypeImpl(new ClassElementImpl(identifier("C")));
+
+    functionType.setReturnType(returnType);
+    functionType.setNormalParameterTypes(new Type[] {normalParameterType});
+    functionType.setOptionalParameterTypes(new Type[] {optionalParameterType});
+    LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();
+    String namedParameterName = "c";
+    namedParameterTypes.put(namedParameterName, namedParameterType);
+    functionType.setNamedParameterTypes(namedParameterTypes);
+
+    InterfaceTypeImpl argumentType = new InterfaceTypeImpl(new ClassElementImpl(identifier("D")));
+    TypeVariableTypeImpl parameterType = new TypeVariableTypeImpl(new TypeVariableElementImpl(
+        identifier("E")));
+
+    FunctionType result = functionType.substitute(
+        new Type[] {argumentType},
+        new Type[] {parameterType});
+    assertEquals(returnType, result.getReturnType());
+    Type[] normalParameters = result.getNormalParameterTypes();
+    assertLength(1, normalParameters);
+    assertEquals(normalParameterType, normalParameters[0]);
+    Type[] optionalParameters = result.getOptionalParameterTypes();
+    assertLength(1, optionalParameters);
+    assertEquals(optionalParameterType, optionalParameters[0]);
+    Map<String, Type> namedParameters = result.getNamedParameterTypes();
+    assertSize(1, namedParameters);
+    assertEquals(namedParameterType, namedParameters.get(namedParameterName));
   }
 }

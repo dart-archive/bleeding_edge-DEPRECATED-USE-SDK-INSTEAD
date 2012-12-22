@@ -22,6 +22,24 @@ import com.google.dart.engine.type.Type;
  */
 public abstract class TypeImpl implements Type {
   /**
+   * Return an array containing the results of using the given argument types and parameter types to
+   * perform a substitution on all of the given types.
+   * 
+   * @param types the types on which a substitution is to be performed
+   * @param argumentTypes the argument types for the substitution
+   * @param parameterTypes the parameter types for the substitution
+   * @return the result of performing the substitution on each of the types
+   */
+  protected static Type[] substitute(Type[] types, Type[] argumentTypes, Type[] parameterTypes) {
+    int length = types.length;
+    Type[] newTypes = new Type[length];
+    for (int i = 0; i < length; i++) {
+      newTypes[i] = types[i].substitute(argumentTypes, parameterTypes);
+    }
+    return newTypes;
+  }
+
+  /**
    * The element representing the declaration of this type, or {@code null} if the type has not, or
    * cannot, be associated with an element.
    */

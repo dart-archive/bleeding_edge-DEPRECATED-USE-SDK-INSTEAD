@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.type;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeVariableType;
+import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 /**
  * Instances of the class {@code TypeVariableTypeImpl} defines the behavior of objects representing
@@ -33,8 +34,19 @@ public class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
   }
 
   @Override
+  public boolean equals(Object object) {
+    return object instanceof TypeVariableTypeImpl
+        && ObjectUtilities.equals(getElement(), ((TypeVariableTypeImpl) object).getElement());
+  }
+
+  @Override
   public TypeVariableElement getElement() {
     return (TypeVariableElement) super.getElement();
+  }
+
+  @Override
+  public int hashCode() {
+    return getElement().hashCode();
   }
 
   @Override
@@ -49,5 +61,16 @@ public class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
   @Override
   public boolean isSubtypeOf(Type type) {
     return false;
+  }
+
+  @Override
+  public Type substitute(Type[] argumentTypes, Type[] parameterTypes) {
+    int length = parameterTypes.length;
+    for (int i = 0; i < length; i++) {
+      if (parameterTypes[i].equals(this)) {
+        return argumentTypes[i];
+      }
+    }
+    return this;
   }
 }

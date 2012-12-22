@@ -14,7 +14,9 @@
 package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
+import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 
@@ -27,5 +29,22 @@ public class TypeVariableTypeImplTest extends EngineTestCase {
     TypeVariableElementImpl element = new TypeVariableElementImpl(identifier("E"));
     TypeVariableTypeImpl type = new TypeVariableTypeImpl(element);
     assertEquals(element, type.getElement());
+  }
+
+  public void test_substitute_equal() {
+    TypeVariableElementImpl element = new TypeVariableElementImpl(identifier("E"));
+    TypeVariableTypeImpl type = new TypeVariableTypeImpl(element);
+    InterfaceTypeImpl argument = new InterfaceTypeImpl(new ClassElementImpl(identifier("A")));
+    TypeVariableTypeImpl parameter = new TypeVariableTypeImpl(element);
+    assertSame(argument, type.substitute(new Type[] {argument}, new Type[] {parameter}));
+  }
+
+  public void test_substitute_notEqual() {
+    TypeVariableTypeImpl type = new TypeVariableTypeImpl(new TypeVariableElementImpl(
+        identifier("E")));
+    InterfaceTypeImpl argument = new InterfaceTypeImpl(new ClassElementImpl(identifier("A")));
+    TypeVariableTypeImpl parameter = new TypeVariableTypeImpl(new TypeVariableElementImpl(
+        identifier("F")));
+    assertSame(type, type.substitute(new Type[] {argument}, new Type[] {parameter}));
   }
 }

@@ -137,4 +137,7 @@ public interface FunctionType extends Type {
    */
   @Override
   public boolean isSubtypeOf(Type type);
+
+  @Override
+  public FunctionType substitute(Type[] argumentTypes, Type[] parameterTypes);
 }

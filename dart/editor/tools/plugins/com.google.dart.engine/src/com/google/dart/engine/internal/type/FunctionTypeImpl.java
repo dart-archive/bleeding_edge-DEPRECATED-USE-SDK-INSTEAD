@@ -16,7 +16,10 @@ package com.google.dart.engine.internal.type;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.general.ObjectUtilities;
 
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -25,6 +28,52 @@ import java.util.Map;
  * representing the type of a function, method, constructor, getter, or setter.
  */
 public class FunctionTypeImpl extends TypeImpl implements FunctionType {
+  /**
+   * Return {@code true} if all of the types in the first array are equal to the corresponding types
+   * in the second array.
+   * 
+   * @param firstTypes the first array of types being compared
+   * @param secondTypes the second array of types being compared
+   * @return {@code true} if all of the types in the first array are equal to the corresponding
+   *         types in the second array
+   */
+  private static boolean equals(LinkedHashMap<String, Type> firstTypes,
+      LinkedHashMap<String, Type> secondTypes) {
+    if (secondTypes.size() != firstTypes.size()) {
+      return false;
+    }
+    Iterator<Map.Entry<String, Type>> firstIterator = firstTypes.entrySet().iterator();
+    Iterator<Map.Entry<String, Type>> secondIterator = firstTypes.entrySet().iterator();
+    while (firstIterator.hasNext()) {
+      Map.Entry<String, Type> firstEntry = firstIterator.next();
+      Map.Entry<String, Type> secondEntry = secondIterator.next();
+      if (!firstEntry.getKey().equals(secondEntry.getKey())
+          || !firstEntry.getValue().equals(secondEntry.getValue())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Return a map containing the results of using the given argument types and parameter types to
+   * perform a substitution on all of the values in the given map. The order of the entries will be
+   * preserved.
+   * 
+   * @param types the types on which a substitution is to be performed
+   * @param argumentTypes the argument types for the substitution
+   * @param parameterTypes the parameter types for the substitution
+   * @return the result of performing the substitution on each of the types
+   */
+  private static LinkedHashMap<String, Type> substitute(LinkedHashMap<String, Type> types,
+      Type[] argumentTypes, Type[] parameterTypes) {
+    LinkedHashMap<String, Type> newTypes = new LinkedHashMap<String, Type>();
+    for (Map.Entry<String, Type> entry : types.entrySet()) {
+      newTypes.put(entry.getKey(), entry.getValue().substitute(argumentTypes, parameterTypes));
+    }
+    return newTypes;
+  }
+
   /**
    * An array containing the types of the normal parameters of this type of function. The parameter
    * types are in the same order as they appear in the declaration of the function.
@@ -61,6 +110,18 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @Override
+  public boolean equals(Object object) {
+    if (!(object instanceof FunctionTypeImpl)) {
+      return false;
+    }
+    FunctionTypeImpl otherType = (FunctionTypeImpl) object;
+    return ObjectUtilities.equals(getElement(), otherType.getElement())
+        && Arrays.equals(normalParameterTypes, otherType.normalParameterTypes)
+        && Arrays.equals(optionalParameterTypes, otherType.optionalParameterTypes)
+        && equals(namedParameterTypes, otherType.namedParameterTypes);
+  }
+
+  @Override
   public ExecutableElement getElement() {
     return (ExecutableElement) super.getElement();
   }
@@ -83,6 +144,11 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @Override
   public Type getReturnType() {
     return returnType;
+  }
+
+  @Override
+  public int hashCode() {
+    return getElement().hashCode();
   }
 
   @Override
@@ -129,5 +195,25 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
    */
   public void setReturnType(Type returnType) {
     this.returnType = returnType;
+  }
+
+  @Override
+  public FunctionTypeImpl substitute(Type[] argumentTypes, Type[] parameterTypes) {
+    if (argumentTypes.length != parameterTypes.length) {
+      throw new IllegalArgumentException("argumentTypes.length (" + argumentTypes.length
+          + ") != parameterTypes.length (" + parameterTypes.length + ")");
+    }
+    if (argumentTypes.length == 0) {
+      return this;
+    }
+    FunctionTypeImpl newType = new FunctionTypeImpl(getElement());
+    newType.setReturnType(returnType.substitute(argumentTypes, parameterTypes));
+    newType.setNormalParameterTypes(substitute(normalParameterTypes, argumentTypes, parameterTypes));
+    newType.setOptionalParameterTypes(substitute(
+        optionalParameterTypes,
+        argumentTypes,
+        parameterTypes));
+    newType.setNamedParameterTypes(substitute(namedParameterTypes, argumentTypes, parameterTypes));
+    return newType;
   }
 }

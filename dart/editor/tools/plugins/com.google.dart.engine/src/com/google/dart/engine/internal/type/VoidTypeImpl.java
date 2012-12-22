@@ -23,7 +23,7 @@ public class VoidTypeImpl extends TypeImpl implements VoidType {
   /**
    * The unique instance of this class.
    */
-  private static VoidTypeImpl INSTANCE = new VoidTypeImpl();
+  private static final VoidTypeImpl INSTANCE = new VoidTypeImpl();
 
   /**
    * Return the unique instance of this class.
@@ -42,11 +42,21 @@ public class VoidTypeImpl extends TypeImpl implements VoidType {
   }
 
   @Override
+  public boolean equals(Object object) {
+    return object instanceof VoidTypeImpl;
+  }
+
+  @Override
   public boolean isSubtypeOf(Type type) {
     // The only subtype relations that pertain to void are therefore:
     // void <: void(by reflexivity)
     // bottom <: void (as bottom is a subtype of all types).
     // void <: dynamic (as dynamic is a supertype of all types)
     return this.equals(type) || type.equals(InterfaceTypeImpl.getDynamic());
+  }
+
+  @Override
+  public VoidTypeImpl substitute(Type[] argumentTypes, Type[] parameterTypes) {
+    return this;
   }
 }
