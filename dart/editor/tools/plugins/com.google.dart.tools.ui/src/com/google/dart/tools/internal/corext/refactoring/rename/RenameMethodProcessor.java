@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
-import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
@@ -68,17 +67,6 @@ public class RenameMethodProcessor extends RenameTypeMemberProcessor {
   @Override
   public boolean isApplicable() throws CoreException {
     return RefactoringAvailabilityTester.isRenameAvailable((Method) member);
-  }
-
-  @Override
-  protected String getNewNameSource() {
-    // named constructor
-    if (oldName.contains(".")) {
-      String prefix = StringUtils.substringBefore(oldName, ".");
-      return prefix + "." + super.getNewNameSource();
-    }
-    // normal method
-    return super.getNewNameSource();
   }
 
 }

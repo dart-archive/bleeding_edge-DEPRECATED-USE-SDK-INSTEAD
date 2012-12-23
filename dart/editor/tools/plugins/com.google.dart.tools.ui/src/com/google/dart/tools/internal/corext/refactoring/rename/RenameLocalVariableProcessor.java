@@ -46,7 +46,6 @@ import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -224,7 +223,6 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
 
   private final CompilationUnit unit;
   private final String oldName;
-  private String newName;
   private DartUnit unitNode;
   private DartNode variableNode;
   private VariableElement variableElement;
@@ -289,11 +287,6 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
   }
 
   @Override
-  public String getNewElementName() {
-    return newName;
-  }
-
-  @Override
   public String getProcessorName() {
     return RefactoringCoreMessages.RenameLocalVariableProcessor_name;
   }
@@ -306,12 +299,6 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
   @Override
   public boolean isApplicable() throws CoreException {
     return RefactoringAvailabilityTester.isRenameAvailable(variable);
-  }
-
-  @Override
-  public void setNewElementName(String newName) {
-    Assert.isNotNull(newName);
-    this.newName = newName;
   }
 
   @Override

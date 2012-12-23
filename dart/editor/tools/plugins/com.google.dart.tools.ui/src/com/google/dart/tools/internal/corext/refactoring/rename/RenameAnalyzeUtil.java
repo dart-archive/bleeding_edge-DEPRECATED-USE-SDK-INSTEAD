@@ -141,6 +141,7 @@ public class RenameAnalyzeUtil {
               unit.getSource(),
               range.getOffset(),
               SourceRangeUtils.getEnd(range));
+          referenceSource = getSimpleName(referenceSource);
           if (!referenceSource.equals(expectedSource)) {
             return RefactoringStatus.createFatalErrorStatus(
                 Messages.format(
@@ -375,6 +376,16 @@ public class RenameAnalyzeUtil {
     }
     // done, may be empty
     return references;
+  }
+
+  /**
+   * @return the "simple" name, for example "name" for "A.name".
+   */
+  public static String getSimpleName(String name) {
+    if (StringUtils.contains(name, ".")) {
+      return StringUtils.substringAfterLast(name, ".");
+    }
+    return name;
   }
 
   /**

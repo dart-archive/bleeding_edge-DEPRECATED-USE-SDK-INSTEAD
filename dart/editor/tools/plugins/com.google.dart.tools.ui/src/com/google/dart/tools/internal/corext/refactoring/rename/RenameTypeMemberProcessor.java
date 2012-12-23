@@ -23,6 +23,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
@@ -30,6 +31,7 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.MatchQuality;
 import com.google.dart.tools.core.search.SearchMatch;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
@@ -331,7 +333,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
    */
   public RenameTypeMemberProcessor(TypeMember member) {
     this.member = member;
-    oldName = member.getElementName();
+    oldName = RenameAnalyzeUtil.getSimpleName(member.getElementName());
     setNewElementName(oldName);
   }
 
@@ -462,10 +464,6 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
     }
   }
 
-  protected String getNewNameSource() {
-    return getNewElementName();
-  }
-
   private void addDeclarationUpdates(IProgressMonitor pm) throws CoreException {
     addUpdates(pm, RefactoringCoreMessages.RenameProcessor_update_declaration, declarations);
   }
@@ -481,6 +479,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
     for (SearchMatch match : matches) {
       CompilationUnit cu = match.getElement().getAncestor(CompilationUnit.class);
       SourceRange matchRange = match.getSourceRange();
+      matchRange = getNamedConstuctorRange(cu, matchRange);
       TextEdit textEdit = createTextChange(matchRange);
       if (cu.getResource() != null) {
         TextChange change = getChangeManager(match).get(cu);
@@ -529,7 +528,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
   }
 
   private TextEdit createTextChange(SourceRange sourceRange) {
-    return new ReplaceEdit(sourceRange.getOffset(), sourceRange.getLength(), getNewNameSource());
+    return new ReplaceEdit(sourceRange.getOffset(), sourceRange.getLength(), newName);
   }
 
   private TextChangeManager getChangeManager(SearchMatch match) {
@@ -537,6 +536,24 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
       return changeManager;
     }
     return changeManagerNames;
+  }
+
+  /**
+   * We use simple {@link #newName}, such as "name" not "A.name" to update reference. So, we need to
+   * tweak {@link SourceRange} of reference to include on simple name.
+   */
+  private SourceRange getNamedConstuctorRange(CompilationUnit cu, SourceRange range)
+      throws DartModelException {
+    if (member instanceof Method && ((Method) member).isConstructor()) {
+      int mStart = range.getOffset();
+      int mEnd = mStart + range.getLength();
+      String matchSource = cu.getSource().substring(mStart, mEnd);
+      int dotIndex = matchSource.indexOf('.');
+      if (dotIndex != -1) {
+        range = SourceRangeFactory.forStartEnd(mStart + dotIndex + 1, mEnd);
+      }
+    }
+    return range;
   }
 
   private void prepareReferences(IProgressMonitor pm) throws CoreException {
