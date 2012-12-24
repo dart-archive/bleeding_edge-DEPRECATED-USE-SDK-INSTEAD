@@ -8,19 +8,19 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "136547",
+  "webkit_revision": "137939",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "10373",
+  "nacl_revision": "10465",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "10001",  # native_client/DEPS: tools_rev
   "gtm_revision": "578",
 
-  "libjingle_revision": "245",
+  "libjingle_revision": "251",
   "libphonenumber_revision": "456",
-  "libvpx_revision": "169630",
+  "libvpx_revision": "173187",
   "lss_revision": "17",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
@@ -29,28 +29,28 @@ vars = {
   "ffmpeg_hash": "82ae69cc47f25f9a59cf2ca8742e3391c34e7602",
 
   "sfntly_revision": "134",
-  "skia_revision": "6659",
+  "skia_revision": "6830",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "13133",
+  "v8_revision": "13196",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
   "webrtc_revision": "3237",
   "jsoncpp_revision": "248",
-  "nss_revision": "169374",
+  "nss_revision": "172945",
 }
 
 deps = {
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1082",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1089",
 
   "src/googleurl":
     (Var("googlecode_url") % "google-url") + "/trunk@180",
 
   "src/sandbox/linux/seccomp-legacy":
-    (Var("googlecode_url") % "seccompsandbox") + "/trunk@188",
+    (Var("googlecode_url") % "seccompsandbox") + "/trunk@189",
 
   "src/sdch/open-vcdiff":
     (Var("googlecode_url") % "open-vcdiff") + "/trunk@42",
@@ -62,7 +62,7 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@410",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@1394",
+    (Var("googlecode_url") % "angleproject") + "/trunk@1562",
 
   "src/third_party/trace-viewer":
     (Var("googlecode_url") % "trace-viewer") + "/trunk@192",
@@ -91,7 +91,7 @@ deps = {
 
   "src/third_party/cacheinvalidation/src":
     (Var("googlecode_url") % "google-cache-invalidation-api") +
-    "/trunk/src@245",
+    "/trunk/src@247",
 
   "src/third_party/leveldatabase/src":
     (Var("googlecode_url") % "leveldb") + "/trunk@68",
@@ -100,13 +100,13 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@63",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@86",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@92",
 
   "src/tools/gyp":
     (Var("googlecode_url") % "gyp") + "/trunk@1537",
 
   "src/tools/swarm_client":
-    "/trunk/tools/swarm_client@169278",
+    "/trunk/tools/swarm_client@173178",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -153,13 +153,16 @@ deps = {
     (Var("googlecode_url") % "ots") + "/trunk@95",
 
   "src/tools/page_cycler/acid3":
-    "/trunk/deps/page_cycler/acid3@150075",
+    "/trunk/deps/page_cycler/acid3@171600",
 
   "src/chrome/test/data/perf/canvas_bench":
     "/trunk/deps/canvas_bench@122605",
 
   "src/chrome/test/data/perf/frame_rate/content":
     "/trunk/deps/frame_rate/content@93671",
+
+  "src/chrome/test/data/perf/third_party/octane":
+    (Var("googlecode_url") % "octane-benchmark") + "/trunk@19",
 
   "src/third_party/bidichecker":
     (Var("googlecode_url") % "bidichecker") + "/trunk/lib@4",
@@ -305,7 +308,7 @@ deps = {
     "/trunk/deps/third_party/undoview@119694",
 
   "src/tools/deps2git":
-    "/trunk/tools/deps2git@163971",
+    "/trunk/tools/deps2git@173611",
 
   "src/third_party/webpagereplay":
     (Var("googlecode_url") % "web-page-replay") + "/trunk@501",
@@ -315,6 +318,12 @@ deps = {
 
   "src/third_party/opus/src":
     "/trunk/deps/third_party/opus@165487",
+
+  "src/third_party/accessibility-developer-tools":
+    Var("chromium_git") + "/external/accessibility-developer-tools.git@c77344d0d39b2365775b8e1d86bafcd5ac407444",
+
+  "src/webkit/media/crypto/ppapi/cdm":
+    "/trunk/deps/cdm@173055",
 }
 
 
@@ -509,7 +518,7 @@ deps_os = {
        Var("lss_revision")),
 
     "src/third_party/openssl":
-      "/trunk/deps/third_party/openssl@157142",
+      "/trunk/deps/third_party/openssl@172029",
 
     "src/third_party/WebKit/Tools/gdb":
       Var("webkit_trunk") + "/Tools/gdb@" + Var("webkit_revision"),
@@ -533,28 +542,44 @@ deps_os = {
     # For Linux and Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@59dafd34a6eb3b6eee63b59f7cc6cd01e4fda770",
+      "@9eacb1eef98302ef898a285daa3d1190cb6a446f",
   },
   "android": {
-    "src/third_party/freetype":
-      Var("chromium_git") + "/chromium/src/third_party/freetype.git" +
-      "@96551feab72aac26836e9aaf4fae0962d39d5ab0",
+    "src/third_party/android_tools":
+      Var("chromium_git") + "/android_tools.git" +
+      "@704c8ddee726aabe0e78bb88545972d2cf298190",
 
     "src/third_party/aosp":
       "/trunk/deps/third_party/aosp@148330",
 
-    "src/third_party/android_tools":
-      Var("chromium_git") + "/android_tools.git" +
-      "@1cef853f682461dbb27a4992d3d8b5bc1f69232b",
+    "src/third_party/apache-mime4j":
+      "/trunk/deps/third_party/apache-mime4j@170888",
 
     "src/third_party/findbugs":
       "/trunk/deps/third_party/findbugs@163586",
 
+    "src/third_party/freetype":
+      Var("chromium_git") + "/chromium/src/third_party/freetype.git" +
+      "@96551feab72aac26836e9aaf4fae0962d39d5ab0",
+
     "src/third_party/guava/src":
-      Var("chromium_git") + '/external/guava-libraries.git@c523556ab7d0f05afadebd20e7768d4c16af8771',
+      Var("chromium_git") + "/external/guava-libraries.git" +
+      "@c523556ab7d0f05afadebd20e7768d4c16af8771",
+
+    "src/third_party/httpcomponents-client":
+      "/trunk/deps/third_party/httpcomponents-client@170888",
+
+    "src/third_party/httpcomponents-core":
+      "/trunk/deps/third_party/httpcomponents-core@170888",
+
+    "src/third_party/jarjar":
+      "/trunk/deps/third_party/jarjar@170888",
 
     "src/third_party/jsr-305/src":
       (Var("googlecode_url") % "jsr-305") + "/trunk@51",
+
+    "src/third_party/eyesfree/src/android/java/src/com/googlecode/eyesfree/braille":
+      (Var("googlecode_url") % "eyes-free") + "/trunk/braille/client/src/com/googlecode/eyesfree/braille@797",
   },
 }
 
@@ -605,6 +630,15 @@ hooks = [
          "--no-arm-trusted",
          "--keep",
     ],
+  },
+  {
+    # Download arm sysroot image to src/arm-sysroot. This image updates
+    # at about the same rate that the chrome build deps change.
+    # This script is a no-op except for linux users who have
+    # target_arch=arm in thier GYP_DEFINES.
+    "pattern": ".",
+    "action": ["python", "src/build/linux/install-arm-sysroot.py",
+               "--linux-only"],
   },
   {
     # Pull clang on mac. If nothing changed, or on non-mac platforms, this takes
