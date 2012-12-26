@@ -212,18 +212,13 @@
     </target>
 
     <!--
-        deploy the tests to the out directory so they cna be used by the test runner
+        deploy the tests to the out directory so they can be used by the test runner
     -->
     <target name="deploy" depends="build" description="Deploy the built Dart tests">
         <property file="${build.stage.scripts}/build.properties" prefix="build.pde."/>
         <unzip dest="${build.target.dropins}" > 
             <fileset dir="${build.stage.abs}/${build.pde.buildLabel}" includes="*.zip" />
         </unzip>
-        <copy todir="${build.target.abs}/eclipse">
-            <fileset dir=".">
-                <include name=".options"/>
-            </fileset>
-        </copy>
     </target>
 
     <!--

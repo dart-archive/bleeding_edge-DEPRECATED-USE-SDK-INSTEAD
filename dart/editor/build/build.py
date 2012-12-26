@@ -300,17 +300,14 @@ def main():
       if ('dartsdk-' in f) or ('darteditor-' in f) or ('dart-editor-' in f):
         os.remove(join(buildout, f))
 
-    #get user name if it does not start with chrome then deploy
-    # to the test bucket otherwise deploy to the continuous bucket
-    #I could not find any non-OS specific way to get the user under Python
-    # so the environemnt variables 'USER' Linux and Mac and
-    # 'USERNAME' Windows were used.
+    # Get user name. If it does not start with chrome then deploy to the test
+    # bucket; otherwise deploy to the continuous bucket.
     username = os.environ.get('USER')
     if username is None:
       username = os.environ.get('USERNAME')
 
     if username is None:
-      PrintError('Could not find username')
+      print 'Could not find username'
       return 6
     
     # dart-editor[-trunk], dart-editor-(win/mac/linux)[-trunk]
@@ -342,28 +339,28 @@ def main():
     gsu = gsutil.GsUtil(False, homegsutil,
       running_on_buildbot=running_on_buildbot)
 
-    print '@@@BUILD_STEP dart-ide dart clients: %s@@@' % options.name
     if sdk_environment.has_key('JAVA_HOME'):
       print 'JAVA_HOME = {0}'.format(str(sdk_environment['JAVA_HOME']))
 
     if not PLUGINS_BUILD:
-      PrintSeparator('running the build of the Dart SDK')
-      
+      StartBuildStep('create_sdk')    
       EnsureDirectoryExists(buildout)
       sdk_zip = CreateSDK(buildout)
 
     if builder_name.startswith('dart-editor-linux'):
+      StartBuildStep('api_docs')
       CreateApiDocs(buildout)
 
+    StartBuildStep(builder_name)
+
     if PLUGINS_BUILD:
-      BuildUpdateSite(ant, revision, options.name, buildroot, buildout,
+      BuildUpdateSite(ant, revision, builder_name, buildroot, buildout,
               editorpath, buildos)
       return 0
 
-    PrintSeparator('running the build to produce the Zipped RCP''s')
     #tell the ant script where to write the sdk zip file so it can
     #be expanded later
-    status = ant.RunAnt('.', 'build_rcp.xml', revision, options.name,
+    status = ant.RunAnt('.', 'build_rcp.xml', revision, builder_name,
                         buildroot, buildout, editorpath, buildos,
                         sdk_zip=sdk_zip,
                         running_on_bot=running_on_buildbot,
@@ -396,41 +393,47 @@ def main():
     if status:
       return status
 
+    junit_status = 0
+    
     if not build_skip_tests:
-      PrintSeparator('Running the tests')
+      StartBuildStep('run_tests')
+
       junit_status = ant.RunAnt('../com.google.dart.tools.tests.feature_releng',
                               'buildTests.xml',
-                              revision, options.name, buildroot, buildout,
+                              revision, builder_name, buildroot, buildout,
                               editorpath, buildos,
                               extra_artifacts=extra_artifacts)
       
       #<testsuite errors="0" failures="1" name="com.google.dart.tools.core_test"
       #   tests="740" time="40.713">
       testResults = parseString(open(join(buildout, 'test-results.xml')).read())
-      testsuite = testResults.documentElement
+      testSuite = testResults.documentElement
       
-      if testsuite.getAttribute("errors") != "0":
+      if testSuite.getAttribute("errors") != "0":
         junit_status = 1
-      if testsuite.getAttribute("failures") != "0":
+      if testSuite.getAttribute("failures") != "0":
         junit_status = 1
       
-      print "\n%s: %s tests, %s errors, %s failures (time: %s)\n" % (
-          testsuite.getAttribute("name"),
-          testsuite.getAttribute("tests"),
-          testsuite.getAttribute("errors"),
-          testsuite.getAttribute("failures"),
-          testsuite.getAttribute("time"))
+      if junit_status:
+        BuildStepFailure()
       
+      StartBuildStep('test_summary')
+      PrintTestSummary(testSuite)
+      
+      if junit_status:
+        BuildStepFailure()
+        PrettyPrintTestFailures(testSuite)
+            
       properties = ReadPropertyFile(buildos, ant_property_file.name)
       if junit_status:
         if properties['build.runtime']:
           #if there is a build.runtime and the status is not
           #zero see if there are any *.log entries
           PrintErrorLog(properties['build.runtime'])
-    else:
-      junit_status = 0
 
     if buildos:
+      StartBuildStep('upload_artifacts')
+      
       _InstallArtifacts(buildout, buildos, extra_artifacts)
       
       # dart-editor-linux.gtk.x86.zip --> darteditor-linux-32.zip
@@ -438,15 +441,16 @@ def main():
       
       PostProcessEditorBuilds(buildout)
       
-      version_file = _FindVersionFile(buildout)
-      if version_file:
-        UploadFile(version_file, False)
-
-      found_zips = _FindRcpZipFiles(buildout)
-      for zipfile in found_zips:
-        UploadFile(zipfile)
-        
-    return junit_status
+      if running_on_buildbot:
+        version_file = _FindVersionFile(buildout)
+        if version_file:
+          UploadFile(version_file, False)
+  
+        found_zips = _FindRcpZipFiles(buildout)
+        for zipfile in found_zips:
+          UploadFile(zipfile)
+    
+    return 0
   finally:
     if ant_property_file is not None:
       print 'cleaning up temp file {0}'.format(ant_property_file.name)
@@ -530,6 +534,7 @@ def _FindRcpZipFiles(out_dir):
       found_zips.append(os.path.join(out_dir, element))
   return found_zips
 
+
 def _FindVersionFile(out_dir):
   """Find the build version file.
 
@@ -544,6 +549,7 @@ def _FindVersionFile(out_dir):
 
   version_file = os.path.join(out_dir, 'VERSION')
   return version_file if os.path.exists(version_file) else None
+
 
 def InstallSdk(buildroot, buildout, buildos, sdk_dir):
   """Install the SDK into the RCP zip files.
@@ -727,8 +733,6 @@ def RenameRcpZipFiles(out_dir):
 
 def PostProcessEditorBuilds(out_dir):
   """Post-process the created RCP builds"""
-  
-  PrintSeparator('Post-process RCP builds')
   
   for zipFile in _FindRcpZipFiles(out_dir):
     basename = os.path.basename(zipFile)
@@ -927,8 +931,9 @@ def CallBuildScript(mode, arch, target):
          target]
   status = ExecuteCommand(cmd, DART_PATH)
   if status:
-    PrintError('SDK build failed: %s' % status)
-    raise Exception('SDK build failed')
+    print '%s build failed: %s' % (target, status)
+    BuildStepFailure()
+    raise Exception('%s build failed' % target)
 
 
 def CreateZip(directory, targetFile):
@@ -1015,27 +1020,38 @@ def EnsureDirectoryExists(f):
     os.makedirs(d)
 
 
-def PrintSeparator(text):
-  tag_line_sep = '================================'
-
-  print
-  print
-  print text
-  print tag_line_sep
-  print
+def StartBuildStep(name):
+  print "@@@BUILD_STEP %s@@@" % name
   sys.stdout.flush()
 
 
-def PrintError(text):
-  error_sep = '*****************************'
-  error_text = ' {0}'
+def BuildStepFailure():
+  print '@@@STEP_FAILURE@@@'
+  sys.stdout.flush()
 
-  print
-  print error_sep
-  print error_text.format(text)
-  print error_sep
-  print
-  sys.stderr.flush()
+
+def PrintTestSummary(testSuite):
+  print "\n%s: %s tests, %s errors, %s failures (time: %s)\n" % (
+      testSuite.getAttribute("name"),
+      testSuite.getAttribute("tests"),
+      testSuite.getAttribute("errors"),
+      testSuite.getAttribute("failures"),
+      testSuite.getAttribute("time"))
+  sys.stdout.flush()
+
+
+def PrettyPrintTestFailures(testSuite):
+  # for all testcase children
+  #   if they contain a failure or error child node
+  #     print out the name and node text
+  for testCase in testSuite.getElementsByTagName('testcase'):
+    for failureNode in testCase.getElementsByTagName('failure'):
+      print 'test failed: %s' % testCase.getAttribute('name')
+      print failureNode.childNodes[0].data
+    for errorNode in testCase.getElementsByTagName('error'):
+      print 'test error: %s' % testCase.getAttribute('name')
+      print errorNode.childNodes[0].data
+  sys.stdout.flush()
 
 
 def FileDelete(f):
