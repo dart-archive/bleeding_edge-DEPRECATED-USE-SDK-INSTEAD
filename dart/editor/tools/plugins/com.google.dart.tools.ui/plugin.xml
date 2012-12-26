@@ -400,17 +400,17 @@
             id="com.google.dart.tools.ui.TypeHierarchy">
       </view>
       
-      <view
+      <!-- view
             category="com.google.dart.tools.ui.dart"
             class="com.google.dart.tools.ui.internal.testing.DartUnitView"
             icon="icons/full/tests/testok.gif"
             id="com.google.dart.tools.ui.DartUnitView"
             name="Tests"
             restorable="true">
-      </view>
+      </view -->
    </extension>
 
-   <!-- extension
+   <extension
          point="org.eclipse.ui.propertyPages">
       <page
             name="%dartPropertiesPageName"
@@ -422,7 +422,7 @@
            </adapt>         
          </enabledWhen>
       </page>
-   </extension-->
+   </extension>
 
    <extension
          point="org.eclipse.ui.elementFactories">
@@ -667,9 +667,6 @@
 
    <extension
          point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
-<!--      
-    TODO(pquitslund): add hyperlink detectors for app and lib files
--->      
       <hyperlinkDetector
             class="com.google.dart.tools.ui.internal.text.editor.DartElementHyperlinkDetector"
             id="com.google.dart.tools.ui.internal.text.editor.DartElementHyperlinkDetector"

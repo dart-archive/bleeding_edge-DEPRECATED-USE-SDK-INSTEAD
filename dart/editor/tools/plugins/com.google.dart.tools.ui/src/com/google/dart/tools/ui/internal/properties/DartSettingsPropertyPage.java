@@ -14,29 +14,22 @@
 package com.google.dart.tools.ui.internal.properties;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.ui.internal.util.ExceptionHandler;
+import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
-import org.eclipse.jface.layout.PixelConverter;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPropertyPage;
-import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 import org.eclipse.ui.dialogs.PropertyPage;
 
 /**
@@ -44,7 +37,22 @@ import org.eclipse.ui.dialogs.PropertyPage;
  * default output location.
  */
 public class DartSettingsPropertyPage extends PropertyPage implements IWorkbenchPropertyPage {
-  private Text outputLocationText;
+  private static Font italicFont;
+
+  private static Font getItalicFont(Font font) {
+    if (italicFont == null) {
+      FontData data = font.getFontData()[0];
+
+      italicFont = new Font(Display.getDefault(), new FontData(
+          data.getName(),
+          data.getHeight(),
+          SWT.ITALIC));
+    }
+
+    return italicFont;
+  }
+
+  private Text dart2jsFlagsText;
 
   /**
    * Create a new DartSettingsPropertyPage.
@@ -55,18 +63,15 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
 
   @Override
   public boolean performOk() {
-    DartProject dartProject = getDartProject();
+    IProject project = getProject();
 
-    if (dartProject != null) {
-      IPath path = Path.fromPortableString(outputLocationText.getText().trim());
+    if (project != null) {
+      String flags = dart2jsFlagsText.getText().trim();
 
       try {
-        dartProject.setOutputLocation(path, new NullProgressMonitor());
-      } catch (DartModelException exception) {
-        ExceptionHandler.handle(
-            exception,
-            "Dart Core Exception",
-            "Unable to set the project's output location.");
+        DartCore.getPlugin().setDart2jsFlags(project, flags);
+      } catch (CoreException ce) {
+        DartToolsPlugin.log(ce);
       }
     }
 
@@ -76,26 +81,26 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
   @Override
   protected Control createContents(Composite parent) {
     Composite composite = new Composite(parent, SWT.NONE);
-    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(composite);
+    GridLayoutFactory.fillDefaults().applyTo(composite);
 
-    Label label = new Label(composite, SWT.NONE);
-    label.setText("Output location:");
+    Group dart2js = new Group(composite, SWT.NONE);
+    dart2js.setText("Dart2js settings");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(dart2js);
+    GridLayoutFactory.swtDefaults().numColumns(2).applyTo(dart2js);
 
-    outputLocationText = new Text(composite, SWT.BORDER | SWT.SINGLE);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(
-        outputLocationText);
+    Label label = new Label(dart2js, SWT.NONE);
+    label.setText("Additional flags:");
 
-    Button button = new Button(composite, SWT.PUSH);
-    button.setText("Browse...");
-    PixelConverter converter = new PixelConverter(button);
-    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
-    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(button);
-    button.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        handleBrowseButton();
-      }
-    });
+    dart2jsFlagsText = new Text(dart2js, SWT.BORDER | SWT.SINGLE);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(100, -1).grab(true, false).applyTo(
+        dart2jsFlagsText);
+
+    // spacer
+    new Label(dart2js, SWT.NONE);
+
+    label = new Label(dart2js, SWT.NONE);
+    label.setText("e.g. --disallow-unsafe-eval");
+    label.setFont(getItalicFont(label.getFont()));
 
     initializeFromSettings();
 
@@ -104,57 +109,23 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
 
   @Override
   protected void performDefaults() {
-    DartProject dartProject = getDartProject();
-
-    if (dartProject != null) {
-      // Reset the output location to the default directory ('out'). 
-      outputLocationText.setText(dartProject.getDefaultOutputFullPath().toPortableString());
-    }
+    dart2jsFlagsText.setText("");
 
     super.performDefaults();
   }
 
-  private DartProject getDartProject() {
-    if (!(getElement() instanceof IProject)) {
-      return null;
-    }
-
-    IProject project = (IProject) getElement();
-
-    return DartCore.create(project);
-  }
-
-  private void handleBrowseButton() {
-    DartProject project = getDartProject();
-
-    ContainerSelectionDialog dialog = new ContainerSelectionDialog(
-        getShell(),
-        project.getProject(),
-        true,
-        "Select output location:");
-    dialog.showClosedProjects(false);
-
-    if (dialog.open() == Window.OK) {
-      Object[] result = dialog.getResult();
-      if (result.length == 0) {
-        return;
-      }
-      IPath path = (IPath) result[0];
-      outputLocationText.setText(path.toPortableString());
-    }
+  private IProject getProject() {
+    return (IProject) getElement().getAdapter(IProject.class);
   }
 
   private void initializeFromSettings() {
-    DartProject dartProject = getDartProject();
+    IProject project = getProject();
 
-    if (dartProject != null) {
-      try {
-        outputLocationText.setText(dartProject.getOutputLocation().toPortableString());
-      } catch (DartModelException exception) {
-        ExceptionHandler.handle(
-            exception,
-            "Dart Core Exception",
-            "Unable to retreive the project's output location.");
+    if (project != null) {
+      String args = DartCore.getPlugin().getDart2jsFlags(project);
+
+      if (args != null) {
+        dart2jsFlagsText.setText(args);
       }
     }
   }

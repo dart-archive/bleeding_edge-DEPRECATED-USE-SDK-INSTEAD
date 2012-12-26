@@ -18,8 +18,11 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.utilities.general.StringUtilities;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -266,6 +269,21 @@ public class Dart2JSCompiler {
     }
     args.add("--out=" + outputPath.toOSString());
     args.add(inputPath.toOSString());
+
+    // Add any custom dart2js settings for this project.
+    IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocation(inputPath);
+
+    if (files.length > 0) {
+      IProject project = files[0].getProject();
+
+      String flags = DartCore.getPlugin().getDart2jsFlags(project);
+
+      if (flags != null && flags.length() > 0) {
+        for (String arg : StringUtilities.parseArgumentString(flags)) {
+          args.add(arg);
+        }
+      }
+    }
 
     return args;
   }
