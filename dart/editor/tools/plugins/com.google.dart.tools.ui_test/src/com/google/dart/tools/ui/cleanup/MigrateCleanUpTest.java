@@ -26,6 +26,8 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_methods_C
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeAbstract_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeInterface_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameTypes_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M3_Future_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M3_corelib_CleanUp;
 
 /**
  * Test for {@link AbstractMigrateCleanUp}.
@@ -1126,6 +1128,294 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "import 'MyLib.dart' as pref;",
         "main() {",
         "  throw new pref.ArgumentError();",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M3_corelib_implementList() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A<E> implements List<E> {",
+        "  Collection<E> filter(bool f(E element)) {}",
+        "  Collection map(f(E element)) {}",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A<E> implements List<E> {",
+        "  Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);",
+        "  List mappedBy(f(E element)) => new MappedList<E, dynamic>(this, f);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M3_corelib_implementSet() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A<E> implements Set<E> {",
+        "  Collection<E> filter(bool f(E element)) {}",
+        "  Collection map(f(E element)) {}",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A<E> implements Set<E> {",
+        "  Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);",
+        "  Iterable mappedBy(f(E element)) => new MappedIterable<E, dynamic>(this, f);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  /**
+   * In some cases the class already has a super-class, so we cannot just replace "implements" with
+   * "extends", and then we would use mixins. Currently that's not possible :(
+   */
+  public void test_1M3_corelib_iterableDeclaration_hasExtend() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A extends Object implements Iterable {",
+        "}",
+        "");
+    assertNoFix(cleanUp, initial);
+  }
+
+  /**
+   * In general we want people to extend the Iterable interface and not just implement it. We have
+   * added tons of methods to the Iterable base class and by extending it the user doesn't need to
+   * reimplement these methods.
+   */
+  public void test_1M3_corelib_iterableDeclaration_noExtend() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A implements Iterable {",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A extends Iterable {",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M3_corelib_iteratorDeclaration() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class MyIterator<E> implements Iterator<E> {",
+        "  bool get hasNext => true;",
+        "  E next() => 42;",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class MyIterator<E> implements Iterator<E> {",
+        "  bool get _hasNext => true;",
+        "  E _next() => 42;",
+        "  E _current;",
+        "  bool moveNext() {",
+        "    if (_hasNext) {",
+        "      _current = _next();",
+        "      return true;",
+        "    }",
+        "    _current = null;",
+        "    return false;",
+        "  }",
+        "  E current => _current;",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M3_corelib_iteratorUsage_notGeneric() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  Iterator iterator() => null;",
+        "  m() {",
+        "    var it1 = iterator();",
+        "    Iterator it2 = iterator();",
+        "  }",
+        "}",
+        "main() {",
+        "  var a = new A();",
+        "  for (var item in a) {}",
+        "  var it1 = a.iterator();",
+        "  Iterator it2 = a.iterator();",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  Iterator get iterator => null;",
+        "  m() {",
+        "    var it1 = new HasNextIterator(iterator);",
+        "    HasNextIterator it2 = new HasNextIterator(iterator);",
+        "  }",
+        "}",
+        "main() {",
+        "  var a = new A();",
+        "  for (var item in a) {}",
+        "  var it1 = new HasNextIterator(a.iterator);",
+        "  HasNextIterator it2 = new HasNextIterator(a.iterator);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M3_corelib_iteratorUsage_withGeneric() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  Iterator<String> iterator() => null;",
+        "  m() {",
+        "    var it1 = iterator();",
+        "    Iterator<String> it2 = iterator();",
+        "  }",
+        "}",
+        "main() {",
+        "  var a = new A();",
+        "  for (var item in a) {}",
+        "  var it1 = a.iterator();",
+        "  Iterator it2 = a.iterator();",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  Iterator<String> get iterator => null;",
+        "  m() {",
+        "    var it1 = new HasNextIterator<String>(iterator);",
+        "    HasNextIterator<String> it2 = new HasNextIterator<String>(iterator);",
+        "  }",
+        "}",
+        "main() {",
+        "  var a = new A();",
+        "  for (var item in a) {}",
+        "  var it1 = new HasNextIterator<String>(a.iterator);",
+        "  HasNextIterator<String> it2 = new HasNextIterator<String>(a.iterator);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M3_corelib_List_fixedLength() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  new List();",
+        "  new List(5);",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  new List();",
+        "  new List.fixedLength(5);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M3_corelib_mapList() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var src = new List();",
+        "  var v1 = src.map((e) => true);",
+        "  List v2 = src.map((e) => true);",
+        "  for (var v3 in src.map((e) => true)) {}",
+        "  src.map((e) => true).forEach((e) {print(e);});",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var src = new List();",
+        "  var v1 = src.mappedBy((e) => true).toList();",
+        "  List v2 = src.mappedBy((e) => true).toList();",
+        "  for (var v3 in src.mappedBy((e) => true)) {}",
+        "  src.mappedBy((e) => true).forEach((e) {print(e);});",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M3_corelib_whereList() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var src = new List();",
+        "  var v1 = src.filter((e) => true);",
+        "  List v2 = src.filter((e) => true);",
+        "  for (var v3 in src.filter((e) => true)) {}",
+        "  src.filter((e) => true).forEach((e) {print(e);});",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var src = new List();",
+        "  var v1 = src.where((e) => true).toList();",
+        "  List v2 = src.where((e) => true).toList();",
+        "  for (var v3 in src.where((e) => true)) {}",
+        "  src.where((e) => true).forEach((e) {print(e);});",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M3_corelib_whereSet() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var src = new Set();",
+        "  var v1 = src.filter((e) => true);",
+        "  Set v2 = src.filter((e) => true);",
+        "  for (var v3 in src.filter((e) => true)) {}",
+        "  src.filter((e) => true).forEach((e) {print(e);});",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var src = new Set();",
+        "  var v1 = src.where((e) => true).toSet();",
+        "  Set v2 = src.where((e) => true).toSet();",
+        "  for (var v3 in src.where((e) => true)) {}",
+        "  src.where((e) => true).forEach((e) {print(e);});",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M3_Future() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_Future_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Future future = null;",
+        "  future.chain(null).transform(null).then(null);",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Future future = null;",
+        "  future.then(null).then(null).then(null);",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);

@@ -90,7 +90,7 @@ public class Migrate_1M2_methods_CleanUp extends AbstractMigrateCleanUp {
    * @return <code>true</code> if given {@link InterfaceType} is sub type of required type from
    *         library with required name.
    */
-  private static boolean isSubType(InterfaceType type, String requiredName, String requiredLib) {
+  static boolean isSubType(InterfaceType type, String requiredName, String requiredLib) {
     if (type == null) {
       return false;
     }

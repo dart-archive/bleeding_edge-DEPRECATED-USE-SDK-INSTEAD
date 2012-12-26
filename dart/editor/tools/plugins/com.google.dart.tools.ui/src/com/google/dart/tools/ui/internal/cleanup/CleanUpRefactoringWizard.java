@@ -33,6 +33,8 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_methods_C
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeAbstract_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeInterface_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameTypes_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M3_Future_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M3_corelib_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_trailingSpace_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_useBlocks_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_useTypeAnnotations_CleanUp;
@@ -48,6 +50,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -73,6 +76,8 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
     private static final String ID_MIGRATE_SYNTAX_1M2_REMOVE_ABSTRACT = "migrateSyntax-1M2-removeAbstract";
     private static final String ID_MIGRATE_SYNTAX_1M2_REMOVE_INTERFACE = "migrateSyntax-1M2-removeInterface";
     private static final String ID_MIGRATE_SYNTAX_1M2_FUNCTION_LITERAL = "migrateSyntax-1M2-functionLiteral";
+    private static final String ID_MIGRATE_SYNTAX_1M3_LIBRARY = "migrateSyntax-1M3-library";
+    private static final String ID_MIGRATE_SYNTAX_1M3_FUTURE = "migrateSyntax-1M3-future";
 
     private static final String ID_STYLE_TRAILING_WHITESPACE = "style-trailingWhitespace";
     private static final String ID_STYLE_USE_BLOCKS = "style-useBlocks";
@@ -97,6 +102,8 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       CLEAN_UPS.put(
           ID_MIGRATE_SYNTAX_1M2_FUNCTION_LITERAL,
           new Migrate_1M2_functionLiteral_CleanUp());
+      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M3_LIBRARY, new Migrate_1M3_corelib_CleanUp());
+      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M3_FUTURE, new Migrate_1M3_Future_CleanUp());
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_CATCH, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_GET, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_RAW_STRING, true);
@@ -108,7 +115,9 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       settings.setDefault(ID_MIGRATE_SYNTAX_1M2_RENAME_TYPES, false);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M2_REMOVE_ABSTRACT, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M2_REMOVE_INTERFACE, true);
-      settings.setDefault(ID_MIGRATE_SYNTAX_1M2_FUNCTION_LITERAL, false);
+      settings.setDefault(ID_MIGRATE_SYNTAX_1M2_FUNCTION_LITERAL, true);
+      settings.setDefault(ID_MIGRATE_SYNTAX_1M3_LIBRARY, false);
+      settings.setDefault(ID_MIGRATE_SYNTAX_1M3_FUTURE, false);
       // style
       CLEAN_UPS.put(ID_STYLE_TRAILING_WHITESPACE, new Style_trailingSpace_CleanUp());
       CLEAN_UPS.put(ID_STYLE_USE_BLOCKS, new Style_useBlocks_CleanUp());
@@ -203,8 +212,16 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M2_REMOVE_INTERFACE,
                 "Replace 'interface' with 'abstract class'");
-//            new Label(syntaxComposite, SWT.NONE);
-//            new Label(syntaxComposite, SWT.NONE).setText("Work in progress... not fully implemented:");
+            new Label(syntaxComposite, SWT.NONE);
+            new Label(syntaxComposite, SWT.NONE).setText("Work in progress... not fully implemented:");
+            createCheckButton(
+                syntaxComposite,
+                ID_MIGRATE_SYNTAX_1M3_LIBRARY,
+                "Migrate to 1.0 M3 library (mainly Iterator, Iterable and List/Set changes)");
+            createCheckButton(
+                syntaxComposite,
+                ID_MIGRATE_SYNTAX_1M3_FUTURE,
+                "Migrate to 1.0 M3 Future methods (review changes carefully)");
           }
         }
         // Code Style
