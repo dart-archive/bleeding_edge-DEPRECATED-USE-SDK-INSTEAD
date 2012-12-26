@@ -144,6 +144,8 @@ class CountDownClock {
 }
 
 void makeAbsolute(Element elem) {
+  elem.style.left = '0px';
+  elem.style.top = '0px';
   elem.style.position = 'absolute';
 }
 
@@ -152,8 +154,7 @@ void makeRelative(Element elem) {
 }
 
 void setElementPosition(Element elem, double x, double y) {
-  elem.style.left = "${x}px";
-  elem.style.top = "${y}px";
+  elem.style.transform = 'translate(${x}px, ${y}px)';
 }
 
 void setElementSize(Element elem, double l, double t, double r, double b) {
