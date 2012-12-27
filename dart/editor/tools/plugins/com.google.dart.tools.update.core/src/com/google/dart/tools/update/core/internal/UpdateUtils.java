@@ -203,7 +203,14 @@ public class UpdateUtils {
     if (dir == null || !dir.isDirectory()) {
       return;
     }
-    for (File file : dir.listFiles()) {
+
+    File[] files = dir.listFiles();
+
+    if (files == null) {
+      return;
+    }
+
+    for (File file : files) {
       if (file.isDirectory()) {
         // If it's symlinked, just delete the link - do not follow the linked dir.
         if (isLinkedFile(file)) {
@@ -219,7 +226,6 @@ public class UpdateUtils {
 
     dir.delete();
     monitor.worked(1);
-
   }
 
   /**
