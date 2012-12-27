@@ -455,7 +455,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitConstructorDeclaration_external() {
     assertSource(
-        "external C() ;",
+        "external C();",
         constructorDeclaration(identifier("C"), null, formalParameterList(), null));
   }
 
@@ -1021,13 +1021,13 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitMethodDeclaration_external() {
     assertSource(
-        "external m() ;",
+        "external m();",
         methodDeclaration(null, null, null, null, identifier("m"), formalParameterList()));
   }
 
   public void test_visitMethodDeclaration_external_returnType() {
     assertSource(
-        "external T m() ;",
+        "external T m();",
         methodDeclaration(null, typeName("T"), null, null, identifier("m"), formalParameterList()));
   }
 
@@ -1332,7 +1332,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   }
 
   public void test_visitThrowStatement() {
-    assertSource("throw e;", throwExpression(identifier("e")));
+    assertSource("throw e", throwExpression(identifier("e")));
   }
 
   public void test_visitTopLevelVariableDeclaration_multiple() {

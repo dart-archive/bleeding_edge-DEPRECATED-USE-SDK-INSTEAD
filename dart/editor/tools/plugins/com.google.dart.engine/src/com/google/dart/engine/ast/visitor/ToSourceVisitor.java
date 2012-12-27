@@ -621,8 +621,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
     if (!node.isGetter()) {
       visit(node.getParameters());
     }
-    writer.print(' ');
-    visit(node.getBody());
+    visit(" ", node.getBody());
     return null;
   }
 
@@ -821,7 +820,6 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   public Void visitThrowExpression(ThrowExpression node) {
     writer.print("throw ");
     visit(node.getExpression());
-    writer.print(";");
     return null;
   }
 
@@ -943,6 +941,19 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
       writer.print(prefix);
       node.accept(this);
     }
+  }
+
+  /**
+   * Visit the given function body, printing the prefix before if given body is not empty.
+   * 
+   * @param prefix the prefix to be printed if there is a node to visit
+   * @param body the function body to be visited
+   */
+  private void visit(String prefix, FunctionBody body) {
+    if (!(body instanceof EmptyFunctionBody)) {
+      writer.print(prefix);
+    }
+    visit(body);
   }
 
   /**
