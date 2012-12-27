@@ -13,26 +13,21 @@
  */
 package com.google.dart.engine.source;
 
-import com.google.dart.engine.context.AnalysisContext;
-
 /**
- * The interface {@code SourceContainer} is a marker interface for objects representing a container
- * for {@link Source sources}.
+ * The interface {@code SourceContainer} is used by clients to define a collection of sources
  * <p>
  * Source containers are not used within analysis engine, but can be used by clients to group
  * sources for the purposes of accessing composite dependency information. For example, the Eclipse
  * client uses source containers to represent Eclipse projects, which allows it to easily compute
  * project-level dependencies.
- * 
- * @see AnalysisContext#getDependedOnContainers(SourceContainer)
  */
 public interface SourceContainer {
+
   /**
-   * Return {@code true} if the given object is a source container representing the same set of
-   * sources as this container.
+   * Determine if the specified source is part of the receiver's collection of sources.
    * 
-   * @return {@code true} if the given object and this container represent the same container
+   * @param source the source in question
+   * @return {@code true} if the receiver contains the source, else {@code false}
    */
-  @Override
-  public boolean equals(Object object);
+  public boolean contains(Source source);
 }

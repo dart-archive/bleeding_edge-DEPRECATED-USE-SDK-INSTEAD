@@ -35,17 +35,22 @@ public class SourceFactory {
   private HashMap<Source, String> contentMap = new HashMap<Source, String>();
 
   /**
-   * The mapper used by file-based sources to compute their container.
-   */
-  private ContainerMapper containerMapper = DefaultContainerMapper.getInstance();
-
-  /**
    * Initialize a newly created source factory.
    * 
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   public SourceFactory(UriResolver... resolvers) {
     this.resolvers = resolvers;
+  }
+
+  /**
+   * Return a source container representing the given directory
+   * 
+   * @param directory the directory (not {@code null})
+   * @return the source container representing the directory (not {@code null})
+   */
+  public SourceContainer forDirectory(File directory) {
+    return new SourceContainerImpl(directory);
   }
 
   /**
@@ -56,17 +61,6 @@ public class SourceFactory {
    */
   public Source forFile(File file) {
     return new SourceImpl(this, file);
-  }
-
-  /**
-   * Return the container mapper that should be used by file-based sources to map files to their
-   * container.
-   * 
-   * @return the container mapper that should be used by file-based sources to map files to their
-   *         container
-   */
-  public ContainerMapper getContainerMapper() {
-    return containerMapper;
   }
 
   /**
@@ -86,18 +80,6 @@ public class SourceFactory {
     } catch (URISyntaxException exception) {
       return null;
     }
-  }
-
-  /**
-   * Set the container mapper that should be used by file-based sources to map files to their
-   * container to the given mapper.
-   * 
-   * @param containerMapper the container mapper that should be used by file-based sources to map
-   *          files to their container
-   */
-  public void setContainerMapper(ContainerMapper containerMapper) {
-    this.containerMapper = containerMapper == null ? DefaultContainerMapper.getInstance()
-        : containerMapper;
   }
 
   /**

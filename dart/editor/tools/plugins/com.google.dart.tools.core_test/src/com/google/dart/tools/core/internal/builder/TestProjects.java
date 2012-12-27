@@ -1,5 +1,6 @@
 package com.google.dart.tools.core.internal.builder;
 
+import com.google.dart.tools.core.mock.MockContainer;
 import com.google.dart.tools.core.mock.MockFolder;
 import com.google.dart.tools.core.mock.MockProject;
 
@@ -22,7 +23,7 @@ public class TestProjects {
    * @return a project (not {@code null})
    */
   public static MockProject newEmptyProject() {
-    return new MockProject("empty");
+    return new MockProject("testproj");
   }
 
   /**
@@ -32,7 +33,7 @@ public class TestProjects {
    * @return the mock project (not {@code null})
    */
   public static MockProject newPubProject1() {
-    MockProject project = new MockProject("pub1");
+    MockProject project = newEmptyProject();
     project.addFile(PUBSPEC_FILE_NAME);
     project.addFile("some.dart");
 
@@ -54,12 +55,14 @@ public class TestProjects {
   }
 
   /**
-   * Answer a new simple non-pub project
+   * Answer a new mock project with a pubspec file in the root, a nested folder containing another
+   * pubspec file, and a packages directory containing one package and a hidden ".svn" directory,
+   * with *.dart files sprinkled throughout.
    * 
-   * @return a project (not {@code null})
+   * @return the mock project (not {@code null})
    */
   public static MockProject newPubProject2() {
-    MockProject project = new MockProject("pub2");
+    MockProject project = newEmptyProject();
     project.addFile(PUBSPEC_FILE_NAME);
     project.addFile(BUILD_DART_FILE_NAME);
     project.addFile("some.dart");
@@ -75,16 +78,37 @@ public class TestProjects {
     svn.addFile(BUILD_DART_FILE_NAME);
     svn.addFile("foo.dart");
 
-    MockFolder packages = project.addFolder(PACKAGES_DIRECTORY_NAME);
+    addPackages(project);
 
-    MockFolder pkg1 = packages.addFolder("pkg1");
-    pkg1.addFile(PUBSPEC_FILE_NAME);
-    pkg1.addFile(BUILD_DART_FILE_NAME);
-    pkg1.addFile("bar.dart");
+    return project;
+  }
 
-    MockFolder pkg1Folder = pkg1.addFolder("some_folder");
-    pkg1Folder.addFile(BUILD_DART_FILE_NAME);
-    pkg1Folder.addFile("bar.dart");
+  /**
+   * Answer a new mock project with a pubspec file in the root, a nested folder containing another
+   * pubspec file, and a packages directory containing one package and a hidden ".svn" directory,
+   * with *.dart files sprinkled throughout.
+   * 
+   * @return a project (not {@code null})
+   */
+  public static MockProject newPubProject3() {
+    MockProject project = newPubProject2();
+
+    MockFolder app = project.getMockFolder("myapp");
+
+    MockFolder appLib = app.addFolder("lib");
+    appLib.addFile("stuff.dart");
+
+    MockFolder subApp = app.addFolder("subApp");
+    subApp.addFile(PUBSPEC_FILE_NAME);
+    subApp.addFile("sub_stuff.dart");
+
+    MockFolder web = project.addFolder("web");
+    web.addFile("other.dart");
+
+    addPackages(web);
+
+    MockFolder sub = web.addFolder("sub");
+    sub.addFile("cool.dart");
 
     return project;
   }
@@ -109,6 +133,19 @@ public class TestProjects {
     somePackage.addFile("bar.dart");
 
     return project;
+  }
+
+  private static void addPackages(MockContainer container) {
+    MockFolder packages = container.addFolder(PACKAGES_DIRECTORY_NAME);
+
+    MockFolder pkg1 = packages.addFolder("pkg1");
+    pkg1.addFile(PUBSPEC_FILE_NAME);
+    pkg1.addFile(BUILD_DART_FILE_NAME);
+    pkg1.addFile("bar.dart");
+
+    MockFolder pkg1Folder = pkg1.addFolder("some_folder");
+    pkg1Folder.addFile(BUILD_DART_FILE_NAME);
+    pkg1Folder.addFile("bar.dart");
   }
 
   // no instances

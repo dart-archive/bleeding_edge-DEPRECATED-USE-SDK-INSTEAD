@@ -118,7 +118,11 @@ public class MockDelta implements IResourceDelta {
     if (!(this.resource instanceof MockContainer)) {
       throw new RuntimeException("Cannot add to a file delta: " + this.resource);
     }
-    return add(((MockContainer) resource).getExistingChild(name), kind);
+    MockResource child = ((MockContainer) resource).getExistingChild(name);
+    if (child == null) {
+      throw new RuntimeException("Child named " + name + " not found in " + resource);
+    }
+    return add(child, kind);
   }
 
   @Override
@@ -136,6 +140,9 @@ public class MockDelta implements IResourceDelta {
 
   @Override
   public IResourceDelta[] getAffectedChildren() {
+    if (children == null) {
+      return new IResourceDelta[] {};
+    }
     return children.toArray(new IResourceDelta[children.size()]);
   }
 

@@ -25,9 +25,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 
-import java.io.File;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * The interface {@code AnalysisContext} defines the behavior of objects that represent a context in
@@ -44,19 +42,12 @@ public interface AnalysisContext {
   /**
    * Clear any cached information that is dependent on resolution. This method should be invoked if
    * the assumptions used by resolution have changed but the contents of the file have not changed.
-   * Use {@link #sourceChanged(Source)} and {@link #directoryDeleted(File)} to indicate when the
-   * contents of a file or files have changed.
+   * Use {@link #sourceChanged(Source)} and {@link #sourcesDeleted(SourceContainer)} to indicate
+   * when the contents of a file or files have changed.
    */
   // TODO (danrubel): review the situations under which this method is and should be called
   // with an eye towards removing this method if it is not useful.
   public void clearResolution();
-
-  /**
-   * Discard cached information for all files in the specified directory.
-   * 
-   * @param directory the directory that was deleted (not {@code null})
-   */
-  public void directoryDeleted(File directory);
 
   /**
    * Call this method when this context is no longer going to be used. At this point, the receiver
@@ -77,28 +68,18 @@ public interface AnalysisContext {
    */
   // TODO (danrubel): review the situations under which this method is and should be called
   // with an eye towards removing this method if it is not useful.
-  public AnalysisContext extractAnalysisContext(File directory);
+  public AnalysisContext extractAnalysisContext(SourceContainer container);
 
   /**
    * Answer the collection of sources that have been added to the receiver via
    * {@link #sourceAvailable(Source)} and not removed from the receiver via
-   * {@link #sourceDeleted(Source)} or {@link #directoryDeleted(File)}.
+   * {@link #sourceDeleted(Source)} or {@link #sourcesDeleted(SourceContainer)}.
    * 
    * @return a collection of sources (not {@code null}, contains no {@code null}s)
    */
   // TODO (danrubel): review the situations under which this method is and should be called
   // with an eye towards removing this method if it is not useful.
   public Collection<Source> getAvailableSources();
-
-  /**
-   * Return a list containing the source containers that the given source container depends on. More
-   * specifically, return a list containing the source containers associated with the sources on
-   * which the sources associated with the given source container depend.
-   * 
-   * @param container the source container that depends on the containers that will be returned
-   * @return the source containers that the given source container depends
-   */
-  public List<SourceContainer> getDependedOnContainers(SourceContainer container);
 
   /**
    * Return the element referenced by the given location.
@@ -220,4 +201,13 @@ public interface AnalysisContext {
    * @param source the source that was deleted
    */
   public void sourceDeleted(Source source);
+
+  /**
+   * Discard cached information for all files in the specified source container.
+   * 
+   * @param container the source container that was deleted (not {@code null})
+   */
+  // TODO (danrubel): review the situations under which this method is and should be called
+  // with an eye towards removing this method if it is not useful.
+  public void sourcesDeleted(SourceContainer container);
 }

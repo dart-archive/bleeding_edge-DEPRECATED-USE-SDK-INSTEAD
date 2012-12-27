@@ -13,22 +13,15 @@
  */
 package com.google.dart.tools.core.analysis.timing;
 
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ElementLocation;
-import com.google.dart.engine.element.HtmlElement;
-import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.error.AnalysisErrorListener;
-import com.google.dart.engine.scanner.Token;
-import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
-import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant;
+import com.google.dart.tools.core.internal.builder.DeltaProcessor;
+import com.google.dart.tools.core.internal.builder.MockContext;
+import com.google.dart.tools.core.internal.builder.Project;
+import com.google.dart.tools.core.internal.builder.ProjectImpl;
 
 import junit.framework.TestCase;
 
@@ -47,8 +40,6 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Evaluate time to scan a directory using {@link File} versus {@link IResourceProxyVisitor}
@@ -58,120 +49,11 @@ public class ScanTimings extends TestCase {
   /**
    * Simplified analysis context for performing {@link AnalysisEngineParticipant} timings
    */
-  private final class MockContext implements AnalysisContext {
-    private SourceFactory sourceFactory;
-
+  private final class MockContextForScan extends MockContext {
     @Override
-    public void clearResolution() {
-      // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void directoryDeleted(File directory) {
-      // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void discard() {
-      // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public AnalysisContext extractAnalysisContext(File directory) {
+    public AnalysisContext extractAnalysisContext(SourceContainer container) {
       contextCount++;
-      return new MockContext();
-    }
-
-    @Override
-    public Collection<Source> getAvailableSources() {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public List<SourceContainer> getDependedOnContainers(SourceContainer container) {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public Element getElement(ElementLocation location) {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public AnalysisError[] getErrors(Source source) throws AnalysisException {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public HtmlElement getHtmlElement(Source source) {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public LibraryElement getLibraryElement(Source source) {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public SourceFactory getSourceFactory() {
-      return sourceFactory;
-    }
-
-    @Override
-    public void mergeAnalysisContext(AnalysisContext context) {
-      // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public CompilationUnit parse(Source source, AnalysisErrorListener errorListener)
-        throws AnalysisException {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public CompilationUnit resolve(Source source, LibraryElement library,
-        AnalysisErrorListener errorListener) throws AnalysisException {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public Token scan(Source source, AnalysisErrorListener errorListener) throws AnalysisException {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public void setSourceFactory(SourceFactory sourceFactory) {
-      this.sourceFactory = sourceFactory;
-    }
-
-    @Override
-    public void sourceAvailable(Source source) {
-      checkName(source.getShortName());
-    }
-
-    @Override
-    public void sourceChanged(Source source) {
-      // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void sourceDeleted(Source source) {
-      // TODO Auto-generated method stub
-
+      return new MockContextForScan();
     }
   }
 
@@ -364,16 +246,35 @@ public class ScanTimings extends TestCase {
   private void scanWithParticipant(IProject project) throws CoreException {
     IProgressMonitor monitor = new NullProgressMonitor();
     AnalysisEngineParticipant participant = new AnalysisEngineParticipant(true) {
+      private ProjectImpl project;
+
       @Override
-      public boolean visit(IResourceProxy proxy, IProgressMonitor monitor) throws CoreException {
-        checkName(proxy.getName());
-        return super.visit(proxy, monitor);
+      protected DeltaProcessor createProcessor() {
+        return new DeltaProcessor(project) {
+          @Override
+          protected boolean visitPackagesProxy(IResourceProxy proxy, String name) {
+            checkName(name);
+            return super.visitPackagesProxy(proxy, name);
+          }
+
+          @Override
+          protected boolean visitProxy(IResourceProxy proxy, String name) {
+            checkName(name);
+            return super.visitProxy(proxy, name);
+          }
+        };
       }
 
       @Override
-      protected AnalysisContext createRootContext() {
-        contextCount++;
-        return new MockContext();
+      protected Project createProject(IProject resource) {
+        project = new ProjectImpl(resource) {
+          @Override
+          protected AnalysisContext createDefaultContext() {
+            contextCount++;
+            return new MockContextForScan();
+          }
+        };
+        return project;
       }
     };
     participant.build(new BuildEvent(project, null, monitor), monitor);

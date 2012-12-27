@@ -35,11 +35,11 @@ import com.google.dart.engine.source.SourceFactory;
 
 import java.io.File;
 import java.nio.CharBuffer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * Instances of the class {@code AnalysisContextImpl} implement an {@link AnalysisContext analysis
@@ -93,72 +93,52 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public void clearResolution() {
-    // TODO (danrubel): Optimize to only discard resolution information
-    parseCache.clear();
-    libraryElementCache.clear();
-    publicNamespaceCache.clear();
-  }
-
-  @Override
-  public void directoryDeleted(File directory) {
-    // TODO (danrubel): Optimize to remove only the specified files
-    parseCache.clear();
-    libraryElementCache.clear();
-    publicNamespaceCache.clear();
-
-    // Remove deleted sources from the available sources collection
-    String prefix = directory.getAbsolutePath();
-    if (prefix.charAt(prefix.length() - 1) != File.separatorChar) {
-      prefix += File.separator;
-    }
-    Iterator<Source> iter = availableSources.iterator();
-    while (iter.hasNext()) {
-      if (iter.next().getFullName().startsWith(prefix)) {
-        iter.remove();
-      }
+    synchronized (cacheLock) {
+      // TODO (danrubel): Optimize to only discard resolution information
+      parseCache.clear();
+      libraryElementCache.clear();
+      publicNamespaceCache.clear();
     }
   }
 
   @Override
   public void discard() {
-    // TODO (danrubel): Optimize to recache the token stream and/or ASTs in a global context
-    parseCache.clear();
-    libraryElementCache.clear();
-    publicNamespaceCache.clear();
-    availableSources.clear();
+    synchronized (cacheLock) {
+      // TODO (danrubel): Optimize to recache the token stream and/or ASTs in a global context
+      parseCache.clear();
+      libraryElementCache.clear();
+      publicNamespaceCache.clear();
+      availableSources.clear();
+    }
   }
 
   @Override
-  public AnalysisContext extractAnalysisContext(File directory) {
+  public AnalysisContext extractAnalysisContext(SourceContainer container) {
     AnalysisContext newContext = AnalysisEngine.getInstance().createAnalysisContext();
 
-    // Move sources in the specified directory to the new context
-    String prefix = directory.getAbsolutePath();
-    if (prefix.charAt(prefix.length() - 1) != File.separatorChar) {
-      prefix += File.separator;
-    }
-    Iterator<Source> iter = availableSources.iterator();
-    while (iter.hasNext()) {
-      Source source = iter.next();
-      if (source.getFullName().startsWith(prefix)) {
-        iter.remove();
-        newContext.sourceAvailable(source);
+    synchronized (cacheLock) {
+      // Move sources in the specified directory to the new context
+      Iterator<Source> iter = availableSources.iterator();
+      while (iter.hasNext()) {
+        Source source = iter.next();
+        if (container.contains(source)) {
+          iter.remove();
+          newContext.sourceAvailable(source);
+        }
       }
-    }
 
-    // TODO (danrubel): Move cached information about the source to the new context
+      // TODO (danrubel): Copy cached ASTs without resolution into the new context
+      // because the file content has not changed, but the resolution has changed.
+    }
 
     return newContext;
   }
 
   @Override
   public Collection<Source> getAvailableSources() {
-    return availableSources;
-  }
-
-  @Override
-  public List<SourceContainer> getDependedOnContainers(SourceContainer container) {
-    throw new UnsupportedOperationException();
+    synchronized (cacheLock) {
+      return new ArrayList<Source>(availableSources);
+    }
   }
 
   @Override
@@ -251,11 +231,13 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public void mergeAnalysisContext(AnalysisContext context) {
+    synchronized (cacheLock) {
+      // Move sources in the specified context into the receiver
+      availableSources.addAll(context.getAvailableSources());
 
-    // Move sources in the specified context into the receiver
-    availableSources.addAll(context.getAvailableSources());
-
-    // TODO (danrubel): Move cached information about the source to the new context
+      // TODO (danrubel): Copy ASTs without resolution information from the old context
+      // into this context because the file content has not changed, but the resolution has changed.
+    }
   }
 
   @Override
@@ -310,7 +292,9 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public void sourceAvailable(Source source) {
-    availableSources.add(source);
+    synchronized (cacheLock) {
+      availableSources.add(source);
+    }
   }
 
   @Override
@@ -324,7 +308,27 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public void sourceDeleted(Source source) {
-    availableSources.remove(source);
-    sourceChanged(source);
+    synchronized (cacheLock) {
+      availableSources.remove(source);
+      sourceChanged(source);
+    }
+  }
+
+  @Override
+  public void sourcesDeleted(SourceContainer container) {
+    synchronized (cacheLock) {
+      // TODO (danrubel): Optimize to remove only the specified files
+      parseCache.clear();
+      libraryElementCache.clear();
+      publicNamespaceCache.clear();
+
+      // Remove deleted sources from the available sources collection
+      Iterator<Source> iter = availableSources.iterator();
+      while (iter.hasNext()) {
+        if (container.contains(iter.next())) {
+          iter.remove();
+        }
+      }
+    }
   }
 }

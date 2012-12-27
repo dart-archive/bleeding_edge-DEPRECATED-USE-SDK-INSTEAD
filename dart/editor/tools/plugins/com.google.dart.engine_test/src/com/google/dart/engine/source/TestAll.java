@@ -24,6 +24,7 @@ public class TestAll {
     suite.addTestSuite(DartUriResolverTest.class);
     suite.addTestSuite(FileUriResolverTest.class);
     suite.addTestSuite(PackageUriResolverTest.class);
+    suite.addTestSuite(SourceContainerImplTest.class);
     suite.addTestSuite(SourceFactoryTest.class);
     suite.addTestSuite(SourceImplTest.class);
     return suite;

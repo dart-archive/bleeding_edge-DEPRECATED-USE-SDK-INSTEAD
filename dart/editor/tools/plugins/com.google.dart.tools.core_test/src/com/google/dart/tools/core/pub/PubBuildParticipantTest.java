@@ -18,7 +18,6 @@ import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.internal.builder.TestProjects;
 import com.google.dart.tools.core.mock.MockContainer;
 import com.google.dart.tools.core.mock.MockDelta;
-import com.google.dart.tools.core.mock.MockProject;
 
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
@@ -88,10 +87,10 @@ public class PubBuildParticipantTest extends TestCase {
     target.assertCalls();
   }
 
-  // Assert pub is run on container containing pubspec.yaml
+  // Assert pub is run on project containing pubspec.yaml
   public void test_build_full_pub() throws Exception {
     Target target = new Target();
-    MockContainer project = new MockProject(PubBuildParticipantTest.class.getSimpleName());
+    MockContainer project = newEmptyProject();
     project.addFile(PUBSPEC_FILE_NAME);
 
     target.build(new BuildEvent(project, null, MONITOR), MONITOR);

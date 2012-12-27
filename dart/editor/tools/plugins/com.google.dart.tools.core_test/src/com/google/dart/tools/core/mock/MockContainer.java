@@ -205,24 +205,27 @@ public abstract class MockContainer extends MockResource implements IContainer {
     return getMockFile(new Path(path));
   }
 
-  public MockResource getMockFolder(IPath path) {
+  public MockFolder getMockFolder(IPath path) {
     MockResource child = getExistingChild(path.segment(0));
     if (child == null) {
       throw new RuntimeException("Child named " + path.segment(0) + " not found in " + this);
     }
     if (path.segmentCount() == 1) {
-      return child;
+      return (MockFolder) child;
     }
     return ((MockContainer) child).getMockFolder(path.removeFirstSegments(1));
   }
 
-  public MockResource getMockFolder(String path) {
+  public MockFolder getMockFolder(String path) {
     return getMockFolder(new Path(path));
   }
 
   @Override
   public IResource[] members() throws CoreException {
-    return null;
+    if (children == null) {
+      return new IResource[] {};
+    }
+    return children.toArray(new IResource[children.size()]);
   }
 
   @Override
@@ -235,20 +238,21 @@ public abstract class MockContainer extends MockResource implements IContainer {
     return null;
   }
 
-  public void remove(IPath path) {
+  public MockResource remove(IPath path) {
     MockResource child = getExistingChild(path.segment(0));
     if (child == null) {
       throw new RuntimeException("Not found: " + path.segment(0));
     }
     if (path.segmentCount() == 1) {
       children.remove(child);
+      return child;
     } else {
-      ((MockContainer) child).remove(path.removeFirstSegments(1));
+      return ((MockContainer) child).remove(path.removeFirstSegments(1));
     }
   }
 
-  public void remove(String path) {
-    remove(new Path(path));
+  public MockResource remove(String path) {
+    return remove(new Path(path));
   }
 
   @Override

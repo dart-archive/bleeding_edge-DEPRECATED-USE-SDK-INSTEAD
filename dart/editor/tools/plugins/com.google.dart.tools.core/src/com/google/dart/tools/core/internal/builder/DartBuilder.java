@@ -137,7 +137,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
    * @param runner the runner (not {@code null})
    * @param subMonitor the monitor (not {@code null})
    */
-  private void safeRun(ParticipantRunner runner, final SubMonitor subMonitor) {
+  private void safeRun(ParticipantRunner runner, SubMonitor subMonitor) {
     // Check if the operation has been canceled
     if (subMonitor.isCanceled()) {
       throw new OperationCanceledException();
@@ -147,10 +147,10 @@ public class DartBuilder extends IncrementalProjectBuilder {
       SubMonitor childMonitor = subMonitor.newChild(1);
       runner.run(childMonitor);
       childMonitor.done();
+    } catch (OperationCanceledException e) {
+      throw e;
     } catch (Exception e) {
-      if (!(e instanceof OperationCanceledException)) {
-        DartCore.logError("Error notifying build participant", e);
-      }
+      DartCore.logError("Error notifying build participant", e);
     } catch (LinkageError e) {
       DartCore.logError("Error notifying build participant", e);
     } catch (AssertionError e) {
