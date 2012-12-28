@@ -44,12 +44,8 @@ public class DartBuilder extends IncrementalProjectBuilder {
    */
   private BuildParticipant[] participants;
 
-  /**
-   * Flag indicating whether {@link #clean(IProgressMonitor)} was called
-   */
-  private boolean cleaned;
-
   public DartBuilder() {
+
   }
 
   public DartBuilder(BuildParticipant participant) {
@@ -70,9 +66,8 @@ public class DartBuilder extends IncrementalProjectBuilder {
         project.getName(),
         getParticipants().length);
 
-    final IResourceDelta delta = cleaned ? null : getDelta(project);
+    final IResourceDelta delta = getDelta(project);
     final BuildEvent event = new BuildEvent(project, delta, subMonitor);
-    cleaned = false;
 
     try {
       for (final BuildParticipant participant : getParticipants()) {
@@ -103,7 +98,6 @@ public class DartBuilder extends IncrementalProjectBuilder {
         getParticipants().length);
 
     final CleanEvent event = new CleanEvent(project, subMonitor);
-    cleaned = true;
 
     try {
       for (final BuildParticipant participant : getParticipants()) {

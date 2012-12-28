@@ -119,7 +119,7 @@ class BuilderUtil {
       }
     };
 
-    job.setRule(resource);
+    job.setRule(resource.getProject());
     job.schedule();
   }
 

@@ -66,11 +66,14 @@ public class RunPubJob extends Job {
    */
   @Override
   public IStatus run(IProgressMonitor monitor) {
-    MessageConsole console = DartCore.getConsole();
-    console.clear();
-    console.println(NLS.bind(PubMessages.RunPubJob_running, command));
     IStatus status = runSilent(monitor);
-    console.println(status.getMessage());
+
+    if (!status.isOK()) {
+      MessageConsole console = DartCore.getConsole();
+      console.println(NLS.bind(PubMessages.RunPubJob_running, command));
+      console.println(status.getMessage());
+    }
+
     return status;
   }
 
@@ -81,9 +84,7 @@ public class RunPubJob extends Job {
    */
   public IStatus runSilent(IProgressMonitor monitor) {
     try {
-
       // Build the process description to run pub
-
       DartSdk sdk = DartSdkManager.getManager().getSdk();
       File pubFile = new File(sdk.getDirectory().getAbsolutePath(), RunPubJob.PUB_PATH);
 
@@ -100,9 +101,9 @@ public class RunPubJob extends Job {
       Map<String, String> env = builder.environment();
       env.put("DART_SDK", sdk.getDirectory().getAbsolutePath()); //$NON-NLS-1$
 
-      // Run the pub command as an external process
-
+      // Run the pub command as an external process.
       ProcessRunner runner = newProcessRunner(builder);
+
       try {
         runner.runSync(monitor);
       } catch (IOException e) {
@@ -111,34 +112,30 @@ public class RunPubJob extends Job {
       }
 
       StringBuilder stringBuilder = new StringBuilder();
+
       if (!runner.getStdOut().isEmpty()) {
         stringBuilder.append(runner.getStdOut().trim() + "\n"); //$NON-NLS-1$
       }
-      if (!runner.getStdErr().isEmpty()) {
-        stringBuilder.append(runner.getStdErr().trim() + "\n"); //$NON-NLS-1$
-      }
 
       int exitCode = runner.getExitCode();
+
       if (exitCode != 0) {
         String output = "[" + exitCode + "] " + stringBuilder.toString();
         String message = NLS.bind(PubMessages.RunPubJob_failed, command, output);
         return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, message);
       }
 
-      // Refresh the Eclipse resources
-
       try {
+        // Refresh the Eclipse resources
         container.refreshLocal(IResource.DEPTH_INFINITE, monitor);
       } catch (CoreException e) {
         // do nothing  - exception on project refresh
       }
-      String message = stringBuilder.toString();
-      return new Status(IStatus.OK, DartCore.PLUGIN_ID, message);
 
+      return new Status(IStatus.OK, DartCore.PLUGIN_ID, stringBuilder.toString());
     } catch (OperationCanceledException exception) {
       String message = NLS.bind(PubMessages.RunPubJob_canceled, command);
       return new Status(IStatus.CANCEL, DartCore.PLUGIN_ID, message, exception);
-
     } finally {
       monitor.done();
     }
@@ -154,4 +151,5 @@ public class RunPubJob extends Job {
   protected ProcessRunner newProcessRunner(ProcessBuilder builder) {
     return new ProcessRunner(builder);
   }
+
 }

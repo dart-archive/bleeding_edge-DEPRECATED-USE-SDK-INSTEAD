@@ -23,6 +23,7 @@ import com.google.dart.tools.core.builder.BuildVisitor;
 import com.google.dart.tools.core.builder.CleanEvent;
 import com.google.dart.tools.core.builder.CleanVisitor;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
+import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import static com.google.dart.tools.core.DartCore.BUILD_DART_FILE_NAME;
@@ -53,6 +54,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class invokes the build.dart scripts in a project's root directory.
@@ -247,6 +249,10 @@ public class BuildDartParticipant implements BuildParticipant {
     args.add(DartSdkManager.getManager().getSdk().getVmExecutable().getPath());
     args.add(builderFile.getProjectRelativePath().toOSString());
     args.addAll(buildArgs);
+
+    Map<String, String> env = builder.environment();
+    DartSdk sdk = DartSdkManager.getManager().getSdk();
+    env.put("DART_SDK", sdk.getDirectory().getAbsolutePath());
 
     builder.command(args);
     builder.directory(container.getLocation().toFile());

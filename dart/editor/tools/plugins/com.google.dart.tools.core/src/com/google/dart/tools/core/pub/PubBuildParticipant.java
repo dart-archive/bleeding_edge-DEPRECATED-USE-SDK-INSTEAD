@@ -50,14 +50,15 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
   @Override
   public boolean visit(IResourceDelta delta, IProgressMonitor monitor) {
     final IResource resource = delta.getResource();
+
     if (resource.getType() == IResource.FILE) {
       if (delta.getKind() == IResourceDelta.CHANGED) {
-        // TODO(keertip): optimize for just changes in dependencies
         if (resource.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
           runPub(resource.getParent(), monitor);
         }
       }
     }
+
     return true;
   }
 
@@ -68,6 +69,7 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
         runPub(proxy.requestResource().getParent(), monitor);
       }
     }
+
     return true;
   }
 
@@ -81,4 +83,5 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
   protected void runPub(IContainer container, final IProgressMonitor monitor) {
     new RunPubJob(container, RunPubJob.INSTALL_COMMAND).run(monitor);
   }
+
 }
