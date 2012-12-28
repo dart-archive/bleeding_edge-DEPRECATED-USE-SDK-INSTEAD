@@ -19,7 +19,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchConfigurationDelegate;
-import com.google.dart.tools.ui.DartUI;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -180,7 +179,7 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
       Location location = parseForLocation(match);
       if (location != null && location.doesExist()) {
         console.addHyperlink(
-            new FileLink(location.getFile(), DartUI.ID_CU_EDITOR, -1, -1, location.getLine()),
+            new FileLink(location.getFile(), null, -1, -1, location.getLine()),
             event.getOffset(),
             match.length());
         return;
@@ -206,13 +205,19 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
   private Location parseForLocation(String match) {
     // (http://127.0.0.1:3030/Users/util/debuggertest/web_test.dart:33:14)
 
-    int index = match.indexOf(".dart:");
+    int index = -1;
+
+    if (match.indexOf(".dart:") != -1) {
+      index = match.indexOf(".dart:");
+      index += ".dart".length();
+    } else if (match.indexOf(".js:") != -1) {
+      index = match.indexOf(".js:");
+      index += ".js".length();
+    }
 
     if (index == -1) {
       return null;
     }
-
-    index += ".dart".length();
 
     String url = match.substring(0, index);
 
