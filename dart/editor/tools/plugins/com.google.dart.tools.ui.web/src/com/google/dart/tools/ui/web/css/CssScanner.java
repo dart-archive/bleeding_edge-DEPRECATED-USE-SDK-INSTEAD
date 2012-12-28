@@ -46,25 +46,23 @@ public class CssScanner extends RuleBasedScanner {
 
     List<IRule> rules = new ArrayList<IRule>();
 
+    rules.add(new MultiLineRule("/*", "*/", commentToken, (char) 0, true));
+    rules.add(new SingleLineRule("\"", "\"", stringToken, '\\'));
+    rules.add(new SingleLineRule("'", "'", stringToken, '\\'));
+
     HtmlWordRule keywordRule = new HtmlWordRule(new CssWordDetector(), true);
 
+    // keywords
     for (String keyword : HtmlKeywords.getKeywords()) {
       keywordRule.addWord(keyword, keywordToken);
     }
 
-    rules.add(keywordRule);
-
-    HtmlWordRule attributeRule = new HtmlWordRule(new CssWordDetector(), true);
-
+    // attributes
     for (String attribute : CssAttributes.getAttributes()) {
-      attributeRule.addWord(attribute, attributeToken);
+      keywordRule.addWord(attribute, attributeToken);
     }
 
-    rules.add(attributeRule);
-
-    rules.add(new MultiLineRule("/*", "*/", commentToken));
-    rules.add(new SingleLineRule("\"", "\"", stringToken, '\\'));
-    rules.add(new SingleLineRule("'", "'", stringToken, '\\'));
+    rules.add(keywordRule);
 
     setRules(rules.toArray(new IRule[rules.size()]));
   }

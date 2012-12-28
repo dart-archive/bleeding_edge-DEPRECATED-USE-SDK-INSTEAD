@@ -20,6 +20,7 @@ import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.EndOfLineRule;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
+import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WordRule;
 import org.eclipse.swt.SWT;
@@ -32,28 +33,31 @@ import java.util.List;
  */
 class YamlScanner extends RuleBasedScanner {
 
-  public YamlScanner() {
+  public YamlScanner(YamlEditor editor) {
     Token keywordToken = new Token(new TextAttribute(DartWebPlugin.getPlugin().getEditorColor(
         DartWebPlugin.COLOR_KEYWORD), null, SWT.BOLD));
-    Token colonToken = new Token(new TextAttribute(DartWebPlugin.getPlugin().getEditorColor(
+    Token stringToken = new Token(new TextAttribute(DartWebPlugin.getPlugin().getEditorColor(
         DartWebPlugin.COLOR_STRING)));
     Token commentToken = new Token(new TextAttribute(DartWebPlugin.getPlugin().getEditorColor(
         DartWebPlugin.COLOR_COMMENTS)));
 
     List<IRule> rules = new ArrayList<IRule>();
 
-    WordRule keywordRule = new WordRule(new WordDetector());
+    rules.add(new EndOfLineRule("#", commentToken));
+    rules.add(new SingleLineRule("'", "'", stringToken, '\\', true));
+    rules.add(new SingleLineRule("\"", "\"", stringToken, '\\', true));
 
-    for (String keyword : YamlKeywords.getKeywords()) {
-      keywordRule.addWord(keyword, keywordToken);
+    if (editor.isPubspecEditor()) {
+      WordRule keywordRule = new WordRule(new WordDetector());
+
+      for (String keyword : YamlKeywords.getKeywords()) {
+        keywordRule.addWord(keyword, keywordToken);
+      }
+
+      rules.add(keywordRule);
     }
 
-    rules.add(keywordRule);
-
-    KeyValueSeparatorRule keyValueSeparatorRule = new KeyValueSeparatorRule(colonToken);
-
-    rules.add(keyValueSeparatorRule);
-    rules.add(new EndOfLineRule("#", commentToken));
+    rules.add(new KeyValueSeparatorRule(stringToken));
 
     setRules(rules.toArray(new IRule[rules.size()]));
   }

@@ -13,23 +13,31 @@
  */
 package com.google.dart.tools.ui.web.css;
 
+import org.eclipse.jface.text.rules.EndOfLineRule;
 import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.MultiLineRule;
 import org.eclipse.jface.text.rules.RuleBasedPartitionScanner;
 import org.eclipse.jface.text.rules.Token;
 
+import java.util.ArrayList;
+import java.util.List;
+
 class CssPartitionScanner extends RuleBasedPartitionScanner {
   public final static String CSS_COMMENT = "__css_comment";
 
-  public CssPartitionScanner() {
+  public CssPartitionScanner(CssEditor editor) {
     IToken commentToken = new Token(CSS_COMMENT);
 
-    IPredicateRule[] rules = new IPredicateRule[1];
+    List<IPredicateRule> rules = new ArrayList<IPredicateRule>();
 
-    rules[0] = new MultiLineRule("/*", "*/", commentToken);
+    rules.add(new MultiLineRule("/*", "*/", commentToken, (char) 0, true));
 
-    setPredicateRules(rules);
+    if (editor.iEditingLess()) {
+      rules.add(new EndOfLineRule("//", commentToken));
+    }
+
+    setPredicateRules(rules.toArray(new IPredicateRule[rules.size()]));
   }
 
 }

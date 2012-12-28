@@ -22,6 +22,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.ICharacterPairMatcher;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
@@ -38,7 +39,7 @@ public class CssEditor extends WebEditor {
   public CssEditor() {
     setRulerContextMenuId("#DartCssEditorRulerContext");
     setSourceViewerConfiguration(new CssSourceViewerConfiguration(this));
-    setDocumentProvider(new CssDocumentProvider());
+    setDocumentProvider(new CssDocumentProvider(this));
   }
 
   @Override
@@ -90,6 +91,16 @@ public class CssEditor extends WebEditor {
   protected void handleReconcilation(IRegion partition) {
     if (outlinePage != null) {
       outlinePage.handleEditorReconcilation();
+    }
+  }
+
+  protected boolean iEditingLess() {
+    IEditorInput input = getEditorInput();
+
+    if (input != null) {
+      return input.getName().endsWith(".less");
+    } else {
+      return false;
     }
   }
 

@@ -21,6 +21,7 @@ import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.ICharacterPairMatcher;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
 /**
@@ -66,6 +67,16 @@ public class YamlEditor extends WebEditor {
   @Override
   protected void handleReconcilation(IRegion partition) {
 
+  }
+
+  protected boolean isPubspecEditor() {
+    IEditorInput input = getEditorInput();
+
+    if (input != null) {
+      return "pubspec.yaml".equals(input.getName());
+    } else {
+      return false;
+    }
   }
 
   @Override

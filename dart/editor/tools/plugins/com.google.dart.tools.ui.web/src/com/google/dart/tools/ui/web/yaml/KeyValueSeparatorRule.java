@@ -18,10 +18,9 @@ import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
 
 /**
- * A rule for finding the key value seperator in yaml, colon + space
+ * A rule for finding the key value separator in yaml, colon + space.
  */
 public class KeyValueSeparatorRule implements IRule {
-
   IToken defaultToken;
   private char[][] originalDelimiters;
 
@@ -31,7 +30,6 @@ public class KeyValueSeparatorRule implements IRule {
 
   @Override
   public IToken evaluate(ICharacterScanner scanner) {
-
     originalDelimiters = scanner.getLegalLineDelimiters();
 
     int c = scanner.read();
@@ -42,13 +40,11 @@ public class KeyValueSeparatorRule implements IRule {
         scanner.unread();
         return defaultToken;
       }
-
     }
 
     scanner.unread();
 
     return org.eclipse.jface.text.rules.Token.UNDEFINED;
-
   }
 
   private boolean isEndOfLine(int c) {
@@ -57,6 +53,7 @@ public class KeyValueSeparatorRule implements IRule {
         return true;
       }
     }
+
     return false;
   }
 

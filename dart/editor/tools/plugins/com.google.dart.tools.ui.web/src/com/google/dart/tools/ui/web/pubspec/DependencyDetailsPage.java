@@ -244,6 +244,7 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
     gitrefText.setVisible(value);
   }
 
+  @SuppressWarnings("unused")
   private boolean validateVersionConstriants(String version) {
     boolean isValid = true;
 

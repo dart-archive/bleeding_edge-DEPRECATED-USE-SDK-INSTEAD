@@ -24,25 +24,30 @@ import org.eclipse.ui.editors.text.TextFileDocumentProvider;
  * partitions.
  */
 public class CssDocumentProvider extends TextFileDocumentProvider {
+  private CssEditor editor;
 
-  public CssDocumentProvider() {
-
+  public CssDocumentProvider(CssEditor editor) {
+    this.editor = editor;
   }
 
   @Override
   protected FileInfo createFileInfo(Object element) throws CoreException {
     FileInfo info = super.createFileInfo(element);
+
     if (info == null) {
       info = createEmptyFileInfo();
     }
+
     IDocument document = info.fTextFileBuffer.getDocument();
+
     if (document != null) {
       IDocumentPartitioner partitioner = new FastPartitioner(
-          new CssPartitionScanner(),
+          new CssPartitionScanner(editor),
           new String[] {CssPartitionScanner.CSS_COMMENT});
       partitioner.connect(document);
       document.setDocumentPartitioner(partitioner);
     }
+
     return info;
   }
 

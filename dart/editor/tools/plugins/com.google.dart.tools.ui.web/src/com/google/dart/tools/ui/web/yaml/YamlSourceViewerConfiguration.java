@@ -59,13 +59,17 @@ public class YamlSourceViewerConfiguration extends TextSourceViewerConfiguration
 
   @Override
   public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
-    ContentAssistant assistant = new ContentAssistant();
+    if (editor.isPubspecEditor()) {
+      ContentAssistant assistant = new ContentAssistant();
 
-    assistant.setContentAssistProcessor(
-        new YamlContentAssistProcessor(),
-        IDocument.DEFAULT_CONTENT_TYPE);
+      assistant.setContentAssistProcessor(
+          new YamlContentAssistProcessor(),
+          IDocument.DEFAULT_CONTENT_TYPE);
 
-    return assistant;
+      return assistant;
+    } else {
+      return null;
+    }
   }
 
   @Override
@@ -105,9 +109,10 @@ public class YamlSourceViewerConfiguration extends TextSourceViewerConfiguration
 
   protected YamlScanner getScanner() {
     if (scanner == null) {
-      scanner = new YamlScanner();
+      scanner = new YamlScanner(editor);
       scanner.setDefaultReturnToken(new Token(new TextAttribute(null)));
     }
+
     return scanner;
   }
 
