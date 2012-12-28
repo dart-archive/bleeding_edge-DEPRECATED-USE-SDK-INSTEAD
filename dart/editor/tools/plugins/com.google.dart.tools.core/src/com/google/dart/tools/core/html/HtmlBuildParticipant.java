@@ -87,8 +87,7 @@ public class HtmlBuildParticipant implements BuildParticipant, BuildVisitor {
 
     }
 
-    // TODO (danrubel): reenable once build participants have been refactored
-//    HtmlAnalyzeHelper.analyze(file);
+    HtmlAnalyzeHelper.analyze(file);
   }
 
   private void validate(XmlDocument document, IFile file) throws CoreException {
@@ -110,6 +109,11 @@ public class HtmlBuildParticipant implements BuildParticipant, BuildVisitor {
         if (!validAttributes.isEmpty()) {
           for (XmlAttribute attribute : node.getAttributes()) {
             String name = attribute.getName();
+            
+            // A common pattern with data-binding frameworks.
+            if (name.startsWith("ng-")) {
+              continue;
+            }
 
             if (!validAttributes.contains(name)) {
               if (!HtmlKeywords.isValidEventAttribute(name)) {

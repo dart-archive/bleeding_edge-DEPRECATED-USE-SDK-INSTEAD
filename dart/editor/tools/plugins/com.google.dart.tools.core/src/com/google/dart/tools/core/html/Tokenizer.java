@@ -87,6 +87,10 @@ public class Tokenizer {
     return tokens.peek();
   }
 
+  public void setOffset(int offset) {
+    position = offset;
+  }
+
   public void setPassThroughElements(String[] passThroughElements) {
     this.passThroughElements = passThroughElements;
   }

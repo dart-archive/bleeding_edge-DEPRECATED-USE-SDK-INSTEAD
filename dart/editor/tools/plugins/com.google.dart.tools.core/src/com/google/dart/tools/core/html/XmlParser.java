@@ -51,10 +51,13 @@ public class XmlParser {
   protected void endTag(Token token) {
     Token t = tokenizer.next();
 
-    popTag(t.getValue());
+    XmlNode endNode = new XmlNode(t.getValue());
+    endNode.setStart(token);
+    popTag(endNode);
 
     while (tokenizer.hasNext()) {
       t = tokenizer.next();
+      endNode.setEnd(t);
 
       if (">".equals(t.getValue())) {
         return;
@@ -147,12 +150,11 @@ public class XmlParser {
   }
 
   private void handleComment(Token token) {
-    // Ignore comments
-//    XmlNode node = new XmlNode("<!-- -->");
-//    node.setStart(token);
-//    node.setEnd(token);
-//    node.setContents(token.getValue());
-//    getCurrentParent().addChild(node);
+    XmlNode node = new XmlNode("<!-- -->");
+    node.setStart(token);
+    node.setEnd(token);
+    node.setContents(token.getValue());
+    getCurrentParent().addChild(node);
   }
 
   private void handleDeclaration(Token token) {
@@ -185,19 +187,24 @@ public class XmlParser {
     }
   }
 
-  private void popTag(String label) {
+  private void popTag(XmlNode endNode) {
+    String label = endNode.getLabel();
+
     if (!stack.isEmpty()) {
       XmlElement topTag = stack.peek();
 
       if (label.equals(topTag.getLabel())) {
         // Things are balanced; just pop the last one off.
-        stack.pop();
+        XmlNode node = stack.pop();
+
+        node.setEndNode(endNode);
       } else {
         // Look to see if there's a match further up.
         for (int i = stack.size() - 1; i >= 0; i--) {
           XmlElement tag = stack.get(i);
 
           if (label.equals(tag.getLabel())) {
+            tag.setEndNode(endNode);
             stack.setSize(i);
             return;
           }

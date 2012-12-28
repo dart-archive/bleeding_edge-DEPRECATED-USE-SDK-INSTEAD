@@ -28,6 +28,7 @@ public class XmlNode {
   private Token startToken;
   private Token endToken;
 
+  private XmlNode endNode;
   private String contents;
 
   public XmlNode() {
@@ -67,6 +68,21 @@ public class XmlNode {
     return contents;
   }
 
+  /**
+   * @return the balancing (</foo>) half of this node, if any
+   */
+  public XmlNode getEndNode() {
+    return endNode;
+  }
+
+  public int getEndOffset() {
+    if (endToken != null) {
+      return endToken.getLocation() + endToken.getValue().length();
+    } else {
+      return startToken.getLocation() + startToken.getValue().length();
+    }
+  }
+
   public Token getEndToken() {
     return endToken;
   }
@@ -87,6 +103,10 @@ public class XmlNode {
     return parent;
   }
 
+  public int getStartOffset() {
+    return startToken.getLocation();
+  }
+
   public Token getStartToken() {
     return startToken;
   }
@@ -94,6 +114,12 @@ public class XmlNode {
   @Override
   public int hashCode() {
     return getId().hashCode();
+  }
+
+  public boolean isComment() {
+    String label = getLabel();
+
+    return label != null && label.startsWith("<!--");
   }
 
   public void setEnd(Token t) {
@@ -115,6 +141,10 @@ public class XmlNode {
 
   protected void setContents(String value) {
     contents = value;
+  }
+
+  protected void setEndNode(XmlNode endNode) {
+    this.endNode = endNode;
   }
 
   private int getChildPos() {

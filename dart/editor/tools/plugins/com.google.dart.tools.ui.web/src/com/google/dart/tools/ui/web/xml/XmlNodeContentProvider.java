@@ -18,6 +18,9 @@ import com.google.dart.tools.core.html.XmlNode;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A content provider for Node model elements.
  */
@@ -32,7 +35,7 @@ public class XmlNodeContentProvider implements ITreeContentProvider {
   public Object[] getChildren(Object element) {
     XmlNode node = (XmlNode) element;
 
-    return node.getChildren().toArray();
+    return filterComments(node.getChildren());
   }
 
   @Override
@@ -55,6 +58,33 @@ public class XmlNodeContentProvider implements ITreeContentProvider {
   @Override
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 
+  }
+
+  private XmlNode[] filterComments(List<XmlNode> nodes) {
+    boolean hasComments = false;
+
+    int len = nodes.size();
+
+    for (int i = 0; i < len; i++) {
+      if (nodes.get(i).isComment()) {
+        hasComments = true;
+        break;
+      }
+    }
+
+    if (!hasComments) {
+      return nodes.toArray(new XmlNode[nodes.size()]);
+    } else {
+      List<XmlNode> copy = new ArrayList<XmlNode>();
+
+      for (XmlNode node : nodes) {
+        if (!node.isComment()) {
+          copy.add(node);
+        }
+      }
+
+      return copy.toArray(new XmlNode[copy.size()]);
+    }
   }
 
 }

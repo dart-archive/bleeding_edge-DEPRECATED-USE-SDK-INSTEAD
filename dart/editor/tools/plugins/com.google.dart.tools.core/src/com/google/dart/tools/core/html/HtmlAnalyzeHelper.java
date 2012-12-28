@@ -42,6 +42,7 @@ public class HtmlAnalyzeHelper {
   public static void analyze(IFile htmlResource) {
     File htmlFile = htmlResource.getLocation().toFile();
     try {
+      htmlResource.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, 1);
       analyzeEx(htmlFile);
     } catch (Throwable e) {
       DartCore.logError(e);
@@ -105,4 +106,5 @@ public class HtmlAnalyzeHelper {
       }
     }
   }
+
 }
