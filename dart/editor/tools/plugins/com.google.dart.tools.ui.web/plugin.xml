@@ -7,7 +7,7 @@
       <editor
             class="com.google.dart.tools.ui.web.css.CssEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="css,scss"
+            extensions="css,scss,less"
             icon="icons/cssfile.png"
             id="com.google.dart.tools.ui.web.css.CSSEditor"
             symbolicFontName="com.google.dart.tools.ui.editors.textfont"
@@ -47,6 +47,7 @@
             name="Dart Yaml Editor"
             default="true">
       </editor>
+      
       <editor
             class="com.google.dart.tools.ui.web.pubspec.PubspecEditor"
             default="false"
@@ -55,8 +56,22 @@
             id="com.google.dart.tools.ui.editor.pubspec"
             name="Pubspec Editor">
       </editor>
+      
+      <editor
+            class="com.google.dart.tools.ui.web.json.JsonEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="json"
+            icon="icons/file_obj.gif"
+            id="com.google.dart.tools.ui.web.json.JsonEditor"
+            symbolicFontName="com.google.dart.tools.ui.editors.textfont"
+            name="Dart JSON Editor"
+            default="true">
+      </editor>
    </extension>
-    <extension
+   
+   <!-- pubspec extensions -->
+   
+   <extension
          point="org.eclipse.ui.menus">
       <menuContribution
             allPopups="false"
@@ -89,14 +104,36 @@
          </command>
       </menuContribution>
    </extension>
-    <extension
-          point="org.eclipse.ui.commands">
-       <command
-             defaultHandler="com.google.dart.tools.ui.web.pubspec.actions.OpenPubspecEditorHandler"
-             description="Opens the Pubspec Editor"
-             id="com.google.dart.tools.ui.web.command.openPubspecEditor"
-             name="Open with Pubspec Editor">
-       </command>
-    </extension>
+   
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            defaultHandler="com.google.dart.tools.ui.web.pubspec.actions.OpenPubspecEditorHandler"
+            description="Opens the Pubspec Editor"
+            id="com.google.dart.tools.ui.web.command.openPubspecEditor"
+            name="Open with Pubspec Editor">
+      </command>
+   </extension>
+   
+   <!-- JSON extensions -->
+   
+   <extension point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectorTargets">
+      <target
+         id="com.google.dart.tools.ui.web.json.hyperlinkTarget"
+         name="JSON Hyperlink Target">
+
+         <context type="org.eclipse.ui.texteditor.ITextEditor"/>
+      </target>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
+      <hyperlinkDetector
+            class="com.google.dart.tools.ui.web.json.JsonHyperlinkDetector"
+            id="com.google.dart.tools.ui.web.json.hyperlinkDetector"
+            name="JSON Hyperlink Detector"
+            targetId="com.google.dart.tools.ui.web.json.hyperlinkTarget">
+      </hyperlinkDetector>
+   </extension>
    
 </plugin>

@@ -93,10 +93,10 @@ public class DartWebPlugin extends AbstractUIPlugin {
   private Map<String, Color> colors = new HashMap<String, Color>();
 
   public static final String COLOR_COMMENTS = "org.eclipse.wst.jsdt.ui.java_multi_line_comment";
+  public static final String COLOR_SINGLE_COMMENTS = "org.eclipse.wst.jsdt.ui.java_single_line_comment";
+  public static final String COLOR_DOC_COMMENTS = "org.eclipse.wst.jsdt.ui.java_doc_default";
   public static final String COLOR_STRING = "org.eclipse.wst.jsdt.ui.java_string";
-
   public static final String COLOR_KEYWORD = "org.eclipse.wst.jsdt.ui.java_keyword";
-
   public static final String COLOR_STATIC_FIELD = "org.eclipse.wst.jsdt.ui.fieldHighlighting";
 
   private Map<String, Image> imageMap = new HashMap<String, Image>();
