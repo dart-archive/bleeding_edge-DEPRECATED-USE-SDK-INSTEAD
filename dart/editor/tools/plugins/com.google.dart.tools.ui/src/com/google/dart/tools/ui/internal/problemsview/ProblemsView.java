@@ -19,11 +19,13 @@ import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -319,11 +321,37 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
         }
       }
 
+      if (focusOnProjectAction.isChecked()) {
+        IResource resource = marker.getResource();
+
+        if (resource instanceof IWorkspaceRoot) {
+          return true; // markers on the root should always show
+        }
+
+        if (focusedProject != null) {
+          return isChildOf(focusedProject, resource);
+        } else {
+          return false;
+        }
+      }
+
       return true;
     }
 
     protected void preFilter() {
 
+    }
+
+    private boolean isChildOf(IProject project, IResource resource) {
+      if (resource == null) {
+        return false;
+      } else if (resource instanceof IProject) {
+        IProject other = (IProject) resource;
+
+        return project.equals(other);
+      } else {
+        return isChildOf(project, resource.getParent());
+      }
     }
 
     private void postFilter(List<IMarker> results) {
@@ -430,6 +458,22 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
   }
 
+  private class FocusOnProjectAction extends Action {
+    public FocusOnProjectAction() {
+      super("Focus on current project", AS_CHECK_BOX);
+
+      setImageDescriptor(DartToolsPlugin.getBundledImageDescriptor("icons/full/eview16/filter_history.gif"));
+
+      // restore state
+      setChecked(getMementoBoolean("focusOnProject", true));
+    }
+
+    @Override
+    public void run() {
+      updateFilters();
+    }
+  }
+
   private class FontPropertyChangeListener implements IPropertyChangeListener {
     @Override
     public void propertyChange(PropertyChangeEvent event) {
@@ -471,25 +515,13 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   }
 
   private class ShowInfosAction extends Action {
-    private static final boolean SHOW_INFOS_DEFAULT = false;
-
     public ShowInfosAction() {
       super("Show informational messages", AS_CHECK_BOX);
 
       setImageDescriptor(DartToolsPlugin.getBundledImageDescriptor("icons/full/eview16/tasks_tsk.gif"));
 
       // restore state
-      if (getMemento() != null) {
-        Boolean val = getMemento().getBoolean("showInfos");
-
-        if (val != null) {
-          setChecked(val.booleanValue());
-        } else {
-          setChecked(SHOW_INFOS_DEFAULT);
-        }
-      } else {
-        setChecked(SHOW_INFOS_DEFAULT);
-      }
+      setChecked(getMementoBoolean("showInfos", true));
     }
 
     @Override
@@ -716,6 +748,30 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
   }
 
+  private static Object getSingleSelection(ISelection selection) {
+    if (selection == null || selection.isEmpty()) {
+      return null;
+    }
+
+    if (selection instanceof IStructuredSelection) {
+      return ((IStructuredSelection) selection).getFirstElement();
+    } else {
+      return null;
+    }
+  }
+
+  private static boolean safeEquals(Object o1, Object o2) {
+    if (o1 == o2) {
+      return true;
+    }
+
+    if (o1 == null || o2 == null) {
+      return false;
+    }
+
+    return o1.equals(o2);
+  }
+
   private IMemento memento;
 
   protected TableViewer tableViewer;
@@ -724,11 +780,15 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   private ErrorViewerFilter tableFilter;
 
+  private IProject focusedProject;
+
+  private FocusOnProjectAction focusOnProjectAction;
   private ShowInfosAction showInfosAction;
 
   private Clipboard clipboard;
 
   private CopyMarkerAction copyAction;
+
   private GoToMarkerAction goToMarkerAction;
 
   private Job job;
@@ -738,9 +798,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   private long lastShowTime;
 
   private Display swtDisplay;
-
   private IPreferenceStore preferences;
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
+
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
     @Override
     public void propertyChange(PropertyChangeEvent event) {
@@ -903,6 +963,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       initProgressService(progressService);
     }
 
+    // TODO: we're leaking this
     getSite().getPage().addSelectionListener(new ISelectionListener() {
       @Override
       public void selectionChanged(IWorkbenchPart part, ISelection selection) {
@@ -913,13 +974,12 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     });
   }
 
-  // implementation
-
   @Override
   public void saveState(IMemento memento) {
     super.saveState(memento);
 
     if (showInfosAction != null) {
+      memento.putBoolean("focusOnProject", focusOnProjectAction.isChecked());
       memento.putBoolean("showInfos", showInfosAction.isChecked());
     }
 
@@ -943,12 +1003,24 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   protected void fillInToolbar(IToolBarManager toolbar) {
     showInfosAction = new ShowInfosAction();
-
     toolbar.add(showInfosAction);
+
+    focusOnProjectAction = new FocusOnProjectAction();
+    toolbar.add(focusOnProjectAction);
   }
 
   protected IMemento getMemento() {
     return memento;
+  }
+
+  protected boolean getMementoBoolean(String key, boolean defaultValue) {
+    if (getMemento() != null) {
+      Boolean b = getMemento().getBoolean(key);
+
+      return b == null ? defaultValue : b.booleanValue();
+    } else {
+      return defaultValue;
+    }
   }
 
   protected String getStatusSummary(IMarker[] markers) {
@@ -969,6 +1041,8 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
     progressService.showBusyForFamily(REFRESH_MARKERS_JOB_FAMILY);
   }
+
+  // private static Color BK_COLOR = null;
 
   protected void showMarkers(Display display, final List<IMarker> markers) {
     for (int i = markers.size() - 1; i >= 0; i--) {
@@ -1044,8 +1118,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
   }
 
-  // private static Color BK_COLOR = null;
-
   protected void updateColors() {
     SWTUtil.setColors(getViewer().getTable(), getPreferences());
   }
@@ -1056,6 +1128,10 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
 
     String desc = getStatusSummary(markers);
+
+    if (focusedProject != null && focusOnProjectAction.isChecked()) {
+      desc = "[" + focusedProject.getName() + "] " + desc;
+    }
 
     setContentDescription(desc);
   }
@@ -1150,8 +1226,51 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
   }
 
-  private void focusOn(IWorkbenchPart part, ISelection selection) {
+  private void focusOn(IProject project) {
+    if (!safeEquals(focusedProject, project)) {
+      focusedProject = project;
 
+      updateFilters();
+    }
+  }
+
+  private void focusOn(IWorkbenchPart part, ISelection selection) {
+    Object sel = getSingleSelection(selection);
+
+    // See if it's a resource
+    if (sel instanceof IResource) {
+      IResource resource = (IResource) sel;
+
+      focusOn(resource.getProject());
+
+      return;
+    }
+
+    // See if it can be adapted to a resource
+    if (sel instanceof IAdaptable) {
+      IAdaptable adaptable = (IAdaptable) sel;
+
+      IResource resource = (IResource) adaptable.getAdapter(IResource.class);
+
+      if (resource != null) {
+        focusOn(resource.getProject());
+
+        return;
+      }
+    }
+
+    // See if the part is an editor.
+    if (part instanceof IEditorPart) {
+      IEditorPart editor = (IEditorPart) part;
+
+      if (editor.getEditorInput() instanceof IFileEditorInput) {
+        IFileEditorInput input = (IFileEditorInput) editor.getEditorInput();
+
+        if (input.getFile() != null) {
+          focusOn(input.getFile().getProject());
+        }
+      }
+    }
   }
 
   private void focusOnActiveEditor() {
