@@ -238,6 +238,13 @@ public class DartCore extends Plugin implements DartSdkListener {
       "resourceRemap");
 
   /**
+   * The QualifiedName for the package version
+   */
+  public static final QualifiedName PUB_PACKAGE_VERSION = new QualifiedName(
+      DartCore.PLUGIN_ID,
+      "pub.package.version");
+
+  /**
    * Configures the given marker attribute map for the given Dart element. Used for markers, which
    * denote a Dart element rather than a resource.
    * 

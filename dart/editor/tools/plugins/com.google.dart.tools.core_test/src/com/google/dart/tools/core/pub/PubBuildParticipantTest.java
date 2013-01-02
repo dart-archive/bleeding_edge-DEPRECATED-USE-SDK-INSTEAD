@@ -18,9 +18,12 @@ import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.internal.builder.TestProjects;
 import com.google.dart.tools.core.mock.MockContainer;
 import com.google.dart.tools.core.mock.MockDelta;
+import com.google.dart.tools.core.mock.MockFile;
+import com.google.dart.tools.core.mock.MockFolder;
 
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
+import static com.google.dart.tools.core.DartCore.PUBSPEC_LOCK_FILE_NAME;
 import static com.google.dart.tools.core.internal.builder.TestProjects.MONITOR;
 import static com.google.dart.tools.core.internal.builder.TestProjects.newEmptyProject;
 import static com.google.dart.tools.core.internal.builder.TestProjects.newPubProject1;
@@ -28,12 +31,12 @@ import static com.google.dart.tools.core.internal.builder.TestProjects.newPubPro
 import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import static org.eclipse.core.resources.IResourceDelta.ADDED;
 import static org.eclipse.core.resources.IResourceDelta.REMOVED;
-
-import java.util.ArrayList;
 
 public class PubBuildParticipantTest extends TestCase {
 
@@ -43,38 +46,55 @@ public class PubBuildParticipantTest extends TestCase {
    */
   private static class Target extends PubBuildParticipant {
 
-    private ArrayList<IContainer> actual = new ArrayList<IContainer>();
+    private IContainer runPubContainer;
+    private IResource lockFileProcessed;
 
-    public void assertCalls(IContainer... expected) {
-      if (expected.length == actual.size()) {
-        boolean success = true;
-        for (IContainer container : expected) {
-          if (!actual.contains(container)) {
-            success = false;
-            break;
-          }
-        }
-        if (success) {
-          return;
-        }
+    public void assertProcessLockFile(IResource expected) {
+      boolean success = true;
+      if (expected != lockFileProcessed) {
+        success = false;
       }
-      PrintStringWriter writer = new PrintStringWriter();
-      writer.println("expected:");
-      for (IContainer container : expected) {
-        writer.println("  " + container);
+      if (success) {
+        return;
       }
-      writer.println("actual:");
-      for (IContainer container : actual) {
-        writer.println("  " + container);
+      printFailMessage(expected, lockFileProcessed);
+
+    }
+
+    public void assertRunPub(IContainer expected) {
+      boolean success = true;
+      if (expected != runPubContainer) {
+        success = false;
       }
-      fail(writer.toString().trim());
+      if (success) {
+        return;
+      }
+      printFailMessage(expected, runPubContainer);
+    }
+
+    @Override
+    protected void processLockFileContents(IResource lockFile, IProject project,
+        IProgressMonitor monitor) {
+      assertNotNull(lockFile);
+      assertNotNull(project);
+      assertNotNull(monitor);
+      lockFileProcessed = lockFile;
     }
 
     @Override
     protected void runPub(IContainer container, IProgressMonitor monitor) {
       assertNotNull(container);
       assertNotNull(monitor);
-      actual.add(container);
+      runPubContainer = container;
+    }
+
+    private void printFailMessage(Object expected, Object actual) {
+      PrintStringWriter writer = new PrintStringWriter();
+      writer.println("expected:");
+      writer.println("  " + expected);
+      writer.println("actual:");
+      writer.println("  " + actual);
+      fail(writer.toString().trim());
     }
   }
 
@@ -84,7 +104,8 @@ public class PubBuildParticipantTest extends TestCase {
     MockContainer project = newEmptyProject();
 
     target.build(new BuildEvent(project, null, MONITOR), MONITOR);
-    target.assertCalls();
+    target.assertRunPub(null);
+    target.assertProcessLockFile(null);
   }
 
   // Assert pub is run on project containing pubspec.yaml
@@ -94,7 +115,19 @@ public class PubBuildParticipantTest extends TestCase {
     project.addFile(PUBSPEC_FILE_NAME);
 
     target.build(new BuildEvent(project, null, MONITOR), MONITOR);
-    target.assertCalls(project);
+    target.assertRunPub(project);
+    target.assertProcessLockFile(null);
+  }
+
+  // Assert lock file is processed when changed
+  public void test_build_full_pub_lockFile() throws Exception {
+    Target target = new Target();
+    MockContainer project = newEmptyProject();
+    MockFile file = new MockFile(project, PUBSPEC_LOCK_FILE_NAME);
+    project.add(file);
+    target.build(new BuildEvent(project, null, MONITOR), MONITOR);
+    target.assertProcessLockFile(file);
+    target.assertRunPub(null);
   }
 
   // Assert pub is not run on pubspec.yaml in folder under "packages" directory hierarchy
@@ -104,7 +137,8 @@ public class PubBuildParticipantTest extends TestCase {
     MockContainer project = newPubProject1();
 
     target.build(new BuildEvent(project, null, MONITOR), MONITOR);
-    target.assertCalls(project);
+    target.assertRunPub(project);
+    target.assertProcessLockFile(null);
   }
 
   // Assert pub is run when pubspec.yaml is added
@@ -116,7 +150,8 @@ public class PubBuildParticipantTest extends TestCase {
     delta.add(PUBSPEC_FILE_NAME, ADDED);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
-    target.assertCalls(project);
+    target.assertRunPub(project);
+    target.assertProcessLockFile(null);
   }
 
   // Assert pub is run when pubspec.yaml has changed
@@ -128,7 +163,8 @@ public class PubBuildParticipantTest extends TestCase {
     delta.add(PUBSPEC_FILE_NAME);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
-    target.assertCalls(project);
+    target.assertRunPub(project);
+    target.assertProcessLockFile(null);
   }
 
   // Assert pub is not run on pubspec.yaml in file under "packages" directory hierarchy
@@ -142,7 +178,8 @@ public class PubBuildParticipantTest extends TestCase {
     delta.add(".svn").add(PUBSPEC_FILE_NAME);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
-    target.assertCalls();
+    target.assertRunPub(null);
+    target.assertProcessLockFile(null);
   }
 
   // Assert pub is not run on pubspec.yaml in file under "packages" directory hierarchy
@@ -156,7 +193,8 @@ public class PubBuildParticipantTest extends TestCase {
     delta.add(".svn").add(PUBSPEC_FILE_NAME);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
-    target.assertCalls();
+    target.assertRunPub(null);
+    target.assertProcessLockFile(null);
   }
 
   // Assert pub not is run when pubspec.yaml is removed
@@ -168,6 +206,20 @@ public class PubBuildParticipantTest extends TestCase {
     delta.add(PUBSPEC_FILE_NAME, REMOVED);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
-    target.assertCalls();
+    target.assertRunPub(null);
+    target.assertProcessLockFile(null);
   }
+
+  // Assert lock file is processed when not in project root
+  public void test_build_pub_lockFile_notInProjectRoot() throws Exception {
+    Target target = new Target();
+    MockContainer project = newEmptyProject();
+    MockFolder myApp = project.addFolder("myapp");
+    MockFile file = new MockFile(myApp, PUBSPEC_LOCK_FILE_NAME);
+    myApp.add(file);
+    target.build(new BuildEvent(project, null, MONITOR), MONITOR);
+    target.assertProcessLockFile(file);
+    target.assertRunPub(null);
+  }
+
 }

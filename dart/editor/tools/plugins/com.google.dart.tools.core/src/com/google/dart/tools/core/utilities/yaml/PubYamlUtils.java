@@ -14,7 +14,11 @@
 package com.google.dart.tools.core.utilities.yaml;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.introspector.BeanAccess;
@@ -29,14 +33,16 @@ import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
 
 import java.beans.IntrospectionException;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Utility class for using Snake YAML parser
+ * Utility class for using Snake YAML parser and other yaml utility methods
  */
-public class SnakeYamlUtils {
+public class PubYamlUtils {
 
   /**
    * To skip empty and null values in the {@link PubYamlObject} while writing out the yaml string
@@ -105,6 +111,46 @@ public class SnakeYamlUtils {
       return null;
     }
 
+  }
+
+  /**
+   * Returns a map of installed packages to the respective version number.
+   * 
+   * @param lockFile the pubspec.lock file
+   * @return Map<String,String> Map<packageName,versionNumber>
+   */
+  public static Map<String, String> getPackageVersionMap(IResource lockFile) {
+    try {
+      return getPackageVersionMap(IFileUtilities.getContents((IFile) lockFile));
+    } catch (CoreException exception) {
+      DartCore.logError(exception);
+    } catch (IOException exception) {
+      DartCore.logError(exception);
+    }
+    return null;
+  }
+
+  /**
+   * Returns a map of installed packages to the respective version number.
+   * 
+   * @param lockFileContents string contents of pubspec.lock file
+   * @return Map<String,String> Map<packageName,versionNumber>
+   */
+  @SuppressWarnings("unchecked")
+  public static Map<String, String> getPackageVersionMap(String lockFileContents) {
+    Map<String, String> versionMap = new HashMap<String, String>();
+    Map<String, Object> map = PubYamlUtils.parsePubspecYamlToMap(lockFileContents);
+    if (map != null) {
+      Map<String, Object> packagesMap = (Map<String, Object>) map.get("packages");
+      for (String key : packagesMap.keySet()) {
+        Map<String, Object> attrMap = (Map<String, Object>) packagesMap.get(key);
+        String version = (String) attrMap.get("version");
+        if (version != null) {
+          versionMap.put(key, version);
+        }
+      }
+    }
+    return versionMap;
   }
 
   /**

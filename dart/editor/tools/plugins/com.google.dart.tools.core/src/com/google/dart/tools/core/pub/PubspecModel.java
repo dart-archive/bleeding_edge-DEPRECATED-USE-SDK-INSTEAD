@@ -14,7 +14,7 @@
 package com.google.dart.tools.core.pub;
 
 import com.google.dart.tools.core.utilities.yaml.PubYamlObject;
-import com.google.dart.tools.core.utilities.yaml.SnakeYamlUtils;
+import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,7 +80,7 @@ public class PubspecModel {
    */
   public String getContents() {
     // append comments at end of pubspec
-    return SnakeYamlUtils.buildYamlString(convertModelToObject()) + comments;
+    return PubYamlUtils.buildYamlString(convertModelToObject()) + comments;
   }
 
   public Object[] getDependecies() {
@@ -107,10 +107,10 @@ public class PubspecModel {
    * Clear and initialize the model with the values in the yaml string
    */
   public void initialize(String yamlString) {
+    clearModelFields();
     if (yamlString != null) {
-      clearModelFields();
       comments = getComments(yamlString);
-      setValuesFromObject(SnakeYamlUtils.parsePubspecYamlToObject(yamlString));
+      setValuesFromObject(PubYamlUtils.parsePubspecYamlToObject(yamlString));
     }
   }
 

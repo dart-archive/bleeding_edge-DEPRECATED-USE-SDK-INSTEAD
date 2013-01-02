@@ -25,6 +25,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -142,6 +143,18 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
       }
 
       StyledString string = new StyledString(resource.getName());
+
+      if (resource instanceof IFolder) {
+        try {
+          String version = resource.getPersistentProperty(DartCore.PUB_PACKAGE_VERSION);
+          if (version != null) {
+            string.append(" [" + version + "]", StyledString.QUALIFIER_STYLER);
+            return string;
+          }
+        } catch (CoreException e) {
+          DartToolsPlugin.log(e);
+        }
+      }
 
       DartElement dartElement = DartCore.create(resource);
 

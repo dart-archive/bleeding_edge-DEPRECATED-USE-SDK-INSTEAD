@@ -20,13 +20,17 @@ import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.BuildVisitor;
 import com.google.dart.tools.core.builder.CleanEvent;
 import com.google.dart.tools.core.internal.builder.DartBuilder;
+import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceProxy;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+
+import java.util.Map;
 
 /**
  * This build participant has a higher priority and should be called by {@link DartBuilder} before
@@ -56,6 +60,9 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
         if (resource.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
           runPub(resource.getParent(), monitor);
         }
+        if (resource.getName().equals(DartCore.PUBSPEC_LOCK_FILE_NAME)) {
+          processLockFileContents(resource, resource.getProject(), monitor);
+        }
       }
     }
 
@@ -68,16 +75,50 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
       if (proxy.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
         runPub(proxy.requestResource().getParent(), monitor);
       }
+      if (proxy.getName().equals(DartCore.PUBSPEC_LOCK_FILE_NAME)) {
+        processLockFileContents(
+            proxy.requestResource(),
+            proxy.requestResource().getProject(),
+            monitor);
+      }
     }
 
     return true;
   }
 
   /**
+   * Process the lockfile to extract the version information, and save the information in the
+   * resource property DartCore.PUB_PACKAGE_VERSION
+   * 
+   * @param lockFile the pubspec.lock file
+   * @param project containing the pubspec.lock file
+   * @param monitor the progress monitor
+   */
+  protected void processLockFileContents(IResource lockFile, IProject project,
+      IProgressMonitor monitor) {
+
+    Map<String, String> versionMap = PubYamlUtils.getPackageVersionMap(lockFile);
+    if (versionMap != null && !versionMap.isEmpty()) {
+      for (String key : versionMap.keySet()) {
+        IResource folder = lockFile.getParent().findMember(
+            DartCore.PACKAGES_DIRECTORY_NAME + "/" + key);
+        if (folder != null) {
+          try {
+            folder.setPersistentProperty(DartCore.PUB_PACKAGE_VERSION, versionMap.get(key));
+          } catch (CoreException e) {
+            DartCore.logError(e);
+          }
+        }
+      }
+      PubManager.getInstance().notifyListeners(lockFile.getParent());
+    }
+  }
+
+  /**
    * Execute the pub operation. This is overridden when testing this class to record the intent to
    * run pub but prevent actually running pub.
    * 
-   * @param container the workng directory in which pub should be run (not <code>null</code>)
+   * @param container the working directory in which pub should be run (not <code>null</code>)
    * @param monitor the progress monitor (not <code>null</code>)
    */
   protected void runPub(IContainer container, final IProgressMonitor monitor) {

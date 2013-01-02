@@ -38,7 +38,7 @@ import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import com.google.dart.tools.core.utilities.resource.IResourceUtilities;
-import com.google.dart.tools.core.utilities.yaml.SnakeYamlUtils;
+import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.resources.IFile;
@@ -606,7 +606,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
       ((DartProjectInfo) getElementInfo()).setLinkedPackageDirName(null);
       IResource pubspec = project.findMember(DartCore.PUBSPEC_FILE_NAME);
       if (pubspec != null) {
-        Map<String, Object> pubMap = SnakeYamlUtils.parsePubspecYamlToMap(IFileUtilities.getContents((IFile) pubspec));
+        Map<String, Object> pubMap = PubYamlUtils.parsePubspecYamlToMap(IFileUtilities.getContents((IFile) pubspec));
         if (pubMap != null) {
           for (String key : pubMap.keySet()) {
             if (key.equals("name")) {

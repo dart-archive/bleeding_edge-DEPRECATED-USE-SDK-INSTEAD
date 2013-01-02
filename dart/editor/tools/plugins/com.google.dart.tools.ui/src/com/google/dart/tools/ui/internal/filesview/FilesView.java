@@ -16,6 +16,8 @@ package com.google.dart.tools.ui.internal.filesview;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartIgnoreListener;
+import com.google.dart.tools.core.pub.IPubUpdateListener;
+import com.google.dart.tools.core.pub.PubManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.actions.CopyFilePathAction;
@@ -66,6 +68,7 @@ import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -122,6 +125,23 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       ExternalBrowserUtil.openInExternalBrowser("http://pub.dartlang.org/packages");
     }
 
+  }
+
+  private class PubUpdateListener implements IPubUpdateListener {
+    @Override
+    public void packagesUpdated(final IContainer container) {
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          if (treeViewer != null) {
+            IResource resource = container.findMember(DartCore.PACKAGES_DIRECTORY_NAME);
+            if (resource != null) {
+              treeViewer.refresh(resource);
+            }
+          }
+        }
+      });
+    }
   }
 
   public static final String VIEW_ID = "com.google.dart.tools.ui.FileExplorer"; // from plugin.xml
@@ -190,6 +210,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     }
   };
 
+  private IPubUpdateListener pubUpdateListener = new PubUpdateListener();
+
   private RefreshAction refreshAction;
 
   private CopyAction copyAction;
@@ -256,6 +278,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     updateTreeFont();
     getPreferences().addPropertyChangeListener(propertyChangeListener);
     updateColors();
+    PubManager.getInstance().addListener(pubUpdateListener);
 
     restoreState();
   }
@@ -291,6 +314,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       treeViewer.removeSelectionChangedListener(propertyDialogAction);
     }
 
+    if (pubUpdateListener != null) {
+      PubManager.getInstance().removeListener(pubUpdateListener);
+    }
     super.dispose();
   }
 
