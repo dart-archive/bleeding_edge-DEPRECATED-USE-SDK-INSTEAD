@@ -48,7 +48,7 @@ import java.util.List;
 /**
  * A Dart code scanner.
  */
-public final class DartCodeScanner extends AbstractDartScanner {
+public class DartCodeScanner extends AbstractDartScanner {
 
   /**
    * Rule to detect Dart brackets.
@@ -226,37 +226,42 @@ public final class DartCodeScanner extends AbstractDartScanner {
 
   public static final String[] DIRECTIVES;
   public static final String[] KEYWORDS;
+  public static final String[] PSEUDO_KEYWORDS;
 
   public static final String[] OPERATORS;
 
   static {
-    ArrayList<String> directives = new ArrayList<String>();
-    ArrayList<String> keywords = new ArrayList<String>();
-    ArrayList<String> operators = new ArrayList<String>();
+    List<String> directives = new ArrayList<String>();
+    List<String> keywords = new ArrayList<String>();
+    List<String> pseudoKeywords = new ArrayList<String>();
+    List<String> operators = new ArrayList<String>();
+
     com.google.dart.compiler.parser.Token[] tokens = com.google.dart.compiler.parser.Token.values();
+
     for (int i = 0; i < tokens.length; i++) {
       com.google.dart.compiler.parser.Token token = tokens[i];
       if ((BREAK.ordinal() <= token.ordinal() && token.ordinal() <= WHILE.ordinal())
           || token.ordinal() == AS.ordinal() || token.ordinal() == IS.ordinal()) {
         keywords.add(token.getSyntax());
       }
-      if (!DartUiDebug.USE_ONLY_SEMANTIC_HIGHLIGHTER) {
-        if ((LIBRARY.ordinal() <= token.ordinal()) && (token.ordinal() <= NATIVE.ordinal())) {
-          String name = token.getSyntax();
-          directives.add(name.substring(1));
-        }
+
+      if ((LIBRARY.ordinal() <= token.ordinal()) && (token.ordinal() <= NATIVE.ordinal())) {
+        String name = token.getSyntax();
+        directives.add(name.substring(1));
       }
+
       if (token.isBinaryOperator() || token.isUnaryOperator()) {
         operators.add(token.getSyntax());
       }
     }
-    if (!DartUiDebug.USE_ONLY_SEMANTIC_HIGHLIGHTER) {
-      for (String kw : DartParser.PSEUDO_KEYWORDS) {
-        keywords.add(kw);
-      }
+
+    for (String kw : DartParser.PSEUDO_KEYWORDS) {
+      pseudoKeywords.add(kw);
     }
+
     DIRECTIVES = directives.toArray(new String[directives.size()]);
     KEYWORDS = keywords.toArray(new String[keywords.size()]);
+    PSEUDO_KEYWORDS = pseudoKeywords.toArray(new String[pseudoKeywords.size()]);
     OPERATORS = operators.toArray(new String[operators.size()]);
   }
 
@@ -274,6 +279,8 @@ public final class DartCodeScanner extends AbstractDartScanner {
       IDartColorConstants.JAVA_DEFAULT, IDartColorConstants.JAVA_KEYWORD_RETURN,
       IDartColorConstants.JAVA_OPERATOR, IDartColorConstants.JAVA_BRACKET, ANNOTATION_COLOR_KEY,};
 
+  private boolean useSyntaxticHighlighter;
+
   /**
    * Creates a Dart code scanner
    * 
@@ -281,7 +288,15 @@ public final class DartCodeScanner extends AbstractDartScanner {
    * @param store the preference store
    */
   public DartCodeScanner(IColorManager manager, IPreferenceStore store) {
+    this(manager, store, !DartUiDebug.USE_ONLY_SEMANTIC_HIGHLIGHTER);
+  }
+
+  public DartCodeScanner(IColorManager manager, IPreferenceStore store,
+      boolean useSyntaxticHighlighter) {
     super(manager, store);
+
+    this.useSyntaxticHighlighter = useSyntaxticHighlighter;
+
     initialize();
   }
 
@@ -299,12 +314,11 @@ public final class DartCodeScanner extends AbstractDartScanner {
 
   @Override
   protected List<IRule> createRules() {
-
     List<IRule> rules = new ArrayList<IRule>();
     Token token;
 
     // Add rule for character constants.
-    if (!DartUiDebug.USE_ONLY_SEMANTIC_HIGHLIGHTER) {
+    if (useSyntaxticHighlighter) {
       token = getToken(IDartColorConstants.JAVA_STRING);
       rules.add(new SingleLineRule("'", "'", token, '\\')); //$NON-NLS-2$ //$NON-NLS-1$
     }
@@ -326,7 +340,7 @@ public final class DartCodeScanner extends AbstractDartScanner {
     rules.add(new BracketRule(token));
 
     // Add word rule for keyword 'return'.
-    if (!DartUiDebug.USE_ONLY_SEMANTIC_HIGHLIGHTER) {
+    if (useSyntaxticHighlighter) {
       CombinedWordRule.WordMatcher returnWordRule = new CombinedWordRule.WordMatcher();
       token = getToken(IDartColorConstants.JAVA_KEYWORD_RETURN);
       returnWordRule.addWord(RETURN, token);
@@ -339,10 +353,18 @@ public final class DartCodeScanner extends AbstractDartScanner {
     for (int i = 0; i < KEYWORDS.length; i++) {
       wordRule.addWord(KEYWORDS[i], token);
     }
+
+    if (useSyntaxticHighlighter) {
+      for (int i = 0; i < PSEUDO_KEYWORDS.length; i++) {
+        wordRule.addWord(PSEUDO_KEYWORDS[i], token);
+      }
+    }
+
     for (int i = 0; i < fgConstants.length; i++) {
       wordRule.addWord(fgConstants[i], token);
     }
-    if (!DartUiDebug.USE_ONLY_SEMANTIC_HIGHLIGHTER) {
+
+    if (useSyntaxticHighlighter) {
       for (int i = 0; i < DIRECTIVES.length; i++) {
         rules.add(new DirectiveRule(DIRECTIVES[i], token));
       }

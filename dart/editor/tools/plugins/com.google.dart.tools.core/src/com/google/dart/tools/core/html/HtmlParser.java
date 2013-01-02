@@ -14,19 +14,12 @@
 
 package com.google.dart.tools.core.html;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * A parser for html files; it generates as AST tree rooted in the XmlDocument class.
  * 
  * @see XmlDocument
  */
 public class HtmlParser extends XmlParser {
-  private static Set<String> SELF_CLOSING = new HashSet<String>(Arrays.asList(new String[] {
-      "area", "base", "basefont", "br", "col", "frame", "hr", "img", "input", "link", "meta",
-      "param", "!"}));
 
   public HtmlParser(String data) {
     super(data);
@@ -39,7 +32,7 @@ public class HtmlParser extends XmlParser {
 
   @Override
   protected boolean isSelfClosing(String entityName) {
-    return SELF_CLOSING.contains(entityName);
+    return HtmlKeywords.isSelfClosing(entityName);
   }
 
 }

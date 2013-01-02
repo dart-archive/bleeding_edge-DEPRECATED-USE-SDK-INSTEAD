@@ -32,19 +32,24 @@ public class HtmlDocumentProvider extends TextFileDocumentProvider {
   @Override
   protected FileInfo createFileInfo(Object element) throws CoreException {
     FileInfo info = super.createFileInfo(element);
+
     if (info == null) {
       info = createEmptyFileInfo();
     }
+
     IDocument document = info.fTextFileBuffer.getDocument();
+
     if (document != null) {
       IDocumentPartitioner partitioner = new FastPartitioner(
-          new HtmlPartitionScanner(),
+          new HtmlCustomPartitionScanner(),
           new String[] {
-              HtmlEditor.HTML_COMMENT_PARTITION, HtmlEditor.HTML_TEMPLATE_PARTITION,
-              HtmlEditor.HTML_STYLE_PARTITION, HtmlEditor.HTML_CODE_PARTITION});
+              HtmlEditor.HTML_COMMENT_PARTITION, HtmlEditor.HTML_BRACKET_PARTITION,
+              HtmlEditor.HTML_TEMPLATE_PARTITION, HtmlEditor.HTML_STYLE_PARTITION,
+              HtmlEditor.HTML_CODE_PARTITION});
       partitioner.connect(document);
       document.setDocumentPartitioner(partitioner);
     }
+
     return info;
   }
 

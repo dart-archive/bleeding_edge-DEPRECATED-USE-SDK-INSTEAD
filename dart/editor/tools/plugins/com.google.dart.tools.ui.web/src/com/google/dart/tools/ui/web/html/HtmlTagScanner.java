@@ -27,6 +27,9 @@ import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
 import org.eclipse.swt.SWT;
 
+import java.util.ArrayList;
+import java.util.List;
+
 class HtmlTagScanner extends RuleBasedScanner {
 
   public HtmlTagScanner() {
@@ -37,10 +40,10 @@ class HtmlTagScanner extends RuleBasedScanner {
     IToken procInstr = new Token(new TextAttribute(DartWebPlugin.getPlugin().getEditorColor(
         DartWebPlugin.COLOR_ALT_COMMENTS)));
 
-    IRule[] rules = new IRule[5];
+    List<IRule> rules = new ArrayList<IRule>();
 
-    rules[0] = new SingleLineRule("\"", "\"", stringToken, '\\');
-    rules[1] = new SingleLineRule("'", "'", stringToken, '\\');
+    rules.add(new SingleLineRule("\"", "\"", stringToken, '\\'));
+    rules.add(new SingleLineRule("'", "'", stringToken, '\\'));
 
     HtmlWordRule keywordRule = new HtmlWordRule(new WordDetector(), true);
 
@@ -48,12 +51,11 @@ class HtmlTagScanner extends RuleBasedScanner {
       keywordRule.addWord(keyword, keywordToken);
     }
 
-    rules[2] = keywordRule;
+    rules.add(keywordRule);
 
-    rules[3] = new SingleLineRule("<?", "?>", procInstr);
-    rules[4] = new WhitespaceRule(new WhitespaceDetector());
+    rules.add(new SingleLineRule("<?", "?>", procInstr));
+    rules.add(new WhitespaceRule(new WhitespaceDetector()));
 
-    setRules(rules);
+    setRules(rules.toArray(new IRule[rules.size()]));
   }
-
 }

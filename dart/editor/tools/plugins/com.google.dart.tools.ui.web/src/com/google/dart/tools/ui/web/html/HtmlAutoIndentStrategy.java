@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.ui.web.html;
 
+import com.google.dart.tools.core.html.HtmlKeywords;
 import com.google.dart.tools.ui.web.utils.WebEditorAutoIndentStrategy;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -24,7 +25,7 @@ import org.eclipse.jface.text.IRegion;
 /**
  * An indent strategy for html.
  */
-public class HtmlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
+class HtmlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
 
   public HtmlAutoIndentStrategy() {
 
@@ -55,15 +56,51 @@ public class HtmlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
         buf.append(document.get(start, end - start));
       }
 
-      // Indent after a >+eol, but not if we're closing an element tag.
-      if (endsInBracket && !(startStr.contains("</") || startStr.contains("/>"))
-          && !(startStr.toLowerCase().endsWith("<p>"))) {
-        buf.append("  ");
+      if (endsInBracket) {
+        // handle self-closing tags
+        String startTagName = getStartTagName(startStr);
+
+        boolean selfClosing = (startTagName != null && HtmlKeywords.isSelfClosing(startTagName.toLowerCase()));
+
+        if (!selfClosing) {
+          if (startStr.indexOf('<') != -1) {
+            startStr = startStr.substring(startStr.lastIndexOf('<'));
+          }
+
+          // Indent after an ">", but not if we're closing an element tag.
+          if (!(startStr.startsWith("</") || startStr.endsWith("/>"))) {
+            buf.append("  ");
+          }
+        }
       }
 
       command.text = buf.toString();
     } catch (BadLocationException excp) {
-      // stop work
+
+    }
+  }
+
+  private String getStartTagName(String line) {
+    String tag = line;
+
+    if (tag.indexOf('<') != -1) {
+      tag = tag.substring(tag.lastIndexOf('<'));
+    }
+
+    if (tag.startsWith("<")) {
+      StringBuilder builder = new StringBuilder();
+
+      for (int i = 1; i < tag.length(); i++) {
+        if (!Character.isJavaIdentifierPart(tag.charAt(i))) {
+          return builder.toString();
+        } else {
+          builder.append(tag.charAt(i));
+        }
+      }
+
+      return builder.toString();
+    } else {
+      return null;
     }
   }
 

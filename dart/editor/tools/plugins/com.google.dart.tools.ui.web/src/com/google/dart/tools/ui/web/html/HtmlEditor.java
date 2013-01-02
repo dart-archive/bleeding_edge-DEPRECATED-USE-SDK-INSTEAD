@@ -27,6 +27,7 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
  */
 public class HtmlEditor extends WebEditor {
   public final static String HTML_COMMENT_PARTITION = "__html_comment";
+  public final static String HTML_BRACKET_PARTITION = "__html_bracket";
   public final static String HTML_TEMPLATE_PARTITION = "__template";
   public final static String HTML_STYLE_PARTITION = "__css_style";
   public final static String HTML_CODE_PARTITION = "__code";
@@ -61,15 +62,7 @@ public class HtmlEditor extends WebEditor {
   }
 
   public void selectAndReveal(XmlNode node) {
-    if (node.getEndToken() != null) {
-      int length = node.getEndToken().getLocation() - node.getStartToken().getLocation();
-
-      length += node.getEndToken().getValue().length();
-
-      selectAndReveal(node.getStartToken().getLocation(), length);
-    } else {
-      selectAndReveal(node.getStartToken().getLocation(), 0);
-    }
+    selectAndReveal(node.getStartOffset(), node.getEndOffset() - node.getStartOffset());
   }
 
   protected XmlDocument getModel() {

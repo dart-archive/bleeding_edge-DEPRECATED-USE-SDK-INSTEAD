@@ -109,9 +109,14 @@ public class HtmlBuildParticipant implements BuildParticipant, BuildVisitor {
         if (!validAttributes.isEmpty()) {
           for (XmlAttribute attribute : node.getAttributes()) {
             String name = attribute.getName();
-            
+
             // A common pattern with data-binding frameworks.
             if (name.startsWith("ng-")) {
+              continue;
+            }
+
+            // A data attribute.
+            if (name.startsWith("data-")) {
               continue;
             }
 

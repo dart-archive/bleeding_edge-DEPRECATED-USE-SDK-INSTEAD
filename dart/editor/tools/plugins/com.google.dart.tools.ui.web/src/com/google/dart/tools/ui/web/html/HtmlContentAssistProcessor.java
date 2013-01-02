@@ -14,6 +14,12 @@
 package com.google.dart.tools.ui.web.html;
 
 import com.google.dart.tools.core.html.HtmlKeywords;
+import com.google.dart.tools.core.html.XmlAttribute;
+import com.google.dart.tools.core.html.XmlDocument;
+import com.google.dart.tools.core.html.XmlElement;
+import com.google.dart.tools.core.html.XmlNode;
+import com.google.dart.tools.ui.web.DartWebPlugin;
+import com.google.dart.tools.ui.web.utils.WordDetector;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -24,33 +30,70 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
+import org.eclipse.jface.text.rules.IWordDetector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class HtmlContentAssistProcessor implements IContentAssistProcessor {
+  private HtmlEditor editor;
 
-  public HtmlContentAssistProcessor() {
-
+  public HtmlContentAssistProcessor(HtmlEditor editor) {
+    this.editor = editor;
   }
 
   @Override
   public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
-    String prefix = getValidPrefix(viewer, offset);
+    IDocument document = viewer.getDocument();
 
-    if (prefix == null) {
-      return null;
-    }
+    String strPrefix = getStrPrefix(document, offset, new WordDetector());
+    String bracketStart = getBracketStart(document, offset);
+
+    XmlDocument ast = editor.getModel();
+    XmlNode node = ast.getNodeFor(offset);
+
+    // 1. entity name in start node
+    // 2. end node
+    // 3. attribute name
+    // 4. attribute value
+
+    // Check for 1 and 2. If in attribute, check for 4. Default to 3.
+
+    Pattern p = Pattern.compile("(<|</)\\s*\\w*");
+    Matcher m = p.matcher(bracketStart);
 
     List<ICompletionProposal> completions = new ArrayList<ICompletionProposal>();
 
-    for (String keyword : HtmlKeywords.getKeywords()) {
-      if (keyword.startsWith(prefix)) {
-        completions.add(new CompletionProposal(
-            keyword,
-            offset - prefix.length(),
-            prefix.length(),
-            keyword.length()));
+    if (m.lookingAt() && m.end() == bracketStart.length()) {
+      doEntityCompletion(strPrefix, offset, completions);
+    } else if (node == null) {
+      doEntityCompletion(strPrefix, offset, completions);
+    } else if (node instanceof XmlElement) {
+      XmlElement element = (XmlElement) node;
+      XmlAttribute attribute = null;
+
+      for (XmlAttribute attr : element.getAttributes()) {
+        if (attr.getStartOffset() <= offset && attr.getEndOffset() >= offset) {
+          attribute = attr;
+          break;
+        }
+      }
+
+      if (attribute == null) {
+        doAttributeNameCompletion(element, strPrefix, offset, completions);
+      } else {
+        String attrValue = getContents(
+            document,
+            attribute.getStartOffset(),
+            offset - attribute.getStartOffset());
+
+        if (attrValue.indexOf('=') == -1) {
+          doAttributeNameCompletion(element, strPrefix, offset, completions);
+        } else {
+          doAttributeValueCompletion(element, strPrefix, offset, completions);
+        }
       }
     }
 
@@ -82,31 +125,106 @@ class HtmlContentAssistProcessor implements IContentAssistProcessor {
     return null;
   }
 
-  private String getValidPrefix(ITextViewer viewer, int offset) {
+  protected void doAttributeNameCompletion(XmlElement element, String strPrefix, int offset,
+      List<ICompletionProposal> completions) {
+    List<String> attrNames = HtmlKeywords.getAttributes(element.getLabel());
+
+    for (String attrName : attrNames) {
+      if (attrName.startsWith(strPrefix)) {
+        // add foo=""
+        String insertString = attrName + "=\"\"";
+
+        completions.add(new CompletionProposal(
+            insertString,
+            offset - strPrefix.length(),
+            strPrefix.length(),
+            insertString.length() - 1,
+            DartWebPlugin.getImage("protected_co.gif"),
+            attrName,
+            null,
+            null));
+      }
+    }
+  }
+
+  protected void doAttributeValueCompletion(XmlElement element, String strPrefix, int offset,
+      List<ICompletionProposal> completions) {
+    // TODO(devoncarew):
+
+  }
+
+  protected void doEntityCompletion(String strPrefix, int offset,
+      List<ICompletionProposal> completions) {
+    for (String keyword : HtmlKeywords.getKeywords()) {
+      if (keyword.startsWith(strPrefix)) {
+        completions.add(new CompletionProposal(
+            keyword,
+            offset - strPrefix.length(),
+            strPrefix.length(),
+            keyword.length(),
+            DartWebPlugin.getImage("xml_node.gif"),
+            null,
+            null,
+            null));
+      }
+    }
+  }
+
+  private String getBracketStart(IDocument document, int offset) {
     try {
-      IDocument doc = viewer.getDocument();
+      IRegion lineInfo = document.getLineInformationOfOffset(offset);
 
-      IRegion lineInfo = doc.getLineInformationOfOffset(offset);
-
-      String line = doc.get(lineInfo.getOffset(), offset - lineInfo.getOffset());
+      String line = document.get(lineInfo.getOffset(), offset - lineInfo.getOffset());
 
       StringBuilder prefix = new StringBuilder();
 
       for (int i = line.length() - 1; i >= 0; i--) {
         char c = line.charAt(i);
 
-        if (c == '<' || c == '/') {
-          return prefix.toString();
-        } else if (Character.isJavaIdentifierPart(c)) {
+        if (c == '<') {
           prefix.insert(0, c);
+          return prefix.toString();
         } else {
-          return null;
+          prefix.insert(0, c);
         }
       }
 
-      return null;
+      return "";
+    } catch (BadLocationException ex) {
+      return "";
+    }
+  }
+
+  private String getContents(IDocument document, int offset, int length) {
+    try {
+      return document.get(offset, length);
+    } catch (BadLocationException e) {
+      return "";
+    }
+  }
+
+  private String getStrPrefix(IDocument document, int offset, IWordDetector wordDetector) {
+    try {
+      IRegion lineInfo = document.getLineInformationOfOffset(offset);
+
+      String line = document.get(lineInfo.getOffset(), offset - lineInfo.getOffset());
+
+      StringBuilder prefix = new StringBuilder();
+
+      for (int i = line.length() - 1; i >= 0; i--) {
+        char c = line.charAt(i);
+
+        if (!wordDetector.isWordStart(c)) {
+          return prefix.toString();
+        } else {
+          prefix.insert(0, c);
+        }
+      }
+
+      return prefix.toString();
     } catch (BadLocationException ex) {
       return null;
     }
   }
+
 }

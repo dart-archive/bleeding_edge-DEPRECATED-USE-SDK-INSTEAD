@@ -108,9 +108,9 @@ public class XmlParser {
 
     element.setStart(startToken);
 
-    readAttributes(element);
+    Token lastReadToken = readAttributes(element);
 
-    Token endToken = null;
+    Token endToken = (lastReadToken == null ? tagName : lastReadToken);
     boolean autoClosed = false;
 
     while (tokenizer.hasNext()) {
@@ -187,6 +187,16 @@ public class XmlParser {
     }
   }
 
+  private boolean peekComments() {
+    Token token = tokenizer.peek();
+
+    if (token != null && token.getValue().startsWith("<!--")) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   private void popTag(XmlNode endNode) {
     String label = endNode.getLabel();
 
@@ -217,17 +227,21 @@ public class XmlParser {
     stack.push(tag);
   }
 
-  private void readAttributes(XmlElement element) {
+  private Token readAttributes(XmlElement element) {
+    Token last = null;
+
     while (true) {
-      if (peek(">") || peek("/>") || peek("<")) {
-        return;
+      if (peek(">") || peek("/>") || peek("<") || peekComments()) {
+        return last;
       } else {
         // foo=foo
         Token token = tokenizer.next();
 
         if (token == null) {
-          return;
+          return last;
         }
+
+        last = token;
 
         XmlAttribute attribute = new XmlAttribute(token.getValue());
         attribute.setStart(token);

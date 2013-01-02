@@ -78,8 +78,10 @@ public class XmlNode {
   public int getEndOffset() {
     if (endToken != null) {
       return endToken.getLocation() + endToken.getValue().length();
-    } else {
+    } else if (startToken != null) {
       return startToken.getLocation() + startToken.getValue().length();
+    } else {
+      return -1;
     }
   }
 
@@ -99,12 +101,28 @@ public class XmlNode {
     return label;
   }
 
+  public XmlNode getNodeFor(int offset) {
+    if (getStartOffset() <= offset && offset <= getEndOffset()) {
+      return this;
+    }
+
+    for (int i = 0; i < children.size(); i++) {
+      XmlNode node = children.get(i).getNodeFor(offset);
+
+      if (node != null) {
+        return node;
+      }
+    }
+
+    return null;
+  }
+
   public XmlNode getParent() {
     return parent;
   }
 
   public int getStartOffset() {
-    return startToken.getLocation();
+    return startToken == null ? -1 : startToken.getLocation();
   }
 
   public Token getStartToken() {

@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.web.html;
 
+import com.google.dart.tools.ui.internal.text.functions.DartColorManager;
+import com.google.dart.tools.ui.text.DartIndiscriminateDamager;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 import com.google.dart.tools.ui.web.css.CssContentAssistProcessor;
 import com.google.dart.tools.ui.web.css.CssScanner;
@@ -23,6 +25,8 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
+import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
+import org.eclipse.jface.text.hyperlink.URLHyperlinkDetector;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.reconciler.IReconciler;
@@ -34,6 +38,7 @@ import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
+import org.eclipse.ui.texteditor.HippieProposalProcessor;
 
 /**
  * The SourceViewerConfiguration for the html editor.
@@ -56,7 +61,8 @@ public class HtmlSourceViewerConfiguration extends TextSourceViewerConfiguration
 
   @Override
   public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
-    if (IDocument.DEFAULT_CONTENT_TYPE.equals(contentType)) {
+    if (IDocument.DEFAULT_CONTENT_TYPE.equals(contentType)
+        || HtmlEditor.HTML_BRACKET_PARTITION.equals(contentType)) {
       return new IAutoEditStrategy[] {new HtmlAutoIndentStrategy()};
     } else {
       return super.getAutoEditStrategies(sourceViewer, contentType);
@@ -67,8 +73,8 @@ public class HtmlSourceViewerConfiguration extends TextSourceViewerConfiguration
   public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
     return new String[] {
         IDocument.DEFAULT_CONTENT_TYPE, HtmlEditor.HTML_COMMENT_PARTITION,
-        HtmlEditor.HTML_STYLE_PARTITION, HtmlEditor.HTML_CODE_PARTITION,
-        HtmlEditor.HTML_TEMPLATE_PARTITION};
+        HtmlEditor.HTML_BRACKET_PARTITION, HtmlEditor.HTML_STYLE_PARTITION,
+        HtmlEditor.HTML_CODE_PARTITION, HtmlEditor.HTML_TEMPLATE_PARTITION};
   }
 
   @Override
@@ -77,22 +83,37 @@ public class HtmlSourceViewerConfiguration extends TextSourceViewerConfiguration
 
     assistant.enableAutoActivation(true);
 
-    assistant.setContentAssistProcessor(
-        new HtmlContentAssistProcessor(),
-        IDocument.DEFAULT_CONTENT_TYPE);
+    HtmlContentAssistProcessor htmlContentAssist = new HtmlContentAssistProcessor(editor);
+
+    assistant.setContentAssistProcessor(htmlContentAssist, IDocument.DEFAULT_CONTENT_TYPE);
+
+    assistant.setContentAssistProcessor(htmlContentAssist, HtmlEditor.HTML_BRACKET_PARTITION);
+
     assistant.setContentAssistProcessor(
         new CssContentAssistProcessor(),
         HtmlEditor.HTML_STYLE_PARTITION);
+
     // TODO: add support for template {{ }} content assist
-//  assistant.setContentAssistProcessor(
-//      template assist processor,
-//      HtmlEditor.HTML_TEMPLATE_PARTITION);
+    assistant.setContentAssistProcessor(
+        new HippieProposalProcessor(),
+        HtmlEditor.HTML_TEMPLATE_PARTITION);
+
     // TODO: add support for Dart content assist
-//    assistant.setContentAssistProcessor(
-//        dart content assist processor,
-//        HtmlEditor.HTML_CODE_PARTITION);
+//    assistant.setContentAssistProcessor(new DartCompletionProcessor(
+//        editor,
+//        assistant,
+//        IDocument.DEFAULT_CONTENT_TYPE), HtmlEditor.HTML_CODE_PARTITION);
 
     return assistant;
+  }
+
+  @Override
+  public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
+    if (sourceViewer == null) {
+      return null;
+    }
+
+    return new IHyperlinkDetector[] {new URLHyperlinkDetector(), new HtmlHyperlinkDetector(editor)};
   }
 
   @Override
@@ -100,11 +121,11 @@ public class HtmlSourceViewerConfiguration extends TextSourceViewerConfiguration
     PresentationReconciler reconciler = new PresentationReconciler();
 
     DefaultDamagerRepairer dr = new DefaultDamagerRepairer(getHtmlScanner());
-    reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
-    reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
+    reconciler.setDamager(dr, HtmlEditor.HTML_BRACKET_PARTITION);
+    reconciler.setRepairer(dr, HtmlEditor.HTML_BRACKET_PARTITION);
 
     DefaultDamagerRepairer cssDR = new DefaultDamagerRepairer(getCssScanner());
-    reconciler.setDamager(cssDR, HtmlEditor.HTML_STYLE_PARTITION);
+    reconciler.setDamager(new DartIndiscriminateDamager(), HtmlEditor.HTML_STYLE_PARTITION);
     reconciler.setRepairer(cssDR, HtmlEditor.HTML_STYLE_PARTITION);
 
     DefaultDamagerRepairer templateDR = new DefaultDamagerRepairer(getTemplateScanner());
@@ -112,7 +133,7 @@ public class HtmlSourceViewerConfiguration extends TextSourceViewerConfiguration
     reconciler.setRepairer(templateDR, HtmlEditor.HTML_TEMPLATE_PARTITION);
 
     DefaultDamagerRepairer codeDR = new DefaultDamagerRepairer(getCodeScanner());
-    reconciler.setDamager(codeDR, HtmlEditor.HTML_CODE_PARTITION);
+    reconciler.setDamager(new DartIndiscriminateDamager(), HtmlEditor.HTML_CODE_PARTITION);
     reconciler.setRepairer(codeDR, HtmlEditor.HTML_CODE_PARTITION);
 
     HtmlDamagerRepairer ndr = new HtmlDamagerRepairer(new TextAttribute(
@@ -146,18 +167,9 @@ public class HtmlSourceViewerConfiguration extends TextSourceViewerConfiguration
 
   protected RuleBasedScanner getCodeScanner() {
     if (codeScanner == null) {
-      // TODO(devoncarew): this RuleBasedScanner is just a place-holder until we can delegate
-      // through to the DartCodeScanner class.
-      codeScanner = new RuleBasedScanner();
-      IToken codeToken = new Token(new TextAttribute(DartWebPlugin.getPlugin().getEditorColor(
-          DartWebPlugin.COLOR_STATIC_FIELD)));
-      codeScanner.setDefaultReturnToken(codeToken);
-
-      // TODO: this needs to also handle comments and semantic highlighting
-      // TODO: look at FastDartPartitionScanner
-      // We'll need the ability to have several different types of Dart partitions
+      // TODO: We'll need the ability to have several different types of Dart partitions
       // inside html files.
-      //  codeScanner = new DartCodeScanner(new DartColorManager(), editor.getPreferences());
+      codeScanner = new HtmlDartScanner(new DartColorManager(), editor.getPreferences());
     }
 
     return codeScanner;

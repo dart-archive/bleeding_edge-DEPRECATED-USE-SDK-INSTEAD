@@ -22,30 +22,35 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A comprehensive list of html keywords and attributes. This class reads its content from the
  * html.txt file.
  */
 public class HtmlKeywords {
-
   private static List<String> globalAttributes;
   private static List<String> eventAttributes;
 
   private static List<String> keywords;
   private static Map<String, List<String>> attributeMap;
 
+  private static Set<String> SELF_CLOSING = new HashSet<String>(Arrays.asList(new String[] {
+      "area", "base", "basefont", "br", "col", "frame", "hr", "img", "input", "link", "meta",
+      "param", "!", "h1", "h2", "h3", "h4", "h5", "h6"}));
+
   static {
     init();
   }
 
-  public static List<String> getAttributes(String keyword) {
-    if (attributeMap.containsKey(keyword)) {
+  public static List<String> getAttributes(String entityName) {
+    if (attributeMap.containsKey(entityName)) {
       List<String> atts = new ArrayList<String>();
 
-      atts.addAll(attributeMap.get(keyword));
+      atts.addAll(attributeMap.get(entityName));
       atts.addAll(globalAttributes);
 
       return atts;
@@ -60,6 +65,10 @@ public class HtmlKeywords {
 
   public static List<String> getKeywords() {
     return keywords;
+  }
+
+  public static boolean isSelfClosing(String entityName) {
+    return SELF_CLOSING.contains(entityName);
   }
 
   public static boolean isValidEventAttribute(String name) {
