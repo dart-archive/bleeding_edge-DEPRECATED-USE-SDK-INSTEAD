@@ -20,6 +20,24 @@ public class LineInfoTest extends TestCase {
     assertNotNull(new LineInfo(new int[] {0}));
   }
 
+  public void test_creation_empty() {
+    try {
+      new LineInfo(new int[] {});
+      fail("Expected IllegalArgumentException");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
+  public void test_creation_null() {
+    try {
+      new LineInfo(null);
+      fail("Expected IllegalArgumentException");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
   public void test_firstLine() {
     LineInfo info = new LineInfo(new int[] {0, 12, 34});
     LineInfo.Location location = info.getLocation(4);

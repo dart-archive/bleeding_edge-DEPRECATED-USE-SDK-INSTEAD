@@ -249,7 +249,6 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
     try {
       SimpleIdentifier functionName = node.getName();
       enclosingFunction = (ExecutableElement) functionName.getElement();
-      recordResolution(functionName, enclosingFunction);
       node.visitChildren(this);
     } finally {
       enclosingFunction = outerFunction;
@@ -261,9 +260,7 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
   public Void visitFunctionExpression(FunctionExpression node) {
     ExecutableElement outerFunction = enclosingFunction;
     try {
-      SimpleIdentifier functionName = null;
       enclosingFunction = (ExecutableElement) node.getElement();
-      recordResolution(functionName, enclosingFunction);
       node.visitChildren(this);
     } finally {
       enclosingFunction = outerFunction;
@@ -317,7 +314,6 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
   public Void visitMethodDeclaration(MethodDeclaration node) {
     Identifier methodName = node.getName();
     Element element = methodName.getElement();
-    recordResolution(methodName, element);
     if (!(element instanceof ExecutableElement)) {
       // Internal error.
     }
@@ -441,7 +437,6 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
       for (Label label : member.getLabels()) {
         SimpleIdentifier labelName = label.getLabel();
         LabelElement labelElement = (LabelElement) labelName.getElement();
-        recordResolution(labelName, labelElement);
         labelScope = new LabelScope(outerScope, labelName.getName(), labelElement);
       }
     }
@@ -477,7 +472,6 @@ public class ResolverVisitor extends RecursiveASTVisitor<Void> {
       SimpleIdentifier labelNameNode = label.getLabel();
       String labelName = labelNameNode.getName();
       LabelElement labelElement = (LabelElement) labelNameNode.getElement();
-      recordResolution(labelNameNode, labelElement);
       labelScope = new LabelScope(labelScope, labelName, labelElement);
     }
     return outerScope;

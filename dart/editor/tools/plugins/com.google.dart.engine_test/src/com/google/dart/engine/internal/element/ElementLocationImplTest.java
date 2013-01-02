@@ -13,11 +13,51 @@
  */
 package com.google.dart.engine.internal.element;
 
-import junit.framework.TestCase;
+import com.google.dart.engine.EngineTestCase;
 
-public class ElementLocationImplTest extends TestCase {
+public class ElementLocationImplTest extends EngineTestCase {
   public void test_create_encoding() {
     String encoding = "a;b;c";
+    ElementLocationImpl location = new ElementLocationImpl(encoding);
+    assertEquals(encoding, location.getEncoding());
+  }
+
+  public void test_equals_equal() {
+    String encoding = "a;b;c";
+    ElementLocationImpl first = new ElementLocationImpl(encoding);
+    ElementLocationImpl second = new ElementLocationImpl(encoding);
+    assertTrue(first.equals(second));
+  }
+
+  public void test_equals_notEqual_differentLengths() {
+    ElementLocationImpl first = new ElementLocationImpl("a;b;c");
+    ElementLocationImpl second = new ElementLocationImpl("a;b;c;d");
+    assertFalse(first.equals(second));
+  }
+
+  public void test_equals_notEqual_notLocation() {
+    ElementLocationImpl first = new ElementLocationImpl("a;b;c");
+    assertFalse(first.equals("a;b;d"));
+  }
+
+  public void test_equals_notEqual_sameLengths() {
+    ElementLocationImpl first = new ElementLocationImpl("a;b;c");
+    ElementLocationImpl second = new ElementLocationImpl("a;b;d");
+    assertFalse(first.equals(second));
+  }
+
+  public void test_getComponents() {
+    String encoding = "a;b;c";
+    ElementLocationImpl location = new ElementLocationImpl(encoding);
+    String[] components = location.getComponents();
+    assertLength(3, components);
+    assertEquals("a", components[0]);
+    assertEquals("b", components[1]);
+    assertEquals("c", components[2]);
+  }
+
+  public void test_getEncoding() {
+    String encoding = "a;b;c;;d";
     ElementLocationImpl location = new ElementLocationImpl(encoding);
     assertEquals(encoding, location.getEncoding());
   }

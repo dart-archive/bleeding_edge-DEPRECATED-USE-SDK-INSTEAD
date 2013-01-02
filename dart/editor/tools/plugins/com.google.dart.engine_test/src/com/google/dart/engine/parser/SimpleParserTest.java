@@ -85,7 +85,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_computeStringValue_escape_u_fixed() throws Exception {
-    assertEquals("\u1234", computeStringValue("'\\u1234'"));
+    assertEquals("\u4321", computeStringValue("'\\u4321'"));
   }
 
   public void test_computeStringValue_escape_u_variable() throws Exception {
@@ -861,6 +861,18 @@ public class SimpleParserTest extends ParserTestCase {
     assertSize(1, variables);
     VariableDeclaration variable = variables.get(0);
     assertNotNull(variable.getName());
+  }
+
+  public void test_parseClassMember_getter_void() throws Exception {
+    MethodDeclaration method = parse("parseClassMember", new Object[] {"C"}, "void get g {}");
+    assertNull(method.getDocumentationComment());
+    assertNull(method.getExternalKeyword());
+    assertNull(method.getModifierKeyword());
+    assertNotNull(method.getPropertyKeyword());
+    assertNotNull(method.getReturnType());
+    assertNotNull(method.getName());
+    assertNull(method.getOperatorKeyword());
+    assertNotNull(method.getBody());
   }
 
   public void test_parseClassMember_method_external() throws Exception {
@@ -3548,12 +3560,12 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseStatements_multiple() throws Exception {
-    List<Statement> statements = parse("parseStatements", "return; return;");
+    List<Statement> statements = parseStatements("return; return;", 2);
     assertSize(2, statements);
   }
 
   public void test_parseStatements_single() throws Exception {
-    List<Statement> statements = parse("parseStatements", "return;");
+    List<Statement> statements = parseStatements("return;", 1);
     assertSize(1, statements);
   }
 
@@ -3866,6 +3878,18 @@ public class SimpleParserTest extends ParserTestCase {
     TypeArgumentList argumentList = parse("parseTypeArgumentList", "<int, int, int>");
     assertNotNull(argumentList.getLeftBracket());
     assertSize(3, argumentList.getArguments());
+    assertNotNull(argumentList.getRightBracket());
+  }
+
+  public void test_parseTypeArgumentList_nested() throws Exception {
+    TypeArgumentList argumentList = parse("parseTypeArgumentList", "<A<B>>");
+    assertNotNull(argumentList.getLeftBracket());
+    assertSize(1, argumentList.getArguments());
+    TypeName argument = argumentList.getArguments().get(0);
+    assertNotNull(argument);
+    TypeArgumentList innerList = argument.getTypeArguments();
+    assertNotNull(innerList);
+    assertSize(1, innerList.getArguments());
     assertNotNull(argumentList.getRightBracket());
   }
 

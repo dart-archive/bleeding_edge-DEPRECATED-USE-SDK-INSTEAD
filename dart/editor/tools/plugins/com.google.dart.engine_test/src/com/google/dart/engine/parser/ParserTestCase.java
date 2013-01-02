@@ -32,6 +32,7 @@ import junit.framework.AssertionFailedError;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ParserTestCase extends EngineTestCase {
   /**
@@ -190,6 +191,30 @@ public class ParserTestCase extends EngineTestCase {
     assertNotNull(statement);
     listener.assertErrors(errorCodes);
     return (E) statement;
+  }
+
+  /**
+   * Parse the given source as a sequence of statements.
+   * 
+   * @param source the source to be parsed
+   * @param expectedCount the number of statements that are expected
+   * @param errorCodes the error codes of the errors that are expected to be found
+   * @return the statements that were parsed
+   * @throws Exception if the source could not be parsed, if the number of statements does not match
+   *           the expected count, if the compilation errors in the source do not match those that
+   *           are expected, or if the result would have been {@code null}
+   */
+  public static List<Statement> parseStatements(String source, int expectedCount,
+      ErrorCode... errorCodes) throws Exception {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    StringScanner scanner = new StringScanner(null, source, listener);
+    listener.setLineInfo(new TestSource(), scanner.getLineStarts());
+    Token token = scanner.tokenize();
+    Parser parser = new Parser(null, listener);
+    List<Statement> statements = parser.parseStatements(token);
+    assertSize(expectedCount, statements);
+    listener.assertErrors(errorCodes);
+    return statements;
   }
 
   /**

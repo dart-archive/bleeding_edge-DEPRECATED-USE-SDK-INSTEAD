@@ -15,6 +15,7 @@ package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.BinaryExpression;
+import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
@@ -96,6 +97,12 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (!node.getOperator().isUserDefinableOperator()) {
       return null;
     }
+    return checkResolved(node, node.getElement());
+  }
+
+  @Override
+  public Void visitExportDirective(ExportDirective node) {
+    // Not sure how to test the combinators given that it isn't an error if the names are not defined.
     return checkResolved(node, node.getElement());
   }
 

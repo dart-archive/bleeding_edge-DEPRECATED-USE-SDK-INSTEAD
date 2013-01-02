@@ -115,16 +115,6 @@ public abstract class ElementImpl implements Element {
     return enclosingElement;
   }
 
-  /**
-   * Return an identifier that uniquely identifies this element among the children of this element's
-   * parent.
-   * 
-   * @return an identifier that uniquely identifies this element relative to its parent
-   */
-  public String getIdentifier() {
-    return getName();
-  }
-
   @Override
   public LibraryElement getLibrary() {
     return getAncestor(LibraryElement.class);
@@ -176,6 +166,16 @@ public abstract class ElementImpl implements Element {
    */
   public void setSynthetic(boolean isSynthetic) {
     setModifier(Modifier.SYNTHETIC, isSynthetic);
+  }
+
+  /**
+   * Return an identifier that uniquely identifies this element among the children of this element's
+   * parent.
+   * 
+   * @return an identifier that uniquely identifies this element relative to its parent
+   */
+  protected String getIdentifier() {
+    return getName();
   }
 
   /**
