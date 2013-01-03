@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.pub;
 
-
 /**
  * Object representing a dependency package
  */
@@ -29,6 +28,52 @@ public class DependencyObject {
 
   public DependencyObject(String name) {
     this.name = name;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    DependencyObject other = (DependencyObject) obj;
+    if (isGit != other.isGit) {
+      return false;
+    }
+    if (name == null) {
+      if (other.name != null) {
+        return false;
+      }
+    } else if (!name.equals(other.name)) {
+      return false;
+    }
+    if (path == null) {
+      if (other.path != null) {
+        return false;
+      }
+    } else if (!path.equals(other.path)) {
+      return false;
+    }
+    if (ref == null) {
+      if (other.ref != null) {
+        return false;
+      }
+    } else if (!ref.equals(other.ref)) {
+      return false;
+    }
+    if (version == null) {
+      if (other.version != null) {
+        return false;
+      }
+    } else if (!version.equals(other.version)) {
+      return false;
+    }
+    return true;
   }
 
   public String getGitRef() {
@@ -49,6 +94,18 @@ public class DependencyObject {
 
   public String getVersion() {
     return version;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + (isGit ? 1231 : 1237);
+    result = prime * result + ((name == null) ? 0 : name.hashCode());
+    result = prime * result + ((path == null) ? 0 : path.hashCode());
+    result = prime * result + ((ref == null) ? 0 : ref.hashCode());
+    result = prime * result + ((version == null) ? 0 : version.hashCode());
+    return result;
   }
 
   public boolean isGitDependency() {
@@ -83,4 +140,5 @@ public class DependencyObject {
   public String toString() {
     return getName();
   }
+
 }

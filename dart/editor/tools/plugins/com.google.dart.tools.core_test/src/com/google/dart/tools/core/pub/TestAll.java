@@ -21,6 +21,8 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(RunPubJobTest.class);
     suite.addTestSuite(PubBuildParticipantTest.class);
+    suite.addTestSuite(PubspecModelTest.class);
+    suite.addTestSuite(PubYamlUtilsTest.class);
     return suite;
   }
 }
